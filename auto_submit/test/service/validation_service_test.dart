@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto hide PullRequest;
 import 'package:auto_submit/service/process_method.dart';
 import 'package:auto_submit/service/validation_service.dart';
@@ -16,6 +17,7 @@ import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
+import '../configuration/repository_configuration_data.dart';
 import '../requests/github_webhook_test_data.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_approver_service.dart';
@@ -51,6 +53,7 @@ void main() {
     jobsResource = MockJobsResource();
     bigqueryService = FakeBigqueryService(jobsResource);
     config.bigqueryService = bigqueryService;
+    config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfigNoOverride);
 
     when(jobsResource.query(captureAny, any)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(
@@ -67,6 +70,8 @@ void main() {
     );
     githubService.checkRunsData = checkRunsMock;
     githubService.createCommentData = createCommentMock;
+    githubService.isTeamMemberMockMap['author1'] = true;
+    githubService.isTeamMemberMockMap['member'] = true;
     final FakePubSub pubsub = FakePubSub();
     final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
     unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
@@ -93,6 +98,8 @@ void main() {
     );
     githubService.checkRunsData = checkRunsMock;
     githubService.createCommentData = createCommentMock;
+    githubService.isTeamMemberMockMap['author1'] = true;
+    githubService.isTeamMemberMockMap['member'] = true;
     final FakePubSub pubsub = FakePubSub();
     final PullRequest pullRequest = generatePullRequest(
       prNumber: 0,
@@ -134,7 +141,6 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
-        authorAssociation: 'OWNER',
         labelName: 'revert',
         body: 'Reverts flutter/flutter#1234',
       );
@@ -185,7 +191,6 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
-        authorAssociation: 'OWNER',
         labelName: 'revert',
         body: 'Reverts flutter/flutter#1234',
       );
@@ -226,7 +231,6 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
-        authorAssociation: 'OWNER',
         labelName: 'revert',
         mergeable: true,
       );
@@ -270,7 +274,6 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
-        authorAssociation: 'OWNER',
         labelName: 'revert',
         body: 'Reverts flutter/flutter#1234',
       );
@@ -331,7 +334,6 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
-        authorAssociation: 'OWNER',
         labelName: 'revert',
         body: 'Reverts flutter/flutter#1234',
         mergeable: true,
@@ -390,7 +392,6 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
-        authorAssociation: 'OWNER',
         labelName: 'revert',
         body: 'Reverts flutter/flutter#1234',
         mergeable: true,
@@ -454,7 +455,6 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
-        authorAssociation: 'OWNER',
         labelName: 'revert',
         body: 'Reverts flutter/flutter#1234',
         mergeable: true,
@@ -534,7 +534,6 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
-        authorAssociation: 'OWNER',
         labelName: 'revert',
         body: 'Reverts flutter/flutter#1234',
       );
