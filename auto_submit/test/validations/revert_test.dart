@@ -4,12 +4,14 @@
 
 import 'dart:convert';
 
+import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
+import '../configuration/repository_configuration_data.dart';
 import 'revert_test_data.dart';
 
 import 'package:auto_submit/validations/revert.dart';
@@ -31,34 +33,11 @@ void main() {
     githubService = FakeGithubService();
     githubGraphQLClient = FakeGraphQLClient();
     config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient, githubClient: gitHub);
+    config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfigNoOverride);
     revert = Revert(
       config: config,
       retryOptions: const RetryOptions(delayFactor: Duration.zero, maxDelay: Duration.zero, maxAttempts: 1),
     );
-  });
-
-  group('Author validation tests.', () {
-    test('Validate author association member is valid.', () {
-      const String authorAssociation = 'MEMBER';
-      assert(revert.isValidAuthor('octocat', authorAssociation));
-    });
-
-    test('Validate author association owner is valid.', () {
-      const String authorAssociation = 'OWNER';
-      assert(revert.isValidAuthor('octocat', authorAssociation));
-    });
-
-    test('Validate author dependabot is valid.', () {
-      const String author = 'dependabot';
-      const String authorAssociation = 'NON_MEMBER';
-      assert(revert.isValidAuthor(author, authorAssociation));
-    });
-
-    test('Validate autoroller account is valid.', () {
-      const String author = 'engine-flutter-autoroll';
-      const String authorAssociation = 'CONTRIBUTOR';
-      assert(revert.isValidAuthor(author, authorAssociation));
-    });
   });
 
   group('Pattern matching for revert text link', () {
@@ -118,6 +97,8 @@ void main() {
 
   group('Validate Pull Requests.', () {
     test('Validation fails on author validation, returns error.', () async {
+      githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
+      githubService.isTeamMemberMockMap['author1'] = false;
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       revertPullRequest.authorAssociation = 'CONTRIBUTOR';
@@ -132,6 +113,8 @@ void main() {
     });
 
     test('Validation fails on merge conflict flag.', () async {
+      githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
+      githubService.isTeamMemberMockMap['author1'] = true;
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       revertPullRequest.mergeable = false;
@@ -149,6 +132,8 @@ void main() {
     });
 
     test('Validation is postponed on null mergeable value', () async {
+      githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
+      githubService.isTeamMemberMockMap['author1'] = true;
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       revertPullRequest.mergeable = null;
@@ -163,6 +148,8 @@ void main() {
     });
 
     test('Validation fails on malformed reverts link in the pr body.', () async {
+      githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
+      githubService.isTeamMemberMockMap['author1'] = true;
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       revertPullRequest.body = 'Reverting flutter/cocoon#1234';
@@ -180,6 +167,8 @@ void main() {
     });
 
     test('Validation returns on checkRun that has not completed.', () async {
+      githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
+      githubService.isTeamMemberMockMap['author1'] = true;
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       final Map<String, dynamic> queryResultJsonDecode =
@@ -215,6 +204,8 @@ void main() {
     });
 
     test('Validation fails on pull request file lists not matching.', () async {
+      githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
+      githubService.isTeamMemberMockMap['author1'] = true;
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       final Map<String, dynamic> queryResultJsonDecode =
@@ -246,6 +237,8 @@ void main() {
     });
 
     test('Validation is successful.', () async {
+      githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
+      githubService.isTeamMemberMockMap['author1'] = true;
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       final Map<String, dynamic> queryResultJsonDecode =
