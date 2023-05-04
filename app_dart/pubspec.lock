@@ -231,7 +231,7 @@ packages:
       name: gcloud
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.7"
+    version: "0.8.8"
   github:
     dependency: "direct main"
     description:
@@ -252,7 +252,7 @@ packages:
       name: googleapis
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "9.2.0"
+    version: "10.1.0"
   googleapis_auth:
     dependency: "direct main"
     description:
