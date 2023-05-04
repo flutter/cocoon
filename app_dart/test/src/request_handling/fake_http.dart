@@ -453,7 +453,7 @@ abstract class FakeOutbound extends FakeTransport implements IOSink {
   set persistentConnection(bool value) => throw UnsupportedError('Unsupported');
 }
 
-class FakeCookie implements Cookie {
+abstract class FakeCookie implements Cookie {
   FakeCookie({
     required this.name,
     required this.value,
