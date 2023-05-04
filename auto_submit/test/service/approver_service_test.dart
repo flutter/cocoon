@@ -2,12 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:github/github.dart' as gh;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import '../configuration/repository_configuration_data.dart';
 import '../requests/github_webhook_test_data.dart';
 import '../src/service/fake_config.dart';
 import '../utilities/mocks.dart';
@@ -22,6 +24,7 @@ void main() {
   setUp(() {
     github = MockGitHub();
     config = FakeConfig(githubClient: github);
+    config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfigNoOverride);
     service = ApproverService(config);
     pullRequests = MockPullRequestsService();
     when(github.pullRequests).thenReturn(pullRequests);
@@ -99,7 +102,7 @@ void main() {
   });
 
   test('Revert request is not auto approved on bad author association.', () async {
-    final gh.PullRequest pr = generatePullRequest(author: 'not_a_user', authorAssociation: 'CONTRIBUTOR');
+    final gh.PullRequest pr = generatePullRequest(author: 'not_a_user');
 
     final PullRequestHelper flutterRequest = PullRequestHelper(
       prNumber: 0,
