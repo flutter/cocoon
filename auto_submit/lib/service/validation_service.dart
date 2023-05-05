@@ -95,14 +95,14 @@ class ValidationService {
         .map<String>((github.IssueLabel labelMap) => labelMap.name)
         .toList();
 
-    final RepositoryConfiguration repositoryConfiguration =
-        await config.getRepositoryConfiguration(slug);
+    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
     if (currentPullRequest.state == 'open' && labelNames.contains(Config.kRevertLabel)) {
       if (!repositoryConfiguration.supportNoReviewReverts) {
-        log.info('Cannot allow revert request (${slug.fullName}/${pullRequest.number}) without review. Processing as regular pull request.');
+        log.info(
+            'Cannot allow revert request (${slug.fullName}/${pullRequest.number}) without review. Processing as regular pull request.');
         return ProcessMethod.processAutosubmit;
-      } 
+      }
       return ProcessMethod.processRevert;
     } else if (currentPullRequest.state == 'open' && labelNames.contains(Config.kAutosubmitLabel)) {
       return ProcessMethod.processAutosubmit;
