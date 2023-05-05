@@ -27,7 +27,8 @@ abstract class ValidationFilter {
       case ProcessMethod.processRevert:
         return RevertRequestValidationFilter(config, repositoryConfiguration);
       default:
-        return NoOpValidationFilter(config, repositoryConfiguration);
+        // return NoOpValidationFilter(config, repositoryConfiguration);
+        throw 'No such processMethod enum value';
     }
   }
 

@@ -44,15 +44,7 @@ class ValidationService {
 
   /// Processes a pub/sub message associated with PullRequest event.
   Future<void> processMessage(github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
-    final RepositoryConfiguration repositoryConfiguration =
-        await config.getRepositoryConfiguration(messagePullRequest.base!.repo!.slug());
-
-    ProcessMethod processMethod;
-    if (!repositoryConfiguration.supportNoReviewReverts) {
-      processMethod = ProcessMethod.processAutosubmit;
-    } else {
-      processMethod = await processPullRequestMethod(messagePullRequest);
-    }
+    final ProcessMethod processMethod = await processPullRequestMethod(messagePullRequest);
 
     switch (processMethod) {
       case ProcessMethod.processAutosubmit:
@@ -103,7 +95,14 @@ class ValidationService {
         .map<String>((github.IssueLabel labelMap) => labelMap.name)
         .toList();
 
+    final RepositoryConfiguration repositoryConfiguration =
+        await config.getRepositoryConfiguration(slug);
+
     if (currentPullRequest.state == 'open' && labelNames.contains(Config.kRevertLabel)) {
+      if (!repositoryConfiguration.supportNoReviewReverts) {
+        log.info('Cannot allow revert request (${slug.fullName}/${pullRequest.number}) without review. Processing as regular pull request.');
+        return ProcessMethod.processAutosubmit;
+      } 
       return ProcessMethod.processRevert;
     } else if (currentPullRequest.state == 'open' && labelNames.contains(Config.kAutosubmitLabel)) {
       return ProcessMethod.processAutosubmit;
