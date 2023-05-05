@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/exception/bigquery_exception.dart';
 import 'package:auto_submit/model/big_query_pull_request_record.dart';
 import 'package:auto_submit/model/pull_request_change_type.dart';
@@ -13,9 +14,8 @@ import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/graphql_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/service/process_method.dart';
-import 'package:auto_submit/validations/ci_successful.dart';
 import 'package:auto_submit/validations/revert.dart';
-import 'package:auto_submit/validations/unknown_mergeable.dart';
+import 'package:auto_submit/validations/validation_filter.dart';
 import 'package:github/github.dart' as github;
 import 'package:graphql/client.dart' as graphql;
 import 'package:retry/retry.dart';
@@ -23,10 +23,6 @@ import 'package:retry/retry.dart';
 import '../exception/retryable_exception.dart';
 import '../model/auto_submit_query_result.dart';
 import '../request_handling/pubsub.dart';
-import '../validations/approval.dart';
-import '../validations/change_requested.dart';
-import '../validations/conflicting.dart';
-import '../validations/empty_checks.dart';
 import '../validations/validation.dart';
 import 'approver_service.dart';
 
@@ -39,32 +35,11 @@ class ValidationService {
     /// Validates a PR marked with the reverts label.
     revertValidation = Revert(config: config);
     approverService = ApproverService(config);
-
-    validations.addAll({
-      /// Validates the PR has been approved following the codereview guidelines.
-      Approval(config: config),
-
-      /// Validates all the tests ran and where successful.
-      CiSuccessful(config: config),
-
-      /// Validates there are no pending change requests.
-      ChangeRequested(config: config),
-
-      /// Validates that the list of checks is not empty.
-      EmptyChecks(config: config),
-
-      /// Validates the PR state is in a well known state.
-      UnknownMergeable(config: config),
-
-      /// Validates the PR is conflict free.
-      Conflicting(config: config),
-    });
   }
 
   Revert? revertValidation;
   ApproverService? approverService;
   final Config config;
-  final Set<Validation> validations = <Validation>{};
   final RetryOptions retryOptions;
 
   /// Processes a pub/sub message associated with PullRequest event.
@@ -120,7 +95,15 @@ class ValidationService {
         .map<String>((github.IssueLabel labelMap) => labelMap.name)
         .toList();
 
+    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
+
     if (currentPullRequest.state == 'open' && labelNames.contains(Config.kRevertLabel)) {
+      if (!repositoryConfiguration.supportNoReviewReverts) {
+        log.info(
+          'Cannot allow revert request (${slug.fullName}/${pullRequest.number}) without review. Processing as regular pull request.',
+        );
+        return ProcessMethod.processAutosubmit;
+      }
       return ProcessMethod.processRevert;
     } else if (currentPullRequest.state == 'open' && labelNames.contains(Config.kAutosubmitLabel)) {
       return ProcessMethod.processAutosubmit;
@@ -139,13 +122,27 @@ class ValidationService {
     required PubSub pubsub,
   }) async {
     final List<ValidationResult> results = <ValidationResult>[];
+    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
+
+    // filter out validations here
+    final ValidationFilter validationFilter = ValidationFilter(
+      config,
+      ProcessMethod.processAutosubmit,
+      repositoryConfiguration,
+    );
+    final Set<Validation> validations = validationFilter.getValidations();
 
     /// Runs all the validation defined in the service.
+    /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
     for (Validation validation in validations) {
-      final ValidationResult validationResult = await validation.validate(result, messagePullRequest);
+      final ValidationResult validationResult = await validation.validate(
+        result,
+        messagePullRequest,
+      );
       results.add(validationResult);
     }
-    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+
     final GithubService githubService = await config.createGithubService(slug);
 
     /// If there is at least one action that requires to remove label do so and add comments for all the failures.
@@ -204,7 +201,7 @@ class ValidationService {
 
       log.info(message);
     } else {
-      log.info('Pull Request ${slug.fullName}#$prNumber was merged successfully!');
+      log.info('Pull Request ${slug.fullName}/$prNumber was merged successfully!');
       log.info('Attempting to insert a pull request record into the database for $prNumber');
 
       await insertPullRequestRecord(
@@ -227,7 +224,11 @@ class ValidationService {
     required String ackId,
     required PubSub pubsub,
   }) async {
-    final ValidationResult revertValidationResult = await revertValidation!.validate(result, messagePullRequest);
+    // get validations to be run here.
+    final ValidationResult revertValidationResult = await revertValidation!.validate(
+      result,
+      messagePullRequest,
+    );
 
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int prNumber = messagePullRequest.number!;
@@ -243,15 +244,15 @@ class ValidationService {
       );
 
       if (processed.result) {
-        log.info('Revert request ${slug.fullName}#$prNumber was merged successfully.');
-        log.info('Attempting to insert a revert pull request record into the database for pr# $prNumber');
+        log.info('Revert request ${slug.fullName}/$prNumber was merged successfully.');
+        log.info('Insert a revert pull request record into the database for pr ${slug.fullName}/$prNumber');
         await insertPullRequestRecord(
           config: config,
           pullRequest: messagePullRequest,
           pullRequestType: PullRequestChangeType.revert,
         );
       } else {
-        final String message = 'revert label is removed for ${slug.fullName}, pr#: $prNumber, ${processed.message}.';
+        final String message = 'revert label is removed for ${slug.fullName}/$prNumber, ${processed.message}.';
         await removeLabelAndComment(
           githubService: githubService,
           repositorySlug: slug,
@@ -339,13 +340,13 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
 
       final bool merged = result?.merged ?? false;
       if (result != null && !merged) {
-        final String message = 'Failed to merge pr#: $number with ${result?.message}';
+        final String message = 'Failed to merge ${slug.fullName}/$number with ${result?.message}';
         log.severe(message);
         return ProcessMergeResult(false, message);
       }
     } catch (e) {
       // Catch graphql client init exceptions.
-      final String message = 'Failed to merge pr#: $number with ${e.toString()}';
+      final String message = 'Failed to merge ${slug.fullName}/$number with ${e.toString()}';
       log.severe(message);
       return ProcessMergeResult(false, message);
     }
@@ -417,7 +418,7 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
         projectId: Config.flutterGcpProjectId,
         pullRequestRecord: pullRequestRecord,
       );
-      log.info('Record inserted for pull request pr# ${pullRequest.number} successfully.');
+      log.info('Record inserted for pull request ${slug.fullName}/${pullRequest.number} successfully.');
     } on BigQueryException catch (exception) {
       log.severe('Unable to insert pull request record due to: ${exception.toString()}');
     }
