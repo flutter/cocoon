@@ -149,6 +149,7 @@ class Target {
 
       if (iosPlatforms.contains(getPlatform())) {
         mergedProperties['\$flutter/devicelab_osx_sdk'] = xcodeVersion;
+        mergedProperties['\$flutter/osx_sdk'] = xcodeVersion;
       } else {
         mergedProperties['\$flutter/osx_sdk'] = xcodeVersion;
       }

@@ -102,6 +102,9 @@ void main() {
           '\$flutter/devicelab_osx_sdk': <String, Object>{
             'sdk_version': '12abc',
           },
+          '\$flutter/osx_sdk': <String, Object>{
+            'sdk_version': '12abc',
+          },
           'xcode': '12abc',
         });
       });
@@ -148,6 +151,9 @@ void main() {
           '\$flutter/devicelab_osx_sdk': <String, Object>{
             'sdk_version': '12abc',
           },
+          '\$flutter/osx_sdk': <String, Object>{
+            'sdk_version': '12abc',
+          },
           'xcode': '12abc',
         });
       });
@@ -163,6 +169,7 @@ void main() {
           'cleanup_xcode_cache': true,
           'dependencies': <String>[],
           '\$flutter/devicelab_osx_sdk': <String, Object>{'sdk_version': '12abc', 'cleanup_cache': true},
+          '\$flutter/osx_sdk': <String, Object>{'sdk_version': '12abc', 'cleanup_cache': true},
           'bringup': false,
         });
       });
@@ -228,26 +235,24 @@ void main() {
         });
       });
 
-      test('platform properties with xcode and runtime_versions on Mac_ios', () {
+      test('platform properties with xcode on Mac_ios', () {
         final Target target = generateTarget(
           1,
           platform: 'Mac_ios',
           platformProperties: <String, String>{
             'xcode': '12abc',
-            'runtime_versions': '["ios-13-0", "ios-15-0"]',
           },
         );
         expect(target.getProperties(), <String, Object>{
           'bringup': false,
           'dependencies': <String>[],
           '\$flutter/osx_sdk': <String, Object>{
-            'runtime_versions': ['ios-13-0', 'ios-15-0'],
+            'sdk_version': '12abc',
           },
           '\$flutter/devicelab_osx_sdk': <String, Object>{
             'sdk_version': '12abc',
           },
           'xcode': '12abc',
-          'runtime_versions': ['ios-13-0', 'ios-15-0'],
         });
       });
 
