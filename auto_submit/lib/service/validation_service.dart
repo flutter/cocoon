@@ -100,7 +100,8 @@ class ValidationService {
     if (currentPullRequest.state == 'open' && labelNames.contains(Config.kRevertLabel)) {
       if (!repositoryConfiguration.supportNoReviewReverts) {
         log.info(
-            'Cannot allow revert request (${slug.fullName}/${pullRequest.number}) without review. Processing as regular pull request.',);
+          'Cannot allow revert request (${slug.fullName}/${pullRequest.number}) without review. Processing as regular pull request.',
+        );
         return ProcessMethod.processAutosubmit;
       }
       return ProcessMethod.processRevert;
