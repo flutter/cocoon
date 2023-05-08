@@ -353,7 +353,7 @@ class Task extends Model<int> {
       case Result.success:
         return status = statusSucceeded;
       case Result.canceled:
-        return status = statusCancelled;
+        return status = statusInfraFailure;
       case Result.infraFailure:
         return status = statusInfraFailure;
       case Result.failure:
