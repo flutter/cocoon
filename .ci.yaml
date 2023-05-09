@@ -64,6 +64,16 @@ targets:
       - codesign/**
       - .ci.yaml
 
+  - name: Mac codesign
+    recipe: cocoon/cipd
+    properties:
+      script: codesign/tool/build.sh
+      cipd_name: flutter/codesign/mac-arm64
+      device_type: none
+    runIf:
+      - codesign/**
+      - .ci.yaml
+
   - name: Linux ci_yaml roller
     recipe: infra/ci_yaml
     properties:
