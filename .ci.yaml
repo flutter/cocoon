@@ -65,7 +65,6 @@ targets:
       - .ci.yaml
 
   - name: Mac arm_codesign
-    bringup: true
     recipe: cocoon/cipd
     properties:
       script: codesign/tool/build.sh
