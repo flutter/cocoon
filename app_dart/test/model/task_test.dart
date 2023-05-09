@@ -174,7 +174,7 @@ void main() {
 
         expect(task.status, Task.statusNew);
         task.updateFromBuild(build);
-        expect(task.status, Task.statusInfraFailure);
+        expect(task.status, Task.statusCancelled);
       });
     });
   });

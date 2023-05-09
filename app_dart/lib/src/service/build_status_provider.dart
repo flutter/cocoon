@@ -138,7 +138,9 @@ class BuildStatusService {
   }
 
   bool _isFailed(Task task) {
-    return task.status == Task.statusFailed || task.status == Task.statusInfraFailure;
+    return task.status == Task.statusFailed ||
+        task.status == Task.statusInfraFailure ||
+        task.status == Task.statusCancelled;
   }
 
   bool _isSuccessful(Task task) {
