@@ -53,6 +53,12 @@ List<Task> middleTaskFailed = <Task>[
   generateTask(3, status: Task.statusSucceeded),
 ];
 
+List<Task> middleTaskCanceled = <Task>[
+  generateTask(1, status: Task.statusSucceeded),
+  generateTask(2, status: Task.statusCancelled),
+  generateTask(3, status: Task.statusSucceeded),
+];
+
 List<Task> middleTaskFlakyFailed = <Task>[
   generateTask(1, status: Task.statusSucceeded),
   generateTask(2, status: Task.statusFailed, isFlaky: true),
@@ -125,6 +131,13 @@ void main() {
       test('returns failure if last commit contains any red tasks', () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
         db.addOnQuery<Task>((Iterable<Task> results) => middleTaskFailed);
+        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
+        expect(status, BuildStatus.failure(const <String>['task2']));
+      });
+
+      test('returns failure if last commit contains any canceled tasks', () async {
+        db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
+        db.addOnQuery<Task>((Iterable<Task> results) => middleTaskCanceled);
         final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.failure(const <String>['task2']));
       });
