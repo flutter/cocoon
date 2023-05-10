@@ -143,14 +143,14 @@ class RevertPullRequestMutation extends GraphQLOperation {
   DocumentNode get documentNode => lang.parseString(r'''
 mutation RevertPullFlutterPullRequest ($revertBody:String!, $clientMutationId:String!, $draft:Boolean, $pullRequestId:ID!, $revertTitle:String!) {
   revertPullRequest (
-    input: { 
+    input: {
       body:$revertBody,
       clientMutationId: $clientMutationId,
       draft: $draft,
       pullRequestId: $pullRequestId,
-      title: $revertTitle 
+      title: $revertTitle
     }) {
-      clientMutationId 
+      clientMutationId
       pullRequest {
         author {
           login

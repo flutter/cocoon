@@ -171,7 +171,6 @@ const String revertRequestString = '''
           "name": "flutter_test"
         }
       }
-    
-  }
+    }
 }
 ''';
