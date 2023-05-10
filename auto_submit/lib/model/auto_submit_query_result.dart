@@ -136,6 +136,7 @@ class PullRequest {
     this.authorAssociation,
     this.id,
     this.title,
+    this.body,
     this.reviews,
     this.commits,
   });
@@ -144,6 +145,7 @@ class PullRequest {
   final String? authorAssociation;
   final String? id;
   final String? title;
+  final String? body;
   final Reviews? reviews;
   final Commits? commits;
 
@@ -177,4 +179,36 @@ class QueryResult {
   factory QueryResult.fromJson(Map<String, dynamic> json) => _$QueryResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$QueryResultToJson(this);
+}
+
+@JsonSerializable()
+class OuterRevertPullRequest {
+  OuterRevertPullRequest({this.revertPullRequest});
+
+  @JsonKey(name: 'revertPullRequest')
+  RevertPullRequest? revertPullRequest;
+
+  factory OuterRevertPullRequest.fromJson(Map<String, dynamic> json) => _$OuterRevertPullRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$OuterRevertPullRequestToJson(this);
+}
+
+@JsonSerializable()
+class RevertPullRequest {
+  RevertPullRequest({
+    this.clientMutationId,
+    this.pullRequest,
+    this.revertPullRequest,
+  });
+
+  @JsonKey(name: 'clientMutationId')
+  String? clientMutationId;
+  @JsonKey(name: 'pullRequest')
+  PullRequest? pullRequest;
+  @JsonKey(name: 'revertPullRequest')
+  PullRequest? revertPullRequest;
+
+  factory RevertPullRequest.fromJson(Map<String, dynamic> json) => _$RevertPullRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RevertPullRequestToJson(this);
 }
