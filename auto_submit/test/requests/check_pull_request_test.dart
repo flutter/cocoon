@@ -9,7 +9,7 @@ import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/service/config.dart';
 
 import 'package:auto_submit/requests/check_pull_request.dart';
-import 'package:auto_submit/requests/check_pull_request_queries.dart';
+import 'package:auto_submit/service/graphql_queries.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -78,23 +78,30 @@ void main() {
         }
       };
 
-      flutterOption = QueryOptions(
-        document: pullRequestWithReviewsQuery,
-        fetchPolicy: FetchPolicy.noCache,
-        variables: const <String, dynamic>{
-          'sOwner': 'flutter',
-          'sName': 'flutter',
-          'sPrNumber': 0,
-        },
+      final FindPullRequestsWithReviewsQuery findPullRequestsWithReviewsQueryFlutter = 
+          FindPullRequestsWithReviewsQuery(
+            repositoryOwner: 'flutter',
+            repositoryName: 'flutter',
+            pullRequestNumber: 0,
       );
-      cocoonOption = QueryOptions(
-        document: pullRequestWithReviewsQuery,
+
+      flutterOption = QueryOptions(
+        document: findPullRequestsWithReviewsQueryFlutter.documentNode,
         fetchPolicy: FetchPolicy.noCache,
-        variables: const <String, dynamic>{
-          'sOwner': 'flutter',
-          'sName': 'cocoon',
-          'sPrNumber': 1,
-        },
+        variables: findPullRequestsWithReviewsQueryFlutter.variables,
+      );
+
+      final FindPullRequestsWithReviewsQuery findPullRequestsWithReviewsQueryCocoon = 
+          FindPullRequestsWithReviewsQuery(
+            repositoryOwner: 'flutter',
+            repositoryName: 'cocoon',
+            pullRequestNumber: 1,
+      );
+
+      cocoonOption = QueryOptions(
+        document: findPullRequestsWithReviewsQueryCocoon.documentNode,
+        fetchPolicy: FetchPolicy.noCache,
+        variables: findPullRequestsWithReviewsQueryCocoon.variables,
       );
 
       githubService.checkRunsData = checkRunsMock;

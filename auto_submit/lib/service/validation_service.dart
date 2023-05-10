@@ -25,6 +25,7 @@ import '../model/auto_submit_query_result.dart';
 import '../request_handling/pubsub.dart';
 import '../validations/validation.dart';
 import 'approver_service.dart';
+import 'graphql_queries.dart';
 
 /// Provides an extensible and standardized way to validate different aspects of
 /// a commit to ensure it is ready to land, it has been reviewed, and it has been
@@ -78,11 +79,18 @@ class ValidationService {
     final graphql.GraphQLClient graphQLClient = await config.createGitHubGraphQLClient(slug);
     final int? prNumber = pullRequest.number;
     final GraphQlService graphQlService = GraphQlService();
-    final Map<String, dynamic> data = await graphQlService.queryGraphQL(
-      slug,
-      prNumber!,
-      graphQLClient,
+    
+    final FindPullRequestsWithReviewsQuery findPullRequestsWithReviewsQuery = FindPullRequestsWithReviewsQuery(
+      repositoryOwner: slug.owner,
+      repositoryName: slug.name,
+      pullRequestNumber: prNumber!,
     );
+
+    final Map<String, dynamic> data = await graphQlService.queryGraphQL(
+      documentNode: findPullRequestsWithReviewsQuery.documentNode,
+      variables: findPullRequestsWithReviewsQuery.variables,
+      client: graphQLClient,);
+
     return QueryResult.fromJson(data);
   }
 
