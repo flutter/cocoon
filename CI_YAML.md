@@ -47,6 +47,7 @@ targets:
 #                   This overrides the global enabled_branches.
 # properties: A map of string, string. Values are parsed to their closest data model.
 # postsubmit_properties: Properties that are only run on postsubmit.
+# timeout: Integer defining whole build execution time limit for all steps.
 #
 # Minimal example:
 # Linux analyze will run on all presubmit and in postsubmit.
@@ -147,6 +148,15 @@ Example
 ```yaml
 tags: >
   ["devicelab","hostonly"]
+```
+
+**test_timeout_secs** String determining seconds before timeout for an individual test step.
+Note that this is the timeout for a single test step rather than the entire build execution
+timeout.
+
+Example
+``` yaml
+test_timeout_secs: "2700"
 ```
 
 ### Updating targets
