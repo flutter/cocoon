@@ -27,18 +27,24 @@ class GithubWebhook extends RequestHandler {
 
   final PubSub pubsub;
 
+  static const String pullRequest = 'pull_request';
+  static const String labels = 'labels';
+
+  static const String eventTypeHeader = 'X-GitHub-Event';
+  static const String signatureHeader = 'X-Hub-Signature';
+
   @override
   Future<Response> post(Request request) async {
     final Map<String, String> reqHeader = request.headers;
     log.info('Header: $reqHeader');
 
-    final String? gitHubEvent = request.headers['X-GitHub-Event'];
+    final String? gitHubEvent = request.headers[GithubWebhook.eventTypeHeader];
 
-    if (gitHubEvent == null || request.headers['X-Hub-Signature'] == null) {
+    if (gitHubEvent == null || request.headers[GithubWebhook.signatureHeader] == null) {
       throw const BadRequestException('Missing required headers.');
     }
     final List<int> requestBytes = await request.read().expand((_) => _).toList();
-    final String? hmacSignature = request.headers['X-Hub-Signature'];
+    final String? hmacSignature = request.headers[GithubWebhook.signatureHeader];
     if (!await _validateRequest(hmacSignature, requestBytes)) {
       log.info('User is forbidden');
       throw const Forbidden();
@@ -50,11 +56,12 @@ class GithubWebhook extends RequestHandler {
     final String rawBody = utf8.decode(requestBytes);
     final body = json.decode(rawBody) as Map<String, dynamic>;
 
-    if (!body.containsKey('pull_request') || !((body['pull_request'] as Map<String, dynamic>).containsKey('labels'))) {
+    if (!body.containsKey(GithubWebhook.pullRequest) ||
+        !((body[GithubWebhook.pullRequest] as Map<String, dynamic>).containsKey(GithubWebhook.labels))) {
       return Response.ok(jsonEncode(<String, String>{}));
     }
 
-    final PullRequest pullRequest = PullRequest.fromJson(body['pull_request'] as Map<String, dynamic>);
+    final PullRequest pullRequest = PullRequest.fromJson(body[GithubWebhook.pullRequest] as Map<String, dynamic>);
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
     hasRevertLabel = pullRequest.labels!.any((label) => label.name == Config.kRevertLabel);
 

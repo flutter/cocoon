@@ -32,10 +32,10 @@ class FindPullRequestsWithReviewsQuery extends GraphQLOperation {
 
   @override
   Map<String, dynamic> get variables => <String, dynamic>{
-    'sOwner': repositoryOwner,
-    'sName': repositoryName,
-    'sPrNumber': pullRequestNumber,
-  };
+        'sOwner': repositoryOwner,
+        'sName': repositoryName,
+        'sPrNumber': pullRequestNumber,
+      };
 
   @override
   DocumentNode get documentNode => lang.parseString(r'''
@@ -78,9 +78,8 @@ query LabeledPullRequestWithReviews($sOwner: String!, $sName: String!, $sPrNumbe
   }
 }''');
 }
- 
 
-/// [FindPullRequestNodeIdQuery] encapsulate the input variables and 
+/// [FindPullRequestNodeIdQuery] encapsulate the input variables and
 /// [DocumentNode] needed to the query the Pull Request Node ID that github uses
 /// to locate a pull request accross all repos.
 class FindPullRequestNodeIdQuery extends GraphQLOperation {
@@ -96,10 +95,10 @@ class FindPullRequestNodeIdQuery extends GraphQLOperation {
 
   @override
   Map<String, dynamic> get variables => {
-    'repoOwner': repositoryOwner,
-    'repoName': repositoryName,
-    'pullRequestNumber': pullRequestNumber,
-  };
+        'repoOwner': repositoryOwner,
+        'repoName': repositoryName,
+        'pullRequestNumber': pullRequestNumber,
+      };
 
   @override
   DocumentNode get documentNode => lang.parseString(r'''
@@ -112,7 +111,6 @@ query FindPullRequestNodeId ($repoOwner:String!, $repoName:String!, $pullRequest
 }
 ''');
 }
-
 
 /// [RevertPullRequestMutation] encapsulates the input variables and
 /// [DocumentNode] needed to perform the revert request mutation to revert a
@@ -134,12 +132,12 @@ class RevertPullRequestMutation extends GraphQLOperation {
 
   @override
   Map<String, dynamic> get variables => {
-    'revertBody': body,
-    'clientMutationId': clientMutationId,
-    'draft': draft,
-    'pullRequestId': id,
-    'revertTitle': title
-  };
+        'revertBody': body,
+        'clientMutationId': clientMutationId,
+        'draft': draft,
+        'pullRequestId': id,
+        'revertTitle': title
+      };
 
   @override
   DocumentNode get documentNode => lang.parseString(r'''

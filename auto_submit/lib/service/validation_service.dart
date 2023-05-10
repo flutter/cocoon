@@ -79,7 +79,7 @@ class ValidationService {
     final graphql.GraphQLClient graphQLClient = await config.createGitHubGraphQLClient(slug);
     final int? prNumber = pullRequest.number;
     final GraphQlService graphQlService = GraphQlService();
-    
+
     final FindPullRequestsWithReviewsQuery findPullRequestsWithReviewsQuery = FindPullRequestsWithReviewsQuery(
       repositoryOwner: slug.owner,
       repositoryName: slug.name,
@@ -89,7 +89,8 @@ class ValidationService {
     final Map<String, dynamic> data = await graphQlService.queryGraphQL(
       documentNode: findPullRequestsWithReviewsQuery.documentNode,
       variables: findPullRequestsWithReviewsQuery.variables,
-      client: graphQLClient,);
+      client: graphQLClient,
+    );
 
     return QueryResult.fromJson(data);
   }

@@ -78,11 +78,10 @@ void main() {
         }
       };
 
-      final FindPullRequestsWithReviewsQuery findPullRequestsWithReviewsQueryFlutter = 
-          FindPullRequestsWithReviewsQuery(
-            repositoryOwner: 'flutter',
-            repositoryName: 'flutter',
-            pullRequestNumber: 0,
+      final FindPullRequestsWithReviewsQuery findPullRequestsWithReviewsQueryFlutter = FindPullRequestsWithReviewsQuery(
+        repositoryOwner: 'flutter',
+        repositoryName: 'flutter',
+        pullRequestNumber: 0,
       );
 
       flutterOption = QueryOptions(
@@ -91,11 +90,10 @@ void main() {
         variables: findPullRequestsWithReviewsQueryFlutter.variables,
       );
 
-      final FindPullRequestsWithReviewsQuery findPullRequestsWithReviewsQueryCocoon = 
-          FindPullRequestsWithReviewsQuery(
-            repositoryOwner: 'flutter',
-            repositoryName: 'cocoon',
-            pullRequestNumber: 1,
+      final FindPullRequestsWithReviewsQuery findPullRequestsWithReviewsQueryCocoon = FindPullRequestsWithReviewsQuery(
+        repositoryOwner: 'flutter',
+        repositoryName: 'cocoon',
+        pullRequestNumber: 1,
       );
 
       cocoonOption = QueryOptions(
