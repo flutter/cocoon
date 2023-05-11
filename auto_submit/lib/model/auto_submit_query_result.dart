@@ -182,7 +182,7 @@ class QueryResult {
 }
 
 /// The reason for this funky naming scheme can be blamed on GitHub.
-/// 
+///
 /// See: https://docs.github.com/en/graphql/reference/mutations#revertpullrequest
 /// The enclosing object is called RevertPullRequest and has a nested field also
 /// called RevertPullRequest.
@@ -208,7 +208,7 @@ class RevertPullRequest {
 
 /// This is needed since the data we get is buried within this outer object and
 /// to simplify the deserialization need this wrapper.
-/// 
+///
 /// The return data is nested as such:
 /// "data": {
 ///   "revertPullRequest": {

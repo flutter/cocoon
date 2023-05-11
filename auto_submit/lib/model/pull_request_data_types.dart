@@ -11,8 +11,7 @@ enum PullRequestChangeType {
   revert,
 }
 
-
-/// Values representing the current states of a pull requests we process with 
+/// Values representing the current states of a pull requests we process with
 /// the autosubmit service.
 enum PullRequestState {
   open,
