@@ -5,15 +5,14 @@
 import 'package:gql/ast.dart';
 import 'package:gql/language.dart' as lang;
 
-/// Provide a way to encapsulate the names variables that will be needed for each
-/// request made via the graphql api.
+/// Provides a way to encapsulate the named variables that will be needed for
+/// each request made via the graphql api.
 abstract class GraphQLOperation {
-  /// Provides the list of variables so that we do not need to hard code them
-  /// into queries made in the graphql service.
+  /// The list of variables that will be injected into the partner
+  /// [DocumentNode] made in the graphql service.
   Map<String, dynamic> get variables;
 
-  /// Provide the document used to send a graphql operation pertaining to the
-  /// variables stored in this object.
+  /// The document that contains the GraphQL operation.
   DocumentNode get documentNode;
 }
 

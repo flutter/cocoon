@@ -9,7 +9,7 @@ import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/service/config.dart';
 
 import 'package:auto_submit/requests/check_pull_request.dart';
-import 'package:auto_submit/service/graphql_queries.dart';
+import 'package:auto_submit/requests/graphql_queries.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';

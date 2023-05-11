@@ -5,7 +5,7 @@
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/exception/bigquery_exception.dart';
 import 'package:auto_submit/model/big_query_pull_request_record.dart';
-import 'package:auto_submit/model/pull_request_change_type.dart';
+import 'package:auto_submit/model/pull_request_data_types.dart';
 import 'dart:async';
 
 import 'package:auto_submit/service/bigquery.dart';
@@ -25,7 +25,7 @@ import '../model/auto_submit_query_result.dart';
 import '../request_handling/pubsub.dart';
 import '../validations/validation.dart';
 import 'approver_service.dart';
-import 'graphql_queries.dart';
+import '../requests/graphql_queries.dart';
 
 /// Provides an extensible and standardized way to validate different aspects of
 /// a commit to ensure it is ready to land, it has been reviewed, and it has been
@@ -107,6 +107,8 @@ class ValidationService {
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
     if (currentPullRequest.state == 'open' && labelNames.contains(Config.kRevertLabel)) {
+      // TODO (ricardoamador) this will not make sense now that reverts happen from closed.
+      // we can open the pull request but who do we assign it to? The initiating author?
       if (!repositoryConfiguration.supportNoReviewReverts) {
         log.info(
           'Cannot allow revert request (${slug.fullName}/${pullRequest.number}) without review. Processing as regular pull request.',

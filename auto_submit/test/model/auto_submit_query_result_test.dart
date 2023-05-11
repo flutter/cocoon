@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 
 void main() {
   late QueryResult queryResult;
-  late OuterRevertPullRequest outerRevertPullRequest;
+  late RevertPullRequestData revertPullRequestData;
 
   group('Auto Submit Models', () {
     setUp(() {
@@ -60,22 +60,22 @@ void main() {
 
   group('Revert pull request models', () {
     setUp(() {
-      outerRevertPullRequest = OuterRevertPullRequest.fromJson(revertData);
+      revertPullRequestData = RevertPullRequestData.fromJson(revertData);
     });
 
     test('All fields are present', () {
-      expect(outerRevertPullRequest.revertPullRequest, isNotNull);
-      expect(outerRevertPullRequest.revertPullRequest!.clientMutationId, isNotNull);
-      expect(outerRevertPullRequest.revertPullRequest!.pullRequest, isNotNull);
-      expect(outerRevertPullRequest.revertPullRequest!.revertPullRequest, isNotNull);
+      expect(revertPullRequestData.revertPullRequest, isNotNull);
+      expect(revertPullRequestData.revertPullRequest!.clientMutationId, isNotNull);
+      expect(revertPullRequestData.revertPullRequest!.pullRequest, isNotNull);
+      expect(revertPullRequestData.revertPullRequest!.revertPullRequest, isNotNull);
     });
 
     test('Client Mutation Id field', () {
-      expect(outerRevertPullRequest.revertPullRequest!.clientMutationId, 'ra186026');
+      expect(revertPullRequestData.revertPullRequest!.clientMutationId, 'ra186026');
     });
 
     test('To be reverted PullRequest field.', () {
-      final PullRequest pullRequest = outerRevertPullRequest.revertPullRequest!.pullRequest!;
+      final PullRequest pullRequest = revertPullRequestData.revertPullRequest!.pullRequest!;
       expect(pullRequest.id, 'PR_kwDOIRxr_M5MQ7mV');
       expect(pullRequest.title, 'Adding a TODO comment for testing pull request auto approval.');
       expect(pullRequest.author!.login, 'ricardoamador');
@@ -83,7 +83,7 @@ void main() {
     });
 
     test('Revert PullRequest field.', () {
-      final PullRequest revertPullRequest = outerRevertPullRequest.revertPullRequest!.revertPullRequest!;
+      final PullRequest revertPullRequest = revertPullRequestData.revertPullRequest!.revertPullRequest!;
       expect(revertPullRequest.id, 'PR_kwDOIRxr_M5QN0kD');
       expect(revertPullRequest.title, 'Revert comment in configuration file.');
       expect(revertPullRequest.author!.login, 'ricardoamador');
