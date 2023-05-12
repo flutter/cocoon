@@ -49,6 +49,47 @@ targets:
         ["shard"]
 ''';
 
+const String ciYamlContentTwoFlakyTargets = '''
+# Describes the targets run in continuous integration environment.
+#
+# Flutter infra uses this file to generate a checklist of tasks to be performed
+# for every commit.
+#
+# More information at:
+#  * https://github.com/flutter/cocoon/blob/master/scheduler/README.md
+enabled_branches:
+  - master
+
+targets:
+  - name: Mac_android android_semantics_integration_test
+    builder: Mac_android android_semantics_integration_test
+    presubmit: false
+    scheduler: luci
+    properties:
+      tags: >
+        ["devicelab"]
+  - name: Mac_android ignore_myflakiness
+    builder: Mac_android ignore_myflakiness
+    presubmit: false
+    scheduler: luci
+    properties:
+      tags: >
+        ["devicelab"]
+  - name: Linux analyze
+    builder: Linux analyze
+    scheduler: luci
+    properties:
+      tags: >
+        ["framework","hostonly"]
+  - name: Windows framework_tests_misc
+    builder: Windows framework_tests_misc
+    presubmit: false
+    scheduler: luci
+    properties:
+      tags: >
+        ["shard"]
+''';
+
 const String ciYamlContentAlreadyFlaky = '''
 # Describes the targets run in continuous integration environment.
 #
@@ -75,7 +116,6 @@ targets:
     presubmit: false
     scheduler: luci
     properties:
-      ignore_flakiness: "true"
       tags: >
         ["devicelab"]
   - name: Linux analyze
