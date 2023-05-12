@@ -30,10 +30,14 @@ void main() {
   late BranchService branchService;
   late FakeGerritService gerritService;
   late FakeGithubService githubService;
+  late MockRepositoriesService repositories;
 
   setUp(() {
     db = FakeDatastoreDB();
-    githubService = FakeGithubService();
+    final MockGitHub github = MockGitHub();
+    githubService = FakeGithubService(client: github);
+    repositories = MockRepositoriesService();
+    when(github.repositories).thenReturn(repositories);
     config = MockConfig();
     gerritService = FakeGerritService();
     branchService = BranchService(
@@ -42,7 +46,7 @@ void main() {
       retryOptions: const RetryOptions(maxDelay: Duration.zero),
     );
 
-    when(config.createDefaultGitHubService()).thenAnswer((_) => Future<GithubService>.value(githubService));
+    when(config.createDefaultGitHubService()).thenAnswer((_) async => githubService);
     when(config.db).thenReturn(db);
   });
 
@@ -150,9 +154,9 @@ void main() {
     const String branch = 'flutter-2.13-candidate.0';
     setUp(() {
       gerritService.branchesValue = <String>[];
-      githubService.listCommitsBranch = (String branch, int ts) => <gh.RepositoryCommit>[
-            generateGitCommit(5),
-          ];
+      when(repositories.listCommits(Config.engineSlug, sha: anyNamed('sha'))).thenAnswer(
+        (_) => Stream.value(generateGitCommit(5)),
+      );
     });
 
     test('does not create branch that already exists', () async {
@@ -165,7 +169,9 @@ void main() {
 
     test('does not create branch if a good branch point cannot be found', () async {
       gerritService.commitsValue = <GerritCommit>[];
-      githubService.listCommitsBranch = (String branch, int ts) => <gh.RepositoryCommit>[];
+      when(repositories.listCommits(Config.engineSlug, sha: anyNamed('sha'))).thenAnswer(
+        (_) => const Stream.empty(),
+      );
       expect(
         () async => branchService.branchFlutterRecipes(branch),
         throwsExceptionWith<InternalServerError>('Failed to find a revision to branch Flutter recipes for $branch'),
@@ -178,29 +184,25 @@ void main() {
 
     test('creates branch when GitHub requires retries', () async {
       int attempts = 0;
-      githubService.listCommitsBranch = (String branch, int ts) {
+      when(repositories.listCommits(Config.engineSlug, sha: anyNamed('sha'))).thenAnswer((_) {
         attempts++;
-
         if (attempts == 3) {
-          return <gh.RepositoryCommit>[generateGitCommit(5)];
+          return Stream.value(generateGitCommit(5));
         }
-
         throw gh.GitHubError(MockGitHub(), 'Failed to list commits');
-      };
+      });
       await branchService.branchFlutterRecipes(branch);
     });
 
     test('ensure createDefaultGithubService is called once for each retry', () async {
       int attempts = 0;
-      githubService.listCommitsBranch = (String branch, int ts) {
+      when(repositories.listCommits(Config.engineSlug, sha: anyNamed('sha'))).thenAnswer((_) {
         attempts++;
-
         if (attempts == 3) {
-          return <gh.RepositoryCommit>[generateGitCommit(5)];
+          return Stream.value(generateGitCommit(5));
         }
-
         throw gh.GitHubError(MockGitHub(), 'Failed to list commits');
-      };
+      });
       await branchService.branchFlutterRecipes(branch);
 
       verify(config.createDefaultGitHubService()).called(attempts);

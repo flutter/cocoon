@@ -13,7 +13,7 @@ packages:
     dependency: transitive
     description:
       name: _fe_analyzer_shared
-      sha256: "8880b4cfe7b5b17d57c052a5a3a8cc1d4f546261c7cc8fbd717bd53f48db0568"
+      sha256: "405666cd3cf0ee0a48d21ec67e65406aad2c726d9fa58840d3375e7bdcd32a07"
       url: "https://pub.dev"
     source: hosted
     version: "60.0.0"
@@ -21,7 +21,7 @@ packages:
     dependency: "direct dev"
     description:
       name: analyzer
-      sha256: a89627f49b0e70e068130a36571409726b04dab12da7e5625941d2c8ec278b96
+      sha256: "1952250bd005bacb895a01bf1b4dc00e3ba1c526cf47dca54dfe24979c65f5b3"
       url: "https://pub.dev"
     source: hosted
     version: "5.12.0"
@@ -93,7 +93,7 @@ packages:
     dependency: transitive
     description:
       name: build_daemon
-      sha256: "757153e5d9cd88253cb13f28c2fb55a537dc31fefd98137549895b5beb7c6169"
+      sha256: "5f02d73eb2ba16483e693f80bee4f088563a820e47d1027d4cdfe62b5bb43e65"
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
@@ -109,7 +109,7 @@ packages:
     dependency: "direct dev"
     description:
       name: build_runner
-      sha256: b0a8a7b8a76c493e85f1b84bffa0588859a06197863dba8c9036b15581fd9727
+      sha256: "87e06c939450b9b94e3e1bb2d46e0e9780adbff5500d3969f2ba2de6bbb860cb"
       url: "https://pub.dev"
     source: hosted
     version: "2.4.2"
@@ -269,7 +269,7 @@ packages:
     dependency: "direct main"
     description:
       name: github
-      sha256: "5c68254fc292aa9ba79fd5be0f53a40dabeeaf5b7551801f15bbe4ab6e0d2264"
+      sha256: b0194a326787f0e306dc35e1e39a786d819364ff90a8cdddc9cfda1fdfa17cdb
       url: "https://pub.dev"
     source: hosted
     version: "9.14.0"
@@ -842,4 +842,4 @@ packages:
     source: hosted
     version: "3.1.2"
 sdks:
-  dart: ">=2.19.0 <4.0.0"
+  dart: ">=3.0.0-134.0.dev <4.0.0"

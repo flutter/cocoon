@@ -17,7 +17,8 @@ class FakeGithubService implements GithubService {
   final GitHub github;
 
   @override
-  Future<List<RepositoryCommit>> listCommits(RepositorySlug slug, String branch, int? lastCommitTimestampMills) async {
+  Future<List<RepositoryCommit>> listBranchedCommits(
+      RepositorySlug slug, String branch, int? lastCommitTimestampMills) async {
     return listCommitsBranch(branch, lastCommitTimestampMills ?? 0);
   }
 
