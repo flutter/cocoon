@@ -49,7 +49,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
     final Map<String?, Issue> nameToExistingIssue = await getExistingIssues(gitHub, slug);
     final Map<String?, PullRequest> nameToExistingPR = await getExistingPRs(gitHub, slug);
-    int filedIssueAndPRNumber = 0;
+    int filedIssueAndPRCount = 0;
     for (final BuilderStatistic statistic in builderStatisticList) {
       // Skip if ignore_flakiness is specified.
       if (getIgnoreFlakiness(statistic.name, ciYaml)) {
@@ -72,15 +72,15 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
         ),
       );
       if (issueAndPRFiled) {
-        filedIssueAndPRNumber++;
+        filedIssueAndPRCount++;
       }
-      if (filedIssueAndPRNumber == config.issueAndPRLimit) {
+      if (filedIssueAndPRCount == config.issueAndPRLimit) {
         break;
       }
     }
     return Body.forJson(<String, dynamic>{
       'Status': 'success',
-      'NumberOfCreatedIssuesAndPRs': filedIssueAndPRNumber,
+      'NumberOfCreatedIssuesAndPRs': filedIssueAndPRCount,
     });
   }
 
