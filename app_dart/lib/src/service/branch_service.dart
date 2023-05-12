@@ -103,14 +103,13 @@ class BranchService {
     log.info('$recipesSlug commits: $recipeCommits');
     final List<gh.RepositoryCommit> githubCommits = await retryOptions.retry(
       () async {
-        // TODO(drewroengoogle): createDefaultGitHubService should instead be
-        // handled within the GithubService.
         final GithubService githubService = await config.createDefaultGitHubService();
-        return githubService.listCommits(
-          Config.engineSlug,
-          branch,
-          null,
-        );
+        return githubService.github.repositories
+            .listCommits(
+              Config.engineSlug,
+              sha: branch,
+            )
+            .toList();
       },
       retryIf: (Exception e) => e is gh.GitHubError,
     );
