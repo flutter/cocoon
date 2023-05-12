@@ -16,7 +16,7 @@ packages:
       sha256: "8880b4cfe7b5b17d57c052a5a3a8cc1d4f546261c7cc8fbd717bd53f48db0568"
       url: "https://pub.dev"
     source: hosted
-    version: "59.0.0"
+    version: "60.0.0"
   analyzer:
     dependency: "direct dev"
     description:
@@ -24,7 +24,7 @@ packages:
       sha256: a89627f49b0e70e068130a36571409726b04dab12da7e5625941d2c8ec278b96
       url: "https://pub.dev"
     source: hosted
-    version: "5.11.1"
+    version: "5.12.0"
   appengine:
     dependency: "direct main"
     description:
@@ -272,7 +272,7 @@ packages:
       sha256: "5c68254fc292aa9ba79fd5be0f53a40dabeeaf5b7551801f15bbe4ab6e0d2264"
       url: "https://pub.dev"
     source: hosted
-    version: "9.12.0"
+    version: "9.14.0"
   glob:
     dependency: transitive
     description:
