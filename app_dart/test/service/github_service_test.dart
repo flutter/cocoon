@@ -72,7 +72,7 @@ void main() {
 
   test('listCommits decodes all relevant fields of each commit', () async {
     shas = <String>['1'];
-    final List<RepositoryCommit> commits = await githubService.listCommits(
+    final List<RepositoryCommit> commits = await githubService.listBranchedCommits(
       slug,
       branch,
       lastCommitTimestampMills,
