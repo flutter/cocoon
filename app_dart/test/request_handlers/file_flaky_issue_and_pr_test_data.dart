@@ -116,6 +116,7 @@ targets:
     presubmit: false
     scheduler: luci
     properties:
+      ignore_flakiness: "true"
       tags: >
         ["devicelab"]
   - name: Linux analyze
