@@ -9,6 +9,7 @@ import 'package:test/test.dart';
 
 void main() {
   late QueryResult queryResult;
+  late RevertPullRequestData revertPullRequestData;
 
   group('Auto Submit Models', () {
     setUp(() {
@@ -56,6 +57,39 @@ void main() {
       expect(commitNode.commit!.status, isNull);
     });
   });
+
+  group('Revert pull request models', () {
+    setUp(() {
+      revertPullRequestData = RevertPullRequestData.fromJson(revertData);
+    });
+
+    test('All fields are present', () {
+      expect(revertPullRequestData.revertPullRequest, isNotNull);
+      expect(revertPullRequestData.revertPullRequest!.clientMutationId, isNotNull);
+      expect(revertPullRequestData.revertPullRequest!.pullRequest, isNotNull);
+      expect(revertPullRequestData.revertPullRequest!.revertPullRequest, isNotNull);
+    });
+
+    test('Client Mutation Id field', () {
+      expect(revertPullRequestData.revertPullRequest!.clientMutationId, 'ra186026');
+    });
+
+    test('To be reverted PullRequest field.', () {
+      final PullRequest pullRequest = revertPullRequestData.revertPullRequest!.pullRequest!;
+      expect(pullRequest.id, 'PR_kwDOIRxr_M5MQ7mV');
+      expect(pullRequest.title, 'Adding a TODO comment for testing pull request auto approval.');
+      expect(pullRequest.author!.login, 'ricardoamador');
+      expect(pullRequest.body, 'This is for testing revert and should be present in the revert mutation.');
+    });
+
+    test('Revert PullRequest field.', () {
+      final PullRequest revertPullRequest = revertPullRequestData.revertPullRequest!.revertPullRequest!;
+      expect(revertPullRequest.id, 'PR_kwDOIRxr_M5QN0kD');
+      expect(revertPullRequest.title, 'Revert comment in configuration file.');
+      expect(revertPullRequest.author!.login, 'ricardoamador');
+      expect(revertPullRequest.body, 'Testing revert mutation');
+    });
+  });
 }
 
 final Map<String, dynamic> data = json.decode(dataString) as Map<String, dynamic>;
@@ -98,3 +132,45 @@ const String dataString = """
   }
 }
 """;
+
+final Map<String, dynamic> revertData = json.decode(revertRequestString) as Map<String, dynamic>;
+
+const String revertRequestString = '''
+{
+   "revertPullRequest": {
+      "clientMutationId": "ra186026",
+      "pullRequest": {
+        "author": {
+          "login": "ricardoamador"
+        },
+        "authorAssociation": "OWNER",
+        "id": "PR_kwDOIRxr_M5MQ7mV",
+        "title": "Adding a TODO comment for testing pull request auto approval.",
+        "number": 18,
+        "body": "This is for testing revert and should be present in the revert mutation.",
+        "repository": {
+          "owner": {
+            "login": "ricardoamador"
+          },
+          "name": "flutter_test"
+        }
+      },
+      "revertPullRequest": {
+        "author": {
+          "login": "ricardoamador"
+        },
+        "authorAssociation": "OWNER",
+        "id": "PR_kwDOIRxr_M5QN0kD",
+        "title": "Revert comment in configuration file.",
+        "number": 23,
+        "body": "Testing revert mutation",
+        "repository": {
+          "owner": {
+            "login": "ricardoamador"
+          },
+          "name": "flutter_test"
+        }
+      }
+    }
+}
+''';

@@ -92,6 +92,7 @@ PullRequest _$PullRequestFromJson(Map<String, dynamic> json) => PullRequest(
       authorAssociation: json['authorAssociation'] as String?,
       id: json['id'] as String?,
       title: json['title'] as String?,
+      body: json['body'] as String?,
       reviews: json['reviews'] == null ? null : Reviews.fromJson(json['reviews'] as Map<String, dynamic>),
       commits: json['commits'] == null ? null : Commits.fromJson(json['commits'] as Map<String, dynamic>),
     );
@@ -101,6 +102,7 @@ Map<String, dynamic> _$PullRequestToJson(PullRequest instance) => <String, dynam
       'authorAssociation': instance.authorAssociation,
       'id': instance.id,
       'title': instance.title,
+      'body': instance.body,
       'reviews': instance.reviews,
       'commits': instance.commits,
     };
@@ -120,4 +122,29 @@ QueryResult _$QueryResultFromJson(Map<String, dynamic> json) => QueryResult(
 
 Map<String, dynamic> _$QueryResultToJson(QueryResult instance) => <String, dynamic>{
       'repository': instance.repository,
+    };
+
+RevertPullRequest _$RevertPullRequestFromJson(Map<String, dynamic> json) => RevertPullRequest(
+      clientMutationId: json['clientMutationId'] as String?,
+      pullRequest:
+          json['pullRequest'] == null ? null : PullRequest.fromJson(json['pullRequest'] as Map<String, dynamic>),
+      revertPullRequest: json['revertPullRequest'] == null
+          ? null
+          : PullRequest.fromJson(json['revertPullRequest'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$RevertPullRequestToJson(RevertPullRequest instance) => <String, dynamic>{
+      'clientMutationId': instance.clientMutationId,
+      'pullRequest': instance.pullRequest,
+      'revertPullRequest': instance.revertPullRequest,
+    };
+
+RevertPullRequestData _$RevertPullRequestDataFromJson(Map<String, dynamic> json) => RevertPullRequestData(
+      revertPullRequest: json['revertPullRequest'] == null
+          ? null
+          : RevertPullRequest.fromJson(json['revertPullRequest'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$RevertPullRequestDataToJson(RevertPullRequestData instance) => <String, dynamic>{
+      'revertPullRequest': instance.revertPullRequest,
     };

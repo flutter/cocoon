@@ -136,6 +136,7 @@ class PullRequest {
     this.authorAssociation,
     this.id,
     this.title,
+    this.body,
     this.reviews,
     this.commits,
   });
@@ -144,6 +145,7 @@ class PullRequest {
   final String? authorAssociation;
   final String? id;
   final String? title;
+  final String? body;
   final Reviews? reviews;
   final Commits? commits;
 
@@ -177,4 +179,52 @@ class QueryResult {
   factory QueryResult.fromJson(Map<String, dynamic> json) => _$QueryResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$QueryResultToJson(this);
+}
+
+/// The reason for this funky naming scheme can be blamed on GitHub.
+///
+/// See: https://docs.github.com/en/graphql/reference/mutations#revertpullrequest
+/// The enclosing object is called RevertPullRequest and has a nested field also
+/// called RevertPullRequest.
+@JsonSerializable()
+class RevertPullRequest {
+  RevertPullRequest({
+    this.clientMutationId,
+    this.pullRequest,
+    this.revertPullRequest,
+  });
+
+  @JsonKey(name: 'clientMutationId')
+  String? clientMutationId;
+  @JsonKey(name: 'pullRequest')
+  PullRequest? pullRequest;
+  @JsonKey(name: 'revertPullRequest')
+  PullRequest? revertPullRequest;
+
+  factory RevertPullRequest.fromJson(Map<String, dynamic> json) => _$RevertPullRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RevertPullRequestToJson(this);
+}
+
+/// This is needed since the data we get is buried within this outer object and
+/// to simplify the deserialization need this wrapper.
+///
+/// The return data is nested as such:
+/// "data": {
+///   "revertPullRequest": {
+///     "clientMutationId": xxx,
+///     "pullRequest": { ... },
+///     "revertPullRequest": { ... }
+///   }
+/// }
+@JsonSerializable()
+class RevertPullRequestData {
+  RevertPullRequestData({this.revertPullRequest});
+
+  @JsonKey(name: 'revertPullRequest')
+  RevertPullRequest? revertPullRequest;
+
+  factory RevertPullRequestData.fromJson(Map<String, dynamic> json) => _$RevertPullRequestDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RevertPullRequestDataToJson(this);
 }
