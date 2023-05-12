@@ -24,7 +24,10 @@ class GithubService {
   /// rare case that multiple commits exist. For other cases, it returns all
   /// newer commits since [lastCommitTimestampMills].
   Future<List<RepositoryCommit>> listBranchedCommits(
-      RepositorySlug slug, String branch, int? lastCommitTimestampMills) async {
+    RepositorySlug slug,
+    String branch,
+    int? lastCommitTimestampMills,
+  ) async {
     ArgumentError.checkNotNull(slug);
     final PaginationHelper paginationHelper = PaginationHelper(github);
 
