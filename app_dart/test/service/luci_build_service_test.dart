@@ -5,17 +5,14 @@
 import 'dart:convert';
 import 'dart:core';
 
-import 'package:cocoon_service/src/foundation/utils.dart';
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/service/exceptions.dart';
-import 'package:cocoon_service/src/service/cache_service.dart';
-import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:github/github.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:mockito/mockito.dart';
@@ -479,6 +476,33 @@ void main() {
         'repo_owner': 'flutter',
         'repo_name': 'packages'
       });
+    });
+
+    test('return the orignal list when hitting buildbucket exception', () async {
+      final Commit commit = generateCommit(0, repo: 'packages');
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+        throw const BuildBucketException(1, 'error');
+      });
+      final Tuple<Target, Task, int> toBeScheduled = Tuple<Target, Task, int>(
+        generateTarget(
+          1,
+          properties: <String, String>{
+            'os': 'debian-10.12',
+          },
+          slug: RepositorySlug('flutter', 'packages'),
+        ),
+        generateTask(1),
+        LuciBuildService.kDefaultPriority,
+      );
+      final List<Tuple<Target, Task, int>> results = await service.schedulePostsubmitBuilds(
+        commit: commit,
+        toBeScheduled: <Tuple<Target, Task, int>>[
+          toBeScheduled,
+        ],
+      );
+      expect(results, <Tuple<Target, Task, int>>[
+        toBeScheduled,
+      ]);
     });
 
     test('reschedule using checkrun event fails gracefully', () async {

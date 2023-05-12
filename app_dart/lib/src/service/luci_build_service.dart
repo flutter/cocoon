@@ -444,7 +444,13 @@ class LuciBuildService {
       return toBeScheduled;
     }
     final List<Request> buildRequests = <Request>[];
-    final Set<String> availableBuilderSet = await getAvailableBuilderSet(project: 'flutter', bucket: 'prod');
+    Set<String> availableBuilderSet;
+    try {
+      availableBuilderSet = await getAvailableBuilderSet(project: 'flutter', bucket: 'prod');
+    } on BuildBucketException catch (error) {
+      log.severe('Failed to get buildbucket builder list due to $error');
+      return toBeScheduled;
+    }
     log.info('Available builder list: $availableBuilderSet');
     for (Tuple<Target, Task, int> tuple in toBeScheduled) {
       // Non-existing builder target will be skipped from scheduling.
