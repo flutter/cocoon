@@ -88,6 +88,9 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     if (_shouldNotFileIssueAndPR(builderDetail, issue)) {
       return;
     }
+    // Manually add a 1s delay between consecutive GitHub requests to deal with secondary rate limit error.
+    // https://docs.github.com/en/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits
+    await Future.delayed(config.githubRequestDelay);
     issue = await fileFlakyIssue(builderDetail: builderDetail, gitHub: gitHub, slug: slug, threshold: _threshold);
 
     if (builderDetail.type == BuilderType.shard ||
