@@ -30,7 +30,7 @@ dependencies:
   json_annotation: 4.8.1
   logging: 1.1.0
   meta: ^1.9.1
-  mime: 1.0.2
+  mime: ^1.0.4
   mutex: 3.0.1
   neat_cache: 2.0.3
   path: ^1.8.3
