@@ -1437,11 +1437,9 @@ void main() {
     });
 
     for (String extention in knownCommentCodeExtensions) {
-      test('Framework no comment if only comments changed .$extention',
-          () async {
+      test('Framework no comment if only comments changed .$extention', () async {
         const int issueNumber = 123;
-        tester.message =
-            generateGithubWebhookMessage(action: 'opened', number: issueNumber);
+        tester.message = generateGithubWebhookMessage(action: 'opened', number: issueNumber);
         final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
         const String patch = '''
