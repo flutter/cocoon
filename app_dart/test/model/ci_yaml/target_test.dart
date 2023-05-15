@@ -99,9 +99,6 @@ void main() {
         expect(target.getProperties(), <String, Object>{
           'bringup': false,
           'dependencies': <String>[],
-          '\$flutter/devicelab_osx_sdk': <String, Object>{
-            'sdk_version': '12abc',
-          },
           '\$flutter/osx_sdk': <String, Object>{
             'sdk_version': '12abc',
           },
@@ -148,9 +145,6 @@ void main() {
         expect(target.getProperties(), <String, Object>{
           'bringup': false,
           'dependencies': <String>[],
-          '\$flutter/devicelab_osx_sdk': <String, Object>{
-            'sdk_version': '12abc',
-          },
           '\$flutter/osx_sdk': <String, Object>{
             'sdk_version': '12abc',
           },
@@ -168,7 +162,6 @@ void main() {
           'xcode': '12abc',
           'cleanup_xcode_cache': true,
           'dependencies': <String>[],
-          '\$flutter/devicelab_osx_sdk': <String, Object>{'sdk_version': '12abc', 'cleanup_cache': true},
           '\$flutter/osx_sdk': <String, Object>{'sdk_version': '12abc', 'cleanup_cache': true},
           'bringup': false,
         });
@@ -247,9 +240,6 @@ void main() {
           'bringup': false,
           'dependencies': <String>[],
           '\$flutter/osx_sdk': <String, Object>{
-            'sdk_version': '12abc',
-          },
-          '\$flutter/devicelab_osx_sdk': <String, Object>{
             'sdk_version': '12abc',
           },
           'xcode': '12abc',

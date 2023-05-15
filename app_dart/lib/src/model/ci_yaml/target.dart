@@ -146,13 +146,7 @@ class Target {
         if (mergedProperties.containsKey('cleanup_xcode_cache'))
           'cleanup_cache': mergedProperties['cleanup_xcode_cache']!
       };
-
-      if (iosPlatforms.contains(getPlatform())) {
-        mergedProperties['\$flutter/devicelab_osx_sdk'] = xcodeVersion;
-        mergedProperties['\$flutter/osx_sdk'] = xcodeVersion;
-      } else {
-        mergedProperties['\$flutter/osx_sdk'] = xcodeVersion;
-      }
+      mergedProperties['\$flutter/osx_sdk'] = xcodeVersion;
     }
     // runtime_versions is a special property
     if (mergedProperties.containsKey('runtime_versions')) {
