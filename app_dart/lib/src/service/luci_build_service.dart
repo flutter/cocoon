@@ -28,7 +28,11 @@ import 'config.dart';
 import 'exceptions.dart';
 import 'gerrit_service.dart';
 
-const Set<String> taskFailStatusSet = <String>{Task.statusInfraFailure, Task.statusFailed};
+const Set<String> taskFailStatusSet = <String>{
+  Task.statusInfraFailure,
+  Task.statusFailed,
+  Task.statusCancelled,
+};
 
 /// Class to interact with LUCI buildbucket to get, trigger
 /// and cancel builds for github repos. It uses [config.luciTryBuilders] to
