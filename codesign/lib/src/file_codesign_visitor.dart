@@ -335,6 +335,9 @@ update these file paths accordingly.
 
     final Set<String> fileWithEntitlements = <String>{};
     fileWithEntitlements.addAll(await fileSystem.file(entitlementFilePath).readAsLines());
+    // TODO(xilaizhang) : add back metadata information after https://github.com/flutter/flutter/issues/126705
+    // is resolved.
+    await fileSystem.file(entitlementFilePath).delete();
     return fileWithEntitlements;
   }
 
