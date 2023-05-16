@@ -10,8 +10,6 @@
 # Changes to this file (and any tests in this repository) are only honored
 # after the commit hash in the "flutter_cocoon.test" mentioned above has
 # been updated.
-# Remember to also update the Windows version (flutter_test_runner.bat) when
-# changing this file.
 
 # Runner for flutter tests. It expects a single parameter with the full
 # path to the flutter project where tests will be run.
