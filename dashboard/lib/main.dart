@@ -54,7 +54,7 @@ void main([List<String> args = const <String>[]]) {
     ),
   );
   // Enable extensions like Vimium to traverse the dashboard
-  RendererBinding.instance.pipelineOwner.ensureSemantics();
+  SemanticsBinding.instance.ensureSemantics();
 }
 
 class MyApp extends StatelessWidget {

@@ -18,6 +18,8 @@ enabled_branches:
 targets:
   - name: A
     builder: builderA
+    drone_dimensions:
+      - os=Linux
     properties:
       test: abc
       ''') as YamlMap?;
@@ -38,6 +40,7 @@ targets:
       expect(target.scheduler, SchedulerSystem.cocoon);
       expect(target.testbed, 'linux-vm');
       expect(target.timeout, 30);
+      expect(target.droneDimensions, ['os=Linux']);
     });
 
     test('throws exception when non-existent scheduler is given', () {
