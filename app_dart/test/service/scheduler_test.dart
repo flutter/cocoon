@@ -61,6 +61,28 @@ targets:
     scheduler: google_internal
 ''';
 
+const String totCiYaml = r'''
+enabled_branches:
+  - master
+  - main
+  - flutter-\d+\.\d+-candidate\.\d+
+targets:
+  - name: Linux A
+    properties:
+      custom: abc
+  - name: Linux B
+    enabled_branches:
+      - stable
+    scheduler: luci
+  - name: Linux runIf
+    runIf:
+      - dev/**
+  - name: Google Internal Roll
+    postsubmit: true
+    presubmit: false
+    scheduler: google_internal
+''';
+
 void main() {
   late CacheService cache;
   late FakeConfig config;
@@ -91,8 +113,12 @@ void main() {
 
       cache = CacheService(inMemory: true);
       db = FakeDatastoreDB();
-      buildStatusService =
-          FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
+      buildStatusService = FakeBuildStatusService(
+        commitStatuses: <CommitStatus>[
+          CommitStatus(generateCommit(1), const <Stage>[]),
+          CommitStatus(generateCommit(2, branch: 'main'), const <Stage>[])
+        ],
+      );
       config = FakeConfig(
         tabledataResource: tabledataResource,
         dbValue: db,
@@ -125,7 +151,7 @@ void main() {
           config: config,
           githubChecksUtil: mockGithubChecksUtil,
           gerritService: FakeGerritService(
-            branchesValue: <String>['master'],
+            branchesValue: <String>['master', 'main'],
           ),
         ),
       );
@@ -344,6 +370,35 @@ void main() {
         final PullRequest mergedPr = generatePullRequest(
           repo: Config.engineSlug.name,
           branch: Config.defaultBranch(Config.engineSlug),
+        );
+        await scheduler.addPullRequest(mergedPr);
+
+        expect(db.values.values.whereType<Commit>().length, 1);
+        expect(db.values.values.whereType<Task>().length, 3);
+        // Ensure all tasks under cocoon scheduler have been marked in progress
+        expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusInProgress).length, 2);
+      });
+
+      test('Release candidate branch commit filters builders not in default branch', () async {
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+          buildStatusProvider: (_) => buildStatusService,
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          httpClientProvider: () => httpClient,
+          luciBuildService: FakeLuciBuildService(
+            config: config,
+            githubChecksUtil: mockGithubChecksUtil,
+            gerritService: FakeGerritService(
+              branchesValue: <String>['master', 'main'],
+            ),
+          ),
+        );
+
+        final PullRequest mergedPr = generatePullRequest(
+          repo: Config.engineSlug.name,
+          branch: 'flutter-3.10-candidate.1',
         );
         await scheduler.addPullRequest(mergedPr);
 

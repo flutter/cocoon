@@ -121,15 +121,21 @@ class Scheduler {
     await _addCommit(mergedCommit);
   }
 
+  /// Processes postsubmit tasks.
   Future<void> _addCommit(Commit commit) async {
     if (!config.supportedRepos.contains(commit.slug)) {
       log.fine('Skipping ${commit.id} as repo is not supported');
       return;
     }
 
+    final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
+    final CiYaml totYaml = await getCiYaml(totCommit);
     final CiYaml ciYaml = await getCiYaml(commit);
     final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets);
-    final List<Task> tasks = targetsToTask(commit, initialTargets).toList();
+    // Filter targets.
+    final List<String> totTargetNames = totYaml.postsubmitTargets.map((Target target) => target.value.name).toList();
+    final List<Target> filteredTargets = initialTargets.where((Target target) => totTargetNames.contains(target.value.name)).toList();
+    final List<Task> tasks = targetsToTask(commit, filteredTargets).toList();
 
     final List<Tuple<Target, Task, int>> toBeScheduled = <Tuple<Target, Task, int>>[];
     for (Target target in initialTargets) {
