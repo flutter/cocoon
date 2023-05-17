@@ -134,7 +134,8 @@ class Scheduler {
     final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets);
     // Filter targets.
     final List<String> totTargetNames = totYaml.postsubmitTargets.map((Target target) => target.value.name).toList();
-    final List<Target> filteredTargets = initialTargets.where((Target target) => totTargetNames.contains(target.value.name)).toList();
+    final List<Target> filteredTargets =
+        initialTargets.where((Target target) => totTargetNames.contains(target.value.name)).toList();
     final List<Task> tasks = targetsToTask(commit, filteredTargets).toList();
 
     final List<Tuple<Target, Task, int>> toBeScheduled = <Tuple<Target, Task, int>>[];
