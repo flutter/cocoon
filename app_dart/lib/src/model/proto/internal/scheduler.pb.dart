@@ -16,8 +16,7 @@ export 'scheduler.pbenum.dart';
 class SchedulerConfig_PlatformProperties extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'SchedulerConfig.PlatformProperties',
-      package:
-          const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'scheduler'),
+      package: const $pb.PackageName($core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'scheduler'),
       createEmptyInstance: create)
     ..m<$core.String, $core.String>(
         1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'properties',
@@ -84,8 +83,7 @@ class SchedulerConfig_PlatformProperties extends $pb.GeneratedMessage {
 class SchedulerConfig extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'SchedulerConfig',
-      package:
-          const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'scheduler'),
+      package: const $pb.PackageName($core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'scheduler'),
       createEmptyInstance: create)
     ..pc<Target>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'targets', $pb.PbFieldType.PM,
         subBuilder: Target.create)
@@ -155,8 +153,7 @@ class SchedulerConfig extends $pb.GeneratedMessage {
 class Target extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Target',
-      package:
-          const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'scheduler'),
+      package: const $pb.PackageName($core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'scheduler'),
       createEmptyInstance: create)
     ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'name')
     ..pPS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'dependencies')
