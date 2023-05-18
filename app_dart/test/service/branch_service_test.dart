@@ -166,10 +166,31 @@ void main() {
       );
     });
 
+    test('throws BadRequest if github commit list has no branch time', () async {
+      gerritService.commitsValue = <GerritCommit>[];
+      when(repositories.listCommits(Config.engineSlug, sha: anyNamed('sha'))).thenAnswer(
+        (_) => Stream.value(
+          gh.RepositoryCommit(
+            commit: gh.GitCommit(
+              committer: gh.GitCommitUser(
+                'dash',
+                'dash@flutter.dev',
+                null,
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(
+        () async => branchService.branchFlutterRecipes(branch),
+        throwsExceptionWith<BadRequestException>('Found no GitHub commits on $branch with commit time'),
+      );
+    });
+
     test('does not create branch if a good branch point cannot be found', () async {
       gerritService.commitsValue = <GerritCommit>[];
       when(repositories.listCommits(Config.engineSlug, sha: anyNamed('sha'))).thenAnswer(
-        (_) => const Stream.empty(),
+        (_) => Stream.value(generateGitCommit(5)),
       );
       expect(
         () async => branchService.branchFlutterRecipes(branch),
