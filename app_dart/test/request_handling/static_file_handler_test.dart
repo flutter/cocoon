@@ -9,7 +9,6 @@ import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:test/test.dart';
-import 'package:mime/mime.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/request_handler_tester.dart';
