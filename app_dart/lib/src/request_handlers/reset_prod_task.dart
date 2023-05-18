@@ -47,7 +47,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   static const String commitShaParam = 'Commit';
 
   /// Name of the task to be retried.
-  /// 
+  ///
   /// If "all" is given, all failed tasks will be retried. This enables
   /// oncalls to quickly recover a commit without the tedium of the UI.
   static const String taskParam = 'Task';
@@ -82,11 +82,29 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       final CommitStatus status = statuses.firstWhere((CommitStatus status) => status.commit.sha == sha);
       final List<Future<void>> futures = <Future<void>>[];
       for (final Task task in status.stages.first.tasks) {
-        futures.add(rerun(datastore: datastore, gitBranch: gitBranch, sha: sha, taskName: task.name, slug: slug, email: token.email!,));
+        futures.add(
+          rerun(
+            datastore: datastore,
+            gitBranch: gitBranch,
+            sha: sha,
+            taskName: task.name,
+            slug: slug,
+            email: token.email!,
+          ),
+        );
       }
       await Future.wait(futures);
     } else {
-      await rerun(datastore: datastore, encodedKey: encodedKey, gitBranch: gitBranch, sha: sha, taskName: taskName, slug: slug, email: token.email!, ignoreChecks: true,);
+      await rerun(
+        datastore: datastore,
+        encodedKey: encodedKey,
+        gitBranch: gitBranch,
+        sha: sha,
+        taskName: taskName,
+        slug: slug,
+        email: token.email!,
+        ignoreChecks: true,
+      );
     }
 
     return Body.empty;
