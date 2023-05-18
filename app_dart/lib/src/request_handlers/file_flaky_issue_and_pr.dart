@@ -49,6 +49,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
     final Map<String?, Issue> nameToExistingIssue = await getExistingIssues(gitHub, slug);
     final Map<String?, PullRequest> nameToExistingPR = await getExistingPRs(gitHub, slug);
+    int filedIssueAndPRCount = 0;
     for (final BuilderStatistic statistic in builderStatisticList) {
       // Skip if ignore_flakiness is specified.
       if (getIgnoreFlakiness(statistic.name, ciYaml)) {
@@ -58,7 +59,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
         continue;
       }
       final BuilderType type = getTypeForBuilder(statistic.name, ciYaml);
-      await _fileIssueAndPR(
+      final bool issueAndPRFiled = await _fileIssueAndPR(
         gitHub,
         slug,
         builderDetail: BuilderDetail(
@@ -70,23 +71,29 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
           ownership: getTestOwnership(statistic.name, type, testOwnerContent),
         ),
       );
+      if (issueAndPRFiled) {
+        filedIssueAndPRCount++;
+      }
+      if (filedIssueAndPRCount == config.issueAndPRLimit) {
+        break;
+      }
     }
-    return Body.forJson(const <String, dynamic>{
+    return Body.forJson(<String, dynamic>{
       'Status': 'success',
+      'NumberOfCreatedIssuesAndPRs': filedIssueAndPRCount,
     });
   }
 
   double get _threshold => double.parse(request!.uri.queryParameters[kThresholdKey]!);
 
-  Future<void> _fileIssueAndPR(
+  Future<bool> _fileIssueAndPR(
     GithubService gitHub,
     RepositorySlug slug, {
     required BuilderDetail builderDetail,
   }) async {
     Issue? issue = builderDetail.existingIssue;
-
     if (_shouldNotFileIssueAndPR(builderDetail, issue)) {
-      return;
+      return false;
     }
     // Manually add a 1s delay between consecutive GitHub requests to deal with secondary rate limit error.
     // https://docs.github.com/en/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits
@@ -96,7 +103,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     if (builderDetail.type == BuilderType.shard ||
         builderDetail.type == BuilderType.unknown ||
         builderDetail.existingPullRequest != null) {
-      return;
+      return true;
     }
     final String modifiedContent = _marksBuildFlakyInContent(
       await gitHub.getFileContent(
@@ -125,6 +132,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       ],
     );
     await gitHub.assignReviewer(slug, reviewer: prBuilder.pullRequestReviewer, pullRequestNumber: pullRequest.number);
+    return true;
   }
 
   bool _shouldNotFileIssueAndPR(BuilderDetail builderDetail, Issue? issue) {

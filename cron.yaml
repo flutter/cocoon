@@ -36,7 +36,7 @@ cron:
 
 - description: detect and flag tests with high flaky rates
   url: /api/file_flaky_issue_and_pr?threshold=0.02
-  schedule: every wednesday 9:00
+  schedule: every wednesday 9:00,9:30,10:00,10:30,11:00
 
 - description: update existing flake issues with latest statistics
   url: /api/update_existing_flaky_issues?threshold=0.02

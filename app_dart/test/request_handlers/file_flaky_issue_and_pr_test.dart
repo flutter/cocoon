@@ -234,6 +234,104 @@ void main() {
       expect(result['Status'], 'success');
     });
 
+    test('File mulitple issues and prs', () async {
+      // when gets the content of .ci.yaml
+      when(
+        mockRepositoriesService.getContents(
+          captureAny,
+          kCiYamlPath,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<RepositoryContents>.value(
+          RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContentTwoFlakyTargets))),
+        );
+      });
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
+      });
+      // When creates issue
+      when(mockIssuesService.create(captureAny, captureAny)).thenAnswer((_) {
+        return Future<Issue>.value(Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL));
+      });
+      // When creates git tree
+      when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
+        return Future<GitTree>.value(GitTree(expectedSemanticsIntegrationTestTreeSha, '', false, <GitTreeEntry>[]));
+      });
+      // When creates git commit
+      when(mockGitService.createCommit(captureAny, captureAny)).thenAnswer((_) {
+        return Future<GitCommit>.value(GitCommit(sha: expectedSemanticsIntegrationTestTreeSha));
+      });
+      // When creates git reference
+      when(mockGitService.createReference(captureAny, captureAny, captureAny)).thenAnswer((Invocation invocation) {
+        return Future<GitReference>.value(GitReference(ref: invocation.positionalArguments[1] as String?));
+      });
+      // When creates pr to mark test flaky
+      when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((_) {
+        return Future<PullRequest>.value(PullRequest(number: expectedSemanticsIntegrationTestPRNumber));
+      });
+      final Map<String, dynamic> result = await utf8.decoder
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
+      expect(result['Status'], 'success');
+      expect(result['NumberOfCreatedIssuesAndPRs'], 2);
+    });
+
+    test('File issues and prs up to issueAndPRLimit', () async {
+      // when gets the content of .ci.yaml
+      config = FakeConfig(
+        githubService: GithubService(mockGitHubClient),
+        bigqueryService: mockBigqueryService,
+        githubClient: mockGitHubClient,
+        issueAndPRLimitValue: 1,
+      );
+      handler = FileFlakyIssueAndPR(
+        config: config,
+        authenticationProvider: auth,
+      );
+      when(
+        mockRepositoriesService.getContents(
+          captureAny,
+          kCiYamlPath,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<RepositoryContents>.value(
+          RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContentTwoFlakyTargets))),
+        );
+      });
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
+      });
+      // When creates issue
+      when(mockIssuesService.create(captureAny, captureAny)).thenAnswer((_) {
+        return Future<Issue>.value(Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL));
+      });
+      // When creates git tree
+      when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
+        return Future<GitTree>.value(GitTree(expectedSemanticsIntegrationTestTreeSha, '', false, <GitTreeEntry>[]));
+      });
+      // When creates git commit
+      when(mockGitService.createCommit(captureAny, captureAny)).thenAnswer((_) {
+        return Future<GitCommit>.value(GitCommit(sha: expectedSemanticsIntegrationTestTreeSha));
+      });
+      // When creates git reference
+      when(mockGitService.createReference(captureAny, captureAny, captureAny)).thenAnswer((Invocation invocation) {
+        return Future<GitReference>.value(GitReference(ref: invocation.positionalArguments[1] as String?));
+      });
+      // When creates pr to mark test flaky
+      when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((_) {
+        return Future<PullRequest>.value(PullRequest(number: expectedSemanticsIntegrationTestPRNumber));
+      });
+      final Map<String, dynamic> result = await utf8.decoder
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
+      expect(result['Status'], 'success');
+      expect(result['NumberOfCreatedIssuesAndPRs'], 1);
+    });
+
     test('Can file issue and pr for framework host-only test', () async {
       // When queries flaky data from BigQuery.
       when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
