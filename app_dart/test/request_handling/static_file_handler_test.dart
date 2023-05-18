@@ -9,6 +9,7 @@ import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:test/test.dart';
+import 'package:mime/mime.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/request_handler_tester.dart';
@@ -23,12 +24,14 @@ void main() {
     const String indexFileName = 'index.html';
     const String indexFileContent = 'some html';
     const String dartMapFileName = 'main.dart.js.map';
+    const String assetManifestSmcbin = 'AssetManifest.smcbin';
 
     setUp(() {
       tester = RequestHandlerTester();
       fs = MemoryFileSystem();
       fs.file('build/web/$indexFileName').createSync(recursive: true);
       fs.file('build/web/$indexFileName').writeAsStringSync(indexFileContent);
+      fs.file('build/web/$assetManifestSmcbin').writeAsStringSync(assetManifestSmcbin);
       fs.file('build/web/$dartMapFileName').writeAsStringSync('[{}]');
     });
 
@@ -58,6 +61,15 @@ void main() {
       expect(body, isNotNull);
       final String response = await decodeHandlerBody(body);
       expect(response, '[{}]');
+    });
+
+    test('smcbin file extension is handled correctly', () async {
+      final StaticFileHandler staticFileHandler = StaticFileHandler('/$assetManifestSmcbin', config: config, fs: fs);
+
+      final Body body = await tester.get(staticFileHandler);
+      expect(body, isNotNull);
+      final String response = await decodeHandlerBody(body);
+      expect(response, assetManifestSmcbin);
     });
 
     test('No extension files default to plain text', () async {
