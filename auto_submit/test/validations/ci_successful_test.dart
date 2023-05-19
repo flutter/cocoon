@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/validations/validation.dart';
+import 'package:auto_submit/configuration/repository_configuration.dart';
 
 import '../utilities/utils.dart';
 import '../utilities/mocks.dart';
@@ -18,6 +19,7 @@ import '../src/service/fake_config.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_graphql_client.dart';
 import '../requests/github_webhook_test_data.dart';
+import '../configuration/repository_configuration_data.dart';
 
 void main() {
   late CiSuccessful ciSuccessful;
@@ -54,6 +56,7 @@ void main() {
     ciSuccessful = CiSuccessful(config: config);
     slug = github.RepositorySlug('octocat', 'flutter');
     failures = <FailureDetail>{};
+    config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfigNoOverride);
   });
 
   group('validateCheckRuns', () {
@@ -347,6 +350,47 @@ void main() {
       });
     });
 
+    // When branch is default we need to wait for the tree status if it is not
+    // present.
+    test('Commit has no statuses to verify.', () {
+      final Map<String, dynamic> queryResultJsonDecode = jsonDecode(noStatusInCommitJson) as Map<String, dynamic>;
+      final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
+      expect(queryResult, isNotNull);
+      final PullRequest pr = queryResult.repository!.pullRequest!;
+      expect(pr, isNotNull);
+
+      final github.PullRequest npr = generatePullRequest();
+      githubService.checkRunsData = checkRunsMock;
+
+      ciSuccessful.validate(queryResult, npr).then((value) {
+        // fails because in this case there is only a single fail status
+        expect(false, value.result);
+        // Remove label.
+        expect(value.action, Action.IGNORE_TEMPORARILY);
+        expect(value.message, 'Hold to wait for the tree status ready.');
+      });
+    });
+
+    // Test for when the base branch is not default, we should not check the
+    // tree status as it does not apply.
+    test('Commit has no statuses to verify and base branch is not default.', () {
+      final Map<String, dynamic> queryResultJsonDecode = jsonDecode(noStatusInCommitJson) as Map<String, dynamic>;
+      final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
+      expect(queryResult, isNotNull);
+      final PullRequest pr = queryResult.repository!.pullRequest!;
+      expect(pr, isNotNull);
+
+      final github.PullRequest npr = generatePullRequest(baseRef: 'test_feature');
+      githubService.checkRunsData = checkRunsMock;
+
+      ciSuccessful.validate(queryResult, npr).then((value) {
+        expect(true, value.result);
+        // Remove label.
+        expect(value.action, Action.REMOVE_LABEL);
+        expect(value.message, isEmpty);
+      });
+    });
+
     test('Commit has statuses to verify, action remove label, no message.', () {
       final Map<String, dynamic> queryResultJsonDecode =
           jsonDecode(nonNullStatusSUCCESSCommitRepositoryJson) as Map<String, dynamic>;
@@ -423,6 +467,7 @@ void main() {
       config = FakeConfig(githubService: githubService);
       ciSuccessful = CiSuccessful(config: config);
       slug = github.RepositorySlug('flutter', 'cocoon');
+      config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfigNoOverride);
     });
 
     test('returns correct message when validation fails', () async {
