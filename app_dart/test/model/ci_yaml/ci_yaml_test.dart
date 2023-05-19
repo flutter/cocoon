@@ -107,6 +107,100 @@ void main() {
         ),
       );
     });
+
+    group('validations and filters.', () {
+      final CiYaml totCIYaml = CiYaml(
+        slug: Config.flutterSlug,
+        branch: Config.defaultBranch(Config.flutterSlug),
+        config: pb.SchedulerConfig(
+          enabledBranches: <String>[
+            Config.defaultBranch(Config.flutterSlug),
+          ],
+          targets: <pb.Target>[
+            pb.Target(
+              name: 'Linux A',
+            ),
+            pb.Target(
+              name: 'Mac A', // Should be ignored on release branches
+              bringup: true,
+            ),
+          ],
+        ),
+      );
+      final CiYaml ciYaml = CiYaml(
+        slug: Config.flutterSlug,
+        branch: 'flutter-2.4-candidate.3',
+        config: pb.SchedulerConfig(
+          enabledBranches: <String>[
+            'flutter-2.4-candidate.3',
+          ],
+          targets: <pb.Target>[
+            pb.Target(
+              name: 'Linux A',
+            ),
+            pb.Target(
+              name: 'Linux B',
+            ),
+            pb.Target(
+              name: 'Mac A', // Should be ignored on release branches
+              bringup: true,
+            ),
+          ],
+        ),
+        totConfig: totCIYaml,
+      );
+
+      test('filter targets removed from presubmit', () {
+        final List<Target> initialTargets = ciYaml.presubmitTargets;
+        final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
+        expect(
+          initialTargetNames,
+          containsAll(
+            <String>[
+              'Linux A',
+            ],
+          ),
+        );
+      });
+
+      test('filter targets removed from postsubmit', () {
+        final List<Target> initialTargets = ciYaml.postsubmitTargets;
+        final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
+        expect(
+          initialTargetNames,
+          containsAll(
+            <String>[
+              'Linux A',
+            ],
+          ),
+        );
+      });
+
+      test('validates yaml config', () {
+        expect(
+          () => CiYaml(
+            slug: Config.flutterSlug,
+            branch: Config.defaultBranch(Config.flutterSlug),
+            config: pb.SchedulerConfig(
+              enabledBranches: <String>[
+                Config.defaultBranch(Config.flutterSlug),
+              ],
+              targets: <pb.Target>[
+                pb.Target(
+                  name: 'Linux A',
+                ),
+                pb.Target(
+                  name: 'Linux B',
+                ),
+              ],
+            ),
+            totConfig: totCIYaml,
+            validate: true,
+          ),
+          throwsA(isA<FormatException>()),
+        );
+      });
+    });
   });
 }
 

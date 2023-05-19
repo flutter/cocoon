@@ -128,15 +128,10 @@ class Scheduler {
       return;
     }
 
-    final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
-    final CiYaml totYaml = await getCiYaml(totCommit);
     final CiYaml ciYaml = await getCiYaml(commit);
+
     final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets);
-    // Filter targets.
-    final List<String> totTargetNames = totYaml.postsubmitTargets.map((Target target) => target.value.name).toList();
-    final List<Target> filteredTargets =
-        initialTargets.where((Target target) => totTargetNames.contains(target.value.name)).toList();
-    final List<Task> tasks = targetsToTask(commit, filteredTargets).toList();
+    final List<Task> tasks = targetsToTask(commit, initialTargets).toList();
 
     final List<Tuple<Target, Task, int>> toBeScheduled = <Tuple<Target, Task, int>>[];
     for (Target target in initialTargets) {
@@ -217,10 +212,21 @@ class Scheduler {
     return true;
   }
 
-  /// Load in memory the `.ci.yaml`.
+  /// Process and filters ciyaml.
   Future<CiYaml> getCiYaml(
     Commit commit, {
+    bool validate = false,
+  }) async {
+    final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
+    final CiYaml totYaml = await _getCiYaml(totCommit);
+    return _getCiYaml(commit, totCiYaml: totYaml, validate: validate);
+  }
+
+  /// Load in memory the `.ci.yaml`.
+  Future<CiYaml> _getCiYaml(
+    Commit commit, {
     CiYaml? totCiYaml,
+    bool validate = false,
     RetryOptions retryOptions = const RetryOptions(delayFactor: Duration(seconds: 2), maxAttempts: 4),
   }) async {
     String ciPath;
@@ -243,6 +249,7 @@ class Scheduler {
       slug: commit.slug,
       branch: commit.branch!,
       totConfig: totCiYaml,
+      validate: validate,
     );
   }
 
@@ -413,29 +420,19 @@ class Scheduler {
     );
     late CiYaml ciYaml;
     log.info('Attempting to read presubmit targets from ci.yaml for ${pullRequest.number}');
-
-    // Always get the ci.yaml for default branch ToT.
-    final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
-    final CiYaml totYaml = await getCiYaml(totCommit);
-
     if (commit.branch == Config.defaultBranch(commit.slug)) {
-      ciYaml = await getCiYaml(commit, totCiYaml: totYaml);
+      ciYaml = await getCiYaml(commit, validate: true);
     } else {
       ciYaml = await getCiYaml(commit);
     }
     log.info('ci.yaml loaded successfully.');
-
     log.info('Collecting presubmit targets for ${pullRequest.number}');
 
     // Filter out schedulers targets with schedulers different than luci or cocoon.
-    Iterable<Target> presubmitTargets = ciYaml.presubmitTargets.where(
+    final Iterable<Target> presubmitTargets = ciYaml.presubmitTargets.where(
       (Target target) =>
           target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon,
     );
-
-    // Filter out builds that do not exist in main anymore.
-    final List<String> totTargetNames = totYaml.presubmitTargets.map((Target target) => target.value.name).toList();
-    presubmitTargets = presubmitTargets.where((Target target) => totTargetNames.contains(target.value.name)).toList();
 
     log.info('Collected ${presubmitTargets.length} presubmit targets.');
     // Release branches should run every test.

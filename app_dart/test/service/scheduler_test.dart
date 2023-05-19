@@ -558,7 +558,15 @@ targets:
           owner: 'abc',
           repo: 'cocoon',
         );
+        final Commit commitToT = generateCommit(
+          1,
+          sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a592c',
+          branch: 'master',
+          owner: 'abc',
+          repo: 'cocoon',
+        );
         config.db.values[commit.key] = commit;
+        config.db.values[commitToT.key] = commitToT;
         final Task task = generateTask(1, name: "test1", parent: commit);
         config.db.values[task.key] = task;
 
@@ -569,6 +577,7 @@ targets:
               r'''
 enabled_branches:
   - independent_agent
+  - master
 targets:
   - name: test1
 ''',
@@ -601,6 +610,9 @@ targets:
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
             buildbucket: mockBuildbucket,
+            gerritService: FakeGerritService(
+              branchesValue: <String>['master', 'main'],
+            ),
           ),
         );
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
