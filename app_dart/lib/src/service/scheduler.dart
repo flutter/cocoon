@@ -121,6 +121,7 @@ class Scheduler {
     await _addCommit(mergedCommit);
   }
 
+  /// Processes postsubmit tasks.
   Future<void> _addCommit(Commit commit) async {
     if (!config.supportedRepos.contains(commit.slug)) {
       log.fine('Skipping ${commit.id} as repo is not supported');
@@ -128,6 +129,7 @@ class Scheduler {
     }
 
     final CiYaml ciYaml = await getCiYaml(commit);
+
     final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets);
     final List<Task> tasks = targetsToTask(commit, initialTargets).toList();
 
@@ -210,10 +212,21 @@ class Scheduler {
     return true;
   }
 
-  /// Load in memory the `.ci.yaml`.
+  /// Process and filters ciyaml.
   Future<CiYaml> getCiYaml(
     Commit commit, {
+    bool validate = false,
+  }) async {
+    final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
+    final CiYaml totYaml = await _getCiYaml(totCommit);
+    return _getCiYaml(commit, totCiYaml: totYaml, validate: validate);
+  }
+
+  /// Load in memory the `.ci.yaml`.
+  Future<CiYaml> _getCiYaml(
+    Commit commit, {
     CiYaml? totCiYaml,
+    bool validate = false,
     RetryOptions retryOptions = const RetryOptions(delayFactor: Duration(seconds: 2), maxAttempts: 4),
   }) async {
     String ciPath;
@@ -236,6 +249,7 @@ class Scheduler {
       slug: commit.slug,
       branch: commit.branch!,
       totConfig: totCiYaml,
+      validate: validate,
     );
   }
 
@@ -407,20 +421,14 @@ class Scheduler {
     late CiYaml ciYaml;
     log.info('Attempting to read presubmit targets from ci.yaml for ${pullRequest.number}');
     if (commit.branch == Config.defaultBranch(commit.slug)) {
-      // This fails when we attempt the second call to getCiYaml since the retry
-      // options did not set a high enough delay factor.
-      final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
-      final CiYaml totYaml = await getCiYaml(totCommit);
-      ciYaml = await getCiYaml(
-        commit,
-        totCiYaml: totYaml,
-      );
+      ciYaml = await getCiYaml(commit, validate: true);
     } else {
       ciYaml = await getCiYaml(commit);
     }
     log.info('ci.yaml loaded successfully.');
-
     log.info('Collecting presubmit targets for ${pullRequest.number}');
+
+    // Filter out schedulers targets with schedulers different than luci or cocoon.
     final Iterable<Target> presubmitTargets = ciYaml.presubmitTargets.where(
       (Target target) =>
           target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon,

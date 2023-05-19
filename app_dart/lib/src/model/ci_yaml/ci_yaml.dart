@@ -22,9 +22,24 @@ class CiYaml {
     required this.branch,
     required this.config,
     CiYaml? totConfig,
+    bool validate = false,
   }) {
-    _validate(config, branch, totSchedulerConfig: totConfig?.config);
+    if (validate) {
+      _validate(config, branch, totSchedulerConfig: totConfig?.config);
+    }
+    totPresubmitTargetNames =
+        totConfig?.presubmitTargets.map((Target target) => target.value.name).toList() ?? <String>[];
+    totPostsubmitTargetNames =
+        totConfig?.postsubmitTargets.map((Target target) => target.value.name).toList() ?? <String>[];
   }
+
+  /// List of presubmit target names used to filter target from release candidate branches
+  /// that were already removed from main.
+  List<String>? totPresubmitTargetNames;
+
+  /// List of postsubmit target names used to filter target from release candidate branches
+  /// that were already removed from main.
+  List<String>? totPostsubmitTargetNames;
 
   /// The underlying protobuf that contains the raw data from .ci.yaml.
   pb.SchedulerConfig config;
@@ -40,9 +55,15 @@ class CiYaml {
     final Iterable<Target> presubmitTargets =
         _targets.where((Target target) => target.value.presubmit && !target.value.bringup);
 
-    final List<Target> enabledTargets = _filterEnabledTargets(presubmitTargets);
+    List<Target> enabledTargets = _filterEnabledTargets(presubmitTargets);
+
     if (enabledTargets.isEmpty) {
       throw Exception('$branch is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
+    }
+    // Filter targets removed from main.
+    if (totPresubmitTargetNames!.isNotEmpty) {
+      enabledTargets =
+          enabledTargets.where((Target target) => totPresubmitTargetNames!.contains(target.value.name)).toList();
     }
     return enabledTargets;
   }
@@ -51,7 +72,13 @@ class CiYaml {
   List<Target> get postsubmitTargets {
     final Iterable<Target> postsubmitTargets = _targets.where((Target target) => target.value.postsubmit);
 
-    return _filterEnabledTargets(postsubmitTargets);
+    List<Target> enabledTargets = _filterEnabledTargets(postsubmitTargets);
+    // Filter targets removed from main.
+    if (totPostsubmitTargetNames!.isNotEmpty) {
+      enabledTargets =
+          enabledTargets.where((Target target) => totPostsubmitTargetNames!.contains(target.value.name)).toList();
+    }
+    return enabledTargets;
   }
 
   /// Filters [targets] to those that should be started immediately.

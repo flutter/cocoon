@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
@@ -91,8 +92,12 @@ void main() {
 
       cache = CacheService(inMemory: true);
       db = FakeDatastoreDB();
-      buildStatusService =
-          FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
+      buildStatusService = FakeBuildStatusService(
+        commitStatuses: <CommitStatus>[
+          CommitStatus(generateCommit(1), const <Stage>[]),
+          CommitStatus(generateCommit(1, branch: 'main', repo: Config.engineSlug.name), const <Stage>[])
+        ],
+      );
       config = FakeConfig(
         tabledataResource: tabledataResource,
         dbValue: db,
@@ -125,7 +130,7 @@ void main() {
           config: config,
           githubChecksUtil: mockGithubChecksUtil,
           gerritService: FakeGerritService(
-            branchesValue: <String>['master'],
+            branchesValue: <String>['master', 'main'],
           ),
         ),
       );
@@ -353,6 +358,56 @@ void main() {
         expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusInProgress).length, 2);
       });
 
+      test('Release candidate branch commit filters builders not in default branch', () async {
+        const String totCiYaml = r'''
+enabled_branches:
+  - main
+  - flutter-\d+\.\d+-candidate\.\d+
+targets:
+  - name: Linux A
+    properties:
+      custom: abc
+''';
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path == '/flutter/engine/abc/.ci.yaml') {
+            return http.Response(totCiYaml, HttpStatus.ok);
+          }
+          if (request.url.path == '/flutter/engine/1/.ci.yaml') {
+            return http.Response(singleCiYaml, HttpStatus.ok);
+          }
+          print(request.url.path);
+          throw Exception('Failed to find ${request.url.path}');
+        });
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+          buildStatusProvider: (_) => buildStatusService,
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          httpClientProvider: () => httpClient,
+          luciBuildService: FakeLuciBuildService(
+            config: config,
+            githubChecksUtil: mockGithubChecksUtil,
+            gerritService: FakeGerritService(
+              branchesValue: <String>['master', 'main'],
+            ),
+          ),
+        );
+
+        final PullRequest mergedPr = generatePullRequest(
+          repo: Config.engineSlug.name,
+          branch: 'flutter-3.10-candidate.1',
+        );
+        await scheduler.addPullRequest(mergedPr);
+
+        final List<Task> tasks = db.values.values.whereType<Task>().toList();
+        expect(db.values.values.whereType<Commit>().length, 1);
+        expect(tasks, hasLength(1));
+        expect(tasks.first.name, 'Linux A');
+        // Ensure all tasks under cocoon scheduler have been marked in progress
+        expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusInProgress).length, 1);
+      });
+
       test('does not schedule tasks against non-merged PRs', () async {
         final PullRequest notMergedPr = generatePullRequest(merged: false);
         await scheduler.addPullRequest(notMergedPr);
@@ -503,7 +558,15 @@ void main() {
           owner: 'abc',
           repo: 'cocoon',
         );
+        final Commit commitToT = generateCommit(
+          1,
+          sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a592c',
+          branch: 'master',
+          owner: 'abc',
+          repo: 'cocoon',
+        );
         config.db.values[commit.key] = commit;
+        config.db.values[commitToT.key] = commitToT;
         final Task task = generateTask(1, name: "test1", parent: commit);
         config.db.values[task.key] = task;
 
@@ -514,6 +577,7 @@ void main() {
               r'''
 enabled_branches:
   - independent_agent
+  - master
 targets:
   - name: test1
 ''',
@@ -546,6 +610,9 @@ targets:
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
             buildbucket: mockBuildbucket,
+            gerritService: FakeGerritService(
+              branchesValue: <String>['master', 'main'],
+            ),
           ),
         );
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
@@ -648,6 +715,7 @@ targets:
               '''
 enabled_branches:
   - main
+  - master
   - flutter-\\d+.\\d+-candidate.\\d+
 targets:
   - name: Linux A
@@ -678,6 +746,49 @@ targets:
             // Linux runIf is not run as this is for tip of tree and the files weren't affected
           ],
         );
+      });
+
+      test('filters out presubmit targets that do not exist in main', () async {
+        const String totCiYaml = r'''
+enabled_branches:
+  - main
+  - flutter-\d+\.\d+-candidate\.\d+
+targets:
+  - name: Linux A
+    properties:
+      custom: abc
+''';
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path == '/flutter/engine/1/.ci.yaml') {
+            return http.Response(totCiYaml, HttpStatus.ok);
+          }
+          if (request.url.path == '/flutter/engine/abc/.ci.yaml') {
+            return http.Response(singleCiYaml, HttpStatus.ok);
+          }
+          print(request.url.path);
+          throw Exception('Failed to find ${request.url.path}');
+        });
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+          buildStatusProvider: (_) => buildStatusService,
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          httpClientProvider: () => httpClient,
+          luciBuildService: FakeLuciBuildService(
+            config: config,
+            githubChecksUtil: mockGithubChecksUtil,
+            gerritService: FakeGerritService(
+              branchesValue: <String>['master', 'main'],
+            ),
+          ),
+        );
+        final PullRequest pr = generatePullRequest(
+          repo: Config.engineSlug.name,
+          branch: 'flutter-3.10-candidate.1',
+        );
+        final List<Target> targets = await scheduler.getPresubmitTargets(pr);
+        expect(targets.single.value.name, 'Linux A');
       });
 
       test('triggers all presubmit build checks when diff cannot be found', () async {
