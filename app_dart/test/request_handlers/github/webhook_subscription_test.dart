@@ -1970,7 +1970,7 @@ void foo() {
       );
     });
 
-    test('Engine does not comment for whitespace only changes', () async {
+    test('bot does not comment for whitespace only changes', () async {
       const int issueNumber = 123;
 
       tester.message = generateGithubWebhookMessage(
