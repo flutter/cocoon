@@ -28,6 +28,7 @@ targets:
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         config: unCheckedSchedulerConfig,
+        validate: true,
       ).config;
       expect(schedulerConfig.enabledBranches, <String>['master']);
       expect(schedulerConfig.targets.length, 1);
@@ -59,6 +60,7 @@ targets:
             slug: Config.flutterSlug,
             branch: Config.defaultBranch(Config.flutterSlug),
             config: unCheckedSchedulerConfig,
+            validate: true,
           ).config;
         },
         throwsA(isA<FormatException>()),
@@ -91,6 +93,7 @@ targets:
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         config: unCheckedSchedulerConfig,
+        validate: true,
       ).config;
       expect(schedulerConfig.targets.length, 3);
       final Target a = schedulerConfig.targets.first;
@@ -121,6 +124,7 @@ targets:
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         config: unCheckedSchedulerConfig,
+        validate: true,
       ).config;
       expect(schedulerConfig.targets.length, 3);
       final Target a = schedulerConfig.targets.first;
@@ -151,6 +155,7 @@ targets:
           slug: Config.flutterSlug,
           branch: Config.defaultBranch(Config.flutterSlug),
           config: unCheckedSchedulerConfig,
+          validate: true,
         ).config,
         throwsA(
           isA<FormatException>().having(
@@ -177,6 +182,7 @@ targets:
           slug: Config.flutterSlug,
           branch: Config.defaultBranch(Config.flutterSlug),
           config: unCheckedSchedulerConfig,
+          validate: true,
         ).config,
         throwsA(
           isA<FormatException>().having(
@@ -207,6 +213,7 @@ targets:
           slug: Config.flutterSlug,
           branch: Config.defaultBranch(Config.flutterSlug),
           config: unCheckedSchedulerConfig,
+          validate: true,
         ).config,
         throwsA(
           isA<FormatException>().having(
@@ -233,6 +240,7 @@ targets:
           slug: Config.flutterSlug,
           branch: Config.defaultBranch(Config.flutterSlug),
           config: unCheckedSchedulerConfig,
+          validate: true,
         ).config,
         throwsA(
           isA<FormatException>().having(
@@ -260,6 +268,7 @@ targets:
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         config: unCheckedSchedulerConfig,
+        validate: true,
       );
     });
 
@@ -277,6 +286,7 @@ targets:
           branch: Config.defaultBranch(Config.flutterSlug),
           config: unCheckedSchedulerConfig,
           totConfig: totConfig,
+          validate: true,
         ),
         returnsNormally,
       );
@@ -298,6 +308,7 @@ targets:
           branch: Config.defaultBranch(Config.flutterSlug),
           config: unCheckedSchedulerConfig,
           totConfig: totConfig,
+          validate: true,
         ),
         returnsNormally,
       );
@@ -318,6 +329,7 @@ targets:
           branch: Config.defaultBranch(Config.flutterSlug),
           config: unCheckedSchedulerConfig,
           totConfig: totConfig,
+          validate: true,
         ),
         throwsA(
           isA<FormatException>().having(
@@ -345,6 +357,7 @@ targets:
           branch: Config.defaultBranch(Config.flutterSlug),
           config: unCheckedSchedulerConfig,
           totConfig: totConfig,
+          validate: true,
         ),
         throwsA(
           isA<FormatException>().having(
