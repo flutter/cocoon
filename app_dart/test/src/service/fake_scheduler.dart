@@ -46,8 +46,12 @@ class FakeScheduler extends Scheduler {
   CiYaml? ciYaml;
 
   @override
-  Future<CiYaml> getCiYaml(Commit commit,
-          {CiYaml? totCiYaml, RetryOptions? retryOptions, bool validate = false}) async =>
+  Future<CiYaml> getCiYaml(
+    Commit commit, {
+    CiYaml? totCiYaml,
+    RetryOptions? retryOptions,
+    bool validate = false,
+  }) async =>
       ciYaml ?? _defaultConfig;
 
   @override
