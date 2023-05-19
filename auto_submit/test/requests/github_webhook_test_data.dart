@@ -87,6 +87,7 @@ PullRequest generatePullRequest({
   String? body = 'Please pull these awesome changes in!',
   String title = 'Amazing new feature',
   bool? mergeable = true,
+  String baseRef = 'main',
 }) {
   return PullRequest.fromJson(
     json.decode('''{
@@ -130,7 +131,7 @@ PullRequest generatePullRequest({
       "base": {
         "label": "octocat:master",
         "label": "octocat:main",
-        "ref": "main",
+        "ref": "$baseRef",
         "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
         "repo": {
           "id": 1296269,

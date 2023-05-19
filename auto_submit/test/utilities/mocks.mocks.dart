@@ -2003,10 +2003,27 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         returnValue: _i6.Future<bool>.value(false),
       ) as _i6.Future<bool>);
   @override
-  _i6.Stream<_i5.RepositoryCommit> listCommits(_i5.RepositorySlug? slug) => (super.noSuchMethod(
+  _i6.Stream<_i5.RepositoryCommit> listCommits(
+    _i5.RepositorySlug? slug, {
+    String? sha,
+    String? path,
+    String? author,
+    String? committer,
+    DateTime? since,
+    DateTime? until,
+  }) =>
+      (super.noSuchMethod(
         Invocation.method(
           #listCommits,
           [slug],
+          {
+            #sha: sha,
+            #path: path,
+            #author: author,
+            #committer: committer,
+            #since: since,
+            #until: until,
+          },
         ),
         returnValue: _i6.Stream<_i5.RepositoryCommit>.empty(),
       ) as _i6.Stream<_i5.RepositoryCommit>);

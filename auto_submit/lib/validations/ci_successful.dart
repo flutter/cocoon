@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/validations/validation.dart';
@@ -42,12 +43,20 @@ class CiSuccessful extends Validation {
       statuses.addAll(commit.status!.contexts!);
     }
 
+    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
+    final String targetBranch = repositoryConfiguration.defaultBranch;
     // Check tree status of repos. If the tree status is not ready,
     // we want to hold and wait for the status, same as waiting
     // for checks to finish.
-    if (!treeStatusCheck(slug, statuses)) {
-      log.warning('Statuses were not ready for ${slug.fullName}, sha: $commit.');
-      return ValidationResult(false, Action.IGNORE_TEMPORARILY, 'Hold to wait for the tree status ready.');
+    final String? baseBranch = messagePullRequest.base!.ref;
+    if (baseBranch == targetBranch) {
+      // Only validate tree status where base branch is the default branch.
+      if (!treeStatusCheck(slug, statuses)) {
+        log.warning('Statuses were not ready for ${slug.fullName}, sha: $commit.');
+        return ValidationResult(false, Action.IGNORE_TEMPORARILY, 'Hold to wait for the tree status ready.');
+      }
+    } else {
+      log.info('Target branch is $baseBranch, skipping tree status check.');
     }
 
     // List of labels associated with the pull request.
@@ -95,6 +104,7 @@ class CiSuccessful extends Validation {
     if (!Config.reposWithTreeStatus.contains(slug)) {
       return true;
     }
+    // TODO for repositories that are merging into a non default branch this should not matter.
     if (statuses.isEmpty) {
       return false;
     }
