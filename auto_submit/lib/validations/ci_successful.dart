@@ -104,7 +104,6 @@ class CiSuccessful extends Validation {
     if (!Config.reposWithTreeStatus.contains(slug)) {
       return true;
     }
-    // TODO for repositories that are merging into a non default branch this should not matter.
     if (statuses.isEmpty) {
       return false;
     }
