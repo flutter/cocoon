@@ -685,11 +685,18 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     // Only handles single-line comments; identifying multi-line comments
     // would require the full file and non-trivial parsing. Also doesn't handle
     // end-of-line comments (e.g., "int x = 0; // Info about x").
-    final RegExp commentRegex = RegExp(r'[+-]\s*//');
+    final RegExp commentRegex = RegExp(r'^[+-]\s*//');
+    final RegExp onlyWhitespaceRegex = RegExp(r'^[+-]\s*$');
     for (String line in patch.split('\n')) {
       if (!line.startsWith('+') && !line.startsWith('-')) {
         continue;
       }
+
+      if (onlyWhitespaceRegex.hasMatch(line)) {
+        // whitespace only changes don't require tests
+        continue;
+      }
+
       if (!commentRegex.hasMatch(line)) {
         return false;
       }
