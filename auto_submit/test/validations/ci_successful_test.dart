@@ -350,6 +350,29 @@ void main() {
       });
     });
 
+    // When branch is default we need to wait for the tree status if it is not
+    // present.
+    test('Commit has no statuses to verify.', () {
+      final Map<String, dynamic> queryResultJsonDecode = jsonDecode(noStatusInCommitJson) as Map<String, dynamic>;
+      final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
+      expect(queryResult, isNotNull);
+      final PullRequest pr = queryResult.repository!.pullRequest!;
+      expect(pr, isNotNull);
+
+      final github.PullRequest npr = generatePullRequest();
+      githubService.checkRunsData = checkRunsMock;
+
+      ciSuccessful.validate(queryResult, npr).then((value) {
+        // fails because in this case there is only a single fail status
+        expect(false, value.result);
+        // Remove label.
+        expect(value.action, Action.IGNORE_TEMPORARILY);
+        expect(value.message, 'Hold to wait for the tree status ready.');
+      });
+    });
+
+    // Test for when the base branch is not default, we should not check the
+    // tree status as it does not apply.
     test('Commit has no statuses to verify and base branch is not default.', () {
       final Map<String, dynamic> queryResultJsonDecode = jsonDecode(noStatusInCommitJson) as Map<String, dynamic>;
       final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
