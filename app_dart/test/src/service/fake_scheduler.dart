@@ -209,3 +209,37 @@ final CiYaml bringupPackagesConfig = CiYaml(
     ],
   ),
 );
+
+final CiYaml totCiYaml = CiYaml(
+  slug: Config.flutterSlug,
+  branch: Config.defaultBranch(Config.flutterSlug),
+  config: pb.SchedulerConfig(
+    enabledBranches: <String>[
+      Config.defaultBranch(Config.flutterSlug),
+    ],
+    targets: <pb.Target>[
+      pb.Target(
+        name: 'Linux_android B',
+      ),
+      pb.Target(
+        name: 'Linux_android C',
+      ),
+    ],
+  ),
+);
+
+final CiYaml notInToTConfig = CiYaml(
+  slug: Config.flutterSlug,
+  branch: Config.defaultBranch(Config.flutterSlug),
+  config: pb.SchedulerConfig(
+    enabledBranches: <String>[
+      Config.defaultBranch(Config.flutterSlug),
+    ],
+    targets: <pb.Target>[
+      pb.Target(
+        name: 'Linux_android A',
+      ),
+    ],
+  ),
+  totConfig: totCiYaml,
+);
