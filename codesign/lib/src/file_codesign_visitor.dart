@@ -205,6 +205,9 @@ update these file paths accordingly.
       );
     }
     directoriesVisited.add(directory.absolute.path);
+
+    await cleanupEntitlements(directory);
+
     final List<FileSystemEntity> entities = await directory.list(followLinks: false).toList();
     for (FileSystemEntity entity in entities) {
       if (entity is io.Link) {
@@ -314,6 +317,21 @@ update these file paths accordingly.
         'stdout:\n${(result.stdout as String).trim()}'
         'stderr:\n${(result.stderr as String).trim()}',
       );
+    }
+  }
+
+  /// Delete codesign metadata at ALL places inside engine binary.
+  ///
+  /// Context: https://github.com/flutter/flutter/issues/126705. This is a temporary workaround.
+  /// Once flutter tools is ready we can remove this logic.
+  Future<void> cleanupEntitlements(Directory parent) async {
+    final String metadataEntitlements = fileSystem.path.join(parent.path, 'entitlements.txt');
+    final String metadataWithoutEntitlements = fileSystem.path.join(parent.path, 'without_entitlements.txt');
+    for (String metadataPath in [metadataEntitlements, metadataWithoutEntitlements]) {
+      if (await fileSystem.file(metadataPath).exists()) {
+        log.warning('cleaning up codesign metadata at $metadataPath.');
+        await fileSystem.file(metadataPath).delete();
+      }
     }
   }
 
