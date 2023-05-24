@@ -55,7 +55,8 @@ class DiagnoseCommand extends Command<bool> {
     return true;
   }
 
-  Future<bool> checkDevToolsSecurity() async {
+  /// Log the status of DevToolsSecurity.
+  Future<void> checkDevToolsSecurity() async {
     final List<String> command = <String>['xcrun', 'DevToolsSecurity', '--status'];
     final io.ProcessResult result = await processManager.run(
       command,
@@ -64,12 +65,9 @@ class DiagnoseCommand extends Command<bool> {
       logger.severe(
         '$command failed with exit code ${result.exitCode}\n${result.stderr}',
       );
-      return false;
     }
     final String stdout = result.stdout as String;
     logger.info(stdout);
-
-    return true;
   }
 }
 
