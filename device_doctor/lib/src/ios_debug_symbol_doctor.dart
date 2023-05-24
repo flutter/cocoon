@@ -26,6 +26,8 @@ class DiagnoseCommand extends Command<bool> {
   final String description = 'Diagnose whether attached iOS devices have errors.';
 
   Future<bool> run() async {
+    await checkDevToolsSecurity();
+
     final List<String> command = <String>['xcrun', 'xcdevice', 'list'];
     final io.ProcessResult result = await processManager.run(
       command,
@@ -49,8 +51,6 @@ class DiagnoseCommand extends Command<bool> {
       }
       return false;
     }
-
-    await checkDevToolsSecurity();
 
     return true;
   }
