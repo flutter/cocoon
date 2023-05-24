@@ -50,6 +50,25 @@ class DiagnoseCommand extends Command<bool> {
       return false;
     }
 
+    await checkDevToolsSecurity();
+
+    return true;
+  }
+
+  Future<bool> checkDevToolsSecurity() async {
+    final List<String> command = <String>['xcrun', 'DevToolsSecurity', '--status'];
+    final io.ProcessResult result = await processManager.run(
+      command,
+    );
+    if (result.exitCode != 0) {
+      logger.severe(
+        '$command failed with exit code ${result.exitCode}\n${result.stderr}',
+      );
+      return false;
+    }
+    final String stdout = result.stdout as String;
+    logger.info(stdout);
+
     return true;
   }
 }
