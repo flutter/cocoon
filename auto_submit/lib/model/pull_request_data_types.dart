@@ -17,3 +17,11 @@ enum PullRequestState {
   open,
   closed,
 }
+
+/// Enum to tell the auto-submit bot which action to take based on the label
+/// found.
+enum ProcessMethod {
+  processAutosubmit,
+  processRevert,
+  doNotProcess,
+}

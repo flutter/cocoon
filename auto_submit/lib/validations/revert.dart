@@ -13,6 +13,7 @@ import 'package:retry/retry.dart';
 
 import '../service/log.dart';
 
+// TODO remove.
 class Revert extends Validation {
   Revert({
     required super.config,

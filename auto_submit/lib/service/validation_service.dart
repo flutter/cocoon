@@ -13,8 +13,9 @@ import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/graphql_service.dart';
 import 'package:auto_submit/service/log.dart';
-import 'package:auto_submit/service/process_method.dart';
-import 'package:auto_submit/validations/revert.dart';
+import 'package:auto_submit/service/revert_issue_field_formatter.dart';
+import 'package:auto_submit/validations/required_check_runs.dart';
+// import 'package:auto_submit/validations/revert.dart';
 import 'package:auto_submit/validations/validation_filter.dart';
 import 'package:github/github.dart' as github;
 import 'package:graphql/client.dart' as graphql;
@@ -34,11 +35,9 @@ class ValidationService {
   ValidationService(this.config, {RetryOptions? retryOptions})
       : retryOptions = retryOptions ?? Config.mergeRetryOptions {
     /// Validates a PR marked with the reverts label.
-    revertValidation = Revert(config: config);
     approverService = ApproverService(config);
   }
 
-  Revert? revertValidation;
   ApproverService? approverService;
   final Config config;
   final RetryOptions retryOptions;
@@ -193,6 +192,8 @@ class ValidationService {
       }
     }
 
+    // TODO common code starts here
+
     // If we got to this point it means we are ready to submit the PR.
     final ProcessMergeResult processed = await processMerge(
       config: config,
@@ -235,46 +236,97 @@ class ValidationService {
     required String ackId,
     required PubSub pubsub,
   }) async {
-    // get validations to be run here.
-    final ValidationResult revertValidationResult = await revertValidation!.validate(
-      result,
-      messagePullRequest,
-    );
-
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
-    final int prNumber = messagePullRequest.number!;
     final GithubService githubService = await config.createGithubService(slug);
 
-    if (revertValidationResult.result) {
+    // At this point we have the original closed pull request so we can create the fields we need.
+    // 1. Craft the revert document for the mutation call.
+    final graphql.GraphQLClient graphQLClient = await config.createGitHubGraphQLClient(slug);
+    final GraphQlService graphQlService = GraphQlService();
+
+    final String nodeId = messagePullRequest.nodeId!;
+
+    final RevertIssueFieldFormatter formatter = RevertIssueFieldFormatter(
+      slug: slug,
+      originalPrNumber: messagePullRequest.number!,
+      initiatingAuthor: 'fluttergithubbot',
+      originalPrTitle: messagePullRequest.title!,
+      originalPrBody: messagePullRequest.body!,
+    ).format;
+
+    final RevertPullRequestMutation revertPullRequestMutation = RevertPullRequestMutation(
+      formatter.revertPrBody!,
+      'fluttergithubbot',
+      false,
+      nodeId,
+      formatter.revertPrTitle!,
+    );
+
+    final Map<String, dynamic> data = await graphQlService.mutateGraphQL(
+      documentNode: revertPullRequestMutation.documentNode,
+      variables: revertPullRequestMutation.variables,
+      client: graphQLClient,
+    );
+
+    final RevertPullRequestData revertPullRequestData = RevertPullRequestData.fromJson(data);
+    final PullRequest revertPullRequest = revertPullRequestData.revertPullRequest!.revertPullRequest!;
+
+    final int revertPrNumber = revertPullRequest.number!;
+    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
+
+    if (!repositoryConfiguration.supportNoReviewReverts) {
+      // add the autosubmit label and remove the revert to the pull request and return.
+      // TODO we might want to keep the revert label so this may be tricky.
+      await githubService.addLabels(
+        slug,
+        revertPrNumber,
+        [Config.kAutosubmitLabel],
+      );
+      await githubService.removeLabel(
+        slug,
+        revertPrNumber,
+        Config.kRevertLabel,
+      );
+      return;
+    }
+
+    // We need the new pull request for processing
+    final RequiredCheckRuns requiredCheckRuns = RequiredCheckRuns(config: config);
+    final github.PullRequest githubRevertPullRequest = await githubService.getPullRequest(slug, revertPrNumber,);
+    final ValidationResult checkRunValidationResult = await requiredCheckRuns.validate(result, githubRevertPullRequest,);
+
+    if (checkRunValidationResult.result) {
       // Approve the pull request automatically as it has been validated.
-      await approverService!.revertApproval(result, messagePullRequest);
+      await approverService!.revertApproval(result, githubRevertPullRequest);
+
+      // TODO common code starts here
 
       final ProcessMergeResult processed = await processMerge(
         config: config,
-        messagePullRequest: messagePullRequest,
+        messagePullRequest: githubRevertPullRequest,
       );
 
       if (processed.result) {
-        log.info('Revert request ${slug.fullName}/$prNumber was merged successfully.');
-        log.info('Insert a revert pull request record into the database for pr ${slug.fullName}/$prNumber');
+        log.info('Revert request ${slug.fullName}/$revertPrNumber was merged successfully.');
+        log.info('Insert a revert pull request record into the database for pr ${slug.fullName}/$revertPrNumber');
         await insertPullRequestRecord(
           config: config,
-          pullRequest: messagePullRequest,
+          pullRequest: githubRevertPullRequest,
           pullRequestType: PullRequestChangeType.revert,
         );
       } else {
-        final String message = 'revert label is removed for ${slug.fullName}/$prNumber, ${processed.message}.';
+        final String message = 'revert label is removed for ${slug.fullName}/$revertPrNumber, ${processed.message}.';
         await removeLabelAndComment(
           githubService: githubService,
           repositorySlug: slug,
-          prNumber: prNumber,
+          prNumber: revertPrNumber,
           prLabel: Config.kRevertLabel,
           message: message,
         );
 
         log.info(message);
       }
-    } else if (!revertValidationResult.result && revertValidationResult.action == Action.IGNORE_TEMPORARILY) {
+    } else if (!checkRunValidationResult.result && checkRunValidationResult.action == Action.IGNORE_TEMPORARILY) {
       // if required check runs have not completed process again.
       log.info('Some of the required checks have not completed. Requeueing.');
       return;
@@ -282,18 +334,19 @@ class ValidationService {
       // since we do not temporarily ignore anything with a revert request we
       // know we will report the error and remove the label.
       final String commentMessage =
-          revertValidationResult.message.isEmpty ? 'Validations Fail.' : revertValidationResult.message;
+          checkRunValidationResult.message.isEmpty ? 'Validations Fail.' : checkRunValidationResult.message;
 
       await removeLabelAndComment(
         githubService: githubService,
         repositorySlug: slug,
-        prNumber: prNumber,
+        prNumber: revertPrNumber,
         prLabel: Config.kRevertLabel,
         message: commentMessage,
       );
 
-      log.info('revert label is removed for ${slug.fullName}, pr: $prNumber, due to $commentMessage');
-      log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
+      log.info('revert label is removed for ${slug.fullName}, pr: $revertPrNumber, due to $commentMessage');
+      log.info(
+          'The pr ${slug.fullName}/$revertPrNumber is not feasible for merge and message: $ackId is acknowledged.');
     }
 
     log.info('Ack the processed message : $ackId.');

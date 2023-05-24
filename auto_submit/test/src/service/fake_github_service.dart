@@ -162,6 +162,17 @@ class FakeGithubService implements GithubService {
     return githubComparison;
   }
 
+  /// Add labels to an issue.
+  Future<List<IssueLabel>> addLabels(RepositorySlug slug, int issueNumber, List<String> labels) async {
+    final List<IssueLabel> issueLabels = [];
+    for (String labelString in labels) {
+      issueLabels.add(IssueLabel(
+        name: labelString,
+      ));
+    }
+    return issueLabels;
+  }
+
   @override
   Future<bool> removeLabel(RepositorySlug slug, int issueNumber, String label) async {
     labelRemoved = true;

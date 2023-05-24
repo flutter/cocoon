@@ -135,6 +135,7 @@ class PullRequest {
     this.author,
     this.authorAssociation,
     this.id,
+    this.number,
     this.title,
     this.body,
     this.reviews,
@@ -144,6 +145,7 @@ class PullRequest {
   @JsonKey(name: 'authorAssociation')
   final String? authorAssociation;
   final String? id;
+  final int? number;
   final String? title;
   final String? body;
   final Reviews? reviews;
