@@ -108,9 +108,10 @@ void main() {
     });
 
     test('Rerun all failed tasks when task name is all', () async {
-      final Task taskB = generateTask(2, name: 'Mac A', parent: commit);
+      final Task taskA = generateTask(2, name: 'Linux A', parent: commit, status: Task.statusFailed);
+      final Task taskB = generateTask(3, name: 'Mac A', parent: commit, status: Task.statusFailed);
+      config.db.values[taskA.key] = taskA;
       config.db.values[taskB.key] = taskB;
-      config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
       tester.requestData = <String, dynamic>{
         'Commit': commit.sha,
@@ -128,6 +129,28 @@ void main() {
           ignoreChecks: false,
         ),
       ).called(2);
+    });
+
+    test('Rerun all runs nothing when everything is passed', () async {
+      final Task task = generateTask(2, name: 'Windows A', parent: commit, status: Task.statusSucceeded);
+      config.db.values[task.key] = task;
+      config.db.values[commit.key] = commit;
+      tester.requestData = <String, dynamic>{
+        'Commit': commit.sha,
+        'Task': 'all',
+        'Repo': commit.slug.name,
+      };
+      expect(await tester.post(handler), Body.empty);
+      verifyNever(
+        mockLuciBuildService.checkRerunBuilder(
+          commit: anyNamed('commit'),
+          datastore: anyNamed('datastore'),
+          task: anyNamed('task'),
+          target: anyNamed('target'),
+          tags: anyNamed('tags'),
+          ignoreChecks: false,
+        ),
+      );
     });
 
     test('Re-schedule without any parameters raises exception', () async {

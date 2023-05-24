@@ -83,6 +83,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       final tasks = await datastore.db.query<Task>(ancestorKey: commitKey).run().toList();
       final List<Future<void>> futures = <Future<void>>[];
       for (final Task task in tasks) {
+        if (!taskFailStatusSet.contains(task.status)) continue;
         futures.add(
           rerun(
             datastore: datastore,
