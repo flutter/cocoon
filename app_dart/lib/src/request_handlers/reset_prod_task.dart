@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -56,7 +55,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
     final String? encodedKey = requestData![taskKeyParam] as String?;
-    String? gitBranch = requestData![branchParam] as String?;
+    String? branch = requestData![branchParam] as String?;
     final String owner = requestData![ownerParam] as String? ?? 'flutter';
     final String? repo = requestData![repoParam] as String?;
     final String? sha = requestData![commitShaParam] as String?;
@@ -71,21 +70,23 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       // Checks params required when this API is called with curl.
       checkRequiredParameters(<String>[commitShaParam, taskParam, repoParam]);
       slug = RepositorySlug(owner, repo!);
-      gitBranch ??= Config.defaultBranch(slug);
+      branch ??= Config.defaultBranch(slug);
     }
 
-    final bool retryAll = taskName == 'all';
-
-    if (retryAll) {
-      final BuildStatusService buildStatusService = BuildStatusService(datastore);
-      final List<CommitStatus> statuses = await buildStatusService.retrieveCommitStatus(slug: slug!, limit: 5).toList();
-      final CommitStatus status = statuses.firstWhere((CommitStatus status) => status.commit.sha == sha);
+    if (taskName == 'all') {
+      final Key<String> commitKey = Commit.createKey(
+        db: datastore.db,
+        slug: slug!,
+        gitBranch: branch!,
+        sha: sha!,
+      );
+      final tasks = await datastore.db.query<Task>(ancestorKey: commitKey).run().toList();
       final List<Future<void>> futures = <Future<void>>[];
-      for (final Task task in status.stages.first.tasks) {
+      for (final Task task in tasks) {
         futures.add(
           rerun(
             datastore: datastore,
-            gitBranch: gitBranch,
+            branch: branch,
             sha: sha,
             taskName: task.name,
             slug: slug,
@@ -98,7 +99,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       await rerun(
         datastore: datastore,
         encodedKey: encodedKey,
-        gitBranch: gitBranch,
+        branch: branch,
         sha: sha,
         taskName: taskName,
         slug: slug,
@@ -113,7 +114,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   Future<void> rerun({
     required DatastoreService datastore,
     String? encodedKey,
-    String? gitBranch,
+    String? branch,
     String? sha,
     String? taskName,
     RepositorySlug? slug,
@@ -123,7 +124,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final Task task = await _getTaskFromNamedParams(
       datastore: datastore,
       encodedKey: encodedKey,
-      gitBranch: gitBranch,
+      branch: branch,
       name: taskName,
       sha: sha,
       slug: slug,
@@ -156,11 +157,11 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   ///
   /// If [encodedKey] is passed, [KeyHelper] will decode it directly and return the associated entity.
   ///
-  /// Otherwise, [name], [gitBranch], [sha], and [slug] must be passed to find the [Task].
+  /// Otherwise, [name], [branch], [sha], and [slug] must be passed to find the [Task].
   Future<Task> _getTaskFromNamedParams({
     required DatastoreService datastore,
     String? encodedKey,
-    String? gitBranch,
+    String? branch,
     String? name,
     String? sha,
     RepositorySlug? slug,
@@ -172,7 +173,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final Key<String> commitKey = Commit.createKey(
       db: datastore.db,
       slug: slug!,
-      gitBranch: gitBranch!,
+      gitBranch: branch!,
       sha: sha!,
     );
     return Task.fromDatastore(
