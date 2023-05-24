@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:cocoon_service/src/model/appengine/branch.dart';
+import 'package:github/github.dart' as gh;
 import 'package:process_runner/process_runner.dart';
 
 import '../../cocoon_service.dart';
@@ -55,7 +56,9 @@ class GetBranches extends RequestHandler<Body> {
     List<Branch> branches = await datastore
         .queryBranches()
         .where(
-          (Branch b) => DateTime.now().millisecondsSinceEpoch - b.lastActivity! < kActiveBranchActivity.inMilliseconds,
+          (Branch b) =>
+              DateTime.now().millisecondsSinceEpoch - b.lastActivity! < kActiveBranchActivity.inMilliseconds ||
+              <String>['main', 'master'].contains(b.name),
         )
         .toList();
     // From the dashboard point of view, these are the subset of branches we care about.
