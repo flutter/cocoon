@@ -692,6 +692,7 @@ class LuciBuildService {
         .queryRecentCommits(
           limit: 1,
           slug: commit.slug,
+          branch: commit.branch,
         )
         .single;
     return latestCommit.sha == commit.sha;
