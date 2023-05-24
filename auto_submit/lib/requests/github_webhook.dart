@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:auto_submit/requests/pull_request_message.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 import 'package:crypto/crypto.dart';
@@ -29,6 +30,8 @@ class GithubWebhook extends RequestHandler {
 
   static const String pullRequest = 'pull_request';
   static const String labels = 'labels';
+  static const String sender = 'sender';
+  static const String login = 'login';
 
   static const String eventTypeHeader = 'X-GitHub-Event';
   static const String signatureHeader = 'X-Hub-Signature';
@@ -50,7 +53,7 @@ class GithubWebhook extends RequestHandler {
       throw const Forbidden();
     }
 
-    // Listen to the pull request with 'autosubmit' label.
+    // Listen to the pull request with 'autosubmit' or 'revert' label.
     bool hasAutosubmit = false;
     bool hasRevertLabel = false;
     final String rawBody = utf8.decode(requestBytes);
@@ -58,6 +61,7 @@ class GithubWebhook extends RequestHandler {
 
     if (!body.containsKey(GithubWebhook.pullRequest) ||
         !((body[GithubWebhook.pullRequest] as Map<String, dynamic>).containsKey(GithubWebhook.labels))) {
+      log.info('Could not find pull request information in the webhook event.');
       return Response.ok(jsonEncode(<String, String>{}));
     }
 
@@ -65,9 +69,18 @@ class GithubWebhook extends RequestHandler {
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
     hasRevertLabel = pullRequest.labels!.any((label) => label.name == Config.kRevertLabel);
 
+    final String senderLogin = body[GithubWebhook.sender][GithubWebhook.login];
+
     if (hasAutosubmit || hasRevertLabel) {
       log.info('Found pull request with auto submit and/or revert label.');
-      await pubsub.publish(Config.pubsubPullRequestTopic, pullRequest);
+      // For revert requests need to save the author of the label to make sure
+      // they are a member of the team allowed to submit changes.
+      final PullRequestMessage prRecord = PullRequestMessage(
+        pullRequest: pullRequest,
+        action: gitHubEvent,
+        sender: senderLogin,
+      );
+      await pubsub.publish(Config.pubsubPullRequestTopic, prRecord);
     }
 
     return Response.ok(rawBody);

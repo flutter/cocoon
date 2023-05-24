@@ -292,8 +292,14 @@ class ValidationService {
 
     // We need the new pull request for processing
     final RequiredCheckRuns requiredCheckRuns = RequiredCheckRuns(config: config);
-    final github.PullRequest githubRevertPullRequest = await githubService.getPullRequest(slug, revertPrNumber,);
-    final ValidationResult checkRunValidationResult = await requiredCheckRuns.validate(result, githubRevertPullRequest,);
+    final github.PullRequest githubRevertPullRequest = await githubService.getPullRequest(
+      slug,
+      revertPrNumber,
+    );
+    final ValidationResult checkRunValidationResult = await requiredCheckRuns.validate(
+      result,
+      githubRevertPullRequest,
+    );
 
     if (checkRunValidationResult.result) {
       // Approve the pull request automatically as it has been validated.
