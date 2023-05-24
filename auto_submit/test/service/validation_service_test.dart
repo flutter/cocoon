@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto hide PullRequest;
 import 'package:auto_submit/model/pull_request_data_types.dart';
+import 'package:auto_submit/requests/pull_request_message.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -75,10 +76,16 @@ void main() {
     unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
     final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
+    final PullRequestMessage pullRequestMessage = PullRequestMessage(
+      pullRequest: pullRequest,
+      action: 'labeled',
+      sender: 'autosubmit',
+    );
+
     await validationService.processPullRequest(
       config: config,
       result: queryResult,
-      messagePullRequest: pullRequest,
+      pullRequestMessage: pullRequestMessage,
       ackId: 'test',
       pubsub: pubsub,
     );
@@ -123,10 +130,16 @@ void main() {
       message: 'Merged successfully.',
     );
 
+    final PullRequestMessage pullRequestMessage = PullRequestMessage(
+      pullRequest: pullRequest,
+      action: 'labeled',
+      sender: 'autosubmit',
+    );
+
     await validationService.processPullRequest(
       config: config,
       result: queryResult,
-      messagePullRequest: pullRequest,
+      pullRequestMessage: pullRequestMessage,
       ackId: 'test',
       pubsub: pubsub,
     );
@@ -164,10 +177,16 @@ void main() {
     unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
     final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
+    final PullRequestMessage pullRequestMessage = PullRequestMessage(
+      pullRequest: pullRequest,
+      action: 'created',
+      sender: 'autosubmit',
+    );
+
     await validationService.processPullRequest(
       config: config,
       result: queryResult,
-      messagePullRequest: pullRequest,
+      pullRequestMessage: pullRequestMessage,
       ackId: 'test',
       pubsub: pubsub,
     );
@@ -197,10 +216,17 @@ void main() {
       unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
       githubService.pullRequestMock = pullRequest;
+
+      final PullRequestMessage pullRequestMessage = PullRequestMessage(
+        pullRequest: pullRequest,
+        action: 'created',
+        sender: 'autosubmit',
+      );
+
       await validationService.processRevertRequest(
         config: config,
         result: queryResult,
-        messagePullRequest: pullRequest,
+        pullRequestMessage: pullRequestMessage,
         ackId: 'test',
         pubsub: pubsub,
       );
@@ -257,10 +283,16 @@ void main() {
           unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
           final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
+          final PullRequestMessage pullRequestMessage = PullRequestMessage(
+            pullRequest: pullRequest,
+            action: 'labeled',
+            sender: 'autosubmit',
+          );
+
           await validationService.processRevertRequest(
             config: config,
             result: queryResult,
-            messagePullRequest: pullRequest,
+            pullRequestMessage: pullRequestMessage,
             ackId: 'test',
             pubsub: pubsub,
           );
@@ -303,10 +335,16 @@ void main() {
           unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
           final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
+          final PullRequestMessage pullRequestMessage = PullRequestMessage(
+            pullRequest: pullRequest,
+            action: 'labeled',
+            sender: 'autosubmit',
+          );
+
           await validationService.processRevertRequest(
             config: config,
             result: queryResult,
-            messagePullRequest: pullRequest,
+            pullRequestMessage: pullRequestMessage,
             ackId: 'test',
             pubsub: pubsub,
           );
@@ -348,10 +386,16 @@ void main() {
           unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
           final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
+          final PullRequestMessage pullRequestMessage = PullRequestMessage(
+            pullRequest: pullRequest,
+            action: 'labeled',
+            sender: 'autosubmit',
+          );
+
           await validationService.processRevertRequest(
             config: config,
             result: queryResult,
-            messagePullRequest: pullRequest,
+            pullRequestMessage: pullRequestMessage,
             ackId: 'test',
             pubsub: pubsub,
           );
@@ -395,10 +439,16 @@ void main() {
           unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
           final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
+          final PullRequestMessage pullRequestMessage = PullRequestMessage(
+            pullRequest: pullRequest,
+            action: 'labeled',
+            sender: 'autosubmit',
+          );
+
           await validationService.processRevertRequest(
             config: config,
             result: queryResult,
-            messagePullRequest: pullRequest,
+            pullRequestMessage: pullRequestMessage,
             ackId: 'test',
             pubsub: pubsub,
           );
@@ -467,10 +517,16 @@ void main() {
           unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
           final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
+          final PullRequestMessage pullRequestMessage = PullRequestMessage(
+            pullRequest: pullRequest,
+            action: 'labeled',
+            sender: 'autosubmit',
+          );
+
           await validationService.processRevertRequest(
             config: config,
             result: queryResult,
-            messagePullRequest: pullRequest,
+            pullRequestMessage: pullRequestMessage,
             ackId: 'test',
             pubsub: pubsub,
           );
@@ -529,10 +585,16 @@ void main() {
           unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
           final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
+          final PullRequestMessage pullRequestMessage = PullRequestMessage(
+            pullRequest: pullRequest,
+            action: 'labeled',
+            sender: 'autosubmit',
+          );
+
           await validationService.processRevertRequest(
             config: config,
             result: queryResult,
-            messagePullRequest: pullRequest,
+            pullRequestMessage: pullRequestMessage,
             ackId: 'test',
             pubsub: pubsub,
           );
@@ -596,10 +658,16 @@ void main() {
           unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
           final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
+          final PullRequestMessage pullRequestMessage = PullRequestMessage(
+            pullRequest: pullRequest,
+            action: 'labeled',
+            sender: 'autosubmit',
+          );
+
           await validationService.processRevertRequest(
             config: config,
             result: queryResult,
-            messagePullRequest: pullRequest,
+            pullRequestMessage: pullRequestMessage,
             ackId: 'test',
             pubsub: pubsub,
           );
@@ -678,10 +746,16 @@ void main() {
           unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
           final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
+          final PullRequestMessage pullRequestMessage = PullRequestMessage(
+            pullRequest: pullRequest,
+            action: 'labeled',
+            sender: 'autosubmit',
+          );
+
           await validationService.processRevertRequest(
             config: config,
             result: queryResult,
-            messagePullRequest: pullRequest,
+            pullRequestMessage: pullRequestMessage,
             ackId: 'test',
             pubsub: pubsub,
           );
@@ -725,8 +799,8 @@ void main() {
       expect(processMethod, ProcessMethod.doNotProcess);
     });
 
-    test('Should process message when revert label exists and pr is open', () async {
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
+    test('Should process message when revert label exists and pr is closed', () async {
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name, state: 'closed');
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
@@ -735,19 +809,8 @@ void main() {
       expect(processMethod, ProcessMethod.processRevert);
     });
 
-    test('Should process message as revert when revert and autosubmit labels are present and pr is open', () async {
+    test('Skip processing message when revert label exists and pr is open', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-      final IssueLabel issueLabel = IssueLabel(name: 'revert');
-      pullRequest.labels!.add(issueLabel);
-      githubService.pullRequestData = pullRequest;
-      final ProcessMethod processMethod = await validationService.processPullRequestMethod(pullRequest);
-
-      expect(processMethod, ProcessMethod.processRevert);
-    });
-
-    test('Skip processing message when revert label exists and pr is closed', () async {
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-      pullRequest.state = 'closed';
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;

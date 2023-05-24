@@ -6,6 +6,7 @@ import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/exception/bigquery_exception.dart';
 import 'package:auto_submit/model/big_query_pull_request_record.dart';
 import 'package:auto_submit/model/pull_request_data_types.dart';
+import 'package:auto_submit/requests/pull_request_message.dart';
 import 'dart:async';
 
 import 'package:auto_submit/service/bigquery.dart';
@@ -43,15 +44,17 @@ class ValidationService {
   final RetryOptions retryOptions;
 
   /// Processes a pub/sub message associated with PullRequest event.
-  Future<void> processMessage(github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
-    final ProcessMethod processMethod = await processPullRequestMethod(messagePullRequest);
+  Future<void> processMessage(PullRequestMessage pullRequestMessage, String ackId, PubSub pubsub) async {
+    final github.PullRequest pullRequest = pullRequestMessage.pullRequest!;
+
+    final ProcessMethod processMethod = await processPullRequestMethod(pullRequest);
 
     switch (processMethod) {
       case ProcessMethod.processAutosubmit:
         await processPullRequest(
           config: config,
-          result: await getNewestPullRequestInfo(config, messagePullRequest),
-          messagePullRequest: messagePullRequest,
+          result: await getNewestPullRequestInfo(config, pullRequest),
+          pullRequestMessage: pullRequestMessage,
           ackId: ackId,
           pubsub: pubsub,
         );
@@ -59,14 +62,14 @@ class ValidationService {
       case ProcessMethod.processRevert:
         await processRevertRequest(
           config: config,
-          result: await getNewestPullRequestInfo(config, messagePullRequest),
-          messagePullRequest: messagePullRequest,
+          result: await getNewestPullRequestInfo(config, pullRequest),
+          pullRequestMessage: pullRequestMessage,
           ackId: ackId,
           pubsub: pubsub,
         );
         break;
       case ProcessMethod.doNotProcess:
-        log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
+        log.info('Should not process ${pullRequest.toJson()}, and ack the message.');
         await pubsub.acknowledge('auto-submit-queue-sub', ackId);
         break;
     }
@@ -103,17 +106,17 @@ class ValidationService {
         .map<String>((github.IssueLabel labelMap) => labelMap.name)
         .toList();
 
-    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
+    // final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
-    if (currentPullRequest.state == 'open' && labelNames.contains(Config.kRevertLabel)) {
+    if (currentPullRequest.state == 'closed' && labelNames.contains(Config.kRevertLabel)) {
       // TODO (ricardoamador) this will not make sense now that reverts happen from closed.
       // we can open the pull request but who do we assign it to? The initiating author?
-      if (!repositoryConfiguration.supportNoReviewReverts) {
-        log.info(
-          'Cannot allow revert request (${slug.fullName}/${pullRequest.number}) without review. Processing as regular pull request.',
-        );
-        return ProcessMethod.processAutosubmit;
-      }
+      // if (!repositoryConfiguration.supportNoReviewReverts) {
+      //   log.info(
+      //     'Cannot allow revert request (${slug.fullName}/${pullRequest.number}) without review. Processing as regular pull request.',
+      //   );
+      //   return ProcessMethod.processAutosubmit;
+      // }
       return ProcessMethod.processRevert;
     } else if (currentPullRequest.state == 'open' && labelNames.contains(Config.kAutosubmitLabel)) {
       return ProcessMethod.processAutosubmit;
@@ -127,12 +130,13 @@ class ValidationService {
   Future<void> processPullRequest({
     required Config config,
     required QueryResult result,
-    required github.PullRequest messagePullRequest,
+    required PullRequestMessage pullRequestMessage,
     required String ackId,
     required PubSub pubsub,
   }) async {
     final List<ValidationResult> results = <ValidationResult>[];
-    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    final github.PullRequest pullRequest = pullRequestMessage.pullRequest!;
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
     // filter out validations here
@@ -148,7 +152,7 @@ class ValidationService {
     for (Validation validation in validations) {
       final ValidationResult validationResult = await validation.validate(
         result,
-        messagePullRequest,
+        pullRequest,
       );
       results.add(validationResult);
     }
@@ -157,7 +161,7 @@ class ValidationService {
 
     /// If there is at least one action that requires to remove label do so and add comments for all the failures.
     bool shouldReturn = false;
-    final int prNumber = messagePullRequest.number!;
+    final int prNumber = pullRequest.number!;
     for (ValidationResult result in results) {
       if (!result.result && result.action == Action.REMOVE_LABEL) {
         final String commmentMessage = result.message.isEmpty ? 'Validations Fail.' : result.message;
@@ -197,7 +201,7 @@ class ValidationService {
     // If we got to this point it means we are ready to submit the PR.
     final ProcessMergeResult processed = await processMerge(
       config: config,
-      messagePullRequest: messagePullRequest,
+      messagePullRequest: pullRequest,
     );
 
     if (!processed.result) {
@@ -218,7 +222,7 @@ class ValidationService {
 
       await insertPullRequestRecord(
         config: config,
-        pullRequest: messagePullRequest,
+        pullRequest: pullRequest,
         pullRequestType: PullRequestChangeType.change,
       );
     }
@@ -232,11 +236,12 @@ class ValidationService {
   Future<void> processRevertRequest({
     required Config config,
     required QueryResult result,
-    required github.PullRequest messagePullRequest,
+    required PullRequestMessage pullRequestMessage,
     required String ackId,
     required PubSub pubsub,
   }) async {
-    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    final github.PullRequest pullRequest = pullRequestMessage.pullRequest!;
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService githubService = await config.createGithubService(slug);
 
     // At this point we have the original closed pull request so we can create the fields we need.
@@ -244,14 +249,14 @@ class ValidationService {
     final graphql.GraphQLClient graphQLClient = await config.createGitHubGraphQLClient(slug);
     final GraphQlService graphQlService = GraphQlService();
 
-    final String nodeId = messagePullRequest.nodeId!;
+    final String nodeId = pullRequest.nodeId!;
 
     final RevertIssueFieldFormatter formatter = RevertIssueFieldFormatter(
       slug: slug,
-      originalPrNumber: messagePullRequest.number!,
+      originalPrNumber: pullRequest.number!,
       initiatingAuthor: 'fluttergithubbot',
-      originalPrTitle: messagePullRequest.title!,
-      originalPrBody: messagePullRequest.body!,
+      originalPrTitle: pullRequest.title!,
+      originalPrBody: pullRequest.body!,
     ).format;
 
     final RevertPullRequestMutation revertPullRequestMutation = RevertPullRequestMutation(

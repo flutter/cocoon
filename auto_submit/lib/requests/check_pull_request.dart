@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:auto_submit/requests/pull_request_message.dart';
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:github/github.dart';
@@ -52,7 +53,9 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       final String messageData = message.message!.data!;
 
       final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
-      final PullRequest pullRequest = PullRequest.fromJson(rawBody);
+      final PullRequestMessage pullRequestMessage = PullRequestMessage.fromJson(rawBody);
+
+      final PullRequest pullRequest = pullRequestMessage.pullRequest!;
 
       log.info('Processing message ackId: ${message.ackId}');
       log.info('Processing mesageId: ${message.message!.messageId}');
@@ -75,7 +78,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
 
       futures.add(
         validationService.processMessage(
-          pullRequest,
+          pullRequestMessage,
           message.ackId!,
           pubsub,
         ),

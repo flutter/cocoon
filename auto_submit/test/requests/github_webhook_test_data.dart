@@ -15,7 +15,7 @@ String generateWebhookEvent({
   String? authorAssociation,
 }) {
   return '''{
-      "action": "open",
+      "action": "opened",
       "number": 1598,
       "pull_request": {
           "id": 1,
@@ -71,6 +71,9 @@ String generateWebhookEvent({
           "author_association": "${authorAssociation ?? "OWNER"}",
           "mergeable": true,
           "mergeable_state": "clean"
+      },
+      "sender": {
+        "login": "kristinbi"
       }
     }''';
 }

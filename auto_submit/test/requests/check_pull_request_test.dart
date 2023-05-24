@@ -6,6 +6,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:auto_submit/configuration/repository_configuration.dart';
+import 'package:auto_submit/requests/pull_request_message.dart';
 import 'package:auto_submit/service/config.dart';
 
 import 'package:auto_submit/requests/check_pull_request.dart';
@@ -141,12 +142,19 @@ void main() {
         prNumber: 0,
         repoName: cocoonRepo,
       );
+
+      final PullRequestMessage pullRequestMessage = PullRequestMessage(
+        pullRequest: pullRequest1,
+        action: 'labeled',
+        sender: 'autosubmit',
+      );
+
       // 'member' is in the review nodes and 'author1' is the pr author.
       githubService.isTeamMemberMockMap['member'] = true;
       githubService.isTeamMemberMockMap['author1'] = true;
       githubService.pullRequestData = pullRequest1;
       for (int i = 0; i < 2; i++) {
-        unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest1));
+        unawaited(pubsub.publish('auto-submit-queue-sub', pullRequestMessage));
       }
 
       checkPullRequest = CheckPullRequest(
@@ -179,8 +187,15 @@ void main() {
           state: 'close',
         ),
       );
+
+      final PullRequestMessage pullRequestMessage = PullRequestMessage(
+        pullRequest: pullRequest1,
+        action: 'labeled',
+        sender: 'autosubmit',
+      );
+
       for (int i = 0; i < 2; i++) {
-        unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest1));
+        unawaited(pubsub.publish('auto-submit-queue-sub', pullRequestMessage));
       }
 
       checkPullRequest = CheckPullRequest(
@@ -214,7 +229,12 @@ void main() {
 
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
-        unawaited(pubsub.publish(testTopic, pr));
+        final PullRequestMessage pullRequestMessage = PullRequestMessage(
+          pullRequest: pr,
+          action: 'labeled',
+          sender: 'autosubmit',
+        );
+        unawaited(pubsub.publish(testTopic, pullRequestMessage));
       }
 
       checkPullRequest = CheckPullRequest(
@@ -281,7 +301,12 @@ void main() {
       githubService.isTeamMemberMockMap['author1'] = true;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
-        unawaited(pubsub.publish(testTopic, pr));
+        final PullRequestMessage pullRequestMessage = PullRequestMessage(
+          pullRequest: pr,
+          action: 'labeled',
+          sender: 'autosubmit',
+        );
+        unawaited(pubsub.publish(testTopic, pullRequestMessage));
       }
 
       checkPullRequest = CheckPullRequest(
@@ -335,7 +360,14 @@ void main() {
         author: rollorAuthor,
       );
       githubService.pullRequestData = pullRequest;
-      unawaited(pubsub.publish(testTopic, pullRequest));
+
+      final PullRequestMessage pullRequestMessage = PullRequestMessage(
+        pullRequest: pullRequest,
+        action: 'labeled',
+        sender: 'autosubmit',
+      );
+
+      unawaited(pubsub.publish(testTopic, pullRequestMessage));
 
       checkPullRequest = CheckPullRequest(
         config: config,
@@ -381,12 +413,14 @@ void main() {
       githubService.isTeamMemberMockMap['member'] = true;
       githubService.isTeamMemberMockMap['author1'] = true;
       githubService.pullRequestData = pullRequest;
-      unawaited(
-        pubsub.publish(
-          testTopic,
-          pullRequest,
-        ),
+
+      final PullRequestMessage pullRequestMessage = PullRequestMessage(
+        pullRequest: pullRequest,
+        action: 'labeled',
+        sender: 'autosubmit',
       );
+
+      unawaited(pubsub.publish(testTopic, pullRequestMessage));
 
       checkPullRequest = CheckPullRequest(
         config: config,
@@ -429,7 +463,15 @@ void main() {
       // 'member' is in the review nodes and 'author1' is the pr author.
       githubService.isTeamMemberMockMap['member'] = true;
       githubService.isTeamMemberMockMap['author1'] = true;
-      unawaited(pubsub.publish(testTopic, pullRequest));
+
+      final PullRequestMessage pullRequestMessage = PullRequestMessage(
+        pullRequest: pullRequest,
+        action: 'labeled',
+        sender: 'autosubmit',
+      );
+
+      unawaited(pubsub.publish(testTopic, pullRequestMessage));
+
       checkPullRequest = CheckPullRequest(
         config: config,
         pubsub: pubsub,
@@ -475,7 +517,14 @@ void main() {
       // 'member' is in the review nodes and 'author1' is the pr author.
       githubService.isTeamMemberMockMap['member'] = true;
       githubService.isTeamMemberMockMap['author1'] = true;
-      unawaited(pubsub.publish(testTopic, pullRequest));
+
+      final PullRequestMessage pullRequestMessage = PullRequestMessage(
+        pullRequest: pullRequest,
+        action: 'labeled',
+        sender: 'autosubmit',
+      );
+
+      unawaited(pubsub.publish(testTopic, pullRequestMessage));
 
       checkPullRequest = CheckPullRequest(
         config: config,
@@ -520,9 +569,16 @@ void main() {
       githubService.isTeamMemberMockMap['member'] = true;
       githubService.isTeamMemberMockMap['author1'] = true;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
+
       for (PullRequest pr in pullRequests) {
-        unawaited(pubsub.publish(testTopic, pr));
+        final PullRequestMessage pullRequestMessage = PullRequestMessage(
+          pullRequest: pr,
+          action: 'labeled',
+          sender: 'autosubmit',
+        );
+        unawaited(pubsub.publish(testTopic, pullRequestMessage));
       }
+
       githubService.checkRunsData = neutralCheckRunsMock;
       checkPullRequest = CheckPullRequest(
         config: config,
@@ -556,9 +612,16 @@ void main() {
       githubService.isTeamMemberMockMap['member'] = true;
       githubService.isTeamMemberMockMap['author1'] = true;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
+
       for (PullRequest pr in pullRequests) {
-        unawaited(pubsub.publish(testTopic, pr));
+        final PullRequestMessage pullRequestMessage = PullRequestMessage(
+          pullRequest: pr,
+          action: 'labeled',
+          sender: 'autosubmit',
+        );
+        unawaited(pubsub.publish(testTopic, pullRequestMessage));
       }
+
       githubService.checkRunsData = failedCheckRunsMock;
       checkPullRequest = CheckPullRequest(
         config: config,
@@ -587,7 +650,14 @@ void main() {
       // 'member' is in the review nodes and 'author1' is the pr author.
       githubService.isTeamMemberMockMap['member'] = true;
       githubService.isTeamMemberMockMap['author1'] = true;
-      unawaited(pubsub.publish(testTopic, pullRequest));
+
+      final PullRequestMessage pullRequestMessage = PullRequestMessage(
+        pullRequest: pullRequest,
+        action: 'labeled',
+        sender: 'autosubmit',
+      );
+
+      unawaited(pubsub.publish(testTopic, pullRequestMessage));
 
       checkPullRequest = CheckPullRequest(
         config: config,
@@ -616,7 +686,14 @@ void main() {
       githubService.pullRequestData = pullRequest;
       // 'octocat' is the pr author from generatePullRequest calls.
       githubService.isTeamMemberMockMap['octocat'] = false;
-      unawaited(pubsub.publish(testTopic, pullRequest));
+
+      final PullRequestMessage pullRequestMessage = PullRequestMessage(
+        pullRequest: pullRequest,
+        action: 'labeled',
+        sender: 'autosubmit',
+      );
+
+      unawaited(pubsub.publish(testTopic, pullRequestMessage));
 
       checkPullRequest = CheckPullRequest(
         config: config,
@@ -643,7 +720,14 @@ void main() {
       githubService.pullRequestData = pullRequest;
       // 'octocat' is the pr author from generatePullRequest calls.
       githubService.isTeamMemberMockMap['octocat'] = true;
-      unawaited(pubsub.publish(testTopic, pullRequest));
+
+      final PullRequestMessage pullRequestMessage = PullRequestMessage(
+        pullRequest: pullRequest,
+        action: 'labeled',
+        sender: 'autosubmit',
+      );
+
+      unawaited(pubsub.publish(testTopic, pullRequestMessage));
 
       githubService.checkRunsData = emptyCheckRunsMock;
       checkPullRequest = CheckPullRequest(
@@ -674,9 +758,20 @@ void main() {
       githubService.isTeamMemberMockMap['member'] = true;
       githubService.isTeamMemberMockMap['author1'] = true;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
+
       for (PullRequest pr in pullRequests) {
-        unawaited(pubsub.publish(testTopic, pr));
+        unawaited(
+          pubsub.publish(
+            testTopic,
+            PullRequestMessage(
+              pullRequest: pr,
+              action: 'labeled',
+              sender: 'autosubmit',
+            ),
+          ),
+        );
       }
+
       githubService.checkRunsData = inProgressCheckRunsMock;
       checkPullRequest = CheckPullRequest(
         config: config,
@@ -705,9 +800,20 @@ void main() {
       );
       githubService.pullRequestData = pullRequest1;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
+
       for (PullRequest pr in pullRequests) {
-        unawaited(pubsub.publish(testTopic, pr));
+        unawaited(
+          pubsub.publish(
+            testTopic,
+            PullRequestMessage(
+              pullRequest: pr,
+              action: 'labeled',
+              sender: 'autosubmit',
+            ),
+          ),
+        );
       }
+
       checkPullRequest = CheckPullRequest(
         config: config,
         pubsub: pubsub,
@@ -727,7 +833,16 @@ void main() {
       githubService.pullRequestData = pullRequest;
       // 'octocat' is the pr author from generatePullRequest calls.
       githubService.isTeamMemberMockMap['some_rando'] = true;
-      unawaited(pubsub.publish(testTopic, pullRequest));
+      unawaited(
+        pubsub.publish(
+          testTopic,
+          PullRequestMessage(
+            pullRequest: pullRequest,
+            action: 'labeled',
+            sender: 'autosubmit',
+          ),
+        ),
+      );
       checkPullRequest = CheckPullRequest(
         config: config,
         pubsub: pubsub,
