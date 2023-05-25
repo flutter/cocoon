@@ -55,7 +55,9 @@ class GetBranches extends RequestHandler<Body> {
     List<Branch> branches = await datastore
         .queryBranches()
         .where(
-          (Branch b) => DateTime.now().millisecondsSinceEpoch - b.lastActivity! < kActiveBranchActivity.inMilliseconds,
+          (Branch b) =>
+              DateTime.now().millisecondsSinceEpoch - b.lastActivity! < kActiveBranchActivity.inMilliseconds ||
+              <String>['main', 'master'].contains(b.name),
         )
         .toList();
     // From the dashboard point of view, these are the subset of branches we care about.
