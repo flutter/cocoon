@@ -138,24 +138,6 @@ class Target {
       mergedDependencies[dep.name] = dep;
     }
     mergedProperties['dependencies'] = mergedDependencies.values.map((Dependency dep) => dep.toJson()).toList();
-
-    // xcode is a special property as there's different download policies if its in the devicelab.
-    if (mergedProperties.containsKey('xcode')) {
-      final Object xcodeVersion = <String, Object>{
-        'sdk_version': mergedProperties['xcode']!,
-        if (mergedProperties.containsKey('cleanup_xcode_cache'))
-          'cleanup_cache': mergedProperties['cleanup_xcode_cache']!
-      };
-      mergedProperties['\$flutter/osx_sdk'] = xcodeVersion;
-    }
-    // runtime_versions is a special property
-    if (mergedProperties.containsKey('runtime_versions')) {
-      // add to existing property, or create new one
-      final Object osxSdk = mergedProperties['\$flutter/osx_sdk'] ?? <String, Object>{};
-      (osxSdk as Map)['runtime_versions'] = mergedProperties['runtime_versions']!;
-      mergedProperties['\$flutter/osx_sdk'] = osxSdk;
-    }
-
     mergedProperties['bringup'] = value.bringup;
 
     return mergedProperties;
