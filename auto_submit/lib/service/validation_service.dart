@@ -273,6 +273,8 @@ class ValidationService {
       client: graphQLClient,
     );
 
+    print(data);
+
     final RevertPullRequestData revertPullRequestData = RevertPullRequestData.fromJson(data);
     final PullRequest revertPullRequest = revertPullRequestData.revertPullRequest!.revertPullRequest!;
 

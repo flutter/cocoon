@@ -28,6 +28,7 @@ import '../src/service/fake_github_service.dart';
 import '../utilities/utils.dart';
 import '../utilities/mocks.dart';
 import 'bigquery_test.dart';
+import 'validation_service_test_data.dart';
 
 void main() {
   late ValidationService validationService;
@@ -197,31 +198,35 @@ void main() {
   });
 
   test(
-    'Remove label and post comment when no revert label.',
+    'Do not process as revert when label is removed after webhook.',
     () async {
+      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult(data: jsonDecode(revertMutationResult));
       final PullRequestHelper flutterRequest = PullRequestHelper(
         prNumber: 0,
         lastCommitHash: oid,
         reviews: <PullRequestReviewHelper>[],
       );
+
       githubService.checkRunsData = checkRunsMock;
       githubService.createCommentData = createCommentMock;
       githubService.isTeamMemberMockMap['author1'] = true;
       githubService.isTeamMemberMockMap['member'] = true;
       final FakePubSub pubsub = FakePubSub();
+
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
       );
-      unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-      githubService.pullRequestMock = pullRequest;
 
       final PullRequestMessage pullRequestMessage = PullRequestMessage(
         pullRequest: pullRequest,
         action: 'created',
         sender: 'autosubmit',
       );
+
+      unawaited(pubsub.publish('auto-submit-queue-sub', pullRequestMessage));
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+      githubService.pullRequestMock = pullRequest;
 
       await validationService.processRevertRequest(
         config: config,

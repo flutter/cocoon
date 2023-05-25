@@ -86,6 +86,7 @@ PullRequest generatePullRequest({
   String authorAssociation = 'OWNER',
   String author = 'octocat',
   int prNumber = 1347,
+  String nodeId = 'PR_kwDOA8VHis5QCyt7',
   String state = 'open',
   String? body = 'Please pull these awesome changes in!',
   String title = 'Amazing new feature',
@@ -95,6 +96,7 @@ PullRequest generatePullRequest({
   return PullRequest.fromJson(
     json.decode('''{
       "id": 1,
+      "node_id": "$nodeId",
       "number": $prNumber,
       "state": "$state",
       "title": ${jsonEncode(title)},

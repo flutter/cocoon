@@ -27,6 +27,7 @@ class PullRequestHelper {
   PullRequestHelper({
     this.author = 'author1',
     this.prNumber = 0,
+    this.nodeId = 'PR_kwDOA8VHis5QCyt7',
     this.repo = 'flutter',
     this.authorAssociation = 'MEMBER',
     this.title = 'some_title',
@@ -40,6 +41,7 @@ class PullRequestHelper {
   });
 
   final int prNumber;
+  final String nodeId;
   final String repo;
   final String author;
   final String authorAssociation;
@@ -57,6 +59,7 @@ class PullRequestHelper {
       'author': <String, dynamic>{'login': author},
       'authorAssociation': authorAssociation,
       'id': prNumber.toString(),
+      'node_id': nodeId,
       'title': title,
       'reviews': <String, dynamic>{
         'nodes': reviews.map((PullRequestReviewHelper review) {
