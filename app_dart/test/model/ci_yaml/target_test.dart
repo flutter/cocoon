@@ -72,7 +72,7 @@ void main() {
         expect(target.getIgnoreFlakiness(), false);
       });
 
-      test('properties with xcode and runtime_versions overrides platform properties', () {
+      test('properties with \$flutter/osx_sdk overrides platform properties', () {
         final Target target = generateTarget(
           1,
           platform: 'Mac',
