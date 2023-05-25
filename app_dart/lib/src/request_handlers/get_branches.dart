@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:cocoon_service/src/model/appengine/branch.dart';
-import 'package:github/github.dart' as gh;
 import 'package:process_runner/process_runner.dart';
 
 import '../../cocoon_service.dart';
