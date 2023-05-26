@@ -84,18 +84,3 @@ class QualifiedTask {
     return stage.hashCode ^ task.hashCode;
   }
 }
-
-/// Get the URL for [Task] to view its log.
-///
-/// Cirrus logs are located via their [Commit.sha].
-/// Otherwise, we can redirect to the LUCI build page for [Task].
-String logUrl(Task task, {Commit? commit}) {
-  if (task.stageName == StageName.cirrus) {
-    if (commit != null) {
-      return '$_cirrusLogUrl/${commit.sha}?branch=${commit.branch}';
-    } else {
-      return '$_cirrusUrl/master';
-    }
-  }
-  return QualifiedTask.fromTask(task).sourceConfigurationUrl;
-}

@@ -281,13 +281,6 @@ class TaskOverlayContents extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: ProgressButton(
-                      child: const Text('VIEW LOGS'),
-                      onPressed: () => launchUrl(Uri.parse(logUrl(task, commit: commit))),
-                    ),
-                  ),
                   if (qualifiedTask.isLuci)
                     Padding(
                       padding: const EdgeInsets.only(left: 8.0),

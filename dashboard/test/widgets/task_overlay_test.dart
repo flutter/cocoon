@@ -485,37 +485,6 @@ void main() {
     expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
   });
 
-  testWidgets('log button opens log url for public log', (WidgetTester tester) async {
-    final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
-    UrlLauncherPlatform.instance = urlLauncher;
-
-    final Task publicTask = Task()..stageName = 'cirrus';
-    await tester.pumpWidget(
-      Now.fixed(
-        dateTime: nowTime,
-        child: MaterialApp(
-          home: Scaffold(
-            body: TestGrid(
-              buildState: buildState,
-              task: publicTask,
-            ),
-          ),
-        ),
-      ),
-    );
-
-    // Open the overlay
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
-    await tester.pump();
-
-    // View log
-    await tester.tap(find.text('VIEW LOGS'));
-    await tester.pump();
-
-    expect(urlLauncher.launches, isNotEmpty);
-    expect(urlLauncher.launches.single, 'https://cirrus-ci.com/build/flutter/flutter/24e8c0a2?branch=');
-  });
-
   test('TaskOverlayEntryPositionDelegate.positionDependentBox', () async {
     const Size normalSize = Size(800, 600);
     const Size childSize = Size(300, 180);
