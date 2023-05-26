@@ -4,7 +4,6 @@
 
 import 'package:flutter/foundation.dart';
 
-import '../model/commit.pb.dart';
 import '../model/task.pb.dart';
 
 /// [Task.stageName] that maps to StageName enums.
@@ -19,7 +18,6 @@ class StageName {
 
 /// Base URLs for various endpoints that can relate to a [Task].
 const String _cirrusUrl = 'https://cirrus-ci.com/github/flutter/flutter';
-const String _cirrusLogUrl = 'https://cirrus-ci.com/build/flutter/flutter';
 const String _luciUrl = 'https://ci.chromium.org/p/flutter';
 const String _googleTestUrl = 'https://flutter-rob.corp.google.com';
 

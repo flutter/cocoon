@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:flutter_dashboard/logic/qualified_task.dart';
-import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 
 import 'package:flutter_test/flutter_test.dart';
