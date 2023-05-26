@@ -68,6 +68,7 @@ Future<void> main() async {
       '/api/dart-internal-subscription': DartInternalSubscription(
         cache: cache,
         config: config,
+        buildBucketClient: buildBucketClient,
       ),
       '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
         config: config,
