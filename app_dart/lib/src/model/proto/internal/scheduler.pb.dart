@@ -195,6 +195,7 @@ class Target extends $pb.GeneratedMessage {
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OS,
         packageName: const $pb.PackageName('scheduler'))
+    ..pPS(17, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'droneDimensions')
     ..hasRequiredFields = false;
 
   Target._() : super();
@@ -214,6 +215,7 @@ class Target extends $pb.GeneratedMessage {
     $core.String? recipe,
     $core.Map<$core.String, $core.String>? postsubmitProperties,
     $core.Map<$core.String, $core.String>? dimensions,
+    $core.Iterable<$core.String>? droneDimensions,
   }) {
     final _result = create();
     if (name != null) {
@@ -261,6 +263,9 @@ class Target extends $pb.GeneratedMessage {
     }
     if (dimensions != null) {
       _result.dimensions.addAll(dimensions);
+    }
+    if (droneDimensions != null) {
+      _result.droneDimensions.addAll(droneDimensions);
     }
     return _result;
   }
@@ -415,4 +420,7 @@ class Target extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(16)
   $core.Map<$core.String, $core.String> get dimensions => $_getMap(14);
+
+  @$pb.TagNumber(17)
+  $core.List<$core.String> get droneDimensions => $_getList(15);
 }

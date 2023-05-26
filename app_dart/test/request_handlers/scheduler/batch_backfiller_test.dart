@@ -31,11 +31,12 @@ void main() {
   late FakePubSub pubsub;
   late FakeScheduler scheduler;
   late MockGithubChecksUtil mockGithubChecksUtil;
+  late Config config;
 
   group('BatchBackfiller', () {
     setUp(() async {
       db = FakeDatastoreDB()..addOnQuery<Commit>((Iterable<Commit> results) => commits);
-      final Config config = FakeConfig(dbValue: db, backfillerTargetLimitValue: 2);
+      config = FakeConfig(dbValue: db, backfillerTargetLimitValue: 2);
       pubsub = FakePubSub();
       mockGithubChecksUtil = MockGithubChecksUtil();
       when(
@@ -84,6 +85,29 @@ void main() {
       db.addOnQuery<Task>((Iterable<Task> results) => middleTaskInProgress);
       await tester.get(handler);
       expect(pubsub.messages, isEmpty);
+    });
+
+    test('does not backfill when task does not exist in TOT', () async {
+      scheduler = FakeScheduler(
+        config: config,
+        ciYaml: notInToTConfig,
+        githubChecksUtil: mockGithubChecksUtil,
+        luciBuildService: FakeLuciBuildService(
+          config: config,
+          pubsub: pubsub,
+          githubChecksUtil: mockGithubChecksUtil,
+        ),
+      );
+      handler = BatchBackfiller(
+        config: config,
+        scheduler: scheduler,
+      );
+      final List<Task> allGray = <Task>[
+        generateTask(1, name: 'Linux_android A', status: Task.statusNew),
+      ];
+      db.addOnQuery<Task>((Iterable<Task> results) => allGray);
+      await tester.get(handler);
+      expect(pubsub.messages.length, 0);
     });
 
     test('backfills latest task', () async {

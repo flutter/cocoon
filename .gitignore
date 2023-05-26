@@ -1,11 +1,9 @@
 .dart_tool
 .DS_Store
 *~
-*.pyc
 .packages
 .pub
-app/build
-config.yaml
+**/pubspec.lock
 .flutter-plugins-dependencies
 # IntelliJ
 .idea

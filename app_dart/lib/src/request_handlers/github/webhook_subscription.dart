@@ -37,6 +37,22 @@ const Set<String> kNeedsCheckLabelsAndTests = <String>{
 final RegExp kEngineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc|sh)$');
 final List<String> kNeedsTestsLabels = <String>['needs tests'];
 
+// Extentions for files that use // for single line comments.
+// See [_allChangesAreCodeComments] for more.
+@visibleForTesting
+const Set<String> knownCommentCodeExtensions = <String>{
+  'cc',
+  'cpp',
+  'dart',
+  'gradle',
+  'groovy',
+  'java',
+  'kt',
+  'm',
+  'mm',
+  'swift',
+};
+
 /// Subscription for processing GitHub webhooks.
 ///
 /// The PubSub subscription is set up here:
@@ -660,31 +676,27 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       return false;
     }
 
-    // Ensure that the file is a language reconized by the check below.
-    const Set<String> codeExtensions = <String>{
-      'cc',
-      'cpp',
-      'dart',
-      'java',
-      'kt',
-      'm',
-      'mm',
-      'swift',
-    };
     final String filename = file.filename!;
     final String? extension = filename.contains('.') ? filename.split('.').last.toLowerCase() : null;
-    if (extension == null || !codeExtensions.contains(extension)) {
+    if (extension == null || !knownCommentCodeExtensions.contains(extension)) {
       return false;
     }
 
     // Only handles single-line comments; identifying multi-line comments
     // would require the full file and non-trivial parsing. Also doesn't handle
     // end-of-line comments (e.g., "int x = 0; // Info about x").
-    final RegExp commentRegex = RegExp(r'[+-]\s*//');
+    final RegExp commentRegex = RegExp(r'^[+-]\s*//');
+    final RegExp onlyWhitespaceRegex = RegExp(r'^[+-]\s*$');
     for (String line in patch.split('\n')) {
       if (!line.startsWith('+') && !line.startsWith('-')) {
         continue;
       }
+
+      if (onlyWhitespaceRegex.hasMatch(line)) {
+        // whitespace only changes don't require tests
+        continue;
+      }
+
       if (!commentRegex.hasMatch(line)) {
         return false;
       }

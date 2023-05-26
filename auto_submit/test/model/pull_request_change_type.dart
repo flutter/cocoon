@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/model/pull_request_change_type.dart';
+import 'package:auto_submit/model/pull_request_data_types.dart';
 import 'package:test/test.dart';
 
 void main() {

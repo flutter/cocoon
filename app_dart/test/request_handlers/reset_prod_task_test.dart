@@ -24,7 +24,6 @@ void main() {
     late FakeConfig config;
     FakeKeyHelper keyHelper;
     late MockLuciBuildService mockLuciBuildService;
-    FakeAuthenticatedContext authContext;
     late ApiRequestHandlerTester tester;
     late Commit commit;
     late Task task;
@@ -41,7 +40,7 @@ void main() {
           Config.defaultBranch(Config.flutterSlug),
         ],
       );
-      authContext = FakeAuthenticatedContext(clientContext: clientContext);
+      final FakeAuthenticatedContext authContext = FakeAuthenticatedContext(clientContext: clientContext);
       tester = ApiRequestHandlerTester(context: authContext);
       mockLuciBuildService = MockLuciBuildService();
       handler = ResetProdTask(
@@ -71,7 +70,7 @@ void main() {
           task: anyNamed('task'),
           target: anyNamed('target'),
           tags: anyNamed('tags'),
-          ignoreChecks: true,
+          ignoreChecks: anyNamed('ignoreChecks'),
         ),
       ).thenAnswer((_) async => true);
     });
@@ -92,10 +91,66 @@ void main() {
       config.db.values[commit.key] = commit;
       tester.requestData = <String, dynamic>{
         'Commit': commit.sha,
-        'Builder': task.name,
+        'Task': task.name,
         'Repo': commit.slug.name,
       };
       expect(await tester.post(handler), Body.empty);
+      verify(
+        mockLuciBuildService.checkRerunBuilder(
+          commit: anyNamed('commit'),
+          datastore: anyNamed('datastore'),
+          task: anyNamed('task'),
+          target: anyNamed('target'),
+          tags: anyNamed('tags'),
+          ignoreChecks: true,
+        ),
+      ).called(1);
+    });
+
+    test('Rerun all failed tasks when task name is all', () async {
+      final Task taskA = generateTask(2, name: 'Linux A', parent: commit, status: Task.statusFailed);
+      final Task taskB = generateTask(3, name: 'Mac A', parent: commit, status: Task.statusFailed);
+      config.db.values[taskA.key] = taskA;
+      config.db.values[taskB.key] = taskB;
+      config.db.values[commit.key] = commit;
+      tester.requestData = <String, dynamic>{
+        'Commit': commit.sha,
+        'Task': 'all',
+        'Repo': commit.slug.name,
+      };
+      expect(await tester.post(handler), Body.empty);
+      verify(
+        mockLuciBuildService.checkRerunBuilder(
+          commit: anyNamed('commit'),
+          datastore: anyNamed('datastore'),
+          task: anyNamed('task'),
+          target: anyNamed('target'),
+          tags: anyNamed('tags'),
+          ignoreChecks: false,
+        ),
+      ).called(2);
+    });
+
+    test('Rerun all runs nothing when everything is passed', () async {
+      final Task task = generateTask(2, name: 'Windows A', parent: commit, status: Task.statusSucceeded);
+      config.db.values[task.key] = task;
+      config.db.values[commit.key] = commit;
+      tester.requestData = <String, dynamic>{
+        'Commit': commit.sha,
+        'Task': 'all',
+        'Repo': commit.slug.name,
+      };
+      expect(await tester.post(handler), Body.empty);
+      verifyNever(
+        mockLuciBuildService.checkRerunBuilder(
+          commit: anyNamed('commit'),
+          datastore: anyNamed('datastore'),
+          task: anyNamed('task'),
+          target: anyNamed('target'),
+          tags: anyNamed('tags'),
+          ignoreChecks: false,
+        ),
+      );
     });
 
     test('Re-schedule without any parameters raises exception', () async {
@@ -103,7 +158,7 @@ void main() {
       expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
     });
 
-    test('Re-schedule existing task even though builderName is missing in the task', () async {
+    test('Re-schedule existing task even though taskName is missing in the task', () async {
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
       expect(await tester.post(handler), Body.empty);

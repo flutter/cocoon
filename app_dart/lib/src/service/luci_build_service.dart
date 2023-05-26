@@ -28,7 +28,11 @@ import 'config.dart';
 import 'exceptions.dart';
 import 'gerrit_service.dart';
 
-const Set<String> taskFailStatusSet = <String>{Task.statusInfraFailure, Task.statusFailed};
+const Set<String> taskFailStatusSet = <String>{
+  Task.statusInfraFailure,
+  Task.statusFailed,
+  Task.statusCancelled,
+};
 
 /// Class to interact with LUCI buildbucket to get, trigger
 /// and cancel builds for github repos. It uses [config.luciTryBuilders] to
@@ -444,7 +448,13 @@ class LuciBuildService {
       return toBeScheduled;
     }
     final List<Request> buildRequests = <Request>[];
-    final Set<String> availableBuilderSet = await getAvailableBuilderSet(project: 'flutter', bucket: 'prod');
+    Set<String> availableBuilderSet;
+    try {
+      availableBuilderSet = await getAvailableBuilderSet(project: 'flutter', bucket: 'prod');
+    } on BuildBucketException catch (error) {
+      log.severe('Failed to get buildbucket builder list due to $error');
+      return toBeScheduled;
+    }
     log.info('Available builder list: $availableBuilderSet');
     for (Tuple<Target, Task, int> tuple in toBeScheduled) {
       // Non-existing builder target will be skipped from scheduling.
@@ -682,6 +692,7 @@ class LuciBuildService {
         .queryRecentCommits(
           limit: 1,
           slug: commit.slug,
+          branch: commit.branch,
         )
         .single;
     return latestCommit.sha == commit.sha;

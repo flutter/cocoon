@@ -10,3 +10,10 @@ enum PullRequestChangeType {
   /// Revert is specifically for undoing changes.
   revert,
 }
+
+/// Values representing the current states of a pull requests we process with
+/// the autosubmit service.
+enum PullRequestState {
+  open,
+  closed,
+}

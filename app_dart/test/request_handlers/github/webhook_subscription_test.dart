@@ -1436,12 +1436,13 @@ void main() {
       );
     });
 
-    test('Framework no comment if only comments changed', () async {
-      const int issueNumber = 123;
-      tester.message = generateGithubWebhookMessage(action: 'opened', number: issueNumber);
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+    for (String extention in knownCommentCodeExtensions) {
+      test('Framework no comment if only comments changed .$extention', () async {
+        const int issueNumber = 123;
+        tester.message = generateGithubWebhookMessage(action: 'opened', number: issueNumber);
+        final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      const String patch = '''
+        const String patch = '''
 @@ -128,7 +128,7 @@
 
 /// Insert interesting comment here.
@@ -1453,27 +1454,28 @@ void foo() {
   String baz = '';
 ''';
 
-      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
-        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
-          PullRequestFile()
-            ..filename = 'packages/foo/lib/foo.dart'
-            ..additionsCount = 1
-            ..deletionsCount = 1
-            ..changesCount = 2
-            ..patch = patch,
-        ]),
-      );
+        when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+          (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+            PullRequestFile()
+              ..filename = 'packages/foo/lib/foo.$extention'
+              ..additionsCount = 1
+              ..deletionsCount = 1
+              ..changesCount = 2
+              ..patch = patch,
+          ]),
+        );
 
-      await tester.post(webhook);
+        await tester.post(webhook);
 
-      verifyNever(
-        issuesService.createComment(
-          slug,
-          issueNumber,
-          argThat(contains(config.missingTestsPullRequestMessageValue)),
-        ),
-      );
-    });
+        verifyNever(
+          issuesService.createComment(
+            slug,
+            issueNumber,
+            argThat(contains(config.missingTestsPullRequestMessageValue)),
+          ),
+        );
+      });
+    }
 
     test('Framework labels PRs, no comment if tests (dev/bots/test.dart)', () async {
       const int issueNumber = 123;
@@ -1958,6 +1960,44 @@ void foo() {
           <String>['platform-ios'],
         ),
       ).called(1);
+
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+    });
+
+    test('bot does not comment for whitespace only changes', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.engineSlug,
+      );
+      const String patch = '''
+@@ -128,7 +128,7 @@
+
+  int bar = 0;
++
+  int baz = 0;
+''';
+
+      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()
+            ..filename = 'flutter/lib/ui/foo.dart'
+            ..additionsCount = 1
+            ..deletionsCount = 1
+            ..changesCount = 2
+            ..patch = patch,
+        ]),
+      );
+
+      await tester.post(webhook);
 
       verifyNever(
         issuesService.createComment(

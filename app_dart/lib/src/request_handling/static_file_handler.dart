@@ -40,6 +40,7 @@ class StaticFileHandler extends RequestHandler<Body> {
     final Map<String, String> mimeTypeMap = <String, String>{
       '.map': 'application/json',
       '': 'text/plain',
+      '.smcbin': 'application/octet-stream',
     };
 
     final String resultPath = filePath == '/' ? '/index.html' : filePath;

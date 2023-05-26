@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
+import 'package:collection/collection.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as gh;
 import 'package:github/hooks.dart';
@@ -103,20 +104,28 @@ class BranchService {
     log.info('$recipesSlug commits: $recipeCommits');
     final List<gh.RepositoryCommit> githubCommits = await retryOptions.retry(
       () async {
-        // TODO(drewroengoogle): createDefaultGitHubService should instead be
-        // handled within the GithubService.
         final GithubService githubService = await config.createDefaultGitHubService();
-        return githubService.listCommits(
-          Config.engineSlug,
-          branch,
-          null,
-        );
+        return githubService.github.repositories
+            .listCommits(
+              Config.engineSlug,
+              sha: branch,
+            )
+            .toList();
       },
       retryIf: (Exception e) => e is gh.GitHubError,
     );
     log.info('${Config.engineSlug} branch commits: $githubCommits');
+    final DateTime? branchTime = githubCommits
+        .firstWhereOrNull((gh.RepositoryCommit commit) => commit.commit?.committer?.date != null)
+        ?.commit
+        ?.committer
+        ?.date;
+    if (branchTime == null) {
+      throw BadRequestException('Found no GitHub commits on $branch with commit time');
+    }
     for (GerritCommit recipeCommit in recipeCommits) {
-      if (recipeCommit.author!.date!.isBefore(githubCommits.first.commit!.committer!.date!)) {
+      final DateTime? recipeTime = recipeCommit.author?.date;
+      if (recipeTime != null && recipeTime.isBefore(branchTime)) {
         final String revision = recipeCommit.commit!;
         return gerritService.createBranch(recipesSlug, branch, revision);
       }

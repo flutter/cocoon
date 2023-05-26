@@ -164,6 +164,12 @@ class Config {
   /// are idle, we hope to scan as many commit rows as possible.
   int get backfillerCommitLimit => 50;
 
+  /// Upper limit of issue/PRs allowed each API call.
+  ///
+  /// GitHub enforces a secondary rate limit on frequency API calls. This causes
+  /// our API failure when many issues/PRs are created in a short time.
+  int get issueAndPRLimit => 2;
+
   /// Max retries when scheduling builds.
   static const RetryOptions schedulerRetry = RetryOptions(maxAttempts: 3);
 

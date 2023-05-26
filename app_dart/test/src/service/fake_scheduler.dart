@@ -46,7 +46,12 @@ class FakeScheduler extends Scheduler {
   CiYaml? ciYaml;
 
   @override
-  Future<CiYaml> getCiYaml(Commit commit, {CiYaml? totCiYaml, RetryOptions? retryOptions}) async =>
+  Future<CiYaml> getCiYaml(
+    Commit commit, {
+    CiYaml? totCiYaml,
+    RetryOptions? retryOptions,
+    bool validate = false,
+  }) async =>
       ciYaml ?? _defaultConfig;
 
   @override
@@ -203,4 +208,38 @@ final CiYaml bringupPackagesConfig = CiYaml(
       ),
     ],
   ),
+);
+
+final CiYaml totCiYaml = CiYaml(
+  slug: Config.flutterSlug,
+  branch: Config.defaultBranch(Config.flutterSlug),
+  config: pb.SchedulerConfig(
+    enabledBranches: <String>[
+      Config.defaultBranch(Config.flutterSlug),
+    ],
+    targets: <pb.Target>[
+      pb.Target(
+        name: 'Linux_android B',
+      ),
+      pb.Target(
+        name: 'Linux_android C',
+      ),
+    ],
+  ),
+);
+
+final CiYaml notInToTConfig = CiYaml(
+  slug: Config.flutterSlug,
+  branch: Config.defaultBranch(Config.flutterSlug),
+  config: pb.SchedulerConfig(
+    enabledBranches: <String>[
+      Config.defaultBranch(Config.flutterSlug),
+    ],
+    targets: <pb.Target>[
+      pb.Target(
+        name: 'Linux_android A',
+      ),
+    ],
+  ),
+  totConfig: totCiYaml,
 );
