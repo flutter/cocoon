@@ -40,3 +40,6 @@ tasks:
 
   - task: packages/buildbucket-dart
     script: test_utilities/bin/dart_test_runner.sh
+
+  - task: releases
+    script: test_utilities/bin/dart_test_runner.sh

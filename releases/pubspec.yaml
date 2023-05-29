@@ -1,0 +1,20 @@
+name: releases
+description: GitHub app for Flutter releases
+version: 1.0.0
+publish_to: none
+homepage: https://github.com/flutter/cocoon/blob/main/releases
+repository: https://github.com/flutter/cocoon
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  appengine: 0.13.5
+  meta: 1.9.1
+  shelf: 1.4.1
+  logging: 1.1.1
+  retry: 3.1.2
+
+dev_dependencies:
+  flutter_lints: 2.0.1
+  test: 1.24.2
