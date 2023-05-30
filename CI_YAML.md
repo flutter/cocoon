@@ -120,6 +120,22 @@ following are a list of keys that are reserved for special use.
 **Properties is a Map<String, String> and any special values must be JSON encoded
 (i.e. no trailing commas). Additionally, these strings must be compatible with YAML multiline strings**
 
+**$flutter/osx_sdk**: xcode configs including sdk and runtime. **Note**: support on legacy `xcode`/`runtime`
+properties and `xcode` dependency has been deprecated.
+
+Example:
+``` yaml
+$flutter/osx_sdk : >-
+  {
+    "sdk_version": "14e222b",
+    "runtime_versions":
+      [
+        "ios-16-4_14e222b",
+        "ios-16-2_14c18"
+      ]
+  }
+```
+
 **add_recipes_cq**: String boolean whether to add this target to flutter/recipes CQ. This ensures
 changes to flutter/recipes pass on this target before landing.
 
