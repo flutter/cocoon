@@ -78,6 +78,8 @@ class DartInternalSubscription extends SubscriptionHandler {
     Build build,
     DatastoreService datastore,
   ) async {
+    log.fine("Build Result: ${build.toString()}");
+
     final String repository =
         build.input!.gitilesCommit!.project!.split('/')[1];
     log.fine("Repository: $repository");
