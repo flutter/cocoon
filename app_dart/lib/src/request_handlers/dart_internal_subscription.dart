@@ -65,7 +65,9 @@ class DartInternalSubscription extends SubscriptionHandler {
     final Task task = await _createTaskFromBuildbucketResult(build, datastore);
 
     log.info("Inserting Task into the datastore");
-    await datastore.insert(<Task>[task]);
+    // TODO(drewroengoogle): Uncomment this once we are completely
+    // ready to publish the task into the datastore.
+    // await datastore.insert(<Task>[task]);
 
     return Body.forJson(task.toString());
   }
