@@ -120,7 +120,8 @@ following are a list of keys that are reserved for special use.
 **Properties is a Map<String, String> and any special values must be JSON encoded
 (i.e. no trailing commas). Additionally, these strings must be compatible with YAML multiline strings**
 
-**$flutter/osx_sdk**: xcode configs including sdk and runtime.
+**$flutter/osx_sdk**: xcode configs including sdk and runtime. **Note**: legacy `xcode`/`runtime` properties,
+and `xcode` dependency have been deprecated.
 
 Example:
 ``` yaml
