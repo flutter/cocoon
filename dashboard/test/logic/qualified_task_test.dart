@@ -3,37 +3,11 @@
 // found in the LICENSE file.
 
 import 'package:flutter_dashboard/logic/qualified_task.dart';
-import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('logUrl() for external tasks redirects to source configuration', () {
-    final Task luciTask = Task()
-      ..stageName = 'chromebot'
-      ..name = 'abc'
-      ..builderName = 'def';
-
-    expect(logUrl(luciTask), 'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/def');
-    final Task cirrusTask = Task()..stageName = 'cirrus';
-
-    expect(
-      logUrl(
-        cirrusTask,
-        commit: Commit()
-          ..sha = 'abc123'
-          ..branch = 'master',
-      ),
-      'https://cirrus-ci.com/build/flutter/flutter/abc123?branch=master',
-    );
-
-    expect(logUrl(cirrusTask), 'https://cirrus-ci.com/github/flutter/flutter/master');
-
-    final Task googleTestTask = Task()..stageName = 'google_internal';
-    expect(logUrl(googleTestTask), 'https://flutter-rob.corp.google.com');
-  });
-
   test('QualifiedTask.sourceConfigurationUrl for luci', () {
     final Task luciTask = Task()
       ..stageName = 'chromebot'

@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../logic/qualified_task.dart';
 import '../model/commit.pb.dart';
@@ -281,13 +280,6 @@ class TaskOverlayContents extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: ProgressButton(
-                      child: const Text('VIEW LOGS'),
-                      onPressed: () => launchUrl(Uri.parse(logUrl(task, commit: commit))),
-                    ),
-                  ),
                   if (qualifiedTask.isLuci)
                     Padding(
                       padding: const EdgeInsets.only(left: 8.0),

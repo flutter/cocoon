@@ -4,7 +4,6 @@
 
 import 'package:flutter/foundation.dart';
 
-import '../model/commit.pb.dart';
 import '../model/task.pb.dart';
 
 /// [Task.stageName] that maps to StageName enums.
@@ -19,7 +18,6 @@ class StageName {
 
 /// Base URLs for various endpoints that can relate to a [Task].
 const String _cirrusUrl = 'https://cirrus-ci.com/github/flutter/flutter';
-const String _cirrusLogUrl = 'https://cirrus-ci.com/build/flutter/flutter';
 const String _luciUrl = 'https://ci.chromium.org/p/flutter';
 const String _googleTestUrl = 'https://flutter-rob.corp.google.com';
 
@@ -83,19 +81,4 @@ class QualifiedTask {
 
     return stage.hashCode ^ task.hashCode;
   }
-}
-
-/// Get the URL for [Task] to view its log.
-///
-/// Cirrus logs are located via their [Commit.sha].
-/// Otherwise, we can redirect to the LUCI build page for [Task].
-String logUrl(Task task, {Commit? commit}) {
-  if (task.stageName == StageName.cirrus) {
-    if (commit != null) {
-      return '$_cirrusLogUrl/${commit.sha}?branch=${commit.branch}';
-    } else {
-      return '$_cirrusUrl/master';
-    }
-  }
-  return QualifiedTask.fromTask(task).sourceConfigurationUrl;
 }
