@@ -80,9 +80,21 @@ class DartInternalSubscription extends SubscriptionHandler {
   ) async {
     final String repository =
         build.input!.gitilesCommit!.project!.split('/')[1];
+    log.fine("Repository: $repository");
+
     final String branch = build.input!.gitilesCommit!.ref!.split('/')[2];
+    log.fine("Branch: $branch");
+
     final String hash = build.input!.gitilesCommit!.hash!;
+    log.fine("Hash: $hash");
+
     final RepositorySlug slug = RepositorySlug("flutter", repository);
+    log.fine("Slug: ${slug.toString()}");
+
+    final int startTime = build.startTime!.millisecondsSinceEpoch;
+    final int endTime = build.endTime!.millisecondsSinceEpoch;
+    log.fine("Start/end time (ms): $startTime, $endTime");
+
     final Key<String> key = Commit.createKey(
       db: datastore.db,
       slug: slug,
@@ -99,12 +111,12 @@ class DartInternalSubscription extends SubscriptionHandler {
       buildNumberList: build.number.toString(),
       builderName: build.builderId.builder,
       commitKey: key,
-      createTimestamp: build.startTime!.millisecondsSinceEpoch,
-      endTimestamp: build.endTime!.millisecondsSinceEpoch,
+      createTimestamp: startTime,
+      endTimestamp: endTime,
       luciBucket: build.builderId.bucket,
       name: build.builderId.builder,
       stageName: "dart-internal",
-      startTimestamp: build.startTime!.millisecondsSinceEpoch,
+      startTimestamp: startTime,
       status: _convertStatusToString(build.status!),
       key: commit.key.append(Task),
     );
