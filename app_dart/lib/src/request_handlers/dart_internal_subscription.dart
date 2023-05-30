@@ -40,30 +40,32 @@ class DartInternalSubscription extends SubscriptionHandler {
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
 
-    log.info("Converting message data to non nullable string");
-    final String messageData = message.data.toString();
+    log.info("Converting message data to non nullable int");
+
+    final int buildbucketId = int.parse(message.data.toString().replaceAll("'", ""));
 
     log.info("Creating build request object");
-    final GetBuildRequest request = GetBuildRequest(id: messageData);
+    final GetBuildRequest request = GetBuildRequest(id: buildbucketId.toString());
 
     log.info(
-      "Calling buildbucket api to get build data for build $messageData",
+      "Calling buildbucket api to get build data for build $buildbucketId",
     );
     late Build build;
     try {
       build = await buildBucketClient.getBuild(request);
     } catch (e) {
       log.severe(
-        "Failed to get build data for build $messageData with the exception: ${e.toString()}",
+        "Failed to get build data for build $buildbucketId with the exception: ${e.toString()}",
       );
       throw InternalServerError(
-        'Failed to get build number $messageData from Buildbucket. Error: $e',
+        'Failed to get build number $buildbucketId from Buildbucket. Error: $e',
       );
     }
 
     log.info("Creating Task from Buildbucket result");
     final Task task = await _createTaskFromBuildbucketResult(build, datastore);
 
+    log.fine(task.toString());
     log.info("Inserting Task into the datastore");
     // TODO(drewroengoogle): Uncomment this once we are completely
     // ready to publish the task into the datastore.

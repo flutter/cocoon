@@ -87,7 +87,7 @@ void main() {
   });
 
   test('runs successfully', () async {
-    tester.message = push.PushMessage(data: buildId.toString());
+    tester.message = push.PushMessage(data: "'${buildId.toString()}'");
 
     await tester.post(handler);
 
@@ -108,43 +108,51 @@ void main() {
       }
     });
 
+
     expect(
       tasksInDb.length,
-      equals(1),
+      equals(0),
     );
 
-    final Task taskInDb = tasksInDb[0];
+    // TODO(drewroengoogle): Uncomment this once we are completely
+    // ready to publish the task into the datastore.
+    // expect(
+    //   tasksInDb.length,
+    //   equals(1),
+    // );
 
-    // Ensure the task has the correct parent and commit key
-    expect(
-      commitInDb.id,
-      equals(taskInDb.commitKey?.id),
-    );
+    // final Task taskInDb = tasksInDb[0];
 
-    expect(
-      commitInDb.id,
-      equals(taskInDb.parentKey?.id),
-    );
+    // // Ensure the task has the correct parent and commit key
+    // expect(
+    //   commitInDb.id,
+    //   equals(taskInDb.commitKey?.id),
+    // );
 
-    // Ensure the task in the db is exactly what we are looking for
-    final Task expectedTask = Task(
-      buildNumber: 123456,
-      buildNumberList: "123456".toString(),
-      builderName: builder,
-      commitKey: commitInDb.key,
-      createTimestamp: startTime.millisecondsSinceEpoch,
-      endTimestamp: endTime.millisecondsSinceEpoch,
-      luciBucket: bucket,
-      name: builder,
-      stageName: "dart-internal",
-      startTimestamp: startTime.millisecondsSinceEpoch,
-      status: "Succeeded",
-      key: commit.key.append(Task),
-    );
+    // expect(
+    //   commitInDb.id,
+    //   equals(taskInDb.parentKey?.id),
+    // );
 
-    expect(
-      taskInDb.toString(),
-      equals(expectedTask.toString()),
-    );
+    // // Ensure the task in the db is exactly what we are looking for
+    // final Task expectedTask = Task(
+    //   buildNumber: 123456,
+    //   buildNumberList: "123456".toString(),
+    //   builderName: builder,
+    //   commitKey: commitInDb.key,
+    //   createTimestamp: startTime.millisecondsSinceEpoch,
+    //   endTimestamp: endTime.millisecondsSinceEpoch,
+    //   luciBucket: bucket,
+    //   name: builder,
+    //   stageName: "dart-internal",
+    //   startTimestamp: startTime.millisecondsSinceEpoch,
+    //   status: "Succeeded",
+    //   key: commit.key.append(Task),
+    // );
+
+    // expect(
+    //   taskInDb.toString(),
+    //   equals(expectedTask.toString()),
+    // );
   });
 }
