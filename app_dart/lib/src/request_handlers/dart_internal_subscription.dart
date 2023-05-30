@@ -93,8 +93,8 @@ class DartInternalSubscription extends SubscriptionHandler {
     final RepositorySlug slug = RepositorySlug("flutter", repository);
     log.fine("Slug: ${slug.toString()}");
 
-    final int startTime = build.startTime!.millisecondsSinceEpoch;
-    final int endTime = build.endTime!.millisecondsSinceEpoch;
+    final int startTime = build.startTime != null ? build.startTime!.millisecondsSinceEpoch : 0;
+    final int endTime = build.endTime != null ? build.endTime!.millisecondsSinceEpoch : 0;
     log.fine("Start/end time (ms): $startTime, $endTime");
 
     final Key<String> key = Commit.createKey(
