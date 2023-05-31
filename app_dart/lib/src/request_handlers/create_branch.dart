@@ -10,7 +10,9 @@ import '../service/branch_service.dart';
 
 /// Creates the flutter/recipes branch to match a flutter/flutter branch.
 ///
-/// This is intended for oncall use as a fallback when creating recipe branches.
+/// This is used by Google Testing to create release infra whenever a good
+/// commit has been found, and is being considered as the branch point to
+/// be rolled into Google.
 class CreateBranch extends ApiRequestHandler<Body> {
   const CreateBranch({
     required this.branchService,
@@ -21,13 +23,15 @@ class CreateBranch extends ApiRequestHandler<Body> {
   final BranchService branchService;
 
   static const String branchParam = 'branch';
+  static const String engineShaParam = 'engine';
 
   @override
   Future<Body> get() async {
-    checkRequiredQueryParameters(<String>[branchParam]);
+    checkRequiredQueryParameters(<String>[branchParam, engineShaParam]);
     final String branch = request!.uri.queryParameters[branchParam]!;
+    final String engineSha = request!.uri.queryParameters[engineShaParam]!;
 
-    await branchService.branchFlutterRecipes(branch);
+    await branchService.branchFlutterRecipes(branch, engineSha);
 
     return Body.empty;
   }

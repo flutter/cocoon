@@ -5,15 +5,10 @@
 import 'dart:async';
 
 import 'package:cocoon_service/src/service/config.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
-import 'package:collection/collection.dart';
-import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as gh;
-import 'package:github/hooks.dart';
 import 'package:retry/retry.dart';
 
-import '../model/appengine/branch.dart';
 import '../model/gerrit/commit.dart';
 import '../request_handling/exceptions.dart';
 import 'gerrit_service.dart';
@@ -35,59 +30,21 @@ class BranchService {
   final GerritService gerritService;
   final RetryOptions retryOptions;
 
-  /// Add a [CreateEvent] branch to Datastore.
-  Future<void> handleCreateRequest(CreateEvent createEvent) async {
-    log.info('the branch parsed from string request is ${createEvent.ref}');
-
-    final String? refType = createEvent.refType;
-    if (refType == 'tag') {
-      log.info('create branch event was rejected because it is a tag');
-      return;
-    }
-    final String? branch = createEvent.ref;
-    if (branch == null) {
-      log.warning('Branch is null, exiting early');
-      return;
-    }
-    final String repository = createEvent.repository!.slug().fullName;
-    final int lastActivity = createEvent.repository!.pushedAt!.millisecondsSinceEpoch;
-    final bool forked = createEvent.repository!.isFork;
-
-    if (forked) {
-      log.info('create branch event was rejected because the branch is a fork');
-      return;
-    }
-
-    final String id = '$repository/$branch';
-    log.info('the id used to create branch key was $id');
-    final DatastoreService datastore = DatastoreService.defaultProvider(config.db);
-    final Key<String> key = datastore.db.emptyKey.append<String>(Branch, id: id);
-    final Branch currentBranch = Branch(key: key, lastActivity: lastActivity);
-    try {
-      await datastore.lookupByValue<Branch>(currentBranch.key);
-    } on KeyNotFoundException {
-      log.info('create branch event was successful since the key is unique');
-      await datastore.insert(<Branch>[currentBranch]);
-    } catch (e) {
-      log.severe('Unexpected exception was encountered while inserting branch into database: $e');
-    }
-  }
-
-  /// Creates a flutter/recipes branch that aligns to a flutter/flutter branch.
+  /// Creates a flutter/recipes branch that aligns to a flutter/engine commit.
   ///
   /// Take the example repo history:
-  ///   flutter/flutter: A -> B -> C -> D -> E
+  ///   flutter/engine: A -> B -> C -> D -> E
   ///   flutter/recipes: V -> W -> X -> Y -> Z
   ///
-  /// If flutter/flutter branches at C, this finds the flutter/recipes commit that should be used for C.
+  /// If flutter/engine branches at C, this finds the flutter/recipes commit that should be used for C.
   /// The best guess for a flutter/recipes commit that aligns with C is whatever was the most recently committed
   /// before C was committed.
   ///
-  /// Once the flutter/recipes commit is found, it is branched to match flutter/flutter.
+  /// Once the flutter/recipes commit is found, it is branched to match flutter/engine.
   ///
   /// Generally, this should work. However, some edge cases may require CPs. Such as when commits land in a
   /// short timespan, and require the release manager to CP onto the recipes branch (in the case of reverts).
-  Future<void> branchFlutterRecipes(String branch) async {
+  Future<void> branchFlutterRecipes(String branch, String engineSha) async {
     final gh.RepositorySlug recipesSlug = gh.RepositorySlug('flutter', 'recipes');
     if ((await gerritService.branches(
       '${recipesSlug.owner}-review.googlesource.com',
@@ -102,26 +59,17 @@ class BranchService {
     final Iterable<GerritCommit> recipeCommits =
         await gerritService.commits(recipesSlug, Config.defaultBranch(recipesSlug));
     log.info('$recipesSlug commits: $recipeCommits');
-    final List<gh.RepositoryCommit> githubCommits = await retryOptions.retry(
+    final gh.RepositoryCommit engineCommit = await retryOptions.retry(
       () async {
         final GithubService githubService = await config.createDefaultGitHubService();
-        return githubService.github.repositories
-            .listCommits(
-              Config.engineSlug,
-              sha: branch,
-            )
-            .toList();
+        return githubService.github.repositories.getCommit(Config.engineSlug, engineSha);
       },
       retryIf: (Exception e) => e is gh.GitHubError,
     );
-    log.info('${Config.engineSlug} branch commits: $githubCommits');
-    final DateTime? branchTime = githubCommits
-        .firstWhereOrNull((gh.RepositoryCommit commit) => commit.commit?.committer?.date != null)
-        ?.commit
-        ?.committer
-        ?.date;
+    log.info('${Config.engineSlug} commit: $engineCommit');
+    final DateTime? branchTime = engineCommit.commit?.committer?.date;
     if (branchTime == null) {
-      throw BadRequestException('Found no GitHub commits on $branch with commit time');
+      throw BadRequestException('$engineSha has no commit time');
     }
     for (GerritCommit recipeCommit in recipeCommits) {
       final DateTime? recipeTime = recipeCommit.author?.date;
