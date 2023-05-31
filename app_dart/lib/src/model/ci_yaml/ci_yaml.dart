@@ -85,7 +85,7 @@ class CiYaml {
       enabledTargets = enabledTargets
           .where(
             (Target target) =>
-                !target.value.enabledBranches.contains(defaultBranch) ||
+                (target.value.enabledBranches.isNotEmpty && !target.value.enabledBranches.contains(defaultBranch)) ||
                 totPostsubmitTargetNames!.contains(target.value.name),
           )
           .toList();
