@@ -103,7 +103,7 @@ void main() {
         scheduler: scheduler,
       );
       final List<Task> allGray = <Task>[
-        generateTask(1, name: 'Linux_android A', status: Task.statusNew),
+        generateTask(1, name: 'Linux_android B', status: Task.statusNew),
       ];
       db.addOnQuery<Task>((Iterable<Task> results) => allGray);
       await tester.get(handler);

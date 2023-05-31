@@ -62,8 +62,14 @@ class CiYaml {
     }
     // Filter targets removed from main.
     if (totPresubmitTargetNames!.isNotEmpty) {
-      enabledTargets =
-          enabledTargets.where((Target target) => totPresubmitTargetNames!.contains(target.value.name)).toList();
+      final String defaultBranch = Config.defaultBranch(slug);
+      enabledTargets = enabledTargets
+          .where(
+            (Target target) =>
+                (target.value.enabledBranches.isNotEmpty && !target.value.enabledBranches.contains(defaultBranch)) ||
+                totPresubmitTargetNames!.contains(target.value.name),
+          )
+          .toList();
     }
     return enabledTargets;
   }
@@ -75,8 +81,14 @@ class CiYaml {
     List<Target> enabledTargets = _filterEnabledTargets(postsubmitTargets);
     // Filter targets removed from main.
     if (totPostsubmitTargetNames!.isNotEmpty) {
-      enabledTargets =
-          enabledTargets.where((Target target) => totPostsubmitTargetNames!.contains(target.value.name)).toList();
+      final String defaultBranch = Config.defaultBranch(slug);
+      enabledTargets = enabledTargets
+          .where(
+            (Target target) =>
+                !target.value.enabledBranches.contains(defaultBranch) ||
+                totPostsubmitTargetNames!.contains(target.value.name),
+          )
+          .toList();
     }
     return enabledTargets;
   }
