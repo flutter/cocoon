@@ -6,6 +6,7 @@ import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
+import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
 import '../model/appengine/task.dart';
@@ -31,10 +32,12 @@ class DartInternalSubscription extends SubscriptionHandler {
     required this.buildBucketClient,
     @visibleForTesting
         this.datastoreProvider = DatastoreService.defaultProvider,
+    this.retryOptions = Config.schedulerRetry,
   }) : super(subscriptionName: 'dart-internal-build-results-sub');
 
   final BuildBucketClient buildBucketClient;
   final DatastoreServiceProvider datastoreProvider;
+  final RetryOptions retryOptions;
 
   @override
   Future<Body> post() async {
@@ -52,7 +55,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     );
     late Build build;
     try {
-      build = await buildBucketClient.getBuild(request);
+      build = await _getBuildFromBuildbucket(request);
     } catch (e) {
       log.severe(
         "Failed to get build data for build $buildbucketId with the exception: ${e.toString()}",
@@ -72,6 +75,32 @@ class DartInternalSubscription extends SubscriptionHandler {
     // await datastore.insert(<Task>[task]);
 
     return Body.forJson(task.toString());
+  }
+
+  Future<Build> _getBuildFromBuildbucket(
+    GetBuildRequest request
+  ) async {
+    late Build build;
+    try {
+      build = await buildBucketClient.getBuild(request);
+
+      int attempts = 1;
+      while(build.endTime == null && attempts < retryOptions.maxAttempts)
+      {
+        log.fine("Attempt $attempts to get a finished build");
+        await Future.delayed(retryOptions.delayFactor);
+        build = await buildBucketClient.getBuild(request);
+        attempts++;
+      }
+    } catch (e) {
+      log.severe(
+        "Failed to get build data for build ${request.id} with the exception: $e",
+      );
+      throw InternalServerError(
+        'Failed to get build number ${request.id} from Buildbucket. Error: $e',
+      );
+    }
+    return build;
   }
 
   Future<Task> _createTaskFromBuildbucketResult(
