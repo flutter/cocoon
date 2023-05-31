@@ -14,6 +14,7 @@ import '../model/appengine/commit.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
+import '../service/exceptions.dart';
 import '../service/logging.dart';
 
 /// An endpoint for listening to build updates for dart-internal builds and
@@ -55,14 +56,23 @@ class DartInternalSubscription extends SubscriptionHandler {
     );
     late Build build;
     try {
-      build = await _getBuildFromBuildbucket(request);
+      build = await retryOptions.retry(
+        () async {
+          return _getBuildFromBuildbucket(request);
+        },
+        retryIf: (Exception e) => e is UnfinishedBuildException,
+      );
     } catch (e) {
-      log.severe(
+      if (e is! UnfinishedBuildException)
+      {
+        log.severe(
         "Failed to get build data for build $buildbucketId with the exception: ${e.toString()}",
-      );
-      throw InternalServerError(
-        'Failed to get build number $buildbucketId from Buildbucket. Error: $e',
-      );
+        );
+        throw InternalServerError(
+          'Failed to get build number $buildbucketId from Buildbucket. Error: $e',
+        );
+
+      }
     }
 
     log.info("Creating Task from Buildbucket result");
@@ -78,27 +88,17 @@ class DartInternalSubscription extends SubscriptionHandler {
   }
 
   Future<Build> _getBuildFromBuildbucket(
-    GetBuildRequest request
+    GetBuildRequest request,
   ) async {
     late Build build;
-    try {
-      build = await buildBucketClient.getBuild(request);
+    build = await buildBucketClient.getBuild(request);
 
-      int attempts = 1;
-      while(build.endTime == null && attempts < retryOptions.maxAttempts)
-      {
-        log.fine("Attempt $attempts to get a finished build");
-        await Future.delayed(retryOptions.delayFactor);
-        build = await buildBucketClient.getBuild(request);
-        attempts++;
-      }
-    } catch (e) {
-      log.severe(
-        "Failed to get build data for build ${request.id} with the exception: $e",
+    if (build.endTime == null)
+    {
+      log.info(
+        "Build is not yet complete",
       );
-      throw InternalServerError(
-        'Failed to get build number ${request.id} from Buildbucket. Error: $e',
-      );
+      throw UnfinishedBuildException("Build is not yet complete",);
     }
     return build;
   }
