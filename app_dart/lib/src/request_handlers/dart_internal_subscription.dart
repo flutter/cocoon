@@ -33,7 +33,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     required this.buildBucketClient,
     @visibleForTesting
         this.datastoreProvider = DatastoreService.defaultProvider,
-    this.retryOptions = Config.schedulerRetry,
+    this.retryOptions = Config.buildbucketRetry,
   }) : super(subscriptionName: 'dart-internal-build-results-sub');
 
   final BuildBucketClient buildBucketClient;
