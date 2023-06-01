@@ -748,13 +748,33 @@ targets:
         );
       });
 
-      test('filters out presubmit targets that do not exist in main', () async {
+      test('filters out presubmit targets that do not exist in main and do not filter targets not in main', () async {
+        const String singleCiYaml = r'''
+enabled_branches:
+  - master
+  - main
+  - flutter-\d+\.\d+-candidate\.\d+
+targets:
+  - name: Linux A
+    properties:
+      custom: abc
+  - name: Linux B
+    enabled_branches:
+      - flutter-\d+\.\d+-candidate\.\d+
+    scheduler: luci
+  - name: Linux C
+    enabled_branches:
+      - main
+      - flutter-\d+\.\d+-candidate\.\d+
+    scheduler: luci
+''';
         const String totCiYaml = r'''
 enabled_branches:
   - main
   - flutter-\d+\.\d+-candidate\.\d+
 targets:
   - name: Linux A
+    bringup: true
     properties:
       custom: abc
 ''';
@@ -788,7 +808,10 @@ targets:
           branch: 'flutter-3.10-candidate.1',
         );
         final List<Target> targets = await scheduler.getPresubmitTargets(pr);
-        expect(targets.single.value.name, 'Linux A');
+        expect(
+          targets.map((Target target) => target.value.name).toList(),
+          containsAll(<String>['Linux A', 'Linux B']),
+        );
       });
 
       test('triggers all presubmit build checks when diff cannot be found', () async {
