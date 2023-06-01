@@ -140,6 +140,7 @@ void main() {
       startTimestamp: startTime.millisecondsSinceEpoch,
       status: "Succeeded",
       key: commit.key.append(Task),
+      timeoutInMinutes: 0
     );
 
     expect(

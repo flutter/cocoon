@@ -147,6 +147,7 @@ class DartInternalSubscription extends SubscriptionHandler {
       startTimestamp: startTime,
       status: _convertStatusToString(build.status!),
       key: commit.key.append(Task),
+      timeoutInMinutes: 0
     );
     return task;
   }
