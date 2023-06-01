@@ -140,8 +140,13 @@ void main() {
       startTimestamp: startTime.millisecondsSinceEpoch,
       status: "Succeeded",
       key: commit.key.append(Task),
-      timeoutInMinutes: 0
+      timeoutInMinutes: 0,
+      reason: '',
+      requiredCapabilities: [],
+      reservedForAgentId: ''
     );
+
+    print(taskInDb.toString());
 
     expect(
       taskInDb.toString(),
