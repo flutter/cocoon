@@ -91,6 +91,7 @@ class TestLogger implements Logger {
   Level get level => throw UnimplementedError('Unimplemented!');
   set level(Level? value) => throw UnimplementedError('Unimplemented!');
   Stream<LogRecord> get onRecord => throw UnimplementedError('Unimplemented!');
+  Stream<Level?> get onLevelChanged => throw UnimplementedError('Unimplemented!');
   final Logger? parent = null;
   final Map<String, Logger> children = const <String, Logger>{};
 
