@@ -774,6 +774,7 @@ enabled_branches:
   - flutter-\d+\.\d+-candidate\.\d+
 targets:
   - name: Linux A
+    bringup: true
     properties:
       custom: abc
 ''';
