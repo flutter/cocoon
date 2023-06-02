@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dashboard/state/build.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../logic/qualified_task.dart';
@@ -17,10 +18,12 @@ class TaskIcon extends StatelessWidget {
   const TaskIcon({
     super.key,
     required this.qualifiedTask,
+    required this.buildState,
   });
 
   /// [Task] to get information from.
   final QualifiedTask qualifiedTask;
+  final BuildState buildState;
 
   /// A lookup table for matching [stageName] to [Image].
   ///
@@ -35,6 +38,13 @@ class TaskIcon extends StatelessWidget {
     if (qualifiedTask.isGoogleTest) {
       return Image.asset(
         'assets/googleLogo.png',
+        color: blendFilter,
+      );
+    }
+
+    if (qualifiedTask.isDartInternal) {
+      return Icon(
+        Icons.lock,
         color: blendFilter,
       );
     }
@@ -98,7 +108,10 @@ class TaskIcon extends StatelessWidget {
 
     return InkWell(
       onTap: () {
-        launchUrl(Uri.parse(qualifiedTask.sourceConfigurationUrl));
+        final bool isAuthenticated = buildState.authService.isAuthenticated;
+        if (!qualifiedTask.isDartInternal || isAuthenticated) {
+          launchUrl(Uri.parse(qualifiedTask.sourceConfigurationUrl));
+        }
       },
       child: Tooltip(
         message: '${qualifiedTask.task} (${qualifiedTask.stage})',

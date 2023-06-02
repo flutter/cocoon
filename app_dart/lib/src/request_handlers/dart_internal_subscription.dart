@@ -135,6 +135,7 @@ class DartInternalSubscription extends SubscriptionHandler {
         datastore.db.emptyKey.append<String>(Commit, id: id);
     final Commit commit = await config.db.lookupValue<Commit>(commitKey);
     final task = Task(
+      attempts: 1,
       buildNumber: build.number,
       buildNumberList: build.number.toString(),
       builderName: build.builderId.builder,

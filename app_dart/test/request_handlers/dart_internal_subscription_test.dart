@@ -128,6 +128,7 @@ void main() {
 
     // Ensure the task in the db is exactly what we are looking for
     final Task expectedTask = Task(
+      attempts: 1,
       buildNumber: 123456,
       buildNumberList: "123456".toString(),
       builderName: builder,
