@@ -5,11 +5,16 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dashboard/logic/qualified_task.dart';
+import 'package:flutter_dashboard/service/google_authentication.dart';
+import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/widgets/task_icon.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
+import '../utils/fake_build.dart';
 import '../utils/fake_url_launcher.dart';
+import '../utils/mocks.mocks.dart';
 
 void main() {
   testWidgets('TaskIcon tooltip shows task name', (WidgetTester tester) async {
@@ -18,10 +23,11 @@ void main() {
     const String expectedLabel = 'tasky task (stagey stage)';
 
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: stageName, task: taskName),
+            qualifiedTask: const QualifiedTask(stage: stageName, task: taskName),
+            buildState: FakeBuildState(),
           ),
         ),
       ),
@@ -44,11 +50,17 @@ void main() {
 
     const QualifiedTask luciTask = QualifiedTask(stage: StageName.luci, task: 'test');
 
+    final GoogleSignInService signInService = MockGoogleSignInService();
+    when(signInService.isAuthenticated).thenAnswer((realInvocation) => false);
+
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Material(
           child: TaskIcon(
             qualifiedTask: luciTask,
+            buildState: FakeBuildState(
+              authService: signInService,
+            ),
           ),
         ),
       ),
@@ -64,10 +76,11 @@ void main() {
 
   testWidgets('Unknown stage name shows helper icon in TaskIcon', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'stage not to be named', task: 'macbeth'),
+            qualifiedTask: const QualifiedTask(stage: 'stage not to be named', task: 'macbeth'),
+            buildState: FakeBuildState(),
           ),
         ),
       ),
@@ -78,10 +91,11 @@ void main() {
 
   testWidgets('TaskIcon shows the right icon for google test', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'google_internal'),
+            qualifiedTask: const QualifiedTask(stage: 'google_internal'),
+            buildState: FakeBuildState(),
           ),
         ),
       ),
@@ -93,10 +107,11 @@ void main() {
 
   testWidgets('TaskIcon shows the right icon for web', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Windows_web test', pool: 'luci.flutter.prod'),
+            qualifiedTask: const QualifiedTask(stage: 'chromebot', task: 'Windows_web test', pool: 'luci.flutter.prod'),
+            buildState: FakeBuildState(),
           ),
         ),
       ),
@@ -108,10 +123,11 @@ void main() {
 
   testWidgets('TaskIcon shows the right icon for LUCI windows', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Windows something', pool: 'luci.flutter.prod'),
+            qualifiedTask: const QualifiedTask(stage: 'chromebot', task: 'Windows something', pool: 'luci.flutter.prod'),
+            buildState: FakeBuildState(),
           ),
         ),
       ),
@@ -123,11 +139,12 @@ void main() {
 
   testWidgets('TaskIcon shows the right icon for fuchsia', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Material(
           child: TaskIcon(
             qualifiedTask:
-                QualifiedTask(stage: 'chromebot', task: 'Windows_fuchsia something', pool: 'luci.flutter.prod'),
+                const QualifiedTask(stage: 'chromebot', task: 'Windows_fuchsia something', pool: 'luci.flutter.prod'),
+            buildState: FakeBuildState(),
           ),
         ),
       ),
@@ -139,10 +156,11 @@ void main() {
 
   testWidgets('TaskIcon shows the right icon for LUCI android', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Windows_android test', pool: 'luci.flutter.prod'),
+            qualifiedTask: const QualifiedTask(stage: 'chromebot', task: 'Windows_android test', pool: 'luci.flutter.prod'),
+            buildState: FakeBuildState(),
           ),
         ),
       ),
@@ -154,10 +172,11 @@ void main() {
 
   testWidgets('TaskIcon shows the right icon for LUCI mac', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Mac test', pool: 'luci.flutter.prod'),
+            qualifiedTask: const QualifiedTask(stage: 'chromebot', task: 'Mac test', pool: 'luci.flutter.prod'),
+            buildState: FakeBuildState(),
           ),
         ),
       ),
@@ -169,10 +188,11 @@ void main() {
 
   testWidgets('TaskIcon shows the right icon for LUCI mac/iphone', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Mac_ios test', pool: 'luci.flutter.prod'),
+            qualifiedTask: const QualifiedTask(stage: 'chromebot', task: 'Mac_ios test', pool: 'luci.flutter.prod'),
+            buildState: FakeBuildState(),
           ),
         ),
       ),
@@ -184,10 +204,11 @@ void main() {
 
   testWidgets('TaskIcon shows the right icon for LUCI linux', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Linux test', pool: 'luci.flutter.prod'),
+            qualifiedTask: const QualifiedTask(stage: 'chromebot', task: 'Linux test', pool: 'luci.flutter.prod'),
+            buildState: FakeBuildState(),
           ),
         ),
       ),
@@ -199,10 +220,11 @@ void main() {
 
   testWidgets('TaskIcon shows the right icon for unknown', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Unknown', pool: 'luci.flutter.prod'),
+            qualifiedTask: const QualifiedTask(stage: 'chromebot', task: 'Unknown', pool: 'luci.flutter.prod'),
+            buildState: FakeBuildState(),
           ),
         ),
       ),
