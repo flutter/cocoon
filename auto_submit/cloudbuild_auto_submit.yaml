@@ -20,7 +20,7 @@ steps:
       - |-
         gcloud builds submit \
           --config auto_submit/cloudbuild_auto_submit_deploy.yaml \
-          --substitutions="_GAE_PROMOTE=$_GAE_PROMOTE,SHORT_SHA=$SHORT_SHA" \
+          --substitutions="SHORT_SHA=$SHORT_SHA" \
           --async
 
 timeout: 1200s
