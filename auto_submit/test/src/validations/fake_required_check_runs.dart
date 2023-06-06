@@ -5,13 +5,16 @@ import 'package:github/github.dart' as github;
 
 class FakeRequiredCheckRuns extends RequiredCheckRuns {
   FakeRequiredCheckRuns({required super.config});
-  
+
   bool isSuccessful = true;
 
   @override
-  Future<ValidationResult> validate(auto.QueryResult result, github.PullRequest messagePullRequest) async => ValidationResult(
-      isSuccessful,
-      isSuccessful ? Action.REMOVE_LABEL : Action.IGNORE_TEMPORARILY,
-      isSuccessful ? 'All required check runs have completed.' : 'Some of the required checks did not complete in time.',
-    );
+  Future<ValidationResult> validate(auto.QueryResult result, github.PullRequest messagePullRequest) async =>
+      ValidationResult(
+        isSuccessful,
+        isSuccessful ? Action.REMOVE_LABEL : Action.IGNORE_TEMPORARILY,
+        isSuccessful
+            ? 'All required check runs have completed.'
+            : 'Some of the required checks did not complete in time.',
+      );
 }

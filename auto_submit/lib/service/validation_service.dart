@@ -334,7 +334,7 @@ class ValidationService {
 
     // Make sure the required checks run happen before auto approval of the revert.
     requiredCheckRuns ??= RequiredCheckRuns(config: config);
-   
+
     final github.PullRequest githubRevertPullRequest = await githubService.getPullRequest(
       slug,
       revertPrNumber,
@@ -374,7 +374,6 @@ class ValidationService {
         );
 
         log.info(message);
-
       }
       log.info('Ack the processed message : $ackId.');
       await pubsub.acknowledge('auto-submit-queue-sub', ackId);
@@ -398,7 +397,7 @@ class ValidationService {
       slug,
       number,
     );
-    
+
     if (!mergeResult.result) {
       return mergeResult;
     }

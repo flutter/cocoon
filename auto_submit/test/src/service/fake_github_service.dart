@@ -167,9 +167,11 @@ class FakeGithubService implements GithubService {
   Future<List<IssueLabel>> addLabels(RepositorySlug slug, int issueNumber, List<String> labels) async {
     final List<IssueLabel> issueLabels = [];
     for (String labelString in labels) {
-      issueLabels.add(IssueLabel(
-        name: labelString,
-      ));
+      issueLabels.add(
+        IssueLabel(
+          name: labelString,
+        ),
+      );
     }
     return issueLabels;
   }

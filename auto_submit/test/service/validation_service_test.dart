@@ -10,11 +10,9 @@ import 'package:auto_submit/model/auto_submit_query_result.dart' as auto hide Pu
 import 'package:auto_submit/model/pull_request_data_types.dart';
 import 'package:auto_submit/requests/pull_request_message.dart';
 import 'package:auto_submit/service/validation_service.dart';
-import 'package:auto_submit/validations/required_check_runs.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
-import 'package:meta/meta.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
