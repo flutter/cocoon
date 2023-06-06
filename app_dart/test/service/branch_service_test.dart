@@ -2,15 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/model/appengine/branch.dart';
 import 'package:cocoon_service/src/model/gerrit/commit.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 
-import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as gh;
-import 'package:github/hooks.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
@@ -21,7 +18,6 @@ import '../src/service/fake_github_service.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/matchers.dart';
 import '../src/utilities/mocks.mocks.dart';
-import '../src/utilities/webhook_generators.dart';
 
 void main() {
   late MockConfig config;
@@ -47,67 +43,6 @@ void main() {
 
     when(config.createDefaultGitHubService()).thenAnswer((_) async => githubService);
     when(config.db).thenReturn(db);
-  });
-
-  group('handleCreateRequest', () {
-    test('should not add branch if it is created in a fork', () async {
-      expect(db.values.values.whereType<Branch>().length, 0);
-      final CreateEvent createEvent = generateCreateBranchEvent('filter_forks', 'godofredo/cocoon', forked: true);
-      await branchService.handleCreateRequest(createEvent);
-
-      expect(db.values.values.whereType<Branch>().length, 0);
-    });
-
-    test('should add branch to db if db is empty', () async {
-      expect(db.values.values.whereType<Branch>().length, 0);
-      final CreateEvent createEvent = generateCreateBranchEvent('flutter-2.12-candidate.4', 'flutter/flutter');
-      await branchService.handleCreateRequest(createEvent);
-
-      expect(db.values.values.whereType<Branch>().length, 1);
-      final Branch branch = db.values.values.whereType<Branch>().single;
-      expect(branch.repository, 'flutter/flutter');
-      expect(branch.name, 'flutter-2.12-candidate.4');
-    });
-
-    test('should not add duplicate entity if branch already exists in db', () async {
-      expect(db.values.values.whereType<Branch>().length, 0);
-
-      const String id = 'flutter/flutter/flutter-2.12-candidate.4';
-      final int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
-      final Key<String> branchKey = db.emptyKey.append<String>(Branch, id: id);
-      final Branch currentBranch = Branch(key: branchKey, lastActivity: lastActivity);
-      db.values[currentBranch.key] = currentBranch;
-      expect(db.values.values.whereType<Branch>().length, 1);
-
-      final CreateEvent createEvent = generateCreateBranchEvent('flutter-2.12-candidate.4', 'flutter/flutter');
-      await branchService.handleCreateRequest(createEvent);
-
-      expect(db.values.values.whereType<Branch>().length, 1);
-      final Branch branch = db.values.values.whereType<Branch>().single;
-      expect(branch.repository, 'flutter/flutter');
-      expect(branch.name, 'flutter-2.12-candidate.4');
-    });
-
-    test('should add branch if it is different from previously existing branches', () async {
-      expect(db.values.values.whereType<Branch>().length, 0);
-
-      const String id = 'flutter/flutter/flutter-2.12-candidate.4';
-      final int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
-      final Key<String> branchKey = db.emptyKey.append<String>(Branch, id: id);
-      final Branch currentBranch = Branch(key: branchKey, lastActivity: lastActivity);
-      db.values[currentBranch.key] = currentBranch;
-
-      expect(db.values.values.whereType<Branch>().length, 1);
-
-      final CreateEvent createEvent = generateCreateBranchEvent('flutter-2.12-candidate.5', 'flutter/flutter');
-      await branchService.handleCreateRequest(createEvent);
-
-      expect(db.values.values.whereType<Branch>().length, 2);
-      expect(
-        db.values.values.whereType<Branch>().map<String>((Branch b) => b.name),
-        containsAll(<String>['flutter-2.12-candidate.4', 'flutter-2.12-candidate.5']),
-      );
-    });
   });
 
   group('retrieve latest release branches', () {
@@ -151,79 +86,76 @@ void main() {
 
   group('branchFlutterRecipes', () {
     const String branch = 'flutter-2.13-candidate.0';
+    const String sha = 'abc123';
     setUp(() {
       gerritService.branchesValue = <String>[];
-      when(repositories.listCommits(Config.engineSlug, sha: anyNamed('sha'))).thenAnswer(
-        (_) => Stream.value(generateGitCommit(5)),
-      );
+      when(repositories.getCommit(Config.engineSlug, sha)).thenAnswer((_) async => generateGitCommit(5));
     });
 
     test('does not create branch that already exists', () async {
       gerritService.branchesValue = <String>[branch];
       expect(
-        () async => branchService.branchFlutterRecipes(branch),
+        () async => branchService.branchFlutterRecipes(branch, sha),
         throwsExceptionWith<BadRequestException>('$branch already exists'),
       );
     });
 
-    test('throws BadRequest if github commit list has no branch time', () async {
+    test('throws BadRequest if github commit has no branch time', () async {
       gerritService.commitsValue = <GerritCommit>[];
-      when(repositories.listCommits(Config.engineSlug, sha: anyNamed('sha'))).thenAnswer(
-        (_) => Stream.value(
-          gh.RepositoryCommit(
-            commit: gh.GitCommit(
-              committer: gh.GitCommitUser(
-                'dash',
-                'dash@flutter.dev',
-                null,
-              ),
+      when(repositories.getCommit(Config.engineSlug, sha)).thenAnswer(
+        (_) async => gh.RepositoryCommit(
+          commit: gh.GitCommit(
+            committer: gh.GitCommitUser(
+              'dash',
+              'dash@flutter.dev',
+              null,
             ),
           ),
         ),
       );
       expect(
-        () async => branchService.branchFlutterRecipes(branch),
-        throwsExceptionWith<BadRequestException>('Found no GitHub commits on $branch with commit time'),
+        () async => branchService.branchFlutterRecipes(branch, sha),
+        throwsExceptionWith<BadRequestException>('$sha has no commit time'),
       );
     });
 
     test('does not create branch if a good branch point cannot be found', () async {
       gerritService.commitsValue = <GerritCommit>[];
-      when(repositories.listCommits(Config.engineSlug, sha: anyNamed('sha'))).thenAnswer(
-        (_) => Stream.value(generateGitCommit(5)),
+      when(repositories.getCommit(Config.engineSlug, sha)).thenAnswer(
+        (_) async => generateGitCommit(5),
       );
       expect(
-        () async => branchService.branchFlutterRecipes(branch),
+        () async => branchService.branchFlutterRecipes(branch, sha),
         throwsExceptionWith<InternalServerError>('Failed to find a revision to branch Flutter recipes for $branch'),
       );
     });
 
     test('creates branch', () async {
-      await branchService.branchFlutterRecipes(branch);
+      await branchService.branchFlutterRecipes(branch, sha);
     });
 
     test('creates branch when GitHub requires retries', () async {
       int attempts = 0;
-      when(repositories.listCommits(Config.engineSlug, sha: anyNamed('sha'))).thenAnswer((_) {
+      when(repositories.getCommit(Config.engineSlug, sha)).thenAnswer((_) async {
         attempts++;
         if (attempts == 3) {
-          return Stream.value(generateGitCommit(5));
+          return generateGitCommit(5);
         }
-        throw gh.GitHubError(MockGitHub(), 'Failed to list commits');
+        throw gh.GitHubError(MockGitHub(), 'Failed to get commit');
       });
-      await branchService.branchFlutterRecipes(branch);
+      await branchService.branchFlutterRecipes(branch, sha);
     });
 
     test('ensure createDefaultGithubService is called once for each retry', () async {
       int attempts = 0;
-      when(repositories.listCommits(Config.engineSlug, sha: anyNamed('sha'))).thenAnswer((_) {
+      when(repositories.getCommit(Config.engineSlug, sha)).thenAnswer((_) async {
         attempts++;
         if (attempts == 3) {
-          return Stream.value(generateGitCommit(5));
+          return generateGitCommit(5);
         }
-        throw gh.GitHubError(MockGitHub(), 'Failed to list commits');
+        throw gh.GitHubError(MockGitHub(), 'Failed to get commit');
       });
-      await branchService.branchFlutterRecipes(branch);
+      await branchService.branchFlutterRecipes(branch, sha);
 
       verify(config.createDefaultGitHubService()).called(attempts);
     });
@@ -231,7 +163,7 @@ void main() {
     test('creates branch when there is a similar branch', () async {
       gerritService.branchesValue = <String>['$branch-similar'];
 
-      await branchService.branchFlutterRecipes(branch);
+      await branchService.branchFlutterRecipes(branch, sha);
     });
   });
 }

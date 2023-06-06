@@ -27,8 +27,12 @@ class CiYaml {
     if (validate) {
       _validate(config, branch, totSchedulerConfig: totConfig?.config);
     }
-    totPresubmitTargetNames =
-        totConfig?.presubmitTargets.map((Target target) => target.value.name).toList() ?? <String>[];
+    // Do not filter bringup targets. They are required for backward compatibility
+    // with release candidate branches.
+    final Iterable<Target> totPresubmitTargets =
+        totConfig?._targets.where((Target target) => target.value.presubmit) ?? <Target>[];
+    final List<Target> totEnabledPresubmitTargets = _filterEnabledTargets(totPresubmitTargets);
+    totPresubmitTargetNames = totEnabledPresubmitTargets.map((Target target) => target.value.name).toList();
     totPostsubmitTargetNames =
         totConfig?.postsubmitTargets.map((Target target) => target.value.name).toList() ?? <String>[];
   }
@@ -54,7 +58,6 @@ class CiYaml {
   List<Target> get presubmitTargets {
     final Iterable<Target> presubmitTargets =
         _targets.where((Target target) => target.value.presubmit && !target.value.bringup);
-
     List<Target> enabledTargets = _filterEnabledTargets(presubmitTargets);
 
     if (enabledTargets.isEmpty) {
@@ -62,8 +65,7 @@ class CiYaml {
     }
     // Filter targets removed from main.
     if (totPresubmitTargetNames!.isNotEmpty) {
-      enabledTargets =
-          enabledTargets.where((Target target) => totPresubmitTargetNames!.contains(target.value.name)).toList();
+      enabledTargets = filterOutdatedTargets(slug, enabledTargets, totPresubmitTargetNames);
     }
     return enabledTargets;
   }
@@ -75,10 +77,24 @@ class CiYaml {
     List<Target> enabledTargets = _filterEnabledTargets(postsubmitTargets);
     // Filter targets removed from main.
     if (totPostsubmitTargetNames!.isNotEmpty) {
-      enabledTargets =
-          enabledTargets.where((Target target) => totPostsubmitTargetNames!.contains(target.value.name)).toList();
+      enabledTargets = filterOutdatedTargets(slug, enabledTargets, totPostsubmitTargetNames);
     }
     return enabledTargets;
+  }
+
+  /// Filters targets that were removed from main. [slug] is the gihub
+  /// slug for branch under test, [targets] is the list of targets from
+  /// the branch under test and [totTargetNames] is the list of target
+  /// names enabled on the default branch.
+  List<Target> filterOutdatedTargets(slug, targets, totTargetNames) {
+    final String defaultBranch = Config.defaultBranch(slug);
+    return targets
+        .where(
+          (Target target) =>
+              (target.value.enabledBranches.isNotEmpty && !target.value.enabledBranches.contains(defaultBranch)) ||
+              totTargetNames!.contains(target.value.name),
+        )
+        .toList();
   }
 
   /// Filters [targets] to those that should be started immediately.

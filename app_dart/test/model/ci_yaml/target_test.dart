@@ -26,12 +26,7 @@ void main() {
         final Target target = generateTarget(
           1,
           platform: 'Mac_ios',
-          platformProperties: <String, String>{
-            // This should be overrided by the target specific property
-            'xcode': 'abc',
-          },
           properties: <String, String>{
-            'xcode': '12abc',
             'ignore_flakiness': 'true',
           },
         );
@@ -46,9 +41,6 @@ void main() {
             // This should be overrided by the target specific property
             'xcode': 'abc',
           },
-          properties: <String, String>{
-            'xcode': '12abc',
-          },
         );
         expect(target.getIgnoreFlakiness(), false);
       });
@@ -60,9 +52,6 @@ void main() {
           platformProperties: <String, String>{
             // This should be overrided by the target specific property
             'ignore_flakiness': 'true',
-          },
-          properties: <String, String>{
-            'xcode': '12abc',
           },
         );
         expect(target.getIgnoreFlakiness(), true);
@@ -77,32 +66,31 @@ void main() {
             'ignore_flakiness': 'true',
           },
           properties: <String, String>{
-            'xcode': '12abc',
             'ignore_flakiness': 'false',
           },
         );
         expect(target.getIgnoreFlakiness(), false);
       });
 
-      test('properties with xcode overrides platform properties', () {
+      test('properties with \$flutter/osx_sdk overrides platform properties', () {
         final Target target = generateTarget(
           1,
-          platform: 'Mac_ios',
+          platform: 'Mac',
           platformProperties: <String, String>{
             // This should be overrided by the target specific property
-            'xcode': 'abc',
+            '\$flutter/osx_sdk': '{"sdk_version": "12abc", "runtime_versions": ["ios-11-0", "ios-12-0"]}'
           },
           properties: <String, String>{
-            'xcode': '12abc',
+            '\$flutter/osx_sdk': '{"sdk_version": "14e222b", "runtime_versions": ["ios-13-0", "ios-15-0"]}'
           },
         );
         expect(target.getProperties(), <String, Object>{
           'bringup': false,
           'dependencies': <String>[],
           '\$flutter/osx_sdk': <String, Object>{
-            'sdk_version': '12abc',
+            'runtime_versions': ['ios-13-0', 'ios-15-0'],
+            'sdk_version': '14e222b',
           },
-          'xcode': '12abc',
         });
       });
 
@@ -127,149 +115,8 @@ void main() {
             // This should be overrided by the target specific property
             'android_sdk': 'abc',
           },
-          properties: <String, String>{
-            'xcode': '12abc',
-          },
         );
         expect(target.tags, []);
-      });
-
-      test('platform properties with xcode', () {
-        final Target target = generateTarget(
-          1,
-          platform: 'Mac_ios',
-          platformProperties: <String, String>{
-            'xcode': '12abc',
-          },
-        );
-        expect(target.getProperties(), <String, Object>{
-          'bringup': false,
-          'dependencies': <String>[],
-          '\$flutter/osx_sdk': <String, Object>{
-            'sdk_version': '12abc',
-          },
-          'xcode': '12abc',
-        });
-      });
-
-      test('platform properties with xcode and clean_cache', () {
-        final Target target = generateTarget(
-          1,
-          platform: 'Mac_ios',
-          platformProperties: <String, String>{'xcode': '12abc', 'cleanup_xcode_cache': 'true'},
-        );
-        expect(target.getProperties(), <String, Object>{
-          'xcode': '12abc',
-          'cleanup_xcode_cache': true,
-          'dependencies': <String>[],
-          '\$flutter/osx_sdk': <String, Object>{'sdk_version': '12abc', 'cleanup_cache': true},
-          'bringup': false,
-        });
-      });
-
-      test('platform properties with runtime_versions', () {
-        final Target target = generateTarget(
-          1,
-          platform: 'Mac',
-          platformProperties: <String, String>{
-            'runtime_versions': '["ios-13-0", "ios-15-0"]',
-          },
-        );
-        expect(target.getProperties(), <String, Object>{
-          'bringup': false,
-          'dependencies': <String>[],
-          '\$flutter/osx_sdk': <String, Object>{
-            'runtime_versions': ['ios-13-0', 'ios-15-0'],
-          },
-          'runtime_versions': ['ios-13-0', 'ios-15-0'],
-        });
-      });
-
-      test('properties with runtime_versions overrides platform properties', () {
-        final Target target = generateTarget(
-          1,
-          platform: 'Mac',
-          platformProperties: <String, String>{
-            // This should be overrided by the target specific property
-            'runtime_versions': '["ios-13-0", "ios-15-0"]',
-          },
-          properties: <String, String>{
-            'runtime_versions': '["ios-13-0", "ios-15-0"]',
-          },
-        );
-        expect(target.getProperties(), <String, Object>{
-          'bringup': false,
-          'dependencies': <String>[],
-          '\$flutter/osx_sdk': <String, Object>{
-            'runtime_versions': ['ios-13-0', 'ios-15-0'],
-          },
-          'runtime_versions': ['ios-13-0', 'ios-15-0'],
-        });
-      });
-
-      test('platform properties with xcode and runtime_versions', () {
-        final Target target = generateTarget(
-          1,
-          platform: 'Mac',
-          platformProperties: <String, String>{
-            'xcode': '12abc',
-            'runtime_versions': '["ios-13-0", "ios-15-0"]',
-          },
-        );
-        expect(target.getProperties(), <String, Object>{
-          'bringup': false,
-          'dependencies': <String>[],
-          '\$flutter/osx_sdk': <String, Object>{
-            'runtime_versions': ['ios-13-0', 'ios-15-0'],
-            'sdk_version': '12abc',
-          },
-          'xcode': '12abc',
-          'runtime_versions': ['ios-13-0', 'ios-15-0'],
-        });
-      });
-
-      test('platform properties with xcode on Mac_ios', () {
-        final Target target = generateTarget(
-          1,
-          platform: 'Mac_ios',
-          platformProperties: <String, String>{
-            'xcode': '12abc',
-          },
-        );
-        expect(target.getProperties(), <String, Object>{
-          'bringup': false,
-          'dependencies': <String>[],
-          '\$flutter/osx_sdk': <String, Object>{
-            'sdk_version': '12abc',
-          },
-          'xcode': '12abc',
-        });
-      });
-
-      test('properties with xcode and runtime_versions overrides platform properties', () {
-        final Target target = generateTarget(
-          1,
-          platform: 'Mac',
-          platformProperties: <String, String>{
-            // This should be overrided by the target specific property
-            'xcode': 'abc',
-            'runtime_versions': '["ios-17-0"]',
-          },
-          properties: <String, String>{
-            'xcode': '12abc',
-            'runtime_versions': '["ios-13-0", "ios-15-0"]',
-          },
-        );
-        expect(target.getProperties(), <String, Object>{
-          'bringup': false,
-          'dependencies': <String>[],
-          '\$flutter/osx_sdk': <String, Object>{
-            'runtime_versions': ['ios-13-0', 'ios-15-0'],
-            'sdk_version': '12abc',
-          },
-          'xcode': '12abc',
-          'runtime_versions': ['ios-13-0', 'ios-15-0'],
-        });
       });
     });
 

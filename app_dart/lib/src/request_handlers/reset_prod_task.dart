@@ -44,35 +44,88 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   static const String ownerParam = 'Owner';
   static const String repoParam = 'Repo';
   static const String commitShaParam = 'Commit';
-  static const String builderParam = 'Builder';
+
+  /// Name of the task to be retried.
+  ///
+  /// If "all" is given, all failed tasks will be retried. This enables
+  /// oncalls to quickly recover a commit without the tedium of the UI.
+  static const String taskParam = 'Task';
 
   @override
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
     final String? encodedKey = requestData![taskKeyParam] as String?;
-    String? gitBranch = requestData![branchParam] as String?;
+    String? branch = requestData![branchParam] as String?;
     final String owner = requestData![ownerParam] as String? ?? 'flutter';
     final String? repo = requestData![repoParam] as String?;
     final String? sha = requestData![commitShaParam] as String?;
     final TokenInfo token = await tokenInfo(request!);
-    final String? taskName = requestData![builderParam] as String?;
+    final String? taskName = requestData![taskParam] as String?;
 
     RepositorySlug? slug;
-
     if (encodedKey != null && encodedKey.isNotEmpty) {
       // Check params required for dashboard.
       checkRequiredParameters(<String>[taskKeyParam]);
     } else {
       // Checks params required when this API is called with curl.
-      checkRequiredParameters(<String>[commitShaParam, builderParam, repoParam]);
+      checkRequiredParameters(<String>[commitShaParam, taskParam, repoParam]);
       slug = RepositorySlug(owner, repo!);
-      gitBranch ??= Config.defaultBranch(slug);
+      branch ??= Config.defaultBranch(slug);
     }
 
+    if (taskName == 'all') {
+      final Key<String> commitKey = Commit.createKey(
+        db: datastore.db,
+        slug: slug!,
+        gitBranch: branch!,
+        sha: sha!,
+      );
+      final tasks = await datastore.db.query<Task>(ancestorKey: commitKey).run().toList();
+      final List<Future<void>> futures = <Future<void>>[];
+      for (final Task task in tasks) {
+        if (!taskFailStatusSet.contains(task.status)) continue;
+        futures.add(
+          rerun(
+            datastore: datastore,
+            branch: branch,
+            sha: sha,
+            taskName: task.name,
+            slug: slug,
+            email: token.email!,
+          ),
+        );
+      }
+      await Future.wait(futures);
+    } else {
+      await rerun(
+        datastore: datastore,
+        encodedKey: encodedKey,
+        branch: branch,
+        sha: sha,
+        taskName: taskName,
+        slug: slug,
+        email: token.email!,
+        ignoreChecks: true,
+      );
+    }
+
+    return Body.empty;
+  }
+
+  Future<void> rerun({
+    required DatastoreService datastore,
+    String? encodedKey,
+    String? branch,
+    String? sha,
+    String? taskName,
+    RepositorySlug? slug,
+    required String email,
+    bool ignoreChecks = false,
+  }) async {
     final Task task = await _getTaskFromNamedParams(
       datastore: datastore,
       encodedKey: encodedKey,
-      gitBranch: gitBranch,
+      branch: branch,
       name: taskName,
       sha: sha,
       slug: slug,
@@ -83,7 +136,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
 
     final Map<String, List<String>> tags = <String, List<String>>{
-      'triggered_by': <String>[token.email!],
+      'triggered_by': <String>[email],
       'trigger_type': <String>['manual'],
     };
     final bool isRerunning = await luciBuildService.checkRerunBuilder(
@@ -92,24 +145,24 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       target: target,
       datastore: datastore,
       tags: tags,
-      ignoreChecks: true,
+      ignoreChecks: ignoreChecks,
     );
-    if (isRerunning == false) {
-      throw InternalServerError('Failed to rerun ${task.name}');
-    }
 
-    return Body.empty;
+    // For human retries from the dashboard, notify if a task failed to rerun.
+    if (ignoreChecks && isRerunning == false) {
+      throw InternalServerError('Failed to rerun $taskName');
+    }
   }
 
   /// Retrieve [Task] from [DatastoreService] from either an encoded key or commit + task name info.
   ///
   /// If [encodedKey] is passed, [KeyHelper] will decode it directly and return the associated entity.
   ///
-  /// Otherwise, [name], [gitBranch], [sha], and [slug] must be passed to find the [Task].
+  /// Otherwise, [name], [branch], [sha], and [slug] must be passed to find the [Task].
   Future<Task> _getTaskFromNamedParams({
     required DatastoreService datastore,
     String? encodedKey,
-    String? gitBranch,
+    String? branch,
     String? name,
     String? sha,
     RepositorySlug? slug,
@@ -121,7 +174,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final Key<String> commitKey = Commit.createKey(
       db: datastore.db,
       slug: slug!,
-      gitBranch: gitBranch!,
+      gitBranch: branch!,
       sha: sha!,
     );
     return Task.fromDatastore(

@@ -34,9 +34,25 @@ cron:
   url: /api/public/github-rate-limit-status
   schedule: every 1 minutes
 
-- description: detect and flag tests with high flaky rates
+- description: detect and flag tests with high flaky rates 1
   url: /api/file_flaky_issue_and_pr?threshold=0.02
-  schedule: every wednesday 9:00,9:30,10:00,10:30,11:00
+  schedule: every wednesday 9:00
+
+- description: detect and flag tests with high flaky rates 2
+  url: /api/file_flaky_issue_and_pr?threshold=0.02
+  schedule: every wednesday 9:30
+
+- description: detect and flag tests with high flaky rates 3
+  url: /api/file_flaky_issue_and_pr?threshold=0.02
+  schedule: every wednesday 10:00
+
+- description: detect and flag tests with high flaky rates 4
+  url: /api/file_flaky_issue_and_pr?threshold=0.02
+  schedule: every wednesday 10:30
+
+- description: detect and flag tests with high flaky rates 5
+  url: /api/file_flaky_issue_and_pr?threshold=0.02
+  schedule: every wednesday 11:00
 
 - description: update existing flake issues with latest statistics
   url: /api/update_existing_flaky_issues?threshold=0.02

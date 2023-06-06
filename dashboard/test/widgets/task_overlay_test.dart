@@ -19,10 +19,8 @@ import 'package:flutter_dashboard/widgets/task_grid.dart';
 import 'package:flutter_dashboard/widgets/task_overlay.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 import '../utils/fake_build.dart';
-import '../utils/fake_url_launcher.dart';
 import '../utils/golden.dart';
 import '../utils/task_icons.dart';
 
@@ -483,37 +481,6 @@ void main() {
 
     expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);
     expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
-  });
-
-  testWidgets('log button opens log url for public log', (WidgetTester tester) async {
-    final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
-    UrlLauncherPlatform.instance = urlLauncher;
-
-    final Task publicTask = Task()..stageName = 'cirrus';
-    await tester.pumpWidget(
-      Now.fixed(
-        dateTime: nowTime,
-        child: MaterialApp(
-          home: Scaffold(
-            body: TestGrid(
-              buildState: buildState,
-              task: publicTask,
-            ),
-          ),
-        ),
-      ),
-    );
-
-    // Open the overlay
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
-    await tester.pump();
-
-    // View log
-    await tester.tap(find.text('VIEW LOGS'));
-    await tester.pump();
-
-    expect(urlLauncher.launches, isNotEmpty);
-    expect(urlLauncher.launches.single, 'https://cirrus-ci.com/build/flutter/flutter/24e8c0a2?branch=');
   });
 
   test('TaskOverlayEntryPositionDelegate.positionDependentBox', () async {

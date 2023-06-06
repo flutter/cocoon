@@ -26,6 +26,8 @@ class DiagnoseCommand extends Command<bool> {
   final String description = 'Diagnose whether attached iOS devices have errors.';
 
   Future<bool> run() async {
+    await checkDevToolsSecurity();
+
     final List<String> command = <String>['xcrun', 'xcdevice', 'list'];
     final io.ProcessResult result = await processManager.run(
       command,
@@ -51,6 +53,21 @@ class DiagnoseCommand extends Command<bool> {
     }
 
     return true;
+  }
+
+  /// Log the status of DevToolsSecurity.
+  Future<void> checkDevToolsSecurity() async {
+    final List<String> command = <String>['xcrun', 'DevToolsSecurity', '--status'];
+    final io.ProcessResult result = await processManager.run(
+      command,
+    );
+    if (result.exitCode != 0) {
+      logger.severe(
+        '$command failed with exit code ${result.exitCode}\n${result.stderr}',
+      );
+    }
+    final String stdout = result.stdout as String;
+    logger.info(stdout);
   }
 }
 
