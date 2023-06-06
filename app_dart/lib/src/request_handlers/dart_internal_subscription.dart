@@ -74,14 +74,29 @@ class DartInternalSubscription extends SubscriptionHandler {
 
       }
     }
+    log.info("Checking for existing task in datastore");
+    late Task? existingTask;
+    try {
+      existingTask = await _getExistingTaskFromDatastore(build, datastore);
+    } catch (e) {
+      existingTask = null;
+    }
 
-    log.info("Creating Task from Buildbucket result");
-    final Task task = await _createTaskFromBuildbucketResult(build, datastore);
+    late Task taskToInsert;
+    if (existingTask != null) {
+      log.info("Creating Task from existing Task");
+      existingTask.buildNumber = build.number;
+      existingTask.buildNumberList = '${build.number},${existingTask.buildNumberList}';
+      taskToInsert = existingTask;
+    } else {
+      log.info("Creating Task from Buildbucket result");
+      taskToInsert = await _createTaskFromBuildbucketResult(build, datastore);
+    }
 
-    log.info("Inserting Task into the datastore: ${task.toString()}");
-    await datastore.insert(<Task>[task]);
+    log.info("Inserting Task into the datastore: ${taskToInsert.toString()}");
+    await datastore.insert(<Task>[taskToInsert]);
 
-    return Body.forJson(task.toString());
+    return Body.forJson(taskToInsert.toString());
   }
 
   Future<Build> _getBuildFromBuildbucket(
@@ -154,6 +169,35 @@ class DartInternalSubscription extends SubscriptionHandler {
       reservedForAgentId: ''
     );
     return task;
+  }
+
+  Future<Task> _getExistingTaskFromDatastore(Build build, DatastoreService datastore) async
+  {
+
+    final String repository =
+        build.input!.gitilesCommit!.project!.split('/')[1];
+    log.fine("Repository: $repository");
+
+    final String branch = build.input!.gitilesCommit!.ref!.split('/')[2];
+    log.fine("Branch: $branch");
+
+    final String hash = build.input!.gitilesCommit!.hash!;
+    log.fine("Hash: $hash");
+
+    final RepositorySlug slug = RepositorySlug("flutter", repository);
+    log.fine("Slug: ${slug.toString()}");
+
+    final String id = 'flutter/${slug.name}/$branch/$hash';
+    final Key<String> commitKey =
+        datastore.db.emptyKey.append<String>(Commit, id: id);
+
+    final Task existingTask = await Task.fromDatastore(
+      datastore: datastore,
+      commitKey: commitKey,
+      name: build.builderId.builder
+    );
+
+    return existingTask;
   }
 
   String _convertStatusToString(Status status) {

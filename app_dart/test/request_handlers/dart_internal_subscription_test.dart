@@ -147,8 +147,6 @@ void main() {
       reservedForAgentId: ''
     );
 
-    print(taskInDb.toString());
-
     expect(
       taskInDb.toString(),
       equals(expectedTask.toString()),
