@@ -213,7 +213,7 @@ const String failedCheckRunsMock = '''{
       "status": "completed",
       "conclusion": "failure",
       "started_at": "2018-05-04T01:14:52Z",
-      "name": "failed_checkrun",
+      "name": "ci.yaml validation",
       "check_suite": {
         "id": 5
       }

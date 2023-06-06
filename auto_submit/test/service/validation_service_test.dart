@@ -10,9 +10,11 @@ import 'package:auto_submit/model/auto_submit_query_result.dart' as auto hide Pu
 import 'package:auto_submit/model/pull_request_data_types.dart';
 import 'package:auto_submit/requests/pull_request_message.dart';
 import 'package:auto_submit/service/validation_service.dart';
+import 'package:auto_submit/validations/required_check_runs.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
+import 'package:meta/meta.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
@@ -20,14 +22,15 @@ import 'package:test/test.dart';
 import '../configuration/repository_configuration_data.dart';
 import '../requests/github_webhook_test_data.dart';
 import '../src/request_handling/fake_pubsub.dart';
+import '../src/service/fake_approver_service.dart';
 import '../src/service/fake_bigquery_service.dart';
 import '../src/service/fake_config.dart';
 import '../src/service/fake_graphql_client.dart';
 import '../src/service/fake_github_service.dart';
+import '../src/validations/fake_required_check_runs.dart';
 import '../utilities/utils.dart';
 import '../utilities/mocks.dart';
 import 'bigquery_test.dart';
-
 
 void main() {
   late ValidationService validationService;
@@ -75,7 +78,7 @@ void main() {
 
     final FakePubSub pubsub = FakePubSub();
     final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-    
+
     unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
     final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
@@ -222,7 +225,12 @@ void main() {
       final FakePubSub pubsub = FakePubSub();
 
       // Generate the pull request for the message sent to the github webhook.
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name, state: prState, author: prAuthor,);
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        state: prState,
+        author: prAuthor,
+      );
 
       unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
 
@@ -278,7 +286,12 @@ void main() {
       final FakePubSub pubsub = FakePubSub();
 
       // Generate the pull request for the message sent to the github webhook.
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name, state: prState, author: prAuthor,);
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        state: prState,
+        author: prAuthor,
+      );
 
       unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
 
@@ -288,7 +301,11 @@ void main() {
         sender: labelingAuthor,
       );
 
-      githubGraphQLClient.mutateResultForOptions =(MutationOptions queryOptions) => createRevertQueryResult(closedPullRequest, revertPullRequest, 'test',);
+      githubGraphQLClient.mutateResultForOptions = (MutationOptions queryOptions) => createRevertQueryResult(
+            closedPullRequest,
+            revertPullRequest,
+            'test',
+          );
 
       await validationService.processRevertRequest(
         config: config,
@@ -303,12 +320,10 @@ void main() {
       assert(pubsub.messagesQueue.isEmpty);
     });
 
-    test('Revert request fails required checkruns.', () async {
+    test('Revert request required checkruns not complete, requeueing.', () async {
       const String labelingAuthor = 'yosemitesam';
       const String prAuthor = 'ricardoamador';
       const String prState = 'closed';
-
-      config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(reviewOnRevertRequired);
 
       // This query result is needed for the initial QueryResult from getting pull requests.
       final PullRequestHelper closedPullRequest = PullRequestHelper(
@@ -328,6 +343,7 @@ void main() {
 
       final auto.QueryResult queryResult = createQueryResult(closedPullRequest);
 
+      githubService.checkRunsData = failedCheckRunsMock;
       githubService.createCommentData = createCommentMock;
       // This time labeler is a team member.
       githubService.isTeamMemberMockMap[labelingAuthor] = true;
@@ -336,9 +352,23 @@ void main() {
       final FakePubSub pubsub = FakePubSub();
 
       // Generate the pull request for the message sent to the github webhook.
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name, state: prState, author: prAuthor,);
-      // final PullRequest revertRequest = generatePullRequest(prNumber: 1, repoName: slug.name, state: 'open', author: labelingAuthor, labelName: 'revert',);
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        state: prState,
+        author: prAuthor,
+      );
 
+      final PullRequest revertRequest = generatePullRequest(
+        prNumber: 1,
+        repoName: slug.name,
+        state: 'open',
+        author: labelingAuthor,
+        labelName: 'revert',
+        body: '',
+      );
+
+      githubService.pullRequestMock = revertRequest;
       unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
 
       final PullRequestMessage pullRequestMessage = PullRequestMessage(
@@ -347,7 +377,97 @@ void main() {
         sender: labelingAuthor,
       );
 
-      githubGraphQLClient.mutateResultForOptions =(MutationOptions queryOptions) => createRevertQueryResult(closedPullRequest, revertPullRequest, 'test',);
+      githubGraphQLClient.mutateResultForOptions = (MutationOptions queryOptions) => createRevertQueryResult(
+            closedPullRequest,
+            revertPullRequest,
+            'test',
+          );
+
+      final FakeRequiredCheckRuns fakeRequiredCheckRuns = FakeRequiredCheckRuns(config: config);
+      fakeRequiredCheckRuns.isSuccessful = false;
+      validationService.requiredCheckRuns = fakeRequiredCheckRuns;
+
+      await validationService.processRevertRequest(
+        config: config,
+        result: queryResult,
+        pullRequestMessage: pullRequestMessage,
+        ackId: 'test',
+        pubsub: pubsub,
+      );
+
+      expect(githubService.issueComment, isNull);
+      expect(githubService.labelRemoved, false);
+      assert(pubsub.messagesQueue.isNotEmpty);
+    });
+
+    test('Revert checkruns complete, merge unsuccessful.', () async {
+      const String labelingAuthor = 'yosemitesam';
+      const String prAuthor = 'ricardoamador';
+      const String prState = 'closed';
+
+      // This query result is needed for the initial QueryResult from getting pull requests.
+      final PullRequestHelper closedPullRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+        state: prState,
+        author: prAuthor,
+      );
+
+      final PullRequestHelper revertPullRequest = PullRequestHelper(
+        prNumber: 1,
+        reviews: <PullRequestReviewHelper>[],
+        state: 'open',
+        author: labelingAuthor,
+      );
+
+      final auto.QueryResult queryResult = createQueryResult(closedPullRequest);
+
+      githubService.checkRunsData = failedCheckRunsMock;
+      githubService.createCommentData = createCommentMock;
+      // This time labeler is a team member.
+      githubService.isTeamMemberMockMap[labelingAuthor] = true;
+      githubService.isTeamMemberMockMap[prAuthor] = true;
+
+      final FakePubSub pubsub = FakePubSub();
+
+      // Generate the pull request for the message sent to the github webhook.
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        state: prState,
+        author: prAuthor,
+      );
+
+      final PullRequest revertRequest = generatePullRequest(
+        prNumber: 1,
+        repoName: slug.name,
+        state: 'open',
+        author: labelingAuthor,
+        labelName: 'revert',
+        body: '',
+      );
+
+      githubService.pullRequestMock = revertRequest;
+      unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
+
+      final PullRequestMessage pullRequestMessage = PullRequestMessage(
+        pullRequest: pullRequest,
+        action: 'labeled',
+        sender: labelingAuthor,
+      );
+
+      githubGraphQLClient.mutateResultForOptions = (MutationOptions queryOptions) => createRevertQueryResult(
+            closedPullRequest,
+            revertPullRequest,
+            'test',
+          );
+
+      final FakeApproverService fakeApproverService = FakeApproverService(config);
+      final FakeRequiredCheckRuns fakeRequiredCheckRuns = FakeRequiredCheckRuns(config: config);
+      fakeRequiredCheckRuns.isSuccessful = true;
+      validationService.requiredCheckRuns = fakeRequiredCheckRuns;
+      validationService.approverService = fakeApproverService;
 
       await validationService.processRevertRequest(
         config: config,
@@ -361,70 +481,91 @@ void main() {
       expect(githubService.labelRemoved, true);
       assert(pubsub.messagesQueue.isEmpty);
     });
+
+    test('Revert checkruns complete, merge is successful.', () async {
+      const String labelingAuthor = 'yosemitesam';
+      const String prAuthor = 'ricardoamador';
+      const String prState = 'closed';
+
+      // This query result is needed for the initial QueryResult from getting pull requests.
+      final PullRequestHelper closedPullRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+        state: prState,
+        author: prAuthor,
+      );
+
+      final PullRequestHelper revertPullRequest = PullRequestHelper(
+        prNumber: 1,
+        reviews: <PullRequestReviewHelper>[],
+        state: 'open',
+        author: labelingAuthor,
+      );
+
+      final auto.QueryResult queryResult = createQueryResult(closedPullRequest);
+
+      githubService.checkRunsData = failedCheckRunsMock;
+      githubService.createCommentData = createCommentMock;
+      // This time labeler is a team member.
+      githubService.isTeamMemberMockMap[labelingAuthor] = true;
+      githubService.isTeamMemberMockMap[prAuthor] = true;
+
+      final FakePubSub pubsub = FakePubSub();
+
+      // Generate the pull request for the message sent to the github webhook.
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        state: prState,
+        author: prAuthor,
+      );
+
+      final PullRequest revertRequest = generatePullRequest(
+        prNumber: 1,
+        repoName: slug.name,
+        state: 'open',
+        author: labelingAuthor,
+        labelName: 'revert',
+        body: '',
+      );
+
+      githubService.pullRequestMock = revertRequest;
+      unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
+
+      final PullRequestMessage pullRequestMessage = PullRequestMessage(
+        pullRequest: pullRequest,
+        action: 'labeled',
+        sender: labelingAuthor,
+      );
+
+      githubGraphQLClient.mutateResultForOptions = (MutationOptions queryOptions) => createRevertQueryResult(
+            closedPullRequest,
+            revertPullRequest,
+            'test',
+          );
+
+      final FakeApproverService fakeApproverService = FakeApproverService(config);
+      final FakeRequiredCheckRuns fakeRequiredCheckRuns = FakeRequiredCheckRuns(config: config);
+      fakeRequiredCheckRuns.isSuccessful = true;
+      validationService.requiredCheckRuns = fakeRequiredCheckRuns;
+      validationService.approverService = fakeApproverService;
+
+      githubService.mergeRequestMock = PullRequestMerge(merged: true);
+
+      await validationService.processRevertRequest(
+        config: config,
+        result: queryResult,
+        pullRequestMessage: pullRequestMessage,
+        ackId: 'test',
+        pubsub: pubsub,
+      );
+
+      expect(githubService.issueComment, isNull);
+      expect(githubService.labelRemoved, false);
+      assert(pubsub.messagesQueue.isEmpty);
+    });
   });
-
-  // group('Processing revert reqeuest tests', () {
-  // test('Merge valid revert request and message is acknowledged.', () async {
-  //   githubGraphQLClient.mutateResultForOptions =
-  //       (MutationOptions options) => createFakeQueryResult(data: jsonDecode(revertMutationResult));
-
-  //   final PullRequestHelper flutterRequest = PullRequestHelper(
-  //     prNumber: 0,
-  //     lastCommitHash: oid,
-  //     reviews: <PullRequestReviewHelper>[],
-  //   );
-
-  //   githubService.checkRunsData = checkRunsMock;
-  //   githubService.createCommentData = createCommentMock;
-  //   githubService.mergeRequestMock = PullRequestMerge(
-  //     merged: true,
-  //     sha: 'sha',
-  //     message: 'Pull Request successfully merged',
-  //   );
-
-  //   final FakePubSub pubsub = FakePubSub();
-  //   final PullRequest pullRequest = generatePullRequest(
-  //     prNumber: 0,
-  //     repoName: slug.name,
-  //     labelName: 'revert',
-  //     body: 'Reverts flutter/flutter#1234',
-  //   );
-
-  //   final FakeApproverService fakeApproverService = FakeApproverService(config);
-  //   validationService.approverService = fakeApproverService;
-
-  //   final Issue issue = Issue(
-  //     id: 1234,
-  //     assignee: User(login: 'keyonghan'),
-  //     createdAt: DateTime.now(),
-  //   );
-  //   githubService.githubIssueMock = issue;
-  //   githubService.pullRequestMock = pullRequest;
-
-  //   final PullRequestMessage pullRequestMessage = PullRequestMessage(
-  //     pullRequest: pullRequest,
-  //     action: 'labeled',
-  //     sender: 'autosubmit',
-  //   );
-
-  //   unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-  //   final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-
-  //   await validationService.processRevertRequest(
-  //     config: config,
-  //     result: queryResult,
-  //     pullRequestMessage: pullRequestMessage,
-  //     ackId: 'test',
-  //     pubsub: pubsub,
-  //   );
-
-  //   // if the merge is successful we do not remove the label and we do not add a comment to the issue.
-  //   expect(githubService.issueComment, isNull);
-  //   expect(githubService.labelRemoved, false);
-  //   // We acknowledge the issue.
-  //   assert(pubsub.messagesQueue.isEmpty);
-  // });
-  // );
 
   group('Process pull request method tests', () {
     test('Should process message when autosubmit label exists and pr is open', () async {
@@ -640,7 +781,11 @@ This is the second line in a paragraph.''');
   });
 }
 
-QueryResult createRevertQueryResult(PullRequestHelper closedPullRequest, PullRequestHelper revertPullRequest, String clientMutationId,) {
+QueryResult createRevertQueryResult(
+  PullRequestHelper closedPullRequest,
+  PullRequestHelper revertPullRequest,
+  String clientMutationId,
+) {
   return createFakeQueryResult(
     data: <String, dynamic>{
       'revertPullRequest': <String, dynamic>{

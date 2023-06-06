@@ -163,6 +163,7 @@ class FakeGithubService implements GithubService {
   }
 
   /// Add labels to an issue.
+  @override
   Future<List<IssueLabel>> addLabels(RepositorySlug slug, int issueNumber, List<String> labels) async {
     final List<IssueLabel> issueLabels = [];
     for (String labelString in labels) {

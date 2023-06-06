@@ -20,6 +20,7 @@ import 'package:auto_submit/validations/required_check_runs.dart';
 import 'package:auto_submit/validations/validation_filter.dart';
 import 'package:github/github.dart' as github;
 import 'package:graphql/client.dart' as graphql;
+import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../exception/retryable_exception.dart';
@@ -39,9 +40,15 @@ class ValidationService {
     approverService = ApproverService(config);
   }
 
+  @visibleForTesting
   ApproverService? approverService;
+
   final Config config;
+
   final RetryOptions retryOptions;
+
+  @visibleForTesting
+  late RequiredCheckRuns? requiredCheckRuns;
 
   /// Processes a pub/sub message associated with PullRequest event.
   Future<void> processMessage(PullRequestMessage pullRequestMessage, String ackId, PubSub pubsub) async {
@@ -317,7 +324,8 @@ class ValidationService {
         repositorySlug: slug,
         prNumber: revertPrNumber,
         prLabel: Config.kRevertLabel,
-        message: 'The repository ${slug.fullName} requires reviews for revert requests. Please assign at least two reviewers to this pull request.',
+        message:
+            'The repository ${slug.fullName} requires reviews for revert requests. Please assign at least two reviewers to this pull request.',
       );
       log.info('Ack the processed message : $ackId.');
       await pubsub.acknowledge('auto-submit-queue-sub', ackId);
@@ -325,13 +333,14 @@ class ValidationService {
     }
 
     // Make sure the required checks run happen before auto approval of the revert.
-    final RequiredCheckRuns requiredCheckRuns = RequiredCheckRuns(config: config);
+    requiredCheckRuns ??= RequiredCheckRuns(config: config);
+   
     final github.PullRequest githubRevertPullRequest = await githubService.getPullRequest(
       slug,
       revertPrNumber,
     );
-    
-    final ValidationResult checkRunValidationResult = await requiredCheckRuns.validate(
+
+    final ValidationResult checkRunValidationResult = await requiredCheckRuns!.validate(
       result,
       githubRevertPullRequest,
     );
@@ -365,32 +374,15 @@ class ValidationService {
         );
 
         log.info(message);
+
       }
-    } else if (!checkRunValidationResult.result && checkRunValidationResult.action == Action.IGNORE_TEMPORARILY) {
+      log.info('Ack the processed message : $ackId.');
+      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+    } else {
       // if required check runs have not completed process again.
       log.info('Some of the required checks have not completed. Requeueing.');
       return;
-    } else {
-      // since we do not temporarily ignore anything with a revert request we
-      // know we will report the error and remove the label.
-      final String commentMessage =
-          checkRunValidationResult.message.isEmpty ? 'Validations Fail.' : checkRunValidationResult.message;
-
-      await removeLabelAndComment(
-        githubService: githubService,
-        repositorySlug: slug,
-        prNumber: revertPrNumber,
-        prLabel: Config.kRevertLabel,
-        message: commentMessage,
-      );
-
-      log.info('revert label is removed for ${slug.fullName}, pr: $revertPrNumber, due to $commentMessage');
-      log.info(
-          'The pr ${slug.fullName}/$revertPrNumber is not feasible for merge and message: $ackId is acknowledged.');
     }
-
-    log.info('Ack the processed message : $ackId.');
-    await pubsub.acknowledge('auto-submit-queue-sub', ackId);
   }
 
   /// Merges the commit if the PullRequest passes all the validations.
@@ -406,6 +398,7 @@ class ValidationService {
       slug,
       number,
     );
+    
     if (!mergeResult.result) {
       return mergeResult;
     }

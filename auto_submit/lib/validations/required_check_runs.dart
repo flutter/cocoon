@@ -105,7 +105,7 @@ Future<void> _verifyCheckRunCompleted(
     checkName: targetCheckRun.name,
   );
 
-  if (checkRuns.first.name != targetCheckRun.name || checkRuns.first.conclusion != github.CheckRunConclusion.success) {
+  if (checkRuns.first.name != targetCheckRun.name || checkRuns.first.status != github.CheckRunStatus.completed) {
     throw RetryableException('${targetCheckRun.name} has not yet completed.');
   }
 }

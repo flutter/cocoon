@@ -486,7 +486,7 @@ void main() {
       expect(validationResult.result, false);
       expect(
         validationResult.message,
-        '- The status or check suite [failed_checkrun](https://example.com) has failed. Please fix the issues identified (or deflake) before re-applying this label.\n',
+        '- The status or check suite [ci.yaml validation](https://example.com) has failed. Please fix the issues identified (or deflake) before re-applying this label.\n',
       );
     });
   });
