@@ -271,7 +271,7 @@ class _TaskGridState extends State<TaskGrid> {
         const LatticeCell(),
         ...tasks.map<LatticeCell>(
           (QualifiedTask task) =>
-              LatticeCell(builder: (BuildContext context) => TaskIcon(qualifiedTask: task, buildState: widget.buildState), taskName: task.stage),
+              LatticeCell(builder: (BuildContext context) => TaskIcon(qualifiedTask: task), taskName: task.stage),
         ),
       ],
       ...rows.map<List<LatticeCell>>(

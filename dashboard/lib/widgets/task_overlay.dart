@@ -270,7 +270,7 @@ class TaskOverlayContents extends StatelessWidget {
                             summaryText,
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
-                          if (QualifiedTask.fromTask(task).isLuci || QualifiedTask.fromTask(task).isDartInternal) LuciTaskAttemptSummary(task: task),
+                          if (QualifiedTask.fromTask(task).isLuci) LuciTaskAttemptSummary(task: task),
                         ],
                       ),
                     ),

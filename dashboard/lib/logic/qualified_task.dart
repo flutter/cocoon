@@ -14,14 +14,12 @@ class StageName {
   static const String legacyLuci = 'chromebot';
   static const String luci = 'luci';
   static const String googleTest = 'google_internal';
-  static const String dartInternal = 'dart-internal';
 }
 
 /// Base URLs for various endpoints that can relate to a [Task].
 const String _cirrusUrl = 'https://cirrus-ci.com/github/flutter/flutter';
 const String _luciUrl = 'https://ci.chromium.org/p/flutter';
 const String _googleTestUrl = 'https://flutter-rob.corp.google.com';
-const String _dartInternalUrl = 'https://ci.chromium.org/p/dart-internal';
 
 @immutable
 class QualifiedTask {
@@ -41,15 +39,13 @@ class QualifiedTask {
   /// Luci tasks are stored on Luci.
   /// Cirrus tasks are stored on Cirrus.
   String get sourceConfigurationUrl {
-    assert(isLuci || isCirrus || isGoogleTest || isDartInternal);
+    assert(isLuci || isCirrus || isGoogleTest);
     if (isCirrus) {
       return '$_cirrusUrl/master';
     } else if (isLuci) {
       return '$_luciUrl/builders/$pool/$task';
     } else if (isGoogleTest) {
       return _googleTestUrl;
-    } else if (isDartInternal) {
-      return '$_dartInternalUrl/builders/$pool/$task';
     }
     throw Exception('Failed to get source configuration url for $stage.');
   }
@@ -60,11 +56,8 @@ class QualifiedTask {
   /// Whether this task was run on Cirrus CI.
   bool get isCirrus => stage == StageName.cirrus;
 
-  /// Whether the task was run on the LUCI infrastructure.
+  /// Whether the task was run on the LUCI infrastructre.
   bool get isLuci => stage == StageName.cocoon || stage == StageName.legacyLuci || stage == StageName.luci;
-
-  /// Whether this task was run on internal infrastructure (example: luci dart-internal).
-  bool get isDartInternal => stage == StageName.dartInternal;
 
   @override
   bool operator ==(Object other) {

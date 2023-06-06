@@ -23,9 +23,6 @@ class LuciTaskAttemptSummary extends StatelessWidget {
   @visibleForTesting
   static const String luciProdLogBase = 'https://ci.chromium.org/p/flutter/builders';
 
-  @visibleForTesting
-  static const String dartInternalLogBase = 'https://ci.chromium.org/p/dart-internal/builders';
-
   @override
   Widget build(BuildContext context) {
     final List<String> buildNumberList = task.buildNumberList.isEmpty ? <String>[] : task.buildNumberList.split(',');
@@ -34,11 +31,7 @@ class LuciTaskAttemptSummary extends StatelessWidget {
         return ElevatedButton(
           child: Text('OPEN LOG FOR BUILD #${buildNumberList[i]}'),
           onPressed: () {
-            if (task.stageName == 'dart-internal') {
-              launchUrl(_dartInternalLogUrl(task.builderName, buildNumberList[i]));
-            } else {
-              launchUrl(_luciProdLogUrl(task.builderName, buildNumberList[i]));
-            }
+            launchUrl(_luciProdLogUrl(task.builderName, buildNumberList[i]));
           },
         );
       }),
@@ -48,9 +41,5 @@ class LuciTaskAttemptSummary extends StatelessWidget {
   Uri _luciProdLogUrl(String builderName, String buildNumber) {
     final String pool = task.isFlaky ? 'staging' : 'prod';
     return Uri.parse('$luciProdLogBase/$pool/$builderName/$buildNumber');
-  }
-
-  Uri _dartInternalLogUrl(String builderName, String buildNumber) {
-    return Uri.parse('$dartInternalLogBase/flutter/$builderName/$buildNumber');
   }
 }
