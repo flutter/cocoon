@@ -61,7 +61,6 @@ class GithubWebhook extends RequestHandler {
 
     if (!body.containsKey(GithubWebhook.pullRequest) ||
         !((body[GithubWebhook.pullRequest] as Map<String, dynamic>).containsKey(GithubWebhook.labels))) {
-      log.info('Could not find pull request information in the webhook event.');
       return Response.ok(jsonEncode(<String, String>{}));
     }
 
