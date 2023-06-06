@@ -12,7 +12,6 @@ import 'package:process/process.dart';
 import 'package:platform/platform.dart';
 
 class MockPlatform extends Mock implements Platform {
-
   @override
   Map<String, String> environment = <String, String>{};
 }

@@ -221,7 +221,10 @@ Future<void> main() async {
         time.elapse(const Duration(seconds: 2));
         expect(result, isNotNull);
         expect(killedXcode, isTrue);
-        expect(logger.logs[Level.WARNING], contains('iOS Device Support directory was not found at $deviceSupportDirectory'));
+        expect(
+          logger.logs[Level.WARNING],
+          contains('iOS Device Support directory was not found at $deviceSupportDirectory'),
+        );
         return result!;
       });
       expect(result, isTrue);
