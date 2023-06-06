@@ -42,14 +42,7 @@ class TaskIcon extends StatelessWidget {
       );
     }
 
-    if (qualifiedTask.isDartInternal) {
-      return Icon(
-        Icons.lock,
-        color: blendFilter,
-      );
-    }
-
-    if (qualifiedTask.task == null || !qualifiedTask.isLuci) {
+    if (qualifiedTask.task == null || !(qualifiedTask.isLuci && !qualifiedTask.isDartInternal)) {
       return Icon(
         Icons.help,
         color: blendFilter,
