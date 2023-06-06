@@ -191,7 +191,13 @@ class RecoverCommand extends Command<bool> {
       return;
     }
     logger.info('Deleting iOS DeviceSupport...');
-    deviceSupportDirectory.deleteSync(recursive: true);
+    try {
+      deviceSupportDirectory.deleteSync(recursive: true);
+    } on FileSystemException catch (e) {
+      // Error that indicates why files cannot be deleted, such as
+      // another program having the files open.
+      logger.severe('${e.message}: ${e.osError}');
+    }
   }
 }
 
