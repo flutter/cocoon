@@ -346,6 +346,32 @@ void main() {
     expect(find.byType(LuciTaskAttemptSummary), findsOneWidget);
   });
 
+  testWidgets('TaskOverlay shows TaskAttemptSummary for dart-internal tasks', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      Now.fixed(
+        dateTime: nowTime,
+        child: MaterialApp(
+          home: Scaffold(
+            body: TestGrid(
+              buildState: buildState,
+              task: Task()
+                ..stageName = 'dart-internal'
+                ..status = TaskBox.statusSucceeded
+                ..buildNumberList = '123',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(LuciTaskAttemptSummary), findsNothing);
+
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.pump();
+
+    expect(find.byType(LuciTaskAttemptSummary), findsOneWidget);
+  });
+
   testWidgets('TaskOverlay: RERUN button disabled when user !isAuthenticated', (WidgetTester tester) async {
     final Task expectedTask = Task()
       ..attempts = 3

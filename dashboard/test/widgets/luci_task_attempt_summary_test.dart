@@ -115,5 +115,32 @@ void main() {
       expect(urlLauncher.launches, isNotEmpty);
       expect(urlLauncher.launches.single, '${LuciTaskAttemptSummary.luciProdLogBase}/prod/Linux/456');
     });
+
+    testWidgets('opens expected dart-internal log url', (WidgetTester tester) async {
+      final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
+      UrlLauncherPlatform.instance = urlLauncher;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Column(
+            children: <Widget>[
+              LuciTaskAttemptSummary(
+                task: Task()
+                  ..key = (RootKey()..child = (Key()..name = 'dart-internal-log'))
+                  ..buildNumberList = '123'
+                  ..builderName = 'Linux'
+                  ..stageName = 'dart-internal',
+              ),
+            ],
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+
+      expect(urlLauncher.launches, isNotEmpty);
+      expect(urlLauncher.launches.single, '${LuciTaskAttemptSummary.dartInternalLogBase}/flutter/Linux/123');
+    });
   });
 }
