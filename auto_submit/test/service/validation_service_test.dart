@@ -20,7 +20,6 @@ import 'package:test/test.dart';
 import '../configuration/repository_configuration_data.dart';
 import '../requests/github_webhook_test_data.dart';
 import '../src/request_handling/fake_pubsub.dart';
-import '../src/service/fake_approver_service.dart';
 import '../src/service/fake_bigquery_service.dart';
 import '../src/service/fake_config.dart';
 import '../src/service/fake_graphql_client.dart';
@@ -28,7 +27,7 @@ import '../src/service/fake_github_service.dart';
 import '../utilities/utils.dart';
 import '../utilities/mocks.dart';
 import 'bigquery_test.dart';
-import 'validation_service_test_data.dart';
+
 
 void main() {
   late ValidationService validationService;
@@ -68,12 +67,15 @@ void main() {
       lastCommitHash: oid,
       reviews: <PullRequestReviewHelper>[],
     );
+
     githubService.checkRunsData = checkRunsMock;
     githubService.createCommentData = createCommentMock;
     githubService.isTeamMemberMockMap['author1'] = true;
     githubService.isTeamMemberMockMap['member'] = true;
+
     final FakePubSub pubsub = FakePubSub();
     final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
+    
     unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
     final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
@@ -197,36 +199,38 @@ void main() {
     assert(pubsub.messagesQueue.isNotEmpty);
   });
 
-  test(
-    'Do not process as revert when label is removed after webhook.',
-    () async {
-      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult(data: jsonDecode(revertMutationResult));
-      final PullRequestHelper flutterRequest = PullRequestHelper(
+  group('Processing revert request tests.', () {
+    test('Initiator of revert is not a flutter-hacker member.', () async {
+      const String labelingAuthor = 'yosemitesam';
+      const String prAuthor = 'ricardoamador';
+      const String prState = 'closed';
+
+      // This query result is needed for the initial QueryResult from getting pull requests.
+      final PullRequestHelper closedPullRequest = PullRequestHelper(
         prNumber: 0,
         lastCommitHash: oid,
         reviews: <PullRequestReviewHelper>[],
+        state: prState,
+        author: prAuthor,
       );
+      final auto.QueryResult queryResult = createQueryResult(closedPullRequest);
 
-      githubService.checkRunsData = checkRunsMock;
       githubService.createCommentData = createCommentMock;
-      githubService.isTeamMemberMockMap['author1'] = true;
-      githubService.isTeamMemberMockMap['member'] = true;
+      githubService.isTeamMemberMockMap[labelingAuthor] = false;
+      githubService.isTeamMemberMockMap[prAuthor] = true;
+
       final FakePubSub pubsub = FakePubSub();
 
-      final PullRequest pullRequest = generatePullRequest(
-        prNumber: 0,
-        repoName: slug.name,
-      );
+      // Generate the pull request for the message sent to the github webhook.
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name, state: prState, author: prAuthor,);
+
+      unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
 
       final PullRequestMessage pullRequestMessage = PullRequestMessage(
         pullRequest: pullRequest,
-        action: 'created',
-        sender: 'autosubmit',
+        action: 'labeled',
+        sender: labelingAuthor,
       );
-
-      unawaited(pubsub.publish('auto-submit-queue-sub', pullRequestMessage));
-      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-      githubService.pullRequestMock = pullRequest;
 
       await validationService.processRevertRequest(
         config: config,
@@ -239,543 +243,188 @@ void main() {
       expect(githubService.issueComment, isNotNull);
       expect(githubService.labelRemoved, true);
       assert(pubsub.messagesQueue.isEmpty);
-    },
-    skip: true,
-  );
+    });
 
-  group(
-    'Processing revert reqeuest tests',
-    () {
-      test(
-        'Merge valid revert request and message is acknowledged.',
-        () async {
-          final PullRequestHelper flutterRequest = PullRequestHelper(
-            prNumber: 0,
-            lastCommitHash: oid,
-            reviews: <PullRequestReviewHelper>[],
-          );
+    test('No-review reverts are not supported, revert becomes regular PR.', () async {
+      const String labelingAuthor = 'yosemitesam';
+      const String prAuthor = 'ricardoamador';
+      const String prState = 'closed';
 
-          githubService.checkRunsData = checkRunsMock;
-          githubService.createCommentData = createCommentMock;
-          githubService.mergeRequestMock = PullRequestMerge(
-            merged: true,
-            sha: 'sha',
-            message: 'Pull Request successfully merged',
-          );
+      config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(reviewOnRevertRequired);
 
-          final FakePubSub pubsub = FakePubSub();
-          final PullRequest pullRequest = generatePullRequest(
-            prNumber: 0,
-            repoName: slug.name,
-            labelName: 'revert',
-            body: 'Reverts flutter/flutter#1234',
-          );
-
-          // final FakeRevert fakeRevert = FakeRevert(config: config);
-          // fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
-          // validationService.revertValidation = fakeRevert;
-          final FakeApproverService fakeApproverService = FakeApproverService(config);
-          validationService.approverService = fakeApproverService;
-
-          final Issue issue = Issue(
-            id: 1234,
-            assignee: User(login: 'keyonghan'),
-            createdAt: DateTime.now(),
-          );
-          githubService.githubIssueMock = issue;
-          githubService.pullRequestMock = pullRequest;
-
-          unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-          final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-
-          final PullRequestMessage pullRequestMessage = PullRequestMessage(
-            pullRequest: pullRequest,
-            action: 'labeled',
-            sender: 'autosubmit',
-          );
-
-          await validationService.processRevertRequest(
-            config: config,
-            result: queryResult,
-            pullRequestMessage: pullRequestMessage,
-            ackId: 'test',
-            pubsub: pubsub,
-          );
-
-          // if the merge is successful we do not remove the label and we do not add a comment to the issue.
-          expect(githubService.issueComment, isNull);
-          expect(githubService.labelRemoved, false);
-          // We acknowledge the issue.
-          assert(pubsub.messagesQueue.isEmpty);
-        },
-        skip: true,
+      // This query result is needed for the initial QueryResult from getting pull requests.
+      final PullRequestHelper closedPullRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+        state: prState,
+        author: prAuthor,
       );
 
-      test(
-        'Fail to merge non valid revert, comment is added and message is acknowledged.',
-        () async {
-          githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
-          final PullRequestHelper flutterRequest = PullRequestHelper(
-            prNumber: 0,
-            lastCommitHash: oid,
-            reviews: <PullRequestReviewHelper>[],
-          );
-
-          githubService.checkRunsData = checkRunsMock;
-          githubService.createCommentData = createCommentMock;
-          final FakePubSub pubsub = FakePubSub();
-          final PullRequest pullRequest = generatePullRequest(
-            prNumber: 0,
-            repoName: slug.name,
-            labelName: 'revert',
-            body: 'Reverts flutter/flutter#1234',
-          );
-
-          // final FakeRevert fakeRevert = FakeRevert(config: config);
-          // fakeRevert.validationResult = ValidationResult(false, Action.REMOVE_LABEL, '');
-          // validationService.revertValidation = fakeRevert;
-          final FakeApproverService fakeApproverService = FakeApproverService(config);
-          validationService.approverService = fakeApproverService;
-
-          unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-          final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-
-          final PullRequestMessage pullRequestMessage = PullRequestMessage(
-            pullRequest: pullRequest,
-            action: 'labeled',
-            sender: 'autosubmit',
-          );
-
-          await validationService.processRevertRequest(
-            config: config,
-            result: queryResult,
-            pullRequestMessage: pullRequestMessage,
-            ackId: 'test',
-            pubsub: pubsub,
-          );
-
-          // if the merge is successful we do not remove the label and we do not add a comment to the issue.
-          expect(githubService.issueComment, isNotNull);
-          expect(githubService.labelRemoved, true);
-          // We acknowledge the issue.
-          assert(pubsub.messagesQueue.isEmpty);
-        },
-        skip: true,
+      final PullRequestHelper revertPullRequest = PullRequestHelper(
+        prNumber: 1,
+        reviews: <PullRequestReviewHelper>[],
+        state: 'open',
+        author: labelingAuthor,
       );
 
-      test(
-        'Remove label and post comment when unable to process merge.',
-        () async {
-          final PullRequestHelper flutterRequest = PullRequestHelper(
-            prNumber: 0,
-            lastCommitHash: oid,
-            reviews: <PullRequestReviewHelper>[],
-          );
-          githubService.checkRunsData = checkRunsMock;
-          githubService.createCommentData = createCommentMock;
-          final FakePubSub pubsub = FakePubSub();
-          final PullRequest pullRequest = generatePullRequest(
-            prNumber: 0,
-            repoName: slug.name,
-            labelName: 'revert',
-            mergeable: true,
-          );
-          githubService.pullRequestData = pullRequest;
+      final auto.QueryResult queryResult = createQueryResult(closedPullRequest);
 
-          // final FakeRevert fakeRevert = FakeRevert(config: config);
-          // fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
-          // validationService.revertValidation = fakeRevert;
-          final FakeApproverService fakeApproverService = FakeApproverService(config);
-          validationService.approverService = fakeApproverService;
+      githubService.createCommentData = createCommentMock;
+      // This time labeler is a team member.
+      githubService.isTeamMemberMockMap[labelingAuthor] = true;
+      githubService.isTeamMemberMockMap[prAuthor] = true;
 
-          unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-          final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+      final FakePubSub pubsub = FakePubSub();
 
-          final PullRequestMessage pullRequestMessage = PullRequestMessage(
-            pullRequest: pullRequest,
-            action: 'labeled',
-            sender: 'autosubmit',
-          );
+      // Generate the pull request for the message sent to the github webhook.
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name, state: prState, author: prAuthor,);
 
-          await validationService.processRevertRequest(
-            config: config,
-            result: queryResult,
-            pullRequestMessage: pullRequestMessage,
-            ackId: 'test',
-            pubsub: pubsub,
-          );
+      unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
 
-          expect(githubService.issueComment, isNotNull);
-          expect(githubService.labelRemoved, true);
-          assert(pubsub.messagesQueue.isEmpty);
-        },
-        skip: true,
+      final PullRequestMessage pullRequestMessage = PullRequestMessage(
+        pullRequest: pullRequest,
+        action: 'labeled',
+        sender: labelingAuthor,
       );
 
-      test(
-        'Revert returns on in process required checkRuns.',
-        () async {
-          githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
-          final PullRequestHelper flutterRequest = PullRequestHelper(
-            prNumber: 0,
-            lastCommitHash: oid,
-            reviews: <PullRequestReviewHelper>[],
-          );
+      githubGraphQLClient.mutateResultForOptions =(MutationOptions queryOptions) => createRevertQueryResult(closedPullRequest, revertPullRequest, 'test',);
 
-          githubService.checkRunsData = inProgressCheckRunsMock;
-          githubService.createCommentData = createCommentMock;
-          githubService.throwOnCreateIssue = true;
-          githubService.useRealComment = true;
-          final FakePubSub pubsub = FakePubSub();
-          final PullRequest pullRequest = generatePullRequest(
-            prNumber: 0,
-            repoName: slug.name,
-            labelName: 'revert',
-            body: 'Reverts flutter/flutter#1234',
-          );
-
-          // final FakeRevert fakeRevert = FakeRevert(config: config);
-          // fakeRevert.validationResult =
-          //     ValidationResult(false, Action.IGNORE_TEMPORARILY, 'Some of the required checks did not complete in time.');
-          // validationService.revertValidation = fakeRevert;
-          final FakeApproverService fakeApproverService = FakeApproverService(config);
-          validationService.approverService = fakeApproverService;
-
-          unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-          final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-
-          final PullRequestMessage pullRequestMessage = PullRequestMessage(
-            pullRequest: pullRequest,
-            action: 'labeled',
-            sender: 'autosubmit',
-          );
-
-          await validationService.processRevertRequest(
-            config: config,
-            result: queryResult,
-            pullRequestMessage: pullRequestMessage,
-            ackId: 'test',
-            pubsub: pubsub,
-          );
-
-          // if the merge is successful we do not remove the label and we do not add a comment to the issue.
-          expect(githubService.issueComment, isNull);
-          expect(githubService.labelRemoved, false);
-          // We acknowledge the issue.
-          assert(pubsub.messagesQueue.isNotEmpty);
-        },
-        skip: true,
+      await validationService.processRevertRequest(
+        config: config,
+        result: queryResult,
+        pullRequestMessage: pullRequestMessage,
+        ackId: 'test',
+        pubsub: pubsub,
       );
 
-      test(
-        'Exhaust retries on merge on retryable error.',
-        () async {
-          validationService = ValidationService(
-            config,
-            retryOptions: const RetryOptions(
-              delayFactor: Duration.zero,
-              maxDelay: Duration.zero,
-              maxAttempts: 1,
-            ),
-          );
+      expect(githubService.issueComment, isNotNull);
+      expect(githubService.labelRemoved, true);
+      assert(pubsub.messagesQueue.isEmpty);
+    });
 
-          githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult(
-                exception: OperationException(
-                  graphqlErrors: [
-                    const GraphQLError(message: 'Base branch was modified. Review and try the merge again'),
-                  ],
-                ),
-              );
+    test('Revert request fails required checkruns.', () async {
+      const String labelingAuthor = 'yosemitesam';
+      const String prAuthor = 'ricardoamador';
+      const String prState = 'closed';
 
-          final PullRequestHelper flutterRequest = PullRequestHelper(
-            prNumber: 0,
-            lastCommitHash: oid,
-            reviews: <PullRequestReviewHelper>[],
-          );
+      config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(reviewOnRevertRequired);
 
-          githubService.checkRunsData = checkRunsMock;
-          githubService.createCommentData = createCommentMock;
-          githubService.useRealComment = true;
-          final FakePubSub pubsub = FakePubSub();
-          final PullRequest pullRequest = generatePullRequest(
-            prNumber: 0,
-            repoName: slug.name,
-            labelName: 'revert',
-            body: 'Reverts flutter/flutter#1234',
-            mergeable: true,
-          );
-
-          // final FakeRevert fakeRevert = FakeRevert(config: config);
-          // fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
-          // validationService.revertValidation = fakeRevert;
-          final FakeApproverService fakeApproverService = FakeApproverService(config);
-          validationService.approverService = fakeApproverService;
-          githubService.pullRequestData = pullRequest;
-
-          final Issue issue = Issue(
-            id: 1234,
-            assignee: User(login: 'keyonghan'),
-            createdAt: DateTime.now(),
-          );
-          githubService.githubIssueMock = issue;
-
-          unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-          final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-
-          final PullRequestMessage pullRequestMessage = PullRequestMessage(
-            pullRequest: pullRequest,
-            action: 'labeled',
-            sender: 'autosubmit',
-          );
-
-          await validationService.processRevertRequest(
-            config: config,
-            result: queryResult,
-            pullRequestMessage: pullRequestMessage,
-            ackId: 'test',
-            pubsub: pubsub,
-          );
-
-          // if the merge is successful we do not remove the label and we do not add a comment to the issue.
-          expect(githubService.issueComment, isNotNull);
-          expect(githubService.labelRemoved, true);
-          // We acknowledge the issue.
-          assert(pubsub.messagesQueue.isEmpty);
-        },
-        skip: true,
+      // This query result is needed for the initial QueryResult from getting pull requests.
+      final PullRequestHelper closedPullRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+        state: prState,
+        author: prAuthor,
       );
 
-      test(
-        'Do not retry merge on non retryable error.',
-        () async {
-          githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult(
-                exception: OperationException(
-                  graphqlErrors: [
-                    const GraphQLError(message: 'Branches have diverged. Request cannot be merged.'),
-                  ],
-                ),
-              );
-          final PullRequestHelper flutterRequest = PullRequestHelper(
-            prNumber: 0,
-            lastCommitHash: oid,
-            reviews: <PullRequestReviewHelper>[],
-          );
-
-          githubService.checkRunsData = checkRunsMock;
-          githubService.createCommentData = createCommentMock;
-          githubService.useRealComment = true;
-          final FakePubSub pubsub = FakePubSub();
-          final PullRequest pullRequest = generatePullRequest(
-            prNumber: 0,
-            repoName: slug.name,
-            labelName: 'revert',
-            body: 'Reverts flutter/flutter#1234',
-            mergeable: true,
-          );
-          githubService.pullRequestData = pullRequest;
-
-          // final FakeRevert fakeRevert = FakeRevert(config: config);
-          // fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
-          // validationService.revertValidation = fakeRevert;
-          final FakeApproverService fakeApproverService = FakeApproverService(config);
-          validationService.approverService = fakeApproverService;
-
-          final Issue issue = Issue(
-            id: 1234,
-            assignee: User(login: 'keyonghan'),
-            createdAt: DateTime.now(),
-          );
-          githubService.githubIssueMock = issue;
-
-          unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-          final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-
-          final PullRequestMessage pullRequestMessage = PullRequestMessage(
-            pullRequest: pullRequest,
-            action: 'labeled',
-            sender: 'autosubmit',
-          );
-
-          await validationService.processRevertRequest(
-            config: config,
-            result: queryResult,
-            pullRequestMessage: pullRequestMessage,
-            ackId: 'test',
-            pubsub: pubsub,
-          );
-
-          // if the merge is successful we do not remove the label and we do not add a comment to the issue.
-          expect(githubService.issueComment, isNotNull);
-          expect(githubService.labelRemoved, true);
-          final IssueComment issueComment = githubService.issueComment!;
-          expect(issueComment.body!.contains('merge attempts were exhausted'), false);
-          expect(issueComment.body!.contains('Failed to merge'), true);
-          // We acknowledge the issue.
-          assert(pubsub.messagesQueue.isEmpty);
-        },
-        skip: true,
+      final PullRequestHelper revertPullRequest = PullRequestHelper(
+        prNumber: 1,
+        reviews: <PullRequestReviewHelper>[],
+        state: 'open',
+        author: labelingAuthor,
       );
 
-      test(
-        'Do not retry merge on multiple errors with retryable error.',
-        () async {
-          githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult(
-                exception: OperationException(
-                  graphqlErrors: [
-                    const GraphQLError(message: 'Account does not have merge permissions.'),
-                    const GraphQLError(message: 'Base branch was modified. Review and try the merge again.')
-                  ],
-                ),
-              );
+      final auto.QueryResult queryResult = createQueryResult(closedPullRequest);
 
-          final PullRequestHelper flutterRequest = PullRequestHelper(
-            prNumber: 0,
-            lastCommitHash: oid,
-            reviews: <PullRequestReviewHelper>[],
-          );
+      githubService.createCommentData = createCommentMock;
+      // This time labeler is a team member.
+      githubService.isTeamMemberMockMap[labelingAuthor] = true;
+      githubService.isTeamMemberMockMap[prAuthor] = true;
 
-          githubService.checkRunsData = checkRunsMock;
-          githubService.createCommentData = createCommentMock;
-          githubService.useRealComment = true;
-          final FakePubSub pubsub = FakePubSub();
-          final PullRequest pullRequest = generatePullRequest(
-            prNumber: 0,
-            repoName: slug.name,
-            labelName: 'revert',
-            body: 'Reverts flutter/flutter#1234',
-            mergeable: true,
-          );
-          githubService.pullRequestData = pullRequest;
+      final FakePubSub pubsub = FakePubSub();
 
-          // final FakeRevert fakeRevert = FakeRevert(config: config);
-          // fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
-          // validationService.revertValidation = fakeRevert;
-          final FakeApproverService fakeApproverService = FakeApproverService(config);
-          validationService.approverService = fakeApproverService;
+      // Generate the pull request for the message sent to the github webhook.
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name, state: prState, author: prAuthor,);
+      // final PullRequest revertRequest = generatePullRequest(prNumber: 1, repoName: slug.name, state: 'open', author: labelingAuthor, labelName: 'revert',);
 
-          final Issue issue = Issue(
-            id: 1234,
-            assignee: User(login: 'keyonghan'),
-            createdAt: DateTime.now(),
-          );
-          githubService.githubIssueMock = issue;
+      unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
 
-          unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-          final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-
-          final PullRequestMessage pullRequestMessage = PullRequestMessage(
-            pullRequest: pullRequest,
-            action: 'labeled',
-            sender: 'autosubmit',
-          );
-
-          await validationService.processRevertRequest(
-            config: config,
-            result: queryResult,
-            pullRequestMessage: pullRequestMessage,
-            ackId: 'test',
-            pubsub: pubsub,
-          );
-
-          // if the merge is successful we do not remove the label and we do not add a comment to the issue.
-          expect(githubService.issueComment, isNotNull);
-          expect(githubService.labelRemoved, true);
-          final IssueComment issueComment = githubService.issueComment!;
-          expect(issueComment.body!.contains('merge attempts were exhausted'), false);
-          expect(issueComment.body!.contains('Failed to merge'), true);
-          // We acknowledge the issue.
-          assert(pubsub.messagesQueue.isEmpty);
-        },
-        skip: true,
+      final PullRequestMessage pullRequestMessage = PullRequestMessage(
+        pullRequest: pullRequest,
+        action: 'labeled',
+        sender: labelingAuthor,
       );
 
-      test(
-        'Merge fails the first time but then succeeds after retry.',
-        () async {
-          validationService = ValidationService(
-            config,
-            retryOptions: const RetryOptions(
-              delayFactor: Duration.zero,
-              maxDelay: Duration.zero,
-              maxAttempts: 3,
-            ),
-          );
+      githubGraphQLClient.mutateResultForOptions =(MutationOptions queryOptions) => createRevertQueryResult(closedPullRequest, revertPullRequest, 'test',);
 
-          githubService.useMergeRequestMockList = true;
-          githubService.pullRequestMergeMockList.add(
-            PullRequestMerge(
-              merged: false,
-              message: 'Unable to merge pull request.',
-            ),
-          );
-          githubService.pullRequestMergeMockList.add(
-            PullRequestMerge(
-              merged: true,
-              sha: 'sha',
-              message: 'Pull Request successfully merged',
-            ),
-          );
-
-          final PullRequestHelper flutterRequest = PullRequestHelper(
-            prNumber: 0,
-            lastCommitHash: oid,
-            reviews: <PullRequestReviewHelper>[],
-          );
-
-          githubService.checkRunsData = checkRunsMock;
-          githubService.createCommentData = createCommentMock;
-          githubService.useRealComment = true;
-
-          final FakePubSub pubsub = FakePubSub();
-          final PullRequest pullRequest = generatePullRequest(
-            prNumber: 0,
-            repoName: slug.name,
-            labelName: 'revert',
-            body: 'Reverts flutter/flutter#1234',
-          );
-
-          // final FakeRevert fakeRevert = FakeRevert(config: config);
-          // fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
-          // validationService.revertValidation = fakeRevert;
-          final FakeApproverService fakeApproverService = FakeApproverService(config);
-          validationService.approverService = fakeApproverService;
-
-          final Issue issue = Issue(
-            id: 1234,
-            assignee: User(login: 'keyonghan'),
-            createdAt: DateTime.now(),
-          );
-          githubService.githubIssueMock = issue;
-          githubService.pullRequestMock = pullRequest;
-
-          unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-          final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-
-          final PullRequestMessage pullRequestMessage = PullRequestMessage(
-            pullRequest: pullRequest,
-            action: 'labeled',
-            sender: 'autosubmit',
-          );
-
-          await validationService.processRevertRequest(
-            config: config,
-            result: queryResult,
-            pullRequestMessage: pullRequestMessage,
-            ackId: 'test',
-            pubsub: pubsub,
-          );
-
-          // if the merge is successful we do not remove the label and we do not add a comment to the issue.
-          expect(githubService.issueComment, isNull);
-          expect(githubService.labelRemoved, false);
-          // We acknowledge the issue.
-          assert(pubsub.messagesQueue.isEmpty);
-        },
-        skip: true,
+      await validationService.processRevertRequest(
+        config: config,
+        result: queryResult,
+        pullRequestMessage: pullRequestMessage,
+        ackId: 'test',
+        pubsub: pubsub,
       );
-    },
-    skip: true,
-  );
+
+      expect(githubService.issueComment, isNotNull);
+      expect(githubService.labelRemoved, true);
+      assert(pubsub.messagesQueue.isEmpty);
+    });
+  });
+
+  // group('Processing revert reqeuest tests', () {
+  // test('Merge valid revert request and message is acknowledged.', () async {
+  //   githubGraphQLClient.mutateResultForOptions =
+  //       (MutationOptions options) => createFakeQueryResult(data: jsonDecode(revertMutationResult));
+
+  //   final PullRequestHelper flutterRequest = PullRequestHelper(
+  //     prNumber: 0,
+  //     lastCommitHash: oid,
+  //     reviews: <PullRequestReviewHelper>[],
+  //   );
+
+  //   githubService.checkRunsData = checkRunsMock;
+  //   githubService.createCommentData = createCommentMock;
+  //   githubService.mergeRequestMock = PullRequestMerge(
+  //     merged: true,
+  //     sha: 'sha',
+  //     message: 'Pull Request successfully merged',
+  //   );
+
+  //   final FakePubSub pubsub = FakePubSub();
+  //   final PullRequest pullRequest = generatePullRequest(
+  //     prNumber: 0,
+  //     repoName: slug.name,
+  //     labelName: 'revert',
+  //     body: 'Reverts flutter/flutter#1234',
+  //   );
+
+  //   final FakeApproverService fakeApproverService = FakeApproverService(config);
+  //   validationService.approverService = fakeApproverService;
+
+  //   final Issue issue = Issue(
+  //     id: 1234,
+  //     assignee: User(login: 'keyonghan'),
+  //     createdAt: DateTime.now(),
+  //   );
+  //   githubService.githubIssueMock = issue;
+  //   githubService.pullRequestMock = pullRequest;
+
+  //   final PullRequestMessage pullRequestMessage = PullRequestMessage(
+  //     pullRequest: pullRequest,
+  //     action: 'labeled',
+  //     sender: 'autosubmit',
+  //   );
+
+  //   unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
+  //   final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+
+  //   await validationService.processRevertRequest(
+  //     config: config,
+  //     result: queryResult,
+  //     pullRequestMessage: pullRequestMessage,
+  //     ackId: 'test',
+  //     pubsub: pubsub,
+  //   );
+
+  //   // if the merge is successful we do not remove the label and we do not add a comment to the issue.
+  //   expect(githubService.issueComment, isNull);
+  //   expect(githubService.labelRemoved, false);
+  //   // We acknowledge the issue.
+  //   assert(pubsub.messagesQueue.isEmpty);
+  // });
+  // );
 
   group('Process pull request method tests', () {
     test('Should process message when autosubmit label exists and pr is open', () async {
@@ -825,7 +474,7 @@ void main() {
     });
   });
 
-  group('processMerge', () {
+  group('Merge pull requests.', () {
     test('Correct PR titles when merging to use Reland', () async {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
@@ -989,4 +638,16 @@ This is the second line in a paragraph.''');
       expect(processMergeResult.message, 'Pull request flutter/flutter/1347 is not in a mergeable state.');
     });
   });
+}
+
+QueryResult createRevertQueryResult(PullRequestHelper closedPullRequest, PullRequestHelper revertPullRequest, String clientMutationId,) {
+  return createFakeQueryResult(
+    data: <String, dynamic>{
+      'revertPullRequest': <String, dynamic>{
+        'revertPullRequest': revertPullRequest.toEntry().cast<String, dynamic>(),
+        'pullRequest': closedPullRequest.toEntry().cast<String, dynamic>(),
+        'clientMutationId': clientMutationId,
+      },
+    },
+  );
 }

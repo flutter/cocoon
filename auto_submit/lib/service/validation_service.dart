@@ -236,83 +236,110 @@ class ValidationService {
   Future<void> processRevertRequest({
     required Config config,
     required QueryResult result,
+    // Pull request message has the action and the initiator of the message.
     required PullRequestMessage pullRequestMessage,
     required String ackId,
     required PubSub pubsub,
   }) async {
+    // This pull request should be the current closed pull request.
     final github.PullRequest pullRequest = pullRequestMessage.pullRequest!;
+    final String initiatingAuthor = pullRequestMessage.sender!;
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService githubService = await config.createGithubService(slug);
 
-    // At this point we have the original closed pull request so we can create the fields we need.
-    // 1. Craft the revert document for the mutation call.
+    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
+
+    // TODO this may not bee needed.
+    // User must be a team member in order to initiate the revert request.
+    if (!await githubService.isTeamMember(repositoryConfiguration.approvalGroup, initiatingAuthor, slug.owner)) {
+      // Non team members may not revert issues.
+      await removeLabelAndComment(
+        githubService: githubService,
+        repositorySlug: slug,
+        prNumber: pullRequestMessage.pullRequest!.number!,
+        prLabel: 'revert',
+        message:
+            'You must be a member of ${repositoryConfiguration.approvalGroup} in order to initate this revert request.',
+      );
+
+      log.info('Ack the processed message : $ackId.');
+      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+      return;
+    }
+
+    // Initialize the graphql service.
     final graphql.GraphQLClient graphQLClient = await config.createGitHubGraphQLClient(slug);
     final GraphQlService graphQlService = GraphQlService();
 
     final String nodeId = pullRequest.nodeId!;
 
+    // Format the request fields for the new revert pull request.
     final RevertIssueFieldFormatter formatter = RevertIssueFieldFormatter(
       slug: slug,
       originalPrNumber: pullRequest.number!,
-      initiatingAuthor: 'fluttergithubbot',
+      initiatingAuthor: initiatingAuthor,
       originalPrTitle: pullRequest.title!,
       originalPrBody: pullRequest.body!,
     ).format;
 
+    // Create the mutation.
     final RevertPullRequestMutation revertPullRequestMutation = RevertPullRequestMutation(
       formatter.revertPrBody!,
-      'fluttergithubbot',
+      'autosubmitbot',
       false,
       nodeId,
       formatter.revertPrTitle!,
     );
 
+    // Request the revert issue.
     final Map<String, dynamic> data = await graphQlService.mutateGraphQL(
       documentNode: revertPullRequestMutation.documentNode,
       variables: revertPullRequestMutation.variables,
       client: graphQLClient,
     );
 
-    print(data);
-
+    // Process the data returned from the graphql mutation request.
     final RevertPullRequestData revertPullRequestData = RevertPullRequestData.fromJson(data);
     final PullRequest revertPullRequest = revertPullRequestData.revertPullRequest!.revertPullRequest!;
 
     final int revertPrNumber = revertPullRequest.number!;
-    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
+    // If the config does not support reviewless reverts remove the revert and return.
     if (!repositoryConfiguration.supportNoReviewReverts) {
-      // add the autosubmit label and remove the revert to the pull request and return.
       // TODO we might want to keep the revert label so this may be tricky.
       await githubService.addLabels(
         slug,
         revertPrNumber,
         [Config.kAutosubmitLabel],
       );
-      await githubService.removeLabel(
-        slug,
-        revertPrNumber,
-        Config.kRevertLabel,
+      await removeLabelAndComment(
+        githubService: githubService,
+        repositorySlug: slug,
+        prNumber: revertPrNumber,
+        prLabel: Config.kRevertLabel,
+        message: 'The repository ${slug.fullName} requires reviews for revert requests. Please assign at least two reviewers to this pull request.',
       );
+      log.info('Ack the processed message : $ackId.');
+      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
       return;
     }
 
-    // We need the new pull request for processing
+    // Make sure the required checks run happen before auto approval of the revert.
     final RequiredCheckRuns requiredCheckRuns = RequiredCheckRuns(config: config);
     final github.PullRequest githubRevertPullRequest = await githubService.getPullRequest(
       slug,
       revertPrNumber,
     );
+    
     final ValidationResult checkRunValidationResult = await requiredCheckRuns.validate(
       result,
       githubRevertPullRequest,
     );
 
+    // TODO (ricardoamador) refactor this and processPullRequest to remove duplicate code.
     if (checkRunValidationResult.result) {
       // Approve the pull request automatically as it has been validated.
       await approverService!.revertApproval(result, githubRevertPullRequest);
-
-      // TODO common code starts here
 
       final ProcessMergeResult processed = await processMerge(
         config: config,

@@ -144,6 +144,7 @@ class PullRequest {
   final Author? author;
   @JsonKey(name: 'authorAssociation')
   final String? authorAssociation;
+  // String as id is contradicting the github model.
   final String? id;
   final int? number;
   final String? title;

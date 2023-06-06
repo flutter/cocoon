@@ -5,6 +5,7 @@
 /// Return data for revert mutation call.
 const String revertMutationResult = '''
 {
+  "data": {
   "revertPullRequest": {
     "clientMutationId": "ra186026",
     "pullRequest": {
@@ -20,7 +21,7 @@ const String revertMutationResult = '''
         "owner": {
           "login": "ricardoamador"
         },
-        "name": "flutter_test"
+        "name": "flutter"
       }
     },
     "revertPullRequest": {
@@ -30,14 +31,15 @@ const String revertMutationResult = '''
       "authorAssociation": "OWNER",
       "id": "PR_kwDOIRxr_M5RXQgj",
       "title": "Revert comment in configuration file.",
-      "number": 24,
+      "number": 1234,
       "body": "Testing revert mutation",
       "repository": {
         "owner": {
           "login": "ricardoamador"
         },
-        "name": "flutter_test"
+        "name": "flutter"
       }
+    }
     }
   }
 }

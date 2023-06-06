@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:meta/meta.dart';
-import 'package:github/github.dart';
+import 'package:github/github.dart' as github;
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 
 const String oid = '6dcb09b5b57875f334f61aebed695e2e4193db5e';
@@ -27,7 +27,7 @@ class PullRequestHelper {
   PullRequestHelper({
     this.author = 'author1',
     this.prNumber = 0,
-    this.nodeId = 'PR_kwDOA8VHis5QCyt7',
+    this.id = 'PR_kwDOA8VHis5QCyt7',
     this.repo = 'flutter',
     this.authorAssociation = 'MEMBER',
     this.title = 'some_title',
@@ -38,10 +38,11 @@ class PullRequestHelper {
     this.lastCommitStatuses = const <StatusHelper>[StatusHelper.flutterBuildSuccess],
     this.lastCommitMessage = '',
     this.dateTime,
+    this.state = 'open',
   });
 
   final int prNumber;
-  final String nodeId;
+  final String id;
   final String repo;
   final String author;
   final String authorAssociation;
@@ -51,16 +52,18 @@ class PullRequestHelper {
   final String? lastCommitMessage;
   final DateTime? dateTime;
   final String title;
+  final String state;
 
-  RepositorySlug get slug => RepositorySlug('flutter', repo);
+  github.RepositorySlug get slug => github.RepositorySlug('flutter', repo);
 
   Map<String, dynamic> toEntry() {
     return <String, dynamic>{
       'author': <String, dynamic>{'login': author},
       'authorAssociation': authorAssociation,
-      'id': prNumber.toString(),
-      'node_id': nodeId,
+      'number': prNumber,
+      'id': id,
       'title': title,
+      'state': state,
       'reviews': <String, dynamic>{
         'nodes': reviews.map((PullRequestReviewHelper review) {
           return <String, dynamic>{
@@ -104,6 +107,21 @@ QueryResult createQueryResult(PullRequestHelper pullRequest) {
     }
   });
 }
+
+// /// Generate a revert mutation result.
+// RevertPullRequestData createMutationResult(
+//   PullRequestHelper closedPullRequest,
+//   PullRequestHelper revertPullRequest,
+//   String clientMutationId,
+// ) {
+//   return RevertPullRequestData.fromJson(<String, dynamic>{
+//     'revertPullRequest': <String, dynamic>{
+//       "clientMutationId": clientMutationId,
+//       'pullRequest': closedPullRequest.toEntry().cast<String, dynamic>(),
+//       'revertPullRequest': revertPullRequest.toEntry().cast<String, dynamic>(),
+//     }
+//   });
+// }
 
 /// List of review state from a github pull request.
 enum ReviewState {
