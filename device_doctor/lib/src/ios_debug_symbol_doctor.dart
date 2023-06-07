@@ -11,6 +11,7 @@ import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:process/process.dart';
 import 'package:logging/logging.dart';
+import 'package:platform/platform.dart';
 
 class DiagnoseCommand extends Command<bool> {
   DiagnoseCommand({
@@ -59,6 +60,7 @@ class RecoverCommand extends Command<bool> {
     this.processManager = const LocalProcessManager(),
     Logger? loggerOverride,
     this.fs = const LocalFileSystem(),
+    this.platform = const LocalPlatform(),
   }) : logger = loggerOverride ?? Logger.root {
     argParser
       ..addOption(
@@ -77,6 +79,7 @@ class RecoverCommand extends Command<bool> {
   final Logger logger;
   final ProcessManager processManager;
   final FileSystem fs;
+  final Platform platform;
 
   final String name = 'recover';
   final String description = 'Open Xcode UI to allow it to sync debug symbols from the iPhone';
@@ -109,6 +112,8 @@ class RecoverCommand extends Command<bool> {
     if (timeoutSeconds == null) {
       throw ArgumentError('Could not parse an integer from the option --timeout="${argResults!['timeout']}"');
     }
+
+    _deleteSymbols();
 
     // Prompt Xcode to first setup without opening the app.
     // This will return very quickly if there is no work to do.
@@ -169,6 +174,30 @@ class RecoverCommand extends Command<bool> {
       return false;
     }
     return true;
+  }
+
+  /// Delete all symbols by deleting the `iOS DeviceSupport` directory.
+  /// Xcode will regenerate this folder and symbols for connected devices
+  /// when Xcode is opened.
+  void _deleteSymbols() {
+    final String? home = platform.environment['HOME'];
+    if (home == null) {
+      logger.warning('\$HOME path was not found');
+      return;
+    }
+    final Directory deviceSupportDirectory = fs.directory('$home/Library/Developer/Xcode/iOS DeviceSupport');
+    if (!deviceSupportDirectory.existsSync()) {
+      logger.warning('iOS Device Support directory was not found at ${deviceSupportDirectory.path}');
+      return;
+    }
+    logger.info('Deleting iOS DeviceSupport...');
+    try {
+      deviceSupportDirectory.deleteSync(recursive: true);
+    } on FileSystemException catch (e) {
+      // Error that indicates why files cannot be deleted, such as
+      // another program having the files open.
+      logger.severe('${e.message}: ${e.osError}');
+    }
   }
 }
 
