@@ -12,7 +12,7 @@ environment:
 
 dependencies:
   appengine: 0.13.5
-  args: ^2.4.2
+  args: 2.4.1
   collection: ^1.17.1
   corsac_jwt: 1.0.0-nullsafety.1
   crypto: 3.0.3
