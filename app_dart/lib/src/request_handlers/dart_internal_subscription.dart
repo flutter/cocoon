@@ -31,8 +31,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     required super.config,
     super.authProvider,
     required this.buildBucketClient,
-    @visibleForTesting
-        this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
     this.retryOptions = Config.buildbucketRetry,
   }) : super(subscriptionName: 'dart-internal-build-results-sub');
 
@@ -63,15 +62,13 @@ class DartInternalSubscription extends SubscriptionHandler {
         retryIf: (Exception e) => e is UnfinishedBuildException,
       );
     } catch (e) {
-      if (e is! UnfinishedBuildException)
-      {
+      if (e is! UnfinishedBuildException) {
         log.severe(
-        "Failed to get build data for build $buildbucketId with the exception: ${e.toString()}",
+          "Failed to get build data for build $buildbucketId with the exception: ${e.toString()}",
         );
         throw InternalServerError(
           'Failed to get build number $buildbucketId from Buildbucket. Error: $e',
         );
-
       }
     }
 
@@ -106,12 +103,13 @@ class DartInternalSubscription extends SubscriptionHandler {
     late Build build;
     build = await buildBucketClient.getBuild(request);
 
-    if (build.endTime == null)
-    {
+    if (build.endTime == null) {
       log.info(
         "Build is not finished",
       );
-      throw UnfinishedBuildException("Build is not finished",);
+      throw UnfinishedBuildException(
+        "Build is not finished",
+      );
     }
     return build;
   }
@@ -122,8 +120,7 @@ class DartInternalSubscription extends SubscriptionHandler {
   ) async {
     log.fine("Creating task from buildbucket result: ${build.toString()}");
 
-    final String repository =
-        build.input!.gitilesCommit!.project!.split('/')[1];
+    final String repository = build.input!.gitilesCommit!.project!.split('/')[1];
     log.fine("Repository: $repository");
 
     final String branch = build.input!.gitilesCommit!.ref!.split('/')[2];
@@ -147,36 +144,33 @@ class DartInternalSubscription extends SubscriptionHandler {
     );
 
     final String id = 'flutter/${slug.name}/$branch/$hash';
-    final Key<String> commitKey =
-        datastore.db.emptyKey.append<String>(Commit, id: id);
+    final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
     final Commit commit = await config.db.lookupValue<Commit>(commitKey);
     final task = Task(
-      attempts: 1,
-      buildNumber: build.number,
-      buildNumberList: build.number.toString(),
-      builderName: build.builderId.builder,
-      commitKey: key,
-      createTimestamp: startTime,
-      endTimestamp: endTime,
-      luciBucket: build.builderId.bucket,
-      name: build.builderId.builder,
-      stageName: "dart-internal",
-      startTimestamp: startTime,
-      status: _convertStatusToString(build.status!),
-      key: commit.key.append(Task),
-      timeoutInMinutes: 0,
-      reason: '',
-      requiredCapabilities: [],
-      reservedForAgentId: ''
-    );
+        attempts: 1,
+        buildNumber: build.number,
+        buildNumberList: build.number.toString(),
+        builderName: build.builderId.builder,
+        commitKey: key,
+        createTimestamp: startTime,
+        endTimestamp: endTime,
+        luciBucket: build.builderId.bucket,
+        name: build.builderId.builder,
+        stageName: "dart-internal",
+        startTimestamp: startTime,
+        status: _convertStatusToString(build.status!),
+        key: commit.key.append(Task),
+        timeoutInMinutes: 0,
+        reason: '',
+        requiredCapabilities: [],
+        reservedForAgentId: '',);
     return task;
   }
 
-  Future<Task> _getExistingTaskFromDatastore(Build build, DatastoreService datastore) async
-  {
+  Future<Task> _getExistingTaskFromDatastore(Build build, DatastoreService datastore) async {
+    log.fine("Generating commit key from buildbucket build: ${build.toString()}");
 
-    final String repository =
-        build.input!.gitilesCommit!.project!.split('/')[1];
+    final String repository = build.input!.gitilesCommit!.project!.split('/')[1];
     log.fine("Repository: $repository");
 
     final String branch = build.input!.gitilesCommit!.ref!.split('/')[2];
@@ -189,14 +183,10 @@ class DartInternalSubscription extends SubscriptionHandler {
     log.fine("Slug: ${slug.toString()}");
 
     final String id = 'flutter/${slug.name}/$branch/$hash';
-    final Key<String> commitKey =
-        datastore.db.emptyKey.append<String>(Commit, id: id);
+    final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
 
-    final Task existingTask = await Task.fromDatastore(
-      datastore: datastore,
-      commitKey: commitKey,
-      name: build.builderId.builder
-    );
+    final Task existingTask =
+        await Task.fromDatastore(datastore: datastore, commitKey: commitKey, name: build.builderId.builder);
 
     return existingTask;
   }
@@ -209,6 +199,8 @@ class DartInternalSubscription extends SubscriptionHandler {
         return Task.statusCancelled;
       case Status.infraFailure:
         return Task.statusInfraFailure;
+      case Status.started:
+        return Task.statusInProgress;
       default:
         return Task.statusFailed;
     }
