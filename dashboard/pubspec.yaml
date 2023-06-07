@@ -29,7 +29,7 @@ dependencies:
   google_sign_in: ^6.1.1
   google_sign_in_platform_interface: any # Match google_sign_in
   google_sign_in_web: any # Match google_sign_in
-  http: 0.13.5
+  http: ^1.0.0
   protobuf: 2.1.0
   provider: 6.0.5
   url_launcher: 6.1.11
