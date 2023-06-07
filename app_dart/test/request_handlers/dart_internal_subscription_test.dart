@@ -86,7 +86,7 @@ void main() {
     await config.db.commit(inserts: datastoreCommit);
   });
 
-  test('runs successfully', () async {
+  test('creates a new task successfully', () async {
     tester.message = push.PushMessage(data: "'${buildId.toString()}'");
 
     await tester.post(handler);
@@ -97,23 +97,16 @@ void main() {
 
     // This is used for testing to pull the data out of the "datastore" so that
     // we can verify what was saved.
-    final List<Task> tasksInDb = [];
+    late Task taskInDb;
     late Commit commitInDb;
     config.db.values.forEach((k, v) {
-      if (v is Task) {
-        tasksInDb.add(v);
+      if (v is Task && v.buildNumberList == buildId.toString()) {
+        taskInDb = v;
       }
       if (v is Commit) {
         commitInDb = v;
       }
     });
-
-    expect(
-      tasksInDb.length,
-      equals(1),
-    );
-
-    final Task taskInDb = tasksInDb[0];
 
     // Ensure the task has the correct parent and commit key
     expect(
@@ -144,7 +137,91 @@ void main() {
       timeoutInMinutes: 0,
       reason: '',
       requiredCapabilities: [],
+      reservedForAgentId: '',
+    );
+
+    expect(
+      taskInDb.toString(),
+      equals(expectedTask.toString()),
+    );
+  });
+
+  test('updates an existing task successfully', () async {
+    const int existingTaskId = 123;
+    final Task fakeTask = Task(
+      attempts: 1,
+      buildNumber: existingTaskId,
+      buildNumberList: existingTaskId.toString(),
+      builderName: builder,
+      commitKey: commit.key,
+      createTimestamp: startTime.millisecondsSinceEpoch,
+      endTimestamp: endTime.millisecondsSinceEpoch,
+      luciBucket: bucket,
+      name: builder,
+      stageName: "dart-internal",
+      startTimestamp: startTime.millisecondsSinceEpoch,
+      status: "Succeeded",
+      key: commit.key.append(Task),
+      timeoutInMinutes: 0,
+      reason: '',
+      requiredCapabilities: [],
       reservedForAgentId: ''
+    );
+    final List<Task> datastoreCommit = <Task>[fakeTask];
+    await config.db.commit(inserts: datastoreCommit);
+
+    tester.message = push.PushMessage(data: "'${buildId.toString()}'");
+
+    await tester.post(handler);
+
+    verify(
+      buildBucketClient.getBuild(any),
+    ).called(1);
+
+    // This is used for testing to pull the data out of the "datastore" so that
+    // we can verify what was saved.
+    final String expectedBuilderList = "${buildId.toString()},${existingTaskId.toString()}";
+    late Task taskInDb;
+    late Commit commitInDb;
+    config.db.values.forEach((k, v) {
+      if (v is Task && v.buildNumberList == expectedBuilderList) {
+        taskInDb = v;
+      }
+      if (v is Commit) {
+        commitInDb = v;
+      }
+    });
+
+    // Ensure the task has the correct parent and commit key
+    expect(
+      commitInDb.id,
+      equals(taskInDb.commitKey?.id),
+    );
+
+    expect(
+      commitInDb.id,
+      equals(taskInDb.parentKey?.id),
+    );
+
+    // Ensure the task in the db is exactly what we are looking for
+    final Task expectedTask = Task(
+      attempts: 1,
+      buildNumber: 123456,
+      buildNumberList: expectedBuilderList,
+      builderName: builder,
+      commitKey: commitInDb.key,
+      createTimestamp: startTime.millisecondsSinceEpoch,
+      endTimestamp: endTime.millisecondsSinceEpoch,
+      luciBucket: bucket,
+      name: builder,
+      stageName: "dart-internal",
+      startTimestamp: startTime.millisecondsSinceEpoch,
+      status: "Succeeded",
+      key: commit.key.append(Task),
+      timeoutInMinutes: 0,
+      reason: '',
+      requiredCapabilities: [],
+      reservedForAgentId: '',
     );
 
     expect(

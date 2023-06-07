@@ -74,6 +74,7 @@ class DartInternalSubscription extends SubscriptionHandler {
 
       }
     }
+
     log.info("Checking for existing task in datastore");
     late Task? existingTask;
     try {
@@ -108,9 +109,9 @@ class DartInternalSubscription extends SubscriptionHandler {
     if (build.endTime == null)
     {
       log.info(
-        "Build is not yet complete",
+        "Build is not finished",
       );
-      throw UnfinishedBuildException("Build is not yet complete",);
+      throw UnfinishedBuildException("Build is not finished",);
     }
     return build;
   }
@@ -119,7 +120,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     Build build,
     DatastoreService datastore,
   ) async {
-    log.fine("Build Result: ${build.toString()}");
+    log.fine("Creating task from buildbucket result: ${build.toString()}");
 
     final String repository =
         build.input!.gitilesCommit!.project!.split('/')[1];
