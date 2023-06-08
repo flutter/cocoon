@@ -187,7 +187,7 @@ const Map<String, int> _months = <String, int>{
 };
 
 /// Convert a DateTime format from Gerrit to [DateTime].
-/// 
+///
 /// Example format is "Wed Jun 07 22:54:06 2023 +0000"
 class GerritDateTimeConverter implements JsonConverter<DateTime?, String?> {
   const GerritDateTimeConverter();
