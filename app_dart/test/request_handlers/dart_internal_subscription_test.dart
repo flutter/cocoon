@@ -34,6 +34,8 @@ void main() {
   const String bucket = "try";
   const String builder = "Mac amazing_builder_tests";
   const int buildId = 123456;
+  const String fakeHash = "HASH12345";
+  const String fakeBranch = "test-branch";
 
   setUp(() async {
     config = FakeConfig();
@@ -54,8 +56,8 @@ void main() {
 
     commit = generateCommit(
       1,
-      sha: "HASH12345",
-      branch: "test-branch",
+      sha: fakeHash,
+      branch: fakeBranch,
       owner: "flutter",
       repo: "flutter",
       timestamp: 0,
@@ -71,8 +73,8 @@ void main() {
       input: const Input(
         gitilesCommit: GitilesCommit(
           project: "flutter/flutter",
-          hash: "HASH12345",
-          ref: "refs/heads/test-branch",
+          hash: fakeHash,
+          ref: "refs/heads/$fakeBranch",
         ),
       ),
     );
@@ -120,7 +122,7 @@ void main() {
       equals(taskInDb.parentKey?.id),
     );
 
-    // Ensure the task in the db is exactly what we are looking for
+    // Ensure the task in the db is exactly what we expect
     final Task expectedTask = Task(
       attempts: 1,
       buildNumber: buildId,
@@ -204,7 +206,7 @@ void main() {
       equals(taskInDb.parentKey?.id),
     );
 
-    // Ensure the task in the db is exactly what we are looking for
+    // Ensure the task in the db is exactly what we expect
     final Task expectedTask = Task(
       attempts: 1,
       buildNumber: buildId,
@@ -242,8 +244,8 @@ void main() {
       input: const Input(
         gitilesCommit: GitilesCommit(
           project: "flutter/flutter",
-          hash: "HASH12345",
-          ref: "refs/heads/test-branch",
+          hash: fakeHash,
+          ref: "refs/heads/$fakeBranch",
         ),
       ),
     );
@@ -258,12 +260,14 @@ void main() {
       input: const Input(
         gitilesCommit: GitilesCommit(
           project: "flutter/flutter",
-          hash: "HASH12345",
-          ref: "refs/heads/test-branch",
+          hash: fakeHash,
+          ref: "refs/heads/$fakeBranch",
         ),
       ),
     );
 
+    // The first time the mocked getBuild is called, return fakeInProgressBuild,
+    // then return fakeCompletedBuild the second time.
     int count = 0;
     when(
       buildBucketClient.getBuild(
@@ -306,7 +310,7 @@ void main() {
       equals(taskInDb.parentKey?.id),
     );
 
-    // Ensure the task in the db is exactly what we are looking for
+    // Ensure the task in the db is exactly what we expect
     final Task expectedTask = Task(
       attempts: 1,
       buildNumber: buildId,
@@ -333,7 +337,7 @@ void main() {
     );
   });
 
-  test('retries buildbucket when buildbucket throws an exception', () async {
+  test('does not retry buildbucket when buildbucket throws an exception', () async {
     when(
       buildBucketClient.getBuild(
         any,
