@@ -8,8 +8,7 @@ part of 'service_account_info.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-ServiceAccountInfo _$ServiceAccountInfoFromJson(Map<String, dynamic> json) =>
-    ServiceAccountInfo(
+ServiceAccountInfo _$ServiceAccountInfoFromJson(Map<String, dynamic> json) => ServiceAccountInfo(
       type: json['type'] as String?,
       projectId: json['project_id'] as String?,
       privateKeyId: json['private_key_id'] as String?,
@@ -22,8 +21,7 @@ ServiceAccountInfo _$ServiceAccountInfoFromJson(Map<String, dynamic> json) =>
       clientCertUrl: json['client_x509_cert_url'] as String?,
     );
 
-Map<String, dynamic> _$ServiceAccountInfoToJson(ServiceAccountInfo instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$ServiceAccountInfoToJson(ServiceAccountInfo instance) => <String, dynamic>{
       'type': instance.type,
       'project_id': instance.projectId,
       'private_key_id': instance.privateKeyId,

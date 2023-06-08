@@ -11,17 +11,12 @@ part of 'commit.dart';
 GerritCommit _$GerritCommitFromJson(Map<String, dynamic> json) => GerritCommit(
       commit: json['commit'] as String?,
       tree: json['tree'] as String?,
-      author: json['author'] == null
-          ? null
-          : GerritUser.fromJson(json['author'] as Map<String, dynamic>),
-      committer: json['committer'] == null
-          ? null
-          : GerritUser.fromJson(json['committer'] as Map<String, dynamic>),
+      author: json['author'] == null ? null : GerritUser.fromJson(json['author'] as Map<String, dynamic>),
+      committer: json['committer'] == null ? null : GerritUser.fromJson(json['committer'] as Map<String, dynamic>),
       message: json['message'] as String?,
     );
 
-Map<String, dynamic> _$GerritCommitToJson(GerritCommit instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$GerritCommitToJson(GerritCommit instance) => <String, dynamic>{
       'commit': instance.commit,
       'tree': instance.tree,
       'author': instance.author,
@@ -32,12 +27,10 @@ Map<String, dynamic> _$GerritCommitToJson(GerritCommit instance) =>
 GerritUser _$GerritUserFromJson(Map<String, dynamic> json) => GerritUser(
       name: json['name'] as String?,
       email: json['email'] as String?,
-      date:
-          json['date'] == null ? null : DateTime.parse(json['date'] as String),
+      date: json['date'] == null ? null : DateTime.parse(json['date'] as String),
     );
 
-Map<String, dynamic> _$GerritUserToJson(GerritUser instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$GerritUserToJson(GerritUser instance) => <String, dynamic>{
       'name': instance.name,
       'email': instance.email,
       'date': instance.date?.toIso8601String(),
