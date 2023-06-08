@@ -87,7 +87,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     final Commit commit = await datastore.lookupByValue<Commit>(commitKey);
     final CiYaml ciYaml = await scheduler.getCiYaml(commit);
     final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task!.name);
-    if (task.status == Task.statusFailed || task.status == Task.statusInfraFailure) {
+    if (task.status == Task.statusFailed || task.status == Task.statusInfraFailure || _taskTimedOut(task)) {
       log.fine('Trying to auto-retry...');
       final bool retried = await scheduler.luciBuildService.checkRerunBuilder(
         commit: commit,
@@ -109,5 +109,26 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     }
 
     return Body.empty;
+  }
+
+  bool _taskTimedOut(Task task) {
+    if (task.timeoutInMinutes == null || task.timeoutInMinutes == 0) {
+      return false;
+    }
+
+    if (task.startTimestamp == null || task.startTimestamp == 0) {
+      return false;
+    }
+
+    if (task.endTimestamp == null || task.endTimestamp == 0) {
+      return false;
+    }
+
+    // If the time between start and end is longer than timeoutInMinutes, then
+    // it was canceled because it reached the timeout period.
+    final Duration buildTime = Duration(milliseconds: task.endTimestamp! - task.startTimestamp!);
+    final Duration timeout = Duration(minutes: task.timeoutInMinutes!);
+
+    return buildTime.compareTo(timeout) >= 0 && task.status == Task.statusCancelled;
   }
 }
