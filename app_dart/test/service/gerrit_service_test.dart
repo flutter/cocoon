@@ -75,11 +75,11 @@ void main() {
       final GerritCommit commit = commits.single;
       expect(commit.author?.email, 'dash@flutter.dev');
       expect(commit.author?.name, 'Dash');
-      expect(commit.author?.date, isNotNull);
+      expect(commit.author?.time, isNotNull);
       expect(commit.committer?.email, 'flutter-scoped@luci-project-accounts.iam.gserviceaccount.com');
       expect(commit.committer?.name, 'CQ Bot Account');
-      expect(commit.committer?.date, isNotNull);
-      final DateTime time = commit.author!.date!;
+      expect(commit.committer?.time, isNotNull);
+      final DateTime time = commit.author!.time!;
       final DateTime expectedTime = DateTime(2023, 4, 20, 18, 00, 14);
       expect(time, expectedTime);
     });
@@ -96,8 +96,8 @@ void main() {
       expect(commit, isNotNull);
       expect(commit!.author?.email, 'dash@flutter.dev');
       expect(commit.author?.name, 'Dash');
-      expect(commit.author?.date, isNotNull);
-      final DateTime time = commit.author!.date!;
+      expect(commit.author?.time, isNotNull);
+      final DateTime time = commit.author!.time!;
       final DateTime expectedTime = DateTime(2023, 4, 20, 18, 0, 14);
       expect(time, expectedTime);
     });

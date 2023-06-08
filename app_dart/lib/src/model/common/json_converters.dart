@@ -107,27 +107,6 @@ class MicrosecondsSinceEpochConverter implements JsonConverter<DateTime?, String
   }
 }
 
-/// A converter for "timestamp" fields encoded as milliseconds since epoch.
-class MillisecondsSinceEpochConverter implements JsonConverter<DateTime?, String?> {
-  const MillisecondsSinceEpochConverter();
-
-  @override
-  DateTime? fromJson(String? json) {
-    if (json == null) {
-      return null;
-    }
-    return DateTime.fromMillisecondsSinceEpoch(int.parse(json));
-  }
-
-  @override
-  String? toJson(DateTime? object) {
-    if (object == null) {
-      return null;
-    }
-    return object.millisecondsSinceEpoch.toString();
-  }
-}
-
 /// A converter for "timestamp" fields encoded as seconds since epoch.
 class SecondsSinceEpochConverter implements JsonConverter<DateTime?, String?> {
   const SecondsSinceEpochConverter();
@@ -189,5 +168,50 @@ class NestedJsonConverter implements JsonConverter<Map<String, dynamic>?, String
       return null;
     }
     return convert.json.encode(object);
+  }
+}
+
+const Map<String, int> _months = <String, int>{
+  'Jan': 1,
+  'Feb': 2,
+  'Mar': 3,
+  'Apr': 4,
+  'May': 5,
+  'Jun': 6,
+  'Jul': 7,
+  'Aug': 8,
+  'Sep': 9,
+  'Oct': 10,
+  'Nov': 11,
+  'Dec': 12,
+};
+
+/// Convert a DateTime format from Gerrit to [DateTime].
+/// 
+/// Example format is "Wed Jun 07 22:54:06 2023 +0000"
+class GerritDateTimeConverter implements JsonConverter<DateTime?, String?> {
+  const GerritDateTimeConverter();
+
+  @override
+  DateTime? fromJson(String? json) {
+    if (json == null) {
+      return null;
+    }
+
+    json = json.substring(4); // Trim day of the week
+    final List<String> parts = json.split(' ');
+    final int month = _months[parts[0]]!;
+    final int year = int.parse(parts[3]);
+    final int day = int.parse(parts[1]);
+    final List<String> time = parts[2].split(':');
+    final int hours = int.parse(time[0]);
+    final int minutes = int.parse(time[1]);
+
+    return DateTime(year, month, day, hours, minutes);
+  }
+
+  @override
+  String? toJson(DateTime? object) {
+    return object?.toIso8601String();
   }
 }
