@@ -48,7 +48,7 @@ class ValidationService {
   final RetryOptions retryOptions;
 
   @visibleForTesting
-  late RequiredCheckRuns? requiredCheckRuns;
+  RequiredCheckRuns? requiredCheckRuns;
 
   /// Processes a pub/sub message associated with PullRequest event.
   Future<void> processMessage(PullRequestMessage pullRequestMessage, String ackId, PubSub pubsub) async {
@@ -114,7 +114,7 @@ class ValidationService {
         .toList();
 
     // final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
-
+    // TODO are there may be cases where the revert is open and could not be processed the first time?
     if (currentPullRequest.state == 'closed' && labelNames.contains(Config.kRevertLabel)) {
       // TODO (ricardoamador) this will not make sense now that reverts happen from closed.
       // we can open the pull request but who do we assign it to? The initiating author?
