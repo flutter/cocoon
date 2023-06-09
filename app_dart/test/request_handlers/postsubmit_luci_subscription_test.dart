@@ -152,7 +152,6 @@ void main() {
       parent: commit,
       status: Task.statusNew,
     );
-    task.timeoutInMinutes = 2;
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
     tester.message = createBuildbucketPushMessage(
@@ -160,9 +159,6 @@ void main() {
       builderName: 'Linux A',
       result: 'CANCELED',
       userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
-      startTimestamp: 2000,
-      completedTimestamp: 1000000000000,
-      createdTimestamp: 1000,
     );
 
     expect(task.status, Task.statusNew);
@@ -172,7 +168,7 @@ void main() {
     expect(task.attempts, 2);
   });
 
-  test('on canceled builds do not auto-rerun the build if they did not time out', () async {
+    test('on builds resulting in an infra failure auto-rerun the build if they timed out', () async {
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
       4507531199512576,
@@ -180,22 +176,20 @@ void main() {
       parent: commit,
       status: Task.statusNew,
     );
-    task.timeoutInMinutes = 2;
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
     tester.message = createBuildbucketPushMessage(
       'COMPLETED',
       builderName: 'Linux A',
-      result: 'CANCELED',
+      result: 'INFRA_FAILURE',
       userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
-      startTimestamp: 2000,
-      completedTimestamp: 3000,
-      createdTimestamp: 1000,
     );
 
-    expect(await tester.post(handler), Body.empty);
-    expect(task.status, Task.statusCancelled);
+    expect(task.status, Task.statusNew);
     expect(task.attempts, 1);
+    expect(await tester.post(handler), Body.empty);
+    expect(task.status, Task.statusInProgress);
+    expect(task.attempts, 2);
   });
 
   test('fallback to build parameters if task_key is not present', () async {
