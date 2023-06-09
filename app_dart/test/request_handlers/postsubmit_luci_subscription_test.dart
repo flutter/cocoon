@@ -144,6 +144,54 @@ void main() {
     expect(task.attempts, 2);
   });
 
+  test('on canceled builds auto-rerun the build if they timed out', () async {
+    final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
+    final Task task = generateTask(
+      4507531199512576,
+      name: 'Linux A',
+      parent: commit,
+      status: Task.statusNew,
+    );
+    config.db.values[task.key] = task;
+    config.db.values[commit.key] = commit;
+    tester.message = createBuildbucketPushMessage(
+      'COMPLETED',
+      builderName: 'Linux A',
+      result: 'CANCELED',
+      userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
+    );
+
+    expect(task.status, Task.statusNew);
+    expect(task.attempts, 1);
+    expect(await tester.post(handler), Body.empty);
+    expect(task.status, Task.statusInProgress);
+    expect(task.attempts, 2);
+  });
+
+  test('on builds resulting in an infra failure auto-rerun the build if they timed out', () async {
+    final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
+    final Task task = generateTask(
+      4507531199512576,
+      name: 'Linux A',
+      parent: commit,
+      status: Task.statusNew,
+    );
+    config.db.values[task.key] = task;
+    config.db.values[commit.key] = commit;
+    tester.message = createBuildbucketPushMessage(
+      'COMPLETED',
+      builderName: 'Linux A',
+      result: 'INFRA_FAILURE',
+      userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
+    );
+
+    expect(task.status, Task.statusNew);
+    expect(task.attempts, 1);
+    expect(await tester.post(handler), Body.empty);
+    expect(task.status, Task.statusInProgress);
+    expect(task.attempts, 2);
+  });
+
   test('fallback to build parameters if task_key is not present', () async {
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
