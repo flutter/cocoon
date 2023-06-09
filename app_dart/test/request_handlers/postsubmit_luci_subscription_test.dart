@@ -168,7 +168,7 @@ void main() {
     expect(task.attempts, 2);
   });
 
-    test('on builds resulting in an infra failure auto-rerun the build if they timed out', () async {
+  test('on builds resulting in an infra failure auto-rerun the build if they timed out', () async {
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
       4507531199512576,

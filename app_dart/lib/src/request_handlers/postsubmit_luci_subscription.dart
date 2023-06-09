@@ -87,7 +87,9 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     final Commit commit = await datastore.lookupByValue<Commit>(commitKey);
     final CiYaml ciYaml = await scheduler.getCiYaml(commit);
     final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task!.name);
-    if (task.status == Task.statusFailed || task.status == Task.statusInfraFailure || task.status == Task.statusCancelled) {
+    if (task.status == Task.statusFailed ||
+        task.status == Task.statusInfraFailure ||
+        task.status == Task.statusCancelled) {
       log.fine('Trying to auto-retry...');
       final bool retried = await scheduler.luciBuildService.checkRerunBuilder(
         commit: commit,
