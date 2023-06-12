@@ -90,7 +90,7 @@ void main() {
   });
 
   test('creates a new task successfully', () async {
-    tester.message = push.PushMessage(data: "'${buildId.toString()}'");
+    tester.message = push.PushMessage(data: "{ \"buildbucket_id\": \"${buildId.toString()}\" }");
 
     await tester.post(handler);
 
@@ -173,7 +173,7 @@ void main() {
     final List<Task> datastoreCommit = <Task>[fakeTask];
     await config.db.commit(inserts: datastoreCommit);
 
-    tester.message = push.PushMessage(data: "'${buildId.toString()}'");
+    tester.message = push.PushMessage(data: "{ \"buildbucket_id\": \"${buildId.toString()}\" }");
 
     await tester.post(handler);
 
@@ -278,7 +278,7 @@ void main() {
       (_) => [Future<Build>.value(fakeInProgressBuild), Future<Build>.value(fakeCompletedBuild)][count++],
     );
 
-    tester.message = push.PushMessage(data: "'${buildId.toString()}'");
+    tester.message = push.PushMessage(data: "{ \"buildbucket_id\": \"${buildId.toString()}\" }");
 
     await tester.post(handler);
 
@@ -349,10 +349,11 @@ void main() {
       ),
     );
 
-    tester.message = push.PushMessage(data: "'${buildId.toString()}'");
+    tester.message = push.PushMessage(data: "{ \"buildbucket_id\": \"${buildId.toString()}\" }");
     try {
       await tester.post(handler);
     } catch (e) {
+      print(e);
       expect(e.runtimeType, equals(const InternalServerError().runtimeType));
     }
 
