@@ -26,12 +26,11 @@ const List<String> kNotActuallyATest = <String>[
   'packages/flutter/lib/src/gestures/hit_test.dart',
 ];
 
-/// List of repos that require check for labels and tests.
-const Set<String> kNeedsCheckLabelsAndTests = <String>{
+/// List of repos that require check for tests.
+const Set<String> kNeedsTests = <String>{
   'flutter/engine',
   'flutter/flutter',
   'flutter/packages',
-  'flutter/plugins',
 };
 
 final RegExp kEngineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc|sh)$');
@@ -162,13 +161,13 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'edited':
         // Editing a PR should not trigger new jobs, but may update whether
         // it has tests.
-        await _checkForLabelsAndTests(pullRequestEvent);
+        await _checkForTests(pullRequestEvent);
         break;
       case 'opened':
       case 'reopened':
         // These cases should trigger LUCI jobs. The closed event should happen
         // before these which should cancel all in progress checks.
-        await _checkForLabelsAndTests(pullRequestEvent);
+        await _checkForTests(pullRequestEvent);
         await _scheduleIfMergeable(pullRequestEvent);
         await _tryReleaseApproval(pullRequestEvent);
         break;
@@ -251,11 +250,11 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     await gitHubClient.pullRequests.createReview(slug, review);
   }
 
-  Future<void> _checkForLabelsAndTests(PullRequestEvent pullRequestEvent) async {
+  Future<void> _checkForTests(PullRequestEvent pullRequestEvent) async {
     final PullRequest pr = pullRequestEvent.pullRequest!;
     final String? eventAction = pullRequestEvent.action;
     final String repo = pr.base!.repo!.fullName.toLowerCase();
-    if (kNeedsCheckLabelsAndTests.contains(repo)) {
+    if (kNeedsTests.contains(repo)) {
       final GitHub gitHubClient = await config.createGitHubClient(pullRequest: pr);
       try {
         await _validateRefs(gitHubClient, pr);
@@ -299,7 +298,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       if (_isATest(filename)) {
         hasTests = true;
       }
-      labels.addAll(getLabelsForFrameworkPath(filename));
     }
 
     if (pr.user!.login == 'fluttergithubbot') {
@@ -364,90 +362,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.startsWith('shell/platform/embedder/fixtures');
   }
 
-  /// Returns the set of labels applicable to a file in the framework repo.
-  static Set<String> getLabelsForFrameworkPath(String filepath) {
-    final Set<String> labels = <String>{};
-    if (filepath.endsWith('pubspec.yaml')) {
-      // These get updated by a script, and are updated en masse.
-      labels.add('team');
-      return labels;
-    }
-
-    if (filepath.endsWith('fix_data.yaml') || filepath.endsWith('.expect') || filepath.contains('test_fixes')) {
-      // Dart fixes
-      labels.add('team');
-      labels.add('tech-debt');
-    }
-
-    const Map<String, List<String>> pathPrefixLabels = <String, List<String>>{
-      'bin/internal/engine.version': <String>['engine'],
-      'dev/': <String>['team'],
-      'examples/': <String>['d: examples', 'team'],
-      'examples/api/': <String>['d: examples', 'team', 'd: api docs', 'documentation'],
-      'examples/flutter_gallery/': <String>['d: examples', 'team', 'team: gallery'],
-      'packages/flutter_tools/': <String>['tool'],
-      'packages/flutter_tools/lib/src/ios/': <String>['platform-ios'],
-      'packages/flutter/': <String>['framework'],
-      'packages/flutter_driver/': <String>['framework', 'a: tests'],
-      'packages/flutter_localizations/': <String>['a: internationalization'],
-      'packages/flutter_goldens/': <String>['framework', 'a: tests', 'team'],
-      'packages/flutter_goldens_client/': <String>['framework', 'a: tests', 'team'],
-      'packages/flutter_test/': <String>['framework', 'a: tests'],
-      'packages/fuchsia_remote_debug_protocol/': <String>['tool'],
-      'packages/integration_test/': <String>['integration_test', 'framework'],
-    };
-    const Map<String, List<String>> pathContainsLabels = <String, List<String>>{
-      'accessibility': <String>['a: accessibility'],
-      'animation': <String>['a: animation'],
-      'cupertino': <String>['f: cupertino'],
-      'focus': <String>['f: focus'],
-      'gestures': <String>['f: gestures'],
-      'material': <String>['f: material design'],
-      'navigator': <String>['f: routes'],
-      'route': <String>['f: routes'],
-      'scroll': <String>['f: scrolling'],
-      'semantics': <String>['a: accessibility'],
-      'sliver': <String>['f: scrolling'],
-      'text': <String>['a: text input'],
-      'viewport': <String>['f: scrolling'],
-    };
-
-    pathPrefixLabels.forEach((String path, List<String> pathLabels) {
-      if (filepath.startsWith(path)) {
-        labels.addAll(pathLabels);
-      }
-    });
-    pathContainsLabels.forEach((String path, List<String> pathLabels) {
-      if (filepath.contains(path)) {
-        labels.addAll(pathLabels);
-      }
-    });
-    return labels;
-  }
-
-  /// Returns the set of labels applicable to a file in the engine repo.
-  static Set<String> getLabelsForEnginePath(String filepath) {
-    const Map<String, List<String>> pathPrefixLabels = <String, List<String>>{
-      'shell/platform/android': <String>['platform-android'],
-      'shell/platform/embedder': <String>['embedder'],
-      'shell/platform/darwin/common': <String>['platform-ios', 'platform-macos'],
-      'shell/platform/darwin/ios': <String>['platform-ios'],
-      'shell/platform/darwin/macos': <String>['platform-macos'],
-      'shell/platform/fuchsia': <String>['platform-fuchsia'],
-      'shell/platform/linux': <String>['platform-linux'],
-      'shell/platform/windows': <String>['platform-windows'],
-      'lib/web_ui': <String>['platform-web'],
-      'web_sdk': <String>['platform-web'],
-    };
-    final Set<String> labels = <String>{};
-    pathPrefixLabels.forEach((String path, List<String> pathLabels) {
-      if (filepath.startsWith(path)) {
-        labels.addAll(pathLabels);
-      }
-    });
-    return labels;
-  }
-
   Future<void> _applyEngineRepoLabels(GitHub gitHubClient, String? eventAction, PullRequest pr) async {
     // Do not apply the test labels for the autoroller accounts.
     if (pr.user!.login == 'skia-flutter-autoroll') {
@@ -456,7 +370,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
     final RepositorySlug slug = pr.base!.repo!.slug();
     final Stream<PullRequestFile> files = gitHubClient.pullRequests.listFiles(slug, pr.number!);
-    final Set<String> labels = <String>{};
     bool hasTests = false;
     bool needsTests = false;
 
@@ -473,12 +386,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       if (kEngineTestRegExp.hasMatch(filename)) {
         hasTests = true;
       }
-
-      labels.addAll(getLabelsForEnginePath(filename));
-    }
-
-    if (labels.isNotEmpty) {
-      await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, labels.toList());
     }
 
     // We do not need to add test labels if this is an auto roller author.

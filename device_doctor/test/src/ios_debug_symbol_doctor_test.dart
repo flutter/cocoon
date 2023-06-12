@@ -11,6 +11,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:file/memory.dart';
 import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
+import 'package:platform/platform.dart';
 
 import 'package:test/test.dart';
 
@@ -71,12 +72,16 @@ Future<void> main() async {
     const String cocoonPath = '/path/to/cocoon';
     const String xcworkspacePath = '$cocoonPath/dashboard/ios/Runner.xcodeproj/project.xcworkspace';
     late MemoryFileSystem fs;
+    late Platform platform;
+    const String deviceSupportDirectory = '/User/username/Library/Developer/Xcode/iOS DeviceSupport';
 
     setUp(() {
       processManager = MockProcessManager();
       logger = TestLogger();
       fs = MemoryFileSystem();
       fs.directory(xcworkspacePath).createSync(recursive: true);
+      platform = MockPlatform();
+      platform.environment['HOME'] = '/User/username';
     });
 
     test('diagnose logs output of xcdevice list', () async {
@@ -96,6 +101,8 @@ Future<void> main() async {
     });
 
     test('recover returns early if xcodebuild -runFirstLaunch exits non-zero', () async {
+      final Directory symbolsDirectory = fs.directory('/User/username/Library/Developer/Xcode/iOS Temp');
+      symbolsDirectory.createSync(recursive: true);
       when(
         processManager.run(<String>['xcrun', 'xcodebuild', '-runFirstLaunch']),
       ).thenAnswer((_) async {
@@ -113,6 +120,7 @@ Future<void> main() async {
           processManager: processManager,
           loggerOverride: logger,
           fs: fs,
+          platform: platform,
         );
         runner.addCommand(command);
         bool? result;
@@ -122,7 +130,9 @@ Future<void> main() async {
       });
     });
 
-    test('recover opens Xcode, waits, then kills it', () async {
+    test('recover deletes symbols, opens Xcode, waits, then kills it', () async {
+      final Directory symbolsDirectory = fs.directory(deviceSupportDirectory);
+      symbolsDirectory.createSync(recursive: true);
       when(
         processManager.run(<String>['xcrun', 'xcodebuild', '-runFirstLaunch']),
       ).thenAnswer((_) async {
@@ -146,6 +156,7 @@ Future<void> main() async {
           processManager: processManager,
           loggerOverride: logger,
           fs: fs,
+          platform: platform,
         );
         runner.addCommand(command);
         bool? result;
@@ -157,6 +168,63 @@ Future<void> main() async {
         time.elapse(const Duration(seconds: 2));
         expect(result, isNotNull);
         expect(killedXcode, isTrue);
+        expect(logger.logs[Level.WARNING], isNull);
+        expect(symbolsDirectory.existsSync(), false);
+
+        return result!;
+      });
+      expect(result, isTrue);
+      expect(
+        logger.logs[Level.INFO],
+        containsAllInOrder(<String>[
+          'Running Xcode first launch...',
+          'Launching Xcode...',
+          'Waiting for 300 seconds',
+          'Waited for 300 seconds, now killing Xcode',
+        ]),
+      );
+    });
+
+    test('recover cannot find symbols but still opens Xcode, waits, then kills it', () async {
+      when(
+        processManager.run(<String>['xcrun', 'xcodebuild', '-runFirstLaunch']),
+      ).thenAnswer((_) async {
+        return ProcessResult(0, 0, '', '');
+      });
+      when(
+        processManager.run(<String>['open', '-n', '-F', '-W', xcworkspacePath]),
+      ).thenAnswer((_) async {
+        return ProcessResult(1, 0, '', '');
+      });
+      bool killedXcode = false;
+      when(
+        processManager.run(<String>['killall', '-9', 'Xcode']),
+      ).thenAnswer((_) async {
+        killedXcode = true;
+        return ProcessResult(2, 0, '', '');
+      });
+      final bool result = fakeAsync<bool>((FakeAsync time) {
+        final CommandRunner<bool> runner = _createTestRunner();
+        final command = RecoverCommand(
+          processManager: processManager,
+          loggerOverride: logger,
+          fs: fs,
+          platform: platform,
+        );
+        runner.addCommand(command);
+        bool? result;
+        runner.run(<String>['recover', '--cocoon-root=$cocoonPath']).then((bool? value) => result = value);
+        time.elapse(const Duration(seconds: 299));
+        // We have not yet reached the timeout, so Xcode should still be open
+        expect(result, isNull);
+        expect(killedXcode, isFalse);
+        time.elapse(const Duration(seconds: 2));
+        expect(result, isNotNull);
+        expect(killedXcode, isTrue);
+        expect(
+          logger.logs[Level.WARNING],
+          contains('iOS Device Support directory was not found at $deviceSupportDirectory'),
+        );
         return result!;
       });
       expect(result, isTrue);
