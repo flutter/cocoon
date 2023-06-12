@@ -198,6 +198,11 @@ class GerritDateTimeConverter implements JsonConverter<DateTime?, String?> {
       return null;
     }
 
+    final DateTime? date = DateTime.tryParse(json);
+    if (date != null) {
+      return date;
+    }
+
     json = json.substring(4); // Trim day of the week
     final List<String> parts = json.split(' ');
     final int month = _months[parts[0]]!;
