@@ -83,7 +83,7 @@ void main() {
     final PullRequestMessage pullRequestMessage = PullRequestMessage(
       pullRequest: pullRequest,
       action: 'labeled',
-      sender: 'autosubmit',
+      sender: User(login: 'autosubmit'),
     );
 
     await validationService.processPullRequest(
@@ -137,7 +137,7 @@ void main() {
     final PullRequestMessage pullRequestMessage = PullRequestMessage(
       pullRequest: pullRequest,
       action: 'labeled',
-      sender: 'autosubmit',
+      sender: User(login: 'autosubmit'),
     );
 
     await validationService.processPullRequest(
@@ -184,7 +184,7 @@ void main() {
     final PullRequestMessage pullRequestMessage = PullRequestMessage(
       pullRequest: pullRequest,
       action: 'created',
-      sender: 'autosubmit',
+      sender: User(login: 'autosubmit'),
     );
 
     await validationService.processPullRequest(
@@ -235,7 +235,7 @@ void main() {
       final PullRequestMessage pullRequestMessage = PullRequestMessage(
         pullRequest: pullRequest,
         action: 'labeled',
-        sender: labelingAuthor,
+        sender: User(login: labelingAuthor),
       );
 
       await validationService.processRevertRequest(
@@ -296,7 +296,7 @@ void main() {
       final PullRequestMessage pullRequestMessage = PullRequestMessage(
         pullRequest: pullRequest,
         action: 'labeled',
-        sender: labelingAuthor,
+        sender: User(login: labelingAuthor),
       );
 
       githubGraphQLClient.mutateResultForOptions = (MutationOptions queryOptions) => createRevertQueryResult(
@@ -372,7 +372,7 @@ void main() {
       final PullRequestMessage pullRequestMessage = PullRequestMessage(
         pullRequest: pullRequest,
         action: 'labeled',
-        sender: labelingAuthor,
+        sender: User(login: labelingAuthor),
       );
 
       githubGraphQLClient.mutateResultForOptions = (MutationOptions queryOptions) => createRevertQueryResult(
@@ -452,7 +452,7 @@ void main() {
       final PullRequestMessage pullRequestMessage = PullRequestMessage(
         pullRequest: pullRequest,
         action: 'labeled',
-        sender: labelingAuthor,
+        sender: User(login: labelingAuthor),
       );
 
       githubGraphQLClient.mutateResultForOptions = (MutationOptions queryOptions) => createRevertQueryResult(
@@ -534,7 +534,7 @@ void main() {
       final PullRequestMessage pullRequestMessage = PullRequestMessage(
         pullRequest: pullRequest,
         action: 'labeled',
-        sender: labelingAuthor,
+        sender: User(login: labelingAuthor),
       );
 
       githubGraphQLClient.mutateResultForOptions = (MutationOptions queryOptions) => createRevertQueryResult(

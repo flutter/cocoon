@@ -100,7 +100,7 @@ class RepositoryConfiguration {
   static RepositoryConfiguration fromYaml(String yaml) {
     final dynamic yamlDoc = loadYaml(yaml);
 
-    // TODO for testing purposes before
+    // TODO (ricardoamador) for testing purposes remove from here and add to config under auto_approval_accounts
     final Set<String> autoApprovalAccounts = <String>{'auto-submit[bot]'};
     final YamlList? yamlAutoApprovalAccounts = yamlDoc[autoApprovalAccountsKey];
     if (yamlAutoApprovalAccounts != null) {

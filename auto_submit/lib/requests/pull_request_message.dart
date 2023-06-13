@@ -14,7 +14,6 @@ class PullRequestMessage {
   });
 
   /// The [PullRequest] object information.
-  // @JsonKey(name: 'pull_request')
   final PullRequest? pullRequest;
 
   /// The action as used by github for a [PullRequest] event.

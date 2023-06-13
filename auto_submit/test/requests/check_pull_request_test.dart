@@ -146,7 +146,7 @@ void main() {
       final PullRequestMessage pullRequestMessage = PullRequestMessage(
         pullRequest: pullRequest1,
         action: 'labeled',
-        sender: 'autosubmit',
+        sender: User(login: 'autosubmit'),
       );
 
       // 'member' is in the review nodes and 'author1' is the pr author.
@@ -191,7 +191,7 @@ void main() {
       final PullRequestMessage pullRequestMessage = PullRequestMessage(
         pullRequest: pullRequest1,
         action: 'labeled',
-        sender: 'autosubmit',
+        sender: User(login: 'autosubmit'),
       );
 
       for (int i = 0; i < 2; i++) {
@@ -232,7 +232,7 @@ void main() {
         final PullRequestMessage pullRequestMessage = PullRequestMessage(
           pullRequest: pr,
           action: 'labeled',
-          sender: 'autosubmit',
+          sender: User(login: 'autosubmit'),
         );
         unawaited(pubsub.publish(testTopic, pullRequestMessage));
       }
@@ -304,7 +304,7 @@ void main() {
         final PullRequestMessage pullRequestMessage = PullRequestMessage(
           pullRequest: pr,
           action: 'labeled',
-          sender: 'autosubmit',
+          sender: User(login: 'autosubmit'),
         );
         unawaited(pubsub.publish(testTopic, pullRequestMessage));
       }
@@ -364,7 +364,7 @@ void main() {
       final PullRequestMessage pullRequestMessage = PullRequestMessage(
         pullRequest: pullRequest,
         action: 'labeled',
-        sender: 'autosubmit',
+        sender: User(login: 'autosubmit'),
       );
 
       unawaited(pubsub.publish(testTopic, pullRequestMessage));
@@ -417,7 +417,7 @@ void main() {
       final PullRequestMessage pullRequestMessage = PullRequestMessage(
         pullRequest: pullRequest,
         action: 'labeled',
-        sender: 'autosubmit',
+        sender: User(login: 'autosubmit'),
       );
 
       unawaited(pubsub.publish(testTopic, pullRequestMessage));
@@ -467,7 +467,7 @@ void main() {
       final PullRequestMessage pullRequestMessage = PullRequestMessage(
         pullRequest: pullRequest,
         action: 'labeled',
-        sender: 'autosubmit',
+        sender: User(login: 'autosubmit'),
       );
 
       unawaited(pubsub.publish(testTopic, pullRequestMessage));
@@ -521,7 +521,7 @@ void main() {
       final PullRequestMessage pullRequestMessage = PullRequestMessage(
         pullRequest: pullRequest,
         action: 'labeled',
-        sender: 'autosubmit',
+        sender: User(login: 'autosubmit'),
       );
 
       unawaited(pubsub.publish(testTopic, pullRequestMessage));
@@ -574,7 +574,7 @@ void main() {
         final PullRequestMessage pullRequestMessage = PullRequestMessage(
           pullRequest: pr,
           action: 'labeled',
-          sender: 'autosubmit',
+          sender: User(login: 'autosubmit'),
         );
         unawaited(pubsub.publish(testTopic, pullRequestMessage));
       }
@@ -617,7 +617,7 @@ void main() {
         final PullRequestMessage pullRequestMessage = PullRequestMessage(
           pullRequest: pr,
           action: 'labeled',
-          sender: 'autosubmit',
+          sender: User(login: 'autosubmit'),
         );
         unawaited(pubsub.publish(testTopic, pullRequestMessage));
       }
@@ -654,7 +654,7 @@ void main() {
       final PullRequestMessage pullRequestMessage = PullRequestMessage(
         pullRequest: pullRequest,
         action: 'labeled',
-        sender: 'autosubmit',
+        sender: User(login: 'autosubmit'),
       );
 
       unawaited(pubsub.publish(testTopic, pullRequestMessage));
@@ -690,7 +690,7 @@ void main() {
       final PullRequestMessage pullRequestMessage = PullRequestMessage(
         pullRequest: pullRequest,
         action: 'labeled',
-        sender: 'autosubmit',
+        sender: User(login: 'autosubmit'),
       );
 
       unawaited(pubsub.publish(testTopic, pullRequestMessage));
@@ -724,7 +724,7 @@ void main() {
       final PullRequestMessage pullRequestMessage = PullRequestMessage(
         pullRequest: pullRequest,
         action: 'labeled',
-        sender: 'autosubmit',
+        sender: User(login: 'autosubmit'),
       );
 
       unawaited(pubsub.publish(testTopic, pullRequestMessage));
@@ -766,7 +766,7 @@ void main() {
             PullRequestMessage(
               pullRequest: pr,
               action: 'labeled',
-              sender: 'autosubmit',
+              sender: User(login: 'autosubmit'),
             ),
           ),
         );
@@ -808,7 +808,7 @@ void main() {
             PullRequestMessage(
               pullRequest: pr,
               action: 'labeled',
-              sender: 'autosubmit',
+              sender: User(login: 'autosubmit'),
             ),
           ),
         );
@@ -839,7 +839,7 @@ void main() {
           PullRequestMessage(
             pullRequest: pullRequest,
             action: 'labeled',
-            sender: 'autosubmit',
+            sender: User(login: 'autosubmit'),
           ),
         ),
       );

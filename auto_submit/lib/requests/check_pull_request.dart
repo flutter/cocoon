@@ -59,12 +59,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       log.info('request raw body = $rawBody');
       final PullRequestMessage pullRequestMessage = PullRequestMessage.fromJson(rawBody);
 
-      PullRequest? pullRequest;
-      try {
-        pullRequest = pullRequestMessage.pullRequest!;
-      } on Exception {
-        log.info('Unable to get pull request from decoded pullRequestMessage object.');
-      }
+      final PullRequest? pullRequest = pullRequestMessage.pullRequest;
 
       log.info('Processing message ackId: ${message.ackId}');
       log.info('Processing mesageId: ${message.message!.messageId}');
