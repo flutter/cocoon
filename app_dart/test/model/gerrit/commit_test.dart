@@ -31,7 +31,7 @@ void main() {
       final GerritCommit commit = GerritCommit.fromJson(jsonDecode(json));
       expect(commit.author, isNotNull);
       expect(commit.author!.name, 'recipe-roller');
-      expect(commit.author!.time, DateTime(2023, 06, 07, 22, 54));
+      expect(commit.author!.time, DateTime(2023, 06, 07, 22, 54, 6));
     });
   });
 }
