@@ -46,12 +46,10 @@ class DartInternalSubscription extends SubscriptionHandler {
 
   @override
   Future<Body> post() async {
-    print("Aaaaaaaaaaaa");
     final DatastoreService datastore = datastoreProvider(config.db);
 
     log.info("Converting message data to non nullable int");
 
-    print(json.decode(message.data.toString()));
     final int buildbucketId = int.parse(json.decode(message.data.toString())['buildbucket_id']);
 
     log.info("Creating build request object");
@@ -60,24 +58,12 @@ class DartInternalSubscription extends SubscriptionHandler {
     log.info(
       "Calling buildbucket api to get build data for build $buildbucketId",
     );
-    late Build build;
-    try {
-      build = await retryOptions.retry(
-        () async {
-          return _getBuildFromBuildbucket(request);
-        },
-        retryIf: (Exception e) => e is UnfinishedBuildException,
-      );
-    } catch (e) {
-      if (e is! UnfinishedBuildException) {
-        log.severe(
-          "Failed to get build data for build $buildbucketId with the exception: ${e.toString()}",
-        );
-        throw InternalServerError(
-          'Failed to get build number $buildbucketId from Buildbucket. Error: $e',
-        );
-      }
-    }
+    final Build build = await retryOptions.retry(
+      () async {
+        return _getBuildFromBuildbucket(request);
+      },
+      retryIf: (Exception e) => e is UnfinishedBuildException,
+    );
 
     log.info("Checking for existing task in datastore");
     final Task? existingTask = await _getExistingTaskFromDatastore(build, datastore);

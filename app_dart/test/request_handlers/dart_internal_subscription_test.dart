@@ -339,23 +339,19 @@ void main() {
 
   test('does not retry buildbucket when buildbucket throws an exception', () async {
     when(
-      buildBucketClient.getBuild(
+      await buildBucketClient.getBuild(
         any,
         buildBucketUri: "https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds",
       ),
     ).thenThrow(
-      (_) => Future<Exception>.value(
-        Exception("Failed to get from buildbucket for some reason!"),
-      ),
+      Exception("Failed to get from buildbucket for some reason!"),
     );
 
     tester.message = push.PushMessage(data: "{ \"buildbucket_id\": \"${buildId.toString()}\" }");
-    try {
-      await tester.post(handler);
-    } catch (e) {
-      print(e);
-      expect(e.runtimeType, equals(const InternalServerError().runtimeType));
-    }
+    await expectLater(
+      tester.post(handler),
+      throwsA(isA<Exception>()),
+    );
 
     verify(
       buildBucketClient.getBuild(any),
