@@ -50,8 +50,11 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     final List<Future<void>> futures = <Future<void>>[];
 
     for (pub.ReceivedMessage message in messageList) {
+      log.info(message.toJson());
+      assert(message.message != null);
+      assert(message.message!.data != null);
       final String messageData = message.message!.data!;
-
+      
       final Map<String, dynamic> rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
       log.info('request raw body = $rawBody');
       final PullRequestMessage pullRequestMessage = PullRequestMessage.fromJson(rawBody);
