@@ -174,7 +174,7 @@ class Task extends Model<int> {
       endTimestamp: endTime,
       luciBucket: build.builderId.bucket,
       name: build.builderId.builder,
-      stageName: "dart-internal",
+      stageName: build.builderId.project,
       startTimestamp: startTime,
       status: convertBuildbucketStatusToString(build.status!),
       key: commit.key.append(Task),

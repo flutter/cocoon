@@ -29,8 +29,8 @@ void main() {
   late Commit commit;
   final DateTime startTime = DateTime(2023, 1, 1, 0, 0, 0);
   final DateTime endTime = DateTime(2023, 1, 1, 0, 14, 23);
-  const String project = "flutter";
-  const String bucket = "try";
+  const String project = "dart-internal";
+  const String bucket = "flutter";
   const String builder = "Mac amazing_builder_tests";
   const int buildId = 123456;
   const String fakeHash = "HASH12345";
