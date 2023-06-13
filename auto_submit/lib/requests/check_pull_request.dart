@@ -53,14 +53,20 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       final String messageData = message.message!.data!;
 
       final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
+      log.info('request raw body = $rawBody');
       final PullRequestMessage pullRequestMessage = PullRequestMessage.fromJson(rawBody);
 
-      final PullRequest pullRequest = pullRequestMessage.pullRequest!;
+      PullRequest? pullRequest;
+      try {
+        pullRequest = pullRequestMessage.pullRequest!;
+      } on Exception {
+        log.info('Unable to get pull request from decoded pullRequestMessage object.');
+      }
 
       log.info('Processing message ackId: ${message.ackId}');
       log.info('Processing mesageId: ${message.message!.messageId}');
       log.info('Processing PR: $rawBody');
-      if (processingLog.contains(pullRequest.number)) {
+      if (processingLog.contains(pullRequest!.number)) {
         // Ack duplicate.
         log.info('Ack the duplicated message : ${message.ackId!}.');
         await pubsub.acknowledge(

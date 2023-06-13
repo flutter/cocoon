@@ -16,7 +16,6 @@ import 'package:auto_submit/service/graphql_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/service/revert_issue_field_formatter.dart';
 import 'package:auto_submit/validations/required_check_runs.dart';
-// import 'package:auto_submit/validations/revert.dart';
 import 'package:auto_submit/validations/validation_filter.dart';
 import 'package:github/github.dart' as github;
 import 'package:graphql/client.dart' as graphql;

@@ -29,6 +29,7 @@ class GithubWebhook extends RequestHandler {
   final PubSub pubsub;
 
   static const String pullRequest = 'pull_request';
+  static const String action = 'action';
   static const String labels = 'labels';
   static const String sender = 'sender';
   static const String login = 'login';
@@ -64,6 +65,7 @@ class GithubWebhook extends RequestHandler {
       return Response.ok(jsonEncode(<String, String>{}));
     }
 
+    final String action = body[GithubWebhook.action] as String;
     final PullRequest pullRequest = PullRequest.fromJson(body[GithubWebhook.pullRequest] as Map<String, dynamic>);
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
     hasRevertLabel = pullRequest.labels!.any((label) => label.name == Config.kRevertLabel);
@@ -74,12 +76,13 @@ class GithubWebhook extends RequestHandler {
       log.info('Found pull request with auto submit and/or revert label.');
       // For revert requests need to save the author of the label to make sure
       // they are a member of the team allowed to submit changes.
-      final PullRequestMessage prRecord = PullRequestMessage(
-        pullRequest: pullRequest,
-        action: gitHubEvent,
-        sender: senderLogin,
-      );
-      await pubsub.publish(Config.pubsubPullRequestTopic, prRecord);
+      log.info('PullRequestMessage is: ${pullRequest.toJson()}, $action, $senderLogin');
+      // final PullRequestMessage pullRequestMessage = PullRequestMessage(
+      //   pullRequest: pullRequest,
+      //   action: action,
+      //   sender: senderLogin,
+      // );
+      await pubsub.publish(Config.pubsubPullRequestTopic, body);
     }
 
     return Response.ok(rawBody);
