@@ -13,7 +13,6 @@ import 'package:retry/retry.dart';
 import '../../cocoon_service.dart';
 import '../model/appengine/task.dart';
 import '../model/appengine/commit.dart';
-import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
 import '../service/exceptions.dart';
