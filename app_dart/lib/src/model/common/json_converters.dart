@@ -211,8 +211,9 @@ class GerritDateTimeConverter implements JsonConverter<DateTime?, String?> {
     final List<String> time = parts[2].split(':');
     final int hours = int.parse(time[0]);
     final int minutes = int.parse(time[1]);
+    final int seconds = int.parse(time[2]);
 
-    return DateTime(year, month, day, hours, minutes);
+    return DateTime(year, month, day, hours, minutes, seconds);
   }
 
   @override

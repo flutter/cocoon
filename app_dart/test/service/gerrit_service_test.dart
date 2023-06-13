@@ -212,12 +212,12 @@ const String commitsListJson = ''')]}'
       "author": {
         "name": "Dash",
         "email": "dash@flutter.dev",
-        "date": "2023-04-20 18:00:14.000000000"
+        "time": "Tue Apr 20 18:00:14 2023 +0000"
       },
       "committer": {
         "name": "CQ Bot Account",
         "email": "flutter-scoped@luci-project-accounts.iam.gserviceaccount.com",
-        "date": "2023-04-20 18:00:14.000000000"
+        "time": "Tue Apr 20 18:00:14 2023 +0000"
       },
       "message": "My first recipe change\\n\\ntested through `led get-builder"
     }
@@ -244,12 +244,12 @@ const String getCommitJson = ''')]}'
   "author": {
     "name": "Dash",
     "email": "dash@flutter.dev",
-    "date": "2023-04-20 18:00:14.000000000"
+    "time": "Wed Apr 20 18:00:14 2023 +0000"
   },
   "committer": {
     "name": "CQ Bot Account",
     "email": "flutter-scoped@luci-project-accounts.iam.gserviceaccount.com",
-    "date": "2023-04-20 18:00:14.000000000"
+    "time": "Wed Apr 20 18:00:14 2023 +0000"
   },
   "subject": "Use an EventBus to manage star icons",
   "message": "Use an EventBus to manage star icons\\n\\nImage widgets that need to ..."
