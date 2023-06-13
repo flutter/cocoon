@@ -71,15 +71,17 @@ class BranchService {
     if (branchTime == null) {
       throw BadRequestException('$engineSha has no commit time');
     }
+    log.info('Searching for a recipe commit before $branchTime');
     for (GerritCommit recipeCommit in recipeCommits) {
-      final DateTime? recipeTime = recipeCommit.author?.date;
+      final DateTime? recipeTime = recipeCommit.author?.time;
+
       if (recipeTime != null && recipeTime.isBefore(branchTime)) {
         final String revision = recipeCommit.commit!;
         return gerritService.createBranch(recipesSlug, branch, revision);
       }
     }
 
-    throw InternalServerError('Failed to find a revision to branch Flutter recipes for $branch');
+    throw InternalServerError('Failed to find a revision to flutter/recipes for $branch before $branchTime');
   }
 
   /// Returns a Map that contains the latest google3 roll, beta, and stable branches.

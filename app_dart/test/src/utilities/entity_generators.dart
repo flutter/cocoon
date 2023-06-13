@@ -255,7 +255,7 @@ GerritCommit generateGerritCommit(int i) => GerritCommit(
       tree: 'main',
       author: GerritUser(
         email: 'dash@flutter.dev',
-        date: DateTime.fromMillisecondsSinceEpoch(i),
+        time: DateTime.fromMillisecondsSinceEpoch(i),
       ),
     );
 

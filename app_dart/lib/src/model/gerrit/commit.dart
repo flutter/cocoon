@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/src/model/common/json_converters.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../request_handling/body.dart';
@@ -48,14 +49,16 @@ class GerritUser extends JsonBody {
   const GerritUser({
     this.name,
     this.email,
-    this.date,
+    this.time,
   });
 
   static GerritUser fromJson(Map<String, dynamic> json) => _$GerritUserFromJson(json);
 
   final String? name;
   final String? email;
-  final DateTime? date;
+
+  @GerritDateTimeConverter()
+  final DateTime? time;
 
   @override
   Map<String, dynamic> toJson() => _$GerritUserToJson(this);

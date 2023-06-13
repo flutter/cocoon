@@ -126,7 +126,9 @@ void main() {
       );
       expect(
         () async => branchService.branchFlutterRecipes(branch, sha),
-        throwsExceptionWith<InternalServerError>('Failed to find a revision to branch Flutter recipes for $branch'),
+        throwsExceptionWith<InternalServerError>(
+          'HTTP 500: Failed to find a revision to flutter/recipes for $branch before 1969-12-31',
+        ),
       );
     });
 
