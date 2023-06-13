@@ -81,6 +81,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: buildState,
           child: ValueProvider<GoogleSignInService>(
@@ -102,6 +103,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -121,6 +123,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -140,6 +143,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -168,6 +172,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -193,6 +198,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -224,6 +230,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -253,6 +260,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -278,7 +286,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData.dark(),
+        theme: ThemeData.dark(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -304,6 +312,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -333,7 +342,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData.dark(),
+        theme: ThemeData.dark(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -363,6 +372,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -388,7 +398,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData.dark(),
+        theme: ThemeData.dark(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -415,6 +425,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: buildState,
           child: ValueProvider<GoogleSignInService>(
@@ -462,6 +473,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: buildState,
           child: ValueProvider<GoogleSignInService>(
@@ -494,7 +506,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData.dark(),
+        theme: ThemeData.dark(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: buildState,
           child: ValueProvider<GoogleSignInService>(
@@ -527,6 +539,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -567,6 +580,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
