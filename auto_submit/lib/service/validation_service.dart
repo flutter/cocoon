@@ -249,7 +249,7 @@ class ValidationService {
   }) async {
     // This pull request should be the current closed pull request.
     final github.PullRequest pullRequest = pullRequestMessage.pullRequest!;
-    final String initiatingAuthor = pullRequestMessage.sender!;
+    final String initiatingAuthor = pullRequestMessage.sender!.login!;
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService githubService = await config.createGithubService(slug);
 

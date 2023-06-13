@@ -14,7 +14,7 @@ class PullRequestMessage {
   });
 
   /// The [PullRequest] object information.
-  @JsonKey(name: 'pull_request')
+  // @JsonKey(name: 'pull_request')
   final PullRequest? pullRequest;
 
   /// The action as used by github for a [PullRequest] event.
@@ -22,7 +22,7 @@ class PullRequestMessage {
 
   /// The author login of the person who initiated the event, currently only
   /// useful when processing revert requests.
-  final String? sender;
+  final User? sender;
 
   factory PullRequestMessage.fromJson(Map<String, dynamic> json) => _$PullRequestMessageFromJson(json);
 

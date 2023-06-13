@@ -52,7 +52,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     for (pub.ReceivedMessage message in messageList) {
       final String messageData = message.message!.data!;
 
-      final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
+      final Map<String, dynamic> rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
       log.info('request raw body = $rawBody');
       final PullRequestMessage pullRequestMessage = PullRequestMessage.fromJson(rawBody);
 
