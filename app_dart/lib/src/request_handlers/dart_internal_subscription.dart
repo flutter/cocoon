@@ -65,8 +65,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     late Task taskToInsert;
     if (existingTask != null) {
       log.info("Updating Task from existing Task");
-      existingTask.buildNumber = build.number;
-      existingTask.buildNumberList = '${build.number},${existingTask.buildNumberList}';
+      existingTask.updateFromBuildbucketBuild(build);
       taskToInsert = existingTask;
     } else {
       log.info("Creating Task from Buildbucket result");

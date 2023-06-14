@@ -182,7 +182,7 @@ void main() {
 
     // This is used for testing to pull the data out of the "datastore" so that
     // we can verify what was saved.
-    final String expectedBuilderList = "${buildId.toString()},${existingTaskId.toString()}";
+    final String expectedBuilderList = "${existingTaskId.toString()},${buildId.toString()}";
     late Task taskInDb;
     late Commit commitInDb;
     config.db.values.forEach((k, v) {

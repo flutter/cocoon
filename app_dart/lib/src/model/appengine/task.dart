@@ -131,7 +131,7 @@ class Task extends Model<int> {
     );
   }
 
-  /// Creates a task based on a buildbucket build.
+  /// Creates a [Task] based on a buildbucket [bb.Build].
   static Future<Task> fromBuildbucketBuild(
     bb.Build build,
     DatastoreService datastore,
@@ -151,8 +151,8 @@ class Task extends Model<int> {
     final RepositorySlug slug = RepositorySlug("flutter", repository);
     log.fine("Slug: ${slug.toString()}");
 
-    final int startTime = build.startTime != null ? build.startTime!.millisecondsSinceEpoch : 0;
-    final int endTime = build.endTime != null ? build.endTime!.millisecondsSinceEpoch : 0;
+    final int startTime = build.startTime?.millisecondsSinceEpoch ?? 0;
+    final int endTime = build.endTime?.millisecondsSinceEpoch ?? 0;
     log.fine("Start/end time (ms): $startTime, $endTime");
 
     final String id = '${slug.fullName}/$branch/$hash';
@@ -406,6 +406,25 @@ class Task extends Model<int> {
     endTimestamp = build.completedTimestamp?.millisecondsSinceEpoch ?? 0;
 
     _setStatusFromLuciStatus(build);
+  }
+
+  /// Updates [Task] based on a Buildbucket [Build].
+  void updateFromBuildbucketBuild(bb.Build build) {
+    buildNumber = build.number!;
+
+    if (buildNumberList == null) {
+      buildNumberList = '$buildNumber';
+    } else {
+      final Set<String> buildNumberSet = buildNumberList!.split(',').toSet();
+      buildNumberSet.add(buildNumber.toString());
+      buildNumberList = buildNumberSet.join(',');
+    }
+
+    createTimestamp = build.startTime?.millisecondsSinceEpoch ?? 0;
+    startTimestamp = build.startTime?.millisecondsSinceEpoch ?? 0;
+    endTimestamp = build.endTime?.millisecondsSinceEpoch ?? 0;
+
+    status = convertBuildbucketStatusToString(build.status!);
   }
 
   /// Get a [Task] status from a LUCI [Build] status/result.
