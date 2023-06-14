@@ -176,6 +176,104 @@ void main() {
         );
       });
 
+      test('filter release_build targets from release candidate branches', () {
+        final CiYaml releaseYaml = CiYaml(
+          slug: Config.flutterSlug,
+          branch: 'flutter-2.4-candidate.3',
+          config: pb.SchedulerConfig(
+            enabledBranches: <String>[
+              'flutter-2.4-candidate.3',
+            ],
+            targets: <pb.Target>[
+              pb.Target(
+                name: 'Linux A',
+                properties: <String, String>{'release_build': 'true'},
+              ),
+              pb.Target(
+                name: 'Linux B',
+              ),
+              pb.Target(
+                name: 'Mac A', // Should be ignored on release branches
+                bringup: true,
+              ),
+            ],
+          ),
+          totConfig: totCIYaml,
+        );
+        final List<Target> initialTargets = releaseYaml.postsubmitTargets;
+        final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
+        expect(initialTargetNames, isEmpty);
+      });
+
+      test('release_build targets for flutter-3.10-candidate.1 are not filtered', () {
+        final CiYaml releaseYaml = CiYaml(
+          slug: Config.flutterSlug,
+          branch: 'flutter-3.10-candidate.1',
+          config: pb.SchedulerConfig(
+            enabledBranches: <String>[
+              'flutter-3.10-candidate.1',
+            ],
+            targets: <pb.Target>[
+              pb.Target(
+                name: 'Linux A',
+                properties: <String, String>{'release_build': 'true'},
+              ),
+              pb.Target(
+                name: 'Linux B',
+              ),
+              pb.Target(
+                name: 'Mac A', // Should be ignored on release branches
+                bringup: true,
+              ),
+            ],
+          ),
+          totConfig: totCIYaml,
+        );
+        final List<Target> initialTargets = releaseYaml.postsubmitTargets;
+        final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
+        expect(
+          initialTargetNames,
+          containsAll(
+            <String>[
+              'Linux A',
+            ],
+          ),
+        );
+      });
+
+      test('release_build targets for main are not filtered', () {
+        final CiYaml releaseYaml = CiYaml(
+          slug: Config.flutterSlug,
+          branch: 'main',
+          config: pb.SchedulerConfig(
+            targets: <pb.Target>[
+              pb.Target(
+                name: 'Linux A',
+                properties: <String, String>{'release_build': 'true'},
+              ),
+              pb.Target(
+                name: 'Linux B',
+              ),
+              pb.Target(
+                name: 'Mac A', // Should be ignored on release branches
+                bringup: true,
+              ),
+            ],
+          ),
+          totConfig: totCIYaml,
+        );
+        final List<Target> initialTargets = releaseYaml.postsubmitTargets;
+        final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
+        expect(
+          initialTargetNames,
+          containsAll(
+            <String>[
+              'Linux A',
+            ],
+          ),
+        );
+      });
+
       test('validates yaml config', () {
         expect(
           () => CiYaml(

@@ -79,7 +79,27 @@ class CiYaml {
     if (totPostsubmitTargetNames!.isNotEmpty) {
       enabledTargets = filterOutdatedTargets(slug, enabledTargets, totPostsubmitTargetNames);
     }
+    // filter if release_build true if current branch is a release candidate branch.
+    enabledTargets = _filterReleaseBuildTargets(enabledTargets);
     return enabledTargets;
+  }
+
+  /// Filters targets with release_build = true on release candidate branches.
+  List<Target> _filterReleaseBuildTargets(List<Target> targets) {
+    final List<Target> results = <Target>[];
+    // TODO(godofredoc): remove flutter-3.10-candidate.1 once dart-internal v2 artifacs are released to dart-internal.
+    // https://github.com/flutter/flutter/issues/128844
+    final bool releaseBranch = branch.contains(RegExp('^flutter-')) && (branch != 'flutter-3.10-candidate.1');
+    if (!releaseBranch) {
+      return targets;
+    }
+    for (Target target in targets) {
+      final Map<String, Object> properties = target.getProperties();
+      if (!properties.containsKey('release_build') || !(properties['release_build'] as bool)) {
+        if (!target.value.bringup) results.add(target);
+      }
+    }
+    return results;
   }
 
   /// Filters targets that were removed from main. [slug] is the gihub
