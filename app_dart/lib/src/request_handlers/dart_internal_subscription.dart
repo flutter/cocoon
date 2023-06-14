@@ -5,14 +5,11 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
-import 'package:gcloud/db.dart';
-import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
 import '../model/appengine/task.dart';
-import '../model/appengine/commit.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
 import '../service/exceptions.dart';
