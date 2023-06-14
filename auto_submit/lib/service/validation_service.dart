@@ -255,7 +255,7 @@ class ValidationService {
 
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
-    // TODO this may not bee needed.
+    // TODO this may not be needed.
     // User must be a team member in order to initiate the revert request.
     if (!await githubService.isTeamMember(repositoryConfiguration.approvalGroup, initiatingAuthor, slug.owner)) {
       // Non team members may not revert issues.
@@ -329,6 +329,8 @@ class ValidationService {
       log.info('Ack the processed message : $ackId.');
       await pubsub.acknowledge('auto-submit-queue-sub', ackId);
       return;
+    } else {
+      await githubService.addLabels(slug, revertPrNumber, [Config.kRevertLabel],);
     }
 
     // Make sure the required checks run happen before auto approval of the revert.
