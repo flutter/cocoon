@@ -47,8 +47,11 @@ class DartInternalSubscription extends SubscriptionHandler {
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
 
-    log.info("Converting message data to non nullable int");
-
+    // This message comes from the engine_v2 recipes once a build run on
+    // dart-internal has completed.
+    //
+    // Example: https://flutter.googlesource.com/recipes/+/0b1232d4b3090f008cceb0a1c75059f763cc57a1/recipes/engine_v2/engine_v2.py#183
+    log.info("Getting buildbucket id from pubsub message");
     final int buildbucketId = int.parse(json.decode(message.data.toString())['buildbucket_id']);
 
     log.info("Creating build request object");
@@ -57,15 +60,10 @@ class DartInternalSubscription extends SubscriptionHandler {
     log.info(
       "Calling buildbucket api to get build data for build $buildbucketId",
     );
-    final Build build = await retryOptions.retry(
-      () async {
-        return _getBuildFromBuildbucket(request);
-      },
-      retryIf: (Exception e) => e is UnfinishedBuildException,
-    );
+    final Build build = await _getBuildFromBuildbucket(request);
 
     log.info("Checking for existing task in datastore");
-    final Task? existingTask = await _getExistingTaskFromDatastore(build, datastore);
+    final Task? existingTask = await datastore.getTaskFromBuildbucketBuild(build);
 
     late Task taskToInsert;
     if (existingTask != null) {
@@ -75,7 +73,7 @@ class DartInternalSubscription extends SubscriptionHandler {
       taskToInsert = existingTask;
     } else {
       log.info("Creating Task from Buildbucket result");
-      taskToInsert = await Task.fromBuildbucketResult(build, datastore);
+      taskToInsert = await Task.fromBuildbucketBuild(build, datastore);
     }
 
     log.info("Inserting Task into the datastore: ${taskToInsert.toString()}");
@@ -87,41 +85,24 @@ class DartInternalSubscription extends SubscriptionHandler {
   Future<Build> _getBuildFromBuildbucket(
     GetBuildRequest request,
   ) async {
-    final Build build = await buildBucketClient.getBuild(request);
+    return retryOptions.retry(
+      () async {
+        final Build build = await buildBucketClient.getBuild(request);
 
-    if (build.status == Status.started) {
-      log.info(
-        "Build is not finished",
-      );
-      throw UnfinishedBuildException(
-        "Build is not finished",
-      );
-    }
-    return build;
-  }
-
-  Future<Task?> _getExistingTaskFromDatastore(Build build, DatastoreService datastore) async {
-    log.fine("Generating commit key from buildbucket build: ${build.toString()}");
-
-    final String repository = build.input!.gitilesCommit!.project!.split('/')[1];
-    log.fine("Repository: $repository");
-
-    final String branch = build.input!.gitilesCommit!.ref!.split('/')[2];
-    log.fine("Branch: $branch");
-
-    final String hash = build.input!.gitilesCommit!.hash!;
-    log.fine("Hash: $hash");
-
-    final RepositorySlug slug = RepositorySlug("flutter", repository);
-    log.fine("Slug: ${slug.toString()}");
-
-    final String id = 'flutter/${slug.name}/$branch/$hash';
-    final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
-
-    try {
-      return await Task.fromDatastore(datastore: datastore, commitKey: commitKey, name: build.builderId.builder);
-    } catch (e) {
-      return null;
-    }
+        if (build.status != Status.success &&
+            build.status != Status.failure &&
+            build.status != Status.infraFailure &&
+            build.status != Status.canceled) {
+          log.info(
+            "Build is not finished",
+          );
+          throw UnfinishedBuildException(
+            "Build is not finished",
+          );
+        }
+        return build;
+      },
+      retryIf: (Exception e) => e is UnfinishedBuildException,
+    );
   }
 }

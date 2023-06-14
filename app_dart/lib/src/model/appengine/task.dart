@@ -132,15 +132,16 @@ class Task extends Model<int> {
   }
 
   /// Creates a task based on a buildbucket build.
-  static Future<Task> fromBuildbucketResult(
+  static Future<Task> fromBuildbucketBuild(
     bb.Build build,
     DatastoreService datastore,
   ) async {
     log.fine("Creating task from buildbucket result: ${build.toString()}");
-
+    // Example: Getting "flutter" from "mirrors/flutter".
     final String repository = build.input!.gitilesCommit!.project!.split('/')[1];
     log.fine("Repository: $repository");
 
+    // Example: Getting "stable" from "refs/heads/stable".
     final String branch = build.input!.gitilesCommit!.ref!.split('/')[2];
     log.fine("Branch: $branch");
 
@@ -154,14 +155,7 @@ class Task extends Model<int> {
     final int endTime = build.endTime != null ? build.endTime!.millisecondsSinceEpoch : 0;
     log.fine("Start/end time (ms): $startTime, $endTime");
 
-    final Key<String> key = Commit.createKey(
-      db: datastore.db,
-      slug: slug,
-      gitBranch: branch,
-      sha: hash,
-    );
-
-    final String id = 'flutter/${slug.name}/$branch/$hash';
+    final String id = '${slug.fullName}/$branch/$hash';
     final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
     final Commit commit = await datastore.db.lookupValue<Commit>(commitKey);
     final task = Task(
@@ -169,7 +163,7 @@ class Task extends Model<int> {
       buildNumber: build.number,
       buildNumberList: build.number.toString(),
       builderName: build.builderId.builder,
-      commitKey: key,
+      commitKey: commitKey,
       createTimestamp: startTime,
       endTimestamp: endTime,
       luciBucket: build.builderId.bucket,
