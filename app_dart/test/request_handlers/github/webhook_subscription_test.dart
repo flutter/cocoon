@@ -266,6 +266,47 @@ void main() {
       expect(scheduler.addPullRequestCallCnt, 1);
     });
 
+    test('Acts on opened against master when default is main', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        baseRef: 'master',
+        slug: Config.engineSlug,
+      );
+
+      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'packages/flutter/blah.dart',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verify(
+        pullRequestsService.edit(
+          Config.engineSlug,
+          issueNumber,
+          base: 'main',
+        ),
+      ).called(1);
+
+      verify(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains('master -> main')),
+        ),
+      ).called(1);
+    });
+
     // We already schedule checks when a draft is opened, don't need to re-test
     // just because it was marked ready for review
     test('Does nothing on ready_for_review', () async {
