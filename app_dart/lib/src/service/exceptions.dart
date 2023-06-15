@@ -11,3 +11,13 @@ class NoBuildFoundException implements Exception {
   @override
   String toString() => cause;
 }
+
+class UnfinishedBuildException implements Exception {
+  /// Create a custom exception for an unfinished buildbucket build
+  UnfinishedBuildException(this.cause);
+
+  final String cause;
+
+  @override
+  String toString() => cause;
+}

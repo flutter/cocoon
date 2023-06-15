@@ -4,11 +4,14 @@
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/luci/push_message.dart';
+import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/model/luci/push_message.dart' as pm;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
+
+import 'package:cocoon_service/src/model/luci/buildbucket.dart' as bb;
 
 import '../src/datastore/fake_config.dart';
 import '../src/utilities/entity_generators.dart';
@@ -35,7 +38,7 @@ void main() {
         final DateTime created = DateTime.utc(2022, 1, 11, 1, 1);
         final DateTime started = DateTime.utc(2022, 1, 11, 1, 2);
         final DateTime completed = DateTime.utc(2022, 1, 11, 1, 3);
-        final Build build = generatePushMessageBuild(
+        final pm.Build build = generatePushMessageBuild(
           1,
           createdTimestamp: created,
           startedTimestamp: started,
@@ -61,7 +64,7 @@ void main() {
       });
 
       test('defaults timestamps to 0', () {
-        final Build build = generatePushMessageBuild(1);
+        final pm.Build build = generatePushMessageBuild(1);
         final Task task = generateTask(1);
 
         expect(task.endTimestamp, 0);
@@ -76,10 +79,10 @@ void main() {
       });
 
       test('updates if buildNumber is prior to pushMessage', () {
-        final Build build = generatePushMessageBuild(
+        final pm.Build build = generatePushMessageBuild(
           1,
           buildNumber: 2,
-          status: Status.started,
+          status: pm.Status.started,
         );
         final Task task = generateTask(
           1,
@@ -98,9 +101,9 @@ void main() {
       });
 
       test('does not duplicate build numbers on multiple messages', () {
-        final Build build = generatePushMessageBuild(
+        final pm.Build build = generatePushMessageBuild(
           1,
-          status: Status.started,
+          status: pm.Status.started,
         );
         final Task task = generateTask(
           1,
@@ -120,9 +123,9 @@ void main() {
       });
 
       test('does not update status if older status', () {
-        final Build build = generatePushMessageBuild(
+        final pm.Build build = generatePushMessageBuild(
           1,
-          status: Status.started,
+          status: pm.Status.started,
         );
         final Task task = generateTask(
           1,
@@ -140,10 +143,10 @@ void main() {
       });
 
       test('does not update if build is older than task', () {
-        final Build build = generatePushMessageBuild(
+        final pm.Build build = generatePushMessageBuild(
           1,
-          status: Status.completed,
-          result: Result.success,
+          status: pm.Status.completed,
+          result: pm.Result.success,
         );
         final Task task = generateTask(
           1,
@@ -161,10 +164,10 @@ void main() {
       });
 
       test('handles cancelled build', () {
-        final Build build = generatePushMessageBuild(
+        final pm.Build build = generatePushMessageBuild(
           1,
-          status: Status.completed,
-          result: Result.canceled,
+          status: pm.Status.completed,
+          result: pm.Result.canceled,
         );
         final Task task = generateTask(
           1,
@@ -176,6 +179,72 @@ void main() {
         task.updateFromBuild(build);
         expect(task.status, Task.statusCancelled);
       });
+    });
+  });
+
+  group('updateFromBuildbucketBuild', () {
+    final DateTime startTime = DateTime(2023, 1, 1, 0, 0, 0);
+    final DateTime endTime = DateTime(2023, 1, 1, 0, 14, 23);
+    test('updates successfully', () {
+      final bb.Build fakeBuild = bb.Build(
+        builderId: const BuilderId(project: 'okay-project', bucket: 'good-bucket', builder: 'great-builder'),
+        number: 12345,
+        id: 'fake-build-id',
+        status: bb.Status.success,
+        startTime: startTime,
+        endTime: endTime,
+        input: const Input(
+          gitilesCommit: GitilesCommit(
+            project: "flutter/flutter",
+            hash: "12341234",
+            ref: "refs/heads/main",
+          ),
+        ),
+      );
+
+      final Task task = Task(
+        attempts: 1,
+        buildNumber: 1234,
+        buildNumberList: "1234",
+        builderName: "great-builder",
+        commitKey: null,
+        createTimestamp: 10,
+        endTimestamp: 50,
+        luciBucket: "good-bucket",
+        name: "test123",
+        stageName: "dart-internal",
+        startTimestamp: 10,
+        status: "Failed",
+        key: null,
+        timeoutInMinutes: 0,
+        reason: '',
+        requiredCapabilities: [],
+        reservedForAgentId: '',
+      );
+
+      task.updateFromBuildbucketBuild(fakeBuild);
+
+      final Task expectedUpdatedTask = Task(
+        attempts: 2,
+        buildNumber: 12345,
+        buildNumberList: "1234,12345",
+        builderName: "great-builder",
+        commitKey: null,
+        createTimestamp: startTime.millisecondsSinceEpoch,
+        endTimestamp: endTime.millisecondsSinceEpoch,
+        luciBucket: "good-bucket",
+        name: "test123",
+        stageName: "dart-internal",
+        startTimestamp: startTime.millisecondsSinceEpoch,
+        status: "Succeeded",
+        key: null,
+        timeoutInMinutes: 0,
+        reason: '',
+        requiredCapabilities: [],
+        reservedForAgentId: '',
+      );
+
+      expect(task.toString(), equals(expectedUpdatedTask.toString()));
     });
   });
 

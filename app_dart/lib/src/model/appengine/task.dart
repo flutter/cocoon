@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
+import 'package:github/github.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../request_handling/exceptions.dart';
@@ -13,6 +14,7 @@ import '../luci/push_message.dart';
 import 'commit.dart';
 import 'key_converter.dart';
 
+import 'package:cocoon_service/src/model/luci/buildbucket.dart' as bb;
 part 'task.g.dart';
 
 /// Class that represents the intersection of a test at a particular [Commit].
@@ -127,6 +129,73 @@ class Task extends Model<int> {
       commitKey: commitKey,
       id: int.parse(id),
     );
+  }
+
+  /// Creates a [Task] based on a buildbucket [bb.Build].
+  static Future<Task> fromBuildbucketBuild(
+    bb.Build build,
+    DatastoreService datastore,
+  ) async {
+    log.fine("Creating task from buildbucket result: ${build.toString()}");
+    // Example: Getting "flutter" from "mirrors/flutter".
+    final String repository = build.input!.gitilesCommit!.project!.split('/')[1];
+    log.fine("Repository: $repository");
+
+    // Example: Getting "stable" from "refs/heads/stable".
+    final String branch = build.input!.gitilesCommit!.ref!.split('/')[2];
+    log.fine("Branch: $branch");
+
+    final String hash = build.input!.gitilesCommit!.hash!;
+    log.fine("Hash: $hash");
+
+    final RepositorySlug slug = RepositorySlug("flutter", repository);
+    log.fine("Slug: ${slug.toString()}");
+
+    final int startTime = build.startTime?.millisecondsSinceEpoch ?? 0;
+    final int endTime = build.endTime?.millisecondsSinceEpoch ?? 0;
+    log.fine("Start/end time (ms): $startTime, $endTime");
+
+    final String id = '${slug.fullName}/$branch/$hash';
+    final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
+    final Commit commit = await datastore.db.lookupValue<Commit>(commitKey);
+    final task = Task(
+      attempts: 1,
+      buildNumber: build.number,
+      buildNumberList: build.number.toString(),
+      builderName: build.builderId.builder,
+      commitKey: commitKey,
+      createTimestamp: startTime,
+      endTimestamp: endTime,
+      luciBucket: build.builderId.bucket,
+      name: build.builderId.builder,
+      stageName: build.builderId.project,
+      startTimestamp: startTime,
+      status: convertBuildbucketStatusToString(build.status!),
+      key: commit.key.append(Task),
+      timeoutInMinutes: 0,
+      reason: '',
+      requiredCapabilities: [],
+      reservedForAgentId: '',
+    );
+    return task;
+  }
+
+  /// Converts a buildbucket status to a task status.
+  static String convertBuildbucketStatusToString(bb.Status status) {
+    switch (status) {
+      case bb.Status.success:
+        return statusSucceeded;
+      case bb.Status.canceled:
+        return statusCancelled;
+      case bb.Status.infraFailure:
+        return statusInfraFailure;
+      case bb.Status.started:
+        return statusInProgress;
+      case bb.Status.scheduled:
+        return statusNew;
+      default:
+        return statusFailed;
+    }
   }
 
   /// The task was cancelled.
@@ -337,6 +406,27 @@ class Task extends Model<int> {
     endTimestamp = build.completedTimestamp?.millisecondsSinceEpoch ?? 0;
 
     _setStatusFromLuciStatus(build);
+  }
+
+  /// Updates [Task] based on a Buildbucket [Build].
+  void updateFromBuildbucketBuild(bb.Build build) {
+    buildNumber = build.number!;
+
+    if (buildNumberList == null) {
+      buildNumberList = '$buildNumber';
+    } else {
+      final Set<String> buildNumberSet = buildNumberList!.split(',').toSet();
+      buildNumberSet.add(buildNumber.toString());
+      buildNumberList = buildNumberSet.join(',');
+    }
+
+    createTimestamp = build.startTime?.millisecondsSinceEpoch ?? 0;
+    startTimestamp = build.startTime?.millisecondsSinceEpoch ?? 0;
+    endTimestamp = build.endTime?.millisecondsSinceEpoch ?? 0;
+
+    attempts = buildNumberList!.split(',').length;
+
+    status = convertBuildbucketStatusToString(build.status!);
   }
 
   /// Get a [Task] status from a LUCI [Build] status/result.
