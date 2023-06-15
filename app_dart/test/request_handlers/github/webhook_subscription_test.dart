@@ -1224,6 +1224,7 @@ void foo() {
         action: 'opened',
         number: issueNumber,
         slug: Config.engineSlug,
+        baseRef: Config.defaultBranch(Config.engineSlug),
       );
       final RepositorySlug slug = RepositorySlug('flutter', 'engine');
 
@@ -1291,6 +1292,47 @@ void foo() {
           );
         });
       }
+    });
+
+    test('Engine does not label PR for no tests if on branch', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.engineSlug,
+        baseRef: 'flutter-3.12-candidate.1',
+      );
+
+      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'shell/platform/darwin/ios/framework/Source/boost.mm',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+
+      verifyNever(
+        issuesService.addLabelsToIssue(
+          Config.engineSlug,
+          issueNumber,
+          <String>['needs tests'],
+        ),
+      );
     });
 
     test('Engine does not label PR for no tests if author is skia-flutter-autoroll', () async {
@@ -1700,6 +1742,7 @@ void foo() {
         action: 'opened',
         number: issueNumber,
         slug: Config.packagesSlug,
+        baseRef: Config.defaultBranch(Config.packagesSlug),
       );
       when(pullRequestsService.listFiles(Config.packagesSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
