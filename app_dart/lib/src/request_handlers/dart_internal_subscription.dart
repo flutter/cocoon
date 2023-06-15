@@ -47,7 +47,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     // This message comes from the engine_v2 recipes once a build run on
     // dart-internal has completed.
     //
-    // Example: https://flutter.googlesource.com/recipes/+/0b1232d4b3090f008cceb0a1c75059f763cc57a1/recipes/engine_v2/engine_v2.py#183
+    // Example: https://flutter.googlesource.com/recipes/+/c6af020f0f22e392e30b769a5ed97fadace308fa/recipes/engine_v2/engine_v2.py#185
     log.info("Getting buildbucket id from pubsub message");
     final int buildbucketId = int.parse(json.decode(message.data.toString())['buildbucket_id']);
 
