@@ -424,7 +424,7 @@ class Task extends Model<int> {
     startTimestamp = build.startTime?.millisecondsSinceEpoch ?? 0;
     endTimestamp = build.endTime?.millisecondsSinceEpoch ?? 0;
 
-    attempts = (attempts ?? 0) + 1;
+    attempts = buildNumberList!.split(',').length;
 
     status = convertBuildbucketStatusToString(build.status!);
   }

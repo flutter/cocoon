@@ -207,7 +207,7 @@ void main() {
 
     // Ensure the task in the db is exactly what we expect
     final Task expectedTask = Task(
-      attempts: 1,
+      attempts: 2,
       buildNumber: buildId,
       buildNumberList: expectedBuilderList,
       builderName: builder,
