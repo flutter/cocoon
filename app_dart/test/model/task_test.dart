@@ -183,69 +183,69 @@ void main() {
   });
 
   group('updateFromBuildbucketBuild', () {
-      final DateTime startTime = DateTime(2023, 1, 1, 0, 0, 0);
-      final DateTime endTime = DateTime(2023, 1, 1, 0, 14, 23);
-      test('updates successfully', () {
-        final bb.Build fakeBuild = bb.Build(
-          builderId: const BuilderId(project: 'okay-project', bucket: 'good-bucket', builder: 'great-builder'),
-          number: 12345,
-          id: 'fake-build-id',
-          status: bb.Status.success,
-          startTime: startTime,
-          endTime: endTime,
-          input: const Input(
-            gitilesCommit: GitilesCommit(
-              project: "flutter/flutter",
-              hash: "12341234",
-              ref: "refs/heads/main",
-            ),
+    final DateTime startTime = DateTime(2023, 1, 1, 0, 0, 0);
+    final DateTime endTime = DateTime(2023, 1, 1, 0, 14, 23);
+    test('updates successfully', () {
+      final bb.Build fakeBuild = bb.Build(
+        builderId: const BuilderId(project: 'okay-project', bucket: 'good-bucket', builder: 'great-builder'),
+        number: 12345,
+        id: 'fake-build-id',
+        status: bb.Status.success,
+        startTime: startTime,
+        endTime: endTime,
+        input: const Input(
+          gitilesCommit: GitilesCommit(
+            project: "flutter/flutter",
+            hash: "12341234",
+            ref: "refs/heads/main",
           ),
-        );
+        ),
+      );
 
-        final Task task = Task(
-          attempts: 1,
-          buildNumber: 1234,
-          buildNumberList: "1234",
-          builderName: "great-builder",
-          commitKey: null,
-          createTimestamp: 10,
-          endTimestamp: 50,
-          luciBucket: "good-bucket",
-          name: "test123",
-          stageName: "dart-internal",
-          startTimestamp: 10,
-          status: "Failed",
-          key: null,
-          timeoutInMinutes: 0,
-          reason: '',
-          requiredCapabilities: [],
-          reservedForAgentId: '',
-        );
+      final Task task = Task(
+        attempts: 1,
+        buildNumber: 1234,
+        buildNumberList: "1234",
+        builderName: "great-builder",
+        commitKey: null,
+        createTimestamp: 10,
+        endTimestamp: 50,
+        luciBucket: "good-bucket",
+        name: "test123",
+        stageName: "dart-internal",
+        startTimestamp: 10,
+        status: "Failed",
+        key: null,
+        timeoutInMinutes: 0,
+        reason: '',
+        requiredCapabilities: [],
+        reservedForAgentId: '',
+      );
 
-        task.updateFromBuildbucketBuild(fakeBuild);
+      task.updateFromBuildbucketBuild(fakeBuild);
 
-        final Task expectedUpdatedTask = Task(
-          attempts: 2,
-          buildNumber: 12345,
-          buildNumberList: "1234,12345",
-          builderName: "great-builder",
-          commitKey: null,
-          createTimestamp: startTime.millisecondsSinceEpoch,
-          endTimestamp: endTime.millisecondsSinceEpoch,
-          luciBucket: "good-bucket",
-          name: "test123",
-          stageName: "dart-internal",
-          startTimestamp: startTime.millisecondsSinceEpoch,
-          status: "Succeeded",
-          key: null,
-          timeoutInMinutes: 0,
-          reason: '',
-          requiredCapabilities: [],
-          reservedForAgentId: '',
-        );
+      final Task expectedUpdatedTask = Task(
+        attempts: 2,
+        buildNumber: 12345,
+        buildNumberList: "1234,12345",
+        builderName: "great-builder",
+        commitKey: null,
+        createTimestamp: startTime.millisecondsSinceEpoch,
+        endTimestamp: endTime.millisecondsSinceEpoch,
+        luciBucket: "good-bucket",
+        name: "test123",
+        stageName: "dart-internal",
+        startTimestamp: startTime.millisecondsSinceEpoch,
+        status: "Succeeded",
+        key: null,
+        timeoutInMinutes: 0,
+        reason: '',
+        requiredCapabilities: [],
+        reservedForAgentId: '',
+      );
 
-        expect(task.toString(), equals(expectedUpdatedTask.toString()));
-      });
+      expect(task.toString(), equals(expectedUpdatedTask.toString()));
+    });
   });
 
   // TODO(chillers): There is a bug where `dart test` does not work in offline mode.
