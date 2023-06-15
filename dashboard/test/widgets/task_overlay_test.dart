@@ -88,6 +88,7 @@ void main() {
       Now.fixed(
         dateTime: nowTime,
         child: MaterialApp(
+          theme: ThemeData(useMaterial3: false),
           home: Scaffold(
             body: TestGrid(
               buildState: buildState,
@@ -146,6 +147,7 @@ void main() {
       Now.fixed(
         dateTime: nowTime,
         child: MaterialApp(
+          theme: ThemeData(useMaterial3: false),
           home: Scaffold(
             body: TestGrid(
               buildState: buildState,
@@ -299,6 +301,7 @@ void main() {
       Now.fixed(
         dateTime: nowTime,
         child: MaterialApp(
+          theme: ThemeData(useMaterial3: false),
           home: Scaffold(
             body: TestGrid(
               buildState: buildState,
