@@ -27,10 +27,10 @@ const List<String> kNotActuallyATest = <String>[
 ];
 
 /// List of repos that require check for tests.
-const Set<String> kNeedsTests = <String>{
-  'flutter/engine',
-  'flutter/flutter',
-  'flutter/packages',
+Set<RepositorySlug> kNeedsTests = <RepositorySlug>{
+  Config.engineSlug,
+  Config.flutterSlug,
+  Config.packagesSlug,
 };
 
 final RegExp kEngineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc|sh)$');
@@ -253,17 +253,19 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   Future<void> _checkForTests(PullRequestEvent pullRequestEvent) async {
     final PullRequest pr = pullRequestEvent.pullRequest!;
     final String? eventAction = pullRequestEvent.action;
-    final String repo = pr.base!.repo!.fullName.toLowerCase();
-    if (kNeedsTests.contains(repo)) {
-      final GitHub gitHubClient = await config.createGitHubClient(pullRequest: pr);
+    final RepositorySlug slug = pr.base!.repo!.slug();
+    final bool isTipOfTree = pr.base!.ref == Config.defaultBranch(slug);
+    final GitHub gitHubClient = await config.createGitHubClient(pullRequest: pr);
+    await _validateRefs(gitHubClient, pr);
+    if (kNeedsTests.contains(slug) && isTipOfTree) {
       try {
-        await _validateRefs(gitHubClient, pr);
-        if (repo == 'flutter/flutter') {
-          await _applyFrameworkRepoLabels(gitHubClient, eventAction, pr);
-        } else if (repo == 'flutter/engine') {
-          await _applyEngineRepoLabels(gitHubClient, eventAction, pr);
-        } else if (repo == 'flutter/plugins' || repo == 'flutter/packages') {
-          await _applyPackageTestChecks(gitHubClient, eventAction, pr);
+        switch (slug.name) {
+          case 'flutter':
+            return _applyFrameworkRepoLabels(gitHubClient, eventAction, pr);
+          case 'engine':
+            return _applyEngineRepoLabels(gitHubClient, eventAction, pr);
+          case 'packages':
+            return _applyPackageTestChecks(gitHubClient, eventAction, pr);
         }
       } finally {
         gitHubClient.dispose();

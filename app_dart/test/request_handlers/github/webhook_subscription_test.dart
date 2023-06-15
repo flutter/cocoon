@@ -266,47 +266,6 @@ void main() {
       expect(scheduler.addPullRequestCallCnt, 1);
     });
 
-    test('Acts on opened against master when default is main', () async {
-      const int issueNumber = 123;
-
-      tester.message = generateGithubWebhookMessage(
-        action: 'opened',
-        number: issueNumber,
-        baseRef: 'master',
-        slug: Config.engineSlug,
-      );
-
-      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
-        (_) => Stream<PullRequestFile>.value(
-          PullRequestFile()..filename = 'packages/flutter/blah.dart',
-        ),
-      );
-
-      when(issuesService.listCommentsByIssue(Config.engineSlug, issueNumber)).thenAnswer(
-        (_) => Stream<IssueComment>.value(
-          IssueComment()..body = 'some other comment',
-        ),
-      );
-
-      await tester.post(webhook);
-
-      verify(
-        pullRequestsService.edit(
-          Config.engineSlug,
-          issueNumber,
-          base: 'main',
-        ),
-      ).called(1);
-
-      verify(
-        issuesService.createComment(
-          Config.engineSlug,
-          issueNumber,
-          argThat(contains('master -> main')),
-        ),
-      ).called(1);
-    });
-
     // We already schedule checks when a draft is opened, don't need to re-test
     // just because it was marked ready for review
     test('Does nothing on ready_for_review', () async {
@@ -1224,6 +1183,7 @@ void foo() {
         action: 'opened',
         number: issueNumber,
         slug: Config.engineSlug,
+        baseRef: Config.defaultBranch(Config.engineSlug),
       );
       final RepositorySlug slug = RepositorySlug('flutter', 'engine');
 
@@ -1291,6 +1251,47 @@ void foo() {
           );
         });
       }
+    });
+
+    test('Engine does not label PR for no tests if on branch', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.engineSlug,
+        baseRef: 'flutter-3.12-candidate.1',
+      );
+
+      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'shell/platform/darwin/ios/framework/Source/boost.mm',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+
+      verifyNever(
+        issuesService.addLabelsToIssue(
+          Config.engineSlug,
+          issueNumber,
+          <String>['needs tests'],
+        ),
+      );
     });
 
     test('Engine does not label PR for no tests if author is skia-flutter-autoroll', () async {
@@ -1700,6 +1701,7 @@ void foo() {
         action: 'opened',
         number: issueNumber,
         slug: Config.packagesSlug,
+        baseRef: Config.defaultBranch(Config.packagesSlug),
       );
       when(pullRequestsService.listFiles(Config.packagesSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
