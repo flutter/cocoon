@@ -275,8 +275,12 @@ update these file paths accordingly.
   /// At this stage, the virtual [entitlementCurrentPath] accumulated through the recursive visit, is compared
   /// against the paths extracted from [fileWithEntitlements], to help determine if this file should be signed
   /// with entitlements.
-  Future<void> visitBinaryFile(
-      {required File binaryFile, required String parentVirtualPath, int retryCount = 3, int sleepTime = 1}) async {
+  Future<void> visitBinaryFile({
+    required File binaryFile,
+    required String parentVirtualPath,
+    int retryCount = 3,
+    int sleepTime = 1,
+  }) async {
     final String currentFileName = binaryFile.basename;
     final String entitlementCurrentPath = joinEntitlementPaths(parentVirtualPath, currentFileName);
 
