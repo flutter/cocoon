@@ -316,6 +316,8 @@ update these file paths accordingly.
       ],
     ];
 
+    log.info('Starting to codesign binary multiple times (default 3 times) to '
+        'reduce the flake from apple timestamp server');
     io.ProcessResult? result;
     while (retryCount > 0) {
       result = await processManager.run(args);
@@ -330,11 +332,11 @@ update these file paths accordingly.
       );
 
       retryCount -= 1;
-      io.sleep(Duration(seconds: sleepTime));
+      await Future.delayed(Duration(seconds: sleepTime));
       continue;
     }
     throw CodesignException('Failed to codesign ${binaryFile.absolute.path} with args: ${args.join(' ')}\n'
-        'stdout:\n${(result!.stdout as String).trim()}'
+        'stdout:\n${(result!.stdout as String).trim()}\n'
         'stderr:\n${(result.stderr as String).trim()}');
   }
 
