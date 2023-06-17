@@ -316,10 +316,9 @@ update these file paths accordingly.
       ],
     ];
 
-    log.info('Starting to codesign binary multiple times (default 3 times) to '
-        'reduce the flake from apple timestamp server');
     io.ProcessResult? result;
     while (retryCount > 0) {
+      log.info('Executing: ${args.join(' ')}\n');
       result = await processManager.run(args);
       if (result.exitCode == 0) {
         return;
