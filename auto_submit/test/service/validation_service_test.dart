@@ -101,7 +101,7 @@ void main() {
           authorName: 'member',
           state: ReviewState.APPROVED,
           memberType: MemberType.OWNER,
-        )
+        ),
       ],
     );
     githubService.checkRunsData = checkRunsMock;
@@ -153,7 +153,7 @@ void main() {
           authorName: 'member',
           state: ReviewState.APPROVED,
           memberType: MemberType.OWNER,
-        )
+        ),
       ],
       lastCommitStatuses: null,
     );
@@ -526,7 +526,7 @@ void main() {
             exception: OperationException(
               graphqlErrors: [
                 const GraphQLError(message: 'Account does not have merge permissions.'),
-                const GraphQLError(message: 'Base branch was modified. Review and try the merge again.')
+                const GraphQLError(message: 'Base branch was modified. Review and try the merge again.'),
               ],
             ),
           );

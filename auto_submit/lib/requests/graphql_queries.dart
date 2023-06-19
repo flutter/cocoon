@@ -135,7 +135,7 @@ class RevertPullRequestMutation extends GraphQLOperation {
         'clientMutationId': clientMutationId,
         'draft': draft,
         'pullRequestId': id,
-        'revertTitle': title
+        'revertTitle': title,
       };
 
   @override

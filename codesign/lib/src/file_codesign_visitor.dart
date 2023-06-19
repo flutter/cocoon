@@ -69,7 +69,7 @@ class FileCodesignVisitor {
   Map<String, String> availablePasswords = {
     'CODESIGN_APPSTORE_ID': '',
     'CODESIGN_TEAM_ID': '',
-    'APP_SPECIFIC_PASSWORD': ''
+    'APP_SPECIFIC_PASSWORD': '',
   };
 
   late final File entitlementsFile;
@@ -275,7 +275,12 @@ update these file paths accordingly.
   /// At this stage, the virtual [entitlementCurrentPath] accumulated through the recursive visit, is compared
   /// against the paths extracted from [fileWithEntitlements], to help determine if this file should be signed
   /// with entitlements.
-  Future<void> visitBinaryFile({required File binaryFile, required String parentVirtualPath}) async {
+  Future<void> visitBinaryFile({
+    required File binaryFile,
+    required String parentVirtualPath,
+    int retryCount = 3,
+    int sleepTime = 1,
+  }) async {
     final String currentFileName = binaryFile.basename;
     final String entitlementCurrentPath = joinEntitlementPaths(parentVirtualPath, currentFileName);
 
@@ -307,17 +312,31 @@ update these file paths accordingly.
       '--options=runtime', // hardened runtime
       if (fileWithEntitlements.contains(entitlementCurrentPath)) ...<String>[
         '--entitlements',
-        entitlementsFile.absolute.path
+        entitlementsFile.absolute.path,
       ],
     ];
-    final io.ProcessResult result = await processManager.run(args);
-    if (result.exitCode != 0) {
-      throw CodesignException(
+
+    io.ProcessResult? result;
+    while (retryCount > 0) {
+      log.info('Executing: ${args.join(' ')}\n');
+      result = await processManager.run(args);
+      if (result.exitCode == 0) {
+        return;
+      }
+
+      log.severe(
         'Failed to codesign ${binaryFile.absolute.path} with args: ${args.join(' ')}\n'
         'stdout:\n${(result.stdout as String).trim()}'
         'stderr:\n${(result.stderr as String).trim()}',
       );
+
+      retryCount -= 1;
+      await Future.delayed(Duration(seconds: sleepTime));
+      sleepTime *= 2;
     }
+    throw CodesignException('Failed to codesign ${binaryFile.absolute.path} with args: ${args.join(' ')}\n'
+        'stdout:\n${(result!.stdout as String).trim()}\n'
+        'stderr:\n${(result.stderr as String).trim()}');
   }
 
   /// Delete codesign metadata at ALL places inside engine binary.

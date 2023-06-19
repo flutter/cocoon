@@ -128,7 +128,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
           kModifyMode,
           kModifyType,
           content: modifiedContent,
-        )
+        ),
       ],
     );
     await gitHub.assignReviewer(slug, reviewer: prBuilder.pullRequestReviewer, pullRequestNumber: pullRequest.number);

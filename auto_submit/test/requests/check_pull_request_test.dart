@@ -742,7 +742,7 @@ void main() {
             authorName: 'some_rando',
             state: ReviewState.APPROVED,
             memberType: MemberType.MEMBER,
-          )
+          ),
         ],
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,

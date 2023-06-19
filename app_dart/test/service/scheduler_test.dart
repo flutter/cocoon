@@ -95,7 +95,7 @@ void main() {
       buildStatusService = FakeBuildStatusService(
         commitStatuses: <CommitStatus>[
           CommitStatus(generateCommit(1), const <Stage>[]),
-          CommitStatus(generateCommit(1, branch: 'main', repo: Config.engineSlug.name), const <Stage>[])
+          CommitStatus(generateCommit(1, branch: 'main', repo: Config.engineSlug.name), const <Stage>[]),
         ],
       );
       config = FakeConfig(
@@ -139,7 +139,7 @@ void main() {
         return CheckRun.fromJson(const <String, dynamic>{
           'id': 1,
           'started_at': '2020-05-10T02:49:31Z',
-          'check_suite': <String, dynamic>{'id': 2}
+          'check_suite': <String, dynamic>{'id': 2},
         });
       });
     });
@@ -471,7 +471,7 @@ targets:
         when(mockGithubChecksUtil.listCheckSuitesForRef(any, any, ref: anyNamed('ref'))).thenAnswer(
           (_) async => [
             // From check_run.check_suite.id in [checkRunString].
-            generateCheckSuite(668083231)
+            generateCheckSuite(668083231),
           ],
         );
         when(mockGithubService.getPullRequest(any, any)).thenAnswer((_) async => generatePullRequest());
@@ -489,7 +489,7 @@ targets:
             'id': 1,
             'started_at': '2020-05-10T02:49:31Z',
             'name': Scheduler.kCiYamlCheckName,
-            'check_suite': <String, dynamic>{'id': 2}
+            'check_suite': <String, dynamic>{'id': 2},
           });
         });
         final Map<String, dynamic> checkRunEventJson = jsonDecode(checkRunString) as Map<String, dynamic>;
@@ -852,7 +852,7 @@ targets:
             null,
             // runIf requires a diff in dev, so an error will cause it to be triggered
             'Linux runIf',
-            null
+            null,
           ],
         );
       });
@@ -1003,7 +1003,7 @@ targets:
                     generateBuild(2000, name: 'Linux Coverage', bucket: 'try'),
                     generateBuild(3000, name: 'Mac', bucket: 'try', status: Status.scheduled),
                     generateBuild(4000, name: 'Windows', bucket: 'try', status: Status.started),
-                    generateBuild(5000, name: 'Linux A', bucket: 'try', status: Status.failure)
+                    generateBuild(5000, name: 'Linux A', bucket: 'try', status: Status.failure),
                   ],
                 ),
               ),

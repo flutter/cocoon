@@ -195,7 +195,7 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 6,
-  )
+  ),
 ];
 
 const String expectedSemanticsIntegrationTestResponseTitle =
@@ -228,7 +228,7 @@ const List<String> expectedSemanticsIntegrationTestResponseLabels = <String>[
   'team: flakes',
   'severe: flake',
   'P1',
-  'framework'
+  'framework',
 ];
 const String expectedSemanticsIntegrationTestCiYamlContent = '''
 # Describes the targets run in continuous integration environment.
@@ -294,7 +294,7 @@ final List<BuilderStatistic> limitedNumberOfBuildsResponse = <BuilderStatistic>[
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 1,
     totalNumber: 4,
-  )
+  ),
 ];
 
 const String expectedLimitedNumberOfBuildsResponseBody = '''
@@ -330,7 +330,7 @@ final List<BuilderStatistic> analyzeTestResponse = <BuilderStatistic>[
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 6,
-  )
+  ),
 ];
 const String expectedAnalyzeTestResponseAssignee = 'HansMuller';
 const List<String> expectedAnalyzeTestResponseLabels = <String>[
@@ -350,7 +350,7 @@ final List<BuilderStatistic> frameworkTestResponse = <BuilderStatistic>[
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 6,
-  )
+  ),
 ];
 
 final List<BuilderStatistic> unknownTestResponse = <BuilderStatistic>[
@@ -363,7 +363,7 @@ final List<BuilderStatistic> unknownTestResponse = <BuilderStatistic>[
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 6,
-  )
+  ),
 ];
 const String expectedFrameworkTestResponseAssignee = 'HansMuller';
 const List<String> expectedFrameworkTestResponseLabels = <String>[

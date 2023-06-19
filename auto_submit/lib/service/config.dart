@@ -151,7 +151,7 @@ class Config {
     final String jwt = await _generateGithubJwt();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jwt',
-      'Accept': 'application/vnd.github.machine-man-preview+json'
+      'Accept': 'application/vnd.github.machine-man-preview+json',
     };
     // TODO(KristinBi): Upstream the github package.https://github.com/flutter/flutter/issues/100920
     final Uri githubInstallationUri = Uri.https('api.github.com', 'app/installations');
@@ -204,7 +204,7 @@ class Config {
     final String jwt = await _generateGithubJwt();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jwt',
-      'Accept': 'application/vnd.github.machine-man-preview+json'
+      'Accept': 'application/vnd.github.machine-man-preview+json',
     };
     final String installationId = await getInstallationId(slug);
     final Uri githubAccessTokensUri = Uri.https('api.github.com', 'app/installations/$installationId/access_tokens');

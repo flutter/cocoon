@@ -113,7 +113,7 @@ void main() {
             body: expectedSemanticsIntegrationTestResponseBody,
             createdAt:
                 DateTime.now().subtract(const Duration(days: UpdateExistingFlakyIssue.kFreshPeriodForOpenFlake + 1)),
-          )
+          ),
         ]);
       });
       // when firing github request.
@@ -182,7 +182,7 @@ void main() {
             body: expectedSemanticsIntegrationTestResponseBody,
             createdAt:
                 DateTime.now().subtract(const Duration(days: UpdateExistingFlakyIssue.kFreshPeriodForOpenFlake + 1)),
-          )
+          ),
         ]);
       });
       // when firing github request.
@@ -251,7 +251,7 @@ void main() {
             body: expectedStagingSemanticsIntegrationTestResponseBody,
             createdAt:
                 DateTime.now().subtract(const Duration(days: UpdateExistingFlakyIssue.kFreshPeriodForOpenFlake + 1)),
-          )
+          ),
         ]);
       });
       // when firing github request.
@@ -322,7 +322,7 @@ void main() {
             body: expectedSemanticsIntegrationTestResponseBody,
             createdAt:
                 DateTime.now().subtract(const Duration(days: UpdateExistingFlakyIssue.kFreshPeriodForOpenFlake + 1)),
-          )
+          ),
         ]);
       });
       // when firing github request.
@@ -379,7 +379,7 @@ void main() {
             body: expectedSemanticsIntegrationTestResponseBody,
             createdAt:
                 DateTime.now().subtract(const Duration(days: UpdateExistingFlakyIssue.kFreshPeriodForOpenFlake + 1)),
-          )
+          ),
         ]);
       });
       // when firing github request.
@@ -448,7 +448,7 @@ void main() {
             body: expectedSemanticsIntegrationTestResponseBody,
             createdAt:
                 DateTime.now().subtract(const Duration(days: UpdateExistingFlakyIssue.kFreshPeriodForOpenFlake - 1)),
-          )
+          ),
         ]);
       });
 

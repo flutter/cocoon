@@ -67,7 +67,7 @@ final List<BuilderStatistic> semanticsIntegrationTestResponseZeroFlake = <Builde
     flakyBuildOfRecentCommit: '',
     flakyNumber: 0,
     totalNumber: 10,
-  )
+  ),
 ];
 
 final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatistic>[
@@ -80,7 +80,7 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 10,
-  )
+  ),
 ];
 
 final List<BuilderStatistic> stagingSameBuilderSemanticsIntegrationTestResponse = <BuilderStatistic>[
@@ -93,7 +93,7 @@ final List<BuilderStatistic> stagingSameBuilderSemanticsIntegrationTestResponse 
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 10,
-  )
+  ),
 ];
 
 final List<BuilderStatistic> semanticsIntegrationTestResponseNotEnoughData = <BuilderStatistic>[
@@ -118,7 +118,7 @@ final List<BuilderStatistic> semanticsIntegrationTestResponseNotEnoughData = <Bu
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 7,
-  )
+  ),
 ];
 
 final List<BuilderStatistic> shardSemanticsIntegrationTestResponse = <BuilderStatistic>[
@@ -131,7 +131,7 @@ final List<BuilderStatistic> shardSemanticsIntegrationTestResponse = <BuilderSta
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 10,
-  )
+  ),
 ];
 
 final List<BuilderStatistic> ciyamlTestResponse = <BuilderStatistic>[
@@ -144,7 +144,7 @@ final List<BuilderStatistic> ciyamlTestResponse = <BuilderStatistic>[
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 10,
-  )
+  ),
 ];
 
 final List<BuilderStatistic> stagingCiyamlTestResponse = <BuilderStatistic>[
@@ -157,7 +157,7 @@ final List<BuilderStatistic> stagingCiyamlTestResponse = <BuilderStatistic>[
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 10,
-  )
+  ),
 ];
 
 const String expectedSemanticsIntegrationTestResponseTitle =
@@ -220,7 +220,7 @@ final CiYaml testCiYaml = CiYaml(
         scheduler: pb.SchedulerSystem.luci,
         presubmit: false,
         properties: <String, String>{
-          'tags': jsonEncode(['devicelab'])
+          'tags': jsonEncode(['devicelab']),
         },
       ),
       pb.Target(

@@ -94,11 +94,11 @@ void main() {
       final List<dynamic> expected = [
         {
           'id': 'flutter/flutter/main',
-          'branch': <String, String>{'branch': 'main', 'repository': 'flutter/flutter'}
+          'branch': <String, String>{'branch': 'main', 'repository': 'flutter/flutter'},
         },
         {
           'id': 'flutter/flutter/flutter-3.10-candidate.1',
-          'branch': <String, String>{'branch': 'flutter-3.10-candidate.1', 'repository': 'flutter/flutter'}
+          'branch': <String, String>{'branch': 'flutter-3.10-candidate.1', 'repository': 'flutter/flutter'},
         }
       ];
       expect(result, expected);
@@ -134,11 +134,11 @@ void main() {
       final List<dynamic> expected = [
         {
           'id': 'flutter/flutter/main',
-          'branch': <String, String>{'branch': 'main', 'repository': 'flutter/flutter'}
+          'branch': <String, String>{'branch': 'main', 'repository': 'flutter/flutter'},
         },
         {
           'id': 'flutter/engine/master',
-          'branch': {'branch': 'master', 'repository': 'flutter/engine'}
+          'branch': {'branch': 'master', 'repository': 'flutter/engine'},
         }
       ];
       expect(result, expected);

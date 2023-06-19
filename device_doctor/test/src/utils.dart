@@ -64,10 +64,10 @@ class FakeProcess extends Fake implements Process {
   FakeProcess(
     int exitCode, {
     List<List<int>>? err = const [
-      <int>[1, 2, 3]
+      <int>[1, 2, 3],
     ],
     List<List<int>>? out = const [
-      <int>[1, 2, 3]
+      <int>[1, 2, 3],
     ],
   })  : _exitCode = exitCode,
         _err = err,

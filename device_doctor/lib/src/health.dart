@@ -83,7 +83,7 @@ Future<Map<String, Map<String, dynamic>>> healthcheck(Map<String, List<HealthChe
   if (deviceChecks.isEmpty) {
     healthcheckMap[kAttachedDeviceHealthcheckKey] = <String, dynamic>{
       'status': false,
-      'details': kAttachedDeviceHealthcheckValue
+      'details': kAttachedDeviceHealthcheckValue,
     };
   } else {
     healthcheckMap[kAttachedDeviceHealthcheckKey] = <String, dynamic>{'status': true, 'details': null};
@@ -93,7 +93,7 @@ Future<Map<String, Map<String, dynamic>>> healthcheck(Map<String, List<HealthChe
     for (HealthCheckResult healthCheckResult in checks) {
       final Map<String, dynamic> healthCheckResultMap = <String, dynamic>{
         'status': healthCheckResult.succeeded,
-        'details': healthCheckResult.details
+        'details': healthCheckResult.details,
       };
       healthcheckMap[healthCheckResult.name] = healthCheckResultMap;
     }

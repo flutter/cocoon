@@ -368,7 +368,7 @@ void main() {
             '${rootDirectory.absolute.path}/remote_zip_2/zip_1',
             '.',
             '--include',
-            '*'
+            '*',
           ],
           onRun: () => fileSystem.file('${rootDirectory.path}/remote_zip_2/zip_1').createSync(recursive: true),
         ),
@@ -425,7 +425,7 @@ void main() {
             '${rootDirectory.absolute.path}/remote_zip_4/folder_1/zip_1',
             '.',
             '--include',
-            '*'
+            '*',
           ],
         ),
       ]);
@@ -594,7 +594,7 @@ void main() {
             '--timestamp',
             '--options=runtime',
             '--entitlements',
-            '${rootDirectory.absolute.path}/Entitlements.plist'
+            '${rootDirectory.absolute.path}/Entitlements.plist',
           ],
         ),
         FakeCommand(
@@ -1094,7 +1094,7 @@ status: Invalid''',
             'unzip',
             codesignVisitor.inputZipPath,
             '-d',
-            '${rootDirectory.absolute.path}/single_artifact'
+            '${rootDirectory.absolute.path}/single_artifact',
           ],
           onRun: () => fileSystem
             ..file('${rootDirectory.path}/single_artifact/entitlements.txt').createSync(recursive: true)
@@ -1108,7 +1108,7 @@ status: Invalid''',
             codesignVisitor.outputZipPath,
             '.',
             '--include',
-            '*'
+            '*',
           ],
         ),
         FakeCommand(
@@ -1161,7 +1161,7 @@ status: Invalid''',
             'unzip',
             codesignVisitor.inputZipPath,
             '-d',
-            '${rootDirectory.absolute.path}/single_artifact'
+            '${rootDirectory.absolute.path}/single_artifact',
           ],
           onRun: () => fileSystem
             ..file('${rootDirectory.path}/single_artifact/entitlements.txt').createSync(recursive: true)
@@ -1175,7 +1175,7 @@ status: Invalid''',
             codesignVisitor.outputZipPath,
             '.',
             '--include',
-            '*'
+            '*',
           ],
         ),
         FakeCommand(

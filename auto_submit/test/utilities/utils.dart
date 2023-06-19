@@ -31,7 +31,7 @@ class PullRequestHelper {
     this.authorAssociation = 'MEMBER',
     this.title = 'some_title',
     this.reviews = const <PullRequestReviewHelper>[
-      PullRequestReviewHelper(authorName: 'member', state: ReviewState.APPROVED, memberType: MemberType.MEMBER)
+      PullRequestReviewHelper(authorName: 'member', state: ReviewState.APPROVED, memberType: MemberType.MEMBER),
     ],
     this.lastCommitHash = 'oid',
     this.lastCommitStatuses = const <StatusHelper>[StatusHelper.flutterBuildSuccess],
@@ -83,7 +83,7 @@ class PullRequestHelper {
                           'targetUrl': 'https://${status.name}',
                         };
                       }).toList()
-                    : <dynamic>[]
+                    : <dynamic>[],
               },
             },
           }
@@ -98,7 +98,7 @@ QueryResult createQueryResult(PullRequestHelper pullRequest) {
   return QueryResult.fromJson(<String, dynamic>{
     'repository': <String, dynamic>{
       'pullRequest': pullRequest.toEntry().cast<String, dynamic>(),
-    }
+    },
   });
 }
 
