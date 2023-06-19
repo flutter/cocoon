@@ -69,7 +69,7 @@ class FileCodesignVisitor {
   Map<String, String> availablePasswords = {
     'CODESIGN_APPSTORE_ID': '',
     'CODESIGN_TEAM_ID': '',
-    'APP_SPECIFIC_PASSWORD': ''
+    'APP_SPECIFIC_PASSWORD': '',
   };
 
   late final File entitlementsFile;
@@ -312,7 +312,7 @@ update these file paths accordingly.
       '--options=runtime', // hardened runtime
       if (fileWithEntitlements.contains(entitlementCurrentPath)) ...<String>[
         '--entitlements',
-        entitlementsFile.absolute.path
+        entitlementsFile.absolute.path,
       ],
     ];
 
