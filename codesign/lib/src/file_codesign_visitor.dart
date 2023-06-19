@@ -333,7 +333,6 @@ update these file paths accordingly.
       retryCount -= 1;
       await Future.delayed(Duration(seconds: sleepTime));
       sleepTime *= 2;
-      continue;
     }
     throw CodesignException('Failed to codesign ${binaryFile.absolute.path} with args: ${args.join(' ')}\n'
         'stdout:\n${(result!.stdout as String).trim()}\n'
