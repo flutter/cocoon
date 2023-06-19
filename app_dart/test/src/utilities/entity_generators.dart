@@ -191,7 +191,7 @@ github.CheckRun generateCheckRun(
     'id': i,
     'name': name,
     'started_at': startedAt.toIso8601String(),
-    'check_suite': <String, dynamic>{'id': checkSuite}
+    'check_suite': <String, dynamic>{'id': checkSuite},
   });
 }
 

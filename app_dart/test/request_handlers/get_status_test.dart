@@ -135,12 +135,12 @@ void main() {
             'Commit': <String, dynamic>{
               'Sha': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
               'Message': 'test message 2',
-              'Author': <String, dynamic>{'Login': null, 'avatar_url': null}
+              'Author': <String, dynamic>{'Login': null, 'avatar_url': null},
             },
-            'Branch': 'master'
-          }
+            'Branch': 'master',
+          },
         },
-        'Stages': <String>[]
+        'Stages': <String>[],
       });
     });
 
@@ -179,12 +179,12 @@ void main() {
             'Commit': <String, dynamic>{
               'Sha': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
               'Message': 'test message 2',
-              'Author': <String, dynamic>{'Login': null, 'avatar_url': null}
+              'Author': <String, dynamic>{'Login': null, 'avatar_url': null},
             },
-            'Branch': 'flutter-1.1-candidate.1'
-          }
+            'Branch': 'flutter-1.1-candidate.1',
+          },
         },
-        'Stages': <String>[]
+        'Stages': <String>[],
       });
     });
   });

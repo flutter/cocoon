@@ -27,16 +27,16 @@ Map<String, dynamic> dataWithMultipleBuilds = <String, dynamic>{
       "branch": "dependabot/github_actions/ossf/scorecard-action-1.0.4",
       "latestGroupTasks": [
         {"id": "4566569471705088", "name": "format+analyze", "status": "COMPLETED"},
-        {"id": "5692469378547712", "name": "publishable", "status": "COMPLETED"}
-      ]
+        {"id": "5692469378547712", "name": "publishable", "status": "COMPLETED"},
+      ],
     },
     {
       "id": "6393714829426688",
       "branch": "dependabot/github_actions/ossf/scorecard-action-1.0.4",
       "latestGroupTasks": [
         {"id": "4930474559668224", "name": "format+analyze", "status": "COMPLETED"},
-        {"id": "4971160919080960", "name": "publishable", "status": "COMPLETED"}
-      ]
+        {"id": "4971160919080960", "name": "publishable", "status": "COMPLETED"},
+      ],
     }
-  ]
+  ],
 };

@@ -461,7 +461,7 @@ void main() {
           Issue(
             title: expectedSemanticsIntegrationTestResponseTitle,
             body: expectedSemanticsIntegrationTestResponseBody,
-          )
+          ),
         ]);
       });
       // When creates git tree
@@ -505,7 +505,7 @@ void main() {
             body: expectedSemanticsIntegrationTestResponseBody,
             state: 'closed',
             closedAt: DateTime.now().subtract(const Duration(days: kGracePeriodForClosedFlake - 1)),
-          )
+          ),
         ]);
       });
       // When creates git tree
@@ -549,7 +549,7 @@ void main() {
             body: expectedSemanticsIntegrationTestResponseBody,
             state: 'closed',
             closedAt: DateTime.now().subtract(const Duration(days: kGracePeriodForClosedFlake + 1)),
-          )
+          ),
         ]);
       });
       // When creates git tree
@@ -630,7 +630,7 @@ void main() {
             title: expectedSemanticsIntegrationTestPullRequestTitle,
             body: expectedSemanticsIntegrationTestPullRequestBody,
             state: 'open',
-          )
+          ),
         ]);
       });
 

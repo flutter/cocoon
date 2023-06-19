@@ -157,7 +157,7 @@ void main() {
                 'git_ref': 'refs/pull/1/head',
               },
             ),
-          )
+          ),
         ],
       );
 
@@ -185,7 +185,7 @@ void main() {
               builderId: builderId,
               buildNumber: 123,
             ),
-          )
+          ),
         ],
       );
 

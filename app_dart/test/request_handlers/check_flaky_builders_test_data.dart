@@ -284,7 +284,7 @@ final List<BuilderStatistic> stagingSemanticsIntegrationTestResponse = <BuilderS
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 10,
-  )
+  ),
 ];
 
 String gitHubEncode(String source) {

@@ -179,7 +179,7 @@ class BigqueryService {
           'parameterValue': <String, Object>{'value': '$limit'},
         },
       ],
-      'useLegacySql': false
+      'useLegacySql': false,
     });
     final QueryResponse response = await jobsResource.query(query, projectId);
     if (!response.jobComplete!) {

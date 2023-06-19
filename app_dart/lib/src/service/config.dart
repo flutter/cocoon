@@ -291,7 +291,7 @@ class Config {
   /// Service accounts used for PubSub messages.
   static const Set<String> allowedPubsubServiceAccounts = <String>{
     'flutter-devicelab@flutter-dashboard.iam.gserviceaccount.com',
-    'flutter-dashboard@appspot.gserviceaccount.com'
+    'flutter-dashboard@appspot.gserviceaccount.com',
   };
 
   int get maxTaskRetries => 2;
@@ -372,7 +372,7 @@ class Config {
     final String jsonWebToken = await generateJsonWebToken();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jsonWebToken',
-      'Accept': 'application/vnd.github.machine-man-preview+json'
+      'Accept': 'application/vnd.github.machine-man-preview+json',
     };
     final Uri githubAccessTokensUri = Uri.https('api.github.com', 'app/installations/$appInstallation/access_tokens');
     final http.Response response = await http.post(githubAccessTokensUri, headers: headers);
