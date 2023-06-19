@@ -363,7 +363,8 @@ void main() {
 
     test('successfully killed running processes', () async {
       output = <List<int>>[
-        utf8.encode('Proc #27: fg     T/ /TOP  LCM  t: 0 0:com.google.android.apps.nexuslauncher/u0a199 (top-activity)'),
+        utf8.encode(
+            'Proc #27: fg     T/ /TOP  LCM  t: 0 0:com.google.android.apps.nexuslauncher/u0a199 (top-activity)'),
       ];
       listProcess = FakeProcess(0, out: output);
       killProcess = FakeProcess(0);
@@ -407,7 +408,8 @@ void main() {
 
     test('fails to kill running processes', () async {
       output = <List<int>>[
-        utf8.encode('Proc #27: fg     T/ /TOP  LCM  t: 0 0:com.google.android.apps.nexuslauncher/u0a199 (top-activity)'),
+        utf8.encode(
+            'Proc #27: fg     T/ /TOP  LCM  t: 0 0:com.google.android.apps.nexuslauncher/u0a199 (top-activity)'),
       ];
       listProcess = FakeProcess(0, out: output);
       killProcess = FakeProcess(1);
