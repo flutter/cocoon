@@ -77,35 +77,35 @@ void main() {
     test('with no device', () async {
       final Map<String, Map<String, dynamic>> healthcheckMap = await healthcheck(deviceChecks);
       expect(healthcheckMap, <String, Map<String, dynamic>>{
-        kAttachedDeviceHealthcheckKey: <String, dynamic>{'status': false, 'details': kAttachedDeviceHealthcheckValue}
+        kAttachedDeviceHealthcheckKey: <String, dynamic>{'status': false, 'details': kAttachedDeviceHealthcheckValue},
       });
     });
 
     test('with failed check', () async {
       final List<HealthCheckResult> healthChecks = <HealthCheckResult>[
         HealthCheckResult.success('check1'),
-        HealthCheckResult.failure('check2', 'abc')
+        HealthCheckResult.failure('check2', 'abc'),
       ];
       deviceChecks['device1'] = healthChecks;
       final Map<String, Map<String, dynamic>> healthcheckMap = await healthcheck(deviceChecks);
       expect(healthcheckMap, <String, Map<String, dynamic>>{
         kAttachedDeviceHealthcheckKey: <String, dynamic>{'status': true, 'details': null},
         'check1': <String, dynamic>{'status': true, 'details': null},
-        'check2': <String, dynamic>{'status': false, 'details': 'abc'}
+        'check2': <String, dynamic>{'status': false, 'details': 'abc'},
       });
     });
 
     test('without failed check', () async {
       final List<HealthCheckResult> healthChecks = <HealthCheckResult>[
         HealthCheckResult.success('check1'),
-        HealthCheckResult.success('check2')
+        HealthCheckResult.success('check2'),
       ];
       deviceChecks['device1'] = healthChecks;
       final Map<String, Map<String, dynamic>> healthcheckMap = await healthcheck(deviceChecks);
       expect(healthcheckMap, <String, Map<String, dynamic>>{
         kAttachedDeviceHealthcheckKey: <String, dynamic>{'status': true, 'details': null},
         'check1': <String, dynamic>{'status': true, 'details': null},
-        'check2': <String, dynamic>{'status': true, 'details': null}
+        'check2': <String, dynamic>{'status': true, 'details': null},
       });
     });
   });

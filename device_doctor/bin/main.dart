@@ -56,7 +56,7 @@ Future<void> main(List<String> args) async {
       allowedHelp: {
         'healthcheck': 'Check device health status.',
         'recovery': 'Clean up and reboot device.',
-        'properties': 'Return device properties/dimensions.'
+        'properties': 'Return device properties/dimensions.',
       },
     )
     ..addOption('$outputFlag', help: 'Path to the output file')
