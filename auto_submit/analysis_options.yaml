@@ -7,3 +7,4 @@ analyzer:
 linter:
   rules:
     constant_identifier_names: false # we have all capitalized enums in check_for_waiting_pull_requests_test.dart
+    require_trailing_commas: true # this is required to pass cocoon tests.
