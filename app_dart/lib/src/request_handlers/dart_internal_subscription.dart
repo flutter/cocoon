@@ -49,7 +49,10 @@ class DartInternalSubscription extends SubscriptionHandler {
     //
     // Example: https://flutter.googlesource.com/recipes/+/c6af020f0f22e392e30b769a5ed97fadace308fa/recipes/engine_v2/engine_v2.py#185
     log.info("Getting buildbucket id from pubsub message");
-    final int buildbucketId = int.parse(json.decode(message.data.toString())['buildbucket_id']);
+    final dynamic messageJson = json.decode(message.data.toString());
+    log.info("Message as json: $messageJson");
+    log.info("buildbucket id: ${messageJson['buildbucket_id']}");
+    final int buildbucketId = int.parse(messageJson['buildbucket_id']);
 
     log.info("Creating build request object");
     final GetBuildRequest request = GetBuildRequest(id: buildbucketId.toString(), fields: "id,builder,number,createdBy,createTime,startTime,endTime,updateTime,status,input.properties,input.gitilesCommit");
