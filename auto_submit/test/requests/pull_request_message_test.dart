@@ -584,7 +584,8 @@ const String labeledPullRequest = '''
 
 void main() {
   test('description', () {
-    PullRequestMessage pullRequestMessage = PullRequestMessage.fromJson(json.decode(labeledPullRequest) as Map<String, dynamic>);
+    PullRequestMessage pullRequestMessage =
+        PullRequestMessage.fromJson(json.decode(labeledPullRequest) as Map<String, dynamic>);
     expect(pullRequestMessage.pullRequest, isNotNull);
     expect(pullRequestMessage.action, isNotNull);
     expect(pullRequestMessage.sender, isNotNull);

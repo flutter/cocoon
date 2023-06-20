@@ -90,6 +90,9 @@ class Config {
   static const String pubsubPullRequestTopic = 'auto-submit-queue';
   static const String pubsubPullRequestSubscription = 'auto-submit-queue-sub';
 
+  static const String pubsubRevertTopic = 'revert-queue';
+  static const String pubsubRevertSubscription = 'revert-queue-sub';
+
   /// Retry options for timing related retryable code.
   static const RetryOptions mergeRetryOptions = RetryOptions(
     delayFactor: Duration(milliseconds: 200),

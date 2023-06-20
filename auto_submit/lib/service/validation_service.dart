@@ -330,7 +330,11 @@ class ValidationService {
       await pubsub.acknowledge('auto-submit-queue-sub', ackId);
       return;
     } else {
-      await githubService.addLabels(slug, revertPrNumber, [Config.kRevertLabel],);
+      await githubService.addLabels(
+        slug,
+        revertPrNumber,
+        [Config.kRevertLabel],
+      );
     }
 
     // Make sure the required checks run happen before auto approval of the revert.

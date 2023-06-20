@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:auto_submit/requests/pull_request_message.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 import 'package:crypto/crypto.dart';
@@ -46,44 +47,49 @@ class GithubWebhook extends RequestHandler {
     if (gitHubEvent == null || request.headers[GithubWebhook.signatureHeader] == null) {
       throw const BadRequestException('Missing required headers.');
     }
+
     final List<int> requestBytes = await request.read().expand((_) => _).toList();
     final String? hmacSignature = request.headers[GithubWebhook.signatureHeader];
+
     if (!await _validateRequest(hmacSignature, requestBytes)) {
       log.info('User is forbidden');
       throw const Forbidden();
     }
 
-    // Listen to the pull request with 'autosubmit' or 'revert' label.
-    bool hasAutosubmit = false;
-    bool hasRevertLabel = false;
     final String rawBody = utf8.decode(requestBytes);
     final body = json.decode(rawBody) as Map<String, dynamic>;
 
-    if (!body.containsKey(GithubWebhook.pullRequest) ||
-        !((body[GithubWebhook.pullRequest] as Map<String, dynamic>).containsKey(GithubWebhook.labels))) {
+    final String actionFound = body[GithubWebhook.action] as String;
+
+    if (gitHubEvent != 'pull_request' && actionFound != 'labeled') {
       return Response.ok(jsonEncode(<String, String>{}));
     }
 
-    final String action = body[GithubWebhook.action] as String;
     final PullRequest pullRequest = PullRequest.fromJson(body[GithubWebhook.pullRequest] as Map<String, dynamic>);
-    hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
-    hasRevertLabel = pullRequest.labels!.any((label) => label.name == Config.kRevertLabel);
+    final User user = User.fromJson(body[GithubWebhook.sender] as Map<String, dynamic>);
+    final PullRequestMessage pullRequestMessage = PullRequestMessage(
+      pullRequest: pullRequest,
+      sender: user,
+      action: actionFound,
+    );
+    final IssueLabel issueLabel = IssueLabel.fromJson(body['label'] as Map<String, dynamic>);
 
-    final String senderLogin = body[GithubWebhook.sender][GithubWebhook.login];
-
-    if (hasAutosubmit || hasRevertLabel) {
-      log.info('Found pull request with auto submit and/or revert label.');
-      // For revert requests need to save the author of the label to make sure
-      // they are a member of the team allowed to submit changes.
-      log.info('PullRequestMessage is: ${pullRequest.toJson()}, $action, $senderLogin');
-      // final PullRequestMessage pullRequestMessage = PullRequestMessage(
-      //   pullRequest: pullRequest,
-      //   action: action,
-      //   sender: senderLogin,
-      // );
-      await pubsub.publish(Config.pubsubPullRequestTopic, body);
+    switch (issueLabel.name) {
+      case (Config.kAutosubmitLabel):
+        {
+          await pubsub.publish(Config.pubsubPullRequestTopic, pullRequestMessage);
+          break;
+        }
+      case (Config.kRevertLabel):
+        {
+          await pubsub.publish(Config.pubsubRevertTopic, pullRequestMessage);
+          break;
+        }
+      default:
+        return Response.ok(jsonEncode(<String, String>{}));
     }
 
+    log.info('Found pull request with auto submit and/or revert label.');
     return Response.ok(rawBody);
   }
 
