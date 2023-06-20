@@ -52,7 +52,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     final int buildbucketId = int.parse(json.decode(message.data.toString())['buildbucket_id']);
 
     log.info("Creating build request object");
-    final GetBuildRequest request = GetBuildRequest(id: buildbucketId.toString());
+    final GetBuildRequest request = GetBuildRequest(id: buildbucketId.toString(), fields: "id,builder,number,createdBy,createTime,startTime,endTime,updateTime,status,input.properties,input.gitilesCommit");
 
     log.info(
       "Calling buildbucket api to get build data for build $buildbucketId",
@@ -69,7 +69,8 @@ class DartInternalSubscription extends SubscriptionHandler {
       taskToInsert = existingTask;
     } else {
       log.info("Creating Task from Buildbucket result");
-      taskToInsert = await Task.fromBuildbucketBuild(build, datastore);
+      final Map<String, Object> buildProperties = build.input!.properties!["build"] as Map<String, Object>;
+      taskToInsert = await Task.fromBuildbucketBuild(build, datastore, buildProperties["name"] as String);
     }
 
     log.info("Inserting Task into the datastore: ${taskToInsert.toString()}");
