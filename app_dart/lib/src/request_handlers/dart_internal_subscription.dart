@@ -49,18 +49,33 @@ class DartInternalSubscription extends SubscriptionHandler {
     //
     // Example: https://flutter.googlesource.com/recipes/+/c6af020f0f22e392e30b769a5ed97fadace308fa/recipes/engine_v2/engine_v2.py#185
     log.info("Getting buildbucket id from pubsub message");
-    final int buildbucketId = int.parse(json.decode(message.data.toString())['buildbucket_id']);
+    final dynamic messageJson = json.decode(message.data.toString());
+
+    final int buildbucketId = messageJson['buildbucket_id'];
+    log.info("Buildbucket id: $buildbucketId");
 
     log.info("Creating build request object");
-    final GetBuildRequest request = GetBuildRequest(id: buildbucketId.toString());
+    final GetBuildRequest request = GetBuildRequest(
+      id: buildbucketId.toString(),
+      fields:
+          "id,builder,number,createdBy,createTime,startTime,endTime,updateTime,status,input.properties,input.gitilesCommit",
+    );
 
     log.info(
       "Calling buildbucket api to get build data for build $buildbucketId",
     );
     final Build build = await _getBuildFromBuildbucket(request);
 
+    // This is for handling subbuilds, based on the engine_v2 strategy of running
+    // builds under the same builder ({Platform} Engine Drone).
+    String? name;
+    if (build.input?.properties != null && build.input?.properties?["build"] != null) {
+      final Map<String, Object> buildProperties = build.input?.properties?["build"] as Map<String, Object>;
+      name = buildProperties["name"] as String;
+    }
+
     log.info("Checking for existing task in datastore");
-    final Task? existingTask = await datastore.getTaskFromBuildbucketBuild(build);
+    final Task? existingTask = await datastore.getTaskFromBuildbucketBuild(build, customName: name);
 
     late Task taskToInsert;
     if (existingTask != null) {
@@ -69,7 +84,7 @@ class DartInternalSubscription extends SubscriptionHandler {
       taskToInsert = existingTask;
     } else {
       log.info("Creating Task from Buildbucket result");
-      taskToInsert = await Task.fromBuildbucketBuild(build, datastore);
+      taskToInsert = await Task.fromBuildbucketBuild(build, datastore, customName: name);
     }
 
     log.info("Inserting Task into the datastore: ${taskToInsert.toString()}");

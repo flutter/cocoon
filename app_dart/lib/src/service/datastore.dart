@@ -303,7 +303,10 @@ class DatastoreService {
     return result;
   }
 
-  Future<Task?> getTaskFromBuildbucketBuild(Build build) async {
+  Future<Task?> getTaskFromBuildbucketBuild(
+    Build build, {
+    String? customName,
+  }) async {
     log.fine("Generating commit key from buildbucket build: ${build.toString()}");
 
     final String repository = build.input!.gitilesCommit!.project!.split('/')[1];
@@ -322,7 +325,11 @@ class DatastoreService {
     final Key<String> commitKey = db.emptyKey.append<String>(Commit, id: id);
 
     try {
-      return await Task.fromDatastore(datastore: this, commitKey: commitKey, name: build.builderId.builder);
+      return await Task.fromDatastore(
+        datastore: this,
+        commitKey: commitKey,
+        name: customName ?? build.builderId.builder,
+      );
     } on InternalServerError catch (e) {
       log.warning("Failed to find an existing task for the buildbucket build: ${e.toString()}");
       return null;
