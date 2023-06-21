@@ -55,7 +55,10 @@ class DartInternalSubscription extends SubscriptionHandler {
     log.info("Buildbucket id: $buildbucketId");
 
     log.info("Creating build request object");
-    final GetBuildRequest request = GetBuildRequest(id: messageJson['buildbucket_id'].toString(), fields: "id,builder,number,createdBy,createTime,startTime,endTime,updateTime,status,input.properties,input.gitilesCommit");
+    final GetBuildRequest request = GetBuildRequest(
+        id: messageJson['buildbucket_id'].toString(),
+        fields:
+            "id,builder,number,createdBy,createTime,startTime,endTime,updateTime,status,input.properties,input.gitilesCommit");
 
     log.info(
       "Calling buildbucket api to get build data for build $buildbucketId",
@@ -63,8 +66,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     final Build build = await _getBuildFromBuildbucket(request);
 
     String? name;
-    if (build.input?.properties != null && build.input?.properties?["build"] != null)
-    {
+    if (build.input?.properties != null && build.input?.properties?["build"] != null) {
       final Map<String, Object> buildProperties = build.input?.properties?["build"] as Map<String, Object>;
       name = buildProperties["name"] as String;
     }

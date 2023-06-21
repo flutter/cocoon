@@ -78,9 +78,7 @@ void main() {
           ref: "refs/heads/$fakeBranch",
         ),
         properties: <String, Object>{
-          'build': <String, String>{
-            'name': 'Mac Unit_Test'
-          },
+          'build': <String, String>{'name': propertiesBuildName},
         },
       ),
     );
