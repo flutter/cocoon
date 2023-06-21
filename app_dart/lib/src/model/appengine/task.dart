@@ -135,7 +135,7 @@ class Task extends Model<int> {
   static Future<Task> fromBuildbucketBuild(
     bb.Build build,
     DatastoreService datastore,
-    { String? customBuildName }
+    { String? customName }
   ) async {
     log.fine("Creating task from buildbucket result: ${build.toString()}");
     // Example: Getting "flutter" from "mirrors/flutter".
@@ -168,7 +168,7 @@ class Task extends Model<int> {
       createTimestamp: startTime,
       endTimestamp: endTime,
       luciBucket: build.builderId.bucket,
-      name: customBuildName ?? build.builderId.builder,
+      name: customName ?? build.builderId.builder,
       stageName: build.builderId.project,
       startTimestamp: startTime,
       status: convertBuildbucketStatusToString(build.status!),

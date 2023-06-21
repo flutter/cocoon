@@ -72,13 +72,13 @@ class DartInternalSubscription extends SubscriptionHandler {
       taskToInsert = existingTask;
     } else {
       log.info("Creating Task from Buildbucket result");
-      String? buildName;
+      String? name;
       if (build.input?.properties != null && build.input?.properties?["build"] != null)
       {
         final Map<String, Object> buildProperties = build.input?.properties?["build"] as Map<String, Object>;
-        buildName = buildProperties["name"] as String;
+        name = buildProperties["name"] as String;
       }
-      taskToInsert = await Task.fromBuildbucketBuild(build, datastore, customBuildName: buildName);
+      taskToInsert = await Task.fromBuildbucketBuild(build, datastore, customName: name);
     }
 
     log.info("Inserting Task into the datastore: ${taskToInsert.toString()}");
