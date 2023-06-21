@@ -281,6 +281,7 @@ class LuciBuildService {
   /// The buildset, user_agent, and github_link tags are applied to match the
   /// original build. The build properties and user data from the original build
   /// are also preserved.
+  // TODO - this appears to be unused.
   Future<Build> rescheduleBuild({
     required String commitSha,
     required String builderName,

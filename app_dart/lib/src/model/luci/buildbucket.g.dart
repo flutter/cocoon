@@ -382,6 +382,7 @@ Build _$BuildFromJson(Map<String, dynamic> json) => Build(
       tags: const TagsConverter().fromJson(json['tags'] as List?),
       input: json['input'] == null ? null : Input.fromJson(json['input'] as Map<String, dynamic>),
       summaryMarkdown: json['summaryMarkdown'] as String?,
+      cancelationMarkdown: json['cancelationMarkdown'] as String?,
       critical: $enumDecodeNullable(_$TrinaryEnumMap, json['critical']),
     );
 
@@ -404,6 +405,7 @@ Map<String, dynamic> _$BuildToJson(Build instance) {
   writeNotNull('endTime', instance.endTime?.toIso8601String());
   writeNotNull('status', _$StatusEnumMap[instance.status]);
   writeNotNull('summaryMarkdown', instance.summaryMarkdown);
+  writeNotNull('cancelationMarkdown', instance.cancelationMarkdown);
   writeNotNull('tags', const TagsConverter().toJson(instance.tags));
   writeNotNull('critical', _$TrinaryEnumMap[instance.critical]);
   writeNotNull('input', instance.input);

@@ -661,6 +661,7 @@ class Build extends JsonBody {
     this.tags,
     this.input,
     this.summaryMarkdown,
+    this.cancelationMarkdown,
     this.critical,
   });
 
@@ -707,6 +708,9 @@ class Build extends JsonBody {
   ///
   /// Up to 4kb.
   final String? summaryMarkdown;
+
+  /// Markdown reasoning for cancelling the build.
+  final String? cancelationMarkdown;
 
   /// Arbitrary annotations for the build.
   ///
@@ -903,6 +907,16 @@ enum Trinary {
   /// setting the JSON field to null.
   @JsonValue('UNSET')
   unset,
+}
+
+// Compression method used in the corresponding data.
+enum Compression {
+  /// The default value assumed.
+  @JsonValue('ZLIB')
+  zlib,
+
+  @JsonValue('ZSTD')
+  zstd,
 }
 
 /// A requested dimension. Looks like StringPair, but also has an expiration.
