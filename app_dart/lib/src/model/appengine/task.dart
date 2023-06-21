@@ -163,7 +163,7 @@ class Task extends Model<int> {
       attempts: 1,
       buildNumber: build.number,
       buildNumberList: build.number.toString(),
-      builderName: customBuildName ?? build.builderId.builder,
+      builderName: build.builderId.builder,
       commitKey: commitKey,
       createTimestamp: startTime,
       endTimestamp: endTime,

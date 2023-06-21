@@ -133,7 +133,7 @@ void main() {
       attempts: 1,
       buildNumber: buildId,
       buildNumberList: buildId.toString(),
-      builderName: propertiesBuildName,
+      builderName: builder,
       commitKey: commitInDb.key,
       createTimestamp: startTime.millisecondsSinceEpoch,
       endTimestamp: endTime.millisecondsSinceEpoch,
