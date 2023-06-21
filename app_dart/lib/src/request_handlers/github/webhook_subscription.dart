@@ -258,7 +258,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     final GitHub gitHubClient = await config.createGitHubClient(pullRequest: pr);
     await _validateRefs(gitHubClient, pr);
     if (kNeedsTests.contains(slug) && isTipOfTree) {
-      try {
         switch (slug.name) {
           case 'flutter':
             return _applyFrameworkRepoLabels(gitHubClient, eventAction, pr);
@@ -266,10 +265,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
             return _applyEngineRepoLabels(gitHubClient, eventAction, pr);
           case 'packages':
             return _applyPackageTestChecks(gitHubClient, eventAction, pr);
-        }
-      } finally {
-        gitHubClient.dispose();
-      }
+        
+      } 
     }
   }
 
