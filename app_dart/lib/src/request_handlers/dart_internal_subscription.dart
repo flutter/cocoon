@@ -58,7 +58,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     final GetBuildRequest request = GetBuildRequest(
         id: messageJson['buildbucket_id'].toString(),
         fields:
-            "id,builder,number,createdBy,createTime,startTime,endTime,updateTime,status,input.properties,input.gitilesCommit");
+            "id,builder,number,createdBy,createTime,startTime,endTime,updateTime,status,input.properties,input.gitilesCommit",);
 
     log.info(
       "Calling buildbucket api to get build data for build $buildbucketId",
