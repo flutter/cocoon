@@ -32,9 +32,11 @@ void main() {
   const String project = "dart-internal";
   const String bucket = "flutter";
   const String builder = "Mac amazing_builder_tests";
+  const String propertiesBuildName = "Mac Unit_Test";
   const int buildId = 123456;
   const String fakeHash = "HASH12345";
   const String fakeBranch = "test-branch";
+  final String fakePubsubMessage = "{ \"buildbucket_id\": ${buildId.toString()} }";
 
   setUp(() async {
     config = FakeConfig();
@@ -75,6 +77,11 @@ void main() {
           hash: fakeHash,
           ref: "refs/heads/$fakeBranch",
         ),
+        properties: <String, Object>{
+          'build': <String, String>{
+            'name': 'Mac Unit_Test'
+          },
+        },
       ),
     );
     when(
@@ -89,7 +96,7 @@ void main() {
   });
 
   test('creates a new task successfully', () async {
-    tester.message = push.PushMessage(data: "{ \"buildbucket_id\": \"${buildId.toString()}\" }");
+    tester.message = push.PushMessage(data: fakePubsubMessage);
 
     await tester.post(handler);
 
@@ -126,12 +133,12 @@ void main() {
       attempts: 1,
       buildNumber: buildId,
       buildNumberList: buildId.toString(),
-      builderName: builder,
+      builderName: propertiesBuildName,
       commitKey: commitInDb.key,
       createTimestamp: startTime.millisecondsSinceEpoch,
       endTimestamp: endTime.millisecondsSinceEpoch,
       luciBucket: bucket,
-      name: builder,
+      name: propertiesBuildName,
       stageName: "dart-internal",
       startTimestamp: startTime.millisecondsSinceEpoch,
       status: "Succeeded",
@@ -172,7 +179,7 @@ void main() {
     final List<Task> datastoreCommit = <Task>[fakeTask];
     await config.db.commit(inserts: datastoreCommit);
 
-    tester.message = push.PushMessage(data: "{ \"buildbucket_id\": \"${buildId.toString()}\" }");
+    tester.message = push.PushMessage(data: fakePubsubMessage);
 
     await tester.post(handler);
 
@@ -277,7 +284,7 @@ void main() {
       (_) => [Future<Build>.value(fakeInProgressBuild), Future<Build>.value(fakeCompletedBuild)][count++],
     );
 
-    tester.message = push.PushMessage(data: "{ \"buildbucket_id\": \"${buildId.toString()}\" }");
+    tester.message = push.PushMessage(data: fakePubsubMessage);
 
     await tester.post(handler);
 
@@ -346,7 +353,7 @@ void main() {
       Exception("Failed to get from buildbucket for some reason!"),
     );
 
-    tester.message = push.PushMessage(data: "{ \"buildbucket_id\": \"${buildId.toString()}\" }");
+    tester.message = push.PushMessage(data: fakePubsubMessage);
     await expectLater(
       tester.post(handler),
       throwsA(isA<Exception>()),

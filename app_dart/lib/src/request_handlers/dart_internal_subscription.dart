@@ -51,11 +51,11 @@ class DartInternalSubscription extends SubscriptionHandler {
     log.info("Getting buildbucket id from pubsub message");
     final dynamic messageJson = json.decode(message.data.toString());
 
-    final String buildbucketId = messageJson['buildbucket_id'];
+    final int buildbucketId = messageJson['buildbucket_id'];
     log.info("Buildbucket id: $buildbucketId");
 
     log.info("Creating build request object");
-    final GetBuildRequest request = GetBuildRequest(id: messageJson['buildbucket_id'], fields: "id,builder,number,createdBy,createTime,startTime,endTime,updateTime,status,input.properties,input.gitilesCommit");
+    final GetBuildRequest request = GetBuildRequest(id: messageJson['buildbucket_id'].toString(), fields: "id,builder,number,createdBy,createTime,startTime,endTime,updateTime,status,input.properties,input.gitilesCommit");
 
     log.info(
       "Calling buildbucket api to get build data for build $buildbucketId",
@@ -72,8 +72,13 @@ class DartInternalSubscription extends SubscriptionHandler {
       taskToInsert = existingTask;
     } else {
       log.info("Creating Task from Buildbucket result");
-      final Map<String, Object> buildProperties = build.input!.properties!["build"] as Map<String, Object>;
-      taskToInsert = await Task.fromBuildbucketBuild(build, datastore, buildProperties["name"] as String);
+      String? buildName;
+      if (build.input?.properties != null && build.input?.properties?["build"] != null)
+      {
+        final Map<String, Object> buildProperties = build.input?.properties?["build"] as Map<String, Object>;
+        buildName = buildProperties["name"] as String;
+      }
+      taskToInsert = await Task.fromBuildbucketBuild(build, datastore, customBuildName: buildName);
     }
 
     log.info("Inserting Task into the datastore: ${taskToInsert.toString()}");
