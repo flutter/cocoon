@@ -132,7 +132,7 @@ class Task extends Model<int> {
   }
 
   /// Creates a [Task] based on a buildbucket [bb.Build].
-  static Future<Task> fromBuildbucketBuild(bb.Build build, DatastoreService datastore, {String? customName}) async {
+  static Future<Task> fromBuildbucketBuild(bb.Build build, DatastoreService datastore, {String? customName,}) async {
     log.fine("Creating task from buildbucket result: ${build.toString()}");
     // Example: Getting "flutter" from "mirrors/flutter".
     final String repository = build.input!.gitilesCommit!.project!.split('/')[1];
