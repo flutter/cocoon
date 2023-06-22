@@ -8,9 +8,13 @@ part of 'build_pubsub.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-BuildV2PubSub _$BuildV2PubSubFromJson(Map<String, dynamic> json) => BuildV2PubSub(
-      build: json['build'] == null ? null : Build.fromJson(json['build'] as Map<String, dynamic>),
-      compression: $enumDecodeNullable(_$CompressionEnumMap, json['compression']),
+BuildV2PubSub _$BuildV2PubSubFromJson(Map<String, dynamic> json) =>
+    BuildV2PubSub(
+      build: json['build'] == null
+          ? null
+          : Build.fromJson(json['build'] as Map<String, dynamic>),
+      compression:
+          $enumDecodeNullable(_$CompressionEnumMap, json['compression']),
     );
 
 Map<String, dynamic> _$BuildV2PubSubToJson(BuildV2PubSub instance) {
@@ -32,9 +36,12 @@ const _$CompressionEnumMap = {
   Compression.zstd: 'ZSTD',
 };
 
-PubSubCallBack _$PubSubCallBackFromJson(Map<String, dynamic> json) => PubSubCallBack(
-      buildV2PubSub:
-          json['buildV2PubSub'] == null ? null : BuildV2PubSub.fromJson(json['buildV2PubSub'] as Map<String, dynamic>),
+PubSubCallBack _$PubSubCallBackFromJson(Map<String, dynamic> json) =>
+    PubSubCallBack(
+      buildV2PubSub: json['buildV2PubSub'] == null
+          ? null
+          : BuildV2PubSub.fromJson(
+              json['buildV2PubSub'] as Map<String, dynamic>),
       userData: json['userData'] as String?,
     );
 

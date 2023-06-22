@@ -732,6 +732,25 @@ class Build extends JsonBody {
   String toString() => 'build(id: $id, builderId: $builderId, number: $number, status: $status, tags: $tags)';
 }
 
+/// Information of the builder, propagated from builder config.
+@JsonSerializable(includeIfNull: false)
+class BuilderInfo extends JsonBody {
+  /// The info captures the state of the builder at creation time.
+  /// If any information is updated, all future builds will have the new
+  /// information, while the historical builds persist the old information.
+  final String? description;
+
+  const BuilderInfo({
+    this.description,
+  });
+
+  @override
+  Map<String, dynamic> toJson() => _$BuilderInfoToJson(this);
+
+  /// Creates a [Build] object from JSON.
+  static BuilderInfo fromJson(Map<String, dynamic>? json) => _$BuilderInfoFromJson(json!);
+}
+
 /// A unique handle to a builder on BuildBucket.
 @JsonSerializable(includeIfNull: false)
 class BuilderId extends JsonBody {
@@ -826,6 +845,30 @@ class Input extends JsonBody {
   Map<String, dynamic> toJson() => _$InputToJson(this);
 }
 
+// Result of the build executable.
+@JsonSerializable(includeIfNull: false)
+class Output extends JsonBody {
+  const Output({
+    this.properties,
+    this.gitilesCommit,
+    this.status,
+    this.summaryHtml,
+  });
+
+  final Map<String, Object>? properties;
+
+  final GitilesCommit? gitilesCommit;
+
+  final Status? status;
+
+  final String? summaryHtml;
+
+  static Output fromJson(Map<String, dynamic> json) => _$OutputFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$OutputToJson(this);
+}
+
 /// A landed Git commit hosted on Gitiles.
 @JsonSerializable(includeIfNull: false)
 class GitilesCommit extends JsonBody {
@@ -855,6 +898,77 @@ class GitilesCommit extends JsonBody {
 
   @override
   Map<String, dynamic> toJson() => _$GitilesCommitToJson(this);
+}
+
+@JsonSerializable(includeIfNull: false)
+class MergeBuild extends JsonBody {
+  const MergeBuild({
+    this.fromLogDogStream,
+    this.legacyGlobalNamespace,
+  });
+
+  final String? fromLogDogStream;
+  final bool? legacyGlobalNamespace;
+
+  @override
+  Map<String, dynamic> toJson() => _$MergeBuildToJson(this);
+
+  static MergeBuild fromJson(Map<String, dynamic> json) => _$MergeBuildFromJson(json);
+}
+
+@JsonSerializable(includeIfNull: false)
+class Step extends JsonBody {
+  const Step({this.name, this.startTime, this.endTime, this.status, this.summaryMarkdown, this.tags});
+
+  final String? name;
+  final DateTime? startTime;
+  final DateTime? endTime;
+  final Status? status;
+  final String? summaryMarkdown;
+  @TagsConverter()
+  final Map<String?, List<String?>>? tags;
+
+  @override
+  Map<String, dynamic> toJson() => _$StepToJson(this);
+
+  static Step fromJson(Map<String, dynamic> json) => _$StepFromJson(json);
+}
+
+@JsonSerializable(includeIfNull: false)
+class TaskId extends JsonBody {
+  const TaskId({this.target, this.id});
+  final String? target;
+  final String? id;
+
+  @override
+  Map<String, dynamic> toJson() {
+    // TODO: implement toJson
+    throw UnimplementedError();
+  }
+}
+
+@JsonSerializable(includeIfNull: false)
+class Task extends JsonBody {
+  const Task({
+    this.taskId,
+    this.link,
+    this.status,
+    this.summaryHtml,
+    this.updateId,
+    this.details,
+  });
+  final TaskId? taskId;
+  final String? link;
+  final Status? status;
+  final String? summaryHtml;
+  final int? updateId;
+  final Map<String, Object>? details;
+
+  @override
+  Map<String, dynamic> toJson() {
+    // TODO: implement toJson
+    throw UnimplementedError();
+  }
 }
 
 /// Build status values.
@@ -917,6 +1031,22 @@ enum Compression {
 
   @JsonValue('ZSTD')
   zstd,
+}
+
+@JsonSerializable(includeIfNull: false)
+class StringPair extends JsonBody {
+  const StringPair({
+    this.key,
+    this.value,
+  });
+  final String? key;
+  final String? value;
+
+  @override
+  Map<String, dynamic> toJson() {
+    // TODO: implement toJson
+    throw UnimplementedError();
+  }
 }
 
 /// A requested dimension. Looks like StringPair, but also has an expiration.

@@ -3,12 +3,43 @@ import 'dart:typed_data';
 
 import 'package:cocoon_service/src/model/common/json_converters.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart' as build_bucket;
-import 'package:cocoon_service/src/model/luci/push_message.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'build_pubsub.g.dart';
 
+class Build extends JsonBody {
+  final build_bucket.Input? input;
+  final build_bucket.Output? output;
+
+  final int? id;
+  final build_bucket.BuilderId builderId;
+  final build_bucket.BuilderInfo builderInfo;
+  final int? number;
+  final String? createdBy;
+  final String? canceledBy;
+  final DateTime? createTime;
+  final DateTime? startTime;
+  final DateTime? endTime;
+  final DateTime? updateTime;
+  final DateTime? cancelTime;
+  final build_bucket.Status? status;
+  final String? summaryMarkdown;
+  final String? cancellationMarkdown;
+  final build_bucket.Trinary? critical;
+  final build_bucket.Input? input;
+  final build_bucket.Output? output;
+
+  /// Used to return builds containing all of the specified tags.
+  @TagsConverter()
+  final Map<String?, List<String?>>? tags;
+
+  @override
+  Map<String, dynamic> toJson() {
+    // TODO: implement toJson
+    throw UnimplementedError();
+  }
+}
 
 @JsonSerializable(includeIfNull: false)
 class BuildV2PubSub extends JsonBody {
