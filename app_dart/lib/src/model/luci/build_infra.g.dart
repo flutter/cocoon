@@ -609,7 +609,7 @@ Backend _$BackendFromJson(Map<String, dynamic> json) => Backend(
       ),
       task: json['task'] == null
           ? null
-          : Task.fromJson(json['task'] as Map<String, dynamic>),
+          : BuildBucketTask.fromJson(json['task'] as Map<String, dynamic>),
       caches: (json['caches'] as List<dynamic>?)
           ?.map((e) => CacheEntry.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -666,5 +666,97 @@ Map<String, dynamic> _$BuildInfraToJson(BuildInfra instance) {
   writeNotNull('recipe', instance.recipe);
   writeNotNull('bbAgent', instance.bbAgent);
   writeNotNull('backend', instance.backend);
+  return val;
+}
+
+RequestedDimension _$RequestedDimensionFromJson(Map<String, dynamic> json) =>
+    RequestedDimension(
+      key: json['key'] as String?,
+      value: json['value'] as String?,
+      expiration: json['expiration'] as String?,
+    );
+
+Map<String, dynamic> _$RequestedDimensionToJson(RequestedDimension instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('key', instance.key);
+  writeNotNull('value', instance.value);
+  writeNotNull('expiration', instance.expiration);
+  return val;
+}
+
+StringPair _$StringPairFromJson(Map<String, dynamic> json) => StringPair(
+      key: json['key'] as String?,
+      value: json['value'] as String?,
+    );
+
+Map<String, dynamic> _$StringPairToJson(StringPair instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('key', instance.key);
+  writeNotNull('value', instance.value);
+  return val;
+}
+
+TaskId _$TaskIdFromJson(Map<String, dynamic> json) => TaskId(
+      target: json['target'] as String?,
+      id: json['id'] as String?,
+    );
+
+Map<String, dynamic> _$TaskIdToJson(TaskId instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('target', instance.target);
+  writeNotNull('id', instance.id);
+  return val;
+}
+
+BuildBucketTask _$BuildBucketTaskFromJson(Map<String, dynamic> json) =>
+    BuildBucketTask(
+      taskId: json['taskId'] == null
+          ? null
+          : TaskId.fromJson(json['taskId'] as Map<String, dynamic>),
+      link: json['link'] as String?,
+      status: $enumDecodeNullable(_$StatusEnumMap, json['status']),
+      summaryHtml: json['summaryHtml'] as String?,
+      updateId: json['updateId'] as int?,
+      details: (json['details'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as Object),
+      ),
+    );
+
+Map<String, dynamic> _$BuildBucketTaskToJson(BuildBucketTask instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('taskId', instance.taskId);
+  writeNotNull('link', instance.link);
+  writeNotNull('status', _$StatusEnumMap[instance.status]);
+  writeNotNull('summaryHtml', instance.summaryHtml);
+  writeNotNull('updateId', instance.updateId);
+  writeNotNull('details', instance.details);
   return val;
 }

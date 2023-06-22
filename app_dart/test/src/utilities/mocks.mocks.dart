@@ -2015,7 +2015,7 @@ class MockDatastoreService extends _i1.Mock implements _i27.DatastoreService {
         returnValue: _i19.Stream<_i26.Branch>.empty(),
       ) as _i19.Stream<_i26.Branch>);
   @override
-  _i19.Stream<dynamic> queryRecentTasksByName({
+  _i19.Stream<_i29.Task> queryRecentTasksByName({
     int? limit = 100,
     required String? name,
   }) =>
@@ -2028,8 +2028,8 @@ class MockDatastoreService extends _i1.Mock implements _i27.DatastoreService {
             #name: name,
           },
         ),
-        returnValue: _i19.Stream<dynamic>.empty(),
-      ) as _i19.Stream<dynamic>);
+        returnValue: _i19.Stream<_i29.Task>.empty(),
+      ) as _i19.Stream<_i29.Task>);
   @override
   _i19.Stream<_i29.FullTask> queryRecentTasks({
     String? taskName,
@@ -2182,14 +2182,14 @@ class MockDatastoreService extends _i1.Mock implements _i27.DatastoreService {
         returnValue: _i19.Future<T?>.value(),
       ) as _i19.Future<T?>);
   @override
-  _i19.Future<dynamic> getTaskFromBuildbucketBuild(_i9.Build? build) =>
+  _i19.Future<_i29.Task?> getTaskFromBuildbucketBuild(_i9.Build? build) =>
       (super.noSuchMethod(
         Invocation.method(
           #getTaskFromBuildbucketBuild,
           [build],
         ),
-        returnValue: _i19.Future<dynamic>.value(),
-      ) as _i19.Future<dynamic>);
+        returnValue: _i19.Future<_i29.Task?>.value(),
+      ) as _i19.Future<_i29.Task?>);
 }
 
 /// A class which mocks [FakeEntry].
@@ -5876,7 +5876,7 @@ class MockLuciBuildService extends _i1.Mock implements _i23.LuciBuildService {
   _i19.Future<_i9.Build> reschedulePostsubmitBuildUsingCheckRunEvent(
     _i37.CheckRunEvent? checkRunEvent, {
     required _i28.Commit? commit,
-    required dynamic task,
+    required _i29.Task? task,
     required _i36.Target? target,
   }) =>
       (super.noSuchMethod(
@@ -5939,24 +5939,24 @@ class MockLuciBuildService extends _i1.Mock implements _i23.LuciBuildService {
         returnValue: _i19.Future<Set<String>>.value(<String>{}),
       ) as _i19.Future<Set<String>>);
   @override
-  _i19.Future<List<_i23.Tuple<_i36.Target, dynamic, int>>>
-      schedulePostsubmitBuilds({
+  _i19.Future<
+      List<_i23.Tuple<_i36.Target, _i29.Task, int>>> schedulePostsubmitBuilds({
     required _i28.Commit? commit,
-    required List<_i23.Tuple<_i36.Target, dynamic, int>>? toBeScheduled,
+    required List<_i23.Tuple<_i36.Target, _i29.Task, int>>? toBeScheduled,
   }) =>
-          (super.noSuchMethod(
-            Invocation.method(
-              #schedulePostsubmitBuilds,
-              [],
-              {
-                #commit: commit,
-                #toBeScheduled: toBeScheduled,
-              },
-            ),
-            returnValue:
-                _i19.Future<List<_i23.Tuple<_i36.Target, dynamic, int>>>.value(
-                    <_i23.Tuple<_i36.Target, dynamic, int>>[]),
-          ) as _i19.Future<List<_i23.Tuple<_i36.Target, dynamic, int>>>);
+      (super.noSuchMethod(
+        Invocation.method(
+          #schedulePostsubmitBuilds,
+          [],
+          {
+            #commit: commit,
+            #toBeScheduled: toBeScheduled,
+          },
+        ),
+        returnValue:
+            _i19.Future<List<_i23.Tuple<_i36.Target, _i29.Task, int>>>.value(
+                <_i23.Tuple<_i36.Target, _i29.Task, int>>[]),
+      ) as _i19.Future<List<_i23.Tuple<_i36.Target, _i29.Task, int>>>);
   @override
   _i19.Future<void> createPostsubmitCheckRun(
     _i28.Commit? commit,
@@ -5979,7 +5979,7 @@ class MockLuciBuildService extends _i1.Mock implements _i23.LuciBuildService {
   _i19.Future<bool> checkRerunBuilder({
     required _i28.Commit? commit,
     required _i36.Target? target,
-    required dynamic task,
+    required _i29.Task? task,
     required _i27.DatastoreService? datastore,
     Map<String, List<String>>? tags,
     bool? ignoreChecks = false,

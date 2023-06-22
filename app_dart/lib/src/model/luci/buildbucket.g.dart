@@ -690,7 +690,8 @@ Map<String, dynamic> _$TaskIdToJson(TaskId instance) {
   return val;
 }
 
-Task _$TaskFromJson(Map<String, dynamic> json) => Task(
+BuildBucketTask _$BuildBucketTaskFromJson(Map<String, dynamic> json) =>
+    BuildBucketTask(
       taskId: json['taskId'] == null
           ? null
           : TaskId.fromJson(json['taskId'] as Map<String, dynamic>),
@@ -703,7 +704,7 @@ Task _$TaskFromJson(Map<String, dynamic> json) => Task(
       ),
     );
 
-Map<String, dynamic> _$TaskToJson(Task instance) {
+Map<String, dynamic> _$BuildBucketTaskToJson(BuildBucketTask instance) {
   final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
@@ -718,6 +719,30 @@ Map<String, dynamic> _$TaskToJson(Task instance) {
   writeNotNull('summaryHtml', instance.summaryHtml);
   writeNotNull('updateId', instance.updateId);
   writeNotNull('details', instance.details);
+  return val;
+}
+
+Executable _$ExecutableFromJson(Map<String, dynamic> json) => Executable(
+      cipdPackage: json['cipdPackage'] as String?,
+      cipdVersion: json['cipdVersion'] as String?,
+      cmd: (json['cmd'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      wrapper:
+          (json['wrapper'] as List<dynamic>?)?.map((e) => e as String).toList(),
+    );
+
+Map<String, dynamic> _$ExecutableToJson(Executable instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('cipdPackage', instance.cipdPackage);
+  writeNotNull('cipdVersion', instance.cipdVersion);
+  writeNotNull('cmd', instance.cmd);
+  writeNotNull('wrapper', instance.wrapper);
   return val;
 }
 
@@ -742,15 +767,13 @@ Map<String, dynamic> _$StringPairToJson(StringPair instance) {
 
 RequestedDimension _$RequestedDimensionFromJson(Map<String, dynamic> json) =>
     RequestedDimension(
-      key: json['key'] as String,
+      key: json['key'] as String?,
       value: json['value'] as String?,
       expiration: json['expiration'] as String?,
     );
 
 Map<String, dynamic> _$RequestedDimensionToJson(RequestedDimension instance) {
-  final val = <String, dynamic>{
-    'key': instance.key,
-  };
+  final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -758,6 +781,7 @@ Map<String, dynamic> _$RequestedDimensionToJson(RequestedDimension instance) {
     }
   }
 
+  writeNotNull('key', instance.key);
   writeNotNull('value', instance.value);
   writeNotNull('expiration', instance.expiration);
   return val;

@@ -1,8 +1,6 @@
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import 'buildbucket.dart' as build_bucket;
-
 part 'build_infra.g.dart';
 
 // BuildInfra/Buildbucket/Agent/Souce
@@ -82,10 +80,9 @@ class InputDataRefPackageSpec extends JsonBody {
   final String? version;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$InputDataRefPackageSpecToJson(this);
+
+  static InputDataRefPackageSpec fromJson(Map<String, dynamic> json) => _$InputDataRefPackageSpecFromJson(json);
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -99,10 +96,9 @@ class InputDataRefCipd extends JsonBody {
   final List<InputDataRefPackageSpec>? specs;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$InputDataRefCipdToJson(this);
+
+  static InputDataRefCipd fromJson(Map<String, dynamic> json) => _$InputDataRefCipdFromJson(json);
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -119,6 +115,8 @@ class InputDataRef extends JsonBody {
 
   @override
   Map<String, dynamic> toJson() => _$InputDataRefToJson(this);
+
+  static InputDataRef fromJson(Map<String, dynamic> json) => _$InputDataRefFromJson(json);
 }
 
 // BuildInfra/Buildbucket/Agent/Output
@@ -133,10 +131,9 @@ class ResolvedDataRefTiming extends JsonBody {
   final Duration? installDuration;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$ResolvedDataRefTimingToJson(this);
+
+  static ResolvedDataRefTiming fromJson(Map<String, dynamic> json) => _$ResolvedDataRefTimingFromJson(json);
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -146,10 +143,9 @@ class ResolvedDataRefCipd extends JsonBody {
   final List<ResolvedDataRefPackageSpec>? specs;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$ResolvedDataRefCipdToJson(this);
+
+  static ResolvedDataRefCipd fromJson(Map<String, dynamic> json) => _$ResolvedDataRefCipdFromJson(json);
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -159,10 +155,9 @@ class ResolvedDataRefCas extends JsonBody {
   final ResolvedDataRefTiming? timing;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$ResolvedDataRefCasToJson(this);
+
+  static ResolvedDataRefCas fromJson(Map<String, dynamic> json) => _$ResolvedDataRefCasFromJson(json);
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -178,14 +173,65 @@ class ResolvedDataRefPackageSpec extends JsonBody {
   final bool? skipped;
   final String? package;
   final String? version;
-  final build_bucket.Trinary? wasCached;
+  final Trinary? wasCached;
   final ResolvedDataRefTiming? timing;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$ResolvedDataRefPackageSpecToJson(this);
+
+  static ResolvedDataRefPackageSpec fromJson(Map<String, dynamic> json) => _$ResolvedDataRefPackageSpecFromJson(json);
+}
+
+/// This type doesn't quite map to a bool, because there are actually four states
+/// when you include whether it's present or not.
+enum Trinary {
+  /// A true value.
+  @JsonValue('YES')
+  yes,
+
+  /// A false value.
+  @JsonValue('NO')
+  no,
+
+  /// An explicit null value, which may or may not be treated differently from
+  /// setting the JSON field to null.
+  @JsonValue('UNSET')
+  unset,
+}
+
+/// Build status values.
+enum Status {
+  /// Should not be used.
+  @JsonValue('STATUS_UNSPECIFIED')
+  unspecified,
+
+  /// The status of a scheduled or pending build.
+  @JsonValue('SCHEDULED')
+  scheduled,
+
+  /// The status of a started (running) build.
+  @JsonValue('STARTED')
+  started,
+
+  /// A mask of `succes | failure | infraFailure | canceled`.
+  @JsonValue('ENDED_MASK')
+  ended,
+
+  /// The build has successfully completed.
+  @JsonValue('SUCCESS')
+  success,
+
+  /// The build has failed to complete some step due to a faulty test or commit.
+  @JsonValue('FAILURE')
+  failure,
+
+  /// The build has failed due to an infrastructure related failure.
+  @JsonValue('INFRA_FAILURE')
+  infraFailure,
+
+  /// The build was canceled.
+  @JsonValue('CANCELED')
+  canceled,
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -199,10 +245,9 @@ class ResolvedDataRef extends JsonBody {
   final ResolvedDataRefCas? cas;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$ResolvedDataRefToJson(this);
+
+  static ResolvedDataRef fromJson(Map<String, dynamic> json) => _$ResolvedDataRefFromJson(json);
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -212,10 +257,9 @@ class AgentInput extends JsonBody {
   final Map<String, InputDataRef>? data;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$AgentInputToJson(this);
+
+  static AgentInput fromJson(Map<String, dynamic> json) => _$AgentInputFromJson(json);
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -229,16 +273,15 @@ class AgentOutput extends JsonBody {
   });
 
   final Map<String, ResolvedDataRef>? resolvedData;
-  final build_bucket.Status? status;
+  final Status? status;
   final String? summaryHtml;
   final String? agentPlatform;
   final Duration? totalDuration;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$AgentOutputToJson(this);
+
+  static AgentOutput fromJson(Map<String, dynamic> json) => _$AgentOutputFromJson(json);
 }
 
 enum Purpose {
@@ -265,10 +308,9 @@ class Agent extends JsonBody {
   final Map<String, Purpose>? purposes;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$AgentToJson(this);
+
+  static Agent fromJson(Map<String, dynamic> json) => _$AgentFromJson(json);
 }
 
 enum ExperimentReason {
@@ -301,7 +343,7 @@ class BuildBucket extends JsonBody {
   });
   final String? serviceConfigRevision;
   final Map<String, Object>? requestedProperties;
-  final List<build_bucket.RequestedDimension>? requestedDimensions;
+  final List<RequestedDimension>? requestedDimensions;
   final String? hostname;
   final Map<String, ExperimentReason>? experimentReasons;
   final Map<String, ResolvedDataRef>? agentExecutable;
@@ -310,10 +352,9 @@ class BuildBucket extends JsonBody {
   final bool? buildNumber;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$BuildBucketToJson(this);
+
+  static BuildBucket fromJson(Map<String, dynamic> json) => _$BuildBucketFromJson(json);
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -330,10 +371,9 @@ class CacheEntry extends JsonBody {
   final String? envVar;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$CacheEntryToJson(this);
+
+  static CacheEntry fromJson(Map<String, dynamic> json) => _$CacheEntryFromJson(json);
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -353,15 +393,14 @@ class Swarming extends JsonBody {
   final String? parentRunId;
   final String? taskServiceAccount;
   final int? priority;
-  final List<build_bucket.RequestedDimension>? taskDimensions;
-  final List<build_bucket.StringPair>? botDimensions;
+  final List<RequestedDimension>? taskDimensions;
+  final List<StringPair>? botDimensions;
   final List<CacheEntry>? caches;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$SwarmingToJson(this);
+
+  static Swarming fromJson(Map<String, dynamic> json) => _$SwarmingFromJson(json);
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -374,10 +413,9 @@ class Recipe extends JsonBody {
   final String? name;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$RecipeToJson(this);
+
+  static Recipe fromJson(Map<String, dynamic> json) => _$RecipeFromJson(json);
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -394,10 +432,9 @@ class InputCipdPackage extends JsonBody {
   final String? path;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$InputCipdPackageToJson(this);
+
+  static InputCipdPackage fromJson(Map<String, dynamic> json) => _$InputCipdPackageFromJson(json);
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -407,10 +444,9 @@ class BBAgentInput extends JsonBody {
   final List<InputCipdPackage>? cipdPackages;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$BBAgentInputToJson(this);
+
+  static BBAgentInput fromJson(Map<String, dynamic> json) => _$BBAgentInputFromJson(json);
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -427,10 +463,9 @@ class BBAgent extends JsonBody {
   final BBAgentInput? input;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$BBAgentToJson(this);
+
+  static BBAgent fromJson(Map<String, dynamic> json) => _$BBAgentFromJson(json);
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -442,15 +477,14 @@ class Backend extends JsonBody {
     this.taskDimensions,
   });
   final Map<String, Object>? config;
-  final build_bucket.Task? task;
+  final BuildBucketTask? task;
   final List<CacheEntry>? caches;
-  final List<build_bucket.RequestedDimension>? taskDimensions;
+  final List<RequestedDimension>? taskDimensions;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$BackendToJson(this);
+
+  static Backend fromJson(Map<String, dynamic> json) => _$BackendFromJson(json);
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -469,8 +503,79 @@ class BuildInfra extends JsonBody {
   final Backend? backend;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() =>_$BuildInfraToJson(this);
+
+  static BuildInfra fromJson(Map<String, dynamic> json) => _$BuildInfraFromJson(json);
+}
+
+/// A requested dimension. Looks like StringPair, but also has an expiration.
+@JsonSerializable(includeIfNull: false)
+class RequestedDimension extends JsonBody {
+  const RequestedDimension({
+    required this.key,
+    this.value,
+    this.expiration,
+  });
+
+  static RequestedDimension fromJson(Map<String, dynamic> json) => _$RequestedDimensionFromJson(json);
+
+  final String? key;
+  final String? value;
+
+  /// If set, ignore this dimension after this duration. Must be a multiple of 1 minute. The format is '<seconds>s',
+  /// e.g. '120s' represents 120 seconds.
+  final String? expiration;
+
+  @override
+  Map<String, dynamic> toJson() => _$RequestedDimensionToJson(this);
+}
+
+@JsonSerializable(includeIfNull: false)
+class StringPair extends JsonBody {
+  const StringPair({
+    this.key,
+    this.value,
+  });
+  final String? key;
+  final String? value;
+
+  @override
+  Map<String, dynamic> toJson() => _$StringPairToJson(this);
+
+  static StringPair fromJson(Map<String, dynamic> json) => _$StringPairFromJson(json);
+}
+
+@JsonSerializable(includeIfNull: false)
+class TaskId extends JsonBody {
+  const TaskId({this.target, this.id});
+  final String? target;
+  final String? id;
+
+  @override
+  Map<String, dynamic> toJson() => _$TaskIdToJson(this);
+
+  static TaskId fromJson(Map<String, dynamic> json) => _$TaskIdFromJson(json);
+}
+
+@JsonSerializable(includeIfNull: false)
+class BuildBucketTask extends JsonBody {
+  const BuildBucketTask({
+    this.taskId,
+    this.link,
+    this.status,
+    this.summaryHtml,
+    this.updateId,
+    this.details,
+  });
+  final TaskId? taskId;
+  final String? link;
+  final Status? status;
+  final String? summaryHtml;
+  final int? updateId;
+  final Map<String, Object>? details;
+
+  @override
+  Map<String, dynamic> toJson() => _$BuildBucketTaskToJson(this);
+
+  static BuildBucketTask fromJson(Map<String, dynamic> json) => _$BuildBucketTaskFromJson(json);
 }

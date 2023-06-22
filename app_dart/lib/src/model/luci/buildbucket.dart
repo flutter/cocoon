@@ -941,15 +941,14 @@ class TaskId extends JsonBody {
   final String? id;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$TaskIdToJson(this);
+
+  static TaskId fromJson(Map<String, dynamic> json) => _$TaskIdFromJson(json);
 }
 
 @JsonSerializable(includeIfNull: false)
-class Task extends JsonBody {
-  const Task({
+class BuildBucketTask extends JsonBody {
+  const BuildBucketTask({
     this.taskId,
     this.link,
     this.status,
@@ -965,10 +964,29 @@ class Task extends JsonBody {
   final Map<String, Object>? details;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$BuildBucketTaskToJson(this);
+
+  static BuildBucketTask fromJson(Map<String, dynamic> json) => _$BuildBucketTaskFromJson(json);
+}
+
+@JsonSerializable(includeIfNull: false)
+class Executable extends JsonBody {
+  const Executable({
+    this.cipdPackage,
+    this.cipdVersion,
+    this.cmd,
+    this.wrapper,
+  });
+
+  final String? cipdPackage;
+  final String? cipdVersion;
+  final List<String>? cmd;
+  final List<String>? wrapper;
+
+  @override
+  Map<String, dynamic> toJson() => _$ExecutableToJson(this);
+
+  static Executable fromJson(Map<String, dynamic> json) => _$ExecutableFromJson(json);
 }
 
 /// Build status values.
@@ -1043,10 +1061,9 @@ class StringPair extends JsonBody {
   final String? value;
 
   @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> toJson() => _$StringPairToJson(this);
+
+  static StringPair fromJson(Map<String, dynamic> json) => _$StringPairFromJson(json);
 }
 
 /// A requested dimension. Looks like StringPair, but also has an expiration.
@@ -1060,7 +1077,7 @@ class RequestedDimension extends JsonBody {
 
   static RequestedDimension fromJson(Map<String, dynamic> json) => _$RequestedDimensionFromJson(json);
 
-  final String key;
+  final String? key;
   final String? value;
 
   /// If set, ignore this dimension after this duration. Must be a multiple of 1 minute. The format is '<seconds>s',
