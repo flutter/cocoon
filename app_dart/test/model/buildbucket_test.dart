@@ -91,7 +91,7 @@ void main() {
         '"dimensions":[{"key":"a","value":"b","expiration":"120s"}],"priority":100}');
   });
 
-  test('Executable is handled correctly', (){
+  test('Executable is handled correctly', () {
     final Executable exe = Executable.fromJson(jsonDecode(exeJson));
     expect(exe.cipdVersion, 'refs/heads/main');
     expect(exe.cipdPackage, 'infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build');

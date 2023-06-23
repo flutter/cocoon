@@ -1,11 +1,4 @@
-import 'dart:convert';
-
-import 'package:cocoon_service/src/model/luci/build_infra.dart';
-import 'package:test/test.dart';
-
-
-void main() {
-  const String agentJson = '''
+const String agentJson = '''
 {
   "input": {
     "data": {
@@ -111,27 +104,19 @@ void main() {
         }
       }
     },
-    "source": {
-      "cipd": {
-        "package": "infra/tools/luci/bbagent/platform",
-        "version": "latest",
-        "server": "chrome-infra-packages.appspot.com"
-      }
-    },
-    "purposes": {
-      "bbagent_utility_packages": "PURPOSE_BBAGENT_UTILITY",
-      "kitchen-checkout": "PURPOSE_EXE_PAYLOAD"
+  "source": {
+    "cipd": {
+      "package": "infra/tools/luci/bbagent/platform",
+      "version": "latest",
+      "server": "chrome-infra-packages.appspot.com"
     }
+  },
+  "purposes": {
+    "bbagent_utility_packages": "PURPOSE_BBAGENT_UTILITY",
+    "kitchen-checkout": "PURPOSE_EXE_PAYLOAD"
   }
+}
 ''';
-
-  test('Agent', () {
-    final Agent agent = Agent.fromJson(jsonDecode(agentJson));
-    expect(agent, isNotNull);
-    expect(agent.input, isNotNull);
-    expect(agent.source, isNotNull);
-    expect(agent.purposes, isNotNull);
-  });
 
 const String buildBucketV2Json = '''
 {
@@ -174,10 +159,6 @@ const String buildBucketV2Json = '''
   "buildNumber": true
 }
 ''';
-
-  test('BuildBucketV2', () {
-    final BuildBucket buildBucket = BuildBucket.fromJson(jsonDecode(buildBucketV2Json));
-  });
 
 const String swarmingJson = '''
 {
@@ -222,12 +203,108 @@ const String swarmingJson = '''
 }
 ''';
 
-  test('Swarming', () {
-    final Swarming swarming = Swarming.fromJson(jsonDecode(swarmingJson));
-    expect(swarming, isNotNull);
-  });
+const String buildInfraJson = '''
+{
+  "buildbucket": $buildBucketV2Json,
+  "swarming": $swarmingJson,
+  "logdog": {
+    "hostname": "luci-logdog-dev.appspot.com",
+    "project": "chromium",
+    "prefix": "buildbucket/cr-buildbucket-dev/8777746000874744641"
+  },
+  "resultdb": {
+    "hostname": "staging.results.api.cr.dev",
+    "invocation": "invocations/build-8777746000874744641",
+    "enable": true,
+    "bqExports": [
+      {
+        "project": "chrome-luci-data",
+        "dataset": "chromium_staging",
+        "table": "ci_test_results",
+        "testResults": {}
+      },
+      {
+        "project": "chrome-luci-data",
+        "dataset": "chromium_staging",
+        "table": "ci_text_artifacts",
+        "textArtifacts": {}
+      }
+    ]
+  },
+  "bbagent": {
+    "payloadPath": "kitchen-checkout",
+    "cacheDir": "cache"
+  }
+}
+''';
 
-  test('BuildInfra', () {
-    final BuildInfra buildInfra = BuildInfra();
-  });
+const String buildJson = '''
+{
+  "id": "8777746000874744641",
+  "builder": {
+    "project": "chromium",
+    "bucket": "ci",
+    "builder": "mac-arm-rel-dev"
+  },
+  "number": 4721,
+  "createdBy": "project:chromium",
+  "createTime": "2023-06-20T18:35:05.236457827Z",
+  "endTime": "2023-06-20T18:35:07.294256Z",
+  "updateTime": "2023-06-20T18:35:07.294256Z",
+  "status": "INFRA_FAILURE",
+  "statusDetails": {
+    "resourceExhaustion": {}
+  },
+  "input": {
+    "gitilesCommit": {
+      "host": "chromium.googlesource.com",
+      "project": "chromium/src",
+      "id": "a18a5bda2ee726a4e9c7cae848e4e4c8437a5d0e",
+      "ref": "refs/heads/main"
+    },
+    "experiments": [
+      "luci.buildbucket.agent.cipd_installation",
+      "luci.buildbucket.agent.start_build",
+      "luci.buildbucket.backend_go",
+      "luci.buildbucket.bbagent_getbuild",
+      "luci.buildbucket.bq_exporter_go",
+      "luci.buildbucket.use_bbagent",
+      "luci.recipes.use_python3"
+    ]
+  },
+  "output": {},
+  "infra": $buildInfraJson,
+  "tags": [
+    {
+      "key": "buildset",
+      "value": "commit/gitiles/chromium.googlesource.com/chromium/src/+/a18a5bda2ee726a4e9c7cae848e4e4c8437a5d0e"
+    },
+    {
+      "key": "scheduler_invocation_id",
+      "value": "8943176062752149552"
+    },
+    {
+      "key": "scheduler_job_id",
+      "value": "chromium/mac-arm-rel-dev"
+    },
+    {
+      "key": "user_agent",
+      "value": "luci-scheduler-dev"
+    }
+  ],
+  "exe": {
+    "cipdPackage": "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
+    "cipdVersion": "refs/heads/main",
+    "cmd": [
+      "luciexe"
+    ]
+  },
+  "schedulingTimeout": "21600s",
+  "executionTimeout": "10800s",
+  "gracePeriod": "30s"
+}
+''';
+
+String stripJson(String json) {
+  return json.replaceAll(' ', '').replaceAll('\n', '');
 }
