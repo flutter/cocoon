@@ -102,7 +102,6 @@ class DevelopmentCocoonService implements CocoonService {
     'flutter',
     'engine',
     'cocoon',
-    'plugins',
   ];
 
   @override
@@ -282,7 +281,6 @@ class DevelopmentCocoonService implements CocoonService {
     'flutter/cocoon': 3,
     'flutter/flutter': 100,
     'flutter/engine': 20,
-    'flutter/plugins': 10,
   };
 
   List<Task> _createFakeTasks(int commitTimestamp, Commit commit, math.Random random) {

@@ -34,7 +34,6 @@ final Set<RepositorySlug> repos = <RepositorySlug>{
   RepositorySlug(orgName, 'devtools'),
   RepositorySlug(orgName, 'flutter-intellij'),
   RepositorySlug(orgName, 'packages'),
-  RepositorySlug(orgName, 'plugins'),
 
   RepositorySlug(orgName, 'codelabs'),
   RepositorySlug(orgName, 'website'),

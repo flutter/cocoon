@@ -88,7 +88,6 @@ void main() {
           Config.engineSlug,
           Config.flutterSlug,
           Config.packagesSlug,
-          Config.pluginsSlug,
         },
       );
 

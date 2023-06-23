@@ -46,7 +46,6 @@ class Config {
         engineSlug,
         flutterSlug,
         packagesSlug,
-        pluginsSlug,
       };
 
   /// List of guaranteed scheduling Github repos.
@@ -60,11 +59,10 @@ class Config {
   /// This adds support for check runs to the repo.
   Set<gh.RepositorySlug> get postsubmitSupportedRepos => <gh.RepositorySlug>{
         packagesSlug,
-        pluginsSlug,
       };
 
   /// List of Cirrus supported repos.
-  static Set<String> cirrusSupportedRepos = <String>{'plugins', 'packages', 'flutter'};
+  static Set<String> cirrusSupportedRepos = <String>{'packages', 'flutter'};
 
   /// GitHub repositories that use CI status to determine if pull requests can be submitted.
   static Set<gh.RepositorySlug> reposWithTreeStatus = <gh.RepositorySlug>{
@@ -78,7 +76,6 @@ class Config {
       cocoonSlug: 'main',
       flutterSlug: 'master',
       engineSlug: 'main',
-      pluginsSlug: 'main',
       packagesSlug: 'main',
       recipesSlug: 'main',
     };
@@ -321,7 +318,6 @@ class Config {
   static gh.RepositorySlug get engineSlug => gh.RepositorySlug('flutter', 'engine');
   static gh.RepositorySlug get flutterSlug => gh.RepositorySlug('flutter', 'flutter');
   static gh.RepositorySlug get packagesSlug => gh.RepositorySlug('flutter', 'packages');
-  static gh.RepositorySlug get pluginsSlug => gh.RepositorySlug('flutter', 'plugins');
 
   /// Flutter recipes is hosted on Gerrit instead of GitHub.
   static gh.RepositorySlug get recipesSlug => gh.RepositorySlug('flutter', 'recipes');
