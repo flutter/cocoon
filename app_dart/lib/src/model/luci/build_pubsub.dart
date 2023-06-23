@@ -846,6 +846,7 @@ class Build extends JsonBody {
   final Input? input;
   final Output? output;
   final List<Step>? steps;
+  @JsonKey(name: 'infra')
   final BuildInfra? buildInfra;
   // /// Used to return builds containing all of the specified tags.
   // tags are actually String pairs, one key may have multiple values.

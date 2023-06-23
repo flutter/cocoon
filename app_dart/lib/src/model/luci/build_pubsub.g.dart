@@ -988,9 +988,9 @@ Build _$BuildFromJson(Map<String, dynamic> json) => Build(
       steps: (json['steps'] as List<dynamic>?)
           ?.map((e) => Step.fromJson(e as Map<String, dynamic>))
           .toList(),
-      buildInfra: json['buildInfra'] == null
+      buildInfra: json['infra'] == null
           ? null
-          : BuildInfra.fromJson(json['buildInfra'] as Map<String, dynamic>),
+          : BuildInfra.fromJson(json['infra'] as Map<String, dynamic>),
       tags: const TagsConverter().fromJson(json['tags'] as List?),
       exe: json['exe'] == null
           ? null
@@ -1034,7 +1034,7 @@ Map<String, dynamic> _$BuildToJson(Build instance) {
   writeNotNull('input', instance.input);
   writeNotNull('output', instance.output);
   writeNotNull('steps', instance.steps);
-  writeNotNull('buildInfra', instance.buildInfra);
+  writeNotNull('infra', instance.buildInfra);
   writeNotNull('tags', const TagsConverter().toJson(instance.tags));
   writeNotNull('exe', instance.exe);
   writeNotNull('canary', instance.canary);
