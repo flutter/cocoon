@@ -169,7 +169,7 @@ void main() {
       final Body body = await tester.get<Body>(handler);
 
       /// The +1 is coming from the engine repository and manually added commit on the top of this test.
-      expect(db.values.values.whereType<Commit>().length, 10 + 1); // 2 commits for 5 repos
+      expect(db.values.values.whereType<Commit>().length, 8 + 1); // 2 commits for 4 repos
       expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
       expect(db.values.values.whereType<Commit>().map<int>(toTimestamp), containsAll(<int>[1, 2, 4]));
       expect(await body.serialize().toList(), isEmpty);
