@@ -815,6 +815,67 @@ void main() {
           );
         });
 
+        test('includes misc test shards', () async {
+          // New commit
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
+          db.values[status.key] = status;
+
+          // Checks completed
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'misc', 'status': 'completed', 'conclusion': 'success'},
+          ];
+
+          // Change detected by Gold
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+              return http.Response(tryjobEmpty(), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config: config,
+            authenticationProvider: auth,
+            datastoreProvider: (DatastoreDB db) {
+              return DatastoreService(
+                config.db,
+                5,
+                retryOptions: retryOptions,
+              );
+            },
+            goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(status.status, GithubGoldStatusUpdate.statusCompleted);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
+
+          // Should not label or comment
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
+
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
+        });
+
         test('new commit, checks complete, no changes detected', () async {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
