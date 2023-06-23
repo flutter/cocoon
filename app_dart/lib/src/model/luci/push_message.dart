@@ -87,8 +87,6 @@ class PushMessage extends JsonBody {
   Map<String, dynamic> toJson() => _$PushMessageToJson(this);
 }
 
-// TODO this is the data that comes from the pubsub topic which is pushed to us.
-
 /// The LUCI build data from a PubSub push message payload.
 @JsonSerializable(includeIfNull: false, fieldRename: FieldRename.snake)
 class BuildPushMessage extends JsonBody {
@@ -152,7 +150,7 @@ class BuildPushMessage extends JsonBody {
 
   @override
   Map<String, dynamic> toJson() => _$BuildPushMessageToJson(this);
-} // end BuildPushMessage
+}
 
 /// See https://github.com/luci/luci-go/blob/master/common/api/buildbucket/buildbucket/v1/buildbucket-gen.go#L332ƒ
 @JsonSerializable(includeIfNull: false)
@@ -285,7 +283,7 @@ class Build extends JsonBody {
 
   @override
   Map<String, dynamic> toJson() => _$BuildToJson(this);
-} // end Build
+}
 
 /// The method to select whether canary hardware was chosen for a build.
 enum CanaryPreference {

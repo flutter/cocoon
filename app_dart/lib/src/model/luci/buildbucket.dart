@@ -661,7 +661,6 @@ class Build extends JsonBody {
     this.tags,
     this.input,
     this.summaryMarkdown,
-    this.cancelationMarkdown,
     this.critical,
   });
 
@@ -708,9 +707,6 @@ class Build extends JsonBody {
   ///
   /// Up to 4kb.
   final String? summaryMarkdown;
-
-  /// Markdown reasoning for cancelling the build.
-  final String? cancelationMarkdown;
 
   /// Arbitrary annotations for the build.
   ///
@@ -920,7 +916,7 @@ class RequestedDimension extends JsonBody {
 
   static RequestedDimension fromJson(Map<String, dynamic> json) => _$RequestedDimensionFromJson(json);
 
-  final String? key;
+  final String key;
   final String? value;
 
   /// If set, ignore this dimension after this duration. Must be a multiple of 1 minute. The format is '<seconds>s',

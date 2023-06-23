@@ -382,7 +382,6 @@ Build _$BuildFromJson(Map<String, dynamic> json) => Build(
       tags: const TagsConverter().fromJson(json['tags'] as List?),
       input: json['input'] == null ? null : Input.fromJson(json['input'] as Map<String, dynamic>),
       summaryMarkdown: json['summaryMarkdown'] as String?,
-      cancelationMarkdown: json['cancelationMarkdown'] as String?,
       critical: $enumDecodeNullable(_$TrinaryEnumMap, json['critical']),
     );
 
@@ -405,7 +404,6 @@ Map<String, dynamic> _$BuildToJson(Build instance) {
   writeNotNull('endTime', instance.endTime?.toIso8601String());
   writeNotNull('status', _$StatusEnumMap[instance.status]);
   writeNotNull('summaryMarkdown', instance.summaryMarkdown);
-  writeNotNull('cancelationMarkdown', instance.cancelationMarkdown);
   writeNotNull('tags', const TagsConverter().toJson(instance.tags));
   writeNotNull('critical', _$TrinaryEnumMap[instance.critical]);
   writeNotNull('input', instance.input);
@@ -512,13 +510,15 @@ Map<String, dynamic> _$GitilesCommitToJson(GitilesCommit instance) {
 }
 
 RequestedDimension _$RequestedDimensionFromJson(Map<String, dynamic> json) => RequestedDimension(
-      key: json['key'] as String?,
+      key: json['key'] as String,
       value: json['value'] as String?,
       expiration: json['expiration'] as String?,
     );
 
 Map<String, dynamic> _$RequestedDimensionToJson(RequestedDimension instance) {
-  final val = <String, dynamic>{};
+  final val = <String, dynamic>{
+    'key': instance.key,
+  };
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -526,7 +526,6 @@ Map<String, dynamic> _$RequestedDimensionToJson(RequestedDimension instance) {
     }
   }
 
-  writeNotNull('key', instance.key);
   writeNotNull('value', instance.value);
   writeNotNull('expiration', instance.expiration);
   return val;
