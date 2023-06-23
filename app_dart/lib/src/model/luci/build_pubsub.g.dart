@@ -32,9 +32,7 @@ Map<String, dynamic> _$CipdToJson(Cipd instance) {
 }
 
 Source _$SourceFromJson(Map<String, dynamic> json) => Source(
-      cipd: json['cipd'] == null
-          ? null
-          : Cipd.fromJson(json['cipd'] as Map<String, dynamic>),
+      cipd: json['cipd'] == null ? null : Cipd.fromJson(json['cipd'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$SourceToJson(Source instance) {
@@ -52,9 +50,7 @@ Map<String, dynamic> _$SourceToJson(Source instance) {
 
 Cas _$CasFromJson(Map<String, dynamic> json) => Cas(
       casInstance: json['casInstance'] as String?,
-      digest: json['digest'] == null
-          ? null
-          : Digest.fromJson(json['digest'] as Map<String, dynamic>),
+      digest: json['digest'] == null ? null : Digest.fromJson(json['digest'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$CasToJson(Cas instance) {
@@ -90,15 +86,12 @@ Map<String, dynamic> _$DigestToJson(Digest instance) {
   return val;
 }
 
-InputDataRefPackageSpec _$InputDataRefPackageSpecFromJson(
-        Map<String, dynamic> json) =>
-    InputDataRefPackageSpec(
+InputDataRefPackageSpec _$InputDataRefPackageSpecFromJson(Map<String, dynamic> json) => InputDataRefPackageSpec(
       package: json['package'] as String?,
       version: json['version'] as String?,
     );
 
-Map<String, dynamic> _$InputDataRefPackageSpecToJson(
-    InputDataRefPackageSpec instance) {
+Map<String, dynamic> _$InputDataRefPackageSpecToJson(InputDataRefPackageSpec instance) {
   final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
@@ -112,12 +105,10 @@ Map<String, dynamic> _$InputDataRefPackageSpecToJson(
   return val;
 }
 
-InputDataRefCipd _$InputDataRefCipdFromJson(Map<String, dynamic> json) =>
-    InputDataRefCipd(
+InputDataRefCipd _$InputDataRefCipdFromJson(Map<String, dynamic> json) => InputDataRefCipd(
       server: json['server'] as String?,
       specs: (json['specs'] as List<dynamic>?)
-          ?.map((e) =>
-              InputDataRefPackageSpec.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => InputDataRefPackageSpec.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
@@ -136,14 +127,9 @@ Map<String, dynamic> _$InputDataRefCipdToJson(InputDataRefCipd instance) {
 }
 
 InputDataRef _$InputDataRefFromJson(Map<String, dynamic> json) => InputDataRef(
-      cas: json['cas'] == null
-          ? null
-          : Cas.fromJson(json['cas'] as Map<String, dynamic>),
-      cipd: json['cipd'] == null
-          ? null
-          : InputDataRefCipd.fromJson(json['cipd'] as Map<String, dynamic>),
-      onPath:
-          (json['onPath'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      cas: json['cas'] == null ? null : Cas.fromJson(json['cas'] as Map<String, dynamic>),
+      cipd: json['cipd'] == null ? null : InputDataRefCipd.fromJson(json['cipd'] as Map<String, dynamic>),
+      onPath: (json['onPath'] as List<dynamic>?)?.map((e) => e as String).toList(),
     );
 
 Map<String, dynamic> _$InputDataRefToJson(InputDataRef instance) {
@@ -161,19 +147,12 @@ Map<String, dynamic> _$InputDataRefToJson(InputDataRef instance) {
   return val;
 }
 
-ResolvedDataRefTiming _$ResolvedDataRefTimingFromJson(
-        Map<String, dynamic> json) =>
-    ResolvedDataRefTiming(
-      fetchDuration: json['fetchDuration'] == null
-          ? null
-          : Duration(microseconds: json['fetchDuration'] as int),
-      installDuration: json['installDuration'] == null
-          ? null
-          : Duration(microseconds: json['installDuration'] as int),
+ResolvedDataRefTiming _$ResolvedDataRefTimingFromJson(Map<String, dynamic> json) => ResolvedDataRefTiming(
+      fetchDuration: json['fetchDuration'] == null ? null : Duration(microseconds: json['fetchDuration'] as int),
+      installDuration: json['installDuration'] == null ? null : Duration(microseconds: json['installDuration'] as int),
     );
 
-Map<String, dynamic> _$ResolvedDataRefTimingToJson(
-    ResolvedDataRefTiming instance) {
+Map<String, dynamic> _$ResolvedDataRefTimingToJson(ResolvedDataRefTiming instance) {
   final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
@@ -187,11 +166,9 @@ Map<String, dynamic> _$ResolvedDataRefTimingToJson(
   return val;
 }
 
-ResolvedDataRefCipd _$ResolvedDataRefCipdFromJson(Map<String, dynamic> json) =>
-    ResolvedDataRefCipd(
+ResolvedDataRefCipd _$ResolvedDataRefCipdFromJson(Map<String, dynamic> json) => ResolvedDataRefCipd(
       specs: (json['specs'] as List<dynamic>?)
-          ?.map((e) =>
-              ResolvedDataRefPackageSpec.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => ResolvedDataRefPackageSpec.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
@@ -208,12 +185,8 @@ Map<String, dynamic> _$ResolvedDataRefCipdToJson(ResolvedDataRefCipd instance) {
   return val;
 }
 
-ResolvedDataRefCas _$ResolvedDataRefCasFromJson(Map<String, dynamic> json) =>
-    ResolvedDataRefCas(
-      timing: json['timing'] == null
-          ? null
-          : ResolvedDataRefTiming.fromJson(
-              json['timing'] as Map<String, dynamic>),
+ResolvedDataRefCas _$ResolvedDataRefCasFromJson(Map<String, dynamic> json) => ResolvedDataRefCas(
+      timing: json['timing'] == null ? null : ResolvedDataRefTiming.fromJson(json['timing'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$ResolvedDataRefCasToJson(ResolvedDataRefCas instance) {
@@ -229,21 +202,16 @@ Map<String, dynamic> _$ResolvedDataRefCasToJson(ResolvedDataRefCas instance) {
   return val;
 }
 
-ResolvedDataRefPackageSpec _$ResolvedDataRefPackageSpecFromJson(
-        Map<String, dynamic> json) =>
+ResolvedDataRefPackageSpec _$ResolvedDataRefPackageSpecFromJson(Map<String, dynamic> json) =>
     ResolvedDataRefPackageSpec(
       skipped: json['skipped'] as bool?,
       package: json['package'] as String?,
       version: json['version'] as String?,
       wasCached: $enumDecodeNullable(_$TrinaryEnumMap, json['wasCached']),
-      timing: json['timing'] == null
-          ? null
-          : ResolvedDataRefTiming.fromJson(
-              json['timing'] as Map<String, dynamic>),
+      timing: json['timing'] == null ? null : ResolvedDataRefTiming.fromJson(json['timing'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$ResolvedDataRefPackageSpecToJson(
-    ResolvedDataRefPackageSpec instance) {
+Map<String, dynamic> _$ResolvedDataRefPackageSpecToJson(ResolvedDataRefPackageSpec instance) {
   final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
@@ -266,14 +234,9 @@ const _$TrinaryEnumMap = {
   Trinary.unset: 'UNSET',
 };
 
-ResolvedDataRef _$ResolvedDataRefFromJson(Map<String, dynamic> json) =>
-    ResolvedDataRef(
-      cipd: json['cipd'] == null
-          ? null
-          : ResolvedDataRefCipd.fromJson(json['cipd'] as Map<String, dynamic>),
-      cas: json['cas'] == null
-          ? null
-          : ResolvedDataRefCas.fromJson(json['cas'] as Map<String, dynamic>),
+ResolvedDataRef _$ResolvedDataRefFromJson(Map<String, dynamic> json) => ResolvedDataRef(
+      cipd: json['cipd'] == null ? null : ResolvedDataRefCipd.fromJson(json['cipd'] as Map<String, dynamic>),
+      cas: json['cas'] == null ? null : ResolvedDataRefCas.fromJson(json['cas'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$ResolvedDataRefToJson(ResolvedDataRef instance) {
@@ -311,15 +274,12 @@ Map<String, dynamic> _$AgentInputToJson(AgentInput instance) {
 
 AgentOutput _$AgentOutputFromJson(Map<String, dynamic> json) => AgentOutput(
       resolvedData: (json['resolvedData'] as Map<String, dynamic>?)?.map(
-        (k, e) =>
-            MapEntry(k, ResolvedDataRef.fromJson(e as Map<String, dynamic>)),
+        (k, e) => MapEntry(k, ResolvedDataRef.fromJson(e as Map<String, dynamic>)),
       ),
       status: $enumDecodeNullable(_$StatusEnumMap, json['status']),
       summaryHtml: json['summaryHtml'] as String?,
       agentPlatform: json['agentPlatform'] as String?,
-      totalDuration: json['totalDuration'] == null
-          ? null
-          : Duration(microseconds: json['totalDuration'] as int),
+      totalDuration: json['totalDuration'] == null ? null : Duration(microseconds: json['totalDuration'] as int),
     );
 
 Map<String, dynamic> _$AgentOutputToJson(AgentOutput instance) {
@@ -351,15 +311,9 @@ const _$StatusEnumMap = {
 };
 
 Agent _$AgentFromJson(Map<String, dynamic> json) => Agent(
-      input: json['input'] == null
-          ? null
-          : AgentInput.fromJson(json['input'] as Map<String, dynamic>),
-      output: json['output'] == null
-          ? null
-          : AgentOutput.fromJson(json['output'] as Map<String, dynamic>),
-      source: json['source'] == null
-          ? null
-          : Source.fromJson(json['source'] as Map<String, dynamic>),
+      input: json['input'] == null ? null : AgentInput.fromJson(json['input'] as Map<String, dynamic>),
+      output: json['output'] == null ? null : AgentOutput.fromJson(json['output'] as Map<String, dynamic>),
+      source: json['source'] == null ? null : Source.fromJson(json['source'] as Map<String, dynamic>),
       purposes: (json['purposes'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, $enumDecode(_$PurposeEnumMap, e)),
       ),
@@ -377,8 +331,7 @@ Map<String, dynamic> _$AgentToJson(Agent instance) {
   writeNotNull('input', instance.input);
   writeNotNull('output', instance.output);
   writeNotNull('source', instance.source);
-  writeNotNull('purposes',
-      instance.purposes?.map((k, e) => MapEntry(k, _$PurposeEnumMap[e]!)));
+  writeNotNull('purposes', instance.purposes?.map((k, e) => MapEntry(k, _$PurposeEnumMap[e]!)));
   return val;
 }
 
@@ -390,28 +343,21 @@ const _$PurposeEnumMap = {
 
 BuildBucket _$BuildBucketFromJson(Map<String, dynamic> json) => BuildBucket(
       serviceConfigRevision: json['serviceConfigRevision'] as String?,
-      requestedProperties:
-          (json['requestedProperties'] as Map<String, dynamic>?)?.map(
+      requestedProperties: (json['requestedProperties'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, e as Object),
       ),
       requestedDimensions: (json['requestedDimensions'] as List<dynamic>?)
           ?.map((e) => RequestedDimension.fromJson(e as Map<String, dynamic>))
           .toList(),
       hostname: json['hostname'] as String?,
-      experimentReasons:
-          (json['experimentReasons'] as Map<String, dynamic>?)?.map(
+      experimentReasons: (json['experimentReasons'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, $enumDecode(_$ExperimentReasonEnumMap, e)),
       ),
       agentExecutable: (json['agentExecutable'] as Map<String, dynamic>?)?.map(
-        (k, e) =>
-            MapEntry(k, ResolvedDataRef.fromJson(e as Map<String, dynamic>)),
+        (k, e) => MapEntry(k, ResolvedDataRef.fromJson(e as Map<String, dynamic>)),
       ),
-      agent: json['agent'] == null
-          ? null
-          : Agent.fromJson(json['agent'] as Map<String, dynamic>),
-      knownPublicGerritHosts: (json['knownPublicGerritHosts'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
+      agent: json['agent'] == null ? null : Agent.fromJson(json['agent'] as Map<String, dynamic>),
+      knownPublicGerritHosts: (json['knownPublicGerritHosts'] as List<dynamic>?)?.map((e) => e as String).toList(),
       buildNumber: json['buildNumber'] as bool?,
     );
 
@@ -429,9 +375,7 @@ Map<String, dynamic> _$BuildBucketToJson(BuildBucket instance) {
   writeNotNull('requestedDimensions', instance.requestedDimensions);
   writeNotNull('hostname', instance.hostname);
   writeNotNull(
-      'experimentReasons',
-      instance.experimentReasons
-          ?.map((k, e) => MapEntry(k, _$ExperimentReasonEnumMap[e]!)));
+      'experimentReasons', instance.experimentReasons?.map((k, e) => MapEntry(k, _$ExperimentReasonEnumMap[e]!)));
   writeNotNull('agentExecutable', instance.agentExecutable);
   writeNotNull('agent', instance.agent);
   writeNotNull('knownPublicGerritHosts', instance.knownPublicGerritHosts);
@@ -441,15 +385,11 @@ Map<String, dynamic> _$BuildBucketToJson(BuildBucket instance) {
 
 const _$ExperimentReasonEnumMap = {
   ExperimentReason.experimentReasonUnset: 'EXPERIMENT_REASON_UNSET',
-  ExperimentReason.experimentReasonGlobalDefault:
-      'EXPERIMENT_REASON_GLOBAL_DEFAULT',
-  ExperimentReason.experimentReasonBuilderConfig:
-      'EXPERIMENT_REASON_BUILDER_CONFIG',
-  ExperimentReason.experimentReasonGlobalMinimum:
-      'EXPERIMENT_REASON_GLOBAL_MINIMUM',
+  ExperimentReason.experimentReasonGlobalDefault: 'EXPERIMENT_REASON_GLOBAL_DEFAULT',
+  ExperimentReason.experimentReasonBuilderConfig: 'EXPERIMENT_REASON_BUILDER_CONFIG',
+  ExperimentReason.experimentReasonGlobalMinimum: 'EXPERIMENT_REASON_GLOBAL_MINIMUM',
   ExperimentReason.experimentReasonRequested: 'EXPERIMENT_REASON_REQUESTED',
-  ExperimentReason.experimentReasonGlobalInactive:
-      'EXPERIMENT_REASON_GLOBAL_INACTIVE',
+  ExperimentReason.experimentReasonGlobalInactive: 'EXPERIMENT_REASON_GLOBAL_INACTIVE',
 };
 
 CacheEntry _$CacheEntryFromJson(Map<String, dynamic> json) => CacheEntry(
@@ -487,9 +427,7 @@ Swarming _$SwarmingFromJson(Map<String, dynamic> json) => Swarming(
       botDimensions: (json['botDimensions'] as List<dynamic>?)
           ?.map((e) => StringPair.fromJson(e as Map<String, dynamic>))
           .toList(),
-      caches: (json['caches'] as List<dynamic>?)
-          ?.map((e) => CacheEntry.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      caches: (json['caches'] as List<dynamic>?)?.map((e) => CacheEntry.fromJson(e as Map<String, dynamic>)).toList(),
     );
 
 Map<String, dynamic> _$SwarmingToJson(Swarming instance) {
@@ -531,8 +469,7 @@ Map<String, dynamic> _$RecipeToJson(Recipe instance) {
   return val;
 }
 
-InputCipdPackage _$InputCipdPackageFromJson(Map<String, dynamic> json) =>
-    InputCipdPackage(
+InputCipdPackage _$InputCipdPackageFromJson(Map<String, dynamic> json) => InputCipdPackage(
       name: json['name'] as String?,
       version: json['version'] as String?,
       server: json['server'] as String?,
@@ -577,12 +514,8 @@ Map<String, dynamic> _$BBAgentInputToJson(BBAgentInput instance) {
 BBAgent _$BBAgentFromJson(Map<String, dynamic> json) => BBAgent(
       payloadPath: json['payloadPath'] as String?,
       cacheDir: json['cacheDir'] as String?,
-      knownPublicGerritHosts: (json['knownPublicGerritHosts'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
-      input: json['input'] == null
-          ? null
-          : BBAgentInput.fromJson(json['input'] as Map<String, dynamic>),
+      knownPublicGerritHosts: (json['knownPublicGerritHosts'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      input: json['input'] == null ? null : BBAgentInput.fromJson(json['input'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$BBAgentToJson(BBAgent instance) {
@@ -605,12 +538,8 @@ Backend _$BackendFromJson(Map<String, dynamic> json) => Backend(
       config: (json['config'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, e as Object),
       ),
-      task: json['task'] == null
-          ? null
-          : BuildBucketTask.fromJson(json['task'] as Map<String, dynamic>),
-      caches: (json['caches'] as List<dynamic>?)
-          ?.map((e) => CacheEntry.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      task: json['task'] == null ? null : BuildBucketTask.fromJson(json['task'] as Map<String, dynamic>),
+      caches: (json['caches'] as List<dynamic>?)?.map((e) => CacheEntry.fromJson(e as Map<String, dynamic>)).toList(),
       taskDimensions: (json['taskDimensions'] as List<dynamic>?)
           ?.map((e) => RequestedDimension.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -633,21 +562,12 @@ Map<String, dynamic> _$BackendToJson(Backend instance) {
 }
 
 BuildInfra _$BuildInfraFromJson(Map<String, dynamic> json) => BuildInfra(
-      buildBucket: json['buildbucket'] == null
-          ? null
-          : BuildBucket.fromJson(json['buildbucket'] as Map<String, dynamic>),
-      swarming: json['swarming'] == null
-          ? null
-          : Swarming.fromJson(json['swarming'] as Map<String, dynamic>),
-      recipe: json['recipe'] == null
-          ? null
-          : Recipe.fromJson(json['recipe'] as Map<String, dynamic>),
-      bbAgent: json['bbagent'] == null
-          ? null
-          : BBAgent.fromJson(json['bbagent'] as Map<String, dynamic>),
-      backend: json['backend'] == null
-          ? null
-          : Backend.fromJson(json['backend'] as Map<String, dynamic>),
+      buildBucket:
+          json['buildbucket'] == null ? null : BuildBucket.fromJson(json['buildbucket'] as Map<String, dynamic>),
+      swarming: json['swarming'] == null ? null : Swarming.fromJson(json['swarming'] as Map<String, dynamic>),
+      recipe: json['recipe'] == null ? null : Recipe.fromJson(json['recipe'] as Map<String, dynamic>),
+      bbAgent: json['bbagent'] == null ? null : BBAgent.fromJson(json['bbagent'] as Map<String, dynamic>),
+      backend: json['backend'] == null ? null : Backend.fromJson(json['backend'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$BuildInfraToJson(BuildInfra instance) {
@@ -667,8 +587,7 @@ Map<String, dynamic> _$BuildInfraToJson(BuildInfra instance) {
   return val;
 }
 
-RequestedDimension _$RequestedDimensionFromJson(Map<String, dynamic> json) =>
-    RequestedDimension(
+RequestedDimension _$RequestedDimensionFromJson(Map<String, dynamic> json) => RequestedDimension(
       key: json['key'] as String?,
       value: json['value'] as String?,
       expiration: json['expiration'] as String?,
@@ -727,11 +646,8 @@ Map<String, dynamic> _$TaskIdToJson(TaskId instance) {
   return val;
 }
 
-BuildBucketTask _$BuildBucketTaskFromJson(Map<String, dynamic> json) =>
-    BuildBucketTask(
-      taskId: json['taskId'] == null
-          ? null
-          : TaskId.fromJson(json['taskId'] as Map<String, dynamic>),
+BuildBucketTask _$BuildBucketTaskFromJson(Map<String, dynamic> json) => BuildBucketTask(
+      taskId: json['taskId'] == null ? null : TaskId.fromJson(json['taskId'] as Map<String, dynamic>),
       link: json['link'] as String?,
       status: $enumDecodeNullable(_$StatusEnumMap, json['status']),
       summaryHtml: json['summaryHtml'] as String?,
@@ -797,8 +713,7 @@ Map<String, dynamic> _$BuilderInfoToJson(BuilderInfo instance) {
   return val;
 }
 
-GitilesCommit _$GitilesCommitFromJson(Map<String, dynamic> json) =>
-    GitilesCommit(
+GitilesCommit _$GitilesCommitFromJson(Map<String, dynamic> json) => GitilesCommit(
       host: json['host'] as String?,
       project: json['project'] as String?,
       ref: json['ref'] as String?,
@@ -825,10 +740,8 @@ Input _$InputFromJson(Map<String, dynamic> json) => Input(
       properties: (json['properties'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, e as Object),
       ),
-      gitilesCommit: json['gitilesCommit'] == null
-          ? null
-          : GitilesCommit.fromJson(
-              json['gitilesCommit'] as Map<String, dynamic>),
+      gitilesCommit:
+          json['gitilesCommit'] == null ? null : GitilesCommit.fromJson(json['gitilesCommit'] as Map<String, dynamic>),
       experimental: json['experimental'] as bool?,
     );
 
@@ -851,8 +764,7 @@ Executable _$ExecutableFromJson(Map<String, dynamic> json) => Executable(
       cipdPackage: json['cipdPackage'] as String?,
       cipdVersion: json['cipdVersion'] as String?,
       cmd: (json['cmd'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      wrapper:
-          (json['wrapper'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      wrapper: (json['wrapper'] as List<dynamic>?)?.map((e) => e as String).toList(),
     );
 
 Map<String, dynamic> _$ExecutableToJson(Executable instance) {
@@ -875,10 +787,8 @@ Output _$OutputFromJson(Map<String, dynamic> json) => Output(
       properties: (json['properties'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, e as Object),
       ),
-      gitilesCommit: json['gitilesCommit'] == null
-          ? null
-          : GitilesCommit.fromJson(
-              json['gitilesCommit'] as Map<String, dynamic>),
+      gitilesCommit:
+          json['gitilesCommit'] == null ? null : GitilesCommit.fromJson(json['gitilesCommit'] as Map<String, dynamic>),
       status: $enumDecodeNullable(_$StatusEnumMap, json['status']),
       summaryHtml: json['summaryHtml'] as String?,
     );
@@ -920,12 +830,8 @@ Map<String, dynamic> _$MergeBuildToJson(MergeBuild instance) {
 
 Step _$StepFromJson(Map<String, dynamic> json) => Step(
       name: json['name'] as String?,
-      startTime: json['startTime'] == null
-          ? null
-          : DateTime.parse(json['startTime'] as String),
-      endTime: json['endTime'] == null
-          ? null
-          : DateTime.parse(json['endTime'] as String),
+      startTime: json['startTime'] == null ? null : DateTime.parse(json['startTime'] as String),
+      endTime: json['endTime'] == null ? null : DateTime.parse(json['endTime'] as String),
       status: $enumDecodeNullable(_$StatusEnumMap, json['status']),
       summaryMarkdown: json['summaryMarkdown'] as String?,
       tags: const TagsConverter().fromJson(json['tags'] as List?),
@@ -951,59 +857,34 @@ Map<String, dynamic> _$StepToJson(Step instance) {
 
 Build _$BuildFromJson(Map<String, dynamic> json) => Build(
       id: json['id'] as String?,
-      builder: json['builder'] == null
-          ? null
-          : BuilderId.fromJson(json['builder'] as Map<String, dynamic>),
-      builderInfo: json['builderInfo'] == null
-          ? null
-          : BuilderInfo.fromJson(json['builderInfo'] as Map<String, dynamic>),
+      builder: json['builder'] == null ? null : BuilderId.fromJson(json['builder'] as Map<String, dynamic>),
+      builderInfo:
+          json['builderInfo'] == null ? null : BuilderInfo.fromJson(json['builderInfo'] as Map<String, dynamic>),
       number: json['number'] as int?,
       createdBy: json['createdBy'] as String?,
       canceledBy: json['canceledBy'] as String?,
-      createTime: json['createTime'] == null
-          ? null
-          : DateTime.parse(json['createTime'] as String),
-      startTime: json['startTime'] == null
-          ? null
-          : DateTime.parse(json['startTime'] as String),
-      endTime: json['endTime'] == null
-          ? null
-          : DateTime.parse(json['endTime'] as String),
-      updateTime: json['updateTime'] == null
-          ? null
-          : DateTime.parse(json['updateTime'] as String),
-      cancelTime: json['cancelTime'] == null
-          ? null
-          : DateTime.parse(json['cancelTime'] as String),
+      createTime: json['createTime'] == null ? null : DateTime.parse(json['createTime'] as String),
+      startTime: json['startTime'] == null ? null : DateTime.parse(json['startTime'] as String),
+      endTime: json['endTime'] == null ? null : DateTime.parse(json['endTime'] as String),
+      updateTime: json['updateTime'] == null ? null : DateTime.parse(json['updateTime'] as String),
+      cancelTime: json['cancelTime'] == null ? null : DateTime.parse(json['cancelTime'] as String),
       status: $enumDecodeNullable(_$StatusEnumMap, json['status']),
       summaryMarkdown: json['summaryMarkdown'] as String?,
       cancellationMarkdown: json['cancellationMarkdown'] as String?,
       critical: $enumDecodeNullable(_$TrinaryEnumMap, json['critical']),
-      input: json['input'] == null
-          ? null
-          : Input.fromJson(json['input'] as Map<String, dynamic>),
-      output: json['output'] == null
-          ? null
-          : Output.fromJson(json['output'] as Map<String, dynamic>),
-      steps: (json['steps'] as List<dynamic>?)
-          ?.map((e) => Step.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      buildInfra: json['infra'] == null
-          ? null
-          : BuildInfra.fromJson(json['infra'] as Map<String, dynamic>),
+      input: json['input'] == null ? null : Input.fromJson(json['input'] as Map<String, dynamic>),
+      output: json['output'] == null ? null : Output.fromJson(json['output'] as Map<String, dynamic>),
+      steps: (json['steps'] as List<dynamic>?)?.map((e) => Step.fromJson(e as Map<String, dynamic>)).toList(),
+      buildInfra: json['infra'] == null ? null : BuildInfra.fromJson(json['infra'] as Map<String, dynamic>),
       tags: const TagsConverter().fromJson(json['tags'] as List?),
-      exe: json['exe'] == null
-          ? null
-          : Executable.fromJson(json['exe'] as Map<String, dynamic>),
+      exe: json['exe'] == null ? null : Executable.fromJson(json['exe'] as Map<String, dynamic>),
       canary: json['canary'] as bool?,
       schedulingTimeout: json['schedulingTimeout'] as String?,
       executionTimeout: json['executionTimeout'] as String?,
       gracePeriod: json['gracePeriod'] as String?,
       waitForCapacity: json['waitForCapacity'] as bool?,
       canOutliveParent: json['canOutliveParent'] as bool?,
-      ancestorIds: (json['ancestorIds'] as List<dynamic>?)
-          ?.map((e) => e as int)
-          .toList(),
+      ancestorIds: (json['ancestorIds'] as List<dynamic>?)?.map((e) => e as int).toList(),
       retriable: $enumDecodeNullable(_$TrinaryEnumMap, json['retriable']),
     );
 
@@ -1048,13 +929,9 @@ Map<String, dynamic> _$BuildToJson(Build instance) {
   return val;
 }
 
-BuildV2PubSub _$BuildV2PubSubFromJson(Map<String, dynamic> json) =>
-    BuildV2PubSub(
-      build: json['build'] == null
-          ? null
-          : Build.fromJson(json['build'] as Map<String, dynamic>),
-      compression:
-          $enumDecodeNullable(_$CompressionEnumMap, json['compression']),
+BuildV2PubSub _$BuildV2PubSubFromJson(Map<String, dynamic> json) => BuildV2PubSub(
+      build: json['build'] == null ? null : Build.fromJson(json['build'] as Map<String, dynamic>),
+      compression: $enumDecodeNullable(_$CompressionEnumMap, json['compression']),
     );
 
 Map<String, dynamic> _$BuildV2PubSubToJson(BuildV2PubSub instance) {
@@ -1076,12 +953,9 @@ const _$CompressionEnumMap = {
   Compression.zstd: 'ZSTD',
 };
 
-PubSubCallBack _$PubSubCallBackFromJson(Map<String, dynamic> json) =>
-    PubSubCallBack(
-      buildV2PubSub: json['buildV2PubSub'] == null
-          ? null
-          : BuildV2PubSub.fromJson(
-              json['buildV2PubSub'] as Map<String, dynamic>),
+PubSubCallBack _$PubSubCallBackFromJson(Map<String, dynamic> json) => PubSubCallBack(
+      buildV2PubSub:
+          json['buildV2PubSub'] == null ? null : BuildV2PubSub.fromJson(json['buildV2PubSub'] as Map<String, dynamic>),
       userData: json['userData'] as String?,
     );
 
