@@ -408,7 +408,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     return linesAdded > 0 || linesDeleted != linesTotal;
   }
 
-  // Runs automated test checks for both flutter/packages and flutter/plugins.
+  // Runs automated test checks for both flutter/packages.
   Future<void> _applyPackageTestChecks(GitHub gitHubClient, String? eventAction, PullRequest pr) async {
     final RepositorySlug slug = pr.base!.repo!.slug();
     final Stream<PullRequestFile> files = gitHubClient.pullRequests.listFiles(slug, pr.number!);

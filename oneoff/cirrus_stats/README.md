@@ -2,7 +2,7 @@
 
 The scripts in this directory were used to extract past build statistics from Cirrus GraphQL endpoint, and save to
 BigQuery tables. The data contains build statistics for four repositories: flutter/flutter, flutter/engine,
-flutter/packages, flutter/plugins. The designed time range is from 01/01/2020 to present (end of September 2020),
+flutter/packages. The designed time range is from 01/01/2020 to present (end of September 2020),
 though to ensure the coverage of 01/01/2020, we collected more data points eariler than that.
 
 ## Scripts

@@ -17,7 +17,7 @@ class CiSuccessful extends Validation {
   static const Set<String> notInAuthorsControl = <String>{
     'luci-flutter', // flutter repo
     'luci-engine', // engine repo
-    'submit-queue', // plugins repo
+    'submit-queue', // packages repo
   };
 
   CiSuccessful({

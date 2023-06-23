@@ -40,14 +40,6 @@ var RepositoryList = []Repository{
 		MasterBranch: "master",
 		IsPrivate:    false,
 	},
-	Repository{
-		Id:           "5635434944135168",
-		Owner:        "flutter",
-		Name:         "plugins",
-		CloneUrl:     "https://github.com/flutter/plugins.git",
-		MasterBranch: "master",
-		IsPrivate:    false,
-	},
 }
 
 type Repository struct {
