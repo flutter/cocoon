@@ -11,7 +11,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'build_pubsub.g.dart';
 
-// BuildInfra/Buildbucket/Agent/Souce
 @JsonSerializable(includeIfNull: false)
 class Cipd extends JsonBody {
   const Cipd({
@@ -44,7 +43,6 @@ class Source extends JsonBody {
   static Source fromJson(Map<String, dynamic> json) => _$SourceFromJson(json);
 }
 
-// BuildInfra/Buildbucket/Agent/Input
 @JsonSerializable(includeIfNull: false)
 class Cas extends JsonBody {
   const Cas({
@@ -127,7 +125,6 @@ class InputDataRef extends JsonBody {
   static InputDataRef fromJson(Map<String, dynamic> json) => _$InputDataRefFromJson(json);
 }
 
-// BuildInfra/Buildbucket/Agent/Output
 @JsonSerializable(includeIfNull: false)
 class ResolvedDataRefTiming extends JsonBody {
   const ResolvedDataRefTiming({
@@ -798,6 +795,8 @@ class Step extends JsonBody {
   static Step fromJson(Map<String, dynamic> json) => _$StepFromJson(json);
 }
 
+/// This is the new buildbucket v2 schema used for LUCI rpc calls.
+/// Link: https://source.chromium.org/chromium/infra/infra/+/main:go/src/go.chromium.org/luci/buildbucket/proto/build.proto
 @JsonSerializable(includeIfNull: false)
 class Build extends JsonBody {
   const Build({
