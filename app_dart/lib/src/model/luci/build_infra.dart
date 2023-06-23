@@ -367,7 +367,7 @@ class CacheEntry extends JsonBody {
   });
   final String? name;
   final String? path;
-  final Duration? waitForWarmCache;
+  final String? waitForWarmCache;
   final String? envVar;
 
   @override

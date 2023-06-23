@@ -455,9 +455,7 @@ const _$ExperimentReasonEnumMap = {
 CacheEntry _$CacheEntryFromJson(Map<String, dynamic> json) => CacheEntry(
       name: json['name'] as String?,
       path: json['path'] as String?,
-      waitForWarmCache: json['waitForWarmCache'] == null
-          ? null
-          : Duration(microseconds: json['waitForWarmCache'] as int),
+      waitForWarmCache: json['waitForWarmCache'] as String?,
       envVar: json['envVar'] as String?,
     );
 
@@ -472,7 +470,7 @@ Map<String, dynamic> _$CacheEntryToJson(CacheEntry instance) {
 
   writeNotNull('name', instance.name);
   writeNotNull('path', instance.path);
-  writeNotNull('waitForWarmCache', instance.waitForWarmCache?.inMicroseconds);
+  writeNotNull('waitForWarmCache', instance.waitForWarmCache);
   writeNotNull('envVar', instance.envVar);
   return val;
 }

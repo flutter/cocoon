@@ -630,6 +630,8 @@ class ScheduleBuildRequest extends JsonBody {
   /// The CIPD package with the recipes.
   final Map<String, dynamic>? exe;
 
+  //TODO (ricardoamador): add Trinary canOutliveParent here.
+
   @override
   Map<String, dynamic> toJson() => _$ScheduleBuildRequestToJson(this);
 
