@@ -141,10 +141,12 @@ void main() {
     expect(build.buildInfra, isNotNull);
 
     expect(
-      build.tags!.entries.any((element) =>
-          element.key == 'buildset' &&
-          element.value.first ==
-              'commit/gitiles/chromium.googlesource.com/chromium/src/+/a18a5bda2ee726a4e9c7cae848e4e4c8437a5d0e',),
+      build.tags!.entries.any(
+        (element) =>
+            element.key == 'buildset' &&
+            element.value.first ==
+                'commit/gitiles/chromium.googlesource.com/chromium/src/+/a18a5bda2ee726a4e9c7cae848e4e4c8437a5d0e',
+      ),
       isTrue,
     );
     expect(
