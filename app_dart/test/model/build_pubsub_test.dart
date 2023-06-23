@@ -1,3 +1,7 @@
+// Copyright 2023 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'dart:convert';
 
 import 'package:cocoon_service/src/model/luci/build_pubsub.dart';
@@ -6,6 +10,13 @@ import 'package:test/test.dart';
 import 'build_pubsub_test_data.dart';
 
 void main() {
+  test('Executable is handled correctly', () {
+    final Executable exe = Executable.fromJson(jsonDecode(exeJson));
+    expect(exe.cipdVersion, 'refs/heads/main');
+    expect(exe.cipdPackage, 'infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build');
+    expect(exe.cmd, ['luciexe']);
+  });
+
   test('Agent', () {
     final Agent agent = Agent.fromJson(jsonDecode(agentJson));
     expect(agent, isNotNull);
@@ -29,13 +40,15 @@ void main() {
 
     expect(agent.purposes, isNotNull);
     expect(
-        agent.purposes!.entries.any(
-            (element) => element.key == 'bbagent_utility_packages' && element.value.name == 'purposeBbAgentUtility'),
-        isTrue,);
+      agent.purposes!.entries
+          .any((element) => element.key == 'bbagent_utility_packages' && element.value.name == 'purposeBbAgentUtility'),
+      isTrue,
+    );
     expect(
-        agent.purposes!.entries
-            .any((element) => element.key == 'kitchen-checkout' && element.value.name == 'purposeExePayload'),
-        isTrue,);
+      agent.purposes!.entries
+          .any((element) => element.key == 'kitchen-checkout' && element.value.name == 'purposeExePayload'),
+      isTrue,
+    );
 
     expect(jsonEncode(agent.toJson()) == stripJson(agentJson), isTrue);
   });
@@ -61,8 +74,10 @@ void main() {
     expect(swarming.priority, 30);
     expect(swarming.taskDimensions!.length, 3);
 
-    expect(swarming.taskDimensions!.any((element) => element.key == 'pool' && element.value == 'luci.chromium.ci'),
-        isTrue,);
+    expect(
+      swarming.taskDimensions!.any((element) => element.key == 'pool' && element.value == 'luci.chromium.ci'),
+      isTrue,
+    );
     expect(swarming.taskDimensions!.any((element) => element.key == 'os' && element.value == 'Mac-13'), isTrue);
     expect(swarming.taskDimensions!.any((element) => element.key == 'cpu' && element.value == 'arm64'), isTrue);
 
@@ -71,11 +86,12 @@ void main() {
     expect(swarming.caches!.any((element) => element.name == 'git' && element.path == 'git'), isTrue);
     expect(swarming.caches!.any((element) => element.name == 'goma' && element.path == 'goma'), isTrue);
     expect(
-        swarming.caches!.any(
-          (element) =>
-              element.name == 'vpython' && element.path == 'vpython' && element.envVar == 'VPYTHON_VIRTUALENV_ROOT',
-        ),
-        isTrue,);
+      swarming.caches!.any(
+        (element) =>
+            element.name == 'vpython' && element.path == 'vpython' && element.envVar == 'VPYTHON_VIRTUALENV_ROOT',
+      ),
+      isTrue,
+    );
     expect(
       swarming.caches!.any(
         (element) =>
@@ -111,7 +127,7 @@ void main() {
     expect(build.updateTime, DateTime.parse('2023-06-20T18:35:07.294256Z'));
     expect(build.status, Status.infraFailure);
     expect(build.input, isNotNull);
-    
+
     expect(build.input!.gitilesCommit!.host, 'chromium.googlesource.com');
     expect(build.input!.gitilesCommit!.project, 'chromium/src');
     expect(build.input!.gitilesCommit!.ref, 'refs/heads/main');
@@ -124,10 +140,27 @@ void main() {
 
     expect(build.buildInfra, isNotNull);
 
-    expect(build.tags!.entries.any((element) => element.key == 'buildset' && element.value.first == 'commit/gitiles/chromium.googlesource.com/chromium/src/+/a18a5bda2ee726a4e9c7cae848e4e4c8437a5d0e'), isTrue,);
-    expect(build.tags!.entries.any((element) => element.key == 'scheduler_invocation_id' && element.value.first == '8943176062752149552'), isTrue,);
-    expect(build.tags!.entries.any((element) => element.key == 'scheduler_job_id' && element.value.first == 'chromium/mac-arm-rel-dev'), isTrue,);
-    expect(build.tags!.entries.any((element) => element.key == 'user_agent' && element.value.first == 'luci-scheduler-dev'), isTrue,);
+    expect(
+      build.tags!.entries.any((element) =>
+          element.key == 'buildset' &&
+          element.value.first ==
+              'commit/gitiles/chromium.googlesource.com/chromium/src/+/a18a5bda2ee726a4e9c7cae848e4e4c8437a5d0e'),
+      isTrue,
+    );
+    expect(
+      build.tags!.entries
+          .any((element) => element.key == 'scheduler_invocation_id' && element.value.first == '8943176062752149552'),
+      isTrue,
+    );
+    expect(
+      build.tags!.entries
+          .any((element) => element.key == 'scheduler_job_id' && element.value.first == 'chromium/mac-arm-rel-dev'),
+      isTrue,
+    );
+    expect(
+      build.tags!.entries.any((element) => element.key == 'user_agent' && element.value.first == 'luci-scheduler-dev'),
+      isTrue,
+    );
 
     expect(build.exe, isNotNull);
     expect(build.exe!.cipdPackage, 'infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build');

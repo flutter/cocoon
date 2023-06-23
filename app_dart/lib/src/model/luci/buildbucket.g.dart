@@ -412,23 +412,6 @@ Map<String, dynamic> _$BuildToJson(Build instance) {
   return val;
 }
 
-BuilderInfo _$BuilderInfoFromJson(Map<String, dynamic> json) => BuilderInfo(
-      description: json['description'] as String?,
-    );
-
-Map<String, dynamic> _$BuilderInfoToJson(BuilderInfo instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('description', instance.description);
-  return val;
-}
-
 BuilderId _$BuilderIdFromJson(Map<String, dynamic> json) => BuilderId(
       project: json['project'] as String?,
       bucket: json['bucket'] as String?,
@@ -505,32 +488,6 @@ Map<String, dynamic> _$InputToJson(Input instance) {
   return val;
 }
 
-Output _$OutputFromJson(Map<String, dynamic> json) => Output(
-      properties: (json['properties'] as Map<String, dynamic>?)?.map(
-        (k, e) => MapEntry(k, e as Object),
-      ),
-      gitilesCommit:
-          json['gitilesCommit'] == null ? null : GitilesCommit.fromJson(json['gitilesCommit'] as Map<String, dynamic>),
-      status: $enumDecodeNullable(_$StatusEnumMap, json['status']),
-      summaryHtml: json['summaryHtml'] as String?,
-    );
-
-Map<String, dynamic> _$OutputToJson(Output instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('properties', instance.properties);
-  writeNotNull('gitilesCommit', instance.gitilesCommit);
-  writeNotNull('status', _$StatusEnumMap[instance.status]);
-  writeNotNull('summaryHtml', instance.summaryHtml);
-  return val;
-}
-
 GitilesCommit _$GitilesCommitFromJson(Map<String, dynamic> json) => GitilesCommit(
       host: json['host'] as String?,
       project: json['project'] as String?,
@@ -551,142 +508,6 @@ Map<String, dynamic> _$GitilesCommitToJson(GitilesCommit instance) {
   writeNotNull('project', instance.project);
   writeNotNull('id', instance.hash);
   writeNotNull('ref', instance.ref);
-  return val;
-}
-
-MergeBuild _$MergeBuildFromJson(Map<String, dynamic> json) => MergeBuild(
-      fromLogDogStream: json['fromLogDogStream'] as String?,
-      legacyGlobalNamespace: json['legacyGlobalNamespace'] as bool?,
-    );
-
-Map<String, dynamic> _$MergeBuildToJson(MergeBuild instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('fromLogDogStream', instance.fromLogDogStream);
-  writeNotNull('legacyGlobalNamespace', instance.legacyGlobalNamespace);
-  return val;
-}
-
-Step _$StepFromJson(Map<String, dynamic> json) => Step(
-      name: json['name'] as String?,
-      startTime: json['startTime'] == null ? null : DateTime.parse(json['startTime'] as String),
-      endTime: json['endTime'] == null ? null : DateTime.parse(json['endTime'] as String),
-      status: $enumDecodeNullable(_$StatusEnumMap, json['status']),
-      summaryMarkdown: json['summaryMarkdown'] as String?,
-      tags: const TagsConverter().fromJson(json['tags'] as List?),
-    );
-
-Map<String, dynamic> _$StepToJson(Step instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('name', instance.name);
-  writeNotNull('startTime', instance.startTime?.toIso8601String());
-  writeNotNull('endTime', instance.endTime?.toIso8601String());
-  writeNotNull('status', _$StatusEnumMap[instance.status]);
-  writeNotNull('summaryMarkdown', instance.summaryMarkdown);
-  writeNotNull('tags', const TagsConverter().toJson(instance.tags));
-  return val;
-}
-
-TaskId _$TaskIdFromJson(Map<String, dynamic> json) => TaskId(
-      target: json['target'] as String?,
-      id: json['id'] as String?,
-    );
-
-Map<String, dynamic> _$TaskIdToJson(TaskId instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('target', instance.target);
-  writeNotNull('id', instance.id);
-  return val;
-}
-
-BuildBucketTask _$BuildBucketTaskFromJson(Map<String, dynamic> json) => BuildBucketTask(
-      taskId: json['taskId'] == null ? null : TaskId.fromJson(json['taskId'] as Map<String, dynamic>),
-      link: json['link'] as String?,
-      status: $enumDecodeNullable(_$StatusEnumMap, json['status']),
-      summaryHtml: json['summaryHtml'] as String?,
-      updateId: json['updateId'] as int?,
-      details: (json['details'] as Map<String, dynamic>?)?.map(
-        (k, e) => MapEntry(k, e as Object),
-      ),
-    );
-
-Map<String, dynamic> _$BuildBucketTaskToJson(BuildBucketTask instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('taskId', instance.taskId);
-  writeNotNull('link', instance.link);
-  writeNotNull('status', _$StatusEnumMap[instance.status]);
-  writeNotNull('summaryHtml', instance.summaryHtml);
-  writeNotNull('updateId', instance.updateId);
-  writeNotNull('details', instance.details);
-  return val;
-}
-
-Executable _$ExecutableFromJson(Map<String, dynamic> json) => Executable(
-      cipdPackage: json['cipdPackage'] as String?,
-      cipdVersion: json['cipdVersion'] as String?,
-      cmd: (json['cmd'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      wrapper: (json['wrapper'] as List<dynamic>?)?.map((e) => e as String).toList(),
-    );
-
-Map<String, dynamic> _$ExecutableToJson(Executable instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('cipdPackage', instance.cipdPackage);
-  writeNotNull('cipdVersion', instance.cipdVersion);
-  writeNotNull('cmd', instance.cmd);
-  writeNotNull('wrapper', instance.wrapper);
-  return val;
-}
-
-StringPair _$StringPairFromJson(Map<String, dynamic> json) => StringPair(
-      key: json['key'] as String?,
-      value: json['value'] as String?,
-    );
-
-Map<String, dynamic> _$StringPairToJson(StringPair instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('key', instance.key);
-  writeNotNull('value', instance.value);
   return val;
 }
 

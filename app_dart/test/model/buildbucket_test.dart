@@ -9,15 +9,6 @@ import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:test/test.dart';
 
 void main() {
-  const String exeJson = '''
-    {
-      "cipdPackage": "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
-      "cipdVersion": "refs/heads/main",
-      "cmd": [
-              "luciexe"
-      ]
-    }''';
-
   const String tagsJson = '['
       '{"key":"tag_a","value":"chrome/win32-builder-perf"},'
       '{"key":"tag_b","value":"true"},'
@@ -89,12 +80,5 @@ void main() {
         '{"builder":{"project":"flutter","bucket":"try","builder":"fake_builder"},'
         '"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/63834/head"},'
         '"dimensions":[{"key":"a","value":"b","expiration":"120s"}],"priority":100}');
-  });
-
-  test('Executable is handled correctly', () {
-    final Executable exe = Executable.fromJson(jsonDecode(exeJson));
-    expect(exe.cipdVersion, 'refs/heads/main');
-    expect(exe.cipdPackage, 'infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build');
-    expect(exe.cmd, ['luciexe']);
   });
 }
