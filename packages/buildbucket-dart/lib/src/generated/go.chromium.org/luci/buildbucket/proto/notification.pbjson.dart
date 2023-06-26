@@ -58,4 +58,3 @@ final $typed_data.Uint8List pubSubCallBackDescriptor = $convert.base64Decode(
     'Cg5QdWJTdWJDYWxsQmFjaxJBCgxidWlsZF9wdWJzdWIYASABKAsyHi5idWlsZGJ1Y2tldC52Mi'
     '5CdWlsZHNWMlB1YlN1YlILYnVpbGRQdWJzdWISGwoJdXNlcl9kYXRhGAIgASgMUgh1c2VyRGF0'
     'YQ==');
-

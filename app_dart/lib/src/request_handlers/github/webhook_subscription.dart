@@ -265,8 +265,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
             return _applyEngineRepoLabels(gitHubClient, eventAction, pr);
           case 'packages':
             return _applyPackageTestChecks(gitHubClient, eventAction, pr);
-        
-      } 
+      }
     }
   }
 
