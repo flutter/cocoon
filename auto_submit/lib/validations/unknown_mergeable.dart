@@ -13,11 +13,10 @@ class UnknownMergeable extends Validation {
   });
 
   @override
-
   /// Verifies the PR is in a known mergeable state.
   Future<ValidationResult> validate(QueryResult result, github.PullRequest messagePullRequest) async {
     // This is used to skip landing until we are sure the PR is mergeable.
-    final bool unknownMergeableState = messagePullRequest.mergeableState == UNKNOWN_MERGE_STATE;
+    final bool unknownMergeableState = messagePullRequest.mergeable == null;
     return ValidationResult(!unknownMergeableState, Action.IGNORE_TEMPORARILY, '');
   }
 }
