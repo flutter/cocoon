@@ -12,7 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   void testDefault(TaskGridFilter filter) {
-    expect(filter.toMap(includeDefaults: false), isEmpty);
+    expect(filter.toMap(), isEmpty);
     expect(filter.taskFilter, null);
     expect(filter.authorFilter, null);
     expect(filter.messageFilter, null);
