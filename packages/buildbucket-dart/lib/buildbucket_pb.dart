@@ -6,4 +6,4 @@ library buildbucket;
 
 export 'src/generated/go.chromium.org/luci/buildbucket/proto/build.pb.dart' show Build;
 export 'src/generated/go.chromium.org/luci/buildbucket/proto/notification.pb.dart'
-    show NotificationConfig, BuildsV2PubSub;
+    show NotificationConfig, BuildsV2PubSub, PubSubCallBack;
