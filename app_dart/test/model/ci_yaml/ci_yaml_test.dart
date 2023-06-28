@@ -299,6 +299,60 @@ void main() {
         );
       });
     });
+    group('Presubmit validation', () {
+      final CiYaml totCIYaml = CiYaml(
+        slug: Config.flutterSlug,
+        branch: Config.defaultBranch(Config.flutterSlug),
+        config: pb.SchedulerConfig(
+          enabledBranches: <String>[
+            Config.defaultBranch(Config.flutterSlug),
+          ],
+          targets: <pb.Target>[
+            pb.Target(
+              name: 'Linux A',
+              presubmit: false,
+            ),
+            pb.Target(
+              name: 'Mac A', // Should be ignored on release branches
+              bringup: true,
+            ),
+          ],
+        ),
+      );
+      final CiYaml ciYaml = CiYaml(
+        slug: Config.flutterSlug,
+        branch: 'flutter-2.4-candidate.3',
+        config: pb.SchedulerConfig(
+          targets: <pb.Target>[
+            pb.Target(
+              name: 'Linux A',
+              presubmit: true,
+            ),
+            pb.Target(
+              name: 'Linux B',
+            ),
+            pb.Target(
+              name: 'Mac A', // Should be ignored on release branches
+              bringup: true,
+            ),
+          ],
+        ),
+        totConfig: totCIYaml,
+      );
+
+      test('presubmit true target is scheduled though TOT is with presubmit false', () {
+        final List<Target> initialTargets = ciYaml.presubmitTargets;
+        final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
+        expect(
+          initialTargetNames,
+          containsAll(
+            <String>[
+              'Linux A',
+            ],
+          ),
+        );
+      });
+    });
   });
 }
 
