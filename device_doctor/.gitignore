@@ -9,4 +9,3 @@ build/
 
 # Dart
 .packages
-!pubspec.lock

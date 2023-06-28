@@ -6,10 +6,10 @@ environment:
   sdk: ">=2.18.0 <4.0.0"
 
 dependencies:
-  file: ^7.0.0
-  path: ^1.8.3
+  file: 6.1.4
+  path: 1.8.3
   platform: 3.1.0
 
 dev_dependencies:
-  mockito: ^5.4.0
-  test_api: ^0.6.0
+  mockito: 5.4.0
+  test_api: 0.5.2
