@@ -244,10 +244,6 @@ Future<int> full(final Directory cache, final GitHub github) async {
     final List<FullIssue> primaryIssues = issues[issueDatabaseRepo.fullName]!.values.where((final FullIssue issue) => issue.isValid && !issue.isPullRequest).toList();
     final List<FullIssue> primaryPRs = issues[issueDatabaseRepo.fullName]!.values.where((final FullIssue issue) => issue.isValid && issue.isPullRequest).toList();
     for (final FullIssue issue in primaryIssues.where((final FullIssue issue) => issue.priority != null)) {
-      // P6 values are significantly affected by a mass migration Stuart did once.
-      // if (issue.metadata.user?.login == 'stuartmorgan' || issue.metadata.closedBy?.login == 'stuartmorgan') {
-      //   continue;
-      // }
       final PriorityResults priorityResults = priorityAnalysis[issue.priority!]!;
       final bool teamIssue = allMembers.contains(issue.metadata.user!.login);
       priorityResults.total += 1;

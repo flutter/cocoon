@@ -196,7 +196,7 @@ const String expectedSemanticsIntegrationTestOwner = 'HansMuller';
 const List<String> expectedSemanticsIntegrationTestLabels = <String>[
   'team: flakes',
   'severe: flake',
-  'P1',
+  'P0',
   'framework',
 ];
 const String expectedSemanticsIntegrationTestTreeSha = 'abcdefg';

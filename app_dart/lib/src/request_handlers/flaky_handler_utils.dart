@@ -19,12 +19,10 @@ const String kFrameworkLabel = 'framework';
 const String kToolLabel = 'tool';
 const String kEngineLabel = 'engine';
 const String kWebLabel = 'platform-web';
+const String kP0Label = 'P0';
 const String kP1Label = 'P1';
 const String kP2Label = 'P2';
 const String kP3Label = 'P3';
-const String kP4Label = 'P4';
-const String kP5Label = 'P5';
-const String kP6Label = 'P6';
 
 const String kBigQueryProjectId = 'flutter-dashboard';
 const String kCiYamlTargetsKey = 'targets';
@@ -110,7 +108,7 @@ Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fi
     final List<String> labels = <String>[
       kTeamFlakeLabel,
       kSevereFlakeLabel,
-      kP1Label,
+      kP0Label,
     ];
     final String? teamLabel = _getTeamLabelFromTeam(ownership.team);
     if (teamLabel != null && teamLabel.isNotEmpty == true) {
@@ -142,13 +140,11 @@ class IssueUpdateBuilder {
   List<String> get issueLabels {
     final List<String> existingLabels = existingIssue.labels.map<String>((IssueLabel label) => label.name).toList();
     // Update the priority.
-    if (!existingLabels.contains(kP1Label) && !isBelow) {
+    if (!existingLabels.contains(kP0Label) && !isBelow) {
+      existingLabels.add(kP0Label);
+      existingLabels.remove(kP1Label);
       existingLabels.remove(kP2Label);
       existingLabels.remove(kP3Label);
-      existingLabels.remove(kP4Label);
-      existingLabels.remove(kP5Label);
-      existingLabels.remove(kP6Label);
-      existingLabels.add(kP1Label);
     }
     return existingLabels;
   }
