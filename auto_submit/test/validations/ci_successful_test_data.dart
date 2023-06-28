@@ -107,7 +107,7 @@ const String nonNullStatusSUCCESSCommitRepositoryJson = """
                 "status": {
                   "contexts":[
                     {
-                      "context":"luci-flutter",
+                      "context":"tree-status",
                       "state":"SUCCESS",
                       "targetUrl":"https://ci.example.com/1000/output"
                     }
@@ -154,7 +154,7 @@ const String nonNullStatusFAILURECommitRepositoryJson = """
                 "status": {
                   "contexts":[
                     {
-                      "context":"luci-flutter",
+                      "context":"tree-status",
                       "state":"FAILURE",
                       "targetUrl":"https://ci.example.com/1000/output"
                     }

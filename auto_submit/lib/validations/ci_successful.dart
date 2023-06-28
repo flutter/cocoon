@@ -15,8 +15,11 @@ import '../service/log.dart';
 class CiSuccessful extends Validation {
   /// The status checks that are not related to changes in this PR.
   static const Set<String> notInAuthorsControl = <String>{
+    // TODO(keyonghan): Remove `luci-<repo>` when `tree-status` populates.
+    // https://github.com/flutter/flutter/issues/92931
     'luci-flutter', // flutter repo
     'luci-engine', // engine repo
+    'tree-status', // flutter/engine repo
     'submit-queue', // packages repo
   };
 
@@ -107,12 +110,14 @@ class CiSuccessful extends Validation {
     if (statuses.isEmpty) {
       return false;
     }
-    final String treeStatusName = 'luci-${slug.name}';
-    log.info('Validating tree status: ${slug.name}, statuses: $statuses');
+    // TODO(keyonghan): Remove `luci-<repo>` when `tree-status` populates.
+    // https://github.com/flutter/flutter/issues/92931
+    final List<String> treeStatusNames = ['luci-${slug.name}', 'tree-status'];
+    log.info('Validating tree status: ${slug.name}/tree-status, statuses: $statuses');
 
     /// Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
     for (ContextNode status in statuses) {
-      if (status.context == treeStatusName) {
+      if (treeStatusNames.contains(status.context)) {
         // Does only one tree status need to be set for the condition?
         treeStatusValid = true;
       }
