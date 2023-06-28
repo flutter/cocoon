@@ -29,17 +29,16 @@ class CiYaml {
     }
     // Do not filter bringup targets. They are required for backward compatibility
     // with release candidate branches.
-    final Iterable<Target> totPresubmitTargets =
-        totConfig?._targets.where((Target target) => target.value.presubmit) ?? <Target>[];
-    final List<Target> totEnabledPresubmitTargets = _filterEnabledTargets(totPresubmitTargets);
-    totPresubmitTargetNames = totEnabledPresubmitTargets.map((Target target) => target.value.name).toList();
+    final Iterable<Target> totTargets = totConfig?._targets ?? <Target>[];
+    final List<Target> totEnabledTargets = _filterEnabledTargets(totTargets);
+    totTargetNames = totEnabledTargets.map((Target target) => target.value.name).toList();
     totPostsubmitTargetNames =
         totConfig?.postsubmitTargets.map((Target target) => target.value.name).toList() ?? <String>[];
   }
 
-  /// List of presubmit target names used to filter target from release candidate branches
+  /// List of  target names used to filter target from release candidate branches
   /// that were already removed from main.
-  List<String>? totPresubmitTargetNames;
+  List<String>? totTargetNames;
 
   /// List of postsubmit target names used to filter target from release candidate branches
   /// that were already removed from main.
@@ -64,8 +63,8 @@ class CiYaml {
       throw Exception('$branch is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
     }
     // Filter targets removed from main.
-    if (totPresubmitTargetNames!.isNotEmpty) {
-      enabledTargets = filterOutdatedTargets(slug, enabledTargets, totPresubmitTargetNames);
+    if (totTargetNames!.isNotEmpty) {
+      enabledTargets = filterOutdatedTargets(slug, enabledTargets, totTargetNames);
     }
     return enabledTargets;
   }
