@@ -25,7 +25,7 @@ String constructSingleReviewerReview({
                 "status": {
                   "contexts":[
                     {
-                      "context":"luci-flutter",
+                      "context":"tree-status",
                       "state":"SUCCESS",
                       "targetUrl":"https://ci.example.com/1000/output"
                     }
@@ -77,7 +77,7 @@ String constructTwoReviewerReview({
                 "status": {
                   "contexts":[
                     {
-                      "context":"luci-flutter",
+                      "context":"tree-status",
                       "state":"SUCCESS",
                       "targetUrl":"https://ci.example.com/1000/output"
                     }
@@ -134,7 +134,7 @@ String constructMultipleReviewerReview({
                 "status": {
                   "contexts":[
                     {
-                      "context":"luci-flutter",
+                      "context":"tree-status",
                       "state":"SUCCESS",
                       "targetUrl":"https://ci.example.com/1000/output"
                     }
@@ -192,7 +192,7 @@ const String multipleReviewsSameAuthor = '''
                 "status": {
                   "contexts":[
                     {
-                      "context":"luci-flutter",
+                      "context":"tree-status",
                       "state":"SUCCESS",
                       "targetUrl":"https://ci.example.com/1000/output"
                     }
