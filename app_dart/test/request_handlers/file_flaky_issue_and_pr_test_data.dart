@@ -227,7 +227,7 @@ const String expectedSemanticsIntegrationTestResponseAssignee = 'HansMuller';
 const List<String> expectedSemanticsIntegrationTestResponseLabels = <String>[
   'team: flakes',
   'severe: flake',
-  'P1',
+  'P0',
   'framework',
 ];
 const String expectedSemanticsIntegrationTestCiYamlContent = '''
@@ -336,7 +336,7 @@ const String expectedAnalyzeTestResponseAssignee = 'HansMuller';
 const List<String> expectedAnalyzeTestResponseLabels = <String>[
   'team: flakes',
   'severe: flake',
-  'P1',
+  'P0',
   'framework',
 ];
 
@@ -369,7 +369,7 @@ const String expectedFrameworkTestResponseAssignee = 'HansMuller';
 const List<String> expectedFrameworkTestResponseLabels = <String>[
   'team: flakes',
   'severe: flake',
-  'P1',
+  'P0',
   'framework',
 ];
 
