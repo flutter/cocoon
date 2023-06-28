@@ -36,7 +36,7 @@ class CiYaml {
         totConfig?.postsubmitTargets.map((Target target) => target.value.name).toList() ?? <String>[];
   }
 
-  /// List of  target names used to filter target from release candidate branches
+  /// List of target names used to filter target from release candidate branches
   /// that were already removed from main.
   List<String>? totTargetNames;
 
