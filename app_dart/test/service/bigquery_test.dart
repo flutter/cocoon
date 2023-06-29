@@ -25,7 +25,9 @@ const String semanticsIntegrationTestResponse = '''
         { "v": "201, 202, 203" },
         { "v": "abc" },
         { "v": "103" },
-        { "v": "0.5"}
+        { "v": "0.5"},
+        {"v": "2023-06-20"},
+        {"v": "2023-06-29"}
       ]
     }
   ]
@@ -92,6 +94,8 @@ void main() {
     expect(statisticList[0].flakyBuilds![2], '101');
     expect(statisticList[0].recentCommit, 'abc');
     expect(statisticList[0].flakyBuildOfRecentCommit, '103');
+    expect(statisticList[0].fromDate, '2023-06-20');
+    expect(statisticList[0].toDate, '2023-06-29');
   });
 
   test('return empty build list when bigquery returns no rows', () async {

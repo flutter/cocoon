@@ -151,7 +151,7 @@ class IssueUpdateBuilder {
 
   String get issueUpdateComment {
     String result =
-        '[$bucketString pool] current flaky ratio for the past (up to) 100 commits is ${_formatRate(statistic.flakyRate)}%. Flaky number: ${statistic.flakyNumber}; total number: ${statistic.totalNumber}.\n';
+        '[$bucketString pool] flaky ratio for the past (up to) 100 commits between ${statistic.fromDate} and ${statistic.toDate} is ${_formatRate(statistic.flakyRate)}%. Flaky number: ${statistic.flakyNumber}; total number: ${statistic.totalNumber}.\n';
     if (statistic.flakyRate > 0.0) {
       result += '''
 One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.flakyBuildOfRecentCommit, bucket: bucket)}
