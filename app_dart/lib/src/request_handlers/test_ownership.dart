@@ -40,37 +40,35 @@ String getTestNameFromTargetName(String targetName) {
 }
 
 class DeviceLabTestOwner implements TestOwner {
-
   DeviceLabTestOwner();
 
   @override
   TestOwnership getTestOwnership(String targetName, String testOwnersContent) {
-    
     String? owner;
     Team? team;
     final String testName = getTestNameFromTargetName(targetName);
     // The format looks like this:
     //   /dev/devicelab/bin/tasks/dart_plugin_registry_test.dart @stuartmorgan @flutter/plugin
     final RegExpMatch? match = devicelabTestOwners.firstMatch(testOwnersContent);
-      if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-        final List<String> lines = match
-            .namedGroup(kOwnerGroupName)!
-            .split('\n')
-            .where((String line) => line.isNotEmpty && !line.startsWith('#'))
-            .toList();
+    if (match != null && match.namedGroup(kOwnerGroupName) != null) {
+      final List<String> lines = match
+          .namedGroup(kOwnerGroupName)!
+          .split('\n')
+          .where((String line) => line.isNotEmpty && !line.startsWith('#'))
+          .toList();
 
-        for (final String line in lines) {
-          final List<String> words = line.trim().split(' ');
-          // e.g. words = ['/xxx/xxx/xxx_test.dart', '@stuartmorgan' '@flutter/tool']
-          if (words[0].endsWith('$testName.dart')) {
-            owner = words[1].substring(1); // Strip out the lead '@'
-            team = words.length < 3 ? Team.unknown : teamFromString(words[2].substring(1)); // Strip out the lead '@'
-            break;
-          }
+      for (final String line in lines) {
+        final List<String> words = line.trim().split(' ');
+        // e.g. words = ['/xxx/xxx/xxx_test.dart', '@stuartmorgan' '@flutter/tool']
+        if (words[0].endsWith('$testName.dart')) {
+          owner = words[1].substring(1); // Strip out the lead '@'
+          team = words.length < 3 ? Team.unknown : teamFromString(words[2].substring(1)); // Strip out the lead '@'
+          break;
         }
       }
+    }
 
-      return TestOwnership(owner, team);
+    return TestOwnership(owner, team);
   }
 }
 
@@ -186,5 +184,4 @@ class UnknownTestOwner implements TestOwner {
   TestOwnership getTestOwnership(String targetName, String testOwnersContent) {
     return TestOwnership(null, Team.unknown);
   }
-
 }
