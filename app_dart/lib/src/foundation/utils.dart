@@ -182,11 +182,18 @@ List<String> validateOwnership(String ciYamlContent, String testOwnersContent, {
 
   final pb.SchedulerConfig schedulerConfig = ciYamlFromProto.config;
 
+  // TODO this is where to enforce task name for devicelab.
   for (pb.Target target in schedulerConfig.targets) {
-    final String builder = target.name;
+    String builder = target.name;
+    final BuilderType builderType = getTypeForBuilder(builder, ciYamlFromProto, unfilteredTargets: unfilteredTargets,);
+
+    if (builderType == BuilderType.devicelab) {
+      builder = target.properties['task_name']!;
+    }
+
     final String? owner = getTestOwnership(
       builder,
-      getTypeForBuilder(builder, ciYamlFromProto, unfilteredTargets: unfilteredTargets),
+      builderType,
       testOwnersContent,
     ).owner;
     print('$builder: $owner');

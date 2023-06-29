@@ -25,6 +25,7 @@ targets:
     properties:
       tags: >
         ["devicelab"]
+      task_name: android_semantics_integration_test
   - name: Mac_android ignore_myflakiness
     bringup: true
     builder: Mac_android ignore_myflakiness
@@ -34,6 +35,7 @@ targets:
       ignore_flakiness: "true"
       tags: >
         ["devicelab"]
+      task_name: ignore_myflakiness
   - name: Linux analyze
     builder: Linux analyze
     scheduler: luci
@@ -68,6 +70,7 @@ targets:
     properties:
       tags: >
         ["devicelab"]
+      task_name: android_semantics_integration_test
   - name: Mac_android ignore_myflakiness
     builder: Mac_android ignore_myflakiness
     presubmit: false
@@ -75,6 +78,7 @@ targets:
     properties:
       tags: >
         ["devicelab"]
+      task_name: ignore_myflakiness
   - name: Linux analyze
     builder: Linux analyze
     scheduler: luci
@@ -110,6 +114,7 @@ targets:
     properties:
       tags: >
         ["devicelab"]
+      task_name: android_semantics_integration_test
   - name: Mac_android ignore_myflakiness
     bringup: true
     builder: Mac_android ignore_myflakiness
@@ -159,7 +164,7 @@ const String testOwnersContent = '''
 ## Shards tests
 # framework_tests @HansMuller @flutter/framework
 
-
+## Mac Android DeviceLab tests
 /dev/devicelab/bin/tasks/android_semantics_integration_test.dart @HansMuller @flutter/framework
 ''';
 
@@ -250,6 +255,7 @@ targets:
     properties:
       tags: >
         ["devicelab"]
+      task_name: android_semantics_integration_test
   - name: Mac_android ignore_myflakiness
     bringup: true
     builder: Mac_android ignore_myflakiness
@@ -259,6 +265,7 @@ targets:
       ignore_flakiness: "true"
       tags: >
         ["devicelab"]
+      task_name: ignore_myflakiness
   - name: Linux analyze
     builder: Linux analyze
     scheduler: luci

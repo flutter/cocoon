@@ -71,7 +71,7 @@ abc_test.sh @ghi @flutter/framework
 
 ## Host only framework tests
 ''';
-        final TestOwnership ownership = getTestOwnership('Linux abc', BuilderType.devicelab, testOwnersContent);
+        final TestOwnership ownership = getTestOwnership('abc', BuilderType.devicelab, testOwnersContent);
         expect(ownership.owner, 'def');
         expect(ownership.team, Team.web);
       });
