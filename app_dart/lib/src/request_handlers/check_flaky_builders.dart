@@ -66,6 +66,10 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
       branch: Config.defaultBranch(slug),
       config: unCheckedSchedulerConfig,
     );
+
+    final pb.SchedulerConfig schedulerConfig = ciYaml.config;
+    final List<pb.Target> targets = schedulerConfig.targets;
+
     final List<_BuilderInfo> eligibleBuilders =
         await _getEligibleFlakyBuilders(gitHub, slug, content: ciContent, ciYaml: ciYaml);
     final String testOwnerContent = await gitHub.getFileContent(
@@ -75,7 +79,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
 
     for (final _BuilderInfo info in eligibleBuilders) {
       final BuilderType type = getTypeForBuilder(info.name, ciYaml);
-      final TestOwnership testOwnership = getTestOwnership(info.name!, type, testOwnerContent);
+      final TestOwnership testOwnership = getTestOwnership(targets.firstWhere((element) => element.name == info.name!), type, testOwnerContent,);
       final List<BuilderRecord> builderRecords =
           await bigquery.listRecentBuildRecordsForBuilder(kBigQueryProjectId, builder: info.name, limit: kRecordNumber);
       if (_shouldDeflake(builderRecords)) {

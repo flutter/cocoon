@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
+import '../../protos.dart' as pb;
 
 abstract class TestOwner {
   factory TestOwner(BuilderType builderType) {
@@ -20,7 +21,7 @@ abstract class TestOwner {
     }
   }
 
-  TestOwnership getTestOwnership(String targetName, String testOwnersContent);
+  TestOwnership getTestOwnership(pb.Target target, String testOwnersContent,);
 }
 
 Team teamFromString(String teamString) {
@@ -47,10 +48,10 @@ class DeviceLabTestOwner implements TestOwner {
   DeviceLabTestOwner();
 
   @override
-  TestOwnership getTestOwnership(String targetName, String testOwnersContent) {
+  TestOwnership getTestOwnership(pb.Target target, String testOwnersContent,) {
     String? owner;
     Team? team;
-    final String testName = getTestNameFromTargetName(targetName);
+    final String testName = target.properties['task_name']!;
     // The format looks like this:
     //   /dev/devicelab/bin/tasks/dart_plugin_registry_test.dart @stuartmorgan @flutter/plugin
     final RegExpMatch? match = devicelabTestOwners.firstMatch(testOwnersContent);
@@ -78,10 +79,10 @@ class DeviceLabTestOwner implements TestOwner {
 
 class ShardTestOwner implements TestOwner {
   @override
-  TestOwnership getTestOwnership(String targetName, String testOwnersContent) {
+  TestOwnership getTestOwnership(pb.Target target, String testOwnersContent,) {
     // The format looks like this:
     //   # build_tests @zanderso @flutter/tool
-    final String testName = getTestNameFromTargetName(targetName);
+    final String testName = getTestNameFromTargetName(target.name);
     String? owner;
     Team? team;
     final RegExpMatch? match = shardTestOwners.firstMatch(testOwnersContent);
@@ -106,8 +107,8 @@ class ShardTestOwner implements TestOwner {
 
 class FrameworkHostOnlyTestOwner implements TestOwner {
   @override
-  TestOwnership getTestOwnership(String targetName, String testOwnersContent) {
-    final String testName = getTestNameFromTargetName(targetName);
+  TestOwnership getTestOwnership(pb.Target target, String testOwnersContent,) {
+    final String testName = getTestNameFromTargetName(target.name);
     String? owner;
     Team? team;
     // The format looks like this:
@@ -153,8 +154,8 @@ class FrameworkHostOnlyTestOwner implements TestOwner {
 
 class FirebaseLabTestOwner implements TestOwner {
   @override
-  TestOwnership getTestOwnership(String targetName, String testOwnersContent) {
-    final String testName = getTestNameFromTargetName(targetName);
+  TestOwnership getTestOwnership(pb.Target target, String testOwnersContent,) {
+    final String testName = getTestNameFromTargetName(target.name);
     String? owner;
     Team? team;
 
@@ -185,7 +186,7 @@ class FirebaseLabTestOwner implements TestOwner {
 
 class UnknownTestOwner implements TestOwner {
   @override
-  TestOwnership getTestOwnership(String targetName, String testOwnersContent) {
+  TestOwnership getTestOwnership(pb.Target target, String testOwnersContent,) {
     return TestOwnership(null, Team.unknown);
   }
 }

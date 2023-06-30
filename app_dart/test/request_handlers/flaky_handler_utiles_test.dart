@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/protos.dart' as pb;
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
@@ -18,18 +19,21 @@ void main() {
 
     group('framework host only', () {
       test('returns correct owner when no mulitple tests share the same file', () async {
+        final pb.Target target = pb.Target(name: 'Linux abc');
         testOwnersContent = '''
 ## Host only framework tests
 # Linux abc
 abc_test.sh @ghi @flutter/engine
 ## Firebase tests
 ''';
-        final TestOwnership ownership = getTestOwnership('Linux abc', BuilderType.frameworkHostOnly, testOwnersContent);
+        final TestOwnership ownership = getTestOwnership(target, BuilderType.frameworkHostOnly, testOwnersContent);
         expect(ownership.owner, 'ghi');
         expect(ownership.team, Team.engine);
       });
 
       test('returns correct owner when mulitple tests share the same file', () async {
+        final pb.Target target1 = pb.Target(name: 'Linux abc');
+        final pb.Target target2 = pb.Target(name: 'Linux def');
         testOwnersContent = '''
 ## Host only framework tests
 # Linux abc
@@ -38,11 +42,11 @@ abc_test.sh @ghi @flutter/framework
 ## Firebase tests
 ''';
         final TestOwnership ownership1 =
-            getTestOwnership('Linux abc', BuilderType.frameworkHostOnly, testOwnersContent);
+            getTestOwnership(target1, BuilderType.frameworkHostOnly, testOwnersContent);
         expect(ownership1.owner, 'ghi');
         expect(ownership1.team, Team.framework);
         final TestOwnership ownership2 =
-            getTestOwnership('Linux def', BuilderType.frameworkHostOnly, testOwnersContent);
+            getTestOwnership(target2, BuilderType.frameworkHostOnly, testOwnersContent);
         expect(ownership2.owner, 'ghi');
         expect(ownership2.team, Team.framework);
       });
@@ -50,6 +54,7 @@ abc_test.sh @ghi @flutter/framework
 
     group('firebaselab only', () {
       test('returns correct owner', () async {
+        final pb.Target target = pb.Target(name: 'Linux firebase_abc');
         testOwnersContent = '''
 ## Firebase tests
 # Linux abc
@@ -57,7 +62,7 @@ abc_test.sh @ghi @flutter/framework
 ## Shards tests
 ''';
         final TestOwnership ownership =
-            getTestOwnership('Linux firebase_abc', BuilderType.firebaselab, testOwnersContent);
+            getTestOwnership(target, BuilderType.firebaselab, testOwnersContent);
         expect(ownership.owner, 'def');
         expect(ownership.team, Team.tool);
       });
@@ -65,13 +70,14 @@ abc_test.sh @ghi @flutter/framework
 
     group('devicelab tests', () {
       test('returns correct owner', () async {
+        final pb.Target target = pb.Target(name: 'abc', properties: {'task_name': 'abc'});
         testOwnersContent = '''
 ## Linux Android DeviceLab tests
 /dev/devicelab/bin/tasks/abc.dart @def @flutter/web
 
 ## Host only framework tests
 ''';
-        final TestOwnership ownership = getTestOwnership('abc', BuilderType.devicelab, testOwnersContent);
+        final TestOwnership ownership = getTestOwnership(target, BuilderType.devicelab, testOwnersContent);
         expect(ownership.owner, 'def');
         expect(ownership.team, Team.web);
       });
@@ -79,12 +85,13 @@ abc_test.sh @ghi @flutter/framework
 
     group('shards tests', () {
       test('returns correct owner', () async {
+        final pb.Target target = pb.Target(name: 'Linux abc');
         testOwnersContent = '''
 ## Shards tests
 #
 # abc @def @flutter/engine
 ''';
-        final TestOwnership ownership = getTestOwnership('Linux abc', BuilderType.shard, testOwnersContent);
+        final TestOwnership ownership = getTestOwnership(target, BuilderType.shard, testOwnersContent);
         expect(ownership.owner, 'def');
         expect(ownership.team, Team.engine);
       });

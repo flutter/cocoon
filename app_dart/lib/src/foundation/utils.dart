@@ -196,7 +196,7 @@ List<String> validateOwnership(String ciYamlContent, String testOwnersContent, {
     }
 
     final String? owner = getTestOwnership(
-      builder,
+      target,
       builderType,
       testOwnersContent,
     ).owner;

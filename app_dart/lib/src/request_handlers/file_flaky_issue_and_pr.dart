@@ -46,6 +46,10 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       branch: Config.defaultBranch(slug),
       config: unCheckedSchedulerConfig,
     );
+
+    final pb.SchedulerConfig schedulerConfig = ciYaml.config;
+    final List<pb.Target> targets = schedulerConfig.targets;
+
     final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
     final Map<String?, Issue> nameToExistingIssue = await getExistingIssues(gitHub, slug);
     final Map<String?, PullRequest> nameToExistingPR = await getExistingPRs(gitHub, slug);
@@ -58,6 +62,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       if (statistic.flakyRate < _threshold) {
         continue;
       }
+      
       final BuilderType type = getTypeForBuilder(statistic.name, ciYaml);
       final bool issueAndPRFiled = await _fileIssueAndPR(
         gitHub,
@@ -68,7 +73,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
           existingPullRequest: nameToExistingPR[statistic.name],
           isMarkedFlaky: _getIsMarkedFlaky(statistic.name, ci!),
           type: type,
-          ownership: getTestOwnership(statistic.name, type, testOwnerContent),
+          ownership: getTestOwnership(targets.firstWhere((element) => element.name == statistic.name), type, testOwnerContent,),
         ),
       );
       if (issueAndPRFiled) {

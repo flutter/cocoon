@@ -12,6 +12,7 @@ import 'package:github/github.dart';
 
 import '../service/bigquery.dart';
 import '../service/github_service.dart';
+import '../../protos.dart' as pb;
 
 // String constants.
 const String kTeamFlakeLabel = 'team: flakes';
@@ -292,9 +293,9 @@ Future<Issue> fileFlakyIssue({
 }
 
 /// Looks up the owner of a builder in TESTOWNERS file.
-TestOwnership getTestOwnership(String targetName, BuilderType type, String testOwnersContent) {
+TestOwnership getTestOwnership(pb.Target target, BuilderType type, String testOwnersContent) {
   final TestOwner testOwner = TestOwner(type);
-  return testOwner.getTestOwnership(targetName, testOwnersContent);
+  return testOwner.getTestOwnership(target, testOwnersContent);
 }
 
 /// Gets the [BuilderType] of the builder by looking up the information in the
