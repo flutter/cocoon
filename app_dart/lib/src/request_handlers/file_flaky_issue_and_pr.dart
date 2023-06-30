@@ -131,7 +131,11 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
         ),
       ],
     );
+    final String? label = getTeamLabelFromTeam(builderDetail.ownership.team);
     await gitHub.assignReviewer(slug, reviewer: prBuilder.pullRequestReviewer, pullRequestNumber: pullRequest.number);
+    if (label != null) {
+      await gitHub.addIssueLabels(slug, pullRequest.number!, <String>[label]);
+    }
     return true;
   }
 
