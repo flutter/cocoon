@@ -73,7 +73,6 @@ class ValidationService {
     }
   }
 
-  // TODO remove this query. It does not provide that much meaningful info.
   /// Fetch the most up to date info for the current pull request from github.
   Future<QueryResult> getNewestPullRequestInfo(Config config, github.PullRequest pullRequest) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
