@@ -274,7 +274,15 @@ void main() {
         prNumber: 1,
         repoName: cocoonRepo,
       );
-      githubService.pullRequestData = pullRequest1;
+
+      githubService.usePullRequestList = true;
+      githubService.pullRequestMockList.add(pullRequest1);
+      githubService.pullRequestMockList.add(pullRequest1);
+      githubService.pullRequestMockList.add(pullRequest1);
+      githubService.pullRequestMockList.add(pullRequest2);
+      githubService.pullRequestMockList.add(pullRequest2);
+      githubService.pullRequestMockList.add(pullRequest2);
+      // githubService.pullRequestData = pullRequest1;
       // 'octocat' is the pr author from generatePullRequest calls.
       // 'member' is in the review nodes and 'author1' is the pr author.
       githubService.isTeamMemberMockMap['member'] = true;
