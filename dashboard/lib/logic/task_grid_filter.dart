@@ -44,7 +44,8 @@ class TaskGridFilter extends FilterPropertySource {
 
   final RegExpFilterProperty _taskProperty =
       RegExpFilterProperty(fieldName: 'taskFilter', label: 'Task Name', caseSensitive: false);
-  final RegExpFilterProperty _authorProperty = RegExpFilterProperty(fieldName: 'authorFilter', label: 'Commit Author', caseSensitive: false);
+  final RegExpFilterProperty _authorProperty =
+      RegExpFilterProperty(fieldName: 'authorFilter', label: 'Commit Author', caseSensitive: false);
   final RegExpFilterProperty _messageProperty =
       RegExpFilterProperty(fieldName: 'messageFilter', label: 'Commit Message', caseSensitive: false);
   final RegExpFilterProperty _hashProperty = RegExpFilterProperty(fieldName: 'hashFilter', label: 'Commit Hash');
