@@ -79,7 +79,11 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
 
     for (final _BuilderInfo info in eligibleBuilders) {
       final BuilderType type = getTypeForBuilder(info.name, ciYaml);
-      final TestOwnership testOwnership = getTestOwnership(targets.firstWhere((element) => element.name == info.name!), type, testOwnerContent,);
+      final TestOwnership testOwnership = getTestOwnership(
+        targets.firstWhere((element) => element.name == info.name!),
+        type,
+        testOwnerContent,
+      );
       final List<BuilderRecord> builderRecords =
           await bigquery.listRecentBuildRecordsForBuilder(kBigQueryProjectId, builder: info.name, limit: kRecordNumber);
       if (_shouldDeflake(builderRecords)) {

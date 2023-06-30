@@ -41,12 +41,10 @@ abc_test.sh @ghi @flutter/engine
 abc_test.sh @ghi @flutter/framework
 ## Firebase tests
 ''';
-        final TestOwnership ownership1 =
-            getTestOwnership(target1, BuilderType.frameworkHostOnly, testOwnersContent);
+        final TestOwnership ownership1 = getTestOwnership(target1, BuilderType.frameworkHostOnly, testOwnersContent);
         expect(ownership1.owner, 'ghi');
         expect(ownership1.team, Team.framework);
-        final TestOwnership ownership2 =
-            getTestOwnership(target2, BuilderType.frameworkHostOnly, testOwnersContent);
+        final TestOwnership ownership2 = getTestOwnership(target2, BuilderType.frameworkHostOnly, testOwnersContent);
         expect(ownership2.owner, 'ghi');
         expect(ownership2.team, Team.framework);
       });
@@ -61,8 +59,7 @@ abc_test.sh @ghi @flutter/framework
 /test/abc @def @flutter/tool
 ## Shards tests
 ''';
-        final TestOwnership ownership =
-            getTestOwnership(target, BuilderType.firebaselab, testOwnersContent);
+        final TestOwnership ownership = getTestOwnership(target, BuilderType.firebaselab, testOwnersContent);
         expect(ownership.owner, 'def');
         expect(ownership.team, Team.tool);
       });

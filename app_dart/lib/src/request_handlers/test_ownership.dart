@@ -21,7 +21,10 @@ abstract class TestOwner {
     }
   }
 
-  TestOwnership getTestOwnership(pb.Target target, String testOwnersContent,);
+  TestOwnership getTestOwnership(
+    pb.Target target,
+    String testOwnersContent,
+  );
 }
 
 Team teamFromString(String teamString) {
@@ -48,7 +51,10 @@ class DeviceLabTestOwner implements TestOwner {
   DeviceLabTestOwner();
 
   @override
-  TestOwnership getTestOwnership(pb.Target target, String testOwnersContent,) {
+  TestOwnership getTestOwnership(
+    pb.Target target,
+    String testOwnersContent,
+  ) {
     String? owner;
     Team? team;
     final String testName = target.properties['task_name']!;
@@ -79,7 +85,10 @@ class DeviceLabTestOwner implements TestOwner {
 
 class ShardTestOwner implements TestOwner {
   @override
-  TestOwnership getTestOwnership(pb.Target target, String testOwnersContent,) {
+  TestOwnership getTestOwnership(
+    pb.Target target,
+    String testOwnersContent,
+  ) {
     // The format looks like this:
     //   # build_tests @zanderso @flutter/tool
     final String testName = getTestNameFromTargetName(target.name);
@@ -107,7 +116,10 @@ class ShardTestOwner implements TestOwner {
 
 class FrameworkHostOnlyTestOwner implements TestOwner {
   @override
-  TestOwnership getTestOwnership(pb.Target target, String testOwnersContent,) {
+  TestOwnership getTestOwnership(
+    pb.Target target,
+    String testOwnersContent,
+  ) {
     final String testName = getTestNameFromTargetName(target.name);
     String? owner;
     Team? team;
@@ -154,7 +166,10 @@ class FrameworkHostOnlyTestOwner implements TestOwner {
 
 class FirebaseLabTestOwner implements TestOwner {
   @override
-  TestOwnership getTestOwnership(pb.Target target, String testOwnersContent,) {
+  TestOwnership getTestOwnership(
+    pb.Target target,
+    String testOwnersContent,
+  ) {
     final String testName = getTestNameFromTargetName(target.name);
     String? owner;
     Team? team;
@@ -186,7 +201,10 @@ class FirebaseLabTestOwner implements TestOwner {
 
 class UnknownTestOwner implements TestOwner {
   @override
-  TestOwnership getTestOwnership(pb.Target target, String testOwnersContent,) {
+  TestOwnership getTestOwnership(
+    pb.Target target,
+    String testOwnersContent,
+  ) {
     return TestOwnership(null, Team.unknown);
   }
 }

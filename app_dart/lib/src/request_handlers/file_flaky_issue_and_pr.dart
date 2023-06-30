@@ -62,7 +62,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       if (statistic.flakyRate < _threshold) {
         continue;
       }
-      
+
       final BuilderType type = getTypeForBuilder(statistic.name, ciYaml);
       final bool issueAndPRFiled = await _fileIssueAndPR(
         gitHub,
@@ -73,7 +73,11 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
           existingPullRequest: nameToExistingPR[statistic.name],
           isMarkedFlaky: _getIsMarkedFlaky(statistic.name, ci!),
           type: type,
-          ownership: getTestOwnership(targets.firstWhere((element) => element.name == statistic.name), type, testOwnerContent,),
+          ownership: getTestOwnership(
+            targets.firstWhere((element) => element.name == statistic.name),
+            type,
+            testOwnerContent,
+          ),
         ),
       );
       if (issueAndPRFiled) {
