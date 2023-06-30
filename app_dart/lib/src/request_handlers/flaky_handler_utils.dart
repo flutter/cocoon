@@ -112,7 +112,7 @@ Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fi
       kSevereFlakeLabel,
       kP0Label,
     ];
-    final String? teamLabel = _getTeamLabelFromTeam(ownership.team);
+    final String? teamLabel = getTeamLabelFromTeam(ownership.team);
     if (teamLabel != null && teamLabel.isNotEmpty == true) {
       labels.add(teamLabel);
     }
@@ -153,7 +153,7 @@ class IssueUpdateBuilder {
 
   String get issueUpdateComment {
     String result =
-        '[$bucketString pool] current flaky ratio for the past (up to) 100 commits is ${_formatRate(statistic.flakyRate)}%. Flaky number: ${statistic.flakyNumber}; total number: ${statistic.totalNumber}.\n';
+        '[$bucketString pool] flaky ratio for the past (up to) 100 commits between ${statistic.fromDate} and ${statistic.toDate} is ${_formatRate(statistic.flakyRate)}%. Flaky number: ${statistic.flakyNumber}; total number: ${statistic.totalNumber}.\n';
     if (statistic.flakyRate > 0.0) {
       result += '''
 One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.flakyBuildOfRecentCommit, bucket: bucket)}
@@ -409,7 +409,7 @@ String _issueBuilderLink(String? builder) {
   return Uri.encodeFull('$_buildDashboardPrefix?taskFilter=$builder');
 }
 
-String? _getTeamLabelFromTeam(Team? team) {
+String? getTeamLabelFromTeam(Team? team) {
   switch (team) {
     case Team.framework:
       return kFrameworkLabel;

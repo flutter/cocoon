@@ -348,7 +348,7 @@ class _TaskGridState extends State<TaskGrid> {
               textAlign: TextAlign.center,
             );
           },
-        )
+        ),
     ];
   }
 

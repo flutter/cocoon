@@ -306,7 +306,7 @@ void main() {
               ..stageName = 'A'
               ..name = '1'
               ..builderName = '1'
-              ..status = TaskBox.statusSucceeded
+              ..status = TaskBox.statusSucceeded,
           ],
         ),
       CommitStatus()
@@ -317,7 +317,7 @@ void main() {
               ..stageName = 'A'
               ..name = '2'
               ..builderName = '2'
-              ..status = TaskBox.statusSucceeded
+              ..status = TaskBox.statusSucceeded,
           ],
         ),
       CommitStatus()
@@ -328,9 +328,9 @@ void main() {
               ..stageName = 'A'
               ..name = '3'
               ..builderName = '3'
-              ..status = TaskBox.statusSucceeded
+              ..status = TaskBox.statusSucceeded,
           ],
-        )
+        ),
     ];
 
     await tester.pumpWidget(
@@ -367,7 +367,7 @@ void main() {
               ..stageName = StageName.cocoon
               ..name = '1'
               ..builderName = '1'
-              ..status = TaskBox.statusSucceeded
+              ..status = TaskBox.statusSucceeded,
           ],
         ),
       CommitStatus()
@@ -378,7 +378,7 @@ void main() {
               ..stageName = StageName.luci
               ..name = '1'
               ..builderName = '1'
-              ..status = TaskBox.statusSucceeded
+              ..status = TaskBox.statusSucceeded,
           ],
         ),
     ];
@@ -419,7 +419,7 @@ void main() {
               ..name = 'Task Name'
               ..builderName = 'Task Name'
               ..stageName = 'Stage Nome 2'
-              ..status = TaskBox.statusFailed
+              ..status = TaskBox.statusFailed,
           ],
         ),
     ];
@@ -450,7 +450,7 @@ void main() {
               ..name = 'Task Name'
               ..name = 'Task Name'
               ..stageName = 'Stage Nome'
-              ..status = TaskBox.statusSucceeded
+              ..status = TaskBox.statusSucceeded,
           ],
         ),
     ];
@@ -501,7 +501,7 @@ void main() {
                     Task()
                       ..stageName = 'A'
                       ..status = 'Succeeded'
-                      ..attempts = 2
+                      ..attempts = 2,
                   ],
                 ),
             ],
@@ -526,7 +526,7 @@ void main() {
                     Task()
                       ..stageName = 'A'
                       ..status = 'Succeeded'
-                      ..attempts = 1
+                      ..attempts = 1,
                   ],
                 ),
             ],
@@ -555,7 +555,7 @@ void main() {
                       ..stageName = 'A'
                       ..status = 'Succeeded'
                       ..attempts = 1
-                      ..isTestFlaky = true
+                      ..isTestFlaky = true,
                   ],
                 ),
             ],
@@ -581,7 +581,7 @@ void main() {
                       ..stageName = 'A'
                       ..status = 'Succeeded'
                       ..attempts = 1
-                      ..isTestFlaky = false
+                      ..isTestFlaky = false,
                   ],
                 ),
             ],
@@ -681,7 +681,7 @@ void main() {
               ..name = '5'
               ..builderName = '5'
               ..status = TaskBox.statusInProgress,
-            Task()..status = 'Invalid value'
+            Task()..status = 'Invalid value',
           ],
         ),
       CommitStatus()
@@ -718,7 +718,7 @@ void main() {
               ..builderName = '5'
               ..attempts = 2
               ..status = TaskBox.statusInProgress,
-            Task()..status = 'Invalid value'
+            Task()..status = 'Invalid value',
           ],
         ),
       CommitStatus()
@@ -755,7 +755,7 @@ void main() {
               ..builderName = '5'
               ..isFlaky = true
               ..status = TaskBox.statusInProgress,
-            Task()..status = 'Invalid value'
+            Task()..status = 'Invalid value',
           ],
         ),
       CommitStatus()
@@ -797,7 +797,7 @@ void main() {
               ..attempts = 2
               ..isFlaky = true
               ..status = TaskBox.statusInProgress,
-            Task()..status = 'Invalid value'
+            Task()..status = 'Invalid value',
           ],
         ),
     ];

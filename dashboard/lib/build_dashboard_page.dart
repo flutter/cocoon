@@ -282,7 +282,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                 ),
               ),
             );
-          })
+          }),
         ],
       ),
       const Padding(padding: EdgeInsets.symmetric(horizontal: 4)),

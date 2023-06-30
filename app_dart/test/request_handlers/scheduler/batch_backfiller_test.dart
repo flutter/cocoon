@@ -5,6 +5,7 @@
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -251,6 +252,19 @@ void main() {
       db.addOnQuery<Task>((Iterable<Task> results) => scheduleA);
       await tester.get(handler);
       expect(pubsub.messages.length, 2);
+    });
+    group('getFilteredBackfill', () {
+      test('backfills high priorty targets first', () async {
+        final List<Tuple<Target, FullTask, int>> backfill = <Tuple<Target, FullTask, int>>[
+          Tuple(generateTarget(1), FullTask(generateTask(1), generateCommit(1)), LuciBuildService.kRerunPriority),
+          Tuple(generateTarget(2), FullTask(generateTask(2), generateCommit(2)), LuciBuildService.kBackfillPriority),
+          Tuple(generateTarget(3), FullTask(generateTask(3), generateCommit(3)), LuciBuildService.kRerunPriority),
+        ];
+        final List<Tuple<Target, FullTask, int>> filteredBackfill = handler.getFilteredBackfill(backfill);
+        expect(filteredBackfill.length, 2);
+        expect(filteredBackfill[0].third, LuciBuildService.kRerunPriority);
+        expect(filteredBackfill[1].third, LuciBuildService.kRerunPriority);
+      });
     });
   });
 }

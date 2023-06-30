@@ -11,7 +11,7 @@ import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 
 const String expectedSemanticsIntegrationTestIssueComment = '''
-[prod pool] current flaky ratio for the past (up to) 100 commits is 50.00%. Flaky number: 3; total number: 10.
+[prod pool] flaky ratio for the past (up to) 100 commits between 2023-06-20 and 2023-06-29 is 50.00%. Flaky number: 3; total number: 10.
 One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
 Commit: https://github.com/flutter/flutter/commit/abc
 Flaky builds:
@@ -24,7 +24,7 @@ https://flutter-dashboard.appspot.com/#/build?taskFilter=Mac_android%20android_s
 ''';
 
 const String expectedCiyamlTestIssueComment = '''
-[prod pool] current flaky ratio for the past (up to) 100 commits is 50.00%. Flaky number: 3; total number: 10.
+[prod pool] flaky ratio for the past (up to) 100 commits between 2023-06-20 and 2023-06-29 is 50.00%. Flaky number: 3; total number: 10.
 One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/prod/Linux%20ci_yaml%20flutter%20roller/103
 Commit: https://github.com/flutter/flutter/commit/abc
 Flaky builds:
@@ -37,7 +37,7 @@ https://flutter-dashboard.appspot.com/#/build?taskFilter=Linux%20ci_yaml%20flutt
 ''';
 
 const String expectedStagingCiyamlTestIssueComment = '''
-[staging pool] current flaky ratio for the past (up to) 100 commits is 50.00%. Flaky number: 3; total number: 10.
+[staging pool] flaky ratio for the past (up to) 100 commits between 2023-06-20 and 2023-06-29 is 50.00%. Flaky number: 3; total number: 10.
 One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/staging/Linux%20ci_yaml%20flutter%20roller/103
 Commit: https://github.com/flutter/flutter/commit/abc
 Flaky builds:
@@ -50,7 +50,7 @@ https://flutter-dashboard.appspot.com/#/build?taskFilter=Linux%20ci_yaml%20flutt
 ''';
 
 const String expectedSemanticsIntegrationTestZeroFlakeIssueComment = '''
-[prod pool] current flaky ratio for the past (up to) 100 commits is 0.00%. Flaky number: 0; total number: 10.
+[prod pool] flaky ratio for the past (up to) 100 commits between 2023-06-20 and 2023-06-29 is 0.00%. Flaky number: 0; total number: 10.
 ''';
 
 const String expectedSemanticsIntegrationTestNotEnoughDataComment = '''
@@ -67,6 +67,8 @@ final List<BuilderStatistic> semanticsIntegrationTestResponseZeroFlake = <Builde
     flakyBuildOfRecentCommit: '',
     flakyNumber: 0,
     totalNumber: 10,
+    fromDate: "2023-06-20",
+    toDate: "2023-06-29",
   ),
 ];
 
@@ -80,6 +82,8 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 10,
+    fromDate: "2023-06-20",
+    toDate: "2023-06-29",
   ),
 ];
 
@@ -93,6 +97,8 @@ final List<BuilderStatistic> stagingSameBuilderSemanticsIntegrationTestResponse 
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 10,
+    fromDate: "2023-06-20",
+    toDate: "2023-06-29",
   ),
 ];
 
@@ -106,6 +112,8 @@ final List<BuilderStatistic> semanticsIntegrationTestResponseNotEnoughData = <Bu
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 7,
+    fromDate: "2023-06-20",
+    toDate: "2023-06-29",
   ),
   // This builder is flakey, but it should be
   // ignored because it has ignore_flakiness set.
@@ -118,6 +126,8 @@ final List<BuilderStatistic> semanticsIntegrationTestResponseNotEnoughData = <Bu
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 7,
+    fromDate: "2023-06-20",
+    toDate: "2023-06-29",
   ),
 ];
 
@@ -131,6 +141,8 @@ final List<BuilderStatistic> shardSemanticsIntegrationTestResponse = <BuilderSta
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 10,
+    fromDate: "2023-06-20",
+    toDate: "2023-06-29",
   ),
 ];
 
@@ -144,6 +156,8 @@ final List<BuilderStatistic> ciyamlTestResponse = <BuilderStatistic>[
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 10,
+    fromDate: "2023-06-20",
+    toDate: "2023-06-29",
   ),
 ];
 
@@ -157,6 +171,8 @@ final List<BuilderStatistic> stagingCiyamlTestResponse = <BuilderStatistic>[
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 10,
+    fromDate: "2023-06-20",
+    toDate: "2023-06-29",
   ),
 ];
 
