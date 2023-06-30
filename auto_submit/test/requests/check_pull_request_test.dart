@@ -274,7 +274,6 @@ void main() {
         prNumber: 1,
         repoName: cocoonRepo,
       );
-
       githubService.pullRequestData = pullRequest1;
       // 'octocat' is the pr author from generatePullRequest calls.
       // 'member' is in the review nodes and 'author1' is the pr author.
