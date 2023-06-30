@@ -263,6 +263,10 @@ void main() {
       when(mockIssuesService.create(captureAny, captureAny)).thenAnswer((_) {
         return Future<Issue>.value(Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL));
       });
+      // Add issue labels
+      when(mockIssuesService.addLabelsToIssue(captureAny, captureAny, captureAny)).thenAnswer((_) {
+        return Future<List<IssueLabel>>.value(<IssueLabel>[]);
+      });
       // When creates git tree
       when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
         return Future<GitTree>.value(GitTree(expectedSemanticsIntegrationTestTreeSha, '', false, <GitTreeEntry>[]));
@@ -317,6 +321,10 @@ void main() {
       when(mockIssuesService.create(captureAny, captureAny)).thenAnswer((_) {
         return Future<Issue>.value(Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL));
       });
+      // Add issue labels
+      when(mockIssuesService.addLabelsToIssue(captureAny, captureAny, captureAny)).thenAnswer((_) {
+        return Future<List<IssueLabel>>.value(<IssueLabel>[]);
+      });
       // When creates git tree
       when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
         return Future<GitTree>.value(GitTree(expectedSemanticsIntegrationTestTreeSha, '', false, <GitTreeEntry>[]));
@@ -349,6 +357,10 @@ void main() {
       // When creates issue
       when(mockIssuesService.create(captureAny, captureAny)).thenAnswer((_) {
         return Future<Issue>.value(Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL));
+      });
+      // Add issue labels
+      when(mockIssuesService.addLabelsToIssue(captureAny, captureAny, captureAny)).thenAnswer((_) {
+        return Future<List<IssueLabel>>.value(<IssueLabel>[]);
       });
       // When creates git tree
       when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
@@ -397,6 +409,10 @@ void main() {
       // When creates issue
       when(mockIssuesService.create(captureAny, captureAny)).thenAnswer((_) {
         return Future<Issue>.value(Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL));
+      });
+      // Add issue labels
+      when(mockIssuesService.addLabelsToIssue(captureAny, captureAny, captureAny)).thenAnswer((_) {
+        return Future<List<IssueLabel>>.value(<IssueLabel>[]);
       });
       // When creates git tree
       when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
@@ -564,6 +580,10 @@ void main() {
       // When creates git tree
       when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
         return Future<GitTree>.value(GitTree(expectedSemanticsIntegrationTestTreeSha, '', false, <GitTreeEntry>[]));
+      });
+      // Add issue labels
+      when(mockIssuesService.addLabelsToIssue(captureAny, captureAny, captureAny)).thenAnswer((_) {
+        return Future<List<IssueLabel>>.value(<IssueLabel>[]);
       });
       // When creates git commit
       when(mockGitService.createCommit(captureAny, captureAny)).thenAnswer((_) {
