@@ -247,7 +247,7 @@ void main() {
             Branch()
               ..repository = 'engine'
               ..branch = 'branch-engine-release',
-          )
+          ),
         ]),
       );
     });

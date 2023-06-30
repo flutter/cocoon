@@ -45,7 +45,7 @@ void main() {
         (_) async => CocoonResponse<List<Branch>>.data(<Branch>[
           Branch()
             ..branch = defaultBranch
-            ..repository = 'flutter'
+            ..repository = 'flutter',
         ]),
       );
 
