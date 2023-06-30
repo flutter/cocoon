@@ -342,12 +342,6 @@ List<String>? _getTags(String? targetName, CiYaml ciYaml, {bool unfilteredTarget
   return target?.tags;
 }
 
-// String _getTestNameFromTargetName(String targetName) {
-//   // The builder names is in the format '<platform> <test name>'.
-//   final List<String> words = targetName.split(' ');
-//   return words.length < 2 ? words[0] : words[1];
-// }
-
 bool _isOtherIssueMoreImportant(Issue original, Issue other) {
   // Open issues are always more important than closed issues. If both issue
   // are closed, the one that is most recently created is more important.
@@ -414,20 +408,6 @@ String _issueBuildLink({String? builder, String? build, Bucket bucket = Bucket.p
 String _issueBuilderLink(String? builder) {
   return Uri.encodeFull('$_buildDashboardPrefix?taskFilter=$builder');
 }
-
-// Team _teamFromString(String teamString) {
-//   switch (teamString) {
-//     case 'flutter/framework':
-//       return Team.framework;
-//     case 'flutter/engine':
-//       return Team.engine;
-//     case 'flutter/tool':
-//       return Team.tool;
-//     case 'flutter/web':
-//       return Team.web;
-//   }
-//   return Team.unknown;
-// }
 
 String? _getTeamLabelFromTeam(Team? team) {
   switch (team) {
