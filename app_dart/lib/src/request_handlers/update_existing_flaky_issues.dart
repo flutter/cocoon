@@ -108,7 +108,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
       final List<pb.Target> targets = schedulerConfig.targets;
 
       final String? testOwner = getTestOwnership(
-        targets.firstWhere((element) => element.name == statistic.name),
+        targets.singleWhere((element) => element.name == statistic.name),
         getTypeForBuilder(statistic.name, ciYaml),
         testOwnerContent,
       ).owner;

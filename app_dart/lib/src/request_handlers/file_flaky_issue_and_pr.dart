@@ -74,7 +74,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
           isMarkedFlaky: _getIsMarkedFlaky(statistic.name, ci!),
           type: type,
           ownership: getTestOwnership(
-            targets.firstWhere((element) => element.name == statistic.name),
+            targets.singleWhere((element) => element.name == statistic.name),
             type,
             testOwnerContent,
           ),
