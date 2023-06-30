@@ -6,11 +6,13 @@ import 'dart:convert';
 import 'dart:core';
 
 import 'package:cocoon_service/ci_yaml.dart';
+import 'package:cocoon_service/src/request_handlers/test_ownership.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 
 import '../service/bigquery.dart';
 import '../service/github_service.dart';
+import '../../protos.dart' as pb;
 
 // String constants.
 const String kTeamFlakeLabel = 'team: flakes';
@@ -291,125 +293,9 @@ Future<Issue> fileFlakyIssue({
 }
 
 /// Looks up the owner of a builder in TESTOWNERS file.
-TestOwnership getTestOwnership(String targetName, BuilderType type, String testOwnersContent) {
-  final String testName = _getTestNameFromTargetName(targetName);
-  String? owner;
-  Team? team;
-  switch (type) {
-    case BuilderType.shard:
-      {
-        // The format looks like this:
-        //   # build_tests @zanderso @flutter/tool
-        final RegExpMatch? match = shardTestOwners.firstMatch(testOwnersContent);
-        if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-          final List<String> lines =
-              match.namedGroup(kOwnerGroupName)!.split('\n').where((String line) => line.contains('@')).toList();
-
-          for (final String line in lines) {
-            final List<String> words = line.trim().split(' ');
-            // e.g. words = ['#', 'build_test', '@zanderso' '@flutter/tool']
-            if (testName.contains(words[1])) {
-              owner = words[2].substring(1); // Strip out the lead '@'
-              team = words.length < 4 ? Team.unknown : _teamFromString(words[3].substring(1)); // Strip out the lead '@'
-              break;
-            }
-          }
-        }
-        break;
-      }
-    case BuilderType.devicelab:
-      {
-        // The format looks like this:
-        //   /dev/devicelab/bin/tasks/dart_plugin_registry_test.dart @stuartmorgan @flutter/plugin
-        final RegExpMatch? match = devicelabTestOwners.firstMatch(testOwnersContent);
-        if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-          final List<String> lines = match
-              .namedGroup(kOwnerGroupName)!
-              .split('\n')
-              .where((String line) => line.isNotEmpty && !line.startsWith('#'))
-              .toList();
-
-          for (final String line in lines) {
-            final List<String> words = line.trim().split(' ');
-            // e.g. words = ['/xxx/xxx/xxx_test.dart', '@stuartmorgan' '@flutter/tool']
-            if (words[0].endsWith('$testName.dart')) {
-              owner = words[1].substring(1); // Strip out the lead '@'
-              team = words.length < 3 ? Team.unknown : _teamFromString(words[2].substring(1)); // Strip out the lead '@'
-              break;
-            }
-          }
-        }
-        break;
-      }
-    case BuilderType.frameworkHostOnly:
-      {
-        // The format looks like this:
-        //   # Linux analyze
-        //   /dev/bots/analyze.dart @HansMuller @flutter/framework
-        final RegExpMatch? match = frameworkHostOnlyTestOwners.firstMatch(testOwnersContent);
-        if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-          final List<String> lines =
-              match.namedGroup(kOwnerGroupName)!.split('\n').where((String line) => line.isNotEmpty).toList();
-          int index = 0;
-          while (index < lines.length) {
-            if (lines[index].startsWith('#')) {
-              // Multiple tests can share same test file and ownership.
-              // e.g.
-              //   # Linux docs_test
-              //   # Linux docs_public
-              //   /dev/bots/docs.sh @HansMuller @flutter/framework
-              bool isTestDefined = false;
-              while (lines[index].startsWith('#') && index + 1 < lines.length) {
-                final List<String> commentWords = lines[index].trim().split(' ');
-                if (testName.contains(commentWords[2])) {
-                  isTestDefined = true;
-                }
-                index += 1;
-              }
-              if (isTestDefined) {
-                final List<String> ownerWords = lines[index].trim().split(' ');
-                // e.g. ownerWords = ['/xxx/xxx/xxx_test.dart', '@HansMuller' '@flutter/framework']
-                owner = ownerWords[1].substring(1); // Strip out the lead '@'
-                team = ownerWords.length < 3
-                    ? Team.unknown
-                    : _teamFromString(ownerWords[2].substring(1)); // Strip out the lead '@'
-                break;
-              }
-            }
-            index += 1;
-          }
-        }
-        break;
-      }
-    case BuilderType.firebaselab:
-      {
-        // The format looks like this for builder `Linux firebase_abstrac_method_smoke_test`:
-        //   /dev/integration_tests/abstrac_method_smoke_test @blasten @flutter/android
-        final RegExpMatch? match = firebaselabTestOwners.firstMatch(testOwnersContent);
-        if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-          final List<String> lines = match
-              .namedGroup(kOwnerGroupName)!
-              .split('\n')
-              .where((String line) => line.isNotEmpty && !line.startsWith('#'))
-              .toList();
-
-          for (final String line in lines) {
-            final List<String> words = line.trim().split(' ');
-            final List<String> dirs = words[0].split('/').toList();
-            if (testName.contains(dirs.last)) {
-              owner = words[1].substring(1); // Strip out the lead '@'
-              team = words.length < 3 ? Team.unknown : _teamFromString(words[2].substring(1)); // Strip out the lead '@'
-              break;
-            }
-          }
-        }
-        break;
-      }
-    case BuilderType.unknown:
-      team = Team.unknown;
-      break;
-  }
-  return TestOwnership(owner, team);
+TestOwnership getTestOwnership(pb.Target target, BuilderType type, String testOwnersContent) {
+  final TestOwner testOwner = TestOwner(type);
+  return testOwner.getTestOwnership(target, testOwnersContent);
 }
 
 /// Gets the [BuilderType] of the builder by looking up the information in the
@@ -454,12 +340,6 @@ List<String>? _getTags(String? targetName, CiYaml ciYaml, {bool unfilteredTarget
 
   final Target? target = allUniqueTargets.firstWhereOrNull((element) => element.value.name == targetName);
   return target?.tags;
-}
-
-String _getTestNameFromTargetName(String targetName) {
-  // The builder names is in the format '<platform> <test name>'.
-  final List<String> words = targetName.split(' ');
-  return words.length < 2 ? words[0] : words[1];
 }
 
 bool _isOtherIssueMoreImportant(Issue original, Issue other) {
@@ -527,20 +407,6 @@ String _issueBuildLink({String? builder, String? build, Bucket bucket = Bucket.p
 
 String _issueBuilderLink(String? builder) {
   return Uri.encodeFull('$_buildDashboardPrefix?taskFilter=$builder');
-}
-
-Team _teamFromString(String teamString) {
-  switch (teamString) {
-    case 'flutter/framework':
-      return Team.framework;
-    case 'flutter/engine':
-      return Team.engine;
-    case 'flutter/tool':
-      return Team.tool;
-    case 'flutter/web':
-      return Team.web;
-  }
-  return Team.unknown;
 }
 
 String? getTeamLabelFromTeam(Team? team) {

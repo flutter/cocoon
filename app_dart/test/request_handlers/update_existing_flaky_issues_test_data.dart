@@ -237,6 +237,7 @@ final CiYaml testCiYaml = CiYaml(
         presubmit: false,
         properties: <String, String>{
           'tags': jsonEncode(['devicelab']),
+          'task_name': 'android_semantics_integration_test',
         },
       ),
       pb.Target(
@@ -246,6 +247,7 @@ final CiYaml testCiYaml = CiYaml(
         properties: <String, String>{
           'ignore_flakiness': 'true',
           'tags': jsonEncode(['devicelab']),
+          'task_name': 'ignore_myflakiness',
         },
       ),
       pb.Target(
