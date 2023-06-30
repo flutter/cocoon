@@ -110,7 +110,7 @@ Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fi
       kSevereFlakeLabel,
       kP0Label,
     ];
-    final String? teamLabel = _getTeamLabelFromTeam(ownership.team);
+    final String? teamLabel = getTeamLabelFromTeam(ownership.team);
     if (teamLabel != null && teamLabel.isNotEmpty == true) {
       labels.add(teamLabel);
     }
@@ -543,7 +543,7 @@ Team _teamFromString(String teamString) {
   return Team.unknown;
 }
 
-String? _getTeamLabelFromTeam(Team? team) {
+String? getTeamLabelFromTeam(Team? team) {
   switch (team) {
     case Team.framework:
       return kFrameworkLabel;
