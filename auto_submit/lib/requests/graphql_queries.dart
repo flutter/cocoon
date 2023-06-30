@@ -47,6 +47,7 @@ query LabeledPullRequestWithReviews($sOwner: String!, $sName: String!, $sPrNumbe
       authorAssociation
       id
       title
+      mergeable
       commits(last:1) {
         nodes {
           commit {
