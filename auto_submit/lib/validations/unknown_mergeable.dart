@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/model/auto_submit_query_result.dart';
+import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
 
@@ -16,7 +17,10 @@ class UnknownMergeable extends Validation {
   @override
   Future<ValidationResult> validate(QueryResult result, github.PullRequest messagePullRequest) async {
     // This is used to skip landing until we are sure the PR is mergeable.
-    final bool unknownMergeableState = messagePullRequest.mergeable == null;
+    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    final GithubService githubService = await config.createGithubService(slug);
+    final github.PullRequest updatedPr = await githubService.getPullRequest(slug, messagePullRequest.number!);
+    final bool unknownMergeableState = updatedPr.mergeable == null;
     return ValidationResult(!unknownMergeableState, Action.IGNORE_TEMPORARILY, '');
   }
 }

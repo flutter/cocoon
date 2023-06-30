@@ -52,7 +52,7 @@ class ValidationService {
         await processPullRequest(
           config: config,
           result: await getNewestPullRequestInfo(config, messagePullRequest),
-          messagePullRequest: await getNewestGithubPullRequest(config, messagePullRequest),
+          messagePullRequest: messagePullRequest,
           ackId: ackId,
           pubsub: pubsub,
         );
@@ -61,7 +61,7 @@ class ValidationService {
         await processRevertRequest(
           config: config,
           result: await getNewestPullRequestInfo(config, messagePullRequest),
-          messagePullRequest: await getNewestGithubPullRequest(config, messagePullRequest),
+          messagePullRequest: messagePullRequest,
           ackId: ackId,
           pubsub: pubsub,
         );
@@ -94,12 +94,6 @@ class ValidationService {
     );
 
     return QueryResult.fromJson(data);
-  }
-
-  Future<github.PullRequest> getNewestGithubPullRequest(Config config, github.PullRequest pullRequest) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final GithubService githubService = await config.createGithubService(slug);
-    return githubService.getPullRequest(slug, pullRequest.number!);
   }
 
   /// Checks if a pullRequest is still open and with autosubmit label before trying to process it.
