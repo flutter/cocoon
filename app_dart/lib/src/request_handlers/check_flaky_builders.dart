@@ -80,7 +80,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     for (final _BuilderInfo info in eligibleBuilders) {
       final BuilderType type = getTypeForBuilder(info.name, ciYaml);
       final TestOwnership testOwnership = getTestOwnership(
-        targets.firstWhere((element) => element.name == info.name!),
+        targets.singleWhere((element) => element.name == info.name!),
         type,
         testOwnerContent,
       );
