@@ -87,11 +87,8 @@ class BatchBackfiller extends RequestHandler {
       }
     }
 
-    // Limits the number of targets to be backfilled in each cycle.
-    if (backfill.length > config.backfillerTargetLimit) {
-      backfill.shuffle();
-      backfill = backfill.sublist(0, config.backfillerTargetLimit);
-    }
+    // Get the number of targets to be backfilled in each cycle.
+    backfill = getFilteredBackfill(backfill);
 
     log.fine('Backfilling ${backfill.length} builds');
     log.fine(backfill.map<String>((Tuple<Target, FullTask, int> tuple) => tuple.first.value.name));
@@ -112,6 +109,32 @@ class BatchBackfiller extends RequestHandler {
     } catch (error) {
       log.severe('Failed to update tasks when backfilling: $error');
     }
+  }
+
+  /// Filters [config.backfillerTargetLimit] targets to backfill.
+  ///
+  /// High priority targets will be guranteed to get back filled first. If more targets
+  /// than [config.backfillerTargetLimit], pick the limited number of targets after a
+  /// shuffle. This is to make sure all targets are picked with the same chance.
+  List<Tuple<Target, FullTask, int>> getFilteredBackfill(List<Tuple<Target, FullTask, int>> backfill) {
+    if (backfill.length <= config.backfillerTargetLimit) {
+      return backfill;
+    }
+    final List<Tuple<Target, FullTask, int>> filteredBackfill = <Tuple<Target, FullTask, int>>[];
+    final List<Tuple<Target, FullTask, int>> highPriorityBackfill =
+        backfill.where((element) => element.third == LuciBuildService.kRerunPriority).toList();
+    final List<Tuple<Target, FullTask, int>> normalPriorityBackfill =
+        backfill.where((element) => element.third != LuciBuildService.kRerunPriority).toList();
+    if (highPriorityBackfill.length >= config.backfillerTargetLimit) {
+      highPriorityBackfill.shuffle();
+      filteredBackfill.addAll(highPriorityBackfill.sublist(0, config.backfillerTargetLimit));
+    } else {
+      filteredBackfill.addAll(highPriorityBackfill);
+      normalPriorityBackfill.shuffle();
+      filteredBackfill
+          .addAll(normalPriorityBackfill.sublist(0, config.backfillerTargetLimit - highPriorityBackfill.length));
+    }
+    return filteredBackfill;
   }
 
   /// Schedules tasks with retry when hitting pub/sub server errors.
