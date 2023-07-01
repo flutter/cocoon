@@ -154,7 +154,10 @@ void main() {
         pubsub: pubsub,
         cronAuthProvider: auth,
       );
-      cocoonRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
+      cocoonRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+      );
 
       final Map<int, RepositorySlug> expectedMergeRequestMap = {};
       expectedMergeRequestMap[0] = RepositorySlug('flutter', cocoonRepo);
