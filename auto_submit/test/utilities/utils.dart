@@ -30,6 +30,7 @@ class PullRequestHelper {
     this.repo = 'flutter',
     this.authorAssociation = 'MEMBER',
     this.title = 'some_title',
+    this.mergeableState = MergeableState.MERGEABLE,
     this.reviews = const <PullRequestReviewHelper>[
       PullRequestReviewHelper(authorName: 'member', state: ReviewState.APPROVED, memberType: MemberType.MEMBER),
     ],
@@ -49,6 +50,7 @@ class PullRequestHelper {
   final String? lastCommitMessage;
   final DateTime? dateTime;
   final String title;
+  final MergeableState mergeableState;
 
   RepositorySlug get slug => RepositorySlug('flutter', repo);
 
@@ -58,6 +60,7 @@ class PullRequestHelper {
       'authorAssociation': authorAssociation,
       'id': prNumber.toString(),
       'title': title,
+      'mergeable': mergeableState.name,
       'reviews': <String, dynamic>{
         'nodes': reviews.map((PullRequestReviewHelper review) {
           return <String, dynamic>{
