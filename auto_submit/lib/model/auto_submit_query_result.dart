@@ -155,6 +155,7 @@ class PullRequest {
   final String? body;
   final Reviews? reviews;
   final Commits? commits;
+  // https://docs.github.com/en/graphql/reference/enums#mergeablestate
   final MergeableState? mergeable;
 
   factory PullRequest.fromJson(Map<String, dynamic> json) => _$PullRequestFromJson(json);
