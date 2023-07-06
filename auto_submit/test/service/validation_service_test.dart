@@ -723,12 +723,6 @@ void main() {
 
   group('processMerge', () {
     test('Correct PR titles when merging to use Reland', () async {
-      final PullRequestHelper flutterRequest = PullRequestHelper(
-        prNumber: 0,
-        lastCommitHash: oid,
-        reviews: <PullRequestReviewHelper>[],
-      );
-
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
@@ -741,9 +735,7 @@ void main() {
         sha: pullRequest.mergeCommitSha,
       );
 
-      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
       final MergeResult result = await validationService.processMerge(
-        result: queryResult,
         config: config,
         messagePullRequest: pullRequest,
       );
@@ -752,13 +744,6 @@ void main() {
     });
 
     test('includes PR description in commit message', () async {
-      final PullRequestHelper flutterRequest = PullRequestHelper(
-        prNumber: 0,
-        lastCommitHash: oid,
-        reviews: <PullRequestReviewHelper>[],
-      );
-      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
@@ -775,7 +760,6 @@ void main() {
         sha: pullRequest.mergeCommitSha,
       );
       final MergeResult result = await validationService.processMerge(
-        result: queryResult,
         config: config,
         messagePullRequest: pullRequest,
       );
@@ -834,15 +818,7 @@ If you need help, consider asking for advice on the #hackers-new channel on [Dis
         sha: pullRequest.mergeCommitSha,
       );
 
-      final PullRequestHelper flutterRequest = PullRequestHelper(
-        prNumber: 0,
-        lastCommitHash: oid,
-        reviews: <PullRequestReviewHelper>[],
-      );
-      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-
       final MergeResult result = await validationService.processMerge(
-        result: queryResult,
         config: config,
         messagePullRequest: pullRequest,
       );
@@ -853,94 +829,6 @@ Various bugfixes and performance improvements.
 
 Fixes #12345 and #3.
 This is the second line in a paragraph.''');
-    });
-  });
-
-  group('isMergeable tests', () {
-    test('Pull request is mergeable', () async {
-      const String org = 'flutter';
-      const String repo = 'flutter';
-
-      final PullRequestHelper flutterRequest = PullRequestHelper(
-        prNumber: 0,
-        lastCommitHash: oid,
-        reviews: <PullRequestReviewHelper>[],
-      );
-      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-
-      final PullRequest pullRequest = generatePullRequest(
-        mergeable: true,
-        login: org,
-        repoName: repo,
-      );
-      githubService.pullRequestData = pullRequest;
-
-      final MergeResult processMergeResult = await validationService.isMergeable(
-        RepositorySlug(org, repo),
-        1347,
-        queryResult,
-      );
-      expect(processMergeResult.result, isTrue);
-      expect(processMergeResult.message, 'Pull request flutter/flutter/1347 is mergeable');
-    });
-
-    test('Pull request mergeability has not been determined', () async {
-      const String org = 'flutter';
-      const String repo = 'flutter';
-
-      final PullRequestHelper flutterRequest = PullRequestHelper(
-        prNumber: 0,
-        lastCommitHash: oid,
-        reviews: <PullRequestReviewHelper>[],
-        mergeableState: auto.MergeableState.UNKNOWN,
-      );
-      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-
-      final PullRequest pullRequest = generatePullRequest(
-        mergeable: null,
-        login: org,
-        repoName: repo,
-      );
-      githubService.pullRequestData = pullRequest;
-
-      final MergeResult processMergeResult = await validationService.isMergeable(
-        RepositorySlug(org, repo),
-        1347,
-        queryResult,
-      );
-      expect(processMergeResult.result, isFalse);
-      expect(
-        processMergeResult.message,
-        'Mergeability of pull request flutter/flutter/1347 could not be determined at time of merge.',
-      );
-    });
-
-    test('Pull request cannot be merged', () async {
-      const String org = 'flutter';
-      const String repo = 'flutter';
-
-      final PullRequest pullRequest = generatePullRequest(
-        mergeable: false,
-        login: org,
-        repoName: repo,
-      );
-      githubService.pullRequestData = pullRequest;
-
-      final PullRequestHelper flutterRequest = PullRequestHelper(
-        prNumber: 0,
-        lastCommitHash: oid,
-        reviews: <PullRequestReviewHelper>[],
-        mergeableState: auto.MergeableState.CONFLICTING,
-      );
-      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-
-      final MergeResult processMergeResult = await validationService.isMergeable(
-        RepositorySlug(org, repo),
-        1347,
-        queryResult,
-      );
-      expect(processMergeResult.result, isFalse);
-      expect(processMergeResult.message, 'Pull request flutter/flutter/1347 is not in a mergeable state.');
     });
   });
 }

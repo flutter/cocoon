@@ -195,18 +195,11 @@ class ValidationService {
 
     // If we got to this point it means we are ready to submit the PR.
     final MergeResult processed = await processMerge(
-      result: result,
       config: config,
       messagePullRequest: messagePullRequest,
     );
 
     if (!processed.result) {
-      if (processed.action == Action.IGNORE_TEMPORARILY) {
-        // We could not determine mergeability at merge time but we do not want to remove the label.
-        log.info(processed.message);
-        return;
-      }
-
       final String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, ${processed.message}.';
 
       await removeLabelAndComment(
@@ -257,7 +250,6 @@ class ValidationService {
       await approverService!.revertApproval(result, messagePullRequest);
 
       final MergeResult processed = await processMerge(
-        result: result,
         config: config,
         messagePullRequest: messagePullRequest,
       );
@@ -271,11 +263,6 @@ class ValidationService {
           pullRequestType: PullRequestChangeType.revert,
         );
       } else {
-        if (processed.action == Action.IGNORE_TEMPORARILY) {
-          log.info(processed.message);
-          return;
-        }
-
         final String message = 'revert label is removed for ${slug.fullName}/$prNumber, ${processed.message}.';
         await removeLabelAndComment(
           githubService: githubService,
@@ -315,23 +302,11 @@ class ValidationService {
 
   /// Merges the commit if the PullRequest passes all the validations.
   Future<MergeResult> processMerge({
-    required QueryResult result,
     required Config config,
     required github.PullRequest messagePullRequest,
   }) async {
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int number = messagePullRequest.number!;
-
-    // Determine if the pull request is mergeable before we attempt to merge it.
-    final MergeResult mergeResult = await isMergeable(
-      slug,
-      number,
-      result,
-    );
-
-    if (!mergeResult.result) {
-      return mergeResult;
-    }
 
     // Pass an explicit commit message from the PR title otherwise the GitHub API will use the first commit message.
     const String revertPattern = 'Revert "Revert';
@@ -369,43 +344,16 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
       if (result != null && !merged) {
         final String message = 'Failed to merge ${slug.fullName}/$number with ${result?.message}';
         log.severe(message);
-        return (result: false, action: Action.REMOVE_LABEL, message: message);
+        return (result: false, message: message);
       }
     } catch (e) {
       // Catch graphql client init exceptions.
       final String message = 'Failed to merge ${slug.fullName}/$number with ${e.toString()}';
       log.severe(message);
-      return (result: false, action: Action.REMOVE_LABEL, message: message);
+      return (result: false, message: message);
     }
 
-    return (result: true, action: Action.REMOVE_LABEL, message: commitMessage);
-  }
-
-  /// Determine if a pull request is mergeable at this time.
-  Future<MergeResult> isMergeable(github.RepositorySlug slug, int pullRequestNumber, QueryResult result) async {
-    final MergeableState mergeableState = result.repository!.pullRequest!.mergeable!;
-
-    switch (mergeableState) {
-      case MergeableState.MERGEABLE:
-        return (
-          result: true,
-          action: Action.REMOVE_LABEL,
-          message: 'Pull request ${slug.fullName}/$pullRequestNumber is mergeable',
-        );
-      case MergeableState.UNKNOWN:
-        return (
-          result: false,
-          action: Action.IGNORE_TEMPORARILY,
-          message:
-              'Mergeability of pull request ${slug.fullName}/$pullRequestNumber could not be determined at time of merge.',
-        );
-      case MergeableState.CONFLICTING:
-        return (
-          result: false,
-          action: Action.REMOVE_LABEL,
-          message: 'Pull request ${slug.fullName}/$pullRequestNumber is not in a mergeable state.',
-        );
-    }
+    return (result: true, message: commitMessage);
   }
 
   /// Remove a pull request label and add a comment to the pull request.
@@ -462,13 +410,7 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
 
 /// Small wrapper class to allow us to capture and create a comment in the PR with
 /// the issue that caused the merge failure.
-class ProcessMergeResult {
-  ProcessMergeResult.noMessage(this.result);
-  ProcessMergeResult(this.result, this.message);
-
-  bool result = false;
-  String? message;
-}
+typedef MergeResult = ({bool result, String message});
 
 /// Function signature that will be executed with retries.
 typedef RetryHandler = Function();

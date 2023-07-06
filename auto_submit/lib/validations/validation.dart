@@ -43,9 +43,6 @@ enum Action {
   IGNORE_TEMPORARILY,
 }
 
-/// Holds a result of a pull request merge attempt.
-typedef MergeResult = ({bool result, Action action, String message});
-
 /// Holds a result of a validation execution.
 /// TODO (ricardoamador) convert this to a record after MergeResult is merged.
 class ValidationResult {
