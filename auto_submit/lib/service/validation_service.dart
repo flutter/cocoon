@@ -194,12 +194,19 @@ class ValidationService {
     }
 
     // If we got to this point it means we are ready to submit the PR.
-    final ProcessMergeResult processed = await processMerge(
+    final ValidationResult processed = await processMerge(
+      result: result,
       config: config,
       messagePullRequest: messagePullRequest,
     );
 
     if (!processed.result) {
+      if (processed.action == Action.IGNORE_TEMPORARILY) {
+        // We could not determine mergeability at merge time but we do not want to remove the label.
+        log.info(processed.message);
+        return;
+      }
+
       final String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, ${processed.message}.';
 
       await removeLabelAndComment(
@@ -249,7 +256,8 @@ class ValidationService {
       // Approve the pull request automatically as it has been validated.
       await approverService!.revertApproval(result, messagePullRequest);
 
-      final ProcessMergeResult processed = await processMerge(
+      final ValidationResult processed = await processMerge(
+        result: result,
         config: config,
         messagePullRequest: messagePullRequest,
       );
@@ -263,6 +271,11 @@ class ValidationService {
           pullRequestType: PullRequestChangeType.revert,
         );
       } else {
+        if (processed.action == Action.IGNORE_TEMPORARILY) {
+          log.info(processed.message);
+          return;
+        }
+
         final String message = 'revert label is removed for ${slug.fullName}/$prNumber, ${processed.message}.';
         await removeLabelAndComment(
           githubService: githubService,
@@ -301,7 +314,8 @@ class ValidationService {
   }
 
   /// Merges the commit if the PullRequest passes all the validations.
-  Future<ProcessMergeResult> processMerge({
+  Future<ValidationResult> processMerge({
+    required QueryResult result,
     required Config config,
     required github.PullRequest messagePullRequest,
   }) async {
@@ -309,10 +323,12 @@ class ValidationService {
     final int number = messagePullRequest.number!;
 
     // Determine if the pull request is mergeable before we attempt to merge it.
-    final ProcessMergeResult mergeResult = await isMergeable(
+    final ValidationResult mergeResult = await isMergeable(
       slug,
       number,
+      result,
     );
+
     if (!mergeResult.result) {
       return mergeResult;
     }
@@ -353,35 +369,60 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
       if (result != null && !merged) {
         final String message = 'Failed to merge ${slug.fullName}/$number with ${result?.message}';
         log.severe(message);
-        return ProcessMergeResult(false, message);
+        return ValidationResult(false, Action.REMOVE_LABEL, message);
       }
     } catch (e) {
       // Catch graphql client init exceptions.
       final String message = 'Failed to merge ${slug.fullName}/$number with ${e.toString()}';
       log.severe(message);
-      return ProcessMergeResult(false, message);
+      return ValidationResult(false, Action.REMOVE_LABEL, message);
     }
 
-    return ProcessMergeResult(true, commitMessage);
+    return ValidationResult(true, Action.REMOVE_LABEL, commitMessage);
   }
 
   /// Determine if a pull request is mergeable at this time.
-  Future<ProcessMergeResult> isMergeable(github.RepositorySlug slug, int pullRequestNumber) async {
-    final GithubService githubService = await config.createGithubService(slug);
-    final github.PullRequest pullRequest = await githubService.getPullRequest(slug, pullRequestNumber);
+  // Future<ProcessMergeResult> isMergeable(github.RepositorySlug slug, int pullRequestNumber) async {
+  //   final GithubService githubService = await config.createGithubService(slug);
+  //   final github.PullRequest pullRequest = await githubService.getPullRequest(slug, pullRequestNumber);
 
-    bool result = true;
-    String message = 'Pull request ${slug.fullName}/$pullRequestNumber is mergeable';
-    if (pullRequest.mergeable == null) {
-      message =
-          'Mergeability of pull request ${slug.fullName}/$pullRequestNumber could not be determined at time of merge.';
-      result = false;
-    } else if (pullRequest.mergeable == false) {
-      result = false;
-      message = 'Pull request ${slug.fullName}/$pullRequestNumber is not in a mergeable state.';
+  //   bool result = true;
+  //   String message = 'Pull request ${slug.fullName}/$pullRequestNumber is mergeable';
+  //   if (pullRequest.mergeable == null) {
+  //     message =
+  //         'Mergeability of pull request ${slug.fullName}/$pullRequestNumber could not be determined at time of merge.';
+  //     result = false;
+  //   } else if (pullRequest.mergeable == false) {
+  //     result = false;
+  //     message = 'Pull request ${slug.fullName}/$pullRequestNumber is not in a mergeable state.';
+  //   }
+  //   log.info(message);
+  //   return ProcessMergeResult(result, message);
+  // }
+
+  Future<ValidationResult> isMergeable(github.RepositorySlug slug, int pullRequestNumber, QueryResult result) async {
+    final MergeableState mergeableState = result.repository!.pullRequest!.mergeable!;
+
+    switch (mergeableState) {
+      case MergeableState.MERGEABLE:
+        return ValidationResult(
+          true,
+          Action.REMOVE_LABEL,
+          'Pull request ${slug.fullName}/$pullRequestNumber is mergeable',
+        );
+      case MergeableState.UNKNOWN:
+        return ValidationResult(
+          false,
+          Action.IGNORE_TEMPORARILY,
+          'Mergeability of pull request ${slug.fullName}/$pullRequestNumber could not be determined at time of merge.',
+        );
+      case MergeableState.CONFLICTING:
+        return ValidationResult(
+          false,
+          Action.REMOVE_LABEL,
+          'Pull request ${slug.fullName}/$pullRequestNumber is not in a mergeable state.',
+        );
     }
-    log.info(message);
-    return ProcessMergeResult(result, message);
   }
 
   /// Remove a pull request label and add a comment to the pull request.

@@ -723,6 +723,12 @@ void main() {
 
   group('processMerge', () {
     test('Correct PR titles when merging to use Reland', () async {
+      final PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+      );
+
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
@@ -734,7 +740,10 @@ void main() {
         merged: true,
         sha: pullRequest.mergeCommitSha,
       );
-      final ProcessMergeResult result = await validationService.processMerge(
+
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+      final ValidationResult result = await validationService.processMerge(
+        result: queryResult,
         config: config,
         messagePullRequest: pullRequest,
       );
@@ -743,6 +752,13 @@ void main() {
     });
 
     test('includes PR description in commit message', () async {
+      final PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+      );
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
@@ -758,7 +774,8 @@ void main() {
         merged: true,
         sha: pullRequest.mergeCommitSha,
       );
-      final ProcessMergeResult result = await validationService.processMerge(
+      final ValidationResult result = await validationService.processMerge(
+        result: queryResult,
         config: config,
         messagePullRequest: pullRequest,
       );
@@ -816,7 +833,16 @@ If you need help, consider asking for advice on the #hackers-new channel on [Dis
         merged: true,
         sha: pullRequest.mergeCommitSha,
       );
-      final ProcessMergeResult result = await validationService.processMerge(
+
+      final PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+      );
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+
+      final ValidationResult result = await validationService.processMerge(
+        result: queryResult,
         config: config,
         messagePullRequest: pullRequest,
       );
@@ -835,6 +861,13 @@ This is the second line in a paragraph.''');
       const String org = 'flutter';
       const String repo = 'flutter';
 
+      final PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+      );
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+
       final PullRequest pullRequest = generatePullRequest(
         mergeable: true,
         login: org,
@@ -842,8 +875,8 @@ This is the second line in a paragraph.''');
       );
       githubService.pullRequestData = pullRequest;
 
-      final ProcessMergeResult processMergeResult =
-          await validationService.isMergeable(RepositorySlug(org, repo), 1347);
+      final ValidationResult processMergeResult =
+          await validationService.isMergeable(RepositorySlug(org, repo), 1347, queryResult,);
       expect(processMergeResult.result, isTrue);
       expect(processMergeResult.message, 'Pull request flutter/flutter/1347 is mergeable');
     });
@@ -852,6 +885,14 @@ This is the second line in a paragraph.''');
       const String org = 'flutter';
       const String repo = 'flutter';
 
+      final PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+        mergeableState: auto.MergeableState.UNKNOWN,
+      );
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+
       final PullRequest pullRequest = generatePullRequest(
         mergeable: null,
         login: org,
@@ -859,8 +900,8 @@ This is the second line in a paragraph.''');
       );
       githubService.pullRequestData = pullRequest;
 
-      final ProcessMergeResult processMergeResult =
-          await validationService.isMergeable(RepositorySlug(org, repo), 1347);
+      final ValidationResult processMergeResult =
+          await validationService.isMergeable(RepositorySlug(org, repo), 1347, queryResult,);
       expect(processMergeResult.result, isFalse);
       expect(
         processMergeResult.message,
@@ -879,8 +920,16 @@ This is the second line in a paragraph.''');
       );
       githubService.pullRequestData = pullRequest;
 
-      final ProcessMergeResult processMergeResult =
-          await validationService.isMergeable(RepositorySlug(org, repo), 1347);
+      final PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+        mergeableState: auto.MergeableState.CONFLICTING,
+      );
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+
+      final ValidationResult processMergeResult =
+          await validationService.isMergeable(RepositorySlug(org, repo), 1347, queryResult,);
       expect(processMergeResult.result, isFalse);
       expect(processMergeResult.message, 'Pull request flutter/flutter/1347 is not in a mergeable state.');
     });
