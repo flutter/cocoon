@@ -54,6 +54,7 @@ class PullRequestHelper {
   final DateTime? dateTime;
   final String title;
   final MergeableState mergeableState;
+  final String state;
 
   github.RepositorySlug get slug => github.RepositorySlug('flutter', repo);
 
