@@ -203,7 +203,7 @@ void main() {
 
         test('if there are no framework or web engine tests for this PR', () async {
           checkRuns = <dynamic>[
-            <String, String>{'name': 'tool-test1', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'tool-test1', 'status': 'completed', 'conclusion': 'success'},
           ];
           final PullRequest flutterPr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[flutterPr];
@@ -211,7 +211,7 @@ void main() {
           db.values[status.key] = status;
 
           engineCheckRuns = <dynamic>[
-            <String, String>{'name': 'linux-host1', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'linux-host1', 'status': 'completed', 'conclusion': 'success'},
           ];
           final PullRequest enginePr = newPullRequest(456, 'def', 'main');
           enginePrsFromGitHub = <PullRequest>[enginePr];
@@ -261,7 +261,7 @@ void main() {
 
         test('if there are no framework tests for this PR, exclude web builds', () async {
           checkRuns = <dynamic>[
-            <String, String>{'name': 'web-test1', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'web-test1', 'status': 'completed', 'conclusion': 'success'},
           ];
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
@@ -504,7 +504,7 @@ void main() {
 
           // All checks completed
           checkRuns = <dynamic>[
-            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
           ];
 
           final Body body = await tester.get<Body>(handler);
@@ -542,7 +542,7 @@ void main() {
 
           // Checks completed
           checkRuns = <dynamic>[
-            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
           ];
 
           final Body body = await tester.get<Body>(handler);
@@ -580,7 +580,7 @@ void main() {
 
           // Checks completed
           checkRuns = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'},
           ];
 
           final Body body = await tester.get<Body>(handler);
@@ -619,7 +619,7 @@ void main() {
 
           // Checks completed
           checkRuns = <dynamic>[
-            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
           ];
 
           // Have not already commented for this commit.
@@ -665,7 +665,7 @@ void main() {
 
           // Checks completed
           checkRuns = <dynamic>[
-            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
           ];
 
           // Already commented to update.
@@ -711,7 +711,7 @@ void main() {
 
           // Checks completed
           checkRuns = <dynamic>[
-            <String, String>{'name': 'tool-test-1', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'tool-test-1', 'status': 'completed', 'conclusion': 'success'},
           ];
 
           // Already commented to update.
@@ -815,6 +815,67 @@ void main() {
           );
         });
 
+        test('includes misc test shards', () async {
+          // New commit
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
+          db.values[status.key] = status;
+
+          // Checks completed
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'misc', 'status': 'completed', 'conclusion': 'success'},
+          ];
+
+          // Change detected by Gold
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+              return http.Response(tryjobEmpty(), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config: config,
+            authenticationProvider: auth,
+            datastoreProvider: (DatastoreDB db) {
+              return DatastoreService(
+                config.db,
+                5,
+                retryOptions: retryOptions,
+              );
+            },
+            goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(status.status, GithubGoldStatusUpdate.statusCompleted);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
+
+          // Should not label or comment
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
+
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
+        });
+
         test('new commit, checks complete, no changes detected', () async {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
@@ -824,7 +885,7 @@ void main() {
 
           // Checks completed
           checkRuns = <dynamic>[
-            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
           ];
 
           // Change detected by Gold
@@ -885,7 +946,7 @@ void main() {
 
           // Checks completed
           checkRuns = <dynamic>[
-            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
           ];
 
           // Change detected by Gold
@@ -955,7 +1016,7 @@ void main() {
 
           // Checks complete
           checkRuns = <dynamic>[
-            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
           ];
 
           // Gold status is running
@@ -1023,7 +1084,7 @@ void main() {
 
           // Checks complete
           checkRuns = <dynamic>[
-            <String, String>{'name': 'framework', 'completed': 'in_progress', 'conclusion': 'success'}
+            <String, String>{'name': 'framework', 'completed': 'in_progress', 'conclusion': 'success'},
           ];
 
           // Gold status is running
@@ -1105,7 +1166,7 @@ void main() {
 
           // Checks completed
           checkRuns = <dynamic>[
-            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
           ];
 
           // New status: completed/triaged/no changes
@@ -1173,7 +1234,7 @@ void main() {
 
           // Checks completed
           checkRuns = <dynamic>[
-            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
           ];
           when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
             (_) => Stream<IssueComment>.value(
@@ -1217,7 +1278,7 @@ void main() {
 
           // Checks completed
           checkRuns = <dynamic>[
-            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
           ];
           when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
             (_) => Stream<IssueComment>.value(
@@ -1260,7 +1321,7 @@ void main() {
 
           // Checks failed
           checkRuns = <dynamic>[
-            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'failure'}
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'failure'},
           ];
 
           final Body body = await tester.get<Body>(handler);
@@ -1311,7 +1372,7 @@ void main() {
 
         // Checks completed
         checkRuns = <dynamic>[
-          <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
+          <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
         ];
 
         // New status: completed/triaged/no changes
@@ -1490,11 +1551,11 @@ QueryResult createGithubQueryResult(List<dynamic> statuses) {
                   'checkSuites': <String, dynamic>{
                     'nodes': <dynamic>[
                       <String, dynamic>{
-                        'checkRuns': <String, dynamic>{'nodes': statuses}
+                        'checkRuns': <String, dynamic>{'nodes': statuses},
                       }
-                    ]
-                  }
-                }
+                    ],
+                  },
+                },
               }
             ],
           },

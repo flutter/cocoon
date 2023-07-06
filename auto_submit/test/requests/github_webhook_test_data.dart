@@ -396,11 +396,11 @@ const String repositoryStatusesMock = '''{
   "statuses": [
     {
       "state": "success",
-      "context": "luci-flutter"
+      "context": "tree-status"
     },
     {
       "state": "success",
-      "context": "luci-flutter/flutter"
+      "context": "tree-status/flutter"
     }
   ]
 }''';
@@ -410,7 +410,7 @@ const String repositoryStatusesWithGoldMock = '''{
   "statuses": [
     {
       "state": "success",
-      "context": "luci-engine"
+      "context": "tree-status"
     },
     {
       "state": "PENDING",
@@ -424,7 +424,7 @@ const String repositoryStatusesWithFailedGoldMock = '''{
   "statuses": [
     {
       "state": "success",
-      "context": "luci-engine"
+      "context": "tree-status"
     },
     {
       "state": "failure",
@@ -453,12 +453,12 @@ const String failedAuthorsStatusesMock = '''{
   "statuses": [
     {
       "state": "failure",
-      "context": "luci-flutter",
+      "context": "tree-status",
       "targetUrl": "https://ci.example.com/1000/output"
     },
     {
       "state": "failure",
-      "context": "luci-engine",
+      "context": "tree-status",
       "targetUrl": "https://ci.example.com/2000/output"
     }
   ]

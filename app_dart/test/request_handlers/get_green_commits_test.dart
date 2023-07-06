@@ -94,7 +94,7 @@ void main() {
       buildStatusService = FakeBuildStatusService(
         commitStatuses: <CommitStatus>[
           CommitStatus(commit1, <Stage>[stageOneSucceed]),
-          CommitStatus(commit2, <Stage>[stageOneSucceed, stageMultipleSucceed])
+          CommitStatus(commit2, <Stage>[stageOneSucceed, stageMultipleSucceed]),
         ],
       );
       handler = GetGreenCommits(
@@ -116,7 +116,7 @@ void main() {
       buildStatusService = FakeBuildStatusService(
         commitStatuses: <CommitStatus>[
           CommitStatus(commit1, <Stage>[stageFailed]),
-          CommitStatus(commit2, <Stage>[stageOneSucceed, stageMultipleSucceed])
+          CommitStatus(commit2, <Stage>[stageOneSucceed, stageMultipleSucceed]),
         ],
       );
       handler = GetGreenCommits(
@@ -135,7 +135,7 @@ void main() {
       buildStatusService = FakeBuildStatusService(
         commitStatuses: <CommitStatus>[
           CommitStatus(commit1, <Stage>[stageFailed]),
-          CommitStatus(commit2, <Stage>[stageFailedFlaky])
+          CommitStatus(commit2, <Stage>[stageFailedFlaky]),
         ],
       );
       handler = GetGreenCommits(
@@ -154,7 +154,7 @@ void main() {
       buildStatusService = FakeBuildStatusService(
         commitStatuses: <CommitStatus>[
           CommitStatus(commit1, <Stage>[stageOneSucceed, stageMultipleSucceed]),
-          CommitStatus(commit2, <Stage>[stageOneSucceed, stageFailedFlaky])
+          CommitStatus(commit2, <Stage>[stageOneSucceed, stageFailedFlaky]),
         ],
       );
       handler = GetGreenCommits(

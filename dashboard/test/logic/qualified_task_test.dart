@@ -35,6 +35,15 @@ void main() {
     expect(QualifiedTask.fromTask(googleTestTask).sourceConfigurationUrl, 'https://flutter-rob.corp.google.com');
   });
 
+  test('QualifiedTask.sourceConfigurationUrl for dart-internal', () {
+    final Task dartInternalTask = Task()..stageName = 'dart-internal';
+
+    expect(
+      QualifiedTask.fromTask(dartInternalTask).sourceConfigurationUrl,
+      'https://ci.chromium.org/p/dart-internal/builders/luci.flutter.prod/',
+    );
+  });
+
   test('QualifiedTask.isLuci', () {
     expect(const QualifiedTask(stage: 'luci', task: 'abc').isLuci, true);
     expect(const QualifiedTask(stage: 'chromebot', task: 'abc').isLuci, true);

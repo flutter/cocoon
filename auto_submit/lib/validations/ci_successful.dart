@@ -15,9 +15,8 @@ import '../service/log.dart';
 class CiSuccessful extends Validation {
   /// The status checks that are not related to changes in this PR.
   static const Set<String> notInAuthorsControl = <String>{
-    'luci-flutter', // flutter repo
-    'luci-engine', // engine repo
-    'submit-queue', // plugins repo
+    'tree-status', // flutter/engine repo
+    'submit-queue', // packages repo
   };
 
   CiSuccessful({
@@ -107,8 +106,8 @@ class CiSuccessful extends Validation {
     if (statuses.isEmpty) {
       return false;
     }
-    final String treeStatusName = 'luci-${slug.name}';
-    log.info('Validating tree status: ${slug.name}, statuses: $statuses');
+    const String treeStatusName = 'tree-status';
+    log.info('Validating tree status: ${slug.name}/tree-status, statuses: $statuses');
 
     /// Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
     for (ContextNode status in statuses) {

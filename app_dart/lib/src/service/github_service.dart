@@ -153,6 +153,20 @@ class GithubService {
     );
   }
 
+  /// Adds labels to an issue.
+  ///
+  /// A pull request is an issue. This works for pull requests as well.
+  Future<List<IssueLabel>> addIssueLabels(
+    RepositorySlug slug,
+    int issueNumber,
+    List<String> labels,
+  ) async {
+    ArgumentError.checkNotNull(slug);
+    ArgumentError.checkNotNull(issueNumber);
+    ArgumentError.checkNotNull(labels);
+    return github.issues.addLabelsToIssue(slug, issueNumber, labels);
+  }
+
   /// Retrieves issues from the repository.
   ///
   /// Uses the `labels` to return the issues that have the labels.

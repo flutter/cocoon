@@ -78,10 +78,10 @@ void main() {
           platform: 'Mac',
           platformProperties: <String, String>{
             // This should be overrided by the target specific property
-            '\$flutter/osx_sdk': '{"sdk_version": "12abc", "runtime_versions": ["ios-11-0", "ios-12-0"]}'
+            '\$flutter/osx_sdk': '{"sdk_version": "12abc", "runtime_versions": ["ios-11-0", "ios-12-0"]}',
           },
           properties: <String, String>{
-            '\$flutter/osx_sdk': '{"sdk_version": "14e222b", "runtime_versions": ["ios-13-0", "ios-15-0"]}'
+            '\$flutter/osx_sdk': '{"sdk_version": "14e222b", "runtime_versions": ["ios-13-0", "ios-15-0"]}',
           },
         );
         expect(target.getProperties(), <String, Object>{

@@ -74,6 +74,12 @@ class Commits {
   Map<String, dynamic> toJson() => _$CommitsToJson(this);
 }
 
+enum MergeableState {
+  CONFLICTING,
+  MERGEABLE,
+  UNKNOWN,
+}
+
 @JsonSerializable()
 class ContextNode {
   ContextNode({
@@ -140,6 +146,7 @@ class PullRequest {
     this.body,
     this.reviews,
     this.commits,
+    this.mergeable,
   });
   final Author? author;
   @JsonKey(name: 'authorAssociation')
@@ -151,6 +158,8 @@ class PullRequest {
   final String? body;
   final Reviews? reviews;
   final Commits? commits;
+  // https://docs.github.com/en/graphql/reference/enums#mergeablestate
+  final MergeableState? mergeable;
 
   factory PullRequest.fromJson(Map<String, dynamic> json) => _$PullRequestFromJson(json);
 

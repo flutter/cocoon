@@ -91,7 +91,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       queryParameters.addAll(widget.queryParameters!);
     }
     if (_filter != null) {
-      queryParameters.addAll(_filter!.toMap(includeDefaults: true));
+      queryParameters.addAll(_filter!.toMap());
     }
     queryParameters['repo'] = repo!;
 
@@ -112,7 +112,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
 
   void _showSettingsDialog() {
     setState(() {
-      _settingsBasis = TaskGridFilter.fromMap(_filter!.toMap(includeDefaults: false));
+      _settingsBasis = TaskGridFilter.fromMap(_filter!.toMap());
     });
   }
 
@@ -166,7 +166,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                         onPressed: () {
                           if (_filter != _settingsBasis) {
                             _filter!.reset();
-                            _filter!.applyMap(_settingsBasis!.toMap(includeDefaults: false));
+                            _filter!.applyMap(_settingsBasis!.toMap());
                           }
                           _removeSettingsDialog();
                         },
@@ -282,7 +282,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                 ),
               ),
             );
-          })
+          }),
         ],
       ),
       const Padding(padding: EdgeInsets.symmetric(horizontal: 4)),

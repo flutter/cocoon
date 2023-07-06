@@ -29,17 +29,16 @@ class CiYaml {
     }
     // Do not filter bringup targets. They are required for backward compatibility
     // with release candidate branches.
-    final Iterable<Target> totPresubmitTargets =
-        totConfig?._targets.where((Target target) => target.value.presubmit) ?? <Target>[];
-    final List<Target> totEnabledPresubmitTargets = _filterEnabledTargets(totPresubmitTargets);
-    totPresubmitTargetNames = totEnabledPresubmitTargets.map((Target target) => target.value.name).toList();
+    final Iterable<Target> totTargets = totConfig?._targets ?? <Target>[];
+    final List<Target> totEnabledTargets = _filterEnabledTargets(totTargets);
+    totTargetNames = totEnabledTargets.map((Target target) => target.value.name).toList();
     totPostsubmitTargetNames =
         totConfig?.postsubmitTargets.map((Target target) => target.value.name).toList() ?? <String>[];
   }
 
-  /// List of presubmit target names used to filter target from release candidate branches
+  /// List of target names used to filter target from release candidate branches
   /// that were already removed from main.
-  List<String>? totPresubmitTargetNames;
+  List<String>? totTargetNames;
 
   /// List of postsubmit target names used to filter target from release candidate branches
   /// that were already removed from main.
@@ -64,8 +63,8 @@ class CiYaml {
       throw Exception('$branch is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
     }
     // Filter targets removed from main.
-    if (totPresubmitTargetNames!.isNotEmpty) {
-      enabledTargets = filterOutdatedTargets(slug, enabledTargets, totPresubmitTargetNames);
+    if (totTargetNames!.isNotEmpty) {
+      enabledTargets = filterOutdatedTargets(slug, enabledTargets, totTargetNames);
     }
     return enabledTargets;
   }
@@ -79,7 +78,27 @@ class CiYaml {
     if (totPostsubmitTargetNames!.isNotEmpty) {
       enabledTargets = filterOutdatedTargets(slug, enabledTargets, totPostsubmitTargetNames);
     }
+    // filter if release_build true if current branch is a release candidate branch.
+    enabledTargets = _filterReleaseBuildTargets(enabledTargets);
     return enabledTargets;
+  }
+
+  /// Filters targets with release_build = true on release candidate branches.
+  List<Target> _filterReleaseBuildTargets(List<Target> targets) {
+    final List<Target> results = <Target>[];
+    // TODO(godofredoc): remove flutter-3.10-candidate.1 once dart-internal v2 artifacs are released to dart-internal.
+    // https://github.com/flutter/flutter/issues/128844
+    final bool releaseBranch = branch.contains(RegExp('^flutter-')) && (branch != 'flutter-3.10-candidate.1');
+    if (!releaseBranch) {
+      return targets;
+    }
+    for (Target target in targets) {
+      final Map<String, Object> properties = target.getProperties();
+      if (!properties.containsKey('release_build') || !(properties['release_build'] as bool)) {
+        if (!target.value.bringup) results.add(target);
+      }
+    }
+    return results;
   }
 
   /// Filters targets that were removed from main. [slug] is the gihub

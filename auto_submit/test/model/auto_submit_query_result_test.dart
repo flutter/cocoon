@@ -29,6 +29,7 @@ void main() {
       expect(pullRequest.id, 'PR_kwDOA8VHis43rs4_');
       expect(pullRequest.reviews, isNotNull);
       expect(pullRequest.title, '[dependabot] Remove human reviewers');
+      expect(pullRequest.mergeable, MergeableState.MERGEABLE);
     });
 
     test('Author values', () async {
@@ -104,6 +105,7 @@ const String dataString = """
       "authorAssociation": "MEMBER",
       "id": "PR_kwDOA8VHis43rs4_",
       "title": "[dependabot] Remove human reviewers",
+      "mergeable": "MERGEABLE",
       "commits": {
         "nodes":[
           {

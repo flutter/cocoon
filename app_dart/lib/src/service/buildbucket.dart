@@ -13,6 +13,8 @@ import '../model/luci/buildbucket.dart';
 import '../request_handling/body.dart';
 import 'access_token_provider.dart';
 
+import '../service/logging.dart';
+
 /// A client interface to LUCI BuildBucket
 @immutable
 class BuildBucketClient {
@@ -66,6 +68,8 @@ class BuildBucketClient {
   }) async {
     final Uri url = Uri.parse('$buildBucketUri$path');
     final AccessToken? token = await accessTokenService?.createAccessToken();
+
+    log.fine("Making request with path: $url and body: ${json.encode(request)}");
 
     final http.Response response = await httpClient.post(
       url,

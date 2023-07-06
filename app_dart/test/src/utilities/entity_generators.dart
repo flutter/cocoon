@@ -191,7 +191,7 @@ github.CheckRun generateCheckRun(
     'id': i,
     'name': name,
     'started_at': startedAt.toIso8601String(),
-    'check_suite': <String, dynamic>{'id': checkSuite}
+    'check_suite': <String, dynamic>{'id': checkSuite},
   });
 }
 
@@ -255,7 +255,7 @@ GerritCommit generateGerritCommit(int i) => GerritCommit(
       tree: 'main',
       author: GerritUser(
         email: 'dash@flutter.dev',
-        date: DateTime.fromMillisecondsSinceEpoch(i),
+        time: DateTime.fromMillisecondsSinceEpoch(i),
       ),
     );
 

@@ -25,6 +25,7 @@ targets:
     properties:
       tags: >
         ["devicelab"]
+      task_name: android_semantics_integration_test
   - name: Mac_android ignore_myflakiness
     bringup: true
     builder: Mac_android ignore_myflakiness
@@ -34,6 +35,7 @@ targets:
       ignore_flakiness: "true"
       tags: >
         ["devicelab"]
+      task_name: ignore_myflakiness
   - name: Linux analyze
     builder: Linux analyze
     scheduler: luci
@@ -68,6 +70,7 @@ targets:
     properties:
       tags: >
         ["devicelab"]
+      task_name: android_semantics_integration_test
   - name: Mac_android ignore_myflakiness
     builder: Mac_android ignore_myflakiness
     presubmit: false
@@ -75,6 +78,7 @@ targets:
     properties:
       tags: >
         ["devicelab"]
+      task_name: ignore_myflakiness
   - name: Linux analyze
     builder: Linux analyze
     scheduler: luci
@@ -110,6 +114,7 @@ targets:
     properties:
       tags: >
         ["devicelab"]
+      task_name: android_semantics_integration_test
   - name: Mac_android ignore_myflakiness
     bringup: true
     builder: Mac_android ignore_myflakiness
@@ -159,7 +164,7 @@ const String testOwnersContent = '''
 ## Shards tests
 # framework_tests @HansMuller @flutter/framework
 
-
+## Mac Android DeviceLab tests
 /dev/devicelab/bin/tasks/android_semantics_integration_test.dart @HansMuller @flutter/framework
 ''';
 
@@ -195,7 +200,7 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 6,
-  )
+  ),
 ];
 
 const String expectedSemanticsIntegrationTestResponseTitle =
@@ -227,8 +232,8 @@ const String expectedSemanticsIntegrationTestResponseAssignee = 'HansMuller';
 const List<String> expectedSemanticsIntegrationTestResponseLabels = <String>[
   'team: flakes',
   'severe: flake',
-  'P1',
-  'framework'
+  'P0',
+  'framework',
 ];
 const String expectedSemanticsIntegrationTestCiYamlContent = '''
 # Describes the targets run in continuous integration environment.
@@ -250,6 +255,7 @@ targets:
     properties:
       tags: >
         ["devicelab"]
+      task_name: android_semantics_integration_test
   - name: Mac_android ignore_myflakiness
     bringup: true
     builder: Mac_android ignore_myflakiness
@@ -259,6 +265,7 @@ targets:
       ignore_flakiness: "true"
       tags: >
         ["devicelab"]
+      task_name: ignore_myflakiness
   - name: Linux analyze
     builder: Linux analyze
     scheduler: luci
@@ -294,7 +301,7 @@ final List<BuilderStatistic> limitedNumberOfBuildsResponse = <BuilderStatistic>[
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 1,
     totalNumber: 4,
-  )
+  ),
 ];
 
 const String expectedLimitedNumberOfBuildsResponseBody = '''
@@ -330,13 +337,13 @@ final List<BuilderStatistic> analyzeTestResponse = <BuilderStatistic>[
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 6,
-  )
+  ),
 ];
 const String expectedAnalyzeTestResponseAssignee = 'HansMuller';
 const List<String> expectedAnalyzeTestResponseLabels = <String>[
   'team: flakes',
   'severe: flake',
-  'P1',
+  'P0',
   'framework',
 ];
 
@@ -350,7 +357,7 @@ final List<BuilderStatistic> frameworkTestResponse = <BuilderStatistic>[
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 6,
-  )
+  ),
 ];
 
 final List<BuilderStatistic> unknownTestResponse = <BuilderStatistic>[
@@ -363,13 +370,13 @@ final List<BuilderStatistic> unknownTestResponse = <BuilderStatistic>[
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 6,
-  )
+  ),
 ];
 const String expectedFrameworkTestResponseAssignee = 'HansMuller';
 const List<String> expectedFrameworkTestResponseLabels = <String>[
   'team: flakes',
   'severe: flake',
-  'P1',
+  'P0',
   'framework',
 ];
 

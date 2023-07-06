@@ -213,7 +213,7 @@ void main() {
       test('returns builders when run_if matches files using full path', () async {
         final List<String> files = <String>['abc/cde.py', 'cgh/dhj.dart'];
         final List<Target> targets = <Target>[
-          generateTarget(1, runIf: <String>['abc/cde.py'])
+          generateTarget(1, runIf: <String>['abc/cde.py']),
         ];
         final List<Target> result = await getTargetsToRun(targets, files);
         expect(result, targets);
@@ -243,13 +243,13 @@ void main() {
               'packages/flutter_goldens/**',
               'packages/flutter_tools/**',
               'bin/**',
-              '.ci.yaml'
+              '.ci.yaml',
             ],
           ),
         ];
         final List<String> files = <String>[
           'packages/flutter_localizations/lib/src/l10n/material_es.arb',
-          'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb'
+          'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
         ];
         final List<Target> result = await getTargetsToRun(targets, files);
         expect(result, targets);
@@ -270,7 +270,7 @@ void main() {
               'packages/flutter_goldens/**',
               'packages/flutter_tools/**',
               'bin/**',
-              '.ci.yaml'
+              '.ci.yaml',
             ],
           ),
         ];

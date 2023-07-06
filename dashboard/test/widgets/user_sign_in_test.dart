@@ -15,6 +15,7 @@ import '../utils/golden.dart';
 import '../utils/mocks.dart';
 
 final Widget testApp = MaterialApp(
+  theme: ThemeData(useMaterial3: false),
   home: Scaffold(
     appBar: AppBar(
       actions: const <Widget>[

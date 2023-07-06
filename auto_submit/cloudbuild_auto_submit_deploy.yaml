@@ -35,7 +35,7 @@ steps:
         if [ "$latest_version" = "version-$SHORT_SHA" ]; then
           echo "No updates since last deployment."
         else
-          bash cloud_build/deploy_auto_submit.sh $PROJECT_ID $SHORT_SHA $_GAE_PROMOTE
+          bash cloud_build/deploy_auto_submit.sh $PROJECT_ID $SHORT_SHA
         fi
 
 timeout: 1200s

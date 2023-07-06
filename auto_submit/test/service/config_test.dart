@@ -79,8 +79,8 @@ void main() {
 
       final GitHub flutterClient = await config.createGithubClient(flutterSlug);
       final GitHub testClient = await config.createGithubClient(testSlug);
-      expect(flutterClient.auth!.token!, flutterToken);
-      expect(testClient.auth!.token!, testToken);
+      expect(flutterClient.auth.token!, flutterToken);
+      expect(testClient.auth.token!, testToken);
     });
   });
 }

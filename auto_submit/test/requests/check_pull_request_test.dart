@@ -162,7 +162,10 @@ void main() {
         pubsub: pubsub,
         cronAuthProvider: auth,
       );
-      cocoonRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
+      cocoonRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+      );
 
       final Map<int, RepositorySlug> expectedMergeRequestMap = {};
       expectedMergeRequestMap[0] = RepositorySlug('flutter', cocoonRepo);
@@ -857,7 +860,7 @@ void main() {
             authorName: 'some_rando',
             state: ReviewState.APPROVED,
             memberType: MemberType.MEMBER,
-          )
+          ),
         ],
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,

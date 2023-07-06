@@ -11,6 +11,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:file/memory.dart';
 import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
+import 'package:platform/platform.dart';
 
 import 'package:test/test.dart';
 
@@ -71,24 +72,23 @@ Future<void> main() async {
     const String cocoonPath = '/path/to/cocoon';
     const String xcworkspacePath = '$cocoonPath/dashboard/ios/Runner.xcodeproj/project.xcworkspace';
     late MemoryFileSystem fs;
+    late Platform platform;
+    const String deviceSupportDirectory = '/User/username/Library/Developer/Xcode/iOS DeviceSupport';
 
     setUp(() {
       processManager = MockProcessManager();
       logger = TestLogger();
       fs = MemoryFileSystem();
       fs.directory(xcworkspacePath).createSync(recursive: true);
+      platform = MockPlatform();
+      platform.environment['HOME'] = '/User/username';
     });
 
-    test('diagnose logs output of xcdevice list and DevToolsSecurity', () async {
+    test('diagnose logs output of xcdevice list', () async {
       when(
         processManager.run(<String>['xcrun', 'xcdevice', 'list']),
       ).thenAnswer((_) async {
         return ProcessResult(0, 0, _jsonWithNonFatalErrors, '');
-      });
-      when(
-        processManager.run(<String>['xcrun', 'DevToolsSecurity', '--status']),
-      ).thenAnswer((_) async {
-        return ProcessResult(0, 0, _developerModeDisabled, '');
       });
       final CommandRunner<bool> runner = _createTestRunner();
       final command = DiagnoseCommand(
@@ -98,10 +98,11 @@ Future<void> main() async {
       runner.addCommand(command);
       await runner.run(<String>['diagnose']);
       expect(logger.logs[Level.INFO], contains(_jsonWithNonFatalErrors));
-      expect(logger.logs[Level.INFO], contains(_developerModeDisabled));
     });
 
     test('recover returns early if xcodebuild -runFirstLaunch exits non-zero', () async {
+      final Directory symbolsDirectory = fs.directory('/User/username/Library/Developer/Xcode/iOS Temp');
+      symbolsDirectory.createSync(recursive: true);
       when(
         processManager.run(<String>['xcrun', 'xcodebuild', '-runFirstLaunch']),
       ).thenAnswer((_) async {
@@ -112,11 +113,6 @@ Future<void> main() async {
           'xcrun: error: invalid active developer path (/Library/Developer/CommandLineTools), missing xcrun at: /Library/Developer/CommandLineTools/usr/bin/xcrun',
         );
       });
-      when(
-        processManager.run(<String>['xcrun', 'DevToolsSecurity', '--status']),
-      ).thenAnswer((_) async {
-        return ProcessResult(0, 0, _developerModeEnabled, '');
-      });
 
       fakeAsync<void>((FakeAsync time) {
         final CommandRunner<bool> runner = _createTestRunner();
@@ -124,6 +120,7 @@ Future<void> main() async {
           processManager: processManager,
           loggerOverride: logger,
           fs: fs,
+          platform: platform,
         );
         runner.addCommand(command);
         bool? result;
@@ -133,7 +130,9 @@ Future<void> main() async {
       });
     });
 
-    test('recover opens Xcode, waits, then kills it', () async {
+    test('recover deletes symbols, opens Xcode, waits, then kills it', () async {
+      final Directory symbolsDirectory = fs.directory(deviceSupportDirectory);
+      symbolsDirectory.createSync(recursive: true);
       when(
         processManager.run(<String>['xcrun', 'xcodebuild', '-runFirstLaunch']),
       ).thenAnswer((_) async {
@@ -157,6 +156,7 @@ Future<void> main() async {
           processManager: processManager,
           loggerOverride: logger,
           fs: fs,
+          platform: platform,
         );
         runner.addCommand(command);
         bool? result;
@@ -168,6 +168,63 @@ Future<void> main() async {
         time.elapse(const Duration(seconds: 2));
         expect(result, isNotNull);
         expect(killedXcode, isTrue);
+        expect(logger.logs[Level.WARNING], isNull);
+        expect(symbolsDirectory.existsSync(), false);
+
+        return result!;
+      });
+      expect(result, isTrue);
+      expect(
+        logger.logs[Level.INFO],
+        containsAllInOrder(<String>[
+          'Running Xcode first launch...',
+          'Launching Xcode...',
+          'Waiting for 300 seconds',
+          'Waited for 300 seconds, now killing Xcode',
+        ]),
+      );
+    });
+
+    test('recover cannot find symbols but still opens Xcode, waits, then kills it', () async {
+      when(
+        processManager.run(<String>['xcrun', 'xcodebuild', '-runFirstLaunch']),
+      ).thenAnswer((_) async {
+        return ProcessResult(0, 0, '', '');
+      });
+      when(
+        processManager.run(<String>['open', '-n', '-F', '-W', xcworkspacePath]),
+      ).thenAnswer((_) async {
+        return ProcessResult(1, 0, '', '');
+      });
+      bool killedXcode = false;
+      when(
+        processManager.run(<String>['killall', '-9', 'Xcode']),
+      ).thenAnswer((_) async {
+        killedXcode = true;
+        return ProcessResult(2, 0, '', '');
+      });
+      final bool result = fakeAsync<bool>((FakeAsync time) {
+        final CommandRunner<bool> runner = _createTestRunner();
+        final command = RecoverCommand(
+          processManager: processManager,
+          loggerOverride: logger,
+          fs: fs,
+          platform: platform,
+        );
+        runner.addCommand(command);
+        bool? result;
+        runner.run(<String>['recover', '--cocoon-root=$cocoonPath']).then((bool? value) => result = value);
+        time.elapse(const Duration(seconds: 299));
+        // We have not yet reached the timeout, so Xcode should still be open
+        expect(result, isNull);
+        expect(killedXcode, isFalse);
+        time.elapse(const Duration(seconds: 2));
+        expect(result, isNotNull);
+        expect(killedXcode, isTrue);
+        expect(
+          logger.logs[Level.WARNING],
+          contains('iOS Device Support directory was not found at $deviceSupportDirectory'),
+        );
         return result!;
       });
       expect(result, isTrue);
@@ -266,7 +323,3 @@ String _jsonWithPreparingErrors(String name) => '''
   }
 ]
 ''';
-
-const String _developerModeDisabled = '''Developer mode is currently disabled.''';
-
-const String _developerModeEnabled = '''Developer mode is currently enabled.''';

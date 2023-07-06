@@ -46,7 +46,6 @@ class Config {
         engineSlug,
         flutterSlug,
         packagesSlug,
-        pluginsSlug,
       };
 
   /// List of guaranteed scheduling Github repos.
@@ -60,11 +59,10 @@ class Config {
   /// This adds support for check runs to the repo.
   Set<gh.RepositorySlug> get postsubmitSupportedRepos => <gh.RepositorySlug>{
         packagesSlug,
-        pluginsSlug,
       };
 
   /// List of Cirrus supported repos.
-  static Set<String> cirrusSupportedRepos = <String>{'plugins', 'packages', 'flutter'};
+  static Set<String> cirrusSupportedRepos = <String>{'packages', 'flutter'};
 
   /// GitHub repositories that use CI status to determine if pull requests can be submitted.
   static Set<gh.RepositorySlug> reposWithTreeStatus = <gh.RepositorySlug>{
@@ -78,7 +76,6 @@ class Config {
       cocoonSlug: 'main',
       flutterSlug: 'master',
       engineSlug: 'main',
-      pluginsSlug: 'main',
       packagesSlug: 'main',
       recipesSlug: 'main',
     };
@@ -172,6 +169,9 @@ class Config {
 
   /// Max retries when scheduling builds.
   static const RetryOptions schedulerRetry = RetryOptions(maxAttempts: 3);
+
+  /// Max retries when getting builds from buildbucket.
+  static const RetryOptions buildbucketRetry = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 2));
 
   /// List of GitHub accounts related to releases.
   Future<List<String>> get releaseAccounts => _getReleaseAccounts();
@@ -288,7 +288,7 @@ class Config {
   /// Service accounts used for PubSub messages.
   static const Set<String> allowedPubsubServiceAccounts = <String>{
     'flutter-devicelab@flutter-dashboard.iam.gserviceaccount.com',
-    'flutter-dashboard@appspot.gserviceaccount.com'
+    'flutter-dashboard@appspot.gserviceaccount.com',
   };
 
   int get maxTaskRetries => 2;
@@ -318,7 +318,6 @@ class Config {
   static gh.RepositorySlug get engineSlug => gh.RepositorySlug('flutter', 'engine');
   static gh.RepositorySlug get flutterSlug => gh.RepositorySlug('flutter', 'flutter');
   static gh.RepositorySlug get packagesSlug => gh.RepositorySlug('flutter', 'packages');
-  static gh.RepositorySlug get pluginsSlug => gh.RepositorySlug('flutter', 'plugins');
 
   /// Flutter recipes is hosted on Gerrit instead of GitHub.
   static gh.RepositorySlug get recipesSlug => gh.RepositorySlug('flutter', 'recipes');
@@ -369,7 +368,7 @@ class Config {
     final String jsonWebToken = await generateJsonWebToken();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jsonWebToken',
-      'Accept': 'application/vnd.github.machine-man-preview+json'
+      'Accept': 'application/vnd.github.machine-man-preview+json',
     };
     final Uri githubAccessTokensUri = Uri.https('api.github.com', 'app/installations/$appInstallation/access_tokens');
     final http.Response response = await http.post(githubAccessTokensUri, headers: headers);

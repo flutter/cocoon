@@ -88,6 +88,7 @@ void main() {
       Now.fixed(
         dateTime: nowTime,
         child: MaterialApp(
+          theme: ThemeData(useMaterial3: false),
           home: Scaffold(
             body: TestGrid(
               buildState: buildState,
@@ -146,6 +147,7 @@ void main() {
       Now.fixed(
         dateTime: nowTime,
         child: MaterialApp(
+          theme: ThemeData(useMaterial3: false),
           home: Scaffold(
             body: TestGrid(
               buildState: buildState,
@@ -299,6 +301,7 @@ void main() {
       Now.fixed(
         dateTime: nowTime,
         child: MaterialApp(
+          theme: ThemeData(useMaterial3: false),
           home: Scaffold(
             body: TestGrid(
               buildState: buildState,
@@ -330,6 +333,32 @@ void main() {
               buildState: buildState,
               task: Task()
                 ..stageName = 'chromebot'
+                ..status = TaskBox.statusSucceeded
+                ..buildNumberList = '123',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(LuciTaskAttemptSummary), findsNothing);
+
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.pump();
+
+    expect(find.byType(LuciTaskAttemptSummary), findsOneWidget);
+  });
+
+  testWidgets('TaskOverlay shows TaskAttemptSummary for dart-internal tasks', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      Now.fixed(
+        dateTime: nowTime,
+        child: MaterialApp(
+          home: Scaffold(
+            body: TestGrid(
+              buildState: buildState,
+              task: Task()
+                ..stageName = 'dart-internal'
                 ..status = TaskBox.statusSucceeded
                 ..buildNumberList = '123',
             ),

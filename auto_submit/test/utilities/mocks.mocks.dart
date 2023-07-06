@@ -98,8 +98,8 @@ class _FakeConfig_6 extends _i1.SmartFake implements _i4.Config {
         );
 }
 
-class _FakeActivityService_7 extends _i1.SmartFake implements _i5.ActivityService {
-  _FakeActivityService_7(
+class _FakeAuthentication_7 extends _i1.SmartFake implements _i5.Authentication {
+  _FakeAuthentication_7(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -108,8 +108,8 @@ class _FakeActivityService_7 extends _i1.SmartFake implements _i5.ActivityServic
         );
 }
 
-class _FakeAuthorizationsService_8 extends _i1.SmartFake implements _i5.AuthorizationsService {
-  _FakeAuthorizationsService_8(
+class _FakeActivityService_8 extends _i1.SmartFake implements _i5.ActivityService {
+  _FakeActivityService_8(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -118,8 +118,8 @@ class _FakeAuthorizationsService_8 extends _i1.SmartFake implements _i5.Authoriz
         );
 }
 
-class _FakeGistsService_9 extends _i1.SmartFake implements _i5.GistsService {
-  _FakeGistsService_9(
+class _FakeAuthorizationsService_9 extends _i1.SmartFake implements _i5.AuthorizationsService {
+  _FakeAuthorizationsService_9(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -128,8 +128,8 @@ class _FakeGistsService_9 extends _i1.SmartFake implements _i5.GistsService {
         );
 }
 
-class _FakeGitService_10 extends _i1.SmartFake implements _i5.GitService {
-  _FakeGitService_10(
+class _FakeGistsService_10 extends _i1.SmartFake implements _i5.GistsService {
+  _FakeGistsService_10(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -138,8 +138,8 @@ class _FakeGitService_10 extends _i1.SmartFake implements _i5.GitService {
         );
 }
 
-class _FakeIssuesService_11 extends _i1.SmartFake implements _i5.IssuesService {
-  _FakeIssuesService_11(
+class _FakeGitService_11 extends _i1.SmartFake implements _i5.GitService {
+  _FakeGitService_11(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -148,8 +148,8 @@ class _FakeIssuesService_11 extends _i1.SmartFake implements _i5.IssuesService {
         );
 }
 
-class _FakeMiscService_12 extends _i1.SmartFake implements _i5.MiscService {
-  _FakeMiscService_12(
+class _FakeIssuesService_12 extends _i1.SmartFake implements _i5.IssuesService {
+  _FakeIssuesService_12(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -158,8 +158,8 @@ class _FakeMiscService_12 extends _i1.SmartFake implements _i5.MiscService {
         );
 }
 
-class _FakeOrganizationsService_13 extends _i1.SmartFake implements _i5.OrganizationsService {
-  _FakeOrganizationsService_13(
+class _FakeMiscService_13 extends _i1.SmartFake implements _i5.MiscService {
+  _FakeMiscService_13(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -168,8 +168,8 @@ class _FakeOrganizationsService_13 extends _i1.SmartFake implements _i5.Organiza
         );
 }
 
-class _FakePullRequestsService_14 extends _i1.SmartFake implements _i5.PullRequestsService {
-  _FakePullRequestsService_14(
+class _FakeOrganizationsService_14 extends _i1.SmartFake implements _i5.OrganizationsService {
+  _FakeOrganizationsService_14(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -178,8 +178,8 @@ class _FakePullRequestsService_14 extends _i1.SmartFake implements _i5.PullReque
         );
 }
 
-class _FakeRepositoriesService_15 extends _i1.SmartFake implements _i5.RepositoriesService {
-  _FakeRepositoriesService_15(
+class _FakePullRequestsService_15 extends _i1.SmartFake implements _i5.PullRequestsService {
+  _FakePullRequestsService_15(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -188,8 +188,8 @@ class _FakeRepositoriesService_15 extends _i1.SmartFake implements _i5.Repositor
         );
 }
 
-class _FakeSearchService_16 extends _i1.SmartFake implements _i5.SearchService {
-  _FakeSearchService_16(
+class _FakeRepositoriesService_16 extends _i1.SmartFake implements _i5.RepositoriesService {
+  _FakeRepositoriesService_16(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -198,8 +198,8 @@ class _FakeSearchService_16 extends _i1.SmartFake implements _i5.SearchService {
         );
 }
 
-class _FakeUrlShortenerService_17 extends _i1.SmartFake implements _i5.UrlShortenerService {
-  _FakeUrlShortenerService_17(
+class _FakeSearchService_17 extends _i1.SmartFake implements _i5.SearchService {
+  _FakeSearchService_17(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -208,8 +208,8 @@ class _FakeUrlShortenerService_17 extends _i1.SmartFake implements _i5.UrlShorte
         );
 }
 
-class _FakeUsersService_18 extends _i1.SmartFake implements _i5.UsersService {
-  _FakeUsersService_18(
+class _FakeUrlShortenerService_18 extends _i1.SmartFake implements _i5.UrlShortenerService {
+  _FakeUrlShortenerService_18(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -218,8 +218,8 @@ class _FakeUsersService_18 extends _i1.SmartFake implements _i5.UsersService {
         );
 }
 
-class _FakeChecksService_19 extends _i1.SmartFake implements _i5.ChecksService {
-  _FakeChecksService_19(
+class _FakeUsersService_19 extends _i1.SmartFake implements _i5.UsersService {
+  _FakeUsersService_19(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -228,8 +228,8 @@ class _FakeChecksService_19 extends _i1.SmartFake implements _i5.ChecksService {
         );
 }
 
-class _FakeFuture_20<T1> extends _i1.SmartFake implements _i6.Future<T1> {
-  _FakeFuture_20(
+class _FakeChecksService_20 extends _i1.SmartFake implements _i5.ChecksService {
+  _FakeChecksService_20(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -238,8 +238,8 @@ class _FakeFuture_20<T1> extends _i1.SmartFake implements _i6.Future<T1> {
         );
 }
 
-class _FakeResponse_21 extends _i1.SmartFake implements _i2.Response {
-  _FakeResponse_21(
+class _FakeFuture_21<T1> extends _i1.SmartFake implements _i6.Future<T1> {
+  _FakeFuture_21(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -248,8 +248,8 @@ class _FakeResponse_21 extends _i1.SmartFake implements _i2.Response {
         );
 }
 
-class _FakeGitHub_22 extends _i1.SmartFake implements _i5.GitHub {
-  _FakeGitHub_22(
+class _FakeResponse_22 extends _i1.SmartFake implements _i2.Response {
+  _FakeResponse_22(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -258,8 +258,8 @@ class _FakeGitHub_22 extends _i1.SmartFake implements _i5.GitHub {
         );
 }
 
-class _FakePullRequest_23 extends _i1.SmartFake implements _i5.PullRequest {
-  _FakePullRequest_23(
+class _FakeGitHub_23 extends _i1.SmartFake implements _i5.GitHub {
+  _FakeGitHub_23(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -268,8 +268,8 @@ class _FakePullRequest_23 extends _i1.SmartFake implements _i5.PullRequest {
         );
 }
 
-class _FakePullRequestMerge_24 extends _i1.SmartFake implements _i5.PullRequestMerge {
-  _FakePullRequestMerge_24(
+class _FakePullRequest_24 extends _i1.SmartFake implements _i5.PullRequest {
+  _FakePullRequest_24(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -278,8 +278,8 @@ class _FakePullRequestMerge_24 extends _i1.SmartFake implements _i5.PullRequestM
         );
 }
 
-class _FakePullRequestComment_25 extends _i1.SmartFake implements _i5.PullRequestComment {
-  _FakePullRequestComment_25(
+class _FakePullRequestMerge_25 extends _i1.SmartFake implements _i5.PullRequestMerge {
+  _FakePullRequestMerge_25(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -288,8 +288,8 @@ class _FakePullRequestComment_25 extends _i1.SmartFake implements _i5.PullReques
         );
 }
 
-class _FakePullRequestReview_26 extends _i1.SmartFake implements _i5.PullRequestReview {
-  _FakePullRequestReview_26(
+class _FakePullRequestComment_26 extends _i1.SmartFake implements _i5.PullRequestComment {
+  _FakePullRequestComment_26(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -298,8 +298,8 @@ class _FakePullRequestReview_26 extends _i1.SmartFake implements _i5.PullRequest
         );
 }
 
-class _FakeRepository_27 extends _i1.SmartFake implements _i5.Repository {
-  _FakeRepository_27(
+class _FakePullRequestReview_27 extends _i1.SmartFake implements _i5.PullRequestReview {
+  _FakePullRequestReview_27(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -308,8 +308,8 @@ class _FakeRepository_27 extends _i1.SmartFake implements _i5.Repository {
         );
 }
 
-class _FakeLicenseDetails_28 extends _i1.SmartFake implements _i5.LicenseDetails {
-  _FakeLicenseDetails_28(
+class _FakeRepository_28 extends _i1.SmartFake implements _i5.Repository {
+  _FakeRepository_28(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -318,8 +318,8 @@ class _FakeLicenseDetails_28 extends _i1.SmartFake implements _i5.LicenseDetails
         );
 }
 
-class _FakeLanguageBreakdown_29 extends _i1.SmartFake implements _i5.LanguageBreakdown {
-  _FakeLanguageBreakdown_29(
+class _FakeLicenseDetails_29 extends _i1.SmartFake implements _i5.LicenseDetails {
+  _FakeLicenseDetails_29(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -328,8 +328,8 @@ class _FakeLanguageBreakdown_29 extends _i1.SmartFake implements _i5.LanguageBre
         );
 }
 
-class _FakeBranch_30 extends _i1.SmartFake implements _i5.Branch {
-  _FakeBranch_30(
+class _FakeLanguageBreakdown_30 extends _i1.SmartFake implements _i5.LanguageBreakdown {
+  _FakeLanguageBreakdown_30(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -338,8 +338,8 @@ class _FakeBranch_30 extends _i1.SmartFake implements _i5.Branch {
         );
 }
 
-class _FakeCommitComment_31 extends _i1.SmartFake implements _i5.CommitComment {
-  _FakeCommitComment_31(
+class _FakeBranch_31 extends _i1.SmartFake implements _i5.Branch {
+  _FakeBranch_31(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -348,8 +348,8 @@ class _FakeCommitComment_31 extends _i1.SmartFake implements _i5.CommitComment {
         );
 }
 
-class _FakeRepositoryCommit_32 extends _i1.SmartFake implements _i5.RepositoryCommit {
-  _FakeRepositoryCommit_32(
+class _FakeCommitComment_32 extends _i1.SmartFake implements _i5.CommitComment {
+  _FakeCommitComment_32(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -358,8 +358,8 @@ class _FakeRepositoryCommit_32 extends _i1.SmartFake implements _i5.RepositoryCo
         );
 }
 
-class _FakeGitHubComparison_33 extends _i1.SmartFake implements _i5.GitHubComparison {
-  _FakeGitHubComparison_33(
+class _FakeRepositoryCommit_33 extends _i1.SmartFake implements _i5.RepositoryCommit {
+  _FakeRepositoryCommit_33(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -368,8 +368,8 @@ class _FakeGitHubComparison_33 extends _i1.SmartFake implements _i5.GitHubCompar
         );
 }
 
-class _FakeGitHubFile_34 extends _i1.SmartFake implements _i5.GitHubFile {
-  _FakeGitHubFile_34(
+class _FakeGitHubComparison_34 extends _i1.SmartFake implements _i5.GitHubComparison {
+  _FakeGitHubComparison_34(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -378,8 +378,8 @@ class _FakeGitHubFile_34 extends _i1.SmartFake implements _i5.GitHubFile {
         );
 }
 
-class _FakeRepositoryContents_35 extends _i1.SmartFake implements _i5.RepositoryContents {
-  _FakeRepositoryContents_35(
+class _FakeGitHubFile_35 extends _i1.SmartFake implements _i5.GitHubFile {
+  _FakeGitHubFile_35(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -388,8 +388,8 @@ class _FakeRepositoryContents_35 extends _i1.SmartFake implements _i5.Repository
         );
 }
 
-class _FakeContentCreation_36 extends _i1.SmartFake implements _i5.ContentCreation {
-  _FakeContentCreation_36(
+class _FakeRepositoryContents_36 extends _i1.SmartFake implements _i5.RepositoryContents {
+  _FakeRepositoryContents_36(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -398,8 +398,8 @@ class _FakeContentCreation_36 extends _i1.SmartFake implements _i5.ContentCreati
         );
 }
 
-class _FakeHook_37 extends _i1.SmartFake implements _i5.Hook {
-  _FakeHook_37(
+class _FakeContentCreation_37 extends _i1.SmartFake implements _i5.ContentCreation {
+  _FakeContentCreation_37(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -408,8 +408,8 @@ class _FakeHook_37 extends _i1.SmartFake implements _i5.Hook {
         );
 }
 
-class _FakePublicKey_38 extends _i1.SmartFake implements _i5.PublicKey {
-  _FakePublicKey_38(
+class _FakeHook_38 extends _i1.SmartFake implements _i5.Hook {
+  _FakeHook_38(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -418,8 +418,8 @@ class _FakePublicKey_38 extends _i1.SmartFake implements _i5.PublicKey {
         );
 }
 
-class _FakeRepositoryPages_39 extends _i1.SmartFake implements _i5.RepositoryPages {
-  _FakeRepositoryPages_39(
+class _FakePublicKey_39 extends _i1.SmartFake implements _i5.PublicKey {
+  _FakePublicKey_39(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -428,8 +428,8 @@ class _FakeRepositoryPages_39 extends _i1.SmartFake implements _i5.RepositoryPag
         );
 }
 
-class _FakePageBuild_40 extends _i1.SmartFake implements _i5.PageBuild {
-  _FakePageBuild_40(
+class _FakeRepositoryPages_40 extends _i1.SmartFake implements _i5.RepositoryPages {
+  _FakeRepositoryPages_40(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -438,8 +438,8 @@ class _FakePageBuild_40 extends _i1.SmartFake implements _i5.PageBuild {
         );
 }
 
-class _FakeRelease_41 extends _i1.SmartFake implements _i5.Release {
-  _FakeRelease_41(
+class _FakePageBuild_41 extends _i1.SmartFake implements _i5.PageBuild {
+  _FakePageBuild_41(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -448,8 +448,8 @@ class _FakeRelease_41 extends _i1.SmartFake implements _i5.Release {
         );
 }
 
-class _FakeReleaseAsset_42 extends _i1.SmartFake implements _i5.ReleaseAsset {
-  _FakeReleaseAsset_42(
+class _FakeRelease_42 extends _i1.SmartFake implements _i5.Release {
+  _FakeRelease_42(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -458,8 +458,8 @@ class _FakeReleaseAsset_42 extends _i1.SmartFake implements _i5.ReleaseAsset {
         );
 }
 
-class _FakeContributorParticipation_43 extends _i1.SmartFake implements _i5.ContributorParticipation {
-  _FakeContributorParticipation_43(
+class _FakeReleaseAsset_43 extends _i1.SmartFake implements _i5.ReleaseAsset {
+  _FakeReleaseAsset_43(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -468,8 +468,8 @@ class _FakeContributorParticipation_43 extends _i1.SmartFake implements _i5.Cont
         );
 }
 
-class _FakeRepositoryStatus_44 extends _i1.SmartFake implements _i5.RepositoryStatus {
-  _FakeRepositoryStatus_44(
+class _FakeContributorParticipation_44 extends _i1.SmartFake implements _i5.ContributorParticipation {
+  _FakeContributorParticipation_44(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -478,8 +478,8 @@ class _FakeRepositoryStatus_44 extends _i1.SmartFake implements _i5.RepositorySt
         );
 }
 
-class _FakeCombinedRepositoryStatus_45 extends _i1.SmartFake implements _i5.CombinedRepositoryStatus {
-  _FakeCombinedRepositoryStatus_45(
+class _FakeRepositoryStatus_45 extends _i1.SmartFake implements _i5.RepositoryStatus {
+  _FakeRepositoryStatus_45(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -488,8 +488,18 @@ class _FakeCombinedRepositoryStatus_45 extends _i1.SmartFake implements _i5.Comb
         );
 }
 
-class _FakeReleaseNotes_46 extends _i1.SmartFake implements _i5.ReleaseNotes {
-  _FakeReleaseNotes_46(
+class _FakeCombinedRepositoryStatus_46 extends _i1.SmartFake implements _i5.CombinedRepositoryStatus {
+  _FakeCombinedRepositoryStatus_46(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeReleaseNotes_47 extends _i1.SmartFake implements _i5.ReleaseNotes {
+  _FakeReleaseNotes_47(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -844,6 +854,14 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
   }
 
   @override
+  _i5.Authentication get auth => (super.noSuchMethod(
+        Invocation.getter(#auth),
+        returnValue: _FakeAuthentication_7(
+          this,
+          Invocation.getter(#auth),
+        ),
+      ) as _i5.Authentication);
+  @override
   set auth(_i5.Authentication? _auth) => super.noSuchMethod(
         Invocation.setter(
           #auth,
@@ -872,7 +890,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
   @override
   _i5.ActivityService get activity => (super.noSuchMethod(
         Invocation.getter(#activity),
-        returnValue: _FakeActivityService_7(
+        returnValue: _FakeActivityService_8(
           this,
           Invocation.getter(#activity),
         ),
@@ -880,7 +898,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
   @override
   _i5.AuthorizationsService get authorizations => (super.noSuchMethod(
         Invocation.getter(#authorizations),
-        returnValue: _FakeAuthorizationsService_8(
+        returnValue: _FakeAuthorizationsService_9(
           this,
           Invocation.getter(#authorizations),
         ),
@@ -888,7 +906,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
   @override
   _i5.GistsService get gists => (super.noSuchMethod(
         Invocation.getter(#gists),
-        returnValue: _FakeGistsService_9(
+        returnValue: _FakeGistsService_10(
           this,
           Invocation.getter(#gists),
         ),
@@ -896,7 +914,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
   @override
   _i5.GitService get git => (super.noSuchMethod(
         Invocation.getter(#git),
-        returnValue: _FakeGitService_10(
+        returnValue: _FakeGitService_11(
           this,
           Invocation.getter(#git),
         ),
@@ -904,7 +922,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
   @override
   _i5.IssuesService get issues => (super.noSuchMethod(
         Invocation.getter(#issues),
-        returnValue: _FakeIssuesService_11(
+        returnValue: _FakeIssuesService_12(
           this,
           Invocation.getter(#issues),
         ),
@@ -912,7 +930,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
   @override
   _i5.MiscService get misc => (super.noSuchMethod(
         Invocation.getter(#misc),
-        returnValue: _FakeMiscService_12(
+        returnValue: _FakeMiscService_13(
           this,
           Invocation.getter(#misc),
         ),
@@ -920,7 +938,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
   @override
   _i5.OrganizationsService get organizations => (super.noSuchMethod(
         Invocation.getter(#organizations),
-        returnValue: _FakeOrganizationsService_13(
+        returnValue: _FakeOrganizationsService_14(
           this,
           Invocation.getter(#organizations),
         ),
@@ -928,7 +946,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
   @override
   _i5.PullRequestsService get pullRequests => (super.noSuchMethod(
         Invocation.getter(#pullRequests),
-        returnValue: _FakePullRequestsService_14(
+        returnValue: _FakePullRequestsService_15(
           this,
           Invocation.getter(#pullRequests),
         ),
@@ -936,7 +954,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
   @override
   _i5.RepositoriesService get repositories => (super.noSuchMethod(
         Invocation.getter(#repositories),
-        returnValue: _FakeRepositoriesService_15(
+        returnValue: _FakeRepositoriesService_16(
           this,
           Invocation.getter(#repositories),
         ),
@@ -944,7 +962,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
   @override
   _i5.SearchService get search => (super.noSuchMethod(
         Invocation.getter(#search),
-        returnValue: _FakeSearchService_16(
+        returnValue: _FakeSearchService_17(
           this,
           Invocation.getter(#search),
         ),
@@ -952,7 +970,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
   @override
   _i5.UrlShortenerService get urlShortener => (super.noSuchMethod(
         Invocation.getter(#urlShortener),
-        returnValue: _FakeUrlShortenerService_17(
+        returnValue: _FakeUrlShortenerService_18(
           this,
           Invocation.getter(#urlShortener),
         ),
@@ -960,7 +978,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
   @override
   _i5.UsersService get users => (super.noSuchMethod(
         Invocation.getter(#users),
-        returnValue: _FakeUsersService_18(
+        returnValue: _FakeUsersService_19(
           this,
           Invocation.getter(#users),
         ),
@@ -968,7 +986,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
   @override
   _i5.ChecksService get checks => (super.noSuchMethod(
         Invocation.getter(#checks),
-        returnValue: _FakeChecksService_19(
+        returnValue: _FakeChecksService_20(
           this,
           Invocation.getter(#checks),
         ),
@@ -1014,7 +1032,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
               ),
               (T v) => _i6.Future<T>.value(v),
             ) ??
-            _FakeFuture_20<T>(
+            _FakeFuture_21<T>(
               this,
               Invocation.method(
                 #getJSON,
@@ -1074,7 +1092,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
               ),
               (T v) => _i6.Future<T>.value(v),
             ) ??
-            _FakeFuture_20<T>(
+            _FakeFuture_21<T>(
               this,
               Invocation.method(
                 #postJSON,
@@ -1135,7 +1153,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
               ),
               (T v) => _i6.Future<T>.value(v),
             ) ??
-            _FakeFuture_20<T>(
+            _FakeFuture_21<T>(
               this,
               Invocation.method(
                 #putJSON,
@@ -1196,7 +1214,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
               ),
               (T v) => _i6.Future<T>.value(v),
             ) ??
-            _FakeFuture_20<T>(
+            _FakeFuture_21<T>(
               this,
               Invocation.method(
                 #patchJSON,
@@ -1264,7 +1282,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
               ),
               (T v) => _i6.Future<T>.value(v),
             ) ??
-            _FakeFuture_20<T>(
+            _FakeFuture_21<T>(
               this,
               Invocation.method(
                 #requestJson,
@@ -1311,7 +1329,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
             #preview: preview,
           },
         ),
-        returnValue: _i6.Future<_i2.Response>.value(_FakeResponse_21(
+        returnValue: _i6.Future<_i2.Response>.value(_FakeResponse_22(
           this,
           Invocation.method(
             #request,
@@ -1359,7 +1377,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
   @override
   _i5.GitHub get github => (super.noSuchMethod(
         Invocation.getter(#github),
-        returnValue: _FakeGitHub_22(
+        returnValue: _FakeGitHub_23(
           this,
           Invocation.getter(#github),
         ),
@@ -1402,7 +1420,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
             number,
           ],
         ),
-        returnValue: _i6.Future<_i5.PullRequest>.value(_FakePullRequest_23(
+        returnValue: _i6.Future<_i5.PullRequest>.value(_FakePullRequest_24(
           this,
           Invocation.method(
             #get,
@@ -1426,7 +1444,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
             request,
           ],
         ),
-        returnValue: _i6.Future<_i5.PullRequest>.value(_FakePullRequest_23(
+        returnValue: _i6.Future<_i5.PullRequest>.value(_FakePullRequest_24(
           this,
           Invocation.method(
             #create,
@@ -1460,7 +1478,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
             #base: base,
           },
         ),
-        returnValue: _i6.Future<_i5.PullRequest>.value(_FakePullRequest_23(
+        returnValue: _i6.Future<_i5.PullRequest>.value(_FakePullRequest_24(
           this,
           Invocation.method(
             #edit,
@@ -1558,7 +1576,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
             #requestSha: requestSha,
           },
         ),
-        returnValue: _i6.Future<_i5.PullRequestMerge>.value(_FakePullRequestMerge_24(
+        returnValue: _i6.Future<_i5.PullRequestMerge>.value(_FakePullRequestMerge_25(
           this,
           Invocation.method(
             #merge,
@@ -1612,7 +1630,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
             comment,
           ],
         ),
-        returnValue: _i6.Future<_i5.PullRequestComment>.value(_FakePullRequestComment_25(
+        returnValue: _i6.Future<_i5.PullRequestComment>.value(_FakePullRequestComment_26(
           this,
           Invocation.method(
             #createComment,
@@ -1637,7 +1655,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
             review,
           ],
         ),
-        returnValue: _i6.Future<_i5.PullRequestReview>.value(_FakePullRequestReview_26(
+        returnValue: _i6.Future<_i5.PullRequestReview>.value(_FakePullRequestReview_27(
           this,
           Invocation.method(
             #createReview,
@@ -1661,7 +1679,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
   @override
   _i5.GitHub get github => (super.noSuchMethod(
         Invocation.getter(#github),
-        returnValue: _FakeGitHub_22(
+        returnValue: _FakeGitHub_23(
           this,
           Invocation.getter(#github),
         ),
@@ -1743,7 +1761,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           [repository],
           {#org: org},
         ),
-        returnValue: _i6.Future<_i5.Repository>.value(_FakeRepository_27(
+        returnValue: _i6.Future<_i5.Repository>.value(_FakeRepository_28(
           this,
           Invocation.method(
             #createRepository,
@@ -1758,7 +1776,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           #getLicense,
           [slug],
         ),
-        returnValue: _i6.Future<_i5.LicenseDetails>.value(_FakeLicenseDetails_28(
+        returnValue: _i6.Future<_i5.LicenseDetails>.value(_FakeLicenseDetails_29(
           this,
           Invocation.method(
             #getLicense,
@@ -1772,7 +1790,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           #getRepository,
           [slug],
         ),
-        returnValue: _i6.Future<_i5.Repository>.value(_FakeRepository_27(
+        returnValue: _i6.Future<_i5.Repository>.value(_FakeRepository_28(
           this,
           Invocation.method(
             #getRepository,
@@ -1813,7 +1831,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             #hasDownloads: hasDownloads,
           },
         ),
-        returnValue: _i6.Future<_i5.Repository>.value(_FakeRepository_27(
+        returnValue: _i6.Future<_i5.Repository>.value(_FakeRepository_28(
           this,
           Invocation.method(
             #editRepository,
@@ -1865,7 +1883,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           #listLanguages,
           [slug],
         ),
-        returnValue: _i6.Future<_i5.LanguageBreakdown>.value(_FakeLanguageBreakdown_29(
+        returnValue: _i6.Future<_i5.LanguageBreakdown>.value(_FakeLanguageBreakdown_30(
           this,
           Invocation.method(
             #listLanguages,
@@ -1913,7 +1931,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             branch,
           ],
         ),
-        returnValue: _i6.Future<_i5.Branch>.value(_FakeBranch_30(
+        returnValue: _i6.Future<_i5.Branch>.value(_FakeBranch_31(
           this,
           Invocation.method(
             #getBranch,
@@ -2023,7 +2041,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             #line: line,
           },
         ),
-        returnValue: _i6.Future<_i5.CommitComment>.value(_FakeCommitComment_31(
+        returnValue: _i6.Future<_i5.CommitComment>.value(_FakeCommitComment_32(
           this,
           Invocation.method(
             #createCommitComment,
@@ -2051,7 +2069,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           [slug],
           {#id: id},
         ),
-        returnValue: _i6.Future<_i5.CommitComment>.value(_FakeCommitComment_31(
+        returnValue: _i6.Future<_i5.CommitComment>.value(_FakeCommitComment_32(
           this,
           Invocation.method(
             #getCommitComment,
@@ -2075,7 +2093,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             #body: body,
           },
         ),
-        returnValue: _i6.Future<_i5.CommitComment>.value(_FakeCommitComment_31(
+        returnValue: _i6.Future<_i5.CommitComment>.value(_FakeCommitComment_32(
           this,
           Invocation.method(
             #updateCommitComment,
@@ -2138,7 +2156,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             sha,
           ],
         ),
-        returnValue: _i6.Future<_i5.RepositoryCommit>.value(_FakeRepositoryCommit_32(
+        returnValue: _i6.Future<_i5.RepositoryCommit>.value(_FakeRepositoryCommit_33(
           this,
           Invocation.method(
             #getCommit,
@@ -2179,7 +2197,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             refHead,
           ],
         ),
-        returnValue: _i6.Future<_i5.GitHubComparison>.value(_FakeGitHubComparison_33(
+        returnValue: _i6.Future<_i5.GitHubComparison>.value(_FakeGitHubComparison_34(
           this,
           Invocation.method(
             #compareCommits,
@@ -2202,7 +2220,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           [slug],
           {#ref: ref},
         ),
-        returnValue: _i6.Future<_i5.GitHubFile>.value(_FakeGitHubFile_34(
+        returnValue: _i6.Future<_i5.GitHubFile>.value(_FakeGitHubFile_35(
           this,
           Invocation.method(
             #getReadme,
@@ -2226,7 +2244,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ],
           {#ref: ref},
         ),
-        returnValue: _i6.Future<_i5.RepositoryContents>.value(_FakeRepositoryContents_35(
+        returnValue: _i6.Future<_i5.RepositoryContents>.value(_FakeRepositoryContents_36(
           this,
           Invocation.method(
             #getContents,
@@ -2251,7 +2269,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             file,
           ],
         ),
-        returnValue: _i6.Future<_i5.ContentCreation>.value(_FakeContentCreation_36(
+        returnValue: _i6.Future<_i5.ContentCreation>.value(_FakeContentCreation_37(
           this,
           Invocation.method(
             #createFile,
@@ -2283,7 +2301,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ],
           {#branch: branch},
         ),
-        returnValue: _i6.Future<_i5.ContentCreation>.value(_FakeContentCreation_36(
+        returnValue: _i6.Future<_i5.ContentCreation>.value(_FakeContentCreation_37(
           this,
           Invocation.method(
             #updateFile,
@@ -2317,7 +2335,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             branch,
           ],
         ),
-        returnValue: _i6.Future<_i5.ContentCreation>.value(_FakeContentCreation_36(
+        returnValue: _i6.Future<_i5.ContentCreation>.value(_FakeContentCreation_37(
           this,
           Invocation.method(
             #deleteFile,
@@ -2369,7 +2387,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             fork,
           ],
         ),
-        returnValue: _i6.Future<_i5.Repository>.value(_FakeRepository_27(
+        returnValue: _i6.Future<_i5.Repository>.value(_FakeRepository_28(
           this,
           Invocation.method(
             #createFork,
@@ -2401,7 +2419,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             id,
           ],
         ),
-        returnValue: _i6.Future<_i5.Hook>.value(_FakeHook_37(
+        returnValue: _i6.Future<_i5.Hook>.value(_FakeHook_38(
           this,
           Invocation.method(
             #getHook,
@@ -2425,7 +2443,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             hook,
           ],
         ),
-        returnValue: _i6.Future<_i5.Hook>.value(_FakeHook_37(
+        returnValue: _i6.Future<_i5.Hook>.value(_FakeHook_38(
           this,
           Invocation.method(
             #createHook,
@@ -2467,7 +2485,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             #active: active,
           },
         ),
-        returnValue: _i6.Future<_i5.Hook>.value(_FakeHook_37(
+        returnValue: _i6.Future<_i5.Hook>.value(_FakeHook_38(
           this,
           Invocation.method(
             #editHook,
@@ -2552,7 +2570,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           [slug],
           {#id: id},
         ),
-        returnValue: _i6.Future<_i5.PublicKey>.value(_FakePublicKey_38(
+        returnValue: _i6.Future<_i5.PublicKey>.value(_FakePublicKey_39(
           this,
           Invocation.method(
             #getDeployKey,
@@ -2574,7 +2592,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             key,
           ],
         ),
-        returnValue: _i6.Future<_i5.PublicKey>.value(_FakePublicKey_38(
+        returnValue: _i6.Future<_i5.PublicKey>.value(_FakePublicKey_39(
           this,
           Invocation.method(
             #createDeployKey,
@@ -2614,7 +2632,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             merge,
           ],
         ),
-        returnValue: _i6.Future<_i5.RepositoryCommit>.value(_FakeRepositoryCommit_32(
+        returnValue: _i6.Future<_i5.RepositoryCommit>.value(_FakeRepositoryCommit_33(
           this,
           Invocation.method(
             #merge,
@@ -2631,7 +2649,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           #getPagesInfo,
           [slug],
         ),
-        returnValue: _i6.Future<_i5.RepositoryPages>.value(_FakeRepositoryPages_39(
+        returnValue: _i6.Future<_i5.RepositoryPages>.value(_FakeRepositoryPages_40(
           this,
           Invocation.method(
             #getPagesInfo,
@@ -2653,7 +2671,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           #getLatestPagesBuild,
           [slug],
         ),
-        returnValue: _i6.Future<_i5.PageBuild>.value(_FakePageBuild_40(
+        returnValue: _i6.Future<_i5.PageBuild>.value(_FakePageBuild_41(
           this,
           Invocation.method(
             #getLatestPagesBuild,
@@ -2675,7 +2693,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           #getLatestRelease,
           [slug],
         ),
-        returnValue: _i6.Future<_i5.Release>.value(_FakeRelease_41(
+        returnValue: _i6.Future<_i5.Release>.value(_FakeRelease_42(
           this,
           Invocation.method(
             #getLatestRelease,
@@ -2696,7 +2714,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             id,
           ],
         ),
-        returnValue: _i6.Future<_i5.Release>.value(_FakeRelease_41(
+        returnValue: _i6.Future<_i5.Release>.value(_FakeRelease_42(
           this,
           Invocation.method(
             #getReleaseById,
@@ -2720,7 +2738,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             tagName,
           ],
         ),
-        returnValue: _i6.Future<_i5.Release>.value(_FakeRelease_41(
+        returnValue: _i6.Future<_i5.Release>.value(_FakeRelease_42(
           this,
           Invocation.method(
             #getReleaseByTagName,
@@ -2746,7 +2764,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ],
           {#getIfExists: getIfExists},
         ),
-        returnValue: _i6.Future<_i5.Release>.value(_FakeRelease_41(
+        returnValue: _i6.Future<_i5.Release>.value(_FakeRelease_42(
           this,
           Invocation.method(
             #createRelease,
@@ -2785,7 +2803,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             #preRelease: preRelease,
           },
         ),
-        returnValue: _i6.Future<_i5.Release>.value(_FakeRelease_41(
+        returnValue: _i6.Future<_i5.Release>.value(_FakeRelease_42(
           this,
           Invocation.method(
             #editRelease,
@@ -2849,7 +2867,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ],
           {#assetId: assetId},
         ),
-        returnValue: _i6.Future<_i5.ReleaseAsset>.value(_FakeReleaseAsset_42(
+        returnValue: _i6.Future<_i5.ReleaseAsset>.value(_FakeReleaseAsset_43(
           this,
           Invocation.method(
             #getReleaseAsset,
@@ -2880,7 +2898,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             #label: label,
           },
         ),
-        returnValue: _i6.Future<_i5.ReleaseAsset>.value(_FakeReleaseAsset_42(
+        returnValue: _i6.Future<_i5.ReleaseAsset>.value(_FakeReleaseAsset_43(
           this,
           Invocation.method(
             #editReleaseAsset,
@@ -2955,7 +2973,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           #getParticipation,
           [slug],
         ),
-        returnValue: _i6.Future<_i5.ContributorParticipation>.value(_FakeContributorParticipation_43(
+        returnValue: _i6.Future<_i5.ContributorParticipation>.value(_FakeContributorParticipation_44(
           this,
           Invocation.method(
             #getParticipation,
@@ -3001,7 +3019,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             request,
           ],
         ),
-        returnValue: _i6.Future<_i5.RepositoryStatus>.value(_FakeRepositoryStatus_44(
+        returnValue: _i6.Future<_i5.RepositoryStatus>.value(_FakeRepositoryStatus_45(
           this,
           Invocation.method(
             #createStatus,
@@ -3026,7 +3044,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
             ref,
           ],
         ),
-        returnValue: _i6.Future<_i5.CombinedRepositoryStatus>.value(_FakeCombinedRepositoryStatus_45(
+        returnValue: _i6.Future<_i5.CombinedRepositoryStatus>.value(_FakeCombinedRepositoryStatus_46(
           this,
           Invocation.method(
             #getCombinedStatus,
@@ -3043,7 +3061,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           #generateReleaseNotes,
           [crn],
         ),
-        returnValue: _i6.Future<_i5.ReleaseNotes>.value(_FakeReleaseNotes_46(
+        returnValue: _i6.Future<_i5.ReleaseNotes>.value(_FakeReleaseNotes_47(
           this,
           Invocation.method(
             #generateReleaseNotes,

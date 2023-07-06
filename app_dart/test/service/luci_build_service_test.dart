@@ -320,7 +320,7 @@ void main() {
         'check_run_id': 1,
         'commit_sha': 'abc',
         'commit_branch': 'master',
-        'builder_name': 'Linux 1'
+        'builder_name': 'Linux 1',
       });
 
       final Map<String, dynamic> properties = scheduleBuild.properties!;
@@ -332,7 +332,7 @@ void main() {
         'git_branch': 'master',
         'git_url': 'https://github.com/flutter/flutter',
         'git_ref': 'refs/pull/123/head',
-        'exe_cipd_version': 'refs/heads/main'
+        'exe_cipd_version': 'refs/heads/main',
       });
       expect(dimensions.length, 1);
       expect(dimensions[0].key, 'os');
@@ -474,7 +474,7 @@ void main() {
         'commit_branch': 'master',
         'builder_name': 'Linux 1',
         'repo_owner': 'flutter',
-        'repo_name': 'packages'
+        'repo_name': 'packages',
       });
     });
 
@@ -516,7 +516,7 @@ void main() {
               searchBuilds: SearchBuildsResponse(
                 builds: <Build>[],
               ),
-            )
+            ),
           ],
         );
       });
@@ -673,7 +673,7 @@ void main() {
                   generateBuild(998, name: 'Linux', status: Status.started),
                 ],
               ),
-            )
+            ),
           ],
         );
       });
@@ -721,7 +721,7 @@ void main() {
                   generateBuild(998, name: 'Linux 1', status: Status.failure),
                 ],
               ),
-            )
+            ),
           ],
         );
       });

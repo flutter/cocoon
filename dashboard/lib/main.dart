@@ -65,6 +65,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Build Dashboard — Cocoon',
       theme: ThemeData(
+        useMaterial3: false,
         primaryTextTheme: const TextTheme(
           bodyLarge: TextStyle(color: Colors.black87),
         ),

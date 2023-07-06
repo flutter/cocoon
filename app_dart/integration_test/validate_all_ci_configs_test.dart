@@ -22,7 +22,6 @@ final List<SupportedConfig> configs = <SupportedConfig>[
   SupportedConfig(RepositorySlug('flutter', 'engine'), 'main'),
   SupportedConfig(RepositorySlug('flutter', 'flutter')),
   SupportedConfig(RepositorySlug('flutter', 'packages'), 'main'),
-  SupportedConfig(RepositorySlug('flutter', 'plugins'), 'main'),
 ];
 
 Future<void> main() async {

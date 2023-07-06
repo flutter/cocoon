@@ -76,7 +76,7 @@ void main() {
 
     final FakePubSub pubsub = FakePubSub();
     final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-
+    githubService.pullRequestData = pullRequest;
     unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
     final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
@@ -110,7 +110,7 @@ void main() {
           authorName: 'member',
           state: ReviewState.APPROVED,
           memberType: MemberType.OWNER,
-        )
+        ),
       ],
     );
     githubService.checkRunsData = checkRunsMock;
@@ -168,7 +168,7 @@ void main() {
           authorName: 'member',
           state: ReviewState.APPROVED,
           memberType: MemberType.OWNER,
-        )
+        ),
       ],
       lastCommitStatuses: null,
     );
@@ -178,6 +178,7 @@ void main() {
     githubService.isTeamMemberMockMap['member'] = true;
     final FakePubSub pubsub = FakePubSub();
     final PullRequest pullRequest = generatePullRequest(prNumber: 0);
+    githubService.pullRequestData = pullRequest;
     unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
     final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 

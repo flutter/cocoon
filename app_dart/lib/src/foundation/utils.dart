@@ -184,9 +184,15 @@ List<String> validateOwnership(String ciYamlContent, String testOwnersContent, {
 
   for (pb.Target target in schedulerConfig.targets) {
     final String builder = target.name;
-    final String? owner = getTestOwnership(
+    final BuilderType builderType = getTypeForBuilder(
       builder,
-      getTypeForBuilder(builder, ciYamlFromProto, unfilteredTargets: unfilteredTargets),
+      ciYamlFromProto,
+      unfilteredTargets: unfilteredTargets,
+    );
+
+    final String? owner = getTestOwnership(
+      target,
+      builderType,
       testOwnersContent,
     ).owner;
     print('$builder: $owner');

@@ -119,7 +119,10 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       for (Map<String, dynamic> checkRun in checkRuns) {
         log.fine('Check run: $checkRun');
         final String name = checkRun['name'].toLowerCase() as String;
-        if (name.contains('framework') || name.contains('web engine')) {
+        // Framework shards run framework goldens
+        // Web shards run web version of framework goldens
+        // Misc shard runs API docs goldens
+        if (name.contains('framework') || name.contains('web engine') || name.contains('misc')) {
           runsGoldenFileTests = true;
         }
         if (checkRun['conclusion'] == null || checkRun['conclusion'].toUpperCase() != 'SUCCESS') {

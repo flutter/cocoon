@@ -113,7 +113,7 @@ void main() {
             body: expectedSemanticsIntegrationTestResponseBody,
             createdAt:
                 DateTime.now().subtract(const Duration(days: UpdateExistingFlakyIssue.kFreshPeriodForOpenFlake + 1)),
-          )
+          ),
         ]);
       });
       // when firing github request.
@@ -150,7 +150,7 @@ void main() {
       expect(captured.length, 3);
       expect(captured[0].toString(), 'PUT');
       expect(captured[1], '/repos/${Config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
-      expect(captured[2], GitHubJson.encode(<String>['some random label', 'P1']));
+      expect(captured[2], GitHubJson.encode(<String>['some random label', 'P0']));
 
       expect(result['Status'], 'success');
     });
@@ -182,7 +182,7 @@ void main() {
             body: expectedSemanticsIntegrationTestResponseBody,
             createdAt:
                 DateTime.now().subtract(const Duration(days: UpdateExistingFlakyIssue.kFreshPeriodForOpenFlake + 1)),
-          )
+          ),
         ]);
       });
       // when firing github request.
@@ -219,7 +219,7 @@ void main() {
       expect(captured.length, 3);
       expect(captured[0].toString(), 'PUT');
       expect(captured[1], '/repos/${Config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
-      expect(captured[2], GitHubJson.encode(<String>['some random label', 'P1']));
+      expect(captured[2], GitHubJson.encode(<String>['some random label', 'P0']));
 
       expect(result['Status'], 'success');
     });
@@ -251,7 +251,7 @@ void main() {
             body: expectedStagingSemanticsIntegrationTestResponseBody,
             createdAt:
                 DateTime.now().subtract(const Duration(days: UpdateExistingFlakyIssue.kFreshPeriodForOpenFlake + 1)),
-          )
+          ),
         ]);
       });
       // when firing github request.
@@ -291,7 +291,7 @@ void main() {
       expect(captured.length, 6);
       expect(captured[0].toString(), 'PUT');
       expect(captured[1], '/repos/${Config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
-      expect(captured[2], GitHubJson.encode(<String>['some random label', 'P1']));
+      expect(captured[2], GitHubJson.encode(<String>['some random label', 'P0']));
 
       expect(result['Status'], 'success');
     });
@@ -322,7 +322,7 @@ void main() {
             body: expectedSemanticsIntegrationTestResponseBody,
             createdAt:
                 DateTime.now().subtract(const Duration(days: UpdateExistingFlakyIssue.kFreshPeriodForOpenFlake + 1)),
-          )
+          ),
         ]);
       });
       // when firing github request.
@@ -379,7 +379,7 @@ void main() {
             body: expectedSemanticsIntegrationTestResponseBody,
             createdAt:
                 DateTime.now().subtract(const Duration(days: UpdateExistingFlakyIssue.kFreshPeriodForOpenFlake + 1)),
-          )
+          ),
         ]);
       });
       // when firing github request.
@@ -448,7 +448,7 @@ void main() {
             body: expectedSemanticsIntegrationTestResponseBody,
             createdAt:
                 DateTime.now().subtract(const Duration(days: UpdateExistingFlakyIssue.kFreshPeriodForOpenFlake - 1)),
-          )
+          ),
         ]);
       });
 

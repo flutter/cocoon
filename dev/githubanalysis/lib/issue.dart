@@ -13,7 +13,7 @@ import 'cache.dart';
 import 'utils.dart';
 
 
-const List<String> priorities = <String>['P0', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6'];
+const List<String> priorities = <String>['P0', 'P1', 'P2', 'P3'];
 
 class FullIssue {
   FullIssue(this.repo, this.issueNumber, this._metadata, this.comments, this.reactions, { this.redirect, this.isDeleted = false }) {

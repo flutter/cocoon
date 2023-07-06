@@ -14,8 +14,8 @@ const String title = 'some_title';
 class StatusHelper {
   const StatusHelper(this.name, this.state);
 
-  static const StatusHelper flutterBuildSuccess = StatusHelper('luci-flutter', 'SUCCESS');
-  static const StatusHelper flutterBuildFailure = StatusHelper('luci-flutter', 'FAILURE');
+  static const StatusHelper flutterBuildSuccess = StatusHelper('tree-status', 'SUCCESS');
+  static const StatusHelper flutterBuildFailure = StatusHelper('tree-status', 'FAILURE');
   static const StatusHelper otherStatusFailure = StatusHelper('other status', 'FAILURE');
 
   final String name;
@@ -31,8 +31,9 @@ class PullRequestHelper {
     this.repo = 'flutter',
     this.authorAssociation = 'MEMBER',
     this.title = 'some_title',
+    this.mergeableState = MergeableState.MERGEABLE,
     this.reviews = const <PullRequestReviewHelper>[
-      PullRequestReviewHelper(authorName: 'member', state: ReviewState.APPROVED, memberType: MemberType.MEMBER)
+      PullRequestReviewHelper(authorName: 'member', state: ReviewState.APPROVED, memberType: MemberType.MEMBER),
     ],
     this.lastCommitHash = 'oid',
     this.lastCommitStatuses = const <StatusHelper>[StatusHelper.flutterBuildSuccess],
@@ -52,7 +53,7 @@ class PullRequestHelper {
   final String? lastCommitMessage;
   final DateTime? dateTime;
   final String title;
-  final String state;
+  final MergeableState mergeableState;
 
   github.RepositorySlug get slug => github.RepositorySlug('flutter', repo);
 
@@ -63,7 +64,7 @@ class PullRequestHelper {
       'number': prNumber,
       'id': id,
       'title': title,
-      'state': state,
+      'mergeable': mergeableState.name,
       'reviews': <String, dynamic>{
         'nodes': reviews.map((PullRequestReviewHelper review) {
           return <String, dynamic>{
@@ -89,7 +90,7 @@ class PullRequestHelper {
                           'targetUrl': 'https://${status.name}',
                         };
                       }).toList()
-                    : <dynamic>[]
+                    : <dynamic>[],
               },
             },
           }
@@ -104,7 +105,7 @@ QueryResult createQueryResult(PullRequestHelper pullRequest) {
   return QueryResult.fromJson(<String, dynamic>{
     'repository': <String, dynamic>{
       'pullRequest': pullRequest.toEntry().cast<String, dynamic>(),
-    }
+    },
   });
 }
 

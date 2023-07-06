@@ -47,6 +47,7 @@ query LabeledPullRequestWithReviews($sOwner: String!, $sName: String!, $sPrNumbe
       authorAssociation
       id
       title
+      mergeable
       commits(last:1) {
         nodes {
           commit {
@@ -135,7 +136,7 @@ class RevertPullRequestMutation extends GraphQLOperation {
         'clientMutationId': clientMutationId,
         'draft': draft,
         'pullRequestId': id,
-        'revertTitle': title
+        'revertTitle': title,
       };
 
   @override

@@ -82,52 +82,27 @@ class LatticeScrollView extends StatelessWidget {
           onNotification: (notification) =>
               notification.metrics.axisDirection != AxisDirection.right &&
               notification.metrics.axisDirection != AxisDirection.left,
-          child: _FakeViewport(
-            child: Scrollbar(
-              thumbVisibility: true,
+          child: Scrollbar(
+            thumbVisibility: true,
+            controller: verticalController,
+            child: Scrollable(
+              dragStartBehavior: dragStartBehavior,
+              axisDirection: AxisDirection.down,
               controller: verticalController,
-              child: Scrollable(
-                dragStartBehavior: dragStartBehavior,
-                axisDirection: AxisDirection.down,
-                controller: verticalController,
-                physics: verticalPhysics,
-                scrollBehavior: _MouseDragScrollBehavior.instance,
-                viewportBuilder: (BuildContext context, ViewportOffset verticalOffset) => _FakeViewport(
-                  child: _LatticeBody(
-                    textDirection: textDirection,
-                    horizontalOffset: horizontalOffset,
-                    verticalOffset: verticalOffset,
-                    cells: cells,
-                    cellSize: cellSize,
-                  ),
-                ),
+              physics: verticalPhysics,
+              scrollBehavior: _MouseDragScrollBehavior.instance,
+              viewportBuilder: (BuildContext context, ViewportOffset verticalOffset) => _LatticeBody(
+                textDirection: textDirection,
+                horizontalOffset: horizontalOffset,
+                verticalOffset: verticalOffset,
+                cells: cells,
+                cellSize: cellSize,
               ),
             ),
           ),
         ),
       ),
     );
-  }
-}
-
-class _FakeViewport extends SingleChildRenderObjectWidget {
-  const _FakeViewport({
-    super.child,
-  });
-
-  @override
-  _RenderFakeViewport createRenderObject(BuildContext context) => _RenderFakeViewport();
-}
-
-class _RenderFakeViewport extends RenderProxyBox implements RenderAbstractViewport {
-  _RenderFakeViewport({
-    RenderBox? child,
-  }) : super(child);
-
-  @override
-  RevealedOffset getOffsetToReveal(RenderObject target, double alignment, {Rect? rect}) {
-    // TODO(ianh): Implement this for real (and make these not be "Fake")
-    return RevealedOffset(offset: 0.0, rect: rect ?? target.paintBounds);
   }
 }
 

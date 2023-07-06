@@ -44,9 +44,10 @@ class TaskGridFilter extends FilterPropertySource {
 
   final RegExpFilterProperty _taskProperty =
       RegExpFilterProperty(fieldName: 'taskFilter', label: 'Task Name', caseSensitive: false);
-  final RegExpFilterProperty _authorProperty = RegExpFilterProperty(fieldName: 'authorFilter', label: 'Commit Author');
+  final RegExpFilterProperty _authorProperty =
+      RegExpFilterProperty(fieldName: 'authorFilter', label: 'Commit Author', caseSensitive: false);
   final RegExpFilterProperty _messageProperty =
-      RegExpFilterProperty(fieldName: 'messageFilter', label: 'Commit Message');
+      RegExpFilterProperty(fieldName: 'messageFilter', label: 'Commit Message', caseSensitive: false);
   final RegExpFilterProperty _hashProperty = RegExpFilterProperty(fieldName: 'hashFilter', label: 'Commit Hash');
   final BoolFilterProperty _macProperty = BoolFilterProperty(fieldName: 'showMac', label: 'Mac');
   final BoolFilterProperty _windowsPorperty = BoolFilterProperty(fieldName: 'showWindows', label: 'Windows');
@@ -187,10 +188,10 @@ class TaskGridFilter extends FilterPropertySource {
   /// Convert the filter into a String map (with or without default values populated) that
   /// can be used to reconstruct the filter using the [fromMap] constructor and/or inject
   /// its data into a JSON file or URL query parameter list.
-  Map<String, String> toMap({bool includeDefaults = true}) => Map<String, String>.fromEntries(
+  Map<String, String> toMap() => Map<String, String>.fromEntries(
         _allProperties.entries
             .where(
-              (MapEntry<String, ValueFilterProperty<dynamic>> element) => includeDefaults || !element.value.isDefault,
+              (MapEntry<String, ValueFilterProperty<dynamic>> element) => !element.value.isDefault,
             )
             .map(
               (MapEntry<String, ValueFilterProperty<dynamic>> e) =>
@@ -202,10 +203,8 @@ class TaskGridFilter extends FilterPropertySource {
   /// include only non-default filter values separated by the URL parameter separator (`&`).
   /// The string will not include the leading `?` character used to introduce URL parameters
   /// in case this string must be mixed with other query parameters.
-  String get queryParameters => toMap(includeDefaults: false)
-      .entries
-      .map<String>((MapEntry<String?, String> e) => '${e.key}=${e.value}')
-      .join('&');
+  String get queryParameters =>
+      toMap().entries.map<String>((MapEntry<String?, String> e) => '${e.key}=${e.value}').join('&');
 
   List<FilterPropertyNode>? _layout;
 

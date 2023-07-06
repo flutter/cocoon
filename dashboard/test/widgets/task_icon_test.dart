@@ -211,4 +211,20 @@ void main() {
     expect(tester.widget(find.byType(Icon)) as Icon, isInstanceOf<Icon>());
     expect((tester.widget(find.byType(Icon)) as Icon).icon!.codePoint, const Icon(Icons.help).icon!.codePoint);
   });
+
+  testWidgets('TaskIcon shows the right icon for dart-internal linux', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Material(
+          child: TaskIcon(
+            qualifiedTask:
+                QualifiedTask(stage: 'dart-internal', task: 'Linux dart-internal test', pool: 'luci.flutter.prod'),
+          ),
+        ),
+      ),
+    );
+
+    expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
+    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/linux.png');
+  });
 }
