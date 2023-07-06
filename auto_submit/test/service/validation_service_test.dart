@@ -742,7 +742,7 @@ void main() {
       );
 
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-      final ValidationResult result = await validationService.processMerge(
+      final MergeResult result = await validationService.processMerge(
         result: queryResult,
         config: config,
         messagePullRequest: pullRequest,
@@ -774,7 +774,7 @@ void main() {
         merged: true,
         sha: pullRequest.mergeCommitSha,
       );
-      final ValidationResult result = await validationService.processMerge(
+      final MergeResult result = await validationService.processMerge(
         result: queryResult,
         config: config,
         messagePullRequest: pullRequest,
@@ -841,7 +841,7 @@ If you need help, consider asking for advice on the #hackers-new channel on [Dis
       );
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
-      final ValidationResult result = await validationService.processMerge(
+      final MergeResult result = await validationService.processMerge(
         result: queryResult,
         config: config,
         messagePullRequest: pullRequest,
@@ -875,7 +875,7 @@ This is the second line in a paragraph.''');
       );
       githubService.pullRequestData = pullRequest;
 
-      final ValidationResult processMergeResult = await validationService.isMergeable(
+      final MergeResult processMergeResult = await validationService.isMergeable(
         RepositorySlug(org, repo),
         1347,
         queryResult,
@@ -903,7 +903,7 @@ This is the second line in a paragraph.''');
       );
       githubService.pullRequestData = pullRequest;
 
-      final ValidationResult processMergeResult = await validationService.isMergeable(
+      final MergeResult processMergeResult = await validationService.isMergeable(
         RepositorySlug(org, repo),
         1347,
         queryResult,
@@ -934,7 +934,7 @@ This is the second line in a paragraph.''');
       );
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
-      final ValidationResult processMergeResult = await validationService.isMergeable(
+      final MergeResult processMergeResult = await validationService.isMergeable(
         RepositorySlug(org, repo),
         1347,
         queryResult,
