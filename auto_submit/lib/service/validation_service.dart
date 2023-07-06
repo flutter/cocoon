@@ -396,7 +396,8 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
         return (
           result: false,
           action: Action.IGNORE_TEMPORARILY,
-          message: 'Mergeability of pull request ${slug.fullName}/$pullRequestNumber could not be determined at time of merge.',
+          message:
+              'Mergeability of pull request ${slug.fullName}/$pullRequestNumber could not be determined at time of merge.',
         );
       case MergeableState.CONFLICTING:
         return (
