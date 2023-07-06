@@ -382,24 +382,6 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
   }
 
   /// Determine if a pull request is mergeable at this time.
-  // Future<ProcessMergeResult> isMergeable(github.RepositorySlug slug, int pullRequestNumber) async {
-  //   final GithubService githubService = await config.createGithubService(slug);
-  //   final github.PullRequest pullRequest = await githubService.getPullRequest(slug, pullRequestNumber);
-
-  //   bool result = true;
-  //   String message = 'Pull request ${slug.fullName}/$pullRequestNumber is mergeable';
-  //   if (pullRequest.mergeable == null) {
-  //     message =
-  //         'Mergeability of pull request ${slug.fullName}/$pullRequestNumber could not be determined at time of merge.';
-  //     result = false;
-  //   } else if (pullRequest.mergeable == false) {
-  //     result = false;
-  //     message = 'Pull request ${slug.fullName}/$pullRequestNumber is not in a mergeable state.';
-  //   }
-  //   log.info(message);
-  //   return ProcessMergeResult(result, message);
-  // }
-
   Future<ValidationResult> isMergeable(github.RepositorySlug slug, int pullRequestNumber, QueryResult result) async {
     final MergeableState mergeableState = result.repository!.pullRequest!.mergeable!;
 
