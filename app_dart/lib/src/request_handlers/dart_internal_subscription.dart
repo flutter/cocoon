@@ -70,7 +70,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     // builds under the same builder ({Platform} Engine Drone).
     String? name;
     if (build.input?.properties != null && build.input?.properties?["build"] != null) {
-      final Map<String, Object> buildProperties = build.input?.properties?["build"] as Map<String, Object>;
+      final Map<String, dynamic> buildProperties = build.input?.properties?["build"] as Map<String, dynamic>;
       name = buildProperties["name"] as String;
     }
 
