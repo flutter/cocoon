@@ -25,7 +25,7 @@ dependencies:
   shelf: 1.4.1
   shelf_router: 1.1.4
   crypto: 3.0.3
-  logging: 1.1.1
+  logging: 1.2.0
   retry: 3.1.2
   yaml: 3.1.2
   mutex: 3.0.1
