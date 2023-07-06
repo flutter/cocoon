@@ -875,8 +875,11 @@ This is the second line in a paragraph.''');
       );
       githubService.pullRequestData = pullRequest;
 
-      final ValidationResult processMergeResult =
-          await validationService.isMergeable(RepositorySlug(org, repo), 1347, queryResult,);
+      final ValidationResult processMergeResult = await validationService.isMergeable(
+        RepositorySlug(org, repo),
+        1347,
+        queryResult,
+      );
       expect(processMergeResult.result, isTrue);
       expect(processMergeResult.message, 'Pull request flutter/flutter/1347 is mergeable');
     });
@@ -900,8 +903,11 @@ This is the second line in a paragraph.''');
       );
       githubService.pullRequestData = pullRequest;
 
-      final ValidationResult processMergeResult =
-          await validationService.isMergeable(RepositorySlug(org, repo), 1347, queryResult,);
+      final ValidationResult processMergeResult = await validationService.isMergeable(
+        RepositorySlug(org, repo),
+        1347,
+        queryResult,
+      );
       expect(processMergeResult.result, isFalse);
       expect(
         processMergeResult.message,
@@ -928,8 +934,11 @@ This is the second line in a paragraph.''');
       );
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
-      final ValidationResult processMergeResult =
-          await validationService.isMergeable(RepositorySlug(org, repo), 1347, queryResult,);
+      final ValidationResult processMergeResult = await validationService.isMergeable(
+        RepositorySlug(org, repo),
+        1347,
+        queryResult,
+      );
       expect(processMergeResult.result, isFalse);
       expect(processMergeResult.message, 'Pull request flutter/flutter/1347 is not in a mergeable state.');
     });
