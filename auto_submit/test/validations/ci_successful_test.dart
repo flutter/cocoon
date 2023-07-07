@@ -319,7 +319,7 @@ void main() {
       expect(commit, isNotNull);
       expect(commit.status, isNull);
 
-      final github.PullRequest npr = generatePullRequest(labelName: 'needs tests');
+      final github.PullRequest npr = generatePullRequest();
       githubService.checkRunsData = checkRunsMock;
 
       ciSuccessful.validate(queryResult, npr).then((value) {
@@ -338,7 +338,7 @@ void main() {
       final PullRequest pr = queryResult.repository!.pullRequest!;
       expect(pr, isNotNull);
 
-      final github.PullRequest npr = generatePullRequest(labelName: 'needs tests');
+      final github.PullRequest npr = generatePullRequest();
       githubService.checkRunsData = checkRunsMock;
 
       ciSuccessful.validate(queryResult, npr).then((value) {
@@ -402,7 +402,7 @@ void main() {
       expect(commit, isNotNull);
       expect(commit.status, isNotNull);
 
-      final github.PullRequest npr = generatePullRequest(labelName: 'needs tests');
+      final github.PullRequest npr = generatePullRequest();
       githubService.checkRunsData = checkRunsMock;
 
       ciSuccessful.validate(queryResult, npr).then((value) {
