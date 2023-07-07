@@ -1325,14 +1325,6 @@ void foo() {
           argThat(contains(config.missingTestsPullRequestMessageValue)),
         ),
       );
-
-      verifyNever(
-        issuesService.addLabelsToIssue(
-          Config.engineSlug,
-          issueNumber,
-          <String>['needs tests'],
-        ),
-      );
     });
 
     test('Engine does not label PR for no tests if author is skia-flutter-autoroll', () async {
@@ -1364,14 +1356,6 @@ void foo() {
           Config.engineSlug,
           issueNumber,
           argThat(contains(config.missingTestsPullRequestMessageValue)),
-        ),
-      );
-
-      verifyNever(
-        issuesService.addLabelsToIssue(
-          Config.engineSlug,
-          issueNumber,
-          <String>['needs tests'],
         ),
       );
     });
@@ -1763,14 +1747,6 @@ void foo() {
           Config.packagesSlug,
           issueNumber,
           argThat(contains(config.missingTestsPullRequestMessageValue)),
-        ),
-      ).called(1);
-
-      verify(
-        issuesService.addLabelsToIssue(
-          Config.packagesSlug,
-          issueNumber,
-          <String>['needs tests'],
         ),
       ).called(1);
     });

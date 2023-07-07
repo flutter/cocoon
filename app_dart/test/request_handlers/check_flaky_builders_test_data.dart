@@ -199,8 +199,7 @@ final List<BuilderRecord> semanticsIntegrationTestRecordsFailed = <BuilderRecord
 
 const String expectedSemanticsIntegrationTestOwner = 'HansMuller';
 const List<String> expectedSemanticsIntegrationTestLabels = <String>[
-  'team: flakes',
-  'severe: flake',
+  'c: flake',
   'P0',
   'framework',
 ];

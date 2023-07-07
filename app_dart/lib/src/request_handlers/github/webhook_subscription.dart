@@ -34,7 +34,6 @@ Set<RepositorySlug> kNeedsTests = <RepositorySlug>{
 };
 
 final RegExp kEngineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc|sh)$');
-final List<String> kNeedsTestsLabels = <String>['needs tests'];
 
 // Extentions for files that use // for single line comments.
 // See [_allChangesAreCodeComments] for more.
@@ -300,7 +299,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
     if (pr.user!.login == 'fluttergithubbot') {
       needsTests = false;
-      labels.addAll(<String>['team', 'tech-debt', 'team: flakes']);
+      labels.addAll(<String>['c: tech-debt', 'c: flakes']);
     }
 
     if (labels.isNotEmpty) {
@@ -395,7 +394,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       final String body = config.missingTestsPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
-        await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, kNeedsTestsLabels);
       }
     }
   }
@@ -457,7 +455,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       final String body = config.missingTestsPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
-        await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, kNeedsTestsLabels);
       }
     }
   }

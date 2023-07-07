@@ -230,8 +230,7 @@ Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fi
 
 const String expectedSemanticsIntegrationTestResponseAssignee = 'HansMuller';
 const List<String> expectedSemanticsIntegrationTestResponseLabels = <String>[
-  'team: flakes',
-  'severe: flake',
+  'c: flake',
   'P0',
   'framework',
 ];
@@ -341,8 +340,7 @@ final List<BuilderStatistic> analyzeTestResponse = <BuilderStatistic>[
 ];
 const String expectedAnalyzeTestResponseAssignee = 'HansMuller';
 const List<String> expectedAnalyzeTestResponseLabels = <String>[
-  'team: flakes',
-  'severe: flake',
+  'c: flake',
   'P0',
   'framework',
 ];
@@ -374,8 +372,7 @@ final List<BuilderStatistic> unknownTestResponse = <BuilderStatistic>[
 ];
 const String expectedFrameworkTestResponseAssignee = 'HansMuller';
 const List<String> expectedFrameworkTestResponseLabels = <String>[
-  'team: flakes',
-  'severe: flake',
+  'c: flake',
   'P0',
   'framework',
 ];

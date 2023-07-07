@@ -15,8 +15,7 @@ import '../service/github_service.dart';
 import '../../protos.dart' as pb;
 
 // String constants.
-const String kTeamFlakeLabel = 'team: flakes';
-const String kSevereFlakeLabel = 'severe: flake';
+const String kFlakeLabel = 'c: flake';
 const String kFrameworkLabel = 'framework';
 const String kToolLabel = 'tool';
 const String kEngineLabel = 'engine';
@@ -108,8 +107,7 @@ Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fi
 
   List<String> get issueLabels {
     final List<String> labels = <String>[
-      kTeamFlakeLabel,
-      kSevereFlakeLabel,
+      kFlakeLabel,
       kP0Label,
     ];
     final String? teamLabel = getTeamLabelFromTeam(ownership.team);
@@ -234,7 +232,7 @@ final RegExp shardTestOwners = RegExp('## Shards tests\n(?<$kOwnerGroupName>.+)'
 /// The state can be 'open', 'closed', or 'all'.
 Future<Map<String?, Issue>> getExistingIssues(GithubService gitHub, RepositorySlug slug, {String state = 'all'}) async {
   final Map<String?, Issue> nameToExistingIssue = <String?, Issue>{};
-  for (final Issue issue in await gitHub.listIssues(slug, state: state, labels: <String>[kTeamFlakeLabel])) {
+  for (final Issue issue in await gitHub.listIssues(slug, state: state, labels: <String>[kFlakeLabel])) {
     if (issue.htmlUrl.contains('pull') == true) {
       // For some reason, this github api may also return pull requests.
       continue;
