@@ -107,7 +107,7 @@ Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fi
 
   List<String> get issueLabels {
     final List<String> labels = <String>[
-      kSevereFlakeLabel,
+      kFlakeLabel,
       kP0Label,
     ];
     final String? teamLabel = getTeamLabelFromTeam(ownership.team);
