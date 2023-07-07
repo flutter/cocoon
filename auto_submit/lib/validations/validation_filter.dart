@@ -7,10 +7,9 @@ import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/process_method.dart';
 import 'package:auto_submit/validations/approval.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
-import 'package:auto_submit/validations/conflicting.dart';
 import 'package:auto_submit/validations/empty_checks.dart';
+import 'package:auto_submit/validations/mergeable.dart';
 import 'package:auto_submit/validations/revert.dart';
-import 'package:auto_submit/validations/unknown_mergeable.dart';
 import 'package:auto_submit/validations/validation.dart';
 
 /// The [ValidationFilter] allows us to pick and choose and the validations to
@@ -27,26 +26,11 @@ abstract class ValidationFilter {
       case ProcessMethod.processRevert:
         return RevertRequestValidationFilter(config, repositoryConfiguration);
       default:
-        // return NoOpValidationFilter(config, repositoryConfiguration);
         throw 'No such processMethod enum value';
     }
   }
 
   Set<Validation> getValidations();
-}
-
-/// The [NoOpValidationFilter] allows us to return a set of validations without
-/// exploding in the event something goes wrong.
-class NoOpValidationFilter implements ValidationFilter {
-  NoOpValidationFilter(this.config, this.repositoryConfiguration);
-
-  final Config config;
-  final RepositoryConfiguration repositoryConfiguration;
-
-  @override
-  Set<Validation> getValidations() {
-    return {};
-  }
 }
 
 /// [PullRequestValidationFilter] returns a Set of validations that we run on
@@ -70,8 +54,7 @@ class PullRequestValidationFilter implements ValidationFilter {
       validationsToRun.add(EmptyChecks(config: config));
     }
 
-    validationsToRun.add(UnknownMergeable(config: config));
-    validationsToRun.add(Conflicting(config: config));
+    validationsToRun.add(Mergeable(config: config));
 
     return validationsToRun;
   }

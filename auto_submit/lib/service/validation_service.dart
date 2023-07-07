@@ -194,7 +194,7 @@ class ValidationService {
     }
 
     // If we got to this point it means we are ready to submit the PR.
-    final ProcessMergeResult processed = await processMerge(
+    final MergeResult processed = await processMerge(
       config: config,
       messagePullRequest: messagePullRequest,
     );
@@ -249,7 +249,7 @@ class ValidationService {
       // Approve the pull request automatically as it has been validated.
       await approverService!.revertApproval(result, messagePullRequest);
 
-      final ProcessMergeResult processed = await processMerge(
+      final MergeResult processed = await processMerge(
         config: config,
         messagePullRequest: messagePullRequest,
       );
@@ -301,21 +301,12 @@ class ValidationService {
   }
 
   /// Merges the commit if the PullRequest passes all the validations.
-  Future<ProcessMergeResult> processMerge({
+  Future<MergeResult> processMerge({
     required Config config,
     required github.PullRequest messagePullRequest,
   }) async {
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int number = messagePullRequest.number!;
-
-    // Determine if the pull request is mergeable before we attempt to merge it.
-    final ProcessMergeResult mergeResult = await isMergeable(
-      slug,
-      number,
-    );
-    if (!mergeResult.result) {
-      return mergeResult;
-    }
 
     // Pass an explicit commit message from the PR title otherwise the GitHub API will use the first commit message.
     const String revertPattern = 'Revert "Revert';
@@ -353,35 +344,16 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
       if (result != null && !merged) {
         final String message = 'Failed to merge ${slug.fullName}/$number with ${result?.message}';
         log.severe(message);
-        return ProcessMergeResult(false, message);
+        return (result: false, message: message);
       }
     } catch (e) {
       // Catch graphql client init exceptions.
       final String message = 'Failed to merge ${slug.fullName}/$number with ${e.toString()}';
       log.severe(message);
-      return ProcessMergeResult(false, message);
+      return (result: false, message: message);
     }
 
-    return ProcessMergeResult(true, commitMessage);
-  }
-
-  /// Determine if a pull request is mergeable at this time.
-  Future<ProcessMergeResult> isMergeable(github.RepositorySlug slug, int pullRequestNumber) async {
-    final GithubService githubService = await config.createGithubService(slug);
-    final github.PullRequest pullRequest = await githubService.getPullRequest(slug, pullRequestNumber);
-
-    bool result = true;
-    String message = 'Pull request ${slug.fullName}/$pullRequestNumber is mergeable';
-    if (pullRequest.mergeable == null) {
-      message =
-          'Mergeability of pull request ${slug.fullName}/$pullRequestNumber could not be determined at time of merge.';
-      result = false;
-    } else if (pullRequest.mergeable == false) {
-      result = false;
-      message = 'Pull request ${slug.fullName}/$pullRequestNumber is not in a mergeable state.';
-    }
-    log.info(message);
-    return ProcessMergeResult(result, message);
+    return (result: true, message: commitMessage);
   }
 
   /// Remove a pull request label and add a comment to the pull request.
@@ -438,13 +410,7 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
 
 /// Small wrapper class to allow us to capture and create a comment in the PR with
 /// the issue that caused the merge failure.
-class ProcessMergeResult {
-  ProcessMergeResult.noMessage(this.result);
-  ProcessMergeResult(this.result, this.message);
-
-  bool result = false;
-  String? message;
-}
+typedef MergeResult = ({bool result, String message});
 
 /// Function signature that will be executed with retries.
 typedef RetryHandler = Function();
