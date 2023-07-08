@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/exception/bigquery_exception.dart';
 import 'package:auto_submit/model/big_query_pull_request_record.dart';
@@ -50,8 +52,10 @@ class ValidationService {
   RequiredCheckRuns? requiredCheckRuns;
 
   /// Processes a pub/sub message associated with PullRequest event.
-  Future<void> processMessage(PullRequestMessage pullRequestMessage, String ackId, PubSub pubsub) async {
-    final github.PullRequest pullRequest = pullRequestMessage.pullRequest!;
+  // Future<void> processMessage(PullRequestMessage pullRequestMessage, String ackId, PubSub pubsub) async {
+  Future<void> processMessage(github.PullRequest pullRequest, String ackId, PubSub pubsub) async {
+    // TODO reneable after testing is complete.
+    // final github.PullRequest pullRequest = pullRequestMessage.pullRequest!;
 
     final ProcessMethod processMethod = await processPullRequestMethod(pullRequest);
 
@@ -60,7 +64,8 @@ class ValidationService {
         await processPullRequest(
           config: config,
           result: await getNewestPullRequestInfo(config, pullRequest),
-          pullRequestMessage: pullRequestMessage,
+          // pullRequestMessage: pullRequestMessage,
+          pullRequest: pullRequest,
           ackId: ackId,
           pubsub: pubsub,
         );
@@ -69,7 +74,8 @@ class ValidationService {
         await processRevertRequest(
           config: config,
           result: await getNewestPullRequestInfo(config, pullRequest),
-          pullRequestMessage: pullRequestMessage,
+          // pullRequestMessage: pullRequestMessage,
+          pullRequest: pullRequest,
           ackId: ackId,
           pubsub: pubsub,
         );
@@ -136,12 +142,14 @@ class ValidationService {
   Future<void> processPullRequest({
     required Config config,
     required QueryResult result,
-    required PullRequestMessage pullRequestMessage,
+    // required PullRequestMessage pullRequestMessage,
+    required github.PullRequest pullRequest,
     required String ackId,
     required PubSub pubsub,
   }) async {
     final List<ValidationResult> results = <ValidationResult>[];
-    final github.PullRequest pullRequest = pullRequestMessage.pullRequest!;
+    // TODO reenable after testing is complete.
+    // final github.PullRequest pullRequest = pullRequestMessage.pullRequest!;
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
@@ -237,19 +245,25 @@ class ValidationService {
     await pubsub.acknowledge('auto-submit-queue-sub', ackId);
   }
 
+  // TODO supposedly we do not want to allow reverts that are less than 24 hours old.
+  // if they are older then they become a regular pull request.
+  
   /// The logic for processing a revert request and opening the follow up
   /// review issue in github.
   Future<void> processRevertRequest({
     required Config config,
     required QueryResult result,
     // Pull request message has the action and the initiator of the message.
-    required PullRequestMessage pullRequestMessage,
+    // required PullRequestMessage pullRequestMessage,
+    required github.PullRequest pullRequest,
     required String ackId,
     required PubSub pubsub,
   }) async {
     // This pull request should be the current closed pull request.
-    final github.PullRequest pullRequest = pullRequestMessage.pullRequest!;
-    final String initiatingAuthor = pullRequestMessage.sender!.login!;
+    // TODO reenable after testing is complete.
+    // final github.PullRequest pullRequest = pullRequestMessage.pullRequest!;
+    // final String initiatingAuthor = pullRequestMessage.sender!.login!;
+    const String initiatingAuthor = 'ricardoamador';
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService githubService = await config.createGithubService(slug);
 
@@ -262,7 +276,8 @@ class ValidationService {
       await removeLabelAndComment(
         githubService: githubService,
         repositorySlug: slug,
-        prNumber: pullRequestMessage.pullRequest!.number!,
+        // prNumber: pullRequestMessage.pullRequest!.number!,
+        prNumber: pullRequest.number!,
         prLabel: 'revert',
         message:
             'You must be a member of ${repositoryConfiguration.approvalGroup} in order to initate this revert request.',
@@ -310,13 +325,17 @@ class ValidationService {
 
     final int revertPrNumber = revertPullRequest.number!;
 
+    // TODO remove after testing making sure this is not needed.
+    sleep(const Duration(seconds: 2));
+
     // If the config does not support reviewless reverts remove the revert and return.
     if (!repositoryConfiguration.supportNoReviewReverts) {
-      // TODO we might want to keep the revert label so this may be tricky.
+      // Do not add the normal revert label as it will generate another event.
+      // Instead add the 'bot:revert' label to signify the bot opened this PR.
       await githubService.addLabels(
         slug,
         revertPrNumber,
-        [Config.kAutosubmitLabel],
+        [Config.kAutosubmitLabel, Config.kBotRevertLabel],
       );
       await removeLabelAndComment(
         githubService: githubService,
@@ -328,12 +347,13 @@ class ValidationService {
       );
       log.info('Ack the processed message : $ackId.');
       await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+      // TODO need to assign a single reviewer here or not
       return;
     } else {
       await githubService.addLabels(
         slug,
         revertPrNumber,
-        [Config.kRevertLabel],
+        [Config.kBotRevertLabel],
       );
     }
 

@@ -56,41 +56,60 @@ class GithubWebhook extends RequestHandler {
       throw const Forbidden();
     }
 
+    bool hasAutosubmit = false;
+    bool hasRevertLabel = false;
     final String rawBody = utf8.decode(requestBytes);
     final body = json.decode(rawBody) as Map<String, dynamic>;
 
-    final String actionFound = body[GithubWebhook.action] as String;
+    // final String actionFound = body[GithubWebhook.action] as String;
 
-    if (gitHubEvent != 'pull_request' && actionFound != 'labeled') {
+    // We might not be able to do this as labeled since we need to process other requests.
+    // if (gitHubEvent != 'pull_request' && actionFound != 'labeled') {
+    //   return Response.ok(jsonEncode(<String, String>{}));
+    // }
+    
+
+    if (!body.containsKey(GithubWebhook.pullRequest) ||
+        !((body[GithubWebhook.pullRequest] as Map<String, dynamic>).containsKey(GithubWebhook.labels))) {
       return Response.ok(jsonEncode(<String, String>{}));
     }
 
     final PullRequest pullRequest = PullRequest.fromJson(body[GithubWebhook.pullRequest] as Map<String, dynamic>);
-    final User user = User.fromJson(body[GithubWebhook.sender] as Map<String, dynamic>);
-    final PullRequestMessage pullRequestMessage = PullRequestMessage(
-      pullRequest: pullRequest,
-      sender: user,
-      action: actionFound,
-    );
-    final IssueLabel issueLabel = IssueLabel.fromJson(body['label'] as Map<String, dynamic>);
+    hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
+    hasRevertLabel = pullRequest.labels!.any((label) => label.name == Config.kRevertLabel);
 
-    switch (issueLabel.name) {
-      case (Config.kAutosubmitLabel):
-        {
-          await pubsub.publish(Config.pubsubPullRequestTopic, pullRequestMessage);
-          break;
-        }
-      case (Config.kRevertLabel):
-        {
-          await pubsub.publish(Config.pubsubRevertTopic, pullRequestMessage);
-          break;
-        }
-      default:
-        return Response.ok(jsonEncode(<String, String>{}));
+    if (hasAutosubmit || hasRevertLabel) {
+      log.info('Found pull request with auto submit and/or revert label.');
+      await pubsub.publish(Config.pubsubPullRequestTopic, pullRequest);
     }
 
-    log.info('Found pull request with auto submit and/or revert label.');
     return Response.ok(rawBody);
+    // TODO reenable after testing is complete.
+    // final User user = User.fromJson(body[GithubWebhook.sender] as Map<String, dynamic>);
+    // final PullRequestMessage pullRequestMessage = PullRequestMessage(
+    //   pullRequest: pullRequest,
+    //   sender: user,
+    //   action: actionFound,
+    // );
+    // final IssueLabel issueLabel = IssueLabel.fromJson(body['label'] as Map<String, dynamic>);
+
+
+    // switch (issueLabel.name) {
+    //   case (Config.kAutosubmitLabel):
+    //   case (Config.kRevertLabel):
+    //   // TODO (ricardoamador): separate to it's own subscription.
+    //     {
+    //       // TODO reenable after testing is complete.
+    //       // await pubsub.publish(Config.pubsubPullRequestTopic, pullRequestMessage);
+    //       await pubsub.publish(Config.pubsubPullRequestTopic, pullRequest);
+    //       break;
+    //     }
+    //   default:
+    //     return Response.ok(jsonEncode(<String, String>{}));
+    // }
+
+    // log.info('Found pull request with auto submit and/or revert label.');
+    // return Response.ok(rawBody);
   }
 
   Future<bool> _validateRequest(

@@ -37,6 +37,7 @@ class Config {
 
   /// Project/GCP constants
   static const String flutter = 'flutter';
+  // TODO reset this when finished testing.
   static const String flutterGcpProjectId = 'flutter-dashboard';
 
   // List of environment variable keys related to the Github app authentication.
@@ -48,6 +49,7 @@ class Config {
   /// Labels autosubmit looks for on pull requests
   static const String kAutosubmitLabel = 'autosubmit';
   static const String kRevertLabel = 'revert';
+  static const String kBotRevertLabel = 'bot:revert';
 
   /// The label which shows the overrideTree    Status.
   String get overrideTreeStatusLabel => 'warning: land on red to fix tree breakage';

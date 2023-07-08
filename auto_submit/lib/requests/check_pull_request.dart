@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:auto_submit/requests/pull_request_message.dart';
+// import 'package:auto_submit/requests/pull_request_message.dart';
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:github/github.dart';
@@ -58,14 +58,17 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       final Map<String, dynamic> rawBody =
           json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
       log.info('request raw body = $rawBody');
-      final PullRequestMessage pullRequestMessage = PullRequestMessage.fromJson(rawBody);
+      
+      final PullRequest pullRequest = PullRequest.fromJson(rawBody);
 
-      final PullRequest? pullRequest = pullRequestMessage.pullRequest;
+      // TODO reenable after testing is complete.
+      // final PullRequestMessage pullRequestMessage = PullRequestMessage.fromJson(rawBody);
+      // final PullRequest? pullRequest = pullRequestMessage.pullRequest;
 
       log.info('Processing message ackId: ${message.ackId}');
       log.info('Processing mesageId: ${message.message!.messageId}');
       log.info('Processing PR: $rawBody');
-      if (processingLog.contains(pullRequest!.number)) {
+      if (processingLog.contains(pullRequest.number)) {
         // Ack duplicate.
         log.info('Ack the duplicated message : ${message.ackId!}.');
         await pubsub.acknowledge(
@@ -83,7 +86,8 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
 
       futures.add(
         validationService.processMessage(
-          pullRequestMessage,
+          // pullRequestMessage,
+          pullRequest,
           message.ackId!,
           pubsub,
         ),
