@@ -51,6 +51,7 @@ void main() {
     late List<QueryOptions> expectedOptions;
     late QueryOptions flutterOption;
     late QueryOptions cocoonOption;
+    const String testSubscription = 'test-sub';
     const String testTopic = 'test-topic';
     const String rollorAuthor = "engine-flutter-autoroll";
     const String labelName = "warning: land on red to fix tree breakage";
@@ -780,7 +781,7 @@ void main() {
         prNumber: 0,
         lastCommitHash: oid,
       );
-      final List<pub.ReceivedMessage> messages = await checkPullRequest.pullMessages();
+      final List<pub.ReceivedMessage> messages = await checkPullRequest.pullMessages(testSubscription, 5, 5);
       expect(messages.length, 3);
     });
   });

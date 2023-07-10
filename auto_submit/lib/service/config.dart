@@ -75,20 +75,26 @@ class Config {
         'DartDevtoolWorkflowBot',
       };
 
+  /// Repository configuration variables
+  Duration get repositoryConfigurationTtl => const Duration(minutes: 10);
+
+  /// PubSub configs
+  int get kPullMesssageBatchSize => 100;
+
   /// Number of Pub/Sub pull calls in each cron job run.
   ///
   /// TODO(keyonghan): monitor and optimize this number based on response time
   /// https://github.com/flutter/cocoon/pull/2035/files#r938143840.
   int get kPubsubPullNumber => 5;
 
-  /// Repository configuration variables
-  Duration get repositoryConfigurationTtl => const Duration(minutes: 10);
+  static String get pubsubTopicsPrefix => 'projects/flutter-dashboard/topics';
+  static String get pubsubSubscriptionsPrefix => 'projects/flutter-dashboard/subscriptions';
 
-  /// PubSub configs
-  static const String pubsubTopicsPrefix = 'projects/flutter-dashboard/topics';
-  static const String pubsubSubscriptionsPrefix = 'projects/flutter-dashboard/subscriptions';
-  static const String pubsubPullRequestTopic = 'auto-submit-queue';
-  static const String pubsubPullRequestSubscription = 'auto-submit-queue-sub';
+  String get pubsubPullRequestTopic => 'auto-submit-queue';
+  String get pubsubPullRequestSubscription => 'auto-submit-queue-sub';
+
+  String get pubsubRevertRequestTopic => 'auto-submit-revert-queue';
+  String get pubsubRevertRequestSubscription => 'auto-submit-revert-queue-sub';
 
   /// Retry options for timing related retryable code.
   static const RetryOptions mergeRetryOptions = RetryOptions(
