@@ -4,9 +4,14 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/service/github_service.dart';
+import 'package:gcloud/db.dart';
+import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
+import 'package:truncate/truncate.dart';
 
 import '../../cocoon_service.dart';
 import '../model/appengine/task.dart';
@@ -74,8 +79,20 @@ class DartInternalSubscription extends SubscriptionHandler {
       name = buildProperties["name"] as String;
     }
 
+    log.fine("Generating commit key from buildbucket build: ${build.toString()}");
+    final Key<String> commitKey = Commit.createKeyFromBuildbucketBuild(db: datastore.db, build: build);
+
+    try {
+      await Commit.fromDatastore(datastore: datastore, key: commitKey);
+      log.fine('Commit found in datastore.');
+    } on KeyNotFoundException {
+      log.fine('Commit not found in datastore. Creating commit and storing into datastore');
+      final Commit commit = await _getCommitFromBuildbucketBuild(build, datastore.db);
+      await datastore.insert(<Commit>[commit]);
+    }
+
     log.info("Checking for existing task in datastore");
-    final Task? existingTask = await datastore.getTaskFromBuildbucketBuild(build, customName: name);
+    final Task? existingTask = await datastore.getTaskByCommitKeyAndName(commitKey, name);
 
     late Task taskToInsert;
     if (existingTask != null) {
@@ -114,6 +131,38 @@ class DartInternalSubscription extends SubscriptionHandler {
         return build;
       },
       retryIf: (Exception e) => e is UnfinishedBuildException,
+    );
+  }
+
+  Future<Commit> _getCommitFromBuildbucketBuild(
+    Build build,
+    DatastoreDB db,
+  ) async {
+    // Example: "flutter" from "mirrors/flutter".
+    final String repository =
+        build.input!.gitilesCommit!.project!.split('/')[1];
+    // Example: "stable" from "refs/heads/stable".
+    final String branch = build.input!.gitilesCommit!.ref!.split('/')[2];
+    final String sha = build.input!.gitilesCommit!.hash!;
+    final RepositorySlug slug = RepositorySlug("flutter", repository);
+    final Key<String> key = db.emptyKey.append(
+      Commit,
+      id: '${slug.fullName}/$branch/$sha',
+    );
+    final GithubService githubService = await config.createDefaultGitHubService();
+    final RepositoryCommit commit =
+        await githubService.getSingleCommit(slug, sha);
+    return Commit(
+      key: key,
+      timestamp: commit.commit!.committer!.date!.millisecondsSinceEpoch,
+      repository: slug.fullName,
+      sha: commit.sha!,
+      author: commit.author!.login!,
+      authorAvatarUrl: commit.author!.avatarUrl!,
+      // The field has a size of 1500 we need to ensure the commit message
+      // is at most 1500 chars long.
+      message: truncate(commit.commit!.message!, 1490, omission: '...'),
+      branch: branch,
     );
   }
 }

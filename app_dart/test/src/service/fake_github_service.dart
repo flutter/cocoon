@@ -11,6 +11,7 @@ import '../utilities/mocks.dart';
 class FakeGithubService implements GithubService {
   FakeGithubService({GitHub? client}) : github = client ?? MockGitHub();
   late List<RepositoryCommit> Function(String, int) listCommitsBranch;
+  late RepositoryCommit Function(String) getCommit;
   late List<PullRequest> Function(String?) listPullRequestsBranch;
 
   @override
@@ -23,6 +24,14 @@ class FakeGithubService implements GithubService {
     int? lastCommitTimestampMills,
   ) async {
     return listCommitsBranch(branch, lastCommitTimestampMills ?? 0);
+  }
+
+  @override
+  Future<RepositoryCommit> getSingleCommit(
+    RepositorySlug slug,
+    String sha,
+  ) async {
+    return getCommit(sha);
   }
 
   @override

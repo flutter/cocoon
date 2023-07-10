@@ -10,6 +10,8 @@ import '../../service/datastore.dart';
 import '../../service/logging.dart';
 import 'key_converter.dart';
 
+import 'package:cocoon_service/src/model/luci/buildbucket.dart' as bb;
+
 part 'commit.g.dart';
 
 /// Class that represents a commit that has landed on the master branch of a
@@ -37,6 +39,23 @@ class Commit extends Model<String> {
     required String gitBranch,
     required String sha,
   }) {
+    return db.emptyKey.append(
+      Commit,
+      id: '${slug.fullName}/$gitBranch/$sha',
+    );
+  }
+
+  /// Create a [Key] that can be used to lookup a [Commit] from Datastore based on a buildbucket object
+  static Key<String> createKeyFromBuildbucketBuild({required DatastoreDB db, required bb.Build build})
+  {
+    log.fine("Generating commit key from buildbucket build: ${build.toString()}");
+    // Example: "flutter" from "mirrors/flutter".
+    final String repository = build.input!.gitilesCommit!.project!.split('/')[1];
+    // Example: "stable" from "refs/heads/stable".
+    final String gitBranch = build.input!.gitilesCommit!.ref!.split('/')[2];
+    final String sha = build.input!.gitilesCommit!.hash!;
+    final RepositorySlug slug = RepositorySlug("flutter", repository);
+
     return db.emptyKey.append(
       Commit,
       id: '${slug.fullName}/$gitBranch/$sha',

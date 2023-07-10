@@ -82,6 +82,33 @@ class GithubService {
     }).toList();
   }
 
+  static RepositoryCommit _fromMap(Map<String, dynamic> commit) {
+    return RepositoryCommit()
+        ..sha = commit['sha'] as String?
+        ..author = (User()
+          ..login = commit['author']['login'] as String?
+          ..avatarUrl = commit['author']['avatar_url'] as String?)
+        ..commit = (GitCommit()
+          ..message = commit['commit']['message'] as String?
+          ..committer = (GitCommitUser(
+            commit['commit']['author']['name'] as String?,
+            commit['commit']['author']['email'] as String?,
+            DateTime.parse(commit['commit']['author']['date'] as String),
+          )));
+  }
+
+  /// Return a single commit for the repository [slug].
+  Future<RepositoryCommit> getSingleCommit(
+    RepositorySlug slug,
+    String sha,
+  ) async {
+    ArgumentError.checkNotNull(slug);
+    return github.postJSON<Map<String, dynamic>, RepositoryCommit>(
+      '/repos/${slug.fullName}/commits/$sha',
+      convert: (Map<String, dynamic> i) => _fromMap(i),
+    );
+  }
+
   /// List pull requests in the repository.
   Future<List<PullRequest>> listPullRequests(RepositorySlug slug, String? branch) {
     ArgumentError.checkNotNull(slug);

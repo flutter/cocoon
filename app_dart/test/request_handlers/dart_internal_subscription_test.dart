@@ -251,6 +251,9 @@ void main() {
           hash: fakeHash,
           ref: "refs/heads/$fakeBranch",
         ),
+        properties: <String, Object>{
+          'build': <String, dynamic>{'name': propertiesBuildName},
+        },
       ),
     );
 
@@ -324,7 +327,7 @@ void main() {
       createTimestamp: startTime.millisecondsSinceEpoch,
       endTimestamp: endTime.millisecondsSinceEpoch,
       luciBucket: bucket,
-      name: builder,
+      name: propertiesBuildName,
       stageName: "dart-internal",
       startTimestamp: startTime.millisecondsSinceEpoch,
       status: "Succeeded",
