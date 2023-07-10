@@ -8,7 +8,7 @@ import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/exception/bigquery_exception.dart';
 import 'package:auto_submit/model/big_query_pull_request_record.dart';
 import 'package:auto_submit/model/pull_request_data_types.dart';
-import 'package:auto_submit/requests/pull_request_message.dart';
+// import 'package:auto_submit/requests/pull_request_message.dart';
 import 'dart:async';
 
 import 'package:auto_submit/service/bigquery.dart';

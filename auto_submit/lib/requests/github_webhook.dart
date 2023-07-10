@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:auto_submit/requests/pull_request_message.dart';
+// import 'package:auto_submit/requests/pull_request_message.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 import 'package:crypto/crypto.dart';
@@ -80,7 +80,7 @@ class GithubWebhook extends RequestHandler {
 
     if (hasAutosubmit || hasRevertLabel) {
       log.info('Found pull request with auto submit and/or revert label.');
-      await pubsub.publish(Config.pubsubPullRequestTopic, pullRequest);
+      await pubsub.publish(config.pubsubPullRequestTopic, pullRequest);
     }
 
     return Response.ok(rawBody);

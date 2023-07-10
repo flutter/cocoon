@@ -89,11 +89,17 @@ class Config {
   /// PubSub configs
   static const String pubsubTopicsPrefix = 'projects/flutter-dashboard/topics';
   static const String pubsubSubscriptionsPrefix = 'projects/flutter-dashboard/subscriptions';
-  static const String pubsubPullRequestTopic = 'auto-submit-queue';
-  static const String pubsubPullRequestSubscription = 'auto-submit-queue-sub';
+  // static const String pubsubPullRequestTopic = 'auto-submit-queue';
+  // static const String pubsubPullRequestSubscription = 'auto-submit-queue-sub';
 
-  static const String pubsubRevertTopic = 'revert-queue';
-  static const String pubsubRevertSubscription = 'revert-queue-sub';
+  String get pubsubPullRequestTopic => 'auto-submit-queue';
+  String get pubsubPullRequestSubscription => 'auto-submit-queue-sub';
+
+  // static const String pubsubRevertTopic = 'revert-queue';
+  // static const String pubsubRevertSubscription = 'revert-queue-sub';
+
+  String get pubsubRevertTopic => 'revert-queue';
+  String get pubsubRevertSubscription => 'revert-queue-sub';
 
   /// Retry options for timing related retryable code.
   static const RetryOptions mergeRetryOptions = RetryOptions(
