@@ -44,6 +44,7 @@ enum Action {
 }
 
 /// Holds a result of a validation execution.
+/// TODO (ricardoamador) convert this to a record after MergeResult is merged.
 class ValidationResult {
   ValidationResult(this.result, this.action, this.message);
 
