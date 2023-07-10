@@ -47,6 +47,7 @@ abstract class CheckRequest extends AuthenticatedRequestHandler {
     }
 
     log.info('Processing ${messageList.length} messages');
+    // TODO (ricardoamador): This validation service will be passed in by the calling class.
     final ValidationService validationService = ValidationService(config);
     final List<Future<void>> futures = <Future<void>>[];
 
