@@ -19,6 +19,7 @@ class CheckRevertRequest extends CheckRequest {
 
   @override
   Future<Response> get() async {
+    /// Currently this is unused and cannot be called.
     return process(
       config.pubsubRevertRequestSubscription,
       config.kPubsubPullNumber,
