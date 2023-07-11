@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:cocoon_service/src/request_handlers/query_github_graphql.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
@@ -38,7 +37,7 @@ void main() {
       handler = QueryGithubGraphql(
         config: config,
         authenticationProvider: FakeAuthenticationProvider(),
-        requestBodyValue: utf8.encode(graphQLHelloWorld) as Uint8List,
+        requestBodyValue: utf8.encode(graphQLHelloWorld),
       );
     });
 
@@ -46,7 +45,7 @@ void main() {
       handler = QueryGithubGraphql(
         config: config,
         authenticationProvider: FakeAuthenticationProvider(),
-        requestBodyValue: utf8.encode('') as Uint8List,
+        requestBodyValue: utf8.encode(''),
       );
       expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
     });
