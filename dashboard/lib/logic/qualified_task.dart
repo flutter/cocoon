@@ -29,7 +29,7 @@ class QualifiedTask {
 
   QualifiedTask.fromTask(Task task)
       : stage = task.stageName,
-        task = task.builderName,
+        task = task.name,
         pool = task.isFlaky ? 'luci.flutter.staging' : 'luci.flutter.prod';
 
   final String? pool;

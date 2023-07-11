@@ -21,7 +21,7 @@ void main() {
     expect(filter.showStaging, false);
 
     expect(filter.matchesTask(QualifiedTask.fromTask(Task())), true);
-    expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), true);
+    expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'foo')), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = 'foo')), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = StageName.luci)), true);
 
@@ -93,10 +93,10 @@ void main() {
       TaskGridFilter()..showStaging = true,
     ];
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Staging_build_linux task')), true);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'staging_build_mac task')), true);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android task')), true);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'linux_android task')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Staging_build_linux task')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'staging_build_mac task')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Linux_android task')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'linux_android task')), true);
     }
   });
 
@@ -105,10 +105,10 @@ void main() {
       TaskGridFilter()..showStaging = false,
     ];
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Staging_build_linux task')), false);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'staging_build_mac task')), false);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android task')), true);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'linux_android task')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Staging_build_linux task')), false);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'staging_build_mac task')), false);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Linux_android task')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'linux_android task')), true);
     }
   });
 
@@ -117,11 +117,11 @@ void main() {
       TaskGridFilter()..showStaging = false,
     ];
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Staging_build_linux task')), false);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Staging_build_mac task')), false);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android staging_build')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Staging_build_linux task')), false);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Staging_build_mac task')), false);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Linux_android staging_build')), true);
       expect(
-        filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'linux_android_staging_build_linux task')),
+        filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'linux_android_staging_build_linux task')),
         true,
       );
     }
@@ -134,10 +134,10 @@ void main() {
     ];
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), true);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Foo')), true);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'blah foo blah')), true);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'fo')), false);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'foo')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Foo')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'blah foo blah')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'fo')), false);
     }
   });
 
@@ -149,10 +149,10 @@ void main() {
     ];
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), true);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Foo')), true);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'blah fOO blah')), true);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'fo')), false);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'foo')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Foo')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'blah fOO blah')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'fo')), false);
     }
   });
 
@@ -163,10 +163,10 @@ void main() {
     ];
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'z bc')), true);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'z bc z')), false);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'z b c')), false);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), false);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'z bc')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'z bc z')), false);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'z b c')), false);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'foo')), false);
     }
   });
 
@@ -186,11 +186,11 @@ void main() {
     expect(falseFilter, isNot(equals(trueFilterMap)));
     expect(falseFilter, isNot(equals(trueFilter)));
 
-    expect(trueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = taskName)), true);
-    expect(trueFilterMap.matchesTask(QualifiedTask.fromTask(Task()..builderName = taskName)), true);
+    expect(trueFilter.matchesTask(QualifiedTask.fromTask(Task()..name = taskName)), true);
+    expect(trueFilterMap.matchesTask(QualifiedTask.fromTask(Task()..name = taskName)), true);
 
-    expect(falseFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = taskName)), false);
-    expect(falseFilterMap.matchesTask(QualifiedTask.fromTask(Task()..builderName = taskName)), false);
+    expect(falseFilter.matchesTask(QualifiedTask.fromTask(Task()..name = taskName)), false);
+    expect(falseFilterMap.matchesTask(QualifiedTask.fromTask(Task()..name = taskName)), false);
   }
 
   const Map<String, String> showOSs = {
@@ -225,20 +225,20 @@ void main() {
         TaskGridFilter.fromMap(<String, String>{'showLinux': 'true', 'showAndroid': 'true'});
     final TaskGridFilter androidFalseFilter = TaskGridFilter.fromMap(<String, String>{'showAndroid': 'false'});
 
-    expect(iosMacFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Mac_ios')), true);
-    expect(iosMacFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Mac')), false);
-    expect(macIosFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Mac_ios')), false);
-    expect(macIosFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Mac')), true);
-    expect(macIosBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Mac_ios')), true);
-    expect(macIosBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Mac')), true);
-    expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android')), true);
-    expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux')), false);
-    expect(linuxAndroidFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android')), false);
-    expect(linuxAndroidFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux')), true);
-    expect(linuxAndroidBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android')), true);
-    expect(linuxAndroidBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android')), true);
-    expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Windows_android')), true);
-    expect(androidFalseFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Anything_android')), false);
+    expect(iosMacFilter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Mac_ios')), true);
+    expect(iosMacFilter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Mac')), false);
+    expect(macIosFilter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Mac_ios')), false);
+    expect(macIosFilter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Mac')), true);
+    expect(macIosBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Mac_ios')), true);
+    expect(macIosBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Mac')), true);
+    expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Linux_android')), true);
+    expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Linux')), false);
+    expect(linuxAndroidFilter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Linux_android')), false);
+    expect(linuxAndroidFilter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Linux')), true);
+    expect(linuxAndroidBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Linux_android')), true);
+    expect(linuxAndroidBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Linux_android')), true);
+    expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Windows_android')), true);
+    expect(androidFalseFilter.matchesTask(QualifiedTask.fromTask(Task()..name = 'Anything_android')), false);
   });
 
   test('matches author name simple substring', () {

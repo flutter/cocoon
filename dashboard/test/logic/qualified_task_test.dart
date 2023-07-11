@@ -16,7 +16,7 @@ void main() {
 
     expect(
       QualifiedTask.fromTask(luciTask).sourceConfigurationUrl,
-      'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/def',
+      'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/abc',
     );
   });
 
