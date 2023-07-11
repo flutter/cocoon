@@ -99,7 +99,7 @@ void main() {
       final ValidationResult result = await computeValidationResult(review);
 
       expect(result.result, isFalse);
-      expect(result.action, Action.REMOVE_LABEL);
+      expect(result.action, Action.IGNORE_TEMPORARILY);
       expect(result.message.contains('This PR has not met approval requirements for merging.'), isTrue);
       expect(result.message.contains('need 1 more review'), isTrue);
     });
@@ -149,7 +149,7 @@ void main() {
       final ValidationResult result = await computeValidationResult(review);
 
       expect(result.result, isFalse);
-      expect(result.action, Action.REMOVE_LABEL);
+      expect(result.action, Action.IGNORE_TEMPORARILY);
       expect(result.message.contains('This PR has not met approval requirements for merging.'), isTrue);
       expect(result.message.contains('need 1 more review'), isTrue);
     });

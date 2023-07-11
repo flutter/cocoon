@@ -62,7 +62,7 @@ void main() {
     });
   });
 
-  test('Removes label and post comment when no approval', () async {
+  test('Removes label and post comment when no approval for non-flutter hacker', () async {
     final PullRequestHelper flutterRequest = PullRequestHelper(
       prNumber: 0,
       lastCommitHash: oid,
@@ -70,7 +70,7 @@ void main() {
     );
     githubService.checkRunsData = checkRunsMock;
     githubService.createCommentData = createCommentMock;
-    githubService.isTeamMemberMockMap['author1'] = true;
+    githubService.isTeamMemberMockMap['author1'] = false;
     githubService.isTeamMemberMockMap['member'] = true;
     final FakePubSub pubsub = FakePubSub();
     final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);

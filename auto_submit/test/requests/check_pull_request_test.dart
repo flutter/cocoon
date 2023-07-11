@@ -755,7 +755,8 @@ void main() {
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       verifyQueries(expectedOptions);
-      assert(pubsub.messagesQueue.isEmpty);
+      // Re-add to queue to poll for reviews
+      assert(pubsub.messagesQueue.isNotEmpty);
     });
 
     test('All messages are pulled', () async {

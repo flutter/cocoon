@@ -30,10 +30,10 @@ class Approval extends Validation {
 
     bool approved = false;
     String message = '';
+    Action action = Action.REMOVE_LABEL;
     if (repositoryConfiguration.autoApprovalAccounts.contains(author)) {
-      approved = true;
       log.info('PR ${slug.fullName}/${messagePullRequest.number} approved by roller account: $author');
-      return ValidationResult(approved, Action.REMOVE_LABEL, '');
+      return ValidationResult(true, Action.REMOVE_LABEL, '');
     } else {
       final GithubService githubService = await config.createGithubService(slug);
       final bool authorIsFlutterHacker =
@@ -67,12 +67,17 @@ class Approval extends Validation {
         approvedMessage = approved
             ? 'This PR has met approval requirements for merging.\n'
             : 'This PR has not met approval requirements for merging. $flutterHackerMessage and need ${approver.remainingReviews} more review(s) in order to merge this PR.\n';
+        if (!approved && authorIsFlutterHacker) {
+          // Flutter hackers are aware of the review requirements, and can add
+          // the autosubmit label without waiting on review.
+          action = Action.IGNORE_TEMPORARILY;
+        }
       }
 
       message = approved ? approvedMessage : '$approvedMessage\n${Config.pullRequestApprovalRequirementsMessage}';
     }
 
-    return ValidationResult(approved, Action.REMOVE_LABEL, message);
+    return ValidationResult(approved, action, message);
   }
 }
 
