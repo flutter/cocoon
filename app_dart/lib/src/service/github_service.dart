@@ -103,7 +103,8 @@ class GithubService {
     String sha,
   ) async {
     ArgumentError.checkNotNull(slug);
-    return github.postJSON<Map<String, dynamic>, RepositoryCommit>(
+    log.fine("Attempting to get json");
+    return github.getJSON<Map<String, dynamic>, RepositoryCommit>(
       '/repos/${slug.fullName}/commits/$sha',
       convert: (Map<String, dynamic> i) => _fromMap(i),
     );
