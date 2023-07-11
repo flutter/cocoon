@@ -57,8 +57,6 @@ class DartInternalSubscription extends SubscriptionHandler {
     log.info("Creating build request object");
     final GetBuildRequest request = GetBuildRequest(
       id: buildbucketId.toString(),
-      fields:
-          "id,builder,number,createdBy,createTime,startTime,endTime,updateTime,status,input.properties,input.gitilesCommit",
     );
 
     log.info(
