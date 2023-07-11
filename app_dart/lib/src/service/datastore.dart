@@ -316,7 +316,7 @@ class DatastoreService {
         name: name,
       );
     } on InternalServerError catch (e) {
-      log.warning("No existing task for the buildbucket build: ${e.toString()}");
+      log.info("No existing task for the buildbucket build: ${e.toString()}");
       return null;
     }
   }
