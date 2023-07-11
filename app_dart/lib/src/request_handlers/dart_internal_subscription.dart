@@ -79,7 +79,6 @@ class DartInternalSubscription extends SubscriptionHandler {
       name = buildProperties["name"] as String;
     }
 
-    log.fine("Generating commit key from buildbucket build: ${build.toString()}");
     final Key<String> commitKey = Commit.createKeyFromBuildbucketBuild(db: datastore.db, build: build);
 
     try {
@@ -149,7 +148,9 @@ class DartInternalSubscription extends SubscriptionHandler {
       Commit,
       id: '${slug.fullName}/$branch/$sha',
     );
+    log.fine("Creating github service");
     final GithubService githubService = await config.createDefaultGitHubService();
+    log.fine("Obtaining commit for sha $sha");
     final RepositoryCommit commit =
         await githubService.getSingleCommit(slug, sha);
     return Commit(
