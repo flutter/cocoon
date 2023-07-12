@@ -21,8 +21,8 @@ class _Body {
 
   _Body.utf8(String this.value)
       : isUtf8 = true,
-        bytes = utf8.encode(value) as Uint8List,
-        stream = Stream<Uint8List>.fromIterable(<Uint8List>[utf8.encode(value) as Uint8List]);
+        bytes = utf8.encode(value),
+        stream = Stream<Uint8List>.fromIterable(<Uint8List>[utf8.encode(value)]);
 
   _Body.rawBytes(this.bytes)
       : isUtf8 = false,
