@@ -73,8 +73,10 @@ class GetBranches extends RequestHandler<Body> {
     final List<String?> releaseBranchNames = branchNamesMap.map((branchMap) => branchMap["branch"]).toList();
     // Retrieve branches with recent activities and release branches.
     branches = branches
-        .where((branch) =>
-            (isRecent(branch) && branch.name.contains(branchRegex)) || releaseBranchNames.contains(branch.name),)
+        .where(
+          (branch) =>
+              (isRecent(branch) && branch.name.contains(branchRegex)) || releaseBranchNames.contains(branch.name),
+        )
         .toList();
     return Body.forJson(branches);
   }
