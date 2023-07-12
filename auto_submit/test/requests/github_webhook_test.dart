@@ -36,8 +36,8 @@ void main() {
     });
 
     test('call handler to handle the post request', () async {
-      final Uint8List body = utf8.encode(generateWebhookEvent()) as Uint8List;
-      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final Uint8List body = utf8.encode(generateWebhookEvent());
+      final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
       validHeader = <String, String>{'X-Hub-Signature': 'sha1=$hmac', 'X-GitHub-Event': 'yes'};
       req = Request('POST', Uri.parse('http://localhost/'), body: generateWebhookEvent(), headers: validHeader);
