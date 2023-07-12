@@ -90,14 +90,14 @@ void main() {
         repositories.getContents(any, any, ref: "beta"),
       ).thenAnswer((Invocation invocation) {
         return Future<gh.RepositoryContents>.value(
-            gh.RepositoryContents(file: gh.GitHubFile(content: gitHubEncode(betaBranchName))));
+            gh.RepositoryContents(file: gh.GitHubFile(content: gitHubEncode(betaBranchName))),);
       });
 
       when(
         repositories.getContents(any, any, ref: "stable"),
       ).thenAnswer((Invocation invocation) {
         return Future<gh.RepositoryContents>.value(
-            gh.RepositoryContents(file: gh.GitHubFile(content: gitHubEncode(stableBranchName))));
+            gh.RepositoryContents(file: gh.GitHubFile(content: gitHubEncode(stableBranchName))),);
       });
 
       const String id = 'flutter/flutter/branch-created-old';
