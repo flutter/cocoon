@@ -2,18 +2,15 @@ import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/model/pull_request_data_types.dart';
 import 'package:auto_submit/request_handling/pubsub.dart';
-import 'package:auto_submit/requests/graphql_queries.dart';
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:auto_submit/service/base_validation_service.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
-import 'package:auto_submit/service/graphql_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/service/process_method.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:auto_submit/validations/validation_filter.dart';
 import 'package:github/github.dart' as github;
-import 'package:graphql/client.dart' as graphql;
 import 'package:retry/retry.dart';
 
 class PullRequestValidationService extends BaseValidationService {
