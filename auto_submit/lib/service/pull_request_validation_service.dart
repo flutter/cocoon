@@ -24,29 +24,21 @@ class PullRequestValidationService extends BaseValidationService {
 
   /// Processes a pub/sub message associated with PullRequest event.
   Future<void> processMessage(github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
-    final ProcessMethod processMethod = await processPullRequestMethod(messagePullRequest);
-
-    switch (processMethod) {
-      case ProcessMethod.processAutosubmit:
-        await processPullRequest(
+    if (await shouldProcess(messagePullRequest)) {
+      await processPullRequest(
           config: config,
           result: await getNewestPullRequestInfo(config, messagePullRequest),
           messagePullRequest: messagePullRequest,
           ackId: ackId,
           pubsub: pubsub,
         );
-        break;
-      case ProcessMethod.processRevert:
-      case ProcessMethod.doNotProcess:
-        log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
+    } else {
+      log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
         await pubsub.acknowledge('auto-submit-queue-sub', ackId);
-        break;
     }
   }
 
-  /// TODO this should become validate to determine if the pr status is good.
-  /// Checks if a pullRequest is still open and with autosubmit label before trying to process it.
-  Future<ProcessMethod> processPullRequestMethod(github.PullRequest pullRequest) async {
+  Future<bool> shouldProcess(github.PullRequest pullRequest) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService githubService = await config.createGithubService(slug);
     final github.PullRequest currentPullRequest = await githubService.getPullRequest(slug, pullRequest.number!);
@@ -54,23 +46,7 @@ class PullRequestValidationService extends BaseValidationService {
         .map<String>((github.IssueLabel labelMap) => labelMap.name)
         .toList();
 
-    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
-
-    if (currentPullRequest.state == 'open' && labelNames.contains(Config.kRevertLabel)) {
-      // TODO (ricardoamador) this will not make sense now that reverts happen from closed.
-      // we can open the pull request but who do we assign it to? The initiating author?
-      if (!repositoryConfiguration.supportNoReviewReverts) {
-        log.info(
-          'Cannot allow revert request (${slug.fullName}/${pullRequest.number}) without review. Processing as regular pull request.',
-        );
-        return ProcessMethod.processAutosubmit;
-      }
-      return ProcessMethod.processRevert;
-    } else if (currentPullRequest.state == 'open' && labelNames.contains(Config.kAutosubmitLabel)) {
-      return ProcessMethod.processAutosubmit;
-    } else {
-      return ProcessMethod.doNotProcess;
-    }
+    return (currentPullRequest.state == 'open' && labelNames.contains(Config.kAutosubmitLabel));
   }
 
   /// Processes a PullRequest running several validations to decide whether to
