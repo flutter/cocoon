@@ -25,24 +25,46 @@ class RevertRequestValidationService extends BaseValidationService {
 
   /// Processes a pub/sub message associated with PullRequest event.
   Future<void> processMessage(github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
-    final ProcessMethod processMethod = await processPullRequestMethod(messagePullRequest);
-
-    switch (processMethod) {
-      case ProcessMethod.processRevert:
-        await processRevertRequest(
-          config: config,
-          result: await getNewestPullRequestInfo(config, messagePullRequest),
-          messagePullRequest: messagePullRequest,
-          ackId: ackId,
-          pubsub: pubsub,
-        );
-        break;
-      case ProcessMethod.processAutosubmit:
-      case ProcessMethod.doNotProcess:
-        log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
-        await pubsub.acknowledge('auto-submit-queue-sub', ackId);
-        break;
+    if (await shouldProcess(messagePullRequest)) {
+      await processRevertRequest(
+        config: config,
+        result: await getNewestPullRequestInfo(config, messagePullRequest),
+        messagePullRequest: messagePullRequest,
+        ackId: ackId,
+        pubsub: pubsub,
+      );
+    } else {
+      log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
+      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
     }
+  }
+
+  Future<bool> shouldProcess(github.PullRequest pullRequest) async {
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final GithubService githubService = await config.createGithubService(slug);
+    final github.PullRequest currentPullRequest = await githubService.getPullRequest(slug, pullRequest.number!);
+    final List<String> labelNames = (currentPullRequest.labels as List<github.IssueLabel>)
+        .map<String>((github.IssueLabel labelMap) => labelMap.name)
+        .toList();
+
+    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
+
+    if (currentPullRequest.state == 'open' && labelNames.contains(Config.kRevertLabel)) {
+      // TODO (ricardoamador) this will not make sense now that reverts happen from closed.
+      // we can open the pull request but who do we assign it to? The initiating author?
+      if (!repositoryConfiguration.supportNoReviewReverts) {
+        log.info(
+          'Cannot allow revert request (${slug.fullName}/${pullRequest.number}) without review. Processing as regular pull request.',
+        );
+        final int issueNumber = currentPullRequest.number!;
+        // Remove the revert label and add the autosubmit label.
+        await githubService.removeLabel(slug, issueNumber, Config.kRevertLabel);
+        await githubService.addLabels(slug, issueNumber, [Config.kAutosubmitLabel]);
+        return false;
+      }
+      return true;
+    }
+    return false;
   }
 
   /// TODO this becomes validate to determine if the pR status is good to proceed.
@@ -64,6 +86,10 @@ class RevertRequestValidationService extends BaseValidationService {
         log.info(
           'Cannot allow revert request (${slug.fullName}/${pullRequest.number}) without review. Processing as regular pull request.',
         );
+        final int issueNumber = currentPullRequest.number!;
+        // Remove the revert label and add the autosubmit label.
+        await githubService.removeLabel(slug, issueNumber, Config.kRevertLabel);
+        await githubService.addLabels(slug, issueNumber, [Config.kAutosubmitLabel]);
         return ProcessMethod.processAutosubmit;
       }
       return ProcessMethod.processRevert;
