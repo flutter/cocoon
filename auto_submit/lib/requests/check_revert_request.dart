@@ -36,7 +36,7 @@ class CheckRevertRequest extends CheckRequest {
       config.kPullMesssageBatchSize,
     );
   }
-  
+
   /// Process pull request messages from Pubsub.
   Future<Response> process(
     String pubSubSubscription,
@@ -55,9 +55,9 @@ class CheckRevertRequest extends CheckRequest {
     }
 
     log.info('Processing ${messageList.length} messages');
-    
+
     final RevertRequestValidationService validationService = RevertRequestValidationService(config);
-    
+
     final List<Future<void>> futures = <Future<void>>[];
 
     for (pub.ReceivedMessage message in messageList) {

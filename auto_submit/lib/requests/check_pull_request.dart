@@ -9,7 +9,6 @@ import 'package:auto_submit/requests/check_request.dart';
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/service/pull_request_validation_service.dart';
-// import 'package:auto_submit/service/validation_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/pubsub/v1.dart' as pub;
 import 'package:shelf/shelf.dart';
@@ -56,9 +55,9 @@ class CheckPullRequest extends CheckRequest {
     }
 
     log.info('Processing ${messageList.length} messages');
-    
+
     final PullRequestValidationService validationService = PullRequestValidationService(config);
-    
+
     final List<Future<void>> futures = <Future<void>>[];
 
     for (pub.ReceivedMessage message in messageList) {

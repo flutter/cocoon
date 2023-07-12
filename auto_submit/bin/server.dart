@@ -44,7 +44,8 @@ Future<void> main() async {
           cronAuthProvider: authProvider,
         ).run,
       )
-      ..get('/check-revert-requests', 
+      ..get(
+        '/check-revert-requests',
         CheckRevertRequest(
           config: config,
           cronAuthProvider: authProvider,

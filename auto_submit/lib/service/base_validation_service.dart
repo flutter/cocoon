@@ -12,7 +12,6 @@ import 'package:retry/retry.dart';
 /// Class containing common methods to each of the pull request type validation
 /// services.
 class BaseValidationService {
-
   BaseValidationService(this.config, {RetryOptions? retryOptions})
       : retryOptions = retryOptions ?? Config.mergeRetryOptions;
 
