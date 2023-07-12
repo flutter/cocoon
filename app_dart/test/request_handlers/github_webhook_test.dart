@@ -66,8 +66,8 @@ void main() {
   test('Publishes message', () async {
     request.headers.set('X-GitHub-Event', 'pull_request');
     request.body = '{}';
-    final Uint8List body = utf8.encode(request.body!) as Uint8List;
-    final Uint8List key = utf8.encode(keyString) as Uint8List;
+    final Uint8List body = utf8.encode(request.body!);
+    final Uint8List key = utf8.encode(keyString);
     final String hmac = getHmac(body, key);
     request.headers.set('X-Hub-Signature', 'sha1=$hmac');
     await tester.post(webhook);

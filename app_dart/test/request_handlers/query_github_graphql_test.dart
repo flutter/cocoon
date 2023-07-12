@@ -38,7 +38,7 @@ void main() {
       handler = QueryGithubGraphql(
         config: config,
         authenticationProvider: FakeAuthenticationProvider(),
-        requestBodyValue: utf8.encode(graphQLHelloWorld) as Uint8List,
+        requestBodyValue: utf8.encode(graphQLHelloWorld),
       );
     });
 
@@ -46,7 +46,7 @@ void main() {
       handler = QueryGithubGraphql(
         config: config,
         authenticationProvider: FakeAuthenticationProvider(),
-        requestBodyValue: utf8.encode('') as Uint8List,
+        requestBodyValue: utf8.encode(''),
       );
       expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
     });
