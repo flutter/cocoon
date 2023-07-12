@@ -8,6 +8,7 @@ import 'package:appengine/appengine.dart';
 import 'package:auto_submit/helpers.dart';
 import 'package:auto_submit/request_handling/authentication.dart';
 import 'package:auto_submit/requests/check_pull_request.dart';
+import 'package:auto_submit/requests/check_revert_request.dart';
 import 'package:auto_submit/requests/github_webhook.dart';
 import 'package:auto_submit/requests/readiness_check.dart';
 import 'package:auto_submit/service/config.dart';
@@ -39,6 +40,12 @@ Future<void> main() async {
       ..get(
         '/check-pull-request',
         CheckPullRequest(
+          config: config,
+          cronAuthProvider: authProvider,
+        ).run,
+      )
+      ..get('/check-revert-requests', 
+        CheckRevertRequest(
           config: config,
           cronAuthProvider: authProvider,
         ).run,

@@ -37,6 +37,7 @@ class CheckPullRequest extends CheckRequest {
     );
   }
 
+  ///TODO refactor this method out into the base class.
   /// Process pull request messages from Pubsub.
   Future<Response> process(
     String pubSubSubscription,
@@ -55,9 +56,9 @@ class CheckPullRequest extends CheckRequest {
     }
 
     log.info('Processing ${messageList.length} messages');
-    // TODO (ricardoamador): This validation service will be passed in by the calling class.
+    
     final PullRequestValidationService validationService = PullRequestValidationService(config);
-    // final ValidationService validationService = ValidationService(config);
+    
     final List<Future<void>> futures = <Future<void>>[];
 
     for (pub.ReceivedMessage message in messageList) {

@@ -55,9 +55,9 @@ class CheckRevertRequest extends CheckRequest {
     }
 
     log.info('Processing ${messageList.length} messages');
-    // TODO (ricardoamador): This validation service will be passed in by the calling class.
+    
     final RevertRequestValidationService validationService = RevertRequestValidationService(config);
-    // final ValidationService validationService = ValidationService(config);
+    
     final List<Future<void>> futures = <Future<void>>[];
 
     for (pub.ReceivedMessage message in messageList) {
