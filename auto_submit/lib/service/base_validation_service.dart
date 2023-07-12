@@ -1,12 +1,16 @@
 import 'package:auto_submit/exception/bigquery_exception.dart';
 import 'package:auto_submit/exception/retryable_exception.dart';
+import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/model/big_query_pull_request_record.dart';
 import 'package:auto_submit/model/pull_request_data_types.dart';
+import 'package:auto_submit/requests/graphql_queries.dart';
 import 'package:auto_submit/service/bigquery.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
+import 'package:auto_submit/service/graphql_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart' as github;
+import 'package:graphql/client.dart' as graphql;
 import 'package:retry/retry.dart';
 
 /// Class containing common methods to each of the pull request type validation
@@ -17,6 +21,28 @@ class BaseValidationService {
 
   final Config config;
   final RetryOptions retryOptions;
+
+  /// Fetch the most up to date info for the current pull request from github.
+  Future<QueryResult> getNewestPullRequestInfo(Config config, github.PullRequest pullRequest) async {
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final graphql.GraphQLClient graphQLClient = await config.createGitHubGraphQLClient(slug);
+    final int? prNumber = pullRequest.number;
+    final GraphQlService graphQlService = GraphQlService();
+
+    final FindPullRequestsWithReviewsQuery findPullRequestsWithReviewsQuery = FindPullRequestsWithReviewsQuery(
+      repositoryOwner: slug.owner,
+      repositoryName: slug.name,
+      pullRequestNumber: prNumber!,
+    );
+
+    final Map<String, dynamic> data = await graphQlService.queryGraphQL(
+      documentNode: findPullRequestsWithReviewsQuery.documentNode,
+      variables: findPullRequestsWithReviewsQuery.variables,
+      client: graphQLClient,
+    );
+
+    return QueryResult.fromJson(data);
+  }
 
   /// Merges the commit if the PullRequest passes all the validations.
   Future<MergeResult> processMerge({

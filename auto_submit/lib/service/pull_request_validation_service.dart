@@ -47,28 +47,6 @@ class PullRequestValidationService extends BaseValidationService {
     }
   }
 
-  /// Fetch the most up to date info for the current pull request from github.
-  Future<QueryResult> getNewestPullRequestInfo(Config config, github.PullRequest pullRequest) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final graphql.GraphQLClient graphQLClient = await config.createGitHubGraphQLClient(slug);
-    final int? prNumber = pullRequest.number;
-    final GraphQlService graphQlService = GraphQlService();
-
-    final FindPullRequestsWithReviewsQuery findPullRequestsWithReviewsQuery = FindPullRequestsWithReviewsQuery(
-      repositoryOwner: slug.owner,
-      repositoryName: slug.name,
-      pullRequestNumber: prNumber!,
-    );
-
-    final Map<String, dynamic> data = await graphQlService.queryGraphQL(
-      documentNode: findPullRequestsWithReviewsQuery.documentNode,
-      variables: findPullRequestsWithReviewsQuery.variables,
-      client: graphQLClient,
-    );
-
-    return QueryResult.fromJson(data);
-  }
-
   /// TODO this should become validate to determine if the pr status is good.
   /// Checks if a pullRequest is still open and with autosubmit label before trying to process it.
   Future<ProcessMethod> processPullRequestMethod(github.PullRequest pullRequest) async {
