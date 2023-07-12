@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:cocoon_service/src/request_handlers/query_github_graphql.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
