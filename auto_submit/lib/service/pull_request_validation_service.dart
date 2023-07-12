@@ -26,15 +26,15 @@ class PullRequestValidationService extends BaseValidationService {
   Future<void> processMessage(github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
     if (await shouldProcess(messagePullRequest)) {
       await processPullRequest(
-          config: config,
-          result: await getNewestPullRequestInfo(config, messagePullRequest),
-          messagePullRequest: messagePullRequest,
-          ackId: ackId,
-          pubsub: pubsub,
-        );
+        config: config,
+        result: await getNewestPullRequestInfo(config, messagePullRequest),
+        messagePullRequest: messagePullRequest,
+        ackId: ackId,
+        pubsub: pubsub,
+      );
     } else {
       log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
-        await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
     }
   }
 
