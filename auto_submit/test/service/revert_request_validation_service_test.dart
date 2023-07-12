@@ -79,7 +79,7 @@ void main() {
     unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
     final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
-    await validationService.processPullRequest(
+    await validationService.processRevertRequest(
       config: config,
       result: queryResult,
       messagePullRequest: pullRequest,
@@ -127,7 +127,7 @@ void main() {
       message: 'Merged successfully.',
     );
 
-    await validationService.processPullRequest(
+    await validationService.processRevertRequest(
       config: config,
       result: queryResult,
       messagePullRequest: pullRequest,
@@ -169,7 +169,7 @@ void main() {
     unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
     final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
-    await validationService.processPullRequest(
+    await validationService.processRevertRequest(
       config: config,
       result: queryResult,
       messagePullRequest: pullRequest,
