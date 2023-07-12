@@ -106,7 +106,7 @@ class GithubService {
     return github.repositories.compareCommits(slug, refBase, refHead);
   }
 
-  /// Removes a label to a pull request.
+  /// Removes a label from a pull request.
   Future<bool> removeLabel(RepositorySlug slug, int issueNumber, String label) async {
     return github.issues.removeLabelForIssue(slug, issueNumber, label);
   }
