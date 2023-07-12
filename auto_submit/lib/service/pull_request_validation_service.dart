@@ -3,7 +3,7 @@ import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/model/pull_request_data_types.dart';
 import 'package:auto_submit/request_handling/pubsub.dart';
 import 'package:auto_submit/service/approver_service.dart';
-import 'package:auto_submit/service/base_validation_service.dart';
+import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/log.dart';
@@ -13,7 +13,7 @@ import 'package:auto_submit/validations/validation_filter.dart';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
 
-class PullRequestValidationService extends BaseValidationService {
+class PullRequestValidationService extends ValidationService {
   PullRequestValidationService(Config config, {RetryOptions? retryOptions})
       : super(config, retryOptions: retryOptions) {
     /// Validates a PR marked with the reverts label.
