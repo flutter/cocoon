@@ -92,12 +92,7 @@ class CheckPullRequest extends CheckRequest {
       }
 
       futures.add(
-        validationService.processMessage(
-          // pullRequestMessage,
-          pullRequest,
-          message.ackId!,
-          pubsub,
-        ),
+        validationService.processMessage(pullRequest, message.ackId!, pubsub),
       );
     }
     await Future.wait(futures);
