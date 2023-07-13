@@ -71,39 +71,6 @@ class RevertRequestValidationService extends ValidationService {
     return false;
   }
 
-  /// TODO this becomes validate to determine if the pR status is good to proceed.
-  /// Checks if a pullRequest is still open and with autosubmit label before trying to process it.
-  Future<ProcessMethod> processPullRequestMethod(github.PullRequest pullRequest) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final GithubService githubService = await config.createGithubService(slug);
-    final github.PullRequest currentPullRequest = await githubService.getPullRequest(slug, pullRequest.number!);
-    final List<String> labelNames = (currentPullRequest.labels as List<github.IssueLabel>)
-        .map<String>((github.IssueLabel labelMap) => labelMap.name)
-        .toList();
-
-    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
-
-    if (currentPullRequest.state == 'open' && labelNames.contains(Config.kRevertLabel)) {
-      // TODO (ricardoamador) this will not make sense now that reverts happen from closed.
-      // we can open the pull request but who do we assign it to? The initiating author?
-      if (!repositoryConfiguration.supportNoReviewReverts) {
-        log.info(
-          'Cannot allow revert request (${slug.fullName}/${pullRequest.number}) without review. Processing as regular pull request.',
-        );
-        final int issueNumber = currentPullRequest.number!;
-        // Remove the revert label and add the autosubmit label.
-        await githubService.removeLabel(slug, issueNumber, Config.kRevertLabel);
-        await githubService.addLabels(slug, issueNumber, [Config.kAutosubmitLabel]);
-        return ProcessMethod.processAutosubmit;
-      }
-      return ProcessMethod.processRevert;
-    } else if (currentPullRequest.state == 'open' && labelNames.contains(Config.kAutosubmitLabel)) {
-      return ProcessMethod.processAutosubmit;
-    } else {
-      return ProcessMethod.doNotProcess;
-    }
-  }
-
   /// Processes a PullRequest running several validations to decide whether to
   /// land the commit or remove the autosubmit label.
 

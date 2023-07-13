@@ -547,40 +547,14 @@ void main() {
   });
 
   group('Process pull request method tests', () {
-    test('Should process message when autosubmit label exists and pr is open', () async {
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-      githubService.pullRequestData = pullRequest;
-      final ProcessMethod processMethod = await validationService.processPullRequestMethod(pullRequest);
-
-      expect(processMethod, ProcessMethod.processAutosubmit);
-    });
-
-    test('Skip processing message when autosubmit label does not exist anymore', () async {
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-      pullRequest.labels = <IssueLabel>[];
-      githubService.pullRequestData = pullRequest;
-      final ProcessMethod processMethod = await validationService.processPullRequestMethod(pullRequest);
-
-      expect(processMethod, ProcessMethod.doNotProcess);
-    });
-
-    test('Skip processing message when the pull request is closed', () async {
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-      pullRequest.state = 'closed';
-      githubService.pullRequestData = pullRequest;
-      final ProcessMethod processMethod = await validationService.processPullRequestMethod(pullRequest);
-
-      expect(processMethod, ProcessMethod.doNotProcess);
-    });
-
     test('Should process message when revert label exists and pr is open', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
-      final ProcessMethod processMethod = await validationService.processPullRequestMethod(pullRequest);
+      final bool shouldProcess = await validationService.shouldProcess(pullRequest);
 
-      expect(processMethod, ProcessMethod.processRevert);
+      expect(shouldProcess, true);
     });
 
     test('Should process message as revert when revert and autosubmit labels are present and pr is open', () async {
@@ -588,9 +562,9 @@ void main() {
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
       pullRequest.labels!.add(issueLabel);
       githubService.pullRequestData = pullRequest;
-      final ProcessMethod processMethod = await validationService.processPullRequestMethod(pullRequest);
+      final bool shouldProcess = await validationService.shouldProcess(pullRequest);
 
-      expect(processMethod, ProcessMethod.processRevert);
+      expect(shouldProcess, true);
     });
 
     test('Skip processing message when revert label exists and pr is closed', () async {
@@ -599,9 +573,9 @@ void main() {
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
-      final ProcessMethod processMethod = await validationService.processPullRequestMethod(pullRequest);
+      final bool shouldProcess = await validationService.shouldProcess(pullRequest);
 
-      expect(processMethod, ProcessMethod.doNotProcess);
+      expect(shouldProcess, false);
     });
   });
 
