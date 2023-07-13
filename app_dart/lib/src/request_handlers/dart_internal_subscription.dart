@@ -57,8 +57,6 @@ class DartInternalSubscription extends SubscriptionHandler {
     log.info("Creating build request object");
     final GetBuildRequest request = GetBuildRequest(
       id: buildbucketId.toString(),
-      fields:
-          "id,builder,number,createdBy,createTime,startTime,endTime,updateTime,status,input.properties,input.gitilesCommit",
     );
 
     log.info(
@@ -66,16 +64,8 @@ class DartInternalSubscription extends SubscriptionHandler {
     );
     final Build build = await _getBuildFromBuildbucket(request);
 
-    // This is for handling subbuilds, based on the engine_v2 strategy of running
-    // builds under the same builder ({Platform} Engine Drone).
-    String? name;
-    if (build.input?.properties != null && build.input?.properties?["build"] != null) {
-      final Map<String, Object> buildProperties = build.input?.properties?["build"] as Map<String, Object>;
-      name = buildProperties["name"] as String;
-    }
-
     log.info("Checking for existing task in datastore");
-    final Task? existingTask = await datastore.getTaskFromBuildbucketBuild(build, customName: name);
+    final Task? existingTask = await datastore.getTaskFromBuildbucketBuild(build);
 
     late Task taskToInsert;
     if (existingTask != null) {
@@ -84,7 +74,7 @@ class DartInternalSubscription extends SubscriptionHandler {
       taskToInsert = existingTask;
     } else {
       log.info("Creating Task from Buildbucket result");
-      taskToInsert = await Task.fromBuildbucketBuild(build, datastore, customName: name);
+      taskToInsert = await Task.fromBuildbucketBuild(build, datastore);
     }
 
     log.info("Inserting Task into the datastore: ${taskToInsert.toString()}");
