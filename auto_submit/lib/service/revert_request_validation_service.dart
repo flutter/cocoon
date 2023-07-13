@@ -11,7 +11,6 @@ import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/log.dart';
-import 'package:auto_submit/service/process_method.dart';
 import 'package:auto_submit/validations/revert.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
