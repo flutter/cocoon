@@ -239,121 +239,121 @@ void main() {
     });
 
     test('Removes label and post comment when no approval for non-flutter hacker', () async {
-    final PullRequestHelper flutterRequest = PullRequestHelper(
-      prNumber: 0,
-      lastCommitHash: oid,
-      reviews: <PullRequestReviewHelper>[],
-    );
-    githubService.checkRunsData = checkRunsMock;
-    githubService.createCommentData = createCommentMock;
-    githubService.isTeamMemberMockMap['author1'] = false;
-    githubService.isTeamMemberMockMap['member'] = true;
-    final FakePubSub pubsub = FakePubSub();
-    final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-    githubService.pullRequestData = pullRequest;
-    unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-    final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+      final PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+      );
+      githubService.checkRunsData = checkRunsMock;
+      githubService.createCommentData = createCommentMock;
+      githubService.isTeamMemberMockMap['author1'] = false;
+      githubService.isTeamMemberMockMap['member'] = true;
+      final FakePubSub pubsub = FakePubSub();
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
+      githubService.pullRequestData = pullRequest;
+      unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
-    await validationService.processPullRequest(
-      config: config,
-      result: queryResult,
-      messagePullRequest: pullRequest,
-      ackId: 'test',
-      pubsub: pubsub,
-    );
+      await validationService.processPullRequest(
+        config: config,
+        result: queryResult,
+        messagePullRequest: pullRequest,
+        ackId: 'test',
+        pubsub: pubsub,
+      );
 
-    expect(githubService.issueComment, isNotNull);
-    expect(githubService.labelRemoved, true);
-    assert(pubsub.messagesQueue.isEmpty);
-  });
+      expect(githubService.issueComment, isNotNull);
+      expect(githubService.labelRemoved, true);
+      assert(pubsub.messagesQueue.isEmpty);
+    });
 
-  // This tests for valid pull request where tree status was not ready for
-  // processing, meaning no issueComment was created and the 'autosubmit' label
-  // is not removed and we do not ack the message.
-  test('Processing fails when base branch is default with no statuses', () async {
-    final PullRequestHelper flutterRequest = PullRequestHelper(
-      prNumber: 0,
-      lastCommitHash: oid,
-      reviews: <PullRequestReviewHelper>[
-        const PullRequestReviewHelper(
-          authorName: 'member',
-          state: ReviewState.APPROVED,
-          memberType: MemberType.OWNER,
-        ),
-      ],
-      lastCommitStatuses: null,
-    );
-    githubService.checkRunsData = checkRunsMock;
-    githubService.createCommentData = createCommentMock;
-    githubService.isTeamMemberMockMap['author1'] = true;
-    githubService.isTeamMemberMockMap['member'] = true;
-    final FakePubSub pubsub = FakePubSub();
-    final PullRequest pullRequest = generatePullRequest(prNumber: 0);
-    githubService.pullRequestData = pullRequest;
-    unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-    final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+    // This tests for valid pull request where tree status was not ready for
+    // processing, meaning no issueComment was created and the 'autosubmit' label
+    // is not removed and we do not ack the message.
+    test('Processing fails when base branch is default with no statuses', () async {
+      final PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[
+          const PullRequestReviewHelper(
+            authorName: 'member',
+            state: ReviewState.APPROVED,
+            memberType: MemberType.OWNER,
+          ),
+        ],
+        lastCommitStatuses: null,
+      );
+      githubService.checkRunsData = checkRunsMock;
+      githubService.createCommentData = createCommentMock;
+      githubService.isTeamMemberMockMap['author1'] = true;
+      githubService.isTeamMemberMockMap['member'] = true;
+      final FakePubSub pubsub = FakePubSub();
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0);
+      githubService.pullRequestData = pullRequest;
+      unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
-    await validationService.processPullRequest(
-      config: config,
-      result: queryResult,
-      messagePullRequest: pullRequest,
-      ackId: 'test',
-      pubsub: pubsub,
-    );
+      await validationService.processPullRequest(
+        config: config,
+        result: queryResult,
+        messagePullRequest: pullRequest,
+        ackId: 'test',
+        pubsub: pubsub,
+      );
 
-    expect(githubService.issueComment, isNull);
-    expect(githubService.labelRemoved, false);
-    assert(pubsub.messagesQueue.isNotEmpty);
-  });
+      expect(githubService.issueComment, isNull);
+      expect(githubService.labelRemoved, false);
+      assert(pubsub.messagesQueue.isNotEmpty);
+    });
 
     test('Processes successfully when base branch is not default', () async {
-    final PullRequestHelper flutterRequest = PullRequestHelper(
-      prNumber: 0,
-      lastCommitHash: oid,
-      reviews: <PullRequestReviewHelper>[
-        const PullRequestReviewHelper(
-          authorName: 'member',
-          state: ReviewState.APPROVED,
-          memberType: MemberType.OWNER,
-        ),
-      ],
-    );
-    githubService.checkRunsData = checkRunsMock;
-    githubService.checkRunsMock = checkRunsMock;
-    githubService.createCommentData = createCommentMock;
-    githubService.isTeamMemberMockMap['author1'] = true;
-    githubService.isTeamMemberMockMap['member'] = true;
-    final FakePubSub pubsub = FakePubSub();
-    final PullRequest pullRequest = generatePullRequest(
-      prNumber: 0,
-      repoName: slug.name,
-      baseRef: 'feature_a',
-      mergeable: true,
-    );
-    unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-    final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-    githubService.pullRequestMock = pullRequest;
-    githubService.mergeRequestMock = PullRequestMerge(
-      merged: true,
-      sha: 'asdfioefmasdf',
-      message: 'Merged successfully.',
-    );
+      final PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[
+          const PullRequestReviewHelper(
+            authorName: 'member',
+            state: ReviewState.APPROVED,
+            memberType: MemberType.OWNER,
+          ),
+        ],
+      );
+      githubService.checkRunsData = checkRunsMock;
+      githubService.checkRunsMock = checkRunsMock;
+      githubService.createCommentData = createCommentMock;
+      githubService.isTeamMemberMockMap['author1'] = true;
+      githubService.isTeamMemberMockMap['member'] = true;
+      final FakePubSub pubsub = FakePubSub();
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        baseRef: 'feature_a',
+        mergeable: true,
+      );
+      unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+      githubService.pullRequestMock = pullRequest;
+      githubService.mergeRequestMock = PullRequestMerge(
+        merged: true,
+        sha: 'asdfioefmasdf',
+        message: 'Merged successfully.',
+      );
 
-    await validationService.processPullRequest(
-      config: config,
-      result: queryResult,
-      messagePullRequest: pullRequest,
-      ackId: 'test',
-      pubsub: pubsub,
-    );
+      await validationService.processPullRequest(
+        config: config,
+        result: queryResult,
+        messagePullRequest: pullRequest,
+        ackId: 'test',
+        pubsub: pubsub,
+      );
 
-    // These checks indicate that the pull request has been merged as the label
-    // is not removed and there was no issue comment generated and the message
-    // was acknowledged.
-    expect(githubService.issueComment, isNull);
-    expect(githubService.labelRemoved, false);
-    assert(pubsub.messagesQueue.isEmpty);
-  });
+      // These checks indicate that the pull request has been merged as the label
+      // is not removed and there was no issue comment generated and the message
+      // was acknowledged.
+      expect(githubService.issueComment, isNull);
+      expect(githubService.labelRemoved, false);
+      assert(pubsub.messagesQueue.isEmpty);
+    });
 
     test('includes PR description in commit message', () async {
       final PullRequest pullRequest = generatePullRequest(
