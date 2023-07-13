@@ -45,11 +45,7 @@ class RevertRequestValidationService extends ValidationService {
   Future<bool> shouldProcess(github.PullRequest pullRequest) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService githubService = await config.createGithubService(slug);
-    final github.PullRequest currentPullRequest = await githubService.getPullRequest(slug, pullRequest.number!);
-    final List<String> labelNames = (currentPullRequest.labels as List<github.IssueLabel>)
-        .map<String>((github.IssueLabel labelMap) => labelMap.name)
-        .toList();
-
+    final (currentPullRequest, labelNames) = await getPrWithLabels(pullRequest);
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
     if (currentPullRequest.state == 'open' && labelNames.contains(Config.kRevertLabel)) {
