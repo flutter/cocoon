@@ -21,7 +21,7 @@ dependencies:
   fixnum: 1.1.0
   gcloud: 0.8.9
   github: 9.16.0
-  googleapis: 11.2.0
+  googleapis: 11.3.0
   googleapis_auth: 1.4.1
   gql: 0.14.0
   graphql: 5.1.3
