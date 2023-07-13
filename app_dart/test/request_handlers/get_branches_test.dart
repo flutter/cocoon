@@ -30,6 +30,16 @@ String gitHubEncode(String source) {
   return base64encoded;
 }
 
+void addBranch(String id, FakeDatastoreDB db) {
+  final int lastActivity = DateTime(2019, 5, 15).millisecondsSinceEpoch;
+  final Key<String> branchKey = db.emptyKey.append<String>(Branch, id: id);
+  final Branch currentBranch = Branch(
+    key: branchKey,
+    lastActivity: lastActivity,
+  );
+  db.values[currentBranch.key] = currentBranch;
+}
+
 void main() {
   group('GetBranches', () {
     late FakeConfig config;
@@ -42,8 +52,8 @@ void main() {
     late MockRepositoriesService repositories;
     FakeClientContext clientContext;
     FakeKeyHelper keyHelper;
-    const String betaBranchName = "flutter-beta";
-    const String stableBranchName = "flutter-stable";
+    const String betaBranchName = "flutter-3.5-candidate.1";
+    const String stableBranchName = "flutter-3.4-candidate.5";
 
     Future<T?> decodeHandlerBody<T>() async {
       final Body body = await tester.get(handler);
@@ -87,7 +97,7 @@ void main() {
       });
 
       when(
-        repositories.getContents(any, any, ref: "beta"),
+        repositories.getContents(any, 'bin/internal/release-candidate-branch.version', ref: "beta"),
       ).thenAnswer((Invocation invocation) {
         return Future<gh.RepositoryContents>.value(
           gh.RepositoryContents(file: gh.GitHubFile(content: gitHubEncode(betaBranchName))),
@@ -95,7 +105,7 @@ void main() {
       });
 
       when(
-        repositories.getContents(any, any, ref: "stable"),
+        repositories.getContents(any, 'bin/internal/release-candidate-branch.version', ref: "stable"),
       ).thenAnswer((Invocation invocation) {
         return Future<gh.RepositoryContents>.value(
           gh.RepositoryContents(file: gh.GitHubFile(content: gitHubEncode(stableBranchName))),
@@ -221,34 +231,23 @@ void main() {
     test('should always retrieve release branches', () async {
       expect(db.values.values.whereType<Branch>().length, 1);
 
-      const String id = 'flutter/flutter/$betaBranchName';
-      final int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
-      final Key<String> branchKey = db.emptyKey.append<String>(Branch, id: id);
-      final Branch currentBranch = Branch(
-        key: branchKey,
-        lastActivity: lastActivity,
-      );
-      db.values[currentBranch.key] = currentBranch;
+      final String id = '${Config.flutterSlug}/$betaBranchName';
+      addBranch(id, db);
 
-      const String stableId = 'flutter/flutter/$stableBranchName';
-      final Key<String> stableBranchKey = db.emptyKey.append<String>(Branch, id: stableId);
-      final Branch stableBranch = Branch(
-        key: stableBranchKey,
-        lastActivity: lastActivity,
-      );
-      db.values[stableBranch.key] = stableBranch;
+      final String stableId = '${Config.flutterSlug}/$stableBranchName';
+      addBranch(stableId, db);
 
       expect(db.values.values.whereType<Branch>().length, 3);
 
       final List<dynamic> result = (await decodeHandlerBody())!;
       final List<dynamic> expected = [
         {
-          'id': 'flutter/flutter/flutter-beta',
-          'branch': {'branch': 'flutter-beta', 'repository': 'flutter/flutter'},
+          'id': 'flutter/flutter/$betaBranchName',
+          'branch': {'branch': betaBranchName, 'repository': 'flutter/flutter'},
         },
         {
-          'id': 'flutter/flutter/flutter-stable',
-          'branch': {'branch': 'flutter-stable', 'repository': 'flutter/flutter'},
+          'id': 'flutter/flutter/$stableBranchName',
+          'branch': {'branch': stableBranchName, 'repository': 'flutter/flutter'},
         }
       ];
       expect(result, expected);

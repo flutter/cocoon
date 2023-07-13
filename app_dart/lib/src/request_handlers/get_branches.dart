@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:cocoon_service/src/model/appengine/branch.dart';
 import 'package:process_runner/process_runner.dart';
-import 'package:github/github.dart' hide Branch;
+import 'package:github/github.dart' as gh;
 
 import '../../cocoon_service.dart';
 import '../service/datastore.dart';
@@ -63,10 +63,10 @@ class GetBranches extends RequestHandler<Body> {
     List<Branch> branches = await datastore.queryBranches().toList();
 
     // From the dashboard point of view, these are the subset of branches we care about.
-    final RegExp branchRegex = RegExp(r'^beta|^stable|^main|^master|^flutter-.+|^fuchsia.+');
+    final RegExp branchRegex = RegExp(r'^main|^master|^flutter-.+|^fuchsia.+');
 
     // Fetch release branches too.
-    final GitHub github = await config.createGitHubClient(slug: Config.flutterSlug);
+    final gh.GitHub github = await config.createGitHubClient(slug: Config.flutterSlug);
     final GithubService githubService = GithubService(github);
     final List<Map<String, String>> branchNamesMap =
         await branchService.getReleaseBranches(githubService: githubService, slug: Config.flutterSlug);

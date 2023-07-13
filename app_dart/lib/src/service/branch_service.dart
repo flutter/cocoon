@@ -67,8 +67,6 @@ class BranchService {
     } on KeyNotFoundException {
       log.info('create branch event was successful since the key is unique');
       await datastore.insert(<Branch>[currentBranch]);
-    } catch (e) {
-      log.severe('Unexpected exception was encountered while inserting branch into database: $e');
     }
   }
 
