@@ -65,6 +65,15 @@ void main() {
       generateTask(1, status: Task.statusSucceeded),
     ];
 
+    final List<Task> failedWithRunning = <Task>[
+      generateTask(6),
+      generateTask(5),
+      generateTask(4),
+      generateTask(3, status: Task.statusFailed),
+      generateTask(2, status: Task.statusInProgress),
+      generateTask(1),
+    ];
+
     test('triggers if less tasks than batch size', () async {
       db.addOnQuery<Task>((Iterable<Task> results) => allPending);
       expect(
@@ -86,6 +95,14 @@ void main() {
       expect(
         await policy.triggerPriority(task: generateTask(7), datastore: datastore),
         LuciBuildService.kRerunPriority,
+      );
+    });
+
+    test('does not trigger on recent failures if there is already a running task', () async {
+      db.addOnQuery<Task>((Iterable<Task> results) => failedWithRunning);
+      expect(
+        await policy.triggerPriority(task: generateTask(7), datastore: datastore),
+        isNull,
       );
     });
 
