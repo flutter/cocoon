@@ -45,52 +45,63 @@ class DartInternalSubscription extends SubscriptionHandler {
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
 
-    final data = message.data;
-    log.info(data);
-    return Body.empty;
+    if (message.data == null) {
+      log.info('no data in message');
+      return Body.empty;
+    }
 
-    // if (buildFromMessage == null) {
-    //   log.info("Build is null");
-    //   return Body.empty;
-    // }
-    // // All dart-internal builds reach here, so if it isn't part of the flutter
-    // // bucket, there's no need to process it.
-    // if (buildFromMessage.bucket != 'flutter') {
-    //   log.info("Ignoring build not from flutter bucket");
-    //   return Body.empty;
-    // }
+    final dynamic buildData = json.decode(message.data!);
+    if (buildData["build"] == null) {
+      log.info('no build information in message');
+      return Body.empty;
+    }
 
-    // // TODO(drewroengoogle): Determine which builds we want to save to the datastore
-    // return Body.empty;
+    final String buildbucketId = buildData['id'];
+    final String project = buildData['builder']['project'];
+    final String bucket = buildData['builder']['bucket'];
+    final String builder = buildData['builder']['builder'];
 
-    // final String? buildbucketId = buildFromMessage.id;
-    // log.info("Creating build request object");
-    // final GetBuildRequest request = GetBuildRequest(
-    //   id: buildFromMessage.id,
-    // );
+    // All dart-internal builds reach here, so if it isn't part of the flutter
+    // bucket, there's no need to process it.
+    if (project != 'dart-internal' || bucket != 'flutter') {
+      log.info("Ignoring build not from dart-internal/flutter bucket");
+      return Body.empty;
+    }
 
-    // log.info(
-    //   "Calling buildbucket api to get build data for build $buildbucketId",
-    // );
-    // final Build build = await buildBucketClient.getBuild(request);
+    // TODO(drewroengoogle): Determine which builds we want to save to the datastore and check for all of them.
+    final regex = RegExp(r'(Linux|Mac|Windows)\s+(engine_release_builder|packaging_release_builder)');
+    if (!regex.hasMatch(builder)) {
+      log.info("Ignoring builder that is not a release builder");
+      return Body.empty;
+    }
 
-    // log.info("Checking for existing task in datastore");
-    // final Task? existingTask =
-    //     await datastore.getTaskFromBuildbucketBuild(build);
+    log.info("Creating build request object with build id $buildbucketId");
+    final GetBuildRequest request = GetBuildRequest(
+      id: buildbucketId,
+    );
 
-    // late Task taskToInsert;
-    // if (existingTask != null) {
-    //   log.info("Updating Task from existing Task");
-    //   existingTask.updateFromBuildbucketBuild(build);
-    //   taskToInsert = existingTask;
-    // } else {
-    //   log.info("Creating Task from Buildbucket result");
-    //   taskToInsert = await Task.fromBuildbucketBuild(build, datastore);
-    // }
+    log.info(
+      "Calling buildbucket api to get build data for build $buildbucketId",
+    );
+    final Build build = await buildBucketClient.getBuild(request);
 
-    // log.info("Inserting Task into the datastore: ${taskToInsert.toString()}");
-    // await datastore.insert(<Task>[taskToInsert]);
+    log.info("Checking for existing task in datastore");
+    final Task? existingTask =
+        await datastore.getTaskFromBuildbucketBuild(build);
 
-    // return Body.forJson(taskToInsert.toString());
+    late Task taskToInsert;
+    if (existingTask != null) {
+      log.info("Updating Task from existing Task");
+      existingTask.updateFromBuildbucketBuild(build);
+      taskToInsert = existingTask;
+    } else {
+      log.info("Creating Task from Buildbucket result");
+      taskToInsert = await Task.fromBuildbucketBuild(build, datastore);
+    }
+
+    log.info("Inserting Task into the datastore: ${taskToInsert.toString()}");
+    await datastore.insert(<Task>[taskToInsert]);
+
+    return Body.forJson(taskToInsert.toString());
   }
 }
