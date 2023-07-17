@@ -51,6 +51,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     }
 
     final dynamic buildData = json.decode(message.data!);
+    log.info(buildData);
     if (buildData["build"] == null) {
       log.info('no build information in message');
       return Body.empty;
