@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/model/luci/push_message.dart' as pm;
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
@@ -12,7 +13,6 @@ import '../../cocoon_service.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
-import '../service/exceptions.dart';
 import '../service/logging.dart';
 
 /// TODO(drewroengoogle): Make this subscription generic so we can accept more
@@ -32,7 +32,8 @@ class DartInternalSubscription extends SubscriptionHandler {
     required super.config,
     super.authProvider,
     required this.buildBucketClient,
-    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting
+    this.datastoreProvider = DatastoreService.defaultProvider,
     this.retryOptions = Config.buildbucketRetry,
   }) : super(subscriptionName: 'dart-internal-build-results-sub');
 
@@ -44,28 +45,38 @@ class DartInternalSubscription extends SubscriptionHandler {
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
 
-    // This message comes from the engine_v2 recipes once a build run on
-    // dart-internal has completed.
-    //
-    // Example: https://flutter.googlesource.com/recipes/+/c6af020f0f22e392e30b769a5ed97fadace308fa/recipes/engine_v2/engine_v2.py#185
-    log.info("Getting buildbucket id from pubsub message");
-    final dynamic messageJson = json.decode(message.data.toString());
+    final pm.Build? buildFromMessage =
+        pm.BuildPushMessage.fromPushMessage(message).build;
 
-    final int buildbucketId = messageJson['buildbucket_id'];
-    log.info("Buildbucket id: $buildbucketId");
+    if (buildFromMessage == null) {
+      log.info("Build is null");
+      return Body.empty;
+    }
+    // All dart-internal builds reach here, so if it isn't part of the flutter
+    // bucket, there's no need to process it.
+    if (buildFromMessage.bucket != 'flutter') {
+      log.info("Ignoring build not from flutter bucket");
+      return Body.empty;
+    }
 
+    // TODO(drewroengoogle): Determine which builds we want to save to the datastore
+    log.info(buildFromMessage);
+    return Body.empty;
+
+    final String? buildbucketId = buildFromMessage.id;
     log.info("Creating build request object");
     final GetBuildRequest request = GetBuildRequest(
-      id: buildbucketId.toString(),
+      id: buildFromMessage.id,
     );
 
     log.info(
       "Calling buildbucket api to get build data for build $buildbucketId",
     );
-    final Build build = await _getBuildFromBuildbucket(request);
+    final Build build = await buildBucketClient.getBuild(request);
 
     log.info("Checking for existing task in datastore");
-    final Task? existingTask = await datastore.getTaskFromBuildbucketBuild(build);
+    final Task? existingTask =
+        await datastore.getTaskFromBuildbucketBuild(build);
 
     late Task taskToInsert;
     if (existingTask != null) {
@@ -81,29 +92,5 @@ class DartInternalSubscription extends SubscriptionHandler {
     await datastore.insert(<Task>[taskToInsert]);
 
     return Body.forJson(taskToInsert.toString());
-  }
-
-  Future<Build> _getBuildFromBuildbucket(
-    GetBuildRequest request,
-  ) async {
-    return retryOptions.retry(
-      () async {
-        final Build build = await buildBucketClient.getBuild(request);
-
-        if (build.status != Status.success &&
-            build.status != Status.failure &&
-            build.status != Status.infraFailure &&
-            build.status != Status.canceled) {
-          log.info(
-            "Build is not finished",
-          );
-          throw UnfinishedBuildException(
-            "Build is not finished",
-          );
-        }
-        return build;
-      },
-      retryIf: (Exception e) => e is UnfinishedBuildException,
-    );
   }
 }
