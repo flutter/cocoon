@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:meta/meta.dart';
-import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
 import '../model/appengine/task.dart';
@@ -31,14 +30,11 @@ class DartInternalSubscription extends SubscriptionHandler {
     required super.config,
     super.authProvider,
     required this.buildBucketClient,
-    @visibleForTesting
-    this.datastoreProvider = DatastoreService.defaultProvider,
-    this.retryOptions = Config.buildbucketRetry,
+    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
   }) : super(subscriptionName: 'dart-internal-build-results-sub');
 
   final BuildBucketClient buildBucketClient;
   final DatastoreServiceProvider datastoreProvider;
-  final RetryOptions retryOptions;
 
   @override
   Future<Body> post() async {
@@ -88,8 +84,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     final Build build = await buildBucketClient.getBuild(request);
 
     log.info("Checking for existing task in datastore");
-    final Task? existingTask =
-        await datastore.getTaskFromBuildbucketBuild(build);
+    final Task? existingTask = await datastore.getTaskFromBuildbucketBuild(build);
 
     late Task taskToInsert;
     if (existingTask != null) {

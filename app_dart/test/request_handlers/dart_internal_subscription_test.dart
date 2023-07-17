@@ -57,8 +57,6 @@ void main() {
       authProvider: FakeAuthenticationProvider(),
       buildBucketClient: buildBucketClient,
       datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-      retryOptions:
-          const RetryOptions(maxAttempts: 3, delayFactor: Duration.zero),
     );
     request = FakeHttpRequest();
 
@@ -76,8 +74,7 @@ void main() {
     );
 
     final Build fakeBuild = Build(
-      builderId:
-          const BuilderId(project: project, bucket: bucket, builder: builder),
+      builderId: const BuilderId(project: project, bucket: bucket, builder: builder),
       number: buildId,
       id: 'fake-build-id',
       status: Status.success,
@@ -94,8 +91,7 @@ void main() {
     when(
       buildBucketClient.getBuild(
         any,
-        buildBucketUri:
-            "https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds",
+        buildBucketUri: "https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds",
       ),
     ).thenAnswer((_) => Future<Build>.value(fakeBuild));
 
@@ -197,8 +193,7 @@ void main() {
 
     // This is used for testing to pull the data out of the "datastore" so that
     // we can verify what was saved.
-    final String expectedBuilderList =
-        "${existingTaskId.toString()},${buildId.toString()}";
+    final String expectedBuilderList = "${existingTaskId.toString()},${buildId.toString()}";
     late Task taskInDb;
     late Commit commitInDb;
     config.db.values.forEach((k, v) {
@@ -259,7 +254,8 @@ void main() {
   });
 
   test('ignores message not from flutter bucket', () async {
-    tester.message = const push.PushMessage(data: """
+    tester.message = const push.PushMessage(
+      data: """
     {
       "build": {
         "id": "$buildId",
@@ -270,12 +266,14 @@ void main() {
         }
       }
     }
-    """,);
+    """,
+    );
     expect(await tester.post(handler), equals(Body.empty));
   });
 
   test('ignores message not from dart-internal project', () async {
-    tester.message = const push.PushMessage(data: """
+    tester.message = const push.PushMessage(
+      data: """
     {
       "build": {
         "id": "$buildId",
@@ -286,12 +284,14 @@ void main() {
         }
       }
     }
-    """,);
+    """,
+    );
     expect(await tester.post(handler), equals(Body.empty));
   });
 
   test('ignores message not from an accepted builder', () async {
-    tester.message = const push.PushMessage(data: """
+    tester.message = const push.PushMessage(
+      data: """
     {
       "build": {
         "id": "$buildId",
@@ -302,7 +302,8 @@ void main() {
         }
       }
     }
-    """,);
+    """,
+    );
     expect(await tester.post(handler), equals(Body.empty));
   });
 }
