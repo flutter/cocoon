@@ -56,6 +56,11 @@ class BatchPolicy implements SchedulerPolicy {
     required DatastoreService datastore,
   }) async {
     final List<Task> recentTasks = await datastore.queryRecentTasksByName(name: task.name!).toList();
+    // Skip scheduling if there is already a running task.
+    if (recentTasks.any((Task task) => task.status == Task.statusInProgress)) {
+      return null;
+    }
+
     // Ensure task isn't considered in recentTasks
     recentTasks.removeWhere((Task t) => t.commitKey == task.commitKey);
     if (recentTasks.length < kBatchSize) {
