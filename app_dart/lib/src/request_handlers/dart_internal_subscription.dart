@@ -51,15 +51,16 @@ class DartInternalSubscription extends SubscriptionHandler {
     }
 
     final dynamic buildData = json.decode(message.data!);
-    log.info(buildData);
+    log.info("Build data json: $buildData");
+
     if (buildData["build"] == null) {
       log.info('no build information in message');
       return Body.empty;
     }
 
-    final String project = buildData['builder']['project'];
-    final String bucket = buildData['builder']['bucket'];
-    final String builder = buildData['builder']['builder'];
+    final String project = buildData['build']['builder']['project'];
+    final String bucket = buildData['build']['builder']['bucket'];
+    final String builder = buildData['build']['builder']['builder'];
 
     // All dart-internal builds reach here, so if it isn't part of the flutter
     // bucket, there's no need to process it.
@@ -75,7 +76,7 @@ class DartInternalSubscription extends SubscriptionHandler {
       return Body.empty;
     }
 
-    final String buildbucketId = buildData['id'];
+    final String buildbucketId = buildData['build']['id'];
     log.info("Creating build request object with build id $buildbucketId");
     final GetBuildRequest request = GetBuildRequest(
       id: buildbucketId,
