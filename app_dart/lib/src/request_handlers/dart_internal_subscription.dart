@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
-import 'package:cocoon_service/src/model/luci/push_message.dart' as pm;
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
@@ -62,14 +61,15 @@ class DartInternalSubscription extends SubscriptionHandler {
     final String bucket = buildData['build']['builder']['bucket'];
     final String builder = buildData['build']['builder']['builder'];
 
-    // All dart-internal builds reach here, so if it isn't part of the flutter
-    // bucket, there's no need to process it.
+    // This should already be covered by the pubsub filter, but adding an additional check
+    // to ensure we don't process builds that aren't from dart-internal/flutter.
     if (project != 'dart-internal' || bucket != 'flutter') {
       log.info("Ignoring build not from dart-internal/flutter bucket");
       return Body.empty;
     }
 
-    // TODO(drewroengoogle): Determine which builds we want to save to the datastore and check for all of them.
+    // Only publish the parent release_builder builds to the datastore.
+    // TODO(drewroengoogle): Determine which builds we want to save to the datastore and check for them.
     final regex = RegExp(r'(Linux|Mac|Windows)\s+(engine_release_builder|packaging_release_builder)');
     if (!regex.hasMatch(builder)) {
       log.info("Ignoring builder that is not a release builder");
