@@ -47,6 +47,7 @@ class DartInternalSubscription extends SubscriptionHandler {
 
     final pm.Build? buildFromMessage =
         pm.BuildPushMessage.fromPushMessage(message).build;
+    log.info(buildFromMessage);
 
     if (buildFromMessage == null) {
       log.info("Build is null");
@@ -60,7 +61,6 @@ class DartInternalSubscription extends SubscriptionHandler {
     }
 
     // TODO(drewroengoogle): Determine which builds we want to save to the datastore
-    log.info(buildFromMessage);
     return Body.empty;
 
     final String? buildbucketId = buildFromMessage.id;
