@@ -66,7 +66,12 @@ cron:
   url: '/api/update-branches'
   schedule: every wednesday 19:00
 
-- description: check pull request in auto submit bot
+- description: check pull requests in the autosubmit bot
   url: /check-pull-request
+  target: auto-submit
+  schedule: every 1 minutes
+
+- description: check revert requests in the autosubmit bot
+  url: /check-revert-requests
   target: auto-submit
   schedule: every 1 minutes
