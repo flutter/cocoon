@@ -335,4 +335,6 @@ enum Status {
   scheduled,
   @JsonValue('STARTED')
   started,
+  @JsonValue('SUCCESS')
+  success
 }
