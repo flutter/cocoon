@@ -45,52 +45,52 @@ class DartInternalSubscription extends SubscriptionHandler {
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
 
-    final pm.Build? buildFromMessage =
-        pm.BuildPushMessage.fromPushMessage(message).build;
-    log.info(buildFromMessage);
-
-    if (buildFromMessage == null) {
-      log.info("Build is null");
-      return Body.empty;
-    }
-    // All dart-internal builds reach here, so if it isn't part of the flutter
-    // bucket, there's no need to process it.
-    if (buildFromMessage.bucket != 'flutter') {
-      log.info("Ignoring build not from flutter bucket");
-      return Body.empty;
-    }
-
-    // TODO(drewroengoogle): Determine which builds we want to save to the datastore
+    final data = message.data;
+    log.info(data);
     return Body.empty;
 
-    final String? buildbucketId = buildFromMessage.id;
-    log.info("Creating build request object");
-    final GetBuildRequest request = GetBuildRequest(
-      id: buildFromMessage.id,
-    );
+    // if (buildFromMessage == null) {
+    //   log.info("Build is null");
+    //   return Body.empty;
+    // }
+    // // All dart-internal builds reach here, so if it isn't part of the flutter
+    // // bucket, there's no need to process it.
+    // if (buildFromMessage.bucket != 'flutter') {
+    //   log.info("Ignoring build not from flutter bucket");
+    //   return Body.empty;
+    // }
 
-    log.info(
-      "Calling buildbucket api to get build data for build $buildbucketId",
-    );
-    final Build build = await buildBucketClient.getBuild(request);
+    // // TODO(drewroengoogle): Determine which builds we want to save to the datastore
+    // return Body.empty;
 
-    log.info("Checking for existing task in datastore");
-    final Task? existingTask =
-        await datastore.getTaskFromBuildbucketBuild(build);
+    // final String? buildbucketId = buildFromMessage.id;
+    // log.info("Creating build request object");
+    // final GetBuildRequest request = GetBuildRequest(
+    //   id: buildFromMessage.id,
+    // );
 
-    late Task taskToInsert;
-    if (existingTask != null) {
-      log.info("Updating Task from existing Task");
-      existingTask.updateFromBuildbucketBuild(build);
-      taskToInsert = existingTask;
-    } else {
-      log.info("Creating Task from Buildbucket result");
-      taskToInsert = await Task.fromBuildbucketBuild(build, datastore);
-    }
+    // log.info(
+    //   "Calling buildbucket api to get build data for build $buildbucketId",
+    // );
+    // final Build build = await buildBucketClient.getBuild(request);
 
-    log.info("Inserting Task into the datastore: ${taskToInsert.toString()}");
-    await datastore.insert(<Task>[taskToInsert]);
+    // log.info("Checking for existing task in datastore");
+    // final Task? existingTask =
+    //     await datastore.getTaskFromBuildbucketBuild(build);
 
-    return Body.forJson(taskToInsert.toString());
+    // late Task taskToInsert;
+    // if (existingTask != null) {
+    //   log.info("Updating Task from existing Task");
+    //   existingTask.updateFromBuildbucketBuild(build);
+    //   taskToInsert = existingTask;
+    // } else {
+    //   log.info("Creating Task from Buildbucket result");
+    //   taskToInsert = await Task.fromBuildbucketBuild(build, datastore);
+    // }
+
+    // log.info("Inserting Task into the datastore: ${taskToInsert.toString()}");
+    // await datastore.insert(<Task>[taskToInsert]);
+
+    // return Body.forJson(taskToInsert.toString());
   }
 }
