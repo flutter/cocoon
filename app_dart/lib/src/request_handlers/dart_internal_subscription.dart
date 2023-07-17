@@ -56,7 +56,6 @@ class DartInternalSubscription extends SubscriptionHandler {
       return Body.empty;
     }
 
-    final String buildbucketId = buildData['id'];
     final String project = buildData['builder']['project'];
     final String bucket = buildData['builder']['bucket'];
     final String builder = buildData['builder']['builder'];
@@ -75,6 +74,7 @@ class DartInternalSubscription extends SubscriptionHandler {
       return Body.empty;
     }
 
+    final String buildbucketId = buildData['id'];
     log.info("Creating build request object with build id $buildbucketId");
     final GetBuildRequest request = GetBuildRequest(
       id: buildbucketId,
