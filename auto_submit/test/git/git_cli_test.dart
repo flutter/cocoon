@@ -23,6 +23,8 @@ void main() {
 
     setUp(() async {
       cliCommand = CliCommand();
+      final Directory directory = Directory(workingDirectory);
+      directory.createSync();
       gitCli = GitCli(GitAccessMethod.SSH, cliCommand);
       initProcessResult = await cliCommand.runCliCommand(
         executable: 'git',
