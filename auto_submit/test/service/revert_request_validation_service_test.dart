@@ -549,9 +549,10 @@ void main() {
     test('Should process message when revert label exists and pr is open', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
+      final List<String> labelNames = ['revert'];
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
-      final bool shouldProcess = await validationService.shouldProcess(pullRequest);
+      final bool shouldProcess = await validationService.shouldProcess(pullRequest, labelNames);
 
       expect(shouldProcess, true);
     });
@@ -559,9 +560,10 @@ void main() {
     test('Should process message as revert when revert and autosubmit labels are present and pr is open', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
+      final List<String> labelNames = ['revert'];
       pullRequest.labels!.add(issueLabel);
       githubService.pullRequestData = pullRequest;
-      final bool shouldProcess = await validationService.shouldProcess(pullRequest);
+      final bool shouldProcess = await validationService.shouldProcess(pullRequest, labelNames);
 
       expect(shouldProcess, true);
     });
@@ -570,9 +572,10 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       pullRequest.state = 'closed';
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
+      final List<String> labelNames = ['revert'];
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
-      final bool shouldProcess = await validationService.shouldProcess(pullRequest);
+      final bool shouldProcess = await validationService.shouldProcess(pullRequest, labelNames);
 
       expect(shouldProcess, false);
     });
