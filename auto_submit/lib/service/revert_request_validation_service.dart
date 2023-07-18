@@ -5,7 +5,6 @@
 import 'package:auto_submit/action/graphql_revert_method.dart';
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
-import 'package:auto_submit/model/pull_request_data_types.dart';
 import 'package:auto_submit/request_handling/pubsub.dart';
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:auto_submit/service/validation_service.dart';
@@ -13,7 +12,6 @@ import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/validations/revert.dart';
-import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
 
