@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:auto_submit/git/git_cli.dart';
 import 'package:github/github.dart' as gh;
 
-
 class FakeGitCli extends GitCli {
   FakeGitCli(super.gitCloneMethod, super.cliCommand);
 

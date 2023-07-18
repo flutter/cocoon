@@ -100,18 +100,20 @@ class RevertRequestValidationService extends ValidationService {
     //      create the revert request
 
     switch (messagePullRequest.state!) {
-      case 'open': {
-        // this means this pull request was opened by the autosubmit[bot] account and
-        // needs to be processed.
-      }
-      case 'closed': {
-        final GraphQLRevertMethod graphQLRevertMethod = GraphQLRevertMethod();
-        final PullRequest autoSubQueryPullRequest = await graphQLRevertMethod.createRevert(config, messagePullRequest);
-        // We only need the number from this.
-        log.info('Returned pull request number is ${autoSubQueryPullRequest.number}');
-      }
+      case 'open':
+        {
+          // this means this pull request was opened by the autosubmit[bot] account and
+          // needs to be processed.
+        }
+      case 'closed':
+        {
+          final GraphQLRevertMethod graphQLRevertMethod = GraphQLRevertMethod();
+          final PullRequest autoSubQueryPullRequest =
+              await graphQLRevertMethod.createRevert(config, messagePullRequest);
+          // We only need the number from this.
+          log.info('Returned pull request number is ${autoSubQueryPullRequest.number}');
+        }
     }
-
 
     // get validations to be run here.
     // TODO this used to be defined in the constructor but will be moved to validation filter.

@@ -369,4 +369,17 @@ class FakeGithubService implements GithubService {
     }
     return isTeamMemberMockMap[user]!;
   }
+
+  @override
+  Future<PullRequest> createPullRequest({
+    required RepositorySlug slug,
+    String? title,
+    String? head,
+    required String base,
+    bool draft = false,
+    String? body,
+  }) {
+    // TODO: implement createPullRequest
+    throw UnimplementedError();
+  }
 }

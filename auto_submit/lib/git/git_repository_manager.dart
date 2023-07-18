@@ -8,7 +8,6 @@ import 'package:github/github.dart';
 import 'git_cli.dart';
 import 'git_revert_branch_name.dart';
 
-
 class GitRepositoryManager {
   final String workingDirectory;
   String? cloneToDirectory;

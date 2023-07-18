@@ -94,7 +94,13 @@ class GithubService {
   }
 
   /// Create a pull request.
-  Future<PullRequest> createPullRequest({required RepositorySlug slug, String? title, String? head, required String base, bool draft = false, String? body}) async {
+  Future<PullRequest> createPullRequest(
+      {required RepositorySlug slug,
+      String? title,
+      String? head,
+      required String base,
+      bool draft = false,
+      String? body}) async {
     final CreatePullRequest createPullRequest = CreatePullRequest(title, head, base);
     return github.pullRequests.create(slug, createPullRequest);
   }

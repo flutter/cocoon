@@ -10,16 +10,12 @@ import 'package:github/github.dart' as github;
 import 'package:graphql/client.dart' as graphql;
 import 'package:auto_submit/service/log.dart';
 
-
 class GraphQLRevertMethod implements RevertMethod {
-
-
-
   @override
   Future<PullRequest> createRevert(Config config, github.PullRequest pullRequest) async {
     const String initiatingAuthor = 'ricardoamador';
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    
+
     // Initialize the graphql service.
     final graphql.GraphQLClient graphQLClient = await config.createGitHubGraphQLClient(slug);
     final GraphQlService graphQlService = GraphQlService();
@@ -62,5 +58,4 @@ class GraphQLRevertMethod implements RevertMethod {
 
     return revertPullRequest;
   }
-  
 }

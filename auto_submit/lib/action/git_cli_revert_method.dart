@@ -16,30 +16,30 @@ import 'package:github/github.dart' as github;
 class GitCliRevertMethod implements RevertMethod {
   GitCliRevertMethod();
 
-  // This method is directly from the revert facilitator.
-  Future<void> processRevertRequest(
-    github.RepositorySlug slug,
-    String workingDirectory,
-    GitAccessMethod gitAccessMethod,
-    String commitSha,
-  ) async {
-    final GitRepositoryManager repositoryManager = GitRepositoryManager(
-      slug: slug,
-      //path/to/working/directory/
-      workingDirectory: workingDirectory,
-      //flutter_453a23
-      cloneToDirectory: '${slug.name}_$commitSha',
-      gitCli: GitCli(gitAccessMethod, CliCommand()),
-    );
+  // // This method is directly from the revert facilitator.
+  // Future<void> processRevertRequest(
+  //   github.RepositorySlug slug,
+  //   String workingDirectory,
+  //   GitAccessMethod gitAccessMethod,
+  //   String commitSha,
+  // ) async {
+  //   final GitRepositoryManager repositoryManager = GitRepositoryManager(
+  //     slug: slug,
+  //     //path/to/working/directory/
+  //     workingDirectory: workingDirectory,
+  //     //flutter_453a23
+  //     cloneToDirectory: '${slug.name}_$commitSha',
+  //     gitCli: GitCli(gitAccessMethod, CliCommand()),
+  //   );
 
-    // final String cloneToFullPath = '$workingDirectory/${slug.name}_$commitSha';
-    try {
-      await repositoryManager.cloneRepository();
-      await repositoryManager.revertCommit('main', commitSha);
-    } finally {
-      await repositoryManager.deleteRepository();
-    }
-  }
+  //   // final String cloneToFullPath = '$workingDirectory/${slug.name}_$commitSha';
+  //   try {
+  //     await repositoryManager.cloneRepository();
+  //     await repositoryManager.revertCommit('main', commitSha);
+  //   } finally {
+  //     await repositoryManager.deleteRepository();
+  //   }
+  // }
 
   @override
   Future<Object> createRevert(Config config, github.PullRequest pullRequest) async {
@@ -72,6 +72,11 @@ class GitCliRevertMethod implements RevertMethod {
     // at this point the branch has been created an pushed to the remote.
     final GitRevertBranchName gitRevertBranchName = GitRevertBranchName(commitSha);
     final GithubService githubService = await config.createGithubService(slug);
-    final PullRequest revertPullRequest = githubService.createPullRequest(slug: slug, base: base);
+    final github.PullRequest revertPullRequest = await githubService.createPullRequest(
+      slug: slug,
+      head: gitRevertBranchName.branch,
+      base: baseBranch,
+    );
+    return revertPullRequest;
   }
 }

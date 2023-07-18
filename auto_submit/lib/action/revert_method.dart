@@ -1,4 +1,3 @@
-
 import 'package:auto_submit/service/config.dart';
 import 'package:github/github.dart' as github;
 
