@@ -93,6 +93,12 @@ class GithubService {
     return github.issues.get(slug, issueNumber);
   }
 
+  /// Create a pull request.
+  Future<PullRequest> createPullRequest({required RepositorySlug slug, String? title, String? head, required String base, bool draft = false, String? body}) async {
+    final CreatePullRequest createPullRequest = CreatePullRequest(title, head, base);
+    return github.pullRequests.create(slug, createPullRequest);
+  }
+
   /// Fetches the specified pull request.
   Future<PullRequest> getPullRequest(RepositorySlug slug, int pullRequestNumber) async {
     return github.pullRequests.get(slug, pullRequestNumber);

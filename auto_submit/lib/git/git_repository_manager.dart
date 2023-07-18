@@ -35,15 +35,7 @@ class GitRepositoryManager {
   }
 
   /// Clone the repository identified by the slug.
-  ///
-  /// A double checked locking mechanism is used here to guard across instances
-  /// of this class attempting to clone the same repository.
-  /// Note that thread safety is not guaranteed.
   Future<bool> cloneRepository() async {
-    // Use double checked locking, this is safe enough as reverts do not happen
-    // often enough that we would not be able to handle multiple requests.
-    // final String targetCloneDirectory = '$workingDirectory/${slug.name}';
-    // Remove the directory if the lock file has been deleted.
     if (Directory(targetCloneDirectory).existsSync()) {
       // Could possibly add a check for the slug in the remote url.
       if (!await gitCli.isGitRepository(targetCloneDirectory)) {

@@ -82,7 +82,7 @@ class GitCli {
     RepositorySlug slug,
     String workingDirectory,
   ) async {
-    return await _cliCommand.runCliCommand(
+    return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: [
         'remote',
@@ -96,7 +96,7 @@ class GitCli {
 
   /// Fetch all new refs for the repository.
   Future<ProcessResult> fetchAll(String workingDirectory) async {
-    return await _cliCommand.runCliCommand(
+    return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: ['fetch', '--all'],
     );
@@ -140,7 +140,7 @@ class GitCli {
       args = ['branch', newBranchName];
     }
 
-    return await _cliCommand.runCliCommand(
+    return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: args,
       workingDirectory: workingDirectory,
@@ -153,7 +153,7 @@ class GitCli {
     required String workingDirectory,
   }) async {
     // Issue a revert of the pull request.
-    return await _cliCommand.runCliCommand(
+    return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: [
         'revert',
@@ -171,7 +171,7 @@ class GitCli {
     String branchName,
     String workingDirectory,
   ) async {
-    return await _cliCommand.runCliCommand(
+    return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: ['push', '--verbose', '--progress', 'origin', branchName],
       workingDirectory: workingDirectory,
@@ -183,7 +183,7 @@ class GitCli {
     String branchName,
     String workingDirectory,
   ) async {
-    return await _cliCommand.runCliCommand(
+    return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: [
         'branch',
@@ -201,7 +201,7 @@ class GitCli {
     String branchName,
     String workingDirectory,
   ) async {
-    return await _cliCommand.runCliCommand(
+    return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: ['push', 'origin', '--delete', branchName],
     );
@@ -211,7 +211,7 @@ class GitCli {
   Future<ProcessResult> showOriginUrl(
     String workingDirectory,
   ) async {
-    return await _cliCommand.runCliCommand(
+    return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: ['config', '--get', 'remote.origin.url'],
       workingDirectory: workingDirectory,
@@ -222,7 +222,7 @@ class GitCli {
     String workingDirectory,
     String branchName,
   ) async {
-    return await _cliCommand.runCliCommand(
+    return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: [
         'switch',
