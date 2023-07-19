@@ -299,7 +299,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
     if (pr.user!.login == 'fluttergithubbot') {
       needsTests = false;
-      labels.addAll(<String>['c: tech-debt', 'c: flakes']);
+      labels.addAll(<String>['c: tech-debt', 'c: flake']);
     }
 
     if (labels.isNotEmpty) {
