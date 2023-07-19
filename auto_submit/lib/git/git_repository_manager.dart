@@ -60,6 +60,8 @@ class GitRepositoryManager {
       return false;
     } else {
       log.info('${slug.fullName} was cloned successfully to directory $targetCloneDirectory');
+      log.info('${slug.fullName}, $targetCloneDirectory: stdout: ${processResult.stdout}');
+      log.info('${slug.fullName}, $targetCloneDirectory: stderr: ${processResult.stderr}');
       return true;
     }
   }
@@ -72,23 +74,35 @@ class GitRepositoryManager {
   Future<void> revertCommit(String baseBranchName, String commitSha) async {
     final GitRevertBranchName revertBranchName = GitRevertBranchName(commitSha);
     // Working directory for these must be repo checkout directory.
-    log.info('Running fetch ');
+    log.info('Running fetchAll...');
     // await gitCli.fetchAll(targetCloneDirectory);
     // await gitCli.pullRebase(targetCloneDirectory);
-    await gitCli.createBranch(
+    log.info('Attempting to create branch...');
+    final ProcessResult processResultCreateBranch = await gitCli.createBranch(
       newBranchName: revertBranchName.branch,
       workingDirectory: targetCloneDirectory,
       useCheckout: true,
     );
-    await gitCli.revertChange(
+    log.info('create branch stdout: ${processResultCreateBranch.stdout}');
+    log.info('create branch stderr: ${processResultCreateBranch.stderr}');
+    
+    log.info('Attempting to revert change');
+    final ProcessResult processResultRevertChange = await gitCli.revertChange(
       commitSha: commitSha,
       workingDirectory: targetCloneDirectory,
     );
-    await gitCli.pushBranch(revertBranchName.branch, targetCloneDirectory);
+    log.info('revert change stdout: ${processResultRevertChange.stdout}');
+    log.info('revert change stderr: ${processResultRevertChange.stderr}');
+
+    log.info('Attempting to push branch to github...');
+    final ProcessResult processResultPushBranch = await gitCli.pushBranch(revertBranchName.branch, targetCloneDirectory,);
+    log.info('push branch stdout: ${processResultPushBranch.stdout}');
+    log.info('push branch stderr: ${processResultPushBranch.stderr}');
   }
 
   /// Delete the repository managed by this instance.
   Future<void> deleteRepository() async {
+    log.info('Deleting $targetCloneDirectory');
     if (Directory(targetCloneDirectory).existsSync()) {
       Directory(targetCloneDirectory).deleteSync(recursive: true);
     }

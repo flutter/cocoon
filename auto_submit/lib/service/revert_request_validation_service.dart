@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/action/graphql_revert_method.dart';
+import 'package:auto_submit/action/git_cli_revert_method.dart';
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/request_handling/pubsub.dart';
@@ -49,21 +49,23 @@ class RevertRequestValidationService extends ValidationService {
     // final (currentPullRequest, labelNames) = await getPrWithLabels(pullRequest);
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
-    if (pullRequest.state == 'open' && labelNames.contains(Config.kRevertLabel)) {
-      // TODO (ricardoamador) this will not make sense now that reverts happen from closed.
-      // we can open the pull request but who do we assign it to? The initiating author?
-      if (!repositoryConfiguration.supportNoReviewReverts) {
-        log.info(
-          'Cannot allow revert request (${slug.fullName}/${pullRequest.number}) without review. Processing as regular pull request.',
-        );
-        final int issueNumber = pullRequest.number!;
-        // Remove the revert label and add the autosubmit label.
-        await githubService.removeLabel(slug, issueNumber, Config.kRevertLabel);
-        await githubService.addLabels(slug, issueNumber, [Config.kAutosubmitLabel]);
-        return false;
-      }
-      return true;
-    } else if (pullRequest.state == 'closed' && labelNames.contains(Config.kRevertLabel)) {
+    //TODO ignore this for now. Reenable for later testing.
+    // if (pullRequest.state == 'open' && labelNames.contains(Config.kRevertLabel)) {
+    //   // TODO (ricardoamador) this will not make sense now that reverts happen from closed.
+    //   // we can open the pull request but who do we assign it to? The initiating author?
+    //   if (!repositoryConfiguration.supportNoReviewReverts) {
+    //     log.info(
+    //       'Cannot allow revert request (${slug.fullName}/${pullRequest.number}) without review. Processing as regular pull request.',
+    //     );
+    //     final int issueNumber = pullRequest.number!;
+    //     // Remove the revert label and add the autosubmit label.
+    //     await githubService.removeLabel(slug, issueNumber, Config.kRevertLabel);
+    //     await githubService.addLabels(slug, issueNumber, [Config.kAutosubmitLabel]);
+    //     return false;
+    //   }
+    //   return true;
+    // } else if (pullRequest.state == 'closed' && labelNames.contains(Config.kRevertLabel)) {
+  if (pullRequest.state == 'closed' && labelNames.contains(Config.kRevertLabel)) {
       // Check the timestamp here as well since we do not want to allow reverts older than
       // 24 hours.
       //
@@ -107,11 +109,14 @@ class RevertRequestValidationService extends ValidationService {
         }
       case 'closed':
         {
-          final GraphQLRevertMethod graphQLRevertMethod = GraphQLRevertMethod();
-          final PullRequest autoSubQueryPullRequest =
-              await graphQLRevertMethod.createRevert(config, messagePullRequest);
+          // final GraphQLRevertMethod graphQLRevertMethod = GraphQLRevertMethod();
+          // final PullRequest autoSubQueryPullRequest =
+          //     await graphQLRevertMethod.createRevert(config, messagePullRequest);
+          final GitCliRevertMethod gitCliRevertMethod = GitCliRevertMethod();
+          final github.PullRequest pullRequest = await gitCliRevertMethod.createRevert(config, messagePullRequest);
           // We only need the number from this.
-          log.info('Returned pull request number is ${autoSubQueryPullRequest.number}');
+          log.info('Returned pull request number is ${pullRequest.number}');
+          // We should now have the revert request created.
         }
     }
 
@@ -165,7 +170,8 @@ class RevertRequestValidationService extends ValidationService {
     //   log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
     // }
 
-    // log.info('Ack the processed message : $ackId.');
-    // await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+    //TODO leave this for testing  
+    log.info('Ack the processed message : $ackId.');
+    await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
   }
 }

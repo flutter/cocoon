@@ -14,35 +14,8 @@ import 'package:github/github.dart' as github;
 
 // TODO update this as this is the old probably non working code.
 class GitCliRevertMethod implements RevertMethod {
-  GitCliRevertMethod();
-
-  // // This method is directly from the revert facilitator.
-  // Future<void> processRevertRequest(
-  //   github.RepositorySlug slug,
-  //   String workingDirectory,
-  //   GitAccessMethod gitAccessMethod,
-  //   String commitSha,
-  // ) async {
-  //   final GitRepositoryManager repositoryManager = GitRepositoryManager(
-  //     slug: slug,
-  //     //path/to/working/directory/
-  //     workingDirectory: workingDirectory,
-  //     //flutter_453a23
-  //     cloneToDirectory: '${slug.name}_$commitSha',
-  //     gitCli: GitCli(gitAccessMethod, CliCommand()),
-  //   );
-
-  //   // final String cloneToFullPath = '$workingDirectory/${slug.name}_$commitSha';
-  //   try {
-  //     await repositoryManager.cloneRepository();
-  //     await repositoryManager.revertCommit('main', commitSha);
-  //   } finally {
-  //     await repositoryManager.deleteRepository();
-  //   }
-  // }
-
   @override
-  Future<Object> createRevert(Config config, github.PullRequest pullRequest) async {
+  Future<github.PullRequest> createRevert(Config config, github.PullRequest pullRequest) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final String commitSha = pullRequest.mergeCommitSha!;
     // we will need to collect the pr number after the revert request is generated.
