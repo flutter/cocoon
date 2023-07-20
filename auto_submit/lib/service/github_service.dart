@@ -110,6 +110,28 @@ class GithubService {
     return github.pullRequests.get(slug, pullRequestNumber);
   }
 
+  Future<List<PullRequest>> listPullRequests(RepositorySlug slug,
+      {int? pages,
+      String? base,
+      String direction = 'desc',
+      String? head,
+      String sort = 'created',
+      String state = 'open'}) async {
+    final List<PullRequest> pullRequestsFound = [];
+    final Stream<PullRequest> pullRequestStream = github.pullRequests.list(
+      slug,
+      pages: pages,
+      direction: direction,
+      head: head,
+      sort: sort,
+      state: state,
+    );
+    await for (PullRequest pullRequest in pullRequestStream) {
+      pullRequestsFound.add(pullRequest);
+    }
+    return pullRequestsFound;
+  }
+
   /// Compares two commits to fetch diff.
   ///
   /// The response will include details on the files that were changed between the two commits.

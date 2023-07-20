@@ -66,12 +66,30 @@ class GitRepositoryManager {
     }
   }
 
+  Future<void> setupConfig() async {
+    final ProcessResult processResult = await gitCli.setupUserConfig(slug, targetCloneDirectory);
+
+    if (processResult.exitCode != 0) {
+      log.severe('An error has occurred setting up user name config.');
+      log.severe('${slug.fullName}, $targetCloneDirectory: stdout: ${processResult.stdout}');
+      log.severe('${slug.fullName}, $targetCloneDirectory: stderr: ${processResult.stderr}');
+    }
+
+    final ProcessResult processResultEmail = await gitCli.setupUserEmailConfig(slug, targetCloneDirectory);
+
+    if (processResultEmail.exitCode != 0) {
+      log.severe('An error has occurred setting up user name config.');
+      log.severe('${slug.fullName}, $targetCloneDirectory: stdout: ${processResultEmail.stdout}');
+      log.severe('${slug.fullName}, $targetCloneDirectory: stderr: ${processResultEmail.stderr}');
+    }
+  }
+
   /// Revert a commit in the current repository.
   ///
   /// The [baseBranchName] is the branch we want to branch from. In this case it
   /// will almost always be the default branch name. The target branch is
   /// preformatted with the commitSha.
-  Future<void> revertCommit(String baseBranchName, String commitSha) async {
+  Future<void> revertCommit(String baseBranchName, String commitSha, RepositorySlug slug, String token) async {
     final GitRevertBranchName revertBranchName = GitRevertBranchName(commitSha);
     // Working directory for these must be repo checkout directory.
     log.info('Running fetchAll...');
@@ -85,7 +103,17 @@ class GitRepositoryManager {
     );
     log.info('create branch stdout: ${processResultCreateBranch.stdout}');
     log.info('create branch stderr: ${processResultCreateBranch.stderr}');
-    
+
+    log.info('Attempting to set upstream...');
+    final ProcessResult processResultSetUpstream = await gitCli.setUpstream(
+      slug,
+      targetCloneDirectory,
+      revertBranchName.branch,
+      token,
+    );
+    log.info('set upstream result stdout: ${processResultSetUpstream.stdout}');
+    log.info('set upstream result stderr: ${processResultSetUpstream.stderr}');
+
     log.info('Attempting to revert change');
     final ProcessResult processResultRevertChange = await gitCli.revertChange(
       commitSha: commitSha,
@@ -95,7 +123,10 @@ class GitRepositoryManager {
     log.info('revert change stderr: ${processResultRevertChange.stderr}');
 
     log.info('Attempting to push branch to github...');
-    final ProcessResult processResultPushBranch = await gitCli.pushBranch(revertBranchName.branch, targetCloneDirectory,);
+    final ProcessResult processResultPushBranch = await gitCli.pushBranch(
+      revertBranchName.branch,
+      targetCloneDirectory,
+    );
     log.info('push branch stdout: ${processResultPushBranch.stdout}');
     log.info('push branch stderr: ${processResultPushBranch.stderr}');
   }

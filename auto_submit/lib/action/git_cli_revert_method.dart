@@ -15,7 +15,7 @@ import 'package:github/github.dart' as github;
 // TODO update this as this is the old probably non working code.
 class GitCliRevertMethod implements RevertMethod {
   @override
-  Future<github.PullRequest> createRevert(Config config, github.PullRequest pullRequest) async {
+  Future<github.PullRequest?> createRevert(Config config, github.PullRequest pullRequest) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final String commitSha = pullRequest.mergeCommitSha!;
     // we will need to collect the pr number after the revert request is generated.
@@ -37,7 +37,8 @@ class GitCliRevertMethod implements RevertMethod {
         log.warning('Unable to clone ${slug.fullName}');
         throw 'Unable to clone repository.';
       }
-      await gitRepositoryManager.revertCommit(baseBranch, commitSha);
+      await gitRepositoryManager.setupConfig();
+      await gitRepositoryManager.revertCommit(baseBranch, commitSha, slug, await config.generateGithubToken(slug));
     } finally {
       await gitRepositoryManager.deleteRepository();
     }

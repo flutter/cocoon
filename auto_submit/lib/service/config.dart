@@ -37,7 +37,7 @@ class Config {
 
   /// Project/GCP constants
   static const String flutter = 'flutter';
-  static const String flutterGcpProjectId = 'flutter-dashboard';
+  static const String flutterGcpProjectId = 'flutter-dashboard-dev';
 
   // List of environment variable keys related to the Github app authentication.
   static const String kGithubKey = 'AUTO_SUBMIT_GITHUB_KEY';
@@ -87,8 +87,8 @@ class Config {
   /// https://github.com/flutter/cocoon/pull/2035/files#r938143840.
   int get kPubsubPullNumber => 5;
 
-  static String get pubsubTopicsPrefix => 'projects/flutter-dashboard/topics';
-  static String get pubsubSubscriptionsPrefix => 'projects/flutter-dashboard/subscriptions';
+  static String get pubsubTopicsPrefix => 'projects/$flutterGcpProjectId/topics';
+  static String get pubsubSubscriptionsPrefix => 'projects/$flutterGcpProjectId/subscriptions';
 
   String get pubsubPullRequestTopic => 'auto-submit-queue';
   String get pubsubPullRequestSubscription => 'auto-submit-queue-sub';

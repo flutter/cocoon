@@ -2,8 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:auto_submit/action/git_cli_revert_method.dart';
+import 'package:auto_submit/action/graphql_revert_method.dart';
 import 'package:auto_submit/configuration/repository_configuration.dart';
+import 'package:auto_submit/git/cli_command.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/request_handling/pubsub.dart';
 import 'package:auto_submit/service/approver_service.dart';
@@ -13,7 +17,10 @@ import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/validations/revert.dart';
 import 'package:github/github.dart' as github;
+import 'package:github/github.dart';
 import 'package:retry/retry.dart';
+
+import 'revert_issue_body_formatter.dart';
 
 class RevertRequestValidationService extends ValidationService {
   RevertRequestValidationService(Config config, {RetryOptions? retryOptions})
@@ -65,7 +72,7 @@ class RevertRequestValidationService extends ValidationService {
     //   }
     //   return true;
     // } else if (pullRequest.state == 'closed' && labelNames.contains(Config.kRevertLabel)) {
-  if (pullRequest.state == 'closed' && labelNames.contains(Config.kRevertLabel)) {
+    if (pullRequest.state == 'closed' && labelNames.contains(Config.kRevertLabel)) {
       // Check the timestamp here as well since we do not want to allow reverts older than
       // 24 hours.
       //
@@ -109,13 +116,44 @@ class RevertRequestValidationService extends ValidationService {
         }
       case 'closed':
         {
+          
+          final RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+          final String nodeId = messagePullRequest.nodeId!;
+          // Format the request fields for the new revert pull request.
+          final RevertIssueBodyFormatter formatter = RevertIssueBodyFormatter(
+            slug: slug,
+            originalPrNumber: messagePullRequest.number!,
+            initiatingAuthor: 'ricardoamador',
+            originalPrTitle: messagePullRequest.title!,
+            originalPrBody: messagePullRequest.body!,
+          ).format;
+
+          //Need to get a github token.
+          final String token = await config.generateGithubToken(messagePullRequest.base!.repo!.slug());
+          //TODO run a curl command for github to get request id.
+          final CliCommand cliCommand = CliCommand();
+          const String executable = 'curl';
+          final List<String> args = <String>[
+            '-v',
+            '-H "Authorization: bearer $token"',
+            '-H "Content-Type:application/json"',
+            '-X',
+            'POST',
+            "https://api.github.com/graphql",
+            '-d',
+            '{"query": "mutation RevertPullFlutterPullRequest { revertPullRequest(input: {body: \"Testing revert mutation\", clientMutationId: \"ra186026\", draft: false, pullRequestId: \"${messagePullRequest.nodeId}\", title: \"Revert comment in configuration file.\"}) { clientMutationId pullRequest { author { login } authorAssociation id title number body repository { owner { login } name } } revertPullRequest { author { login } authorAssociation id title number body repository { owner { login } name } } }}"',
+          ];
+          final ProcessResult curlProcessResult = await cliCommand.runCliCommand(executable: executable, arguments: args);
+          log.info('curl command stdout: ${curlProcessResult.stdout}');
+          log.info('curl command stderr: ${curlProcessResult.stderr}');
+
           // final GraphQLRevertMethod graphQLRevertMethod = GraphQLRevertMethod();
-          // final PullRequest autoSubQueryPullRequest =
+          // final github.PullRequest? pullRequest =
           //     await graphQLRevertMethod.createRevert(config, messagePullRequest);
-          final GitCliRevertMethod gitCliRevertMethod = GitCliRevertMethod();
-          final github.PullRequest pullRequest = await gitCliRevertMethod.createRevert(config, messagePullRequest);
-          // We only need the number from this.
-          log.info('Returned pull request number is ${pullRequest.number}');
+          // final GitCliRevertMethod gitCliRevertMethod = GitCliRevertMethod();
+          // final github.PullRequest? pullRequest = await gitCliRevertMethod.createRevert(config, messagePullRequest);
+          // // We only need the number from this.
+          // log.info('Returned pull request number is ${pullRequest!.number}');
           // We should now have the revert request created.
         }
     }
@@ -170,7 +208,7 @@ class RevertRequestValidationService extends ValidationService {
     //   log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
     // }
 
-    //TODO leave this for testing  
+    //TODO leave this for testing
     log.info('Ack the processed message : $ackId.');
     await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
   }

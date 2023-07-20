@@ -40,7 +40,7 @@ class GitCli {
   Future<bool> isGitRepository(String directory) async {
     final ProcessResult processResult = await _cliCommand.runCliCommand(
       executable: GIT,
-      arguments: [
+      arguments: <String>[
         'rev-parse',
       ],
       throwOnError: false,
@@ -59,7 +59,7 @@ class GitCli {
     required String targetDirectory,
     List<String>? options,
   }) async {
-    final List<String> clone = [
+    final List<String> clone = <String>[
       'clone',
       '$repositoryPrefix${slug.fullName}',
       targetDirectory,
@@ -76,19 +76,53 @@ class GitCli {
     return processResult;
   }
 
-  /// This is necessary with forked repos but may not be necessary with the bot
-  /// as the bot has direct access to the repository.
-  Future<ProcessResult> setUpstream(
+  Future<ProcessResult> setupUserConfig(
     RepositorySlug slug,
     String workingDirectory,
   ) async {
     return _cliCommand.runCliCommand(
       executable: GIT,
-      arguments: [
+      arguments: <String>[
+        'config',
+        '--global',
+        'user.name',
+        '"autosubmit-dev[bot]"',
+      ],
+      workingDirectory: workingDirectory,
+    );
+  }
+
+  Future<ProcessResult> setupUserEmailConfig(
+    RepositorySlug slug,
+    String workingDirectory,
+  ) async {
+    return _cliCommand.runCliCommand(
+      executable: GIT,
+      arguments: <String>[
+        'config',
+        '--global',
+        'user.email',
+        '"\<\>"',
+      ],
+      workingDirectory: workingDirectory,
+    );
+  }
+
+  /// This is necessary with forked repos but may not be necessary with the bot
+  /// as the bot has direct access to the repository.
+  Future<ProcessResult> setUpstream(
+    RepositorySlug slug,
+    String workingDirectory,
+    String branchName,
+    String token,
+  ) async {
+    return _cliCommand.runCliCommand(
+      executable: GIT,
+      arguments: <String>[
         'remote',
-        'add',
-        'upstream',
-        '$repositoryPrefix${slug.fullName}',
+        'set-url',
+        'origin',
+        'https://autosubmit-dev[bot]:$token@github.com/${slug.fullName}.git',
       ],
       workingDirectory: workingDirectory,
     );
@@ -98,7 +132,10 @@ class GitCli {
   Future<ProcessResult> fetchAll(String workingDirectory) async {
     return _cliCommand.runCliCommand(
       executable: GIT,
-      arguments: ['fetch', '--all'],
+      arguments: <String>[
+        'fetch',
+        '--all',
+      ],
     );
   }
 
@@ -117,7 +154,10 @@ class GitCli {
   ) async {
     final ProcessResult processResult = await _cliCommand.runCliCommand(
       executable: GIT,
-      arguments: ['pull', pullMethod],
+      arguments: <String>[
+        'pull',
+        pullMethod,
+      ],
       workingDirectory: workingDirectory,
     );
     return processResult;
@@ -135,9 +175,16 @@ class GitCli {
     // Then create the new branch.
     List<String> args;
     if (useCheckout) {
-      args = ['checkout', '-b', newBranchName];
+      args = <String>[
+        'checkout',
+        '-b',
+        newBranchName,
+      ];
     } else {
-      args = ['branch', newBranchName];
+      args = <String>[
+        'branch',
+        newBranchName,
+      ];
     }
 
     return _cliCommand.runCliCommand(
@@ -155,7 +202,7 @@ class GitCli {
     // Issue a revert of the pull request.
     return _cliCommand.runCliCommand(
       executable: GIT,
-      arguments: [
+      arguments: <String>[
         'revert',
         '--no-edit',
         '-m',
@@ -173,7 +220,12 @@ class GitCli {
   ) async {
     return _cliCommand.runCliCommand(
       executable: GIT,
-      arguments: ['push', '--verbose', '--progress', 'origin', branchName],
+      arguments: <String>[
+        'push',
+        '--verbose',
+        'origin',
+        branchName,
+      ],
       workingDirectory: workingDirectory,
     );
   }
@@ -185,7 +237,7 @@ class GitCli {
   ) async {
     return _cliCommand.runCliCommand(
       executable: GIT,
-      arguments: [
+      arguments: <String>[
         'branch',
         '-D',
         branchName,
@@ -203,7 +255,12 @@ class GitCli {
   ) async {
     return _cliCommand.runCliCommand(
       executable: GIT,
-      arguments: ['push', 'origin', '--delete', branchName],
+      arguments: <String>[
+        'push',
+        'origin',
+        '--delete',
+        branchName,
+      ],
     );
   }
 
@@ -213,7 +270,11 @@ class GitCli {
   ) async {
     return _cliCommand.runCliCommand(
       executable: GIT,
-      arguments: ['config', '--get', 'remote.origin.url'],
+      arguments: <String>[
+        'config',
+        '--get',
+        'remote.origin.url',
+      ],
       workingDirectory: workingDirectory,
     );
   }
@@ -224,7 +285,7 @@ class GitCli {
   ) async {
     return _cliCommand.runCliCommand(
       executable: GIT,
-      arguments: [
+      arguments: <String>[
         'switch',
         branchName,
       ],

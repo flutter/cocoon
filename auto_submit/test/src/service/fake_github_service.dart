@@ -382,4 +382,16 @@ class FakeGithubService implements GithubService {
     // TODO: implement createPullRequest
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<PullRequest>> listPullRequests(RepositorySlug slug,
+      {int? pages,
+      String? base,
+      String direction = 'desc',
+      String? head,
+      String sort = 'created',
+      String state = 'open'}) {
+    // TODO: implement listPullRequests
+    throw UnimplementedError();
+  }
 }
