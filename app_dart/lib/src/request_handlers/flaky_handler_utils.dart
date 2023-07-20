@@ -16,10 +16,15 @@ import '../../protos.dart' as pb;
 
 // String constants.
 const String kFlakeLabel = 'c: flake';
-const String kFrameworkLabel = 'framework';
-const String kToolLabel = 'tool';
-const String kEngineLabel = 'engine';
-const String kWebLabel = 'platform-web';
+const String kFrameworkLabel = 'team-framework';
+const String kToolLabel = 'team-tool';
+const String kEngineLabel = 'team-engine';
+const String kWebLabel = 'team-web';
+const String kInfraLabel = 'team-infra';
+const String kAndroidLabel = 'team-android';
+const String kIosLabel = 'team-ios';
+const String kReleaseLabel = 'team-release';
+const String kEcosystemLabel = 'team-ecosystem';
 const String kP0Label = 'P0';
 const String kP1Label = 'P1';
 const String kP2Label = 'P2';
@@ -408,19 +413,18 @@ String _issueBuilderLink(String? builder) {
 }
 
 String? getTeamLabelFromTeam(Team? team) {
-  switch (team) {
-    case Team.framework:
-      return kFrameworkLabel;
-    case Team.engine:
-      return kEngineLabel;
-    case Team.tool:
-      return kToolLabel;
-    case Team.web:
-      return kWebLabel;
-    case Team.unknown:
-    case null:
-      return null;
-  }
+  return switch (team) {
+    Team.framework => kFrameworkLabel,
+    Team.engine => kEngineLabel,
+    Team.tool => kToolLabel,
+    Team.web => kWebLabel,
+    Team.infra => kInfraLabel,
+    Team.android => kAndroidLabel,
+    Team.ios => kIosLabel,
+    Team.release => kReleaseLabel,
+    Team.plugins => kEcosystemLabel,
+    Team.unknown || null => null,
+  };
 }
 
 enum BuilderType {
@@ -441,6 +445,11 @@ enum Team {
   engine,
   tool,
   web,
+  infra,
+  android,
+  ios,
+  release,
+  plugins,
   unknown,
 }
 
