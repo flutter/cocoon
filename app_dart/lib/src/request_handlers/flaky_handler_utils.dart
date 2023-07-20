@@ -16,10 +16,15 @@ import '../../protos.dart' as pb;
 
 // String constants.
 const String kFlakeLabel = 'c: flake';
-const String kFrameworkLabel = 'framework';
-const String kToolLabel = 'tool';
-const String kEngineLabel = 'engine';
-const String kWebLabel = 'platform-web';
+const String kFrameworkLabel = 'team-framework';
+const String kToolLabel = 'team-tool';
+const String kEngineLabel = 'team-engine';
+const String kWebLabel = 'team-web';
+const String kInfraLabel = 'team-infra';
+const String kAndroidLabel = 'team-android';
+const String kIosLabel = 'team-ios';
+const String kReleaseLabel = 'team-release';
+const String kEcosystemLabel = 'team-ecosystem';
 const String kP0Label = 'P0';
 const String kP1Label = 'P1';
 const String kP2Label = 'P2';
@@ -417,6 +422,16 @@ String? getTeamLabelFromTeam(Team? team) {
       return kToolLabel;
     case Team.web:
       return kWebLabel;
+    case Team.infra:
+      return kInfraLabel;
+    case Team.android:
+      return kAndroidLabel;
+    case Team.ios:
+      return kIosLabel;
+    case Team.release:
+      return kReleaseLabel;
+    case Team.plugins:
+      return kEcosystemLabel;
     case Team.unknown:
     case null:
       return null;
@@ -441,6 +456,11 @@ enum Team {
   engine,
   tool,
   web,
+  infra,
+  android,
+  ios,
+  release,
+  plugins,
   unknown,
 }
 
