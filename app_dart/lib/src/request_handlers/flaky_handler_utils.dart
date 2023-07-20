@@ -423,8 +423,7 @@ String? getTeamLabelFromTeam(Team? team) {
     Team.ios => kIosLabel,
     Team.release => kReleaseLabel,
     Team.plugins => kEcosystemLabel,
-    Team.unknown => null,
-    null => null,
+    Team.unknown || null => null,
   };
 }
 
