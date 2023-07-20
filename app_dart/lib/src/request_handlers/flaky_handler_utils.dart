@@ -413,29 +413,19 @@ String _issueBuilderLink(String? builder) {
 }
 
 String? getTeamLabelFromTeam(Team? team) {
-  switch (team) {
-    case Team.framework:
-      return kFrameworkLabel;
-    case Team.engine:
-      return kEngineLabel;
-    case Team.tool:
-      return kToolLabel;
-    case Team.web:
-      return kWebLabel;
-    case Team.infra:
-      return kInfraLabel;
-    case Team.android:
-      return kAndroidLabel;
-    case Team.ios:
-      return kIosLabel;
-    case Team.release:
-      return kReleaseLabel;
-    case Team.plugins:
-      return kEcosystemLabel;
-    case Team.unknown:
-    case null:
-      return null;
-  }
+  return switch (team) {
+    Team.framework => kFrameworkLabel,
+    Team.engine => kEngineLabel,
+    Team.tool => kToolLabel,
+    Team.web => kWebLabel,
+    Team.infra => kInfraLabel,
+    Team.android => kAndroidLabel,
+    Team.ios => kIosLabel,
+    Team.release => kReleaseLabel,
+    Team.plugins => kEcosystemLabel,
+    Team.unknown => null,
+    null => null,
+  };
 }
 
 enum BuilderType {
