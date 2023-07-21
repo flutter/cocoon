@@ -43,14 +43,24 @@ class GitCliRevertMethod implements RevertMethod {
       await gitRepositoryManager.deleteRepository();
     }
 
+    sleep(const Duration(seconds: 10));
+
     // at this point the branch has been created an pushed to the remote.
     final GitRevertBranchName gitRevertBranchName = GitRevertBranchName(commitSha);
     final GithubService githubService = await config.createGithubService(slug);
+
+    log.info('Attempting to create pull request with ${gitRevertBranchName.branch}.');
     final github.PullRequest revertPullRequest = await githubService.createPullRequest(
       slug: slug,
+      title: 'Test title',
       head: gitRevertBranchName.branch,
-      base: baseBranch,
+      base: 'main',
+      draft: false,
+      body: 'This is a test to validate revert creation.',
     );
+
+    log.info('pull request number is: ${revertPullRequest.number}');
+
     return revertPullRequest;
   }
 }

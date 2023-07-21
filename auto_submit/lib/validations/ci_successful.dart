@@ -51,7 +51,7 @@ class CiSuccessful extends Validation {
     if (baseBranch == targetBranch) {
       // Only validate tree status where base branch is the default branch.
       if (!treeStatusCheck(slug, statuses)) {
-        log.warning('Statuses were not ready for ${slug.fullName}, sha: $commit.');
+        log.warning('Statuses were not ready for ${slug.fullName}, sha: ${commit.oid}.');
         return ValidationResult(false, Action.IGNORE_TEMPORARILY, 'Hold to wait for the tree status ready.');
       }
     } else {

@@ -116,44 +116,41 @@ class RevertRequestValidationService extends ValidationService {
         }
       case 'closed':
         {
-          
-          final RepositorySlug slug = messagePullRequest.base!.repo!.slug();
-          final String nodeId = messagePullRequest.nodeId!;
-          // Format the request fields for the new revert pull request.
-          final RevertIssueBodyFormatter formatter = RevertIssueBodyFormatter(
-            slug: slug,
-            originalPrNumber: messagePullRequest.number!,
-            initiatingAuthor: 'ricardoamador',
-            originalPrTitle: messagePullRequest.title!,
-            originalPrBody: messagePullRequest.body!,
-          ).format;
+          //TODO: leave if still working on debugging with github
+          // final RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+          // final String nodeId = messagePullRequest.nodeId!;
+          // // Format the request fields for the new revert pull request.
+          // final RevertIssueBodyFormatter formatter = RevertIssueBodyFormatter(
+          //   slug: slug,
+          //   originalPrNumber: messagePullRequest.number!,
+          //   initiatingAuthor: 'ricardoamador',
+          //   originalPrTitle: messagePullRequest.title!,
+          //   originalPrBody: messagePullRequest.body!,
+          // ).format;
 
-          //Need to get a github token.
-          final String token = await config.generateGithubToken(messagePullRequest.base!.repo!.slug());
-          //TODO run a curl command for github to get request id.
-          final CliCommand cliCommand = CliCommand();
-          const String executable = 'curl';
-          final List<String> args = <String>[
-            '-v',
-            '-H "Authorization: bearer $token"',
-            '-H "Content-Type:application/json"',
-            '-X',
-            'POST',
-            "https://api.github.com/graphql",
-            '-d',
-            '\'{"query": "mutation RevertPullFlutterPullRequest { revertPullRequest(input: {body: \\"Testing revert mutation\\", clientMutationId: \\"ra186026\\", draft: false, pullRequestId: \\"${messagePullRequest.nodeId}\\", title: \\"Revert comment in configuration file.\\"}) { clientMutationId pullRequest { author { login } authorAssociation id title number body repository { owner { login } name } } revertPullRequest { author { login } authorAssociation id title number body repository { owner { login } name } } }}"\'',
-          ];
-          final ProcessResult curlProcessResult = await cliCommand.runCliCommand(executable: executable, arguments: args);
-          log.info('curl command stdout: ${curlProcessResult.stdout}');
-          log.info('curl command stderr: ${curlProcessResult.stderr}');
+          // //Need to get a github token.
+          // final String token = await config.generateGithubToken(messagePullRequest.base!.repo!.slug());
+          // //TODO run a curl command for github to get request id.
+          // final CliCommand cliCommand = CliCommand();
+          // const String executable = 'curl';
+          // final List<String> args = <String>[
+          //   '-v',
+          //   '-H "Authorization: bearer $token"',
+          //   '-H "Content-Type:application/json"',
+          //   '-X',
+          //   'POST',
+          //   "https://api.github.com/graphql",
+          //   '-d',
+          //   '\'{"query": "mutation RevertPullFlutterPullRequest { revertPullRequest(input: {body: \\"Testing revert mutation\\", clientMutationId: \\"ra186026\\", draft: false, pullRequestId: \\"${messagePullRequest.nodeId}\\", title: \\"Revert comment in configuration file.\\"}) { clientMutationId pullRequest { author { login } authorAssociation id title number body repository { owner { login } name } } revertPullRequest { author { login } authorAssociation id title number body repository { owner { login } name } } }}"\'',
+          // ];
+          // final ProcessResult curlProcessResult = await cliCommand.runCliCommand(executable: executable, arguments: args);
+          // log.info('curl command stdout: ${curlProcessResult.stdout}');
+          // log.info('curl command stderr: ${curlProcessResult.stderr}');
 
-          // final GraphQLRevertMethod graphQLRevertMethod = GraphQLRevertMethod();
-          // final github.PullRequest? pullRequest =
-          //     await graphQLRevertMethod.createRevert(config, messagePullRequest);
-          // final GitCliRevertMethod gitCliRevertMethod = GitCliRevertMethod();
-          // final github.PullRequest? pullRequest = await gitCliRevertMethod.createRevert(config, messagePullRequest);
+          final GitCliRevertMethod gitCliRevertMethod = GitCliRevertMethod();
+          final github.PullRequest? pullRequest = await gitCliRevertMethod.createRevert(config, messagePullRequest);
           // // We only need the number from this.
-          // log.info('Returned pull request number is ${pullRequest!.number}');
+          log.info('Returned revert pull request number is ${pullRequest!.number}');
           // We should now have the revert request created.
         }
     }

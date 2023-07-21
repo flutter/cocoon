@@ -100,8 +100,8 @@ class GithubService {
       String? head,
       required String base,
       bool draft = false,
-      String? body}) async {
-    final CreatePullRequest createPullRequest = CreatePullRequest(title, head, base);
+      String? body,}) async {
+    final CreatePullRequest createPullRequest = CreatePullRequest(title, head, base, draft: draft, body: body);
     return github.pullRequests.create(slug, createPullRequest);
   }
 
