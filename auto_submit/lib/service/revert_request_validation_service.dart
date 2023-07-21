@@ -141,7 +141,7 @@ class RevertRequestValidationService extends ValidationService {
             'POST',
             "https://api.github.com/graphql",
             '-d',
-            '{"query": "mutation RevertPullFlutterPullRequest { revertPullRequest(input: {body: \"Testing revert mutation\", clientMutationId: \"ra186026\", draft: false, pullRequestId: \"${messagePullRequest.nodeId}\", title: \"Revert comment in configuration file.\"}) { clientMutationId pullRequest { author { login } authorAssociation id title number body repository { owner { login } name } } revertPullRequest { author { login } authorAssociation id title number body repository { owner { login } name } } }}"',
+            '\'{"query": "mutation RevertPullFlutterPullRequest { revertPullRequest(input: {body: \\"Testing revert mutation\\", clientMutationId: \\"ra186026\\", draft: false, pullRequestId: \\"${messagePullRequest.nodeId}\\", title: \\"Revert comment in configuration file.\\"}) { clientMutationId pullRequest { author { login } authorAssociation id title number body repository { owner { login } name } } revertPullRequest { author { login } authorAssociation id title number body repository { owner { login } name } } }}"\'',
           ];
           final ProcessResult curlProcessResult = await cliCommand.runCliCommand(executable: executable, arguments: args);
           log.info('curl command stdout: ${curlProcessResult.stdout}');
