@@ -19,7 +19,7 @@ dependencies:
   dbcrypt: 2.0.0
   file: 6.1.4
   fixnum: 1.1.0
-  gcloud: 0.8.9
+  gcloud: 0.8.10
   github: 9.16.0
   googleapis: 11.3.0
   googleapis_auth: 1.4.1
