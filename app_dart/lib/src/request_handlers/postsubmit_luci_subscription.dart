@@ -81,7 +81,17 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     log.fine('Found $task');
 
     task.updateFromBuild(build);
-    await datastore.insert(<Task>[task]);
+    
+    try {
+      await datastore.withTransaction<void>((Transaction transaction) async {
+        transaction.queueMutations(inserts: <Task>[task!]);
+        await transaction.commit();
+      });
+    } catch (error) {
+      log.severe('Failed to update build: $error');
+      rethrow;
+    }
+
     log.fine('Updated datastore');
 
     final Commit commit = await datastore.lookupByValue<Commit>(commitKey);
