@@ -249,8 +249,8 @@ class DatastoreService {
     for (List<Model<dynamic>> shard in shards) {
       // Simplify the transaction and commit and remote the retries for now.
       await db.withTransaction<void>((Transaction transaction) async {
-            transaction.queueMutations(inserts: shard);
-          });
+        transaction.queueMutations(inserts: shard);
+      });
     }
   }
 
