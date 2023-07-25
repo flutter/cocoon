@@ -247,15 +247,10 @@ class DatastoreService {
   Future<void> insert(List<Model<dynamic>> rows) async {
     final List<List<Model<dynamic>>> shards = await shard(rows);
     for (List<Model<dynamic>> shard in shards) {
-      await runTransactionWithRetries(
-        () async {
-          await db.withTransaction<void>((Transaction transaction) async {
+      // Simplify the transaction and commit and remote the retries for now.
+      await db.withTransaction<void>((Transaction transaction) async {
             transaction.queueMutations(inserts: shard);
-            await transaction.commit();
           });
-        },
-        retryOptions: retryOptions,
-      );
     }
   }
 
@@ -266,7 +261,6 @@ class DatastoreService {
       () async {
         await db.withTransaction<void>((Transaction transaction) async {
           results = await transaction.lookup<T>(keys);
-          await transaction.commit();
         });
       },
       retryOptions: retryOptions,
@@ -281,7 +275,6 @@ class DatastoreService {
       () async {
         await db.withTransaction<void>((Transaction transaction) async {
           result = await db.lookupValue<T>(key, orElse: orElse);
-          await transaction.commit();
         });
       },
       retryOptions: retryOptions,
