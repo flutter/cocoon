@@ -20,7 +20,7 @@ dependencies:
   file: 6.1.4
   fixnum: 1.1.0
   gcloud: 0.8.10
-  github: 9.16.0
+  github: 9.17.0
   googleapis: 11.3.0
   googleapis_auth: 1.4.1
   gql: 0.14.0
