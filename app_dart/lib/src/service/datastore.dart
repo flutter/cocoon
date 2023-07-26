@@ -246,7 +246,7 @@ class DatastoreService {
   // Note: please do not add retries to any of the following queries. The following
   // change was made to add retries to the appengine grpc implementation of the
   // datastore service: https://github.com/dart-lang/appengine/pull/167.
-  // Adding retries to the following queries will cause conflicts with commits 
+  // Adding retries to the following queries will cause conflicts with commits
   // and effectively prevent us from inserting update to Datastore.
   //
   // See this issue for a more detailed summary and analysis:
