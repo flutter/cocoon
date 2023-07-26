@@ -243,6 +243,15 @@ class DatastoreService {
     return shards;
   }
 
+  // Note: please do not add retries to any of the following queries. The following
+  // change was made to add retries to the appengine grpc implementation of the
+  // datastore service: https://github.com/dart-lang/appengine/pull/167.
+  // Adding retries to the following queries will cause conflicts with commits 
+  // and effectively prevent us from inserting update to Datastore.
+  //
+  // See this issue for a more detailed summary and analysis:
+  // https://github.com/flutter/flutter/issues/131310
+
   /// Inserts [rows] into datastore sharding the inserts if needed.
   Future<void> insert(List<Model<dynamic>> rows) async {
     final List<List<Model<dynamic>>> shards = await shard(rows);
