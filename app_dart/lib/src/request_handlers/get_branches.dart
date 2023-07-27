@@ -6,9 +6,11 @@ import 'dart:async';
 
 import 'package:cocoon_service/src/model/appengine/branch.dart';
 import 'package:process_runner/process_runner.dart';
+import 'package:github/github.dart' as gh;
 
 import '../../cocoon_service.dart';
 import '../service/datastore.dart';
+import '../service/github_service.dart';
 
 /// Return currently active branches across all repos.
 ///
@@ -39,30 +41,43 @@ import '../service/datastore.dart';
 class GetBranches extends RequestHandler<Body> {
   GetBranches({
     required super.config,
+    required this.branchService,
     this.datastoreProvider = DatastoreService.defaultProvider,
     this.processRunner,
   });
 
+  final BranchService branchService;
   final DatastoreServiceProvider datastoreProvider;
   ProcessRunner? processRunner;
 
   static const Duration kActiveBranchActivity = Duration(days: 60);
 
+  bool isRecent(Branch b) {
+    return DateTime.now().millisecondsSinceEpoch - b.lastActivity! < kActiveBranchActivity.inMilliseconds ||
+        config.supportedRepos.map((repo) => Config.defaultBranch(repo)).toSet().contains(b.name);
+  }
+
   @override
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider(config.db);
+    List<Branch> branches = await datastore.queryBranches().toList();
 
-    List<Branch> branches = await datastore
-        .queryBranches()
+    // From the dashboard point of view, these are the subset of branches we care about.
+    final RegExp branchRegex = RegExp(r'^main|^master|^flutter-.+|^fuchsia.+');
+
+    // Fetch release branches too.
+    final gh.GitHub github = await config.createGitHubClient(slug: Config.flutterSlug);
+    final GithubService githubService = GithubService(github);
+    final List<Map<String, String>> branchNamesMap =
+        await branchService.getReleaseBranches(githubService: githubService, slug: Config.flutterSlug);
+    final List<String?> releaseBranchNames = branchNamesMap.map((branchMap) => branchMap["branch"]).toList();
+    // Retrieve branches with recent activities and release branches.
+    branches = branches
         .where(
-          (Branch b) =>
-              DateTime.now().millisecondsSinceEpoch - b.lastActivity! < kActiveBranchActivity.inMilliseconds ||
-              <String>['main', 'master'].contains(b.name),
+          (branch) =>
+              (isRecent(branch) && branch.name.contains(branchRegex)) || releaseBranchNames.contains(branch.name),
         )
         .toList();
-    // From the dashboard point of view, these are the subset of branches we care about.
-    final RegExp branchRegex = RegExp(r'^beta|^stable|^main|^master|^flutter-.+|^fuchsia.+');
-    branches = branches.where((branch) => branch.name.contains(branchRegex)).toList();
     return Body.forJson(branches);
   }
 }
