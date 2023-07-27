@@ -18,7 +18,6 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
-import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
@@ -45,7 +44,6 @@ void main() {
     late MockClient mockHttpClient;
     late RepositorySlug slug;
     late RepositorySlug engineSlug;
-    late RetryOptions retryOptions;
 
     final List<LogRecord> records = <LogRecord>[];
 
@@ -60,12 +58,6 @@ void main() {
       );
       tester = ApiRequestHandlerTester(context: authContext);
       mockHttpClient = MockClient((_) async => http.Response('{}', HttpStatus.ok));
-      retryOptions = const RetryOptions(
-        delayFactor: Duration(microseconds: 1),
-        maxDelay: Duration(microseconds: 2),
-        maxAttempts: 2,
-      );
-
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
       githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
         if (options.variables['sRepoName'] == slug.name) {
@@ -90,11 +82,7 @@ void main() {
         config: config,
         authenticationProvider: auth,
         datastoreProvider: (DatastoreDB db) {
-          return DatastoreService(
-            db,
-            5,
-            retryOptions: retryOptions,
-          );
+          return DatastoreService(db, 5);
         },
         goldClient: mockHttpClient,
         ingestionDelay: Duration.zero,
@@ -431,11 +419,7 @@ void main() {
             config: config,
             authenticationProvider: auth,
             datastoreProvider: (DatastoreDB db) {
-              return DatastoreService(
-                config.db,
-                5,
-                retryOptions: retryOptions,
-              );
+              return DatastoreService(config.db, 5);
             },
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
@@ -839,11 +823,7 @@ void main() {
             config: config,
             authenticationProvider: auth,
             datastoreProvider: (DatastoreDB db) {
-              return DatastoreService(
-                config.db,
-                5,
-                retryOptions: retryOptions,
-              );
+              return DatastoreService(config.db, 5);
             },
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
@@ -900,11 +880,7 @@ void main() {
             config: config,
             authenticationProvider: auth,
             datastoreProvider: (DatastoreDB db) {
-              return DatastoreService(
-                config.db,
-                5,
-                retryOptions: retryOptions,
-              );
+              return DatastoreService(config.db, 5);
             },
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
@@ -961,11 +937,7 @@ void main() {
             config: config,
             authenticationProvider: auth,
             datastoreProvider: (DatastoreDB db) {
-              return DatastoreService(
-                config.db,
-                5,
-                retryOptions: retryOptions,
-              );
+              return DatastoreService(config.db, 5);
             },
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
@@ -1031,11 +1003,7 @@ void main() {
             config: config,
             authenticationProvider: auth,
             datastoreProvider: (DatastoreDB db) {
-              return DatastoreService(
-                config.db,
-                5,
-                retryOptions: retryOptions,
-              );
+              return DatastoreService(config.db, 5);
             },
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
@@ -1099,11 +1067,7 @@ void main() {
             config: config,
             authenticationProvider: auth,
             datastoreProvider: (DatastoreDB db) {
-              return DatastoreService(
-                config.db,
-                5,
-                retryOptions: retryOptions,
-              );
+              return DatastoreService(config.db, 5);
             },
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
@@ -1181,11 +1145,7 @@ void main() {
             config: config,
             authenticationProvider: auth,
             datastoreProvider: (DatastoreDB db) {
-              return DatastoreService(
-                config.db,
-                5,
-                retryOptions: retryOptions,
-              );
+              return DatastoreService(config.db, 5);
             },
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
@@ -1391,11 +1351,7 @@ void main() {
           config: config,
           authenticationProvider: auth,
           datastoreProvider: (DatastoreDB db) {
-            return DatastoreService(
-              config.db,
-              5,
-              retryOptions: retryOptions,
-            );
+            return DatastoreService(config.db, 5);
           },
           goldClient: mockHttpClient,
           ingestionDelay: Duration.zero,
@@ -1506,11 +1462,7 @@ void main() {
           config: config,
           authenticationProvider: auth,
           datastoreProvider: (DatastoreDB db) {
-            return DatastoreService(
-              config.db,
-              5,
-              retryOptions: retryOptions,
-            );
+            return DatastoreService(config.db, 5);
           },
           goldClient: mockHttpClient,
           ingestionDelay: Duration.zero,
