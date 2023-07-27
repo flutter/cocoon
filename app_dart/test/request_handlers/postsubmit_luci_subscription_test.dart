@@ -110,6 +110,29 @@ void main() {
     expect(task.endTimestamp, 1565049193786);
   });
 
+  test('keep task status when build is with null result', () async {
+    final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
+    final Task task = generateTask(
+      4507531199512576,
+      name: 'Linux A',
+      parent: commit,
+      status: Task.statusNew,
+    );
+    config.db.values[task.key] = task;
+    config.db.values[commit.key] = commit;
+    tester.message = createBuildbucketPushMessage(
+      'SCHEDULED',
+      builderName: 'Linux A',
+      result: null,
+      userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
+    );
+
+    expect(task.status, Task.statusNew);
+    expect(task.attempts, 1);
+    expect(await tester.post(handler), Body.empty);
+    expect(task.status, Task.statusNew);
+  });
+
   test('does not fail on empty user data', () async {
     tester.message = createBuildbucketPushMessage(
       'COMPLETED',
