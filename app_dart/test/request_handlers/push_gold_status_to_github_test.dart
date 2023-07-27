@@ -18,7 +18,6 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
-import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
