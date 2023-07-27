@@ -86,7 +86,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       await datastore.insert(<Task>[task]);
       log.fine('Updated task status from $oldTaskStatus to ${task.status}');
     } else {
-      log.fine('Skip updating task as status remains unchanges: ${task.status}');
+      log.fine('Skip updating task as status remains unchanged: ${task.status}');
       return Body.empty;
     }
 
