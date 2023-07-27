@@ -45,10 +45,10 @@ class BranchService {
     }
     final String? branch = createEvent.ref;
     if (branch == null) {
-      log.warning('Branch is null, exiting early');
+      log.fine('Branch is null, exiting early');
       return;
     }
-    final String repository = createEvent.repository!.slug().fullName;
+    final gh.RepositorySlug slug = createEvent.repository!.slug();
     final int lastActivity = createEvent.repository!.pushedAt!.millisecondsSinceEpoch;
     final bool forked = createEvent.repository!.isFork;
 
@@ -57,7 +57,7 @@ class BranchService {
       return;
     }
 
-    final String id = '$repository/$branch';
+    final String id = '${slug.fullName}/$branch';
     log.info('the id used to create branch key was $id');
     final DatastoreService datastore = DatastoreService.defaultProvider(config.db);
     final Key<String> key = datastore.db.emptyKey.append<String>(Branch, id: id);

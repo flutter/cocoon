@@ -54,7 +54,7 @@ class GetBranches extends RequestHandler<Body> {
 
   bool isRecent(Branch b) {
     return DateTime.now().millisecondsSinceEpoch - b.lastActivity! < kActiveBranchActivity.inMilliseconds ||
-        <String>['main', 'master'].contains(b.name);
+        config.supportedRepos.map((repo) => Config.defaultBranch(repo)).toSet().contains(b.name);
   }
 
   @override
