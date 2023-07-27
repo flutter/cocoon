@@ -1,4 +1,4 @@
-// Copyright 2022 The Flutter Authors. All rights reserved.
+// Copyright 2023 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -7,7 +7,7 @@ import 'dart:convert';
 
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto hide PullRequest;
-import 'package:auto_submit/service/process_method.dart';
+import 'package:auto_submit/service/revert_request_validation_service.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart';
@@ -31,7 +31,7 @@ import '../utilities/mocks.dart';
 import 'bigquery_test.dart';
 
 void main() {
-  late ValidationService validationService;
+  late RevertRequestValidationService validationService;
   late FakeConfig config;
   late FakeGithubService githubService;
   late FakeGraphQLClient githubGraphQLClient;
@@ -44,7 +44,7 @@ void main() {
     githubGraphQLClient = FakeGraphQLClient();
     githubService = FakeGithubService(client: MockGitHub());
     config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
-    validationService = ValidationService(
+    validationService = RevertRequestValidationService(
       config,
       retryOptions: const RetryOptions(delayFactor: Duration.zero, maxDelay: Duration.zero, maxAttempts: 1),
     );
@@ -60,125 +60,6 @@ void main() {
         QueryResponse.fromJson(jsonDecode(insertDeleteUpdateSuccessResponse) as Map<dynamic, dynamic>),
       );
     });
-  });
-
-  test('Removes label and post comment when no approval for non-flutter hacker', () async {
-    final PullRequestHelper flutterRequest = PullRequestHelper(
-      prNumber: 0,
-      lastCommitHash: oid,
-      reviews: <PullRequestReviewHelper>[],
-    );
-    githubService.checkRunsData = checkRunsMock;
-    githubService.createCommentData = createCommentMock;
-    githubService.isTeamMemberMockMap['author1'] = false;
-    githubService.isTeamMemberMockMap['member'] = true;
-    final FakePubSub pubsub = FakePubSub();
-    final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-    githubService.pullRequestData = pullRequest;
-    unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-    final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-
-    await validationService.processPullRequest(
-      config: config,
-      result: queryResult,
-      messagePullRequest: pullRequest,
-      ackId: 'test',
-      pubsub: pubsub,
-    );
-
-    expect(githubService.issueComment, isNotNull);
-    expect(githubService.labelRemoved, true);
-    assert(pubsub.messagesQueue.isEmpty);
-  });
-
-  // This tests for valid pull request into not default base branch which
-  // will ignore the tree status as it does not matter.
-  test('Processes successfully when base branch is not default', () async {
-    final PullRequestHelper flutterRequest = PullRequestHelper(
-      prNumber: 0,
-      lastCommitHash: oid,
-      reviews: <PullRequestReviewHelper>[
-        const PullRequestReviewHelper(
-          authorName: 'member',
-          state: ReviewState.APPROVED,
-          memberType: MemberType.OWNER,
-        ),
-      ],
-    );
-    githubService.checkRunsData = checkRunsMock;
-    githubService.checkRunsMock = checkRunsMock;
-    githubService.createCommentData = createCommentMock;
-    githubService.isTeamMemberMockMap['author1'] = true;
-    githubService.isTeamMemberMockMap['member'] = true;
-    final FakePubSub pubsub = FakePubSub();
-    final PullRequest pullRequest = generatePullRequest(
-      prNumber: 0,
-      repoName: slug.name,
-      baseRef: 'feature_a',
-      mergeable: true,
-    );
-    unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-    final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-    githubService.pullRequestMock = pullRequest;
-    githubService.mergeRequestMock = PullRequestMerge(
-      merged: true,
-      sha: 'asdfioefmasdf',
-      message: 'Merged successfully.',
-    );
-
-    await validationService.processPullRequest(
-      config: config,
-      result: queryResult,
-      messagePullRequest: pullRequest,
-      ackId: 'test',
-      pubsub: pubsub,
-    );
-
-    // These checks indicate that the pull request has been merged as the label
-    // is not removed and there was no issue coment generated and the message
-    // was acknowledged.
-    expect(githubService.issueComment, isNull);
-    expect(githubService.labelRemoved, false);
-    assert(pubsub.messagesQueue.isEmpty);
-  });
-
-  // This tests for valid pull request where tree status was not ready for
-  // processing, meaning no issueComment was created and the 'autosubmit' label
-  // is not removed and we do not ack the message.
-  test('Processing fails when base branch is default with no statuses', () async {
-    final PullRequestHelper flutterRequest = PullRequestHelper(
-      prNumber: 0,
-      lastCommitHash: oid,
-      reviews: <PullRequestReviewHelper>[
-        const PullRequestReviewHelper(
-          authorName: 'member',
-          state: ReviewState.APPROVED,
-          memberType: MemberType.OWNER,
-        ),
-      ],
-      lastCommitStatuses: null,
-    );
-    githubService.checkRunsData = checkRunsMock;
-    githubService.createCommentData = createCommentMock;
-    githubService.isTeamMemberMockMap['author1'] = true;
-    githubService.isTeamMemberMockMap['member'] = true;
-    final FakePubSub pubsub = FakePubSub();
-    final PullRequest pullRequest = generatePullRequest(prNumber: 0);
-    githubService.pullRequestData = pullRequest;
-    unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-    final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-
-    await validationService.processPullRequest(
-      config: config,
-      result: queryResult,
-      messagePullRequest: pullRequest,
-      ackId: 'test',
-      pubsub: pubsub,
-    );
-
-    expect(githubService.issueComment, isNull);
-    expect(githubService.labelRemoved, false);
-    assert(pubsub.messagesQueue.isNotEmpty);
   });
 
   test('Remove label and post comment when no revert label.', () async {
@@ -222,6 +103,8 @@ void main() {
 
       githubService.checkRunsData = checkRunsMock;
       githubService.createCommentData = createCommentMock;
+      githubService.isTeamMemberMockMap['author1'] = true;
+      githubService.isTeamMemberMockMap['member'] = true;
       githubService.mergeRequestMock = PullRequestMerge(
         merged: true,
         sha: 'sha',
@@ -368,7 +251,7 @@ void main() {
         labelName: 'revert',
         body: 'Reverts flutter/flutter#1234',
       );
-
+      githubService.pullRequestMock = pullRequest;
       final FakeRevert fakeRevert = FakeRevert(config: config);
       fakeRevert.validationResult =
           ValidationResult(false, Action.IGNORE_TEMPORARILY, 'Some of the required checks did not complete in time.');
@@ -395,7 +278,7 @@ void main() {
     });
 
     test('Exhaust retries on merge on retryable error.', () async {
-      validationService = ValidationService(
+      validationService = RevertRequestValidationService(
         config,
         retryOptions: const RetryOptions(
           delayFactor: Duration.zero,
@@ -587,7 +470,7 @@ void main() {
     });
 
     test('Merge fails the first time but then succeeds after retry.', () async {
-      validationService = ValidationService(
+      validationService = RevertRequestValidationService(
         config,
         retryOptions: const RetryOptions(
           delayFactor: Duration.zero,
@@ -663,40 +546,14 @@ void main() {
   });
 
   group('Process pull request method tests', () {
-    test('Should process message when autosubmit label exists and pr is open', () async {
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-      githubService.pullRequestData = pullRequest;
-      final ProcessMethod processMethod = await validationService.processPullRequestMethod(pullRequest);
-
-      expect(processMethod, ProcessMethod.processAutosubmit);
-    });
-
-    test('Skip processing message when autosubmit label does not exist anymore', () async {
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-      pullRequest.labels = <IssueLabel>[];
-      githubService.pullRequestData = pullRequest;
-      final ProcessMethod processMethod = await validationService.processPullRequestMethod(pullRequest);
-
-      expect(processMethod, ProcessMethod.doNotProcess);
-    });
-
-    test('Skip processing message when the pull request is closed', () async {
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-      pullRequest.state = 'closed';
-      githubService.pullRequestData = pullRequest;
-      final ProcessMethod processMethod = await validationService.processPullRequestMethod(pullRequest);
-
-      expect(processMethod, ProcessMethod.doNotProcess);
-    });
-
     test('Should process message when revert label exists and pr is open', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
-      final ProcessMethod processMethod = await validationService.processPullRequestMethod(pullRequest);
+      final bool shouldProcess = await validationService.shouldProcess(pullRequest);
 
-      expect(processMethod, ProcessMethod.processRevert);
+      expect(shouldProcess, true);
     });
 
     test('Should process message as revert when revert and autosubmit labels are present and pr is open', () async {
@@ -704,9 +561,9 @@ void main() {
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
       pullRequest.labels!.add(issueLabel);
       githubService.pullRequestData = pullRequest;
-      final ProcessMethod processMethod = await validationService.processPullRequestMethod(pullRequest);
+      final bool shouldProcess = await validationService.shouldProcess(pullRequest);
 
-      expect(processMethod, ProcessMethod.processRevert);
+      expect(shouldProcess, true);
     });
 
     test('Skip processing message when revert label exists and pr is closed', () async {
@@ -715,9 +572,9 @@ void main() {
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
-      final ProcessMethod processMethod = await validationService.processPullRequestMethod(pullRequest);
+      final bool shouldProcess = await validationService.shouldProcess(pullRequest);
 
-      expect(processMethod, ProcessMethod.doNotProcess);
+      expect(shouldProcess, false);
     });
   });
 

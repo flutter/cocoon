@@ -32,21 +32,32 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
 
   final Scheduler scheduler;
 
+  static const String branchParam = 'branch';
+
   @override
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider(config.db);
 
     for (gh.RepositorySlug slug in config.supportedRepos) {
-      await _vacuumRepository(slug, datastore: datastore);
+      final String branch = request!.uri.queryParameters[branchParam] ?? Config.defaultBranch(slug);
+      await _vacuumRepository(slug, datastore: datastore, branch: branch);
     }
 
     return Body.empty;
   }
 
-  Future<void> _vacuumRepository(gh.RepositorySlug slug, {DatastoreService? datastore}) async {
+  Future<void> _vacuumRepository(
+    gh.RepositorySlug slug, {
+    DatastoreService? datastore,
+    required String branch,
+  }) async {
     final GithubService githubService = await config.createGithubService(slug);
-    final List<Commit> commits =
-        await _vacuumBranch(slug, Config.defaultBranch(slug), datastore: datastore, githubService: githubService);
+    final List<Commit> commits = await _vacuumBranch(
+      slug,
+      branch,
+      datastore: datastore,
+      githubService: githubService,
+    );
     await scheduler.addCommits(commits);
   }
 

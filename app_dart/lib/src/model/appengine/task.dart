@@ -440,6 +440,7 @@ class Task extends Model<int> {
     if (build.status == Status.started) {
       return status = statusInProgress;
     }
+
     switch (build.result) {
       case Result.success:
         return status = statusSucceeded;
@@ -450,7 +451,8 @@ class Task extends Model<int> {
       case Result.failure:
         return status = statusFailed;
       default:
-        throw BadRequestException('${build.result} is unknown');
+        log.warning('keep task status as build result is ${build.result}.');
+        return status;
     }
   }
 

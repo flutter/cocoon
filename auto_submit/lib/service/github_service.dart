@@ -106,9 +106,14 @@ class GithubService {
     return github.repositories.compareCommits(slug, refBase, refHead);
   }
 
-  /// Removes a lable for a pull request.
+  /// Removes a label from a pull request.
   Future<bool> removeLabel(RepositorySlug slug, int issueNumber, String label) async {
     return github.issues.removeLabelForIssue(slug, issueNumber, label);
+  }
+
+  /// Add labels to a pull request.
+  Future<List<IssueLabel>> addLabels(RepositorySlug slug, int issueNumber, List<String> labels) async {
+    return github.issues.addLabelsToIssue(slug, issueNumber, labels);
   }
 
   /// Create a comment for a pull request.

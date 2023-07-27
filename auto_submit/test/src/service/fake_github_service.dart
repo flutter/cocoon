@@ -169,6 +169,15 @@ class FakeGithubService implements GithubService {
   }
 
   @override
+  Future<List<IssueLabel>> addLabels(RepositorySlug slug, int issueNumber, List<String> labels) async {
+    final List<IssueLabel> labelsAdded = [];
+    for (String labelName in labels) {
+      labelsAdded.add(IssueLabel(name: labelName));
+    }
+    return labelsAdded;
+  }
+
+  @override
   Future<IssueComment> createComment(RepositorySlug slug, int number, String commentBody) async {
     if (useRealComment) {
       issueComment = IssueComment(id: number, body: commentBody);

@@ -192,7 +192,7 @@ void main() {
       // Verify issue label is added correctly.
       captured = verify(mockIssuesService.addLabelsToIssue(captureAny, captureAny, captureAny)).captured;
       expect(captured.length, 3);
-      expect(captured[2], ['framework']);
+      expect(captured[2], ['team-framework']);
 
       // Verify tree is created correctly.
       captured = verify(mockGitService.createTree(captureAny, captureAny)).captured;

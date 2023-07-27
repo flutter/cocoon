@@ -146,4 +146,13 @@ abc_test.sh @ghi @flutter/framework
       });
     });
   });
+  group('Gets team label', () {
+    test('returns correct label when matched', () async {
+      expect(getTeamLabelFromTeam(Team.infra), kInfraLabel);
+    });
+
+    test('returns null when not matched', () async {
+      expect(getTeamLabelFromTeam(Team.unknown), null);
+    });
+  });
 }
