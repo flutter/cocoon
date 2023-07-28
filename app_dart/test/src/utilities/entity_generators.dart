@@ -157,7 +157,7 @@ push_message.Build generatePushMessageBuild(
   String bucket = 'prod',
   String name = 'Linux test_builder',
   push_message.Status? status = push_message.Status.completed,
-  push_message.Result? result = push_message.Result.success,
+  push_message.Result result = push_message.Result.success,
   List<String>? tags,
   int buildNumber = 1,
   DateTime? completedTimestamp,

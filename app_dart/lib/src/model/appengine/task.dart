@@ -439,6 +439,9 @@ class Task extends Model<int> {
 
     if (build.status == Status.started) {
       return status = statusInProgress;
+    } else if (build.status == Status.scheduled) {
+      // Check for scheduled.
+      return status = statusNew;
     }
 
     switch (build.result) {
@@ -451,8 +454,7 @@ class Task extends Model<int> {
       case Result.failure:
         return status = statusFailed;
       default:
-        log.warning('keep task status as build result is ${build.result}.');
-        return status;
+        throw BadRequestException('${build.result} is unknown');
     }
   }
 
