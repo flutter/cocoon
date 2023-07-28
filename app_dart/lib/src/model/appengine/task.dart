@@ -439,11 +439,7 @@ class Task extends Model<int> {
 
     if (build.status == Status.started) {
       return status = statusInProgress;
-    } else if (build.status == Status.scheduled) {
-      // Check for scheduled.
-      return status = statusNew;
     }
-
     switch (build.result) {
       case Result.success:
         return status = statusSucceeded;
