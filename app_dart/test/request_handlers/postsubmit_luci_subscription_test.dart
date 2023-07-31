@@ -110,6 +110,29 @@ void main() {
     expect(task.endTimestamp, 1565049193786);
   });
 
+  test('skips task processing when build is with scheduled status', () async {
+    final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
+    final Task task = generateTask(
+      4507531199512576,
+      name: 'Linux A',
+      parent: commit,
+      status: Task.statusInProgress,
+    );
+    config.db.values[task.key] = task;
+    config.db.values[commit.key] = commit;
+    tester.message = createBuildbucketPushMessage(
+      'SCHEDULED',
+      builderName: 'Linux A',
+      result: null,
+      userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
+    );
+
+    expect(task.status, Task.statusInProgress);
+    expect(task.attempts, 1);
+    expect(await tester.post(handler), Body.empty);
+    expect(task.status, Task.statusInProgress);
+  });
+
   test('does not fail on empty user data', () async {
     tester.message = createBuildbucketPushMessage(
       'COMPLETED',

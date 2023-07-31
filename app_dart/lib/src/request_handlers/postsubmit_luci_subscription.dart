@@ -80,9 +80,19 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     }
     log.fine('Found $task');
 
+    // No need to process if the build is `scheduled`. Task is marked as `In Progress`
+    // whenever scheduled, either from scheduler/backfiller/rerun. We need to update
+    // task in datastore only for
+    //   1) `started`: update info like builder number.
+    //   2) `completed`: update info like status.
+    if (build.status == Status.scheduled) {
+      log.fine('skip processing for status: scheduled.');
+      return Body.empty;
+    }
+    final String oldTaskStatus = task.status;
     task.updateFromBuild(build);
     await datastore.insert(<Task>[task]);
-    log.fine('Updated datastore');
+    log.fine('Updated datastore from $oldTaskStatus to ${task.status}');
 
     final Commit commit = await datastore.lookupByValue<Commit>(commitKey);
     final CiYaml ciYaml = await scheduler.getCiYaml(commit);
