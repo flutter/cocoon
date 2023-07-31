@@ -6,7 +6,10 @@ import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
+import 'package:grpc/grpc.dart';
+import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
@@ -181,6 +184,59 @@ void main() {
       });
       expect(expected, equals('success'));
       expect(config.db.values[commit.key], equals(commit));
+    });
+  });
+
+  group('RunTransactionWithRetry', () {
+    late RetryOptions retryOptions;
+
+    setUp(() {
+      retryOptions = const RetryOptions(
+        delayFactor: Duration(milliseconds: 1),
+        maxDelay: Duration(milliseconds: 2),
+        maxAttempts: 2,
+      );
+    });
+
+    test('retriesOnGrpcError', () async {
+      final Counter counter = Counter();
+      try {
+        await runTransactionWithRetries(
+          () async {
+            counter.increase();
+            throw GrpcError.aborted();
+          },
+          retryOptions: retryOptions,
+        );
+      } catch (e) {
+        expect(e, isA<GrpcError>());
+      }
+      expect(counter.value(), greaterThan(1));
+    });
+    test('retriesTransactionAbortedError', () async {
+      final Counter counter = Counter();
+      try {
+        await runTransactionWithRetries(
+          () async {
+            counter.increase();
+            throw gcloud_datastore.TransactionAbortedError();
+          },
+          retryOptions: retryOptions,
+        );
+      } catch (e) {
+        expect(e, isA<gcloud_datastore.TransactionAbortedError>());
+      }
+      expect(counter.value(), greaterThan(1));
+    });
+    test('DoesNotRetryOnSuccess', () async {
+      final Counter counter = Counter();
+      await runTransactionWithRetries(
+        () async {
+          counter.increase();
+        },
+        retryOptions: retryOptions,
+      );
+      expect(counter.value(), equals(1));
     });
   });
 }

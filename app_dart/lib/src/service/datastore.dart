@@ -7,9 +7,12 @@ import 'dart:math';
 
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' show RepositorySlug, PullRequest;
+import 'package:grpc/grpc.dart';
 import 'package:meta/meta.dart';
+import 'package:retry/retry.dart';
 
 import '../model/appengine/branch.dart';
 import '../model/appengine/commit.dart';
@@ -31,6 +34,25 @@ const int defaultTimeSeriesValuesNumber = 1500;
 /// Function signature for a [DatastoreService] provider.
 typedef DatastoreServiceProvider = DatastoreService Function(DatastoreDB db);
 
+/// Function signature that will be executed with retries.
+typedef RetryHandler = Function();
+
+/// Runs a db transaction with retries.
+///
+/// It uses quadratic backoff starting with 200ms and 3 max attempts.
+/// for context please read https://github.com/flutter/flutter/issues/54615.
+Future<void> runTransactionWithRetries(RetryHandler retryHandler, {RetryOptions? retryOptions}) {
+  final RetryOptions r = retryOptions ??
+      const RetryOptions(
+        maxDelay: Duration(seconds: 10),
+        maxAttempts: 3,
+      );
+  return r.retry(
+    retryHandler,
+    retryIf: (Exception e) => e is gcloud_datastore.TransactionAbortedError || e is GrpcError,
+  );
+}
+
 /// Service class for interacting with App Engine cloud datastore.
 ///
 /// This service exists to provide an API for common datastore queries made by
@@ -40,13 +62,21 @@ class DatastoreService {
   /// Creates a new [DatastoreService].
   ///
   /// The [db] argument must not be null.
-  const DatastoreService(this.db, this.maxEntityGroups);
+  const DatastoreService(this.db, this.maxEntityGroups, {RetryOptions? retryOptions})
+      : retryOptions = retryOptions ??
+            const RetryOptions(
+              maxDelay: Duration(seconds: 10),
+              maxAttempts: 3,
+            );
 
   /// Maximum number of entity groups to process at once.
   final int maxEntityGroups;
 
   /// The backing [DatastoreDB] object.
   final DatastoreDB db;
+
+  /// Transaction retry configurations.
+  final RetryOptions retryOptions;
 
   /// Creates and returns a [DatastoreService] using [db] and [maxEntityGroups].
   static DatastoreService defaultProvider(DatastoreDB db) {
@@ -213,52 +243,63 @@ class DatastoreService {
     return shards;
   }
 
-  // Note: please do not add retries to any of the following queries. The following
-  // change was made to add retries to the appengine grpc implementation of the
-  // datastore service: https://github.com/dart-lang/appengine/pull/167.
-  // Adding retries to the following queries will cause conflicts with commits
-  // and effectively prevent us from inserting update to Datastore.
-  //
-  // See this issue for a more detailed summary and analysis:
-  // https://github.com/flutter/flutter/issues/131310
-
   /// Inserts [rows] into datastore sharding the inserts if needed.
   Future<void> insert(List<Model<dynamic>> rows) async {
     final List<List<Model<dynamic>>> shards = await shard(rows);
     for (List<Model<dynamic>> shard in shards) {
-      await db.withTransaction<void>((Transaction transaction) async {
-        transaction.queueMutations(inserts: shard);
-        await transaction.commit();
-      });
+      await runTransactionWithRetries(
+        () async {
+          await db.withTransaction<void>((Transaction transaction) async {
+            transaction.queueMutations(inserts: shard);
+            await transaction.commit();
+          });
+        },
+        retryOptions: retryOptions,
+      );
     }
   }
 
   /// Looks up registers by [keys].
   Future<List<T?>> lookupByKey<T extends Model<dynamic>>(List<Key<dynamic>> keys) async {
     List<T?> results = <T>[];
-    await db.withTransaction<void>((Transaction transaction) async {
-      results = await transaction.lookup<T>(keys);
-      await transaction.commit();
-    });
+    await runTransactionWithRetries(
+      () async {
+        await db.withTransaction<void>((Transaction transaction) async {
+          results = await transaction.lookup<T>(keys);
+          await transaction.commit();
+        });
+      },
+      retryOptions: retryOptions,
+    );
     return results;
   }
 
   /// Looks up registers by value using a single [key].
   Future<T> lookupByValue<T extends Model<dynamic>>(Key<dynamic> key, {T Function()? orElse}) async {
     late T result;
-    await db.withTransaction<void>((Transaction transaction) async {
-      result = await db.lookupValue<T>(key, orElse: orElse);
-      await transaction.commit();
-    });
+    await runTransactionWithRetries(
+      () async {
+        await db.withTransaction<void>((Transaction transaction) async {
+          result = await db.lookupValue<T>(key, orElse: orElse);
+          await transaction.commit();
+        });
+      },
+      retryOptions: retryOptions,
+    );
     return result;
   }
 
   /// Runs a function inside a transaction providing a [Transaction] parameter.
   Future<T?> withTransaction<T>(Future<T> Function(Transaction) handler) async {
     T? result;
-    await db.withTransaction<void>((Transaction transaction) async {
-      result = await handler(transaction);
-    });
+    await runTransactionWithRetries(
+      () async {
+        await db.withTransaction<void>((Transaction transaction) async {
+          result = await handler(transaction);
+        });
+      },
+      retryOptions: retryOptions,
+    );
     return result;
   }
 
