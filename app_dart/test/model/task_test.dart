@@ -82,22 +82,23 @@ void main() {
         final pm.Build build = generatePushMessageBuild(
           1,
           buildNumber: 2,
-          status: pm.Status.started,
+          status: pm.Status.completed,
+          result: pm.Result.success,
         );
         final Task task = generateTask(
           1,
           buildNumber: 1,
-          status: Task.statusSucceeded,
+          status: Task.statusInProgress,
         );
 
         expect(task.buildNumberList, '1');
-        expect(task.status, Task.statusSucceeded);
+        expect(task.status, Task.statusInProgress);
 
         task.updateFromBuild(build);
 
         expect(task.buildNumber, 2);
         expect(task.buildNumberList, '1,2');
-        expect(task.status, Task.statusInProgress);
+        expect(task.status, Task.statusSucceeded);
       });
 
       test('does not duplicate build numbers on multiple messages', () {
