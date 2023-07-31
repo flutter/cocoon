@@ -7,9 +7,12 @@ import 'dart:math';
 
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' show RepositorySlug, PullRequest;
+import 'package:grpc/grpc.dart';
 import 'package:meta/meta.dart';
+import 'package:retry/retry.dart';
 
 import '../model/appengine/branch.dart';
 import '../model/appengine/commit.dart';
@@ -31,6 +34,25 @@ const int defaultTimeSeriesValuesNumber = 1500;
 /// Function signature for a [DatastoreService] provider.
 typedef DatastoreServiceProvider = DatastoreService Function(DatastoreDB db);
 
+/// Function signature that will be executed with retries.
+typedef RetryHandler = Function();
+
+/// Runs a db transaction with retries.
+///
+/// It uses quadratic backoff starting with 200ms and 3 max attempts.
+/// for context please read https://github.com/flutter/flutter/issues/54615.
+Future<void> runTransactionWithRetries(RetryHandler retryHandler, {RetryOptions? retryOptions}) {
+  final RetryOptions r = retryOptions ??
+      const RetryOptions(
+        maxDelay: Duration(seconds: 10),
+        maxAttempts: 3,
+      );
+  return r.retry(
+    retryHandler,
+    retryIf: (Exception e) => e is gcloud_datastore.TransactionAbortedError || e is GrpcError,
+  );
+}
+
 /// Service class for interacting with App Engine cloud datastore.
 ///
 /// This service exists to provide an API for common datastore queries made by
@@ -40,13 +62,21 @@ class DatastoreService {
   /// Creates a new [DatastoreService].
   ///
   /// The [db] argument must not be null.
-  const DatastoreService(this.db, this.maxEntityGroups);
+  const DatastoreService(this.db, this.maxEntityGroups, {RetryOptions? retryOptions})
+      : retryOptions = retryOptions ??
+            const RetryOptions(
+              maxDelay: Duration(seconds: 10),
+              maxAttempts: 3,
+            );
 
   /// Maximum number of entity groups to process at once.
   final int maxEntityGroups;
 
   /// The backing [DatastoreDB] object.
   final DatastoreDB db;
+
+  /// Transaction retry configurations.
+  final RetryOptions retryOptions;
 
   /// Creates and returns a [DatastoreService] using [db] and [maxEntityGroups].
   static DatastoreService defaultProvider(DatastoreDB db) {
