@@ -80,13 +80,15 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     }
     log.fine('Found $task');
 
-    // No need to process if the build is `scheduled`. Task is marked as `In Progress`
-    // whenever scheduled, either from scheduler/backfiller/rerun. We need to update
-    // task in datastore only for
-    //   1) `started`: update info like builder number.
-    //   2) `completed`: update info like status.
-    if (build.status == Status.scheduled) {
-      log.fine('skip processing for status: scheduled.');
+    // No need to process if
+    // 1) the build is `scheduled`. Task is marked as `In Progress`
+    //    whenever scheduled, either from scheduler/backfiller/rerun. We need to update
+    //    task in datastore only for
+    //    a) `started`: update info like builder number.
+    //    b) `completed`: update info like status.
+    // 2) the task is already complemeted.
+    if (build.status == Status.scheduled || Task.finishedStatusValues.contains(task.status)) {
+      log.fine('skip processing for build with status scheduled or task with status finished.');
       return Body.empty;
     }
     final String oldTaskStatus = task.status;

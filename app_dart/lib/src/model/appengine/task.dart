@@ -233,6 +233,14 @@ class Task extends Model<int> {
     statusSucceeded,
   ];
 
+  static const List<String> finishedStatusValues = <String>[
+    statusCancelled,
+    statusFailed,
+    statusInfraFailure,
+    statusSkipped,
+    statusSucceeded,
+  ];
+
   /// The key of the commit that owns this task.
   @ModelKeyProperty(propertyName: 'ChecklistKey')
   @JsonKey(name: 'ChecklistKey')
