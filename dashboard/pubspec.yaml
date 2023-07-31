@@ -22,7 +22,7 @@ environment:
   sdk: '>=2.18.0 <4.0.0'
 
 dependencies:
-  collection: 1.18.0
+  collection: 1.17.2
   fixnum: 1.1.0
   flutter:
     sdk: flutter
