@@ -1,0 +1,11 @@
+# CIPD and Dart-SDK binaries
+.cipd/
+dart-sdk/
+
+# Build outputs
+.dart_tool/
+build/
+.ssh/
+
+# Dart
+.packages
