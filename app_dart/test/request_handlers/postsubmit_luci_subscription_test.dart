@@ -172,7 +172,7 @@ void main() {
       4507531199512576,
       name: 'Linux A',
       parent: commit,
-      status: Task.statusNew,
+      status: Task.statusFailed,
     );
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
@@ -183,7 +183,7 @@ void main() {
       userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
     );
 
-    expect(task.status, Task.statusNew);
+    expect(task.status, Task.statusFailed);
     expect(task.attempts, 1);
     expect(await tester.post(handler), Body.empty);
     expect(task.status, Task.statusInProgress);
@@ -196,7 +196,7 @@ void main() {
       4507531199512576,
       name: 'Linux A',
       parent: commit,
-      status: Task.statusNew,
+      status: Task.statusInfraFailure,
     );
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
@@ -207,7 +207,7 @@ void main() {
       userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
     );
 
-    expect(task.status, Task.statusNew);
+    expect(task.status, Task.statusInfraFailure);
     expect(task.attempts, 1);
     expect(await tester.post(handler), Body.empty);
     expect(task.status, Task.statusInProgress);
@@ -220,7 +220,7 @@ void main() {
       4507531199512576,
       name: 'Linux A',
       parent: commit,
-      status: Task.statusNew,
+      status: Task.statusInfraFailure,
     );
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
@@ -231,7 +231,7 @@ void main() {
       userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
     );
 
-    expect(task.status, Task.statusNew);
+    expect(task.status, Task.statusInfraFailure);
     expect(task.attempts, 1);
     expect(await tester.post(handler), Body.empty);
     expect(task.status, Task.statusInProgress);

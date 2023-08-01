@@ -80,21 +80,13 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     }
     log.fine('Found $task');
 
-    // No need to process if
-    // 1) the build is `scheduled`. Task is marked as `In Progress`
-    //    whenever scheduled, either from scheduler/backfiller/rerun. We need to update
-    //    task in datastore only for
-    //    a) `started`: update info like builder number.
-    //    b) `completed`: update info like status.
-    // 2) the task is already complemeted.
-    if (build.status == Status.scheduled || Task.finishedStatusValues.contains(task.status)) {
-      log.fine('skip processing for build with status scheduled or task with status finished.');
-      return Body.empty;
+    if (_shouldUpdateTask(build, task)) {
+      final String oldTaskStatus = task.status;
+      task.updateFromBuild(build);
+      await datastore.insert(<Task>[task]);
+      log.fine('Updated datastore from $oldTaskStatus to ${task.status}');
     }
-    final String oldTaskStatus = task.status;
-    task.updateFromBuild(build);
-    await datastore.insert(<Task>[task]);
-    log.fine('Updated datastore from $oldTaskStatus to ${task.status}');
+    log.fine('skip processing for build with status scheduled or task with status finished.');
 
     final Commit commit = await datastore.lookupByValue<Commit>(commitKey);
     final CiYaml ciYaml = await scheduler.getCiYaml(commit);
@@ -123,5 +115,17 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     }
 
     return Body.empty;
+  }
+
+  // No need to update task in datastore if
+  // 1) the build is `scheduled`. Task is marked as `In Progress`
+  //    whenever scheduled, either from scheduler/backfiller/rerun. We need to update
+  //    task in datastore only for
+  //    a) `started`: update info like builder number.
+  //    b) `completed`: update info like status.
+  // 2) the task is already completed.
+  //    The task may have been marked as completed from test framework via update-task-status API.
+  bool _shouldUpdateTask(Build build, Task task) {
+    return build.status != Status.scheduled && !Task.finishedStatusValues.contains(task.status);
   }
 }
