@@ -85,8 +85,9 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       task.updateFromBuild(build);
       await datastore.insert(<Task>[task]);
       log.fine('Updated datastore from $oldTaskStatus to ${task.status}');
+    } else {
+      log.fine('skip processing for build with status scheduled or task with status finished.');
     }
-    log.fine('skip processing for build with status scheduled or task with status finished.');
 
     final Commit commit = await datastore.lookupByValue<Commit>(commitKey);
     final CiYaml ciYaml = await scheduler.getCiYaml(commit);
