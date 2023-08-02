@@ -423,6 +423,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           // for the purposes of testing a change that otherwise needs tests,
           // but since they are the driver for tests they don't need test
           // coverage.
+          !filename.endsWith('tool/run_tests.dart') &&
           !filename.endsWith('run_tests.sh')) {
         needsTests = !_allChangesAreCodeComments(file);
       }
