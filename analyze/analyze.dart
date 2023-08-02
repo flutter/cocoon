@@ -280,7 +280,7 @@ Future<void> _checkForNewExecutables() async {
       final String shebang = file.readAsLinesSync().first;
       if (!shebang.startsWith(RegExp(kShebangRegex))) {
         unexpectedShebangShellCount += 1;
-        print("$relativePath is has the initial line of $shebang, which doesn't match '$kShebangRegex'");
+        print("$relativePath has the initial line of $shebang, which doesn't match '$kShebangRegex'");
       }
     }
   }
