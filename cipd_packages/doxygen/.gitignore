@@ -5,6 +5,7 @@ dart-sdk/
 # Build outputs
 .dart_tool/
 build/
+doxygen_src/
 .ssh/
 
 # Dart
