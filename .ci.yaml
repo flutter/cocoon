@@ -55,7 +55,6 @@ targets:
       - .ci.yaml
 
   - name: Linux doxygen
-    bringup: true
     recipe: cocoon/cipd
     properties:
       script: cipd_pacakges/doxygen/tool/build.sh
