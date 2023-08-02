@@ -423,13 +423,14 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           // for the purposes of testing a change that otherwise needs tests,
           // but since they are the driver for tests they don't need test
           // coverage.
-          !filename.endsWith('tool/run_tests.dart') &&
           !filename.endsWith('run_tests.sh')) {
         needsTests = !_allChangesAreCodeComments(file);
       }
       // See https://github.com/flutter/flutter/wiki/Plugin-Tests for discussion
       // of various plugin test types and locations.
       if (filename.endsWith('_test.dart') ||
+          // Test files in custom package-specific test folders.
+          filename.contains(RegExp('packages/packages/[^/]+/tool/')) ||
           // Native iOS/macOS tests.
           filename.contains('RunnerTests/') ||
           filename.contains('RunnerUITests/') ||
