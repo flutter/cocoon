@@ -57,7 +57,7 @@ targets:
   - name: Linux doxygen
     recipe: cocoon/cipd
     properties:
-      script: cipd_pacakges/doxygen/tool/build.sh
+      script: cipd_packages/doxygen/tool/build.sh
       cipd_name: flutter/doxygen/linux-amd64
     runIf:
       - cipd_packages/doxygen/**
