@@ -27,7 +27,7 @@ File cacheFileFor(final Directory cacheDirectory, final List<String> key) {
   return File('${cacheDirectory.path}/$cacheName');
 }
 
-typedef Parser<T> = T? Function (String);
+typedef Parser<T> = T? Function(String);
 
 Future<T?> readFromFile<T>(final File file, final Parser<T> parser) async {
   try {

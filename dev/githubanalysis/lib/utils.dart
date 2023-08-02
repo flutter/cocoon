@@ -10,8 +10,10 @@ import 'package:github/github.dart';
 const Duration clockSkew = Duration(seconds: 5);
 int minApiPoints = 250; // number of points to leave for debugging, etc
 
-class Abort implements Exception { }
+class Abort implements Exception {}
+
 enum Mode { full, abbreviated, aborted }
+
 Mode mode = Mode.full;
 final Completer<void> aborter = Completer<void>();
 
@@ -19,7 +21,8 @@ Future<void> rateLimit(final GitHub github, final String status, final String ne
   if (mode == Mode.aborted) {
     throw Abort();
   }
-  stdout.write('$status${ github.rateLimitRemaining != null ? ". Rate limits: ${github.rateLimitRemaining}/${github.rateLimitLimit} per hour" : "" }.\x1B[K\r');
+  stdout.write(
+      '$status${github.rateLimitRemaining != null ? ". Rate limits: ${github.rateLimitRemaining}/${github.rateLimitLimit} per hour" : ""}.\x1B[K\r');
   if (github.rateLimitRemaining != null && github.rateLimitRemaining! < minApiPoints) {
     Duration delay = github.rateLimitReset!.difference(DateTime.now());
     if (delay > Duration.zero) {

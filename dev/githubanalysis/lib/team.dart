@@ -19,7 +19,8 @@ class TeamRoster {
     required final DateTime cacheEpoch,
   }) async {
     final Map<String?, Map<String, User>> roster = <String?, Map<String, User>>{};
-    final String teamsData = await loadFromCache(cache, github, <String>['org', orgName, 'teams'], cacheEpoch, () async {
+    final String teamsData =
+        await loadFromCache(cache, github, <String>['org', orgName, 'teams'], cacheEpoch, () async {
       final StringBuffer cacheData = StringBuffer();
       await for (final Team team in github.organizations.listTeams(orgName)) {
         verifyStringSanity(team.name!, const <String>{'\n', ' '});
@@ -42,11 +43,13 @@ class TeamRoster {
       }
       return users;
     }
+
     for (final String teamLine in teamsData.split('\n')) {
       final List<String> components = teamLine.split(' ');
       final String teamName = components[0];
       final int teamId = int.parse(components[1]);
-      final String teamData = await loadFromCache(cache, github, <String>['team', orgName, '$teamId'], cacheEpoch, () async {
+      final String teamData =
+          await loadFromCache(cache, github, <String>['team', orgName, '$teamId'], cacheEpoch, () async {
         final StringBuffer cacheData = StringBuffer();
         await for (final TeamMember member in github.organizations.listTeamMembers(teamId)) {
           verifyStringSanity(member.login!, const <String>{'\n', ' '});
@@ -71,5 +74,6 @@ class TeamRoster {
     roster[null] = parseTeamData(teamData);
     return TeamRoster(roster);
   }
+
   final Map<String?, Map<String, User>> teams;
 }
