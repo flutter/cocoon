@@ -430,9 +430,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       // See https://github.com/flutter/flutter/wiki/Plugin-Tests for discussion
       // of various plugin test types and locations.
       if (filename.endsWith('_test.dart') ||
-          // Test files in package-specific test folders.
-          filename.contains('packages/packages/go_router/test_fixes/') ||
-          filename.contains('packages/packages/go_router_builder/test_inputs/') ||
           // Native iOS/macOS tests.
           filename.contains('RunnerTests/') ||
           filename.contains('RunnerUITests/') ||
@@ -444,7 +441,10 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           // Native Windows tests.
           filename.endsWith('_test.cpp') ||
           // Pigeon native tests.
-          filename.contains('/platform_tests/')) {
+          filename.contains('/platform_tests/') ||
+          // Test files in package-specific test folders.
+          filename.contains('go_router/test_fixes/') ||
+          filename.contains('go_router_builder/test_inputs/')) {
         hasTests = true;
       }
     }
