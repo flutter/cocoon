@@ -429,8 +429,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       // See https://github.com/flutter/flutter/wiki/Plugin-Tests for discussion
       // of various plugin test types and locations.
       if (filename.endsWith('_test.dart') ||
-          // Test files in custom package-specific test folders.
-          filename.contains(RegExp('packages/packages/[^/]+/tool/')) ||
+          // Test files in package-specific test folders.
+          filename.contains('packages/packages/go_router/test_fixes/') ||
+          filename.contains('packages/packages/go_router_builder/test_inputs/') ||
           // Native iOS/macOS tests.
           filename.contains('RunnerTests/') ||
           filename.contains('RunnerUITests/') ||
