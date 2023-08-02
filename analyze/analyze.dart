@@ -240,7 +240,6 @@ const Set<String> kExecutableAllowlist = <String>{
   'test_utilities/bin/flutter_test_runner.sh',
   'test_utilities/bin/licenses.sh',
   'test_utilities/bin/prepare_environment.sh',
-  'test.sh',
 };
 
 const String kShebangRegex = r'#!/usr/bin/env (bash|sh)';

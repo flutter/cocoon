@@ -54,16 +54,6 @@ targets:
       - device_doctor/**
       - .ci.yaml
 
-  - name: Linux doxygen
-    bringup: true
-    recipe: cocoon/cipd
-    properties:
-      script: cipd_pacakges/doxygen/tool/build.sh
-      cipd_name: flutter/doxygen/linux-amd64
-    runIf:
-      - cipd_packages/doxygen/**
-      - .ci.yaml
-
   - name: Mac codesign
     recipe: cocoon/cipd
     properties:
