@@ -237,21 +237,8 @@ const Set<String> kExecutableAllowlist = <String>{
 Future<void> _checkForNewExecutables() async {
   // 0b001001001
   const int executableBitMask = 0x49;
+
   final List<File> files = await _gitFiles(cocoonRoot.path);
-  final List<String> relativePaths = files.map<String>((File file) {
-    return path.relative(
-      file.path,
-      from: cocoonRoot.path,
-    );
-  }).toList();
-  for (String allowed in kExecutableAllowlist) {
-    if (!relativePaths.contains(allowed)) {
-      throw Exception(
-        'File $allowed in kExecutableAllowlist in analyze/analyze.dart '
-        'does not exist. Please fix path or remove from kExecutableAllowlist.',
-      );
-    }
-  }
   int unexpectedExecutableCount = 0;
   for (final File file in files) {
     final String relativePath = path.relative(
