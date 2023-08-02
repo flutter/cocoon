@@ -124,7 +124,7 @@ Future<void> verifyNoMissingLicense(String workingDirectory, {bool checkMinimums
     workingDirectory,
     'sh',
     overrideMinimumMatches ?? 1,
-    '#!.*(?:bash|sh)\n' + _generateLicense('# '),
+    '#!.*sh\n' + _generateLicense('# '),
   );
   await _verifyNoMissingLicenseForExtension(
     workingDirectory,
