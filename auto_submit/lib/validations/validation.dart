@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/model/auto_submit_query_result.dart';
-import 'package:googleapis/classroom/v1.dart';
 
 import '../service/config.dart';
 import 'package:github/github.dart' as github;
