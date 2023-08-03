@@ -150,7 +150,8 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
       log.info('Record inserted for pull request ${slug.fullName}/${pullRequest.number} successfully.');
     } on BigQueryException catch (exception) {
       log.severe(
-          'Unable to insert pull request record for pull request ${slug.fullName}/${pullRequest.number} due to: ${exception.toString()}');
+        'Unable to insert pull request record for pull request ${slug.fullName}/${pullRequest.number} due to: ${exception.toString()}',
+      );
     }
   }
 }

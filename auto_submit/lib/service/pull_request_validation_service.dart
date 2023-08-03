@@ -101,7 +101,8 @@ class PullRequestValidationService extends ValidationService {
 
     if (shouldReturn) {
       log.info(
-          'The pr ${slug.fullName}/$prNumber with message: $ackId should be acknowledged due to validation failure.');
+        'The pr ${slug.fullName}/$prNumber with message: $ackId should be acknowledged due to validation failure.',
+      );
       await pubsub.acknowledge('auto-submit-queue-sub', ackId);
       log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
       return;
@@ -111,7 +112,8 @@ class PullRequestValidationService extends ValidationService {
     for (MapEntry<String, ValidationResult> result in validationsMap.entries) {
       if (!result.value.result && result.value.action == Action.IGNORE_TEMPORARILY) {
         log.info(
-            'Temporarily ignoring processing of ${slug.fullName}/$prNumber due to ${result.key} failing validation.');
+          'Temporarily ignoring processing of ${slug.fullName}/$prNumber due to ${result.key} failing validation.',
+        );
         return;
       }
     }

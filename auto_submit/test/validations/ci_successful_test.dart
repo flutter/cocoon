@@ -177,8 +177,10 @@ void main() {
       labelNames.add('Other label');
 
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
-          isTrue);
+      expect(
+        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        isTrue,
+      );
       expect(failures, isEmpty);
     });
 
@@ -192,8 +194,10 @@ void main() {
       labelNames.add('Another Compelling label');
 
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
-          isFalse);
+      expect(
+        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        isFalse,
+      );
       expect(failures, isEmpty);
     });
 
@@ -207,8 +211,10 @@ void main() {
       labelNames.add('Another Compelling label');
 
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
-          isFalse);
+      expect(
+        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        isFalse,
+      );
       expect(failures, isNotEmpty);
       expect(failures.length, 2);
     });
@@ -223,8 +229,10 @@ void main() {
       labelNames.add('Another Compelling label');
 
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
-          isFalse);
+      expect(
+        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        isFalse,
+      );
       expect(failures, isNotEmpty);
       expect(failures.length, 2);
     });
@@ -240,8 +248,10 @@ void main() {
       labelNames.add('Another Compelling label');
 
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
-          isTrue);
+      expect(
+        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        isTrue,
+      );
       expect(failures, isEmpty);
       expect(failures.length, 0);
     });
@@ -257,8 +267,10 @@ void main() {
       labelNames.add('Another Compelling label');
 
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
-          isTrue);
+      expect(
+        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        isTrue,
+      );
       expect(failures, isEmpty);
       expect(failures.length, 0);
     });
@@ -274,8 +286,10 @@ void main() {
       labelNames.add('Another Compelling label');
 
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
-          isFalse);
+      expect(
+        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        isFalse,
+      );
       expect(failures, isNotEmpty);
       expect(failures.length, 1);
     });
