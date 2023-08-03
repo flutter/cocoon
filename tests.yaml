@@ -23,7 +23,7 @@ tasks:
   - task: analyze
     script: test_utilities/bin/analyze.sh
 
-  - task: codesign
+  - task: cipd_packages/codesign
     script: test_utilities/bin/dart_test_runner.sh
 
   - task: app_dart
@@ -35,7 +35,7 @@ tasks:
   - task: auto_submit
     script: test_utilities/bin/dart_test_runner.sh
 
-  - task: device_doctor
+  - task: cipd_packages/device_doctor
     script: test_utilities/bin/dart_test_runner.sh
 
   - task: packages/buildbucket-dart
