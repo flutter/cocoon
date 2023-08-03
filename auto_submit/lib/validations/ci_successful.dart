@@ -24,11 +24,15 @@ class CiSuccessful extends Validation {
   });
 
   @override
+  String get name => 'CiSuccessful';
+
+  @override
 
   /// Implements the CI build/tests validations.
   Future<ValidationResult> validate(QueryResult result, github.PullRequest messagePullRequest) async {
     bool allSuccess = true;
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    final int prNumber = messagePullRequest.number!;
     final PullRequest pullRequest = result.repository!.pullRequest!;
     final Set<FailureDetail> failures = <FailureDetail>{};
 
@@ -50,12 +54,12 @@ class CiSuccessful extends Validation {
     final String? baseBranch = messagePullRequest.base!.ref;
     if (baseBranch == targetBranch) {
       // Only validate tree status where base branch is the default branch.
-      if (!treeStatusCheck(slug, statuses)) {
-        log.warning('Statuses were not ready for ${slug.fullName}, sha: $commit.');
+      if (!treeStatusCheck(slug, prNumber, statuses)) {
+        log.warning('Statuses were not ready for ${slug.fullName}/$prNumber, sha: $commit.');
         return ValidationResult(false, Action.IGNORE_TEMPORARILY, 'Hold to wait for the tree status ready.');
       }
     } else {
-      log.info('Target branch is $baseBranch, skipping tree status check.');
+      log.info('Target branch is $baseBranch for ${slug.fullName}/$prNumber, skipping tree status check.');
     }
 
     // List of labels associated with the pull request.
@@ -64,7 +68,7 @@ class CiSuccessful extends Validation {
         .toList();
 
     /// Validate if all statuses have been successful.
-    allSuccess = validateStatuses(slug, author, labelNames, statuses, failures, allSuccess);
+    allSuccess = validateStatuses(slug, prNumber, author, labelNames, statuses, failures, allSuccess);
 
     final GithubService gitHubService = await config.createGithubService(slug);
     final String? sha = commit.oid;
@@ -75,7 +79,7 @@ class CiSuccessful extends Validation {
     }
 
     /// Validate if all checkRuns have succeeded.
-    allSuccess = validateCheckRuns(slug, checkRuns, failures, allSuccess);
+    allSuccess = validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess);
 
     if (!allSuccess && failures.isEmpty) {
       return ValidationResult(allSuccess, Action.IGNORE_TEMPORARILY, '');
@@ -98,7 +102,7 @@ class CiSuccessful extends Validation {
   /// If a repo has a tree status, we should wait for it to show up instead of posting
   /// a failure to GitHub pull request.
   /// If a repo doesn't have a tree status, simply return `true`.
-  bool treeStatusCheck(github.RepositorySlug slug, List<ContextNode> statuses) {
+  bool treeStatusCheck(github.RepositorySlug slug, int prNumber, List<ContextNode> statuses) {
     bool treeStatusValid = false;
     if (!Config.reposWithTreeStatus.contains(slug)) {
       return true;
@@ -107,7 +111,7 @@ class CiSuccessful extends Validation {
       return false;
     }
     const String treeStatusName = 'tree-status';
-    log.info('Validating tree status: ${slug.name}/tree-status, statuses: $statuses');
+    log.info('${slug.fullName}/$prNumber: Validating tree status for ${slug.name}/tree-status, statuses: $statuses');
 
     /// Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
     for (ContextNode status in statuses) {
@@ -126,6 +130,7 @@ class CiSuccessful extends Validation {
   /// Returns allSuccess unmodified if there were no failures, false otherwise.
   bool validateStatuses(
     github.RepositorySlug slug,
+    int prNumber,
     Author author,
     List<String> labelNames,
     List<ContextNode> statuses,
@@ -133,7 +138,7 @@ class CiSuccessful extends Validation {
     bool allSuccess,
   ) {
     final String overrideTreeStatusLabel = config.overrideTreeStatusLabel;
-    log.info('Validating name: ${slug.name}, statuses: $statuses');
+    log.info('Validating name: ${slug.name}/$prNumber, statuses: $statuses');
 
     for (ContextNode status in statuses) {
       // How can name be null but presumed to not be null below when added to failure?
@@ -141,7 +146,7 @@ class CiSuccessful extends Validation {
 
       // If the account author is a roller account do not block merge on flutter-gold check.
       if (config.rollerAccounts.contains(author.login!) && slug == Config.engineSlug && name == 'flutter-gold') {
-        log.info('Skipping status check for flutter-gold, pr author: $author, slug: ${slug.fullName}.');
+        log.info('Skipping status check for flutter-gold for ${slug.fullName}/$prNumber, pr author: $author.');
         continue;
       }
 
@@ -165,11 +170,12 @@ class CiSuccessful extends Validation {
   /// Returns allSuccess unmodified if there were no failures, false otherwise.
   bool validateCheckRuns(
     github.RepositorySlug slug,
+    int prNumber,
     List<github.CheckRun> checkRuns,
     Set<FailureDetail> failures,
     bool allSuccess,
   ) {
-    log.info('Validating name: ${slug.name}, checkRuns: $checkRuns');
+    log.info('Validating name: ${slug.name}/$prNumber, checkRuns: $checkRuns');
 
     for (github.CheckRun checkRun in checkRuns) {
       final String? name = checkRun.name;
@@ -182,6 +188,7 @@ class CiSuccessful extends Validation {
         continue;
       } else if (checkRun.status == github.CheckRunStatus.completed) {
         // checkrun has failed.
+        log.info('${slug.name}/$prNumber: CheckRun $name failed.');
         failures.add(FailureDetail(name!, checkRun.detailsUrl as String));
       }
       allSuccess = false;

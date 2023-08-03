@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/model/auto_submit_query_result.dart';
+import 'package:googleapis/classroom/v1.dart';
 
 import '../service/config.dart';
 import 'package:github/github.dart' as github;
@@ -28,6 +29,8 @@ abstract class Validation {
   /// Returns [ValidationResult] after using a [QueryResult] and [PullRequest] to validate
   /// a given PR state.
   Future<ValidationResult> validate(QueryResult result, github.PullRequest messagePullRequest);
+
+  String get name;
 }
 
 /// Enum that defines the actions to execute when a validation fails.

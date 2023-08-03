@@ -33,16 +33,18 @@ class ApproverService {
 
   Future<void> autoApproval(github.PullRequest pullRequest) async {
     final String? author = pullRequest.user!.login;
+    final int prNumber = pullRequest.number!;
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final Set<String> approvalAccounts =
         await getAutoApprovalAccounts(github.RepositorySlug.full(pullRequest.base!.repo!.fullName));
 
-    log.info('Determining auto approval of $author.');
+    log.info('Determining auto approval of $author on ${slug.fullName}/$prNumber.');
 
     // If there are auto_approvers let them approve the pull request.
     if (!approvalAccounts.contains(author)) {
-      log.info('Auto-review ignored for $author');
+      log.info('Auto-review ignored for $author on ${slug.fullName}/$prNumber.');
     } else {
-      log.info('Auto approval detected.');
+      log.info('Auto approval detected on ${slug.fullName}/$prNumber.');
       await _approve(pullRequest, author);
     }
   }
@@ -75,7 +77,7 @@ class ApproverService {
       );
       await _approve(pullRequest, author);
     } else {
-      log.info('Auto-review ignored for $author');
+      log.info('Auto-review ignored for $author on ${slug.fullName}/${pullRequest.number}');
     }
   }
 

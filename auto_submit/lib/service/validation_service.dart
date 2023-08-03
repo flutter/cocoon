@@ -125,7 +125,7 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
     // We need the updated time fields for the merged request from github.
     final github.PullRequest currentPullRequest = await gitHubService.getPullRequest(slug, pullRequest.number!);
 
-    log.info('Updated pull request info: ${currentPullRequest.toString()}');
+    log.info('Updated pull request info for ${slug.fullName}/${pullRequest.number}');
 
     // add a record for the pull request into our metrics tracking
     final PullRequestRecord pullRequestRecord = PullRequestRecord(
@@ -149,7 +149,8 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
       );
       log.info('Record inserted for pull request ${slug.fullName}/${pullRequest.number} successfully.');
     } on BigQueryException catch (exception) {
-      log.severe('Unable to insert pull request record due to: ${exception.toString()}');
+      log.severe(
+          'Unable to insert pull request record for pull request ${slug.fullName}/${pullRequest.number} due to: ${exception.toString()}');
     }
   }
 }
@@ -172,6 +173,7 @@ Future<github.PullRequestMerge> _processMergeInternal({
 }) async {
   // This is retryable so to guard against token expiration we get a fresh
   // client each time.
+  log.info('Attempting to merge ${slug.fullName}/$number.');
   final GithubService gitHubService = await config.createGithubService(slug);
   final github.PullRequestMerge pullRequestMerge = await gitHubService.mergePullRequest(
     slug,
@@ -182,7 +184,7 @@ Future<github.PullRequestMerge> _processMergeInternal({
   );
 
   if (pullRequestMerge.merged != true) {
-    throw RetryableException("Pull request could not be merged: ${pullRequestMerge.message}");
+    throw RetryableException("Pull request ${slug.fullName}/$number could not be merged: ${pullRequestMerge.message}");
   }
 
   return pullRequestMerge;

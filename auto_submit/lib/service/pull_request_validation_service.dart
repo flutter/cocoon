@@ -56,8 +56,9 @@ class PullRequestValidationService extends ValidationService {
     required String ackId,
     required PubSub pubsub,
   }) async {
-    final List<ValidationResult> results = <ValidationResult>[];
+    // final List<ValidationResult> results = <ValidationResult>[];
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    final int prNumber = messagePullRequest.number!;
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
     // filter out validations here
@@ -68,25 +69,29 @@ class PullRequestValidationService extends ValidationService {
     );
     final Set<Validation> validations = validationFilter.getValidations();
 
+    final Map<String, ValidationResult> validationsMap = <String, ValidationResult>{};
+
     /// Runs all the validation defined in the service.
     /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
     for (Validation validation in validations) {
+      log.info('${slug.fullName}/$prNumber unning validation ${validation.name}');
       final ValidationResult validationResult = await validation.validate(
         result,
         messagePullRequest,
       );
-      results.add(validationResult);
+      validationsMap[validation.name] = validationResult;
+      // results.add(validationResult);
     }
 
     final GithubService githubService = await config.createGithubService(slug);
 
     /// If there is at least one action that requires to remove label do so and add comments for all the failures.
     bool shouldReturn = false;
-    final int prNumber = messagePullRequest.number!;
-    for (ValidationResult result in results) {
-      if (!result.result && result.action == Action.REMOVE_LABEL) {
-        final String commmentMessage = result.message.isEmpty ? 'Validations Fail.' : result.message;
-        final String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, due to $commmentMessage';
+    for (MapEntry<String, ValidationResult> result in validationsMap.entries) {
+      if (!result.value.result && result.value.action == Action.REMOVE_LABEL) {
+        // if (!result.result && result.action == Action.REMOVE_LABEL) {
+        final String commmentMessage = result.value.message.isEmpty ? 'Validations Fail.' : result.value.message;
+        final String message = 'auto label is removed for ${slug.fullName}/$prNumber, due to $commmentMessage';
         await githubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
         await githubService.createComment(slug, prNumber, message);
         log.info(message);
@@ -95,15 +100,18 @@ class PullRequestValidationService extends ValidationService {
     }
 
     if (shouldReturn) {
-      log.info('The pr ${slug.fullName}/$prNumber with message: $ackId should be acknowledged.');
+      log.info(
+          'The pr ${slug.fullName}/$prNumber with message: $ackId should be acknowledged due to validation failure.');
       await pubsub.acknowledge('auto-submit-queue-sub', ackId);
       log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
       return;
     }
 
     // If PR has some failures to ignore temporarily do nothing and continue.
-    for (ValidationResult result in results) {
-      if (!result.result && result.action == Action.IGNORE_TEMPORARILY) {
+    for (MapEntry<String, ValidationResult> result in validationsMap.entries) {
+      if (!result.value.result && result.value.action == Action.IGNORE_TEMPORARILY) {
+        log.info(
+            'Temporarily ignoring processing of ${slug.fullName}/$prNumber due to ${result.key} failing validation.');
         return;
       }
     }
@@ -115,7 +123,7 @@ class PullRequestValidationService extends ValidationService {
     );
 
     if (!processed.result) {
-      final String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, ${processed.message}.';
+      final String message = 'auto label is removed for ${slug.fullName}/$prNumber, ${processed.message}.';
       await githubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
       await githubService.createComment(slug, prNumber, message);
       log.info(message);
