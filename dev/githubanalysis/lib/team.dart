@@ -31,15 +31,17 @@ class TeamRoster {
     Map<String, User> parseTeamData(final String teamData) {
       final Map<String, User> users = <String, User>{};
       for (final String line in teamData.split('\n')) {
-        final List<String> components = line.split(' ');
-        final User member = User(
-          login: components[0],
-          id: int.parse(components[1]),
-          siteAdmin: components[2] == 'true',
-          htmlUrl: components[3],
-          avatarUrl: components[4],
-        );
-        users[member.login!] = member;
+        if (line.isNotEmpty) {
+          final List<String> components = line.split(' ');
+          final User member = User(
+            login: components[0],
+            id: int.parse(components[1]),
+            siteAdmin: components[2] == 'true',
+            htmlUrl: components[3],
+            avatarUrl: components[4],
+          );
+          users[member.login!] = member;
+        }
       }
       return users;
     }
