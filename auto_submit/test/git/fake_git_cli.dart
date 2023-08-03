@@ -40,6 +40,8 @@ class FakeGitCli extends GitCli {
   Future<ProcessResult> setUpstream(
     gh.RepositorySlug slug,
     String workingDirectory,
+    String branch,
+    String token,
   ) async {
     return _handleCall();
   }

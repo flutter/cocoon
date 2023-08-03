@@ -390,8 +390,17 @@ class FakeGithubService implements GithubService {
       String direction = 'desc',
       String? head,
       String sort = 'created',
-      String state = 'open'}) {
+      String state = 'open',}) {
     // TODO: implement listPullRequests
     throw UnimplementedError();
+  }
+  
+  String? branchMockData;
+
+  set branchMock(String data) => branchMock = data; 
+
+  @override
+  Future<Branch> getBranch(RepositorySlug slug, String branchName) async {
+    return Branch.fromJson(json.decode(branchMockData!));
   }
 }
