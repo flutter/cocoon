@@ -170,9 +170,6 @@ class Config {
   /// Max retries when scheduling builds.
   static const RetryOptions schedulerRetry = RetryOptions(maxAttempts: 3);
 
-  /// Max retries when getting builds from buildbucket.
-  static const RetryOptions buildbucketRetry = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 2));
-
   /// List of GitHub accounts related to releases.
   Future<List<String>> get releaseAccounts => _getReleaseAccounts();
 

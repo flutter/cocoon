@@ -299,7 +299,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
     if (pr.user!.login == 'fluttergithubbot') {
       needsTests = false;
-      labels.addAll(<String>['c: tech-debt', 'c: flakes']);
+      labels.addAll(<String>['c: tech-debt', 'c: flake']);
     }
 
     if (labels.isNotEmpty) {
@@ -441,7 +441,10 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           // Native Windows tests.
           filename.endsWith('_test.cpp') ||
           // Pigeon native tests.
-          filename.contains('/platform_tests/')) {
+          filename.contains('/platform_tests/') ||
+          // Test files in package-specific test folders.
+          filename.contains('go_router/test_fixes/') ||
+          filename.contains('go_router_builder/test_inputs/')) {
         hasTests = true;
       }
     }

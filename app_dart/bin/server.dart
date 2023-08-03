@@ -260,7 +260,7 @@ Future<void> main() async {
       '/api/public/get-branches': CacheRequestHandler<Body>(
         cache: cache,
         config: config,
-        delegate: GetBranches(config: config),
+        delegate: GetBranches(config: config, branchService: branchService),
         ttl: const Duration(minutes: 15),
       ),
 

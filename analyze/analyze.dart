@@ -217,26 +217,53 @@ Future<EvalResult> _evalCommand(
 
 // These files legitimately require executable permissions
 const Set<String> kExecutableAllowlist = <String>{
+  'app_dart/tool/build.sh',
+  'cipd_packages/doxygen/tool/build.sh',
+  'cloud_build/dashboard_build.sh',
+  'cloud_build/deploy_app_dart.sh',
+  'cloud_build/deploy_auto_submit.sh',
+  'cloud_build/deploy_cron_jobs.sh',
+  'cloud_build/get_docker_image_provenance.sh',
+  'cloud_build/verify_provenance.sh',
+  'codesign/tool/build.sh',
+  'dashboard/regen_mocks.sh',
   'dev/provision_salt.sh',
+  'dev/prs_to_main.sh',
+  'device_doctor/tool/build.sh',
   'format.sh',
   'oneoff/cirrus_stats/load.sh',
-  'test.sh',
+  'packages/buildbucket-dart/tool/regenerate.sh',
+  'test_utilities/bin/analyze.sh',
   'test_utilities/bin/config_test_runner.sh',
   'test_utilities/bin/dart_test_runner.sh',
   'test_utilities/bin/flutter_test_runner.sh',
   'test_utilities/bin/global_test_runner.dart',
+  'test_utilities/bin/licenses.sh',
   'test_utilities/bin/prepare_environment.sh',
-  'cloud_build/verify_provenance.sh',
-  'cloud_build/get_docker_image_provenance.sh',
-  'dashboard/regen_mocks.sh',
 };
+
+const String kShebangRegex = r'#!/usr/bin/env (bash|sh)';
 
 Future<void> _checkForNewExecutables() async {
   // 0b001001001
   const int executableBitMask = 0x49;
-
   final List<File> files = await _gitFiles(cocoonRoot.path);
+  final List<String> relativePaths = files.map<String>((File file) {
+    return path.relative(
+      file.path,
+      from: cocoonRoot.path,
+    );
+  }).toList();
+  for (String allowed in kExecutableAllowlist) {
+    if (!relativePaths.contains(allowed)) {
+      throw Exception(
+        'File $allowed in kExecutableAllowlist in analyze/analyze.dart '
+        'does not exist. Please fix path or remove from kExecutableAllowlist.',
+      );
+    }
+  }
   int unexpectedExecutableCount = 0;
+  int unexpectedShebangShellCount = 0;
   for (final File file in files) {
     final String relativePath = path.relative(
       file.path,
@@ -244,9 +271,17 @@ Future<void> _checkForNewExecutables() async {
     );
     final FileStat stat = file.statSync();
     final bool isExecutable = stat.mode & executableBitMask != 0x0;
-    if (isExecutable && !kExecutableAllowlist.contains(relativePath)) {
+    final bool inAllowList = kExecutableAllowlist.contains(relativePath);
+    if (isExecutable && !inAllowList) {
       unexpectedExecutableCount += 1;
       print('$relativePath is executable: ${(stat.mode & 0x1FF).toRadixString(2)}');
+    }
+    if (inAllowList && file.path.endsWith('.sh')) {
+      final String shebang = file.readAsLinesSync().first;
+      if (!shebang.startsWith(RegExp(kShebangRegex))) {
+        unexpectedShebangShellCount += 1;
+        print("$relativePath has the initial line of $shebang, which doesn't match '$kShebangRegex'");
+      }
     }
   }
   if (unexpectedExecutableCount > 0) {
@@ -254,6 +289,13 @@ Future<void> _checkForNewExecutables() async {
       'found $unexpectedExecutableCount unexpected executable file'
       '${unexpectedExecutableCount == 1 ? '' : 's'}! If this was intended, you '
       'must add this file to kExecutableAllowlist in analyze/analyze.dart',
+    );
+  }
+  if (unexpectedShebangShellCount > 0) {
+    throw Exception(
+      'found $unexpectedShebangShellCount unexpected shell #! line'
+      '${unexpectedShebangShellCount == 1 ? '' : 's'}! If this was intended, you '
+      'must modify kShebangRegex in analyze/analyze.dart',
     );
   }
 }

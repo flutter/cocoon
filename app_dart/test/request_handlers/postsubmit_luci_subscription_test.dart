@@ -110,6 +110,52 @@ void main() {
     expect(task.endTimestamp, 1565049193786);
   });
 
+  test('skips task processing when build is with scheduled status', () async {
+    final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
+    final Task task = generateTask(
+      4507531199512576,
+      name: 'Linux A',
+      parent: commit,
+      status: Task.statusInProgress,
+    );
+    config.db.values[task.key] = task;
+    config.db.values[commit.key] = commit;
+    tester.message = createBuildbucketPushMessage(
+      'SCHEDULED',
+      builderName: 'Linux A',
+      result: null,
+      userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
+    );
+
+    expect(task.status, Task.statusInProgress);
+    expect(task.attempts, 1);
+    expect(await tester.post(handler), Body.empty);
+    expect(task.status, Task.statusInProgress);
+  });
+
+  test('skips task processing when task has already finished', () async {
+    final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
+    final Task task = generateTask(
+      4507531199512576,
+      name: 'Linux A',
+      parent: commit,
+      status: Task.statusSucceeded,
+    );
+    config.db.values[task.key] = task;
+    config.db.values[commit.key] = commit;
+    tester.message = createBuildbucketPushMessage(
+      'STARTED',
+      builderName: 'Linux A',
+      result: null,
+      userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
+    );
+
+    expect(task.status, Task.statusSucceeded);
+    expect(task.attempts, 1);
+    expect(await tester.post(handler), Body.empty);
+    expect(task.status, Task.statusSucceeded);
+  });
+
   test('does not fail on empty user data', () async {
     tester.message = createBuildbucketPushMessage(
       'COMPLETED',
@@ -126,7 +172,7 @@ void main() {
       4507531199512576,
       name: 'Linux A',
       parent: commit,
-      status: Task.statusNew,
+      status: Task.statusFailed,
     );
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
@@ -137,7 +183,7 @@ void main() {
       userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
     );
 
-    expect(task.status, Task.statusNew);
+    expect(task.status, Task.statusFailed);
     expect(task.attempts, 1);
     expect(await tester.post(handler), Body.empty);
     expect(task.status, Task.statusInProgress);
@@ -150,7 +196,7 @@ void main() {
       4507531199512576,
       name: 'Linux A',
       parent: commit,
-      status: Task.statusNew,
+      status: Task.statusInfraFailure,
     );
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
@@ -161,7 +207,7 @@ void main() {
       userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
     );
 
-    expect(task.status, Task.statusNew);
+    expect(task.status, Task.statusInfraFailure);
     expect(task.attempts, 1);
     expect(await tester.post(handler), Body.empty);
     expect(task.status, Task.statusInProgress);
@@ -174,7 +220,7 @@ void main() {
       4507531199512576,
       name: 'Linux A',
       parent: commit,
-      status: Task.statusNew,
+      status: Task.statusInfraFailure,
     );
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
@@ -185,7 +231,7 @@ void main() {
       userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
     );
 
-    expect(task.status, Task.statusNew);
+    expect(task.status, Task.statusInfraFailure);
     expect(task.attempts, 1);
     expect(await tester.post(handler), Body.empty);
     expect(task.status, Task.statusInProgress);

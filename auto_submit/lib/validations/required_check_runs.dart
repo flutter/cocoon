@@ -71,6 +71,9 @@ class RequiredCheckRuns extends Validation {
   }
 
   @override
+  String get name => 'RequiredCheckRuns';
+
+  @override
   Future<ValidationResult> validate(auto.QueryResult result, github.PullRequest messagePullRequest) async {
     final auto.PullRequest pullRequest = result.repository!.pullRequest!;
     final auto.Commit commit = pullRequest.commits!.nodes!.single.commit!;

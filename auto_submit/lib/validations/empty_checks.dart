@@ -15,6 +15,9 @@ class EmptyChecks extends Validation {
   });
 
   @override
+  String get name => 'EmptyChecks';
+
+  @override
 
   /// Implements the validation to verify the list of checks is not empty.
   Future<ValidationResult> validate(QueryResult result, github.PullRequest messagePullRequest) async {

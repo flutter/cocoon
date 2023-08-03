@@ -232,7 +232,7 @@ const String expectedSemanticsIntegrationTestResponseAssignee = 'HansMuller';
 const List<String> expectedSemanticsIntegrationTestResponseLabels = <String>[
   'c: flake',
   'P0',
-  'framework',
+  'team-framework',
 ];
 const String expectedSemanticsIntegrationTestCiYamlContent = '''
 # Describes the targets run in continuous integration environment.
@@ -342,7 +342,7 @@ const String expectedAnalyzeTestResponseAssignee = 'HansMuller';
 const List<String> expectedAnalyzeTestResponseLabels = <String>[
   'c: flake',
   'P0',
-  'framework',
+  'team-framework',
 ];
 
 final List<BuilderStatistic> frameworkTestResponse = <BuilderStatistic>[
@@ -374,7 +374,7 @@ const String expectedFrameworkTestResponseAssignee = 'HansMuller';
 const List<String> expectedFrameworkTestResponseLabels = <String>[
   'c: flake',
   'P0',
-  'framework',
+  'team-framework',
 ];
 
 String gitHubEncode(String source) {
