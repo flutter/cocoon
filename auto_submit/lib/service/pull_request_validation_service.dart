@@ -56,7 +56,6 @@ class PullRequestValidationService extends ValidationService {
     required String ackId,
     required PubSub pubsub,
   }) async {
-    // final List<ValidationResult> results = <ValidationResult>[];
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int prNumber = messagePullRequest.number!;
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
@@ -80,7 +79,6 @@ class PullRequestValidationService extends ValidationService {
         messagePullRequest,
       );
       validationsMap[validation.name] = validationResult;
-      // results.add(validationResult);
     }
 
     final GithubService githubService = await config.createGithubService(slug);
@@ -89,7 +87,6 @@ class PullRequestValidationService extends ValidationService {
     bool shouldReturn = false;
     for (MapEntry<String, ValidationResult> result in validationsMap.entries) {
       if (!result.value.result && result.value.action == Action.REMOVE_LABEL) {
-        // if (!result.result && result.action == Action.REMOVE_LABEL) {
         final String commmentMessage = result.value.message.isEmpty ? 'Validations Fail.' : result.value.message;
         final String message = 'auto label is removed for ${slug.fullName}/$prNumber, due to $commmentMessage';
         await githubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
