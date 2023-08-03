@@ -29,6 +29,7 @@ void main() {
   final MockGitHub gitHub = MockGitHub();
   late github.RepositorySlug slug;
   late Set<FailureDetail> failures;
+  const int prNumber = 1;
 
   List<ContextNode> getContextNodeListFromJson(final String repositoryStatuses) {
     final List<ContextNode> contextNodeList = [];
@@ -66,7 +67,7 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isTrue);
+        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isTrue);
         expect(failures, isEmpty);
       });
     });
@@ -77,7 +78,7 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isTrue);
+        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isTrue);
         expect(failures, isEmpty);
       });
     });
@@ -88,7 +89,7 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isTrue);
+        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isTrue);
         expect(failures, isEmpty);
       });
     });
@@ -99,7 +100,7 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isFalse);
+        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isFalse);
         expect(failures, isNotEmpty);
         expect(failures.length, 1);
       });
@@ -111,7 +112,7 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isTrue);
+        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isTrue);
         expect(failures, isEmpty);
       });
     });
@@ -122,7 +123,7 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isFalse);
+        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isFalse);
         expect(failures, isNotEmpty);
         expect(failures.length, 1);
       });
@@ -136,7 +137,7 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isFalse);
+        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isFalse);
         expect(failures, isEmpty);
       });
     });
@@ -147,7 +148,7 @@ void main() {
       const bool allSuccess = false;
 
       checkRunFuture.then((checkRuns) {
-        expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isFalse);
+        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isFalse);
         expect(failures, isNotEmpty);
         expect(failures.length, 1);
       });
@@ -162,7 +163,7 @@ void main() {
 
       /// The status must be uppercase as the original code is expecting this.
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, author, [], contextNodeList, failures, allSuccess), isTrue);
+      expect(ciSuccessful.validateStatuses(slug, prNumber, author, [], contextNodeList, failures, allSuccess), isTrue);
       expect(failures, isEmpty);
     });
 
@@ -176,7 +177,10 @@ void main() {
       labelNames.add('Other label');
 
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, author, labelNames, contextNodeList, failures, allSuccess), isTrue);
+      expect(
+        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        isTrue,
+      );
       expect(failures, isEmpty);
     });
 
@@ -190,7 +194,10 @@ void main() {
       labelNames.add('Another Compelling label');
 
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, author, labelNames, contextNodeList, failures, allSuccess), isFalse);
+      expect(
+        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        isFalse,
+      );
       expect(failures, isEmpty);
     });
 
@@ -204,7 +211,10 @@ void main() {
       labelNames.add('Another Compelling label');
 
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, author, labelNames, contextNodeList, failures, allSuccess), isFalse);
+      expect(
+        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        isFalse,
+      );
       expect(failures, isNotEmpty);
       expect(failures.length, 2);
     });
@@ -219,7 +229,10 @@ void main() {
       labelNames.add('Another Compelling label');
 
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, author, labelNames, contextNodeList, failures, allSuccess), isFalse);
+      expect(
+        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        isFalse,
+      );
       expect(failures, isNotEmpty);
       expect(failures.length, 2);
     });
@@ -235,7 +248,10 @@ void main() {
       labelNames.add('Another Compelling label');
 
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, author, labelNames, contextNodeList, failures, allSuccess), isTrue);
+      expect(
+        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        isTrue,
+      );
       expect(failures, isEmpty);
       expect(failures.length, 0);
     });
@@ -251,7 +267,10 @@ void main() {
       labelNames.add('Another Compelling label');
 
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, author, labelNames, contextNodeList, failures, allSuccess), isTrue);
+      expect(
+        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        isTrue,
+      );
       expect(failures, isEmpty);
       expect(failures.length, 0);
     });
@@ -267,7 +286,10 @@ void main() {
       labelNames.add('Another Compelling label');
 
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, author, labelNames, contextNodeList, failures, allSuccess), isFalse);
+      expect(
+        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        isFalse,
+      );
       expect(failures, isNotEmpty);
       expect(failures.length, 1);
     });
@@ -281,7 +303,7 @@ void main() {
 
       /// The status must be uppercase as the original code is expecting this.
       convertContextNodeStatuses(contextNodeList);
-      final bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, contextNodeList);
+      final bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, prNumber, contextNodeList);
       expect(treeStatusFlag, true);
     });
 
@@ -292,7 +314,7 @@ void main() {
 
       /// The status must be uppercase as the original code is expecting this.
       convertContextNodeStatuses(contextNodeList);
-      final bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, contextNodeList);
+      final bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, prNumber, contextNodeList);
       expect(treeStatusFlag, true);
     });
 
@@ -302,7 +324,7 @@ void main() {
 
       /// The status must be uppercase as the original code is expecting this.
       convertContextNodeStatuses(contextNodeList);
-      final bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, contextNodeList);
+      final bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, prNumber, contextNodeList);
       expect(treeStatusFlag, false);
     });
   });

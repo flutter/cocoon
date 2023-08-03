@@ -22,6 +22,9 @@ class Revert extends Validation {
   final RetryOptions retryOptions;
 
   @override
+  String get name => 'revert';
+
+  @override
   Future<ValidationResult> validate(auto.QueryResult result, github.PullRequest messagePullRequest) async {
     final auto.PullRequest pullRequest = result.repository!.pullRequest!;
     final String? author = pullRequest.author!.login;

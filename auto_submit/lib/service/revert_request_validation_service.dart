@@ -115,7 +115,7 @@ class RevertRequestValidationService extends ValidationService {
       }
     } else if (!revertValidationResult.result && revertValidationResult.action == Action.IGNORE_TEMPORARILY) {
       // if required check runs have not completed process again.
-      log.info('Some of the required checks have not completed. Requeueing.');
+      log.info('Some of the required checks for ${slug.fullName}/$prNumber have not completed. Requeueing.');
       return;
     } else {
       // since we do not temporarily ignore anything with a revert request we

@@ -18,6 +18,9 @@ class Approval extends Validation {
     required super.config,
   });
 
+  @override
+  String get name => 'Approval';
+
   /// Implements the code review approval logic.
   @override
   Future<ValidationResult> validate(QueryResult result, github.PullRequest messagePullRequest) async {
