@@ -1692,6 +1692,7 @@ void foo() {
         ),
       );
     });
+
     test('Packages does not comment if Pigeon native tests', () async {
       const int issueNumber = 123;
 
@@ -1699,12 +1700,75 @@ void foo() {
         action: 'opened',
         number: issueNumber,
         slug: Config.packagesSlug,
+        baseRef: Config.defaultBranch(Config.packagesSlug),
       );
       when(pullRequestsService.listFiles(Config.packagesSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'packages/pigeon/lib/swift_generator.dart',
           PullRequestFile()
             ..filename = 'packages/pigeon/platform_tests/shared_test_plugin_code/lib/integration_tests.dart',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.createComment(
+          Config.packagesSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+    });
+
+    test('Packages does not comment if editing test files in go_router', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.packagesSlug,
+        baseRef: Config.defaultBranch(Config.packagesSlug),
+      );
+      when(pullRequestsService.listFiles(Config.packagesSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()
+            ..filename = 'packages/packages/go_router/test_fixes/go_router.dart'
+            ..additionsCount = 10,
+          PullRequestFile()
+            ..filename = 'packages/packages/go_router/lib/fix_data.yaml'
+            ..additionsCount = 10,
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.createComment(
+          Config.packagesSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+    });
+
+    test('Packages does not comment if editing test files in go_router_builder', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.packagesSlug,
+        baseRef: Config.defaultBranch(Config.packagesSlug),
+      );
+      when(pullRequestsService.listFiles(Config.packagesSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()
+            ..filename = 'packages/packages/go_router_builder/lib/src/route_config.dart'
+            ..additionsCount = 10,
+          PullRequestFile()
+            ..filename = 'packages/packages/go_router_builder/test_inputs/bad_path_pattern.dart'
+            ..additionsCount = 10,
         ]),
       );
 
