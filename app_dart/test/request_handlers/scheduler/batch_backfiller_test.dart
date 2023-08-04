@@ -267,20 +267,5 @@ void main() {
         expect(filteredBackfill[1].third, LuciBuildService.kRerunPriority);
       });
     });
-
-    group('Filter out ci_yaml roller targets', () {
-      test('Filter out roller tasks.', () {
-        final Target ciYamlRollerTarget = generateTarget(1, properties: {'backfill': 'false'});
-        final Target target1 = generateTarget(2, properties: {'backfill': 'true'});
-        final Target target2 = generateTarget(3); // should not be filtered out.
-        final Target target3 = generateTarget(4); // should not be filtered out.
-        final List<Target> targetList = [ciYamlRollerTarget, target1, target2, target3];
-        final List<Target> filteredFullTargetList = handler.removeNonBackFillTargets(targetList);
-        assert(!filteredFullTargetList.contains(ciYamlRollerTarget));
-        assert(filteredFullTargetList.contains(target1));
-        assert(filteredFullTargetList.contains(target2));
-        assert(filteredFullTargetList.contains(target3));
-      });
-    });
   });
 }

@@ -70,17 +70,15 @@ class BatchBackfiller extends RequestHandler {
     for (List<FullTask> taskColumn in taskMap.values) {
       final FullTask task = taskColumn.first;
       final CiYaml ciYaml = await scheduler.getCiYaml(task.commit);
-      final List<Target> ciYamlTargets = ciYaml.postsubmitTargets;
-
-      final List<Target> filteredCiYamlTargets = removeNonBackFillTargets(ciYamlTargets);
+      final List<Target> ciYamlTargets = ciYaml.backfillTargets;
 
       // Skips scheduling if the task is not in TOT commit anymore.
       final bool taskInToT =
-          filteredCiYamlTargets.map((Target target) => target.value.name).toList().contains(task.task.name);
+          ciYamlTargets.map((Target target) => target.value.name).toList().contains(task.task.name);
       if (!taskInToT) {
         continue;
       }
-      final Target target = filteredCiYamlTargets.singleWhere((target) => target.value.name == task.task.name);
+      final Target target = ciYamlTargets.singleWhere((target) => target.value.name == task.task.name);
       if (target.schedulerPolicy is! BatchPolicy) {
         continue;
       }
@@ -113,26 +111,6 @@ class BatchBackfiller extends RequestHandler {
     } catch (error) {
       log.severe('Failed to update tasks when backfilling: $error');
     }
-  }
-
-  // Remove targets that specify a property of 'backfill': 'false'. Otherwise we
-  // will assume that we include those targets when backfilling.
-  List<Target> removeNonBackFillTargets(List<Target> targets) {
-    final List<Target> filteredTargets = <Target>[];
-    for (Target target in targets) {
-      final Map<String, String> properties = target.value.properties;
-      if (properties.containsKey('backfill')) {
-        final bool? doBackFill = bool.tryParse(properties['backfill']!, caseSensitive: false);
-        // if properties does not contain backfill we assume backfill = true
-        if (doBackFill == null || doBackFill) {
-          filteredTargets.add(target);
-        }
-      } else {
-        // if no properties we assume backfill.
-        filteredTargets.add(target);
-      }
-    }
-    return filteredTargets;
   }
 
   /// Filters [config.backfillerTargetLimit] targets to backfill.
