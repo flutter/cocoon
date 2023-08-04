@@ -50,28 +50,14 @@ class BatchBackfiller extends RequestHandler {
     return Body.empty;
   }
 
-  // Remove the ci_yaml rollers from backfill list.
-  List<FullTask> removeCiYamlRollerFromBackFill(List<FullTask> taskList) {
-    final RegExp regExp = RegExp(r'^linux\s+?ci_yaml\s*?\w*?\s*?roller$', caseSensitive: false);
-    final List<FullTask> filteredList = <FullTask>[];
-    for (FullTask fullTask in taskList) {
-      if (fullTask.task.name != null && !fullTask.task.name!.contains(regExp)) {
-        filteredList.add(fullTask);
-      }
-    }
-    return filteredList;
-  }
-
   Future<void> backfillRepository(RepositorySlug slug) async {
     final DatastoreService datastore = datastoreProvider(config.db);
     final List<FullTask> tasks =
         await (datastore.queryRecentTasks(slug: slug, commitLimit: config.backfillerCommitLimit)).toList();
 
-    final List<FullTask> filteredTasks = removeCiYamlRollerFromBackFill(tasks);
-
     // Construct Task columns to scan for backfilling
     final Map<String, List<FullTask>> taskMap = <String, List<FullTask>>{};
-    for (FullTask fullTask in filteredTasks) {
+    for (FullTask fullTask in tasks) {
       if (taskMap.containsKey(fullTask.task.name)) {
         taskMap[fullTask.task.name]!.add(fullTask);
       } else {
@@ -85,12 +71,16 @@ class BatchBackfiller extends RequestHandler {
       final FullTask task = taskColumn.first;
       final CiYaml ciYaml = await scheduler.getCiYaml(task.commit);
       final List<Target> ciYamlTargets = ciYaml.postsubmitTargets;
+
+      final List<Target> filteredCiYamlTargets = removeNonBackFillTargets(ciYamlTargets);
+
       // Skips scheduling if the task is not in TOT commit anymore.
-      final bool taskInToT = ciYamlTargets.map((Target target) => target.value.name).toList().contains(task.task.name);
+      final bool taskInToT =
+          filteredCiYamlTargets.map((Target target) => target.value.name).toList().contains(task.task.name);
       if (!taskInToT) {
         continue;
       }
-      final Target target = ciYamlTargets.singleWhere((target) => target.value.name == task.task.name);
+      final Target target = filteredCiYamlTargets.singleWhere((target) => target.value.name == task.task.name);
       if (target.schedulerPolicy is! BatchPolicy) {
         continue;
       }
@@ -123,6 +113,26 @@ class BatchBackfiller extends RequestHandler {
     } catch (error) {
       log.severe('Failed to update tasks when backfilling: $error');
     }
+  }
+
+  // Remove targets that specify a property of 'backfill': 'false'. Otherwise we
+  // will assume that we include those targets when backfilling.
+  List<Target> removeNonBackFillTargets(List<Target> targets) {
+    final List<Target> filteredTargets = <Target>[];
+    for (Target target in targets) {
+      final Map<String, String> properties = target.value.properties;
+      if (properties.containsKey('backfill')) {
+        final bool? doBackFill = bool.tryParse(properties['backfill']!, caseSensitive: false);
+        // if properties does not contain backfill we assume backfill = true
+        if (doBackFill == null || doBackFill) {
+          filteredTargets.add(target);
+        }
+      } else {
+        // if no properties we assume backfill.
+        filteredTargets.add(target);
+      }
+    }
+    return filteredTargets;
   }
 
   /// Filters [config.backfillerTargetLimit] targets to backfill.

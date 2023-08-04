@@ -269,52 +269,17 @@ void main() {
     });
 
     group('Filter out ci_yaml roller targets', () {
-      test('validate ci_yaml regex', () {
-        final List<String> rollerTargets = [
-          'Linux ci_yaml flutter roller',
-          'Linux ci_yaml engine roller',
-          'Linux ci_yaml packages roller',
-          'Linux ci_yaml roller',
-        ];
-
-        final RegExp regExp = RegExp(r'^linux\s+?ci_yaml\s*?\w*?\s*?roller$', caseSensitive: false);
-
-        for (String rollTarget in rollerTargets) {
-          expect(rollTarget.contains(regExp), true);
-        }
-      });
-
       test('Filter out roller tasks.', () {
-        final FullTask ciYamlRollerTask =
-            FullTask(generateTask(1, name: 'Linux ci_yaml flutter roller'), generateCommit(1));
-        final FullTask task1 = FullTask(generateTask(2, name: 'Linux customer_testing'), generateCommit(2));
-        final FullTask task2 = FullTask(generateTask(3, name: 'Linux packages_autoroller'), generateCommit(3));
-        final FullTask task3 = FullTask(generateTask(4, name: 'Linux android views'), generateCommit(4));
-        final List<FullTask> fullTaskList = [ciYamlRollerTask, task1, task2, task3];
-        final List<FullTask> filteredFullTaskList = handler.removeCiYamlRollerFromBackFill(fullTaskList);
-        assert(!filteredFullTaskList.contains(ciYamlRollerTask));
-        assert(filteredFullTaskList.contains(task1));
-        assert(filteredFullTaskList.contains(task2));
-        assert(filteredFullTaskList.contains(task3));
-      });
-
-      test('Filter out roller tasks case insensitive from supported repos', () {
-        final FullTask ciYamlFlutterRollerTask =
-            FullTask(generateTask(1, name: 'Linux ci_yaml flutter roller'), generateCommit(1));
-        final FullTask ciYamlPackagesRollerTask =
-            FullTask(generateTask(2, name: 'Linux ci_yaml packages roller'), generateCommit(2));
-        final FullTask ciYamlEngineRollerTask =
-            FullTask(generateTask(3, name: 'Linux ci_yaml engine roller'), generateCommit(3));
-        final FullTask ciYamlCocoonRollerTask =
-            FullTask(generateTask(4, name: 'Linux ci_yaml roller'), generateCommit(4));
-        final List<FullTask> fullTaskList = [
-          ciYamlFlutterRollerTask,
-          ciYamlPackagesRollerTask,
-          ciYamlEngineRollerTask,
-          ciYamlCocoonRollerTask,
-        ];
-        final List<FullTask> filteredFullTaskList = handler.removeCiYamlRollerFromBackFill(fullTaskList);
-        assert(filteredFullTaskList.isEmpty);
+        final Target ciYamlRollerTarget = generateTarget(1, properties: {'backfill': 'false'});
+        final Target target1 = generateTarget(2, properties: {'backfill': 'true'});
+        final Target target2 = generateTarget(3); // should not be filtered out.
+        final Target target3 = generateTarget(4); // should not be filtered out.
+        final List<Target> targetList = [ciYamlRollerTarget, target1, target2, target3];
+        final List<Target> filteredFullTargetList = handler.removeNonBackFillTargets(targetList);
+        assert(!filteredFullTargetList.contains(ciYamlRollerTarget));
+        assert(filteredFullTargetList.contains(target1));
+        assert(filteredFullTargetList.contains(target2));
+        assert(filteredFullTargetList.contains(target3));
       });
     });
   });
