@@ -253,7 +253,6 @@ void main() {
       await tester.get(handler);
       expect(pubsub.messages.length, 2);
     });
-
     group('getFilteredBackfill', () {
       test('backfills high priorty targets first', () async {
         final List<Tuple<Target, FullTask, int>> backfill = <Tuple<Target, FullTask, int>>[
