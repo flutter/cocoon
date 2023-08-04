@@ -50,14 +50,28 @@ class BatchBackfiller extends RequestHandler {
     return Body.empty;
   }
 
+  // Remove the ci_yaml rollers from backfill list.
+  List<FullTask> removeCiYamlRollerFromBackFill(List<FullTask> taskList) {
+    final RegExp regExp = RegExp(r'^linux\s+?ci_yaml\s*?\w*?\s*?roller$', caseSensitive: false);
+    final List<FullTask> filteredList = <FullTask>[];
+    for (FullTask fullTask in taskList) {
+      if (fullTask.task.name != null && !fullTask.task.name!.contains(regExp)) {
+        filteredList.add(fullTask);
+      }
+    }
+    return filteredList;
+  }
+
   Future<void> backfillRepository(RepositorySlug slug) async {
     final DatastoreService datastore = datastoreProvider(config.db);
     final List<FullTask> tasks =
         await (datastore.queryRecentTasks(slug: slug, commitLimit: config.backfillerCommitLimit)).toList();
 
+    final List<FullTask> filteredTasks = removeCiYamlRollerFromBackFill(tasks);
+
     // Construct Task columns to scan for backfilling
     final Map<String, List<FullTask>> taskMap = <String, List<FullTask>>{};
-    for (FullTask fullTask in tasks) {
+    for (FullTask fullTask in filteredTasks) {
       if (taskMap.containsKey(fullTask.task.name)) {
         taskMap[fullTask.task.name]!.add(fullTask);
       } else {

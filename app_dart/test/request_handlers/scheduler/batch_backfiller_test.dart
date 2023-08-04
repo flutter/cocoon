@@ -253,6 +253,7 @@ void main() {
       await tester.get(handler);
       expect(pubsub.messages.length, 2);
     });
+
     group('getFilteredBackfill', () {
       test('backfills high priorty targets first', () async {
         final List<Tuple<Target, FullTask, int>> backfill = <Tuple<Target, FullTask, int>>[
@@ -264,6 +265,56 @@ void main() {
         expect(filteredBackfill.length, 2);
         expect(filteredBackfill[0].third, LuciBuildService.kRerunPriority);
         expect(filteredBackfill[1].third, LuciBuildService.kRerunPriority);
+      });
+    });
+
+    group('Filter out ci_yaml roller targets', () {
+      test('validate ci_yaml regex', () {
+        final List<String> rollerTargets = [
+          'Linux ci_yaml flutter roller',
+          'Linux ci_yaml engine roller',
+          'Linux ci_yaml packages roller',
+          'Linux ci_yaml roller',
+        ];
+
+        final RegExp regExp = RegExp(r'^linux\s+?ci_yaml\s*?\w*?\s*?roller$', caseSensitive: false);
+
+        for (String rollTarget in rollerTargets) {
+          expect(rollTarget.contains(regExp), true);
+        }
+      });
+
+      test('Filter out roller tasks.', () {
+        final FullTask ciYamlRollerTask =
+            FullTask(generateTask(1, name: 'Linux ci_yaml flutter roller'), generateCommit(1));
+        final FullTask task1 = FullTask(generateTask(2, name: 'Linux customer_testing'), generateCommit(2));
+        final FullTask task2 = FullTask(generateTask(3, name: 'Linux packages_autoroller'), generateCommit(3));
+        final FullTask task3 = FullTask(generateTask(4, name: 'Linux android views'), generateCommit(4));
+        final List<FullTask> fullTaskList = [ciYamlRollerTask, task1, task2, task3];
+        final List<FullTask> filteredFullTaskList = handler.removeCiYamlRollerFromBackFill(fullTaskList);
+        assert(!filteredFullTaskList.contains(ciYamlRollerTask));
+        assert(filteredFullTaskList.contains(task1));
+        assert(filteredFullTaskList.contains(task2));
+        assert(filteredFullTaskList.contains(task3));
+      });
+
+      test('Filter out roller tasks case insensitive from supported repos', () {
+        final FullTask ciYamlFlutterRollerTask =
+            FullTask(generateTask(1, name: 'Linux ci_yaml flutter roller'), generateCommit(1));
+        final FullTask ciYamlPackagesRollerTask =
+            FullTask(generateTask(2, name: 'Linux ci_yaml packages roller'), generateCommit(2));
+        final FullTask ciYamlEngineRollerTask =
+            FullTask(generateTask(3, name: 'Linux ci_yaml engine roller'), generateCommit(3));
+        final FullTask ciYamlCocoonRollerTask =
+            FullTask(generateTask(4, name: 'Linux ci_yaml roller'), generateCommit(4));
+        final List<FullTask> fullTaskList = [
+          ciYamlFlutterRollerTask,
+          ciYamlPackagesRollerTask,
+          ciYamlEngineRollerTask,
+          ciYamlCocoonRollerTask,
+        ];
+        final List<FullTask> filteredFullTaskList = handler.removeCiYamlRollerFromBackFill(fullTaskList);
+        assert(filteredFullTaskList.isEmpty);
       });
     });
   });
