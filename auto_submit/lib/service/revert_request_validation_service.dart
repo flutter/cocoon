@@ -17,7 +17,6 @@ import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/validations/revert.dart';
 import 'package:github/github.dart' as github;
-import 'package:github/github.dart';
 import 'package:retry/retry.dart';
 
 import 'revert_issue_body_formatter.dart';
@@ -109,11 +108,6 @@ class RevertRequestValidationService extends ValidationService {
     //      create the revert request
 
     switch (messagePullRequest.state!) {
-      case 'open':
-        {
-          // this means this pull request was opened by the autosubmit[bot] account and
-          // needs to be processed.
-        }
       case 'closed':
         {
           //TODO: leave if still working on debugging with github
@@ -127,25 +121,6 @@ class RevertRequestValidationService extends ValidationService {
           //   originalPrTitle: messagePullRequest.title!,
           //   originalPrBody: messagePullRequest.body!,
           // ).format;
-
-          // //Need to get a github token.
-          // final String token = await config.generateGithubToken(messagePullRequest.base!.repo!.slug());
-          // //TODO run a curl command for github to get request id.
-          // final CliCommand cliCommand = CliCommand();
-          // const String executable = 'curl';
-          // final List<String> args = <String>[
-          //   '-v',
-          //   '-H "Authorization: bearer $token"',
-          //   '-H "Content-Type:application/json"',
-          //   '-X',
-          //   'POST',
-          //   "https://api.github.com/graphql",
-          //   '-d',
-          //   '\'{"query": "mutation RevertPullFlutterPullRequest { revertPullRequest(input: {body: \\"Testing revert mutation\\", clientMutationId: \\"ra186026\\", draft: false, pullRequestId: \\"${messagePullRequest.nodeId}\\", title: \\"Revert comment in configuration file.\\"}) { clientMutationId pullRequest { author { login } authorAssociation id title number body repository { owner { login } name } } revertPullRequest { author { login } authorAssociation id title number body repository { owner { login } name } } }}"\'',
-          // ];
-          // final ProcessResult curlProcessResult = await cliCommand.runCliCommand(executable: executable, arguments: args);
-          // log.info('curl command stdout: ${curlProcessResult.stdout}');
-          // log.info('curl command stderr: ${curlProcessResult.stderr}');
 
           final GitCliRevertMethod gitCliRevertMethod = GitCliRevertMethod();
           final github.PullRequest? pullRequest = await gitCliRevertMethod.createRevert(config, messagePullRequest);
