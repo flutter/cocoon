@@ -94,6 +94,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     final List<Target> postsubmitTargets = ciYaml.postsubmitTargets;
     if (!postsubmitTargets.any((element) => element.value.name == task!.name)) {
       log.warning('Target ${task.name} has been deleted from TOT. Skip updating.');
+      return Body.empty;
     }
     final Target target = postsubmitTargets.singleWhere((Target target) => target.value.name == task!.name);
     if (task.status == Task.statusFailed ||
