@@ -15,8 +15,15 @@ import 'utils.dart';
 const List<String> priorities = <String>['P0', 'P1', 'P2', 'P3'];
 
 class FullIssue {
-  FullIssue(this.repo, this.issueNumber, this._metadata, this.comments, this.reactions,
-      {this.redirect, this.isDeleted = false}) {
+  FullIssue(
+    this.repo,
+    this.issueNumber,
+    this._metadata,
+    this.comments,
+    this.reactions, {
+    this.redirect,
+    this.isDeleted = false,
+  }) {
     _labels = _metadata?.labels.map<String>((final IssueLabel label) => label.name).toSet();
     if (_labels != null) {
       final Set<String> matches = priorities.toSet().intersection(_labels!);
@@ -82,8 +89,14 @@ class FullIssue {
     });
     final Map<String, Object?> data = json.decode(cacheData)! as Map<String, Object?>;
     if (data['redirect'] != null) {
-      return FullIssue(repo, issueNumber, null, const <IssueComment>[], const <Reaction>[],
-          redirect: data['redirect']! as String);
+      return FullIssue(
+        repo,
+        issueNumber,
+        null,
+        const <IssueComment>[],
+        const <Reaction>[],
+        redirect: data['redirect']! as String,
+      );
     }
     if (data['deleted'] == true) {
       return FullIssue(repo, issueNumber, null, const <IssueComment>[], const <Reaction>[], isDeleted: true);
@@ -109,7 +122,8 @@ class FullIssue {
         ..writeln('Issue $issueNumber (${metadata.state}): ${metadata.title}')
         ..writeln(metadata.htmlUrl)
         ..writeln(
-            'Created by ${metadata.user!.login} on ${metadata.createdAt}, last updated on ${metadata.updatedAt}.');
+          'Created by ${metadata.user!.login} on ${metadata.createdAt}, last updated on ${metadata.updatedAt}.',
+        );
       if (metadata.isClosed) {
         result.writeln('Closed by ${metadata.closedBy?.login} on ${metadata.closedAt}.');
         if (metadata.closedBy != null) {
@@ -158,8 +172,13 @@ class FullIssue {
   }
 }
 
-Future<void> fetchAllIssues(final GitHub github, final Directory cache, final RepositorySlug repo,
-    final Duration issueMaxAge, final Map<int, FullIssue> results) async {
+Future<void> fetchAllIssues(
+  final GitHub github,
+  final Directory cache,
+  final RepositorySlug repo,
+  final Duration issueMaxAge,
+  final Map<int, FullIssue> results,
+) async {
   int index = 1;
   int issues = 0;
   int prs = 0;
@@ -205,9 +224,10 @@ Future<void> fetchAllIssues(final GitHub github, final Directory cache, final Re
       }
     }
     await rateLimit(
-        github,
-        '${repo.fullName}: #$index${lastIssueNumber > 0 ? " of ${maxKnown ? "" : "~"}$lastIssueNumber" : ""} ($issues issues; $prs PRs; $invalid errors)',
-        'issue #${index + 1}');
+      github,
+      '${repo.fullName}: #$index${lastIssueNumber > 0 ? " of ${maxKnown ? "" : "~"}$lastIssueNumber" : ""} ($issues issues; $prs PRs; $invalid errors)',
+      'issue #${index + 1}',
+    );
     index += 1;
   }
   await lastIssueNumberFile.writeAsString(lastIssueNumber.toString());
@@ -215,7 +235,11 @@ Future<void> fetchAllIssues(final GitHub github, final Directory cache, final Re
 }
 
 Future<void> updateAllIssues(
-    final GitHub github, final Directory cache, final RepositorySlug repo, final Map<int, FullIssue> issues) async {
+  final GitHub github,
+  final Directory cache,
+  final RepositorySlug repo,
+  final Map<int, FullIssue> issues,
+) async {
   final Set<int> pendingIssues = issues.isEmpty ? <int>{} : issues.keys.toSet();
   int highestKnownIssue = pendingIssues.isEmpty ? 0 : (pendingIssues.toList()..sort()).last;
   final File updateStampFile = cacheFileFor(cache, <String>['issue', repo.owner, repo.name, 'last-update']);
@@ -262,8 +286,10 @@ Future<void> updateAllIssues(
           issueNumber: summary.number,
           cacheEpoch: summary.updatedAt,
         );
-        assert(!issue.isValid || !issue.metadata.updatedAt!.isBefore(summary.updatedAt!),
-            'invariant violation\nOLD DATA:\n${json.encode(issue.metadata.toJson())}\nNEW DATA:\n${json.encode(summary.toJson())}');
+        assert(
+          !issue.isValid || !issue.metadata.updatedAt!.isBefore(summary.updatedAt!),
+          'invariant violation\nOLD DATA:\n${json.encode(issue.metadata.toJson())}\nNEW DATA:\n${json.encode(summary.toJson())}',
+        );
         if (issue.issueNumber > highestKnownIssue) {
           for (int index = highestKnownIssue; index < issue.issueNumber; index += 1) {
             pendingIssues.add(index);
@@ -286,7 +312,10 @@ Future<void> updateAllIssues(
     int count = 0;
     for (final int issueNumber in pendingIssues) {
       await rateLimit(
-          github, '${repo.fullName}: $count / ${pendingIssues.length} missing issues checked', 'issue #$issueNumber');
+        github,
+        '${repo.fullName}: $count / ${pendingIssues.length} missing issues checked',
+        'issue #$issueNumber',
+      );
       try {
         issues[issueNumber] = await FullIssue.load(
           cache: cache,
