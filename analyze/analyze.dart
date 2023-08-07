@@ -223,6 +223,7 @@ const Set<String> kExecutableAllowlist = <String>{
   'cloud_build/deploy_app_dart.sh',
   'cloud_build/deploy_auto_submit.sh',
   'cloud_build/deploy_cron_jobs.sh',
+  'cloud_build/deploy_releases.sh',
   'cloud_build/get_docker_image_provenance.sh',
   'cloud_build/verify_provenance.sh',
   'codesign/tool/build.sh',
