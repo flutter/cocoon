@@ -4,7 +4,7 @@
 
 runtime: custom
 env: flex
-service: auto-submit
+service: releases
 
 resources:
   memory_gb: 2.0

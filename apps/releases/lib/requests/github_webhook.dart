@@ -8,9 +8,6 @@ import '../common/handler.dart';
 import '../service/log.dart';
 
 /// Handler for processing GitHub webhooks.
-///
-/// On events where an 'autosubmit' label was added to a pull request,
-/// check if the pull request is mergable and publish to pubsub.
 class GithubWebhook extends Handler {
   const GithubWebhook() : super('webhook');
 

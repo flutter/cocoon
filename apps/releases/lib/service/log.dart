@@ -4,4 +4,4 @@
 
 import 'package:logging/logging.dart';
 
-final Logger log = Logger('auto_submit');
+final Logger log = Logger('releases');
