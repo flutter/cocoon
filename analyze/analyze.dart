@@ -218,6 +218,8 @@ Future<EvalResult> _evalCommand(
 // These files legitimately require executable permissions
 const Set<String> kExecutableAllowlist = <String>{
   'app_dart/tool/build.sh',
+  'cipd_packages/codesign/tool/build.sh',
+  'cipd_packages/device_doctor/tool/build.sh',
   'cipd_packages/doxygen/tool/build.sh',
   'cloud_build/dashboard_build.sh',
   'cloud_build/deploy_app_dart.sh',
@@ -225,11 +227,9 @@ const Set<String> kExecutableAllowlist = <String>{
   'cloud_build/deploy_cron_jobs.sh',
   'cloud_build/get_docker_image_provenance.sh',
   'cloud_build/verify_provenance.sh',
-  'codesign/tool/build.sh',
   'dashboard/regen_mocks.sh',
   'dev/provision_salt.sh',
   'dev/prs_to_main.sh',
-  'device_doctor/tool/build.sh',
   'format.sh',
   'oneoff/cirrus_stats/load.sh',
   'packages/buildbucket-dart/tool/regenerate.sh',

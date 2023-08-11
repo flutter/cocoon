@@ -176,6 +176,21 @@ void main() {
         );
       });
 
+      test('Get backfill targets from postsubmit', () {
+        final CiYaml ciYaml = exampleBackfillConfig;
+        final List<Target> backfillTargets = ciYaml.backfillTargets;
+        final List<String> backfillTargetNames = backfillTargets.map((Target target) => target.value.name).toList();
+        expect(
+          backfillTargetNames,
+          containsAll(
+            <String>[
+              'Linux A',
+              'Mac A',
+            ],
+          ),
+        );
+      });
+
       test('filter release_build targets from release candidate branches', () {
         final CiYaml releaseYaml = CiYaml(
           slug: Config.flutterSlug,

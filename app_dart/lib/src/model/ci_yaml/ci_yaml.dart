@@ -83,6 +83,18 @@ class CiYaml {
     return enabledTargets;
   }
 
+  /// Filters post submit targets to remove targets we do not want backfilled.
+  List<Target> get backfillTargets {
+    final List<Target> filteredTargets = <Target>[];
+    for (Target target in postsubmitTargets) {
+      final Map<String, Object> properties = target.getProperties();
+      if (!properties.containsKey('backfill') || properties['backfill'] as bool) {
+        filteredTargets.add(target);
+      }
+    }
+    return filteredTargets;
+  }
+
   /// Filters targets with release_build = true on release candidate branches.
   List<Target> _filterReleaseBuildTargets(List<Target> targets) {
     final List<Target> results = <Target>[];

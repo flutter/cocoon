@@ -29,29 +29,29 @@ targets:
   - name: Linux device_doctor
     recipe: cocoon/cipd
     properties:
-      script: device_doctor/tool/build.sh
+      script: cipd_packages/device_doctor/tool/build.sh
       cipd_name: flutter/device_doctor/linux-amd64
     runIf:
-      - device_doctor/**
+      - cipd_packages/device_doctor/**
       - .ci.yaml
 
   - name: Mac device_doctor
     recipe: cocoon/cipd
     properties:
-      script: device_doctor/tool/build.sh
+      script: cipd_packages/device_doctor/tool/build.sh
       cipd_name: flutter/device_doctor/mac-amd64
       device_type: none
     runIf:
-      - device_doctor/**
+      - cipd_packages/device_doctor/**
       - .ci.yaml
 
   - name: Windows device_doctor
     recipe: cocoon/cipd
     properties:
-      script: device_doctor\tool\build.bat
+      script: cipd_packages\device_doctor\tool\build.bat
       cipd_name: flutter/device_doctor/windows-amd64
     runIf:
-      - device_doctor/**
+      - cipd_packages/device_doctor/**
       - .ci.yaml
 
   - name: Linux doxygen
@@ -66,25 +66,26 @@ targets:
   - name: Mac codesign
     recipe: cocoon/cipd
     properties:
-      script: codesign/tool/build.sh
+      script: cipd_packages/codesign/tool/build.sh
       cipd_name: flutter/codesign/mac-amd64
       device_type: none
     runIf:
-      - codesign/**
+      - cipd_packages/codesign/**
       - .ci.yaml
 
   - name: Mac arm_codesign
     recipe: cocoon/cipd
     properties:
-      script: codesign/tool/build.sh
+      script: cipd_packages/codesign/tool/build.sh
       cipd_name: flutter/codesign/mac-arm64
       cpu: arm64
       device_type: none
     runIf:
-      - codesign/**
+      - cipd_packages/codesign/**
       - .ci.yaml
 
   - name: Linux ci_yaml roller
     recipe: infra/ci_yaml
     properties:
       add_recipes_cq: "true"
+      backfill: "false"
