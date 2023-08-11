@@ -4,6 +4,10 @@
 # These names are just suggestions. It is fine to have your changes
 # reviewed by someone else.
 
+app_dart                                           @keyonghan
+app_dart                                           @ricardoamador
+auto_submit                                        @keyonghan
+auto_submit                                        @ricardoamador
 cipd_packages/codesign/**                          @XilaiZhang
 cipd_packages/device_doctor/**                     @yusuf-goog
 cipd_packages/doxygen/**                           @gspencergoog
