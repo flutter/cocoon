@@ -62,15 +62,20 @@ void main() {
   group('Commit.from', () {
     test('runs successfully', () {
       final key = Commit.createKey(
-          db: FakeDatastoreDB(), slug: RepositorySlug('flutter', 'flutter'), gitBranch: 'main', sha: 'abc',);
+        db: FakeDatastoreDB(),
+        slug: RepositorySlug('flutter', 'flutter'),
+        gitBranch: 'main',
+        sha: 'abc',
+      );
 
       final Commit commit = Commit(
-          key: key,
-          author: "Sally",
-          authorAvatarUrl: "www.sally.com/url",
-          message: "This commit fixes prod",
-          repository: "flutter",
-          branch: "merging-branch",);
+        key: key,
+        author: "Sally",
+        authorAvatarUrl: "www.sally.com/url",
+        message: "This commit fixes prod",
+        repository: "flutter",
+        branch: "merging-branch",
+      );
       final Commit clonedCommit = Commit.from(commit);
 
       expect(commit.toString(), clonedCommit.toString());
