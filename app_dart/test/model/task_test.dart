@@ -375,7 +375,8 @@ void main() {
 
       const String fakeCustomName = "Awesome test!";
       final Commit fakeCommit = generateCommit(1);
-      final Task task = await Task.fromBuildbucketBuild(fakeBuild, DatastoreService(config.db, 5), commit: fakeCommit, customName: fakeCustomName);
+      final Task task = await Task.fromBuildbucketBuild(fakeBuild, DatastoreService(config.db, 5),
+          commit: fakeCommit, customName: fakeCustomName);
       final Key<String> expectedKey = fakeCommit.key;
       final Task expectedTask = Task(
         commitKey: expectedKey,

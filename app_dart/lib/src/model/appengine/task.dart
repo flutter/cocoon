@@ -162,8 +162,7 @@ class Task extends Model<int> {
     final int endTime = build.endTime?.millisecondsSinceEpoch ?? 0;
     log.fine("Start/end time (ms): $startTime, $endTime");
 
-    if (commit == null)
-    {
+    if (commit == null) {
       final String id = '${slug.fullName}/$branch/$sha';
       final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
       commit = await datastore.db.lookupValue<Commit>(commitKey);

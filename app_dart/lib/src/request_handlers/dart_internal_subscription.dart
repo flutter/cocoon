@@ -107,21 +107,21 @@ class DartInternalSubscription extends SubscriptionHandler {
     return Body.forJson(taskToInsert.toString());
   }
 
-  Future<Commit> _getOrCreateCommitForTask(DatastoreService datastore, Build build,) async {
-    log.info(
-        "Gathering commit associated with buildbucket result from the datastore");
-    final String repository =
-        build.input!.gitilesCommit!.project!.split('/')[1];
-    final String branch = build.input!.gitilesCommit!.ref!
-        .split('/')[2]; // Example: Pulling "stable" from "refs/heads/stable".
+  Future<Commit> _getOrCreateCommitForTask(
+    DatastoreService datastore,
+    Build build,
+  ) async {
+    log.info("Gathering commit associated with buildbucket result from the datastore");
+    final String repository = build.input!.gitilesCommit!.project!.split('/')[1];
+    final String branch =
+        build.input!.gitilesCommit!.ref!.split('/')[2]; // Example: Pulling "stable" from "refs/heads/stable".
     final String sha = build.input!.gitilesCommit!.hash!;
     final RepositorySlug slug = RepositorySlug("flutter", repository);
 
     final String id = '${slug.fullName}/$branch/$sha';
 
     late Commit commit;
-    final Key<String> commitKey =
-        datastore.db.emptyKey.append<String>(Commit, id: id);
+    final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
     try {
       commit = await datastore.db.lookupValue<Commit>(commitKey);
     } on KeyNotFoundException {
@@ -130,8 +130,7 @@ class DartInternalSubscription extends SubscriptionHandler {
       );
       final String defaultBranch = Config.defaultBranch(slug);
       final String defaultBranchId = '${slug.fullName}/$defaultBranch/$sha';
-      final Key<String> defaultBranchCommitKey =
-          datastore.db.emptyKey.append<String>(Commit, id: defaultBranchId);
+      final Key<String> defaultBranchCommitKey = datastore.db.emptyKey.append<String>(Commit, id: defaultBranchId);
       commit = await datastore.db.lookupValue<Commit>(defaultBranchCommitKey);
 
       log.info(

@@ -62,10 +62,7 @@ void main() {
   group('Commit.from', () {
     test('runs successfully', () {
       final key = Commit.createKey(
-          db: FakeDatastoreDB(),
-          slug: RepositorySlug('flutter', 'flutter'),
-          gitBranch: 'main',
-          sha: 'abc');
+          db: FakeDatastoreDB(), slug: RepositorySlug('flutter', 'flutter'), gitBranch: 'main', sha: 'abc');
 
       final Commit commit = Commit(
           key: key,
