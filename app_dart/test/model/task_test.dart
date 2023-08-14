@@ -249,6 +249,157 @@ void main() {
     });
   });
 
+  group('Task.fromBuildbucketBuild', () {
+    late FakeConfig config;
+    late Commit commit;
+    const String sha = "12341234";
+    const String branch = "main";
+    const String owner = "flutter";
+    const String project = "engine";
+    const int buildNumber = 1234;
+
+    setUp(() {
+      config = FakeConfig();
+      commit = generateCommit(1, sha: sha, branch: branch, repo: project, owner: owner);
+
+      config.db.values[commit.key] = commit;
+    });
+    test('fromBuildbucketBuild runs successfully', () async {
+      final DateTime startTime = DateTime(2023, 1, 1, 0, 0, 0);
+      final DateTime endTime = DateTime(2023, 1, 1, 0, 14, 23);
+      final bb.Build fakeBuild = bb.Build(
+        builderId: const BuilderId(project: 'okay-project', bucket: 'good-bucket', builder: 'great-builder'),
+        number: buildNumber,
+        id: 'fake-build-id',
+        status: bb.Status.success,
+        startTime: startTime,
+        endTime: endTime,
+        input: const Input(
+          gitilesCommit: GitilesCommit(
+            project: "$owner/$project",
+            hash: sha,
+            ref: "refs/heads/$branch",
+          ),
+        ),
+      );
+
+      final Task task = await Task.fromBuildbucketBuild(fakeBuild, DatastoreService(config.db, 5));
+      final Key<String> expectedKey = generateKey<String>(
+        Commit,
+        '$owner/$project/$branch/$sha',
+      );
+      final Task expectedTask = Task(
+        commitKey: expectedKey,
+        key: expectedKey.append(Task),
+        createTimestamp: startTime.millisecondsSinceEpoch,
+        startTimestamp: startTime.millisecondsSinceEpoch,
+        endTimestamp: endTime.millisecondsSinceEpoch,
+        name: fakeBuild.builderId.builder,
+        attempts: 1,
+        timeoutInMinutes: 0,
+        requiredCapabilities: [],
+        reason: '',
+        stageName: fakeBuild.builderId.project,
+        status: "Succeeded",
+        buildNumber: buildNumber,
+        buildNumberList: "$buildNumber",
+        builderName: fakeBuild.builderId.builder,
+        luciBucket: fakeBuild.builderId.bucket,
+        reservedForAgentId: '',
+      );
+      expect(task.toString(), equals(expectedTask.toString()));
+    });
+
+    test('fromBuildbucketBuild runs successfully with a commit included', () async {
+      final DateTime startTime = DateTime(2023, 1, 1, 0, 0, 0);
+      final DateTime endTime = DateTime(2023, 1, 1, 0, 14, 23);
+      final bb.Build fakeBuild = bb.Build(
+        builderId: const BuilderId(project: 'okay-project', bucket: 'good-bucket', builder: 'great-builder'),
+        number: buildNumber,
+        id: 'fake-build-id',
+        status: bb.Status.success,
+        startTime: startTime,
+        endTime: endTime,
+        input: const Input(
+          gitilesCommit: GitilesCommit(
+            project: "$owner/$project",
+            hash: sha,
+            ref: "refs/heads/$branch",
+          ),
+        ),
+      );
+
+      final Commit fakeCommit = generateCommit(1);
+      final Task task = await Task.fromBuildbucketBuild(fakeBuild, DatastoreService(config.db, 5), commit: fakeCommit);
+      final Key<String> expectedKey = fakeCommit.key;
+      final Task expectedTask = Task(
+        commitKey: expectedKey,
+        key: expectedKey.append(Task),
+        createTimestamp: startTime.millisecondsSinceEpoch,
+        startTimestamp: startTime.millisecondsSinceEpoch,
+        endTimestamp: endTime.millisecondsSinceEpoch,
+        name: fakeBuild.builderId.builder,
+        attempts: 1,
+        timeoutInMinutes: 0,
+        requiredCapabilities: [],
+        reason: '',
+        stageName: fakeBuild.builderId.project,
+        status: "Succeeded",
+        buildNumber: buildNumber,
+        buildNumberList: "$buildNumber",
+        builderName: fakeBuild.builderId.builder,
+        luciBucket: fakeBuild.builderId.bucket,
+        reservedForAgentId: '',
+      );
+      expect(task.toString(), equals(expectedTask.toString()));
+    });
+
+    test('fromBuildbucketBuild runs successfully with a custom name included', () async {
+      final DateTime startTime = DateTime(2023, 1, 1, 0, 0, 0);
+      final DateTime endTime = DateTime(2023, 1, 1, 0, 14, 23);
+      final bb.Build fakeBuild = bb.Build(
+        builderId: const BuilderId(project: 'okay-project', bucket: 'good-bucket', builder: 'great-builder'),
+        number: buildNumber,
+        id: 'fake-build-id',
+        status: bb.Status.success,
+        startTime: startTime,
+        endTime: endTime,
+        input: const Input(
+          gitilesCommit: GitilesCommit(
+            project: "$owner/$project",
+            hash: sha,
+            ref: "refs/heads/$branch",
+          ),
+        ),
+      );
+
+      const String fakeCustomName = "Awesome test!";
+      final Commit fakeCommit = generateCommit(1);
+      final Task task = await Task.fromBuildbucketBuild(fakeBuild, DatastoreService(config.db, 5), commit: fakeCommit, customName: fakeCustomName);
+      final Key<String> expectedKey = fakeCommit.key;
+      final Task expectedTask = Task(
+        commitKey: expectedKey,
+        key: expectedKey.append(Task),
+        createTimestamp: startTime.millisecondsSinceEpoch,
+        startTimestamp: startTime.millisecondsSinceEpoch,
+        endTimestamp: endTime.millisecondsSinceEpoch,
+        name: fakeCustomName,
+        attempts: 1,
+        timeoutInMinutes: 0,
+        requiredCapabilities: [],
+        reason: '',
+        stageName: fakeBuild.builderId.project,
+        status: "Succeeded",
+        buildNumber: buildNumber,
+        buildNumberList: "$buildNumber",
+        builderName: fakeBuild.builderId.builder,
+        luciBucket: fakeBuild.builderId.bucket,
+        reservedForAgentId: '',
+      );
+      expect(task.toString(), equals(expectedTask.toString()));
+    });
+  });
+
   // TODO(chillers): There is a bug where `dart test` does not work in offline mode.
   // Need to file issue and get traces.
   group('Task.fromDatastore', () {

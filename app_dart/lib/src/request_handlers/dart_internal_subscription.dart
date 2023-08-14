@@ -4,7 +4,10 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:gcloud/db.dart';
+import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
@@ -92,13 +95,55 @@ class DartInternalSubscription extends SubscriptionHandler {
       existingTask.updateFromBuildbucketBuild(build);
       taskToInsert = existingTask;
     } else {
+      log.info("Getting or creating commit associated with this task");
+      final Commit commit = await _getOrCreateCommitForTask(datastore, build);
       log.info("Creating Task from Buildbucket result");
-      taskToInsert = await Task.fromBuildbucketBuild(build, datastore);
+      taskToInsert = await Task.fromBuildbucketBuild(build, datastore, commit: commit);
     }
 
     log.info("Inserting Task into the datastore: ${taskToInsert.toString()}");
     await datastore.insert(<Task>[taskToInsert]);
 
     return Body.forJson(taskToInsert.toString());
+  }
+
+  Future<Commit> _getOrCreateCommitForTask(DatastoreService datastore, Build build,) async {
+    log.info(
+        "Gathering commit associated with buildbucket result from the datastore");
+    final String repository =
+        build.input!.gitilesCommit!.project!.split('/')[1];
+    final String branch = build.input!.gitilesCommit!.ref!
+        .split('/')[2]; // Example: Pulling "stable" from "refs/heads/stable".
+    final String sha = build.input!.gitilesCommit!.hash!;
+    final RepositorySlug slug = RepositorySlug("flutter", repository);
+
+    final String id = '${slug.fullName}/$branch/$sha';
+
+    late Commit commit;
+    final Key<String> commitKey =
+        datastore.db.emptyKey.append<String>(Commit, id: id);
+    try {
+      commit = await datastore.db.lookupValue<Commit>(commitKey);
+    } on KeyNotFoundException {
+      log.info(
+        "Failed to get commit in candidate branch. Getting commit from the default branch instead.",
+      );
+      final String defaultBranch = Config.defaultBranch(slug);
+      final String defaultBranchId = '${slug.fullName}/$defaultBranch/$sha';
+      final Key<String> defaultBranchCommitKey =
+          datastore.db.emptyKey.append<String>(Commit, id: defaultBranchId);
+      commit = await datastore.db.lookupValue<Commit>(defaultBranchCommitKey);
+
+      log.info(
+        "Obtained commit from default branch. Modifying commit branch to $branch and inserting new commit object into datastore.",
+      );
+      final Commit newCommit = Commit.from(commit);
+      newCommit.parentKey = commitKey.parent;
+      newCommit.id = commitKey.id;
+      newCommit.branch = branch;
+      await datastore.insert(<Commit>[newCommit]);
+      return newCommit;
+    }
+    return commit;
   }
 }

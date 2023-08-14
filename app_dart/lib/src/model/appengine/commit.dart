@@ -108,6 +108,19 @@ class Commit extends Model<String> {
       ..write(')');
     return buf.toString();
   }
+
+  static Commit from(Commit commit) {
+    return Commit(
+      key: commit.key,
+      sha: commit.sha,
+      timestamp: commit.timestamp,
+      author: commit.author,
+      authorAvatarUrl: commit.authorAvatarUrl,
+      message: commit.message,
+      repository: commit.repository,
+      branch: commit.branch,
+    );
+  }
 }
 
 /// The serialized representation of a [Commit].

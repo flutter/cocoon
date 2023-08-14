@@ -132,10 +132,16 @@ class Task extends Model<int> {
   }
 
   /// Creates a [Task] based on a buildbucket [bb.Build].
+  /// Optional parameters:
+  /// customName: Used to override the calue of [Task.name].
+  /// commit: If this is set, the commit is used to determine the value of
+  ///   [Task.commitKey]. Otherwise, the method will check the datastore based
+  ///   on the buildbucket result.
   static Future<Task> fromBuildbucketBuild(
     bb.Build build,
     DatastoreService datastore, {
     String? customName,
+    Commit? commit,
   }) async {
     log.fine("Creating task from buildbucket result: ${build.toString()}");
     // Example: Getting "flutter" from "mirrors/flutter".
@@ -146,8 +152,8 @@ class Task extends Model<int> {
     final String branch = build.input!.gitilesCommit!.ref!.split('/')[2];
     log.fine("Branch: $branch");
 
-    final String hash = build.input!.gitilesCommit!.hash!;
-    log.fine("Hash: $hash");
+    final String sha = build.input!.gitilesCommit!.hash!;
+    log.fine("Sha: $sha");
 
     final RepositorySlug slug = RepositorySlug("flutter", repository);
     log.fine("Slug: ${slug.toString()}");
@@ -156,15 +162,19 @@ class Task extends Model<int> {
     final int endTime = build.endTime?.millisecondsSinceEpoch ?? 0;
     log.fine("Start/end time (ms): $startTime, $endTime");
 
-    final String id = '${slug.fullName}/$branch/$hash';
-    final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
-    final Commit commit = await datastore.db.lookupValue<Commit>(commitKey);
+    if (commit == null)
+    {
+      final String id = '${slug.fullName}/$branch/$sha';
+      final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
+      commit = await datastore.db.lookupValue<Commit>(commitKey);
+    }
+
     final task = Task(
       attempts: 1,
       buildNumber: build.number,
       buildNumberList: build.number.toString(),
       builderName: build.builderId.builder,
-      commitKey: commitKey,
+      commitKey: commit.key,
       createTimestamp: startTime,
       endTimestamp: endTime,
       luciBucket: build.builderId.bucket,
