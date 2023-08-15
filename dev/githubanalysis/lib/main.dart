@@ -311,9 +311,9 @@ Future<int> full(final Directory cache, final GitHub github) async {
         if (entry.timeOpen.length > 1) {
           final Duration median1 = entry.timeOpen[(entry.timeOpen.length / 2.0).floor()];
           final Duration median2 = entry.timeOpen[(entry.timeOpen.length / 2.0).ceil()];
-          summary.write('${(median1.inMilliseconds + median2.inMilliseconds) / (2.0 * Duration.millisecondsPerDay)}');
+          summary.write('${(median1.inMilliseconds + median2.inMilliseconds) / (2.0 * Duration.millisecondsPerDay)},');
         } else {
-          summary.write('${(entry.timeOpen.first.inMilliseconds) / Duration.millisecondsPerDay}');
+          summary.write('${(entry.timeOpen.first.inMilliseconds) / Duration.millisecondsPerDay},');
         }
         summary
           ..write(
@@ -504,12 +504,10 @@ Future<int> full(final Directory cache, final GitHub github) async {
     // PRINT PR DATA
     summary
       ..clear()
-      ..writeln(
-          'repository,pr,state,createdAt,closedAt,timeOpen,updatedAt,labelCount,commentCount,${sortedReactionKinds.join(',')}');
+      ..writeln('repository,pr,user,state,createdAt,closedAt,timeOpen,updatedAt,labelCount,commentCount,${sortedReactionKinds.join(',')}');
     for (final FullIssue issue in allIssues.where((final FullIssue issue) => issue.isPullRequest)) {
       verifyStringSanity(issue.metadata.state, csvSpecials);
-      summary.write(
-          '${issue.repo.fullName},${issue.issueNumber},${issue.metadata.state},${issue.metadata.createdAt},${issue.metadata.closedAt},${issue.metadata.isClosed ? issue.metadata.closedAt!.difference(issue.metadata.createdAt!) : ""},${issue.metadata.updatedAt},${issue.labels.length},${issue.comments.length}');
+      summary.write('${issue.repo.fullName},${issue.issueNumber},${issue.metadata.user!.login},${issue.metadata.state},${issue.metadata.createdAt},${issue.metadata.closedAt},${issue.metadata.isClosed ? issue.metadata.closedAt!.difference(issue.metadata.createdAt!).inMilliseconds / Duration.millisecondsPerDay : ""},${issue.metadata.updatedAt},${issue.labels.length},${issue.comments.length}');
       for (final String reactionKind in sortedReactionKinds) {
         int count = 0;
         for (final Reaction reaction in issue.reactions) {
