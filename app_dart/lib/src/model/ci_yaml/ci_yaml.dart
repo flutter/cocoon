@@ -98,9 +98,7 @@ class CiYaml {
   /// Filters targets with release_build = true on release candidate branches.
   List<Target> _filterReleaseBuildTargets(List<Target> targets) {
     final List<Target> results = <Target>[];
-    // TODO(godofredoc): remove flutter-3.10-candidate.1 once dart-internal v2 artifacs are released to dart-internal.
-    // https://github.com/flutter/flutter/issues/128844
-    final bool releaseBranch = branch.contains(RegExp('^flutter-')) && (branch != 'flutter-3.10-candidate.1');
+    final bool releaseBranch = branch.contains(RegExp('^flutter-'));
     if (!releaseBranch) {
       return targets;
     }
