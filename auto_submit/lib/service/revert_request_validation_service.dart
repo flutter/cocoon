@@ -15,10 +15,12 @@ import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/log.dart';
-import 'package:auto_submit/validations/revert.dart';
+import 'package:auto_submit/validations/validation.dart';
+import 'package:auto_submit/validations/validation_filter.dart';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
 
+import 'process_method.dart';
 import 'revert_issue_body_formatter.dart';
 
 class RevertRequestValidationService extends ValidationService {
@@ -29,12 +31,10 @@ class RevertRequestValidationService extends ValidationService {
   }
 
   ApproverService? approverService;
-  Revert? revertValidation;
 
   /// Processes a pub/sub message associated with PullRequest event.
   Future<void> processMessage(github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
     final (currentPullRequest, labelNames) = await getPrWithLabels(messagePullRequest);
-
     if (await shouldProcess(currentPullRequest, labelNames)) {
       await processRevertRequest(
         config: config,
@@ -52,25 +52,8 @@ class RevertRequestValidationService extends ValidationService {
   Future<bool> shouldProcess(github.PullRequest pullRequest, List<String> labelNames) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService githubService = await config.createGithubService(slug);
-    // final (currentPullRequest, labelNames) = await getPrWithLabels(pullRequest);
-    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
+    final (currentPullRequest, labelNames) = await getPrWithLabels(pullRequest);
 
-    //TODO ignore this for now. Reenable for later testing.
-    // if (pullRequest.state == 'open' && labelNames.contains(Config.kRevertLabel)) {
-    //   // TODO (ricardoamador) this will not make sense now that reverts happen from closed.
-    //   // we can open the pull request but who do we assign it to? The initiating author?
-    //   if (!repositoryConfiguration.supportNoReviewReverts) {
-    //     log.info(
-    //       'Cannot allow revert request (${slug.fullName}/${pullRequest.number}) without review. Processing as regular pull request.',
-    //     );
-    //     final int issueNumber = pullRequest.number!;
-    //     // Remove the revert label and add the autosubmit label.
-    //     await githubService.removeLabel(slug, issueNumber, Config.kRevertLabel);
-    //     await githubService.addLabels(slug, issueNumber, [Config.kAutosubmitLabel]);
-    //     return false;
-    //   }
-    //   return true;
-    // } else if (pullRequest.state == 'closed' && labelNames.contains(Config.kRevertLabel)) {
     if (pullRequest.state == 'closed' && labelNames.contains(Config.kRevertLabel)) {
       // Check the timestamp here as well since we do not want to allow reverts older than
       // 24 hours.
@@ -78,10 +61,15 @@ class RevertRequestValidationService extends ValidationService {
       // There is some nuance here as we still can process and create the revert which
       // will take us to the case above but we need to check again if there are
       // no review reverts supported.
-      // if (DateTime.now().difference(currentPullRequest.mergedAt!).inHours > 24) {
-      //   log.info('Time to revert pull request ${slug.fullName}/${currentPullRequest.number} has elapsed. You need to open the revert manually and process as a regular pull request.');
-      //   return false;
-      // }
+      if (DateTime.now().difference(currentPullRequest.mergedAt!).inHours > 24) {
+        final String message =
+            '''Time to revert pull request ${slug.fullName}/${currentPullRequest.number} has elapsed. 
+           You need to open the revert manually and process as a regular pull request.''';
+        log.info(message);
+        await githubService.createComment(slug, currentPullRequest.number!, message);
+        await githubService.removeLabel(slug, currentPullRequest.number!, Config.kRevertLabel);
+        return false;
+      }
       return true;
     }
     return false;
@@ -101,33 +89,43 @@ class RevertRequestValidationService extends ValidationService {
   }) async {
     // Changed so that the pr coming in has the newest information.
 
-    // two cases:
-    //   issue is open
-    //      if author is autosubmit, validate and merge.
-    //   issue is closed
-    //      create the revert request
+    // Two cases revolve around whether or not we support no-review revert
+    // pull requests. If we do not we will simply add the autosubmit label and
+    // remove the revert label otherwise process as normal.
+    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
 
-    switch (messagePullRequest.state!) {
-      case 'closed':
-        {
-          //TODO: leave if still working on debugging with github
-          // final RepositorySlug slug = messagePullRequest.base!.repo!.slug();
-          // final String nodeId = messagePullRequest.nodeId!;
-          // // Format the request fields for the new revert pull request.
-          // final RevertIssueBodyFormatter formatter = RevertIssueBodyFormatter(
-          //   slug: slug,
-          //   originalPrNumber: messagePullRequest.number!,
-          //   initiatingAuthor: 'ricardoamador',
-          //   originalPrTitle: messagePullRequest.title!,
-          //   originalPrBody: messagePullRequest.body!,
-          // ).format;
+    final GitCliRevertMethod gitCliRevertMethod = GitCliRevertMethod();
+    final github.PullRequest? pullRequest = await gitCliRevertMethod.createRevert(config, messagePullRequest);
+    // // We only need the number from this.
+    log.info('Returned revert pull request number is ${pullRequest!.number}');
+    // We should now have the revert request created.
+    final int? prNumber = pullRequest.number;
 
-          final GitCliRevertMethod gitCliRevertMethod = GitCliRevertMethod();
-          final github.PullRequest? pullRequest = await gitCliRevertMethod.createRevert(config, messagePullRequest);
-          // // We only need the number from this.
-          log.info('Returned revert pull request number is ${pullRequest!.number}');
-          // We should now have the revert request created.
-        }
+    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
+    if (!repositoryConfiguration.supportNoReviewReverts) {
+      // Remove the review label from the revert request and then add the autosubmit label
+      // and reassing to the original sender.
+    }
+
+    final ValidationFilter validationFilter = ValidationFilter(
+      config: config,
+      processMethod: ProcessMethod.processRevert,
+      repositoryConfiguration: repositoryConfiguration,
+    );
+
+    final Set<Validation> validations = validationFilter.getValidations();
+
+    final Map<String, ValidationResult> validationsMap = <String, ValidationResult>{};
+
+    /// Runs all the validation defined in the service.
+    /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
+    for (Validation validation in validations) {
+      log.info('${slug.fullName}/$prNumber unning validation ${validation.name}');
+      final ValidationResult validationResult = await validation.validate(
+        result,
+        messagePullRequest,
+      );
+      validationsMap[validation.name] = validationResult;
     }
 
     // get validations to be run here.

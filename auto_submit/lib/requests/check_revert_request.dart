@@ -70,6 +70,8 @@ class CheckRevertRequest extends CheckRequest {
           json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
       log.info('request raw body = $rawBody');
 
+      // Need to collect the sender so we know who to assign the original issue
+      // to in the event the repo does not support review-less reverts.
       final PullRequest pullRequest = PullRequest.fromJson(rawBody);
 
       log.info('Processing message ackId: ${message.ackId}');

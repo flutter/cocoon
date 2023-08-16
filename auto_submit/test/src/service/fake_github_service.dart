@@ -384,20 +384,22 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<List<PullRequest>> listPullRequests(RepositorySlug slug,
-      {int? pages,
-      String? base,
-      String direction = 'desc',
-      String? head,
-      String sort = 'created',
-      String state = 'open',}) {
+  Future<List<PullRequest>> listPullRequests(
+    RepositorySlug slug, {
+    int? pages,
+    String? base,
+    String direction = 'desc',
+    String? head,
+    String sort = 'created',
+    String state = 'open',
+  }) {
     // TODO: implement listPullRequests
     throw UnimplementedError();
   }
-  
+
   String? branchMockData;
 
-  set branchMock(String data) => branchMock = data; 
+  set branchMock(String data) => branchMock = data;
 
   @override
   Future<Branch> getBranch(RepositorySlug slug, String branchName) async {

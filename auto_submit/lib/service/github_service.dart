@@ -94,13 +94,14 @@ class GithubService {
   }
 
   /// Create a pull request.
-  Future<PullRequest> createPullRequest(
-      {required RepositorySlug slug,
-      String? title,
-      String? head,
-      required String base,
-      bool draft = false,
-      String? body,}) async {
+  Future<PullRequest> createPullRequest({
+    required RepositorySlug slug,
+    String? title,
+    String? head,
+    required String base,
+    bool draft = false,
+    String? body,
+  }) async {
     final CreatePullRequest createPullRequest = CreatePullRequest(title, head, base, draft: draft, body: body);
     return github.pullRequests.create(slug, createPullRequest);
   }
@@ -170,7 +171,7 @@ class GithubService {
   }
 
   Future<Branch> getBranch(RepositorySlug slug, String branchName) async {
-     return github.repositories.getBranch(slug, branchName);
+    return github.repositories.getBranch(slug, branchName);
   }
 
   /// Merges a pull request according to the MergeMethod type. Current supported

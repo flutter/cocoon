@@ -62,9 +62,9 @@ class PullRequestValidationService extends ValidationService {
 
     // filter out validations here
     final ValidationFilter validationFilter = ValidationFilter(
-      config,
-      ProcessMethod.processAutosubmit,
-      repositoryConfiguration,
+      config: config,
+      processMethod: ProcessMethod.processAutosubmit,
+      repositoryConfiguration: repositoryConfiguration,
     );
     final Set<Validation> validations = validationFilter.getValidations();
 

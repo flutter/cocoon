@@ -51,14 +51,18 @@ class GitCliRevertMethod implements RevertMethod {
     final GitRevertBranchName gitRevertBranchName = GitRevertBranchName(commitSha);
     final GithubService githubService = await config.createGithubService(slug);
 
-    const RetryOptions retryOptions = RetryOptions(delayFactor: Duration(seconds: 1), maxDelay: Duration(seconds: 1), maxAttempts: 4);
+    const RetryOptions retryOptions =
+        RetryOptions(delayFactor: Duration(seconds: 1), maxDelay: Duration(seconds: 1), maxAttempts: 4);
     //TODO make this injectable when this is working sufficiently.
     Branch? branch;
-    
+
     try {
-      await retryOptions.retry(() async { branch = await githubService.getBranch(slug, gitRevertBranchName.branch); }, retryIf: (Exception e) => e is NotFoundException );
+      await retryOptions.retry(() async {
+        branch = await githubService.getBranch(slug, gitRevertBranchName.branch);
+      }, retryIf: (Exception e) => e is NotFoundException);
     } on Exception {
-      log.warning('Unable to find created branch, ${gitRevertBranchName.branch} for revert request of ${pullRequest.number}.');
+      log.warning(
+          'Unable to find created branch, ${gitRevertBranchName.branch} for revert request of ${pullRequest.number}.');
     }
 
     if (branch == null) {

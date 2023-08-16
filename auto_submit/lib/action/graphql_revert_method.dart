@@ -42,7 +42,7 @@ class GraphQLRevertMethod implements RevertMethod {
 
     log.info('Running mutate request to graphql.');
     // Request the revert issue.
-    
+
     // This fails reliably with graphql and will always return an exception though will
     // sometimes generate the revert request. Though this is not reliable.
     final Map<String, dynamic> data = await graphQlService.mutateGraphQL(
