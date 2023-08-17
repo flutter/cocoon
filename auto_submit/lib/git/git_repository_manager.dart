@@ -34,7 +34,7 @@ class GitRepositoryManager {
   }
 
   /// Clone the repository identified by the slug.
-  /// 
+  ///
   /// Throw out rather than decomposing the return codes from the ProcessResult.
   Future<void> cloneRepository() async {
     if (Directory(targetCloneDirectory).existsSync()) {
@@ -63,7 +63,8 @@ class GitRepositoryManager {
   }
 
   Future<void> setupConfig() async {
-    final ProcessResult processResult = await gitCli.setupUserConfig(slug: slug, workingDirectory: targetCloneDirectory);
+    final ProcessResult processResult =
+        await gitCli.setupUserConfig(slug: slug, workingDirectory: targetCloneDirectory);
 
     if (processResult.exitCode != 0) {
       log.severe('An error has occurred setting up user name config.');
@@ -71,7 +72,8 @@ class GitRepositoryManager {
       log.severe('${slug.fullName}, $targetCloneDirectory: stderr: ${processResult.stderr}');
     }
 
-    final ProcessResult processResultEmail = await gitCli.setupUserEmailConfig(slug: slug, workingDirectory: targetCloneDirectory);
+    final ProcessResult processResultEmail =
+        await gitCli.setupUserEmailConfig(slug: slug, workingDirectory: targetCloneDirectory);
 
     if (processResultEmail.exitCode != 0) {
       log.severe('An error has occurred setting up user name config.');

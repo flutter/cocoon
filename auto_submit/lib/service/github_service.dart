@@ -111,13 +111,15 @@ class GithubService {
     return github.pullRequests.get(slug, pullRequestNumber);
   }
 
-  Future<List<PullRequest>> listPullRequests(RepositorySlug slug,
-      {int? pages,
-      String? base,
-      String direction = 'desc',
-      String? head,
-      String sort = 'created',
-      String state = 'open'}) async {
+  Future<List<PullRequest>> listPullRequests(
+    RepositorySlug slug, {
+    int? pages,
+    String? base,
+    String direction = 'desc',
+    String? head,
+    String sort = 'created',
+    String state = 'open',
+  }) async {
     final List<PullRequest> pullRequestsFound = [];
     final Stream<PullRequest> pullRequestStream = github.pullRequests.list(
       slug,
@@ -131,6 +133,16 @@ class GithubService {
       pullRequestsFound.add(pullRequest);
     }
     return pullRequestsFound;
+  }
+
+  Future<bool> addReviewersToPullRequest(
+      RepositorySlug slug, int pullRequestNumber, List<String> reviewerLogins) async {
+    final response = await github.request(
+      'POST',
+      '/repos/${slug.fullName}/pulls/$pullRequestNumber/requested_reviewers',
+      body: GitHubJson.encode({'reviewers': reviewerLogins}),
+    );
+    return response.statusCode == StatusCodes.CREATED;
   }
 
   /// Compares two commits to fetch diff.

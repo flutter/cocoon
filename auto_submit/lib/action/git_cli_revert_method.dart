@@ -53,9 +53,12 @@ class GitCliRevertMethod implements RevertMethod {
     Branch? branch;
 
     try {
-      await retryOptions.retry(() async {
-        branch = await githubService.getBranch(slug, gitRevertBranchName.branch);
-      }, retryIf: (Exception e) => e is NotFoundException,);
+      await retryOptions.retry(
+        () async {
+          branch = await githubService.getBranch(slug, gitRevertBranchName.branch);
+        },
+        retryIf: (Exception e) => e is NotFoundException,
+      );
     } on Exception {
       log.warning(
           'Unable to find created branch, ${gitRevertBranchName.branch} for revert request of ${pullRequest.number}.');

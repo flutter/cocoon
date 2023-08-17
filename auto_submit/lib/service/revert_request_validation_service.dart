@@ -56,6 +56,7 @@ class RevertRequestValidationService extends ValidationService {
     final GithubService githubService = await config.createGithubService(slug);
     final (currentPullRequest, labelNames) = await getPrWithLabels(pullRequest);
 
+    // This is the initial revert request state.
     if (pullRequest.state == 'closed' && labelNames.contains(Config.kRevertLabel)) {
       // Check the timestamp here as well since we do not want to allow reverts older than
       // 24 hours.
@@ -65,7 +66,7 @@ class RevertRequestValidationService extends ValidationService {
       // no review reverts supported.
       // if (DateTime.now().difference(currentPullRequest.mergedAt!).inHours > 24) {
       //   final String message =
-      //       '''Time to revert pull request ${slug.fullName}/${currentPullRequest.number} has elapsed. 
+      //       '''Time to revert pull request ${slug.fullName}/${currentPullRequest.number} has elapsed.
       //      You need to open the revert manually and process as a regular pull request.''';
       //   log.info(message);
       //   await githubService.createComment(slug, currentPullRequest.number!, message);
@@ -112,10 +113,15 @@ class RevertRequestValidationService extends ValidationService {
     // We should now have the revert request created.
     final int? prNumber = pullRequest.number;
 
+    final GithubService githubService = await config.createGithubService(slug);
+
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
     if (!repositoryConfiguration.supportNoReviewReverts) {
-      // Remove the review label from the revert request and then add the autosubmit label
-      // and reassing to the original sender.
+      // Add the autosubmit label and reassigning to the original sender.
+      await githubService.addLabels(slug, prNumber!, [Config.kAutosubmitLabel]);
+      await githubService.createComment(
+          slug, prNumber, 'Repository configuration does not support review-less revert pull requests.');
+      await githubService.addReviewersToPullRequest(slug, prNumber, ['originalSender']);
     }
 
     final ValidationFilter validationFilter = ValidationFilter(
@@ -131,63 +137,23 @@ class RevertRequestValidationService extends ValidationService {
     /// Runs all the validation defined in the service.
     /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
     for (Validation validation in validations) {
-      log.info('${slug.fullName}/$prNumber unning validation ${validation.name}');
+      log.info('${slug.fullName}/$prNumber running validation ${validation.name}');
       final ValidationResult validationResult = await validation.validate(
         result,
+        // this needs to be the newly opened pull request.
         messagePullRequest,
       );
       validationsMap[validation.name] = validationResult;
     }
 
-    // get validations to be run here.
-    // TODO this used to be defined in the constructor but will be moved to validation filter.
-    // revertValidation = revertValidation ?? Revert(config: config);
-    // final ValidationResult revertValidationResult = await revertValidation!.validate(
-    //   result,
-    //   messagePullRequest,
-    // );
+    // There is an issue with running the validations here as they may not be
+    // finished in time and if we add a label to the pr earlier it will generate
+    // an event and we would have a bad situation. Might be better to add the
+    // label and let it pass through again.
 
-    // final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
-    // final int prNumber = messagePullRequest.number!;
-    // final GithubService githubService = await config.createGithubService(slug);
+    // Approve the pull request.
 
-    // if (revertValidationResult.result) {
-    //   // Approve the pull request automatically as it has been validated.
-    //   await approverService!.revertApproval(result, messagePullRequest);
-
-    //   final MergeResult processed = await processMerge(
-    //     config: config,
-    //     messagePullRequest: messagePullRequest,
-    //   );
-
-    //   if (processed.result) {
-    //     log.info('Revert request ${slug.fullName}/$prNumber was merged successfully.');
-    //     log.info('Insert a revert pull request record into the database for pr ${slug.fullName}/$prNumber');
-    //     await insertPullRequestRecord(
-    //       config: config,
-    //       pullRequest: messagePullRequest,
-    //       pullRequestType: PullRequestChangeType.revert,
-    //     );
-    //   } else {
-    //     final String message = 'revert label is removed for ${slug.fullName}/$prNumber, ${processed.message}.';
-    //     await githubService.removeLabel(slug, prNumber, Config.kRevertLabel);
-    //     await githubService.createComment(slug, prNumber, message);
-    //     log.info(message);
-    //   }
-    // } else if (!revertValidationResult.result && revertValidationResult.action == Action.IGNORE_TEMPORARILY) {
-    //   // if required check runs have not completed process again.
-    //   log.info('Some of the required checks have not completed. Requeueing.');
-    //   return;
-    // } else {
-    //   // since we do not temporarily ignore anything with a revert request we
-    //   // know we will report the error and remove the label.
-    //   final String commentMessage =
-    //       revertValidationResult.message.isEmpty ? 'Validations Fail.' : revertValidationResult.message;
-    //   await githubService.removeLabel(slug, prNumber, Config.kRevertLabel);
-    //   await githubService.createComment(slug, prNumber, commentMessage);
-    //   log.info('revert label is removed for ${slug.fullName}, pr: $prNumber, due to $commentMessage');
-    //   log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
-    // }
+    // Merge the pull request.
 
     //TODO leave this for testing
     log.info('Ack the processed message : $ackId.');

@@ -48,6 +48,7 @@ class Config {
   /// Labels autosubmit looks for on pull requests
   static const String kAutosubmitLabel = 'autosubmit';
   static const String kRevertLabel = 'revert';
+  static const String kRevertOfLabel = 'reverts';
 
   /// The label which shows the overrideTree    Status.
   String get overrideTreeStatusLabel => 'warning: land on red to fix tree breakage';
@@ -74,6 +75,9 @@ class Config {
         'dependabot',
         'DartDevtoolWorkflowBot',
       };
+
+  //TODO change this back to autosubmit[bot] after testing is complete.
+  String get autosubmitBot => 'autosubmit-dev[bot]';
 
   /// Repository configuration variables
   Duration get repositoryConfigurationTtl => const Duration(minutes: 10);

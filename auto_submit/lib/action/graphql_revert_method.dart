@@ -8,7 +8,7 @@ import 'package:github/github.dart' as github;
 import 'package:graphql/client.dart' as graphql;
 
 /// The graphql revert method uses the new revert mutation introduced by github.
-/// 
+///
 /// Note: In order to make this work you need to enable the permission to push in
 /// the application otherwise a cryptic error stating an issue that there are no
 /// commits between the head and the target branch.

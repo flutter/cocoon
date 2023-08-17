@@ -8,7 +8,7 @@ import 'github_webhook_test_data.dart';
 void main() {
   test('test', () {
     final String jsonGithubWebhookEvent = generateWebhookEvent();
-    final GithubPullRequestEvent githubEventMessage = GithubPullRequestEvent.fromJson(jsonDecode(jsonGithubWebhookEvent) as Map<String, dynamic>);
-    
+    final GithubPullRequestEvent githubEventMessage =
+        GithubPullRequestEvent.fromJson(jsonDecode(jsonGithubWebhookEvent) as Map<String, dynamic>);
   });
 }

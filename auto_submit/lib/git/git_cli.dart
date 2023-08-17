@@ -81,7 +81,7 @@ class GitCli {
   Future<ProcessResult> setupUserConfig({
     required RepositorySlug slug,
     required String workingDirectory,
-    bool throwOnError = true, 
+    bool throwOnError = true,
   }) async {
     return _cliCommand.runCliCommand(
       executable: GIT,
@@ -137,7 +137,10 @@ class GitCli {
   }
 
   /// Fetch all new refs for the repository.
-  Future<ProcessResult> fetchAll({required String workingDirectory, bool throwOnError = true,}) async {
+  Future<ProcessResult> fetchAll({
+    required String workingDirectory,
+    bool throwOnError = true,
+  }) async {
     return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: <String>[
@@ -148,12 +151,26 @@ class GitCli {
     );
   }
 
-  Future<ProcessResult> pullRebase({required String? workingDirectory, bool throwOnError = true,}) async {
-    return _updateRepository(workingDirectory: workingDirectory, pullMethod: '--rebase', throwOnError: throwOnError,);
+  Future<ProcessResult> pullRebase({
+    required String? workingDirectory,
+    bool throwOnError = true,
+  }) async {
+    return _updateRepository(
+      workingDirectory: workingDirectory,
+      pullMethod: '--rebase',
+      throwOnError: throwOnError,
+    );
   }
 
-  Future<ProcessResult> pullMerge({required String? workingDirectory, bool throwOnError = true,}) async {
-    return _updateRepository(workingDirectory: workingDirectory, pullMethod: '--merge', throwOnError: throwOnError,);
+  Future<ProcessResult> pullMerge({
+    required String? workingDirectory,
+    bool throwOnError = true,
+  }) async {
+    return _updateRepository(
+      workingDirectory: workingDirectory,
+      pullMethod: '--merge',
+      throwOnError: throwOnError,
+    );
   }
 
   /// Run the git pull rebase command to keep the repository up to date.

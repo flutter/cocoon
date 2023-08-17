@@ -50,11 +50,10 @@ class GithubWebhook extends RequestHandler {
       throw const Forbidden();
     }
 
-    // Listen to the pull request with 'autosubmit' label.
     bool hasAutosubmit = false;
     bool hasRevertLabel = false;
     final String rawBody = utf8.decode(requestBytes);
-    final body = json.decode(rawBody) as Map<String, dynamic>;
+    final Map<String, dynamic> body = json.decode(rawBody) as Map<String, dynamic>;
 
     if (!body.containsKey(GithubWebhook.pullRequest) ||
         !((body[GithubWebhook.pullRequest] as Map<String, dynamic>).containsKey(GithubWebhook.labels))) {
