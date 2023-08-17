@@ -11,6 +11,7 @@ import 'package:auto_submit/git/cli_command.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/request_handling/pubsub.dart';
 import 'package:auto_submit/service/approver_service.dart';
+import 'package:auto_submit/service/graphql_service.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
@@ -20,6 +21,7 @@ import 'package:auto_submit/validations/validation_filter.dart';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
 
+import '../action/revert_method.dart';
 import 'process_method.dart';
 import 'revert_issue_body_formatter.dart';
 
@@ -45,7 +47,7 @@ class RevertRequestValidationService extends ValidationService {
       );
     } else {
       log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
-      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+      await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
     }
   }
 
@@ -61,15 +63,15 @@ class RevertRequestValidationService extends ValidationService {
       // There is some nuance here as we still can process and create the revert which
       // will take us to the case above but we need to check again if there are
       // no review reverts supported.
-      if (DateTime.now().difference(currentPullRequest.mergedAt!).inHours > 24) {
-        final String message =
-            '''Time to revert pull request ${slug.fullName}/${currentPullRequest.number} has elapsed. 
-           You need to open the revert manually and process as a regular pull request.''';
-        log.info(message);
-        await githubService.createComment(slug, currentPullRequest.number!, message);
-        await githubService.removeLabel(slug, currentPullRequest.number!, Config.kRevertLabel);
-        return false;
-      }
+      // if (DateTime.now().difference(currentPullRequest.mergedAt!).inHours > 24) {
+      //   final String message =
+      //       '''Time to revert pull request ${slug.fullName}/${currentPullRequest.number} has elapsed. 
+      //      You need to open the revert manually and process as a regular pull request.''';
+      //   log.info(message);
+      //   await githubService.createComment(slug, currentPullRequest.number!, message);
+      //   await githubService.removeLabel(slug, currentPullRequest.number!, Config.kRevertLabel);
+      //   return false;
+      // }
       return true;
     }
     return false;
@@ -94,10 +96,19 @@ class RevertRequestValidationService extends ValidationService {
     // remove the revert label otherwise process as normal.
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
 
-    final GitCliRevertMethod gitCliRevertMethod = GitCliRevertMethod();
-    final github.PullRequest? pullRequest = await gitCliRevertMethod.createRevert(config, messagePullRequest);
+    final GraphQLRevertMethod revertMethod = GraphQLRevertMethod();
+
+    // final GitCliRevertMethod gitCliRevertMethod = GitCliRevertMethod();
+    final PullRequest? pullRequest;
+
+    try {
+      pullRequest = await revertMethod.createRevert(config, messagePullRequest);
+    } on Exception {
+      log.severe('Unable to create the revert pull request.');
+      return;
+    }
     // // We only need the number from this.
-    log.info('Returned revert pull request number is ${pullRequest!.number}');
+    log.info('Created revert pull request ${slug.fullName}/${pullRequest!.number}.');
     // We should now have the revert request created.
     final int? prNumber = pullRequest.number;
 

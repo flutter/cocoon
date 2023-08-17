@@ -17,6 +17,11 @@ String generateWebhookEvent({
   return '''{
       "action": "open",
       "number": 1598,
+      "sender": {
+        "login": "matanlurey",
+        "id": 168174,
+        "node_id": "MDQ6VXNlcjE2ODE3NA=="
+      },
       "pull_request": {
           "id": 1,
           "number": 1347,

@@ -34,14 +34,12 @@ class GitRepositoryManager {
   }
 
   /// Clone the repository identified by the slug.
-  Future<bool> cloneRepository() async {
+  /// 
+  /// Throw out rather than decomposing the return codes from the ProcessResult.
+  Future<void> cloneRepository() async {
     if (Directory(targetCloneDirectory).existsSync()) {
-      // Could possibly add a check for the slug in the remote url.
-      if (!await gitCli.isGitRepository(targetCloneDirectory)) {
-        Directory(targetCloneDirectory).deleteSync(recursive: true);
-      } else {
-        return true;
-      }
+      // Blow the directory away instead of trying to update it.
+      Directory(targetCloneDirectory).deleteSync(recursive: true);
     }
 
     // Checking out a sparse copy will not checkout source files but will still
@@ -57,17 +55,15 @@ class GitRepositoryManager {
       log.severe('An error has occurred cloning repository ${slug.fullName} to dir $targetCloneDirectory');
       log.severe('${slug.fullName}, $targetCloneDirectory: stdout: ${processResult.stdout}');
       log.severe('${slug.fullName}, $targetCloneDirectory: stderr: ${processResult.stderr}');
-      return false;
     } else {
       log.info('${slug.fullName} was cloned successfully to directory $targetCloneDirectory');
       log.info('${slug.fullName}, $targetCloneDirectory: stdout: ${processResult.stdout}');
       log.info('${slug.fullName}, $targetCloneDirectory: stderr: ${processResult.stderr}');
-      return true;
     }
   }
 
   Future<void> setupConfig() async {
-    final ProcessResult processResult = await gitCli.setupUserConfig(slug, targetCloneDirectory);
+    final ProcessResult processResult = await gitCli.setupUserConfig(slug: slug, workingDirectory: targetCloneDirectory);
 
     if (processResult.exitCode != 0) {
       log.severe('An error has occurred setting up user name config.');
@@ -75,7 +71,7 @@ class GitRepositoryManager {
       log.severe('${slug.fullName}, $targetCloneDirectory: stderr: ${processResult.stderr}');
     }
 
-    final ProcessResult processResultEmail = await gitCli.setupUserEmailConfig(slug, targetCloneDirectory);
+    final ProcessResult processResultEmail = await gitCli.setupUserEmailConfig(slug: slug, workingDirectory: targetCloneDirectory);
 
     if (processResultEmail.exitCode != 0) {
       log.severe('An error has occurred setting up user name config.');
@@ -106,10 +102,10 @@ class GitRepositoryManager {
 
     log.info('Attempting to set upstream...');
     final ProcessResult processResultSetUpstream = await gitCli.setUpstream(
-      slug,
-      targetCloneDirectory,
-      revertBranchName.branch,
-      token,
+      slug: slug,
+      workingDirectory: targetCloneDirectory,
+      branchName: revertBranchName.branch,
+      token: token,
     );
     log.info('set upstream result stdout: ${processResultSetUpstream.stdout}');
     log.info('set upstream result stderr: ${processResultSetUpstream.stderr}');
@@ -124,8 +120,8 @@ class GitRepositoryManager {
 
     log.info('Attempting to push branch to github...');
     final ProcessResult processResultPushBranch = await gitCli.pushBranch(
-      revertBranchName.branch,
-      targetCloneDirectory,
+      branchName: revertBranchName.branch,
+      workingDirectory: targetCloneDirectory,
     );
     log.info('push branch stdout: ${processResultPushBranch.stdout}');
     log.info('push branch stderr: ${processResultPushBranch.stderr}');

@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:auto_submit/request_handling/pubsub.dart';
 import 'package:auto_submit/requests/check_request.dart';
+import 'package:auto_submit/requests/github_pull_request_event.dart';
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/service/revert_request_validation_service.dart';
@@ -72,6 +73,7 @@ class CheckRevertRequest extends CheckRequest {
 
       // Need to collect the sender so we know who to assign the original issue
       // to in the event the repo does not support review-less reverts.
+      // final GithubPullRequestEvent event = GithubPullRequestEvent.fromJson(rawBody);
       final PullRequest pullRequest = PullRequest.fromJson(rawBody);
 
       log.info('Processing message ackId: ${message.ackId}');
@@ -87,9 +89,10 @@ class CheckRevertRequest extends CheckRequest {
 
         continue;
       } else {
-        final ApproverService approver = approverProvider(config);
-        log.info('Checking auto approval of pull request: $rawBody');
-        await approver.autoApproval(pullRequest);
+        // This might not apply here.
+        // final ApproverService approver = approverProvider(config);
+        // log.info('Checking auto approval of pull request: $rawBody');
+        // await approver.autoApproval(pullRequest);
         processingLog.add(pullRequest.number!);
       }
 

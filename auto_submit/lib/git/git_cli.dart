@@ -58,6 +58,7 @@ class GitCli {
     required String workingDirectory,
     required String targetDirectory,
     List<String>? options,
+    bool throwOnError = true,
   }) async {
     final List<String> clone = <String>[
       'clone',
@@ -71,15 +72,17 @@ class GitCli {
       executable: GIT,
       arguments: clone,
       workingDirectory: workingDirectory,
+      throwOnError: throwOnError,
     );
 
     return processResult;
   }
 
-  Future<ProcessResult> setupUserConfig(
-    RepositorySlug slug,
-    String workingDirectory,
-  ) async {
+  Future<ProcessResult> setupUserConfig({
+    required RepositorySlug slug,
+    required String workingDirectory,
+    bool throwOnError = true, 
+  }) async {
     return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: <String>[
@@ -89,13 +92,15 @@ class GitCli {
         '"autosubmit-dev[bot]"',
       ],
       workingDirectory: workingDirectory,
+      throwOnError: throwOnError,
     );
   }
 
-  Future<ProcessResult> setupUserEmailConfig(
-    RepositorySlug slug,
-    String workingDirectory,
-  ) async {
+  Future<ProcessResult> setupUserEmailConfig({
+    required RepositorySlug slug,
+    required String workingDirectory,
+    bool throwOnError = true,
+  }) async {
     return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: <String>[
@@ -105,17 +110,19 @@ class GitCli {
         '"\<\>"',
       ],
       workingDirectory: workingDirectory,
+      throwOnError: throwOnError,
     );
   }
 
   /// This is necessary with forked repos but may not be necessary with the bot
   /// as the bot has direct access to the repository.
-  Future<ProcessResult> setUpstream(
-    RepositorySlug slug,
-    String workingDirectory,
-    String branchName,
-    String token,
-  ) async {
+  Future<ProcessResult> setUpstream({
+    required RepositorySlug slug,
+    required String workingDirectory,
+    required String branchName,
+    required String token,
+    bool throwOnError = true,
+  }) async {
     return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: <String>[
@@ -125,33 +132,36 @@ class GitCli {
         'https://autosubmit-dev[bot]:$token@github.com/${slug.fullName}.git',
       ],
       workingDirectory: workingDirectory,
+      throwOnError: throwOnError,
     );
   }
 
   /// Fetch all new refs for the repository.
-  Future<ProcessResult> fetchAll(String workingDirectory) async {
+  Future<ProcessResult> fetchAll({required String workingDirectory, bool throwOnError = true,}) async {
     return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: <String>[
         'fetch',
         '--all',
       ],
+      throwOnError: throwOnError,
     );
   }
 
-  Future<ProcessResult> pullRebase(String? workingDirectory) async {
-    return _updateRepository(workingDirectory, '--rebase');
+  Future<ProcessResult> pullRebase({required String? workingDirectory, bool throwOnError = true,}) async {
+    return _updateRepository(workingDirectory: workingDirectory, pullMethod: '--rebase', throwOnError: throwOnError,);
   }
 
-  Future<ProcessResult> pullMerge(String? workingDirectory) async {
-    return _updateRepository(workingDirectory, '--merge');
+  Future<ProcessResult> pullMerge({required String? workingDirectory, bool throwOnError = true,}) async {
+    return _updateRepository(workingDirectory: workingDirectory, pullMethod: '--merge', throwOnError: throwOnError,);
   }
 
   /// Run the git pull rebase command to keep the repository up to date.
-  Future<ProcessResult> _updateRepository(
-    String? workingDirectory,
-    String pullMethod,
-  ) async {
+  Future<ProcessResult> _updateRepository({
+    required String? workingDirectory,
+    required String pullMethod,
+    bool throwOnError = true,
+  }) async {
     final ProcessResult processResult = await _cliCommand.runCliCommand(
       executable: GIT,
       arguments: <String>[
@@ -171,6 +181,7 @@ class GitCli {
     required String newBranchName,
     required String workingDirectory,
     bool useCheckout = false,
+    bool throwOnError = true,
   }) async {
     // Then create the new branch.
     List<String> args;
@@ -191,6 +202,7 @@ class GitCli {
       executable: GIT,
       arguments: args,
       workingDirectory: workingDirectory,
+      throwOnError: throwOnError,
     );
   }
 
@@ -198,6 +210,7 @@ class GitCli {
   Future<ProcessResult> revertChange({
     required String commitSha,
     required String workingDirectory,
+    bool throwOnError = true,
   }) async {
     // Issue a revert of the pull request.
     return _cliCommand.runCliCommand(
@@ -210,14 +223,16 @@ class GitCli {
         commitSha,
       ],
       workingDirectory: workingDirectory,
+      throwOnError: throwOnError,
     );
   }
 
   /// Push changes made to the local branch to github.
-  Future<ProcessResult> pushBranch(
-    String branchName,
-    String workingDirectory,
-  ) async {
+  Future<ProcessResult> pushBranch({
+    required String branchName,
+    required String workingDirectory,
+    bool throwOnError = true,
+  }) async {
     return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: <String>[
@@ -227,14 +242,16 @@ class GitCli {
         branchName,
       ],
       workingDirectory: workingDirectory,
+      throwOnError: throwOnError,
     );
   }
 
   /// Delete a local branch from the repo.
-  Future<ProcessResult> deleteLocalBranch(
-    String branchName,
-    String workingDirectory,
-  ) async {
+  Future<ProcessResult> deleteLocalBranch({
+    required String branchName,
+    required String workingDirectory,
+    bool throwOnError = true,
+  }) async {
     return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: <String>[
@@ -243,16 +260,18 @@ class GitCli {
         branchName,
       ],
       workingDirectory: workingDirectory,
+      throwOnError: throwOnError,
     );
   }
 
   /// Delete a remote branch from the repo.
   ///
   /// When merging a pull request the pr branch is not automatically deleted.
-  Future<ProcessResult> deleteRemoteBranch(
-    String branchName,
-    String workingDirectory,
-  ) async {
+  Future<ProcessResult> deleteRemoteBranch({
+    required String branchName,
+    required String workingDirectory,
+    bool throwOnError = true,
+  }) async {
     return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: <String>[
@@ -261,13 +280,15 @@ class GitCli {
         '--delete',
         branchName,
       ],
+      throwOnError: throwOnError,
     );
   }
 
   /// Get the remote origin of the current repository.
-  Future<ProcessResult> showOriginUrl(
-    String workingDirectory,
-  ) async {
+  Future<ProcessResult> showOriginUrl({
+    required String workingDirectory,
+    bool throwOnError = true,
+  }) async {
     return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: <String>[
@@ -276,13 +297,15 @@ class GitCli {
         'remote.origin.url',
       ],
       workingDirectory: workingDirectory,
+      throwOnError: throwOnError,
     );
   }
 
-  Future<ProcessResult> switchBranch(
-    String workingDirectory,
-    String branchName,
-  ) async {
+  Future<ProcessResult> switchBranch({
+    required String workingDirectory,
+    required String branchName,
+    bool throwOnError = true,
+  }) async {
     return _cliCommand.runCliCommand(
       executable: GIT,
       arguments: <String>[
@@ -290,6 +313,7 @@ class GitCli {
         branchName,
       ],
       workingDirectory: workingDirectory,
+      throwOnError: throwOnError,
     );
   }
 }

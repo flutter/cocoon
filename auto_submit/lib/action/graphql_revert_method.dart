@@ -6,8 +6,13 @@ import 'package:auto_submit/service/graphql_service.dart';
 import 'package:auto_submit/service/revert_issue_body_formatter.dart';
 import 'package:github/github.dart' as github;
 import 'package:graphql/client.dart' as graphql;
-import 'package:auto_submit/service/log.dart';
 
+/// The graphql revert method uses the new revert mutation introduced by github.
+/// 
+/// Note: In order to make this work you need to enable the permission to push in
+/// the application otherwise a cryptic error stating an issue that there are no
+/// commits between the head and the target branch.
+/// https://support.github.com/ticket/personal/0/2258630
 class GraphQLRevertMethod implements RevertMethod {
   @override
   Future<PullRequest?> createRevert(Config config, github.PullRequest pullRequest) async {
@@ -19,8 +24,6 @@ class GraphQLRevertMethod implements RevertMethod {
     final GraphQlService graphQlService = GraphQlService();
 
     final String nodeId = pullRequest.nodeId!;
-
-    log.info('Initial pull request has node id: $nodeId');
 
     // Format the request fields for the new revert pull request.
     final RevertIssueBodyFormatter formatter = RevertIssueBodyFormatter(
@@ -40,11 +43,6 @@ class GraphQLRevertMethod implements RevertMethod {
       formatter.revertPrTitle!,
     );
 
-    log.info('Running mutate request to graphql.');
-    // Request the revert issue.
-
-    // This fails reliably with graphql and will always return an exception though will
-    // sometimes generate the revert request. Though this is not reliable.
     final Map<String, dynamic> data = await graphQlService.mutateGraphQL(
       documentNode: revertPullRequestMutation.documentNode,
       variables: revertPullRequestMutation.variables,

@@ -36,11 +36,7 @@ class GitCliRevertMethod implements RevertMethod {
     );
 
     try {
-      final bool cloned = await gitRepositoryManager.cloneRepository();
-      if (!cloned) {
-        log.warning('Unable to clone ${slug.fullName}');
-        throw 'Unable to clone repository.';
-      }
+      await gitRepositoryManager.cloneRepository();
       await gitRepositoryManager.setupConfig();
       await gitRepositoryManager.revertCommit(baseBranch, commitSha, slug, await config.generateGithubToken(slug));
     } finally {
@@ -59,7 +55,7 @@ class GitCliRevertMethod implements RevertMethod {
     try {
       await retryOptions.retry(() async {
         branch = await githubService.getBranch(slug, gitRevertBranchName.branch);
-      }, retryIf: (Exception e) => e is NotFoundException);
+      }, retryIf: (Exception e) => e is NotFoundException,);
     } on Exception {
       log.warning(
           'Unable to find created branch, ${gitRevertBranchName.branch} for revert request of ${pullRequest.number}.');

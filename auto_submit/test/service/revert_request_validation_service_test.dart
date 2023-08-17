@@ -25,11 +25,12 @@ import '../src/service/fake_bigquery_service.dart';
 import '../src/service/fake_config.dart';
 import '../src/service/fake_graphql_client.dart';
 import '../src/service/fake_github_service.dart';
-import '../src/validations/fake_revert.dart';
+// import '../src/validations/fake_revert.dart';
 import '../utilities/utils.dart';
 import '../utilities/mocks.dart';
 import 'bigquery_test.dart';
 
+//TODO these will currently fail.
 void main() {
   late RevertRequestValidationService validationService;
   late FakeConfig config;
@@ -119,9 +120,9 @@ void main() {
         body: 'Reverts flutter/flutter#1234',
       );
 
-      final FakeRevert fakeRevert = FakeRevert(config: config);
-      fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
-      validationService.revertValidation = fakeRevert;
+      // final FakeRevert fakeRevert = FakeRevert(config: config);
+      // fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
+      // validationService.revertValidation = fakeRevert;
       final FakeApproverService fakeApproverService = FakeApproverService(config);
       validationService.approverService = fakeApproverService;
 
@@ -169,9 +170,9 @@ void main() {
         body: 'Reverts flutter/flutter#1234',
       );
 
-      final FakeRevert fakeRevert = FakeRevert(config: config);
-      fakeRevert.validationResult = ValidationResult(false, Action.REMOVE_LABEL, '');
-      validationService.revertValidation = fakeRevert;
+      // final FakeRevert fakeRevert = FakeRevert(config: config);
+      // fakeRevert.validationResult = ValidationResult(false, Action.REMOVE_LABEL, '');
+      // validationService.revertValidation = fakeRevert;
       final FakeApproverService fakeApproverService = FakeApproverService(config);
       validationService.approverService = fakeApproverService;
 
@@ -210,9 +211,9 @@ void main() {
       );
       githubService.pullRequestData = pullRequest;
 
-      final FakeRevert fakeRevert = FakeRevert(config: config);
-      fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
-      validationService.revertValidation = fakeRevert;
+      // final FakeRevert fakeRevert = FakeRevert(config: config);
+      // fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
+      // validationService.revertValidation = fakeRevert;
       final FakeApproverService fakeApproverService = FakeApproverService(config);
       validationService.approverService = fakeApproverService;
 
@@ -252,10 +253,10 @@ void main() {
         body: 'Reverts flutter/flutter#1234',
       );
       githubService.pullRequestMock = pullRequest;
-      final FakeRevert fakeRevert = FakeRevert(config: config);
-      fakeRevert.validationResult =
-          ValidationResult(false, Action.IGNORE_TEMPORARILY, 'Some of the required checks did not complete in time.');
-      validationService.revertValidation = fakeRevert;
+      // final FakeRevert fakeRevert = FakeRevert(config: config);
+      // fakeRevert.validationResult =
+      //     ValidationResult(false, Action.IGNORE_TEMPORARILY, 'Some of the required checks did not complete in time.');
+      // validationService.revertValidation = fakeRevert;
       final FakeApproverService fakeApproverService = FakeApproverService(config);
       validationService.approverService = fakeApproverService;
 
@@ -313,9 +314,9 @@ void main() {
         mergeable: true,
       );
 
-      final FakeRevert fakeRevert = FakeRevert(config: config);
-      fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
-      validationService.revertValidation = fakeRevert;
+      // final FakeRevert fakeRevert = FakeRevert(config: config);
+      // fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
+      // validationService.revertValidation = fakeRevert;
       final FakeApproverService fakeApproverService = FakeApproverService(config);
       validationService.approverService = fakeApproverService;
       githubService.pullRequestData = pullRequest;
@@ -372,9 +373,9 @@ void main() {
       );
       githubService.pullRequestData = pullRequest;
 
-      final FakeRevert fakeRevert = FakeRevert(config: config);
-      fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
-      validationService.revertValidation = fakeRevert;
+      // final FakeRevert fakeRevert = FakeRevert(config: config);
+      // fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
+      // validationService.revertValidation = fakeRevert;
       final FakeApproverService fakeApproverService = FakeApproverService(config);
       validationService.approverService = fakeApproverService;
 
@@ -435,9 +436,9 @@ void main() {
       );
       githubService.pullRequestData = pullRequest;
 
-      final FakeRevert fakeRevert = FakeRevert(config: config);
-      fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
-      validationService.revertValidation = fakeRevert;
+      // final FakeRevert fakeRevert = FakeRevert(config: config);
+      // fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
+      // validationService.revertValidation = fakeRevert;
       final FakeApproverService fakeApproverService = FakeApproverService(config);
       validationService.approverService = fakeApproverService;
 
@@ -512,9 +513,9 @@ void main() {
         body: 'Reverts flutter/flutter#1234',
       );
 
-      final FakeRevert fakeRevert = FakeRevert(config: config);
-      fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
-      validationService.revertValidation = fakeRevert;
+      // final FakeRevert fakeRevert = FakeRevert(config: config);
+      // fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
+      // validationService.revertValidation = fakeRevert;
       final FakeApproverService fakeApproverService = FakeApproverService(config);
       validationService.approverService = fakeApproverService;
 
