@@ -38,7 +38,7 @@ class RevertRequestValidationService extends ValidationService {
       );
     } else {
       log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
-      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+      await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
     }
   }
 
