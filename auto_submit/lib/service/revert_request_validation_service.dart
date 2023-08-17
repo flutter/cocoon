@@ -2,16 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
-import 'package:auto_submit/action/git_cli_revert_method.dart';
 import 'package:auto_submit/action/graphql_revert_method.dart';
 import 'package:auto_submit/configuration/repository_configuration.dart';
-import 'package:auto_submit/git/cli_command.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/request_handling/pubsub.dart';
 import 'package:auto_submit/service/approver_service.dart';
-import 'package:auto_submit/service/graphql_service.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
@@ -20,10 +15,7 @@ import 'package:auto_submit/validations/validation.dart';
 import 'package:auto_submit/validations/validation_filter.dart';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
-
-import '../action/revert_method.dart';
 import 'process_method.dart';
-import 'revert_issue_body_formatter.dart';
 
 class RevertRequestValidationService extends ValidationService {
   RevertRequestValidationService(Config config, {RetryOptions? retryOptions})
@@ -54,7 +46,6 @@ class RevertRequestValidationService extends ValidationService {
   Future<bool> shouldProcess(github.PullRequest pullRequest, List<String> labelNames) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService githubService = await config.createGithubService(slug);
-    final (currentPullRequest, labelNames) = await getPrWithLabels(pullRequest);
 
     // This is the initial revert request state.
     if (pullRequest.state == 'closed' && labelNames.contains(Config.kRevertLabel)) {
