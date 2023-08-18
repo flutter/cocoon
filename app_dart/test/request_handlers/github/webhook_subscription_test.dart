@@ -1488,6 +1488,41 @@ void foo() {
       );
     });
 
+    test('Engine labels PRs, no comment if py tests', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.engineSlug,
+      );
+
+      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'tools/font-subset/main.cc',
+          PullRequestFile()..filename = 'tools/font-subset/test.py',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.addLabelsToIssue(
+          Config.engineSlug,
+          issueNumber,
+          any,
+        ),
+      );
+
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+    });
+
     test('Engine labels PRs, no comment if cc benchmarks', () async {
       const int issueNumber = 123;
 
