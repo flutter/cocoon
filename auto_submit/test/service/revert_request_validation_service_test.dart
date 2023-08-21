@@ -18,13 +18,13 @@ import 'package:test/test.dart';
 
 import '../configuration/repository_configuration_data.dart';
 import '../requests/github_webhook_test_data.dart';
+import '../src/action/fake_revert_method.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_approver_service.dart';
 import '../src/service/fake_bigquery_service.dart';
 import '../src/service/fake_config.dart';
 import '../src/service/fake_graphql_client.dart';
 import '../src/service/fake_github_service.dart';
-// import '../src/validations/fake_revert.dart';
 import '../utilities/utils.dart';
 import '../utilities/mocks.dart';
 import 'bigquery_test.dart';
@@ -39,14 +39,17 @@ void main() {
 
   late MockJobsResource jobsResource;
   late FakeBigqueryService bigqueryService;
+  late FakeRevertMethod revertMethod;
 
   setUp(() {
     githubGraphQLClient = FakeGraphQLClient();
     githubService = FakeGithubService(client: MockGitHub());
     config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
+    revertMethod = FakeRevertMethod();
     validationService = RevertRequestValidationService(
       config,
       retryOptions: const RetryOptions(delayFactor: Duration.zero, maxDelay: Duration.zero, maxAttempts: 1),
+      revertMethod: revertMethod,
     );
     slug = RepositorySlug('flutter', 'cocoon');
 
@@ -62,34 +65,110 @@ void main() {
     });
   });
 
-  test('Remove label and post comment when no revert label.', () async {
-    final PullRequestHelper flutterRequest = PullRequestHelper(
-      prNumber: 0,
-      lastCommitHash: oid,
-      reviews: <PullRequestReviewHelper>[],
-    );
-    githubService.checkRunsData = checkRunsMock;
-    githubService.createCommentData = createCommentMock;
-    githubService.isTeamMemberMockMap['author1'] = true;
-    githubService.isTeamMemberMockMap['member'] = true;
-    final FakePubSub pubsub = FakePubSub();
-    final PullRequest pullRequest = generatePullRequest(
-      prNumber: 0,
-      repoName: slug.name,
-    );
-    unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-    final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-    githubService.pullRequestMock = pullRequest;
-    await validationService.processRevertRequest(
-      result: queryResult,
-      messagePullRequest: pullRequest,
-      ackId: 'test',
-      pubsub: pubsub,
-    );
+  group('Process revert pull requests.', (){
+    test('Remove label and post comment when issue has passed time limit to be reverted.', () async {
+      // setup objects
+      final FakePubSub pubsub = FakePubSub();
+      final PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+        mergedAt: DateTime.now().subtract(const Duration(hours: 25)),
+      );
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        mergedAt: DateTime.now().subtract(const Duration(hours: 25)),
+      );
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+      
+      // setup fields
+      githubService.createCommentData = createCommentMock;
+      githubService.pullRequestMock = pullRequest;
 
-    expect(githubService.issueComment, isNotNull);
-    expect(githubService.labelRemoved, true);
-    assert(pubsub.messagesQueue.isEmpty);
+      // run tests
+      unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
+      await validationService.processRevertRequest(
+        result: queryResult,
+        messagePullRequest: pullRequest,
+        ackId: 'test',
+        pubsub: pubsub,
+      );
+
+      // validate
+      expect(githubService.issueComment, isNotNull);
+      expect(githubService.labelRemoved, true);
+      assert(pubsub.messagesQueue.isEmpty);
+    });
+
+    test('Create the new revert issue from the closed one.', () async {
+      // setup
+      final FakePubSub pubsub = FakePubSub();
+      final PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+      );
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+      );
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+
+      // setup fields
+      githubService.createCommentData = createCommentMock;
+      githubService.pullRequestMock = pullRequest;
+      revertMethod.object = queryResult.repository!.pullRequest;
+
+      // run test
+      unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
+      await validationService.processRevertRequest(
+        result: queryResult,
+        messagePullRequest: pullRequest,
+        ackId: 'test',
+        pubsub: pubsub,
+      );
+
+      // validate
+      expect(githubService.issueComment, isNull);
+      expect(githubService.labelRemoved, false);
+      assert(pubsub.messagesQueue.isEmpty);
+    });
+
+    test('New revert request is not created, label is removed.', () async {
+      // setup
+      final FakePubSub pubsub = FakePubSub();
+      final PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+      );
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+      );
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+
+      // setup fields
+      githubService.createCommentData = createCommentMock;
+      revertMethod.throwException = true;
+      revertMethod.object = queryResult.repository!.pullRequest;
+      githubService.pullRequestMock = pullRequest;
+
+      // run test
+      unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
+      await validationService.processRevertRequest(
+        result: queryResult,
+        messagePullRequest: pullRequest,
+        ackId: 'test',
+        pubsub: pubsub,
+      );
+
+      // validate
+      expect(githubService.issueComment, isNotNull);
+      expect(githubService.labelRemoved, true);
+      assert(pubsub.messagesQueue.isEmpty);
+    });
   });
 
   group('Processing revert reqeuest tests', () {

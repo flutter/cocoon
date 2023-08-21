@@ -41,6 +41,12 @@ class FakeConfig extends Config {
   BigqueryService? bigqueryService;
   RepositoryConfiguration? repositoryConfigurationMock;
 
+  String get pubsubPullRequestTopic => 'auto-submit-queue';
+  String get pubsubPullRequestSubscription => 'auto-submit-queue-sub';
+
+  String get pubsubRevertRequestTopic => 'auto-submit-revert-queue';
+  String get pubsubRevertRequestSubscription => 'auto-submit-revert-queue-sub';
+
   @override
   int get kPubsubPullNumber => kPubsubPullNumberValue ?? 1;
 

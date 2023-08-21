@@ -16,18 +16,20 @@ import 'package:auto_submit/validations/validation.dart';
 import 'package:auto_submit/validations/validation_filter.dart';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
+import 'package:auto_submit/action/revert_method.dart';
 import 'process_method.dart';
 
 enum RevertProcessMethod { revert, revertOf, none }
 
 class RevertRequestValidationService extends ValidationService {
-  RevertRequestValidationService(Config config, {RetryOptions? retryOptions})
-      : super(config, retryOptions: retryOptions) {
+  RevertRequestValidationService(Config config, {RetryOptions? retryOptions, RevertMethod? revertMethod})
+      : revertMethod = revertMethod ?? GraphQLRevertMethod(), super(config, retryOptions: retryOptions) {
     /// Validates a PR marked with the reverts label.
     approverService = ApproverService(config);
   }
 
   ApproverService? approverService;
+  RevertMethod? revertMethod;
 
   /// TODO run the actual request from here and remove the shouldProcess call.
   /// Processes a pub/sub message associated with PullRequest event.
@@ -69,8 +71,11 @@ class RevertRequestValidationService extends ValidationService {
 
   /// Check whether the original request is within the 24 hour time limit to revert.
   bool isWithinTimeLimit(github.PullRequest pullRequest) {
-    return true;
-    // return DateTime.now().difference(pullRequest.mergedAt!).inHours <= 24;
+    if (pullRequest.mergedAt == null) {
+      // This pull request has never been merged.
+      return false;
+    }
+    return DateTime.now().difference(pullRequest.mergedAt!).inHours <= 24;
   }
 
   /// Determine if we should process the incoming pull request webhook event.
@@ -215,15 +220,18 @@ class RevertRequestValidationService extends ValidationService {
 
     // Attempt to create the new revert pull request.
     try {
-      final GraphQLRevertMethod revertMethod = GraphQLRevertMethod();
-      final PullRequest pullRequest = await revertMethod.createRevert(config, messagePullRequest);
+      // This is the autosubmit query result pull request from graphql.
+      final PullRequest pullRequest = await revertMethod!.createRevert(config, messagePullRequest) as PullRequest;
       log.info('Created revert pull request ${slug.fullName}/${pullRequest.number}.');
       // This will come through this service again for processing.
       await githubService.addLabels(slug, pullRequest.number!, [Config.kRevertOfLabel]);
       // Notify the discord tree channel that the revert issue has been created
       // and will be processed.
     } catch (e) {
-      log.severe('Unable to create the revert pull request due to ${e.toString()}');
+      final String message = 'Unable to create the revert pull request due to ${e.toString()}';
+      log.severe(message);
+      await githubService.createComment(slug, messagePullRequest.number!, message);
+      await githubService.removeLabel(slug, messagePullRequest.number!, Config.kRevertLabel);
     } finally {
       await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
     }
