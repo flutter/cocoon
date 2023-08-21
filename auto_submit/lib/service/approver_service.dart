@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart' as github;
@@ -50,7 +49,7 @@ class ApproverService {
   }
 
   /// Auto approves a pull request when the revert label is present.
-  Future<void> revertApproval(QueryResult queryResult, github.PullRequest pullRequest) async {
+  Future<void> revertApproval(github.PullRequest pullRequest) async {
     final String? author = pullRequest.user!.login;
     // Use the QueryResult for this field
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();

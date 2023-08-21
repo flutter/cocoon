@@ -48,7 +48,7 @@ class Config {
   /// Labels autosubmit looks for on pull requests
   static const String kAutosubmitLabel = 'autosubmit';
   static const String kRevertLabel = 'revert';
-  static const String kRevertOfLabel = 'reverts';
+  static const String kRevertOfLabel = 'revert of';
 
   /// The label which shows the overrideTree    Status.
   String get overrideTreeStatusLabel => 'warning: land on red to fix tree breakage';

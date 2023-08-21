@@ -70,6 +70,7 @@ class RevertRequestValidationFilter implements ValidationFilter {
   Set<Validation> getValidations() {
     final Set<Validation> validationsToRun = {};
 
+    validationsToRun.add(Approval(config: config));
     validationsToRun.add(RequiredCheckRuns(config: config));
     validationsToRun.add(Mergeable(config: config));
 
