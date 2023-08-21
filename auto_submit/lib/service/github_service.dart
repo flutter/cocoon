@@ -136,7 +136,10 @@ class GithubService {
   }
 
   Future<bool> addReviewersToPullRequest(
-      RepositorySlug slug, int pullRequestNumber, List<String> reviewerLogins) async {
+    RepositorySlug slug,
+    int pullRequestNumber,
+    List<String> reviewerLogins,
+  ) async {
     final response = await github.request(
       'POST',
       '/repos/${slug.fullName}/pulls/$pullRequestNumber/requested_reviewers',

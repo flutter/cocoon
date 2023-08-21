@@ -33,22 +33,19 @@ void main() {
       });
 
       test('cloneRepository()', () async {
-        final bool isSuccessful = await gitRepositoryManager.cloneRepository();
-        expect(isSuccessful, isTrue);
+        await gitRepositoryManager.cloneRepository();
         expect(Directory(targetRepoCheckoutDirectory).existsSync(), isTrue);
       });
 
       test('cloneRepository() over existing dir.', () async {
         await cliCommand.runCliCommand(executable: 'mkdir', arguments: ['$workingDirectory/flutter_test']);
-        final bool isSuccessful = await gitRepositoryManager.cloneRepository();
-        expect(isSuccessful, isTrue);
+        await gitRepositoryManager.cloneRepository();
         expect(Directory('$workingDirectoryOutside/flutter_test').existsSync(), isTrue);
         expect(await gitCli.isGitRepository('$workingDirectoryOutside/flutter_test'), isTrue);
       });
 
       test('deleteRepository()', () async {
-        final bool isSuccessful = await gitRepositoryManager.cloneRepository();
-        expect(isSuccessful, isTrue);
+        await gitRepositoryManager.cloneRepository();
         expect(Directory(targetRepoCheckoutDirectory).existsSync(), isTrue);
         await gitRepositoryManager.deleteRepository();
         expect(Directory(targetRepoCheckoutDirectory).existsSync(), isFalse);

@@ -9,7 +9,6 @@ import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto hide PullRequest;
 import 'package:auto_submit/service/revert_request_validation_service.dart';
 import 'package:auto_submit/service/validation_service.dart';
-import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
@@ -82,7 +81,6 @@ void main() {
     final auto.QueryResult queryResult = createQueryResult(flutterRequest);
     githubService.pullRequestMock = pullRequest;
     await validationService.processRevertRequest(
-      config: config,
       result: queryResult,
       messagePullRequest: pullRequest,
       ackId: 'test',
@@ -138,7 +136,6 @@ void main() {
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
       await validationService.processRevertRequest(
-        config: config,
         result: queryResult,
         messagePullRequest: pullRequest,
         ackId: 'test',
@@ -180,7 +177,6 @@ void main() {
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
       await validationService.processRevertRequest(
-        config: config,
         result: queryResult,
         messagePullRequest: pullRequest,
         ackId: 'test',
@@ -221,7 +217,6 @@ void main() {
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
       await validationService.processRevertRequest(
-        config: config,
         result: queryResult,
         messagePullRequest: pullRequest,
         ackId: 'test',
@@ -264,7 +259,6 @@ void main() {
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
       await validationService.processRevertRequest(
-        config: config,
         result: queryResult,
         messagePullRequest: pullRequest,
         ackId: 'test',
@@ -332,7 +326,6 @@ void main() {
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
       await validationService.processRevertRequest(
-        config: config,
         result: queryResult,
         messagePullRequest: pullRequest,
         ackId: 'test',
@@ -390,7 +383,6 @@ void main() {
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
       await validationService.processRevertRequest(
-        config: config,
         result: queryResult,
         messagePullRequest: pullRequest,
         ackId: 'test',
@@ -453,7 +445,6 @@ void main() {
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
       await validationService.processRevertRequest(
-        config: config,
         result: queryResult,
         messagePullRequest: pullRequest,
         ackId: 'test',
@@ -531,7 +522,6 @@ void main() {
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
       await validationService.processRevertRequest(
-        config: config,
         result: queryResult,
         messagePullRequest: pullRequest,
         ackId: 'test',
@@ -548,37 +538,24 @@ void main() {
 
   group('Process pull request method tests', () {
     test('Should process message when revert label exists and pr is open', () async {
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-      final IssueLabel issueLabel = IssueLabel(name: 'revert');
-      final List<String> labelNames = ['revert'];
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name, state: 'closed');
+      final IssueLabel issueLabel = IssueLabel(name: 'revert of');
+      final List<String> labelNames = ['revert of'];
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
-      final bool shouldProcess = await validationService.shouldProcess(pullRequest, labelNames);
-
-      expect(shouldProcess, true);
+      final RevertProcessMethod revertProcessMethod = await validationService.shouldProcess(pullRequest, labelNames);
+      expect(revertProcessMethod, RevertProcessMethod.revertOf);
     });
 
-    test('Should process message as revert when revert and autosubmit labels are present and pr is open', () async {
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-      final IssueLabel issueLabel = IssueLabel(name: 'revert');
-      final List<String> labelNames = ['revert'];
-      pullRequest.labels!.add(issueLabel);
-      githubService.pullRequestData = pullRequest;
-      final bool shouldProcess = await validationService.shouldProcess(pullRequest, labelNames);
-
-      expect(shouldProcess, true);
-    });
-
-    test('Skip processing message when revert label exists and pr is closed', () async {
+    test('Should process message when revert label exists and pr is closed', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       pullRequest.state = 'closed';
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
       final List<String> labelNames = ['revert'];
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
-      final bool shouldProcess = await validationService.shouldProcess(pullRequest, labelNames);
-
-      expect(shouldProcess, false);
+      final RevertProcessMethod revertProcessMethod = await validationService.shouldProcess(pullRequest, labelNames);
+      expect(revertProcessMethod, RevertProcessMethod.revert);
     });
   });
 

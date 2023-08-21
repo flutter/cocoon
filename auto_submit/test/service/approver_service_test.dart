@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/configuration/repository_configuration.dart';
-import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:github/github.dart' as gh;
 import 'package:mockito/mockito.dart';
@@ -13,7 +12,6 @@ import '../configuration/repository_configuration_data.dart';
 import '../requests/github_webhook_test_data.dart';
 import '../src/service/fake_config.dart';
 import '../utilities/mocks.dart';
-import '../utilities/utils.dart';
 
 void main() {
   FakeConfig config;
@@ -73,14 +71,7 @@ void main() {
     final gh.IssueLabel issueLabel = gh.IssueLabel(name: 'revert');
     issueLabels.add(issueLabel);
 
-    final PullRequestHelper flutterRequest = PullRequestHelper(
-      prNumber: 0,
-      lastCommitHash: oid,
-      reviews: <PullRequestReviewHelper>[],
-    );
-    final QueryResult queryResult = createQueryResult(flutterRequest);
-
-    await service.revertApproval(queryResult, pr);
+    await service.revertApproval(pr);
     final List<dynamic> reviews = verify(pullRequests.createReview(any, captureAny)).captured;
     expect(reviews.length, 1);
     final gh.CreatePullRequestReview review = reviews.single as gh.CreatePullRequestReview;
@@ -89,29 +80,13 @@ void main() {
 
   test('Revert request is not auto approved when the revert label is not present.', () async {
     final gh.PullRequest pr = generatePullRequest(author: 'not_a_user');
-
-    final PullRequestHelper flutterRequest = PullRequestHelper(
-      prNumber: 0,
-      lastCommitHash: oid,
-      reviews: <PullRequestReviewHelper>[],
-    );
-    final QueryResult queryResult = createQueryResult(flutterRequest);
-
-    await service.revertApproval(queryResult, pr);
+    await service.revertApproval(pr);
     verifyNever(pullRequests.createReview(any, captureAny));
   });
 
   test('Revert request is not auto approved on bad author association.', () async {
     final gh.PullRequest pr = generatePullRequest(author: 'not_a_user');
-
-    final PullRequestHelper flutterRequest = PullRequestHelper(
-      prNumber: 0,
-      lastCommitHash: oid,
-      reviews: <PullRequestReviewHelper>[],
-    );
-    final QueryResult queryResult = createQueryResult(flutterRequest);
-
-    await service.revertApproval(queryResult, pr);
+    await service.revertApproval(pr);
     verifyNever(pullRequests.createReview(any, captureAny));
   });
 }

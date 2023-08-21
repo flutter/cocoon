@@ -61,7 +61,8 @@ class GitCliRevertMethod implements RevertMethod {
       );
     } on Exception {
       log.warning(
-          'Unable to find created branch, ${gitRevertBranchName.branch} for revert request of ${pullRequest.number}.');
+        'Unable to find created branch, ${gitRevertBranchName.branch} for revert request of ${pullRequest.number}.',
+      );
     }
 
     if (branch == null) {

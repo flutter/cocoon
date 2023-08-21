@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:github/github.dart' as gh;
 
@@ -15,7 +14,7 @@ class FakeApproverService extends ApproverService {
   }
 
   @override
-  Future<void> revertApproval(QueryResult queryResult, gh.PullRequest pullRequest) async {
+  Future<void> revertApproval(gh.PullRequest pullRequest) async {
     // no op
   }
 }

@@ -62,7 +62,8 @@ class GithubWebhook extends RequestHandler {
 
     final PullRequest pullRequest = PullRequest.fromJson(body[GithubWebhook.pullRequest] as Map<String, dynamic>);
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
-    hasRevertLabel = pullRequest.labels!.any((label) => label.name == Config.kRevertLabel || label.name == Config.kRevertOfLabel);
+    hasRevertLabel =
+        pullRequest.labels!.any((label) => label.name == Config.kRevertLabel || label.name == Config.kRevertOfLabel);
 
     // Check for revert label first.
     if (hasRevertLabel) {
