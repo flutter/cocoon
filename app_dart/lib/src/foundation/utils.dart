@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart' as http;
@@ -136,7 +135,7 @@ Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> fil
       final List<String> negativeGlobs = target.value.runIfNot;
       if (negativeGlobs.isEmpty) {
         targetsToRun.add(target);
-        break;
+        continue;
       }
       bool shouldAdd = true;
       for (String glob in negativeGlobs) {
