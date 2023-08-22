@@ -11,9 +11,9 @@ import 'package:protobuf/protobuf.dart' as $pb;
 
 class EnumBuildStatus extends $pb.ProtobufEnum {
   static const EnumBuildStatus success =
-      EnumBuildStatus._(1, $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'success');
+      EnumBuildStatus._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'success');
   static const EnumBuildStatus failure =
-      EnumBuildStatus._(2, $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'failure');
+      EnumBuildStatus._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'failure');
 
   static const $core.List<EnumBuildStatus> values = <EnumBuildStatus>[
     success,

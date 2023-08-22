@@ -347,6 +347,46 @@ void main() {
         expect(result.length, 1);
         expect(result.single, targets[1]);
       });
+
+      test('run_if takes precedence over run_if_not', () async {
+        final List<Target> targets = <Target>[
+          generateTarget(1, runIf: <String>['a/b/']),
+          generateTarget(2, runIf: <String>['a'], runIfNot: <String>['a']),
+        ];
+        final List<String> files = <String>['a'];
+        final List<Target> result = await getTargetsToRun(targets, files);
+        expect(result.length, 1);
+        expect(result.single, targets[1]);
+      });
+
+      test('no run_if and not run_if_not', () async {
+        final List<Target> targets = <Target>[
+          generateTarget(1),
+        ];
+        final List<String> files = <String>['a'];
+        final List<Target> result = await getTargetsToRun(targets, files);
+        expect(result.length, 1);
+        expect(result.single, targets[0]);
+      });
+
+      test('run_if_not with matches', () async {
+        final List<Target> targets = <Target>[
+          generateTarget(1, runIfNot: ['/a/b/**']),
+        ];
+        final List<String> files = <String>['/a/b/c/d'];
+        final List<Target> result = await getTargetsToRun(targets, files);
+        expect(result.length, 0);
+      });
+
+      test('run_if_not with no matches', () async {
+        final List<Target> targets = <Target>[
+          generateTarget(1, runIfNot: ['/a/b/**']),
+        ];
+        final List<String> files = <String>['/a/c'];
+        final List<Target> result = await getTargetsToRun(targets, files);
+        expect(result.length, 1);
+        expect(result.single, targets[0]);
+      });
     });
   });
 }

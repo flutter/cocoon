@@ -42,7 +42,10 @@ targets:
 # presubmit: Whether to run this target on presubmit (defaults to true).
 # postsubmit: Whether to run this target on postsubmit (defaults to true).
 # run_if: List of path regexes that can trigger this target on presubmit.
-#         If none are passed, will always run in presubmit.
+#         If none are passed, it will evaluare run_if_not. If both are empty the target
+#         will always run in presubmit.
+# run_if_not: List of path regexes. The target will be run only if the files changed
+#         do not match any paths in this list.
 # enabled_branches: List of strings of branches this target can run on.
 #                   This overrides the global enabled_branches.
 # properties: A map of string, string. Values are parsed to their closest data model.

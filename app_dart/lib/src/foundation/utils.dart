@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart' as http;
@@ -102,6 +103,13 @@ FutureOr<String> getUrl(
   }
 }
 
+/// Expands globs string to a regex for evaluation.
+Future<RegExp> parseGlob(String glob) async {
+  glob = glob.replaceAll('**', '[A-Za-z0-9_/.]+');
+  glob = glob.replaceAll('*', '[A-Za-z0-9_.]+');
+  return RegExp('^$glob\$');
+}
+
 /// Returns a LUCI [builder] list that covers changed [files].
 ///
 /// [builders]: enabled luci builders.
@@ -124,17 +132,33 @@ Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> fil
     final List<String> globs = target.value.runIf;
     // Handle case where [Target] initializes empty runif
     if (globs.isEmpty) {
-      targetsToRun.add(target);
-    }
-
-    for (String glob in globs) {
-      glob = glob.replaceAll('**', '[A-Za-z0-9_/.]+');
-      glob = glob.replaceAll('*', '[A-Za-z0-9_.]+');
-      // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
-      final RegExp regExp = RegExp('^$glob\$');
-      if (glob.isEmpty || files.any((String? file) => regExp.hasMatch(file!))) {
+      // Evaluate run_if_not.
+      final List<String> negativeGlobs = target.value.runIfNot;
+      if (negativeGlobs.isEmpty) {
         targetsToRun.add(target);
         break;
+      }
+      bool shouldAdd = true;
+      for (String glob in negativeGlobs) {
+        // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
+        final RegExp regExp = await parseGlob(glob);
+        // if the file is not in any of the paths then add the target.
+        if (files.any((String? file) => regExp.hasMatch(file!))) {
+          shouldAdd = false;
+          break;
+        }
+      }
+      if (shouldAdd) {
+        targetsToRun.add(target);
+      }
+    } else {
+      for (String glob in globs) {
+        // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
+        final RegExp regExp = await parseGlob(glob);
+        if (glob.isEmpty || files.any((String? file) => regExp.hasMatch(file!))) {
+          targetsToRun.add(target);
+          break;
+        }
       }
     }
   }

@@ -16,6 +16,7 @@ class Key extends $pb.GeneratedMessage {
   static const $core.Map<$core.int, Key_Id> _Key_IdByTag = {2: Key_Id.uid, 3: Key_Id.name, 0: Key_Id.notSet};
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Key',
+      package: const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'cocoon'),
       createEmptyInstance: create)
     ..oo(0, [2, 3])
     ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'type')
@@ -125,6 +126,7 @@ class Key extends $pb.GeneratedMessage {
 class RootKey extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'RootKey',
+      package: const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'cocoon'),
       createEmptyInstance: create)
     ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'namespace')
     ..aOM<Key>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'child', subBuilder: Key.create)
