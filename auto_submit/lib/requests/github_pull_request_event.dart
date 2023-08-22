@@ -8,14 +8,14 @@ part 'github_pull_request_event.g.dart';
 @JsonSerializable()
 class GithubPullRequestEvent {
   const GithubPullRequestEvent({
-    this.object,
+    this.pullRequest,
     this.action,
     this.sender,
   });
 
   /// The [PullRequest] object information.
   @JsonKey(name: 'pull_request')
-  final PullRequest? object;
+  final PullRequest? pullRequest;
 
   /// The action as used by github for a [PullRequest] event.
   final String? action;

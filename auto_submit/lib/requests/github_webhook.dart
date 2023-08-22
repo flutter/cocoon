@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:auto_submit/requests/github_pull_request_event.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 import 'package:crypto/crypto.dart';
@@ -61,6 +62,9 @@ class GithubWebhook extends RequestHandler {
     }
 
     final PullRequest pullRequest = PullRequest.fromJson(body[GithubWebhook.pullRequest] as Map<String, dynamic>);
+    final String action = body['action'];
+    final User sender = User.fromJson(body['sender'] as Map<String, dynamic>);
+
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
     hasRevertLabel =
         pullRequest.labels!.any((label) => label.name == Config.kRevertLabel || label.name == Config.kRevertOfLabel);
@@ -68,7 +72,7 @@ class GithubWebhook extends RequestHandler {
     // Check for revert label first.
     if (hasRevertLabel) {
       log.info('Found pull request with the revert label.');
-      await pubsub.publish(config.pubsubRevertRequestTopic, pullRequest);
+      await pubsub.publish(config.pubsubRevertRequestTopic, GithubPullRequestEvent(pullRequest: pullRequest, action: action, sender: sender));
     } else if (hasAutosubmit) {
       log.info('Found pull request with autosubmit label.');
       await pubsub.publish(config.pubsubPullRequestTopic, pullRequest);

@@ -406,9 +406,17 @@ class FakeGithubService implements GithubService {
     return Branch.fromJson(json.decode(branchMockData!));
   }
 
+  bool addReviewersToPullRequestMock = true;
+
   @override
-  Future<bool> addReviewersToPullRequest(RepositorySlug slug, int pullRequestNumber, List<String> reviewerLogins) {
-    // TODO: implement addReviewersToPullRequest
-    throw UnimplementedError();
+  Future<bool> addReviewersToPullRequest(RepositorySlug slug, int pullRequestNumber, List<String> reviewerLogins) async {
+    return addReviewersToPullRequestMock;
+  }
+  
+  bool addAssigneeMock = true;
+
+  @override
+  Future<bool> addAssignee(RepositorySlug slug, int number, List<String> assignees) async {
+    return addAssigneeMock;
   }
 }

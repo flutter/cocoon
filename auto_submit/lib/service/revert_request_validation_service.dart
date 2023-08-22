@@ -7,6 +7,7 @@ import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/model/pull_request_data_types.dart';
 import 'package:auto_submit/request_handling/pubsub.dart';
+import 'package:auto_submit/requests/github_pull_request_event.dart';
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/service/config.dart';
@@ -38,11 +39,13 @@ class RevertRequestValidationService extends ValidationService {
 
   /// TODO run the actual request from here and remove the shouldProcess call.
   /// Processes a pub/sub message associated with PullRequest event.
-  Future<void> processMessage(github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
+  Future<void> processMessage(GithubPullRequestEvent githubPullRequestEvent, String ackId, PubSub pubsub) async {
     // Make sure the pull request still contains the labels.
+    final github.PullRequest messagePullRequest = githubPullRequestEvent.pullRequest!;
     final (currentPullRequest, labelNames) = await getPrWithLabels(messagePullRequest);
-
     final RevertProcessMethod revertProcessMethod = await shouldProcess(currentPullRequest, labelNames);
+
+    final GithubPullRequestEvent updatedGithubPullRequestEvent = GithubPullRequestEvent(pullRequest: currentPullRequest, action: githubPullRequestEvent.action, sender: githubPullRequestEvent.sender);
 
     switch (revertProcessMethod) {
       // Revert is the processing of the closed issue.
@@ -50,7 +53,7 @@ class RevertRequestValidationService extends ValidationService {
         {
           await processRevertRequest(
             result: await getNewestPullRequestInfo(config, messagePullRequest),
-            messagePullRequest: messagePullRequest,
+            githubPullRequestEvent: updatedGithubPullRequestEvent,
             ackId: ackId,
             pubsub: pubsub,
           );
@@ -60,7 +63,7 @@ class RevertRequestValidationService extends ValidationService {
         {
           await processRevertOfRequest(
             result: await getNewestPullRequestInfo(config, messagePullRequest),
-            messagePullRequest: messagePullRequest,
+            githubPullRequestEvent: updatedGithubPullRequestEvent,
             ackId: ackId,
             pubsub: pubsub,
           );
@@ -103,10 +106,11 @@ class RevertRequestValidationService extends ValidationService {
   /// land the commit or remove the autosubmit label.
   Future<void> processRevertOfRequest({
     required QueryResult result,
-    required github.PullRequest messagePullRequest,
+    required GithubPullRequestEvent githubPullRequestEvent,
     required String ackId,
     required PubSub pubsub,
   }) async {
+    final github.PullRequest messagePullRequest = githubPullRequestEvent.pullRequest!;
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final GithubService githubService = await config.createGithubService(slug);
     final int prNumber = messagePullRequest.number!;
@@ -207,12 +211,14 @@ class RevertRequestValidationService extends ValidationService {
   // pullRequest.state == 'closed' && labelNames.contains('revert')
   Future<void> processRevertRequest({
     required QueryResult result,
-    required github.PullRequest messagePullRequest,
+    required GithubPullRequestEvent githubPullRequestEvent,
     required String ackId,
     required PubSub pubsub,
   }) async {
+    final github.PullRequest messagePullRequest = githubPullRequestEvent.pullRequest!;
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final GithubService githubService = await config.createGithubService(slug);
+    final String sender = githubPullRequestEvent.sender!.login!;
 
     if (!isWithinTimeLimit(messagePullRequest)) {
       final String message = '''Time to revert pull request ${slug.fullName}/${messagePullRequest.number} has elapsed.
@@ -232,6 +238,8 @@ class RevertRequestValidationService extends ValidationService {
       log.info('Created revert pull request ${slug.fullName}/${pullRequest.number}.');
       // This will come through this service again for processing.
       await githubService.addLabels(slug, pullRequest.number!, [Config.kRevertOfLabel]);
+      log.info('Assigning new revert issue to $sender');
+      await githubService.addAssignee(slug, pullRequest.number!, [sender]);
       // Notify the discord tree channel that the revert issue has been created
       // and will be processed.
     } catch (e) {

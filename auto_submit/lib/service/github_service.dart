@@ -166,6 +166,16 @@ class GithubService {
     return github.issues.addLabelsToIssue(slug, issueNumber, labels);
   }
 
+  /// Relevant API: https://docs.github.com/en/rest/issues/assignees?apiVersion=2022-11-28#add-assignees-to-an-issue
+  Future<bool> addAssignee(RepositorySlug slug, int number, List<String> assignees) async {
+    final response = await github.request(
+      'POST',
+      '/repos/${slug.fullName}/issues/$number/assignees',
+      body: GitHubJson.encode({'assignees': assignees}),
+    );
+    return response.statusCode == StatusCodes.CREATED;
+  }
+
   /// Create a comment for a pull request.
   Future<IssueComment> createComment(
     RepositorySlug slug,

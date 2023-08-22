@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:auto_submit/request_handling/pubsub.dart';
 import 'package:auto_submit/requests/check_request.dart';
+import 'package:auto_submit/requests/github_pull_request_event.dart';
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/service/revert_request_validation_service.dart';
@@ -70,7 +71,8 @@ class CheckRevertRequest extends CheckRequest {
           json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
       log.info('request raw body = $rawBody');
 
-      final PullRequest pullRequest = PullRequest.fromJson(rawBody);
+      final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent.fromJson(rawBody);
+      final PullRequest pullRequest = githubPullRequestEvent.pullRequest!;
 
       log.info('Processing message ackId: ${message.ackId}');
       log.info('Processing mesageId: ${message.message!.messageId}');
@@ -93,8 +95,7 @@ class CheckRevertRequest extends CheckRequest {
 
       futures.add(
         validationService.processMessage(
-          // pullRequestMessage,
-          pullRequest,
+          githubPullRequestEvent,
           message.ackId!,
           pubsub,
         ),

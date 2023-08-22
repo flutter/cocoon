@@ -7,11 +7,10 @@ import 'dart:convert';
 
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto hide PullRequest;
+import 'package:auto_submit/requests/github_pull_request_event.dart';
 import 'package:auto_submit/service/revert_request_validation_service.dart';
-import 'package:auto_submit/service/validation_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
-import 'package:graphql/client.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
@@ -187,6 +186,7 @@ void main() {
         mergedAt: DateTime.now().subtract(const Duration(hours: 25)),
       );
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+      final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(pullRequest: pullRequest, action: 'labeled', sender: User(login: 'ricardoamador'),);
 
       // setup fields
       githubService.createCommentData = createCommentMock;
@@ -196,7 +196,7 @@ void main() {
       unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
       await validationService.processRevertRequest(
         result: queryResult,
-        messagePullRequest: pullRequest,
+        githubPullRequestEvent: githubPullRequestEvent,
         ackId: 'test',
         pubsub: pubsub,
       );
@@ -220,6 +220,7 @@ void main() {
         repoName: slug.name,
       );
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+      final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(pullRequest: pullRequest, action: 'labeled', sender: User(login: 'ricardoamador'),);
 
       // setup fields
       githubService.createCommentData = createCommentMock;
@@ -230,7 +231,7 @@ void main() {
       unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
       await validationService.processRevertRequest(
         result: queryResult,
-        messagePullRequest: pullRequest,
+        githubPullRequestEvent: githubPullRequestEvent,
         ackId: 'test',
         pubsub: pubsub,
       );
@@ -254,6 +255,7 @@ void main() {
         repoName: slug.name,
       );
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+      final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(pullRequest: pullRequest, action: 'labeled', sender: User(login: 'ricardoamador'),);
 
       // setup fields
       githubService.createCommentData = createCommentMock;
@@ -265,7 +267,7 @@ void main() {
       unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
       await validationService.processRevertRequest(
         result: queryResult,
-        messagePullRequest: pullRequest,
+        githubPullRequestEvent: githubPullRequestEvent,
         ackId: 'test',
         pubsub: pubsub,
       );
@@ -293,6 +295,7 @@ void main() {
         labelName: 'revert of',
         body: 'Reverts flutter/flutter#1234',
       );
+      final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(pullRequest: pullRequest, action: 'labeled', sender: User(login: 'ricardoamador'),);
 
       final Issue issue = Issue(
         id: 1234,
@@ -310,7 +313,7 @@ void main() {
       unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
       await validationService.processRevertRequest(
         result: queryResult,
-        messagePullRequest: pullRequest,
+        githubPullRequestEvent: githubPullRequestEvent,
         ackId: 'test',
         pubsub: pubsub,
       );
