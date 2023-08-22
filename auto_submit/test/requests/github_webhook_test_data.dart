@@ -93,7 +93,7 @@ PullRequest generatePullRequest({
   String title = 'Amazing new feature',
   bool? mergeable = true,
   String baseRef = 'main',
-  DateTime? mergedAt, 
+  DateTime? mergedAt,
 }) {
   return PullRequest.fromJson(
     json.decode('''{

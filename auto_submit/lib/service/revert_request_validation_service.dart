@@ -15,6 +15,7 @@ import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:auto_submit/validations/validation_filter.dart';
 import 'package:github/github.dart' as github;
+import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 import 'package:auto_submit/action/revert_method.dart';
 import 'process_method.dart';
@@ -23,13 +24,17 @@ enum RevertProcessMethod { revert, revertOf, none }
 
 class RevertRequestValidationService extends ValidationService {
   RevertRequestValidationService(Config config, {RetryOptions? retryOptions, RevertMethod? revertMethod})
-      : revertMethod = revertMethod ?? GraphQLRevertMethod(), super(config, retryOptions: retryOptions) {
+      : revertMethod = revertMethod ?? GraphQLRevertMethod(),
+        super(config, retryOptions: retryOptions) {
     /// Validates a PR marked with the reverts label.
     approverService = ApproverService(config);
   }
 
   ApproverService? approverService;
+  @visibleForTesting
   RevertMethod? revertMethod;
+  @visibleForTesting
+  ValidationFilter? validationFilter;
 
   /// TODO run the actual request from here and remove the shouldProcess call.
   /// Processes a pub/sub message associated with PullRequest event.
@@ -81,11 +86,13 @@ class RevertRequestValidationService extends ValidationService {
   /// Determine if we should process the incoming pull request webhook event.
   Future<RevertProcessMethod> shouldProcess(github.PullRequest pullRequest, List<String> labelNames) async {
     // This is the initial revert request state.
-    if (pullRequest.state == 'closed' && labelNames.contains(Config.kRevertLabel)) {
+    if (pullRequest.state == 'closed' &&
+        labelNames.contains(Config.kRevertLabel) &&
+        pullRequest.mergedAt != null) {
       return RevertProcessMethod.revert;
     } else if (pullRequest.state == 'open' &&
         labelNames.contains(Config.kRevertOfLabel) &&
-        pullRequest.user!.login == 'autosubmit-dev[bot]') {
+        pullRequest.user!.login == config.autosubmitBot) {
       // This is the path where we check validations
       return RevertProcessMethod.revertOf;
     }
@@ -112,19 +119,19 @@ class RevertRequestValidationService extends ValidationService {
       await githubService.createComment(
         slug,
         prNumber,
-        'Repository configuration does not support review-less revert pull requests. Please assing at least two reviewers to this pull request.',
+        'Repository configuration does not support review-less revert pull requests. Please assign at least two reviewers to this pull request.',
       );
       log.info('Ack the processed message : $ackId.');
       await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
     }
 
-    final ValidationFilter validationFilter = ValidationFilter(
+    validationFilter ??= ValidationFilter(
       config: config,
       processMethod: ProcessMethod.processRevert,
       repositoryConfiguration: repositoryConfiguration,
     );
 
-    final Set<Validation> validations = validationFilter.getValidations();
+    final Set<Validation> validations = validationFilter!.getValidations();
 
     final Map<String, ValidationResult> validationsMap = <String, ValidationResult>{};
 
