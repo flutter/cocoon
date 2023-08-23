@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
 
@@ -25,9 +26,11 @@ class GithubBranchWebhookSubscription extends SubscriptionHandler {
     required super.cache,
     required super.config,
     required this.branchService,
+    required this.commitService,
   }) : super(subscriptionName: 'github-webhook-branches');
 
   final BranchService branchService;
+  final CommitService commitService;
 
   @override
   Future<Body> post() async {
@@ -44,6 +47,11 @@ class GithubBranchWebhookSubscription extends SubscriptionHandler {
     log.fine('Processing ${webhook.event}');
     final CreateEvent createEvent = CreateEvent.fromJson(json.decode(webhook.payload) as Map<String, dynamic>);
     await branchService.handleCreateRequest(createEvent);
+
+    final RegExp candidateBranchRegex = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
+    if (candidateBranchRegex.hasMatch(createEvent.ref!)) {
+      await commitService.handleCreateGithubRequest(createEvent);
+    }
 
     return Body.empty;
   }
