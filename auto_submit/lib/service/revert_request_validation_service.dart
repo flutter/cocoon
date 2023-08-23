@@ -45,7 +45,8 @@ class RevertRequestValidationService extends ValidationService {
     final (currentPullRequest, labelNames) = await getPrWithLabels(messagePullRequest);
     final RevertProcessMethod revertProcessMethod = await shouldProcess(currentPullRequest, labelNames);
 
-    final GithubPullRequestEvent updatedGithubPullRequestEvent = GithubPullRequestEvent(pullRequest: currentPullRequest, action: githubPullRequestEvent.action, sender: githubPullRequestEvent.sender);
+    final GithubPullRequestEvent updatedGithubPullRequestEvent = GithubPullRequestEvent(
+        pullRequest: currentPullRequest, action: githubPullRequestEvent.action, sender: githubPullRequestEvent.sender);
 
     switch (revertProcessMethod) {
       // Revert is the processing of the closed issue.
@@ -89,9 +90,7 @@ class RevertRequestValidationService extends ValidationService {
   /// Determine if we should process the incoming pull request webhook event.
   Future<RevertProcessMethod> shouldProcess(github.PullRequest pullRequest, List<String> labelNames) async {
     // This is the initial revert request state.
-    if (pullRequest.state == 'closed' &&
-        labelNames.contains(Config.kRevertLabel) &&
-        pullRequest.mergedAt != null) {
+    if (pullRequest.state == 'closed' && labelNames.contains(Config.kRevertLabel) && pullRequest.mergedAt != null) {
       return RevertProcessMethod.revert;
     } else if (pullRequest.state == 'open' &&
         labelNames.contains(Config.kRevertOfLabel) &&
@@ -125,8 +124,10 @@ class RevertRequestValidationService extends ValidationService {
         prNumber,
         'Repository configuration does not support review-less revert pull requests. Please assign at least two reviewers to this pull request.',
       );
+      // We do not want to continue processing this issue.
       log.info('Ack the processed message : $ackId.');
       await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
+      return;
     }
 
     validationFilter ??= ValidationFilter(
@@ -203,7 +204,6 @@ class RevertRequestValidationService extends ValidationService {
       );
     }
 
-    //TODO leave this for testing
     log.info('Ack the processed message : $ackId.');
     await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
   }

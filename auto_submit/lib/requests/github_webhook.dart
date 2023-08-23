@@ -72,7 +72,8 @@ class GithubWebhook extends RequestHandler {
     // Check for revert label first.
     if (hasRevertLabel) {
       log.info('Found pull request with the revert label.');
-      await pubsub.publish(config.pubsubRevertRequestTopic, GithubPullRequestEvent(pullRequest: pullRequest, action: action, sender: sender));
+      await pubsub.publish(config.pubsubRevertRequestTopic,
+          GithubPullRequestEvent(pullRequest: pullRequest, action: action, sender: sender));
     } else if (hasAutosubmit) {
       log.info('Found pull request with autosubmit label.');
       await pubsub.publish(config.pubsubPullRequestTopic, pullRequest);

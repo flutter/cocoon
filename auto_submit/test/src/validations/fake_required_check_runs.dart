@@ -5,7 +5,6 @@ import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
 
 class FakeRequiredCheckRuns extends RequiredCheckRuns {
-
   FakeRequiredCheckRuns({required super.config});
 
   ValidationResult? validationResult;
