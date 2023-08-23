@@ -5,7 +5,6 @@
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:github/github.dart';
-import 'package:http/http.dart';
 
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -31,22 +30,6 @@ void main() {
   const String avatarUrl = "https://avatars.githubusercontent.com/u/fake-user-num";
   const String username = "AwesomeGithubUser";
   const String dateTimeAsString = "2023-08-18T19:27:00Z";
-  const String fakeGithubCommitResponse = '''
-  {
-    "sha": "$sha",
-    "commit": {
-      "author": {
-        "name": "$username",
-        "date": "$dateTimeAsString"
-      },
-      "message": "$message"
-    },
-    "author": {
-      "login": "$username",
-      "avatar_url": "$avatarUrl"
-    }
-  }
-  ''';
 
   setUp(() {
     db = FakeDatastoreDB();
