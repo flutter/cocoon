@@ -40,3 +40,9 @@ tasks:
 
   - task: packages/buildbucket-dart
     script: test_utilities/bin/dart_test_runner.sh
+
+  - task: dev/githubanalysis
+    script: test_utilities/bin/dart_test_runner.sh
+
+  - task: dev/wiki-visualizer
+    script: test_utilities/bin/dart_test_runner.sh

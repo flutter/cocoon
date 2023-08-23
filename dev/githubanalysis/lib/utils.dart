@@ -22,7 +22,8 @@ Future<void> rateLimit(final GitHub github, final String status, final String ne
     throw Abort();
   }
   stdout.write(
-      '$status${github.rateLimitRemaining != null ? ". Rate limits: ${github.rateLimitRemaining}/${github.rateLimitLimit} per hour" : ""}.\x1B[K\r');
+    '$status${github.rateLimitRemaining != null ? ". Rate limits: ${github.rateLimitRemaining}/${github.rateLimitLimit} per hour" : ""}.\x1B[K\r',
+  );
   if (github.rateLimitRemaining != null && github.rateLimitRemaining! < minApiPoints) {
     Duration delay = github.rateLimitReset!.difference(DateTime.now());
     if (delay > Duration.zero) {
