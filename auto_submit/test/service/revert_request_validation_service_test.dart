@@ -605,6 +605,11 @@ void main() {
       githubService.githubIssueMock = issue;
       githubService.pullRequestMock = pullRequest;
       githubService.createCommentData = createCommentMock;
+      githubService.mergeRequestMock = PullRequestMerge(
+        merged: true,
+        sha: 'sha',
+        message: 'Pull Request successfully merged',
+      );
       validationService.approverService = FakeApproverService(config);
       validationService.validationFilter = fakeValidationFilter;
 
@@ -624,62 +629,6 @@ void main() {
   });
 
 //   group('Processing revert reqeuest tests', () {
-//     test('Merge valid revert request and message is acknowledged.', () async {
-//       final PullRequestHelper flutterRequest = PullRequestHelper(
-//         prNumber: 0,
-//         lastCommitHash: oid,
-//         reviews: <PullRequestReviewHelper>[],
-//       );
-
-//       githubService.checkRunsData = checkRunsMock;
-//       githubService.createCommentData = createCommentMock;
-//       githubService.isTeamMemberMockMap['author1'] = true;
-//       githubService.isTeamMemberMockMap['member'] = true;
-//       githubService.mergeRequestMock = PullRequestMerge(
-//         merged: true,
-//         sha: 'sha',
-//         message: 'Pull Request successfully merged',
-//       );
-
-//       final FakePubSub pubsub = FakePubSub();
-//       final PullRequest pullRequest = generatePullRequest(
-//         prNumber: 0,
-//         repoName: slug.name,
-//         labelName: 'revert',
-//         body: 'Reverts flutter/flutter#1234',
-//       );
-
-//       // final FakeRevert fakeRevert = FakeRevert(config: config);
-//       // fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
-//       // validationService.revertValidation = fakeRevert;
-//       final FakeApproverService fakeApproverService = FakeApproverService(config);
-//       validationService.approverService = fakeApproverService;
-
-//       final Issue issue = Issue(
-//         id: 1234,
-//         assignee: User(login: 'keyonghan'),
-//         createdAt: DateTime.now(),
-//       );
-//       githubService.githubIssueMock = issue;
-//       githubService.pullRequestMock = pullRequest;
-
-//       unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-//       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-
-//       await validationService.processRevertRequest(
-//         result: queryResult,
-//         messagePullRequest: pullRequest,
-//         ackId: 'test',
-//         pubsub: pubsub,
-//       );
-
-//       // if the merge is successful we do not remove the label and we do not add a comment to the issue.
-//       expect(githubService.issueComment, isNull);
-//       expect(githubService.labelRemoved, false);
-//       // We acknowledge the issue.
-//       assert(pubsub.messagesQueue.isEmpty);
-//     });
-
 //     test('Fail to merge non valid revert, comment is added and message is acknowledged.', () async {
 //       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
 //       final PullRequestHelper flutterRequest = PullRequestHelper(
