@@ -8,7 +8,6 @@ import 'package:github/github.dart';
 import 'package:http/http.dart';
 
 import 'package:mockito/mockito.dart';
-import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 import 'package:github/hooks.dart';
 
@@ -57,10 +56,7 @@ void main() {
     repositories = MockRepositoriesService();
     when(github.repositories).thenReturn(repositories);
     config = MockConfig();
-    commitService = CommitService(
-      config: config,
-      retryOptions: const RetryOptions(maxDelay: Duration.zero),
-    );
+    commitService = CommitService(config: config);
 
     when(config.createDefaultGitHubService()).thenAnswer((_) async => githubService);
     when(config.db).thenReturn(db);

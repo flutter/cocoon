@@ -11,7 +11,6 @@ import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart';
 import 'package:meta/meta.dart';
-import 'package:retry/retry.dart';
 import 'package:truncate/truncate.dart';
 
 import 'logging.dart';
@@ -19,20 +18,14 @@ import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/hooks.dart';
 
-class RetryException implements Exception {}
-
-/// A class to manage GitHub branches.
-///
-/// Track branch activities such as branch creation, and helps manage release branches.
+/// A class for doing various actions related to Github commits.
 class CommitService {
   CommitService({
     required this.config,
-    this.retryOptions = const RetryOptions(maxAttempts: 3),
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
   });
 
   final Config config;
-  final RetryOptions retryOptions;
   final DatastoreServiceProvider datastoreProvider;
 
   /// Add a commit based on a [CreateEvent] to the Datastore.
