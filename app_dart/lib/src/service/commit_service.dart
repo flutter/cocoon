@@ -47,25 +47,20 @@ class CommitService {
     final GithubService githubService = await config.createDefaultGitHubService();
     final GitReference gitRef = await githubService.getReference(slug, 'heads/$branch');
     final String sha = gitRef.object!.sha!;
-    final Response response = await githubService.github.request(
-      'GET',
-      '/repos/${slug.fullName}/commits/$sha',
-    );
-
-    final Map<String, dynamic> commit = jsonDecode(response.body) as Map<String, dynamic>;
+    final RepositoryCommit commit = await githubService.github.repositories.getCommit(slug, sha);
 
     final String id = '${slug.fullName}/$branch/$sha';
     final Key<String> key = datastore.db.emptyKey.append<String>(Commit, id: id);
     return Commit(
       key: key,
-      timestamp: DateTime.parse(commit['commit']['author']['date'] as String).millisecondsSinceEpoch,
+      timestamp: commit.author?.createdAt?.millisecondsSinceEpoch,
       repository: slug.fullName,
-      sha: commit['sha'],
-      author: commit['author']['login'],
-      authorAvatarUrl: commit['author']['avatar_url'],
+      sha: commit.sha,
+      author: commit.author?.login,
+      authorAvatarUrl: commit.author?.avatarUrl,
       // The field has a size of 1500 we need to ensure the commit message
       // is at most 1500 chars long.
-      message: truncate(commit['commit']['message'], 1490, omission: '...'),
+      message: truncate(commit.commit!.message!, 1490, omission: '...'),
       branch: branch,
     );
   }

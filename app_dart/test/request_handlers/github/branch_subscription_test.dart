@@ -53,9 +53,22 @@ void main() {
       verifyNever(commitService.handleCreateGithubRequest(any)).called(0);
     });
 
-    test('Successfully stores branch in datastore and creates a new commit', () async {
+    test('Successfully stores branch in datastore and does not create a new commit due to not being a candidate branch',
+        () async {
       tester.message = generateCreateBranchMessage(
         'cool-branch',
+        'flutter/flutter',
+      );
+
+      await tester.post(webhook);
+
+      verify(branchService.handleCreateRequest(any)).called(1);
+      verifyNever(commitService.handleCreateGithubRequest(any)).called(0);
+    });
+
+    test('Successfully stores branch in datastore and creates a new commit due to being a candidate branch', () async {
+      tester.message = generateCreateBranchMessage(
+        'flutter-1.2-candidate.3',
         'flutter/flutter',
       );
 

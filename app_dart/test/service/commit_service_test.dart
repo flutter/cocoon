@@ -73,9 +73,20 @@ void main() {
         );
       });
 
-      when(github.request('GET', '/repos/$owner/$repository/commits/$sha')).thenAnswer((Invocation invocation) {
-        return Future<Response>.value(Response(fakeGithubCommitResponse, 200));
+      when(repositories.getCommit(RepositorySlug(owner, repository), sha)).thenAnswer((Invocation invocation) {
+        return Future<RepositoryCommit>.value(
+          RepositoryCommit(
+            sha: sha,
+            author: User(
+              createdAt: DateTime.parse(dateTimeAsString),
+              login: username,
+              avatarUrl: avatarUrl,
+            ),
+            commit: GitCommit(message: message),
+          ),
+        );
       });
+
       final CreateEvent createEvent = generateCreateBranchEvent(branch, '$owner/$repository');
       await commitService.handleCreateGithubRequest(createEvent);
 
@@ -111,9 +122,20 @@ void main() {
         );
       });
 
-      when(github.request('GET', '/repos/$owner/$repository/commits/$sha')).thenAnswer((Invocation invocation) {
-        return Future<Response>.value(Response(fakeGithubCommitResponse, 200));
+      when(repositories.getCommit(RepositorySlug(owner, repository), sha)).thenAnswer((Invocation invocation) {
+        return Future<RepositoryCommit>.value(
+          RepositoryCommit(
+            sha: sha,
+            author: User(
+              createdAt: DateTime.parse(dateTimeAsString),
+              login: username,
+              avatarUrl: avatarUrl,
+            ),
+            commit: GitCommit(message: message),
+          ),
+        );
       });
+
       final CreateEvent createEvent = generateCreateBranchEvent(branch, '$owner/$repository');
       await commitService.handleCreateGithubRequest(createEvent);
 
