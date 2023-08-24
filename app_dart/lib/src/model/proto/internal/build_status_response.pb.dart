@@ -16,6 +16,7 @@ export 'build_status_response.pbenum.dart';
 class BuildStatusResponse extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'BuildStatusResponse',
+      package: const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'cocoon'),
       createEmptyInstance: create)
     ..e<EnumBuildStatus>(
         1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'buildStatus', $pb.PbFieldType.OE,

@@ -102,12 +102,19 @@ FutureOr<String> getUrl(
   }
 }
 
+/// Expands globs string to a regex for evaluation.
+Future<RegExp> parseGlob(String glob) async {
+  glob = glob.replaceAll('**', '[A-Za-z0-9_/.]+');
+  glob = glob.replaceAll('*', '[A-Za-z0-9_.]+');
+  return RegExp('^$glob\$');
+}
+
 /// Returns a LUCI [builder] list that covers changed [files].
 ///
 /// [builders]: enabled luci builders.
 /// [files]: changed files in corresponding PRs.
 ///
-/// [builder] is with format:
+/// [builder] format with run_if:
 /// {
 ///   "name":"yyy",
 ///   "repo":"flutter",
@@ -115,6 +122,16 @@ FutureOr<String> getUrl(
 ///   "enabled":true,
 ///   "run_if":["a/b/", "c/d_e/**", "f", "g*h/"]
 /// }
+/// [builder] format with run_if_not:
+/// {
+///   "name":"yyy",
+///   "repo":"flutter",
+///   "taskName":"zzz",
+///   "enabled":true,
+///   "run_if_not":["a/b/", "c/d_e/**", "f", "g*h/"]
+/// }
+/// Note: if both [run_if] and [run_if_not] are provided and not empty only
+/// [run_if] is evaluated.
 ///
 /// [file] is based on repo root: `a/b/c.dart`.
 Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> files) async {
@@ -124,17 +141,32 @@ Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> fil
     final List<String> globs = target.value.runIf;
     // Handle case where [Target] initializes empty runif
     if (globs.isEmpty) {
-      targetsToRun.add(target);
-    }
-
-    for (String glob in globs) {
-      glob = glob.replaceAll('**', '[A-Za-z0-9_/.]+');
-      glob = glob.replaceAll('*', '[A-Za-z0-9_.]+');
-      // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
-      final RegExp regExp = RegExp('^$glob\$');
-      if (glob.isEmpty || files.any((String? file) => regExp.hasMatch(file!))) {
+      // Evaluate run_if_not.
+      final List<String> negativeGlobs = target.value.runIfNot;
+      if (negativeGlobs.isEmpty) {
         targetsToRun.add(target);
-        break;
+        continue;
+      }
+      bool shouldAdd = true;
+      for (String glob in negativeGlobs) {
+        final RegExp regExp = await parseGlob(glob);
+        // if the file is not in any of the paths then add the target.
+        if (files.any((String? file) => regExp.hasMatch(file!))) {
+          shouldAdd = false;
+          break;
+        }
+      }
+      if (shouldAdd) {
+        targetsToRun.add(target);
+      }
+    } else {
+      for (String glob in globs) {
+        // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
+        final RegExp regExp = await parseGlob(glob);
+        if (glob.isEmpty || files.any((String? file) => regExp.hasMatch(file!))) {
+          targetsToRun.add(target);
+          break;
+        }
       }
     }
   }
