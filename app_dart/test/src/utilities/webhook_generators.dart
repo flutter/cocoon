@@ -14,7 +14,7 @@ PushMessage generateGithubWebhookMessage({
   String event = 'pull_request',
   String action = 'merged',
   int number = 123,
-  String baseRef = kDefaultBranchName,
+  String? baseRef,
   String baseSha = '4cd12fc8b7d4cc2d8609182e1c4dea5cddc86890',
   String login = 'dash',
   String headRef = 'abc',
@@ -46,7 +46,7 @@ PushMessage generateGithubWebhookMessage({
 String _generatePullRequestEvent(
   String action,
   int number,
-  String baseRef, {
+  String? baseRef, {
   RepositorySlug? slug,
   String login = 'flutter',
   String baseSha = '4cd12fc8b7d4cc2d8609182e1c4dea5cddc86890',
@@ -58,6 +58,7 @@ String _generatePullRequestEvent(
   String mergeCommitSha = 'fd6b46416c18de36ce87d0241994b2da180cab4c',
 }) {
   slug ??= Config.flutterSlug;
+  baseRef ??= Config.defaultBranch(slug);
   return '''{
   "action": "$action",
   "number": $number,

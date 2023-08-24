@@ -33,7 +33,7 @@ Set<RepositorySlug> kNeedsTests = <RepositorySlug>{
   Config.packagesSlug,
 };
 
-final RegExp kEngineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc|sh)$');
+final RegExp kEngineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc|sh|py)$');
 
 // Extentions for files that use // for single line comments.
 // See [_allChangesAreCodeComments] for more.
