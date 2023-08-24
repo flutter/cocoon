@@ -41,15 +41,18 @@ class GithubBranchWebhookSubscription extends SubscriptionHandler {
 
     final pb.GithubWebhookMessage webhook = pb.GithubWebhookMessage.fromJson(message.data!);
     if (webhook.event != kWebhookCreateEvent) {
+      log.fine('Github event is not a "create" event, so this event will not be processed');
       return Body.empty;
     }
 
     log.fine('Processing ${webhook.event}');
     final CreateEvent createEvent = CreateEvent.fromJson(json.decode(webhook.payload) as Map<String, dynamic>);
+    log.fine('Handling create request for branch ${createEvent.ref}');
     await branchService.handleCreateRequest(createEvent);
 
     final RegExp candidateBranchRegex = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
     if (candidateBranchRegex.hasMatch(createEvent.ref!)) {
+      log.fine('Branch ${createEvent.ref} is a candidate branch, creating new commit in the datastore');
       await commitService.handleCreateGithubRequest(createEvent);
     }
 

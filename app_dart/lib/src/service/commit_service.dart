@@ -31,12 +31,14 @@ class CommitService {
     final DatastoreService datastore = datastoreProvider(config.db);
     final RepositorySlug slug = RepositorySlug.full(createEvent.repository!.fullName);
     final String branch = createEvent.ref!;
+    log.info('Creating commit object for branch $branch in repository ${slug.fullName}');
     final Commit commit = await _createCommitFromBranchEvent(datastore, slug, branch);
 
     try {
+      log.info('Checking for existing commit in the datastore');
       await datastore.lookupByValue<Commit>(commit.key);
     } on KeyNotFoundException {
-      log.info('commit does not exist in datastore, inserting into datastore');
+      log.info('Commit does not exist in datastore, inserting into datastore');
       await datastore.insert(<Commit>[commit]);
     }
   }
