@@ -118,7 +118,7 @@ class RevertRequestValidationService extends ValidationService {
     // so that we can reassign if needed otherwise autoapprove the pull request.
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
     if (!repositoryConfiguration.supportNoReviewReverts) {
-      // @user the original user so that may be notified to add reviewers to the pull request.
+      await githubService.removeLabel(slug, prNumber, Config.kRevertOfLabel);
       await githubService.createComment(
         slug,
         prNumber,
