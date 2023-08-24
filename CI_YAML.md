@@ -44,8 +44,9 @@ targets:
 # run_if: List of path regexes that can trigger this target on presubmit.
 #         If none are passed, it will evaluare run_if_not. If both are empty the target
 #         will always run in presubmit.
-# run_if_not: List of path regexes. The target will be run only if the files changed
-#         do not match any paths in this list.
+# run_if_not: List of path regexes used to filter out presubmit targets. The target will
+#         be run only if the files changed do not match any paths in this list. If run_if
+#         is provided and not empty run_if_not will be ignored.
 # enabled_branches: List of strings of branches this target can run on.
 #                   This overrides the global enabled_branches.
 # properties: A map of string, string. Values are parsed to their closest data model.

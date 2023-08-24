@@ -114,7 +114,7 @@ Future<RegExp> parseGlob(String glob) async {
 /// [builders]: enabled luci builders.
 /// [files]: changed files in corresponding PRs.
 ///
-/// [builder] is with format:
+/// [builder] format with run_if:
 /// {
 ///   "name":"yyy",
 ///   "repo":"flutter",
@@ -122,6 +122,16 @@ Future<RegExp> parseGlob(String glob) async {
 ///   "enabled":true,
 ///   "run_if":["a/b/", "c/d_e/**", "f", "g*h/"]
 /// }
+/// [builder] format with run_if_not:
+/// {
+///   "name":"yyy",
+///   "repo":"flutter",
+///   "taskName":"zzz",
+///   "enabled":true,
+///   "run_if_not":["a/b/", "c/d_e/**", "f", "g*h/"]
+/// }
+/// Note: if both [run_if] and [run_if_not] are provided and not empty only
+/// [run_if] is evaluated.
 ///
 /// [file] is based on repo root: `a/b/c.dart`.
 Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> files) async {
@@ -139,7 +149,6 @@ Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> fil
       }
       bool shouldAdd = true;
       for (String glob in negativeGlobs) {
-        // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
         final RegExp regExp = await parseGlob(glob);
         // if the file is not in any of the paths then add the target.
         if (files.any((String? file) => regExp.hasMatch(file!))) {
