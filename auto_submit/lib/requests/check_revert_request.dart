@@ -87,9 +87,11 @@ class CheckRevertRequest extends CheckRequest {
 
         continue;
       } else {
+        // Use the auto approval as we do not want to allow non bot reverts to
+        // be processed throught the service.
         final ApproverService approver = approverProvider(config);
         log.info('Checking auto approval of pull request: $rawBody');
-        await approver.revertApproval(pullRequest);
+        await approver.autoApproval(pullRequest);
         processingLog.add(pullRequest.number!);
       }
 

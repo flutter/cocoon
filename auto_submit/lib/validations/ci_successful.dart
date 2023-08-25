@@ -144,6 +144,8 @@ class CiSuccessful extends Validation {
       // How can name be null but presumed to not be null below when added to failure?
       final String? name = status.context;
 
+      // TODO (ricardoamador): remove this in a different pull request as these are configured
+      // in the autosubmit confiruation file.
       // If the account author is a roller account do not block merge on flutter-gold check.
       if (config.rollerAccounts.contains(author.login!) && slug == Config.engineSlug && name == 'flutter-gold') {
         log.info('Skipping status check for flutter-gold for ${slug.fullName}/$prNumber, pr author: $author.');

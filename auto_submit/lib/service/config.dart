@@ -37,7 +37,7 @@ class Config {
 
   /// Project/GCP constants
   static const String flutter = 'flutter';
-  static const String flutterGcpProjectId = 'flutter-dashboard-dev';
+  static const String flutterGcpProjectId = 'flutter-dashboard';
 
   // List of environment variable keys related to the Github app authentication.
   static const String kGithubKey = 'AUTO_SUBMIT_GITHUB_KEY';
@@ -77,7 +77,7 @@ class Config {
       };
 
   //TODO change this back to autosubmit[bot] after testing is complete.
-  String get autosubmitBot => 'autosubmit-dev[bot]';
+  String get autosubmitBot => 'autosubmit[bot]';
 
   /// Repository configuration variables
   Duration get repositoryConfigurationTtl => const Duration(minutes: 10);
