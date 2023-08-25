@@ -9,6 +9,7 @@ import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto hide PullRequest;
 import 'package:auto_submit/requests/github_pull_request_event.dart';
 import 'package:auto_submit/service/revert_request_validation_service.dart';
+import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -897,6 +898,108 @@ void main() {
       githubService.createCommentData = createCommentMock;
 
       // TODO use the mock list.
+      githubService.useMergeRequestMockList = true;
+      final PullRequestMerge pullRequestMergeFail = PullRequestMerge(
+        merged: false,
+        sha: 'sha',
+        message: 'Pull request was not merged successfully',
+      );
+      final PullRequestMerge pullRequestMergeSuccess = PullRequestMerge(
+        merged: true,
+        sha: 'sha',
+        message: 'Pull request was merged successfully',
+      );
+
+      githubService.pullRequestMergeMockList = [pullRequestMergeFail, pullRequestMergeSuccess];
+
+      validationService.approverService = FakeApproverService(config);
+      validationService.validationFilter = fakeValidationFilter;
+
+      // run test
+      unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
+      await validationService.processRevertOfRequest(
+        result: queryResult,
+        githubPullRequestEvent: githubPullRequestEvent,
+        ackId: 'test',
+        pubsub: pubsub,
+      );
+
+      // validate
+      expect(githubService.issueComment, isNull);
+      expect(githubService.labelRemoved, false);
+      assert(pubsub.messagesQueue.isEmpty);
+    });
+
+    test('Merge is not retried on non retryable exception', () async {
+      // setup
+      validationService = RevertRequestValidationService(
+        config,
+        retryOptions: const RetryOptions(
+          delayFactor: Duration.zero,
+          maxDelay: Duration.zero,
+          // three attempts
+          maxAttempts: 3,
+        ),
+      );
+
+      final FakeValidationFilter fakeValidationFilter = FakeValidationFilter();
+      final FakeApproval fakeApproval = FakeApproval(config: config);
+      fakeApproval.validationResult = ValidationResult(
+        true,
+        Action.REMOVE_LABEL,
+        'This PR has met approval requirements for merging.\n',
+      );
+      final FakeRequiredCheckRuns fakeRequiredCheckRuns = FakeRequiredCheckRuns(config: config);
+      fakeRequiredCheckRuns.validationResult = ValidationResult(
+        true,
+        Action.REMOVE_LABEL,
+        'All required check runs have completed.',
+      );
+      final FakeMergeable fakeMergeable = FakeMergeable(config: config);
+      fakeMergeable.validationResult = ValidationResult(
+        true,
+        Action.REMOVE_LABEL,
+        'Pull request flutter/flutter/1234 is in a mergeable state.',
+      );
+      fakeValidationFilter.registerValidation(fakeApproval);
+      fakeValidationFilter.registerValidation(fakeRequiredCheckRuns);
+      fakeValidationFilter.registerValidation(fakeMergeable);
+
+      final FakePubSub pubsub = FakePubSub();
+
+      final PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+      );
+
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        labelName: 'revert of',
+        body: 'Reverts flutter/flutter#1234',
+      );
+
+      final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(
+        pullRequest: pullRequest,
+        action: 'labeled',
+        sender: User(login: 'ricardoamador'),
+      );
+
+      final Issue issue = Issue(
+        id: 1234,
+        assignee: User(login: 'keyonghan'),
+        createdAt: DateTime.now(),
+      );
+
+      // setup fields
+      githubService.githubIssueMock = issue;
+      githubService.pullRequestMock = pullRequest;
+      githubService.createCommentData = createCommentMock;
+
+      githubService.throwExceptionOnMerge = true;
       githubService.mergeRequestMock = PullRequestMerge(
         merged: false,
         sha: 'sha',
@@ -922,313 +1025,114 @@ void main() {
     });
   });
 
-//   group('Processing revert request tests', () {
+  group('processMerge', () {
+    test('Correct PR titles when merging to use Reland', () async {
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        title: 'Revert "Revert "My first PR!"',
+        mergeable: true,
+      );
+      githubService.pullRequestData = pullRequest;
+      githubService.mergeRequestMock = PullRequestMerge(
+        merged: true,
+        sha: pullRequest.mergeCommitSha,
+      );
 
-//     test('Do not retry merge on non retryable error.', () async {
-//       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult(
-//             exception: OperationException(
-//               graphqlErrors: [
-//                 const GraphQLError(message: 'Branches have diverged. Request cannot be merged.'),
-//               ],
-//             ),
-//           );
-//       final PullRequestHelper flutterRequest = PullRequestHelper(
-//         prNumber: 0,
-//         lastCommitHash: oid,
-//         reviews: <PullRequestReviewHelper>[],
-//       );
+      final MergeResult result = await validationService.processMerge(
+        config: config,
+        messagePullRequest: pullRequest,
+      );
 
-//       githubService.checkRunsData = checkRunsMock;
-//       githubService.createCommentData = createCommentMock;
-//       githubService.useRealComment = true;
-//       final FakePubSub pubsub = FakePubSub();
-//       final PullRequest pullRequest = generatePullRequest(
-//         prNumber: 0,
-//         repoName: slug.name,
-//         labelName: 'revert',
-//         body: 'Reverts flutter/flutter#1234',
-//         mergeable: true,
-//       );
-//       githubService.pullRequestData = pullRequest;
+      expect(result.message, contains('Reland "My first PR!"'));
+    });
 
-//       // final FakeRevert fakeRevert = FakeRevert(config: config);
-//       // fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
-//       // validationService.revertValidation = fakeRevert;
-//       final FakeApproverService fakeApproverService = FakeApproverService(config);
-//       validationService.approverService = fakeApproverService;
+    test('includes PR description in commit message', () async {
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        title: 'PR title',
+        // The test-only helper function `generatePullRequest` will interpolate
+        // this string into a JSON string which will then be decoded--thus, this string must be
+        // a valid JSON substring, with escaped newlines.
+        body: r'PR description\nwhich\nis multiline.',
+        mergeable: true,
+      );
+      githubService.pullRequestData = pullRequest;
+      githubService.mergeRequestMock = PullRequestMerge(
+        merged: true,
+        sha: pullRequest.mergeCommitSha,
+      );
+      final MergeResult result = await validationService.processMerge(
+        config: config,
+        messagePullRequest: pullRequest,
+      );
 
-//       final Issue issue = Issue(
-//         id: 1234,
-//         assignee: User(login: 'keyonghan'),
-//         createdAt: DateTime.now(),
-//       );
-//       githubService.githubIssueMock = issue;
+      expect(result.message, '''
+PR description
+which
+is multiline.''');
+    });
 
-//       unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-//       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+    test('commit message filters out markdown checkboxes', () async {
+      const String prTitle = 'Important update #4';
+      const String prBody = '''
+Various bugfixes and performance improvements.
 
-//       await validationService.processRevertRequest(
-//         result: queryResult,
-//         messagePullRequest: pullRequest,
-//         ackId: 'test',
-//         pubsub: pubsub,
-//       );
+Fixes #12345 and #3.
+This is the second line in a paragraph.
 
-//       // if the merge is successful we do not remove the label and we do not add a comment to the issue.
-//       expect(githubService.issueComment, isNotNull);
-//       expect(githubService.labelRemoved, true);
-//       final IssueComment issueComment = githubService.issueComment!;
-//       expect(issueComment.body!.contains('merge attempts were exhausted'), false);
-//       expect(issueComment.body!.contains('Failed to merge'), true);
-//       // We acknowledge the issue.
-//       assert(pubsub.messagesQueue.isEmpty);
-//     });
+## Pre-launch Checklist
 
-//     test('Do not retry merge on multiple errors with retryable error.', () async {
-//       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult(
-//             exception: OperationException(
-//               graphqlErrors: [
-//                 const GraphQLError(message: 'Account does not have merge permissions.'),
-//                 const GraphQLError(message: 'Base branch was modified. Review and try the merge again.'),
-//               ],
-//             ),
-//           );
+- [ ] I read the [Contributor Guide] and followed the process outlined there for submitting PRs.
+- [ ] I read the [Tree Hygiene] wiki page, which explains my responsibilities.
+- [ ] I read and followed the [Flutter Style Guide], including [Features we expect every widget to implement].
+- [x] I signed the [CLA].
+- [ ] I listed at least one issue that this PR fixes in the description above.
+- [ ] I updated/added relevant documentation (doc comments with `///`).
+- [X] I added new tests to check the change I am making, or this PR is [test-exempt].
+- [ ] All existing and new tests are passing.
 
-//       final PullRequestHelper flutterRequest = PullRequestHelper(
-//         prNumber: 0,
-//         lastCommitHash: oid,
-//         reviews: <PullRequestReviewHelper>[],
-//       );
+If you need help, consider asking for advice on the #hackers-new channel on [Discord].
 
-//       githubService.checkRunsData = checkRunsMock;
-//       githubService.createCommentData = createCommentMock;
-//       githubService.useRealComment = true;
-//       final FakePubSub pubsub = FakePubSub();
-//       final PullRequest pullRequest = generatePullRequest(
-//         prNumber: 0,
-//         repoName: slug.name,
-//         labelName: 'revert',
-//         body: 'Reverts flutter/flutter#1234',
-//         mergeable: true,
-//       );
-//       githubService.pullRequestData = pullRequest;
+<!-- Links -->
+[Contributor Guide]: https://github.com/flutter/flutter/wiki/Tree-hygiene#overview
+[Tree Hygiene]: https://github.com/flutter/flutter/wiki/Tree-hygiene
+[test-exempt]: https://github.com/flutter/flutter/wiki/Tree-hygiene#tests
+[Flutter Style Guide]: https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo
+[Features we expect every widget to implement]: https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo#features-we-expect-every-widget-to-implement
+[CLA]: https://cla.developers.google.com/
+[flutter/tests]: https://github.com/flutter/tests
+[breaking change policy]: https://github.com/flutter/flutter/wiki/Tree-hygiene#handling-breaking-changes
+[Discord]: https://github.com/flutter/flutter/wiki/Chat''';
 
-//       // final FakeRevert fakeRevert = FakeRevert(config: config);
-//       // fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
-//       // validationService.revertValidation = fakeRevert;
-//       final FakeApproverService fakeApproverService = FakeApproverService(config);
-//       validationService.approverService = fakeApproverService;
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        title: prTitle,
+        // The test-only helper function `generatePullRequest` will interpolate
+        // this string into a JSON string which will then be decoded--thus, this string must be
+        // a valid JSON substring, with escaped newlines.
+        body: prBody.replaceAll('\n', r'\n'),
+        mergeable: true,
+      );
+      githubService.pullRequestData = pullRequest;
+      githubService.mergeRequestMock = PullRequestMerge(
+        merged: true,
+        sha: pullRequest.mergeCommitSha,
+      );
 
-//       final Issue issue = Issue(
-//         id: 1234,
-//         assignee: User(login: 'keyonghan'),
-//         createdAt: DateTime.now(),
-//       );
-//       githubService.githubIssueMock = issue;
+      final MergeResult result = await validationService.processMerge(
+        config: config,
+        messagePullRequest: pullRequest,
+      );
 
-//       unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-//       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+      expect(result.result, isTrue);
+      expect(result.message, '''
+Various bugfixes and performance improvements.
 
-//       await validationService.processRevertRequest(
-//         result: queryResult,
-//         messagePullRequest: pullRequest,
-//         ackId: 'test',
-//         pubsub: pubsub,
-//       );
-
-//       // if the merge is successful we do not remove the label and we do not add a comment to the issue.
-//       expect(githubService.issueComment, isNotNull);
-//       expect(githubService.labelRemoved, true);
-//       final IssueComment issueComment = githubService.issueComment!;
-//       expect(issueComment.body!.contains('merge attempts were exhausted'), false);
-//       expect(issueComment.body!.contains('Failed to merge'), true);
-//       // We acknowledge the issue.
-//       assert(pubsub.messagesQueue.isEmpty);
-//     });
-
-//     test('Merge fails the first time but then succeeds after retry.', () async {
-//       validationService = RevertRequestValidationService(
-//         config,
-//         retryOptions: const RetryOptions(
-//           delayFactor: Duration.zero,
-//           maxDelay: Duration.zero,
-//           maxAttempts: 3,
-//         ),
-//       );
-
-//       githubService.useMergeRequestMockList = true;
-//       githubService.pullRequestMergeMockList.add(
-//         PullRequestMerge(
-//           merged: false,
-//           message: 'Unable to merge pull request.',
-//         ),
-//       );
-//       githubService.pullRequestMergeMockList.add(
-//         PullRequestMerge(
-//           merged: true,
-//           sha: 'sha',
-//           message: 'Pull Request successfully merged',
-//         ),
-//       );
-
-//       final PullRequestHelper flutterRequest = PullRequestHelper(
-//         prNumber: 0,
-//         lastCommitHash: oid,
-//         reviews: <PullRequestReviewHelper>[],
-//       );
-
-//       githubService.checkRunsData = checkRunsMock;
-//       githubService.createCommentData = createCommentMock;
-//       githubService.useRealComment = true;
-
-//       final FakePubSub pubsub = FakePubSub();
-//       final PullRequest pullRequest = generatePullRequest(
-//         prNumber: 0,
-//         repoName: slug.name,
-//         labelName: 'revert',
-//         body: 'Reverts flutter/flutter#1234',
-//       );
-
-//       // final FakeRevert fakeRevert = FakeRevert(config: config);
-//       // fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
-//       // validationService.revertValidation = fakeRevert;
-//       final FakeApproverService fakeApproverService = FakeApproverService(config);
-//       validationService.approverService = fakeApproverService;
-
-//       final Issue issue = Issue(
-//         id: 1234,
-//         assignee: User(login: 'keyonghan'),
-//         createdAt: DateTime.now(),
-//       );
-//       githubService.githubIssueMock = issue;
-//       githubService.pullRequestMock = pullRequest;
-
-//       unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
-//       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-
-//       await validationService.processRevertRequest(
-//         result: queryResult,
-//         messagePullRequest: pullRequest,
-//         ackId: 'test',
-//         pubsub: pubsub,
-//       );
-
-//       // if the merge is successful we do not remove the label and we do not add a comment to the issue.
-//       expect(githubService.issueComment, isNull);
-//       expect(githubService.labelRemoved, false);
-//       // We acknowledge the issue.
-//       assert(pubsub.messagesQueue.isEmpty);
-//     });
-//   });
-
-//   group('processMerge', () {
-//     test('Correct PR titles when merging to use Reland', () async {
-//       final PullRequest pullRequest = generatePullRequest(
-//         prNumber: 0,
-//         repoName: slug.name,
-//         title: 'Revert "Revert "My first PR!"',
-//         mergeable: true,
-//       );
-//       githubService.pullRequestData = pullRequest;
-//       githubService.mergeRequestMock = PullRequestMerge(
-//         merged: true,
-//         sha: pullRequest.mergeCommitSha,
-//       );
-
-//       final MergeResult result = await validationService.processMerge(
-//         config: config,
-//         messagePullRequest: pullRequest,
-//       );
-
-//       expect(result.message, contains('Reland "My first PR!"'));
-//     });
-
-//     test('includes PR description in commit message', () async {
-//       final PullRequest pullRequest = generatePullRequest(
-//         prNumber: 0,
-//         repoName: slug.name,
-//         title: 'PR title',
-//         // The test-only helper function `generatePullRequest` will interpolate
-//         // this string into a JSON string which will then be decoded--thus, this string must be
-//         // a valid JSON substring, with escaped newlines.
-//         body: r'PR description\nwhich\nis multiline.',
-//         mergeable: true,
-//       );
-//       githubService.pullRequestData = pullRequest;
-//       githubService.mergeRequestMock = PullRequestMerge(
-//         merged: true,
-//         sha: pullRequest.mergeCommitSha,
-//       );
-//       final MergeResult result = await validationService.processMerge(
-//         config: config,
-//         messagePullRequest: pullRequest,
-//       );
-
-//       expect(result.message, '''
-// PR description
-// which
-// is multiline.''');
-//     });
-
-//     test('commit message filters out markdown checkboxes', () async {
-//       const String prTitle = 'Important update #4';
-//       const String prBody = '''
-// Various bugfixes and performance improvements.
-
-// Fixes #12345 and #3.
-// This is the second line in a paragraph.
-
-// ## Pre-launch Checklist
-
-// - [ ] I read the [Contributor Guide] and followed the process outlined there for submitting PRs.
-// - [ ] I read the [Tree Hygiene] wiki page, which explains my responsibilities.
-// - [ ] I read and followed the [Flutter Style Guide], including [Features we expect every widget to implement].
-// - [x] I signed the [CLA].
-// - [ ] I listed at least one issue that this PR fixes in the description above.
-// - [ ] I updated/added relevant documentation (doc comments with `///`).
-// - [X] I added new tests to check the change I am making, or this PR is [test-exempt].
-// - [ ] All existing and new tests are passing.
-
-// If you need help, consider asking for advice on the #hackers-new channel on [Discord].
-
-// <!-- Links -->
-// [Contributor Guide]: https://github.com/flutter/flutter/wiki/Tree-hygiene#overview
-// [Tree Hygiene]: https://github.com/flutter/flutter/wiki/Tree-hygiene
-// [test-exempt]: https://github.com/flutter/flutter/wiki/Tree-hygiene#tests
-// [Flutter Style Guide]: https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo
-// [Features we expect every widget to implement]: https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo#features-we-expect-every-widget-to-implement
-// [CLA]: https://cla.developers.google.com/
-// [flutter/tests]: https://github.com/flutter/tests
-// [breaking change policy]: https://github.com/flutter/flutter/wiki/Tree-hygiene#handling-breaking-changes
-// [Discord]: https://github.com/flutter/flutter/wiki/Chat''';
-
-//       final PullRequest pullRequest = generatePullRequest(
-//         prNumber: 0,
-//         repoName: slug.name,
-//         title: prTitle,
-//         // The test-only helper function `generatePullRequest` will interpolate
-//         // this string into a JSON string which will then be decoded--thus, this string must be
-//         // a valid JSON substring, with escaped newlines.
-//         body: prBody.replaceAll('\n', r'\n'),
-//         mergeable: true,
-//       );
-//       githubService.pullRequestData = pullRequest;
-//       githubService.mergeRequestMock = PullRequestMerge(
-//         merged: true,
-//         sha: pullRequest.mergeCommitSha,
-//       );
-
-//       final MergeResult result = await validationService.processMerge(
-//         config: config,
-//         messagePullRequest: pullRequest,
-//       );
-
-//       expect(result.result, isTrue);
-//       expect(result.message, '''
-// Various bugfixes and performance improvements.
-
-// Fixes #12345 and #3.
-// This is the second line in a paragraph.''');
-//     });
-  // });
+Fixes #12345 and #3.
+This is the second line in a paragraph.''');
+    });
+  });
 }

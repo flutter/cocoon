@@ -295,6 +295,8 @@ class FakeGithubService implements GithubService {
     return githubIssueMock!;
   }
 
+  bool throwExceptionOnMerge = false;
+
   /// If useMergeRequestMockList is true then we will return elements from that
   /// list until it is empty.
   ///
@@ -308,6 +310,9 @@ class FakeGithubService implements GithubService {
     MergeMethod? mergeMethod,
     String? requestSha,
   }) async {
+    if (throwExceptionOnMerge) {
+      throw Exception('Exception occurred during merging of pull request.');
+    }
     verifyPullRequestMergeCallMap[number] = slug;
     if (useMergeRequestMockList) {
       return pullRequestMergeMockList.removeAt(0);
