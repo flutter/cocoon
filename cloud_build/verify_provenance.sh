@@ -8,7 +8,7 @@
 # legitimate, then the script will exit with a non-zero exit code.
 PROVENANCE_PATH=$1
 BUILDER_ID=https://cloudbuild.googleapis.com/GoogleHostedWorker@v0.3
-SOURCE_URI=https://github.com/flutter/cocoon
+SOURCE_URI=https://git+https://github.com/flutter/cocoon
 
 # Download the jq binary in order to obtain the artifact registry url from the
 # docker image provenance.
@@ -53,7 +53,7 @@ fi
 echo "Verifying the provenance is valid and correct..."
 echo "Checking for source-uri of git+$SOURCE_URI"
 slsa-verifier verify-image $FULLY_QUALIFIED_DIGEST \
-  --source-uri git+$SOURCE_URI \
+  --source-uri $SOURCE_URI \
   --builder-id=$BUILDER_ID \
   --provenance-path $PROVENANCE_PATH
 
