@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:auto_submit/action/git_cli_revert_method.dart';
 import 'package:auto_submit/action/graphql_revert_method.dart';
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
@@ -25,7 +26,7 @@ enum RevertProcessMethod { revert, revertOf, none }
 
 class RevertRequestValidationService extends ValidationService {
   RevertRequestValidationService(Config config, {RetryOptions? retryOptions, RevertMethod? revertMethod})
-      : revertMethod = revertMethod ?? GraphQLRevertMethod(),
+      : revertMethod = revertMethod ?? GitCliRevertMethod(),
         super(config, retryOptions: retryOptions) {
     /// Validates a PR marked with the reverts label.
     approverService = ApproverService(config);
@@ -234,7 +235,7 @@ class RevertRequestValidationService extends ValidationService {
     // Attempt to create the new revert pull request.
     try {
       // This is the autosubmit query result pull request from graphql.
-      final PullRequest pullRequest = await revertMethod!.createRevert(config, messagePullRequest) as PullRequest;
+      final github.PullRequest pullRequest = await revertMethod!.createRevert(config, messagePullRequest) as github.PullRequest;
       log.info('Created revert pull request ${slug.fullName}/${pullRequest.number}.');
       // This will come through this service again for processing.
       await githubService.addLabels(slug, pullRequest.number!, [Config.kRevertOfLabel]);
