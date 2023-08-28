@@ -224,6 +224,7 @@ github.PullRequest generatePullRequest({
   DateTime? mergedAt,
   String sha = 'abc',
   bool merged = true,
+  List<github.IssueLabel> labels = const [],
 }) {
   mergedAt ??= DateTime.fromMillisecondsSinceEpoch(1);
   return github.PullRequest(
@@ -249,6 +250,7 @@ github.PullRequest generatePullRequest({
     ),
     mergeCommitSha: sha,
     merged: merged,
+    labels: labels,
   );
 }
 
