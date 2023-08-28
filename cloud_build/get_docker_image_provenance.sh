@@ -12,8 +12,6 @@ MAX_ATTEMPTS=3
 for attempt in $(seq 1 $MAX_ATTEMPTS)
 do
     echo "(Attempt $attempt) Obtaining provenance for $1"
-
-    #
     gcloud artifacts docker images describe \
 	    $DOCKER_IMAGE_URL --show-provenance --format json > tmp.json
     COMMAND_RESULT=$?
