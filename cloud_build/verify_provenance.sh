@@ -12,16 +12,12 @@ PROVENANCE_PATH=$1
 BUILDER_ID=https://cloudbuild.googleapis.com/GoogleHostedWorker@v0.3
 SOURCE_URI=github.com/flutter/cocoon
 
-# Download the jq binary in order to obtain the artifact registry url from the
-# docker image provenance.
-echo "Installing jq using apt..."
-apt update && apt install jq -y
-
 # Download slsa-verifier in order to validate the docker image provenance.
 # This takes the version of slsa-verifier defined in tooling/go.mod.
 echo "Installing slsa-verifier using go..."
+mkdir -p tooling
 pushd tooling
-go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier
+go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@v2.4.0
 popd
 
 FULLY_QUALIFIED_DIGEST=$(cat $PROVENANCE_PATH |
