@@ -9,6 +9,11 @@ OUTPUT_DIRECTORY=$2
 # Getting the docker image provenance can be flaky, so retry up to 3 times.
 MAX_ATTEMPTS=3
 
+# Download the jq binary in order to obtain the artifact registry url from the
+# docker image provenance.
+echo "Installing jq using apt..."
+apt update && apt install jq -y
+
 for attempt in $(seq 1 $MAX_ATTEMPTS)
 do
     echo "(Attempt $attempt) Obtaining provenance for $1"
