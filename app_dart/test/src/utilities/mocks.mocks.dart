@@ -1506,14 +1506,6 @@ class MockCommitService extends _i1.Mock implements _i28.CommitService {
         ),
       ) as _i3.Config);
   @override
-  _i8.RetryOptions get retryOptions => (super.noSuchMethod(
-        Invocation.getter(#retryOptions),
-        returnValue: _FakeRetryOptions_7(
-          this,
-          Invocation.getter(#retryOptions),
-        ),
-      ) as _i8.RetryOptions);
-  @override
   _i10.DatastoreServiceProvider get datastoreProvider => (super.noSuchMethod(
         Invocation.getter(#datastoreProvider),
         returnValue: (_i12.DatastoreDB db) => _FakeDatastoreService_12(
@@ -2991,6 +2983,14 @@ class MockGithubChecksService extends _i1.Mock implements _i24.GithubChecksServi
         ),
         returnValue: _i20.Future<bool>.value(false),
       ) as _i20.Future<bool>);
+  @override
+  bool shouldRerun(_i36.BuildPushMessage? buildPushMessage) => (super.noSuchMethod(
+        Invocation.method(
+          #shouldRerun,
+          [buildPushMessage],
+        ),
+        returnValue: false,
+      ) as bool);
   @override
   String getGithubSummary(String? summary) => (super.noSuchMethod(
         Invocation.method(
@@ -5793,30 +5793,30 @@ class MockLuciBuildService extends _i1.Mock implements _i24.LuciBuildService {
         returnValue: _i20.Future<List<_i9.Build?>>.value(<_i9.Build?>[]),
       ) as _i20.Future<List<_i9.Build?>>);
   @override
-  _i20.Future<_i9.Build> rescheduleBuild({
-    required String? commitSha,
+  _i20.Future<_i9.Build> reschedulePresubmitBuild({
     required String? builderName,
     required _i36.BuildPushMessage? buildPushMessage,
+    dynamic retry = false,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #rescheduleBuild,
+          #reschedulePresubmitBuild,
           [],
           {
-            #commitSha: commitSha,
             #builderName: builderName,
             #buildPushMessage: buildPushMessage,
+            #retry: retry,
           },
         ),
         returnValue: _i20.Future<_i9.Build>.value(_FakeBuild_8(
           this,
           Invocation.method(
-            #rescheduleBuild,
+            #reschedulePresubmitBuild,
             [],
             {
-              #commitSha: commitSha,
               #builderName: builderName,
               #buildPushMessage: buildPushMessage,
+              #retry: retry,
             },
           ),
         )),

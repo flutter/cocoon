@@ -318,6 +318,7 @@ void main() {
         'repo_name': 'flutter',
         'user_agent': 'flutter-cocoon',
         'check_run_id': 1,
+        'user_login': 'dash',
         'commit_sha': 'abc',
         'commit_branch': 'master',
         'builder_name': 'Linux 1',
@@ -819,14 +820,18 @@ void main() {
 
     test('Reschedule an existing build', () async {
       when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1));
-      final build = await service.rescheduleBuild(
-        commitSha: 'abc',
+      final build = await service.reschedulePresubmitBuild(
         builderName: 'mybuild',
         buildPushMessage: buildPushMessage,
+        retry: true,
       );
       expect(build.id, '1');
       expect(build.status, Status.success);
-      verify(mockBuildBucketClient.scheduleBuild(any)).called(1);
+      final List<dynamic> captured = verify(mockBuildBucketClient.scheduleBuild(captureAny)).captured;
+      expect(captured.length, 1);
+      final ScheduleBuildRequest scheduleBuildRequest = captured[0] as ScheduleBuildRequest;
+      expect(scheduleBuildRequest.tags!.containsKey('retry'), true);
+      expect(scheduleBuildRequest.tags!['retry'], <String>['true']);
     });
   });
 

@@ -194,6 +194,7 @@ class LuciBuildService {
         'check_run_id': checkRun.id,
         'commit_sha': sha,
         'commit_branch': pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
+        'user_login': pullRequest.user!.login,
       };
 
       final Map<String, List<String>> tags = <String, List<String>>{
@@ -296,15 +297,25 @@ class LuciBuildService {
   /// The buildset, user_agent, and github_link tags are applied to match the
   /// original build. The build properties and user data from the original build
   /// are also preserved.
-  Future<Build> rescheduleBuild({
-    required String commitSha,
+  Future<Build> reschedulePresubmitBuild({
     required String builderName,
     required push_message.BuildPushMessage buildPushMessage,
+    retry = false,
   }) async {
     // Ensure we are using V2 bucket name istead of V1.
     // V1 bucket name  is "luci.flutter.prod" while the api
     // is expecting just the last part after "."(prod).
     final String bucketName = buildPushMessage.build!.bucket!.split('.').last;
+    final Map<String, List<String>> tags = <String, List<String>>{
+      'buildset': buildPushMessage.build!.tagsByName('buildset'),
+      'user_agent': buildPushMessage.build!.tagsByName('user_agent'),
+      'github_link': buildPushMessage.build!.tagsByName('github_link'),
+      'cipd_version': buildPushMessage.build!.tagsByName('cipd_version'),
+      'github_checkrun': buildPushMessage.build!.tagsByName('github_checkrun'),
+    };
+    if (retry) {
+      tags['retry'] = <String>['true'];
+    }
     return buildBucketClient.scheduleBuild(
       ScheduleBuildRequest(
         builderId: BuilderId(
@@ -312,11 +323,7 @@ class LuciBuildService {
           bucket: bucketName,
           builder: builderName,
         ),
-        tags: <String, List<String>>{
-          'buildset': buildPushMessage.build!.tagsByName('buildset'),
-          'user_agent': buildPushMessage.build!.tagsByName('user_agent'),
-          'github_link': buildPushMessage.build!.tagsByName('github_link'),
-        },
+        tags: tags,
         properties:
             (buildPushMessage.build!.buildParameters!['properties'] as Map<String, dynamic>).cast<String, String>(),
         notify: NotificationConfig(

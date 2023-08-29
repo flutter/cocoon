@@ -89,19 +89,32 @@ class GithubChecksService {
       slug,
       buildPushMessage.userData['check_run_id'] as int?,
     );
-    final github.CheckRunStatus status = statusForResult(build!.status);
-    final github.CheckRunConclusion? conclusion =
+    github.CheckRunStatus status = statusForResult(build!.status);
+    github.CheckRunConclusion? conclusion =
         (buildPushMessage.build!.result != null) ? conclusionForResult(buildPushMessage.build!.result) : null;
     // Do not override url for completed status.
     final String? url = status == github.CheckRunStatus.completed ? checkRun.detailsUrl : buildPushMessage.build!.url;
     github.CheckRunOutput? output;
     // If status has completed with failure then provide more details.
     if (status == github.CheckRunStatus.completed && failedStatesSet.contains(conclusion)) {
-      final Build build =
-          await luciBuildService.getBuildById(buildPushMessage.build!.id, fields: 'id,builder,summaryMarkdown');
-      output = github.CheckRunOutput(title: checkRun.name!, summary: getGithubSummary(build.summaryMarkdown));
+      if (shouldRerun(buildPushMessage)) {
+        final String builderName = buildPushMessage.build!.tagsByName('builder').single;
+        log.fine('Rerun a failed task: $builderName');
+        await luciBuildService.reschedulePresubmitBuild(
+          builderName: builderName,
+          buildPushMessage: buildPushMessage,
+          retry: true,
+        );
+        status = github.CheckRunStatus.queued;
+        conclusion = null;
+      } else {
+        final Build buildbucketBuild =
+            await luciBuildService.getBuildById(buildPushMessage.build!.id, fields: 'id,builder,summaryMarkdown');
+        output =
+            github.CheckRunOutput(title: checkRun.name!, summary: getGithubSummary(buildbucketBuild.summaryMarkdown));
+        log.fine('Updating check run with output: [$output]');
+      }
     }
-    log.fine('Updating check run with output: [$output]');
     await githubChecksUtil.updateCheckRun(
       config,
       slug,
@@ -112,6 +125,20 @@ class GithubChecksService {
       output: output,
     );
     return true;
+  }
+
+  /// Check if we should rerun a failed build.
+  ///
+  /// A presubmit retry happens if and only if
+  ///   1) the user is an auto roller account
+  ///   2) the same check run has never been retried before
+  bool shouldRerun(push_message.BuildPushMessage buildPushMessage) {
+    final push_message.Build build = buildPushMessage.build!;
+    if (!buildPushMessage.userData.containsKey('user_login') ||
+        !config.rollerAccounts.contains(buildPushMessage.userData['user_login'])) {
+      return false;
+    }
+    return build.tagsByName('retry').isEmpty || build.tagsByName('retry').contains('false');
   }
 
   /// Appends triage wiki page to `summaryMarkdown` from LUCI build so that people can easily
