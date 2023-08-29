@@ -62,6 +62,12 @@ class LuciBuildService {
   static const int kDefaultPriority = 30;
   static const int kRerunPriority = 29;
 
+  /// Github labels have a max length of 100, so conserve chars here.
+  /// This is currently used by packages repo only.
+  /// See: https://github.com/flutter/flutter/issues/130076
+  static const String githubBuildLabelPrefix = 'override:';
+  static const String propertiesGithubBuildLabelName = 'overrides';
+
   /// Name of the subcache to store luci build related values in redis.
   static const String subCacheName = 'luci';
 
@@ -196,6 +202,15 @@ class LuciBuildService {
 
       final Map<String, Object> properties = target.getProperties();
       properties.putIfAbsent('git_branch', () => pullRequest.base!.ref!.replaceAll('refs/heads/', ''));
+
+      final List<String>? labels = pullRequest.labels
+          ?.where((label) => label.name.startsWith(githubBuildLabelPrefix))
+          .map((obj) => obj.name)
+          .toList();
+
+      if (labels != null && labels.isNotEmpty) {
+        properties[propertiesGithubBuildLabelName] = labels;
+      }
 
       requests.add(
         Request(

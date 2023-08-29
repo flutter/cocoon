@@ -1042,6 +1042,75 @@ targets:
         expect(scheduleBuildRequest.properties!['custom'], 'abc');
       });
 
+      test('pass github_build_label to properties', () async {
+        final MockBuildBucketClient mockBuildbucket = MockBuildBucketClient();
+        buildStatusService =
+            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
+        final FakePubSub pubsub = FakePubSub();
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          buildStatusProvider: (_) => buildStatusService,
+          httpClientProvider: () => httpClient,
+          luciBuildService: FakeLuciBuildService(
+            config: config,
+            githubChecksUtil: mockGithubChecksUtil,
+            buildbucket: mockBuildbucket,
+            gerritService: FakeGerritService(branchesValue: <String>['master']),
+            pubsub: pubsub,
+          ),
+        );
+        when(mockBuildbucket.batch(any)).thenAnswer(
+          (_) async => BatchResponse(
+            responses: <Response>[
+              Response(
+                searchBuilds: SearchBuildsResponse(
+                  builds: <Build>[
+                    generateBuild(1000, name: 'Linux', bucket: 'try'),
+                    generateBuild(2000, name: 'Linux Coverage', bucket: 'try'),
+                    generateBuild(3000, name: 'Mac', bucket: 'try', status: Status.scheduled),
+                    generateBuild(4000, name: 'Windows', bucket: 'try', status: Status.started),
+                    generateBuild(5000, name: 'Linux A', bucket: 'try', status: Status.failure),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+        when(mockBuildbucket.scheduleBuild(any))
+            .thenAnswer((_) async => generateBuild(5001, name: 'Linux A', bucket: 'try', status: Status.scheduled));
+        // Only Linux A should be retried
+        final Map<String, CheckRun> checkRuns = <String, CheckRun>{
+          'Linux': createCheckRun(name: 'Linux', id: 100),
+          'Linux Coverage': createCheckRun(name: 'Linux Coverage', id: 200),
+          'Mac': createCheckRun(name: 'Mac', id: 300, status: CheckRunStatus.queued),
+          'Windows': createCheckRun(name: 'Windows', id: 400, status: CheckRunStatus.inProgress),
+          'Linux A': createCheckRun(name: 'Linux A', id: 500),
+        };
+        when(mockGithubChecksUtil.allCheckRuns(any, any)).thenAnswer((_) async {
+          return checkRuns;
+        });
+
+        final CheckSuiteEvent checkSuiteEvent =
+            CheckSuiteEvent.fromJson(jsonDecode(checkSuiteTemplate('rerequested')) as Map<String, dynamic>);
+        await scheduler.retryPresubmitTargets(
+          pullRequest: pullRequest,
+          checkSuiteEvent: checkSuiteEvent,
+        );
+
+        expect(pubsub.messages.length, 1);
+        final BatchRequest batchRequest = pubsub.messages.single as BatchRequest;
+        expect(batchRequest.requests!.length, 1);
+        // Schedule build should have been sent
+        expect(batchRequest.requests!.single.scheduleBuild, isNotNull);
+        final ScheduleBuildRequest scheduleBuildRequest = batchRequest.requests!.single.scheduleBuild!;
+        // Verify expected parameters to schedule build
+        expect(scheduleBuildRequest.builderId.builder, 'Linux A');
+        expect(scheduleBuildRequest.properties!['custom'], 'abc');
+      });
+
       test('triggers only specificed targets', () async {
         final List<Target> presubmitTargets = <Target>[generateTarget(1), generateTarget(2)];
         final List<Target> presubmitTriggerTargets = scheduler.getTriggerList(presubmitTargets, <String>['Linux 1']);
