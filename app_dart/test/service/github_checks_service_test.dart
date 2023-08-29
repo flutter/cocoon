@@ -99,6 +99,18 @@ void main() {
     });
     test('Userdata contain check_run_id', () async {
       when(mockGithubChecksUtil.getCheckRun(any, any, any)).thenAnswer((_) async => checkRun);
+      when(
+        mockLuciBuildService.getBuildById(
+          '8905920700440101120',
+          fields: 'id,builder,summaryMarkdown',
+        ),
+      ).thenAnswer(
+        (_) async => const Build(
+          id: '8905920700440101120',
+          builderId: BuilderId(bucket: 'luci.flutter.prod', project: 'flutter', builder: 'Linux Coverage'),
+          summaryMarkdown: 'test summary',
+        ),
+      );
       final push_message.BuildPushMessage buildPushMessage = push_message.BuildPushMessage.fromJson(
         jsonDecode(
           buildPushMessageJsonTemplate('{\\"check_run_id\\": 1,'
