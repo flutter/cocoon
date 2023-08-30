@@ -9,7 +9,7 @@ set -e
 # If slsa-verifier is unable to ensure the provenance of the artifact is
 # legitimate, then the script will exit with a non-zero exit code.
 PROVENANCE_PATH=$1
-BUILDER_ID=https://cloudbuild.googleapis.com/GoogleHostedWorker@v0.3
+BUILDER_ID=https://cloudbuild.googleapis.com/GoogleHostedWorker
 SOURCE_URI=github.com/flutter/cocoon
 
 # Download the jq binary in order to obtain the artifact registry url from the
@@ -22,7 +22,7 @@ apt update && apt install jq -y
 echo "Installing slsa-verifier using go..."
 mkdir -p tooling
 pushd tooling
-go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@v2.4.0
+go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier
 popd
 
 FULLY_QUALIFIED_DIGEST=$(cat $PROVENANCE_PATH |
