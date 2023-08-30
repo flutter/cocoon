@@ -53,7 +53,7 @@ class CommitService {
     final Key<String> key = datastore.db.emptyKey.append<String>(Commit, id: id);
     return Commit(
       key: key,
-      timestamp: commit.author?.createdAt?.millisecondsSinceEpoch,
+      timestamp: DateTime.now().millisecondsSinceEpoch,
       repository: slug.fullName,
       sha: commit.sha,
       author: commit.author?.login,
