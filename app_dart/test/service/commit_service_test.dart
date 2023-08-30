@@ -61,7 +61,6 @@ void main() {
           RepositoryCommit(
             sha: sha,
             author: User(
-              createdAt: DateTime.parse(dateTimeAsString),
               login: username,
               avatarUrl: avatarUrl,
             ),
@@ -78,7 +77,6 @@ void main() {
       expect(commit.repository, "$owner/$repository");
       expect(commit.message, message);
       expect(commit.key.id, "$owner/$repository/$branch/$sha");
-      expect(commit.timestamp, DateTime.parse(dateTimeAsString).millisecondsSinceEpoch);
       expect(commit.sha, sha);
       expect(commit.author, username);
       expect(commit.authorAvatarUrl, avatarUrl);
