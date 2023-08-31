@@ -22,6 +22,7 @@ apt update && apt install jq -y
 echo "Installing slsa-verifier using go..."
 mkdir -p tooling
 pushd tooling
+go mod download github.com/slsa-framework/slsa-verifier/v2
 go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier
 popd
 
