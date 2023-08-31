@@ -68,8 +68,9 @@ class GithubChecksService {
   Future<bool> updateCheckStatus(
     push_message.BuildPushMessage buildPushMessage,
     LuciBuildService luciBuildService,
-    github.RepositorySlug slug,
-  ) async {
+    github.RepositorySlug slug, {
+    bool rescheduled = false,
+  }) async {
     final push_message.Build? build = buildPushMessage.build;
     if (buildPushMessage.userData.isEmpty) {
       return false;
@@ -96,15 +97,8 @@ class GithubChecksService {
     final String? url = status == github.CheckRunStatus.completed ? checkRun.detailsUrl : buildPushMessage.build!.url;
     github.CheckRunOutput? output;
     // If status has completed with failure then provide more details.
-    if (status == github.CheckRunStatus.completed && failedStatesSet.contains(conclusion)) {
-      if (shouldRerun(buildPushMessage)) {
-        final String builderName = buildPushMessage.build!.tagsByName('builder').single;
-        log.fine('Rerun a failed task: $builderName');
-        await luciBuildService.reschedulePresubmitBuild(
-          builderName: builderName,
-          buildPushMessage: buildPushMessage,
-          retry: true,
-        );
+    if (taskFailed(buildPushMessage)) {
+      if (rescheduled) {
         status = github.CheckRunStatus.queued;
         conclusion = null;
       } else {
@@ -127,18 +121,25 @@ class GithubChecksService {
     return true;
   }
 
-  /// Check if we should rerun a failed build.
+  /// Check if task has completed with failure.
+  bool taskFailed(push_message.BuildPushMessage buildPushMessage) {
+    final push_message.Build? build = buildPushMessage.build;
+    final github.CheckRunStatus status = statusForResult(build!.status);
+    final github.CheckRunConclusion? conclusion =
+        (buildPushMessage.build!.result != null) ? conclusionForResult(buildPushMessage.build!.result) : null;
+    return status == github.CheckRunStatus.completed && failedStatesSet.contains(conclusion);
+  }
+
+  /// Returns current reschedule attempt.
   ///
-  /// A presubmit retry happens if and only if
-  ///   1) the user is an auto roller account
-  ///   2) the same check run has never been retried before
-  bool shouldRerun(push_message.BuildPushMessage buildPushMessage) {
+  /// It returns 1 if this is the first run, and +1 with each reschedule.
+  int currentAttempt(push_message.BuildPushMessage buildPushMessage) {
     final push_message.Build build = buildPushMessage.build!;
-    if (!buildPushMessage.userData.containsKey('user_login') ||
-        !config.rollerAccounts.contains(buildPushMessage.userData['user_login'])) {
-      return false;
+    if (build.tagsByName('current_attempt').isEmpty) {
+      return 1;
+    } else {
+      return int.parse(build.tagsByName('current_attempt').single);
     }
-    return build.tagsByName('retry').isEmpty || build.tagsByName('retry').contains('false');
   }
 
   /// Appends triage wiki page to `summaryMarkdown` from LUCI build so that people can easily

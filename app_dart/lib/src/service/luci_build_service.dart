@@ -194,7 +194,6 @@ class LuciBuildService {
         'check_run_id': checkRun.id,
         'commit_sha': sha,
         'commit_branch': pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
-        'user_login': pullRequest.user!.login,
       };
 
       final Map<String, List<String>> tags = <String, List<String>>{
@@ -297,10 +296,12 @@ class LuciBuildService {
   /// The buildset, user_agent, and github_link tags are applied to match the
   /// original build. The build properties and user data from the original build
   /// are also preserved.
-  Future<Build> reschedulePresubmitBuild({
+  ///
+  /// The [currentAttempt] is used to track the number of current build attempt.
+  Future<Build> rescheduleBuild({
     required String builderName,
     required push_message.BuildPushMessage buildPushMessage,
-    retry = false,
+    required int rescheduleAttempt,
   }) async {
     // Ensure we are using V2 bucket name istead of V1.
     // V1 bucket name  is "luci.flutter.prod" while the api
@@ -312,10 +313,8 @@ class LuciBuildService {
       'github_link': buildPushMessage.build!.tagsByName('github_link'),
       'cipd_version': buildPushMessage.build!.tagsByName('cipd_version'),
       'github_checkrun': buildPushMessage.build!.tagsByName('github_checkrun'),
+      'current_attempt': <String>[rescheduleAttempt.toString()],
     };
-    if (retry) {
-      tags['retry'] = <String>['true'];
-    }
     return buildBucketClient.scheduleBuild(
       ScheduleBuildRequest(
         builderId: BuilderId(

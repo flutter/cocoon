@@ -122,7 +122,7 @@ void main() {
       expect(builds.first, linuxBuild);
     });
 
-    test('Existing try build', () async {
+    test('Existing try build by pull request', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return BatchResponse(
           responses: <Response>[
@@ -318,7 +318,6 @@ void main() {
         'repo_name': 'flutter',
         'user_agent': 'flutter-cocoon',
         'check_run_id': 1,
-        'user_login': 'dash',
         'commit_sha': 'abc',
         'commit_branch': 'master',
         'builder_name': 'Linux 1',
@@ -890,18 +889,18 @@ void main() {
 
     test('Reschedule an existing build', () async {
       when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1));
-      final build = await service.reschedulePresubmitBuild(
+      final build = await service.rescheduleBuild(
         builderName: 'mybuild',
         buildPushMessage: buildPushMessage,
-        retry: true,
+        rescheduleAttempt: 2,
       );
       expect(build.id, '1');
       expect(build.status, Status.success);
       final List<dynamic> captured = verify(mockBuildBucketClient.scheduleBuild(captureAny)).captured;
       expect(captured.length, 1);
       final ScheduleBuildRequest scheduleBuildRequest = captured[0] as ScheduleBuildRequest;
-      expect(scheduleBuildRequest.tags!.containsKey('retry'), true);
-      expect(scheduleBuildRequest.tags!['retry'], <String>['true']);
+      expect(scheduleBuildRequest.tags!.containsKey('current_attempt'), true);
+      expect(scheduleBuildRequest.tags!['current_attempt'], <String>['2']);
     });
   });
 

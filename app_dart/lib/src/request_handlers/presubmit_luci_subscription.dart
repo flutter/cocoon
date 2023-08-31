@@ -5,14 +5,19 @@
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
+import '../model/appengine/commit.dart';
+import '../model/ci_yaml/ci_yaml.dart';
+import '../model/ci_yaml/target.dart';
 import '../model/luci/push_message.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/buildbucket.dart';
+import '../service/config.dart';
 import '../service/github_checks_service.dart';
 import '../service/logging.dart';
 import '../service/luci_build_service.dart';
+import '../service/scheduler.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
 ///
@@ -33,6 +38,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     required super.cache,
     required super.config,
     required this.buildBucketClient,
+    required this.scheduler,
     required this.luciBuildService,
     required this.githubChecksService,
     AuthenticationProvider? authProvider,
@@ -41,6 +47,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   final BuildBucketClient buildBucketClient;
   final LuciBuildService luciBuildService;
   final GithubChecksService githubChecksService;
+  final Scheduler scheduler;
 
   @override
   Future<Body> post() async {
@@ -63,14 +70,60 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
         buildPushMessage.userData['repo_owner'] as String,
         buildPushMessage.userData['repo_name'] as String,
       );
+      bool rescheduled = false;
+      if (githubChecksService.taskFailed(buildPushMessage)) {
+        final int currentAttempt = githubChecksService.currentAttempt(buildPushMessage);
+        final int maxAttempt = await _getMaxAttempt(buildPushMessage, slug, builderName);
+        if (currentAttempt < maxAttempt) {
+          rescheduled = true;
+          log.fine('Rerun a failed task: $builderName');
+          await luciBuildService.rescheduleBuild(
+            builderName: builderName,
+            buildPushMessage: buildPushMessage,
+            rescheduleAttempt: currentAttempt + 1,
+          );
+        }
+      }
       await githubChecksService.updateCheckStatus(
         buildPushMessage,
         luciBuildService,
         slug,
+        rescheduled: rescheduled,
       );
     } else {
       log.shout('This repo does not support checks API');
     }
     return Body.empty;
+  }
+
+  /// Gets target's allowed reschedule attempt.
+  ///
+  /// Each target can define their own allowed max number of reschedule attemp, and it
+  /// is defined as a property `presubmit_max_attempts`.
+  ///
+  /// If not property is defined, the target doesn't allow a reschedule after failures.
+  /// Typically the property will be used for targets that are likely flaky.
+  Future<int> _getMaxAttempt(
+    BuildPushMessage buildPushMessage,
+    RepositorySlug slug,
+    String builderName,
+  ) async {
+    final Commit commit = Commit(
+      branch: buildPushMessage.userData['commit_branch'] as String,
+      repository: slug.fullName,
+      sha: buildPushMessage.userData['commit_sha'] as String,
+    );
+    late CiYaml ciYaml;
+    if (commit.branch == Config.defaultBranch(commit.slug)) {
+      ciYaml = await scheduler.getCiYaml(commit, validate: true);
+    } else {
+      ciYaml = await scheduler.getCiYaml(commit);
+    }
+    final Target target = ciYaml.presubmitTargets.where((element) => element.value.name == builderName).single;
+    final Map<String, Object> properties = target.getProperties();
+    if (!properties.containsKey('presubmit_max_attempts')) {
+      return 1;
+    }
+    return properties['presubmit_max_attempts'] as int;
   }
 }
