@@ -2970,8 +2970,9 @@ class MockGithubChecksService extends _i1.Mock implements _i24.GithubChecksServi
   _i20.Future<bool> updateCheckStatus(
     _i36.BuildPushMessage? buildPushMessage,
     _i24.LuciBuildService? luciBuildService,
-    _i14.RepositorySlug? slug,
-  ) =>
+    _i14.RepositorySlug? slug, {
+    bool? rescheduled = false,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateCheckStatus,
@@ -2980,17 +2981,26 @@ class MockGithubChecksService extends _i1.Mock implements _i24.GithubChecksServi
             luciBuildService,
             slug,
           ],
+          {#rescheduled: rescheduled},
         ),
         returnValue: _i20.Future<bool>.value(false),
       ) as _i20.Future<bool>);
   @override
-  bool shouldRerun(_i36.BuildPushMessage? buildPushMessage) => (super.noSuchMethod(
+  bool taskFailed(_i36.BuildPushMessage? buildPushMessage) => (super.noSuchMethod(
         Invocation.method(
-          #shouldRerun,
+          #taskFailed,
           [buildPushMessage],
         ),
         returnValue: false,
       ) as bool);
+  @override
+  int currentAttempt(_i36.BuildPushMessage? buildPushMessage) => (super.noSuchMethod(
+        Invocation.method(
+          #currentAttempt,
+          [buildPushMessage],
+        ),
+        returnValue: 0,
+      ) as int);
   @override
   String getGithubSummary(String? summary) => (super.noSuchMethod(
         Invocation.method(
@@ -5793,30 +5803,30 @@ class MockLuciBuildService extends _i1.Mock implements _i24.LuciBuildService {
         returnValue: _i20.Future<List<_i9.Build?>>.value(<_i9.Build?>[]),
       ) as _i20.Future<List<_i9.Build?>>);
   @override
-  _i20.Future<_i9.Build> reschedulePresubmitBuild({
+  _i20.Future<_i9.Build> rescheduleBuild({
     required String? builderName,
     required _i36.BuildPushMessage? buildPushMessage,
-    dynamic retry = false,
+    required int? rescheduleAttempt,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #reschedulePresubmitBuild,
+          #rescheduleBuild,
           [],
           {
             #builderName: builderName,
             #buildPushMessage: buildPushMessage,
-            #retry: retry,
+            #rescheduleAttempt: rescheduleAttempt,
           },
         ),
         returnValue: _i20.Future<_i9.Build>.value(_FakeBuild_8(
           this,
           Invocation.method(
-            #reschedulePresubmitBuild,
+            #rescheduleBuild,
             [],
             {
               #builderName: builderName,
               #buildPushMessage: buildPushMessage,
-              #retry: retry,
+              #rescheduleAttempt: rescheduleAttempt,
             },
           ),
         )),

@@ -145,10 +145,10 @@ void main() {
         ) as Map<String, dynamic>,
       );
       when(
-        mockLuciBuildService.reschedulePresubmitBuild(
+        mockLuciBuildService.rescheduleBuild(
           builderName: 'Linux Coverage',
           buildPushMessage: buildPushMessage,
-          retry: true,
+          rescheduleAttempt: 1,
         ),
       ).thenAnswer(
         (_) async => const Build(
@@ -157,15 +157,7 @@ void main() {
         ),
       );
       expect(checkRun.status, github.CheckRunStatus.completed);
-      await githubChecksService.updateCheckStatus(buildPushMessage, mockLuciBuildService, slug);
-      // Validates the task is rescheduled.
-      verify(
-        mockLuciBuildService.reschedulePresubmitBuild(
-          builderName: 'Linux Coverage',
-          buildPushMessage: buildPushMessage,
-          retry: true,
-        ),
-      ).called(1);
+      await githubChecksService.updateCheckStatus(buildPushMessage, mockLuciBuildService, slug, rescheduled: true);
       final List<dynamic> captured = verify(
         mockGithubChecksUtil.updateCheckRun(
           any,
@@ -192,10 +184,10 @@ void main() {
         ) as Map<String, dynamic>,
       );
       when(
-        mockLuciBuildService.reschedulePresubmitBuild(
+        mockLuciBuildService.rescheduleBuild(
           builderName: 'Linux Coverage',
           buildPushMessage: buildPushMessage,
-          retry: true,
+          rescheduleAttempt: 1,
         ),
       ).thenAnswer(
         (_) async => const Build(
@@ -216,14 +208,6 @@ void main() {
         ),
       );
       await githubChecksService.updateCheckStatus(buildPushMessage, mockLuciBuildService, slug);
-      // Validates the task is not rescheduled.
-      verifyNever(
-        mockLuciBuildService.reschedulePresubmitBuild(
-          builderName: 'Linux Coverage',
-          buildPushMessage: buildPushMessage,
-          retry: true,
-        ),
-      );
       final List<dynamic> captured = verify(
         mockGithubChecksUtil.updateCheckRun(
           any,
