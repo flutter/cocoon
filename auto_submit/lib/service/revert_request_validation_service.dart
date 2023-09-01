@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/action/git_cli_revert_method.dart';
-import 'package:auto_submit/action/graphql_revert_method.dart';
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/model/pull_request_data_types.dart';
@@ -47,7 +46,10 @@ class RevertRequestValidationService extends ValidationService {
     final RevertProcessMethod revertProcessMethod = await shouldProcess(currentPullRequest, labelNames);
 
     final GithubPullRequestEvent updatedGithubPullRequestEvent = GithubPullRequestEvent(
-        pullRequest: currentPullRequest, action: githubPullRequestEvent.action, sender: githubPullRequestEvent.sender);
+      pullRequest: currentPullRequest,
+      action: githubPullRequestEvent.action,
+      sender: githubPullRequestEvent.sender,
+    );
 
     switch (revertProcessMethod) {
       // Revert is the processing of the closed issue.
@@ -235,7 +237,8 @@ class RevertRequestValidationService extends ValidationService {
     // Attempt to create the new revert pull request.
     try {
       // This is the autosubmit query result pull request from graphql.
-      final github.PullRequest pullRequest = await revertMethod!.createRevert(config, messagePullRequest) as github.PullRequest;
+      final github.PullRequest pullRequest =
+          await revertMethod!.createRevert(config, messagePullRequest) as github.PullRequest;
       log.info('Created revert pull request ${slug.fullName}/${pullRequest.number}.');
       // This will come through this service again for processing.
       await githubService.addLabels(slug, pullRequest.number!, [Config.kRevertOfLabel]);

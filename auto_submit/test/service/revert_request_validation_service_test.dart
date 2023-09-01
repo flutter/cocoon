@@ -109,7 +109,7 @@ void main() {
     });
   });
 
-  group('Should process method', () {
+  group('shouldProcess', () {
     test('Process revert from closed as "revert"', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name, state: 'closed');
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
@@ -383,7 +383,10 @@ void main() {
           ValidationResult(true, Action.REMOVE_LABEL, 'All required check runs have completed.');
       final FakeMergeable fakeMergeable = FakeMergeable(config: config);
       fakeMergeable.validationResult = ValidationResult(
-          false, Action.REMOVE_LABEL, 'Pull request flutter/flutter/1234 is not in a mergeable state.');
+        false,
+        Action.REMOVE_LABEL,
+        'Pull request flutter/flutter/1234 is not in a mergeable state.',
+      );
       fakeValidationFilter.registerValidation(fakeApproval);
       fakeValidationFilter.registerValidation(fakeRequiredCheckRuns);
       fakeValidationFilter.registerValidation(fakeMergeable);
@@ -517,7 +520,10 @@ void main() {
           ValidationResult(false, Action.IGNORE_TEMPORARILY, 'All required check runs have not yet completed.');
       final FakeMergeable fakeMergeable = FakeMergeable(config: config);
       fakeMergeable.validationResult = ValidationResult(
-          false, Action.REMOVE_LABEL, 'Pull request flutter/flutter/1234 is not in a mergeable state.');
+        false,
+        Action.REMOVE_LABEL,
+        'Pull request flutter/flutter/1234 is not in a mergeable state.',
+      );
       fakeValidationFilter.registerValidation(fakeApproval);
       fakeValidationFilter.registerValidation(fakeRequiredCheckRuns);
       fakeValidationFilter.registerValidation(fakeMergeable);

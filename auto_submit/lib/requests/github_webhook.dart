@@ -30,6 +30,8 @@ class GithubWebhook extends RequestHandler {
 
   static const String pullRequest = 'pull_request';
   static const String labels = 'labels';
+  static const String action = 'action';
+  static const String sender = 'sender';
 
   static const String eventTypeHeader = 'X-GitHub-Event';
   static const String signatureHeader = 'X-Hub-Signature';
@@ -62,8 +64,8 @@ class GithubWebhook extends RequestHandler {
     }
 
     final PullRequest pullRequest = PullRequest.fromJson(body[GithubWebhook.pullRequest] as Map<String, dynamic>);
-    final String action = body['action'];
-    final User sender = User.fromJson(body['sender'] as Map<String, dynamic>);
+    final String action = body[GithubWebhook.action];
+    final User sender = User.fromJson(body[GithubWebhook.sender] as Map<String, dynamic>);
 
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
     hasRevertLabel =
@@ -72,8 +74,14 @@ class GithubWebhook extends RequestHandler {
     // Check for revert label first.
     if (hasRevertLabel) {
       log.info('Found pull request with the revert label.');
-      await pubsub.publish(config.pubsubRevertRequestTopic,
-          GithubPullRequestEvent(pullRequest: pullRequest, action: action, sender: sender));
+      await pubsub.publish(
+        config.pubsubRevertRequestTopic,
+        GithubPullRequestEvent(
+          pullRequest: pullRequest,
+          action: action,
+          sender: sender,
+        ),
+      );
     } else if (hasAutosubmit) {
       log.info('Found pull request with autosubmit label.');
       await pubsub.publish(config.pubsubPullRequestTopic, pullRequest);

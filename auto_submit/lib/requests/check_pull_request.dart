@@ -36,7 +36,6 @@ class CheckPullRequest extends CheckRequest {
     );
   }
 
-  ///TODO refactor this method out into the base class.
   /// Process pull request messages from Pubsub.
   Future<Response> process(
     String pubSubSubscription,
@@ -82,7 +81,6 @@ class CheckPullRequest extends CheckRequest {
           pubSubSubscription,
           message.ackId!,
         );
-
         continue;
       } else {
         final ApproverService approver = approverProvider(config);

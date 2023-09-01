@@ -50,7 +50,7 @@ class GitCliRevertMethod implements RevertMethod {
 
     const RetryOptions retryOptions =
         RetryOptions(delayFactor: Duration(seconds: 1), maxDelay: Duration(seconds: 1), maxAttempts: 4);
-    
+
     Branch? branch;
     // Attempt a few times to get the branch name. This may not be needed.
     // Let the exception bubble up from here.

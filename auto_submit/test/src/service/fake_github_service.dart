@@ -415,14 +415,21 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<bool> addReviewersToPullRequest(
-      RepositorySlug slug, int pullRequestNumber, List<String> reviewerLogins) async {
+    RepositorySlug slug,
+    int pullRequestNumber,
+    List<String> reviewerLogins,
+  ) async {
     return addReviewersToPullRequestMock;
   }
 
   bool addAssigneeMock = true;
 
   @override
-  Future<bool> addAssignee(RepositorySlug slug, int number, List<String> assignees) async {
+  Future<bool> addAssignee(
+    RepositorySlug slug,
+    int number,
+    List<String> assignees,
+  ) async {
     return addAssigneeMock;
   }
 }

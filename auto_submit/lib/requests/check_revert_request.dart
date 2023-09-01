@@ -14,8 +14,6 @@ import 'package:github/github.dart';
 import 'package:googleapis/pubsub/v1.dart' as pub;
 import 'package:shelf/shelf.dart';
 
-// TODO (ricardoamador): provide implementation in https://github.com/flutter/flutter/issues/113867
-
 /// Handler for processing pull requests with 'revert' label.
 ///
 /// For pull requests where an 'revert' label was added in pubsub,

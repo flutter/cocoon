@@ -48,38 +48,6 @@ class ApproverService {
     }
   }
 
-  /// Auto approves a pull request when the revert label is present.
-  Future<void> revertApproval(github.PullRequest pullRequest) async {
-    final String? author = pullRequest.user!.login;
-    // Use the QueryResult for this field
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
-
-    log.info('Attempting to approve revert request ${slug.fullName}/${pullRequest.number} by author $author.');
-
-    final List<String> labelNames = (pullRequest.labels as List<github.IssueLabel>)
-        .map<String>((github.IssueLabel labelMap) => labelMap.name)
-        .toList();
-
-    log.info('Found labels $labelNames on this pull request ${slug.fullName}/${pullRequest.number}.');
-
-    final Set<String> approvalAccounts =
-        await getAutoApprovalAccounts(github.RepositorySlug.full(pullRequest.base!.repo!.fullName));
-
-    final GithubService githubService = await config.createGithubService(slug);
-
-    if (labelNames.contains(Config.kRevertLabel) &&
-        (approvalAccounts.contains(author) ||
-            await githubService.isTeamMember(repositoryConfiguration.approvalGroup, author!, slug.owner))) {
-      log.info(
-        'Revert label and author has been validated. Attempting to approve the pull request ${slug.fullName}/${pullRequest.number} by $author',
-      );
-      await _approve(pullRequest, author);
-    } else {
-      log.info('Auto-review ignored for $author on ${slug.fullName}/${pullRequest.number}');
-    }
-  }
-
   Future<void> _approve(github.PullRequest pullRequest, String? author) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final github.GitHub botClient = await config.createFlutterGitHubBotClient(slug);

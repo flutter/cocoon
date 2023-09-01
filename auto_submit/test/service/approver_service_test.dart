@@ -53,40 +53,4 @@ void main() {
     await service.autoApproval(pr);
     verifyNever(pullRequests.createReview(any, captureAny));
   });
-
-  test('AutoApproval does not approve revert pull request.', () async {
-    final gh.PullRequest pr = generatePullRequest(author: 'not_a_user');
-    final List<gh.IssueLabel> issueLabels = pr.labels ?? [];
-    final gh.IssueLabel issueLabel = gh.IssueLabel(name: 'revert');
-    issueLabels.add(issueLabel);
-    await service.autoApproval(pr);
-    verifyNever(pullRequests.createReview(any, captureAny));
-  });
-
-  test('Revert request is auto approved.', () async {
-    when(pullRequests.listReviews(any, any)).thenAnswer((_) => const Stream<gh.PullRequestReview>.empty());
-    final gh.PullRequest pr = generatePullRequest(author: 'dependabot[bot]');
-
-    final List<gh.IssueLabel> issueLabels = pr.labels ?? [];
-    final gh.IssueLabel issueLabel = gh.IssueLabel(name: 'revert');
-    issueLabels.add(issueLabel);
-
-    await service.revertApproval(pr);
-    final List<dynamic> reviews = verify(pullRequests.createReview(any, captureAny)).captured;
-    expect(reviews.length, 1);
-    final gh.CreatePullRequestReview review = reviews.single as gh.CreatePullRequestReview;
-    expect(review.event, 'APPROVE');
-  });
-
-  test('Revert request is not auto approved when the revert label is not present.', () async {
-    final gh.PullRequest pr = generatePullRequest(author: 'not_a_user');
-    await service.revertApproval(pr);
-    verifyNever(pullRequests.createReview(any, captureAny));
-  });
-
-  test('Revert request is not auto approved on bad author association.', () async {
-    final gh.PullRequest pr = generatePullRequest(author: 'not_a_user');
-    await service.revertApproval(pr);
-    verifyNever(pullRequests.createReview(any, captureAny));
-  });
 }
