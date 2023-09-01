@@ -95,7 +95,7 @@ class RevertRequestValidationService extends ValidationService {
       return RevertProcessMethod.revert;
     } else if (pullRequest.state == 'open' &&
         labelNames.contains(Config.kRevertOfLabel) &&
-        pullRequest.user!.login == config.autosubmitBot) {
+        pullRequest.user!.login == 'auto-submit[bot]') {
       // This is the path where we check validations
       return RevertProcessMethod.revertOf;
     }

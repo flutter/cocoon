@@ -89,7 +89,8 @@ class GitCli {
         'config',
         '--global',
         'user.name',
-        '"autosubmit[bot]"',
+        // '"autosubmit[bot]"',
+        '"ricardoamador"',
       ],
       workingDirectory: workingDirectory,
       throwOnError: throwOnError,
@@ -108,7 +109,7 @@ class GitCli {
         '--global',
         'user.email',
         // TODO not sure if the bot will end up needing a valid email.
-        '"\<\>"',
+        '"ricardoamador@google.com"',
       ],
       workingDirectory: workingDirectory,
       throwOnError: throwOnError,
