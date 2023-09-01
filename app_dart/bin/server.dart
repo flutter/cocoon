@@ -8,6 +8,7 @@ import 'dart:math';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/github/branch_subscription.dart';
+import 'package:cocoon_service/src/request_handlers/publish_tree_status_to_discord.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:gcloud/db.dart';
 
@@ -125,6 +126,10 @@ Future<void> main() async {
         githubChecksService: githubChecksService,
       ),
       '/api/push-build-status-to-github': PushBuildStatusToGithub(
+        config: config,
+        authenticationProvider: authProvider,
+      ),
+      '/api/publish-tree-status-to-discord': PublishTreeStatusToDiscord(
         config: config,
         authenticationProvider: authProvider,
       ),
