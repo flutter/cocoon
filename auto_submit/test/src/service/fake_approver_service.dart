@@ -12,9 +12,4 @@ class FakeApproverService extends ApproverService {
   Future<void> autoApproval(gh.PullRequest pullRequest) async {
     // no op
   }
-
-  @override
-  Future<void> revertApproval(gh.PullRequest pullRequest) async {
-    // no op
-  }
 }

@@ -104,8 +104,54 @@ class RevertRequestValidationService extends ValidationService {
     return RevertProcessMethod.none;
   }
 
+  // pullRequest.state == 'closed' && labelNames.contains('revert')
+  Future<void> processRevertRequest({
+    required QueryResult result,
+    required GithubPullRequestEvent githubPullRequestEvent,
+    required String ackId,
+    required PubSub pubsub,
+  }) async {
+    final github.PullRequest messagePullRequest = githubPullRequestEvent.pullRequest!;
+    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    final GithubService githubService = await config.createGithubService(slug);
+    final String sender = githubPullRequestEvent.sender!.login!;
+
+    if (!isWithinTimeLimit(messagePullRequest)) {
+      final String message = '''Time to revert pull request ${slug.fullName}/${messagePullRequest.number} has elapsed.
+          You need to open the revert manually and process as a regular pull request.''';
+      log.info(message);
+      await githubService.createComment(slug, messagePullRequest.number!, message);
+      await githubService.removeLabel(slug, messagePullRequest.number!, Config.kRevertLabel);
+      log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
+      await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
+      return;
+    }
+
+    // Attempt to create the new revert pull request.
+    try {
+      // This is the autosubmit query result pull request from graphql.
+      final github.PullRequest pullRequest =
+          await revertMethod!.createRevert(config, messagePullRequest) as github.PullRequest;
+      log.info('Created revert pull request ${slug.fullName}/${pullRequest.number}.');
+      // This will come through this service again for processing.
+      await githubService.addLabels(slug, pullRequest.number!, [Config.kRevertOfLabel]);
+      log.info('Assigning new revert issue to $sender');
+      await githubService.addAssignee(slug, pullRequest.number!, [sender]);
+      // Notify the discord tree channel that the revert issue has been created
+      // and will be processed.
+    } catch (e) {
+      final String message = 'Unable to create the revert pull request due to ${e.toString()}';
+      log.severe(message);
+      await githubService.createComment(slug, messagePullRequest.number!, message);
+      await githubService.removeLabel(slug, messagePullRequest.number!, Config.kRevertLabel);
+    } finally {
+      await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
+    }
+  }
+
   /// Processes a PullRequest running several validations to decide whether to
-  /// land the commit or remove the autosubmit label.
+  /// land the commit or remove the label.
+  // pullRequest.state == 'open' && labelNames.contains('revert of')
   Future<void> processRevertOfRequest({
     required QueryResult result,
     required GithubPullRequestEvent githubPullRequestEvent,
@@ -171,8 +217,8 @@ class RevertRequestValidationService extends ValidationService {
       log.info(
         'The pr ${slug.fullName}/$prNumber with message: $ackId should be acknowledged due to validation failure.',
       );
-      await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
       log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
+      await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
       return;
     }
 
@@ -198,6 +244,8 @@ class RevertRequestValidationService extends ValidationService {
       await githubService.createComment(slug, prNumber, message);
       log.info(message);
     } else {
+      log.info('Revert merged successfully, deleting branch ${messagePullRequest.head!.ref!}');
+      await githubService.deleteBranch(slug, messagePullRequest.head!.ref!);
       log.info('Pull Request ${slug.fullName}/$prNumber was merged successfully!');
       log.info('Attempting to insert a pull request record into the database for $prNumber');
       await insertPullRequestRecord(
@@ -209,50 +257,5 @@ class RevertRequestValidationService extends ValidationService {
 
     log.info('Ack the processed message : $ackId.');
     await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
-  }
-
-  // pullRequest.state == 'closed' && labelNames.contains('revert')
-  Future<void> processRevertRequest({
-    required QueryResult result,
-    required GithubPullRequestEvent githubPullRequestEvent,
-    required String ackId,
-    required PubSub pubsub,
-  }) async {
-    final github.PullRequest messagePullRequest = githubPullRequestEvent.pullRequest!;
-    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
-    final GithubService githubService = await config.createGithubService(slug);
-    final String sender = githubPullRequestEvent.sender!.login!;
-
-    if (!isWithinTimeLimit(messagePullRequest)) {
-      final String message = '''Time to revert pull request ${slug.fullName}/${messagePullRequest.number} has elapsed.
-          You need to open the revert manually and process as a regular pull request.''';
-      log.info(message);
-      await githubService.createComment(slug, messagePullRequest.number!, message);
-      await githubService.removeLabel(slug, messagePullRequest.number!, Config.kRevertLabel);
-      log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
-      await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
-      return;
-    }
-
-    // Attempt to create the new revert pull request.
-    try {
-      // This is the autosubmit query result pull request from graphql.
-      final github.PullRequest pullRequest =
-          await revertMethod!.createRevert(config, messagePullRequest) as github.PullRequest;
-      log.info('Created revert pull request ${slug.fullName}/${pullRequest.number}.');
-      // This will come through this service again for processing.
-      await githubService.addLabels(slug, pullRequest.number!, [Config.kRevertOfLabel]);
-      log.info('Assigning new revert issue to $sender');
-      await githubService.addAssignee(slug, pullRequest.number!, [sender]);
-      // Notify the discord tree channel that the revert issue has been created
-      // and will be processed.
-    } catch (e) {
-      final String message = 'Unable to create the revert pull request due to ${e.toString()}';
-      log.severe(message);
-      await githubService.createComment(slug, messagePullRequest.number!, message);
-      await githubService.removeLabel(slug, messagePullRequest.number!, Config.kRevertLabel);
-    } finally {
-      await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
-    }
   }
 }

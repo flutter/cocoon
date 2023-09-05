@@ -1,4 +1,4 @@
-// Copyright 2022 The Flutter Authors. All rights reserved.
+// Copyright 2023 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -7,7 +7,7 @@ import 'dart:io';
 class CliCommand {
   CliCommand();
 
-  /// Method runs a single git command in a shell.
+  /// Method runs a single command in a shell.
   Future<ProcessResult> runCliCommand({
     required String executable,
     required List<String> arguments,

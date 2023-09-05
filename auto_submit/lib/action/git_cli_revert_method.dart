@@ -1,3 +1,7 @@
+// Copyright 2023 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'dart:io';
 
 import 'package:auto_submit/action/revert_method.dart';
@@ -16,7 +20,6 @@ import 'package:github/github.dart' as github;
 import 'package:github/github.dart';
 import 'package:retry/retry.dart';
 
-// TODO update this as this is the old probably non working code.
 class GitCliRevertMethod implements RevertMethod {
   @override
   Future<github.PullRequest?> createRevert(Config config, github.PullRequest pullRequest) async {

@@ -199,6 +199,11 @@ class GithubService {
     return github.repositories.getBranch(slug, branchName);
   }
 
+  Future<bool> deleteBranch(RepositorySlug slug, String branchName) async {
+    final String ref = 'heads/$branchName';
+    return github.git.deleteReference(slug, ref);
+  }
+
   /// Merges a pull request according to the MergeMethod type. Current supported
   /// merge method types are merge, rebase and squash.
   Future<PullRequestMerge> mergePullRequest(
@@ -262,55 +267,5 @@ class GithubService {
   Future<String> getDefaultBranch(RepositorySlug slug) async {
     final Repository repository = await getRepository(slug);
     return repository.defaultBranch;
-  }
-
-  /// Compare the filesets of the current pull request and the original pull
-  /// request that is being reverted.
-  Future<bool> comparePullRequests(RepositorySlug repositorySlug, PullRequest revert, PullRequest current) async {
-    final List<PullRequestFile> originalPullRequestFiles = await getPullRequestFiles(repositorySlug, revert);
-    final List<PullRequestFile> currentPullRequestFiles = await getPullRequestFiles(repositorySlug, current);
-
-    return validateFileSetsAreEqual(originalPullRequestFiles, currentPullRequestFiles);
-  }
-
-  /// Validate that each pull request has the same number of files and that the
-  /// file names match. This must be the case in order to process the revert.
-  bool validateFileSetsAreEqual(
-    List<PullRequestFile> revertRequestFileList,
-    List<PullRequestFile> originalRequestFileList,
-  ) {
-    if (revertRequestFileList.length != originalRequestFileList.length) {
-      return false;
-    }
-
-    final List<String?> revertFileNames = [];
-    final List<String?> originalFileNames = [];
-
-    for (PullRequestFile element in revertRequestFileList) {
-      revertFileNames.add(element.filename);
-    }
-    for (PullRequestFile element in originalRequestFileList) {
-      originalFileNames.add(element.filename);
-    }
-
-    // At this point we know the file lists have the same amount of files but not the same files.
-    if (!revertFileNames.toSet().containsAll(originalFileNames) ||
-        !originalFileNames.toSet().containsAll(revertFileNames)) {
-      return false;
-    }
-
-    // At this point all the files are the same so we can iterate over one list to
-    // compare changes.
-    for (PullRequestFile revertRequestFile in revertRequestFileList) {
-      final PullRequestFile originalRequestFile =
-          originalRequestFileList.firstWhere((element) => element.filename == revertRequestFile.filename);
-      if (revertRequestFile.changesCount != originalRequestFile.changesCount ||
-          revertRequestFile.additionsCount != originalRequestFile.deletionsCount ||
-          revertRequestFile.deletionsCount != originalRequestFile.additionsCount) {
-        return false;
-      }
-    }
-
-    return true;
   }
 }
