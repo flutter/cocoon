@@ -77,7 +77,7 @@ class Config {
       };
 
   //TODO change this back to autosubmit[bot] after testing is complete.
-  String get autosubmitBot => 'autosubmit[bot]';
+  String get autosubmitBot => 'auto-submit[bot]';
 
   /// Repository configuration variables
   Duration get repositoryConfigurationTtl => const Duration(minutes: 10);

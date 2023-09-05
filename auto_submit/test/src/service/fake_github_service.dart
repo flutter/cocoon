@@ -381,9 +381,10 @@ class FakeGithubService implements GithubService {
     return addAssigneeMock;
   }
 
+  bool deleteBranchMock = true;
+
   @override
-  Future<bool> deleteBranch(RepositorySlug slug, String branchName) {
-    // TODO: implement deleteBranch
-    throw UnimplementedError();
+  Future<bool> deleteBranch(RepositorySlug slug, String branchName) async {
+    return deleteBranchMock;
   }
 }

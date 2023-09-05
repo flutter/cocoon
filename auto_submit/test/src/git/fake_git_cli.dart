@@ -1,3 +1,7 @@
+// Copyright 2023 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'dart:io';
 
 import 'package:auto_submit/git/git_cli.dart';
@@ -6,15 +10,25 @@ import 'package:github/github.dart';
 class FakeGitCli extends GitCli {
   FakeGitCli(super.gitCloneMethod, super.cliCommand);
 
-  bool isGitRepositoryMock = true;
-  ProcessResult defaultProcessResult = ProcessResult(0, 0, stdout, stderr);
+  bool _isGitRepo = false;
+  bool _throwExp = false;
+
+  late ProcessException _processException;
+  late ProcessResult _processResult;
+
+  set processException(ProcessException processException) => _processException = processException;
+  set processResult(ProcessResult processResult) => _processResult = processResult;
+
+  set isGitRepo(bool isGitRepo) => _isGitRepo = isGitRepo;
+  set throwExp(bool throwExp) => _throwExp = throwExp;
 
   @override
   Future<bool> isGitRepository(String directory) async {
-    return isGitRepositoryMock;
+    if (_throwExp) {
+      throw _processException;
+    }
+    return _isGitRepo;
   }
-
-  late ProcessResult processResultCloneRepositoryMock = defaultProcessResult;
 
   @override
   Future<ProcessResult> cloneRepository({
@@ -24,10 +38,8 @@ class FakeGitCli extends GitCli {
     List<String>? options,
     bool throwOnError = true,
   }) async {
-    return processResultCloneRepositoryMock;
+    return _handleCall();
   }
-
-  late ProcessResult processResultSetupUserConfig = defaultProcessResult;
 
   @override
   Future<ProcessResult> setupUserConfig({
@@ -35,10 +47,8 @@ class FakeGitCli extends GitCli {
     required String workingDirectory,
     bool throwOnError = true,
   }) async {
-    return processResultSetupUserConfig;
+    return _handleCall();
   }
-
-  late ProcessResult processResultSetupUserEmailConfig = defaultProcessResult;
 
   @override
   Future<ProcessResult> setupUserEmailConfig({
@@ -46,10 +56,8 @@ class FakeGitCli extends GitCli {
     required String workingDirectory,
     bool throwOnError = true,
   }) async {
-    return processResultSetupUserEmailConfig;
+    return _handleCall();
   }
-
-  late ProcessResult processResultSetUpstream = defaultProcessResult;
 
   @override
   Future<ProcessResult> setUpstream({
@@ -59,40 +67,32 @@ class FakeGitCli extends GitCli {
     required String token,
     bool throwOnError = true,
   }) async {
-    return processResultSetUpstream;
+    return _handleCall();
   }
-
-  late ProcessResult processResultFetchAll = defaultProcessResult;
 
   @override
   Future<ProcessResult> fetchAll({
     required String workingDirectory,
     bool throwOnError = true,
   }) async {
-    return processResultFetchAll;
+    return _handleCall();
   }
-
-  late ProcessResult processResultPullRebase = defaultProcessResult;
 
   @override
   Future<ProcessResult> pullRebase({
     required String? workingDirectory,
     bool throwOnError = true,
   }) async {
-    return processResultPullRebase;
+    return _handleCall();
   }
-
-  late ProcessResult processResultPullMerge = defaultProcessResult;
 
   @override
   Future<ProcessResult> pullMerge({
     required String? workingDirectory,
     bool throwOnError = true,
   }) async {
-    return processResultPullMerge;
+    return _handleCall();
   }
-
-  late ProcessResult processResultCreateBranch = defaultProcessResult;
 
   @override
   Future<ProcessResult> createBranch({
@@ -101,10 +101,8 @@ class FakeGitCli extends GitCli {
     bool useCheckout = false,
     bool throwOnError = true,
   }) async {
-    return processResultCreateBranch;
+    return _handleCall();
   }
-
-  late ProcessResult processResultRevertChange = defaultProcessResult;
 
   @override
   Future<ProcessResult> revertChange({
@@ -112,10 +110,8 @@ class FakeGitCli extends GitCli {
     required String workingDirectory,
     bool throwOnError = true,
   }) async {
-    return processResultRevertChange;
+    return _handleCall();
   }
-
-  late ProcessResult processResultPushBranch = defaultProcessResult;
 
   @override
   Future<ProcessResult> pushBranch({
@@ -123,10 +119,8 @@ class FakeGitCli extends GitCli {
     required String workingDirectory,
     bool throwOnError = true,
   }) async {
-    return processResultPushBranch;
+    return _handleCall();
   }
-
-  late ProcessResult processResultDeleteLocalBranch = defaultProcessResult;
 
   @override
   Future<ProcessResult> deleteLocalBranch({
@@ -134,10 +128,8 @@ class FakeGitCli extends GitCli {
     required String workingDirectory,
     bool throwOnError = true,
   }) async {
-    return processResultDeleteLocalBranch;
+    return _handleCall();
   }
-
-  late ProcessResult processResultDeleteRemoteBranch = defaultProcessResult;
 
   @override
   Future<ProcessResult> deleteRemoteBranch({
@@ -145,20 +137,16 @@ class FakeGitCli extends GitCli {
     required String workingDirectory,
     bool throwOnError = true,
   }) async {
-    return processResultDeleteRemoteBranch;
+    return _handleCall();
   }
-
-  late ProcessResult processResultShowOriginUrl = defaultProcessResult;
 
   @override
   Future<ProcessResult> showOriginUrl({
     required String workingDirectory,
     bool throwOnError = true,
   }) async {
-    return processResultShowOriginUrl;
+    return _handleCall();
   }
-
-  late ProcessResult processResultSwitchBranch = defaultProcessResult;
 
   @override
   Future<ProcessResult> switchBranch({
@@ -166,6 +154,13 @@ class FakeGitCli extends GitCli {
     required String branchName,
     bool throwOnError = true,
   }) async {
-    return processResultSwitchBranch;
+    return _handleCall();
+  }
+
+  Future<ProcessResult> _handleCall() async {
+    if (_throwExp) {
+      throw _processException;
+    }
+    return _processResult;
   }
 }

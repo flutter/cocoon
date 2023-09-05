@@ -243,6 +243,7 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
+        author: 'auto-submit[bot]'
       );
 
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
@@ -250,13 +251,13 @@ void main() {
       final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(
         pullRequest: pullRequest,
         action: 'labeled',
-        sender: User(login: 'ricardoamador'),
+        sender: User(login: 'auto-submit[bot]'),
       );
 
       // setup fields
       githubService.createCommentData = createCommentMock;
       githubService.pullRequestMock = pullRequest;
-      revertMethod.object = queryResult.repository!.pullRequest;
+      revertMethod.object = pullRequest;
 
       // run test
       unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
@@ -624,7 +625,7 @@ void main() {
       final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(
         pullRequest: pullRequest,
         action: 'labeled',
-        sender: User(login: 'ricardoamador'),
+        sender: User(login: 'auto-submit[bot]'),
       );
 
       final Issue issue = Issue(
