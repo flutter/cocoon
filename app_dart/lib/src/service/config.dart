@@ -85,9 +85,9 @@ class Config {
 
   // GoB retry options
   static const RetryOptions gobRetryOptions = RetryOptions(
-    maxAttempts: 3,
+    maxAttempts: 4,
     maxDelay: Duration(seconds: 1),
-    delayFactor: Duration(milliseconds: 200),
+    delayFactor: Duration(milliseconds: 300),
   );
 
   /// Memorystore subcache name to store [CocoonConfig] values in.
