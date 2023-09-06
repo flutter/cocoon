@@ -122,7 +122,7 @@ void main() {
       expect(builds.first, linuxBuild);
     });
 
-    test('Existing try build', () async {
+    test('Existing try build by pull request', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return BatchResponse(
           responses: <Response>[
@@ -820,13 +820,17 @@ void main() {
     test('Reschedule an existing build', () async {
       when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1));
       final build = await service.rescheduleBuild(
-        commitSha: 'abc',
         builderName: 'mybuild',
         buildPushMessage: buildPushMessage,
+        rescheduleAttempt: 2,
       );
       expect(build.id, '1');
       expect(build.status, Status.success);
-      verify(mockBuildBucketClient.scheduleBuild(any)).called(1);
+      final List<dynamic> captured = verify(mockBuildBucketClient.scheduleBuild(captureAny)).captured;
+      expect(captured.length, 1);
+      final ScheduleBuildRequest scheduleBuildRequest = captured[0] as ScheduleBuildRequest;
+      expect(scheduleBuildRequest.tags!.containsKey('current_attempt'), true);
+      expect(scheduleBuildRequest.tags!['current_attempt'], <String>['2']);
     });
   });
 
