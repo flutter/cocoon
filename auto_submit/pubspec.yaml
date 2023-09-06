@@ -20,7 +20,7 @@ dependencies:
   gql: 1.0.1-alpha+1691943394579
   http: 1.1.0
   json_annotation: 4.8.1
-  meta: 1.9.1
+  meta: 1.10.0
   neat_cache: 2.0.3
   shelf: 1.4.1
   shelf_router: 1.1.4
