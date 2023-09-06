@@ -83,6 +83,13 @@ class Config {
     return defaultBranches[slug] ?? kDefaultBranchName;
   }
 
+  // GoB retry options
+  static const RetryOptions gobRetryOptions = RetryOptions(
+    maxAttempts: 3,
+    maxDelay: Duration(seconds: 1),
+    delayFactor: Duration(milliseconds: 200),
+  );
+
   /// Memorystore subcache name to store [CocoonConfig] values in.
   static const String configCacheName = 'config';
 

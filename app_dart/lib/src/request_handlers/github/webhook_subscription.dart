@@ -193,7 +193,21 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   Future<bool> _commitExistsInGob(PullRequest pr) async {
     final RepositorySlug slug = pr.base!.repo!.slug();
     final String sha = pr.mergeCommitSha!;
-    final GerritCommit? gobCommit = await gerritService.findMirroredCommit(slug, sha);
+    GerritCommit? gobCommit;
+    try {
+      await Config.gobRetryOptions.retry(
+        () async {
+          gobCommit = await gerritService.findMirroredCommit(slug, sha);
+          if (gobCommit == null) {
+            throw const NotFoundException('Gob commit not found');
+          }
+        },
+        retryIf: (e) => e is NotFoundException,
+      );
+    } on NotFoundException {
+      // do nothing here as we are simply using the exception to retry but do
+      // not want to throw from here.
+    }
     return gobCommit != null;
   }
 
