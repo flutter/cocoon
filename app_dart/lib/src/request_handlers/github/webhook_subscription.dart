@@ -194,11 +194,11 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     final RepositorySlug slug = pr.base!.repo!.slug();
     final String sha = pr.mergeCommitSha!;
     GerritCommit? gobCommit;
-    await Config.gobRetryOptions.retry(
+    await config.getGobRetryOptions.retry(
       () async {
         gobCommit = await gerritService.findMirroredCommit(slug, sha);
         if (gobCommit == null) {
-          throw const InternalServerError('Gob commit not found');
+          throw InternalServerError('$sha was not found on GoB. Failing so this event can be retried...');
         }
       },
       retryIf: (e) => e is InternalServerError,
