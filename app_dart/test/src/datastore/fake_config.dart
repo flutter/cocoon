@@ -107,7 +107,7 @@ class FakeConfig implements Config {
   Set<gh.RepositorySlug>? supportedReposValue;
   Set<gh.RepositorySlug>? postsubmitSupportedReposValue;
   Duration? githubRequestDelayValue;
-  
+
   // GoB retry options
   RetryOptions _gobRetryOptions = const RetryOptions(
     maxAttempts: 1,

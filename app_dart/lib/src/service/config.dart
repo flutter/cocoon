@@ -92,7 +92,7 @@ class Config {
   RetryOptions get getGobRetryOptions => _gobRetryOptions;
 
   set setGobRetryOptions(RetryOptions retryOptions) {
-    _gobRetryOptions = retryOptions; 
+    _gobRetryOptions = retryOptions;
   }
 
   /// Memorystore subcache name to store [CocoonConfig] values in.
