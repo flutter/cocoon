@@ -231,7 +231,6 @@ const Set<String> kExecutableAllowlist = <String>{
   'dev/provision_salt.sh',
   'dev/prs_to_main.sh',
   'format.sh',
-  'oneoff/cirrus_stats/load.sh',
   'packages/buildbucket-dart/tool/regenerate.sh',
   'test_utilities/bin/analyze.sh',
   'test_utilities/bin/config_test_runner.sh',
