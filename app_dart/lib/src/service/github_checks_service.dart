@@ -68,9 +68,8 @@ class GithubChecksService {
   Future<bool> updateCheckStatus(
     push_message.BuildPushMessage buildPushMessage,
     LuciBuildService luciBuildService,
-    github.RepositorySlug slug, {
-    bool rescheduled = false,
-  }) async {
+    github.RepositorySlug slug,
+  ) async {
     final push_message.Build? build = buildPushMessage.build;
     if (buildPushMessage.userData.isEmpty) {
       return false;
@@ -90,25 +89,19 @@ class GithubChecksService {
       slug,
       buildPushMessage.userData['check_run_id'] as int?,
     );
-    github.CheckRunStatus status = statusForResult(build!.status);
-    github.CheckRunConclusion? conclusion =
+    final github.CheckRunStatus status = statusForResult(build!.status);
+    final github.CheckRunConclusion? conclusion =
         (buildPushMessage.build!.result != null) ? conclusionForResult(buildPushMessage.build!.result) : null;
     // Do not override url for completed status.
     final String? url = status == github.CheckRunStatus.completed ? checkRun.detailsUrl : buildPushMessage.build!.url;
     github.CheckRunOutput? output;
     // If status has completed with failure then provide more details.
-    if (taskFailed(buildPushMessage)) {
-      if (rescheduled) {
-        status = github.CheckRunStatus.queued;
-        conclusion = null;
-      } else {
-        final Build buildbucketBuild =
-            await luciBuildService.getBuildById(buildPushMessage.build!.id, fields: 'id,builder,summaryMarkdown');
-        output =
-            github.CheckRunOutput(title: checkRun.name!, summary: getGithubSummary(buildbucketBuild.summaryMarkdown));
-        log.fine('Updating check run with output: [$output]');
-      }
+    if (status == github.CheckRunStatus.completed && failedStatesSet.contains(conclusion)) {
+      final Build build =
+          await luciBuildService.getBuildById(buildPushMessage.build!.id, fields: 'id,builder,summaryMarkdown');
+      output = github.CheckRunOutput(title: checkRun.name!, summary: getGithubSummary(build.summaryMarkdown));
     }
+    log.fine('Updating check run with output: [$output]');
     await githubChecksUtil.updateCheckRun(
       config,
       slug,
@@ -119,27 +112,6 @@ class GithubChecksService {
       output: output,
     );
     return true;
-  }
-
-  /// Check if task has completed with failure.
-  bool taskFailed(push_message.BuildPushMessage buildPushMessage) {
-    final push_message.Build? build = buildPushMessage.build;
-    final github.CheckRunStatus status = statusForResult(build!.status);
-    final github.CheckRunConclusion? conclusion =
-        (buildPushMessage.build!.result != null) ? conclusionForResult(buildPushMessage.build!.result) : null;
-    return status == github.CheckRunStatus.completed && failedStatesSet.contains(conclusion);
-  }
-
-  /// Returns current reschedule attempt.
-  ///
-  /// It returns 1 if this is the first run, and +1 with each reschedule.
-  int currentAttempt(push_message.BuildPushMessage buildPushMessage) {
-    final push_message.Build build = buildPushMessage.build!;
-    if (build.tagsByName('current_attempt').isEmpty) {
-      return 1;
-    } else {
-      return int.parse(build.tagsByName('current_attempt').single);
-    }
   }
 
   /// Appends triage wiki page to `summaryMarkdown` from LUCI build so that people can easily
