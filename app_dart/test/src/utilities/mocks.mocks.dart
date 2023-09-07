@@ -1506,6 +1506,14 @@ class MockCommitService extends _i1.Mock implements _i28.CommitService {
         ),
       ) as _i3.Config);
   @override
+  _i8.RetryOptions get retryOptions => (super.noSuchMethod(
+        Invocation.getter(#retryOptions),
+        returnValue: _FakeRetryOptions_7(
+          this,
+          Invocation.getter(#retryOptions),
+        ),
+      ) as _i8.RetryOptions);
+  @override
   _i10.DatastoreServiceProvider get datastoreProvider => (super.noSuchMethod(
         Invocation.getter(#datastoreProvider),
         returnValue: (_i12.DatastoreDB db) => _FakeDatastoreService_12(
@@ -2970,9 +2978,8 @@ class MockGithubChecksService extends _i1.Mock implements _i24.GithubChecksServi
   _i20.Future<bool> updateCheckStatus(
     _i36.BuildPushMessage? buildPushMessage,
     _i24.LuciBuildService? luciBuildService,
-    _i14.RepositorySlug? slug, {
-    bool? rescheduled = false,
-  }) =>
+    _i14.RepositorySlug? slug,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateCheckStatus,
@@ -2981,26 +2988,9 @@ class MockGithubChecksService extends _i1.Mock implements _i24.GithubChecksServi
             luciBuildService,
             slug,
           ],
-          {#rescheduled: rescheduled},
         ),
         returnValue: _i20.Future<bool>.value(false),
       ) as _i20.Future<bool>);
-  @override
-  bool taskFailed(_i36.BuildPushMessage? buildPushMessage) => (super.noSuchMethod(
-        Invocation.method(
-          #taskFailed,
-          [buildPushMessage],
-        ),
-        returnValue: false,
-      ) as bool);
-  @override
-  int currentAttempt(_i36.BuildPushMessage? buildPushMessage) => (super.noSuchMethod(
-        Invocation.method(
-          #currentAttempt,
-          [buildPushMessage],
-        ),
-        returnValue: 0,
-      ) as int);
   @override
   String getGithubSummary(String? summary) => (super.noSuchMethod(
         Invocation.method(
@@ -5804,18 +5794,18 @@ class MockLuciBuildService extends _i1.Mock implements _i24.LuciBuildService {
       ) as _i20.Future<List<_i9.Build?>>);
   @override
   _i20.Future<_i9.Build> rescheduleBuild({
+    required String? commitSha,
     required String? builderName,
     required _i36.BuildPushMessage? buildPushMessage,
-    required int? rescheduleAttempt,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
           #rescheduleBuild,
           [],
           {
+            #commitSha: commitSha,
             #builderName: builderName,
             #buildPushMessage: buildPushMessage,
-            #rescheduleAttempt: rescheduleAttempt,
           },
         ),
         returnValue: _i20.Future<_i9.Build>.value(_FakeBuild_8(
@@ -5824,9 +5814,9 @@ class MockLuciBuildService extends _i1.Mock implements _i24.LuciBuildService {
             #rescheduleBuild,
             [],
             {
+              #commitSha: commitSha,
               #builderName: builderName,
               #buildPushMessage: buildPushMessage,
-              #rescheduleAttempt: rescheduleAttempt,
             },
           ),
         )),

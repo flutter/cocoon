@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 
@@ -36,7 +35,7 @@ void main() {
     mockLuciBuildService = MockLuciBuildService();
     when(mockGithubService.listFiles(any)).thenAnswer((_) async => <String>[]);
     mockGithubChecksUtil = MockGithubChecksUtil();
-    config = FakeConfig(githubService: mockGithubService, rollerAccountsValue: {'engine-flutter-autoroll'});
+    config = FakeConfig(githubService: mockGithubService);
     githubChecksService = GithubChecksService(
       config,
       githubChecksUtil: mockGithubChecksUtil,
@@ -99,18 +98,6 @@ void main() {
     });
     test('Userdata contain check_run_id', () async {
       when(mockGithubChecksUtil.getCheckRun(any, any, any)).thenAnswer((_) async => checkRun);
-      when(
-        mockLuciBuildService.getBuildById(
-          '8905920700440101120',
-          fields: 'id,builder,summaryMarkdown',
-        ),
-      ).thenAnswer(
-        (_) async => const Build(
-          id: '8905920700440101120',
-          builderId: BuilderId(bucket: 'luci.flutter.prod', project: 'flutter', builder: 'Linux Coverage'),
-          summaryMarkdown: 'test summary',
-        ),
-      );
       final push_message.BuildPushMessage buildPushMessage = push_message.BuildPushMessage.fromJson(
         jsonDecode(
           buildPushMessageJsonTemplate('{\\"check_run_id\\": 1,'
@@ -133,95 +120,6 @@ void main() {
         ).captured,
         <github.CheckRun>[checkRun],
       );
-    });
-    test('Should rerun a failed task for a roller account', () async {
-      when(mockGithubChecksUtil.getCheckRun(any, any, any)).thenAnswer((_) async => checkRun);
-      final push_message.BuildPushMessage buildPushMessage = push_message.BuildPushMessage.fromJson(
-        jsonDecode(
-          buildPushMessageJsonTemplate('{\\"check_run_id\\": 1,'
-              '\\"repo_owner\\": \\"flutter\\",'
-              '\\"repo_name\\": \\"cocoon\\",'
-              '\\"user_login\\": \\"engine-flutter-autoroll\\"}'),
-        ) as Map<String, dynamic>,
-      );
-      when(
-        mockLuciBuildService.rescheduleBuild(
-          builderName: 'Linux Coverage',
-          buildPushMessage: buildPushMessage,
-          rescheduleAttempt: 1,
-        ),
-      ).thenAnswer(
-        (_) async => const Build(
-          id: '8905920700440101120',
-          builderId: BuilderId(bucket: 'luci.flutter.prod', project: 'flutter', builder: 'Linux Coverage'),
-        ),
-      );
-      expect(checkRun.status, github.CheckRunStatus.completed);
-      await githubChecksService.updateCheckStatus(buildPushMessage, mockLuciBuildService, slug, rescheduled: true);
-      final List<dynamic> captured = verify(
-        mockGithubChecksUtil.updateCheckRun(
-          any,
-          any,
-          captureAny,
-          status: captureAnyNamed('status'),
-          conclusion: captureAnyNamed('conclusion'),
-          detailsUrl: anyNamed('detailsUrl'),
-          output: anyNamed('output'),
-        ),
-      ).captured;
-      expect(captured.length, 3);
-      expect(captured[1], github.CheckRunStatus.queued);
-      expect(captured[2], isNull);
-    });
-    test('Should not rerun a failed task for a non roller account', () async {
-      when(mockGithubChecksUtil.getCheckRun(any, any, any)).thenAnswer((_) async => checkRun);
-      final push_message.BuildPushMessage buildPushMessage = push_message.BuildPushMessage.fromJson(
-        jsonDecode(
-          buildPushMessageJsonTemplate('{\\"check_run_id\\": 1,'
-              '\\"repo_owner\\": \\"flutter\\",'
-              '\\"repo_name\\": \\"cocoon\\",'
-              '\\"user_login\\": \\"test-account\\"}'),
-        ) as Map<String, dynamic>,
-      );
-      when(
-        mockLuciBuildService.rescheduleBuild(
-          builderName: 'Linux Coverage',
-          buildPushMessage: buildPushMessage,
-          rescheduleAttempt: 1,
-        ),
-      ).thenAnswer(
-        (_) async => const Build(
-          id: '8905920700440101120',
-          builderId: BuilderId(bucket: 'luci.flutter.prod', project: 'flutter', builder: 'Linux Coverage'),
-        ),
-      );
-      when(
-        mockLuciBuildService.getBuildById(
-          '8905920700440101120',
-          fields: 'id,builder,summaryMarkdown',
-        ),
-      ).thenAnswer(
-        (_) async => const Build(
-          id: '8905920700440101120',
-          builderId: BuilderId(bucket: 'luci.flutter.prod', project: 'flutter', builder: 'Linux Coverage'),
-          summaryMarkdown: 'test summary',
-        ),
-      );
-      await githubChecksService.updateCheckStatus(buildPushMessage, mockLuciBuildService, slug);
-      final List<dynamic> captured = verify(
-        mockGithubChecksUtil.updateCheckRun(
-          any,
-          any,
-          any,
-          status: captureAnyNamed('status'),
-          conclusion: captureAnyNamed('conclusion'),
-          detailsUrl: anyNamed('detailsUrl'),
-          output: captureAnyNamed('output'),
-        ),
-      ).captured;
-      expect(captured.length, 3);
-      expect(captured[0], github.CheckRunStatus.completed);
-      expect(captured[1], github.CheckRunConclusion.failure);
     });
   });
 
@@ -262,7 +160,7 @@ String buildPushMessageJsonTemplate(String jsonUserData) => '''{
     "result_details_json": "{\\"properties\\": {}, \\"swarming\\": {\\"bot_dimensions\\": {\\"caches\\": [\\"flutter_openjdk_install\\", \\"git\\", \\"goma_v2\\", \\"vpython\\"], \\"cores\\": [\\"8\\"], \\"cpu\\": [\\"x86\\", \\"x86-64\\", \\"x86-64-Broadwell_GCE\\", \\"x86-64-avx2\\"], \\"gce\\": [\\"1\\"], \\"gpu\\": [\\"none\\"], \\"id\\": [\\"luci-flutter-prod-xenial-2-bnrz\\"], \\"image\\": [\\"chrome-xenial-19052201-9cb74617499\\"], \\"inside_docker\\": [\\"0\\"], \\"kvm\\": [\\"1\\"], \\"locale\\": [\\"en_US.UTF-8\\"], \\"machine_type\\": [\\"n1-standard-8\\"], \\"os\\": [\\"Linux\\", \\"Ubuntu\\", \\"Ubuntu-16.04\\"], \\"pool\\": [\\"luci.flutter.prod\\"], \\"python\\": [\\"2.7.12\\"], \\"server_version\\": [\\"4382-5929880\\"], \\"ssd\\": [\\"0\\"], \\"zone\\": [\\"us\\", \\"us-central\\", \\"us-central1\\", \\"us-central1-c\\"]}}}",
     "service_account": "flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com",
     "started_ts": "1565049193786080",
-    "status": "COMPLETED",
+    "status": "STARTED",
     "result": "FAILURE",
     "status_changed_ts": "1565049194386647",
     "tags": [
