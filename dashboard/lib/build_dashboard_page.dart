@@ -270,13 +270,14 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           ...buildState.branches
               .where((Branch b) => b.repository == buildState.currentRepo && b.branch != buildState.currentBranch)
               .map<DropdownMenuItem<String>>((Branch b) {
+            final String branchPrefix = (b.channel != 'HEAD') ? '${b.channel}: ' : '';
             return DropdownMenuItem<String>(
               value: b.branch,
               child: Padding(
                 padding: const EdgeInsets.only(top: 9.0),
                 child: Center(
                   child: Text(
-                    truncate(b.branch, _exampleBranch.length),
+                    branchPrefix + truncate(b.branch, _exampleBranch.length),
                     style: theme.primaryTextTheme.bodyLarge,
                   ),
                 ),
