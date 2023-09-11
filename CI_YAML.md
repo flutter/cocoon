@@ -179,6 +179,10 @@ Example
 test_timeout_secs: "2700"
 ```
 
+**presubmit_max_attempts** The max attempts the target will be auto executed. If it is not specified,
+the default value is `1` and it means no auto rerun will happen. If explicitly defined, it controls
+the max number of attempts. For example: `3` means it will be auto rescheduled two more times.
+
 ### Updating targets
 
 #### Properties
