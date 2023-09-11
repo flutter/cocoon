@@ -388,7 +388,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     };
 
     final Uri flutterIssueUrl = Uri.parse(
-      'https://github.com/flutter/flutter/issues/new?assignees=&labels=team%3A+infra&template=6_infrastructure.md',
+      'https://github.com/flutter/flutter/issues/new?assignees=&labels=team-infra&projects=&template=6_infrastructure.yml',
     );
     final BuildState buildState = Provider.of<BuildState>(context);
     buildState.updateCurrentRepoBranch(repo!, branch!);
