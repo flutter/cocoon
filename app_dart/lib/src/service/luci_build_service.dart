@@ -346,9 +346,14 @@ class LuciBuildService {
     final Build build = builds.first;
     final String prString = build.tags!['buildset']!.firstWhere((String? element) => element!.startsWith('pr/git/'))!;
     final String cipdVersion = build.tags!['cipd_version']![0]!;
+    final String branch = cipdVersion.split('/')[2];
     final int prNumber = int.parse(prString.split('/')[2]);
 
-    final Map<String, dynamic> userData = <String, dynamic>{'check_run_id': githubCheckRun.id};
+    final Map<String, dynamic> userData = <String, dynamic>{
+      'check_run_id': githubCheckRun.id,
+      'commit_branch': branch,
+      'commit_sha': sha,
+    };
     final Map<String, Object>? properties = build.input!.properties;
     log.info('input ${build.input!} properties $properties');
 
@@ -363,7 +368,6 @@ class LuciBuildService {
     );
 
     final Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
-
     final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
     await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);
     return scheduleBuild;

@@ -140,6 +140,7 @@ Build generateBuild(
   String name = 'Linux test_builder',
   Status status = Status.success,
   Map<String?, List<String?>>? tags,
+  Input? input,
   int buildNumber = 1,
 }) =>
     Build(
@@ -152,6 +153,7 @@ Build generateBuild(
       status: status,
       tags: tags,
       number: buildNumber,
+      input: input,
     );
 
 push_message.Build generatePushMessageBuild(

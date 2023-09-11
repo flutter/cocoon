@@ -696,6 +696,76 @@ void main() {
     });
   });
 
+  group('schedulePresubmitBuilds', () {
+    setUp(() {
+      cache = CacheService(inMemory: true);
+      mockBuildBucketClient = MockBuildBucketClient();
+      pubsub = FakePubSub();
+      service = LuciBuildService(
+        config: FakeConfig(),
+        cache: cache,
+        buildBucketClient: mockBuildBucketClient,
+        githubChecksUtil: mockGithubChecksUtil,
+        pubsub: pubsub,
+      );
+    });
+    test('reschedule using checkrun event', () async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return BatchResponse(
+          responses: <Response>[
+            Response(
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[
+                  generateBuild(
+                    1,
+                    name: 'Linux',
+                    status: Status.ended,
+                    tags: {
+                      'buildset': <String>['pr/git/123'],
+                      'cipd_version': <String>['refs/heads/main'],
+                    },
+                    input: const Input(properties: {'test': 'abc'}),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      });
+      when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1));
+
+      final pushMessage = generateCheckRunEvent(action: 'created', numberOfPullRequests: 1);
+      final Map<String, dynamic> jsonMap = json.decode(pushMessage.data!);
+      final Map<String, dynamic> jsonSubMap = json.decode(jsonMap['2']);
+      final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
+
+      await service.reschedulePresubmitBuildUsingCheckRunEvent(
+        checkRunEvent,
+      );
+      final List<dynamic> captured = verify(
+        mockBuildBucketClient.scheduleBuild(
+          captureAny,
+        ),
+      ).captured;
+      expect(captured.length, 1);
+      final ScheduleBuildRequest scheduleBuildRequest = captured[0] as ScheduleBuildRequest;
+      final Map<String, dynamic> userData =
+          jsonDecode(String.fromCharCodes(base64Decode(scheduleBuildRequest.notify!.userData!)))
+              as Map<String, dynamic>;
+      expect(userData, <String, dynamic>{
+        'check_run_id': 1,
+        'commit_branch': 'main',
+        'commit_sha': 'ec26c3e57ca3a959ca5aad62de7213c562f8c821',
+        'repo_owner': 'flutter',
+        'repo_name': 'flutter',
+        'user_agent': 'flutter-cocoon',
+      });
+    });
+  });
+
   group('cancelBuilds', () {
     setUp(() {
       cache = CacheService(inMemory: true);
