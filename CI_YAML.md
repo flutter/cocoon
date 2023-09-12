@@ -183,6 +183,11 @@ test_timeout_secs: "2700"
 not specified, the default value is `1` and it means no auto rerun will happen. If explicitly defined,
 it controls the max number of attempts. For example: `3` means it will be auto rescheduled two more times.
 
+Example
+``` yaml
+presubmit_max_attempts: "3"
+```
+
 ### Updating targets
 
 #### Properties
