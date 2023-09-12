@@ -16,7 +16,10 @@ void main() {
       }
 
       final CliCommand cliCommand = CliCommand();
-      final ProcessResult processResult = await cliCommand.runCliCommand(executable: executable, arguments: [],);
+      final ProcessResult processResult = await cliCommand.runCliCommand(
+        executable: executable,
+        arguments: [],
+      );
       expect(processResult.exitCode, isZero);
     });
   });

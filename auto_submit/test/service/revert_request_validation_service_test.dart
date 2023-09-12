@@ -240,11 +240,7 @@ void main() {
         reviews: <PullRequestReviewHelper>[],
       );
 
-      final PullRequest pullRequest = generatePullRequest(
-        prNumber: 0,
-        repoName: slug.name,
-        author: 'auto-submit[bot]'
-      );
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name, author: 'auto-submit[bot]');
 
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 

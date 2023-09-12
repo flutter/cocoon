@@ -87,9 +87,14 @@ class CheckRevertRequest extends CheckRequest {
       } else {
         // Use the auto approval as we do not want to allow non bot reverts to
         // be processed throught the service.
-        final ApproverService approver = approverProvider(config);
-        log.info('Checking auto approval of pull request: $rawBody');
-        await approver.autoApproval(pullRequest);
+        if (pullRequest.labels!.any((element) => element.name == 'revert of')) {
+          final ApproverService approver = approverProvider(config);
+          log.info('Checking auto approval of "revert of" pull request: $rawBody');
+          await approver.autoApproval(pullRequest);
+        } else {
+          // These should be closed requests that do not need to be reviewed.
+          log.info('Processing new "revert" request : ${pullRequest.number}.');
+        }
         processingLog.add(pullRequest.number!);
       }
 

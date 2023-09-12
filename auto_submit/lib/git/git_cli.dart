@@ -89,8 +89,7 @@ class GitCli {
         'config',
         '--global',
         'user.name',
-        // '"autosubmit[bot]"',
-        '"ricardoamador"',
+        '"auto-submit[bot]"',
       ],
       workingDirectory: workingDirectory,
       throwOnError: throwOnError,
@@ -109,7 +108,8 @@ class GitCli {
         '--global',
         'user.email',
         // TODO not sure if the bot will end up needing a valid email.
-        '"ricardoamador@google.com"',
+        // This might also be flutter-auto-submit-bot@google.com
+        '"flutter-engprod-team@google.com"',
       ],
       workingDirectory: workingDirectory,
       throwOnError: throwOnError,
