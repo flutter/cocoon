@@ -61,6 +61,7 @@ class RevertRequestValidationService extends ValidationService {
             ackId: ackId,
             pubsub: pubsub,
           );
+          break;
         }
       // Reverts is the processing of the opened revert issue.
       case RevertProcessMethod.revertOf:
@@ -71,12 +72,14 @@ class RevertRequestValidationService extends ValidationService {
             ackId: ackId,
             pubsub: pubsub,
           );
+          break;
         }
       // Do not process.
       case RevertProcessMethod.none:
         {
           log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
           await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
+          break;
         }
     }
   }
