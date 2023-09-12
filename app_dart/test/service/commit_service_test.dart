@@ -27,8 +27,7 @@ void main() {
   const String branch = "coolest-branch";
   const String sha = "1234";
   const String message = "Adding null safety";
-  const String avatarUrl =
-      "https://avatars.githubusercontent.com/u/fake-user-num";
+  const String avatarUrl = "https://avatars.githubusercontent.com/u/fake-user-num";
   const String username = "AwesomeGithubUser";
   const String dateTimeAsString = "2023-08-18T19:27:00Z";
 
@@ -42,8 +41,7 @@ void main() {
     config = MockConfig();
     commitService = CommitService(config: config);
 
-    when(config.createDefaultGitHubService())
-        .thenAnswer((_) async => githubService);
+    when(config.createDefaultGitHubService()).thenAnswer((_) async => githubService);
     when(config.db).thenReturn(db);
   });
 
@@ -51,16 +49,14 @@ void main() {
     test('adds commit to db if it does not exist in the datastore', () async {
       expect(db.values.values.whereType<Commit>().length, 0);
 
-      when(githubService.getReference(
-              RepositorySlug(owner, repository), 'heads/$branch'))
+      when(githubService.getReference(RepositorySlug(owner, repository), 'heads/$branch'))
           .thenAnswer((Invocation invocation) {
         return Future<GitReference>.value(
           GitReference(ref: 'refs/$branch', object: GitObject('', sha, '')),
         );
       });
 
-      when(repositories.getCommit(RepositorySlug(owner, repository), sha))
-          .thenAnswer((Invocation invocation) {
+      when(repositories.getCommit(RepositorySlug(owner, repository), sha)).thenAnswer((Invocation invocation) {
         return Future<RepositoryCommit>.value(
           RepositoryCommit(
             sha: sha,
@@ -73,8 +69,7 @@ void main() {
         );
       });
 
-      final CreateEvent createEvent =
-          generateCreateBranchEvent(branch, '$owner/$repository');
+      final CreateEvent createEvent = generateCreateBranchEvent(branch, '$owner/$repository');
       await commitService.handleCreateGithubRequest(createEvent);
 
       expect(db.values.values.whereType<Commit>().length, 1);
@@ -101,16 +96,14 @@ void main() {
       await config.db.commit(inserts: datastoreCommit);
       expect(db.values.values.whereType<Commit>().length, 1);
 
-      when(githubService.getReference(
-              RepositorySlug(owner, repository), 'heads/$branch'))
+      when(githubService.getReference(RepositorySlug(owner, repository), 'heads/$branch'))
           .thenAnswer((Invocation invocation) {
         return Future<GitReference>.value(
           GitReference(ref: 'refs/$branch', object: GitObject('', sha, '')),
         );
       });
 
-      when(repositories.getCommit(RepositorySlug(owner, repository), sha))
-          .thenAnswer((Invocation invocation) {
+      when(repositories.getCommit(RepositorySlug(owner, repository), sha)).thenAnswer((Invocation invocation) {
         return Future<RepositoryCommit>.value(
           RepositoryCommit(
             sha: sha,
@@ -124,8 +117,7 @@ void main() {
         );
       });
 
-      final CreateEvent createEvent =
-          generateCreateBranchEvent(branch, '$owner/$repository');
+      final CreateEvent createEvent = generateCreateBranchEvent(branch, '$owner/$repository');
       await commitService.handleCreateGithubRequest(createEvent);
 
       expect(db.values.values.whereType<Commit>().length, 1);
@@ -138,8 +130,15 @@ void main() {
     test('adds commit to db if it does not exist in the datastore', () async {
       expect(db.values.values.whereType<Commit>().length, 0);
 
-      final PushEvent pushEvent = generatePushEvent(branch, owner, repository,
-          message: message, sha: sha, avatarUrl: avatarUrl, username: username,);
+      final PushEvent pushEvent = generatePushEvent(
+        branch,
+        owner,
+        repository,
+        message: message,
+        sha: sha,
+        avatarUrl: avatarUrl,
+        username: username,
+      );
       await commitService.handlePushGithubRequest(pushEvent);
 
       expect(db.values.values.whereType<Commit>().length, 1);
@@ -166,8 +165,15 @@ void main() {
       await config.db.commit(inserts: datastoreCommit);
       expect(db.values.values.whereType<Commit>().length, 1);
 
-      final PushEvent pushEvent = generatePushEvent(branch, owner, repository,
-          message: message, sha: sha, avatarUrl: avatarUrl, username: username,);
+      final PushEvent pushEvent = generatePushEvent(
+        branch,
+        owner,
+        repository,
+        message: message,
+        sha: sha,
+        avatarUrl: avatarUrl,
+        username: username,
+      );
       await commitService.handlePushGithubRequest(pushEvent);
 
       expect(db.values.values.whereType<Commit>().length, 1);
