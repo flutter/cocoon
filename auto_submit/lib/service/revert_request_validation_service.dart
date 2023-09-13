@@ -54,7 +54,6 @@ class RevertRequestValidationService extends ValidationService {
     switch (revertProcessMethod) {
       // Revert is the processing of the closed issue.
       case RevertProcessMethod.revert:
-        {
           await processRevertRequest(
             result: await getNewestPullRequestInfo(config, messagePullRequest),
             githubPullRequestEvent: updatedGithubPullRequestEvent,
@@ -62,10 +61,8 @@ class RevertRequestValidationService extends ValidationService {
             pubsub: pubsub,
           );
           break;
-        }
       // Reverts is the processing of the opened revert issue.
       case RevertProcessMethod.revertOf:
-        {
           await processRevertOfRequest(
             result: await getNewestPullRequestInfo(config, messagePullRequest),
             githubPullRequestEvent: updatedGithubPullRequestEvent,
@@ -73,14 +70,11 @@ class RevertRequestValidationService extends ValidationService {
             pubsub: pubsub,
           );
           break;
-        }
       // Do not process.
       case RevertProcessMethod.none:
-        {
           log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
           await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
           break;
-        }
     }
   }
 
@@ -108,6 +102,7 @@ class RevertRequestValidationService extends ValidationService {
   }
 
   // pullRequest.state == 'closed' && labelNames.contains('revert')
+  // TODO need a way to stop processing this.
   Future<void> processRevertRequest({
     required QueryResult result,
     required GithubPullRequestEvent githubPullRequestEvent,
@@ -140,6 +135,9 @@ class RevertRequestValidationService extends ValidationService {
       await githubService.addLabels(slug, pullRequest.number!, [Config.kRevertOfLabel]);
       log.info('Assigning new revert issue to $sender');
       await githubService.addAssignee(slug, pullRequest.number!, [sender]);
+      // TODO (ricardoamador) create a better solution than this to stop processing
+      // the revert requests. Maybe change the label after the revert has occurred.
+      await githubService.removeLabel(slug, messagePullRequest.number!, Config.kRevertLabel);
       // Notify the discord tree channel that the revert issue has been created
       // and will be processed.
     } catch (e) {

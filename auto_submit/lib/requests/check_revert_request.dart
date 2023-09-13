@@ -67,7 +67,6 @@ class CheckRevertRequest extends CheckRequest {
 
       final Map<String, dynamic> rawBody =
           json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
-      log.info('request raw body = $rawBody');
 
       final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent.fromJson(rawBody);
       final PullRequest pullRequest = githubPullRequestEvent.pullRequest!;
@@ -78,32 +77,26 @@ class CheckRevertRequest extends CheckRequest {
       if (processingLog.contains(pullRequest.number)) {
         // Ack duplicate.
         log.info('Ack the duplicated message : ${message.ackId!}.');
-        await pubsub.acknowledge(
-          pubSubSubscription,
-          message.ackId!,
-        );
-
+        log.info('duplicate pull request #${pullRequest.number}');
+        await pubsub.acknowledge(pubSubSubscription, message.ackId!);
         continue;
       } else {
         // Use the auto approval as we do not want to allow non bot reverts to
         // be processed throught the service.
+        log.info('new pull request #${pullRequest.number}');
         if (pullRequest.labels!.any((element) => element.name == 'revert of')) {
           final ApproverService approver = approverProvider(config);
           log.info('Checking auto approval of "revert of" pull request: $rawBody');
           await approver.autoApproval(pullRequest);
         } else {
           // These should be closed requests that do not need to be reviewed.
-          log.info('Processing new "revert" request : ${pullRequest.number}.');
+          log.info('Processing "revert" request : ${pullRequest.number}.');
         }
         processingLog.add(pullRequest.number!);
       }
 
       futures.add(
-        validationService.processMessage(
-          githubPullRequestEvent,
-          message.ackId!,
-          pubsub,
-        ),
+        validationService.processMessage(githubPullRequestEvent, message.ackId!, pubsub),
       );
     }
     await Future.wait(futures);
