@@ -1032,11 +1032,15 @@ PushMessage generatePushMessage(String branch, String organization, String repos
   return PushMessage(data: message.writeToJson(), messageId: 'abc123');
 }
 
-PushEvent generatePushEvent(String branch, String organization, String repository,
-        {String sha = "def456def456def456",
-        String message = "Commit-message",
-        String avatarUrl = "https://fakegithubcontent.com/google_profile",
-        String username = "googledotcom"}) =>
+PushEvent generatePushEvent(
+  String branch,
+  String organization,
+  String repository, {
+  String sha = "def456def456def456",
+  String message = "Commit-message",
+  String avatarUrl = "https://fakegithubcontent.com/google_profile",
+  String username = "googledotcom",
+}) =>
     PushEvent.fromJson(
       jsonDecode('''
 {
