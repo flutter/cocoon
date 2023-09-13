@@ -65,7 +65,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     }
 
     // Only publish the parent release_builder builds to the datastore.
-    // TODO(drewroengoogle): Determine which builds we want to save to the datastore and check for them.
+    // TODO(drewroengoogle): Remove this regex in favor of supporting *all* dart-internal build results.
     final regex =
         RegExp(r'(Linux|Mac|Windows)\s+(engine_release_builder|packaging_release_builder|flutter_release_builder)');
     if (!regex.hasMatch(builder)) {
