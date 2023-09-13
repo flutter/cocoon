@@ -74,7 +74,7 @@ class CheckRevertRequest extends CheckRequest {
       log.info('Processing message ackId: ${message.ackId}');
       log.info('Processing mesageId: ${message.message!.messageId}');
       log.info('Processing PR: $rawBody');
-      if (processingLog.contains(pullRequest.number)) {
+      if (processingLog.contains(pullRequest.number) || githubPullRequestEvent.action != 'labeled') {
         // Ack duplicate.
         log.info('Ack the duplicated message : ${message.ackId!}.');
         log.info('duplicate pull request #${pullRequest.number}');

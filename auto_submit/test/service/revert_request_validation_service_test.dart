@@ -68,7 +68,7 @@ void main() {
     });
   });
 
-  group('Testing time limit check.', () {
+  group('Testing time limit check:', () {
     test('Pull request is rejected if merged over 24 hours ago.', () {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
@@ -109,7 +109,7 @@ void main() {
     });
   });
 
-  group('shouldProcess', () {
+  group('shouldProcess:', () {
     test('Process revert from closed as "revert"', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name, state: 'closed');
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
@@ -185,7 +185,7 @@ void main() {
     });
   });
 
-  group('Process revert pull requests', () {
+  group('Process revert pull requests:', () {
     test('Remove label and post comment when issue has passed time limit to be reverted.', () async {
       // setup objects
       final FakePubSub pubsub = FakePubSub();
@@ -315,7 +315,7 @@ void main() {
     });
   });
 
-  group('Process "revert of" pull requests', () {
+  group('Process "revert of" pull requests:', () {
     test('Pull request is not processed due to repo config', () async {
       // setup
       config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfigRevertReviewRequired);
@@ -1028,7 +1028,7 @@ void main() {
     });
   });
 
-  group('processMerge', () {
+  group('processMerge:', () {
     test('Correct PR titles when merging to use Reland', () async {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
