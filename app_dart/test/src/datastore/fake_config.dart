@@ -41,7 +41,6 @@ class FakeConfig implements Config {
     this.githubService,
     this.bigqueryService,
     this.githubGraphQLClient,
-    this.cirrusGraphQLClient,
     this.rollerAccountsValue,
     this.flutterBuildValue,
     this.flutterBuildDescriptionValue,
@@ -67,7 +66,6 @@ class FakeConfig implements Config {
 
   gh.GitHub? githubClient;
   GraphQLClient? githubGraphQLClient;
-  GraphQLClient? cirrusGraphQLClient;
   TabledataResource? tabledataResource;
   BigqueryService? bigqueryService;
   GithubService? githubService;
@@ -122,9 +120,6 @@ class FakeConfig implements Config {
 
   @override
   Future<GraphQLClient> createGitHubGraphQLClient() async => githubGraphQLClient!;
-
-  @override
-  Future<GraphQLClient> createCirrusGraphQLClient() async => cirrusGraphQLClient!;
 
   @override
   Future<TabledataResource> createTabledataResourceApi() async => tabledataResource!;

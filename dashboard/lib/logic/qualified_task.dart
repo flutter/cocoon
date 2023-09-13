@@ -39,12 +39,9 @@ class QualifiedTask {
   /// Get the URL for the configuration of this task.
   ///
   /// Luci tasks are stored on Luci.
-  /// Cirrus tasks are stored on Cirrus.
   String get sourceConfigurationUrl {
-    assert(isLuci || isCirrus || isGoogleTest || isDartInternal);
-    if (isCirrus) {
-      return '$_cirrusUrl/master';
-    } else if (isLuci) {
+    assert(isLuci || isGoogleTest || isDartInternal);
+    if (isLuci) {
       return '$_luciUrl/builders/$pool/$task';
     } else if (isGoogleTest) {
       return _googleTestUrl;
@@ -56,9 +53,6 @@ class QualifiedTask {
 
   /// Whether this task was run on google test.
   bool get isGoogleTest => stage == StageName.googleTest;
-
-  /// Whether this task was run on Cirrus CI.
-  bool get isCirrus => stage == StageName.cirrus;
 
   /// Whether the task was run on the LUCI infrastructure.
   bool get isLuci => stage == StageName.cocoon || stage == StageName.legacyLuci || stage == StageName.luci;

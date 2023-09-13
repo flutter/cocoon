@@ -61,9 +61,6 @@ class Config {
         packagesSlug,
       };
 
-  /// List of Cirrus supported repos.
-  static Set<String> cirrusSupportedRepos = <String>{'packages', 'flutter'};
-
   /// GitHub repositories that use CI status to determine if pull requests can be submitted.
   static Set<gh.RepositorySlug> reposWithTreeStatus = <gh.RepositorySlug>{
     engineSlug,
@@ -417,17 +414,6 @@ class Config {
     return GraphQLClient(
       cache: GraphQLCache(),
       link: authLink.concat(httpLink),
-    );
-  }
-
-  Future<GraphQLClient> createCirrusGraphQLClient() async {
-    final HttpLink httpLink = HttpLink(
-      'https://api.cirrus-ci.com/graphql',
-    );
-
-    return GraphQLClient(
-      cache: GraphQLCache(),
-      link: httpLink,
     );
   }
 

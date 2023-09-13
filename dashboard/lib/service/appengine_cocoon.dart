@@ -290,12 +290,10 @@ class AppEngineCocoonService implements CocoonService {
       ..status = taskData['Status'] as String
       ..isTestFlaky = taskData['TestFlaky'] as bool? ?? false;
 
-    if (taskData['StageName'] != StageName.cirrus) {
-      task
-        ..buildNumberList = taskData['BuildNumberList'] as String? ?? ''
-        ..builderName = taskData['BuilderName'] as String? ?? ''
-        ..luciBucket = taskData['LuciBucket'] as String? ?? '';
-    }
+    task
+      ..buildNumberList = taskData['BuildNumberList'] as String? ?? ''
+      ..builderName = taskData['BuilderName'] as String? ?? ''
+      ..luciBucket = taskData['LuciBucket'] as String? ?? '';
     return task;
   }
 }
