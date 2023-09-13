@@ -323,11 +323,12 @@ class LuciBuildService {
           builder: builderName,
         ),
         tags: tags,
+        // We need to cast to <String, Object> to bypass json.encode error when scheduling builds.
         properties:
-            (buildPushMessage.build!.buildParameters!['properties'] as Map<String, dynamic>).cast<String, String>(),
+            (buildPushMessage.build!.buildParameters!['properties'] as Map<String, Object?>).cast<String, Object>(),
         notify: NotificationConfig(
           pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
-          userData: json.encode(buildPushMessage.userData),
+          userData: base64Encode(json.encode(buildPushMessage.userData).codeUnits),
         ),
       ),
     );
