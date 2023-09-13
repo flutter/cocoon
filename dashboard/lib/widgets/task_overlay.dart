@@ -105,7 +105,7 @@ class TaskOverlayEntry extends StatelessWidget {
   /// A reference to the [BuildState] for performing operations on this [Task].
   final BuildState buildState;
 
-  /// [Commit] for cirrus tasks to show log.
+  /// [Commit] for tasks to show log.
   final Commit commit;
 
   @override
@@ -177,7 +177,7 @@ class TaskOverlayContents extends StatelessWidget {
   /// The [Task] to display in the overlay
   final Task task;
 
-  /// [Commit] for cirrus tasks to show log.
+  /// [Commit] for tasks to show log.
   final Commit? commit;
 
   /// This callback removes the parent overlay from the widget tree.

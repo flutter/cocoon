@@ -13,7 +13,7 @@ part 'stage.g.dart';
 /// A group of related [Task]s run against a particular [Commit].
 ///
 /// Stages are grouped by the infrastructure family that runs them, such as
-/// Cirrus, LUCI, DeviceLab on Linux, DeviceLab on Windows, etc.
+/// LUCI, DeviceLab on Linux, DeviceLab on Windows, etc.
 @immutable
 @JsonSerializable(createFactory: false, ignoreUnannotated: true)
 class Stage implements Comparable<Stage> {
@@ -25,7 +25,6 @@ class Stage implements Comparable<Stage> {
   ///
   /// Unknown stages will be placed at the end of any ordering.
   static const List<String?> _order = <String?>[
-    'cirrus',
     'chromebot',
     'devicelab',
     'devicelab_win',
@@ -35,7 +34,7 @@ class Stage implements Comparable<Stage> {
   /// Arbitrarily large index to represent the "end of the ordering".
   static const int _endOfList = 1000000;
 
-  /// The name of the stage (e.g. 'cirrus', 'devicelab', 'devicelab_win').
+  /// The name of the stage (e.g. 'devicelab', 'devicelab_win').
   ///
   /// This is guaranteed to be non-null.
   @JsonKey(name: 'Name')
@@ -71,7 +70,7 @@ class Stage implements Comparable<Stage> {
 
   /// Whether this stage is managed by the Flutter device lab.
   ///
-  /// Stages such as 'cirrus' and 'chromebot' are not managed by the Flutter
+  /// Stages such as 'chromebot' are not managed by the Flutter
   /// device lab.
   bool get isManagedByDeviceLab => name!.startsWith('devicelab');
 

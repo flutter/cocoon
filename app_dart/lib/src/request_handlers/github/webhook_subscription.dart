@@ -367,7 +367,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   /// requirement, across repositories.
   bool _isTestExempt(String filename) {
     return filename.contains('.ci.yaml') ||
-        filename.contains('.cirrus.yml') ||
         filename.contains('analysis_options.yaml') ||
         filename.contains('AUTHORS') ||
         filename.contains('CODEOWNERS') ||

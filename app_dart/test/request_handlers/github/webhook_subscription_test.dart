@@ -981,7 +981,7 @@ void main() {
       );
     });
 
-    test('Framework no comment if only ci.yaml and cirrus.yml changed', () async {
+    test('Framework no comment if only ci.yamlchanged', () async {
       const int issueNumber = 123;
 
       tester.message = generateGithubWebhookMessage(
@@ -993,7 +993,6 @@ void main() {
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = '.ci.yaml',
-          PullRequestFile()..filename = '.cirrus.yml',
         ]),
       );
 
