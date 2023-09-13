@@ -899,6 +899,9 @@ void main() {
       final List<dynamic> captured = verify(mockBuildBucketClient.scheduleBuild(captureAny)).captured;
       expect(captured.length, 1);
       final ScheduleBuildRequest scheduleBuildRequest = captured[0] as ScheduleBuildRequest;
+      // This is to validate `scheduleBuildRequest` can be json.encoded correctly.
+      // It complains when some non-String typed data exists.
+      expect(json.encode(scheduleBuildRequest), isNotNull);
       expect(scheduleBuildRequest.tags!.containsKey('current_attempt'), true);
       expect(scheduleBuildRequest.tags!['current_attempt'], <String>['2']);
     });
