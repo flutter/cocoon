@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
@@ -70,6 +71,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     required super.config,
     required this.scheduler,
     required this.gerritService,
+    required this.commitService,
     this.githubChecksService,
     this.datastoreProvider = DatastoreService.defaultProvider,
     super.authProvider,
@@ -80,6 +82,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
   /// To verify whether a commit was mirrored to GoB.
   final GerritService gerritService;
+
+  /// Used to handle push events and create commits based on those events.
+  final CommitService commitService;
 
   /// To provide build status updates to GitHub pull requests.
   final GithubChecksService? githubChecksService;
@@ -106,6 +111,16 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
         if (await scheduler.processCheckRun(checkRunEvent) == false) {
           throw InternalServerError('Failed to process check_run event. checkRunEvent: $checkRunEvent');
+        }
+        break;
+      case 'push':
+        final PushEvent pushEvent = PushEvent.fromJson(json.decode(webhook.payload) as Map<String, dynamic>);
+        final String branch = pushEvent.ref!.split('/')[2]; // Eg: refs/heads/beta would return beta.
+        final String repository = pushEvent.repository!.name;
+        // If the branch is beta/stable, then a commit wasn't created through a PR,
+        // meaning the commit needs to be added to the datastore here instead.
+        if (repository == 'flutter' && (branch == 'stable' || branch == 'beta')) {
+          await commitService.handlePushGithubRequest(pushEvent);
         }
         break;
     }

@@ -97,6 +97,7 @@ Future<void> main() async {
         gerritService: gerritService,
         githubChecksService: githubChecksService,
         scheduler: scheduler,
+        commitService: commitService,
       ),
       '/api/github/webhook-branch-subscription': GithubBranchWebhookSubscription(
         config: config,

@@ -35,6 +35,7 @@ void main() {
   late FakeHttpRequest request;
   late FakeScheduler scheduler;
   late FakeGerritService gerritService;
+  late MockCommitService commitService;
   late MockGitHub gitHubClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late MockGithubChecksService mockGithubChecksService;
@@ -53,6 +54,7 @@ void main() {
     db = FakeDatastoreDB();
     gitHubClient = MockGitHub();
     githubService = FakeGithubService();
+    commitService = MockCommitService();
     final MockTabledataResource tabledataResource = MockTabledataResource();
     when(tabledataResource.insertAll(any, any, any, any)).thenAnswer((_) async => TableDataInsertAllResponse());
     config = FakeConfig(
@@ -110,6 +112,7 @@ void main() {
       gerritService: gerritService,
       githubChecksService: mockGithubChecksService,
       scheduler: scheduler,
+      commitService: commitService,
     );
   });
 
@@ -2254,6 +2257,40 @@ void foo() {
       );
 
       await tester.post(webhook);
+    });
+  });
+
+  group('github webhook push event', () {
+    test('handles push events for flutter/flutter beta branch', () async {
+      tester.message = generatePushMessage('beta', 'flutter', 'flutter');
+
+      await tester.post(webhook);
+
+      verify(commitService.handlePushGithubRequest(any)).called(1);
+    });
+
+    test('handles push events for flutter/flutter stable branch', () async {
+      tester.message = generatePushMessage('stable', 'flutter', 'flutter');
+
+      await tester.post(webhook);
+
+      verify(commitService.handlePushGithubRequest(any)).called(1);
+    });
+
+    test('does not handle push events for branches that are not beta|stable', () async {
+      tester.message = generatePushMessage('main', 'flutter', 'flutter');
+
+      await tester.post(webhook);
+
+      verifyNever(commitService.handlePushGithubRequest(any)).called(0);
+    });
+
+    test('does not handle push events for repositories that are not flutter/flutter', () async {
+      tester.message = generatePushMessage('beta', 'flutter', 'engine');
+
+      await tester.post(webhook);
+
+      verifyNever(commitService.handlePushGithubRequest(any)).called(0);
     });
   });
 }

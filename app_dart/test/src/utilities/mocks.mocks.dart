@@ -1522,6 +1522,15 @@ class MockCommitService extends _i1.Mock implements _i28.CommitService {
         returnValue: _i20.Future<void>.value(),
         returnValueForMissingStub: _i20.Future<void>.value(),
       ) as _i20.Future<void>);
+  @override
+  _i20.Future<void> handlePushGithubRequest(_i27.PushEvent? pushEvent) => (super.noSuchMethod(
+        Invocation.method(
+          #handlePushGithubRequest,
+          [pushEvent],
+        ),
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
 }
 
 /// A class which mocks [Config].
