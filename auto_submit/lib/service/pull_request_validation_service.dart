@@ -73,7 +73,7 @@ class PullRequestValidationService extends ValidationService {
     /// Runs all the validation defined in the service.
     /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
     for (Validation validation in validations) {
-      log.info('${slug.fullName}/$prNumber unning validation ${validation.name}');
+      log.info('${slug.fullName}/$prNumber running validation ${validation.name}');
       final ValidationResult validationResult = await validation.validate(
         result,
         messagePullRequest,
