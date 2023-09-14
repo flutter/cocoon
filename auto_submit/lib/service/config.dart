@@ -48,6 +48,7 @@ class Config {
   /// Labels autosubmit looks for on pull requests
   static const String kAutosubmitLabel = 'autosubmit';
   static const String kRevertLabel = 'revert';
+  static const String kRevertOfLabel = 'revert of';
 
   /// The label which shows the overrideTree    Status.
   String get overrideTreeStatusLabel => 'warning: land on red to fix tree breakage';
@@ -75,6 +76,9 @@ class Config {
         'DartDevtoolWorkflowBot',
       };
 
+  //TODO change this back to autosubmit[bot] after testing is complete.
+  String get autosubmitBot => 'auto-submit[bot]';
+
   /// Repository configuration variables
   Duration get repositoryConfigurationTtl => const Duration(minutes: 10);
 
@@ -87,8 +91,8 @@ class Config {
   /// https://github.com/flutter/cocoon/pull/2035/files#r938143840.
   int get kPubsubPullNumber => 5;
 
-  static String get pubsubTopicsPrefix => 'projects/flutter-dashboard/topics';
-  static String get pubsubSubscriptionsPrefix => 'projects/flutter-dashboard/subscriptions';
+  static String get pubsubTopicsPrefix => 'projects/$flutterGcpProjectId/topics';
+  static String get pubsubSubscriptionsPrefix => 'projects/$flutterGcpProjectId/subscriptions';
 
   String get pubsubPullRequestTopic => 'auto-submit-queue';
   String get pubsubPullRequestSubscription => 'auto-submit-queue-sub';
