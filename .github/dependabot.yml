@@ -4,18 +4,14 @@
 version: 2
 enable-beta-ecosystems: true
 updates:
+  # Github actions ecosystem.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "daily"
     labels:
       - "autosubmit"
-  - package-ecosystem: "pub"
-    directory: "/test_utilities"
-    schedule:
-      interval: "daily"
-    labels:
-      - "autosubmit"
+  # Pub ecosystem.
   - package-ecosystem: "pub"
     directory: "/analyze"
     schedule:
@@ -23,19 +19,19 @@ updates:
     labels:
       - "autosubmit"
   - package-ecosystem: "pub"
-    directory: "/licenses"
+    directory: "/app_dart"
     schedule:
       interval: "daily"
     labels:
       - "autosubmit"
   - package-ecosystem: "pub"
-    directory: "/codesign"
+    directory: "/auto_submit"
     schedule:
       interval: "daily"
     labels:
       - "autosubmit"
   - package-ecosystem: "pub"
-    directory: "/device_doctor"
+    directory: "/cipd_packaages/codesign"
     schedule:
       interval: "daily"
     labels:
@@ -47,17 +43,24 @@ updates:
     labels:
       - "autosubmit"
   - package-ecosystem: "pub"
-    directory: "/app_dart"
+    directory: "/cipd_packages/device_doctor"
     schedule:
       interval: "daily"
     labels:
       - "autosubmit"
   - package-ecosystem: "pub"
-    directory: "/auto_submit"
+    directory: "/test_utilities"
     schedule:
       interval: "daily"
     labels:
       - "autosubmit"
+  - package-ecosystem: "pub"
+    directory: "/licenses"
+    schedule:
+      interval: "daily"
+    labels:
+      - "autosubmit"
+  # Docker ecosystem.
   - package-ecosystem: "docker"
     directory: "/app_dart"
     schedule:
@@ -70,6 +73,7 @@ updates:
       interval: "daily"
     labels:
       - "autosubmit"
+  # Go ecosystem.
   - package-ecosystem: "gomod"
     directory: "/tooling"
     schedule:
