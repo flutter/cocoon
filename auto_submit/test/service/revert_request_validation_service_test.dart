@@ -266,7 +266,7 @@ void main() {
 
       // validate
       expect(githubService.issueComment, isNull);
-      expect(githubService.labelRemoved, false);
+      expect(githubService.labelRemoved, true);
       assert(pubsub.messagesQueue.isEmpty);
     });
 

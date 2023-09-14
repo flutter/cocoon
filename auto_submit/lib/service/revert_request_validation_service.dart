@@ -137,7 +137,8 @@ class RevertRequestValidationService extends ValidationService {
       await githubService.addAssignee(slug, pullRequest.number!, [sender]);
       // TODO (ricardoamador) create a better solution than this to stop processing
       // the revert requests. Maybe change the label after the revert has occurred.
-      // await githubService.removeLabel(slug, messagePullRequest.number!, Config.kRevertLabel);
+      // For some reason we get duplicate events even though we ack the message.
+      await githubService.removeLabel(slug, messagePullRequest.number!, Config.kRevertLabel);
       // Notify the discord tree channel that the revert issue has been created
       // and will be processed.
     } catch (e) {
