@@ -6,14 +6,13 @@ import 'dart:convert';
 
 import 'package:auto_submit/request_handling/pubsub.dart';
 import 'package:auto_submit/requests/check_request.dart';
+import 'package:auto_submit/requests/github_pull_request_event.dart';
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/service/revert_request_validation_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/pubsub/v1.dart' as pub;
 import 'package:shelf/shelf.dart';
-
-// TODO (ricardoamador): provide implementation in https://github.com/flutter/flutter/issues/113867
 
 /// Handler for processing pull requests with 'revert' label.
 ///
@@ -68,36 +67,36 @@ class CheckRevertRequest extends CheckRequest {
 
       final Map<String, dynamic> rawBody =
           json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
-      log.info('request raw body = $rawBody');
 
-      final PullRequest pullRequest = PullRequest.fromJson(rawBody);
+      final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent.fromJson(rawBody);
+      final PullRequest pullRequest = githubPullRequestEvent.pullRequest!;
 
       log.info('Processing message ackId: ${message.ackId}');
       log.info('Processing mesageId: ${message.message!.messageId}');
       log.info('Processing PR: $rawBody');
-      if (processingLog.contains(pullRequest.number)) {
+      if (processingLog.contains(pullRequest.number) || githubPullRequestEvent.action != 'labeled') {
         // Ack duplicate.
         log.info('Ack the duplicated message : ${message.ackId!}.');
-        await pubsub.acknowledge(
-          pubSubSubscription,
-          message.ackId!,
-        );
-
+        log.info('duplicate pull request #${pullRequest.number}');
+        await pubsub.acknowledge(pubSubSubscription, message.ackId!);
         continue;
       } else {
-        final ApproverService approver = approverProvider(config);
-        log.info('Checking auto approval of pull request: $rawBody');
-        await approver.autoApproval(pullRequest);
+        // Use the auto approval as we do not want to allow non bot reverts to
+        // be processed throught the service.
+        log.info('new pull request #${pullRequest.number}');
+        if (pullRequest.labels!.any((element) => element.name == 'revert of')) {
+          final ApproverService approver = approverProvider(config);
+          log.info('Checking auto approval of "revert of" pull request: $rawBody');
+          await approver.autoApproval(pullRequest);
+        } else {
+          // These should be closed requests that do not need to be reviewed.
+          log.info('Processing "revert" request : ${pullRequest.number}.');
+        }
         processingLog.add(pullRequest.number!);
       }
 
       futures.add(
-        validationService.processMessage(
-          // pullRequestMessage,
-          pullRequest,
-          message.ackId!,
-          pubsub,
-        ),
+        validationService.processMessage(githubPullRequestEvent, message.ackId!, pubsub),
       );
     }
     await Future.wait(futures);

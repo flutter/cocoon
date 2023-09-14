@@ -38,6 +38,7 @@ class PullRequestHelper {
     this.lastCommitStatuses = const <StatusHelper>[StatusHelper.flutterBuildSuccess],
     this.lastCommitMessage = '',
     this.dateTime,
+    this.mergedAt,
   });
 
   final int prNumber;
@@ -51,6 +52,7 @@ class PullRequestHelper {
   final DateTime? dateTime;
   final String title;
   final MergeableState mergeableState;
+  final DateTime? mergedAt;
 
   RepositorySlug get slug => RepositorySlug('flutter', repo);
 
@@ -59,8 +61,10 @@ class PullRequestHelper {
       'author': <String, dynamic>{'login': author},
       'authorAssociation': authorAssociation,
       'id': prNumber.toString(),
+      'number': prNumber,
       'title': title,
       'mergeable': mergeableState.name,
+      'mergedAt': (mergedAt ?? DateTime.now().subtract(const Duration(hours: 12))).toUtc().toIso8601String(),
       'reviews': <String, dynamic>{
         'nodes': reviews.map((PullRequestReviewHelper review) {
           return <String, dynamic>{

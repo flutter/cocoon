@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:auto_submit/requests/github_pull_request_event.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 import 'package:crypto/crypto.dart';
@@ -29,6 +30,8 @@ class GithubWebhook extends RequestHandler {
 
   static const String pullRequest = 'pull_request';
   static const String labels = 'labels';
+  static const String action = 'action';
+  static const String sender = 'sender';
 
   static const String eventTypeHeader = 'X-GitHub-Event';
   static const String signatureHeader = 'X-Hub-Signature';
@@ -50,11 +53,10 @@ class GithubWebhook extends RequestHandler {
       throw const Forbidden();
     }
 
-    // Listen to the pull request with 'autosubmit' label.
     bool hasAutosubmit = false;
     bool hasRevertLabel = false;
     final String rawBody = utf8.decode(requestBytes);
-    final body = json.decode(rawBody) as Map<String, dynamic>;
+    final Map<String, dynamic> body = json.decode(rawBody) as Map<String, dynamic>;
 
     if (!body.containsKey(GithubWebhook.pullRequest) ||
         !((body[GithubWebhook.pullRequest] as Map<String, dynamic>).containsKey(GithubWebhook.labels))) {
@@ -62,12 +64,24 @@ class GithubWebhook extends RequestHandler {
     }
 
     final PullRequest pullRequest = PullRequest.fromJson(body[GithubWebhook.pullRequest] as Map<String, dynamic>);
-    hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
-    hasRevertLabel = pullRequest.labels!.any((label) => label.name == Config.kRevertLabel);
+    final String action = body[GithubWebhook.action];
+    final User sender = User.fromJson(body[GithubWebhook.sender] as Map<String, dynamic>);
 
+    hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
+    hasRevertLabel =
+        pullRequest.labels!.any((label) => label.name == Config.kRevertLabel || label.name == Config.kRevertOfLabel);
+
+    // Check for revert label first.
     if (hasRevertLabel) {
-      log.info('Found pull request with revert label.');
-      await pubsub.publish(config.pubsubRevertRequestTopic, pullRequest);
+      log.info('Found pull request with the revert label.');
+      await pubsub.publish(
+        config.pubsubRevertRequestTopic,
+        GithubPullRequestEvent(
+          pullRequest: pullRequest,
+          action: action,
+          sender: sender,
+        ),
+      );
     } else if (hasAutosubmit) {
       log.info('Found pull request with autosubmit label.');
       await pubsub.publish(config.pubsubPullRequestTopic, pullRequest);

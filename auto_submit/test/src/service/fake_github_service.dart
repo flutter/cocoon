@@ -239,61 +239,11 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<bool> comparePullRequests(RepositorySlug repositorySlug, PullRequest revert, PullRequest current) async {
-    if (skipRealCompare) {
-      return compareReturnValue;
-    }
-
-    final List<PullRequestFile> revertPullRequestFiles = await getPullRequestFiles(repositorySlug, revert);
-    final List<PullRequestFile> currentPullRequestFiles = await getPullRequestFiles(repositorySlug, current);
-
-    return validateFileSetsAreEqual(revertPullRequestFiles, currentPullRequestFiles);
-  }
-
-  @override
-  bool validateFileSetsAreEqual(
-    List<PullRequestFile> changeList1,
-    List<PullRequestFile> changeList2,
-  ) {
-    if (changeList1.length != changeList2.length) {
-      return false;
-    }
-
-    final List<String?> revertFileNames = [];
-    final List<String?> currentFileNames = [];
-
-    for (PullRequestFile element in changeList1) {
-      revertFileNames.add(element.filename);
-    }
-    for (PullRequestFile element in changeList2) {
-      currentFileNames.add(element.filename);
-    }
-
-    // At this point we know the file lists have the same amount of files but not the same files.
-    if (!revertFileNames.toSet().containsAll(currentFileNames) ||
-        !currentFileNames.toSet().containsAll(revertFileNames)) {
-      return false;
-    }
-
-    // At this point all the files are the same so we can iterate over one list to
-    // compare changes.
-    for (PullRequestFile pullRequestFile in changeList1) {
-      final PullRequestFile pullRequestFileChangeList2 =
-          changeList2.firstWhere((element) => element.filename == pullRequestFile.filename);
-      if (pullRequestFile.changesCount != pullRequestFileChangeList2.changesCount ||
-          pullRequestFile.additionsCount != pullRequestFileChangeList2.deletionsCount ||
-          pullRequestFile.deletionsCount != pullRequestFileChangeList2.additionsCount) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  @override
   Future<Issue> getIssue({required RepositorySlug slug, required int issueNumber}) async {
     return githubIssueMock!;
   }
+
+  bool throwExceptionOnMerge = false;
 
   /// If useMergeRequestMockList is true then we will return elements from that
   /// list until it is empty.
@@ -308,6 +258,9 @@ class FakeGithubService implements GithubService {
     MergeMethod? mergeMethod,
     String? requestSha,
   }) async {
+    if (throwExceptionOnMerge) {
+      throw Exception('Exception occurred during merging of pull request.');
+    }
     verifyPullRequestMergeCallMap[number] = slug;
     if (useMergeRequestMockList) {
       return pullRequestMergeMockList.removeAt(0);
@@ -368,5 +321,70 @@ class FakeGithubService implements GithubService {
       return false;
     }
     return isTeamMemberMockMap[user]!;
+  }
+
+  @override
+  Future<PullRequest> createPullRequest({
+    required RepositorySlug slug,
+    String? title,
+    String? head,
+    required String base,
+    bool draft = false,
+    String? body,
+  }) {
+    // TODO: implement createPullRequest
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<PullRequest>> listPullRequests(
+    RepositorySlug slug, {
+    int? pages,
+    String? base,
+    String direction = 'desc',
+    String? head,
+    String sort = 'created',
+    String state = 'open',
+  }) {
+    // TODO: implement listPullRequests
+    throw UnimplementedError();
+  }
+
+  String? branchMockData;
+
+  set branchMock(String data) => branchMock = data;
+
+  @override
+  Future<Branch> getBranch(RepositorySlug slug, String branchName) async {
+    return Branch.fromJson(json.decode(branchMockData!));
+  }
+
+  bool addReviewersToPullRequestMock = true;
+
+  @override
+  Future<bool> addReviewersToPullRequest(
+    RepositorySlug slug,
+    int pullRequestNumber,
+    List<String> reviewerLogins,
+  ) async {
+    return addReviewersToPullRequestMock;
+  }
+
+  bool addAssigneeMock = true;
+
+  @override
+  Future<bool> addAssignee(
+    RepositorySlug slug,
+    int number,
+    List<String> assignees,
+  ) async {
+    return addAssigneeMock;
+  }
+
+  bool deleteBranchMock = true;
+
+  @override
+  Future<bool> deleteBranch(RepositorySlug slug, String branchName) async {
+    return deleteBranchMock;
   }
 }
