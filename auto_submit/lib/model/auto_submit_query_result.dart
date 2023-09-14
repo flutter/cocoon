@@ -146,6 +146,7 @@ class PullRequest {
     this.reviews,
     this.commits,
     this.mergeable,
+    this.number,
   });
   final Author? author;
   @JsonKey(name: 'authorAssociation')
@@ -155,6 +156,7 @@ class PullRequest {
   final String? body;
   final Reviews? reviews;
   final Commits? commits;
+  final int? number;
   // https://docs.github.com/en/graphql/reference/enums#mergeablestate
   final MergeableState? mergeable;
 
