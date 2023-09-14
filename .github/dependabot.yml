@@ -31,7 +31,7 @@ updates:
     labels:
       - "autosubmit"
   - package-ecosystem: "pub"
-    directory: "/cipd_packaages/codesign"
+    directory: "/cipd_packages/codesign"
     schedule:
       interval: "daily"
     labels:
