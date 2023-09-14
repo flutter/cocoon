@@ -19,4 +19,4 @@ dependencies:
   logging: 1.2.0
   meta: 1.9.1
   platform: 3.1.0
-  process: 4.2.4
+  process: 5.0.0
