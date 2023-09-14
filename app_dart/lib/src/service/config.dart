@@ -61,9 +61,6 @@ class Config {
         packagesSlug,
       };
 
-  /// List of Cirrus supported repos.
-  static Set<String> cirrusSupportedRepos = <String>{'packages', 'flutter'};
-
   /// GitHub repositories that use CI status to determine if pull requests can be submitted.
   static Set<gh.RepositorySlug> reposWithTreeStatus = <gh.RepositorySlug>{
     engineSlug,
@@ -81,6 +78,18 @@ class Config {
     };
 
     return defaultBranches[slug] ?? kDefaultBranchName;
+  }
+
+  // GoB retry options
+  RetryOptions _gobRetryOptions = const RetryOptions(
+    maxAttempts: 4,
+    delayFactor: Duration(seconds: 30),
+  );
+
+  RetryOptions get getGobRetryOptions => _gobRetryOptions;
+
+  set setGobRetryOptions(RetryOptions retryOptions) {
+    _gobRetryOptions = retryOptions;
   }
 
   /// Memorystore subcache name to store [CocoonConfig] values in.
@@ -220,9 +229,9 @@ class Config {
       'request may not have tests. Please make sure to add tests before merging. '
       'If you need '
       '[an exemption](https://github.com/flutter/flutter/wiki/Tree-hygiene#tests) '
-      'to this rule, contact Hixie on the #hackers '
+      'to this rule, contact Hixie or stuartmorgan on the #hackers '
       'channel in [Chat](https://github.com/flutter/flutter/wiki/Chat) '
-      '(don\'t just cc him here, he won\'t see it! *He\'s on Discord!*).'
+      '(don\'t just cc them here, they won\'t see it! Use Discord!).'
       '\n\n'
       'If you are not sure if you need tests, consider this rule of thumb: '
       'the purpose of a test is to make sure someone doesn\'t accidentally '
@@ -405,17 +414,6 @@ class Config {
     return GraphQLClient(
       cache: GraphQLCache(),
       link: authLink.concat(httpLink),
-    );
-  }
-
-  Future<GraphQLClient> createCirrusGraphQLClient() async {
-    final HttpLink httpLink = HttpLink(
-      'https://api.cirrus-ci.com/graphql',
-    );
-
-    return GraphQLClient(
-      cache: GraphQLCache(),
-      link: httpLink,
     );
   }
 

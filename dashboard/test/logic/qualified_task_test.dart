@@ -20,15 +20,6 @@ void main() {
     );
   });
 
-  test('QualifiedTask.sourceConfigurationUrl for cirrus', () {
-    final Task cirrusTask = Task()..stageName = 'cirrus';
-
-    expect(
-      QualifiedTask.fromTask(cirrusTask).sourceConfigurationUrl,
-      'https://cirrus-ci.com/github/flutter/flutter/master',
-    );
-  });
-
   test('QualifiedTask.sourceConfigurationUrl for google test', () {
     final Task googleTestTask = Task()..stageName = 'google_internal';
 
@@ -48,7 +39,6 @@ void main() {
     expect(const QualifiedTask(stage: 'luci', task: 'abc').isLuci, true);
     expect(const QualifiedTask(stage: 'chromebot', task: 'abc').isLuci, true);
     expect(const QualifiedTask(stage: 'cocoon', task: 'abc').isLuci, true);
-    expect(const QualifiedTask(stage: 'cirrus', task: 'abc').isLuci, false);
     expect(const QualifiedTask(stage: 'google_internal', task: 'abc').isLuci, false);
   });
 }

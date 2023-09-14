@@ -14,6 +14,7 @@ import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart' as gh;
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
+import 'package:retry/retry.dart';
 
 import '../request_handling/fake_authentication.dart';
 import '../service/fake_github_service.dart';
@@ -40,7 +41,6 @@ class FakeConfig implements Config {
     this.githubService,
     this.bigqueryService,
     this.githubGraphQLClient,
-    this.cirrusGraphQLClient,
     this.rollerAccountsValue,
     this.flutterBuildValue,
     this.flutterBuildDescriptionValue,
@@ -66,7 +66,6 @@ class FakeConfig implements Config {
 
   gh.GitHub? githubClient;
   GraphQLClient? githubGraphQLClient;
-  GraphQLClient? cirrusGraphQLClient;
   TabledataResource? tabledataResource;
   BigqueryService? bigqueryService;
   GithubService? githubService;
@@ -107,6 +106,12 @@ class FakeConfig implements Config {
   Set<gh.RepositorySlug>? postsubmitSupportedReposValue;
   Duration? githubRequestDelayValue;
 
+  // GoB retry options
+  RetryOptions _gobRetryOptions = const RetryOptions(
+    maxAttempts: 1,
+    delayFactor: Duration(seconds: 0),
+  );
+
   @override
   Future<gh.GitHub> createGitHubClient({gh.PullRequest? pullRequest, gh.RepositorySlug? slug}) async => githubClient!;
 
@@ -115,9 +120,6 @@ class FakeConfig implements Config {
 
   @override
   Future<GraphQLClient> createGitHubGraphQLClient() async => githubGraphQLClient!;
-
-  @override
-  Future<GraphQLClient> createCirrusGraphQLClient() async => cirrusGraphQLClient!;
 
   @override
   Future<TabledataResource> createTabledataResourceApi() async => tabledataResource!;
@@ -298,5 +300,13 @@ class FakeConfig implements Config {
         ),
       ),
     );
+  }
+
+  @override
+  RetryOptions get getGobRetryOptions => _gobRetryOptions;
+
+  @override
+  set setGobRetryOptions(RetryOptions retryOptions) {
+    _gobRetryOptions = retryOptions;
   }
 }

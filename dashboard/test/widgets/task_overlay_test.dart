@@ -306,7 +306,7 @@ void main() {
             body: TestGrid(
               buildState: buildState,
               task: Task()
-                ..stageName = 'cirrus'
+                ..stageName = 'luci'
                 ..status = TaskBox.statusSucceeded,
             ),
           ),

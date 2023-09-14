@@ -42,7 +42,11 @@ targets:
 # presubmit: Whether to run this target on presubmit (defaults to true).
 # postsubmit: Whether to run this target on postsubmit (defaults to true).
 # run_if: List of path regexes that can trigger this target on presubmit.
-#         If none are passed, will always run in presubmit.
+#         If none are passed, it will evaluare run_if_not. If both are empty the target
+#         will always run in presubmit.
+# run_if_not: List of path regexes used to filter out presubmit targets. The target will
+#         be run only if the files changed do not match any paths in this list. If run_if
+#         is provided and not empty run_if_not will be ignored.
 # enabled_branches: List of strings of branches this target can run on.
 #                   This overrides the global enabled_branches.
 # properties: A map of string, string. Values are parsed to their closest data model.
@@ -173,6 +177,15 @@ timeout.
 Example
 ``` yaml
 test_timeout_secs: "2700"
+```
+
+**presubmit_max_attempts** The max attempts the target will be auto executed in presubmit. If it is
+not specified, the default value is `1` and it means no auto rerun will happen. If explicitly defined,
+it controls the max number of attempts. For example: `3` means it will be auto rescheduled two more times.
+
+Example
+``` yaml
+presubmit_max_attempts: "3"
 ```
 
 ### Updating targets

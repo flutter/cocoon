@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
@@ -33,7 +34,7 @@ Set<RepositorySlug> kNeedsTests = <RepositorySlug>{
   Config.packagesSlug,
 };
 
-final RegExp kEngineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc|sh)$');
+final RegExp kEngineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc|sh|py)$');
 
 // Extentions for files that use // for single line comments.
 // See [_allChangesAreCodeComments] for more.
@@ -70,6 +71,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     required super.config,
     required this.scheduler,
     required this.gerritService,
+    required this.commitService,
     this.githubChecksService,
     this.datastoreProvider = DatastoreService.defaultProvider,
     super.authProvider,
@@ -80,6 +82,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
   /// To verify whether a commit was mirrored to GoB.
   final GerritService gerritService;
+
+  /// Used to handle push events and create commits based on those events.
+  final CommitService commitService;
 
   /// To provide build status updates to GitHub pull requests.
   final GithubChecksService? githubChecksService;
@@ -106,6 +111,16 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
         if (await scheduler.processCheckRun(checkRunEvent) == false) {
           throw InternalServerError('Failed to process check_run event. checkRunEvent: $checkRunEvent');
+        }
+        break;
+      case 'push':
+        final PushEvent pushEvent = PushEvent.fromJson(json.decode(webhook.payload) as Map<String, dynamic>);
+        final String branch = pushEvent.ref!.split('/')[2]; // Eg: refs/heads/beta would return beta.
+        final String repository = pushEvent.repository!.name;
+        // If the branch is beta/stable, then a commit wasn't created through a PR,
+        // meaning the commit needs to be added to the datastore here instead.
+        if (repository == 'flutter' && (branch == 'stable' || branch == 'beta')) {
+          await commitService.handlePushGithubRequest(pushEvent);
         }
         break;
     }
@@ -193,7 +208,16 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   Future<bool> _commitExistsInGob(PullRequest pr) async {
     final RepositorySlug slug = pr.base!.repo!.slug();
     final String sha = pr.mergeCommitSha!;
-    final GerritCommit? gobCommit = await gerritService.findMirroredCommit(slug, sha);
+    GerritCommit? gobCommit;
+    await config.getGobRetryOptions.retry(
+      () async {
+        gobCommit = await gerritService.findMirroredCommit(slug, sha);
+        if (gobCommit == null) {
+          throw InternalServerError('$sha was not found on GoB. Failing so this event can be retried...');
+        }
+      },
+      retryIf: (e) => e is InternalServerError,
+    );
     return gobCommit != null;
   }
 
@@ -343,7 +367,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   /// requirement, across repositories.
   bool _isTestExempt(String filename) {
     return filename.contains('.ci.yaml') ||
-        filename.contains('.cirrus.yml') ||
         filename.contains('analysis_options.yaml') ||
         filename.contains('AUTHORS') ||
         filename.contains('CODEOWNERS') ||

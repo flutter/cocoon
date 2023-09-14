@@ -139,13 +139,9 @@ void main() {
       });
       final List<Map<String, String>> result =
           await branchService.getReleaseBranches(githubService: githubService, slug: Config.flutterSlug);
-      expect(result.length, 3);
-      expect(result[0]['branch'], stableBranch.name);
-      expect(result[0]['name'], "stable");
-      expect(result[1]['branch'], betaBranch.name);
-      expect(result[1]['name'], "beta");
-      expect(result[2]['branch'], candidateBranch.name);
-      expect(result[2]['name'], "latestCandidateBranch");
+      expect(result.length, 4);
+      expect(result[1]['branch'], 'flutter-2.13-candidate.0');
+      expect(result[1]['name'], 'stable');
     });
   });
 

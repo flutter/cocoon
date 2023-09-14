@@ -26,14 +26,12 @@ void main() {
       final List<Stage> stages = <Stage>[
         buildStage(name: 'devicelab'),
         buildStage(name: 'unknown'),
-        buildStage(name: 'cirrus'),
       ];
       stages.sort();
-      expect(stages.map<String?>((Stage stage) => stage.name), <String>['cirrus', 'devicelab', 'unknown']);
+      expect(stages.map<String?>((Stage stage) => stage.name), <String>['devicelab', 'unknown']);
     });
 
     test('isManagedByDeviceLab', () {
-      expect(buildStage(name: 'cirrus').isManagedByDeviceLab, isFalse);
       expect(buildStage(name: 'devicelab').isManagedByDeviceLab, isTrue);
       expect(buildStage(name: 'unknown').isManagedByDeviceLab, isFalse);
     });

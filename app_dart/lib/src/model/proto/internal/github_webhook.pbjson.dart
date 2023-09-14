@@ -10,11 +10,11 @@ import 'dart:convert' as $convert;
 import 'dart:typed_data' as $typed_data;
 
 @$core.Deprecated('Use githubWebhookMessageDescriptor instead')
-const GithubWebhookMessage$json = {
+const GithubWebhookMessage$json = const {
   '1': 'GithubWebhookMessage',
-  '2': [
-    {'1': 'event', '3': 1, '4': 1, '5': 9, '10': 'event'},
-    {'1': 'payload', '3': 2, '4': 1, '5': 9, '10': 'payload'},
+  '2': const [
+    const {'1': 'event', '3': 1, '4': 1, '5': 9, '10': 'event'},
+    const {'1': 'payload', '3': 2, '4': 1, '5': 9, '10': 'payload'},
   ],
 };
 

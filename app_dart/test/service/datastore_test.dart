@@ -204,7 +204,7 @@ void main() {
         await runTransactionWithRetries(
           () async {
             counter.increase();
-            throw GrpcError.aborted();
+            throw const GrpcError.aborted();
           },
           retryOptions: retryOptions,
         );

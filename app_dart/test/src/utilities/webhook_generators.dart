@@ -14,7 +14,7 @@ PushMessage generateGithubWebhookMessage({
   String event = 'pull_request',
   String action = 'merged',
   int number = 123,
-  String baseRef = kDefaultBranchName,
+  String? baseRef,
   String baseSha = '4cd12fc8b7d4cc2d8609182e1c4dea5cddc86890',
   String login = 'dash',
   String headRef = 'abc',
@@ -46,7 +46,7 @@ PushMessage generateGithubWebhookMessage({
 String _generatePullRequestEvent(
   String action,
   int number,
-  String baseRef, {
+  String? baseRef, {
   RepositorySlug? slug,
   String login = 'flutter',
   String baseSha = '4cd12fc8b7d4cc2d8609182e1c4dea5cddc86890',
@@ -58,6 +58,7 @@ String _generatePullRequestEvent(
   String mergeCommitSha = 'fd6b46416c18de36ce87d0241994b2da180cab4c',
 }) {
   slug ??= Config.flutterSlug;
+  baseRef ??= Config.defaultBranch(slug);
   return '''{
   "action": "$action",
   "number": $number,
@@ -1023,4 +1024,51 @@ CreateEvent generateCreateBranchEvent(String branchName, String repository, {boo
     "site_admin": false
   }
 }''') as Map<String, dynamic>,
+    );
+
+PushMessage generatePushMessage(String branch, String organization, String repository) {
+  final PushEvent event = generatePushEvent(branch, organization, repository);
+  final pb.GithubWebhookMessage message = pb.GithubWebhookMessage(event: 'push', payload: jsonEncode(event));
+  return PushMessage(data: message.writeToJson(), messageId: 'abc123');
+}
+
+PushEvent generatePushEvent(
+  String branch,
+  String organization,
+  String repository, {
+  String sha = "def456def456def456",
+  String message = "Commit-message",
+  String avatarUrl = "https://fakegithubcontent.com/google_profile",
+  String username = "googledotcom",
+}) =>
+    PushEvent.fromJson(
+      jsonDecode('''
+{
+  "ref": "refs/heads/$branch",
+  "before": "abc123abc123abc123",
+  "after": "$sha",
+  "sender": {
+    "login": "$username",
+    "avatar_url": "$avatarUrl"
+  },
+  "commits": [
+    {
+      "id": "ba2f6608108d174c4a6e6e093a4ddcf313656748",
+      "message": "Adding null safety",
+      "timestamp": "2023-09-05T15:01:04-05:00",
+      "url": "https://github.com/org/repo/commit/abc123abc123abc123"
+    }
+  ],
+  "head_commit": {
+    "id": "$sha",
+    "message": "$message",
+    "timestamp": "2023-09-05T15:01:04-05:00",
+    "url": "https://github.com/org/repo/commit/abc123abc123abc123"
+  },
+  "repository": {
+    "name": "$repository",
+    "full_name": "$organization/$repository"
+  }
+}
+'''),
     );

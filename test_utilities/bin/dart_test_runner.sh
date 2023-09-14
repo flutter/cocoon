@@ -6,37 +6,33 @@
 # Runner for dart tests. It expects a single parameter with the full
 # path to the start folder where tests will be run.
 
-set -ex
+set -e
 
 # Build and analyze
-echo "Running tests from $1"
+echo "###### dart_test_runner #######"
+echo "Directory: $1"
 pushd "$1" > /dev/null
 flutter clean
 dart pub get
 
 # TODO(drewroengoogle): Validate proto code has been generated. https://github.com/flutter/flutter/issues/115473
 
-echo "############# files that require formatting ###########"
+echo "######### dart format #########"
 dart format --set-exit-if-changed --line-length=120 .
-echo "#######################################################"
 
-echo "############# analyze ###########"
+echo "########### analyze ###########"
 dart analyze --fatal-infos
-echo "#######################################################"
-
 
 # agent doesn't use build_runner as of this writing.
 if grep -lq "build_runner" pubspec.yaml; then
   echo "############# build ###########"
   dart run build_runner build --delete-conflicting-outputs
-  echo "###############################"
 fi
 
 # Only try tests if test folder exist.
 if [ -d 'test' ]; then
-  echo "############# tests ###########"
+  echo "############ tests ############"
   dart test --test-randomize-ordering-seed=random --reporter expanded
-  echo "###############################"
 fi
 
 INTEGRATION_TEST_DIR="$PWD/integration_test/"
@@ -44,7 +40,8 @@ INTEGRATION_TEST_DIR="$PWD/integration_test/"
 if [ -d "$INTEGRATION_TEST_DIR" ]; then
   echo "###### integration tests ######"
   dart test --test-randomize-ordering-seed=random --reporter expanded "$INTEGRATION_TEST_DIR"
-  echo "###############################"
 fi
+
+echo "###############################"
 
 popd > /dev/null

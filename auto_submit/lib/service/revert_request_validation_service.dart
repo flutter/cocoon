@@ -39,6 +39,7 @@ class RevertRequestValidationService extends ValidationService {
 
   /// TODO run the actual request from here and remove the shouldProcess call.
   /// Processes a pub/sub message associated with PullRequest event.
+<<<<<<< HEAD
   Future<void> processMessage(GithubPullRequestEvent githubPullRequestEvent, String ackId, PubSub pubsub) async {
     // Make sure the pull request still contains the labels.
     final github.PullRequest messagePullRequest = githubPullRequestEvent.pullRequest!;
@@ -75,6 +76,20 @@ class RevertRequestValidationService extends ValidationService {
           log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
           await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
           break;
+=======
+  Future<void> processMessage(github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
+    if (await shouldProcess(messagePullRequest)) {
+      await processRevertRequest(
+        config: config,
+        result: await getNewestPullRequestInfo(config, messagePullRequest),
+        messagePullRequest: messagePullRequest,
+        ackId: ackId,
+        pubsub: pubsub,
+      );
+    } else {
+      log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
+      await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
+>>>>>>> main
     }
   }
 

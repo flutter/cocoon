@@ -7,6 +7,8 @@ import 'dart:math';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/request_handlers/github/branch_subscription.dart';
+import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:gcloud/db.dart';
 
 /// For local development, you might want to set this to true.
@@ -55,6 +57,8 @@ Future<void> main() async {
       gerritService: gerritService,
     );
 
+    final CommitService commitService = CommitService(config: config);
+
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/check_flaky_builders': CheckFlakyBuilders(
         config: config,
@@ -93,6 +97,13 @@ Future<void> main() async {
         gerritService: gerritService,
         githubChecksService: githubChecksService,
         scheduler: scheduler,
+        commitService: commitService,
+      ),
+      '/api/github/webhook-branch-subscription': GithubBranchWebhookSubscription(
+        config: config,
+        cache: cache,
+        branchService: branchService,
+        commitService: commitService,
       ),
 
       /// API to run authenticated graphql queries. It requires to pass the graphql query as the body
@@ -107,6 +118,7 @@ Future<void> main() async {
         buildBucketClient: buildBucketClient,
         luciBuildService: luciBuildService,
         githubChecksService: githubChecksService,
+        scheduler: scheduler,
       ),
       '/api/postsubmit-luci-subscription': PostsubmitLuciSubscription(
         cache: cache,

@@ -122,7 +122,7 @@ void main() {
       expect(builds.first, linuxBuild);
     });
 
-    test('Existing try build', () async {
+    test('Existing try build by pull request', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return BatchResponse(
           responses: <Response>[
@@ -333,6 +333,68 @@ void main() {
         'git_url': 'https://github.com/flutter/flutter',
         'git_ref': 'refs/pull/123/head',
         'exe_cipd_version': 'refs/heads/main',
+      });
+      expect(dimensions.length, 1);
+      expect(dimensions[0].key, 'os');
+      expect(dimensions[0].value, 'abc');
+    });
+
+    test('schedule try builds with github build labels successfully', () async {
+      final issueLabels = [
+        IssueLabel(name: '${LuciBuildService.githubBuildLabelPrefix}hello'),
+        IssueLabel(name: '${LuciBuildService.githubBuildLabelPrefix}world'),
+      ];
+      final PullRequest pullRequest = generatePullRequest(labels: issueLabels);
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return BatchResponse(
+          responses: <Response>[
+            Response(
+              scheduleBuild: generateBuild(1),
+            ),
+          ],
+        );
+      });
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+      final List<Target> scheduledTargets = await service.scheduleTryBuilds(
+        pullRequest: pullRequest,
+        targets: targets,
+      );
+      final Iterable<String> scheduledTargetNames = scheduledTargets.map((Target target) => target.value.name);
+      expect(scheduledTargetNames, <String>['Linux 1']);
+      final BatchRequest batchRequest = pubsub.messages.single as BatchRequest;
+      expect(batchRequest.requests!.single.scheduleBuild, isNotNull);
+
+      final ScheduleBuildRequest scheduleBuild = batchRequest.requests!.single.scheduleBuild!;
+      expect(scheduleBuild.builderId.bucket, 'try');
+      expect(scheduleBuild.builderId.builder, 'Linux 1');
+      expect(scheduleBuild.notify?.pubsubTopic, 'projects/flutter-dashboard/topics/luci-builds');
+      final Map<String, dynamic> userData =
+          jsonDecode(String.fromCharCodes(base64Decode(scheduleBuild.notify!.userData!))) as Map<String, dynamic>;
+      expect(userData, <String, dynamic>{
+        'repo_owner': 'flutter',
+        'repo_name': 'flutter',
+        'user_agent': 'flutter-cocoon',
+        'check_run_id': 1,
+        'commit_sha': 'abc',
+        'commit_branch': 'master',
+        'builder_name': 'Linux 1',
+      });
+
+      final Map<String, dynamic> properties = scheduleBuild.properties!;
+      final List<RequestedDimension> dimensions = scheduleBuild.dimensions!;
+      expect(properties, <String, dynamic>{
+        'os': 'abc',
+        'dependencies': <dynamic>[],
+        'bringup': false,
+        'git_branch': 'master',
+        'git_url': 'https://github.com/flutter/flutter',
+        'git_ref': 'refs/pull/123/head',
+        'exe_cipd_version': 'refs/heads/main',
+        LuciBuildService.propertiesGithubBuildLabelName: [
+          '${LuciBuildService.githubBuildLabelPrefix}hello',
+          '${LuciBuildService.githubBuildLabelPrefix}world',
+        ],
       });
       expect(dimensions.length, 1);
       expect(dimensions[0].key, 'os');
@@ -634,6 +696,76 @@ void main() {
     });
   });
 
+  group('schedulePresubmitBuilds', () {
+    setUp(() {
+      cache = CacheService(inMemory: true);
+      mockBuildBucketClient = MockBuildBucketClient();
+      pubsub = FakePubSub();
+      service = LuciBuildService(
+        config: FakeConfig(),
+        cache: cache,
+        buildBucketClient: mockBuildBucketClient,
+        githubChecksUtil: mockGithubChecksUtil,
+        pubsub: pubsub,
+      );
+    });
+    test('reschedule using checkrun event', () async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return BatchResponse(
+          responses: <Response>[
+            Response(
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[
+                  generateBuild(
+                    1,
+                    name: 'Linux',
+                    status: Status.ended,
+                    tags: {
+                      'buildset': <String>['pr/git/123'],
+                      'cipd_version': <String>['refs/heads/main'],
+                    },
+                    input: const Input(properties: {'test': 'abc'}),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      });
+      when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1));
+
+      final pushMessage = generateCheckRunEvent(action: 'created', numberOfPullRequests: 1);
+      final Map<String, dynamic> jsonMap = json.decode(pushMessage.data!);
+      final Map<String, dynamic> jsonSubMap = json.decode(jsonMap['2']);
+      final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
+
+      await service.reschedulePresubmitBuildUsingCheckRunEvent(
+        checkRunEvent,
+      );
+      final List<dynamic> captured = verify(
+        mockBuildBucketClient.scheduleBuild(
+          captureAny,
+        ),
+      ).captured;
+      expect(captured.length, 1);
+      final ScheduleBuildRequest scheduleBuildRequest = captured[0] as ScheduleBuildRequest;
+      final Map<String, dynamic> userData =
+          jsonDecode(String.fromCharCodes(base64Decode(scheduleBuildRequest.notify!.userData!)))
+              as Map<String, dynamic>;
+      expect(userData, <String, dynamic>{
+        'check_run_id': 1,
+        'commit_branch': 'main',
+        'commit_sha': 'ec26c3e57ca3a959ca5aad62de7213c562f8c821',
+        'repo_owner': 'flutter',
+        'repo_name': 'flutter',
+        'user_agent': 'flutter-cocoon',
+      });
+    });
+  });
+
   group('cancelBuilds', () {
     setUp(() {
       cache = CacheService(inMemory: true);
@@ -758,13 +890,20 @@ void main() {
     test('Reschedule an existing build', () async {
       when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1));
       final build = await service.rescheduleBuild(
-        commitSha: 'abc',
         builderName: 'mybuild',
         buildPushMessage: buildPushMessage,
+        rescheduleAttempt: 2,
       );
       expect(build.id, '1');
       expect(build.status, Status.success);
-      verify(mockBuildBucketClient.scheduleBuild(any)).called(1);
+      final List<dynamic> captured = verify(mockBuildBucketClient.scheduleBuild(captureAny)).captured;
+      expect(captured.length, 1);
+      final ScheduleBuildRequest scheduleBuildRequest = captured[0] as ScheduleBuildRequest;
+      // This is to validate `scheduleBuildRequest` can be json.encoded correctly.
+      // It complains when some non-String typed data exists.
+      expect(json.encode(scheduleBuildRequest), isNotNull);
+      expect(scheduleBuildRequest.tags!.containsKey('current_attempt'), true);
+      expect(scheduleBuildRequest.tags!['current_attempt'], <String>['2']);
     });
   });
 

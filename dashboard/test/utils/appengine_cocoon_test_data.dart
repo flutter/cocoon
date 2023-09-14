@@ -58,22 +58,23 @@ const String luciJsonGetStatsResponse = '''
 ''';
 
 const String jsonGetBranchesResponse = '''[
-      {
-         "id":"ahFmbHV0dGVyLWRhc2hib2FyZHIuCxIGQnJhbmNoIiJmbHV0dGVyL2ZsdXR0ZXIvYnJhbmNoLWNyZWF0ZWQtb2xkDKIBCVtkZWZhdWx0XQ",
-         "branch":{
-            "branch":"branch-framework-release",
-            "repository":"flutter/flutter"
-         }
-      },
-     {
-        "id":"ahFmbHV0dGVyLWRhc2hib2FyZHIuCxIGQnJhbmNoIiJmbHV0dGVyL2ZsdXR0ZXIvYnJhbmNoLWNyZWF0ZWQtbm93DKIBCVtkZWZhdWx0XQ",
-        "branch":{
-           "branch":"branch-engine-release",
-           "repository":"flutter/engine"
-        }
-     }
-]
-''';
+  {
+    "branch":"flutter-3.13-candidate.0",
+    "name":"stable"
+  },
+  {
+    "branch":"flutter-3.14-candidate.0",
+    "name":"beta"
+  },
+  {
+    "branch":"flutter-3.15-candidate.5",
+    "name":"dev"
+  },
+  {
+    "branch":"master",
+    "name":"HEAD"
+  }
+]''';
 
 const String jsonGetReposResponse = '''
   [

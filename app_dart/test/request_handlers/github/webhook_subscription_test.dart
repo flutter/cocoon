@@ -35,6 +35,7 @@ void main() {
   late FakeHttpRequest request;
   late FakeScheduler scheduler;
   late FakeGerritService gerritService;
+  late MockCommitService commitService;
   late MockGitHub gitHubClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late MockGithubChecksService mockGithubChecksService;
@@ -53,6 +54,7 @@ void main() {
     db = FakeDatastoreDB();
     gitHubClient = MockGitHub();
     githubService = FakeGithubService();
+    commitService = MockCommitService();
     final MockTabledataResource tabledataResource = MockTabledataResource();
     when(tabledataResource.insertAll(any, any, any, any)).thenAnswer((_) async => TableDataInsertAllResponse());
     config = FakeConfig(
@@ -110,6 +112,7 @@ void main() {
       gerritService: gerritService,
       githubChecksService: mockGithubChecksService,
       scheduler: scheduler,
+      commitService: commitService,
     );
   });
 
@@ -978,7 +981,7 @@ void main() {
       );
     });
 
-    test('Framework no comment if only ci.yaml and cirrus.yml changed', () async {
+    test('Framework no comment if only ci.yamlchanged', () async {
       const int issueNumber = 123;
 
       tester.message = generateGithubWebhookMessage(
@@ -990,7 +993,6 @@ void main() {
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = '.ci.yaml',
-          PullRequestFile()..filename = '.cirrus.yml',
         ]),
       );
 
@@ -1466,6 +1468,41 @@ void foo() {
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'fml/blah.cc',
           PullRequestFile()..filename = 'fml/blah_unittests.cc',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.addLabelsToIssue(
+          Config.engineSlug,
+          issueNumber,
+          any,
+        ),
+      );
+
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+    });
+
+    test('Engine labels PRs, no comment if py tests', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.engineSlug,
+      );
+
+      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'tools/font-subset/main.cc',
+          PullRequestFile()..filename = 'tools/font-subset/test.py',
         ]),
       );
 
@@ -2219,6 +2256,40 @@ void foo() {
       );
 
       await tester.post(webhook);
+    });
+  });
+
+  group('github webhook push event', () {
+    test('handles push events for flutter/flutter beta branch', () async {
+      tester.message = generatePushMessage('beta', 'flutter', 'flutter');
+
+      await tester.post(webhook);
+
+      verify(commitService.handlePushGithubRequest(any)).called(1);
+    });
+
+    test('handles push events for flutter/flutter stable branch', () async {
+      tester.message = generatePushMessage('stable', 'flutter', 'flutter');
+
+      await tester.post(webhook);
+
+      verify(commitService.handlePushGithubRequest(any)).called(1);
+    });
+
+    test('does not handle push events for branches that are not beta|stable', () async {
+      tester.message = generatePushMessage('main', 'flutter', 'flutter');
+
+      await tester.post(webhook);
+
+      verifyNever(commitService.handlePushGithubRequest(any)).called(0);
+    });
+
+    test('does not handle push events for repositories that are not flutter/flutter', () async {
+      tester.message = generatePushMessage('beta', 'flutter', 'engine');
+
+      await tester.post(webhook);
+
+      verifyNever(commitService.handlePushGithubRequest(any)).called(0);
     });
   });
 }

@@ -234,20 +234,23 @@ void main() {
     test('data should be expected list of branches', () async {
       final CocoonResponse<List<Branch>> branches = await service.fetchFlutterBranches();
 
-      expect(branches.data!.length, 2);
+      expect(branches.error, isNull);
+      expect(branches.data!.length, 4);
       expect(
         branches.data,
-        allOf([
-          contains(
-            Branch()
-              ..repository = 'flutter'
-              ..branch = 'branch-framework-release',
-          ),
-          contains(
-            Branch()
-              ..repository = 'engine'
-              ..branch = 'branch-engine-release',
-          ),
+        containsAll([
+          Branch()
+            ..branch = 'flutter-3.13-candidate.0'
+            ..channel = 'stable',
+          Branch()
+            ..branch = 'flutter-3.14-candidate.0'
+            ..channel = 'beta',
+          Branch()
+            ..branch = 'flutter-3.15-candidate.5'
+            ..channel = 'dev',
+          Branch()
+            ..branch = 'master'
+            ..channel = 'HEAD',
         ]),
       );
     });

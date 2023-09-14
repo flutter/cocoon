@@ -151,6 +151,10 @@ class BranchService {
     );
     return <Map<String, String>>[
       {
+        "branch": Config.defaultBranch(slug),
+        "name": "HEAD",
+      },
+      {
         "branch": stableName,
         "name": "stable",
       },
@@ -160,8 +164,8 @@ class BranchService {
       },
       {
         "branch": latestCandidateBranch,
-        "name": "latestCandidateBranch",
-      }
+        "name": "dev",
+      },
     ];
   }
 
