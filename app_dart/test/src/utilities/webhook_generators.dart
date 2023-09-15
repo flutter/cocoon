@@ -1027,12 +1027,12 @@ CreateEvent generateCreateBranchEvent(String branchName, String repository, {boo
     );
 
 PushMessage generatePushMessage(String branch, String organization, String repository) {
-  final PushEvent event = generatePushEvent(branch, organization, repository);
+  final Map<String, dynamic> event = generatePushEvent(branch, organization, repository);
   final pb.GithubWebhookMessage message = pb.GithubWebhookMessage(event: 'push', payload: jsonEncode(event));
   return PushMessage(data: message.writeToJson(), messageId: 'abc123');
 }
 
-PushEvent generatePushEvent(
+Map<String, dynamic> generatePushEvent(
   String branch,
   String organization,
   String repository, {
@@ -1041,8 +1041,7 @@ PushEvent generatePushEvent(
   String avatarUrl = 'https://fakegithubcontent.com/google_profile',
   String username = 'googledotcom',
 }) =>
-    PushEvent.fromJson(
-      jsonDecode('''
+    jsonDecode('''
 {
   "ref": "refs/heads/$branch",
   "before": "abc123abc123abc123",
@@ -1070,5 +1069,4 @@ PushEvent generatePushEvent(
     "full_name": "$organization/$repository"
   }
 }
-'''),
-    );
+''');

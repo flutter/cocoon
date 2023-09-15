@@ -130,7 +130,7 @@ void main() {
     test('adds commit to db if it does not exist in the datastore', () async {
       expect(db.values.values.whereType<Commit>().length, 0);
 
-      final PushEvent pushEvent = generatePushEvent(
+      final Map<String, dynamic> pushEvent = generatePushEvent(
         branch,
         owner,
         repository,
@@ -165,7 +165,7 @@ void main() {
       await config.db.commit(inserts: datastoreCommit);
       expect(db.values.values.whereType<Commit>().length, 1);
 
-      final PushEvent pushEvent = generatePushEvent(
+      final Map<String, dynamic> pushEvent = generatePushEvent(
         branch,
         owner,
         repository,
