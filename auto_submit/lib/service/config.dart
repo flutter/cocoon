@@ -47,7 +47,20 @@ class Config {
 
   /// Labels autosubmit looks for on pull requests
   static const String kAutosubmitLabel = 'autosubmit';
+
+  // Labels the bot looks for on revert requests. 
+  // TODO (ricardoamador) https://github.com/flutter/flutter/issues/134845: 
+  // add a link to a one page doc outlining the workflow that happens here.
+
+  /// The `revert` label is used by developers to initiate the revert request.
+  /// This signals to the service that it should revert the changes in this pull
+  /// request.
   static const String kRevertLabel = 'revert';
+
+  /// The `revert of` label is used exclusively by the bot. The user does not
+  /// add this. When the bot successfully pushes the revert request to Github
+  /// it adds this label to signify that it should then validate and merge this
+  /// as a revert.
   static const String kRevertOfLabel = 'revert of';
 
   /// The label which shows the overrideTree    Status.
