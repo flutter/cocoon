@@ -105,7 +105,7 @@ class FakeGithubService implements GithubService {
     String ref,
   ) async {
     final rawBody = json.decode(checkRunsMock!) as Map<String, dynamic>;
-    final List<dynamic> checkRunsBody = rawBody["check_runs"]! as List<dynamic>;
+    final List<dynamic> checkRunsBody = rawBody['check_runs']! as List<dynamic>;
     final List<CheckRun> checkRuns = <CheckRun>[];
     if ((checkRunsBody[0] as Map<String, dynamic>).isNotEmpty) {
       checkRuns.addAll(
@@ -295,6 +295,8 @@ class FakeGithubService implements GithubService {
     return githubIssueMock!;
   }
 
+  bool throwExceptionOnMerge = false;
+
   /// If useMergeRequestMockList is true then we will return elements from that
   /// list until it is empty.
   ///
@@ -308,6 +310,9 @@ class FakeGithubService implements GithubService {
     MergeMethod? mergeMethod,
     String? requestSha,
   }) async {
+    if (throwExceptionOnMerge) {
+      throw Exception('Exception occurred during merging of pull request.');
+    }
     verifyPullRequestMergeCallMap[number] = slug;
     if (useMergeRequestMockList) {
       return pullRequestMergeMockList.removeAt(0);
@@ -368,5 +373,70 @@ class FakeGithubService implements GithubService {
       return false;
     }
     return isTeamMemberMockMap[user]!;
+  }
+
+  @override
+  Future<PullRequest> createPullRequest({
+    required RepositorySlug slug,
+    String? title,
+    String? head,
+    required String base,
+    bool draft = false,
+    String? body,
+  }) {
+    // TODO: implement createPullRequest
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<PullRequest>> listPullRequests(
+    RepositorySlug slug, {
+    int? pages,
+    String? base,
+    String direction = 'desc',
+    String? head,
+    String sort = 'created',
+    String state = 'open',
+  }) {
+    // TODO: implement listPullRequests
+    throw UnimplementedError();
+  }
+
+  String? branchMockData;
+
+  set branchMock(String data) => branchMock = data;
+
+  @override
+  Future<Branch> getBranch(RepositorySlug slug, String branchName) async {
+    return Branch.fromJson(json.decode(branchMockData!));
+  }
+
+  bool addReviewersToPullRequestMock = true;
+
+  @override
+  Future<bool> addReviewersToPullRequest(
+    RepositorySlug slug,
+    int pullRequestNumber,
+    List<String> reviewerLogins,
+  ) async {
+    return addReviewersToPullRequestMock;
+  }
+
+  bool addAssigneeMock = true;
+
+  @override
+  Future<bool> addAssignee(
+    RepositorySlug slug,
+    int number,
+    List<String> assignees,
+  ) async {
+    return addAssigneeMock;
+  }
+
+  bool deleteBranchMock = true;
+
+  @override
+  Future<bool> deleteBranch(RepositorySlug slug, String branchName) async {
+    return deleteBranchMock;
   }
 }

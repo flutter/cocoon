@@ -93,9 +93,59 @@ class GithubService {
     return github.issues.get(slug, issueNumber);
   }
 
+  /// Create a pull request.
+  Future<PullRequest> createPullRequest({
+    required RepositorySlug slug,
+    String? title,
+    String? head,
+    required String base,
+    bool draft = false,
+    String? body,
+  }) async {
+    final CreatePullRequest createPullRequest = CreatePullRequest(title, head, base, draft: draft, body: body);
+    return github.pullRequests.create(slug, createPullRequest);
+  }
+
   /// Fetches the specified pull request.
   Future<PullRequest> getPullRequest(RepositorySlug slug, int pullRequestNumber) async {
     return github.pullRequests.get(slug, pullRequestNumber);
+  }
+
+  Future<List<PullRequest>> listPullRequests(
+    RepositorySlug slug, {
+    int? pages,
+    String? base,
+    String direction = 'desc',
+    String? head,
+    String sort = 'created',
+    String state = 'open',
+  }) async {
+    final List<PullRequest> pullRequestsFound = [];
+    final Stream<PullRequest> pullRequestStream = github.pullRequests.list(
+      slug,
+      pages: pages,
+      direction: direction,
+      head: head,
+      sort: sort,
+      state: state,
+    );
+    await for (PullRequest pullRequest in pullRequestStream) {
+      pullRequestsFound.add(pullRequest);
+    }
+    return pullRequestsFound;
+  }
+
+  Future<bool> addReviewersToPullRequest(
+    RepositorySlug slug,
+    int pullRequestNumber,
+    List<String> reviewerLogins,
+  ) async {
+    final response = await github.request(
+      'POST',
+      '/repos/${slug.fullName}/pulls/$pullRequestNumber/requested_reviewers',
+      body: GitHubJson.encode({'reviewers': reviewerLogins}),
+    );
+    return response.statusCode == StatusCodes.CREATED;
   }
 
   /// Compares two commits to fetch diff.
@@ -116,6 +166,16 @@ class GithubService {
     return github.issues.addLabelsToIssue(slug, issueNumber, labels);
   }
 
+  /// Relevant API: https://docs.github.com/en/rest/issues/assignees?apiVersion=2022-11-28#add-assignees-to-an-issue
+  Future<bool> addAssignee(RepositorySlug slug, int number, List<String> assignees) async {
+    final response = await github.request(
+      'POST',
+      '/repos/${slug.fullName}/issues/$number/assignees',
+      body: GitHubJson.encode({'assignees': assignees}),
+    );
+    return response.statusCode == StatusCodes.CREATED;
+  }
+
   /// Create a comment for a pull request.
   Future<IssueComment> createComment(
     RepositorySlug slug,
@@ -133,6 +193,15 @@ class GithubService {
       body: GitHubJson.encode({'expected_head_sha': headSha}),
     );
     return response.statusCode == StatusCodes.ACCEPTED;
+  }
+
+  Future<Branch> getBranch(RepositorySlug slug, String branchName) async {
+    return github.repositories.getBranch(slug, branchName);
+  }
+
+  Future<bool> deleteBranch(RepositorySlug slug, String branchName) async {
+    final String ref = 'heads/$branchName';
+    return github.git.deleteReference(slug, ref);
   }
 
   /// Merges a pull request according to the MergeMethod type. Current supported

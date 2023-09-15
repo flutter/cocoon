@@ -142,29 +142,29 @@ class BranchService {
     final String betaName = await _getBranchNameFromFile(
       githubService: githubService,
       slug: slug,
-      branchName: "beta",
+      branchName: 'beta',
     );
     final String stableName = await _getBranchNameFromFile(
       githubService: githubService,
       slug: slug,
-      branchName: "stable",
+      branchName: 'stable',
     );
     return <Map<String, String>>[
       {
-        "branch": Config.defaultBranch(slug),
-        "name": "HEAD",
+        'branch': Config.defaultBranch(slug),
+        'name': 'HEAD',
       },
       {
-        "branch": stableName,
-        "name": "stable",
+        'branch': stableName,
+        'name': 'stable',
       },
       {
-        "branch": betaName,
-        "name": "beta",
+        'branch': betaName,
+        'name': 'beta',
       },
       {
-        "branch": latestCandidateBranch,
-        "name": "dev",
+        'branch': latestCandidateBranch,
+        'name': 'dev',
       },
     ];
   }

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-const String queryResultRepositoryOwnerJson = """
+const String queryResultRepositoryOwnerJson = '''
 {
     "repository": {
       "pullRequest": {
@@ -34,9 +34,9 @@ const String queryResultRepositoryOwnerJson = """
       }
     }
   }
-""";
+''';
 
-const String queryResultRepositoryContributorJson = """
+const String queryResultRepositoryContributorJson = '''
 {
     "repository": {
       "pullRequest": {
@@ -68,9 +68,9 @@ const String queryResultRepositoryContributorJson = """
       }
     }
   }
-""";
+''';
 
-const String revertPullRequestJson = """
+const String revertPullRequestJson = '''
   {
   "url": "https://api.github.com/repos/flutter/cocoon/pulls/2047",
   "id": 1023297178,
@@ -161,9 +161,9 @@ const String revertPullRequestJson = """
   "deletions": 472,
   "changed_files": 25
 }
-""";
+''';
 
-const String revertPullRequestFilesJson = """
+const String revertPullRequestFilesJson = '''
   [
     {
       "filename": "dashboard/analysis_options.yaml",
@@ -316,9 +316,9 @@ const String revertPullRequestFilesJson = """
       "changes": 36
     }
   ]
-""";
+''';
 
-const String originalPullRequestJson = """
+const String originalPullRequestJson = '''
   {
   "url": "https://api.github.com/repos/flutter/cocoon/pulls/2024",
   "id": 1012225049,
@@ -427,9 +427,9 @@ const String originalPullRequestJson = """
   "deletions": 325,
   "changed_files": 25
 }
-""";
+''';
 
-const String originalPullRequestFilesJson = """
+const String originalPullRequestFilesJson = '''
   [
     {
       "filename": "dashboard/analysis_options.yaml",
@@ -582,9 +582,9 @@ const String originalPullRequestFilesJson = """
       "changes": 36
     }
   ]
-""";
+''';
 
-const String originalPullRequestFilesSubsetJson = """
+const String originalPullRequestFilesSubsetJson = '''
   [
     {
       "filename": "dashboard/analysis_options.yaml",
@@ -725,7 +725,7 @@ const String originalPullRequestFilesSubsetJson = """
       "changes": 36
     }
   ]
-""";
+''';
 
 const String ciyamlCheckRun = '''
 {
