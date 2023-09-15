@@ -44,7 +44,7 @@ linter:
     use_super_parameters: true
     prefer_final_fields: true
     prefer_final_locals: true
+    prefer_single_quotes: true
     require_trailing_commas: true
     unawaited_futures: true
     unnecessary_await_in_return: true
-    prefer_single_quotes: true
