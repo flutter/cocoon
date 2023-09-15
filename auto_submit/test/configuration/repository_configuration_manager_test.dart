@@ -63,10 +63,10 @@ void main() {
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
     expect(repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty, isTrue);
     expect(repositoryConfiguration.requiredCheckRunsOnRevert.length, 4);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains("ci.yaml validation"), isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains("Google-testing"), isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains("test (ubuntu-latest, 2.18.0)"), isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains("cla/google"), isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains('ci.yaml validation'), isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains('Google-testing'), isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains('test (ubuntu-latest, 2.18.0)'), isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains('cla/google'), isTrue);
   });
 
   test('Omitted issues_repository assumes provided slug is for issues', () async {
@@ -101,8 +101,8 @@ void main() {
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
     expect(repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty, isTrue);
     expect(repositoryConfiguration.requiredCheckRunsOnRevert.length, 2);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains("ci.yaml validation"), isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains("Google-testing"), isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains('ci.yaml validation'), isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains('Google-testing'), isTrue);
   });
 
   test('Default branch collected if omitted', () async {
@@ -137,8 +137,8 @@ void main() {
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
     expect(repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty, isTrue);
     expect(repositoryConfiguration.requiredCheckRunsOnRevert.length, 2);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains("ci.yaml validation"), isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains("Google-testing"), isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains('ci.yaml validation'), isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains('Google-testing'), isTrue);
   });
 
   group('Merging configurations tests', () {

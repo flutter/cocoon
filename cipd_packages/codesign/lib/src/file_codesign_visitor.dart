@@ -174,7 +174,7 @@ update these file paths accordingly.
     log.info('parsed binaries without entitlements are $fileWithEntitlements');
 
     // recursively visit extracted files
-    await visitDirectory(directory: parentDirectory, parentVirtualPath: "");
+    await visitDirectory(directory: parentDirectory, parentVirtualPath: '');
 
     await zip(
       inputDir: parentDirectory,
@@ -211,8 +211,8 @@ update these file paths accordingly.
     final List<FileSystemEntity> entities = await directory.list(followLinks: false).toList();
     for (FileSystemEntity entity in entities) {
       if (entity is io.Link) {
-        log.info("current file or direcotry ${entity.path} is a symlink to ${(entity as io.Link).targetSync()}, "
-            "codesign is therefore skipped for the current file or directory.");
+        log.info('current file or direcotry ${entity.path} is a symlink to ${(entity as io.Link).targetSync()}, '
+            'codesign is therefore skipped for the current file or directory.');
         continue;
       }
       if (entity is io.Directory) {

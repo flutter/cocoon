@@ -105,7 +105,7 @@ class FakeGithubService implements GithubService {
     String ref,
   ) async {
     final rawBody = json.decode(checkRunsMock!) as Map<String, dynamic>;
-    final List<dynamic> checkRunsBody = rawBody["check_runs"]! as List<dynamic>;
+    final List<dynamic> checkRunsBody = rawBody['check_runs']! as List<dynamic>;
     final List<CheckRun> checkRuns = <CheckRun>[];
     if ((checkRunsBody[0] as Map<String, dynamic>).isNotEmpty) {
       checkRuns.addAll(

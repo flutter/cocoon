@@ -137,24 +137,24 @@ class Task extends Model<int> {
     DatastoreService datastore, {
     String? customName,
   }) async {
-    log.fine("Creating task from buildbucket result: ${build.toString()}");
+    log.fine('Creating task from buildbucket result: ${build.toString()}');
     // Example: Getting "flutter" from "mirrors/flutter".
     final String repository = build.input!.gitilesCommit!.project!.split('/')[1];
-    log.fine("Repository: $repository");
+    log.fine('Repository: $repository');
 
     // Example: Getting "stable" from "refs/heads/stable".
     final String branch = build.input!.gitilesCommit!.ref!.split('/')[2];
-    log.fine("Branch: $branch");
+    log.fine('Branch: $branch');
 
     final String hash = build.input!.gitilesCommit!.hash!;
-    log.fine("Hash: $hash");
+    log.fine('Hash: $hash');
 
-    final RepositorySlug slug = RepositorySlug("flutter", repository);
-    log.fine("Slug: ${slug.toString()}");
+    final RepositorySlug slug = RepositorySlug('flutter', repository);
+    log.fine('Slug: ${slug.toString()}');
 
     final int startTime = build.startTime?.millisecondsSinceEpoch ?? 0;
     final int endTime = build.endTime?.millisecondsSinceEpoch ?? 0;
-    log.fine("Start/end time (ms): $startTime, $endTime");
+    log.fine('Start/end time (ms): $startTime, $endTime');
 
     final String id = '${slug.fullName}/$branch/$hash';
     final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);

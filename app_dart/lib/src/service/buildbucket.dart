@@ -69,7 +69,7 @@ class BuildBucketClient {
     final Uri url = Uri.parse('$buildBucketUri$path');
     final AccessToken? token = await accessTokenService?.createAccessToken();
 
-    log.fine("Making request with path: $url and body: ${json.encode(request)}");
+    log.fine('Making request with path: $url and body: ${json.encode(request)}');
 
     final http.Response response = await httpClient.post(
       url,

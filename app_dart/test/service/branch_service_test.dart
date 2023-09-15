@@ -73,7 +73,7 @@ void main() {
       expect(db.values.values.whereType<Branch>().length, 0);
 
       const String id = 'flutter/flutter/flutter-2.12-candidate.4';
-      final int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
+      final int lastActivity = DateTime.tryParse('2019-05-15T15:20:56Z')!.millisecondsSinceEpoch;
       final Key<String> branchKey = db.emptyKey.append<String>(Branch, id: id);
       final Branch currentBranch = Branch(key: branchKey, lastActivity: lastActivity);
       db.values[currentBranch.key] = currentBranch;
@@ -92,7 +92,7 @@ void main() {
       expect(db.values.values.whereType<Branch>().length, 0);
 
       const String id = 'flutter/flutter/flutter-2.12-candidate.4';
-      final int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
+      final int lastActivity = DateTime.tryParse('2019-05-15T15:20:56Z')!.millisecondsSinceEpoch;
       final Key<String> branchKey = db.emptyKey.append<String>(Branch, id: id);
       final Branch currentBranch = Branch(key: branchKey, lastActivity: lastActivity);
       db.values[currentBranch.key] = currentBranch;

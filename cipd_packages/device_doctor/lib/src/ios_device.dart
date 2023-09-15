@@ -43,7 +43,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   Future<List<Device>> discoverDevices({Duration retryDuration = const Duration(seconds: 10)}) async {
     final List<Device> discoveredDevices =
         LineSplitter.split(await deviceListOutput()).map((String id) => IosDevice(deviceId: id)).toList();
-    stdout.write("ios devices discovered: ${discoveredDevices.map((e) => e.deviceId).toList()}");
+    stdout.write('ios devices discovered: ${discoveredDevices.map((e) => e.deviceId).toList()}');
     return discoveredDevices;
   }
 
@@ -51,7 +51,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     ProcessManager processManager = const LocalProcessManager(),
   }) async {
     final String fullPathIdeviceId = await getMacBinaryPath('idevice_id', processManager: processManager);
-    stdout.write("idevice_id path $fullPathIdeviceId");
+    stdout.write('idevice_id path $fullPathIdeviceId');
     return eval(fullPathIdeviceId, <String>['-l'], processManager: processManager);
   }
 
@@ -233,7 +233,7 @@ class IosDevice implements Device {
     processManager ??= LocalProcessManager();
     try {
       if (noRebootList.contains(deviceId)) {
-        stdout.write("Device not marked for reboot.");
+        stdout.write('Device not marked for reboot.');
         return true;
       }
       final String fullPathIdevicediagnostics =
@@ -243,7 +243,7 @@ class IosDevice implements Device {
       stderr.write('device restart fails: $error');
       return false;
     }
-    stdout.write("Restart device complete.");
+    stdout.write('Restart device complete.');
     return true;
   }
 
@@ -266,7 +266,7 @@ class IosDevice implements Device {
 
     // Skip uninstalling process when no device is available or no application exists.
     if (result == 'No device found.' || result == 'CFBundleIdentifier, CFBundleVersion, CFBundleDisplayName') {
-      stdout.write("No device was found or no application to uninstall exists.");
+      stdout.write('No device was found or no application to uninstall exists.');
       return true;
     }
     final List<String> results = result.trim().split('\n');
@@ -279,7 +279,7 @@ class IosDevice implements Device {
       stderr.write('uninstall applications fails: $error');
       return false;
     }
-    stdout.write("Uninstall complete.");
+    stdout.write('Uninstall complete.');
     return true;
   }
 }
