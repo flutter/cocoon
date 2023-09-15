@@ -40,21 +40,21 @@ class CommitService {
   /// https://docs.github.com/en/webhooks/webhook-events-and-payloads#push
   Future<void> handlePushGithubRequest(Map<String, dynamic> pushEvent) async {
     final DatastoreService datastore = datastoreProvider(config.db);
-    final RepositorySlug slug = RepositorySlug.full(pushEvent["repository"]["full_name"]);
-    final String sha = pushEvent["head_commit"]["id"];
+    final RepositorySlug slug = RepositorySlug.full(pushEvent['repository']['full_name']);
+    final String sha = pushEvent['head_commit']['id'];
     final String branch = pushEvent["ref"].split('/')[2];
     final String id = '${slug.fullName}/$branch/$sha';
     final Key<String> key = datastore.db.emptyKey.append<String>(Commit, id: id);
     final Commit commit = Commit(
       key: key,
-      timestamp: DateTime.parse(pushEvent["head_commit"]["timestamp"]).millisecondsSinceEpoch,
+      timestamp: DateTime.parse(pushEvent['head_commit']['timestamp']).millisecondsSinceEpoch,
       repository: slug.fullName,
       sha: sha,
-      author: pushEvent["sender"]["login"],
-      authorAvatarUrl: pushEvent["sender"]["avatar_url"],
+      author: pushEvent['sender']['login'],
+      authorAvatarUrl: pushEvent['sender']['avatar_url'],
       // The field has a size of 1500 we need to ensure the commit message
       // is at most 1500 chars long.
-      message: truncate(pushEvent["head_commit"]["message"], 1490, omission: '...'),
+      message: truncate(pushEvent['head_commit']['message'], 1490, omission: '...'),
       branch: branch,
     );
     await _insertCommitIntoDatastore(datastore, commit);
