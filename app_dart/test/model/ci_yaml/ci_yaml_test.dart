@@ -35,7 +35,7 @@ void main() {
 
   group('Validate pinned version operation.', () {
     void validatePinnedVersion(String input) {
-      test("$input -> returns normally", () {
+      test('$input -> returns normally', () {
         DependencyValidator.hasVersion(dependencyJsonString: input);
       });
     }
@@ -50,7 +50,7 @@ void main() {
 
   group('Validate un-pinned version operation.', () {
     void validateUnPinnedVersion(String input) {
-      test("$input -> returns normally", () {
+      test('$input -> returns normally', () {
         expect(() => DependencyValidator.hasVersion(dependencyJsonString: input), throwsException);
       });
     }

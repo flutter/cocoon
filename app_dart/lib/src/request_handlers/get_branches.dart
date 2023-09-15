@@ -70,7 +70,7 @@ class GetBranches extends RequestHandler<Body> {
     final GithubService githubService = GithubService(github);
     final List<Map<String, String>> branchNamesMap =
         await branchService.getReleaseBranches(githubService: githubService, slug: Config.flutterSlug);
-    final List<String?> releaseBranchNames = branchNamesMap.map((branchMap) => branchMap["branch"]).toList();
+    final List<String?> releaseBranchNames = branchNamesMap.map((branchMap) => branchMap['branch']).toList();
     // Retrieve branches with recent activities and release branches.
     branches = branches
         .where(

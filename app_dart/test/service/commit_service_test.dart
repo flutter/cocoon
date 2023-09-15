@@ -22,14 +22,14 @@ void main() {
   late MockGithubService githubService;
   late MockRepositoriesService repositories;
   late MockGitHub github;
-  const String owner = "flutter";
-  const String repository = "flutter";
-  const String branch = "coolest-branch";
-  const String sha = "1234";
-  const String message = "Adding null safety";
-  const String avatarUrl = "https://avatars.githubusercontent.com/u/fake-user-num";
-  const String username = "AwesomeGithubUser";
-  const String dateTimeAsString = "2023-08-18T19:27:00Z";
+  const String owner = 'flutter';
+  const String repository = 'flutter';
+  const String branch = 'coolest-branch';
+  const String sha = '1234';
+  const String message = 'Adding null safety';
+  const String avatarUrl = 'https://avatars.githubusercontent.com/u/fake-user-num';
+  const String username = 'AwesomeGithubUser';
+  const String dateTimeAsString = '2023-08-18T19:27:00Z';
 
   setUp(() {
     db = FakeDatastoreDB();
@@ -74,9 +74,9 @@ void main() {
 
       expect(db.values.values.whereType<Commit>().length, 1);
       final Commit commit = db.values.values.whereType<Commit>().single;
-      expect(commit.repository, "$owner/$repository");
+      expect(commit.repository, '$owner/$repository');
       expect(commit.message, message);
-      expect(commit.key.id, "$owner/$repository/$branch/$sha");
+      expect(commit.key.id, '$owner/$repository/$branch/$sha');
       expect(commit.sha, sha);
       expect(commit.author, username);
       expect(commit.authorAvatarUrl, avatarUrl);
@@ -130,7 +130,7 @@ void main() {
     test('adds commit to db if it does not exist in the datastore', () async {
       expect(db.values.values.whereType<Commit>().length, 0);
 
-      final PushEvent pushEvent = generatePushEvent(
+      final Map<String, dynamic> pushEvent = generatePushEvent(
         branch,
         owner,
         repository,
@@ -143,9 +143,9 @@ void main() {
 
       expect(db.values.values.whereType<Commit>().length, 1);
       final Commit commit = db.values.values.whereType<Commit>().single;
-      expect(commit.repository, "$owner/$repository");
+      expect(commit.repository, '$owner/$repository');
       expect(commit.message, message);
-      expect(commit.key.id, "$owner/$repository/$branch/$sha");
+      expect(commit.key.id, '$owner/$repository/$branch/$sha');
       expect(commit.sha, sha);
       expect(commit.author, username);
       expect(commit.authorAvatarUrl, avatarUrl);
@@ -165,7 +165,7 @@ void main() {
       await config.db.commit(inserts: datastoreCommit);
       expect(db.values.values.whereType<Commit>().length, 1);
 
-      final PushEvent pushEvent = generatePushEvent(
+      final Map<String, dynamic> pushEvent = generatePushEvent(
         branch,
         owner,
         repository,

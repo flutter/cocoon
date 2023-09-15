@@ -52,8 +52,8 @@ void main() {
     late MockRepositoriesService repositories;
     FakeClientContext clientContext;
     FakeKeyHelper keyHelper;
-    const String betaBranchName = "flutter-3.5-candidate.1";
-    const String stableBranchName = "flutter-3.4-candidate.5";
+    const String betaBranchName = 'flutter-3.5-candidate.1';
+    const String stableBranchName = 'flutter-3.4-candidate.5';
 
     Future<T?> decodeHandlerBody<T>() async {
       final Body body = await tester.get(handler);
@@ -93,11 +93,11 @@ void main() {
       when(
         repositories.listBranches(Config.flutterSlug),
       ).thenAnswer((Invocation invocation) {
-        return Stream<gh.Branch>.value(gh.Branch("flutter-9.9-candidate.9", null));
+        return Stream<gh.Branch>.value(gh.Branch('flutter-9.9-candidate.9', null));
       });
 
       when(
-        repositories.getContents(any, 'bin/internal/release-candidate-branch.version', ref: "beta"),
+        repositories.getContents(any, 'bin/internal/release-candidate-branch.version', ref: 'beta'),
       ).thenAnswer((Invocation invocation) {
         return Future<gh.RepositoryContents>.value(
           gh.RepositoryContents(file: gh.GitHubFile(content: gitHubEncode(betaBranchName))),
@@ -105,7 +105,7 @@ void main() {
       });
 
       when(
-        repositories.getContents(any, 'bin/internal/release-candidate-branch.version', ref: "stable"),
+        repositories.getContents(any, 'bin/internal/release-candidate-branch.version', ref: 'stable'),
       ).thenAnswer((Invocation invocation) {
         return Future<gh.RepositoryContents>.value(
           gh.RepositoryContents(file: gh.GitHubFile(content: gitHubEncode(stableBranchName))),
@@ -113,7 +113,7 @@ void main() {
       });
 
       const String id = 'flutter/flutter/branch-created-old';
-      final int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
+      final int lastActivity = DateTime.tryParse('2019-05-15T15:20:56Z')!.millisecondsSinceEpoch;
       final Key<String> branchKey = db.emptyKey.append<String>(Branch, id: id);
       final Branch currentBranch = Branch(
         key: branchKey,

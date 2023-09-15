@@ -46,9 +46,9 @@ class DartInternalSubscription extends SubscriptionHandler {
     }
 
     final dynamic buildData = json.decode(message.data!);
-    log.info("Build data json: $buildData");
+    log.info('Build data json: $buildData');
 
-    if (buildData["build"] == null) {
+    if (buildData['build'] == null) {
       log.info('no build information in message');
       return Body.empty;
     }
@@ -60,7 +60,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     // This should already be covered by the pubsub filter, but adding an additional check
     // to ensure we don't process builds that aren't from dart-internal/flutter.
     if (project != 'dart-internal' || bucket != 'flutter') {
-      log.info("Ignoring build not from dart-internal/flutter bucket");
+      log.info('Ignoring build not from dart-internal/flutter bucket');
       return Body.empty;
     }
 
@@ -70,35 +70,35 @@ class DartInternalSubscription extends SubscriptionHandler {
     final regex =
         RegExp(r'(Linux|Mac|Windows)\s+(engine_release_builder|packaging_release_builder|flutter_release_builder)');
     if (!regex.hasMatch(builder)) {
-      log.info("Ignoring builder that is not a release builder");
+      log.info('Ignoring builder that is not a release builder');
       return Body.empty;
     }
 
     final String buildbucketId = buildData['build']['id'];
-    log.info("Creating build request object with build id $buildbucketId");
+    log.info('Creating build request object with build id $buildbucketId');
     final GetBuildRequest request = GetBuildRequest(
       id: buildbucketId,
     );
 
     log.info(
-      "Calling buildbucket api to get build data for build $buildbucketId",
+      'Calling buildbucket api to get build data for build $buildbucketId',
     );
     final Build build = await buildBucketClient.getBuild(request);
 
-    log.info("Checking for existing task in datastore");
+    log.info('Checking for existing task in datastore');
     final Task? existingTask = await datastore.getTaskFromBuildbucketBuild(build);
 
     late Task taskToInsert;
     if (existingTask != null) {
-      log.info("Updating Task from existing Task");
+      log.info('Updating Task from existing Task');
       existingTask.updateFromBuildbucketBuild(build);
       taskToInsert = existingTask;
     } else {
-      log.info("Creating Task from Buildbucket result");
+      log.info('Creating Task from Buildbucket result');
       taskToInsert = await Task.fromBuildbucketBuild(build, datastore);
     }
 
-    log.info("Inserting Task into the datastore: ${taskToInsert.toString()}");
+    log.info('Inserting Task into the datastore: ${taskToInsert.toString()}');
     await datastore.insert(<Task>[taskToInsert]);
 
     return Body.forJson(taskToInsert.toString());

@@ -504,7 +504,7 @@ void main() {
       ).called(1);
     });
 
-    group("Auto-roller accounts do not label Framework PR with test label or comment.", () {
+    group('Auto-roller accounts do not label Framework PR with test label or comment.', () {
       final Set<String> inputs = {
         'skia-flutter-autoroll',
         'dependabot',
@@ -1253,7 +1253,7 @@ void foo() {
       ).called(1);
     });
 
-    group("Auto-roller accounts do not label Engine PR with test label or comment.", () {
+    group('Auto-roller accounts do not label Engine PR with test label or comment.', () {
       final Set<String> inputs = {
         'engine-flutter-autoroll',
         'dependabot',

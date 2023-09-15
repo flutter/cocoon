@@ -53,8 +53,8 @@ void main() {
     late QueryOptions cocoonOption;
     const String testSubscription = 'test-sub';
     const String testTopic = 'test-topic';
-    const String rollorAuthor = "engine-flutter-autoroll";
-    const String labelName = "warning: land on red to fix tree breakage";
+    const String rollorAuthor = 'engine-flutter-autoroll';
+    const String labelName = 'warning: land on red to fix tree breakage';
     const String cocoonRepo = 'cocoon';
     const String noAutosubmitLabel = 'no_autosubmit';
 

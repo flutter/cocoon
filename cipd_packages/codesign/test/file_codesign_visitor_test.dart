@@ -86,7 +86,7 @@ void main() {
 
   group('test utils function to join virtual entitlement path: ', () {
     test('omits slash for the first path', () async {
-      expect(joinEntitlementPaths("", randomString), randomString);
+      expect(joinEntitlementPaths('', randomString), randomString);
     });
 
     test('concat with slash', () async {
@@ -536,16 +536,16 @@ void main() {
       expect(messages, contains('Visiting directory ${rootDirectory.path}/remote_zip_5/symlink_dir'));
       expect(
         messages,
-        contains("current file or direcotry ${rootDirectory.path}/remote_zip_5/symlink_dir/file_a is a symlink to "
-            "${rootDirectory.path}/remote_zip_5/target_dir/file_b, codesign is therefore skipped for the current file or directory."),
+        contains('current file or direcotry ${rootDirectory.path}/remote_zip_5/symlink_dir/file_a is a symlink to '
+            '${rootDirectory.path}/remote_zip_5/target_dir/file_b, codesign is therefore skipped for the current file or directory.'),
       );
       expect(messages, isNot(contains('Child file of directory symlink_dir is file_a')));
 
       // Skip code signing a directory that is a symlink.
       expect(
         messages,
-        contains("current file or direcotry ${rootDirectory.path}/remote_zip_5/symlink_dir_2 is a symlink to "
-            "${rootDirectory.path}/remote_zip_5/target_dir, codesign is therefore skipped for the current file or directory."),
+        contains('current file or direcotry ${rootDirectory.path}/remote_zip_5/symlink_dir_2 is a symlink to '
+            '${rootDirectory.path}/remote_zip_5/target_dir, codesign is therefore skipped for the current file or directory.'),
       );
     });
 

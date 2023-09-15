@@ -109,7 +109,7 @@ String? getValueFromArgs(
 }
 
 String joinEntitlementPaths(String entitlementParentPath, String pathToJoin) {
-  if (entitlementParentPath == "") {
+  if (entitlementParentPath == '') {
     return pathToJoin;
   } else {
     return '$entitlementParentPath/$pathToJoin';

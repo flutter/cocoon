@@ -95,7 +95,7 @@ void main() {
 
 final Map<String, dynamic> data = json.decode(dataString) as Map<String, dynamic>;
 
-const String dataString = """
+const String dataString = '''
 {
   "repository": {
     "pullRequest": {
@@ -133,7 +133,7 @@ const String dataString = """
     }
   }
 }
-""";
+''';
 
 final Map<String, dynamic> revertData = json.decode(revertRequestString) as Map<String, dynamic>;
 
