@@ -7,10 +7,9 @@ import 'dart:io';
 import 'package:auto_submit/action/revert_method.dart';
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/git/cli_command.dart';
-import 'package:auto_submit/git/git_access_method.dart';
+import 'package:auto_submit/git/git_utilities.dart';
 import 'package:auto_submit/git/git_cli.dart';
 import 'package:auto_submit/git/git_repository_manager.dart';
-import 'package:auto_submit/git/git_revert_branch_name.dart';
 import 'package:auto_submit/requests/exceptions.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
@@ -38,7 +37,7 @@ class GitCliRevertMethod implements RevertMethod {
       gitCli: GitCli(GitAccessMethod.HTTP, CliCommand()),
     );
 
-    // The throw out should be caught.
+    // The exception is caught by the thrower.
     try {
       await gitRepositoryManager.cloneRepository();
       await gitRepositoryManager.setupConfig();
@@ -47,7 +46,6 @@ class GitCliRevertMethod implements RevertMethod {
       await gitRepositoryManager.deleteRepository();
     }
 
-    // at this point the branch has been created an pushed to the remote.
     final GitRevertBranchName gitRevertBranchName = GitRevertBranchName(commitSha);
     final GithubService githubService = await config.createGithubService(slug);
 
@@ -64,7 +62,7 @@ class GitCliRevertMethod implements RevertMethod {
       retryIf: (Exception e) => e is NotFoundException,
     );
 
-    log.info('found branch ${branch!.name}, safe to create revert request.');
+    log.info('found branch ${slug.fullName}/${branch!.name}, safe to create revert request.');
 
     final RevertIssueBodyFormatter formatter = RevertIssueBodyFormatter(
       slug: slug,
@@ -74,7 +72,7 @@ class GitCliRevertMethod implements RevertMethod {
       originalPrBody: pullRequest.body!,
     ).format;
 
-    log.info('Attempting to create pull request with ${gitRevertBranchName.branch}.');
+    log.info('Attempting to create pull request with ${slug.fullName}/${gitRevertBranchName.branch}.');
     final github.PullRequest revertPullRequest = await githubService.createPullRequest(
       slug: slug,
       title: formatter.revertPrTitle,
@@ -84,7 +82,7 @@ class GitCliRevertMethod implements RevertMethod {
       body: formatter.revertPrBody,
     );
 
-    log.info('pull request number is: ${revertPullRequest.number}');
+    log.info('pull request number is: ${slug.fullName}/${revertPullRequest.number}');
 
     return revertPullRequest;
   }

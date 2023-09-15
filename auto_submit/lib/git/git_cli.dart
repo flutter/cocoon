@@ -3,22 +3,19 @@
 // found in the LICENSE file.
 
 import 'dart:io';
-
 import 'package:github/github.dart';
 import 'package:logging/logging.dart';
-
 import 'cli_command.dart';
-
-import 'git_access_method.dart';
+import 'git_utilities.dart';
 
 /// Class to wrap the command line calls to git.
 class GitCli {
   Logger logger = Logger('RepositoryManager');
 
-  static const String GIT = 'git';
+  static const String git = 'git';
 
-  final String repositoryHttpPrefix = 'https://github.com/';
-  final String repositorySshPrefix = 'git@github.com:';
+  static const String repositoryHttpPrefix = 'https://github.com/';
+  static const String repositorySshPrefix = 'git@github.com:';
 
   late String repositoryPrefix;
 
@@ -39,7 +36,7 @@ class GitCli {
   /// Check to see if the current directory is a git repository.
   Future<bool> isGitRepository(String directory) async {
     final ProcessResult processResult = await _cliCommand.runCliCommand(
-      executable: GIT,
+      executable: git,
       arguments: <String>[
         'rev-parse',
       ],
@@ -69,7 +66,7 @@ class GitCli {
       clone.addAll(options);
     }
     final ProcessResult processResult = await _cliCommand.runCliCommand(
-      executable: GIT,
+      executable: git,
       arguments: clone,
       workingDirectory: workingDirectory,
       throwOnError: throwOnError,
@@ -84,7 +81,7 @@ class GitCli {
     bool throwOnError = true,
   }) async {
     return _cliCommand.runCliCommand(
-      executable: GIT,
+      executable: git,
       arguments: <String>[
         'config',
         '--global',
@@ -102,7 +99,7 @@ class GitCli {
     bool throwOnError = true,
   }) async {
     return _cliCommand.runCliCommand(
-      executable: GIT,
+      executable: git,
       arguments: <String>[
         'config',
         '--global',
@@ -126,7 +123,7 @@ class GitCli {
     bool throwOnError = true,
   }) async {
     return _cliCommand.runCliCommand(
-      executable: GIT,
+      executable: git,
       arguments: <String>[
         'remote',
         'set-url',
@@ -144,7 +141,7 @@ class GitCli {
     bool throwOnError = true,
   }) async {
     return _cliCommand.runCliCommand(
-      executable: GIT,
+      executable: git,
       arguments: <String>[
         'fetch',
         '--all',
@@ -182,7 +179,7 @@ class GitCli {
     bool throwOnError = true,
   }) async {
     final ProcessResult processResult = await _cliCommand.runCliCommand(
-      executable: GIT,
+      executable: git,
       arguments: <String>[
         'pull',
         pullMethod,
@@ -218,7 +215,7 @@ class GitCli {
     }
 
     return _cliCommand.runCliCommand(
-      executable: GIT,
+      executable: git,
       arguments: args,
       workingDirectory: workingDirectory,
       throwOnError: throwOnError,
@@ -233,7 +230,7 @@ class GitCli {
   }) async {
     // Issue a revert of the pull request.
     return _cliCommand.runCliCommand(
-      executable: GIT,
+      executable: git,
       arguments: <String>[
         'revert',
         '--no-edit',
@@ -253,7 +250,7 @@ class GitCli {
     bool throwOnError = true,
   }) async {
     return _cliCommand.runCliCommand(
-      executable: GIT,
+      executable: git,
       arguments: <String>[
         'push',
         '--verbose',
@@ -272,7 +269,7 @@ class GitCli {
     bool throwOnError = true,
   }) async {
     return _cliCommand.runCliCommand(
-      executable: GIT,
+      executable: git,
       arguments: <String>[
         'branch',
         '-D',
@@ -292,7 +289,7 @@ class GitCli {
     bool throwOnError = true,
   }) async {
     return _cliCommand.runCliCommand(
-      executable: GIT,
+      executable: git,
       arguments: <String>[
         'push',
         'origin',
@@ -309,7 +306,7 @@ class GitCli {
     bool throwOnError = true,
   }) async {
     return _cliCommand.runCliCommand(
-      executable: GIT,
+      executable: git,
       arguments: <String>[
         'config',
         '--get',
@@ -326,7 +323,7 @@ class GitCli {
     bool throwOnError = true,
   }) async {
     return _cliCommand.runCliCommand(
-      executable: GIT,
+      executable: git,
       arguments: <String>[
         'switch',
         branchName,

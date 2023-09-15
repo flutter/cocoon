@@ -6,7 +6,7 @@ import 'dart:io';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart';
 import 'git_cli.dart';
-import 'git_revert_branch_name.dart';
+import 'git_utilities.dart';
 
 class GitRepositoryManager {
   final RepositorySlug slug;
@@ -44,6 +44,7 @@ class GitRepositoryManager {
 
     // Checking out a sparse copy will not checkout source files but will still
     // allow a revert since we only care about the commitSha.
+    // Source: https://git-scm.com/docs/git-clone
     await gitCli.cloneRepository(
       slug: slug,
       workingDirectory: workingDirectory,
