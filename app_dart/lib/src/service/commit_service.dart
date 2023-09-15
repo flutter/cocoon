@@ -42,7 +42,7 @@ class CommitService {
     final DatastoreService datastore = datastoreProvider(config.db);
     final RepositorySlug slug = RepositorySlug.full(pushEvent['repository']['full_name']);
     final String sha = pushEvent['head_commit']['id'];
-    final String branch = pushEvent["ref"].split('/')[2];
+    final String branch = pushEvent['ref'].split('/')[2];
     final String id = '${slug.fullName}/$branch/$sha';
     final Key<String> key = datastore.db.emptyKey.append<String>(Commit, id: id);
     final Commit commit = Commit(
