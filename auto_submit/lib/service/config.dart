@@ -48,8 +48,8 @@ class Config {
   /// Labels autosubmit looks for on pull requests
   static const String kAutosubmitLabel = 'autosubmit';
 
-  // Labels the bot looks for on revert requests. 
-  // TODO (ricardoamador) https://github.com/flutter/flutter/issues/134845: 
+  // Labels the bot looks for on revert requests.
+  // TODO (ricardoamador) https://github.com/flutter/flutter/issues/134845:
   // add a link to a one page doc outlining the workflow that happens here.
 
   /// The `revert` label is used by developers to initiate the revert request.
