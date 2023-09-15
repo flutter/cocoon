@@ -6,7 +6,7 @@ import 'dart:io';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart';
 import 'git_cli.dart';
-import 'git_utilities.dart';
+import 'utilities.dart';
 
 class GitRepositoryManager {
   final RepositorySlug slug;

@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:auto_submit/git/cli_command.dart';
-import 'package:auto_submit/git/git_utilities.dart';
+import 'package:auto_submit/git/utilities.dart';
 import 'package:auto_submit/git/git_cli.dart';
 import 'package:github/github.dart';
 

@@ -6,7 +6,7 @@ import 'dart:io';
 import 'package:github/github.dart';
 import 'package:logging/logging.dart';
 import 'cli_command.dart';
-import 'git_utilities.dart';
+import 'utilities.dart';
 
 /// Class to wrap the command line calls to git.
 class GitCli {
