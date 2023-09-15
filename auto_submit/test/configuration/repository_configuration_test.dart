@@ -45,8 +45,7 @@ void main() {
 
     final RepositoryConfiguration repositoryConfiguration = RepositoryConfiguration.fromYaml(sampleConfig);
     expect(repositoryConfiguration.defaultBranch, 'main');
-    // TODO enable this before the change is merged.
-    // expect(repositoryConfiguration.autoApprovalAccounts.isEmpty, isTrue);
+    expect(repositoryConfiguration.autoApprovalAccounts.isEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
@@ -72,8 +71,7 @@ void main() {
 
     expect(repositoryConfiguration.allowConfigOverride, false);
     expect(repositoryConfiguration.defaultBranch, 'main');
-    // TODO enable this before the change is merged.
-    // expect(repositoryConfiguration.autoApprovalAccounts.isEmpty, isTrue);
+    expect(repositoryConfiguration.autoApprovalAccounts.isEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
@@ -92,8 +90,7 @@ void main() {
     repositoryConfiguration.defaultBranch = 'master';
 
     expect(repositoryConfiguration.defaultBranch, 'master');
-    // TODO enable this before the change is merged.
-    // expect(repositoryConfiguration.autoApprovalAccounts.isEmpty, isTrue);
+    expect(repositoryConfiguration.autoApprovalAccounts.isEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
