@@ -28,13 +28,13 @@ void main() {
   late Commit commit;
   final DateTime startTime = DateTime(2023, 1, 1, 0, 0, 0);
   final DateTime endTime = DateTime(2023, 1, 1, 0, 14, 23);
-  const String project = "dart-internal";
-  const String bucket = "flutter";
-  const String builder = "Linux packaging_release_builder";
+  const String project = 'dart-internal';
+  const String bucket = 'flutter';
+  const String builder = 'Linux packaging_release_builder';
   const int buildId = 123456;
-  const String fakeHash = "HASH12345";
-  const String fakeBranch = "test-branch";
-  const String fakePubsubMessage = """
+  const String fakeHash = 'HASH12345';
+  const String fakeBranch = 'test-branch';
+  const String fakePubsubMessage = '''
     {
       "build": {
         "id": "$buildId",
@@ -45,7 +45,7 @@ void main() {
         }
       }
     }
-  """;
+  ''';
 
   setUp(() async {
     config = FakeConfig();
@@ -67,8 +67,8 @@ void main() {
       1,
       sha: fakeHash,
       branch: fakeBranch,
-      owner: "flutter",
-      repo: "flutter",
+      owner: 'flutter',
+      repo: 'flutter',
       timestamp: 0,
     );
 
@@ -81,16 +81,16 @@ void main() {
       endTime: endTime,
       input: const Input(
         gitilesCommit: GitilesCommit(
-          project: "flutter/flutter",
+          project: 'flutter/flutter',
           hash: fakeHash,
-          ref: "refs/heads/$fakeBranch",
+          ref: 'refs/heads/$fakeBranch',
         ),
       ),
     );
     when(
       buildBucketClient.getBuild(
         any,
-        buildBucketUri: "https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds",
+        buildBucketUri: 'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds',
       ),
     ).thenAnswer((_) => Future<Build>.value(fakeBuild));
 
@@ -142,9 +142,9 @@ void main() {
       endTimestamp: endTime.millisecondsSinceEpoch,
       luciBucket: bucket,
       name: builder,
-      stageName: "dart-internal",
+      stageName: 'dart-internal',
       startTimestamp: startTime.millisecondsSinceEpoch,
-      status: "Succeeded",
+      status: 'Succeeded',
       key: commit.key.append(Task),
       timeoutInMinutes: 0,
       reason: '',
@@ -170,9 +170,9 @@ void main() {
       endTimestamp: endTime.millisecondsSinceEpoch,
       luciBucket: bucket,
       name: builder,
-      stageName: "dart-internal",
+      stageName: 'dart-internal',
       startTimestamp: startTime.millisecondsSinceEpoch,
-      status: "Succeeded",
+      status: 'Succeeded',
       key: commit.key.append(Task),
       timeoutInMinutes: 0,
       reason: '',
@@ -192,7 +192,7 @@ void main() {
 
     // This is used for testing to pull the data out of the "datastore" so that
     // we can verify what was saved.
-    final String expectedBuilderList = "${existingTaskId.toString()},${buildId.toString()}";
+    final String expectedBuilderList = '${existingTaskId.toString()},${buildId.toString()}';
     late Task taskInDb;
     late Commit commitInDb;
     config.db.values.forEach((k, v) {
@@ -226,9 +226,9 @@ void main() {
       endTimestamp: endTime.millisecondsSinceEpoch,
       luciBucket: bucket,
       name: builder,
-      stageName: "dart-internal",
+      stageName: 'dart-internal',
       startTimestamp: startTime.millisecondsSinceEpoch,
-      status: "Succeeded",
+      status: 'Succeeded',
       key: commit.key.append(Task),
       timeoutInMinutes: 0,
       reason: '',
@@ -248,13 +248,13 @@ void main() {
   });
 
   test('ignores message with empty build data', () async {
-    tester.message = const push.PushMessage(data: "{}");
+    tester.message = const push.PushMessage(data: '{}');
     expect(await tester.post(handler), equals(Body.empty));
   });
 
   test('ignores message not from flutter bucket', () async {
     tester.message = const push.PushMessage(
-      data: """
+      data: '''
     {
       "build": {
         "id": "$buildId",
@@ -265,14 +265,14 @@ void main() {
         }
       }
     }
-    """,
+    ''',
     );
     expect(await tester.post(handler), equals(Body.empty));
   });
 
   test('ignores message not from dart-internal project', () async {
     tester.message = const push.PushMessage(
-      data: """
+      data: '''
     {
       "build": {
         "id": "$buildId",
@@ -283,14 +283,14 @@ void main() {
         }
       }
     }
-    """,
+    ''',
     );
     expect(await tester.post(handler), equals(Body.empty));
   });
 
   test('ignores message not from an accepted builder', () async {
     tester.message = const push.PushMessage(
-      data: """
+      data: '''
     {
       "build": {
         "id": "$buildId",
@@ -301,7 +301,7 @@ void main() {
         }
       }
     }
-    """,
+    ''',
     );
     expect(await tester.post(handler), equals(Body.empty));
   });

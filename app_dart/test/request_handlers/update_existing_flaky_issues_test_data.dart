@@ -67,8 +67,8 @@ final List<BuilderStatistic> semanticsIntegrationTestResponseZeroFlake = <Builde
     flakyBuildOfRecentCommit: '',
     flakyNumber: 0,
     totalNumber: 10,
-    fromDate: "2023-06-20",
-    toDate: "2023-06-29",
+    fromDate: '2023-06-20',
+    toDate: '2023-06-29',
   ),
 ];
 
@@ -82,8 +82,8 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 10,
-    fromDate: "2023-06-20",
-    toDate: "2023-06-29",
+    fromDate: '2023-06-20',
+    toDate: '2023-06-29',
   ),
 ];
 
@@ -97,8 +97,8 @@ final List<BuilderStatistic> stagingSameBuilderSemanticsIntegrationTestResponse 
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 10,
-    fromDate: "2023-06-20",
-    toDate: "2023-06-29",
+    fromDate: '2023-06-20',
+    toDate: '2023-06-29',
   ),
 ];
 
@@ -112,8 +112,8 @@ final List<BuilderStatistic> semanticsIntegrationTestResponseNotEnoughData = <Bu
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 7,
-    fromDate: "2023-06-20",
-    toDate: "2023-06-29",
+    fromDate: '2023-06-20',
+    toDate: '2023-06-29',
   ),
   // This builder is flakey, but it should be
   // ignored because it has ignore_flakiness set.
@@ -126,8 +126,8 @@ final List<BuilderStatistic> semanticsIntegrationTestResponseNotEnoughData = <Bu
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 7,
-    fromDate: "2023-06-20",
-    toDate: "2023-06-29",
+    fromDate: '2023-06-20',
+    toDate: '2023-06-29',
   ),
 ];
 
@@ -141,8 +141,8 @@ final List<BuilderStatistic> shardSemanticsIntegrationTestResponse = <BuilderSta
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 10,
-    fromDate: "2023-06-20",
-    toDate: "2023-06-29",
+    fromDate: '2023-06-20',
+    toDate: '2023-06-29',
   ),
 ];
 
@@ -156,8 +156,8 @@ final List<BuilderStatistic> ciyamlTestResponse = <BuilderStatistic>[
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 10,
-    fromDate: "2023-06-20",
-    toDate: "2023-06-29",
+    fromDate: '2023-06-20',
+    toDate: '2023-06-29',
   ),
 ];
 
@@ -171,8 +171,8 @@ final List<BuilderStatistic> stagingCiyamlTestResponse = <BuilderStatistic>[
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 10,
-    fromDate: "2023-06-20",
-    toDate: "2023-06-29",
+    fromDate: '2023-06-20',
+    toDate: '2023-06-29',
   ),
 ];
 
@@ -258,7 +258,7 @@ final CiYaml testCiYaml = CiYaml(
         runIf: ['.ci.yaml'],
         recipe: 'infra/ci_yaml',
         properties: <String, String>{
-          'tags': jsonEncode(["framework", "hostonly", "shard"]),
+          'tags': jsonEncode(['framework', 'hostonly', 'shard']),
         },
       ),
       pb.Target(
@@ -270,7 +270,7 @@ final CiYaml testCiYaml = CiYaml(
           'add_recipes_cq': 'true',
           'shard': 'build_tests',
           'subshard': '1_4',
-          'tags': jsonEncode(["framework", "hostonly", "shard"]),
+          'tags': jsonEncode(['framework', 'hostonly', 'shard']),
           'dependencies': jsonEncode([
             {
               'dependency': 'android_sdk',

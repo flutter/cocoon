@@ -185,7 +185,7 @@ Future<github.PullRequestMerge> _processMergeInternal({
   );
 
   if (pullRequestMerge.merged != true) {
-    throw RetryableException("Pull request ${slug.fullName}/$number could not be merged: ${pullRequestMerge.message}");
+    throw RetryableException('Pull request ${slug.fullName}/$number could not be merged: ${pullRequestMerge.message}');
   }
 
   return pullRequestMerge;

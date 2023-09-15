@@ -193,7 +193,7 @@ void main() {
           platformDimensions: <String, String>{
             'signing_cert': 'none',
           },
-          properties: <String, String>{"cores": "32"},
+          properties: <String, String>{'cores': '32'},
         );
         expect(target.getDimensions().length, 2);
       });
