@@ -42,6 +42,15 @@ class FakeConfig extends Config {
   RepositoryConfiguration? repositoryConfigurationMock;
 
   @override
+  String get pubsubPullRequestTopic => 'auto-submit-queue';
+  @override
+  String get pubsubPullRequestSubscription => 'auto-submit-queue-sub';
+  @override
+  String get pubsubRevertRequestTopic => 'auto-submit-revert-queue';
+  @override
+  String get pubsubRevertRequestSubscription => 'auto-submit-revert-queue-sub';
+
+  @override
   int get kPubsubPullNumber => kPubsubPullNumberValue ?? 1;
 
   @override
