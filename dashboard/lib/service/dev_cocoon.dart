@@ -126,19 +126,20 @@ class DevelopmentCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<List<Branch>>> fetchFlutterBranches() async {
-    final List<Branch> fakeBranches = <Branch>[];
-    for (String repo in _repos) {
-      fakeBranches.add(
-        Branch()
-          ..repository = repo
-          ..branch = defaultBranches[repo]!,
-      );
-      fakeBranches.add(
-        Branch()
-          ..repository = repo
-          ..branch = '$repo-release',
-      );
-    }
+    final List<Branch> fakeBranches = <Branch>[
+      Branch()
+        ..channel = 'HEAD'
+        ..branch = 'master',
+      Branch()
+        ..channel = 'stable'
+        ..branch = 'flutter-3.13-candidate.0',
+      Branch()
+        ..channel = 'beta'
+        ..branch = 'flutter-3.15-candidate.5',
+      Branch()
+        ..channel = 'dev'
+        ..branch = 'flutter-3.15-candidate.12',
+    ];
     return CocoonResponse<List<Branch>>.data(fakeBranches);
   }
 
