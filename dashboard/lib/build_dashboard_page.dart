@@ -268,7 +268,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
             ),
           ),
           ...buildState.branches
-              .where((Branch b) => b.repository == buildState.currentRepo && b.branch != buildState.currentBranch)
+              .where((Branch b) => b.branch != buildState.currentBranch)
               .map<DropdownMenuItem<String>>((Branch b) {
             final String branchPrefix = (b.channel != 'HEAD') ? '${b.channel}: ' : '';
             return DropdownMenuItem<String>(

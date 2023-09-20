@@ -1523,7 +1523,7 @@ class MockCommitService extends _i1.Mock implements _i28.CommitService {
         returnValueForMissingStub: _i20.Future<void>.value(),
       ) as _i20.Future<void>);
   @override
-  _i20.Future<void> handlePushGithubRequest(_i27.PushEvent? pushEvent) => (super.noSuchMethod(
+  _i20.Future<void> handlePushGithubRequest(Map<String, dynamic>? pushEvent) => (super.noSuchMethod(
         Invocation.method(
           #handlePushGithubRequest,
           [pushEvent],
@@ -1551,6 +1551,22 @@ class MockConfig extends _i1.Mock implements _i3.Config {
         Invocation.getter(#postsubmitSupportedRepos),
         returnValue: <_i14.RepositorySlug>{},
       ) as Set<_i14.RepositorySlug>);
+  @override
+  _i8.RetryOptions get getGobRetryOptions => (super.noSuchMethod(
+        Invocation.getter(#getGobRetryOptions),
+        returnValue: _FakeRetryOptions_7(
+          this,
+          Invocation.getter(#getGobRetryOptions),
+        ),
+      ) as _i8.RetryOptions);
+  @override
+  set setGobRetryOptions(_i8.RetryOptions? retryOptions) => super.noSuchMethod(
+        Invocation.setter(
+          #setGobRetryOptions,
+          retryOptions,
+        ),
+        returnValueForMissingStub: null,
+      );
   @override
   _i11.Logging get loggingService => (super.noSuchMethod(
         Invocation.getter(#loggingService),
@@ -1857,20 +1873,6 @@ class MockConfig extends _i1.Mock implements _i3.Config {
           this,
           Invocation.method(
             #createGitHubGraphQLClient,
-            [],
-          ),
-        )),
-      ) as _i20.Future<_i15.GraphQLClient>);
-  @override
-  _i20.Future<_i15.GraphQLClient> createCirrusGraphQLClient() => (super.noSuchMethod(
-        Invocation.method(
-          #createCirrusGraphQLClient,
-          [],
-        ),
-        returnValue: _i20.Future<_i15.GraphQLClient>.value(_FakeGraphQLClient_18(
-          this,
-          Invocation.method(
-            #createCirrusGraphQLClient,
             [],
           ),
         )),

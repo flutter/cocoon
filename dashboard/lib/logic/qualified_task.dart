@@ -18,7 +18,6 @@ class StageName {
 }
 
 /// Base URLs for various endpoints that can relate to a [Task].
-const String _cirrusUrl = 'https://cirrus-ci.com/github/flutter/flutter';
 const String _luciUrl = 'https://ci.chromium.org/p/flutter';
 const String _googleTestUrl = 'https://flutter-rob.corp.google.com';
 const String _dartInternalUrl = 'https://ci.chromium.org/p/dart-internal';

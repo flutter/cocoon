@@ -4,7 +4,7 @@
 
 /// Constants used for testing in ci_successful_test.dart.
 
-const String noStatusInCommitJson = """
+const String noStatusInCommitJson = '''
 {
     "repository": {
       "pullRequest": {
@@ -45,9 +45,9 @@ const String noStatusInCommitJson = """
       }
     }
   }
-""";
+''';
 
-const String nullStatusCommitRepositoryJson = """
+const String nullStatusCommitRepositoryJson = '''
   {
     "repository": {
       "pullRequest": {
@@ -84,9 +84,9 @@ const String nullStatusCommitRepositoryJson = """
       }
     }
   }
-  """;
+  ''';
 
-const String nonNullStatusSUCCESSCommitRepositoryJson = """
+const String nonNullStatusSUCCESSCommitRepositoryJson = '''
   {
     "repository": {
       "pullRequest": {
@@ -131,9 +131,9 @@ const String nonNullStatusSUCCESSCommitRepositoryJson = """
       }
     }
   }
-  """;
+  ''';
 
-const String nonNullStatusFAILURECommitRepositoryJson = """
+const String nonNullStatusFAILURECommitRepositoryJson = '''
   {
     "repository": {
       "pullRequest": {
@@ -178,4 +178,4 @@ const String nonNullStatusFAILURECommitRepositoryJson = """
       }
     }
   }
-  """;
+  ''';

@@ -567,7 +567,7 @@ targets:
         );
         config.db.values[commit.key] = commit;
         config.db.values[commitToT.key] = commitToT;
-        final Task task = generateTask(1, name: "test1", parent: commit);
+        final Task task = generateTask(1, name: 'test1', parent: commit);
         config.db.values[task.key] = task;
 
         // Set up ci.yaml with task name and branch name from [checkRunString].

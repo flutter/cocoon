@@ -104,7 +104,7 @@ void main() {
 
     test('Uses percent-encoding for project name', () async {
       mockHttpClient = MockClient((request) async {
-        expect(request.url.path, startsWith("/projects/mirrors%2Fflutter"));
+        expect(request.url.path, startsWith('/projects/mirrors%2Fflutter'));
         return http.Response(getCommitJson, HttpStatus.ok);
       });
       gerritService = GerritService(config: FakeConfig(), httpClient: mockHttpClient);
@@ -119,7 +119,7 @@ void main() {
   group('findMirroredCommit', () {
     test('Uses matching slug for GoB mirror', () async {
       mockHttpClient = MockClient((request) async {
-        expect(request.url.path, startsWith("/projects/mirrors%2Fpackages"));
+        expect(request.url.path, startsWith('/projects/mirrors%2Fpackages'));
         return http.Response(getCommitJson, HttpStatus.ok);
       });
       gerritService = GerritService(config: FakeConfig(), httpClient: mockHttpClient);
