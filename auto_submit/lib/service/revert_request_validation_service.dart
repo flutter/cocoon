@@ -54,27 +54,27 @@ class RevertRequestValidationService extends ValidationService {
     switch (revertProcessMethod) {
       // Revert is the processing of the closed issue.
       case RevertProcessMethod.revert:
-          await processRevertRequest(
-            result: await getNewestPullRequestInfo(config, messagePullRequest),
-            githubPullRequestEvent: updatedGithubPullRequestEvent,
-            ackId: ackId,
-            pubsub: pubsub,
-          );
-          break;
+        await processRevertRequest(
+          result: await getNewestPullRequestInfo(config, messagePullRequest),
+          githubPullRequestEvent: updatedGithubPullRequestEvent,
+          ackId: ackId,
+          pubsub: pubsub,
+        );
+        break;
       // Reverts is the processing of the opened revert issue.
       case RevertProcessMethod.revertOf:
-          await processRevertOfRequest(
-            result: await getNewestPullRequestInfo(config, messagePullRequest),
-            githubPullRequestEvent: updatedGithubPullRequestEvent,
-            ackId: ackId,
-            pubsub: pubsub,
-          );
-          break;
+        await processRevertOfRequest(
+          result: await getNewestPullRequestInfo(config, messagePullRequest),
+          githubPullRequestEvent: updatedGithubPullRequestEvent,
+          ackId: ackId,
+          pubsub: pubsub,
+        );
+        break;
       // Do not process.
       case RevertProcessMethod.none:
-          log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
-          await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
-          break;
+        log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
+        await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
+        break;
     }
   }
 
