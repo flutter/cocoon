@@ -17,6 +17,11 @@ String generateWebhookEvent({
   return '''{
       "action": "open",
       "number": 1598,
+      "sender": {
+        "login": "matanlurey",
+        "id": 168174,
+        "node_id": "MDQ6VXNlcjE2ODE3NA=="
+      },
       "pull_request": {
           "id": 1,
           "number": 1347,
@@ -88,6 +93,7 @@ PullRequest generatePullRequest({
   String title = 'Amazing new feature',
   bool? mergeable = true,
   String baseRef = 'main',
+  DateTime? mergedAt,
 }) {
   return PullRequest.fromJson(
     json.decode('''{
@@ -111,6 +117,7 @@ PullRequest generatePullRequest({
         }
       ],
       "created_at": "2011-01-26T19:01:12Z",
+      "merged_at": "${mergedAt ?? DateTime.now().subtract(const Duration(hours: 12))}",
       "closed_at": "2011-01-26T19:10:12Z",
       "head": {
         "label": "octocat:new-topic",

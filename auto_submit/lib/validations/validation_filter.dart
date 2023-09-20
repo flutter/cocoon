@@ -9,17 +9,17 @@ import 'package:auto_submit/validations/approval.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
 import 'package:auto_submit/validations/empty_checks.dart';
 import 'package:auto_submit/validations/mergeable.dart';
-import 'package:auto_submit/validations/revert.dart';
+import 'package:auto_submit/validations/required_check_runs.dart';
 import 'package:auto_submit/validations/validation.dart';
 
 /// The [ValidationFilter] allows us to pick and choose and the validations to
 /// run on a particular type of pull request.
 abstract class ValidationFilter {
-  factory ValidationFilter(
-    Config config,
-    ProcessMethod processMethod,
-    RepositoryConfiguration repositoryConfiguration,
-  ) {
+  factory ValidationFilter({
+    required Config config,
+    required ProcessMethod processMethod,
+    required RepositoryConfiguration repositoryConfiguration,
+  }) {
     switch (processMethod) {
       case ProcessMethod.processAutosubmit:
         return PullRequestValidationFilter(config, repositoryConfiguration);
@@ -46,14 +46,12 @@ class PullRequestValidationFilter implements ValidationFilter {
     final Set<Validation> validationsToRun = {};
 
     validationsToRun.add(Approval(config: config));
-
     // If we are running ci then we need to check the checkRuns and make sure
     // there are check runs created.
     if (repositoryConfiguration.runCi) {
       validationsToRun.add(CiSuccessful(config: config));
       validationsToRun.add(EmptyChecks(config: config));
     }
-
     validationsToRun.add(Mergeable(config: config));
 
     return validationsToRun;
@@ -72,7 +70,9 @@ class RevertRequestValidationFilter implements ValidationFilter {
   Set<Validation> getValidations() {
     final Set<Validation> validationsToRun = {};
 
-    validationsToRun.add(Revert(config: config));
+    validationsToRun.add(Approval(config: config));
+    validationsToRun.add(RequiredCheckRuns(config: config));
+    validationsToRun.add(Mergeable(config: config));
 
     return validationsToRun;
   }

@@ -35,7 +35,7 @@ class Approval extends Validation {
     String message = '';
     Action action = Action.REMOVE_LABEL;
     if (repositoryConfiguration.autoApprovalAccounts.contains(author)) {
-      log.info('PR ${slug.fullName}/${messagePullRequest.number} approved by roller account: $author');
+      log.info('PR ${slug.fullName}/${messagePullRequest.number} approved for roller account: $author');
       return ValidationResult(true, Action.REMOVE_LABEL, '');
     } else {
       final GithubService githubService = await config.createGithubService(slug);
