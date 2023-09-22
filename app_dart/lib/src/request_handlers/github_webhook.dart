@@ -21,9 +21,17 @@ class GithubWebhook extends RequestHandler<Body> {
   GithubWebhook({
     required super.config,
     required this.pubsub,
+    required this.secret,
+    required this.topic,
   });
 
   final PubSub pubsub;
+  
+  /// PubSub topic to publish authenticated requests to.
+  final String topic;
+
+  /// Future that resolves to the GitHub apps webhook secret.
+  final Future<String> secret;
 
   @override
   Future<Body> post() async {
@@ -42,7 +50,7 @@ class GithubWebhook extends RequestHandler<Body> {
       ..event = event
       ..payload = requestString;
     log.fine(message);
-    await pubsub.publish('github-webhooks', message.writeToJsonMap());
+    await pubsub.publish(topic, message.writeToJsonMap());
 
     return Body.empty;
   }
@@ -54,7 +62,7 @@ class GithubWebhook extends RequestHandler<Body> {
     String? signature,
     List<int> requestBody,
   ) async {
-    final String rawKey = await config.webhookKey;
+    final String rawKey = await secret;
     final List<int> key = utf8.encode(rawKey);
     final Hmac hmac = Hmac(sha1, key);
     final Digest digest = hmac.convert(requestBody);

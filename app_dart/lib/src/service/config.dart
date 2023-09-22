@@ -184,6 +184,9 @@ class Config {
 
   Future<String> get oauthClientId => _getSingleValue('OAuthClientId');
 
+  /// Webhook secret for the "Flutter Roll on Borg" GitHub App.
+  Future<String> get frobWebhookKey => _getSingleValue('FrobWebhookKey');
+
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
 
   String get wrongBaseBranchPullRequestMessage => 'This pull request was opened against a branch other than '

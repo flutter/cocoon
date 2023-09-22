@@ -192,6 +192,9 @@ class FakeConfig implements Config {
   String flutterGoldCommentID(gh.PullRequest pr) => 'PR ${pr.number}, at ${pr.head!.sha}';
 
   @override
+  Future<String> get frobWebhookKey async => 'frob-webhook-key';
+
+  @override
   int get commitNumber => 30;
 
   @override
