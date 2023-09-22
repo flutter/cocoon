@@ -26,7 +26,7 @@ class GithubWebhook extends RequestHandler<Body> {
   });
 
   final PubSub pubsub;
-  
+
   /// PubSub topic to publish authenticated requests to.
   final String topic;
 
