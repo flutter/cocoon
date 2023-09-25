@@ -93,6 +93,7 @@ Future<void> main() async {
         secret: config.webhookKey,
         topic: 'github-webhooks',
       ),
+      // TODO(chillers): Move to release service. https://github.com/flutter/flutter/issues/132082
       '/api/github/frob-webhook': GithubWebhook(
         config: config,
         pubsub: const PubSub(),
