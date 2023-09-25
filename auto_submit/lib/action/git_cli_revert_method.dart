@@ -22,7 +22,10 @@ import 'package:retry/retry.dart';
 class GitCliRevertMethod implements RevertMethod {
   @override
   Future<github.PullRequest?> createRevert(
-      Config config, String initiatingAuthor, github.PullRequest pullRequest,) async {
+    Config config,
+    String initiatingAuthor,
+    github.PullRequest pullRequest,
+  ) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final String commitSha = pullRequest.mergeCommitSha!;
     // we will need to collect the pr number after the revert request is generated.
