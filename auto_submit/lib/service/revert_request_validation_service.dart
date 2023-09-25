@@ -129,7 +129,7 @@ class RevertRequestValidationService extends ValidationService {
     try {
       // This is the autosubmit query result pull request from graphql.
       final github.PullRequest pullRequest =
-          await revertMethod!.createRevert(config, messagePullRequest) as github.PullRequest;
+          await revertMethod!.createRevert(config, sender, messagePullRequest) as github.PullRequest;
       log.info('Created revert pull request ${slug.fullName}/${pullRequest.number}.');
       // This will come through this service again for processing.
       await githubService.addLabels(slug, pullRequest.number!, [Config.kRevertOfLabel]);
