@@ -380,7 +380,34 @@ class AndroidDevice implements Device {
 
   @override
   Future<void> recover() async {
-    await eval('adb', <String>['-s', deviceId!, 'reboot'], canFail: false);
+    await cleanDevice();
+  }
+
+  @visibleForTesting
+  Future<bool> cleanDevice({ProcessManager? processManager}) async {
+    processManager ??= LocalProcessManager();
+    // Ensure device is rebooted after deleting cache and packages.
+    final List<String> deletePackageCacheArgs = [
+      'shell pm list packages -f',
+      '|',
+      'awk \'{split(\$0,a,"="); print a[2]}\'',
+      '|',
+      'xargs -I % adb shell pm clear %',
+    ];
+    final List<String> delete3PPackageArgs = [
+      'shell pm list packages -3',
+      '|',
+      'cut -d":" -f2',
+      '|',
+      'tr "\\r" " "',
+      '|',
+      'xargs -r -n1 -t adb uninstall',
+    ];
+
+    await eval('adb', deletePackageCacheArgs, canFail: false, processManager: processManager);
+    await eval('adb', delete3PPackageArgs, canFail: false, processManager: processManager);
+    await eval('adb', <String>['reboot'], canFail: false, processManager: processManager);
+    return true;
   }
 
   @override
