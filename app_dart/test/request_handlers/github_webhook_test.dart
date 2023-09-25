@@ -42,6 +42,8 @@ void main() {
     webhook = GithubWebhook(
       config: config,
       pubsub: pubsub,
+      secret: config.webhookKey,
+      topic: 'github-webhooks',
     );
   });
 

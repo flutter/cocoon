@@ -89,6 +89,15 @@ Future<void> main() async {
       '/api/github-webhook-pullrequest': GithubWebhook(
         config: config,
         pubsub: const PubSub(),
+        secret: config.webhookKey,
+        topic: 'github-webhooks',
+      ),
+      // TODO(chillers): Move to release service. https://github.com/flutter/flutter/issues/132082
+      '/api/github/frob-webhook': GithubWebhook(
+        config: config,
+        pubsub: const PubSub(),
+        secret: config.frobWebhookKey,
+        topic: 'frob-webhooks',
       ),
       '/api/github/webhook-subscription': GithubWebhookSubscription(
         config: config,
