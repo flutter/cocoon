@@ -472,6 +472,7 @@ void main() {
     late MockProcessManager processManager;
     Process cacheCleanupProcess;
     Process pkgCleanupProcess;
+    Process waitProcess;
     Process rebootProcess;
 
     List<List<int>>? cache_output;
@@ -495,6 +496,7 @@ void main() {
       ];
       cacheCleanupProcess = FakeProcess(0, out: cache_output);
       pkgCleanupProcess = FakeProcess(0, out: pkg_output);
+      waitProcess = FakeProcess(0);
       rebootProcess = FakeProcess(0);
 
       when(
@@ -510,6 +512,17 @@ void main() {
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(cacheCleanupProcess));
+      when(
+        processManager.start(
+          <Object>[
+            'adb',
+            'shell',
+            'true',
+          ],
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => Future.value(waitProcess));
+
       when(
         processManager.start(
           <Object>[

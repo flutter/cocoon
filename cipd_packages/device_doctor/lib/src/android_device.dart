@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:meta/meta.dart';
 import 'package:process/process.dart';
@@ -384,6 +385,24 @@ class AndroidDevice implements Device {
   }
 
   @visibleForTesting
+  Future<void> waitForDeviceUp({ProcessManager? processManager}) async {
+    processManager ??= LocalProcessManager();
+    final List<String> waitForDeviceArgs = [
+      'shell',
+      'true',
+    ];
+    final int maxTries = 4;
+    final int sleepSecs = 5;
+    for (var i = 0; i < maxTries; i++) {
+      final Process proc = await startProcess('adb', waitForDeviceArgs, processManager: processManager);
+      if (0 == await proc.exitCode) {
+        break;
+      }
+      await Future.delayed(Duration(seconds: sleepSecs));
+    }
+  }
+
+  @visibleForTesting
   Future<bool> cleanDevice({ProcessManager? processManager}) async {
     processManager ??= LocalProcessManager();
     // Ensure device is rebooted after deleting cache and packages.
@@ -405,7 +424,9 @@ class AndroidDevice implements Device {
     ];
 
     await eval('adb', deletePackageCacheArgs, canFail: false, processManager: processManager);
+    await waitForDeviceUp(processManager: processManager);
     await eval('adb', delete3PPackageArgs, canFail: false, processManager: processManager);
+    await waitForDeviceUp(processManager: processManager);
     await eval('adb', <String>['reboot'], canFail: false, processManager: processManager);
     return true;
   }
