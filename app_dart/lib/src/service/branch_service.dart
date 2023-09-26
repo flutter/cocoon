@@ -9,14 +9,10 @@ import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart' as gh;
 import 'package:retry/retry.dart';
 
-import '../model/appengine/branch.dart';
 import '../model/gerrit/commit.dart';
 import '../request_handling/exceptions.dart';
 import 'gerrit_service.dart';
 import 'logging.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:gcloud/db.dart';
-import 'package:github/hooks.dart';
 
 class RetryException implements Exception {}
 
@@ -33,42 +29,6 @@ class BranchService {
   final Config config;
   final GerritService gerritService;
   final RetryOptions retryOptions;
-
-  /// Add a [CreateEvent] branch to Datastore.
-  Future<void> handleCreateRequest(CreateEvent createEvent) async {
-    log.info('the branch parsed from string request is ${createEvent.ref}');
-
-    final String? refType = createEvent.refType;
-    if (refType == 'tag') {
-      log.info('create branch event was rejected because it is a tag');
-      return;
-    }
-    final String? branch = createEvent.ref;
-    if (branch == null) {
-      log.fine('Branch is null, exiting early');
-      return;
-    }
-    final gh.RepositorySlug slug = createEvent.repository!.slug();
-    final int lastActivity = createEvent.repository!.pushedAt!.millisecondsSinceEpoch;
-    final bool forked = createEvent.repository!.isFork;
-
-    if (forked) {
-      log.info('create branch event was rejected because the branch is a fork');
-      return;
-    }
-
-    final String id = '${slug.fullName}/$branch';
-    log.info('the id used to create branch key was $id');
-    final DatastoreService datastore = DatastoreService.defaultProvider(config.db);
-    final Key<String> key = datastore.db.emptyKey.append<String>(Branch, id: id);
-    final Branch currentBranch = Branch(key: key, lastActivity: lastActivity);
-    try {
-      await datastore.lookupByValue<Branch>(currentBranch.key);
-    } on KeyNotFoundException {
-      log.info('create branch event was successful since the key is unique');
-      await datastore.insert(<Branch>[currentBranch]);
-    }
-  }
 
   /// Creates a flutter/recipes branch that aligns to a flutter/engine commit.
   ///
@@ -188,7 +148,7 @@ class BranchService {
     required gh.RepositorySlug slug,
     required List<gh.Branch> branches,
   }) async {
-    final RegExp candidateBranchName = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
+    final RegExp candidateBranchName = RegExp(r'^flutter-\d+\.\d+-candidate\.\d+$');
     final List<gh.Branch> devBranches = branches.where((gh.Branch b) => candidateBranchName.hasMatch(b.name!)).toList();
     devBranches.sort((b, a) => (_versionSum(a.name!)).compareTo(_versionSum(b.name!)));
     final String devBranchName = devBranches.take(1).single.name!;
