@@ -8,13 +8,16 @@ void main() {
     final PullRequest pullRequest = PullRequest(number: 123456, body: null, title: 'Interesting title.');
     const String sender = 'RevertAuthor';
     RevertIssueBodyFormatter? revertIssueBodyFormatter;
-    expect(() => revertIssueBodyFormatter = RevertIssueBodyFormatter(
-      slug: RepositorySlug('flutter', 'flutter'),
-      originalPrNumber: pullRequest.number!,
-      initiatingAuthor: sender,
-      originalPrTitle: pullRequest.title,
-      originalPrBody: pullRequest.body,
-    ), returnsNormally,);
+    expect(
+      () => revertIssueBodyFormatter = RevertIssueBodyFormatter(
+        slug: RepositorySlug('flutter', 'flutter'),
+        originalPrNumber: pullRequest.number!,
+        initiatingAuthor: sender,
+        originalPrTitle: pullRequest.title,
+        originalPrBody: pullRequest.body,
+      ),
+      returnsNormally,
+    );
     revertIssueBodyFormatter!.format;
     expect(revertIssueBodyFormatter, isNotNull);
     expect(revertIssueBodyFormatter!.revertPrBody!.contains('No description provided.'), isTrue);
