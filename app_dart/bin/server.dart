@@ -82,10 +82,6 @@ Future<void> main() async {
         authenticationProvider: authProvider,
         cache: cache,
       ),
-      '/api/get-authentication-status': GetAuthenticationStatus(
-        config: config,
-        authenticationProvider: authProvider,
-      ),
       '/api/github-webhook-pullrequest': GithubWebhook(
         config: config,
         pubsub: const PubSub(),
@@ -106,13 +102,6 @@ Future<void> main() async {
         githubChecksService: githubChecksService,
         scheduler: scheduler,
         commitService: commitService,
-      ),
-
-      /// API to run authenticated graphql queries. It requires to pass the graphql query as the body
-      /// of a POST request.
-      '/api/query-github-graphql': QueryGithubGraphql(
-        config: config,
-        authenticationProvider: authProvider,
       ),
       '/api/presubmit-luci-subscription': PresubmitLuciSubscription(
         cache: cache,
