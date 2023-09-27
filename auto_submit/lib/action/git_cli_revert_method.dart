@@ -66,14 +66,14 @@ class GitCliRevertMethod implements RevertMethod {
       retryIf: (Exception e) => e is NotFoundException,
     );
 
-    log.info('found branch ${slug.fullName}/${branch!.name}, safe to create revert request.');
+    log.info('found branch ${slug.fullName}/${branch!.name}, safe to create revert request of ${pullRequest.number!}.');
 
     final RevertIssueBodyFormatter formatter = RevertIssueBodyFormatter(
       slug: slug,
       originalPrNumber: pullRequest.number!,
       initiatingAuthor: initiatingAuthor,
-      originalPrTitle: pullRequest.title!,
-      originalPrBody: pullRequest.body!,
+      originalPrTitle: pullRequest.title,
+      originalPrBody: pullRequest.body,
     ).format;
 
     log.info('Attempting to create pull request with ${slug.fullName}/${gitRevertBranchName.branch}.');
