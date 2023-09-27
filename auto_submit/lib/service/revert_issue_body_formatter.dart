@@ -40,8 +40,8 @@ class RevertIssueBodyFormatter {
 $revertPrLink
 Initiated by: $initiatingAuthor
 This change reverts the following previous change:
-Original Description: 
-    $originalPrBody
+Original Description:
+$originalPrBody
 ''';
 
     return this;
