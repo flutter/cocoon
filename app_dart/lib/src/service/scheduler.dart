@@ -142,7 +142,11 @@ class Scheduler {
         policy = GuaranteedPolicy();
       }
       final int? priority = await policy.triggerPriority(task: task, datastore: datastore);
-      if (priority != null) {
+      // Skip scheduling `bringup: true` targets. They may be newly created and
+      // their corresponding LUCI builder configs may not be ready yet considering we
+      // disabled the `ci_yaml roller` backfill. Existing `bringup: true` targets
+      // can rely on backfiller to get tasks scheduled and executed.
+      if (priority != null && !target.value.bringup) {
         // Mark task as in progress to ensure it isn't scheduled over
         task.status = Task.statusInProgress;
         toBeScheduled.add(Tuple<Target, Task, int>(target, task, priority));
