@@ -7,7 +7,6 @@ import 'dart:math';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/request_handlers/github/branch_subscription.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:gcloud/db.dart';
 
@@ -90,6 +89,15 @@ Future<void> main() async {
       '/api/github-webhook-pullrequest': GithubWebhook(
         config: config,
         pubsub: const PubSub(),
+        secret: config.webhookKey,
+        topic: 'github-webhooks',
+      ),
+      // TODO(chillers): Move to release service. https://github.com/flutter/flutter/issues/132082
+      '/api/github/frob-webhook': GithubWebhook(
+        config: config,
+        pubsub: const PubSub(),
+        secret: config.frobWebhookKey,
+        topic: 'frob-webhooks',
       ),
       '/api/github/webhook-subscription': GithubWebhookSubscription(
         config: config,
@@ -97,12 +105,6 @@ Future<void> main() async {
         gerritService: gerritService,
         githubChecksService: githubChecksService,
         scheduler: scheduler,
-        commitService: commitService,
-      ),
-      '/api/github/webhook-branch-subscription': GithubBranchWebhookSubscription(
-        config: config,
-        cache: cache,
-        branchService: branchService,
         commitService: commitService,
       ),
 
@@ -161,9 +163,6 @@ Future<void> main() async {
         config: config,
         authenticationProvider: authProvider,
       ),
-      '/api/update-branches': UpdateBranches(
-        config: config,
-      ),
 
       /// Updates task related details.
       ///
@@ -213,8 +212,12 @@ Future<void> main() async {
         delegate: GetBuildStatus(config: config),
         ttl: const Duration(seconds: 15),
       ),
-
-      '/api/public/get-release-branches': GetReleaseBranches(config: config, branchService: branchService),
+      '/api/public/get-release-branches': CacheRequestHandler<Body>(
+        cache: cache,
+        config: config,
+        delegate: GetReleaseBranches(config: config, branchService: branchService),
+        ttl: const Duration(hours: 1),
+      ),
 
       /// Returns task results for commits.
       ///
@@ -268,13 +271,6 @@ Future<void> main() async {
       ),
 
       '/api/public/get-green-commits': GetGreenCommits(config: config),
-
-      '/api/public/get-branches': CacheRequestHandler<Body>(
-        cache: cache,
-        config: config,
-        delegate: GetBranches(config: config, branchService: branchService),
-        ttl: const Duration(minutes: 15),
-      ),
 
       /// Record GitHub API quota usage in BigQuery.
       ///

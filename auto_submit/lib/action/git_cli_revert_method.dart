@@ -21,7 +21,11 @@ import 'package:retry/retry.dart';
 
 class GitCliRevertMethod implements RevertMethod {
   @override
-  Future<github.PullRequest?> createRevert(Config config, github.PullRequest pullRequest) async {
+  Future<github.PullRequest?> createRevert(
+    Config config,
+    String initiatingAuthor,
+    github.PullRequest pullRequest,
+  ) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final String commitSha = pullRequest.mergeCommitSha!;
     // we will need to collect the pr number after the revert request is generated.
@@ -62,14 +66,14 @@ class GitCliRevertMethod implements RevertMethod {
       retryIf: (Exception e) => e is NotFoundException,
     );
 
-    log.info('found branch ${slug.fullName}/${branch!.name}, safe to create revert request.');
+    log.info('found branch ${slug.fullName}/${branch!.name}, safe to create revert request of ${pullRequest.number!}.');
 
     final RevertIssueBodyFormatter formatter = RevertIssueBodyFormatter(
       slug: slug,
       originalPrNumber: pullRequest.number!,
-      initiatingAuthor: 'ricardoamador',
-      originalPrTitle: pullRequest.title!,
-      originalPrBody: pullRequest.body!,
+      initiatingAuthor: initiatingAuthor,
+      originalPrTitle: pullRequest.title,
+      originalPrBody: pullRequest.body,
     ).format;
 
     log.info('Attempting to create pull request with ${slug.fullName}/${gitRevertBranchName.branch}.');
@@ -77,7 +81,7 @@ class GitCliRevertMethod implements RevertMethod {
       slug: slug,
       title: formatter.revertPrTitle,
       head: gitRevertBranchName.branch,
-      base: 'main',
+      base: baseBranch,
       draft: false,
       body: formatter.revertPrBody,
     );
