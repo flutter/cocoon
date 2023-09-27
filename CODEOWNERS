@@ -4,7 +4,37 @@
 # These names are just suggestions. It is fine to have your changes
 # reviewed by someone else.
 
-auto_submit                                        @ricardoamador
-cipd_packages/codesign/**                          @XilaiZhang
-cipd_packages/device_doctor/**                     @yusuf-goog
-cipd_packages/doxygen/**                           @gspencergoog
+## app_dart APIs
+app_dart/lib/src/request_handlers/check_flaky_builders.dart                 @keyonghan
+app_dart/lib/src/request_handlers/create_branch.dart                        @CaseyHillers
+app_dart/lib/src/request_handlers/dart_internal_subscription.dart           @drewroengoogle
+app_dart/lib/src/request_handlers/file_flaky_issue_and_pr.dart              @keyonghan
+app_dart/lib/src/request_handlers/flush_cache.dart                          @keyonghan
+app_dart/lib/src/request_handlers/get_build_status.dart                     @keyonghan
+app_dart/lib/src/request_handlers/get_release_branches.dart                 @CaseyHillers
+app_dart/lib/src/request_handlers/get_repos.dart                            @keyonghan
+app_dart/lib/src/request_handlers/get_status.dart                           @keyonghan
+app_dart/lib/src/request_handlers/get_green_commits.dart                    @XilaiZhang
+app_dart/lib/src/request_handlers/github_rate_limit_status.dart             @keyonghan
+app_dart/lib/src/request_handlers/github_webhook.dart                       @keyonghan
+app_dart/lib/src/request_handlers/github/webhook_subscription.dart          @keyonghan
+app_dart/lib/src/request_handlers/presubmit_luci_subscription.dart          @keyonghan
+app_dart/lib/src/request_handlers/postsubmit_luci_subscription.dart         @keyonghan
+app_dart/lib/src/request_handlers/push_build_status_to_github.dart          @keyonghan
+app_dart/lib/src/request_handlers/push_gold_status_to_github.dart           @Piinks
+app_dart/lib/src/request_handlers/reset_prod_task.dart                      @keyonghan
+app_dart/lib/src/request_handlers/reset_try_task.dart                       @keyonghan
+app_dart/lib/src/request_handlers/scheduler/batch_backfiller.dart           @keyonghan
+app_dart/lib/src/request_handlers/scheduler/request_subscription.dart       @keyonghan
+app_dart/lib/src/request_handlers/scheduler/vacuum_stale_tasks.dart         @keyonghan
+app_dart/lib/src/request_handlers/update_existing_flaky_issues.dart         @keyonghan
+app_dart/lib/src/request_handlers/update_task_status.dart                   @keyonghan
+app_dart/lib/src/request_handlers/vacuum_github_commits.dart                @keyonghan
+
+## auto_submit app
+auto_submit                                                                 @ricardoamador
+
+## cipd packages
+cipd_packages/codesign/**                                                   @XilaiZhang
+cipd_packages/device_doctor/**                                              @yusuf-goog
+cipd_packages/doxygen/**                                                    @gspencergoog
