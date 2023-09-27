@@ -384,28 +384,68 @@ class AndroidDevice implements Device {
   }
 
   @visibleForTesting
+  Future<void> deletePackageCache() async {
+    final ProcessResult result = Process.runSync('adb', <String>['shell', 'pm', 'list', 'packages']);
+
+    if (result.exitCode != 0) {
+      throw Exception(result.stderr as String);
+    }
+    final packages = <String>[];
+
+    // Listen to the stdout and stderr streams
+    LineSplitter().convert(result.stdout).forEach((data) {
+      final packageMatch = RegExp(r'package:(.+)$').firstMatch(data);
+      if (packageMatch != null) {
+        final packageName = packageMatch.group(1);
+        if (packageName != null) {
+          packages.add(packageName);
+        }
+      }
+    });
+    for (final p in packages) {
+      final r = Process.runSync('adb', <String>['shell', 'pm', 'clear', p]);
+      if (r.exitCode != 0) {
+        print('Clearing package $p resulted in a non-zero exit.');
+      }
+    }
+  }
+
+  @visibleForTesting
+  Future<void> delete3Ppackages() async {
+    final ProcessResult result = Process.runSync('adb', <String>['shell', 'pm', 'list', 'packages', '-3']);
+    if (result.exitCode != 0) {
+      throw Exception(result.stderr as String);
+    }
+    final packages = <String>[];
+
+    // Listen to the stdout and stderr streams
+    LineSplitter().convert(result.stdout).forEach((data) {
+      final packageMatch = RegExp(r'package:(.+)$').firstMatch(data);
+      if (packageMatch != null) {
+        final packageName = packageMatch.group(1);
+        if (packageName != null) {
+          packages.add(packageName);
+        }
+      }
+    });
+    for (final p in packages) {
+      final r = Process.runSync('adb', <String>['shell', 'pm', 'uninstall', p]);
+      if (r.exitCode != 0) {
+        print('Uninstalling package $p resulted in a non-zero exit.');
+      }
+    }
+  }
+
+  @visibleForTesting
   Future<bool> cleanDevice({ProcessManager? processManager}) async {
     processManager ??= LocalProcessManager();
-    // Ensure device is rebooted after deleting cache and packages.
-    final List<String> deletePackageCacheArgs = [
-      'shell pm list packages -f',
-      '|',
-      'awk \'{split(\$0,a,"="); print a[2]}\'',
-      '|',
-      'xargs -I % adb shell pm clear %',
-    ];
-    final List<String> delete3PPackageArgs = [
-      'shell pm list packages -3',
-      '|',
-      'cut -d":" -f2',
-      '|',
-      'tr "\\r" " "',
-      '|',
-      'xargs -r -n1 -t adb uninstall',
-    ];
-
-    await eval('adb', deletePackageCacheArgs, canFail: false, processManager: processManager);
-    await eval('adb', delete3PPackageArgs, canFail: false, processManager: processManager);
+    final int timeoutSecs = 20;
+    await deletePackageCache();
+    await eval('adb', <String>['wait-for-device'], canFail: false, processManager: processManager)
+        .timeout(Duration(seconds: timeoutSecs));
+    await delete3Ppackages();
+    await eval('adb', <String>['wait-for-device'], canFail: false, processManager: processManager)
+        .timeout(Duration(seconds: timeoutSecs));
     await eval('adb', <String>['reboot'], canFail: false, processManager: processManager);
     return true;
   }
