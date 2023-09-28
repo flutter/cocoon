@@ -67,11 +67,6 @@ class GitRepositoryManager {
     final GitRevertBranchName revertBranchName = GitRevertBranchName(commitSha);
     // Working directory for these must be repo checkout directory.
     // Check out the baseBranchName before doing anything.
-    await gitCli.switchBranch(
-      workingDirectory: workingDirectory,
-      branchName: baseBranchName,
-    );
-    
     await gitCli.createBranch(
       newBranchName: revertBranchName.branch,
       workingDirectory: targetCloneDirectory,
