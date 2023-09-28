@@ -69,7 +69,7 @@ class RepositoryConfigurationManager {
     final RepositoryConfiguration globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(orgLevelConfig);
 
     // Collect the default branch if it was not supplied.
-    if (globalRepositoryConfiguration.defaultBranch.isEmpty) {
+    if (globalRepositoryConfiguration.defaultBranch == 'default') {
       globalRepositoryConfiguration.defaultBranch = await githubService.getDefaultBranch(slug);
     }
     log.info('Default branch was found to be ${globalRepositoryConfiguration.defaultBranch} for ${slug.fullName}.');

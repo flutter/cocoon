@@ -21,14 +21,14 @@ class RepositoryConfiguration {
   static const String requiredCheckRunsOnRevertKey = 'required_checkruns_on_revert';
 
   // Default values
-  static const bool allowConfigOverrideDefault = false;
-  static const String defaultBranchDefault = 'main';
-  static const Set<String> autoApprovalAccountsDefault = <String>{};
-  static const int approvingReviewsDefault = 2;
-  static const String approvalGroupDefault = 'flutter-hackers';
-  static const bool runCiDefault = true;
-  static const bool supportNoReviewRevertsDefault = true;
-  static const Set<String> requiredCheckRunsOnRevertDefault = <String>{};
+  // static const bool allowConfigOverrideDefault = false;
+  // static const String defaultBranchDefault = 'main';
+  // static const Set<String> autoApprovalAccountsDefault = <String>{};
+  // static const int approvingReviewsDefault = 2;
+  // static const String approvalGroupDefault = 'flutter-hackers';
+  // static const bool runCiDefault = true;
+  // static const bool supportNoReviewRevertsDefault = true;
+  // static const Set<String> requiredCheckRunsOnRevertDefault = <String>{};
 
   RepositoryConfiguration({
     allowConfigOverride,
@@ -40,7 +40,7 @@ class RepositoryConfiguration {
     supportNoReviewReverts,
     requiredCheckRunsOnRevert,
   })  : allowConfigOverride = allowConfigOverride ?? false,
-        defaultBranch = defaultBranch ?? 'main',
+        defaultBranch = defaultBranch ?? 'default',
         autoApprovalAccounts = autoApprovalAccounts ?? <String>{},
         approvingReviews = approvingReviews ?? 2,
         approvalGroup = approvalGroup ?? 'flutter-hackers',
