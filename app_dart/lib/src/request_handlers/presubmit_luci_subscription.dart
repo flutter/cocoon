@@ -130,6 +130,16 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       rethrow;
     }
 
+    // alternative solution, just not reschedule.
+    // This might be allowable. We are checking tip of tree but I don't think the 
+    // target has been deleted.
+
+    // if (!ciYaml.presubmitTargets.any((element) => element.value.name == builderName)) {
+    //   // do not reschedule
+    //   return 1;
+    // }
+    // final Target target = ciYaml.presubmitTargets.where((element) => element.value.name == builderName).single;
+
     final Map<String, Object> properties = target.getProperties();
     
     if (!properties.containsKey('presubmit_max_attempts')) {
