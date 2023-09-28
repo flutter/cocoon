@@ -20,6 +20,8 @@ class RepositoryConfiguration {
   static const String supportNoReviewRevertKey = 'support_no_review_revert';
   static const String requiredCheckRunsOnRevertKey = 'required_checkruns_on_revert';
 
+  static const String defaultBranchStr = 'default';
+
   RepositoryConfiguration({
     allowConfigOverride,
     defaultBranch,
@@ -30,7 +32,7 @@ class RepositoryConfiguration {
     supportNoReviewReverts,
     requiredCheckRunsOnRevert,
   })  : allowConfigOverride = allowConfigOverride ?? false,
-        defaultBranch = defaultBranch ?? 'default',
+        defaultBranch = defaultBranch ?? defaultBranchStr,
         autoApprovalAccounts = autoApprovalAccounts ?? <String>{},
         approvingReviews = approvingReviews ?? 2,
         approvalGroup = approvalGroup ?? 'flutter-hackers',
