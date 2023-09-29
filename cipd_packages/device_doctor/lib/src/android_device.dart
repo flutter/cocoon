@@ -440,15 +440,15 @@ class AndroidDevice implements Device {
   Future<bool> cleanDevice({ProcessManager? processManager}) async {
     processManager ??= LocalProcessManager();
     final int timeoutSecs = 60;
-    print("Device recovery: deleting package caches...");
+    print('Device recovery: deleting package caches...');
     await deletePackageCache();
     await eval('adb', <String>['wait-for-device'], canFail: false, processManager: processManager)
         .timeout(Duration(seconds: timeoutSecs));
-    print("Device recovery: deleting 3P packages...");
+    print('Device recovery: deleting 3P packages...');
     await delete3Ppackages();
     await eval('adb', <String>['wait-for-device'], canFail: false, processManager: processManager)
         .timeout(Duration(seconds: timeoutSecs));
-    print("Device recovery: rebooting...");
+    print('Device recovery: rebooting...');
     await eval('adb', <String>['reboot'], canFail: false, processManager: processManager);
     return true;
   }
