@@ -105,7 +105,43 @@ void main() {
     expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains('Google-testing'), isTrue);
   });
 
-  test('Default branch collected if omitted', () async {
+  test('Default branch collected if omitted master', () async {
+    const String sampleConfig = '''
+      auto_approval_accounts:
+        - dependabot[bot]
+        - dependabot
+        - DartDevtoolWorkflowBot
+      approving_reviews: 2
+      approval_group: flutter-hackers
+      run_ci: true
+      support_no_review_revert: true
+      required_checkruns_on_revert:
+        - ci.yaml validation
+        - Google-testing
+    ''';
+
+    githubService.fileContentsMockList.add(sampleConfig);
+    githubService.defaultBranch = 'master';
+    final RepositoryConfiguration repositoryConfiguration =
+        await repositoryConfigurationManager.readRepositoryConfiguration(
+      RepositorySlug('flutter', 'flutter'),
+    );
+
+    expect(repositoryConfiguration.allowConfigOverride, isFalse);
+    expect(repositoryConfiguration.defaultBranch, 'master');
+    expect(repositoryConfiguration.autoApprovalAccounts.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.autoApprovalAccounts.length, 3);
+    expect(repositoryConfiguration.approvingReviews, 2);
+    expect(repositoryConfiguration.approvalGroup, 'flutter-hackers');
+    expect(repositoryConfiguration.runCi, isTrue);
+    expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.length, 2);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains('ci.yaml validation'), isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains('Google-testing'), isTrue);
+  });
+
+  test('Default branch collected if omitted main', () async {
     const String sampleConfig = '''
       auto_approval_accounts:
         - dependabot[bot]
@@ -124,7 +160,7 @@ void main() {
     githubService.defaultBranch = 'main';
     final RepositoryConfiguration repositoryConfiguration =
         await repositoryConfigurationManager.readRepositoryConfiguration(
-      RepositorySlug('flutter', 'cocoon'),
+      RepositorySlug('flutter', 'flutter'),
     );
 
     expect(repositoryConfiguration.allowConfigOverride, isFalse);
