@@ -439,13 +439,16 @@ class AndroidDevice implements Device {
   @visibleForTesting
   Future<bool> cleanDevice({ProcessManager? processManager}) async {
     processManager ??= LocalProcessManager();
-    final int timeoutSecs = 20;
+    final int timeoutSecs = 40;
+    print("Device recovery: deleting package caches...");
     await deletePackageCache();
     await eval('adb', <String>['wait-for-device'], canFail: false, processManager: processManager)
         .timeout(Duration(seconds: timeoutSecs));
+    print("Device recovery: deleting 3P packages...");
     await delete3Ppackages();
     await eval('adb', <String>['wait-for-device'], canFail: false, processManager: processManager)
         .timeout(Duration(seconds: timeoutSecs));
+    print("Device recovery: rebooting...");
     await eval('adb', <String>['reboot'], canFail: false, processManager: processManager);
     return true;
   }
