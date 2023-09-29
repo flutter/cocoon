@@ -158,4 +158,29 @@ void main() {
     );
     verify(mockGithubChecksService.updateCheckStatus(any, any, any, rescheduled: true)).called(1);
   });
+
+  test('Build not rescheduled if not found in ciYaml list.', () async {
+    when(mockGithubChecksService.updateCheckStatus(any, any, any, rescheduled: false)).thenAnswer((_) async => true);
+    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
+    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 1);
+    tester.message = createBuildbucketPushMessage(
+      'COMPLETED',
+      result: 'SUCCESS',
+      // This builder will not be present.
+      builderName: 'Linux C',
+      userData: '{\\"repo_owner\\": \\"flutter\\",'
+          '\\"commit_branch\\": \\"main\\",'
+          '\\"commit_sha\\": \\"abc\\",'
+          '\\"repo_name\\": \\"flutter\\"}',
+    );
+    await tester.post(handler);
+    verifyNever(
+      mockLuciBuildService.rescheduleBuild(
+        builderName: 'Linux C',
+        buildPushMessage: BuildPushMessage.fromPushMessage(tester.message),
+        rescheduleAttempt: 1,
+      ),
+    );
+    verify(mockGithubChecksService.updateCheckStatus(any, any, any, rescheduled: false)).called(1);
+  });
 }
