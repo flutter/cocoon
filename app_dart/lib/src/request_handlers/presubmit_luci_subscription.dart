@@ -120,7 +120,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       ciYaml = await scheduler.getCiYaml(commit);
     }
 
-    // Do not block on the target not found. 
+    // Do not block on the target not found.
     if (!ciYaml.presubmitTargets.any((element) => element.value.name == builderName)) {
       // do not reschedule
       log.warning('Did not find builder with name: $builderName in ciYaml for ${commit.sha}');
@@ -128,7 +128,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       log.warning('ciYaml presubmit targets found: $availableBuilderList');
       return 1;
     }
-    
+
     final Target target = ciYaml.presubmitTargets.where((element) => element.value.name == builderName).single;
     final Map<String, Object> properties = target.getProperties();
     if (!properties.containsKey('presubmit_max_attempts')) {
