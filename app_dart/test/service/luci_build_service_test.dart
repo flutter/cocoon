@@ -726,6 +726,7 @@ void main() {
                     tags: {
                       'buildset': <String>['pr/git/123'],
                       'cipd_version': <String>['refs/heads/main'],
+                      'github_link': <String>['https://github.com/flutter/flutter/pull/1'],
                     },
                     input: const Input(properties: {'test': 'abc'}),
                   ),
@@ -757,7 +758,7 @@ void main() {
               as Map<String, dynamic>;
       expect(userData, <String, dynamic>{
         'check_run_id': 1,
-        'commit_branch': 'main',
+        'commit_branch': 'master',
         'commit_sha': 'ec26c3e57ca3a959ca5aad62de7213c562f8c821',
         'repo_owner': 'flutter',
         'repo_name': 'flutter',

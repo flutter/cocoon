@@ -353,7 +353,9 @@ class LuciBuildService {
     final Build build = builds.first;
     final String prString = build.tags!['buildset']!.firstWhere((String? element) => element!.startsWith('pr/git/'))!;
     final String cipdVersion = build.tags!['cipd_version']![0]!;
-    final String branch = cipdVersion.split('/')[2];
+    final String githubLink = build.tags!['github_link']![0]!;
+    final String repoName = githubLink.split('/')[4];
+    final String branch = Config.defaultBranch(github.RepositorySlug('flutter', repoName));
     final int prNumber = int.parse(prString.split('/')[2]);
 
     final Map<String, dynamic> userData = <String, dynamic>{
