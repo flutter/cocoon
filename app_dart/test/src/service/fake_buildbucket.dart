@@ -60,6 +60,7 @@ class FakeBuildBucketClient extends BuildBucketClient {
                   tags: <String, List<String>>{
                     'buildset': <String>['pr/git/12345', 'sha/git/259bcf77bd04e64ef2181caccc43eda57780cd21'],
                     'cipd_version': <String>['refs/heads/main'],
+                    'github_link': <String>['https://github/flutter/flutter/pull/1'],
                   },
                   input: Input(
                     properties: <String, Object>{'bringup': 'true'},
