@@ -37,7 +37,7 @@ dependencies:
   process: 4.2.4
   process_runner: 4.1.2
   protobuf: 2.1.0
-  retry: 3.1.1
+  retry: ^3.1.2
   truncate: 3.0.1
   yaml: 3.1.2
 
