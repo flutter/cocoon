@@ -80,6 +80,10 @@ class Config {
     return defaultBranches[slug] ?? kDefaultBranchName;
   }
 
+  String get autosubmitBot => 'auto-submit[bot]';
+
+  static const String revertOfLabel = 'revert of';
+
   /// Memorystore subcache name to store [CocoonConfig] values in.
   static const String configCacheName = 'config';
 

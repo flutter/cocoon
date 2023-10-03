@@ -323,8 +323,8 @@ class Scheduler {
       // There two things constitute the bulk of the ci.yaml validation check.
       final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
       final List<Target> presubmitTriggerTargets = getTriggerList(presubmitTargets, builderTriggerList);
-      if (pullRequest.user!.login == 'auto-submit[bot]' && pullRequest.labels!.any((element) => element.name == 'revert of')) {
-        log.info('Skipping generating checks for revert.');
+      if (pullRequest.user!.login == config.autosubmitBot && pullRequest.labels!.any((element) => element.name == Config.revertOfLabel)) {
+        log.info('Skipping generating the full set of checks for revert request.');
       } else {
         await luciBuildService.scheduleTryBuilds(
           targets: presubmitTriggerTargets,
