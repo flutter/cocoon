@@ -780,6 +780,28 @@ targets:
       });
 
       test('filters out presubmit targets that do not exist in main and do not filter targets not in main', () async {
+        final PullRequest releasePullRequest = generatePullRequest(
+          labels: [IssueLabel(name: 'revert of')],
+        );
+
+        releasePullRequest.user = User(login: 'auto-submit[bot]');
+
+        await scheduler.triggerPresubmitTargets(pullRequest: releasePullRequest);
+        expect(
+          verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
+              .captured,
+          <dynamic>[
+            Scheduler.kCiYamlCheckName,
+            // No other targets should be created.
+            const CheckRunOutput(
+              title: Scheduler.kCiYamlCheckName,
+              summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
+            ),
+          ],
+        );
+      });
+
+      test('filters out presubmit targets that do not exist in main and do not filter targets not in main', () async {
         const String singleCiYaml = r'''
 enabled_branches:
   - master
