@@ -20,7 +20,7 @@ dependencies:
   file: 6.1.4
   fixnum: 1.1.0
   gcloud: 0.8.11
-  github: 9.18.0
+  github: 9.19.0
   googleapis: 11.4.0
   googleapis_auth: 1.4.1
   gql: 0.14.0
@@ -37,7 +37,7 @@ dependencies:
   process: 4.2.4
   process_runner: 4.1.2
   protobuf: 2.1.0
-  retry: 3.1.1
+  retry: ^3.1.2
   truncate: 3.0.1
   yaml: 3.1.2
 

@@ -297,4 +297,9 @@ class FakeConfig implements Config {
       ),
     );
   }
+
+  @override
+  String get autosubmitBot => 'auto-submit[bot]';
+
+  static const String revertOfLabel = 'revert of';
 }
