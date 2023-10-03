@@ -779,7 +779,7 @@ targets:
         );
       });
 
-      test('filters out presubmit targets that do not exist in main and do not filter targets not in main', () async {
+      test('Do not schedule other targets on revert request.', () async {
         final PullRequest releasePullRequest = generatePullRequest(
           labels: [IssueLabel(name: 'revert of')],
         );
