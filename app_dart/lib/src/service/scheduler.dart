@@ -320,7 +320,6 @@ class Scheduler {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     dynamic exception;
     try {
-      // There two things constitute the bulk of the ci.yaml validation check.
       final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
       final List<Target> presubmitTriggerTargets = getTriggerList(presubmitTargets, builderTriggerList);
       if (pullRequest.user!.login == config.autosubmitBot && pullRequest.labels!.any((element) => element.name == Config.revertOfLabel)) {
