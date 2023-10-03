@@ -320,12 +320,17 @@ class Scheduler {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     dynamic exception;
     try {
+      // There two things constitute the bulk of the ci.yaml validation check.
       final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
       final List<Target> presubmitTriggerTargets = getTriggerList(presubmitTargets, builderTriggerList);
-      await luciBuildService.scheduleTryBuilds(
-        targets: presubmitTriggerTargets,
-        pullRequest: pullRequest,
-      );
+      if (pullRequest.user!.login == 'auto-submit[bot]' && pullRequest.labels!.any((element) => element.name == 'revert of')) {
+        log.info('Skipping generating checks for revert.');
+      } else {
+        await luciBuildService.scheduleTryBuilds(
+          targets: presubmitTriggerTargets,
+          pullRequest: pullRequest,
+        );
+      }
     } on FormatException catch (error, backtrace) {
       log.warning('FormatException encountered when scheduling presubmit targets for ${pullRequest.number}');
       log.warning(backtrace.toString());
