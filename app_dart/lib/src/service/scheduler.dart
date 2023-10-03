@@ -322,7 +322,8 @@ class Scheduler {
     try {
       // Both the author and label should be checked to make sure that no one is
       // attempting to get a pull request without check through.
-      if (pullRequest.user!.login == config.autosubmitBot && pullRequest.labels!.any((element) => element.name == Config.revertOfLabel)) {
+      if (pullRequest.user!.login == config.autosubmitBot &&
+          pullRequest.labels!.any((element) => element.name == Config.revertOfLabel)) {
         log.info('Skipping generating the full set of checks for revert request.');
       } else {
         final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
