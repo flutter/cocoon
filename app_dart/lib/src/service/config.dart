@@ -80,6 +80,13 @@ class Config {
     return defaultBranches[slug] ?? kDefaultBranchName;
   }
 
+  // The name of the bot that generates automated revert requests.
+  String get autosubmitBot => 'auto-submit[bot]';
+
+  // The name of the label that the bot uses to identify the automatically
+  // created pull request.
+  static const String revertOfLabel = 'revert of';
+
   /// Memorystore subcache name to store [CocoonConfig] values in.
   static const String configCacheName = 'config';
 
