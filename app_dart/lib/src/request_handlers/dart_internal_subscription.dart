@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
@@ -83,24 +84,31 @@ class DartInternalSubscription extends SubscriptionHandler {
     log.info(
       'Calling buildbucket api to get build data for build $buildbucketId',
     );
-    final Build build = await buildBucketClient.getBuild(request);
 
-    log.info('Checking for existing task in datastore');
-    final Task? existingTask = await datastore.getTaskFromBuildbucketBuild(build);
+    try {
+      final Build build = await buildBucketClient.getBuild(request);
 
-    late Task taskToInsert;
-    if (existingTask != null) {
-      log.info('Updating Task from existing Task');
-      existingTask.updateFromBuildbucketBuild(build);
-      taskToInsert = existingTask;
-    } else {
-      log.info('Creating Task from Buildbucket result');
-      taskToInsert = await Task.fromBuildbucketBuild(build, datastore);
+      log.info('Checking for existing task in datastore');
+      final Task? existingTask = await datastore.getTaskFromBuildbucketBuild(build);
+
+      late Task taskToInsert;
+      if (existingTask != null) {
+        log.info('Updating Task from existing Task');
+        existingTask.updateFromBuildbucketBuild(build);
+        taskToInsert = existingTask;
+      } else {
+        log.info('Creating Task from Buildbucket result');
+        taskToInsert = await Task.fromBuildbucketBuild(build, datastore);
+      }
+
+      log.info('Inserting Task into the datastore: ${taskToInsert.toString()}');
+      await datastore.insert(<Task>[taskToInsert]);
+
+      return Body.forJson(taskToInsert.toString());
+    } on Exception catch (e) {
+      // Catch, log and rethrow to prevent undesireable behavior.
+      log.severe(e.toString());
+      throw const InternalServerError();
     }
-
-    log.info('Inserting Task into the datastore: ${taskToInsert.toString()}');
-    await datastore.insert(<Task>[taskToInsert]);
-
-    return Body.forJson(taskToInsert.toString());
   }
 }
