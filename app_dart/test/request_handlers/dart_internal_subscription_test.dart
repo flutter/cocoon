@@ -4,6 +4,7 @@
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push;
@@ -156,6 +157,12 @@ void main() {
       taskInDb.toString(),
       equals(expectedTask.toString()),
     );
+  });
+
+  test('creates a new task successfully', () async {
+    when(buildBucketClient.getBuild(any)).thenThrow(Exception('message'));
+    tester.message = const push.PushMessage(data: fakePubsubMessage);
+    expect(() async => tester.post(handler), throwsA(const TypeMatcher<InternalServerError>()));
   });
 
   test('updates an existing task successfully', () async {
