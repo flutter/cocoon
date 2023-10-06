@@ -84,6 +84,29 @@ targets:
       - cipd_packages/codesign/**
       - .ci.yaml
 
+  - name: Mac ruby
+    bringup: true
+    recipe: cocoon/cipd
+    properties:
+      script: cipd_packages/ruby/build.sh
+      cipd_name: flutter/ruby/mac-amd64
+      device_type: iOS
+    runIf:
+      - cipd_packages/ruby/**
+      - .ci.yaml
+
+  - name: Mac arm_ruby
+    bringup: true
+    recipe: cocoon/cipd
+    properties:
+      script: cipd_packages/ruby/build.sh
+      cipd_name: flutter/ruby/mac-arm64
+      cpu: arm64
+      device_os: iOS
+    runIf:
+      - cipd_packages/ruby/**
+      - .ci.yaml
+
   - name: Linux ci_yaml roller
     recipe: infra/ci_yaml
     properties:
