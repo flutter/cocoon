@@ -41,17 +41,7 @@ brew install --build-from-source openssl@3
 brew install --build-from-source m4
 
 # Change directory to ruby_ship checkout
-$DIR/ruby_build.sh $DIR/../cleanup/$RUBY_FILE_NAME
-
-$DIR/../build/bin/ruby $DIR/../build/tools/auto_relink_dylibs.rb
-
-# Remove signatures
-ls $DIR/../build/bin/darwin_ruby/dylibs/* | xargs codesign --remove-signature
-
-# Resign with adhoc
-ls $DIR/../build/bin/darwin_ruby/dylibs/* | xargs codesign --force -s -
-codesign --remove-signature $DIR/../build/bin/darwin_ruby/bin/ruby
-codesign --force -s - $DIR/../build/bin/darwin_ruby/bin/ruby
+bash -e $DIR/ruby_build.sh $DIR/../cleanup/$RUBY_FILE_NAME
 
 # Update wrapper scripts to make them use libraries from new location.
 sed -i'' -e 's/bindir="\${0%\/\*}"/&\nLIBSPATH="\$( cd -- "\$(dirname "\$0")" >\/dev\/null 2>\&1 ; pwd -P )\/..\/dylibs"\nexport DYLD_FALLBACK_LIBRARY_PATH=\$LIBSPATH:\$DYLD_FALLBACK_LIBRARY_PATH/' $DIR/../build/bin/darwin_ruby/bin/gem

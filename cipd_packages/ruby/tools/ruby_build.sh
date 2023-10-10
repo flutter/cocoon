@@ -6,6 +6,12 @@
 set -e
 set -x
 
+function remove_dylib_signatures() {
+  # Remove signatures
+  ls $DIR/../build/bin/darwin_ruby/dylibs/* | xargs codesign --remove-signature;
+  # Resign with adhoc
+  ls $DIR/../build/bin/darwin_ruby/dylibs/* | xargs codesign --force -s -;
+}
 
 # Verify parameters.
 if [ $# -eq 0 ]; then
@@ -75,52 +81,52 @@ DIR_SETTER="DIR=\"\$( cd \"\$( dirname \"\${BASH_SOURCE[0]}\" )\" && pwd )\""
 #ruby
 echo "$OS_SELECTOR" > $DIR/../build/bin/ruby
 echo "$DIR_SETTER" >> $DIR/../build/bin/ruby
-echo "\"\${DIR}/\${OS}_ruby/\${OS}_ruby.sh\" \"\$@\"" >> $DIR/../build/bin/ruby
+echo "bash -e \"\${DIR}/\${OS}_ruby/\${OS}_ruby.sh\" \"\$@\"" >> $DIR/../build/bin/ruby
 
 #gem
 echo "$OS_SELECTOR" > $DIR/../build/bin/gem
 echo "$DIR_SETTER" >> $DIR/../build/bin/gem
-echo "\"\${DIR}/\${OS}_ruby/\${OS}_gem.sh\" \"\$@\"" >> $DIR/../build/bin/gem
+echo "bash -e \"\${DIR}/\${OS}_ruby/\${OS}_gem.sh\" \"\$@\"" >> $DIR/../build/bin/gem
 
 #erb
 echo "$OS_SELECTOR" > $DIR/../build/bin/erb
 echo "$DIR_SETTER" >> $DIR/../build/bin/erb
-echo "\"\${DIR}/\${OS}_ruby/\${OS}_erb.sh\" \"\$@\"" >> $DIR/../build/bin/erb
+echo "bash -e \"\${DIR}/\${OS}_ruby/\${OS}_erb.sh\" \"\$@\"" >> $DIR/../build/bin/erb
 
 #irb
 echo "$OS_SELECTOR" > $DIR/../build/bin/irb
 echo "$DIR_SETTER" >> $DIR/../build/bin/irb
-echo "\"\${DIR}/\${OS}_ruby/\${OS}_irb.sh\" \"\$@\"" >> $DIR/../build/bin/irb
+echo "bash -e \"\${DIR}/\${OS}_ruby/\${OS}_irb.sh\" \"\$@\"" >> $DIR/../build/bin/irb
 
 #rake
 echo "$OS_SELECTOR" > $DIR/../build/bin/rake
 echo "$DIR_SETTER" >> $DIR/../build/bin/rake
-echo "\"\${DIR}/\${OS}_ruby/\${OS}_rake.sh\" \"\$@\"" >> $DIR/../build/bin/rake
+echo "bash -e \"\${DIR}/\${OS}_ruby/\${OS}_rake.sh\" \"\$@\"" >> $DIR/../build/bin/rake
 
 #rdoc
 echo "$OS_SELECTOR" > $DIR/../build/bin/rdoc
 echo "$DIR_SETTER" >> $DIR/../build/bin/rdoc
-echo "\"\${DIR}/\${OS}_ruby/\${OS}_rdoc.sh\" \"\$@\"" >> $DIR/../build/bin/rdoc
+echo "bash -e \"\${DIR}/\${OS}_ruby/\${OS}_rdoc.sh\" \"\$@\"" >> $DIR/../build/bin/rdoc
 
 #ri
 echo "$OS_SELECTOR" > $DIR/../build/bin/ri
 echo "$DIR_SETTER" >> $DIR/../build/bin/ri
-echo "\"\${DIR}/\${OS}_ruby/\${OS}_ri.sh\" \"\$@\"" >> $DIR/../build/bin/ri
+echo "bash -e \"\${DIR}/\${OS}_ruby/\${OS}_ri.sh\" \"\$@\"" >> $DIR/../build/bin/ri
 
 #bundle
 echo "$OS_SELECTOR" > $DIR/../build/bin/bundle
 echo "$DIR_SETTER" >> $DIR/../build/bin/bundle
-echo "\"\${DIR}/\${OS}_ruby/\${OS}_ri.sh\" \"\$@\"" >> $DIR/../build/bin/bundle
+echo "bash -e \"\${DIR}/\${OS}_ruby/\${OS}_ri.sh\" \"\$@\"" >> $DIR/../build/bin/bundle
 
 #bundler
 echo "$OS_SELECTOR" > $DIR/../build/bin/bundler
 echo "$DIR_SETTER" >> $DIR/../build/bin/bundler
-echo "\"\${DIR}/\${OS}_ruby/\${OS}_bundler.sh\" \"\$@\"" >> $DIR/../build/bin/bundler
+echo "bash -e \"\${DIR}/\${OS}_ruby/\${OS}_bundler.sh\" \"\$@\"" >> $DIR/../build/bin/bundler
 
 #pod
 echo "$OS_SELECTOR" > $DIR/../build/bin/pod
 echo "$DIR_SETTER" >> $DIR/../build/bin/pod
-echo "\"\${DIR}/\${OS}_ruby/\${OS}_pod.sh\" \"\$@\"" >> $DIR/../build/bin/pod
+echo "bash -e \"\${DIR}/\${OS}_ruby/\${OS}_pod.sh\" \"\$@\"" >> $DIR/../build/bin/pod
 
 
 # Making OS specific scripts:
@@ -140,7 +146,7 @@ echo "$GEM_PATH_SETTER" >> $DIR/../build/bin/${OS}_ruby/${OS}_gem.sh
 echo "$GEM_HOME_SETTER" >> $DIR/../build/bin/${OS}_ruby/${OS}_gem.sh
 echo "\"\${DIR}/bin/gem\" \"\$@\"" >> $DIR/../build/bin/${OS}_ruby/${OS}_gem.sh
 echo "if [[ \"\$1\" == \"install\" ]]; then" >> $DIR/../build/bin/${OS}_ruby/${OS}_gem.sh
-echo "  ${DIR}/../build/bin/ruby \"\${DIR}/../../../tools/auto_relink_dylibs.rb\"" >> $DIR/../build/bin/${OS}_ruby/${OS}_gem.sh
+echo "\"${DIR}/../build/bin/ruby\" \"\${DIR}/../../tools/auto_relink_dylibs.rb\"" >> $DIR/../build/bin/${OS}_ruby/${OS}_gem.sh
 echo "fi" >> $DIR/../build/bin/${OS}_ruby/${OS}_gem.sh
 
 # erb command script:
@@ -217,15 +223,19 @@ chmod a+x $DIR/../build/bin/${OS}_ruby/${OS}_bundle.sh
 chmod a+x $DIR/../build/bin/${OS}_ruby/${OS}_bundler.sh
 chmod a+x $DIR/../build/bin/${OS}_ruby/${OS}_pod.sh
 
-
+# Remove signatures from ruby and re-sign as adhoc.
+codesign --remove-signature $DIR/../build/bin/darwin_ruby/bin/ruby
+codesign --force -s - $DIR/../build/bin/darwin_ruby/bin/ruby
+remove_dylib_signatures
 # Install bundler
-$DIR/../build/bin/gem cleanup -f bundler
+$DIR/../build/bin/gem cleanup bundler
 $DIR/../build/bin/gem install -f bundler
+remove_dylib_signatures
 
 # Install cococoapods
 $DIR/../build/bin/gem install activesupport -v 7.0.8 # Pin this dep version.
 $DIR/../build/bin/gem install cocoapods -v $COCOAPODS_VERSION
-
+remove_dylib_signatures
 
 # Cleanup temp folder.
 rm -rf $DIR/../cleanup
