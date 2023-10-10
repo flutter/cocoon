@@ -14,7 +14,7 @@ platform_properties:
       os: Linux
   mac:
     properties:
-      os: Mac-12
+      os: "Mac-12|Mac-13"
       cpu: x86
   windows:
     properties:
