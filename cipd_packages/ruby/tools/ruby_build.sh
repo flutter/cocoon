@@ -8,8 +8,7 @@ set -x
 
 
 # Verify parameters.
-if [ $# -eq 0 ]
-  then
+if [ $# -eq 0 ]; then
     echo "No arguments supplied"
     echo "Usage: ruby_build.sh /path/to/ruby_source.tar.gz"
     exit 1
