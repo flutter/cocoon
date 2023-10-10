@@ -90,7 +90,7 @@ targets:
     properties:
       script: cipd_packages/ruby/build.sh
       cipd_name: flutter/ruby/mac-amd64
-      device_type: iOS
+      device_os: iOS
     runIf:
       - cipd_packages/ruby/**
       - .ci.yaml
