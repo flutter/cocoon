@@ -227,7 +227,7 @@ $DIR/../build/bin/gem install activesupport -v 7.0.8 # Pin this dep version.
 $DIR/../build/bin/gem install cocoapods -v $COCOAPODS_VERSION
 
 
-# Cleanup temp folder. 
+# Cleanup temp folder.
 rm -rf $DIR/../cleanup
 
 

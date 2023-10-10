@@ -28,7 +28,7 @@ cp $DIR/auto_relink_dylibs.rb $DIR/../build/tools/auto_relink_dylibs.rb
 cp $DIR/../LICENSE $DIR/../build/LICENSE
 
 # Download ruby.
-mkdir -p $DIR/../cleanup 
+mkdir -p $DIR/../cleanup
 curl https://cache.ruby-lang.org/pub/ruby/$RUBY_MAJOR_VERSION/$RUBY_FILE_NAME -o $DIR/../cleanup/$RUBY_FILE_NAME
 
 # Install brew dependencies
