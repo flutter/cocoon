@@ -101,11 +101,17 @@ class GithubChecksService {
       if (rescheduled) {
         status = github.CheckRunStatus.queued;
         conclusion = null;
+        output = github.CheckRunOutput(
+          title: checkRun.name!,
+          summary: 'Note: this is an auto rerun. The timestamp above is based on the first attempt of this check run.',
+        );
       } else {
         final Build buildbucketBuild =
             await luciBuildService.getBuildById(buildPushMessage.build!.id, fields: 'id,builder,summaryMarkdown');
-        output =
-            github.CheckRunOutput(title: checkRun.name!, summary: getGithubSummary(buildbucketBuild.summaryMarkdown));
+        output = github.CheckRunOutput(
+          title: checkRun.name!,
+          summary: getGithubSummary(buildbucketBuild.summaryMarkdown),
+        );
         log.fine('Updating check run with output: [$output]');
       }
     }
