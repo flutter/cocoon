@@ -165,7 +165,7 @@ class Scheduler {
     await _uploadToBigQuery(commit);
   }
 
-  /// Checks whether the has should be scheduled.
+  /// Checks whether the task should be scheduled.
   ///
   /// Skips scheduling `bringup: true` targets for BatchPolicy. For BatchPolicy,
   /// targets may be newly created and their corresponding LUCI builder configs may
