@@ -51,8 +51,6 @@ if [[ "$OS" == "darwin" ]]; then
   OPTS+=":$(brew --prefix libyaml)"
   OPTS+=":$(brew --prefix gdbm)"
   OPTS+=":$(brew --prefix libffi)"
-  OPTS+=":$(brew --prefix gdbm)"
-  OPTS+=":$(brew --prefix libffi)"
   $DIR/../cleanup/extracted_ruby/$RUBYDIR/configure \
   --enable-load-relative \
   --prefix=$DIR/../build/bin/${OS}_ruby \
