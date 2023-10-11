@@ -4,11 +4,6 @@ The scripts in this folder are used to build and package
 ruby as a self contained CIPD package. This package is intended
 for flutter/flutter repository testing.
 
-The scripts inside the tools folder are based on the scripts
-from https://github.com/stephan-nordnes-eriksen/ruby_ship
-with several changes to adapt them to the flutter use cases.
-
-
 # Updating to new ruby versions.
 
 Update `ruby_metadata.txt` with the major version

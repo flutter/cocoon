@@ -35,7 +35,6 @@ brew install --build-from-source readline
 brew install --build-from-source openssl@3
 brew install --build-from-source m4
 
-# Change directory to ruby_ship checkout
 bash -e $DIR/ruby_build.sh $DIR/../cleanup/$RUBY_FILE_NAME
 
 # Update wrapper scripts to make them use libraries from new location.
