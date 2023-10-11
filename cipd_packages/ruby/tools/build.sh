@@ -29,9 +29,9 @@ curl https://cache.ruby-lang.org/pub/ruby/$RUBY_MAJOR_VERSION/$RUBY_FILE_NAME -o
 # Install brew dependencies
 ARCH=$(uname -m)
 if [[ "$ARCH" == "arm64" ]]; then
-  chown -R $(whoami) /usr/local/Homebrew
+  sudo chown -R $(whoami) /usr/local/Homebrew
 else
-  chown -R $(whoami) /usr/local/Cellar
+  sudo chown -R $(whoami) /usr/local/Cellar
 fi
 brew install --build-from-source gdbm
 brew install --build-from-source gmp
