@@ -27,6 +27,12 @@ mkdir -p $DIR/../cleanup
 curl https://cache.ruby-lang.org/pub/ruby/$RUBY_MAJOR_VERSION/$RUBY_FILE_NAME -o $DIR/../cleanup/$RUBY_FILE_NAME
 
 # Install brew dependencies
+ARCH=$(uname -m)
+if [[ "$ARCH" == "arm64" ]]; then
+  chown -R $(whoami) /usr/local/Homebrew
+else
+  chown -R $(whoami) /usr/local/Cellar
+fi
 brew install --build-from-source gdbm
 brew install --build-from-source gmp
 brew install --build-from-source libffi
