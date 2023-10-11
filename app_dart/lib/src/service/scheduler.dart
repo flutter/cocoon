@@ -142,14 +142,10 @@ class Scheduler {
         policy = GuaranteedPolicy();
       }
       final int? priority = await policy.triggerPriority(task: task, datastore: datastore);
-      // Skip scheduling `bringup: true` targets. They may be newly created and
-      // their corresponding LUCI builder configs may not be ready yet considering we
-      // disabled the `ci_yaml roller` backfill. Existing `bringup: true` targets
-      // can rely on backfiller to get tasks scheduled and executed.
-      if (priority != null && !target.value.bringup) {
+      if (_shouldSchedule(priority, target.value.bringup, policy)) {
         // Mark task as in progress to ensure it isn't scheduled over
         task.status = Task.statusInProgress;
-        toBeScheduled.add(Tuple<Target, Task, int>(target, task, priority));
+        toBeScheduled.add(Tuple<Target, Task, int>(target, task, priority!));
       }
     }
 
@@ -167,6 +163,22 @@ class Scheduler {
 
     await _batchScheduleBuilds(commit, toBeScheduled);
     await _uploadToBigQuery(commit);
+  }
+
+  /// Checks whether the task should be scheduled.
+  ///
+  /// Skips scheduling `bringup: true` targets for BatchPolicy. For BatchPolicy,
+  /// targets may be newly created and their corresponding LUCI builder configs may
+  /// not be ready yet considering we disabled the `ci_yaml roller` backfill.
+  /// Existing `bringup: true` targets can rely on backfiller to get tasks scheduled and executed.
+  bool _shouldSchedule(int? priority, bool bringup, SchedulerPolicy policy) {
+    if (priority == null) {
+      return false;
+    }
+    if (bringup) {
+      return policy is! BatchPolicy;
+    }
+    return true;
   }
 
   /// Schedule all builds in batch requests instead of a single request.
