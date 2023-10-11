@@ -408,7 +408,7 @@ targets:
         expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusInProgress).length, 1);
       });
 
-      test('skip scheduling bringup true targets', () async {
+      test('skip scheduling bringup true targets for BatchPolicy', () async {
         final PullRequest mergedPr = generatePullRequest();
 
         httpClient = MockClient((http.Request request) async {
@@ -417,6 +417,36 @@ targets:
               '''
 enabled_branches:
   - master
+targets:
+  - name: Linux A
+    scheduler: cocoon
+  - name: Linux B
+    scheduler: cocoon
+    bringup: true
+          ''',
+              200,
+            );
+          }
+          throw Exception('Failed to find ${request.url.path}');
+        });
+        await scheduler.addPullRequest(mergedPr);
+        expect(db.values.values.whereType<Commit>().length, 1);
+        expect(db.values.values.whereType<Task>().length, 2);
+        final Task taskA = db.values.values.whereType<Task>().where((task) => task.name == 'Linux A').single;
+        final Task taskB = db.values.values.whereType<Task>().where((task) => task.name == 'Linux B').single;
+        expect(taskA.status, Task.statusInProgress);
+        expect(taskB.status, Task.statusNew);
+      });
+
+      test('schedule bringup true targets for GuaranteedPolicy', () async {
+        final PullRequest mergedPr = generatePullRequest(repo: 'engine', branch: 'main');
+
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path.contains('.ci.yaml')) {
+            return http.Response(
+              '''
+enabled_branches:
+  - main
 targets:
   - name: Linux A
     scheduler: cocoon
@@ -436,7 +466,7 @@ targets:
         final Task taskA = db.values.values.whereType<Task>().where((task) => task.name == 'Linux A').single;
         final Task taskB = db.values.values.whereType<Task>().where((task) => task.name == 'Linux B').single;
         expect(taskA.status, Task.statusInProgress);
-        expect(taskB.status, Task.statusNew);
+        expect(taskB.status, Task.statusInProgress);
       });
 
       test('does not schedule tasks against non-merged PRs', () async {
