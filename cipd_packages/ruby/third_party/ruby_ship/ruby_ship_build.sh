@@ -8,7 +8,7 @@ function remove_dylib_signatures() {
     echo 'remove_dylib_signatures must be called with the path to the dylibs dir as an argument' >&2
     exit 42
   fi
-  
+
   # Remove signatures
   ls "$1/*" | xargs codesign --remove-signature;
   # Resign with adhoc
