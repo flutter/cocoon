@@ -4,10 +4,15 @@ set -e
 set -x
 
 function remove_dylib_signatures() {
+  if [[ -z "$1" ]]; then
+    echo 'remove_dylib_signatures must be called with the path to the dylibs dir as an argument' >&2
+    exit 42
+  fi
+  
   # Remove signatures
-  ls $DIR/../build/bin/darwin_ruby/dylibs/* | xargs codesign --remove-signature;
+  ls "$1/*" | xargs codesign --remove-signature;
   # Resign with adhoc
-  ls $DIR/../build/bin/darwin_ruby/dylibs/* | xargs codesign --force -s -;
+  ls "$1/*" | xargs codesign --force -s -;
 }
 
 # Verify parameters.
@@ -221,16 +226,16 @@ chmod a+x $DIR/../build/bin/${OS}_ruby/${OS}_pod.sh
 # Remove signatures from ruby and re-sign as adhoc.
 codesign --remove-signature $DIR/../build/bin/darwin_ruby/bin/ruby
 codesign --force -s - $DIR/../build/bin/darwin_ruby/bin/ruby
-remove_dylib_signatures
+remove_dylib_signatures $DIR/../build/bin/darwin_ruby/dylibs/*
 # Install bundler
 $DIR/../build/bin/gem cleanup bundler
 $DIR/../build/bin/gem install -f bundler
-remove_dylib_signatures
+remove_dylib_signatures $DIR/../build/bin/darwin_ruby/dylibs/*
 
 # Install cococoapods
 $DIR/../build/bin/gem install activesupport -v 7.0.8 # Pin this dep version.
 $DIR/../build/bin/gem install cocoapods -v $COCOAPODS_VERSION
-remove_dylib_signatures
+remove_dylib_signatures $DIR/../build/bin/darwin_ruby/dylibs/*
 
 # Cleanup temp folder.
 rm -rf $DIR/../cleanup
