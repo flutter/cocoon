@@ -1,12 +1,6 @@
 #!/bin/bash
-# Copyright 2023 The Flutter Authors. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
 
-# Fetches corresponding dart sdk from CIPD for different platforms, builds
-# an executable binary of codesign to `build` folder.
-#
-# This build script will be triggered on Mac code signing machines.
+# Script to build a self contained ruby cipd packages.
 
 set -e
 set -x
@@ -24,7 +18,8 @@ rm -rf $DIR/../build && mkdir -p $DIR/../build
 mkdir -p $DIR/../build/tools
 
 # Copy files to build directory.
-cp $DIR/auto_relink_dylibs.rb $DIR/../build/tools/auto_relink_dylibs.rb
+cp $DIR/../third_party/ruby_ship/auto_relink_dylibs.rb $DIR/../build/tools/auto_relink_dylibs.rb
+cp $DIR/../third_party/ruby_ship/ruby_ship_build.sh $DIR/ruby_build.sh
 cp $DIR/../LICENSE $DIR/../build/LICENSE
 
 # Download ruby.
