@@ -214,6 +214,7 @@ Iterable<File> _allFiles(String workingDirectory, String extension, {required in
       if (path.basename(entity.path) == '.git') continue;
       if (path.basename(entity.path) == '.gradle') continue;
       if (path.basename(entity.path) == '.dart_tool') continue;
+      if (path.basename(entity.path) == 'third_party') continue;
       if (_isPartOfAppTemplate(entity)) continue;
       pending.addAll(entity.listSync());
     }
