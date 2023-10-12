@@ -398,11 +398,7 @@ class AndroidDevice implements Device {
       if (packageMatch != null) {
         final packageName = packageMatch.group(1);
         if (packageName != null) {
-          if (packageName.contains('/data/app/com.example') |
-              packageName.contains('/data/app/com.yourcompany') |
-              packageName.contains('flutter')) {
-            packages.add(packageName);
-          }
+          packages.add(packageName);
         }
       }
     });
