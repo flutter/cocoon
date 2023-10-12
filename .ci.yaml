@@ -12,13 +12,19 @@ platform_properties:
   linux:
     properties:
       os: Linux
+      device_type: "none"
   mac:
     properties:
       os: "Mac-12|Mac-13"
       cpu: x86
+  mac_arm64:
+    properties:
+      os: "Mac-12|Mac-13"
+      cpu: arm64
   windows:
     properties:
       os: Windows
+      device_type: "none"
 
 targets:
   - name: Linux Cocoon
@@ -59,6 +65,10 @@ targets:
     properties:
       script: cipd_packages/doxygen/tool/build.sh
       cipd_name: flutter/doxygen/linux-amd64
+      dependencies: >-
+        [
+          {"dependency": "cmake", "version": "build_id:8787856497187628321"}
+        ]
     runIf:
       - cipd_packages/doxygen/**
       - .ci.yaml
@@ -73,15 +83,52 @@ targets:
       - cipd_packages/codesign/**
       - .ci.yaml
 
-  - name: Mac arm_codesign
+  - name: Mac_arm64 codesign
     recipe: cocoon/cipd
     properties:
       script: cipd_packages/codesign/tool/build.sh
       cipd_name: flutter/codesign/mac-arm64
-      cpu: arm64
       device_type: none
     runIf:
       - cipd_packages/codesign/**
+      - .ci.yaml
+
+  - name: Mac ruby
+    bringup: true
+    recipe: cocoon/cipd
+    properties:
+      script: cipd_packages/ruby/tools/build.sh
+      cipd_name: flutter/ruby/mac-amd64
+      device_os: iOS
+      contexts: >-
+        [
+          "osx_sdk_devicelab"
+        ]
+      $flutter/osx_sdk : >-
+        {
+          "sdk_version": "14e300c"
+        }
+    runIf:
+      - cipd_packages/ruby/**
+      - .ci.yaml
+
+  - name: Mac_arm64 ruby
+    bringup: true
+    recipe: cocoon/cipd
+    properties:
+      script: cipd_packages/ruby/tools/build.sh
+      cipd_name: flutter/ruby/mac-arm64
+      device_os: iOS
+      contexts: >-
+        [
+          "osx_sdk_devicelab"
+        ]
+      $flutter/osx_sdk : >-
+        {
+          "sdk_version": "14e300c"
+        }
+    runIf:
+      - cipd_packages/ruby/**
       - .ci.yaml
 
   - name: Linux ci_yaml roller
