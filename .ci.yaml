@@ -96,6 +96,7 @@ targets:
   - name: Mac ruby
     bringup: true
     recipe: cocoon/cipd
+    timeout: 60
     properties:
       script: cipd_packages/ruby/tools/build.sh
       cipd_name: flutter/ruby/mac-amd64
@@ -115,6 +116,7 @@ targets:
   - name: Mac_arm64 ruby
     bringup: true
     recipe: cocoon/cipd
+    timeout: 60
     properties:
       script: cipd_packages/ruby/tools/build.sh
       cipd_name: flutter/ruby/mac-arm64
