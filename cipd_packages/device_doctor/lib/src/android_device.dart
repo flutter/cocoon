@@ -398,7 +398,11 @@ class AndroidDevice implements Device {
       if (packageMatch != null) {
         final packageName = packageMatch.group(1);
         if (packageName != null) {
-          packages.add(packageName);
+          if (packageName.contains('/data/app/com.example') |
+              packageName.contains('/data/app/com.yourcompany') |
+              packageName.contains('flutter')) {
+            packages.add(packageName);
+          }
         }
       }
     });
@@ -406,6 +410,10 @@ class AndroidDevice implements Device {
       final r = Process.runSync('adb', <String>['shell', 'pm', 'clear', p]);
       if (r.exitCode != 0) {
         print('Clearing package $p resulted in a non-zero exit.');
+        print('STDERR: ${r.stderr}');
+        print('STDOUT: ${r.stdout}');
+      } else {
+        print('Uninstalling package $p : STDOUT(${r.stdout})');
       }
     }
   }
@@ -424,7 +432,11 @@ class AndroidDevice implements Device {
       if (packageMatch != null) {
         final packageName = packageMatch.group(1);
         if (packageName != null) {
-          packages.add(packageName);
+          if (packageName.contains('/data/app/com.example') |
+              packageName.contains('/data/app/com.yourcompany') |
+              packageName.contains('flutter')) {
+            packages.add(packageName);
+          }
         }
       }
     });
@@ -432,6 +444,10 @@ class AndroidDevice implements Device {
       final r = Process.runSync('adb', <String>['shell', 'pm', 'uninstall', p]);
       if (r.exitCode != 0) {
         print('Uninstalling package $p resulted in a non-zero exit.');
+        print('STDERR: ${r.stderr}');
+        print('STDOUT: ${r.stdout}');
+      } else {
+        print('Uninstalling package $p : STDOUT(${r.stdout})');
       }
     }
   }
