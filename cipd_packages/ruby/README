@@ -1,0 +1,19 @@
+# Ruby at Flutter
+
+The scripts in this folder are used to build and package
+ruby as a self contained CIPD package. This package is intended
+for flutter/flutter repository testing.
+
+# Updating to new ruby versions.
+
+Update `ruby_metadata.txt` with the major version
+and the file name. E.g. `3.1,ruby-3.1.4.tar.gz` to
+change the version of ruby to build.
+
+# Installing cocoapods.
+
+The CIPD package will bundle cocoapods with its corresponding
+wrapper scripts.
+
+Update `cococapods_version.txt` with the version of cocoapods
+to use.
