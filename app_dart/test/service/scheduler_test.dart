@@ -149,14 +149,15 @@ void main() {
       List<Commit> createCommitList(
         List<String> shas, {
         String repo = 'flutter',
+        String branch = 'master',
       }) {
         return List<Commit>.generate(
           shas.length,
           (int index) => Commit(
             author: 'Username',
             authorAvatarUrl: 'http://example.org/avatar.jpg',
-            branch: 'master',
-            key: db.emptyKey.append(Commit, id: 'flutter/$repo/master/${shas[index]}'),
+            branch: branch,
+            key: db.emptyKey.append(Commit, id: 'flutter/$repo/$branch/${shas[index]}'),
             message: 'commit message',
             repository: 'flutter/$repo',
             sha: shas[index],
@@ -244,7 +245,7 @@ void main() {
           ),
         ).thenAnswer((_) => Future<List<Tuple<Target, Task, int>>>.value(<Tuple<Target, Task, int>>[]));
         buildStatusService =
-            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
+            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1, repo: 'engine', branch: 'main'), const <Stage>[])]);
         scheduler = Scheduler(
           cache: cache,
           config: config,
@@ -255,7 +256,7 @@ void main() {
           luciBuildService: luciBuildService,
         );
 
-        await scheduler.addCommits(createCommitList(<String>['1']));
+        await scheduler.addCommits(createCommitList(<String>['1'], repo: 'engine', branch: 'main'));
         final List<dynamic> captured = verify(
           luciBuildService.schedulePostsubmitBuilds(
             commit: anyNamed('commit'),
@@ -294,7 +295,7 @@ void main() {
           );
         });
         buildStatusService =
-            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
+            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1, repo: 'engine', branch: 'main'), const <Stage>[])]);
         config.batchSizeValue = 1;
         scheduler = Scheduler(
           cache: cache,
@@ -306,7 +307,7 @@ void main() {
           luciBuildService: luciBuildService,
         );
 
-        await scheduler.addCommits(createCommitList(<String>['1']));
+        await scheduler.addCommits(createCommitList(<String>['1'], repo: 'engine', branch: 'main'));
         expect(pubsub.messages.length, 2);
       });
     });
