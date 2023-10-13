@@ -64,8 +64,8 @@ class BatchPolicy implements SchedulerPolicy {
     // Ensure task isn't considered in recentTasks
     recentTasks.removeWhere((Task t) => t.commitKey == task.commitKey);
     if (recentTasks.length < kBatchSize) {
-      log.warning('${task.name} has less than $kBatchSize, triggerring all builds regardless of policy');
-      return LuciBuildService.kDefaultPriority;
+      log.warning('${task.name} has less than $kBatchSize, skip scheduling to wait for ci.yaml roll.');
+      return null;
     }
 
     // Prioritize tasks that recently failed.
