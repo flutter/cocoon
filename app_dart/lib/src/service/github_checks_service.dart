@@ -93,7 +93,7 @@ class GithubChecksService {
       'id': buildPushMessage.userData['check_run_id'] as int?,
       'status': status,
       'check_suite': const {'id': null},
-      'started_at': build.startedTimestamp.toString(),
+      'started_at': build.createdTimestamp.toString(),
       'conclusion': null,
       'name': build.buildParameters!['builder_name'],
     });
