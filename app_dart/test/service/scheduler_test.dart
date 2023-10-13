@@ -244,8 +244,11 @@ void main() {
             toBeScheduled: captureAnyNamed('toBeScheduled'),
           ),
         ).thenAnswer((_) => Future<List<Tuple<Target, Task, int>>>.value(<Tuple<Target, Task, int>>[]));
-        buildStatusService =
-            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1, repo: 'engine', branch: 'main'), const <Stage>[])]);
+        buildStatusService = FakeBuildStatusService(
+          commitStatuses: <CommitStatus>[
+            CommitStatus(generateCommit(1, repo: 'engine', branch: 'main'), const <Stage>[]),
+          ],
+        );
         scheduler = Scheduler(
           cache: cache,
           config: config,
@@ -294,8 +297,11 @@ void main() {
             ],
           );
         });
-        buildStatusService =
-            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1, repo: 'engine', branch: 'main'), const <Stage>[])]);
+        buildStatusService = FakeBuildStatusService(
+          commitStatuses: <CommitStatus>[
+            CommitStatus(generateCommit(1, repo: 'engine', branch: 'main'), const <Stage>[]),
+          ],
+        );
         config.batchSizeValue = 1;
         scheduler = Scheduler(
           cache: cache,
