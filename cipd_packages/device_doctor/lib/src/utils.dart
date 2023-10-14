@@ -27,7 +27,7 @@ const String kScreenSaverCheckKey = 'screensaver';
 const String kScreenRotationCheckKey = 'screen_rotation';
 const String kBatteryLevelCheckKey = 'battery_level';
 const String kBatteryTemperatureCheckKey = 'battery_temperature';
-const String kM1BrewBinPath = '/opt/homebrew/bin';
+const List<String> kM1BrewBinPaths = ['/opt/homebrew/bin', '/usr/local/bin'];
 
 void fail(String message) {
   throw BuildFailedError(message);
@@ -152,13 +152,16 @@ Future<String> getMacBinaryPath(
   String name, {
   ProcessManager processManager = const LocalProcessManager(),
 }) async {
-  String path = await eval('which', <String>[name], canFail: true, processManager: processManager);
-  if (path.isEmpty) {
-    path = await eval('which', <String>['$kM1BrewBinPath/$name'], canFail: true, processManager: processManager);
-  }
+  final Map<String, String> env = Map.of(Platform.environment);
+  String? path = env['PATH'] ?? '';
+  final String additionalPaths = kM1BrewBinPaths.join(':');
+  path = '$path:$additionalPaths';
+  env['PATH'] = path;
+  final String binaryPath =
+      await eval('which', <String>[name], canFail: true, processManager: processManager, env: env);
   // Throws exception when the binary doesn't exist in either location.
-  if (path.isEmpty) {
+  if (binaryPath.isEmpty) {
     fail('$name not found.');
   }
-  return path;
+  return binaryPath;
 }
