@@ -35,7 +35,7 @@ Every new commit will trigger pre-submit builders to auto build a new version
 for different platforms without any tag/ref.
 
 When a new commit is submitted, post-submit builders will trigger a new version
-with a tag of `commit_sha`, and a ref of `staging`.
+with a tag of `commit_sha`, and a ref of `latest`.
 
 ### Manual build
 
@@ -64,3 +64,26 @@ Use `/path/to/device_doctor --help` to learn more.
 
 **Note**: this tool is assuming one connected device on each host, but can be easily extended
 to support multiple devices.
+
+## Releasing device_doctor
+
+The release process of the tool is controlled by setting `release` and `staging` refs.
+
+To promote a given version to staging you can run the following command:
+
+```
+cipd set-ref flutter/device_doctor/<os>-<arch> -ref staging -version <packageid>
+```
+
+Example for mac and amd64:
+
+```
+cipd set-ref flutter/device_doctor/mac-amd64 -ref staging -version IQgKjNstWbFhUuMVp898zZoPKRd66KLRKuiY88XYQXAC
+```
+
+After extensive validation on staging you can promote the package to release using:
+
+
+```
+cipd set-ref flutter/device_doctor/<os>-<arch> -ref release -version <packageid>
+```

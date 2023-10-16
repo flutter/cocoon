@@ -51,6 +51,16 @@ targets:
       - cipd_packages/device_doctor/**
       - .ci.yaml
 
+  - name: Mac_arm64 device_doctor
+    recipe: cocoon/cipd
+    properties:
+      script: cipd_packages/device_doctor/tool/build.sh
+      cipd_name: flutter/device_doctor/mac-arm64
+      device_type: none
+    runIf:
+      - cipd_packages/device_doctor/**
+      - .ci.yaml
+
   - name: Windows device_doctor
     recipe: cocoon/cipd
     properties:
