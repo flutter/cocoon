@@ -50,7 +50,7 @@ void main() {
     );
     checkRun = github.CheckRun.fromJson(
       jsonDecode(
-        '{"name": "Cocoon", "id": 123, "external_id": "678", "status": "completed", "started_at": "2020-05-10T02:49:31Z", "head_sha": "the_sha", "check_suite": {"id": 456}}',
+        '{"name": "Linux Coverage", "id": 123, "external_id": "678", "status": "completed", "started_at": "2020-05-10T02:49:31Z", "head_sha": "the_sha", "check_suite": {"id": 456}}',
       ) as Map<String, dynamic>,
     );
     final Map<String, github.CheckRun> checkRuns = <String, github.CheckRun>{'Cocoon': checkRun};
@@ -113,26 +113,25 @@ void main() {
       );
       final push_message.BuildPushMessage buildPushMessage = push_message.BuildPushMessage.fromJson(
         jsonDecode(
-          buildPushMessageJsonTemplate('{\\"check_run_id\\": 1,'
+          buildPushMessageJsonTemplate('{\\"check_run_id\\": 123,'
               '\\"repo_owner\\": \\"flutter\\",'
               '\\"repo_name\\": \\"cocoon\\"}'),
         ) as Map<String, dynamic>,
       );
       await githubChecksService.updateCheckStatus(buildPushMessage, mockLuciBuildService, slug);
-      expect(
-        verify(
-          mockGithubChecksUtil.updateCheckRun(
-            any,
-            any,
-            captureAny,
-            status: anyNamed('status'),
-            conclusion: anyNamed('conclusion'),
-            detailsUrl: anyNamed('detailsUrl'),
-            output: anyNamed('output'),
-          ),
-        ).captured,
-        <github.CheckRun>[checkRun],
-      );
+      final github.CheckRun checkRunCaptured = await verify(
+        mockGithubChecksUtil.updateCheckRun(
+          any,
+          any,
+          captureAny,
+          status: anyNamed('status'),
+          conclusion: anyNamed('conclusion'),
+          detailsUrl: anyNamed('detailsUrl'),
+          output: anyNamed('output'),
+        ),
+      ).captured.first;
+      expect(checkRunCaptured.id, checkRun.id);
+      expect(checkRunCaptured.name, checkRun.name);
     });
     test('Should rerun a failed task for a roller account', () async {
       when(mockGithubChecksUtil.getCheckRun(any, any, any)).thenAnswer((_) async => checkRun);

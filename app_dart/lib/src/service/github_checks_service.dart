@@ -85,27 +85,38 @@ class GithubChecksService {
       );
       return false;
     }
-    final github.CheckRun checkRun = await githubChecksUtil.getCheckRun(
-      config,
-      slug,
-      buildPushMessage.userData['check_run_id'] as int?,
-    );
     github.CheckRunStatus status = statusForResult(build!.status);
+    // Only `id` and `name` in the CheckRun are needed.
+    // Instead of making an API call to get the details of each check run, we
+    // generate the check run with only necessary info.
+    final github.CheckRun checkRun = github.CheckRun.fromJson({
+      'id': buildPushMessage.userData['check_run_id'] as int?,
+      'status': status,
+      'check_suite': const {'id': null},
+      'started_at': build.createdTimestamp.toString(),
+      'conclusion': null,
+      'name': build.buildParameters!['builder_name'],
+    });
     github.CheckRunConclusion? conclusion =
         (buildPushMessage.build!.result != null) ? conclusionForResult(buildPushMessage.build!.result) : null;
-    // Do not override url for completed status.
-    final String? url = status == github.CheckRunStatus.completed ? checkRun.detailsUrl : buildPushMessage.build!.url;
+    final String? url = buildPushMessage.build!.url;
     github.CheckRunOutput? output;
     // If status has completed with failure then provide more details.
     if (taskFailed(buildPushMessage)) {
       if (rescheduled) {
         status = github.CheckRunStatus.queued;
         conclusion = null;
+        output = github.CheckRunOutput(
+          title: checkRun.name!,
+          summary: 'Note: this is an auto rerun. The timestamp above is based on the first attempt of this check run.',
+        );
       } else {
         final Build buildbucketBuild =
             await luciBuildService.getBuildById(buildPushMessage.build!.id, fields: 'id,builder,summaryMarkdown');
-        output =
-            github.CheckRunOutput(title: checkRun.name!, summary: getGithubSummary(buildbucketBuild.summaryMarkdown));
+        output = github.CheckRunOutput(
+          title: checkRun.name!,
+          summary: getGithubSummary(buildbucketBuild.summaryMarkdown),
+        );
         log.fine('Updating check run with output: [$output]');
       }
     }
