@@ -89,24 +89,6 @@ void main() {
       processManager = MockProcessManager();
     });
 
-    test('returns path when binary does not exist by default but exists in M1 homebrew bin', () async {
-      final String path = '$kM1BrewBinPath/ideviceinstaller';
-      output = <List<int>>[utf8.encode(path)];
-      final Process processM1 = FakeProcess(0, out: output);
-      final Process processDefault = FakeProcess(1, out: <List<int>>[]);
-      when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(processDefault));
-      when(
-        processManager.start(
-          <String>['which', '$kM1BrewBinPath/ideviceinstaller'],
-          workingDirectory: anyNamed('workingDirectory'),
-        ),
-      ).thenAnswer((_) => Future.value(processM1));
-
-      final String result = await getMacBinaryPath('ideviceinstaller', processManager: processManager);
-      expect(result, '$kM1BrewBinPath/ideviceinstaller');
-    });
-
     test('returns path when binary exists by default', () async {
       const String path = '/abc/def/ideviceinstaller';
       output = <List<int>>[utf8.encode(path)];
@@ -125,7 +107,7 @@ void main() {
           .thenAnswer((_) => Future.value(processDefault));
       when(
         processManager.start(
-          <String>['which', '$kM1BrewBinPath/ideviceinstaller'],
+          <String>['which', 'ideviceinstaller'],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(processM1));
