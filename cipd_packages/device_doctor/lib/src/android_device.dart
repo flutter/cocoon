@@ -453,6 +453,8 @@ class AndroidDevice implements Device {
     processManager ??= LocalProcessManager();
     final int timeoutSecs = 60;
     print('Device recovery: deleting package caches...');
+    await eval('adb', <String>['wait-for-device'], canFail: false, processManager: processManager)
+        .timeout(Duration(seconds: timeoutSecs));
     await deletePackageCache();
     await eval('adb', <String>['wait-for-device'], canFail: false, processManager: processManager)
         .timeout(Duration(seconds: timeoutSecs));
