@@ -69,6 +69,11 @@ class PullRequestValidationService extends ValidationService {
     final Set<Validation> validations = validationFilter.getValidations();
 
     final Map<String, ValidationResult> validationsMap = <String, ValidationResult>{};
+    final GithubService githubService = await config.createGithubService(slug);
+
+    // get the labels before validation so that we can detect all labels.
+    // TODO (https://github.com/flutter/flutter/issues/132811) remove this after graphql is removed.
+    final github.PullRequest updatedPullRequest = await githubService.getPullRequest(slug, messagePullRequest.number!);
 
     /// Runs all the validation defined in the service.
     /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
@@ -76,12 +81,10 @@ class PullRequestValidationService extends ValidationService {
       log.info('${slug.fullName}/$prNumber running validation ${validation.name}');
       final ValidationResult validationResult = await validation.validate(
         result,
-        messagePullRequest,
+        updatedPullRequest,
       );
       validationsMap[validation.name] = validationResult;
     }
-
-    final GithubService githubService = await config.createGithubService(slug);
 
     /// If there is at least one action that requires to remove label do so and add comments for all the failures.
     bool shouldReturn = false;
