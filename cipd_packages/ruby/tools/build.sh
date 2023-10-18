@@ -34,7 +34,7 @@ brew install --build-from-source gdbm
 brew install --build-from-source gmp
 brew install --build-from-source libffi
 brew install libyaml
-brew install --build-from-source readline
+brew reinstall --build-from-source readline
 brew install --build-from-source openssl@3
 brew install --build-from-source m4
 
