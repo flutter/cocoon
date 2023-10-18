@@ -30,13 +30,13 @@ mkdir -p $DIR/../cleanup
 curl https://cache.ruby-lang.org/pub/ruby/$RUBY_MAJOR_VERSION/$RUBY_FILE_NAME -o $DIR/../cleanup/$RUBY_FILE_NAME
 
 # Install brew dependencies
-brew install --build-from-source gdbm
-brew install --build-from-source gmp
-brew install --build-from-source libffi
-brew install libyaml
-brew reinstall --build-from-source readline
-brew install --build-from-source openssl@3
-brew install --build-from-source m4
+brew install gdbm@1.23
+brew install gmp@6.2.1_1
+brew install libffi@3.4.4
+brew install libyaml@0.2.5
+brew install readline@8.2.1
+brew install openssl@3
+brew install m4@1.4.19
 
 bash -e $DIR/ruby_build.sh $DIR/../cleanup/$RUBY_FILE_NAME
 
