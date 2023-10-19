@@ -60,7 +60,7 @@ class AppEngineCocoonService implements CocoonService {
     try {
       final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
       return CocoonResponse<List<CommitStatus>>.data(
-        await compute<List<dynamic>, List<CommitStatus>>(_commitStatusesFromJson, jsonResponse['Statuses']),
+        _commitStatusesFromJson(jsonResponse['Statuses']),
       );
     } catch (error) {
       return CocoonResponse<List<CommitStatus>>.error(error.toString());
