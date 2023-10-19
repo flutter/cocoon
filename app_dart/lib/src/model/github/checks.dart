@@ -2,18 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-/// Data models for json messages coming from GitHub Checks API.
-///
-/// See more:
-///  * https://developer.com/v3/checks/.
-library;
-
 import 'package:github/github.dart' show CheckSuite, PullRequest, User, Repository;
 import 'package:github/hooks.dart' show HookEvent;
 import 'package:json_annotation/json_annotation.dart';
 
 part 'checks.g.dart';
 
+/// Data models for json messages coming from GitHub Checks API.
+///
+/// See more:
+///  * https://developer.com/v3/checks/.
 @JsonSerializable(fieldRename: FieldRename.snake)
 class CheckRunEvent extends HookEvent {
   CheckRunEvent({
