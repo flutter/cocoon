@@ -124,7 +124,6 @@ targets:
       - .ci.yaml
 
   - name: Mac_arm64 ruby
-    bringup: true
     recipe: cocoon/cipd
     timeout: 60
     properties:
