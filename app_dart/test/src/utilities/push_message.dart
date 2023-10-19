@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-/// Utilities to create PushMessages for testing.
-
 import 'dart:convert';
 
 import 'package:cocoon_service/src/model/luci/push_message.dart';
