@@ -123,6 +123,16 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           await commitService.handlePushGithubRequest(event);
         }
         break;
+      case 'create':
+        final CreateEvent createEvent = CreateEvent.fromJson(json.decode(webhook.payload) as Map<String, dynamic>);
+        final RegExp candidateBranchRegex = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
+        // Create a commit object for candidate branches in the datastore so
+        // dart-internal builds that are triggered by the initial branch
+        // creation have an associated commit.
+        if (candidateBranchRegex.hasMatch(createEvent.ref!)) {
+          log.fine('Branch ${createEvent.ref} is a candidate branch, creating new commit in the datastore');
+          await commitService.handleCreateGithubRequest(createEvent);
+        }
     }
 
     return Body.empty;

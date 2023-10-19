@@ -2292,4 +2292,28 @@ void foo() {
       verifyNever(commitService.handlePushGithubRequest(any)).called(0);
     });
   });
+
+  group('github webhook create event', () {
+    test('Does not create a new commit due to not being a candidate branch', () async {
+      tester.message = generateCreateBranchMessage(
+        'cool-branch',
+        'flutter/flutter',
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(commitService.handleCreateGithubRequest(any)).called(0);
+    });
+
+    test('Creates a new commit due to being a candidate branch', () async {
+      tester.message = generateCreateBranchMessage(
+        'flutter-1.2-candidate.3',
+        'flutter/flutter',
+      );
+
+      await tester.post(webhook);
+
+      verify(commitService.handleCreateGithubRequest(any)).called(1);
+    });
+  });
 }
