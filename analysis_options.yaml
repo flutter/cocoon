@@ -35,6 +35,7 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.pb.dart"
     - "**/*.pbjson.dart"
+    - "**/*.pbserver.dart"
     - "**/*.pbenum.dart"
     - "lib/generated_plugin_registrant.dart"
     - "test/**/mocks.mocks.dart"

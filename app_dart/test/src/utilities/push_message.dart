@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 /// Utilities to create PushMessages for testing.
+library;
 
 import 'dart:convert';
 

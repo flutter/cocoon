@@ -6,6 +6,8 @@
 ///
 /// See more:
 ///  * https://developer.com/v3/checks/.
+library;
+
 import 'package:github/github.dart' show CheckSuite, PullRequest, User, Repository;
 import 'package:github/hooks.dart' show HookEvent;
 import 'package:json_annotation/json_annotation.dart';
