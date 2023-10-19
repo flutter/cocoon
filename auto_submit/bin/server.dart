@@ -57,6 +57,6 @@ Future<void> main() async {
           config: config,
         ).run,
       );
-    await serveHandler(router);
+    await serveHandler(router.call);
   });
 }

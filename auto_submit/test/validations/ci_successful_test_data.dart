@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 /// Constants used for testing in ci_successful_test.dart.
+library;
 
 const String noStatusInCommitJson = '''
 {
