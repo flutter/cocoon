@@ -19,7 +19,7 @@ find . -name *.proto -exec bash -c 'path={}; d=../buildbucket/go.chromium.org/lu
 popd
 popd
 $PROTOC go.chromium.org/luci/buildbucket/proto/build.proto
-$PROTOC go.chromium.org/luci/buildbucket/proto/build_service.proto
+$PROTOC go.chromium.org/luci/buildbucket/proto/builder_service.proto
 $PROTOC go.chromium.org/luci/buildbucket/proto/builds_service.proto
 $PROTOC go.chromium.org/luci/buildbucket/proto/build.proto
 $PROTOC go.chromium.org/luci/buildbucket/proto/builder_common.proto
