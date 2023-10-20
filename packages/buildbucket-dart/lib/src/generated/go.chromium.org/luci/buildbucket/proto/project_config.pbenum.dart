@@ -18,7 +18,7 @@ class Toggle extends $pb.ProtobufEnum {
   static const Toggle YES = Toggle._(1, _omitEnumNames ? '' : 'YES');
   static const Toggle NO = Toggle._(2, _omitEnumNames ? '' : 'NO');
 
-  static const $core.List<Toggle> values = <Toggle> [
+  static const $core.List<Toggle> values = <Toggle>[
     UNSET,
     YES,
     NO,
@@ -35,7 +35,7 @@ class Acl_Role extends $pb.ProtobufEnum {
   static const Acl_Role SCHEDULER = Acl_Role._(1, _omitEnumNames ? '' : 'SCHEDULER');
   static const Acl_Role WRITER = Acl_Role._(2, _omitEnumNames ? '' : 'WRITER');
 
-  static const $core.List<Acl_Role> values = <Acl_Role> [
+  static const $core.List<Acl_Role> values = <Acl_Role>[
     READER,
     SCHEDULER,
     WRITER,
@@ -46,6 +46,5 @@ class Acl_Role extends $pb.ProtobufEnum {
 
   const Acl_Role._($core.int v, $core.String n) : super(v, n);
 }
-
 
 const _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');
