@@ -453,15 +453,27 @@ class AndroidDevice implements Device {
     processManager ??= LocalProcessManager();
     final int timeoutSecs = 60;
     print('Device recovery: deleting package caches...');
-    await eval('adb', <String>['wait-for-device'], canFail: false, processManager: processManager)
-        .timeout(Duration(seconds: timeoutSecs));
+    await eval(
+      'adb',
+      <String>['wait-for-device', 'shell', 'while [[ -z \$(getprop sys.boot_completed) ]]; do sleep 1; done;'],
+      canFail: false,
+      processManager: processManager,
+    ).timeout(Duration(seconds: timeoutSecs));
     await deletePackageCache();
-    await eval('adb', <String>['wait-for-device'], canFail: false, processManager: processManager)
-        .timeout(Duration(seconds: timeoutSecs));
+    await eval(
+      'adb',
+      <String>['wait-for-device', 'shell', 'while [[ -z \$(getprop sys.boot_completed) ]]; do sleep 1; done;'],
+      canFail: false,
+      processManager: processManager,
+    ).timeout(Duration(seconds: timeoutSecs));
     print('Device recovery: deleting 3P packages...');
     await delete3Ppackages();
-    await eval('adb', <String>['wait-for-device'], canFail: false, processManager: processManager)
-        .timeout(Duration(seconds: timeoutSecs));
+    await eval(
+      'adb',
+      <String>['wait-for-device', 'shell', 'while [[ -z \$(getprop sys.boot_completed) ]]; do sleep 1; done;'],
+      canFail: false,
+      processManager: processManager,
+    ).timeout(Duration(seconds: timeoutSecs));
     print('Device recovery: rebooting...');
     await eval('adb', <String>['reboot'], canFail: false, processManager: processManager);
     return true;
