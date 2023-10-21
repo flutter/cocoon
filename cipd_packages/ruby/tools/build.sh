@@ -42,8 +42,15 @@ brew reinstall --build-from-source m4
 
 bash -e $DIR/ruby_build.sh $DIR/../cleanup/$RUBY_FILE_NAME
 
-# Copy certificates bundle
-cp /usr/local/etc/ca-certificates/cert.pem $DIR/../build/bin/darwin_ruby/
+# Copy certificates bundle for mac x64.
+if [ -f /usr/local/etc/ca-certificates/cert.pem ]; then
+  cp /usr/local/etc/ca-certificates/cert.pem $DIR/../build/bin/darwin_ruby/
+fi;
+
+# Copy certificates bundle for mac x64.
+if [ -f /opt/homebrew/etc/openssl@3/cert.pem ]; then
+  cp /opt/homebrew/etc/openssl@3/cert.pem $DIR/../build/bin/darwin_ruby/
+fi;
 
 # Update wrapper scripts to make them use libraries from new location.
 sed -i'' -e 's/bindir="\${0%\/\*}"/&\nSSL_CERTS="\$( cd -- "\$(dirname "\$0")" >\/dev\/null 2>\&1 ; pwd -P )\/..\/cert.pem"\nLIBSPATH="\$( cd -- "\$(dirname "\$0")" >\/dev\/null 2>\&1 ; pwd -P )\/..\/dylibs"\nexport DYLD_FALLBACK_LIBRARY_PATH=\$LIBSPATH:\$DYLD_FALLBACK_LIBRARY_PATH\nexport SSL_CERT_FILE="\${SSL_CERTS}"/' $DIR/../build/bin/darwin_ruby/bin/gem
