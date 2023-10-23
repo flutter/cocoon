@@ -1,3 +1,7 @@
+# 1.0.6
+
+- Expose all objects in build, builds_service and builder_service.
+
 # 1.0.5
 
 - Expose build bucket clients and supporting fields like StringPair.
