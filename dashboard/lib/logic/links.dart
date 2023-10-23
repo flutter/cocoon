@@ -6,17 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../build_dashboard_page.dart';
-import '../index_page.dart';
 
-/// List of links that are shown on [IndexPage] and in the [DashboardNavigationDrawer].
+/// List of links that are shown in the [DashboardNavigationDrawer].
 List<CocoonLink> createCocoonLinks(BuildContext context) {
   return <CocoonLink>[
-    CocoonLink(
-      name: 'Home',
-      route: IndexPage.routeName,
-      icon: const Icon(Icons.home),
-      action: () => Navigator.pushReplacementNamed(context, IndexPage.routeName),
-    ),
     CocoonLink(
       name: 'Build',
       route: BuildDashboardPage.routeName,

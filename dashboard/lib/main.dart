@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import 'build_dashboard_page.dart';
-import 'index_page.dart';
 import 'service/cocoon.dart';
 import 'service/google_authentication.dart';
 import 'state/build.dart';
@@ -71,9 +70,8 @@ class MyApp extends StatelessWidget {
         ),
       ),
       darkTheme: ThemeData.dark(),
-      initialRoute: '/',
+      initialRoute: BuildDashboardPage.routeName,
       routes: <String, WidgetBuilder>{
-        IndexPage.routeName: (BuildContext context) => const IndexPage(),
         BuildDashboardPage.routeName: (BuildContext context) => const BuildDashboardPage(),
       },
       onGenerateRoute: (RouteSettings settings) {

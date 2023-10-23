@@ -36,7 +36,6 @@ void main() {
         ),
       );
 
-      expect(find.text('Home'), findsOneWidget);
       expect(find.text('Build'), findsOneWidget);
       expect(find.text('Framework Benchmarks'), findsOneWidget);
       expect(find.text('Engine Benchmarks'), findsOneWidget);
@@ -109,16 +108,14 @@ void main() {
       await tester.pumpWidget(const FakeInserter(child: MyApp()));
 
       void test({required bool isHome}) {
-        final ListTile home = tester.widget(find.ancestor(of: find.text('Home'), matching: find.byType(ListTile)));
         final ListTile build = tester.widget(find.ancestor(of: find.text('Build'), matching: find.byType(ListTile)));
-        expect(home.selected, isHome);
         expect(build.selected, !isHome);
       }
 
       await tester.tap(find.byIcon(Icons.menu));
       await tester.pump(); // start animation of drawer opening
       await tester.pump(const Duration(seconds: 1)); // end animation of drawer opening
-      test(isHome: true);
+      test(isHome: false);
 
       await tester.tap(find.text('Build'));
       await tester.pump(); // drawer closes and new page arrives
