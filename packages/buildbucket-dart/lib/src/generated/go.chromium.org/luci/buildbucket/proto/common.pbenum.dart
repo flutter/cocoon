@@ -1,31 +1,27 @@
-///
+//
 //  Generated code. Do not modify.
 //  source: go.chromium.org/luci/buildbucket/proto/common.proto
 //
 // @dart = 2.12
-// ignore_for_file: annotate_overrides,camel_case_types,constant_identifier_names,directives_ordering,library_prefixes,non_constant_identifier_names,prefer_final_fields,return_of_invalid_type,unnecessary_const,unnecessary_import,unnecessary_this,unused_import,unused_shown_name
 
-// ignore_for_file: UNDEFINED_SHOWN_NAME
+// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+
 import 'dart:core' as $core;
+
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class Status extends $pb.ProtobufEnum {
-  static const Status STATUS_UNSPECIFIED =
-      Status._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'STATUS_UNSPECIFIED');
-  static const Status SCHEDULED =
-      Status._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'SCHEDULED');
-  static const Status STARTED =
-      Status._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'STARTED');
-  static const Status ENDED_MASK =
-      Status._(4, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'ENDED_MASK');
-  static const Status SUCCESS =
-      Status._(12, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'SUCCESS');
-  static const Status FAILURE =
-      Status._(20, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'FAILURE');
-  static const Status INFRA_FAILURE =
-      Status._(36, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'INFRA_FAILURE');
-  static const Status CANCELED =
-      Status._(68, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'CANCELED');
+  static const Status STATUS_UNSPECIFIED = Status._(0, _omitEnumNames ? '' : 'STATUS_UNSPECIFIED');
+  static const Status SCHEDULED = Status._(1, _omitEnumNames ? '' : 'SCHEDULED');
+  static const Status STARTED = Status._(2, _omitEnumNames ? '' : 'STARTED');
+  static const Status ENDED_MASK = Status._(4, _omitEnumNames ? '' : 'ENDED_MASK');
+  static const Status SUCCESS = Status._(12, _omitEnumNames ? '' : 'SUCCESS');
+  static const Status FAILURE = Status._(20, _omitEnumNames ? '' : 'FAILURE');
+  static const Status INFRA_FAILURE = Status._(36, _omitEnumNames ? '' : 'INFRA_FAILURE');
+  static const Status CANCELED = Status._(68, _omitEnumNames ? '' : 'CANCELED');
 
   static const $core.List<Status> values = <Status>[
     STATUS_UNSPECIFIED,
@@ -45,10 +41,9 @@ class Status extends $pb.ProtobufEnum {
 }
 
 class Trinary extends $pb.ProtobufEnum {
-  static const Trinary UNSET =
-      Trinary._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'UNSET');
-  static const Trinary YES = Trinary._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'YES');
-  static const Trinary NO = Trinary._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'NO');
+  static const Trinary UNSET = Trinary._(0, _omitEnumNames ? '' : 'UNSET');
+  static const Trinary YES = Trinary._(1, _omitEnumNames ? '' : 'YES');
+  static const Trinary NO = Trinary._(2, _omitEnumNames ? '' : 'NO');
 
   static const $core.List<Trinary> values = <Trinary>[
     UNSET,
@@ -63,10 +58,8 @@ class Trinary extends $pb.ProtobufEnum {
 }
 
 class Compression extends $pb.ProtobufEnum {
-  static const Compression ZLIB =
-      Compression._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'ZLIB');
-  static const Compression ZSTD =
-      Compression._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'ZSTD');
+  static const Compression ZLIB = Compression._(0, _omitEnumNames ? '' : 'ZLIB');
+  static const Compression ZSTD = Compression._(1, _omitEnumNames ? '' : 'ZSTD');
 
   static const $core.List<Compression> values = <Compression>[
     ZLIB,
@@ -78,3 +71,5 @@ class Compression extends $pb.ProtobufEnum {
 
   const Compression._($core.int v, $core.String n) : super(v, n);
 }
+
+const _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');

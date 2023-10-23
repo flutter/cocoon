@@ -200,6 +200,7 @@ Iterable<File> _allFiles(String workingDirectory, String extension, {required in
       if (path.basename(entity.path).endsWith('pb.dart')) continue;
       if (path.basename(entity.path).endsWith('pbenum.dart')) continue;
       if (path.basename(entity.path).endsWith('pbjson.dart')) continue;
+      if (path.basename(entity.path).endsWith('pbgrpc.dart')) continue;
       if (path.basename(entity.path).endsWith('pbserver.dart')) continue;
       if (path.extension(entity.path) == '.$extension') {
         matches += 1;

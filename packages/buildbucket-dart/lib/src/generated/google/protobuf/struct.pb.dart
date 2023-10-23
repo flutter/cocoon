@@ -1,14 +1,17 @@
-///
+//
 //  Generated code. Do not modify.
 //  source: google/protobuf/struct.proto
 //
 // @dart = 2.12
-// ignore_for_file: annotate_overrides,camel_case_types,constant_identifier_names,directives_ordering,library_prefixes,non_constant_identifier_names,prefer_final_fields,return_of_invalid_type,unnecessary_const,unnecessary_import,unnecessary_this,unused_import,unused_shown_name
+
+// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
-
 import 'package:protobuf/src/protobuf/mixins/well_known.dart' as $mixin;
 
 import 'struct.pbenum.dart';
@@ -16,35 +19,27 @@ import 'struct.pbenum.dart';
 export 'struct.pbenum.dart';
 
 class Struct extends $pb.GeneratedMessage with $mixin.StructMixin {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Struct',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'google.protobuf'),
-      createEmptyInstance: create,
-      toProto3Json: $mixin.StructMixin.toProto3JsonHelper,
-      fromProto3Json: $mixin.StructMixin.fromProto3JsonHelper)
-    ..m<$core.String, Value>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'fields',
-        entryClassName: 'Struct.FieldsEntry',
-        keyFieldType: $pb.PbFieldType.OS,
-        valueFieldType: $pb.PbFieldType.OM,
-        valueCreator: Value.create,
-        packageName: const $pb.PackageName('google.protobuf'))
-    ..hasRequiredFields = false;
-
+  factory Struct() => create();
   Struct._() : super();
-  factory Struct({
-    $core.Map<$core.String, Value>? fields,
-  }) {
-    final _result = create();
-    if (fields != null) {
-      _result.fields.addAll(fields);
-    }
-    return _result;
-  }
   factory Struct.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory Struct.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Struct',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'google.protobuf'),
+      createEmptyInstance: create,
+      toProto3Json: $mixin.StructMixin.toProto3JsonHelper,
+      fromProto3Json: $mixin.StructMixin.fromProto3JsonHelper)
+    ..m<$core.String, Value>(1, _omitFieldNames ? '' : 'fields',
+        entryClassName: 'Struct.FieldsEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OM,
+        valueCreator: Value.create,
+        valueDefaultOrMaker: Value.getDefault,
+        packageName: const $pb.PackageName('google.protobuf'))
+    ..hasRequiredFields = false;
+
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
@@ -52,9 +47,10 @@ class Struct extends $pb.GeneratedMessage with $mixin.StructMixin {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  Struct copyWith(void Function(Struct) updates) =>
-      super.copyWith((message) => updates(message as Struct)) as Struct; // ignore: deprecated_member_use
+  Struct copyWith(void Function(Struct) updates) => super.copyWith((message) => updates(message as Struct)) as Struct;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static Struct create() => Struct._();
   Struct createEmptyInstance() => create();
@@ -70,6 +66,13 @@ class Struct extends $pb.GeneratedMessage with $mixin.StructMixin {
 enum Value_Kind { nullValue, numberValue, stringValue, boolValue, structValue, listValue, notSet }
 
 class Value extends $pb.GeneratedMessage with $mixin.ValueMixin {
+  factory Value() => create();
+  Value._() : super();
+  factory Value.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Value.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
   static const $core.Map<$core.int, Value_Kind> _Value_KindByTag = {
     1: Value_Kind.nullValue,
     2: Value_Kind.numberValue,
@@ -79,61 +82,21 @@ class Value extends $pb.GeneratedMessage with $mixin.ValueMixin {
     6: Value_Kind.listValue,
     0: Value_Kind.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Value',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'google.protobuf'),
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Value',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'google.protobuf'),
       createEmptyInstance: create,
       toProto3Json: $mixin.ValueMixin.toProto3JsonHelper,
       fromProto3Json: $mixin.ValueMixin.fromProto3JsonHelper)
     ..oo(0, [1, 2, 3, 4, 5, 6])
-    ..e<NullValue>(
-        1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'nullValue', $pb.PbFieldType.OE,
+    ..e<NullValue>(1, _omitFieldNames ? '' : 'nullValue', $pb.PbFieldType.OE,
         defaultOrMaker: NullValue.NULL_VALUE, valueOf: NullValue.valueOf, enumValues: NullValue.values)
-    ..a<$core.double>(
-        2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'numberValue', $pb.PbFieldType.OD)
-    ..aOS(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'stringValue')
-    ..aOB(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'boolValue')
-    ..aOM<Struct>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'structValue',
-        subBuilder: Struct.create)
-    ..aOM<ListValue>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'listValue',
-        subBuilder: ListValue.create)
+    ..a<$core.double>(2, _omitFieldNames ? '' : 'numberValue', $pb.PbFieldType.OD)
+    ..aOS(3, _omitFieldNames ? '' : 'stringValue')
+    ..aOB(4, _omitFieldNames ? '' : 'boolValue')
+    ..aOM<Struct>(5, _omitFieldNames ? '' : 'structValue', subBuilder: Struct.create)
+    ..aOM<ListValue>(6, _omitFieldNames ? '' : 'listValue', subBuilder: ListValue.create)
     ..hasRequiredFields = false;
 
-  Value._() : super();
-  factory Value({
-    NullValue? nullValue,
-    $core.double? numberValue,
-    $core.String? stringValue,
-    $core.bool? boolValue,
-    Struct? structValue,
-    ListValue? listValue,
-  }) {
-    final _result = create();
-    if (nullValue != null) {
-      _result.nullValue = nullValue;
-    }
-    if (numberValue != null) {
-      _result.numberValue = numberValue;
-    }
-    if (stringValue != null) {
-      _result.stringValue = stringValue;
-    }
-    if (boolValue != null) {
-      _result.boolValue = boolValue;
-    }
-    if (structValue != null) {
-      _result.structValue = structValue;
-    }
-    if (listValue != null) {
-      _result.listValue = listValue;
-    }
-    return _result;
-  }
-  factory Value.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory Value.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
@@ -141,9 +104,10 @@ class Value extends $pb.GeneratedMessage with $mixin.ValueMixin {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  Value copyWith(void Function(Value) updates) =>
-      super.copyWith((message) => updates(message as Value)) as Value; // ignore: deprecated_member_use
+  Value copyWith(void Function(Value) updates) => super.copyWith((message) => updates(message as Value)) as Value;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static Value create() => Value._();
   Value createEmptyInstance() => create();
@@ -233,31 +197,21 @@ class Value extends $pb.GeneratedMessage with $mixin.ValueMixin {
 }
 
 class ListValue extends $pb.GeneratedMessage with $mixin.ListValueMixin {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'ListValue',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'google.protobuf'),
-      createEmptyInstance: create,
-      toProto3Json: $mixin.ListValueMixin.toProto3JsonHelper,
-      fromProto3Json: $mixin.ListValueMixin.fromProto3JsonHelper)
-    ..pc<Value>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'values', $pb.PbFieldType.PM,
-        subBuilder: Value.create)
-    ..hasRequiredFields = false;
-
+  factory ListValue() => create();
   ListValue._() : super();
-  factory ListValue({
-    $core.Iterable<Value>? values,
-  }) {
-    final _result = create();
-    if (values != null) {
-      _result.values.addAll(values);
-    }
-    return _result;
-  }
   factory ListValue.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory ListValue.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListValue',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'google.protobuf'),
+      createEmptyInstance: create,
+      toProto3Json: $mixin.ListValueMixin.toProto3JsonHelper,
+      fromProto3Json: $mixin.ListValueMixin.fromProto3JsonHelper)
+    ..pc<Value>(1, _omitFieldNames ? '' : 'values', $pb.PbFieldType.PM, subBuilder: Value.create)
+    ..hasRequiredFields = false;
+
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
@@ -266,8 +220,10 @@ class ListValue extends $pb.GeneratedMessage with $mixin.ListValueMixin {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   ListValue copyWith(void Function(ListValue) updates) =>
-      super.copyWith((message) => updates(message as ListValue)) as ListValue; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as ListValue)) as ListValue;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static ListValue create() => ListValue._();
   ListValue createEmptyInstance() => create();
@@ -279,3 +235,6 @@ class ListValue extends $pb.GeneratedMessage with $mixin.ListValueMixin {
   @$pb.TagNumber(1)
   $core.List<Value> get values => $_getList(0);
 }
+
+const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
+const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
