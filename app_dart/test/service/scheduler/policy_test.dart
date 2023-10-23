@@ -78,7 +78,7 @@ void main() {
       db.addOnQuery<Task>((Iterable<Task> results) => allPending);
       expect(
         await policy.triggerPriority(task: generateTask(4), datastore: datastore),
-        LuciBuildService.kDefaultPriority,
+        null,
       );
     });
 

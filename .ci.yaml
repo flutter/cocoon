@@ -104,7 +104,6 @@ targets:
       - .ci.yaml
 
   - name: Mac ruby
-    bringup: true
     recipe: cocoon/cipd
     timeout: 60
     properties:
@@ -145,5 +144,4 @@ targets:
   - name: Linux ci_yaml roller
     recipe: infra/ci_yaml
     properties:
-      add_recipes_cq: "true"
       backfill: "false"

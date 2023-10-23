@@ -64,6 +64,16 @@ fi
 make
 make install
 
+# Copy default libraries to build directory
+mkdir -p "$DIR/../build/bin/darwin_ruby/dylibs/"
+find $(brew --prefix curl)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
+find $(brew --prefix gdbm)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
+find $(brew --prefix libffi)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
+find $(brew --prefix libyaml)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
+find $(brew --prefix openldap)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
+find $(brew --prefix openssl)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
+find $(brew --prefix readline)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
+
 # Setting up reference directories.
 RUBY_INSTALL_DIR="$(ls $DIR/../build/bin/${OS}_ruby/include)"
 RUBY_VERSION_DIR="$(echo $RUBY_INSTALL_DIR | cut -d'-' -f 2)"

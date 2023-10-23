@@ -1,112 +1,57 @@
-///
+//
 //  Generated code. Do not modify.
 //  source: go.chromium.org/luci/resultdb/proto/v1/invocation.proto
 //
 // @dart = 2.12
-// ignore_for_file: annotate_overrides,camel_case_types,constant_identifier_names,directives_ordering,library_prefixes,non_constant_identifier_names,prefer_final_fields,return_of_invalid_type,unnecessary_const,unnecessary_import,unnecessary_this,unused_import,unused_shown_name
+
+// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
+import '../../../../../google/protobuf/struct.pb.dart' as $2;
 import '../../../../../google/protobuf/timestamp.pb.dart' as $0;
 import 'common.pb.dart' as $1;
-import 'predicate.pb.dart' as $2;
-
 import 'invocation.pbenum.dart';
+import 'predicate.pb.dart' as $3;
 
 export 'invocation.pbenum.dart';
 
 class Invocation extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Invocation',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'luci.resultdb.v1'),
-      createEmptyInstance: create)
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'name')
-    ..e<Invocation_State>(
-        2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'state', $pb.PbFieldType.OE,
-        defaultOrMaker: Invocation_State.STATE_UNSPECIFIED,
-        valueOf: Invocation_State.valueOf,
-        enumValues: Invocation_State.values)
-    ..aOM<$0.Timestamp>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'createTime',
-        subBuilder: $0.Timestamp.create)
-    ..pc<$1.StringPair>(
-        5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'tags', $pb.PbFieldType.PM,
-        subBuilder: $1.StringPair.create)
-    ..aOM<$0.Timestamp>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'finalizeTime',
-        subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'deadline',
-        subBuilder: $0.Timestamp.create)
-    ..pPS(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'includedInvocations')
-    ..pc<BigQueryExport>(
-        9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'bigqueryExports', $pb.PbFieldType.PM,
-        subBuilder: BigQueryExport.create)
-    ..aOS(10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'createdBy')
-    ..aOS(11, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'producerResource')
-    ..aOS(12, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'realm')
-    ..aOM<HistoryOptions>(13, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'historyOptions',
-        subBuilder: HistoryOptions.create)
-    ..hasRequiredFields = false;
-
+  factory Invocation() => create();
   Invocation._() : super();
-  factory Invocation({
-    $core.String? name,
-    Invocation_State? state,
-    $0.Timestamp? createTime,
-    $core.Iterable<$1.StringPair>? tags,
-    $0.Timestamp? finalizeTime,
-    $0.Timestamp? deadline,
-    $core.Iterable<$core.String>? includedInvocations,
-    $core.Iterable<BigQueryExport>? bigqueryExports,
-    $core.String? createdBy,
-    $core.String? producerResource,
-    $core.String? realm,
-    HistoryOptions? historyOptions,
-  }) {
-    final _result = create();
-    if (name != null) {
-      _result.name = name;
-    }
-    if (state != null) {
-      _result.state = state;
-    }
-    if (createTime != null) {
-      _result.createTime = createTime;
-    }
-    if (tags != null) {
-      _result.tags.addAll(tags);
-    }
-    if (finalizeTime != null) {
-      _result.finalizeTime = finalizeTime;
-    }
-    if (deadline != null) {
-      _result.deadline = deadline;
-    }
-    if (includedInvocations != null) {
-      _result.includedInvocations.addAll(includedInvocations);
-    }
-    if (bigqueryExports != null) {
-      _result.bigqueryExports.addAll(bigqueryExports);
-    }
-    if (createdBy != null) {
-      _result.createdBy = createdBy;
-    }
-    if (producerResource != null) {
-      _result.producerResource = producerResource;
-    }
-    if (realm != null) {
-      _result.realm = realm;
-    }
-    if (historyOptions != null) {
-      _result.historyOptions = historyOptions;
-    }
-    return _result;
-  }
   factory Invocation.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory Invocation.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Invocation',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'name')
+    ..e<Invocation_State>(2, _omitFieldNames ? '' : 'state', $pb.PbFieldType.OE,
+        defaultOrMaker: Invocation_State.STATE_UNSPECIFIED,
+        valueOf: Invocation_State.valueOf,
+        enumValues: Invocation_State.values)
+    ..aOM<$0.Timestamp>(4, _omitFieldNames ? '' : 'createTime', subBuilder: $0.Timestamp.create)
+    ..pc<$1.StringPair>(5, _omitFieldNames ? '' : 'tags', $pb.PbFieldType.PM, subBuilder: $1.StringPair.create)
+    ..aOM<$0.Timestamp>(6, _omitFieldNames ? '' : 'finalizeTime', subBuilder: $0.Timestamp.create)
+    ..aOM<$0.Timestamp>(7, _omitFieldNames ? '' : 'deadline', subBuilder: $0.Timestamp.create)
+    ..pPS(8, _omitFieldNames ? '' : 'includedInvocations')
+    ..pc<BigQueryExport>(9, _omitFieldNames ? '' : 'bigqueryExports', $pb.PbFieldType.PM,
+        subBuilder: BigQueryExport.create)
+    ..aOS(10, _omitFieldNames ? '' : 'createdBy')
+    ..aOS(11, _omitFieldNames ? '' : 'producerResource')
+    ..aOS(12, _omitFieldNames ? '' : 'realm')
+    ..aOM<HistoryOptions>(13, _omitFieldNames ? '' : 'historyOptions', subBuilder: HistoryOptions.create)
+    ..aOM<$2.Struct>(14, _omitFieldNames ? '' : 'properties', subBuilder: $2.Struct.create)
+    ..aOM<SourceSpec>(15, _omitFieldNames ? '' : 'sourceSpec', subBuilder: SourceSpec.create)
+    ..aOS(16, _omitFieldNames ? '' : 'baselineId')
+    ..hasRequiredFields = false;
+
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
@@ -115,8 +60,10 @@ class Invocation extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   Invocation copyWith(void Function(Invocation) updates) =>
-      super.copyWith((message) => updates(message as Invocation)) as Invocation; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as Invocation)) as Invocation;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static Invocation create() => Invocation._();
   Invocation createEmptyInstance() => create();
@@ -249,34 +196,63 @@ class Invocation extends $pb.GeneratedMessage {
   void clearHistoryOptions() => clearField(13);
   @$pb.TagNumber(13)
   HistoryOptions ensureHistoryOptions() => $_ensure(11);
+
+  @$pb.TagNumber(14)
+  $2.Struct get properties => $_getN(12);
+  @$pb.TagNumber(14)
+  set properties($2.Struct v) {
+    setField(14, v);
+  }
+
+  @$pb.TagNumber(14)
+  $core.bool hasProperties() => $_has(12);
+  @$pb.TagNumber(14)
+  void clearProperties() => clearField(14);
+  @$pb.TagNumber(14)
+  $2.Struct ensureProperties() => $_ensure(12);
+
+  @$pb.TagNumber(15)
+  SourceSpec get sourceSpec => $_getN(13);
+  @$pb.TagNumber(15)
+  set sourceSpec(SourceSpec v) {
+    setField(15, v);
+  }
+
+  @$pb.TagNumber(15)
+  $core.bool hasSourceSpec() => $_has(13);
+  @$pb.TagNumber(15)
+  void clearSourceSpec() => clearField(15);
+  @$pb.TagNumber(15)
+  SourceSpec ensureSourceSpec() => $_ensure(13);
+
+  @$pb.TagNumber(16)
+  $core.String get baselineId => $_getSZ(14);
+  @$pb.TagNumber(16)
+  set baselineId($core.String v) {
+    $_setString(14, v);
+  }
+
+  @$pb.TagNumber(16)
+  $core.bool hasBaselineId() => $_has(14);
+  @$pb.TagNumber(16)
+  void clearBaselineId() => clearField(16);
 }
 
 class BigQueryExport_TestResults extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'BigQueryExport.TestResults',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'luci.resultdb.v1'),
-      createEmptyInstance: create)
-    ..aOM<$2.TestResultPredicate>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'predicate',
-        subBuilder: $2.TestResultPredicate.create)
-    ..hasRequiredFields = false;
-
+  factory BigQueryExport_TestResults() => create();
   BigQueryExport_TestResults._() : super();
-  factory BigQueryExport_TestResults({
-    $2.TestResultPredicate? predicate,
-  }) {
-    final _result = create();
-    if (predicate != null) {
-      _result.predicate = predicate;
-    }
-    return _result;
-  }
   factory BigQueryExport_TestResults.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory BigQueryExport_TestResults.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BigQueryExport.TestResults',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+    ..aOM<$3.TestResultPredicate>(1, _omitFieldNames ? '' : 'predicate', subBuilder: $3.TestResultPredicate.create)
+    ..hasRequiredFields = false;
+
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
@@ -285,9 +261,10 @@ class BigQueryExport_TestResults extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   BigQueryExport_TestResults copyWith(void Function(BigQueryExport_TestResults) updates) =>
-      super.copyWith((message) => updates(message as BigQueryExport_TestResults))
-          as BigQueryExport_TestResults; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as BigQueryExport_TestResults)) as BigQueryExport_TestResults;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static BigQueryExport_TestResults create() => BigQueryExport_TestResults._();
   BigQueryExport_TestResults createEmptyInstance() => create();
@@ -298,9 +275,9 @@ class BigQueryExport_TestResults extends $pb.GeneratedMessage {
   static BigQueryExport_TestResults? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $2.TestResultPredicate get predicate => $_getN(0);
+  $3.TestResultPredicate get predicate => $_getN(0);
   @$pb.TagNumber(1)
-  set predicate($2.TestResultPredicate v) {
+  set predicate($3.TestResultPredicate v) {
     setField(1, v);
   }
 
@@ -309,35 +286,24 @@ class BigQueryExport_TestResults extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearPredicate() => clearField(1);
   @$pb.TagNumber(1)
-  $2.TestResultPredicate ensurePredicate() => $_ensure(0);
+  $3.TestResultPredicate ensurePredicate() => $_ensure(0);
 }
 
 class BigQueryExport_TextArtifacts extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'BigQueryExport.TextArtifacts',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'luci.resultdb.v1'),
-      createEmptyInstance: create)
-    ..aOM<$2.ArtifactPredicate>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'predicate',
-        subBuilder: $2.ArtifactPredicate.create)
-    ..hasRequiredFields = false;
-
+  factory BigQueryExport_TextArtifacts() => create();
   BigQueryExport_TextArtifacts._() : super();
-  factory BigQueryExport_TextArtifacts({
-    $2.ArtifactPredicate? predicate,
-  }) {
-    final _result = create();
-    if (predicate != null) {
-      _result.predicate = predicate;
-    }
-    return _result;
-  }
   factory BigQueryExport_TextArtifacts.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory BigQueryExport_TextArtifacts.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BigQueryExport.TextArtifacts',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+    ..aOM<$3.ArtifactPredicate>(1, _omitFieldNames ? '' : 'predicate', subBuilder: $3.ArtifactPredicate.create)
+    ..hasRequiredFields = false;
+
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
@@ -346,9 +312,10 @@ class BigQueryExport_TextArtifacts extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   BigQueryExport_TextArtifacts copyWith(void Function(BigQueryExport_TextArtifacts) updates) =>
-      super.copyWith((message) => updates(message as BigQueryExport_TextArtifacts))
-          as BigQueryExport_TextArtifacts; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as BigQueryExport_TextArtifacts)) as BigQueryExport_TextArtifacts;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static BigQueryExport_TextArtifacts create() => BigQueryExport_TextArtifacts._();
   BigQueryExport_TextArtifacts createEmptyInstance() => create();
@@ -359,9 +326,9 @@ class BigQueryExport_TextArtifacts extends $pb.GeneratedMessage {
   static BigQueryExport_TextArtifacts? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $2.ArtifactPredicate get predicate => $_getN(0);
+  $3.ArtifactPredicate get predicate => $_getN(0);
   @$pb.TagNumber(1)
-  set predicate($2.ArtifactPredicate v) {
+  set predicate($3.ArtifactPredicate v) {
     setField(1, v);
   }
 
@@ -370,64 +337,36 @@ class BigQueryExport_TextArtifacts extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearPredicate() => clearField(1);
   @$pb.TagNumber(1)
-  $2.ArtifactPredicate ensurePredicate() => $_ensure(0);
+  $3.ArtifactPredicate ensurePredicate() => $_ensure(0);
 }
 
 enum BigQueryExport_ResultType { testResults, textArtifacts, notSet }
 
 class BigQueryExport extends $pb.GeneratedMessage {
+  factory BigQueryExport() => create();
+  BigQueryExport._() : super();
+  factory BigQueryExport.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BigQueryExport.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
   static const $core.Map<$core.int, BigQueryExport_ResultType> _BigQueryExport_ResultTypeByTag = {
     4: BigQueryExport_ResultType.testResults,
     6: BigQueryExport_ResultType.textArtifacts,
     0: BigQueryExport_ResultType.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'BigQueryExport',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'luci.resultdb.v1'),
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BigQueryExport',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
     ..oo(0, [4, 6])
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'project')
-    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'dataset')
-    ..aOS(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'table')
-    ..aOM<BigQueryExport_TestResults>(
-        4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'testResults',
+    ..aOS(1, _omitFieldNames ? '' : 'project')
+    ..aOS(2, _omitFieldNames ? '' : 'dataset')
+    ..aOS(3, _omitFieldNames ? '' : 'table')
+    ..aOM<BigQueryExport_TestResults>(4, _omitFieldNames ? '' : 'testResults',
         subBuilder: BigQueryExport_TestResults.create)
-    ..aOM<BigQueryExport_TextArtifacts>(
-        6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'textArtifacts',
+    ..aOM<BigQueryExport_TextArtifacts>(6, _omitFieldNames ? '' : 'textArtifacts',
         subBuilder: BigQueryExport_TextArtifacts.create)
     ..hasRequiredFields = false;
 
-  BigQueryExport._() : super();
-  factory BigQueryExport({
-    $core.String? project,
-    $core.String? dataset,
-    $core.String? table,
-    BigQueryExport_TestResults? testResults,
-    BigQueryExport_TextArtifacts? textArtifacts,
-  }) {
-    final _result = create();
-    if (project != null) {
-      _result.project = project;
-    }
-    if (dataset != null) {
-      _result.dataset = dataset;
-    }
-    if (table != null) {
-      _result.table = table;
-    }
-    if (testResults != null) {
-      _result.testResults = testResults;
-    }
-    if (textArtifacts != null) {
-      _result.textArtifacts = textArtifacts;
-    }
-    return _result;
-  }
-  factory BigQueryExport.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory BigQueryExport.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
@@ -436,9 +375,10 @@ class BigQueryExport extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   BigQueryExport copyWith(void Function(BigQueryExport) updates) =>
-      super.copyWith((message) => updates(message as BigQueryExport))
-          as BigQueryExport; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as BigQueryExport)) as BigQueryExport;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static BigQueryExport create() => BigQueryExport._();
   BigQueryExport createEmptyInstance() => create();
@@ -516,34 +456,19 @@ class BigQueryExport extends $pb.GeneratedMessage {
 }
 
 class HistoryOptions extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'HistoryOptions',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'luci.resultdb.v1'),
-      createEmptyInstance: create)
-    ..aOB(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'useInvocationTimestamp')
-    ..aOM<$1.CommitPosition>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'commit',
-        subBuilder: $1.CommitPosition.create)
-    ..hasRequiredFields = false;
-
+  factory HistoryOptions() => create();
   HistoryOptions._() : super();
-  factory HistoryOptions({
-    $core.bool? useInvocationTimestamp,
-    $1.CommitPosition? commit,
-  }) {
-    final _result = create();
-    if (useInvocationTimestamp != null) {
-      _result.useInvocationTimestamp = useInvocationTimestamp;
-    }
-    if (commit != null) {
-      _result.commit = commit;
-    }
-    return _result;
-  }
   factory HistoryOptions.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory HistoryOptions.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'HistoryOptions',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'useInvocationTimestamp')
+    ..aOM<$1.CommitPosition>(2, _omitFieldNames ? '' : 'commit', subBuilder: $1.CommitPosition.create)
+    ..hasRequiredFields = false;
+
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
@@ -552,9 +477,10 @@ class HistoryOptions extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   HistoryOptions copyWith(void Function(HistoryOptions) updates) =>
-      super.copyWith((message) => updates(message as HistoryOptions))
-          as HistoryOptions; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as HistoryOptions)) as HistoryOptions;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static HistoryOptions create() => HistoryOptions._();
   HistoryOptions createEmptyInstance() => create();
@@ -589,3 +515,133 @@ class HistoryOptions extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $1.CommitPosition ensureCommit() => $_ensure(1);
 }
+
+class SourceSpec extends $pb.GeneratedMessage {
+  factory SourceSpec() => create();
+  SourceSpec._() : super();
+  factory SourceSpec.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory SourceSpec.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SourceSpec',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+    ..aOM<Sources>(1, _omitFieldNames ? '' : 'sources', subBuilder: Sources.create)
+    ..aOB(2, _omitFieldNames ? '' : 'inherit')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  SourceSpec clone() => SourceSpec()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  SourceSpec copyWith(void Function(SourceSpec) updates) =>
+      super.copyWith((message) => updates(message as SourceSpec)) as SourceSpec;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SourceSpec create() => SourceSpec._();
+  SourceSpec createEmptyInstance() => create();
+  static $pb.PbList<SourceSpec> createRepeated() => $pb.PbList<SourceSpec>();
+  @$core.pragma('dart2js:noInline')
+  static SourceSpec getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SourceSpec>(create);
+  static SourceSpec? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Sources get sources => $_getN(0);
+  @$pb.TagNumber(1)
+  set sources(Sources v) {
+    setField(1, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasSources() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSources() => clearField(1);
+  @$pb.TagNumber(1)
+  Sources ensureSources() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  $core.bool get inherit => $_getBF(1);
+  @$pb.TagNumber(2)
+  set inherit($core.bool v) {
+    $_setBool(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasInherit() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearInherit() => clearField(2);
+}
+
+class Sources extends $pb.GeneratedMessage {
+  factory Sources() => create();
+  Sources._() : super();
+  factory Sources.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Sources.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Sources',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+    ..aOM<$1.GitilesCommit>(1, _omitFieldNames ? '' : 'gitilesCommit', subBuilder: $1.GitilesCommit.create)
+    ..pc<$1.GerritChange>(2, _omitFieldNames ? '' : 'changelists', $pb.PbFieldType.PM,
+        subBuilder: $1.GerritChange.create)
+    ..aOB(3, _omitFieldNames ? '' : 'isDirty')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  Sources clone() => Sources()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  Sources copyWith(void Function(Sources) updates) =>
+      super.copyWith((message) => updates(message as Sources)) as Sources;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Sources create() => Sources._();
+  Sources createEmptyInstance() => create();
+  static $pb.PbList<Sources> createRepeated() => $pb.PbList<Sources>();
+  @$core.pragma('dart2js:noInline')
+  static Sources getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Sources>(create);
+  static Sources? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $1.GitilesCommit get gitilesCommit => $_getN(0);
+  @$pb.TagNumber(1)
+  set gitilesCommit($1.GitilesCommit v) {
+    setField(1, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasGitilesCommit() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearGitilesCommit() => clearField(1);
+  @$pb.TagNumber(1)
+  $1.GitilesCommit ensureGitilesCommit() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  $core.List<$1.GerritChange> get changelists => $_getList(1);
+
+  @$pb.TagNumber(3)
+  $core.bool get isDirty => $_getBF(2);
+  @$pb.TagNumber(3)
+  set isDirty($core.bool v) {
+    $_setBool(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasIsDirty() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearIsDirty() => clearField(3);
+}
+
+const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
+const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
