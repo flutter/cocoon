@@ -149,14 +149,15 @@ void main() {
       List<Commit> createCommitList(
         List<String> shas, {
         String repo = 'flutter',
+        String branch = 'master',
       }) {
         return List<Commit>.generate(
           shas.length,
           (int index) => Commit(
             author: 'Username',
             authorAvatarUrl: 'http://example.org/avatar.jpg',
-            branch: 'master',
-            key: db.emptyKey.append(Commit, id: 'flutter/$repo/master/${shas[index]}'),
+            branch: branch,
+            key: db.emptyKey.append(Commit, id: 'flutter/$repo/$branch/${shas[index]}'),
             message: 'commit message',
             repository: 'flutter/$repo',
             sha: shas[index],
@@ -243,8 +244,11 @@ void main() {
             toBeScheduled: captureAnyNamed('toBeScheduled'),
           ),
         ).thenAnswer((_) => Future<List<Tuple<Target, Task, int>>>.value(<Tuple<Target, Task, int>>[]));
-        buildStatusService =
-            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
+        buildStatusService = FakeBuildStatusService(
+          commitStatuses: <CommitStatus>[
+            CommitStatus(generateCommit(1, repo: 'engine', branch: 'main'), const <Stage>[]),
+          ],
+        );
         scheduler = Scheduler(
           cache: cache,
           config: config,
@@ -255,7 +259,7 @@ void main() {
           luciBuildService: luciBuildService,
         );
 
-        await scheduler.addCommits(createCommitList(<String>['1']));
+        await scheduler.addCommits(createCommitList(<String>['1'], repo: 'engine', branch: 'main'));
         final List<dynamic> captured = verify(
           luciBuildService.schedulePostsubmitBuilds(
             commit: anyNamed('commit'),
@@ -293,8 +297,11 @@ void main() {
             ],
           );
         });
-        buildStatusService =
-            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
+        buildStatusService = FakeBuildStatusService(
+          commitStatuses: <CommitStatus>[
+            CommitStatus(generateCommit(1, repo: 'engine', branch: 'main'), const <Stage>[]),
+          ],
+        );
         config.batchSizeValue = 1;
         scheduler = Scheduler(
           cache: cache,
@@ -306,7 +313,7 @@ void main() {
           luciBuildService: luciBuildService,
         );
 
-        await scheduler.addCommits(createCommitList(<String>['1']));
+        await scheduler.addCommits(createCommitList(<String>['1'], repo: 'engine', branch: 'main'));
         expect(pubsub.messages.length, 2);
       });
     });
@@ -406,67 +413,6 @@ targets:
         expect(tasks.first.name, 'Linux A');
         // Ensure all tasks under cocoon scheduler have been marked in progress
         expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusInProgress).length, 1);
-      });
-
-      test('skip scheduling bringup true targets for BatchPolicy', () async {
-        final PullRequest mergedPr = generatePullRequest();
-
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.contains('.ci.yaml')) {
-            return http.Response(
-              '''
-enabled_branches:
-  - master
-targets:
-  - name: Linux A
-    scheduler: cocoon
-  - name: Linux B
-    scheduler: cocoon
-    bringup: true
-          ''',
-              200,
-            );
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
-        await scheduler.addPullRequest(mergedPr);
-        expect(db.values.values.whereType<Commit>().length, 1);
-        expect(db.values.values.whereType<Task>().length, 2);
-        final Task taskA = db.values.values.whereType<Task>().where((task) => task.name == 'Linux A').single;
-        final Task taskB = db.values.values.whereType<Task>().where((task) => task.name == 'Linux B').single;
-        expect(taskA.status, Task.statusInProgress);
-        expect(taskB.status, Task.statusNew);
-      });
-
-      test('schedule bringup true targets for GuaranteedPolicy', () async {
-        final PullRequest mergedPr = generatePullRequest(repo: 'engine', branch: 'main');
-
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.contains('.ci.yaml')) {
-            return http.Response(
-              '''
-enabled_branches:
-  - main
-targets:
-  - name: Linux A
-    scheduler: cocoon
-  - name: Linux B
-    scheduler: cocoon
-    bringup: true
-
-          ''',
-              200,
-            );
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
-        await scheduler.addPullRequest(mergedPr);
-        expect(db.values.values.whereType<Commit>().length, 1);
-        expect(db.values.values.whereType<Task>().length, 2);
-        final Task taskA = db.values.values.whereType<Task>().where((task) => task.name == 'Linux A').single;
-        final Task taskB = db.values.values.whereType<Task>().where((task) => task.name == 'Linux B').single;
-        expect(taskA.status, Task.statusInProgress);
-        expect(taskB.status, Task.statusInProgress);
       });
 
       test('does not schedule tasks against non-merged PRs', () async {

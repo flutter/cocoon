@@ -30,21 +30,36 @@ mkdir -p $DIR/../cleanup
 curl https://cache.ruby-lang.org/pub/ruby/$RUBY_MAJOR_VERSION/$RUBY_FILE_NAME -o $DIR/../cleanup/$RUBY_FILE_NAME
 
 # Install brew dependencies
-brew install --build-from-source gdbm
-brew install --build-from-source gmp
-brew install --build-from-source libffi
-brew install libyaml
-brew install --build-from-source readline
-brew install --build-from-source openssl@3
-brew install --build-from-source m4
+brew install curl
+brew install openldap
+brew reinstall --build-from-source gdbm
+brew reinstall --build-from-source gmp
+brew reinstall --build-from-source libffi
+brew reinstall libyaml
+brew reinstall --build-from-source readline
+brew reinstall --build-from-source openssl@3
+brew reinstall --build-from-source m4
 
 bash -e $DIR/ruby_build.sh $DIR/../cleanup/$RUBY_FILE_NAME
 
+# Copy certificates bundle for mac x64.
+if [ -f /usr/local/etc/ca-certificates/cert.pem ]; then
+  cp /usr/local/etc/ca-certificates/cert.pem $DIR/../build/bin/darwin_ruby/
+fi;
+
+# Copy certificates bundle for mac x64.
+if [ -f /opt/homebrew/etc/openssl@3/cert.pem ]; then
+  cp /opt/homebrew/etc/openssl@3/cert.pem $DIR/../build/bin/darwin_ruby/
+fi;
+
 # Update wrapper scripts to make them use libraries from new location.
-sed -i'' -e 's/bindir="\${0%\/\*}"/&\nLIBSPATH="\$( cd -- "\$(dirname "\$0")" >\/dev\/null 2>\&1 ; pwd -P )\/..\/dylibs"\nexport DYLD_FALLBACK_LIBRARY_PATH=\$LIBSPATH:\$DYLD_FALLBACK_LIBRARY_PATH/' $DIR/../build/bin/darwin_ruby/bin/gem
-sed -i'' -e 's/bindir="\${0%\/\*}"/&\nLIBSPATH="\$( cd -- "\$(dirname "\$0")" >\/dev\/null 2>\&1 ; pwd -P )\/..\/dylibs"\nexport DYLD_FALLBACK_LIBRARY_PATH=\$LIBSPATH:\$DYLD_FALLBACK_LIBRARY_PATH/' $DIR/../build/bin/darwin_ruby/bin/bundler
-sed -i'' -e 's/bindir="\${0%\/\*}"/&\nLIBSPATH="\$( cd -- "\$(dirname "\$0")" >\/dev\/null 2>\&1 ; pwd -P )\/..\/dylibs"\nexport DYLD_FALLBACK_LIBRARY_PATH=\$LIBSPATH:\$DYLD_FALLBACK_LIBRARY_PATH/' $DIR/../build/bin/darwin_ruby/bin/bundle
-sed -i'' -e 's/bindir="\${0%\/\*}"/&\nLIBSPATH="\$( cd -- "\$(dirname "\$0")" >\/dev\/null 2>\&1 ; pwd -P )\/..\/dylibs"\nexport DYLD_FALLBACK_LIBRARY_PATH=\$LIBSPATH:\$DYLD_FALLBACK_LIBRARY_PATH/' $DIR/../build/bin/darwin_ruby/bin/pod
+sed -i'' -e 's/bindir="\${0%\/\*}"/&\nSSL_CERTS="\$( cd -- "\$(dirname "\$0")" >\/dev\/null 2>\&1 ; pwd -P )\/..\/cert.pem"\nLIBSPATH="\$( cd -- "\$(dirname "\$0")" >\/dev\/null 2>\&1 ; pwd -P )\/..\/dylibs"\nexport DYLD_FALLBACK_LIBRARY_PATH=\$LIBSPATH:\$DYLD_FALLBACK_LIBRARY_PATH\nexport SSL_CERT_FILE="\${SSL_CERTS}"/' $DIR/../build/bin/darwin_ruby/bin/gem
+sed -i'' -e 's/bindir="\${0%\/\*}"/&\nSSL_CERTS="\$( cd -- "\$(dirname "\$0")" >\/dev\/null 2>\&1 ; pwd -P )\/..\/cert.pem"\nLIBSPATH="\$( cd -- "\$(dirname "\$0")" >\/dev\/null 2>\&1 ; pwd -P )\/..\/dylibs"\nexport DYLD_FALLBACK_LIBRARY_PATH=\$LIBSPATH:\$DYLD_FALLBACK_LIBRARY_PATH\nexport SSL_CERT_FILE="\${SSL_CERTS}"/' $DIR/../build/bin/darwin_ruby/bin/bundler
+sed -i'' -e 's/bindir="\${0%\/\*}"/&\nSSL_CERTS="\$( cd -- "\$(dirname "\$0")" >\/dev\/null 2>\&1 ; pwd -P )\/..\/cert.pem"\nLIBSPATH="\$( cd -- "\$(dirname "\$0")" >\/dev\/null 2>\&1 ; pwd -P )\/..\/dylibs"\nexport DYLD_FALLBACK_LIBRARY_PATH=\$LIBSPATH:\$DYLD_FALLBACK_LIBRARY_PATH\nexport SSL_CERT_FILE="\${SSL_CERTS}"/' $DIR/../build/bin/darwin_ruby/bin/bundle
+sed -i'' -e 's/bindir="\${0%\/\*}"/&\nSSL_CERTS="\$( cd -- "\$(dirname "\$0")" >\/dev\/null 2>\&1 ; pwd -P )\/..\/cert.pem"\nLIBSPATH="\$( cd -- "\$(dirname "\$0")" >\/dev\/null 2>\&1 ; pwd -P )\/..\/dylibs"\nexport DYLD_FALLBACK_LIBRARY_PATH=\$LIBSPATH:\$DYLD_FALLBACK_LIBRARY_PATH\nexport SSL_CERT_FILE="\${SSL_CERTS}"/' $DIR/../build/bin/darwin_ruby/bin/pod
+
+# Patch FFI to find libc.dylib in the standard location.
+find $DIR/../build -name library.rb  -exec sed -i'' -e 's/LIBC = FFI\:\:Platform\:\:LIBC/LIBC = \x27\/usr\/lib\/libc.dylib\x27/' {} \;
 
 # Ensure all the command are working properly
 $DIR/../build/bin/bundle --version
