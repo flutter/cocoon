@@ -21,7 +21,6 @@ popd
 $PROTOC go.chromium.org/luci/buildbucket/proto/build.proto
 $PROTOC go.chromium.org/luci/buildbucket/proto/builder_service.proto
 $PROTOC go.chromium.org/luci/buildbucket/proto/builds_service.proto
-$PROTOC go.chromium.org/luci/buildbucket/proto/build.proto
 $PROTOC go.chromium.org/luci/buildbucket/proto/builder_common.proto
 $PROTOC go.chromium.org/luci/buildbucket/proto/common.proto
 $PROTOC go.chromium.org/luci/buildbucket/proto/project_config.proto
