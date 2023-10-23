@@ -1,3 +1,7 @@
+# 1.0.5
+
+- Expose build bucket clients and supporting fields like StringPair.
+
 # 1.0.4
 
 - Expose status enums and related status fields from the Build proto.
