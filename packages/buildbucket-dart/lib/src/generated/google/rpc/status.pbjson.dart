@@ -24,7 +24,6 @@ const Status$json = {
 };
 
 /// Descriptor for `Status`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List statusDescriptor = $convert.base64Decode(
-    'CgZTdGF0dXMSEgoEY29kZRgBIAEoBVIEY29kZRIYCgdtZXNzYWdlGAIgASgJUgdtZXNzYWdlEi'
-    '4KB2RldGFpbHMYAyADKAsyFC5nb29nbGUucHJvdG9idWYuQW55UgdkZXRhaWxz');
-
+final $typed_data.Uint8List statusDescriptor =
+    $convert.base64Decode('CgZTdGF0dXMSEgoEY29kZRgBIAEoBVIEY29kZRIYCgdtZXNzYWdlGAIgASgJUgdtZXNzYWdlEi'
+        '4KB2RldGFpbHMYAyADKAsyFC5nb29nbGUucHJvdG9idWYuQW55UgdkZXRhaWxz');

@@ -23,7 +23,6 @@ const Duration$json = {
 };
 
 /// Descriptor for `Duration`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List durationDescriptor = $convert.base64Decode(
-    'CghEdXJhdGlvbhIYCgdzZWNvbmRzGAEgASgDUgdzZWNvbmRzEhQKBW5hbm9zGAIgASgFUgVuYW'
-    '5vcw==');
-
+final $typed_data.Uint8List durationDescriptor =
+    $convert.base64Decode('CghEdXJhdGlvbhIYCgdzZWNvbmRzGAEgASgDUgdzZWNvbmRzEhQKBW5hbm9zGAIgASgFUgVuYW'
+        '5vcw==');

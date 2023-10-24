@@ -18,26 +18,27 @@ import 'build.pb.dart' as $0;
 class BuildSecrets extends $pb.GeneratedMessage {
   factory BuildSecrets() => create();
   BuildSecrets._() : super();
-  factory BuildSecrets.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildSecrets.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildSecrets.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildSecrets.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildSecrets', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildSecrets',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'buildToken')
     ..aOS(2, _omitFieldNames ? '' : 'resultdbInvocationUpdateToken')
     ..aOS(3, _omitFieldNames ? '' : 'startBuildToken')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildSecrets clone() => BuildSecrets()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildSecrets copyWith(void Function(BuildSecrets) updates) => super.copyWith((message) => updates(message as BuildSecrets)) as BuildSecrets;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildSecrets copyWith(void Function(BuildSecrets) updates) =>
+      super.copyWith((message) => updates(message as BuildSecrets)) as BuildSecrets;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -52,7 +53,10 @@ class BuildSecrets extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get buildToken => $_getSZ(0);
   @$pb.TagNumber(1)
-  set buildToken($core.String v) { $_setString(0, v); }
+  set buildToken($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasBuildToken() => $_has(0);
   @$pb.TagNumber(1)
@@ -61,7 +65,10 @@ class BuildSecrets extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get resultdbInvocationUpdateToken => $_getSZ(1);
   @$pb.TagNumber(2)
-  set resultdbInvocationUpdateToken($core.String v) { $_setString(1, v); }
+  set resultdbInvocationUpdateToken($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasResultdbInvocationUpdateToken() => $_has(1);
   @$pb.TagNumber(2)
@@ -70,7 +77,10 @@ class BuildSecrets extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.String get startBuildToken => $_getSZ(2);
   @$pb.TagNumber(3)
-  set startBuildToken($core.String v) { $_setString(2, v); }
+  set startBuildToken($core.String v) {
+    $_setString(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasStartBuildToken() => $_has(2);
   @$pb.TagNumber(3)
@@ -80,28 +90,29 @@ class BuildSecrets extends $pb.GeneratedMessage {
 class BBAgentArgs extends $pb.GeneratedMessage {
   factory BBAgentArgs() => create();
   BBAgentArgs._() : super();
-  factory BBAgentArgs.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BBAgentArgs.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BBAgentArgs.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BBAgentArgs.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BBAgentArgs', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BBAgentArgs',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'executablePath')
     ..aOS(2, _omitFieldNames ? '' : 'cacheDir')
     ..pPS(3, _omitFieldNames ? '' : 'knownPublicGerritHosts')
     ..aOM<$0.Build>(4, _omitFieldNames ? '' : 'build', subBuilder: $0.Build.create)
     ..aOS(5, _omitFieldNames ? '' : 'payloadPath')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BBAgentArgs clone() => BBAgentArgs()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BBAgentArgs copyWith(void Function(BBAgentArgs) updates) => super.copyWith((message) => updates(message as BBAgentArgs)) as BBAgentArgs;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BBAgentArgs copyWith(void Function(BBAgentArgs) updates) =>
+      super.copyWith((message) => updates(message as BBAgentArgs)) as BBAgentArgs;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -116,7 +127,10 @@ class BBAgentArgs extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get executablePath => $_getSZ(0);
   @$pb.TagNumber(1)
-  set executablePath($core.String v) { $_setString(0, v); }
+  set executablePath($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasExecutablePath() => $_has(0);
   @$pb.TagNumber(1)
@@ -125,7 +139,10 @@ class BBAgentArgs extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get cacheDir => $_getSZ(1);
   @$pb.TagNumber(2)
-  set cacheDir($core.String v) { $_setString(1, v); }
+  set cacheDir($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasCacheDir() => $_has(1);
   @$pb.TagNumber(2)
@@ -137,7 +154,10 @@ class BBAgentArgs extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $0.Build get build => $_getN(3);
   @$pb.TagNumber(4)
-  set build($0.Build v) { setField(4, v); }
+  set build($0.Build v) {
+    setField(4, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasBuild() => $_has(3);
   @$pb.TagNumber(4)
@@ -148,7 +168,10 @@ class BBAgentArgs extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.String get payloadPath => $_getSZ(4);
   @$pb.TagNumber(5)
-  set payloadPath($core.String v) { $_setString(4, v); }
+  set payloadPath($core.String v) {
+    $_setString(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasPayloadPath() => $_has(4);
   @$pb.TagNumber(5)
@@ -158,25 +181,27 @@ class BBAgentArgs extends $pb.GeneratedMessage {
 class BuildbucketAgentContext extends $pb.GeneratedMessage {
   factory BuildbucketAgentContext() => create();
   BuildbucketAgentContext._() : super();
-  factory BuildbucketAgentContext.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildbucketAgentContext.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildbucketAgentContext.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildbucketAgentContext.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildbucketAgentContext', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildbucketAgentContext',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'taskId')
     ..aOM<BuildSecrets>(2, _omitFieldNames ? '' : 'secrets', subBuilder: BuildSecrets.create)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildbucketAgentContext clone() => BuildbucketAgentContext()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildbucketAgentContext copyWith(void Function(BuildbucketAgentContext) updates) => super.copyWith((message) => updates(message as BuildbucketAgentContext)) as BuildbucketAgentContext;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildbucketAgentContext copyWith(void Function(BuildbucketAgentContext) updates) =>
+      super.copyWith((message) => updates(message as BuildbucketAgentContext)) as BuildbucketAgentContext;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -185,13 +210,17 @@ class BuildbucketAgentContext extends $pb.GeneratedMessage {
   BuildbucketAgentContext createEmptyInstance() => create();
   static $pb.PbList<BuildbucketAgentContext> createRepeated() => $pb.PbList<BuildbucketAgentContext>();
   @$core.pragma('dart2js:noInline')
-  static BuildbucketAgentContext getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildbucketAgentContext>(create);
+  static BuildbucketAgentContext getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildbucketAgentContext>(create);
   static BuildbucketAgentContext? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get taskId => $_getSZ(0);
   @$pb.TagNumber(1)
-  set taskId($core.String v) { $_setString(0, v); }
+  set taskId($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasTaskId() => $_has(0);
   @$pb.TagNumber(1)
@@ -200,7 +229,10 @@ class BuildbucketAgentContext extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   BuildSecrets get secrets => $_getN(1);
   @$pb.TagNumber(2)
-  set secrets(BuildSecrets v) { setField(2, v); }
+  set secrets(BuildSecrets v) {
+    setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasSecrets() => $_has(1);
   @$pb.TagNumber(2)
@@ -208,7 +240,6 @@ class BuildbucketAgentContext extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   BuildSecrets ensureSecrets() => $_ensure(1);
 }
-
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
 const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');

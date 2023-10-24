@@ -5,14 +5,24 @@
 
 set -ex
 
-# mkdir -p lib/src/generated
+NO_CLONE=1
+if [[ $1 == '-no_clone' ]]; then
+    NO_CLONE=0
+fi
 
-# rm -rf buildbucket_tmp
-# mkdir -p buildbucket_tmp
+if [[ ${NO_CLONE} -eq 1 ]]; then 
+    mkdir -p lib/src/generated
+    rm -rf buildbucket_tmp
+    mkdir -p buildbucket_tmp
+fi
+
 pushd buildbucket_tmp
-# git clone https://chromium.googlesource.com/infra/luci/luci-go
-# git clone https://github.com/googleapis/googleapis
-# git clone https://github.com/protocolbuffers/protobuf
+
+if [[ ${NO_CLONE} -eq 1 ]]; then
+    git clone https://chromium.googlesource.com/infra/luci/luci-go
+    git clone https://github.com/googleapis/googleapis
+    git clone https://github.com/protocolbuffers/protobuf
+fi
 PROTOC="protoc --plugin=protoc-gen-dart=$HOME/.pub-cache/bin/protoc-gen-dart --dart_out=grpc:lib/src/generated -Ibuildbucket_tmp/protobuf/src -Ibuildbucket_tmp/googleapis -Ibuildbucket_tmp/luci-go -Ibuildbucket_tmp/buildbucket"
 pushd luci-go
 find . -name *.proto -exec bash -c 'path={}; d=../buildbucket/go.chromium.org/luci/$(dirname $path); mkdir -p $d ; cp $path $d' \;

@@ -22,6 +22,4 @@ const FieldMask$json = {
 };
 
 /// Descriptor for `FieldMask`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List fieldMaskDescriptor = $convert.base64Decode(
-    'CglGaWVsZE1hc2sSFAoFcGF0aHMYASADKAlSBXBhdGhz');
-
+final $typed_data.Uint8List fieldMaskDescriptor = $convert.base64Decode('CglGaWVsZE1hc2sSFAoFcGF0aHMYASADKAlSBXBhdGhz');

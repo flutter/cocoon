@@ -28,13 +28,13 @@ const Task$json = {
 };
 
 /// Descriptor for `Task`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List taskDescriptor = $convert.base64Decode(
-    'CgRUYXNrEi4KAmlkGAEgASgLMhYuYnVpbGRidWNrZXQudjIuVGFza0lEQgaSwxoCCAJSAmlkEh'
-    'IKBGxpbmsYAiABKAlSBGxpbmsSNgoGc3RhdHVzGAMgASgOMhYuYnVpbGRidWNrZXQudjIuU3Rh'
-    'dHVzQgaSwxoCCAJSBnN0YXR1cxJECg5zdGF0dXNfZGV0YWlscxgEIAEoCzIdLmJ1aWxkYnVja2'
-    'V0LnYyLlN0YXR1c0RldGFpbHNSDXN0YXR1c0RldGFpbHMSIQoMc3VtbWFyeV9odG1sGAUgASgJ'
-    'UgtzdW1tYXJ5SHRtbBIxCgdkZXRhaWxzGAYgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdF'
-    'IHZGV0YWlscxIjCgl1cGRhdGVfaWQYByABKANCBpLDGgIIAlIIdXBkYXRlSWQ=');
+final $typed_data.Uint8List taskDescriptor =
+    $convert.base64Decode('CgRUYXNrEi4KAmlkGAEgASgLMhYuYnVpbGRidWNrZXQudjIuVGFza0lEQgaSwxoCCAJSAmlkEh'
+        'IKBGxpbmsYAiABKAlSBGxpbmsSNgoGc3RhdHVzGAMgASgOMhYuYnVpbGRidWNrZXQudjIuU3Rh'
+        'dHVzQgaSwxoCCAJSBnN0YXR1cxJECg5zdGF0dXNfZGV0YWlscxgEIAEoCzIdLmJ1aWxkYnVja2'
+        'V0LnYyLlN0YXR1c0RldGFpbHNSDXN0YXR1c0RldGFpbHMSIQoMc3VtbWFyeV9odG1sGAUgASgJ'
+        'UgtzdW1tYXJ5SHRtbBIxCgdkZXRhaWxzGAYgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdF'
+        'IHZGV0YWlscxIjCgl1cGRhdGVfaWQYByABKANCBpLDGgIIAlIIdXBkYXRlSWQ=');
 
 @$core.Deprecated('Use taskIDDescriptor instead')
 const TaskID$json = {
@@ -46,9 +46,9 @@ const TaskID$json = {
 };
 
 /// Descriptor for `TaskID`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List taskIDDescriptor = $convert.base64Decode(
-    'CgZUYXNrSUQSJAoGdGFyZ2V0GAEgASgJQgyKwxoCCAKSwxoCCAJSBnRhcmdldBIWCgJpZBgCIA'
-    'EoCUIGksMaAggCUgJpZA==');
+final $typed_data.Uint8List taskIDDescriptor =
+    $convert.base64Decode('CgZUYXNrSUQSJAoGdGFyZ2V0GAEgASgJQgyKwxoCCAKSwxoCCAJSBnRhcmdldBIWCgJpZBgCIA'
+        'EoCUIGksMaAggCUgJpZA==');
 
 @$core.Deprecated('Use buildTaskUpdateDescriptor instead')
 const BuildTaskUpdate$json = {
@@ -60,7 +60,6 @@ const BuildTaskUpdate$json = {
 };
 
 /// Descriptor for `BuildTaskUpdate`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List buildTaskUpdateDescriptor = $convert.base64Decode(
-    'Cg9CdWlsZFRhc2tVcGRhdGUSGQoIYnVpbGRfaWQYASABKAlSB2J1aWxkSWQSKAoEdGFzaxgCIA'
-    'EoCzIULmJ1aWxkYnVja2V0LnYyLlRhc2tSBHRhc2s=');
-
+final $typed_data.Uint8List buildTaskUpdateDescriptor =
+    $convert.base64Decode('Cg9CdWlsZFRhc2tVcGRhdGUSGQoIYnVpbGRfaWQYASABKAlSB2J1aWxkSWQSKAoEdGFzaxgCIA'
+        'EoCzIULmJ1aWxkYnVja2V0LnYyLlRhc2tSBHRhc2s=');
