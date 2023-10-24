@@ -24,8 +24,8 @@ const Toggle$json = {
 };
 
 /// Descriptor for `Toggle`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List toggleDescriptor =
-    $convert.base64Decode('CgZUb2dnbGUSCQoFVU5TRVQQABIHCgNZRVMQARIGCgJOTxAC');
+final $typed_data.Uint8List toggleDescriptor = $convert.base64Decode(
+    'CgZUb2dnbGUSCQoFVU5TRVQQABIHCgNZRVMQARIGCgJOTxAC');
 
 @$core.Deprecated('Use aclDescriptor instead')
 const Acl$json = {
@@ -71,10 +71,10 @@ const Acl_Role$json = {
 };
 
 /// Descriptor for `Acl`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List aclDescriptor =
-    $convert.base64Decode('CgNBY2wSLQoEcm9sZRgBIAEoDjIVLmJ1aWxkYnVja2V0LkFjbC5Sb2xlQgIYAVIEcm9sZRIYCg'
-        'Vncm91cBgCIAEoCUICGAFSBWdyb3VwEh4KCGlkZW50aXR5GAMgASgJQgIYAVIIaWRlbnRpdHki'
-        'LQoEUm9sZRIKCgZSRUFERVIQABINCglTQ0hFRFVMRVIQARIKCgZXUklURVIQAg==');
+final $typed_data.Uint8List aclDescriptor = $convert.base64Decode(
+    'CgNBY2wSLQoEcm9sZRgBIAEoDjIVLmJ1aWxkYnVja2V0LkFjbC5Sb2xlQgIYAVIEcm9sZRIYCg'
+    'Vncm91cBgCIAEoCUICGAFSBWdyb3VwEh4KCGlkZW50aXR5GAMgASgJQgIYAVIIaWRlbnRpdHki'
+    'LQoEUm9sZRIKCgZSRUFERVIQABINCglTQ0hFRFVMRVIQARIKCgZXUklURVIQAg==');
 
 @$core.Deprecated('Use builderConfigDescriptor instead')
 const BuilderConfig$json = {
@@ -101,53 +101,17 @@ const BuilderConfig$json = {
     {'1': 'service_account', '3': 12, '4': 1, '5': 9, '10': 'serviceAccount'},
     {'1': 'auto_builder_dimension', '3': 17, '4': 1, '5': 14, '6': '.buildbucket.Toggle', '10': 'autoBuilderDimension'},
     {'1': 'experimental', '3': 18, '4': 1, '5': 14, '6': '.buildbucket.Toggle', '10': 'experimental'},
-    {
-      '1': 'task_template_canary_percentage',
-      '3': 22,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.UInt32Value',
-      '10': 'taskTemplateCanaryPercentage'
-    },
-    {
-      '1': 'experiments',
-      '3': 28,
-      '4': 3,
-      '5': 11,
-      '6': '.buildbucket.BuilderConfig.ExperimentsEntry',
-      '10': 'experiments'
-    },
+    {'1': 'task_template_canary_percentage', '3': 22, '4': 1, '5': 11, '6': '.google.protobuf.UInt32Value', '10': 'taskTemplateCanaryPercentage'},
+    {'1': 'experiments', '3': 28, '4': 3, '5': 11, '6': '.buildbucket.BuilderConfig.ExperimentsEntry', '10': 'experiments'},
     {'1': 'critical', '3': 25, '4': 1, '5': 14, '6': '.buildbucket.v2.Trinary', '10': 'critical'},
     {'1': 'resultdb', '3': 26, '4': 1, '5': 11, '6': '.buildbucket.BuilderConfig.ResultDB', '10': 'resultdb'},
     {'1': 'description_html', '3': 30, '4': 1, '5': 9, '10': 'descriptionHtml'},
-    {
-      '1': 'shadow_builder_adjustments',
-      '3': 35,
-      '4': 1,
-      '5': 11,
-      '6': '.buildbucket.BuilderConfig.ShadowBuilderAdjustments',
-      '10': 'shadowBuilderAdjustments'
-    },
+    {'1': 'shadow_builder_adjustments', '3': 35, '4': 1, '5': 11, '6': '.buildbucket.BuilderConfig.ShadowBuilderAdjustments', '10': 'shadowBuilderAdjustments'},
     {'1': 'retriable', '3': 36, '4': 1, '5': 14, '6': '.buildbucket.v2.Trinary', '10': 'retriable'},
-    {
-      '1': 'builder_health_metrics_links',
-      '3': 37,
-      '4': 1,
-      '5': 11,
-      '6': '.buildbucket.BuilderConfig.BuilderHealthLinks',
-      '10': 'builderHealthMetricsLinks'
-    },
+    {'1': 'builder_health_metrics_links', '3': 37, '4': 1, '5': 11, '6': '.buildbucket.BuilderConfig.BuilderHealthLinks', '10': 'builderHealthMetricsLinks'},
     {'1': 'contact_team_email', '3': 38, '4': 1, '5': 9, '10': 'contactTeamEmail'},
   ],
-  '3': [
-    BuilderConfig_CacheEntry$json,
-    BuilderConfig_Recipe$json,
-    BuilderConfig_ResultDB$json,
-    BuilderConfig_Backend$json,
-    BuilderConfig_ExperimentsEntry$json,
-    BuilderConfig_ShadowBuilderAdjustments$json,
-    BuilderConfig_BuilderHealthLinks$json
-  ],
+  '3': [BuilderConfig_CacheEntry$json, BuilderConfig_Recipe$json, BuilderConfig_ResultDB$json, BuilderConfig_Backend$json, BuilderConfig_ExperimentsEntry$json, BuilderConfig_ShadowBuilderAdjustments$json, BuilderConfig_BuilderHealthLinks$json],
   '9': [
     {'1': 8, '2': 9},
     {'1': 11, '2': 12},
@@ -229,22 +193,8 @@ const BuilderConfig_ShadowBuilderAdjustments$json = {
 const BuilderConfig_BuilderHealthLinks$json = {
   '1': 'BuilderHealthLinks',
   '2': [
-    {
-      '1': 'doc_links',
-      '3': 1,
-      '4': 3,
-      '5': 11,
-      '6': '.buildbucket.BuilderConfig.BuilderHealthLinks.DocLinksEntry',
-      '10': 'docLinks'
-    },
-    {
-      '1': 'data_links',
-      '3': 2,
-      '4': 3,
-      '5': 11,
-      '6': '.buildbucket.BuilderConfig.BuilderHealthLinks.DataLinksEntry',
-      '10': 'dataLinks'
-    },
+    {'1': 'doc_links', '3': 1, '4': 3, '5': 11, '6': '.buildbucket.BuilderConfig.BuilderHealthLinks.DocLinksEntry', '10': 'docLinks'},
+    {'1': 'data_links', '3': 2, '4': 3, '5': 11, '6': '.buildbucket.BuilderConfig.BuilderHealthLinks.DataLinksEntry', '10': 'dataLinks'},
   ],
   '3': [BuilderConfig_BuilderHealthLinks_DocLinksEntry$json, BuilderConfig_BuilderHealthLinks_DataLinksEntry$json],
 };
@@ -270,73 +220,66 @@ const BuilderConfig_BuilderHealthLinks_DataLinksEntry$json = {
 };
 
 /// Descriptor for `BuilderConfig`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List builderConfigDescriptor =
-    $convert.base64Decode('Cg1CdWlsZGVyQ29uZmlnEhIKBG5hbWUYASABKAlSBG5hbWUSPAoHYmFja2VuZBggIAEoCzIiLm'
-        'J1aWxkYnVja2V0LkJ1aWxkZXJDb25maWcuQmFja2VuZFIHYmFja2VuZBJDCgtiYWNrZW5kX2Fs'
-        'dBghIAEoCzIiLmJ1aWxkYnVja2V0LkJ1aWxkZXJDb25maWcuQmFja2VuZFIKYmFja2VuZEFsdB'
-        'IjCg1zd2FybWluZ19ob3N0GBUgASgJUgxzd2FybWluZ0hvc3QSGgoIY2F0ZWdvcnkYBiABKAlS'
-        'CGNhdGVnb3J5EiMKDXN3YXJtaW5nX3RhZ3MYAiADKAlSDHN3YXJtaW5nVGFncxIeCgpkaW1lbn'
-        'Npb25zGAMgAygJUgpkaW1lbnNpb25zEjkKBnJlY2lwZRgEIAEoCzIhLmJ1aWxkYnVja2V0LkJ1'
-        'aWxkZXJDb25maWcuUmVjaXBlUgZyZWNpcGUSLAoDZXhlGBcgASgLMhouYnVpbGRidWNrZXQudj'
-        'IuRXhlY3V0YWJsZVIDZXhlEiQKCnByb3BlcnRpZXMYGCABKAlCBKj+IwFSCnByb3BlcnRpZXMS'
-        'PAoaYWxsb3dlZF9wcm9wZXJ0eV9vdmVycmlkZXMYIiADKAlSGGFsbG93ZWRQcm9wZXJ0eU92ZX'
-        'JyaWRlcxIaCghwcmlvcml0eRgFIAEoDVIIcHJpb3JpdHkSNAoWZXhlY3V0aW9uX3RpbWVvdXRf'
-        'c2VjcxgHIAEoDVIUZXhlY3V0aW9uVGltZW91dFNlY3MSJwoPZXhwaXJhdGlvbl9zZWNzGBQgAS'
-        'gNUg5leHBpcmF0aW9uU2VjcxI8CgxncmFjZV9wZXJpb2QYHyABKAsyGS5nb29nbGUucHJvdG9i'
-        'dWYuRHVyYXRpb25SC2dyYWNlUGVyaW9kEkMKEXdhaXRfZm9yX2NhcGFjaXR5GB0gASgOMhcuYn'
-        'VpbGRidWNrZXQudjIuVHJpbmFyeVIPd2FpdEZvckNhcGFjaXR5Ej0KBmNhY2hlcxgJIAMoCzIl'
-        'LmJ1aWxkYnVja2V0LkJ1aWxkZXJDb25maWcuQ2FjaGVFbnRyeVIGY2FjaGVzEjgKDWJ1aWxkX2'
-        '51bWJlcnMYECABKA4yEy5idWlsZGJ1Y2tldC5Ub2dnbGVSDGJ1aWxkTnVtYmVycxInCg9zZXJ2'
-        'aWNlX2FjY291bnQYDCABKAlSDnNlcnZpY2VBY2NvdW50EkkKFmF1dG9fYnVpbGRlcl9kaW1lbn'
-        'Npb24YESABKA4yEy5idWlsZGJ1Y2tldC5Ub2dnbGVSFGF1dG9CdWlsZGVyRGltZW5zaW9uEjcK'
-        'DGV4cGVyaW1lbnRhbBgSIAEoDjITLmJ1aWxkYnVja2V0LlRvZ2dsZVIMZXhwZXJpbWVudGFsEm'
-        'MKH3Rhc2tfdGVtcGxhdGVfY2FuYXJ5X3BlcmNlbnRhZ2UYFiABKAsyHC5nb29nbGUucHJvdG9i'
-        'dWYuVUludDMyVmFsdWVSHHRhc2tUZW1wbGF0ZUNhbmFyeVBlcmNlbnRhZ2USTQoLZXhwZXJpbW'
-        'VudHMYHCADKAsyKy5idWlsZGJ1Y2tldC5CdWlsZGVyQ29uZmlnLkV4cGVyaW1lbnRzRW50cnlS'
-        'C2V4cGVyaW1lbnRzEjMKCGNyaXRpY2FsGBkgASgOMhcuYnVpbGRidWNrZXQudjIuVHJpbmFyeV'
-        'IIY3JpdGljYWwSPwoIcmVzdWx0ZGIYGiABKAsyIy5idWlsZGJ1Y2tldC5CdWlsZGVyQ29uZmln'
-        'LlJlc3VsdERCUghyZXN1bHRkYhIpChBkZXNjcmlwdGlvbl9odG1sGB4gASgJUg9kZXNjcmlwdG'
-        'lvbkh0bWwScQoac2hhZG93X2J1aWxkZXJfYWRqdXN0bWVudHMYIyABKAsyMy5idWlsZGJ1Y2tl'
-        'dC5CdWlsZGVyQ29uZmlnLlNoYWRvd0J1aWxkZXJBZGp1c3RtZW50c1IYc2hhZG93QnVpbGRlck'
-        'FkanVzdG1lbnRzEjUKCXJldHJpYWJsZRgkIAEoDjIXLmJ1aWxkYnVja2V0LnYyLlRyaW5hcnlS'
-        'CXJldHJpYWJsZRJuChxidWlsZGVyX2hlYWx0aF9tZXRyaWNzX2xpbmtzGCUgASgLMi0uYnVpbG'
-        'RidWNrZXQuQnVpbGRlckNvbmZpZy5CdWlsZGVySGVhbHRoTGlua3NSGWJ1aWxkZXJIZWFsdGhN'
-        'ZXRyaWNzTGlua3MSLAoSY29udGFjdF90ZWFtX2VtYWlsGCYgASgJUhBjb250YWN0VGVhbUVtYW'
-        'lsGoUBCgpDYWNoZUVudHJ5EhIKBG5hbWUYASABKAlSBG5hbWUSEgoEcGF0aBgCIAEoCVIEcGF0'
-        'aBI2Chh3YWl0X2Zvcl93YXJtX2NhY2hlX3NlY3MYAyABKAVSFHdhaXRGb3JXYXJtQ2FjaGVTZW'
-        'NzEhcKB2Vudl92YXIYBCABKAlSBmVudlZhchqrAQoGUmVjaXBlEhIKBG5hbWUYAiABKAlSBG5h'
-        'bWUSIQoMY2lwZF9wYWNrYWdlGAYgASgJUgtjaXBkUGFja2FnZRIhCgxjaXBkX3ZlcnNpb24YBS'
-        'ABKAlSC2NpcGRWZXJzaW9uEh4KCnByb3BlcnRpZXMYAyADKAlSCnByb3BlcnRpZXMSIQoMcHJv'
-        'cGVydGllc19qGAQgAygJUgtwcm9wZXJ0aWVzSkoECAEQAhquAQoIUmVzdWx0REISFgoGZW5hYm'
-        'xlGAEgASgIUgZlbmFibGUSPwoKYnFfZXhwb3J0cxgCIAMoCzIgLmx1Y2kucmVzdWx0ZGIudjEu'
-        'QmlnUXVlcnlFeHBvcnRSCWJxRXhwb3J0cxJJCg9oaXN0b3J5X29wdGlvbnMYAyABKAsyIC5sdW'
-        'NpLnJlc3VsdGRiLnYxLkhpc3RvcnlPcHRpb25zUg5oaXN0b3J5T3B0aW9ucxpICgdCYWNrZW5k'
-        'EhYKBnRhcmdldBgBIAEoCVIGdGFyZ2V0EiUKC2NvbmZpZ19qc29uGAIgASgJQgSo/iMBUgpjb2'
-        '5maWdKc29uGj4KEEV4cGVyaW1lbnRzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUY'
-        'AiABKAVSBXZhbHVlOgI4ARqdAQoYU2hhZG93QnVpbGRlckFkanVzdG1lbnRzEicKD3NlcnZpY2'
-        'VfYWNjb3VudBgBIAEoCVIOc2VydmljZUFjY291bnQSEgoEcG9vbBgCIAEoCVIEcG9vbBIkCgpw'
-        'cm9wZXJ0aWVzGAMgASgJQgSo/iMBUgpwcm9wZXJ0aWVzEh4KCmRpbWVuc2lvbnMYBCADKAlSCm'
-        'RpbWVuc2lvbnMaxgIKEkJ1aWxkZXJIZWFsdGhMaW5rcxJYCglkb2NfbGlua3MYASADKAsyOy5i'
-        'dWlsZGJ1Y2tldC5CdWlsZGVyQ29uZmlnLkJ1aWxkZXJIZWFsdGhMaW5rcy5Eb2NMaW5rc0VudH'
-        'J5Ughkb2NMaW5rcxJbCgpkYXRhX2xpbmtzGAIgAygLMjwuYnVpbGRidWNrZXQuQnVpbGRlckNv'
-        'bmZpZy5CdWlsZGVySGVhbHRoTGlua3MuRGF0YUxpbmtzRW50cnlSCWRhdGFMaW5rcxo7Cg1Eb2'
-        'NMaW5rc0VudHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAEa'
-        'PAoORGF0YUxpbmtzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbH'
-        'VlOgI4AUoECAgQCUoECAsQDEoECA0QDkoECA8QEEoECBMQFEoECBsQHEoECAoQCw==');
+final $typed_data.Uint8List builderConfigDescriptor = $convert.base64Decode(
+    'Cg1CdWlsZGVyQ29uZmlnEhIKBG5hbWUYASABKAlSBG5hbWUSPAoHYmFja2VuZBggIAEoCzIiLm'
+    'J1aWxkYnVja2V0LkJ1aWxkZXJDb25maWcuQmFja2VuZFIHYmFja2VuZBJDCgtiYWNrZW5kX2Fs'
+    'dBghIAEoCzIiLmJ1aWxkYnVja2V0LkJ1aWxkZXJDb25maWcuQmFja2VuZFIKYmFja2VuZEFsdB'
+    'IjCg1zd2FybWluZ19ob3N0GBUgASgJUgxzd2FybWluZ0hvc3QSGgoIY2F0ZWdvcnkYBiABKAlS'
+    'CGNhdGVnb3J5EiMKDXN3YXJtaW5nX3RhZ3MYAiADKAlSDHN3YXJtaW5nVGFncxIeCgpkaW1lbn'
+    'Npb25zGAMgAygJUgpkaW1lbnNpb25zEjkKBnJlY2lwZRgEIAEoCzIhLmJ1aWxkYnVja2V0LkJ1'
+    'aWxkZXJDb25maWcuUmVjaXBlUgZyZWNpcGUSLAoDZXhlGBcgASgLMhouYnVpbGRidWNrZXQudj'
+    'IuRXhlY3V0YWJsZVIDZXhlEiQKCnByb3BlcnRpZXMYGCABKAlCBKj+IwFSCnByb3BlcnRpZXMS'
+    'PAoaYWxsb3dlZF9wcm9wZXJ0eV9vdmVycmlkZXMYIiADKAlSGGFsbG93ZWRQcm9wZXJ0eU92ZX'
+    'JyaWRlcxIaCghwcmlvcml0eRgFIAEoDVIIcHJpb3JpdHkSNAoWZXhlY3V0aW9uX3RpbWVvdXRf'
+    'c2VjcxgHIAEoDVIUZXhlY3V0aW9uVGltZW91dFNlY3MSJwoPZXhwaXJhdGlvbl9zZWNzGBQgAS'
+    'gNUg5leHBpcmF0aW9uU2VjcxI8CgxncmFjZV9wZXJpb2QYHyABKAsyGS5nb29nbGUucHJvdG9i'
+    'dWYuRHVyYXRpb25SC2dyYWNlUGVyaW9kEkMKEXdhaXRfZm9yX2NhcGFjaXR5GB0gASgOMhcuYn'
+    'VpbGRidWNrZXQudjIuVHJpbmFyeVIPd2FpdEZvckNhcGFjaXR5Ej0KBmNhY2hlcxgJIAMoCzIl'
+    'LmJ1aWxkYnVja2V0LkJ1aWxkZXJDb25maWcuQ2FjaGVFbnRyeVIGY2FjaGVzEjgKDWJ1aWxkX2'
+    '51bWJlcnMYECABKA4yEy5idWlsZGJ1Y2tldC5Ub2dnbGVSDGJ1aWxkTnVtYmVycxInCg9zZXJ2'
+    'aWNlX2FjY291bnQYDCABKAlSDnNlcnZpY2VBY2NvdW50EkkKFmF1dG9fYnVpbGRlcl9kaW1lbn'
+    'Npb24YESABKA4yEy5idWlsZGJ1Y2tldC5Ub2dnbGVSFGF1dG9CdWlsZGVyRGltZW5zaW9uEjcK'
+    'DGV4cGVyaW1lbnRhbBgSIAEoDjITLmJ1aWxkYnVja2V0LlRvZ2dsZVIMZXhwZXJpbWVudGFsEm'
+    'MKH3Rhc2tfdGVtcGxhdGVfY2FuYXJ5X3BlcmNlbnRhZ2UYFiABKAsyHC5nb29nbGUucHJvdG9i'
+    'dWYuVUludDMyVmFsdWVSHHRhc2tUZW1wbGF0ZUNhbmFyeVBlcmNlbnRhZ2USTQoLZXhwZXJpbW'
+    'VudHMYHCADKAsyKy5idWlsZGJ1Y2tldC5CdWlsZGVyQ29uZmlnLkV4cGVyaW1lbnRzRW50cnlS'
+    'C2V4cGVyaW1lbnRzEjMKCGNyaXRpY2FsGBkgASgOMhcuYnVpbGRidWNrZXQudjIuVHJpbmFyeV'
+    'IIY3JpdGljYWwSPwoIcmVzdWx0ZGIYGiABKAsyIy5idWlsZGJ1Y2tldC5CdWlsZGVyQ29uZmln'
+    'LlJlc3VsdERCUghyZXN1bHRkYhIpChBkZXNjcmlwdGlvbl9odG1sGB4gASgJUg9kZXNjcmlwdG'
+    'lvbkh0bWwScQoac2hhZG93X2J1aWxkZXJfYWRqdXN0bWVudHMYIyABKAsyMy5idWlsZGJ1Y2tl'
+    'dC5CdWlsZGVyQ29uZmlnLlNoYWRvd0J1aWxkZXJBZGp1c3RtZW50c1IYc2hhZG93QnVpbGRlck'
+    'FkanVzdG1lbnRzEjUKCXJldHJpYWJsZRgkIAEoDjIXLmJ1aWxkYnVja2V0LnYyLlRyaW5hcnlS'
+    'CXJldHJpYWJsZRJuChxidWlsZGVyX2hlYWx0aF9tZXRyaWNzX2xpbmtzGCUgASgLMi0uYnVpbG'
+    'RidWNrZXQuQnVpbGRlckNvbmZpZy5CdWlsZGVySGVhbHRoTGlua3NSGWJ1aWxkZXJIZWFsdGhN'
+    'ZXRyaWNzTGlua3MSLAoSY29udGFjdF90ZWFtX2VtYWlsGCYgASgJUhBjb250YWN0VGVhbUVtYW'
+    'lsGoUBCgpDYWNoZUVudHJ5EhIKBG5hbWUYASABKAlSBG5hbWUSEgoEcGF0aBgCIAEoCVIEcGF0'
+    'aBI2Chh3YWl0X2Zvcl93YXJtX2NhY2hlX3NlY3MYAyABKAVSFHdhaXRGb3JXYXJtQ2FjaGVTZW'
+    'NzEhcKB2Vudl92YXIYBCABKAlSBmVudlZhchqrAQoGUmVjaXBlEhIKBG5hbWUYAiABKAlSBG5h'
+    'bWUSIQoMY2lwZF9wYWNrYWdlGAYgASgJUgtjaXBkUGFja2FnZRIhCgxjaXBkX3ZlcnNpb24YBS'
+    'ABKAlSC2NpcGRWZXJzaW9uEh4KCnByb3BlcnRpZXMYAyADKAlSCnByb3BlcnRpZXMSIQoMcHJv'
+    'cGVydGllc19qGAQgAygJUgtwcm9wZXJ0aWVzSkoECAEQAhquAQoIUmVzdWx0REISFgoGZW5hYm'
+    'xlGAEgASgIUgZlbmFibGUSPwoKYnFfZXhwb3J0cxgCIAMoCzIgLmx1Y2kucmVzdWx0ZGIudjEu'
+    'QmlnUXVlcnlFeHBvcnRSCWJxRXhwb3J0cxJJCg9oaXN0b3J5X29wdGlvbnMYAyABKAsyIC5sdW'
+    'NpLnJlc3VsdGRiLnYxLkhpc3RvcnlPcHRpb25zUg5oaXN0b3J5T3B0aW9ucxpICgdCYWNrZW5k'
+    'EhYKBnRhcmdldBgBIAEoCVIGdGFyZ2V0EiUKC2NvbmZpZ19qc29uGAIgASgJQgSo/iMBUgpjb2'
+    '5maWdKc29uGj4KEEV4cGVyaW1lbnRzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUY'
+    'AiABKAVSBXZhbHVlOgI4ARqdAQoYU2hhZG93QnVpbGRlckFkanVzdG1lbnRzEicKD3NlcnZpY2'
+    'VfYWNjb3VudBgBIAEoCVIOc2VydmljZUFjY291bnQSEgoEcG9vbBgCIAEoCVIEcG9vbBIkCgpw'
+    'cm9wZXJ0aWVzGAMgASgJQgSo/iMBUgpwcm9wZXJ0aWVzEh4KCmRpbWVuc2lvbnMYBCADKAlSCm'
+    'RpbWVuc2lvbnMaxgIKEkJ1aWxkZXJIZWFsdGhMaW5rcxJYCglkb2NfbGlua3MYASADKAsyOy5i'
+    'dWlsZGJ1Y2tldC5CdWlsZGVyQ29uZmlnLkJ1aWxkZXJIZWFsdGhMaW5rcy5Eb2NMaW5rc0VudH'
+    'J5Ughkb2NMaW5rcxJbCgpkYXRhX2xpbmtzGAIgAygLMjwuYnVpbGRidWNrZXQuQnVpbGRlckNv'
+    'bmZpZy5CdWlsZGVySGVhbHRoTGlua3MuRGF0YUxpbmtzRW50cnlSCWRhdGFMaW5rcxo7Cg1Eb2'
+    'NMaW5rc0VudHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAEa'
+    'PAoORGF0YUxpbmtzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbH'
+    'VlOgI4AUoECAgQCUoECAsQDEoECA0QDkoECA8QEEoECBMQFEoECBsQHEoECAoQCw==');
 
 @$core.Deprecated('Use swarmingDescriptor instead')
 const Swarming$json = {
   '1': 'Swarming',
   '2': [
     {'1': 'builders', '3': 4, '4': 3, '5': 11, '6': '.buildbucket.BuilderConfig', '10': 'builders'},
-    {
-      '1': 'task_template_canary_percentage',
-      '3': 5,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.UInt32Value',
-      '10': 'taskTemplateCanaryPercentage'
-    },
+    {'1': 'task_template_canary_percentage', '3': 5, '4': 1, '5': 11, '6': '.google.protobuf.UInt32Value', '10': 'taskTemplateCanaryPercentage'},
   ],
   '9': [
     {'1': 1, '2': 2},
@@ -346,11 +289,11 @@ const Swarming$json = {
 };
 
 /// Descriptor for `Swarming`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List swarmingDescriptor =
-    $convert.base64Decode('CghTd2FybWluZxI2CghidWlsZGVycxgEIAMoCzIaLmJ1aWxkYnVja2V0LkJ1aWxkZXJDb25maW'
-        'dSCGJ1aWxkZXJzEmMKH3Rhc2tfdGVtcGxhdGVfY2FuYXJ5X3BlcmNlbnRhZ2UYBSABKAsyHC5n'
-        'b29nbGUucHJvdG9idWYuVUludDMyVmFsdWVSHHRhc2tUZW1wbGF0ZUNhbmFyeVBlcmNlbnRhZ2'
-        'VKBAgBEAJKBAgCEANKBAgDEAQ=');
+final $typed_data.Uint8List swarmingDescriptor = $convert.base64Decode(
+    'CghTd2FybWluZxI2CghidWlsZGVycxgEIAMoCzIaLmJ1aWxkYnVja2V0LkJ1aWxkZXJDb25maW'
+    'dSCGJ1aWxkZXJzEmMKH3Rhc2tfdGVtcGxhdGVfY2FuYXJ5X3BlcmNlbnRhZ2UYBSABKAsyHC5n'
+    'b29nbGUucHJvdG9idWYuVUludDMyVmFsdWVSHHRhc2tUZW1wbGF0ZUNhbmFyeVBlcmNlbnRhZ2'
+    'VKBAgBEAJKBAgCEANKBAgDEAQ=');
 
 @$core.Deprecated('Use bucketDescriptor instead')
 const Bucket$json = {
@@ -369,14 +312,7 @@ const Bucket$json = {
     {'1': 'swarming', '3': 3, '4': 1, '5': 11, '6': '.buildbucket.Swarming', '10': 'swarming'},
     {'1': 'shadow', '3': 5, '4': 1, '5': 9, '10': 'shadow'},
     {'1': 'constraints', '3': 6, '4': 1, '5': 11, '6': '.buildbucket.Bucket.Constraints', '10': 'constraints'},
-    {
-      '1': 'dynamic_builder_template',
-      '3': 7,
-      '4': 1,
-      '5': 11,
-      '6': '.buildbucket.Bucket.DynamicBuilderTemplate',
-      '10': 'dynamicBuilderTemplate'
-    },
+    {'1': 'dynamic_builder_template', '3': 7, '4': 1, '5': 11, '6': '.buildbucket.Bucket.DynamicBuilderTemplate', '10': 'dynamicBuilderTemplate'},
   ],
   '3': [Bucket_Constraints$json, Bucket_DynamicBuilderTemplate$json],
   '9': [
@@ -399,29 +335,22 @@ const Bucket_DynamicBuilderTemplate$json = {
 };
 
 /// Descriptor for `Bucket`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List bucketDescriptor =
-    $convert.base64Decode('CgZCdWNrZXQSEgoEbmFtZRgBIAEoCVIEbmFtZRIoCgRhY2xzGAIgAygLMhAuYnVpbGRidWNrZX'
-        'QuQWNsQgIYAVIEYWNscxIxCghzd2FybWluZxgDIAEoCzIVLmJ1aWxkYnVja2V0LlN3YXJtaW5n'
-        'Ughzd2FybWluZxIWCgZzaGFkb3cYBSABKAlSBnNoYWRvdxJBCgtjb25zdHJhaW50cxgGIAEoCz'
-        'IfLmJ1aWxkYnVja2V0LkJ1Y2tldC5Db25zdHJhaW50c1ILY29uc3RyYWludHMSZAoYZHluYW1p'
-        'Y19idWlsZGVyX3RlbXBsYXRlGAcgASgLMiouYnVpbGRidWNrZXQuQnVja2V0LkR5bmFtaWNCdW'
-        'lsZGVyVGVtcGxhdGVSFmR5bmFtaWNCdWlsZGVyVGVtcGxhdGUaTgoLQ29uc3RyYWludHMSFAoF'
-        'cG9vbHMYASADKAlSBXBvb2xzEikKEHNlcnZpY2VfYWNjb3VudHMYAiADKAlSD3NlcnZpY2VBY2'
-        'NvdW50cxoYChZEeW5hbWljQnVpbGRlclRlbXBsYXRlSgQIBBAF');
+final $typed_data.Uint8List bucketDescriptor = $convert.base64Decode(
+    'CgZCdWNrZXQSEgoEbmFtZRgBIAEoCVIEbmFtZRIoCgRhY2xzGAIgAygLMhAuYnVpbGRidWNrZX'
+    'QuQWNsQgIYAVIEYWNscxIxCghzd2FybWluZxgDIAEoCzIVLmJ1aWxkYnVja2V0LlN3YXJtaW5n'
+    'Ughzd2FybWluZxIWCgZzaGFkb3cYBSABKAlSBnNoYWRvdxJBCgtjb25zdHJhaW50cxgGIAEoCz'
+    'IfLmJ1aWxkYnVja2V0LkJ1Y2tldC5Db25zdHJhaW50c1ILY29uc3RyYWludHMSZAoYZHluYW1p'
+    'Y19idWlsZGVyX3RlbXBsYXRlGAcgASgLMiouYnVpbGRidWNrZXQuQnVja2V0LkR5bmFtaWNCdW'
+    'lsZGVyVGVtcGxhdGVSFmR5bmFtaWNCdWlsZGVyVGVtcGxhdGUaTgoLQ29uc3RyYWludHMSFAoF'
+    'cG9vbHMYASADKAlSBXBvb2xzEikKEHNlcnZpY2VfYWNjb3VudHMYAiADKAlSD3NlcnZpY2VBY2'
+    'NvdW50cxoYChZEeW5hbWljQnVpbGRlclRlbXBsYXRlSgQIBBAF');
 
 @$core.Deprecated('Use buildbucketCfgDescriptor instead')
 const BuildbucketCfg$json = {
   '1': 'BuildbucketCfg',
   '2': [
     {'1': 'buckets', '3': 1, '4': 3, '5': 11, '6': '.buildbucket.Bucket', '10': 'buckets'},
-    {
-      '1': 'common_config',
-      '3': 5,
-      '4': 1,
-      '5': 11,
-      '6': '.buildbucket.BuildbucketCfg.CommonConfig',
-      '10': 'commonConfig'
-    },
+    {'1': 'common_config', '3': 5, '4': 1, '5': 11, '6': '.buildbucket.BuildbucketCfg.CommonConfig', '10': 'commonConfig'},
   ],
   '3': [BuildbucketCfg_Topic$json, BuildbucketCfg_CommonConfig$json],
   '9': [
@@ -444,23 +373,17 @@ const BuildbucketCfg_Topic$json = {
 const BuildbucketCfg_CommonConfig$json = {
   '1': 'CommonConfig',
   '2': [
-    {
-      '1': 'builds_notification_topics',
-      '3': 1,
-      '4': 3,
-      '5': 11,
-      '6': '.buildbucket.BuildbucketCfg.Topic',
-      '10': 'buildsNotificationTopics'
-    },
+    {'1': 'builds_notification_topics', '3': 1, '4': 3, '5': 11, '6': '.buildbucket.BuildbucketCfg.Topic', '10': 'buildsNotificationTopics'},
   ],
 };
 
 /// Descriptor for `BuildbucketCfg`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List buildbucketCfgDescriptor =
-    $convert.base64Decode('Cg5CdWlsZGJ1Y2tldENmZxItCgdidWNrZXRzGAEgAygLMhMuYnVpbGRidWNrZXQuQnVja2V0Ug'
-        'didWNrZXRzEk0KDWNvbW1vbl9jb25maWcYBSABKAsyKC5idWlsZGJ1Y2tldC5CdWlsZGJ1Y2tl'
-        'dENmZy5Db21tb25Db25maWdSDGNvbW1vbkNvbmZpZxpaCgVUb3BpYxISCgRuYW1lGAEgASgJUg'
-        'RuYW1lEj0KC2NvbXByZXNzaW9uGAIgASgOMhsuYnVpbGRidWNrZXQudjIuQ29tcHJlc3Npb25S'
-        'C2NvbXByZXNzaW9uGm8KDENvbW1vbkNvbmZpZxJfChpidWlsZHNfbm90aWZpY2F0aW9uX3RvcG'
-        'ljcxgBIAMoCzIhLmJ1aWxkYnVja2V0LkJ1aWxkYnVja2V0Q2ZnLlRvcGljUhhidWlsZHNOb3Rp'
-        'ZmljYXRpb25Ub3BpY3NKBAgCEANKBAgDEARKBAgEEAU=');
+final $typed_data.Uint8List buildbucketCfgDescriptor = $convert.base64Decode(
+    'Cg5CdWlsZGJ1Y2tldENmZxItCgdidWNrZXRzGAEgAygLMhMuYnVpbGRidWNrZXQuQnVja2V0Ug'
+    'didWNrZXRzEk0KDWNvbW1vbl9jb25maWcYBSABKAsyKC5idWlsZGJ1Y2tldC5CdWlsZGJ1Y2tl'
+    'dENmZy5Db21tb25Db25maWdSDGNvbW1vbkNvbmZpZxpaCgVUb3BpYxISCgRuYW1lGAEgASgJUg'
+    'RuYW1lEj0KC2NvbXByZXNzaW9uGAIgASgOMhsuYnVpbGRidWNrZXQudjIuQ29tcHJlc3Npb25S'
+    'C2NvbXByZXNzaW9uGm8KDENvbW1vbkNvbmZpZxJfChpidWlsZHNfbm90aWZpY2F0aW9uX3RvcG'
+    'ljcxgBIAMoCzIhLmJ1aWxkYnVja2V0LkJ1aWxkYnVja2V0Q2ZnLlRvcGljUhhidWlsZHNOb3Rp'
+    'ZmljYXRpb25Ub3BpY3NKBAgCEANKBAgDEARKBAgEEAU=');
+

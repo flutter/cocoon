@@ -31,7 +31,11 @@ $PROTOC go.chromium.org/luci/resultdb/proto/v1/common.proto
 $PROTOC go.chromium.org/luci/resultdb/proto/v1/invocation.proto
 $PROTOC go.chromium.org/luci/resultdb/proto/v1/predicate.proto
 
+$PROTOC google/protobuf/any.proto
 $PROTOC google/protobuf/duration.proto
 $PROTOC google/protobuf/struct.proto
 $PROTOC google/protobuf/timestamp.proto
 $PROTOC google/protobuf/wrappers.proto
+$PROTOC google/protobuf/field_mask.proto
+$PROTOC google/rpc/status.proto
+

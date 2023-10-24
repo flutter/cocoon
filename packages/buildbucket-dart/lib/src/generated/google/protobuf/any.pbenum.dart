@@ -1,6 +1,6 @@
 //
 //  Generated code. Do not modify.
-//  source: go.chromium.org/luci/buildbucket/proto/builds_service.proto
+//  source: google/protobuf/any.proto
 //
 // @dart = 2.12
 
