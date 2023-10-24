@@ -125,6 +125,16 @@ void main() {
       expect(scheduleBuildRequest.priority, LuciBuildService.kBackfillPriority);
     });
 
+    test('does not backfill targets when number of available tasks is less than BatchPolicy.kBatchSize', () async {
+      final List<Task> scheduleA = <Task>[
+        // Linux_android A
+        generateTask(1, name: 'Linux_android A', status: Task.statusNew),
+      ];
+      db.addOnQuery<Task>((Iterable<Task> results) => scheduleA);
+      await tester.get(handler);
+      expect(pubsub.messages.length, 0);
+    });
+
     test('backfills earlier failed task with higher priority', () async {
       final List<Task> allGray = <Task>[
         generateTask(1, name: 'Linux_android A', status: Task.statusNew),
@@ -244,15 +254,19 @@ void main() {
       final List<Task> scheduleA = <Task>[
         // Linux_android A
         generateTask(1, name: 'Linux_android A', status: Task.statusNew),
+        generateTask(2, name: 'Linux_android A', status: Task.statusNew),
         // Linux_android B
         generateTask(1, name: 'Linux_android B', status: Task.statusNew),
+        generateTask(2, name: 'Linux_android B', status: Task.statusNew),
         // Linux_android C
         generateTask(1, name: 'Linux_android C', status: Task.statusNew),
+        generateTask(2, name: 'Linux_android C', status: Task.statusNew),
       ];
       db.addOnQuery<Task>((Iterable<Task> results) => scheduleA);
       await tester.get(handler);
       expect(pubsub.messages.length, 2);
     });
+
     group('getFilteredBackfill', () {
       test('backfills high priorty targets first', () async {
         final List<Tuple<Target, FullTask, int>> backfill = <Tuple<Target, FullTask, int>>[

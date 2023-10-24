@@ -81,8 +81,8 @@ class BatchBackfiller extends RequestHandler {
         continue;
       }
       final FullTask? backfillTask = _backfillTask(target, taskColumn);
-      final int priority = backfillPriority(taskColumn.map((e) => e.task).toList(), BatchPolicy.kBatchSize);
-      if (backfillTask != null) {
+      final int? priority = backfillPriority(taskColumn.map((e) => e.task).toList());
+      if (priority != null && backfillTask != null) {
         backfill.add(Tuple<Target, FullTask, int>(target, backfillTask, priority));
       }
     }
@@ -200,10 +200,16 @@ class BatchBackfiller extends RequestHandler {
 
   /// Returns priority for back filled targets.
   ///
+  /// Skips scheduling newly created targets whose available entries are
+  /// less than
+  ///
   /// Uses a higher priority if there is an earlier failed build. Otherwise,
   /// uses default `LuciBuildService.kBackfillPriority`
-  int backfillPriority(List<Task> tasks, int pastTaskNumber) {
-    if (shouldRerunPriority(tasks, pastTaskNumber)) {
+  int? backfillPriority(List<Task> tasks) {
+    if (tasks.length < BatchPolicy.kBatchSize) {
+      return null;
+    }
+    if (shouldRerunPriority(tasks, BatchPolicy.kBatchSize)) {
       return LuciBuildService.kRerunPriority;
     }
     return LuciBuildService.kBackfillPriority;
