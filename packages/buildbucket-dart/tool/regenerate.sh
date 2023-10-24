@@ -10,7 +10,7 @@ if [[ $1 == '-no_clone' ]]; then
     NO_CLONE=0
 fi
 
-if [[ ${NO_CLONE} -eq 1 ]]; then 
+if [[ ${NO_CLONE} -eq 1 ]]; then
     mkdir -p lib/src/generated
     rm -rf buildbucket_tmp
     mkdir -p buildbucket_tmp
@@ -51,4 +51,3 @@ $PROTOC google/protobuf/timestamp.proto
 $PROTOC google/protobuf/wrappers.proto
 $PROTOC google/protobuf/field_mask.proto
 $PROTOC google/rpc/status.proto
-
