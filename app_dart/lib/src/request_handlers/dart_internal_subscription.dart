@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+// import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
@@ -76,6 +77,9 @@ class DartInternalSubscription extends SubscriptionHandler {
 
     final String buildbucketId = buildData['build']['id'];
     log.info('Creating build request object with build id $buildbucketId');
+    
+    // final bbv2.GetBuildRequest getBuildRequest = bbv2.GetBuildRequest();
+
     final GetBuildRequest request = GetBuildRequest(
       id: buildbucketId,
     );
