@@ -201,7 +201,7 @@ class BatchBackfiller extends RequestHandler {
   /// Returns priority for back filled targets.
   ///
   /// Skips scheduling newly created targets whose available entries are
-  /// less than
+  /// less than `BatchPolicy.kBatchSize`.
   ///
   /// Uses a higher priority if there is an earlier failed build. Otherwise,
   /// uses default `LuciBuildService.kBackfillPriority`
