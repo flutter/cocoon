@@ -3,7 +3,7 @@
 This folder contains auto built/deployed public [CIPD packages](https://chrome-infra-packages.appspot.com/p/flutter)
 used by Flutter CI. These packages will be consumed from tests and auto cached to boost future runs.
 
-Pleaes follow these steps to add a new package.
+Please follow these steps to add a new package.
 
 ## Creating the package build file
 
@@ -13,7 +13,7 @@ necessary lib files if needed.
 
 Note:
 
-1) we do not achive the binaries in the repo, and will auto build package artifacts and upload to CIPD via the bot.
+1) we do not archive the binaries in the repo, and will auto build package artifacts and upload to CIPD via the bot.
 2) please add a code owner entry under section `cipd packages` in [CODEOWNERS](https://github.com/flutter/cocoon/blob/main/CODEOWNERS) file.
 
 ## Add an entry to cocoon .ci.yaml
@@ -38,9 +38,9 @@ in the `prod` environment so that artifacts are to be uploaded to CIPD.
 Note: with `bringup: true`, the target will be executed in a staging environment and it validates only the logic
 and will not upload to CIPD.
 
-## Adding reference to the CIPD package
+## Adding a reference to the CIPD package
 
-Till this step, artifacts are being uploaded to CIPD whenever a new commit is merged.  It is useful to add a reference
+Until this step, artifacts are being uploaded to CIPD whenever a new commit is merged.  It is useful to add a reference
 to the package, so that we can use the reference in the CI recipe. This way we won’t need to change the recipe
 whenever we update the package.
 
@@ -61,7 +61,7 @@ Example CL: [51547 ](https://flutter-review.googlesource.com/c/recipes/+/51547)
 Refer to [CONTRIBUTING.md](https://flutter.googlesource.com/recipes/+/refs/heads/main/CONTRIBUTING.md) on how to
 contribute to recipes repository.
 
-## Adding/updating package dependency from .ci.yaml from difference repositories
+## Adding/updating package dependency from .ci.yaml from different repositories
 
 This is the last step to enable the package usage in the real CI. Add or update the new package to either the platform level or
 target level entries for your targeted repository:
