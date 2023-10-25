@@ -16,7 +16,7 @@ Note:
 1) we do not achive the binaries in the repo, and will auto build package artifacts and upload to CIPD via the bot.
 2) please add a code owner entry under section `cipd packages` in [CODEOWNERS](https://github.com/flutter/cocoon/blob/main/CODEOWNERS) file.
 
-## Add an entry to .ci.yaml
+## Add an entry to cocoon .ci.yaml
 
 This is to enable the auto build and upload. Please follow the following example format:
 ```yaml
@@ -61,9 +61,10 @@ Example CL: [51547 ](https://flutter-review.googlesource.com/c/recipes/+/51547)
 Refer to [CONTRIBUTING.md](https://flutter.googlesource.com/recipes/+/refs/heads/main/CONTRIBUTING.md) on how to
 contribute to recipes repository.
 
-## Adding/updating package dependency from .ci.yaml
+## Adding/updating package dependency from .ci.yaml from difference repositories
 
-Add or update the new package to either the platform level or target level entries:
+This is the last step to enable the package usage in the real CI. Add or update the new package to either the platform level or
+target level entries for your targeted repository:
 ``` yaml
 dependencies: >-
   [
