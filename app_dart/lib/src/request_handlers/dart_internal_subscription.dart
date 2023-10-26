@@ -46,7 +46,8 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
       return Body.empty;
     }
 
-    final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack.fromJson(message.asString);
+    print(message.asString);
+    final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack.fromJson(message.asBytes.toString());
     final bbv2.BuildsV2PubSub buildsV2PubSub = pubSubCallBack.buildPubsub;
 
     if (!buildsV2PubSub.hasBuild()) {

@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:cocoon_service/src/request_handling/api_request_handler.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
-import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
+import 'package:cocoon_service/src/request_handling/subscription_handler_v2.dart';
 import 'package:gcloud/pubsub.dart';
 import 'package:meta/meta.dart';
 
@@ -33,10 +33,10 @@ class SubscriptionV2Tester extends RequestHandlerTester {
     super.request,
     FakeAuthenticatedContext? context,
     Message? message,
-  }) : context = context ?? FakeAuthenticatedContext();
+  }) : context = context ?? FakeAuthenticatedContext(), message = message ?? Message.withString(_fakePubsubMessage);
 
   FakeAuthenticatedContext context;
-  Message message = Message.withString(_fakePubsubMessage);
+  Message message;
 
   @override
   @protected

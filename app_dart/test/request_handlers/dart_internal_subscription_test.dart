@@ -41,12 +41,14 @@ void main() {
   const String fakeBranch = 'test-branch';
   const String fakePubsubMessage = '''
     {
-      "build": {
-        "id": "$buildNumber",
-        "builder": {
-          "project": "$project",
-          "bucket": "$bucket",
-          "builder": "$builder"
+      "buildPubsub": {
+        "build": {
+          "id": "$buildNumber",
+          "builder": {
+            "project": "$project",
+            "bucket": "$bucket",
+            "builder": "$builder"
+          }
         }
       }
     }
@@ -64,9 +66,9 @@ void main() {
     );
     request = FakeHttpRequest();
 
-    // tester = SubscriptionV2Tester(
-    //   request: request,
-    // );
+    tester = SubscriptionV2Tester(
+      request: request,
+    );
 
     commit = generateCommit(
       1,
@@ -119,12 +121,7 @@ void main() {
   });
 
   test('creates a new task successfully', () async {
-    tester = SubscriptionV2Tester(
-      request: request,
-      message: Message.withString(fakePubsubMessage),
-    );
-    
-    // tester.message = Message.withString(fakePubsubMessage);
+    tester.message = Message.withString(fakePubsubMessage);
 
     await tester.post(handler);
 
