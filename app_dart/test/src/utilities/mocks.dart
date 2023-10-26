@@ -12,6 +12,7 @@ import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
+import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
@@ -65,6 +66,7 @@ Future<AutoRefreshingAuthClient> authClientProviderShim({
     BigqueryService,
     BranchService,
     BuildBucketClient,
+    BuildBucketV2Client,
     CommitService,
     Config,
     DatastoreService,

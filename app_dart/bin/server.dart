@@ -7,6 +7,7 @@ import 'dart:math';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:gcloud/db.dart';
 
@@ -26,6 +27,12 @@ Future<void> main() async {
     final BuildBucketClient buildBucketClient = BuildBucketClient(
       accessTokenService: AccessTokenService.defaultProvider(config),
     );
+
+    // TODO this will replace the above buildbucket client
+    final BuildBucketV2Client buildBucketV2Client = BuildBucketV2Client(
+      accessTokenService: AccessTokenService.defaultProvider(config),
+    );
+
 
     /// LUCI service class to communicate with buildBucket service.
     final LuciBuildService luciBuildService = LuciBuildService(
@@ -71,7 +78,7 @@ Future<void> main() async {
       '/api/dart-internal-subscription': DartInternalSubscription(
         cache: cache,
         config: config,
-        buildBucketClient: buildBucketClient,
+        buildBucketV2Client: buildBucketV2Client,
       ),
       '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
         config: config,

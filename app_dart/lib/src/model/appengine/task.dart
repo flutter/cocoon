@@ -15,6 +15,7 @@ import 'commit.dart';
 import 'key_converter.dart';
 
 import 'package:cocoon_service/src/model/luci/buildbucket.dart' as bb;
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 part 'task.g.dart';
 
 /// Class that represents the intersection of a test at a particular [Commit].
@@ -181,6 +182,56 @@ class Task extends Model<int> {
     return task;
   }
 
+  /// Creates a [Task] based on a buildbucket [bb.Build].
+  static Future<Task> fromBuildbucketV2Build(
+    bbv2.Build build,
+    DatastoreService datastore, {
+    String? customName,
+  }) async {
+    log.fine('Creating task from buildbucket result: ${build.toString()}');
+    // Example: Getting "flutter" from "mirrors/flutter".
+    final String repository = build.input.gitilesCommit.project.split('/')[1];
+    log.fine('Repository: $repository');
+
+    // Example: Getting "stable" from "refs/heads/stable".
+    final String branch = build.input.gitilesCommit.ref.split('/')[2];
+    log.fine('Branch: $branch');
+
+    final String hash = build.input.gitilesCommit.id;
+    log.fine('Hash: $hash');
+
+    final RepositorySlug slug = RepositorySlug('flutter', repository);
+    log.fine('Slug: ${slug.toString()}');
+
+    final int startTime = build.startTime.toDateTime().millisecondsSinceEpoch;
+    final int endTime = build.endTime.toDateTime().millisecondsSinceEpoch;
+    log.fine('Start/end time (ms): $startTime, $endTime');
+
+    final String id = '${slug.fullName}/$branch/$hash';
+    final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
+    final Commit commit = await datastore.db.lookupValue<Commit>(commitKey);
+    final task = Task(
+      attempts: 1,
+      buildNumber: build.number,
+      buildNumberList: build.number.toString(),
+      builderName: build.builder.builder,
+      commitKey: commitKey,
+      createTimestamp: startTime,
+      endTimestamp: endTime,
+      luciBucket: build.builder.bucket,
+      name: customName ?? build.builder.builder,
+      stageName: build.builder.project,
+      startTimestamp: startTime,
+      status: convertBuildbucketV2StatusToString(build.status),
+      key: commit.key.append(Task),
+      timeoutInMinutes: 0,
+      reason: '',
+      requiredCapabilities: [],
+      reservedForAgentId: '',
+    );
+    return task;
+  }
+
   /// Converts a buildbucket status to a task status.
   static String convertBuildbucketStatusToString(bb.Status status) {
     switch (status) {
@@ -193,6 +244,23 @@ class Task extends Model<int> {
       case bb.Status.started:
         return statusInProgress;
       case bb.Status.scheduled:
+        return statusNew;
+      default:
+        return statusFailed;
+    }
+  }
+
+  static String convertBuildbucketV2StatusToString(bbv2.Status status) {
+    switch (status) {
+      case bbv2.Status.SUCCESS:
+        return statusSucceeded;
+      case bbv2.Status.CANCELED:
+        return statusCancelled;
+      case bbv2.Status.INFRA_FAILURE:
+        return statusInfraFailure;
+      case bbv2.Status.STARTED:
+        return statusInProgress;
+      case bbv2.Status.SCHEDULED:
         return statusNew;
       default:
         return statusFailed;
@@ -432,6 +500,26 @@ class Task extends Model<int> {
     attempts = buildNumberList!.split(',').length;
 
     status = convertBuildbucketStatusToString(build.status!);
+  }
+
+  void updateFromBuildbucketV2Build(bbv2.Build build) {
+    buildNumber = build.number;
+
+    if (buildNumberList == null) {
+      buildNumberList = '$buildNumber';
+    } else {
+      final Set<String> buildNumberSet = buildNumberList!.split(',').toSet();
+      buildNumberSet.add(buildNumber.toString());
+      buildNumberList = buildNumberSet.join(',');
+    }
+
+    createTimestamp = build.createTime.toDateTime().millisecondsSinceEpoch;
+    startTimestamp = build.startTime.toDateTime().millisecondsSinceEpoch;
+    endTimestamp = build.endTime.toDateTime().millisecondsSinceEpoch;
+
+    attempts = buildNumberList!.split(',').length;
+
+    status = convertBuildbucketV2StatusToString(build.status);
   }
 
   /// Get a [Task] status from a LUCI [Build] status/result.
