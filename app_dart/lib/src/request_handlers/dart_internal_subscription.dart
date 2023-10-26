@@ -8,6 +8,7 @@ import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:meta/meta.dart';
+import 'package:protobuf/protobuf.dart';
 
 import '../../cocoon_service.dart';
 import '../model/appengine/task.dart';
@@ -46,8 +47,7 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
       return Body.empty;
     }
 
-    print(message.asString);
-    final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack.fromJson(message.asBytes.toString());
+    final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack.fromJson(message.asString);
     final bbv2.BuildsV2PubSub buildsV2PubSub = pubSubCallBack.buildPubsub;
 
     if (!buildsV2PubSub.hasBuild()) {

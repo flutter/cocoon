@@ -39,6 +39,8 @@ void main() {
   final Int64 buildId = Int64(8766855135863637953);
   const String fakeHash = 'HASH12345';
   const String fakeBranch = 'test-branch';
+  final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack();
+  final bbv2.BuildsV2PubSub buildsV2PubSub = bbv2.BuildsV2PubSub();
   const String fakePubsubMessage = '''
     {
       "buildPubsub": {
@@ -79,7 +81,6 @@ void main() {
       timestamp: 0,
     );
 
-
     final bbv2.Build fakeBuild = bbv2.Build();
 
     // Create the builder id for the fake build.
@@ -108,6 +109,10 @@ void main() {
     fakeBuild.startTime = buildStartTime;
     final Timestamp buildEndTime = Timestamp.fromDateTime(endTime);
     fakeBuild.endTime = buildEndTime;
+
+    buildsV2PubSub.build = fakeBuild;
+
+    pubSubCallBack.buildPubsub = buildsV2PubSub;
     
     when(
       buildBucketClient.getBuild(
@@ -121,7 +126,8 @@ void main() {
   });
 
   test('creates a new task successfully', () async {
-    tester.message = Message.withString(fakePubsubMessage);
+    // This needs to be written as JSON for some reason for it to be parsed successfully.
+    tester.message = Message.withString(pubSubCallBack.writeToJson());
 
     await tester.post(handler);
 
