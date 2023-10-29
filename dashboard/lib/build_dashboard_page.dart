@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:provider/provider.dart';
 import 'package:truncate/truncate.dart';
@@ -375,6 +376,36 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Enables support for TV remotes to swap between different repos.
+    ServicesBinding.instance.keyboard.addHandler((KeyEvent event) {
+      print('chillers key event: ${event.logicalKey.keyId}');
+      final Uri uri = Uri(
+        path: BuildDashboardPage.routeName,
+      );
+      String repo = '';
+      switch (event.logicalKey.keyId) {
+        case 4294968065:
+          repo = 'flutter';
+          break;
+        case 4294968066:
+          repo = 'engine';
+          break;
+        case 4294968067: // right
+          repo = 'cocoon';
+          break;
+        case 4294968068: // up
+          repo = 'packages';
+          break;
+      }
+
+      if (repo.isEmpty) {
+        return false;
+      }
+
+      Navigator.pushNamed(context, uri.toString());
+      return true;
+    });
+
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final MediaQueryData queryData = MediaQuery.of(context);
     final double devicePixelRatio = queryData.devicePixelRatio;
