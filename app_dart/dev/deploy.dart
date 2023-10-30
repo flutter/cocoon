@@ -96,7 +96,7 @@ Future<bool> _deployToAppEngine() async {
       _gcloudProjectVersion!,
       '--no-promote',
       '--no-stop-previous-version',
-      '--quiet',
+//      '--quiet',
     ],
   );
 
