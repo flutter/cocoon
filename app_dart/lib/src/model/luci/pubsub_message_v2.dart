@@ -6,7 +6,7 @@ part 'pubsub_message_v2.g.dart';
 
 // Rename this to PushMessage as it is basically that class.
 @JsonSerializable(includeIfNull: false)
-class PubSubMessageV2 extends JsonBody{
+class PubSubMessageV2 extends JsonBody {
   const PubSubMessageV2({this.attributes, this.data, this.messageId, this.publishTime});
 
   /// PubSub attributes on the message.

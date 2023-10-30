@@ -15,7 +15,6 @@ import 'fake_authentication.dart';
 import 'request_handler_tester.dart';
 
 class SubscriptionV2Tester extends RequestHandlerTester {
-
   static const String _fakePubsubMessage = '''
     {
       "build": {
@@ -33,7 +32,8 @@ class SubscriptionV2Tester extends RequestHandlerTester {
     super.request,
     FakeAuthenticatedContext? context,
     Message? message,
-  }) : context = context ?? FakeAuthenticatedContext(), message = message ?? Message.withString(_fakePubsubMessage);
+  })  : context = context ?? FakeAuthenticatedContext(),
+        message = message ?? Message.withString(_fakePubsubMessage);
 
   FakeAuthenticatedContext context;
   Message message;

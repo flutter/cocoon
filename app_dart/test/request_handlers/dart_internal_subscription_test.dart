@@ -32,29 +32,15 @@ void main() {
   final DateTime startTime = DateTime(2023, 1, 1, 0, 0, 0);
   final DateTime endTime = DateTime(2023, 1, 1, 0, 14, 23);
 
+  // ignore: unused_local_variable
   const String project = 'dart-internal';
   const String bucket = 'flutter';
   const String builder = 'Linux packaging_release_builder';
   const int buildNumber = 123456;
+  // ignore: unused_local_variable
   final Int64 buildId = Int64(8766855135863637953);
   const String fakeHash = 'HASH12345';
   const String fakeBranch = 'test-branch';
-  final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack();
-  final bbv2.BuildsV2PubSub buildsV2PubSub = bbv2.BuildsV2PubSub();
-  const String fakePubsubMessage = '''
-    {
-      "buildPubsub": {
-        "build": {
-          "id": "$buildNumber",
-          "builder": {
-            "project": "$project",
-            "bucket": "$bucket",
-            "builder": "$builder"
-          }
-        }
-      }
-    }
-  ''';
 
   setUp(() async {
     config = FakeConfig();
@@ -81,45 +67,15 @@ void main() {
       timestamp: 0,
     );
 
-    final bbv2.Build fakeBuild = bbv2.Build();
+    final bbv2.PubSubCallBack pubSubCallBackTest = _constructPubSubCallBack();
+    tester.message = Message.withString(pubSubCallBackTest.writeToJson());
 
-    // Create the builder id for the fake build.
-    final bbv2.BuilderID builderID = bbv2.BuilderID();
-    builderID.project = project;
-    builderID.bucket = bucket;
-    builderID.builder = builder; 
-
-    // Create the gitilescommit for the build input.
-    final bbv2.GitilesCommit gitilesCommit = bbv2.GitilesCommit();
-    gitilesCommit.project = 'flutter/flutter';
-    gitilesCommit.id = fakeHash;
-    gitilesCommit.ref = 'refs/heads/$fakeBranch';
-
-    // Init the build input which is actually just the input.
-    final bbv2.Build_Input input = bbv2.Build_Input();
-    input.gitilesCommit = gitilesCommit;
-
-    // Compile the build object with the required params.
-    fakeBuild.builder = builderID;
-    fakeBuild.input = input;
-    fakeBuild.number = buildNumber;
-    fakeBuild.id = buildId;
-    fakeBuild.status = bbv2.Status.SUCCESS;
-    final Timestamp buildStartTime = Timestamp.fromDateTime(startTime);
-    fakeBuild.startTime = buildStartTime;
-    final Timestamp buildEndTime = Timestamp.fromDateTime(endTime);
-    fakeBuild.endTime = buildEndTime;
-
-    buildsV2PubSub.build = fakeBuild;
-
-    pubSubCallBack.buildPubsub = buildsV2PubSub;
-    
     when(
       buildBucketClient.getBuild(
         any,
         buildBucketUri: 'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds',
       ),
-    ).thenAnswer((_) => Future<bbv2.Build>.value(fakeBuild));
+    ).thenAnswer((_) => Future<bbv2.Build>.value(pubSubCallBackTest.buildPubsub.build));
 
     final List<Commit> datastoreCommit = <Commit>[commit];
     await config.db.commit(inserts: datastoreCommit);
@@ -127,7 +83,8 @@ void main() {
 
   test('creates a new task successfully', () async {
     // This needs to be written as JSON for some reason for it to be parsed successfully.
-    tester.message = Message.withString(pubSubCallBack.writeToJson());
+    final bbv2.PubSubCallBack pubSubCallBackTest = _constructPubSubCallBack();
+    tester.message = Message.withString(pubSubCallBackTest.writeToJson());
 
     await tester.post(handler);
 
@@ -210,7 +167,8 @@ void main() {
     final List<Task> datastoreCommit = <Task>[fakeTask];
     await config.db.commit(inserts: datastoreCommit);
 
-    tester.message = Message.withString(fakePubsubMessage);
+    final bbv2.PubSubCallBack pubSubCallBackTest = _constructPubSubCallBack();
+    tester.message = Message.withString(pubSubCallBackTest.writeToJson());
 
     await tester.post(handler);
 
@@ -270,67 +228,95 @@ void main() {
     );
   });
 
-  // test('ignores null message', () async {
-  //   tester.message = Message.withString(null);
-  //   expect(await tester.post(handler), equals(Body.empty));
-  // });
-
   test('ignores message with empty build data', () async {
     tester.message = Message.withString('{}');
     expect(await tester.post(handler), equals(Body.empty));
   });
 
+  // TODO create a construction method for this to simplify testing.
   test('ignores message not from flutter bucket', () async {
-   tester.message = Message.withString(
-    '''
-    {
-      "build": {
-        "id": "$buildNumber",
-        "builder": {
-          "project": "$project",
-          "bucket": "dart",
-          "builder": "$builder"
-        }
-      }
-    }
-    ''',
-    );
+    final bbv2.PubSubCallBack pubSubCallBack = _constructPubSubCallBack(bucket: 'dart');
+    tester.message = Message.withString(pubSubCallBack.writeToJson());
     expect(await tester.post(handler), equals(Body.empty));
   });
 
   test('ignores message not from dart-internal project', () async {
-    tester.message = Message.withString(
-    '''
-    {
-      "build": {
-        "id": "$buildNumber",
-        "builder": {
-          "project": "different-project",
-          "bucket": "$bucket",
-          "builder": "$builder"
-        }
-      }
-    }
-    ''',
-    );
+    final bbv2.PubSubCallBack pubSubCallBack = _constructPubSubCallBack(project: 'unsupported-project');
+    tester.message = Message.withString(pubSubCallBack.writeToJson());
     expect(await tester.post(handler), equals(Body.empty));
   });
 
   test('ignores message not from an accepted builder', () async {
-    tester.message = Message.withString(
-    '''
-    {
-      "build": {
-        "id": "$buildNumber",
-        "builder": {
-          "project": "different-project",
-          "bucket": "$bucket",
-          "builder": "different-builder"
-        }
-      }
-    }
-    ''',
-    );
+    final bbv2.PubSubCallBack pubSubCallBack = _constructPubSubCallBack(builder: 'different-builder');
+    tester.message = Message.withString(pubSubCallBack.writeToJson());
     expect(await tester.post(handler), equals(Body.empty));
   });
+}
+
+bbv2.PubSubCallBack _constructPubSubCallBack({
+  String? project,
+  String? bucket,
+  String? builder,
+  String? gitilesCommitProject,
+  String? gitilesHash,
+  String? gitilesRef,
+  int? buildNumber,
+  Int64? buildId,
+  bbv2.Status? buildStatus,
+  DateTime? createTime,
+  DateTime? startTime,
+  DateTime? endTime,
+}) {
+  project = project ?? 'dart-internal';
+  bucket = bucket ?? 'flutter';
+  builder = builder ?? 'Linux packaging_release_builder';
+  gitilesCommitProject = gitilesCommitProject ?? 'flutter/flutter';
+  gitilesHash = gitilesHash ?? 'HASH12345';
+  gitilesRef = gitilesRef ?? 'refs/heads/test-branch';
+  buildNumber = buildNumber ?? 123456;
+  buildId = buildId ?? Int64(8766855135863637953);
+  buildStatus = buildStatus ?? bbv2.Status.SUCCESS;
+  createTime = createTime ?? DateTime(2023, 1, 1, 0, 0, 0);
+  startTime = startTime ?? DateTime(2023, 1, 1, 0, 0, 0);
+  endTime = endTime ?? DateTime(2023, 1, 1, 0, 14, 23);
+
+  final bbv2.Build fakeBuild = bbv2.Build();
+
+  // Create the builder id for the fake build.
+  final bbv2.BuilderID builderID = bbv2.BuilderID();
+  builderID.project = project;
+  builderID.bucket = bucket;
+  builderID.builder = builder;
+
+  // Create the gitilescommit for the build input.
+  final bbv2.GitilesCommit gitilesCommit = bbv2.GitilesCommit();
+  gitilesCommit.project = gitilesCommitProject;
+  gitilesCommit.id = gitilesHash;
+  gitilesCommit.ref = gitilesRef;
+
+  // Init the build input which is actually just the input.
+  final bbv2.Build_Input input = bbv2.Build_Input();
+  input.gitilesCommit = gitilesCommit;
+
+  // Compile the build object with the required params.
+  fakeBuild.builder = builderID;
+  fakeBuild.input = input;
+  fakeBuild.number = buildNumber;
+  fakeBuild.id = buildId;
+  fakeBuild.status = buildStatus;
+  final Timestamp buildCreateTime = Timestamp.fromDateTime(createTime);
+  fakeBuild.createTime = buildCreateTime;
+  final Timestamp buildStartTime = Timestamp.fromDateTime(startTime);
+  fakeBuild.startTime = buildStartTime;
+  final Timestamp buildEndTime = Timestamp.fromDateTime(endTime);
+  fakeBuild.endTime = buildEndTime;
+
+  final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack();
+  final bbv2.BuildsV2PubSub buildsV2PubSub = bbv2.BuildsV2PubSub();
+
+  buildsV2PubSub.build = fakeBuild;
+
+  pubSubCallBack.buildPubsub = buildsV2PubSub;
+
+  return pubSubCallBack;
 }

@@ -33,7 +33,6 @@ Future<void> main() async {
       accessTokenService: AccessTokenService.defaultProvider(config),
     );
 
-
     /// LUCI service class to communicate with buildBucket service.
     final LuciBuildService luciBuildService = LuciBuildService(
       config: config,

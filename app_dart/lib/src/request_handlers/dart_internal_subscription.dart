@@ -8,7 +8,6 @@ import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:meta/meta.dart';
-import 'package:protobuf/protobuf.dart';
 
 import '../../cocoon_service.dart';
 import '../model/appengine/task.dart';
@@ -79,7 +78,7 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
     }
 
     log.info('Creating build request object with build id ${build.id}');
-    
+
     final bbv2.GetBuildRequest getBuildRequest = bbv2.GetBuildRequest();
     getBuildRequest.id = build.id;
 

@@ -109,7 +109,8 @@ abstract class SubscriptionHandlerV2 extends RequestHandler<Body> {
     }
 
     log.finer(pushEvent.toString());
-    final PubSubMessageV2 pubSubMessageV2 = PubSubMessageV2.fromJson(jsonDecode(pushEvent.message.asString) as Map<String, dynamic>);
+    final PubSubMessageV2 pubSubMessageV2 =
+        PubSubMessageV2.fromJson(jsonDecode(pushEvent.message.asString) as Map<String, dynamic>);
 
     final String messageId = pubSubMessageV2.messageId!;
 
