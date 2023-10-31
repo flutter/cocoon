@@ -842,7 +842,7 @@ void main() {
 Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, Color expectedColor) async {
   const double cellSize = 18;
   const double cellPixelSize = cellSize * 3.0;
-  const double cellPixelArea = cellSize * cellSize;
+  const double cellPixelArea = cellPixelSize * cellPixelSize;
   await tester.pumpWidget(
     MaterialApp(
       home: Material(
