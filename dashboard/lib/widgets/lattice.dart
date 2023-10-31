@@ -9,6 +9,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import 'task_box.dart';
+
 typedef Painter = void Function(Canvas canvas, Rect rect);
 
 typedef LatticeTapCallback = void Function(Offset? offset);
@@ -46,7 +48,6 @@ class LatticeScrollView extends StatelessWidget {
     this.verticalController,
     this.dragStartBehavior = DragStartBehavior.start,
     required this.cells,
-    required this.cellSize,
   });
 
   final ScrollPhysics? horizontalPhysics;
@@ -62,8 +63,6 @@ class LatticeScrollView extends StatelessWidget {
   final DragStartBehavior dragStartBehavior;
 
   final List<List<LatticeCell>> cells;
-
-  final Size cellSize;
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +95,7 @@ class LatticeScrollView extends StatelessWidget {
                 horizontalOffset: horizontalOffset,
                 verticalOffset: verticalOffset,
                 cells: cells,
-                cellSize: cellSize,
+                cellSize: Size.square(TaskBox.of(context)),
               ),
             ),
           ),

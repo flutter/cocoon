@@ -29,6 +29,8 @@ import '../utils/golden.dart';
 import '../utils/mocks.dart';
 import '../utils/task_icons.dart';
 
+const double _cellSize = 36;
+
 void main() {
   setUp(() {
     FlutterAppIconsPlatform.instance = FakeFlutterAppIcons();
@@ -60,12 +62,15 @@ void main() {
     buildState.addListener(listener1);
 
     await tester.pumpWidget(
-      MaterialApp(
-        theme: ThemeData(useMaterial3: false),
-        home: ValueProvider<BuildState>(
-          value: buildState,
-          child: const Material(
-            child: TaskGridContainer(),
+      TaskBox(
+        cellSize: _cellSize,
+        child: MaterialApp(
+          theme: ThemeData(useMaterial3: false),
+          home: ValueProvider<BuildState>(
+            value: buildState,
+            child: const Material(
+              child: TaskGridContainer(),
+            ),
           ),
         ),
       ),
@@ -115,12 +120,15 @@ void main() {
     buildState.addListener(listener1);
 
     await tester.pumpWidget(
-      MaterialApp(
-        theme: ThemeData(useMaterial3: false),
-        home: ValueProvider<BuildState>(
-          value: buildState,
-          child: const Material(
-            child: TaskGridContainer(),
+      TaskBox(
+        cellSize: _cellSize,
+        child: MaterialApp(
+          theme: ThemeData(useMaterial3: false),
+          home: ValueProvider<BuildState>(
+            value: buildState,
+            child: const Material(
+              child: TaskGridContainer(),
+            ),
           ),
         ),
       ),
@@ -193,12 +201,15 @@ void main() {
     buildState.addListener(listener1);
 
     await tester.pumpWidget(
-      MaterialApp(
-        theme: ThemeData.dark(useMaterial3: false),
-        home: ValueProvider<BuildState>(
-          value: buildState,
-          child: const Material(
-            child: TaskGridContainer(),
+      TaskBox(
+        cellSize: _cellSize,
+        child: MaterialApp(
+          theme: ThemeData.dark(useMaterial3: false),
+          home: ValueProvider<BuildState>(
+            value: buildState,
+            child: const Material(
+              child: TaskGridContainer(),
+            ),
           ),
         ),
       ),
@@ -246,12 +257,15 @@ void main() {
     buildState.addListener(listener1);
 
     await tester.pumpWidget(
-      MaterialApp(
-        theme: ThemeData.dark(),
-        home: ValueProvider<BuildState>(
-          value: buildState,
-          child: Material(
-            child: TaskGridContainer(filter: filter),
+      TaskBox(
+        cellSize: _cellSize,
+        child: MaterialApp(
+          theme: ThemeData.dark(),
+          home: ValueProvider<BuildState>(
+            value: buildState,
+            child: Material(
+              child: TaskGridContainer(filter: filter),
+            ),
           ),
         ),
       ),
@@ -826,13 +840,14 @@ void main() {
 }
 
 Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, Color expectedColor) async {
+  const double cellSize = 18;
   await tester.pumpWidget(
     MaterialApp(
       home: Material(
         child: Center(
           child: SizedBox(
-            height: TaskBox.cellSize * 3.0,
-            width: TaskBox.cellSize * 3.0,
+            height: cellSize * 3.0,
+            width: cellSize * 3.0,
             child: RepaintBoundary(
               child: TaskGrid(
                 buildState: FakeBuildState(
@@ -858,9 +873,8 @@ Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, 
   final ByteData? pixels = await tester.runAsync<ByteData?>(() async {
     return (await renderObject!.toImage()).toByteData();
   });
-  assert(pixels!.lengthInBytes == ((TaskBox.cellSize * 3.0) * (TaskBox.cellSize * 3.0) * 4).round());
+  assert(pixels!.lengthInBytes == ((cellSize * 3.0) * (cellSize * 3.0) * 4).round());
   const double padding = 4.0;
-  final int rgba = pixels!
-      .getUint32(((((TaskBox.cellSize * 3.0) * (TaskBox.cellSize + padding)) + TaskBox.cellSize + padding).ceil()) * 4);
+  final int rgba = pixels!.getUint32(((((cellSize * 3.0) * (cellSize + padding)) + cellSize + padding).ceil()) * 4);
   expect((rgba >> 8) | (rgba << 24) & 0xFFFFFFFF, expectedColor.value);
 }

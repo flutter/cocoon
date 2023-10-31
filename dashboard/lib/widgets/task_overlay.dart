@@ -17,7 +17,9 @@ import 'progress_button.dart';
 import 'task_box.dart';
 
 class TaskOverlayEntryPositionDelegate extends SingleChildLayoutDelegate {
-  TaskOverlayEntryPositionDelegate(this.target);
+  TaskOverlayEntryPositionDelegate(this.target, {required this.cellSize});
+
+  final double cellSize;
 
   /// The offset of the target the tooltip is positioned near in the global
   /// coordinate system.
@@ -26,10 +28,11 @@ class TaskOverlayEntryPositionDelegate extends SingleChildLayoutDelegate {
   static Offset positionDependentBox({
     required Size size,
     required Size childSize,
+    required double cellSize,
     required Offset target,
   }) {
     const double margin = 10.0;
-    const double verticalOffset = TaskBox.cellSize * .9;
+    final double verticalOffset = cellSize * .9;
 
     // VERTICAL DIRECTION
     final bool fitsBelow = target.dy + verticalOffset + childSize.height <= size.height - margin;
@@ -63,6 +66,7 @@ class TaskOverlayEntryPositionDelegate extends SingleChildLayoutDelegate {
     return positionDependentBox(
       size: size,
       childSize: childSize,
+      cellSize: cellSize,
       target: target,
     );
   }
@@ -120,8 +124,8 @@ class TaskOverlayEntry extends StatelessWidget {
         Positioned(
           top: position.dy,
           left: position.dx,
-          width: TaskBox.cellSize,
-          height: TaskBox.cellSize,
+          width: TaskBox.of(context),
+          height: TaskBox.of(context),
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(color: Colors.black, width: 4.0),
@@ -138,7 +142,7 @@ class TaskOverlayEntry extends StatelessWidget {
         Positioned(
           // Move this overlay to be where the parent is
           child: CustomSingleChildLayout(
-            delegate: TaskOverlayEntryPositionDelegate(position),
+            delegate: TaskOverlayEntryPositionDelegate(position, cellSize: TaskBox.of(context)),
             child: TaskOverlayContents(
               showSnackBarCallback: showSnackBarCallback,
               buildState: buildState,

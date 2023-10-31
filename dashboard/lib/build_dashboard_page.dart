@@ -297,7 +297,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: <Widget>[
           const SizedBox(width: 10.0),
-          SizedBox.fromSize(size: const Size.square(TaskBox.cellSize), child: box),
+          SizedBox.fromSize(size: Size.square(TaskBox.of(context)), child: box),
           const SizedBox(width: 10.0),
           Text(description),
         ],
@@ -322,8 +322,8 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       _getTaskKeyEntry(
         box: Center(
           child: Container(
-            width: TaskBox.cellSize * 0.8,
-            height: TaskBox.cellSize * 0.8,
+            width: TaskBox.of(context) * 0.8,
+            height: TaskBox.of(context) * 0.8,
             decoration: BoxDecoration(
               border: Border.all(
                 width: 2.0,
