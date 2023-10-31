@@ -1,4 +1,4 @@
-package com.example.dashboard
+package com.appspot.flutter_dashboard.dashboard
 
 import android.os.Bundle
 import android.view.WindowManager

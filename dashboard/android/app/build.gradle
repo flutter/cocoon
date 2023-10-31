@@ -23,7 +23,7 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace "com.example.dashboard"
+    namespace "com.appspot.flutter_dashboard.dashboard"
     compileSdkVersion flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
