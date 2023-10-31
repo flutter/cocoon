@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fixnum/fixnum.dart';
-import 'package:flutter/foundation.dart' show compute, kIsWeb, visibleForTesting;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:http/http.dart' as http;
 

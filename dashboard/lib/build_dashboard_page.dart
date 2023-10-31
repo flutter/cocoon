@@ -86,7 +86,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   /// Convert the fields from this class into a URL.
   ///
   /// This enables bookmarking state specific values, like [repo].
-  void _updateNavigation(BuildContext context, BuildState buildState) {
+  void _updateNavigation(BuildContext context) {
     final Map<String, String> queryParameters = <String, String>{};
     if (widget.queryParameters != null) {
       queryParameters.addAll(widget.queryParameters!);
@@ -159,7 +159,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                         child: const Text('Defaults'),
                       ),
                       TextButton(
-                        onPressed: _filter == _settingsBasis ? null : () => _updateNavigation(context, buildState),
+                        onPressed: _filter == _settingsBasis ? null : () => _updateNavigation(context),
                         child: const Text('Apply'),
                       ),
                       TextButton(
@@ -211,7 +211,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
         ),
         onChanged: (String? selectedRepo) {
           repo = selectedRepo;
-          _updateNavigation(context, buildState);
+          _updateNavigation(context);
         },
         items: buildState.repos.map<DropdownMenuItem<String>>((String value) {
           return DropdownMenuItem<String>(
@@ -253,7 +253,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
         ),
         onChanged: (String? selectedBranch) {
           branch = selectedBranch;
-          _updateNavigation(context, buildState);
+          _updateNavigation(context);
         },
         items: [
           DropdownMenuItem<String>(
@@ -374,38 +374,14 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     }
   }
 
+  void _updatePage(BuildContext context, String newRepo, String newBranch) {
+    repo = newRepo;
+    branch = newBranch;
+    _updateNavigation(context);
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Enables support for TV remotes to swap between different repos.
-    ServicesBinding.instance.keyboard.addHandler((KeyEvent event) {
-      print('chillers key event: ${event.logicalKey.keyId}');
-      final Uri uri = Uri(
-        path: BuildDashboardPage.routeName,
-      );
-      String repo = '';
-      switch (event.logicalKey.keyId) {
-        case 4294968065:
-          repo = 'flutter';
-          break;
-        case 4294968066:
-          repo = 'engine';
-          break;
-        case 4294968067: // right
-          repo = 'cocoon';
-          break;
-        case 4294968068: // up
-          repo = 'packages';
-          break;
-      }
-
-      if (repo.isEmpty) {
-        return false;
-      }
-
-      Navigator.pushNamed(context, uri.toString());
-      return true;
-    });
-
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final MediaQueryData queryData = MediaQuery.of(context);
     final double devicePixelRatio = queryData.devicePixelRatio;
@@ -423,57 +399,68 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     );
     final BuildState buildState = Provider.of<BuildState>(context);
     buildState.updateCurrentRepoBranch(repo!, branch!);
-    return AnimatedBuilder(
-      animation: buildState,
-      builder: (BuildContext context, Widget? child) => Scaffold(
-        appBar: CocoonAppBar(
-          title: Tooltip(
-            message: _getStatusTitle(buildState),
-            child: Text(
-              _getStatusTitle(buildState),
-            ),
-          ),
-          backgroundColor: colorTable[buildState.isTreeBuilding],
-          actions: <Widget>[
-            if (!_smallScreen) ..._buildRepositorySelectionWidgets(context, buildState),
-            IconButton(
-              tooltip: 'Report Issue',
-              icon: const Icon(Icons.bug_report),
-              onPressed: () async {
-                if (await canLaunchUrl(flutterIssueUrl)) {
-                  await launchUrl(flutterIssueUrl);
-                } else {
-                  throw 'Could not launch $flutterIssueUrl';
-                }
-              },
-            ),
-            PopupMenuButton<String>(
-              tooltip: 'Task Status Key',
-              child: const Icon(Icons.info_outline),
-              itemBuilder: (BuildContext context) => _getTaskKey(isDark),
-            ),
-            IconButton(
-              tooltip: 'Settings',
-              icon: const Icon(Icons.settings),
-              onPressed: _settingsBasis == null ? () => _showSettingsDialog() : null,
-            ),
-          ],
-        ),
-        body: ErrorBrookWatcher(
-          errors: buildState.errors,
-          child: Stack(
-            children: <Widget>[
-              SizedBox.expand(
-                child: TaskGridContainer(
-                  filter: _filter,
-                  useAnimatedLoading: true,
+    return CallbackShortcuts(
+      bindings: <ShortcutActivator, VoidCallback>{
+        const SingleActivator(LogicalKeyboardKey.arrowUp): () => _updatePage(context, 'flutter', 'master'),
+        const SingleActivator(LogicalKeyboardKey.arrowDown): () => _updatePage(context, 'engine', 'main'),
+        const SingleActivator(LogicalKeyboardKey.arrowLeft): () => _updatePage(context, 'cocoon', 'main'),
+        const SingleActivator(LogicalKeyboardKey.arrowRight): () => _updatePage(context, 'packages', 'main'),
+      },
+      child: Focus(
+        autofocus: true,
+        child: AnimatedBuilder(
+          animation: buildState,
+          builder: (BuildContext context, Widget? child) => Scaffold(
+            appBar: CocoonAppBar(
+              title: Tooltip(
+                message: _getStatusTitle(buildState),
+                child: Text(
+                  _getStatusTitle(buildState),
                 ),
               ),
-              if (_settingsBasis != null) _settingsDialog(context, buildState),
-            ],
+              backgroundColor: colorTable[buildState.isTreeBuilding],
+              actions: <Widget>[
+                if (!_smallScreen) ..._buildRepositorySelectionWidgets(context, buildState),
+                IconButton(
+                  tooltip: 'Report Issue',
+                  icon: const Icon(Icons.bug_report),
+                  onPressed: () async {
+                    if (await canLaunchUrl(flutterIssueUrl)) {
+                      await launchUrl(flutterIssueUrl);
+                    } else {
+                      throw 'Could not launch $flutterIssueUrl';
+                    }
+                  },
+                ),
+                PopupMenuButton<String>(
+                  tooltip: 'Task Status Key',
+                  child: const Icon(Icons.info_outline),
+                  itemBuilder: (BuildContext context) => _getTaskKey(isDark),
+                ),
+                IconButton(
+                  tooltip: 'Settings',
+                  icon: const Icon(Icons.settings),
+                  onPressed: _settingsBasis == null ? () => _showSettingsDialog() : null,
+                ),
+              ],
+            ),
+            body: ErrorBrookWatcher(
+              errors: buildState.errors,
+              child: Stack(
+                children: <Widget>[
+                  SizedBox.expand(
+                    child: TaskGridContainer(
+                      filter: _filter,
+                      useAnimatedLoading: true,
+                    ),
+                  ),
+                  if (_settingsBasis != null) _settingsDialog(context, buildState),
+                ],
+              ),
+            ),
+            drawer: const DashboardNavigationDrawer(),
           ),
         ),
-        drawer: const DashboardNavigationDrawer(),
       ),
     );
   }
