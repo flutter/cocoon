@@ -841,13 +841,15 @@ void main() {
 
 Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, Color expectedColor) async {
   const double cellSize = 18;
+  const double cellPixelSize = cellSize * 3.0;
+  const double cellPixelArea = cellSize * cellSize;
   await tester.pumpWidget(
     MaterialApp(
       home: Material(
         child: Center(
           child: SizedBox(
-            height: cellSize * 3.0,
-            width: cellSize * 3.0,
+            height: cellPixelSize,
+            width: cellPixelSize,
             child: RepaintBoundary(
               child: TaskGrid(
                 buildState: FakeBuildState(
@@ -873,8 +875,8 @@ Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, 
   final ByteData? pixels = await tester.runAsync<ByteData?>(() async {
     return (await renderObject!.toImage()).toByteData();
   });
-  assert(pixels!.lengthInBytes == ((cellSize * 3.0) * (cellSize * 3.0) * 4).round());
+  assert(pixels!.lengthInBytes == (cellPixelArea * 4).round());
   const double padding = 4.0;
-  final int rgba = pixels!.getUint32(((((cellSize * 3.0) * (cellSize + padding)) + cellSize + padding).ceil()) * 4);
+  final int rgba = pixels!.getUint32((((cellPixelSize * (cellSize + padding)) + cellSize + padding).ceil()) * 4);
   expect((rgba >> 8) | (rgba << 24) & 0xFFFFFFFF, expectedColor.value);
 }
