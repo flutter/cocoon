@@ -875,7 +875,7 @@ Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, 
   final ByteData? pixels = await tester.runAsync<ByteData?>(() async {
     return (await renderObject!.toImage()).toByteData();
   });
-  assert(pixels!.lengthInBytes == (cellPixelArea * 4).round());
+  expect(pixels!.lengthInBytes, (cellPixelArea * 4).round());
   const double padding = 4.0;
   final int rgba = pixels!.getUint32((((cellPixelSize * (cellSize + padding)) + cellSize + padding).ceil()) * 4);
   expect((rgba >> 8) | (rgba << 24) & 0xFFFFFFFF, expectedColor.value);
