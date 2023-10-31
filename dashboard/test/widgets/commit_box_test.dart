@@ -23,7 +23,6 @@ void main() {
     ..sha = 'ShaShankRedemption';
   final String shortSha = expectedCommit.sha.substring(0, 7);
   final Widget basicApp = MaterialApp(
-    theme: ThemeData(useMaterial3: false),
     home: Material(
       child: Center(
         child: SizedBox(

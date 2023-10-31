@@ -61,7 +61,6 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: buildState,
           child: const Material(
@@ -116,7 +115,6 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: buildState,
           child: const Material(
@@ -194,7 +192,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData.dark(useMaterial3: false),
+        theme: ThemeData.dark(),
         home: ValueProvider<BuildState>(
           value: buildState,
           child: const Material(
@@ -335,7 +333,6 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData(useMaterial3: false),
         home: Material(
           child: TaskGrid(
             buildState: FakeBuildState(),
@@ -457,7 +454,6 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData(useMaterial3: false),
         home: Material(
           child: TaskGrid(
             buildState: FakeBuildState(moreStatusesExist: false),
@@ -471,7 +467,6 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData(useMaterial3: false),
         home: Material(
           child: TaskGrid(
             buildState: FakeBuildState(moreStatusesExist: true),
@@ -804,7 +799,6 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData(useMaterial3: false),
         home: Material(
           child: TaskGrid(
             buildState: FakeBuildState(),

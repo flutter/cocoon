@@ -69,7 +69,6 @@ class MyApp extends StatelessWidget {
         const SingleActivator(LogicalKeyboardKey.select): const ActivateIntent(),
       },
       theme: ThemeData(
-        useMaterial3: false,
         primaryTextTheme: const TextTheme(
           bodyLarge: TextStyle(color: Colors.black87),
         ),
