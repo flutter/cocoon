@@ -9,7 +9,6 @@ import 'dart:typed_data';
 import 'package:meta/meta.dart';
 import 'package:gcloud/pubsub.dart';
 
-// import '../model/luci/push_message.dart';
 import '../model/luci/pubsub_message_v2.dart';
 import '../service/cache_service.dart';
 import '../service/logging.dart';

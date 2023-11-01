@@ -149,7 +149,7 @@ Future<void> main() async {
       '/api/scheduler/batch-request-subscription': SchedulerRequestSubscription(
         cache: cache,
         config: config,
-        buildBucketClient: buildBucketClient,
+        buildBucketClient: buildBucketV2Client,
       ),
       '/api/scheduler/vacuum-stale-tasks': VacuumStaleTasks(
         config: config,
