@@ -25,7 +25,6 @@ void main() {
 
   setUp(() async {
     buildBucketV2Client = MockBuildBucketV2Client();
-    when(buildBucketV2Client.batch(any)).thenAnswer((_) async => bbv2.BatchResponse());
     handler = SchedulerRequestSubscription(
       cache: CacheService(inMemory: true),
       config: FakeConfig(),
@@ -48,6 +47,23 @@ void main() {
   });
 
   test('schedules request to buildbucket', () async {
+    final bbv2.BuilderID responseBuilderID = bbv2.BuilderID();
+    responseBuilderID.builder = 'Linux A';
+
+    final bbv2.Build responseBuild = bbv2.Build();
+    responseBuild.id = Int64(12345);
+    responseBuild.builder = responseBuilderID;
+
+    // has a list of BatchResponse_Response
+    final bbv2.BatchResponse batchResponse = bbv2.BatchResponse();
+
+    final bbv2.BatchResponse_Response batchResponseResponse = bbv2.BatchResponse_Response();
+    batchResponseResponse.scheduleBuild = responseBuild;
+    
+    batchResponse.responses.add(batchResponseResponse);
+
+    when(buildBucketV2Client.batch(any)).thenAnswer((_) async => batchResponse);
+    
     final bbv2.BatchRequest request = bbv2.BatchRequest();
     
     final bbv2.ScheduleBuildRequest scheduleBuildRequest = bbv2.ScheduleBuildRequest();
