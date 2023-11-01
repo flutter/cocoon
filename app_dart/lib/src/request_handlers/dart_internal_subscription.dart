@@ -33,7 +33,6 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
   }) : super(subscriptionName: 'dart-internal-build-results-sub');
 
-  // final BuildBucketClient buildBucketClient;
   final BuildBucketV2Client buildBucketV2Client;
   final DatastoreServiceProvider datastoreProvider;
 
@@ -41,12 +40,12 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
 
-    if (message.asString.isEmpty) {
+    if (message.data == null) {
       log.info('no data in message');
       return Body.empty;
     }
 
-    final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack.fromJson(message.asString);
+    final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack.fromJson(message.data!);
     final bbv2.BuildsV2PubSub buildsV2PubSub = pubSubCallBack.buildPubsub;
 
     if (!buildsV2PubSub.hasBuild()) {

@@ -4,6 +4,26 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'pubsub_message_v2.g.dart';
 
+
+@JsonSerializable(includeIfNull: false)
+class PushMessageV2 extends JsonBody {
+  const PushMessageV2({
+    this.message,
+    this.subscription,
+  });
+
+  static PushMessageV2 fromJson(Map<String, dynamic> json) => _$PushMessageV2FromJson(json);
+
+  /// The message contents.
+  final PubSubMessageV2? message;
+
+  /// The name of the subscription associated with the delivery.
+  final String? subscription;
+
+  @override
+  Map<String, dynamic> toJson() => _$PushMessageV2ToJson(this);
+}
+
 // Rename this to PushMessage as it is basically that class.
 @JsonSerializable(includeIfNull: false)
 class PubSubMessageV2 extends JsonBody {

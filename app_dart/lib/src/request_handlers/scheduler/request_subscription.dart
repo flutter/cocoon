@@ -39,13 +39,13 @@ class SchedulerRequestSubscription extends SubscriptionHandlerV2 {
 
   @override
   Future<Body> post() async {
-    if (message.asString.isEmpty) {
+    if (message.data == null) {
       log.info('no data in message');
       throw const BadRequestException('no data in message');
     }
     
-    final String data = message.asString;
-    log.fine('attempting to read message ${message.asString}');
+    final String data = message.data!;
+    log.fine('attempting to read message ${message.data}');
     final bbv2.BatchRequest batchRequest = bbv2.BatchRequest.fromJson(data);
 
     /// Retry scheduling builds upto 3 times.

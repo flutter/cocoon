@@ -52,7 +52,7 @@ abstract class SubscriptionHandlerV2 extends RequestHandler<Body> {
 
   /// The [PushMessage] from this [HttpRequest].
   @protected
-  Message get message => getValue<Message>(PubSubKey.message)!;
+  PubSubMessageV2 get message => getValue<PubSubMessageV2>(PubSubKey.message)!;
 
   @override
   Future<void> service(
@@ -86,12 +86,12 @@ abstract class SubscriptionHandlerV2 extends RequestHandler<Body> {
       return;
     }
 
-    log.fine('Request body: ${utf8.decode(body)}');
-    PushEvent? pushEvent;
-
+    log.info('Request body: ${utf8.decode(body)}');
+    PushMessageV2? pushMessageV2;
     if (body.isNotEmpty) {
       try {
-        pushEvent = PushEvent.fromJson(utf8.decode(body));
+        final Map<String, dynamic> json = jsonDecode(utf8.decode(body)) as Map<String, dynamic>;
+        pushMessageV2 = PushMessageV2.fromJson(json);
       } catch (error) {
         final HttpResponse response = request.response;
         response
@@ -103,15 +103,13 @@ abstract class SubscriptionHandlerV2 extends RequestHandler<Body> {
       }
     }
 
-    if (pushEvent == null) {
+    if (pushMessageV2 == null) {
       throw const BadRequestException('Failed to get message');
     }
 
-    log.finer(pushEvent.toString());
-    final PubSubMessageV2 pubSubMessageV2 =
-        PubSubMessageV2.fromJson(jsonDecode(pushEvent.message.asString) as Map<String, dynamic>);
+    log.finer(pushMessageV2.toString());
 
-    final String messageId = pubSubMessageV2.messageId!;
+    final String messageId = pushMessageV2.message!.messageId!;
 
     final Uint8List? messageLock = await cache.getOrCreate(
       subscriptionName,
@@ -148,7 +146,7 @@ abstract class SubscriptionHandlerV2 extends RequestHandler<Body> {
         },
       ),
       zoneValues: <RequestKey<dynamic>, Object?>{
-        PubSubKey.message: pushEvent.message,
+        PubSubKey.message: pushMessageV2.message,
         ApiKey.authContext: authContext,
       },
     );
@@ -159,5 +157,5 @@ abstract class SubscriptionHandlerV2 extends RequestHandler<Body> {
 class PubSubKey<T> extends RequestKey<T> {
   const PubSubKey._(super.name);
 
-  static const PubSubKey<Message> message = PubSubKey<Message>._('message');
+  static const PubSubKey<PubSubMessageV2> message = PubSubKey<PubSubMessageV2>._('message');
 }
