@@ -125,34 +125,27 @@ void main() {
     expect(verify(buildBucketV2Client.batch(any)).callCount, 2);
   });
 
-  // test('acking message and loging error when no response comes back after retry limit', () async {
-  //   when(buildBucketV2Client.batch(any)).thenAnswer((_) async {
-  //     return bbv2.BatchResponse();
-  //   });
+  test('acking message and logging error when no response comes back after retry limit', () async {
+    when(buildBucketV2Client.batch(any)).thenAnswer((_) async {
+      return bbv2.BatchResponse().createEmptyInstance();
+    });
 
-  //   final bbv2.BatchRequest request = bbv2.BatchRequest();
-  //   //   requests: <Request>[
-  //   //     Request(
-  //   //       scheduleBuild: ScheduleBuildRequest(
-  //   //         builderId: BuilderId(
-  //   //           builder: 'Linux A',
-  //   //         ),
-  //   //       ),
-  //   //     ),
-  //   //   ],
-  //   // );
+    final bbv2.BatchRequest request = bbv2.BatchRequest();
 
-  //   final bbv2.ScheduleBuildRequest scheduleBuildRequest = bbv2.ScheduleBuildRequest();
-  //   final bbv2.BuilderID builderID = bbv2.BuilderID();
-  //   builderID.builder = 'Linux A';
-  //   scheduleBuildRequest.builder = builderID;
+    final bbv2.ScheduleBuildRequest scheduleBuildRequest = bbv2.ScheduleBuildRequest();
+    final bbv2.BuilderID builderID = bbv2.BuilderID();
+    builderID.builder = 'Linux A';
+    scheduleBuildRequest.builder = builderID;
 
-  //   final bbv2.BatchRequest_Request batchRequestRequest = bbv2.BatchRequest_Request.create();
-  //   batchRequestRequest.scheduleBuild = scheduleBuildRequest;
+    final bbv2.BatchRequest_Request batchRequestRequest = bbv2.BatchRequest_Request.create();
+    batchRequestRequest.scheduleBuild = scheduleBuildRequest;
 
-  //   tester.message = push_message.PushMessage(data: base64Encode(utf8.encode(jsonEncode(request))));
-  //   final Body body = await tester.post(handler);
-  //   expect(body, isNotNull);
-  //   expect(verify(buildBucketV2Client.batch(any)).callCount, 3);
-  // });
+    request.requests.add(batchRequestRequest);
+
+    tester.message = Message.withString(request.writeToJson());
+    final Body body = await tester.post(handler);
+
+    expect(body, isNotNull);
+    expect(verify(buildBucketV2Client.batch(any)).callCount, 3);
+  });
 }

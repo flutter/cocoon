@@ -90,8 +90,6 @@ class SchedulerRequestSubscription extends SubscriptionHandlerV2 {
     // THese are the requests in the batch request object. Just requests.
     final List<bbv2.BatchRequest_Request> retry = request.requests;
 
-    print(retry.toString());
-
     for (bbv2.BatchResponse_Response batchResponseResponse in response.responses) {
       if (batchResponseResponse.hasScheduleBuild()) {
         retry.removeWhere((element) => batchResponseResponse.scheduleBuild.builder == element.scheduleBuild.builder);
