@@ -1,5 +1,4 @@
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/common/json_converters.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'pubsub_message_v2.g.dart';
@@ -32,7 +31,6 @@ class PubSubMessageV2 extends JsonBody {
   /// PubSub attributes on the message.
   final Map<String, String>? attributes;
 
-  @Base64Converter()
   final String? data;
 
   final String? messageId;

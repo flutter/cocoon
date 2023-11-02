@@ -44,9 +44,9 @@ class SchedulerRequestSubscription extends SubscriptionHandlerV2 {
       throw const BadRequestException('no data in message');
     }
     
-    final String data = message.data!;
+    // final String data = message.data!;
     log.fine('attempting to read message ${message.data}');
-    final bbv2.BatchRequest batchRequest = bbv2.BatchRequest.fromJson(data);
+    final bbv2.BatchRequest batchRequest = bbv2.BatchRequest.fromJson(message.data!);
 
     /// Retry scheduling builds upto 3 times.
     ///
