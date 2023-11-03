@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:cocoon_service/src/request_handling/subscription_handler_v2.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
@@ -44,9 +46,18 @@ class SchedulerRequestSubscription extends SubscriptionHandlerV2 {
       throw const BadRequestException('no data in message');
     }
     
+    // DO not need this if the converter line is included in the top level object.
+    // final String unencodedData = String.fromCharCodes((base64.decode(message.data!)));
+
     // final String data = message.data!;
     log.fine('attempting to read message ${message.data}');
-    final bbv2.BatchRequest batchRequest = bbv2.BatchRequest.fromJson(message.data!);
+
+    final bbv2.BatchRequest batchRequest = bbv2.BatchRequest.create();
+    // print(json.decode(unencodedData) as Map<String, dynamic>);
+    
+    // Merge from json only works with the integer field names.
+    // batchRequest.mergeFromJson(message.data!);
+    batchRequest.mergeFromProto3Json(jsonDecode(message.data!) as Map<String, dynamic>);
 
     /// Retry scheduling builds upto 3 times.
     ///

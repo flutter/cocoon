@@ -4,39 +4,26 @@
 
 import 'dart:async';
 
+import 'package:cocoon_service/src/model/luci/pubsub_message_v2.dart';
 import 'package:cocoon_service/src/request_handling/api_request_handler.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
 import 'package:cocoon_service/src/request_handling/subscription_handler_v2.dart';
-import 'package:gcloud/pubsub.dart';
 import 'package:meta/meta.dart';
 
 import 'fake_authentication.dart';
 import 'request_handler_tester.dart';
 
 class SubscriptionV2Tester extends RequestHandlerTester {
-  static const String _fakePubsubMessage = '''
-    {
-      "build": {
-        "id": "1",
-        "builder": {
-          "project": "flutter",
-          "bucket": "try",
-          "builder": "Windows Engine Drone"
-        }
-      }
-    }
-  ''';
-
   SubscriptionV2Tester({
     super.request,
     FakeAuthenticatedContext? context,
-    Message? message,
+    PushMessageV2? message,
   })  : context = context ?? FakeAuthenticatedContext(),
-        message = message ?? Message.withString(_fakePubsubMessage);
+        message = message ?? const PushMessageV2();
 
   FakeAuthenticatedContext context;
-  Message message;
+  PushMessageV2 message;
 
   @override
   @protected

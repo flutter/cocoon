@@ -51,7 +51,7 @@ abstract class SubscriptionHandlerV2 extends RequestHandler<Body> {
 
   /// The [PushMessage] from this [HttpRequest].
   @protected
-  PubSubMessageV2 get message => getValue<PubSubMessageV2>(PubSubKey.message)!;
+  PushMessageV2 get message => getValue<PushMessageV2>(PubSubKey.message)!;
 
   @override
   Future<void> service(
@@ -86,11 +86,11 @@ abstract class SubscriptionHandlerV2 extends RequestHandler<Body> {
     }
 
     log.info('Request body: ${utf8.decode(body)}');
-    PushMessageV2? pushMessageV2;
+    PubSubPushMessageV2? pubSubPushMessage;
     if (body.isNotEmpty) {
       try {
         final Map<String, dynamic> json = jsonDecode(utf8.decode(body)) as Map<String, dynamic>;
-        pushMessageV2 = PushMessageV2.fromJson(json);
+        pubSubPushMessage = PubSubPushMessageV2.fromJson(json);
       } catch (error) {
         final HttpResponse response = request.response;
         response
@@ -102,13 +102,13 @@ abstract class SubscriptionHandlerV2 extends RequestHandler<Body> {
       }
     }
 
-    if (pushMessageV2 == null) {
+    if (pubSubPushMessage == null) {
       throw const BadRequestException('Failed to get message');
     }
 
-    log.finer(pushMessageV2.toString());
+    log.finer(pubSubPushMessage.toString());
 
-    final String messageId = pushMessageV2.message!.messageId!;
+    final String messageId = pubSubPushMessage.message!.messageId!;
 
     final Uint8List? messageLock = await cache.getOrCreate(
       subscriptionName,
@@ -145,7 +145,7 @@ abstract class SubscriptionHandlerV2 extends RequestHandler<Body> {
         },
       ),
       zoneValues: <RequestKey<dynamic>, Object?>{
-        PubSubKey.message: pushMessageV2.message,
+        PubSubKey.message: pubSubPushMessage.message!,
         ApiKey.authContext: authContext,
       },
     );
@@ -156,5 +156,5 @@ abstract class SubscriptionHandlerV2 extends RequestHandler<Body> {
 class PubSubKey<T> extends RequestKey<T> {
   const PubSubKey._(super.name);
 
-  static const PubSubKey<PubSubMessageV2> message = PubSubKey<PubSubMessageV2>._('message');
+  static const PubSubKey<PushMessageV2> message = PubSubKey<PushMessageV2>._('message');
 }
