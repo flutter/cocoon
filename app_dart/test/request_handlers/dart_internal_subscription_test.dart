@@ -13,7 +13,6 @@ import 'package:cocoon_service/src/model/luci/pubsub_message_v2.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart';
-import 'package:gcloud/pubsub.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -25,15 +24,41 @@ import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
+
+  final DateTime startTime = DateTime(2023, 11, 03, 20, 25, 0, 518383633);
+  final DateTime endTime = DateTime(2023, 11, 03, 20, 25, 0, 518383633);
+
+  // Omit the timestamps for expect purposes.
+  const String message = '''
+{
+  "buildPubsub":{
+    "build":{
+      "id":8766855135863637953,
+      "builder":{
+        "project":"dart-internal",
+        "bucket":"flutter",
+        "builder":"Linux packaging_release_builder"
+      },
+      "number":123456,
+      "status":"SUCCESS",
+      "input":{
+        "gitilesCommit":{
+          "project":"flutter/flutter",
+          "id":"HASH12345",
+          "ref":"refs/heads/test-branch"
+        }
+      }
+    }
+  }
+}
+''';
+
   late DartInternalSubscription handler;
   late FakeConfig config;
   late FakeHttpRequest request;
   late MockBuildBucketV2Client buildBucketClient;
   late SubscriptionV2Tester tester;
   late Commit commit;
-
-  final DateTime startTime = DateTime(2023, 1, 1, 0, 0, 0);
-  final DateTime endTime = DateTime(2023, 1, 1, 0, 14, 23);
 
   // ignore: unused_local_variable
   const String project = 'dart-internal';
@@ -70,8 +95,11 @@ void main() {
       timestamp: 0,
     );
 
-    final bbv2.PubSubCallBack pubSubCallBackTest = _constructPubSubCallBack();
-    tester.message = PushMessageV2.fromJson(json.decode(pubSubCallBackTest.writeToJson()) as Map<String, dynamic>);
+    final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
+    pubSubCallBackTest.mergeFromProto3Json(jsonDecode(message));
+
+    const PushMessageV2 pushMessageV2 = PushMessageV2(data: message, messageId: '798274983');
+    tester.message = pushMessageV2;
 
     when(
       buildBucketClient.getBuild(
@@ -84,176 +112,254 @@ void main() {
     await config.db.commit(inserts: datastoreCommit);
   });
 
-  // test('creates a new task successfully', () async {
-  //   // This needs to be written as JSON for some reason for it to be parsed successfully.
-  //   final bbv2.PubSubCallBack pubSubCallBackTest = _constructPubSubCallBack();
-  //   tester.message = Message.withString(pubSubCallBackTest.writeToJson());
+  test('creates a new task successfully', () async {
+    // This needs to be written as JSON for some reason for it to be parsed successfully.
+    final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
+    pubSubCallBackTest.mergeFromProto3Json(jsonDecode(message));
+    
+    const PushMessageV2 pushMessageV2 = PushMessageV2(data: message, messageId: '798274983');
+    tester.message = pushMessageV2;
 
-  //   await tester.post(handler);
+    await tester.post(handler);
 
-  //   verify(
-  //     buildBucketClient.getBuild(any),
-  //   ).called(1);
+    verify(
+      buildBucketClient.getBuild(any),
+    ).called(1);
 
-  //   // This is used for testing to pull the data out of the "datastore" so that
-  //   // we can verify what was saved.
-  //   late Task taskInDb;
-  //   late Commit commitInDb;
-  //   config.db.values.forEach((k, v) {
-  //     if (v is Task && v.buildNumberList == buildNumber.toString()) {
-  //       taskInDb = v;
-  //     }
-  //     if (v is Commit) {
-  //       commitInDb = v;
-  //     }
-  //   });
+    // This is used for testing to pull the data out of the "datastore" so that
+    // we can verify what was saved.
+    late Task taskInDb;
+    late Commit commitInDb;
+    config.db.values.forEach((k, v) {
+      if (v is Task && v.buildNumberList == buildNumber.toString()) {
+        taskInDb = v;
+      }
+      if (v is Commit) {
+        commitInDb = v;
+      }
+    });
 
-  //   // Ensure the task has the correct parent and commit key
-  //   expect(
-  //     commitInDb.id,
-  //     equals(taskInDb.commitKey?.id),
-  //   );
+    // Ensure the task has the correct parent and commit key
+    expect(
+      commitInDb.id,
+      equals(taskInDb.commitKey?.id),
+    );
 
-  //   expect(
-  //     commitInDb.id,
-  //     equals(taskInDb.parentKey?.id),
-  //   );
+    expect(
+      commitInDb.id,
+      equals(taskInDb.parentKey?.id),
+    );
 
-  //   // Ensure the task in the db is exactly what we expect
-  //   final Task expectedTask = Task(
-  //     attempts: 1,
-  //     buildNumber: buildNumber,
-  //     buildNumberList: buildNumber.toString(),
-  //     builderName: builder,
-  //     commitKey: commitInDb.key,
-  //     createTimestamp: startTime.millisecondsSinceEpoch,
-  //     endTimestamp: endTime.millisecondsSinceEpoch,
-  //     luciBucket: bucket,
-  //     name: builder,
-  //     stageName: 'dart-internal',
-  //     startTimestamp: startTime.millisecondsSinceEpoch,
-  //     status: 'Succeeded',
-  //     key: commit.key.append(Task),
-  //     timeoutInMinutes: 0,
-  //     reason: '',
-  //     requiredCapabilities: [],
-  //     reservedForAgentId: '',
-  //   );
+    // Ensure the task in the db is exactly what we expect
+    final Task expectedTask = Task(
+      attempts: 1,
+      buildNumber: buildNumber,
+      buildNumberList: buildNumber.toString(),
+      builderName: builder,
+      commitKey: commitInDb.key,
+      luciBucket: bucket,
+      name: builder,
+      stageName: 'dart-internal',
+      status: 'Succeeded',
+      key: commit.key.append(Task),
+      timeoutInMinutes: 0,
+      reason: '',
+      requiredCapabilities: [],
+      reservedForAgentId: '',
+    );
 
-  //   expect(
-  //     taskInDb.toString(),
-  //     equals(expectedTask.toString()),
-  //   );
-  // });
+    expect(
+      taskInDb.toString(),
+      equals(expectedTask.toString()),
+    );
+  });
 
-  // test('updates an existing task successfully', () async {
-  //   const int existingTaskId = 123;
-  //   final Task fakeTask = Task(
-  //     attempts: 1,
-  //     buildNumber: existingTaskId,
-  //     buildNumberList: existingTaskId.toString(),
-  //     builderName: builder,
-  //     commitKey: commit.key,
-  //     createTimestamp: startTime.millisecondsSinceEpoch,
-  //     endTimestamp: endTime.millisecondsSinceEpoch,
-  //     luciBucket: bucket,
-  //     name: builder,
-  //     stageName: 'dart-internal',
-  //     startTimestamp: startTime.millisecondsSinceEpoch,
-  //     status: 'Succeeded',
-  //     key: commit.key.append(Task),
-  //     timeoutInMinutes: 0,
-  //     reason: '',
-  //     requiredCapabilities: [],
-  //     reservedForAgentId: '',
-  //   );
-  //   final List<Task> datastoreCommit = <Task>[fakeTask];
-  //   await config.db.commit(inserts: datastoreCommit);
+  test('updates an existing task successfully', () async {
+    const int existingTaskId = 123;
+    final Task fakeTask = Task(
+      attempts: 1,
+      buildNumber: existingTaskId,
+      buildNumberList: existingTaskId.toString(),
+      builderName: builder,
+      commitKey: commit.key,
+      luciBucket: bucket,
+      name: builder,
+      stageName: 'dart-internal',
+      status: 'Succeeded',
+      key: commit.key.append(Task),
+      timeoutInMinutes: 0,
+      reason: '',
+      requiredCapabilities: [],
+      reservedForAgentId: '',
+    );
+    final List<Task> datastoreCommit = <Task>[fakeTask];
+    await config.db.commit(inserts: datastoreCommit);
 
-  //   final bbv2.PubSubCallBack pubSubCallBackTest = _constructPubSubCallBack();
-  //   tester.message = Message.withString(pubSubCallBackTest.writeToJson());
+     final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
+    pubSubCallBackTest.mergeFromProto3Json(jsonDecode(message));
+    
+    const PushMessageV2 pushMessageV2 = PushMessageV2(data: message, messageId: '798274983');
+    tester.message = pushMessageV2;
 
-  //   await tester.post(handler);
+    await tester.post(handler);
 
-  //   verify(
-  //     buildBucketClient.getBuild(any),
-  //   ).called(1);
+    verify(
+      buildBucketClient.getBuild(any),
+    ).called(1);
 
-  //   // This is used for testing to pull the data out of the "datastore" so that
-  //   // we can verify what was saved.
-  //   final String expectedBuilderList = '${existingTaskId.toString()},${buildNumber.toString()}';
-  //   late Task taskInDb;
-  //   late Commit commitInDb;
-  //   config.db.values.forEach((k, v) {
-  //     if (v is Task && v.buildNumberList == expectedBuilderList) {
-  //       taskInDb = v;
-  //     }
-  //     if (v is Commit) {
-  //       commitInDb = v;
-  //     }
-  //   });
+    // This is used for testing to pull the data out of the "datastore" so that
+    // we can verify what was saved.
+    final String expectedBuilderList = '${existingTaskId.toString()},${buildNumber.toString()}';
+    late Task taskInDb;
+    late Commit commitInDb;
+    config.db.values.forEach((k, v) {
+      if (v is Task && v.buildNumberList == expectedBuilderList) {
+        taskInDb = v;
+      }
+      if (v is Commit) {
+        commitInDb = v;
+      }
+    });
 
-  //   // Ensure the task has the correct parent and commit key
-  //   expect(
-  //     commitInDb.id,
-  //     equals(taskInDb.commitKey?.id),
-  //   );
+    // Ensure the task has the correct parent and commit key
+    expect(
+      commitInDb.id,
+      equals(taskInDb.commitKey?.id),
+    );
 
-  //   expect(
-  //     commitInDb.id,
-  //     equals(taskInDb.parentKey?.id),
-  //   );
+    expect(
+      commitInDb.id,
+      equals(taskInDb.parentKey?.id),
+    );
 
-  //   // Ensure the task in the db is exactly what we expect
-  //   final Task expectedTask = Task(
-  //     attempts: 2,
-  //     buildNumber: buildNumber,
-  //     buildNumberList: expectedBuilderList,
-  //     builderName: builder,
-  //     commitKey: commitInDb.key,
-  //     createTimestamp: startTime.millisecondsSinceEpoch,
-  //     endTimestamp: endTime.millisecondsSinceEpoch,
-  //     luciBucket: bucket,
-  //     name: builder,
-  //     stageName: 'dart-internal',
-  //     startTimestamp: startTime.millisecondsSinceEpoch,
-  //     status: 'Succeeded',
-  //     key: commit.key.append(Task),
-  //     timeoutInMinutes: 0,
-  //     reason: '',
-  //     requiredCapabilities: [],
-  //     reservedForAgentId: '',
-  //   );
+    // Ensure the task in the db is exactly what we expect
+    final Task expectedTask = Task(
+      attempts: 2,
+      buildNumber: buildNumber,
+      buildNumberList: expectedBuilderList,
+      builderName: builder,
+      commitKey: commitInDb.key,
+      luciBucket: bucket,
+      name: builder,
+      stageName: 'dart-internal',
+      status: 'Succeeded',
+      key: commit.key.append(Task),
+      timeoutInMinutes: 0,
+      reason: '',
+      requiredCapabilities: [],
+      reservedForAgentId: '',
+    );
 
-  //   expect(
-  //     taskInDb.toString(),
-  //     equals(expectedTask.toString()),
-  //   );
-  // });
+    expect(
+      taskInDb.toString(),
+      equals(expectedTask.toString()),
+    );
+  });
 
-  // test('ignores message with empty build data', () async {
-  //   tester.message = Message.withString('{}');
-  //   expect(await tester.post(handler), equals(Body.empty));
-  // });
+  test('ignores message with empty build data', () async {
+    tester.message = const PushMessageV2();
+    expect(await tester.post(handler), equals(Body.empty));
+  });
 
   // // TODO create a construction method for this to simplify testing.
-  // test('ignores message not from flutter bucket', () async {
-  //   final bbv2.PubSubCallBack pubSubCallBack = _constructPubSubCallBack(bucket: 'dart');
-  //   tester.message = Message.withString(pubSubCallBack.writeToJson());
-  //   expect(await tester.post(handler), equals(Body.empty));
-  // });
+  test('ignores message not from flutter bucket', () async {
+    const String dartMessage = '''
+{
+  "buildPubsub":{
+    "build":{
+      "id":8766855135863637953,
+      "builder":{
+        "project":"dart-internal",
+        "bucket":"dart",
+        "builder":"Linux packaging_release_builder"
+      },
+      "number":123456,
+      "status":"SUCCESS",
+      "input":{
+        "gitilesCommit":{
+          "project":"flutter/flutter",
+          "id":"HASH12345",
+          "ref":"refs/heads/test-branch"
+        }
+      }
+    }
+  }
+}
+''';
 
-  // test('ignores message not from dart-internal project', () async {
-  //   final bbv2.PubSubCallBack pubSubCallBack = _constructPubSubCallBack(project: 'unsupported-project');
-  //   tester.message = Message.withString(pubSubCallBack.writeToJson());
-  //   expect(await tester.post(handler), equals(Body.empty));
-  // });
+    final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
+    pubSubCallBackTest.mergeFromProto3Json(jsonDecode(dartMessage));
+    
+    const PushMessageV2 pushMessageV2 = PushMessageV2(data: dartMessage, messageId: '798274983');
+    tester.message = pushMessageV2;
+    expect(await tester.post(handler), equals(Body.empty));
+  });
 
-  // test('ignores message not from an accepted builder', () async {
-  //   final bbv2.PubSubCallBack pubSubCallBack = _constructPubSubCallBack(builder: 'different-builder');
-  //   tester.message = Message.withString(pubSubCallBack.writeToJson());
-  //   expect(await tester.post(handler), equals(Body.empty));
-  // });
+  test('ignores message not from dart-internal project', () async {
+     const String unsupportedProjectMessage = '''
+{
+  "buildPubsub":{
+    "build":{
+      "id":8766855135863637953,
+      "builder":{
+        "project":"unsupported-project",
+        "bucket":"dart",
+        "builder":"Linux packaging_release_builder"
+      },
+      "number":123456,
+      "status":"SUCCESS",
+      "input":{
+        "gitilesCommit":{
+          "project":"flutter/flutter",
+          "id":"HASH12345",
+          "ref":"refs/heads/test-branch"
+        }
+      }
+    }
+  }
+}
+''';
+
+    final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
+    pubSubCallBackTest.mergeFromProto3Json(jsonDecode(unsupportedProjectMessage));
+    
+    const PushMessageV2 pushMessageV2 = PushMessageV2(data: unsupportedProjectMessage, messageId: '798274983');
+    tester.message = pushMessageV2;
+    expect(await tester.post(handler), equals(Body.empty));
+  });
+
+  test('ignores message not from an accepted builder', () async {
+    const String unknownBuilderMessage = '''
+{
+  "buildPubsub":{
+    "build":{
+      "id":8766855135863637953,
+      "builder":{
+        "project":"dart-internal",
+        "bucket":"dart",
+        "builder":"different builder"
+      },
+      "number":123456,
+      "status":"SUCCESS",
+      "input":{
+        "gitilesCommit":{
+          "project":"flutter/flutter",
+          "id":"HASH12345",
+          "ref":"refs/heads/test-branch"
+        }
+      }
+    }
+  }
+}
+''';
+
+    final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
+    pubSubCallBackTest.mergeFromProto3Json(jsonDecode(unknownBuilderMessage));
+    
+    const PushMessageV2 pushMessageV2 = PushMessageV2(data: unknownBuilderMessage, messageId: '798274983');
+    tester.message = pushMessageV2;
+    expect(await tester.post(handler), equals(Body.empty));
+  });
 }
 
 bbv2.PubSubCallBack _constructPubSubCallBack({

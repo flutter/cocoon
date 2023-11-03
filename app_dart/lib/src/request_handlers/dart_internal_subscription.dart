@@ -3,6 +3,8 @@
 // found in the LICENSE file.
 
 // import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'dart:convert';
+
 import 'package:cocoon_service/src/request_handling/subscription_handler_v2.dart';
 import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
@@ -45,7 +47,10 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
       return Body.empty;
     }
 
-    final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack.fromJson(message.data!);
+    final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack();
+    pubSubCallBack.mergeFromProto3Json(jsonDecode(message.data!) as Map<String, dynamic>);
+
+    
     final bbv2.BuildsV2PubSub buildsV2PubSub = pubSubCallBack.buildPubsub;
 
     if (!buildsV2PubSub.hasBuild()) {
