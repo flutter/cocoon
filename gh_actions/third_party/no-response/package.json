@@ -1,0 +1,48 @@
+{
+  "name": "no-response",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A GitHub Action that closes Issues where the author hasn't responded to a request for more information",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "npx ncc build ./src/main.ts",
+    "ci": "npm run format-check && npm run lint && npm test",
+    "format": "prettier --write **/*.ts **/*.md **/*.yaml **/*.yml",
+    "format-check": "prettier --check **/*.ts **/*.md **/*.yaml **/*.yml",
+    "lint": "npx eslint src/**/*.ts",
+    "start": "npx ncc run ./src/main.ts",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lee-dohm/no-response.git"
+  },
+  "keywords": [
+    "actions",
+    "node",
+    "setup"
+  ],
+  "author": "lee-dohm",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.4.0",
+    "@actions/github": "^5.0.0",
+    "scramjet": "^4.36.0"
+  },
+  "devDependencies": {
+    "@octokit/webhooks-types": "^4.1.0",
+    "@types/jest": "^26.0.24",
+    "@types/node": "^16.3.1",
+    "@typescript-eslint/parser": "^4.28.3",
+    "@vercel/ncc": "^0.28.6",
+    "eslint": "^7.30.0",
+    "eslint-plugin-github": "^4.3.2",
+    "eslint-plugin-jest": "^24.3.6",
+    "extract-pr-titles": "^1.1.0",
+    "jest": "^27.0.6",
+    "js-yaml": "^4.1.0",
+    "prettier": "2.3.2",
+    "ts-jest": "^27.0.3",
+    "typescript": "^4.3.5"
+  }
+}
