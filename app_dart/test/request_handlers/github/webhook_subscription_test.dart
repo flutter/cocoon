@@ -2,14 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/model/luci/push_message.dart' as pm;
+import 'package:cocoon_service/src/model/proto/internal/github_webhook.pb.dart';
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 
 import 'package:github/github.dart' hide Branch;
+import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -272,12 +277,14 @@ void main() {
     test('Acts on opened against master when default is main', () async {
       const int issueNumber = 123;
 
-      tester.message = generateGithubWebhookMessage(
+      final pm.PushMessage pushMessage = generateGithubWebhookMessage(
         action: 'opened',
         number: issueNumber,
         baseRef: 'master',
         slug: Config.engineSlug,
       );
+
+      tester.message = pushMessage;
 
       when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
@@ -308,6 +315,11 @@ void main() {
           argThat(contains('master -> main')),
         ),
       ).called(1);
+
+      // Count two calls for the initial triggering and after the update of the
+      // base branch reference.
+      expect(scheduler.triggerPresubmitTargetsCallCount == 2, isTrue);
+      scheduler.resetTriggerPresubmitTargetsCallCount();
     });
 
     // We already schedule checks when a draft is opened, don't need to re-test
