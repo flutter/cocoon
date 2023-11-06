@@ -39,3 +39,6 @@ cipd_packages/codesign/**                                                   @Xil
 cipd_packages/device_doctor/**                                              @yusuf-goog
 cipd_packages/doxygen/**                                                    @gspencergoog
 cipd_packages/ruby/**                                                       @godofredoc
+
+## gh_actions
+gh_actions/third_party/no-response/**                                       @godofredoc
