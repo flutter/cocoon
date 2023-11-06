@@ -53,11 +53,11 @@ class SchedulerRequestSubscription extends SubscriptionHandlerV2 {
     log.fine('attempting to read message ${message.data}');
 
     final bbv2.BatchRequest batchRequest = bbv2.BatchRequest.create();
-    // print(json.decode(unencodedData) as Map<String, dynamic>);
     
     // Merge from json only works with the integer field names.
-    // batchRequest.mergeFromJson(message.data!);
     batchRequest.mergeFromProto3Json(jsonDecode(message.data!) as Map<String, dynamic>);
+
+    log.info('Read the following data: ${batchRequest.toProto3Json().toString()}');
 
     /// Retry scheduling builds upto 3 times.
     ///
@@ -93,6 +93,7 @@ class SchedulerRequestSubscription extends SubscriptionHandlerV2 {
 
   /// Returns [List<bbv2.BatchRequest_Request>] of requests that need to be retried.
   Future<List<bbv2.BatchRequest_Request>> _sendBatchRequest(bbv2.BatchRequest request) async {
+    log.info('Sending batch request for ${request.toProto3Json().toString()}');
     final bbv2.BatchResponse response = await buildBucketClient.batch(request);
     log.fine('Made ${request.requests.length} and received ${response.responses.length}');
     log.fine('Responses: ${response.responses}');
