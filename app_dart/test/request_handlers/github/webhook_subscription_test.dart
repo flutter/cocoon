@@ -314,7 +314,7 @@ void main() {
 
       // Count two calls for the initial triggering and after the update of the
       // base branch reference.
-      expect(scheduler.triggerPresubmitTargetsCallCount == 2, isTrue);
+      expect(scheduler.triggerPresubmitTargetsCallCount, 2);
       scheduler.resetTriggerPresubmitTargetsCallCount();
     });
 
