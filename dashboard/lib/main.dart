@@ -7,6 +7,7 @@ import 'dart:io' if (kIsWeb) '';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 
 import 'build_dashboard_page.dart';
 import 'service/cocoon.dart';
@@ -63,6 +64,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Build Dashboard — Cocoon',
+      shortcuts: <ShortcutActivator, Intent>{
+        ...WidgetsApp.defaultShortcuts,
+        const SingleActivator(LogicalKeyboardKey.select): const ActivateIntent(),
+      },
       theme: ThemeData(
         useMaterial3: false,
         primaryTextTheme: const TextTheme(

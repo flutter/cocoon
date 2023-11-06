@@ -51,6 +51,8 @@ class TestGrid extends StatelessWidget {
   }
 }
 
+const double _cellSize = 36;
+
 void main() {
   final DateTime nowTime = DateTime.utc(2020, 9, 1, 12, 30);
   final DateTime createTime = nowTime.subtract(const Duration(minutes: 52));
@@ -87,12 +89,15 @@ void main() {
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
-        child: MaterialApp(
-          theme: ThemeData(useMaterial3: false),
-          home: Scaffold(
-            body: TestGrid(
-              buildState: buildState,
-              task: expectedTask,
+        child: TaskBox(
+          cellSize: _cellSize,
+          child: MaterialApp(
+            theme: ThemeData(useMaterial3: false),
+            home: Scaffold(
+              body: TestGrid(
+                buildState: buildState,
+                task: expectedTask,
+              ),
             ),
           ),
         ),
@@ -106,7 +111,7 @@ void main() {
 
     await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.normal_overlay_closed.png');
 
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
     expect(find.text(expectedTask.name), findsOneWidget);
@@ -116,7 +121,7 @@ void main() {
 
     // Since the overlay positions itself below the middle of the widget,
     // it is safe to click the widget to close it again.
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
     expect(find.text(expectedTask.name), findsNothing);
@@ -146,12 +151,15 @@ void main() {
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
-        child: MaterialApp(
-          theme: ThemeData(useMaterial3: false),
-          home: Scaffold(
-            body: TestGrid(
-              buildState: buildState,
-              task: flakyTask,
+        child: TaskBox(
+          cellSize: _cellSize,
+          child: MaterialApp(
+            theme: ThemeData(useMaterial3: false),
+            home: Scaffold(
+              body: TestGrid(
+                buildState: buildState,
+                task: flakyTask,
+              ),
             ),
           ),
         ),
@@ -165,7 +173,7 @@ void main() {
 
     await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.flaky_overlay_closed.png');
 
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
     expect(find.text(flakyTask.name), findsOneWidget);
@@ -196,11 +204,14 @@ void main() {
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
-        child: MaterialApp(
-          home: Scaffold(
-            body: TestGrid(
-              buildState: buildState,
-              task: timeTask,
+        child: TaskBox(
+          cellSize: _cellSize,
+          child: MaterialApp(
+            home: Scaffold(
+              body: TestGrid(
+                buildState: buildState,
+                task: timeTask,
+              ),
             ),
           ),
         ),
@@ -210,7 +221,7 @@ void main() {
     expect(find.text(timeTaskInfoString), findsNothing);
 
     // open the overlay to show the task summary
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
     expect(find.text(timeTaskInfoString), findsOneWidget);
@@ -237,11 +248,14 @@ void main() {
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
-        child: MaterialApp(
-          home: Scaffold(
-            body: TestGrid(
-              buildState: buildState,
-              task: timeTask,
+        child: TaskBox(
+          cellSize: _cellSize,
+          child: MaterialApp(
+            home: Scaffold(
+              body: TestGrid(
+                buildState: buildState,
+                task: timeTask,
+              ),
             ),
           ),
         ),
@@ -251,7 +265,7 @@ void main() {
     expect(find.text(timeTaskInfoString), findsNothing);
 
     // open the overlay to show the task summary
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
     expect(find.text(timeTaskInfoString), findsOneWidget);
@@ -275,11 +289,14 @@ void main() {
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
-        child: MaterialApp(
-          home: Scaffold(
-            body: TestGrid(
-              buildState: buildState,
-              task: timeTask,
+        child: TaskBox(
+          cellSize: _cellSize,
+          child: MaterialApp(
+            home: Scaffold(
+              body: TestGrid(
+                buildState: buildState,
+                task: timeTask,
+              ),
             ),
           ),
         ),
@@ -289,7 +306,7 @@ void main() {
     expect(find.text(timeTaskInfoString), findsNothing);
 
     // open the overlay to show the task summary
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
     expect(find.text(timeTaskInfoString), findsOneWidget);
@@ -300,14 +317,17 @@ void main() {
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
-        child: MaterialApp(
-          theme: ThemeData(useMaterial3: false),
-          home: Scaffold(
-            body: TestGrid(
-              buildState: buildState,
-              task: Task()
-                ..stageName = 'luci'
-                ..status = TaskBox.statusSucceeded,
+        child: TaskBox(
+          cellSize: _cellSize,
+          child: MaterialApp(
+            theme: ThemeData(useMaterial3: false),
+            home: Scaffold(
+              body: TestGrid(
+                buildState: buildState,
+                task: Task()
+                  ..stageName = 'luci'
+                  ..status = TaskBox.statusSucceeded,
+              ),
             ),
           ),
         ),
@@ -317,7 +337,7 @@ void main() {
 
     await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.nondevicelab_closed.png');
 
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
     await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.nondevicelab_open.png');
@@ -327,14 +347,17 @@ void main() {
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
-        child: MaterialApp(
-          home: Scaffold(
-            body: TestGrid(
-              buildState: buildState,
-              task: Task()
-                ..stageName = 'chromebot'
-                ..status = TaskBox.statusSucceeded
-                ..buildNumberList = '123',
+        child: TaskBox(
+          cellSize: _cellSize,
+          child: MaterialApp(
+            home: Scaffold(
+              body: TestGrid(
+                buildState: buildState,
+                task: Task()
+                  ..stageName = 'chromebot'
+                  ..status = TaskBox.statusSucceeded
+                  ..buildNumberList = '123',
+              ),
             ),
           ),
         ),
@@ -343,7 +366,7 @@ void main() {
 
     expect(find.byType(LuciTaskAttemptSummary), findsNothing);
 
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
     expect(find.byType(LuciTaskAttemptSummary), findsOneWidget);
@@ -353,14 +376,17 @@ void main() {
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
-        child: MaterialApp(
-          home: Scaffold(
-            body: TestGrid(
-              buildState: buildState,
-              task: Task()
-                ..stageName = 'dart-internal'
-                ..status = TaskBox.statusSucceeded
-                ..buildNumberList = '123',
+        child: TaskBox(
+          cellSize: _cellSize,
+          child: MaterialApp(
+            home: Scaffold(
+              body: TestGrid(
+                buildState: buildState,
+                task: Task()
+                  ..stageName = 'dart-internal'
+                  ..status = TaskBox.statusSucceeded
+                  ..buildNumberList = '123',
+              ),
             ),
           ),
         ),
@@ -369,7 +395,7 @@ void main() {
 
     expect(find.byType(LuciTaskAttemptSummary), findsNothing);
 
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
     expect(find.byType(LuciTaskAttemptSummary), findsOneWidget);
@@ -389,11 +415,14 @@ void main() {
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
-        child: MaterialApp(
-          home: Scaffold(
-            body: TestGrid(
-              buildState: buildState,
-              task: expectedTask,
+        child: TaskBox(
+          cellSize: _cellSize,
+          child: MaterialApp(
+            home: Scaffold(
+              body: TestGrid(
+                buildState: buildState,
+                task: expectedTask,
+              ),
             ),
           ),
         ),
@@ -401,7 +430,7 @@ void main() {
     );
 
     // Open the overlay
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
     final ProgressButton? rerun = tester.element(find.text('RERUN')).findAncestorWidgetOfExactType<ProgressButton>();
@@ -424,11 +453,14 @@ void main() {
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
-        child: MaterialApp(
-          home: Scaffold(
-            body: TestGrid(
-              buildState: buildState,
-              task: expectedTask,
+        child: TaskBox(
+          cellSize: _cellSize,
+          child: MaterialApp(
+            home: Scaffold(
+              body: TestGrid(
+                buildState: buildState,
+                task: expectedTask,
+              ),
             ),
           ),
         ),
@@ -436,7 +468,7 @@ void main() {
     );
 
     // Open the overlay
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
     expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);
@@ -473,15 +505,18 @@ void main() {
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
-        child: MaterialApp(
-          home: ValueProvider<BuildState>(
-            value: buildState,
-            child: Scaffold(
-              body: ErrorBrookWatcher(
-                errors: buildState.errors,
-                child: TestGrid(
-                  buildState: buildState,
-                  task: expectedTask,
+        child: TaskBox(
+          cellSize: _cellSize,
+          child: MaterialApp(
+            home: ValueProvider<BuildState>(
+              value: buildState,
+              child: Scaffold(
+                body: ErrorBrookWatcher(
+                  errors: buildState.errors,
+                  child: TestGrid(
+                    buildState: buildState,
+                    task: expectedTask,
+                  ),
                 ),
               ),
             ),
@@ -490,7 +525,7 @@ void main() {
       ),
     );
 
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     // await tester.tap(find.byType(LatticeCell));
     // await tester.tap(find.byType(TaskOverlayContents));
     await tester.pump();
@@ -521,6 +556,7 @@ void main() {
       TaskOverlayEntryPositionDelegate.positionDependentBox(
         size: const Size(250, 150),
         childSize: childSize,
+        cellSize: _cellSize,
         target: const Offset(50.0, 50.0),
       ),
       const Offset(-25.0, 10.0),
@@ -531,6 +567,7 @@ void main() {
       TaskOverlayEntryPositionDelegate.positionDependentBox(
         size: normalSize,
         childSize: childSize,
+        cellSize: _cellSize,
         target: const Offset(50.0, 50.0),
       ),
       const Offset(50.0, 82.4),
@@ -540,6 +577,7 @@ void main() {
       TaskOverlayEntryPositionDelegate.positionDependentBox(
         size: normalSize,
         childSize: childSize,
+        cellSize: _cellSize,
         target: const Offset(590.0, 50.0),
       ),
       const Offset(490.0, 82.4),
@@ -549,6 +587,7 @@ void main() {
       TaskOverlayEntryPositionDelegate.positionDependentBox(
         size: normalSize,
         childSize: childSize,
+        cellSize: _cellSize,
         target: const Offset(50.0, 500.0),
       ),
       const Offset(50.0, 320.0),
@@ -558,6 +597,7 @@ void main() {
       TaskOverlayEntryPositionDelegate.positionDependentBox(
         size: normalSize,
         childSize: childSize,
+        cellSize: _cellSize,
         target: const Offset(590.0, 500.0),
       ),
       const Offset(490.0, 320.0),
