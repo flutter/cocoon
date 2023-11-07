@@ -21,3 +21,6 @@ jobs:
       - name: npm_run_ci
         working-directory: ./gh_actions/third_party/no-response
         run: npm run ci
+      - name: npm_run_build
+        working-directory: ./gh_actions/third_party/no-response
+        run: npm run build
