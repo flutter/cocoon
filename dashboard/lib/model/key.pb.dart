@@ -1,9 +1,13 @@
-///
+//
 //  Generated code. Do not modify.
 //  source: lib/model/key.proto
 //
 // @dart = 2.12
-// ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
+
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:core' as $core;
 
@@ -13,43 +17,43 @@ import 'package:protobuf/protobuf.dart' as $pb;
 enum Key_Id { uid, name, notSet }
 
 class Key extends $pb.GeneratedMessage {
-  static const $core.Map<$core.int, Key_Id> _Key_IdByTag = {2: Key_Id.uid, 3: Key_Id.name, 0: Key_Id.notSet};
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Key',
-      createEmptyInstance: create)
-    ..oo(0, [2, 3])
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'type')
-    ..aInt64(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'uid')
-    ..aOS(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'name')
-    ..aOM<Key>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'child', subBuilder: Key.create)
-    ..hasRequiredFields = false;
-
-  Key._() : super();
   factory Key({
     $core.String? type,
     $fixnum.Int64? uid,
     $core.String? name,
     Key? child,
   }) {
-    final _result = create();
+    final $result = create();
     if (type != null) {
-      _result.type = type;
+      $result.type = type;
     }
     if (uid != null) {
-      _result.uid = uid;
+      $result.uid = uid;
     }
     if (name != null) {
-      _result.name = name;
+      $result.name = name;
     }
     if (child != null) {
-      _result.child = child;
+      $result.child = child;
     }
-    return _result;
+    return $result;
   }
+  Key._() : super();
   factory Key.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory Key.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+
+  static const $core.Map<$core.int, Key_Id> _Key_IdByTag = {2: Key_Id.uid, 3: Key_Id.name, 0: Key_Id.notSet};
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Key',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'dashboard'), createEmptyInstance: create)
+    ..oo(0, [2, 3])
+    ..aOS(1, _omitFieldNames ? '' : 'type')
+    ..aInt64(2, _omitFieldNames ? '' : 'uid')
+    ..aOS(3, _omitFieldNames ? '' : 'name')
+    ..aOM<Key>(4, _omitFieldNames ? '' : 'child', subBuilder: Key.create)
+    ..hasRequiredFields = false;
+
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
@@ -57,9 +61,10 @@ class Key extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  Key copyWith(void Function(Key) updates) =>
-      super.copyWith((message) => updates(message as Key)) as Key; // ignore: deprecated_member_use
+  Key copyWith(void Function(Key) updates) => super.copyWith((message) => updates(message as Key)) as Key;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static Key create() => Key._();
   Key createEmptyInstance() => create();
@@ -123,31 +128,31 @@ class Key extends $pb.GeneratedMessage {
 }
 
 class RootKey extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'RootKey',
-      createEmptyInstance: create)
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'namespace')
-    ..aOM<Key>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'child', subBuilder: Key.create)
-    ..hasRequiredFields = false;
-
-  RootKey._() : super();
   factory RootKey({
     $core.String? namespace,
     Key? child,
   }) {
-    final _result = create();
+    final $result = create();
     if (namespace != null) {
-      _result.namespace = namespace;
+      $result.namespace = namespace;
     }
     if (child != null) {
-      _result.child = child;
+      $result.child = child;
     }
-    return _result;
+    return $result;
   }
+  RootKey._() : super();
   factory RootKey.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory RootKey.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RootKey',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'dashboard'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'namespace')
+    ..aOM<Key>(2, _omitFieldNames ? '' : 'child', subBuilder: Key.create)
+    ..hasRequiredFields = false;
+
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
@@ -156,8 +161,10 @@ class RootKey extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   RootKey copyWith(void Function(RootKey) updates) =>
-      super.copyWith((message) => updates(message as RootKey)) as RootKey; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as RootKey)) as RootKey;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static RootKey create() => RootKey._();
   RootKey createEmptyInstance() => create();
@@ -192,3 +199,6 @@ class RootKey extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   Key ensureChild() => $_ensure(1);
 }
+
+const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
+const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');

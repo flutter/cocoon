@@ -19,13 +19,12 @@ message Task {
     optional bool is_flaky = 8;
     optional int32 timeout_in_minutes = 9;
     optional string reason = 10;
-    repeated string required_capabilities = 11;
-    optional string reserved_for_agentId = 12;
     optional string stage_name = 13;
     optional string status = 14;
     optional int32 buildNumber = 15;
     optional string buildNumberList = 16;
-    optional string builderName = 17;
     optional string luciBucket = 18;
     optional bool is_test_flaky = 19;
+    reserved 11, 12, 17;
+    // Next ID: 20
 }

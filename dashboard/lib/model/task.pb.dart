@@ -1,9 +1,13 @@
-///
+//
 //  Generated code. Do not modify.
 //  source: lib/model/task.proto
 //
 // @dart = 2.12
-// ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
+
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:core' as $core;
 
@@ -13,41 +17,6 @@ import 'package:protobuf/protobuf.dart' as $pb;
 import 'key.pb.dart' as $0;
 
 class Task extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Task',
-      createEmptyInstance: create)
-    ..aOM<$0.RootKey>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'key',
-        subBuilder: $0.RootKey.create)
-    ..aOM<$0.RootKey>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'commitKey',
-        subBuilder: $0.RootKey.create)
-    ..aInt64(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'createTimestamp')
-    ..aInt64(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'startTimestamp')
-    ..aInt64(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'endTimestamp')
-    ..aOS(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'name')
-    ..a<$core.int>(
-        7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'attempts', $pb.PbFieldType.O3)
-    ..aOB(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'isFlaky')
-    ..a<$core.int>(
-        9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'timeoutInMinutes', $pb.PbFieldType.O3)
-    ..aOS(10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'reason')
-    ..pPS(11, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'requiredCapabilities')
-    ..aOS(12, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'reservedForAgentId',
-        protoName: 'reserved_for_agentId')
-    ..aOS(13, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'stageName')
-    ..aOS(14, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'status')
-    ..a<$core.int>(
-        15, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'buildNumber', $pb.PbFieldType.O3,
-        protoName: 'buildNumber')
-    ..aOS(16, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'buildNumberList',
-        protoName: 'buildNumberList')
-    ..aOS(17, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'builderName',
-        protoName: 'builderName')
-    ..aOS(18, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'luciBucket',
-        protoName: 'luciBucket')
-    ..aOB(19, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'isTestFlaky')
-    ..hasRequiredFields = false;
-
-  Task._() : super();
   factory Task({
     $0.RootKey? key,
     $0.RootKey? commitKey,
@@ -59,80 +28,90 @@ class Task extends $pb.GeneratedMessage {
     $core.bool? isFlaky,
     $core.int? timeoutInMinutes,
     $core.String? reason,
-    $core.Iterable<$core.String>? requiredCapabilities,
-    $core.String? reservedForAgentId,
     $core.String? stageName,
     $core.String? status,
     $core.int? buildNumber,
     $core.String? buildNumberList,
-    $core.String? builderName,
     $core.String? luciBucket,
     $core.bool? isTestFlaky,
   }) {
-    final _result = create();
+    final $result = create();
     if (key != null) {
-      _result.key = key;
+      $result.key = key;
     }
     if (commitKey != null) {
-      _result.commitKey = commitKey;
+      $result.commitKey = commitKey;
     }
     if (createTimestamp != null) {
-      _result.createTimestamp = createTimestamp;
+      $result.createTimestamp = createTimestamp;
     }
     if (startTimestamp != null) {
-      _result.startTimestamp = startTimestamp;
+      $result.startTimestamp = startTimestamp;
     }
     if (endTimestamp != null) {
-      _result.endTimestamp = endTimestamp;
+      $result.endTimestamp = endTimestamp;
     }
     if (name != null) {
-      _result.name = name;
+      $result.name = name;
     }
     if (attempts != null) {
-      _result.attempts = attempts;
+      $result.attempts = attempts;
     }
     if (isFlaky != null) {
-      _result.isFlaky = isFlaky;
+      $result.isFlaky = isFlaky;
     }
     if (timeoutInMinutes != null) {
-      _result.timeoutInMinutes = timeoutInMinutes;
+      $result.timeoutInMinutes = timeoutInMinutes;
     }
     if (reason != null) {
-      _result.reason = reason;
-    }
-    if (requiredCapabilities != null) {
-      _result.requiredCapabilities.addAll(requiredCapabilities);
-    }
-    if (reservedForAgentId != null) {
-      _result.reservedForAgentId = reservedForAgentId;
+      $result.reason = reason;
     }
     if (stageName != null) {
-      _result.stageName = stageName;
+      $result.stageName = stageName;
     }
     if (status != null) {
-      _result.status = status;
+      $result.status = status;
     }
     if (buildNumber != null) {
-      _result.buildNumber = buildNumber;
+      $result.buildNumber = buildNumber;
     }
     if (buildNumberList != null) {
-      _result.buildNumberList = buildNumberList;
-    }
-    if (builderName != null) {
-      _result.builderName = builderName;
+      $result.buildNumberList = buildNumberList;
     }
     if (luciBucket != null) {
-      _result.luciBucket = luciBucket;
+      $result.luciBucket = luciBucket;
     }
     if (isTestFlaky != null) {
-      _result.isTestFlaky = isTestFlaky;
+      $result.isTestFlaky = isTestFlaky;
     }
-    return _result;
+    return $result;
   }
+  Task._() : super();
   factory Task.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory Task.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Task',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'dashboard'), createEmptyInstance: create)
+    ..aOM<$0.RootKey>(1, _omitFieldNames ? '' : 'key', subBuilder: $0.RootKey.create)
+    ..aOM<$0.RootKey>(2, _omitFieldNames ? '' : 'commitKey', subBuilder: $0.RootKey.create)
+    ..aInt64(3, _omitFieldNames ? '' : 'createTimestamp')
+    ..aInt64(4, _omitFieldNames ? '' : 'startTimestamp')
+    ..aInt64(5, _omitFieldNames ? '' : 'endTimestamp')
+    ..aOS(6, _omitFieldNames ? '' : 'name')
+    ..a<$core.int>(7, _omitFieldNames ? '' : 'attempts', $pb.PbFieldType.O3)
+    ..aOB(8, _omitFieldNames ? '' : 'isFlaky')
+    ..a<$core.int>(9, _omitFieldNames ? '' : 'timeoutInMinutes', $pb.PbFieldType.O3)
+    ..aOS(10, _omitFieldNames ? '' : 'reason')
+    ..aOS(13, _omitFieldNames ? '' : 'stageName')
+    ..aOS(14, _omitFieldNames ? '' : 'status')
+    ..a<$core.int>(15, _omitFieldNames ? '' : 'buildNumber', $pb.PbFieldType.O3, protoName: 'buildNumber')
+    ..aOS(16, _omitFieldNames ? '' : 'buildNumberList', protoName: 'buildNumberList')
+    ..aOS(18, _omitFieldNames ? '' : 'luciBucket', protoName: 'luciBucket')
+    ..aOB(19, _omitFieldNames ? '' : 'isTestFlaky')
+    ..hasRequiredFields = false;
+
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
@@ -140,9 +119,10 @@ class Task extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  Task copyWith(void Function(Task) updates) =>
-      super.copyWith((message) => updates(message as Task)) as Task; // ignore: deprecated_member_use
+  Task copyWith(void Function(Task) updates) => super.copyWith((message) => updates(message as Task)) as Task;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static Task create() => Task._();
   Task createEmptyInstance() => create();
@@ -275,102 +255,78 @@ class Task extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   void clearReason() => clearField(10);
 
-  @$pb.TagNumber(11)
-  $core.List<$core.String> get requiredCapabilities => $_getList(10);
-
-  @$pb.TagNumber(12)
-  $core.String get reservedForAgentId => $_getSZ(11);
-  @$pb.TagNumber(12)
-  set reservedForAgentId($core.String v) {
-    $_setString(11, v);
-  }
-
-  @$pb.TagNumber(12)
-  $core.bool hasReservedForAgentId() => $_has(11);
-  @$pb.TagNumber(12)
-  void clearReservedForAgentId() => clearField(12);
-
   @$pb.TagNumber(13)
-  $core.String get stageName => $_getSZ(12);
+  $core.String get stageName => $_getSZ(10);
   @$pb.TagNumber(13)
   set stageName($core.String v) {
-    $_setString(12, v);
+    $_setString(10, v);
   }
 
   @$pb.TagNumber(13)
-  $core.bool hasStageName() => $_has(12);
+  $core.bool hasStageName() => $_has(10);
   @$pb.TagNumber(13)
   void clearStageName() => clearField(13);
 
   @$pb.TagNumber(14)
-  $core.String get status => $_getSZ(13);
+  $core.String get status => $_getSZ(11);
   @$pb.TagNumber(14)
   set status($core.String v) {
-    $_setString(13, v);
+    $_setString(11, v);
   }
 
   @$pb.TagNumber(14)
-  $core.bool hasStatus() => $_has(13);
+  $core.bool hasStatus() => $_has(11);
   @$pb.TagNumber(14)
   void clearStatus() => clearField(14);
 
   @$pb.TagNumber(15)
-  $core.int get buildNumber => $_getIZ(14);
+  $core.int get buildNumber => $_getIZ(12);
   @$pb.TagNumber(15)
   set buildNumber($core.int v) {
-    $_setSignedInt32(14, v);
+    $_setSignedInt32(12, v);
   }
 
   @$pb.TagNumber(15)
-  $core.bool hasBuildNumber() => $_has(14);
+  $core.bool hasBuildNumber() => $_has(12);
   @$pb.TagNumber(15)
   void clearBuildNumber() => clearField(15);
 
   @$pb.TagNumber(16)
-  $core.String get buildNumberList => $_getSZ(15);
+  $core.String get buildNumberList => $_getSZ(13);
   @$pb.TagNumber(16)
   set buildNumberList($core.String v) {
-    $_setString(15, v);
+    $_setString(13, v);
   }
 
   @$pb.TagNumber(16)
-  $core.bool hasBuildNumberList() => $_has(15);
+  $core.bool hasBuildNumberList() => $_has(13);
   @$pb.TagNumber(16)
   void clearBuildNumberList() => clearField(16);
 
-  @$pb.TagNumber(17)
-  $core.String get builderName => $_getSZ(16);
-  @$pb.TagNumber(17)
-  set builderName($core.String v) {
-    $_setString(16, v);
-  }
-
-  @$pb.TagNumber(17)
-  $core.bool hasBuilderName() => $_has(16);
-  @$pb.TagNumber(17)
-  void clearBuilderName() => clearField(17);
-
   @$pb.TagNumber(18)
-  $core.String get luciBucket => $_getSZ(17);
+  $core.String get luciBucket => $_getSZ(14);
   @$pb.TagNumber(18)
   set luciBucket($core.String v) {
-    $_setString(17, v);
+    $_setString(14, v);
   }
 
   @$pb.TagNumber(18)
-  $core.bool hasLuciBucket() => $_has(17);
+  $core.bool hasLuciBucket() => $_has(14);
   @$pb.TagNumber(18)
   void clearLuciBucket() => clearField(18);
 
   @$pb.TagNumber(19)
-  $core.bool get isTestFlaky => $_getBF(18);
+  $core.bool get isTestFlaky => $_getBF(15);
   @$pb.TagNumber(19)
   set isTestFlaky($core.bool v) {
-    $_setBool(18, v);
+    $_setBool(15, v);
   }
 
   @$pb.TagNumber(19)
-  $core.bool hasIsTestFlaky() => $_has(18);
+  $core.bool hasIsTestFlaky() => $_has(15);
   @$pb.TagNumber(19)
   void clearIsTestFlaky() => clearField(19);
 }
+
+const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
+const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
