@@ -37,10 +37,12 @@ class GithubRateLimitStatus extends RequestHandler<Body> {
     quotaUsage['timestamp'] = DateTime.now().toIso8601String();
 
     final int remainingQuota = quotaUsage['remaining'] as int;
-    const int quotaLimitSLO = 7500; // Half of the quota limit 15000.
-    if (remainingQuota < quotaLimitSLO) {
+    final int quotaLimit = quotaUsage['limit'] as int;
+    const double githubQuotaUsageSLO = 0.5;
+    if (remainingQuota < githubQuotaUsageSLO * quotaLimit) {
       log.warning(
-          'Remaining GitHub quota is $remainingQuota, which is less than $quotaLimitSLO (half of the quotaLimit 15000).');
+        'Remaining GitHub quota is $remainingQuota, which is less than quota usage SLO ${githubQuotaUsageSLO * quotaLimit} (${githubQuotaUsageSLO * 100}% of the limit $quotaLimit)).',
+      );
     }
 
     /// Insert quota usage to BigQuery
