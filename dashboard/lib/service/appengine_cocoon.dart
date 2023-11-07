@@ -272,8 +272,6 @@ class AppEngineCocoonService implements CocoonService {
 
   Task _taskFromJson(Map<String, dynamic> json) {
     final Map<String, dynamic> taskData = json['Task'];
-    final List<dynamic>? objectRequiredCapabilities = taskData['RequiredCapabilities'] as List<dynamic>?;
-
     final Task task = Task()
       ..key = (RootKey()..child = (Key()..name = json['Key'] as String))
       ..createTimestamp = Int64(taskData['CreateTimestamp'] as int)
@@ -284,15 +282,12 @@ class AppEngineCocoonService implements CocoonService {
       ..isFlaky = taskData['Flaky'] as bool
       ..timeoutInMinutes = taskData['TimeoutInMinutes'] as int
       ..reason = taskData['Reason'] as String
-      ..requiredCapabilities.add(objectRequiredCapabilities.toString())
-      ..reservedForAgentId = taskData['ReservedForAgentID'] as String
       ..stageName = taskData['StageName'] as String
       ..status = taskData['Status'] as String
       ..isTestFlaky = taskData['TestFlaky'] as bool? ?? false;
 
     task
       ..buildNumberList = taskData['BuildNumberList'] as String? ?? ''
-      ..builderName = taskData['BuilderName'] as String? ?? ''
       ..luciBucket = taskData['LuciBucket'] as String? ?? '';
     return task;
   }

@@ -63,13 +63,10 @@ void main() {
             ..isFlaky = false
             ..timeoutInMinutes = 0
             ..reason = ''
-            ..requiredCapabilities.add('[linux]')
-            ..reservedForAgentId = ''
-            ..stageName = 'chromebot'
+            ..stageName = 'cocoon'
             ..status = 'Succeeded'
             ..isTestFlaky = false
             ..buildNumberList = '123'
-            ..builderName = 'Linux'
             ..luciBucket = 'luci.flutter.try',
         );
 

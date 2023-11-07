@@ -35,9 +35,9 @@ class LuciTaskAttemptSummary extends StatelessWidget {
           child: Text('OPEN LOG FOR BUILD #${buildNumberList[i]}'),
           onPressed: () {
             if (task.stageName == 'dart-internal') {
-              launchUrl(_dartInternalLogUrl(task.builderName, buildNumberList[i]));
+              launchUrl(_dartInternalLogUrl(task.name, buildNumberList[i]));
             } else {
-              launchUrl(_luciProdLogUrl(task.builderName, buildNumberList[i]));
+              launchUrl(_luciProdLogUrl(task.name, buildNumberList[i]));
             }
           },
         );
@@ -45,12 +45,12 @@ class LuciTaskAttemptSummary extends StatelessWidget {
     );
   }
 
-  Uri _luciProdLogUrl(String builderName, String buildNumber) {
+  Uri _luciProdLogUrl(String name, String buildNumber) {
     final String pool = task.isFlaky ? 'staging' : 'prod';
-    return Uri.parse('$luciProdLogBase/$pool/$builderName/$buildNumber');
+    return Uri.parse('$luciProdLogBase/$pool/$name/$buildNumber');
   }
 
-  Uri _dartInternalLogUrl(String builderName, String buildNumber) {
-    return Uri.parse('$dartInternalLogBase/flutter/$builderName/$buildNumber');
+  Uri _dartInternalLogUrl(String name, String buildNumber) {
+    return Uri.parse('$dartInternalLogBase/flutter/$name/$buildNumber');
   }
 }

@@ -76,7 +76,7 @@ void main() {
                 task: Task()
                   ..key = (RootKey()..child = (Key()..name = 'loggylog'))
                   ..buildNumberList = '123'
-                  ..builderName = 'Linux',
+                  ..name = 'Linux',
               ),
             ],
           ),
@@ -102,7 +102,7 @@ void main() {
                 task: Task()
                   ..key = (RootKey()..child = (Key()..name = 'loggylog'))
                   ..buildNumberList = '123,456'
-                  ..builderName = 'Linux',
+                  ..name = 'Linux',
               ),
             ],
           ),
@@ -128,7 +128,7 @@ void main() {
                 task: Task()
                   ..key = (RootKey()..child = (Key()..name = 'dart-internal-log'))
                   ..buildNumberList = '123'
-                  ..builderName = 'Linux'
+                  ..name = 'Linux'
                   ..stageName = 'dart-internal',
               ),
             ],

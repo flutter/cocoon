@@ -75,7 +75,6 @@ void main() {
       ..attempts = 3
       ..stageName = StageName.cocoon
       ..name = 'Tasky McTaskFace'
-      ..reservedForAgentId = 'Agenty McAgentFace'
       ..isFlaky = false // As opposed to the next test.
       ..status = TaskBox.statusFailed
       ..createTimestamp = int64FromDateTime(createTime)
@@ -107,7 +106,6 @@ void main() {
 
     expect(find.text(expectedTask.name), findsNothing);
     expect(find.text(expectedTaskInfoString), findsNothing);
-    expect(find.text(expectedTask.reservedForAgentId), findsNothing);
 
     await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.normal_overlay_closed.png');
 
@@ -126,7 +124,6 @@ void main() {
 
     expect(find.text(expectedTask.name), findsNothing);
     expect(find.text(expectedTaskInfoString), findsNothing);
-    expect(find.text(expectedTask.reservedForAgentId), findsNothing);
 
     await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.normal_overlay_closed.png');
   });
@@ -169,7 +166,6 @@ void main() {
 
     expect(find.text(flakyTask.name), findsNothing);
     expect(find.text(flakyTaskInfoString), findsNothing);
-    expect(find.text(flakyTask.reservedForAgentId), findsNothing);
 
     await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.flaky_overlay_closed.png');
 
@@ -406,7 +402,6 @@ void main() {
       ..attempts = 3
       ..stageName = StageName.cocoon
       ..name = 'Tasky McTaskFace'
-      ..reservedForAgentId = 'Agenty McAgentFace'
       ..isFlaky = false;
 
     final FakeBuildState buildState = FakeBuildState(rerunTaskResult: true);
@@ -444,7 +439,6 @@ void main() {
       ..attempts = 3
       ..stageName = StageName.cocoon
       ..name = 'Tasky McTaskFace'
-      ..reservedForAgentId = 'Agenty McAgentFace'
       ..isFlaky = false;
 
     final FakeBuildState buildState = FakeBuildState(rerunTaskResult: true);
@@ -495,7 +489,6 @@ void main() {
       ..attempts = 3
       ..stageName = StageName.cocoon
       ..name = 'Tasky McTaskFace'
-      ..reservedForAgentId = 'Agenty McAgentFace'
       ..isFlaky = false
       ..status = TaskBox.statusNew;
 
