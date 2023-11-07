@@ -1,0 +1,18 @@
+name: no-response-test
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  unitTest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.3.4
+      - name: npm_ci
+        working-directory: ./gh_actions/third_party/no-response
+        run: npm ci
+      - name: npm_run_ci
+        working-directory: ./gh_actions/third_party/no-response
+        run: npm run ci
