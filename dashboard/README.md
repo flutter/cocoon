@@ -67,6 +67,16 @@ Imports in Dart files in this project should follow the rules
 enforced by the `directives_ordering` lint described
 [here](https://dart-lang.github.io/linter/lints/directives_ordering.html).
 
+## Building
+
+### Building proto generated code
+
+This assumes protoc and the Dart plugin are on your path.
+
+```sh
+protoc --dart_out=. lib/model/*.proto
+```
+
 ## Tests
 
 ### Updating Goldens
@@ -78,3 +88,4 @@ The tests require a linux host to be updated:
 ```sh
 flutter test --update-goldens
 ```
+
