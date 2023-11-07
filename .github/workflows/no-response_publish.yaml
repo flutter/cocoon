@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - gh_actions/thir_party/no-response/**
+      - gh_actions/third_party/no-response/**
 
 jobs:
   build:
