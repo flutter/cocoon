@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.repository == 'flutter/cocoon' }}
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v4.1.1
       - name: npm_ci
         working-directory: ./gh_actions/third_party/no-response
         run: npm ci
