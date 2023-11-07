@@ -30,7 +30,7 @@
     "scramjet": "^4.37.0"
   },
   "devDependencies": {
-    "@octokit/webhooks-types": "^4.1.0",
+    "@octokit/webhooks-types": "^7.3.1",
     "@types/jest": "^26.0.24",
     "@types/node": "^16.3.1",
     "@typescript-eslint/parser": "^4.28.3",
