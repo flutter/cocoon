@@ -30,6 +30,10 @@ cron:
   url: /api/push-build-status-to-github?repo=flutter/engine
   schedule: every 2 minutes
 
+- description: sends build status to GitHub to annotate packages PRs and commits
+  url: /api/push-build-status-to-github?repo=flutter/packages
+  schedule: every 2 minutes
+
 - description: push github rate limit history to bigquery
   url: /api/public/github-rate-limit-status
   schedule: every 1 minutes
