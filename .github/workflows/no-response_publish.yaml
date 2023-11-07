@@ -26,4 +26,3 @@ jobs:
       - uses: JasonEtco/build-and-tag-action@v2
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        working-directory: ./gh_actions/third_party/no-response
