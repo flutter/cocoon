@@ -2,12 +2,12 @@ name: no-response-test
 on:
   pull_request:
     paths:
-      - gh_actions/thir_party/no-response/**
+      - 'gh_actions/third_party/no-response/**'
   push:
     branches:
       - main
     paths:
-      - gh_actions/thir_party/no-response/**
+      - 'gh_actions/third_party/no-response/**'
 
 jobs:
   unitTest:
