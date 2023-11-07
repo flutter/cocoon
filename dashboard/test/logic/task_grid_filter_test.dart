@@ -23,7 +23,7 @@ void main() {
     expect(filter.matchesTask(QualifiedTask.fromTask(Task())), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = 'foo')), true);
-    expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = StageName.luci)), true);
+    expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = StageName.cocoon)), true);
 
     expect(filter.matchesCommit(CommitStatus()), true);
     expect(filter.matchesCommit(CommitStatus()..commit = Commit()), true);

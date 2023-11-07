@@ -30,6 +30,7 @@ dependencies:
   google_sign_in_platform_interface: any # Match google_sign_in
   google_sign_in_web: any # Match google_sign_in
   http: 0.13.5
+  path: 1.8.3
   protobuf: 2.1.0
   provider: 6.0.5
   url_launcher: 6.1.11
@@ -43,7 +44,6 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   mockito: 5.4.1 # Remember to run ./regen_mocks.sh!
-  path: 1.8.3
   url_launcher_platform_interface: 2.1.2
 
 # For information on the generic Dart part of this file, see the

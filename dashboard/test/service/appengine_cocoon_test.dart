@@ -154,7 +154,7 @@ void main() {
       );
       task = Task()
         ..key = RootKey()
-        ..stageName = StageName.luci;
+        ..stageName = StageName.cocoon;
     });
 
     test('should return true if request succeeds', () async {

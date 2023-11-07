@@ -24,7 +24,7 @@ Future<void> precacheTaskIcons(WidgetTester tester) async {
   await tester.pumpWidget(const SizedBox());
   await tester.runAsync(() async {
     for (final String asset in assets) {
-      final ImageProvider provider = ExactAssetImage('assets/$asset');
+      final ImageProvider provider = ExactAssetImage(path.join('assets', asset));
       await provider.evict();
       await precacheImage(
         provider,

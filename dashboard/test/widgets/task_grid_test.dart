@@ -389,7 +389,7 @@ void main() {
         ..tasks.addAll(
           <Task>[
             Task()
-              ..stageName = StageName.luci
+              ..stageName = StageName.cocoon
               ..name = '1'
               ..builderName = '1'
               ..status = TaskBox.statusSucceeded,

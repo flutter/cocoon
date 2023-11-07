@@ -73,7 +73,7 @@ void main() {
 
     final Task expectedTask = Task()
       ..attempts = 3
-      ..stageName = StageName.luci
+      ..stageName = StageName.cocoon
       ..name = 'Tasky McTaskFace'
       ..reservedForAgentId = 'Agenty McAgentFace'
       ..isFlaky = false // As opposed to the next test.
@@ -135,7 +135,7 @@ void main() {
     await precacheTaskIcons(tester);
     final Task flakyTask = Task()
       ..attempts = 3
-      ..stageName = StageName.luci
+      ..stageName = StageName.cocoon
       ..name = 'Tasky McTaskFace'
       ..isFlaky = true // This is the point of this test.
       ..status = TaskBox.statusFailed
@@ -190,7 +190,7 @@ void main() {
 
     final Task timeTask = Task()
       ..attempts = 1
-      ..stageName = StageName.luci
+      ..stageName = StageName.cocoon
       ..name = 'Tasky McTaskFace'
       ..isFlaky = false
       ..createTimestamp = int64FromDateTime(createTime)
@@ -234,7 +234,7 @@ void main() {
 
     final Task timeTask = Task()
       ..attempts = 1
-      ..stageName = StageName.luci
+      ..stageName = StageName.cocoon
       ..name = 'Tasky McTaskFace'
       ..status = TaskBox.statusInProgress
       ..isFlaky = false
@@ -277,7 +277,7 @@ void main() {
 
     final Task timeTask = Task()
       ..attempts = 1
-      ..stageName = StageName.luci
+      ..stageName = StageName.cocoon
       ..name = 'Tasky McTaskFace'
       ..status = TaskBox.statusNew
       ..isFlaky = false
@@ -404,7 +404,7 @@ void main() {
   testWidgets('TaskOverlay: RERUN button disabled when user !isAuthenticated', (WidgetTester tester) async {
     final Task expectedTask = Task()
       ..attempts = 3
-      ..stageName = StageName.luci
+      ..stageName = StageName.cocoon
       ..name = 'Tasky McTaskFace'
       ..reservedForAgentId = 'Agenty McAgentFace'
       ..isFlaky = false;
@@ -442,7 +442,7 @@ void main() {
   testWidgets('TaskOverlay: successful rerun shows success snackbar message', (WidgetTester tester) async {
     final Task expectedTask = Task()
       ..attempts = 3
-      ..stageName = StageName.luci
+      ..stageName = StageName.cocoon
       ..name = 'Tasky McTaskFace'
       ..reservedForAgentId = 'Agenty McAgentFace'
       ..isFlaky = false;
@@ -493,7 +493,7 @@ void main() {
   testWidgets('failed rerun shows errorBrook snackbar message', (WidgetTester tester) async {
     final Task expectedTask = Task()
       ..attempts = 3
-      ..stageName = StageName.luci
+      ..stageName = StageName.cocoon
       ..name = 'Tasky McTaskFace'
       ..reservedForAgentId = 'Agenty McAgentFace'
       ..isFlaky = false

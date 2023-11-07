@@ -42,7 +42,7 @@ void main() {
     final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
     UrlLauncherPlatform.instance = urlLauncher;
 
-    const QualifiedTask luciTask = QualifiedTask(stage: StageName.luci, task: 'test');
+    const QualifiedTask luciTask = QualifiedTask(stage: StageName.cocoon, task: 'test');
 
     await tester.pumpWidget(
       const MaterialApp(
@@ -76,34 +76,19 @@ void main() {
     expect(find.byIcon(Icons.help), findsOneWidget);
   });
 
-  testWidgets('TaskIcon shows the right icon for google test', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Material(
-          child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'google_internal'),
-          ),
-        ),
-      ),
-    );
-
-    expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
-    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/googleLogo.png');
-  });
-
   testWidgets('TaskIcon shows the right icon for web', (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Windows_web test', pool: 'luci.flutter.prod'),
+            qualifiedTask: QualifiedTask(stage: 'cocoon', task: 'Windows_web test', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
     );
 
     expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
-    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/chromium.png');
+    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, contains('chromium.png'));
   });
 
   testWidgets('TaskIcon shows the right icon for LUCI windows', (WidgetTester tester) async {
@@ -111,14 +96,14 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Windows something', pool: 'luci.flutter.prod'),
+            qualifiedTask: QualifiedTask(stage: 'cocoon', task: 'Windows something', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
     );
 
     expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
-    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/windows.png');
+    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, contains('windows.png'));
   });
 
   testWidgets('TaskIcon shows the right icon for fuchsia', (WidgetTester tester) async {
@@ -126,15 +111,14 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask:
-                QualifiedTask(stage: 'chromebot', task: 'Windows_fuchsia something', pool: 'luci.flutter.prod'),
+            qualifiedTask: QualifiedTask(stage: 'cocoon', task: 'Windows_fuchsia something', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
     );
 
     expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
-    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/fuchsia.png');
+    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, contains('fuchsia.png'));
   });
 
   testWidgets('TaskIcon shows the right icon for LUCI android', (WidgetTester tester) async {
@@ -142,7 +126,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Windows_android test', pool: 'luci.flutter.prod'),
+            qualifiedTask: QualifiedTask(stage: 'cocoon', task: 'Windows_android test', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
@@ -157,14 +141,14 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Mac test', pool: 'luci.flutter.prod'),
+            qualifiedTask: QualifiedTask(stage: 'cocoon', task: 'Mac test', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
     );
 
     expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
-    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/apple.png');
+    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, contains('apple.png'));
   });
 
   testWidgets('TaskIcon shows the right icon for LUCI mac/iphone', (WidgetTester tester) async {
@@ -172,7 +156,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Mac_ios test', pool: 'luci.flutter.prod'),
+            qualifiedTask: QualifiedTask(stage: 'cocoon', task: 'Mac_ios test', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
@@ -187,14 +171,14 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Linux test', pool: 'luci.flutter.prod'),
+            qualifiedTask: QualifiedTask(stage: 'cocoon', task: 'Linux test', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
     );
 
     expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
-    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/linux.png');
+    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, contains('linux.png'));
   });
 
   testWidgets('TaskIcon shows the right icon for unknown', (WidgetTester tester) async {
@@ -202,7 +186,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Unknown', pool: 'luci.flutter.prod'),
+            qualifiedTask: QualifiedTask(stage: 'cocoon', task: 'Unknown', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
@@ -225,6 +209,6 @@ void main() {
     );
 
     expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
-    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/linux.png');
+    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, contains('linux.png'));
   });
 }

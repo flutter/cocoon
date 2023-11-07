@@ -26,7 +26,7 @@ const String luciJsonGetStatsResponse = '''
             },
             "Stages": [
               {
-                "Name": "chromebot",
+                "Name": "cocoon",
                 "Status": "Succeeded",
                 "Tasks": [
                   {
@@ -40,7 +40,7 @@ const String luciJsonGetStatsResponse = '''
                       "Reason": "",
                       "RequiredCapabilities": ["linux"],
                       "ReservedForAgentID": "",
-                      "StageName": "chromebot",
+                      "StageName": "cocoon",
                       "StartTimestamp": 1569354594672,
                       "Status": "Succeeded",
                       "TimeoutInMinutes": 0,

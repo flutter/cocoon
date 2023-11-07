@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as path;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../logic/qualified_task.dart';
@@ -34,13 +35,6 @@ class TaskIcon extends StatelessWidget {
     // different assets.
     final Color? blendFilter = brightness == Brightness.dark ? Colors.white : null;
 
-    if (qualifiedTask.isGoogleTest) {
-      return Image.asset(
-        'assets/googleLogo.png',
-        color: blendFilter,
-      );
-    }
-
     if (qualifiedTask.task == null || !(qualifiedTask.isLuci || qualifiedTask.isDartInternal)) {
       return Icon(
         Icons.help,
@@ -48,11 +42,11 @@ class TaskIcon extends StatelessWidget {
       );
     }
 
-    if (qualifiedTask.task!.toLowerCase().contains('_fuchsia')) {
+    if (qualifiedTask.task!.toLowerCase().contains('fuchsia')) {
       return Padding(
         padding: const EdgeInsets.all(2.0),
         child: Image.asset(
-          'assets/fuchsia.png',
+          path.join('assets', 'fuchsia.png'),
           color: blendFilter,
         ),
       );
@@ -60,7 +54,7 @@ class TaskIcon extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.all(2.0),
         child: Image.asset(
-          'assets/chromium.png',
+          path.join('assets', 'chromium.png'),
           color: blendFilter,
         ),
       );
@@ -73,7 +67,7 @@ class TaskIcon extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.all(2.0),
         child: Image.asset(
-          'assets/linux.png',
+          path.join('assets', 'linux.png'),
           color: blendFilter,
         ),
       );
@@ -87,14 +81,14 @@ class TaskIcon extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.all(2.0),
           child: Image.asset(
-            'assets/apple.png',
+            path.join('assets', 'apple.png'),
             color: blendFilter,
           ),
         );
       }
     } else if (qualifiedTask.task!.toLowerCase().startsWith('win')) {
       return Image.asset(
-        'assets/windows.png',
+        path.join('assets', 'windows.png'),
         color: blendFilter,
       );
     }

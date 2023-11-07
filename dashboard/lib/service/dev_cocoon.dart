@@ -290,7 +290,7 @@ class DevelopmentCocoonService implements CocoonService {
     }
     return List<Task>.generate(
       _repoTaskCount[commit.repository]!,
-      (int i) => _createFakeTask(commitTimestamp, i, StageName.luci, random),
+      (int i) => _createFakeTask(commitTimestamp, i, random),
     );
   }
 
@@ -327,7 +327,7 @@ class DevelopmentCocoonService implements CocoonService {
     'Skipped': 0,
   };
 
-  Task _createFakeTask(int commitTimestamp, int index, String stageName, math.Random random) {
+  Task _createFakeTask(int commitTimestamp, int index, math.Random random) {
     final int age = (now.millisecondsSinceEpoch - commitTimestamp) ~/ _commitGap;
     assert(age >= 0);
     // The [statusesProbability] list is an list of proportional
@@ -375,17 +375,25 @@ class DevelopmentCocoonService implements CocoonService {
     final int minAttempts = _minAttempts[status]!;
     final int maxAttempts = _maxAttempts[status]!;
     final int attempts = minAttempts + random.nextInt(maxAttempts - minAttempts + 1);
+
+    final Map<int, String> platforms = <int, String>{
+      0: 'Linux_android',
+      1: 'Linux',
+      2: 'Mac',
+      3: 'Mac_android',
+      4: 'Mac_ios',
+      5: 'Windows',
+      6: 'Windows_android',
+    };
+
     final Task task = Task()
       ..createTimestamp = Int64(commitTimestamp + index)
       ..startTimestamp = Int64(commitTimestamp + (index * 1000 * 60))
       ..endTimestamp = Int64(commitTimestamp + (index * 1000 * 60) + (index * 1000 * 60))
-      ..name = 'Linux_android $index'
-      ..builderName = 'Linux_android $index'
+      ..name = '${platforms[index % 7]} $index'
       ..attempts = attempts
       ..isFlaky = index == now.millisecondsSinceEpoch % 13
-      ..requiredCapabilities.add('[linux/android]')
-      ..reservedForAgentId = 'linux1'
-      ..stageName = stageName
+      ..stageName = StageName.cocoon
       ..status = status
       ..isTestFlaky = index == now.millisecondsSinceEpoch % 17;
 
