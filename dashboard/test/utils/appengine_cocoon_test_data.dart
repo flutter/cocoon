@@ -38,14 +38,11 @@ const String luciJsonGetStatsResponse = '''
                       "Flaky": false,
                       "Name": "linux",
                       "Reason": "",
-                      "RequiredCapabilities": ["linux"],
-                      "ReservedForAgentID": "",
                       "StageName": "cocoon",
                       "StartTimestamp": 1569354594672,
                       "Status": "Succeeded",
                       "TimeoutInMinutes": 0,
                       "BuildNumberList": "123",
-                      "BuilderName": "Linux",
                       "LuciBucket": "luci.flutter.try"
                     }
                   }
