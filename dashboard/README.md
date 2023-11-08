@@ -78,3 +78,34 @@ The tests require a linux host to be updated:
 ```sh
 flutter test --update-goldens
 ```
+
+## Deploying
+
+### Web
+
+Cocoon has a daily Cloud Build trigger that will publish this to
+https://flutter-dashboard-appspot.com.
+
+### Playstore
+
+#### Set up
+
+Download signing key from Valentine (under dashboards@flutter.dev). Save to
+`$HOME/upload-keystore.jks`
+
+Create `android/key.properties`
+
+```sh
+storePassword=$password
+keyPassword=$password
+keyAlias=upload
+storeFile=$HOME/upload-keystore.jks
+```
+
+#### Publishing
+
+`flutter build appbundle`
+
+We ship debug mode as it makes it easy to debug issues in production.
+
+In the Play Console for dashboards@flutter.dev, upload the new app.aab output.
