@@ -8,7 +8,7 @@
     "build": "npx ncc build ./src/main.ts",
     "ci": "npm run format-check && npm run lint && npm test",
     "format": "prettier --write **/*.ts **/*.md **/*.yml",
-    "format-check": "prettier --check **/*.ts **/*.md **/*.yml",
+    "format-check": "prettier --check --verbose **/*.ts **/*.md **/*.yml",
     "lint": "npx eslint src/**/*.ts",
     "start": "npx ncc run ./src/main.ts",
     "test": "jest"
