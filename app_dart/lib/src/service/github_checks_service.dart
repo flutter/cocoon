@@ -181,7 +181,6 @@ class GithubChecksService {
         // tasks when builds timeout.
         return github.CheckRunConclusion.failure;
       case push_message.Result.failure:
-      case push_message.Result.infraFailure:
         return github.CheckRunConclusion.failure;
       case push_message.Result.success:
         return github.CheckRunConclusion.success;
