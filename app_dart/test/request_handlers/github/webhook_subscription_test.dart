@@ -609,6 +609,9 @@ void main() {
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'dev/devicelab/lib/versions/gallery.dart',
           PullRequestFile()..filename = 'dev/integration_tests/some_package/android/build.gradle',
+          PullRequestFile()..filename = 'impeller/fixtures/dart_tests.dart',
+          PullRequestFile()..filename = 'impeller/golden_tests/golden_tests.cc',
+          PullRequestFile()..filename = 'impeller/playground/playground.cc',
           PullRequestFile()..filename = 'shell/platform/embedder/tests/embedder_test_context.cc',
           PullRequestFile()..filename = 'shell/platform/embedder/fixtures/main.dart',
         ]),
