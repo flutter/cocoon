@@ -1,5 +1,8 @@
 name: no-response-publish
 
+# Declare default permissions as read only.
+permissions: read-all
+
 on:
   release:
     types: [published, edited]
@@ -14,15 +17,15 @@ jobs:
     if: ${{ github.repository == 'flutter/cocoon' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ github.event.release.tag_name }}
+          sparse-checkout: 'gh_actions/third_party/no-response'
+          sparse-checkout-cone-mode: false
       - name: npm_ci
-        working-directory: ./gh_actions/third_party/no-response
         run: npm ci
       - name: npm_run_build
-        working-directory: ./gh_actions/third_party/no-response
         run: npm run build
-      - uses: JasonEtco/build-and-tag-action@v2
+      - uses: JasonEtco/build-and-tag-action@dd5e4991048c325f6d85b4155e586fc211c644da
         env:
           GITHUB_TOKEN: ${{ github.token }}

@@ -1,4 +1,8 @@
 name: no-response-test
+
+# Declare default permissions as read only.
+permissions: read-all
+
 on:
   pull_request:
     paths:
@@ -14,13 +18,15 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.repository == 'flutter/cocoon' }}
     steps:
-      - uses: actions/checkout@v4.1.1
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          sparse-checkout: 'gh_actions/third_party/no-response'
+          sparse-checkout-cone-mode: false
       - name: npm_ci
-        working-directory: ./gh_actions/third_party/no-response
         run: npm ci
       - name: npm_run_ci
-        working-directory: ./gh_actions/third_party/no-response
         run: npm run ci
       - name: npm_run_build
-        working-directory: ./gh_actions/third_party/no-response
         run: npm run build
