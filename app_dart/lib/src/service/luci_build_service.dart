@@ -479,7 +479,7 @@ class LuciBuildService {
     Set<String> availableBuilderSet;
     try {
       availableBuilderSet = await getAvailableBuilderSet(project: 'flutter', bucket: 'prod');
-    } on BuildBucketException catch (error) {
+    } catch (error) {
       log.severe('Failed to get buildbucket builder list due to $error');
       return toBeScheduled;
     }
@@ -506,7 +506,7 @@ class LuciBuildService {
     try {
       messageIds = await pubsub.publish('scheduler-requests', batchRequest);
       log.info('Published $messageIds for commit ${commit.sha}');
-    } on DetailedApiRequestError catch (error) {
+    } catch (error) {
       log.severe('Failed to publish message to pub/sub due to $error');
       return toBeScheduled;
     }
