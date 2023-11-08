@@ -10,7 +10,8 @@ on:
       - main
     paths:
       - 'gh_actions/third_party/no-response/**'
-
+      - '.github/workflows/no-response_test.yaml'
+      - '.github/workflows/no-response_publish.yaml'
 jobs:
   build:
     runs-on: ubuntu-latest
