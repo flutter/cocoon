@@ -20,6 +20,8 @@ jobs:
           ref: ${{ github.event.release.tag_name }}
           sparse-checkout: 'gh_actions/third_party/no-response'
           sparse-checkout-cone-mode: false
+      - name: ls
+        run: ls
       - name: npm_ci
         run: npm ci
       - name: npm_run_ci
