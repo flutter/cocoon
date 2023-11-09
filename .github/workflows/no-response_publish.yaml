@@ -23,6 +23,12 @@ jobs:
           ref: ${{ github.event.release.tag_name }}
           sparse-checkout: 'gh_actions/third_party/no-response'
           sparse-checkout-cone-mode: false
+      - name: move_package_to_root
+        run: |
+          mv -f gh_actions/third_party/no-response/{.[!.],}* ./
+          rm -rf gh_actions
+      - name: ls
+        run: ls -la
       - name: npm_ci
         run: npm ci
       - name: npm_run_build
