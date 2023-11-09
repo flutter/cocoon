@@ -22,7 +22,7 @@ jobs:
           sparse-checkout-cone-mode: false
       - name: move_package_to_root
         run: |
-          mv gh_actions/third_party/no-response/.[!.]* ./
+          mv -f gh_actions/third_party/no-response/{.,}* ./
           rm -rf gh_actions
       - name: ls
         run: ls -la
