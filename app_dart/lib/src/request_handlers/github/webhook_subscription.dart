@@ -400,7 +400,11 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
     await for (PullRequestFile file in files) {
       final String filename = file.filename!;
-      if (_fileContainsAddedCode(file) && !_isTestExempt(filename)) {
+      if (_fileContainsAddedCode(file) &&
+          !_isTestExempt(filename) &&
+          // Build files don't need unit tests.
+          !filename.endsWith('.gn') &&
+          !filename.endsWith('.gni')) {
         needsTests = !_allChangesAreCodeComments(file);
       }
 
