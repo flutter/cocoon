@@ -48,7 +48,11 @@ class TaskIcon extends StatelessWidget {
       );
     }
 
-    if (qualifiedTask.task!.toLowerCase().contains('_fuchsia')) {
+    final String matchedName = qualifiedTask.task!.toLowerCase();
+    final bool isWebTest = matchedName.contains('_web') || matchedName.contains('web_');
+    final bool isToolTest = matchedName.contains('_tool') || matchedName.contains('tool_');
+
+    if (matchedName.contains('_fuchsia')) {
       return Padding(
         padding: const EdgeInsets.all(2.0),
         child: Image.asset(
@@ -56,7 +60,7 @@ class TaskIcon extends StatelessWidget {
           color: blendFilter,
         ),
       );
-    } else if (qualifiedTask.task!.toLowerCase().contains('_web')) {
+    } else if (isWebTest && !isToolTest) {
       return Padding(
         padding: const EdgeInsets.all(2.0),
         child: Image.asset(
@@ -64,12 +68,12 @@ class TaskIcon extends StatelessWidget {
           color: blendFilter,
         ),
       );
-    } else if (qualifiedTask.task!.toLowerCase().contains('_android')) {
+    } else if (matchedName.contains('_android')) {
       return Icon(
         Icons.android,
         color: blendFilter,
       );
-    } else if (qualifiedTask.task!.toLowerCase().startsWith('linux')) {
+    } else if (matchedName.startsWith('linux')) {
       return Padding(
         padding: const EdgeInsets.all(2.0),
         child: Image.asset(
@@ -77,8 +81,8 @@ class TaskIcon extends StatelessWidget {
           color: blendFilter,
         ),
       );
-    } else if (qualifiedTask.task!.toLowerCase().startsWith('mac')) {
-      if (qualifiedTask.task!.toLowerCase().contains('_ios')) {
+    } else if (matchedName.startsWith('mac')) {
+      if (matchedName.contains('_ios')) {
         return Icon(
           Icons.phone_iphone,
           color: blendFilter,
@@ -92,7 +96,7 @@ class TaskIcon extends StatelessWidget {
           ),
         );
       }
-    } else if (qualifiedTask.task!.toLowerCase().startsWith('win')) {
+    } else if (matchedName.startsWith('win')) {
       return Image.asset(
         'assets/windows.png',
         color: blendFilter,
