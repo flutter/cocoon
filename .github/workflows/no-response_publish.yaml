@@ -43,3 +43,5 @@ jobs:
       - uses: JasonEtco/build-and-tag-action@dd5e4991048c325f6d85b4155e586fc211c644da
         env:
           GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tag_name: 'no-response-v0.5.1'
