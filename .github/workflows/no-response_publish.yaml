@@ -4,6 +4,11 @@ name: no-response-publish
 permissions: read-all
 
 on:
+  pull_request:
+    paths:
+      - 'gh_actions/third_party/no-response/**'
+      - '.github/workflows/no-response_test.yaml'
+      - '.github/workflows/no-response_publish.yaml'
   release:
     types: [published, edited]
     branches:
@@ -20,7 +25,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: 'no-response-v0.5.1'
           sparse-checkout: 'gh_actions/third_party/no-response'
           sparse-checkout-cone-mode: false
       - name: move_package_to_root
