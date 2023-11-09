@@ -399,11 +399,11 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
     await for (PullRequestFile file in files) {
       final String filename = file.filename!.toLowerCase();
-      if (_fileContainsAddedCode(file) && filename.endsWith('.dart') ||
+      if (_fileContainsAddedCode(file) && (filename.endsWith('.dart') ||
           filename.endsWith('.mm') ||
           filename.endsWith('.m') ||
           filename.endsWith('.java') ||
-          filename.endsWith('.cc')) {
+          filename.endsWith('.cc'))) {
         needsTests = !_allChangesAreCodeComments(file);
       }
 

@@ -1692,6 +1692,11 @@ void foo() {
             ..deletionsCount = 20
             ..additionsCount = 0
             ..changesCount = 20,
+          PullRequestFile()
+            ..filename = 'flutter/lib/ui/bar.java'
+            ..deletionsCount = 20
+            ..additionsCount = 0
+            ..changesCount = 20,
         ]),
       );
 
