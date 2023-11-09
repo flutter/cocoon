@@ -249,7 +249,8 @@ void main() {
     tester.message = createBuildbucketPushMessage(
       'COMPLETED',
       builderName: 'Linux A',
-      result: 'INFRA_FAILURE',
+      result: 'FAILURE',
+      failureReason: 'INFRA_FAILURE',
       userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
     );
 

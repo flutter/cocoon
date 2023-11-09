@@ -31,6 +31,19 @@ targets:
     recipe: cocoon/cocoon
     properties:
       add_recipes_cq: "true"
+    runIf:
+      - .ci.yaml
+      - analyze/**
+      - app_dart/**
+      - auto_submit/**
+      - cipd_packages/**
+      - cloud_build/**
+      - dashboard/**
+      - dev/**
+      - licenses/**
+      - packages/**
+      - test_utilities/**
+      - tooling/**
 
   - name: Linux device_doctor
     recipe: cocoon/cipd
@@ -145,3 +158,5 @@ targets:
     recipe: infra/ci_yaml
     properties:
       backfill: "false"
+    runIf:
+      - .ci.yaml

@@ -180,6 +180,24 @@ void main() {
         task.updateFromBuild(build);
         expect(task.status, Task.statusCancelled);
       });
+
+      test('handles infra failed build', () {
+        final pm.Build build = generatePushMessageBuild(
+          1,
+          status: pm.Status.completed,
+          result: pm.Result.failure,
+          failureReason: pm.FailureReason.infraFailure,
+        );
+        final Task task = generateTask(
+          1,
+          buildNumber: 1,
+          status: Task.statusNew,
+        );
+
+        expect(task.status, Task.statusNew);
+        task.updateFromBuild(build);
+        expect(task.status, Task.statusInfraFailure);
+      });
     });
   });
 

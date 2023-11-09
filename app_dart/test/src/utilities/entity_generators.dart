@@ -167,6 +167,7 @@ push_message.Build generatePushMessageBuild(
   DateTime? completedTimestamp,
   DateTime? createdTimestamp,
   DateTime? startedTimestamp,
+  push_message.FailureReason? failureReason,
 }) {
   tags ??= <String>[];
   tags.add('build_address:luci.flutter.prod/$name/$buildNumber');
@@ -181,6 +182,7 @@ push_message.Build generatePushMessageBuild(
     completedTimestamp: completedTimestamp,
     startedTimestamp: startedTimestamp,
     tags: tags,
+    failureReason: failureReason,
   );
 }
 
