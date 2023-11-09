@@ -1256,6 +1256,40 @@ void foo() {
       ).called(1);
     });
 
+    test('Engine labels PRs, comment if no tests for unknown file', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.engineSlug,
+        baseRef: Config.defaultBranch(Config.engineSlug),
+      );
+      final RepositorySlug slug = RepositorySlug('flutter', 'engine');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'foo/bar/baz.madeupextension',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verify(
+        issuesService.createComment(
+          slug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      ).called(1);
+    });
+
     group('Auto-roller accounts do not label Engine PR with test label or comment.', () {
       final Set<String> inputs = {
         'engine-flutter-autoroll',
@@ -1365,7 +1399,7 @@ void foo() {
       );
     });
 
-    test('Engine labels PRs, no code files', () async {
+    test('Engine labels PRs, no comment if DEPS-only', () async {
       const int issueNumber = 123;
 
       tester.message = generateGithubWebhookMessage(
@@ -1689,6 +1723,11 @@ void foo() {
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()
             ..filename = 'flutter/lib/ui/foo.dart'
+            ..deletionsCount = 20
+            ..additionsCount = 0
+            ..changesCount = 20,
+          PullRequestFile()
+            ..filename = 'shell/platform/darwin/ios/platform_view_ios.mm'
             ..deletionsCount = 20
             ..additionsCount = 0
             ..changesCount = 20,
