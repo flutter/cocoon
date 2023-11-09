@@ -4,11 +4,6 @@ name: no-response-publish
 permissions: read-all
 
 on:
-  pull_request:
-    paths:
-      - 'gh_actions/third_party/no-response/**'
-      - '.github/workflows/no-response_test.yaml'
-      - '.github/workflows/no-response_publish.yaml'
   release:
     types: [published, edited]
     branches:
@@ -20,7 +15,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions: write-all
+    permissions:
+      contents: write
     if: ${{ github.repository == 'flutter/cocoon' }}
     steps:
       - name: Checkout
