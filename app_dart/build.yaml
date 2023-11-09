@@ -1,8 +1,0 @@
-targets:
-  $default:
-    builders:
-      source_gen|combining_builder:
-        options:
-          ignore_for_file:
-            - always_specify_types
-            - implicit_dynamic_parameter
