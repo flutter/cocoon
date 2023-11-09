@@ -15,12 +15,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     if: ${{ github.repository == 'flutter/cocoon' }}
     steps:
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: 'no-response-v0.5.1'
           sparse-checkout: 'gh_actions/third_party/no-response'
           sparse-checkout-cone-mode: false
       - name: move_package_to_root
@@ -35,4 +37,6 @@ jobs:
         run: npm run build
       - uses: JasonEtco/build-and-tag-action@dd5e4991048c325f6d85b4155e586fc211c644da
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.FLUTTERGITHUBBOT_TOKEN }}
+        with:
+          tag_name: 'no-response-v0.5.1'
