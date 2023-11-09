@@ -20,9 +20,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
+    permissions: write-all
     if: ${{ github.repository == 'flutter/cocoon' }}
     steps:
       - name: Checkout
