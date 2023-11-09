@@ -408,7 +408,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         needsTests = !_allChangesAreCodeComments(file);
       }
 
-      if (kEngineTestRegExp.hasMatch(filename)) {
+      if (kEngineTestRegExp.hasMatch(filename.toLowerCase())) {
         hasTests = true;
       }
     }
