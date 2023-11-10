@@ -371,6 +371,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.contains('analysis_options.yaml') ||
         filename.contains('AUTHORS') ||
         filename.contains('CODEOWNERS') ||
+        filename == 'DEPS' ||
         filename.contains('TESTOWNERS') ||
         filename.contains('pubspec.yaml') ||
         // Exempt categories.
@@ -398,16 +399,16 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     bool needsTests = false;
 
     await for (PullRequestFile file in files) {
-      final String filename = file.filename!.toLowerCase();
-      if (_fileContainsAddedCode(file) && filename.endsWith('.dart') ||
-          filename.endsWith('.mm') ||
-          filename.endsWith('.m') ||
-          filename.endsWith('.java') ||
-          filename.endsWith('.cc')) {
+      final String filename = file.filename!;
+      if (_fileContainsAddedCode(file) &&
+          !_isTestExempt(filename) &&
+          // Build files don't need unit tests.
+          !filename.endsWith('.gn') &&
+          !filename.endsWith('.gni')) {
         needsTests = !_allChangesAreCodeComments(file);
       }
 
-      if (kEngineTestRegExp.hasMatch(filename)) {
+      if (kEngineTestRegExp.hasMatch(filename.toLowerCase())) {
         hasTests = true;
       }
     }
