@@ -9,7 +9,6 @@ import 'package:mockito/mockito.dart';
 
 import 'fake_build.dart';
 import 'fake_google_account.dart';
-import 'fake_index_state.dart';
 import 'mocks.dart';
 
 class FakeInserter extends StatelessWidget {
@@ -32,7 +31,6 @@ class FakeInserter extends StatelessWidget {
 
     return StateProvider(
       signInService: fakeAuthService,
-      indexState: FakeIndexState(authService: fakeAuthService),
       buildState: FakeBuildState(authService: fakeAuthService),
       child: Now.fixed(
         dateTime: DateTime.utc(2000),

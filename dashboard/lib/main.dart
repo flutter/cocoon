@@ -13,7 +13,6 @@ import 'build_dashboard_page.dart';
 import 'service/cocoon.dart';
 import 'service/google_authentication.dart';
 import 'state/build.dart';
-import 'state/index.dart';
 import 'widgets/now.dart';
 import 'widgets/state_provider.dart';
 
@@ -48,7 +47,6 @@ void main([List<String> args = const <String>[]]) {
   runApp(
     StateProvider(
       signInService: authService,
-      indexState: IndexState(authService: authService),
       buildState: BuildState(authService: authService, cocoonService: cocoonService),
       child: Now(child: const MyApp()),
     ),
