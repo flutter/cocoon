@@ -5,8 +5,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:args/args.dart';
+import 'package:path/path.dart';
 import 'package:yaml/yaml.dart';
-import "package:path/path.dart";
 
 // Runs all the configured tests for cocoon repo.
 Future<Null> main(List<String> rawArgs) async {
