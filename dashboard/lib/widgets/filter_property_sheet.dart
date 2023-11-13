@@ -17,7 +17,7 @@ abstract class FilterPropertySource extends Listenable {
 /// be value properties, but some may be layout nodes.
 ///
 /// @see [ValueFilterProperty], [FilterPropertyGroup]
-abstract class FilterPropertyNode {
+abstract mixin class FilterPropertyNode {
   /// The descriptive name of the property or layout group as will be displayed
   /// in the [FilterPropertySheet].
   String? get label;
