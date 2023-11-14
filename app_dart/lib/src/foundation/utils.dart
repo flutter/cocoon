@@ -179,6 +179,20 @@ Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> fil
   return targetsToRun;
 }
 
+/// Returns `true` if [ciYaml.postsubmitTargets] should be ran during presubmit.
+/// 
+/// This is an **experimental** feature that is only enabled for the
+/// `flutter/engine` repository if a specific label is present on the PR.
+bool includePostsubmitAsPresubmit(CiYaml ciYaml, PullRequest pullRequest) {
+  if (ciYaml.slug != Config.engineSlug) {
+    return false;
+  }
+  if (pullRequest.labels?.any((label) => label.name.contains('run-postsubmit-as-presubmit')) ?? false) {
+    return true;
+  }
+  return false;
+}
+
 Future<void> insertBigquery(String tableName, Map<String, dynamic> data, TabledataResource tabledataResourceApi) async {
   // Define const variables for [BigQuery] operations.
   const String projectId = 'flutter-dashboard';

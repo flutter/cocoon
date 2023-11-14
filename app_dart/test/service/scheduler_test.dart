@@ -690,6 +690,67 @@ targets:
         );
       });
 
+      group('treats postsubmit as presubmit if a label is present', () {
+        final IssueLabel postAsPreSubmit = IssueLabel(name: 'run-postsubmit-as-presubmit');
+        setUp(() async {
+          httpClient = MockClient((http.Request request) async {
+            if (request.url.path.contains('.ci.yaml')) {
+              return http.Response(
+                '''
+  enabled_branches:
+    - master
+  targets:
+    - name: Linux Presubmit
+      presubmit: true
+      scheduler: luci
+    - name: Linux Postsubmit
+      presubmit: false
+      scheduler: luci
+  ''', 
+  200,
+  );
+            }
+            throw Exception('Failed to find ${request.url.path}');
+          });
+        });
+
+        test('in the engine repo with a specific label', () async {
+          final enginePr = generatePullRequest(
+            repo: Config.engineSlug.name, 
+            labels: <IssueLabel>[postAsPreSubmit],
+          );
+          final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
+          expect(
+            presubmitTargets.map((Target target) => target.value.name).toList(),
+            <String>['Linux Presubmit', 'Linux Postsubmit'],
+          );
+        });
+
+        test('but not in the framework repo even with a specific label', () async {
+          final enginePr = generatePullRequest(
+            repo: Config.flutterSlug.name,
+            labels: <IssueLabel>[postAsPreSubmit],
+          );
+          final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
+          expect(
+            presubmitTargets.map((Target target) => target.value.name).toList(),
+            (<String>['Linux Presubmit']),
+          );
+        });
+
+        test('but not in the engine repo without a specific label', () async {
+          final enginePr = generatePullRequest(
+            repo: Config.engineSlug.name,
+            labels: <IssueLabel>[],
+          );
+          final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
+          expect(
+            presubmitTargets.map((Target target) => target.value.name).toList(),
+            (<String>['Linux Presubmit']),
+          );
+        });
+      });
+
       test('checks for release branches', () async {
         const String branch = 'flutter-1.24-candidate.1';
         httpClient = MockClient((http.Request request) async {
