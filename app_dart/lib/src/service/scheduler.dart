@@ -436,10 +436,12 @@ class Scheduler {
     log.info('Collecting presubmit targets for ${pullRequest.number}');
 
     // Filter out schedulers targets with schedulers different than luci or cocoon.
-    final List<Target> presubmitTargets = ciYaml.presubmitTargets.where(
-      (Target target) =>
-          target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon,
-    ).toList();
+    final List<Target> presubmitTargets = ciYaml.presubmitTargets
+        .where(
+          (Target target) =>
+              target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon,
+        )
+        .toList();
 
     // Experimental feature to run postsubmit as presubmit for the engine.
     // See https://github.com/flutter/flutter/issues/138430.
