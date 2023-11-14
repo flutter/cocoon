@@ -447,7 +447,9 @@ class Scheduler {
       log.info('Including postsubmit targets as presubmit for ${pullRequest.number}');
 
       for (Target target in ciYaml.postsubmitTargets) {
-        if (!target.value.presubmit) {
+        // We don't want to include a presubmit twice
+        // We don't want to run the builder_cache target as a presubmit
+        if (!target.value.presubmit && !target.value.properties.containsKey('cache_name')) {
           presubmitTargets.add(target);
         }
       }

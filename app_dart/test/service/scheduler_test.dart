@@ -706,6 +706,11 @@ targets:
     - name: Linux Postsubmit
       presubmit: false
       scheduler: luci
+    - name: Linux Cache
+      presubmit: false
+      scheduler: luci
+      properties:
+        cache_name: "builder"
   ''',
   200,
   );
