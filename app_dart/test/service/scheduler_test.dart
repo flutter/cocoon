@@ -706,7 +706,7 @@ targets:
     - name: Linux Postsubmit
       presubmit: false
       scheduler: luci
-  ''', 
+  ''',
   200,
   );
             }
@@ -716,7 +716,7 @@ targets:
 
         test('in the engine repo with a specific label', () async {
           final enginePr = generatePullRequest(
-            repo: Config.engineSlug.name, 
+            repo: Config.engineSlug.name,
             labels: <IssueLabel>[postAsPreSubmit],
           );
           final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);

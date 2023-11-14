@@ -180,7 +180,7 @@ Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> fil
 }
 
 /// Returns `true` if [ciYaml.postsubmitTargets] should be ran during presubmit.
-/// 
+///
 /// This is an **experimental** feature that is only enabled for the
 /// `flutter/engine` repository if a specific label is present on the PR.
 bool includePostsubmitAsPresubmit(CiYaml ciYaml, PullRequest pullRequest) {
