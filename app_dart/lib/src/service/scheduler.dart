@@ -443,9 +443,8 @@ class Scheduler {
         )
         .toList();
 
-    // Experimental feature to run postsubmit as presubmit for the engine.
     // See https://github.com/flutter/flutter/issues/138430.
-    if (includePostsubmitAsPresubmit(ciYaml, pullRequest)) {
+    if (_includePostsubmitAsPresubmit(ciYaml, pullRequest)) {
       log.info('Including postsubmit targets as presubmit for ${pullRequest.number}');
 
       for (Target target in ciYaml.postsubmitTargets) {
@@ -476,6 +475,14 @@ class Scheduler {
       return presubmitTargets.toList();
     }
     return getTargetsToRun(presubmitTargets, files);
+  }
+
+  /// Returns `true` if [ciYaml.postsubmitTargets] should be ran during presubmit.
+  static bool _includePostsubmitAsPresubmit(CiYaml ciYaml, PullRequest pullRequest) {
+    if (pullRequest.labels?.any((label) => label.name.contains('test: all')) ?? false) {
+      return true;
+    }
+    return false;
   }
 
   /// Reschedules a failed build using a [CheckRunEvent]. The CheckRunEvent is

@@ -691,7 +691,7 @@ targets:
       });
 
       group('treats postsubmit as presubmit if a label is present', () {
-        final IssueLabel postAsPreSubmit = IssueLabel(name: 'run-postsubmit-as-presubmit');
+        final IssueLabel runAllTests = IssueLabel(name: 'test: all');
         setUp(() async {
           httpClient = MockClient((http.Request request) async {
             if (request.url.path.contains('.ci.yaml')) {
@@ -719,10 +719,9 @@ targets:
           });
         });
 
-        test('in the engine repo with a specific label', () async {
+        test('with a specific label', () async {
           final enginePr = generatePullRequest(
-            repo: Config.engineSlug.name,
-            labels: <IssueLabel>[postAsPreSubmit],
+            labels: <IssueLabel>[runAllTests],
           );
           final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
           expect(
@@ -731,21 +730,8 @@ targets:
           );
         });
 
-        test('but not in the framework repo even with a specific label', () async {
+        test('without a specific label', () async {
           final enginePr = generatePullRequest(
-            repo: Config.flutterSlug.name,
-            labels: <IssueLabel>[postAsPreSubmit],
-          );
-          final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
-          expect(
-            presubmitTargets.map((Target target) => target.value.name).toList(),
-            (<String>['Linux Presubmit']),
-          );
-        });
-
-        test('but not in the engine repo without a specific label', () async {
-          final enginePr = generatePullRequest(
-            repo: Config.engineSlug.name,
             labels: <IssueLabel>[],
           );
           final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
