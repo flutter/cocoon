@@ -719,9 +719,10 @@ targets:
           });
         });
 
-        test('with a specific label', () async {
+        test('with a specific label in the flutter/engine repo', () async {
           final enginePr = generatePullRequest(
             labels: <IssueLabel>[runAllTests],
+            repo: Config.engineSlug.name,
           );
           final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
           expect(
@@ -730,9 +731,22 @@ targets:
           );
         });
 
+        test('with a specific label in the flutter/flutter repo', () async {
+          final enginePr = generatePullRequest(
+            labels: <IssueLabel>[runAllTests],
+            repo: Config.flutterSlug.name,
+          );
+          final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
+          expect(
+            presubmitTargets.map((Target target) => target.value.name).toList(),
+            <String>['Linux Presubmit'],
+          );
+        });
+
         test('without a specific label', () async {
           final enginePr = generatePullRequest(
             labels: <IssueLabel>[],
+            repo: Config.engineSlug.name,
           );
           final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
           expect(
