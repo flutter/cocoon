@@ -462,6 +462,7 @@ update these file paths accordingly.
         appSpecificPassword,
         '--team-id',
         codesignTeamId,
+        '--verbose',
       ];
 
       log.info('uploading ${args.join(' ')}');

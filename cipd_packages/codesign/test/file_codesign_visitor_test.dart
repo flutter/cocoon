@@ -153,6 +153,7 @@ void main() {
             randomString,
             '--team-id',
             randomString,
+            '--verbose',
           ],
           stdout: 'id: $randomString',
         ),
@@ -199,7 +200,8 @@ void main() {
       expect(
         messages,
         contains(
-          'uploading xcrun notarytool submit ${codesignVisitor.outputZipPath} --apple-id $randomString --password $randomString --team-id $randomString',
+          'uploading xcrun notarytool submit ${codesignVisitor.outputZipPath} --apple-id $randomString --password $randomString '
+          '--team-id $randomString --verbose',
         ),
       );
       expect(
@@ -209,7 +211,8 @@ void main() {
       expect(
         messages,
         contains(
-          'checking notary status with xcrun notarytool info $randomString --password $randomString --apple-id $randomString --team-id $randomString',
+          'checking notary status with xcrun notarytool info $randomString --password $randomString --apple-id $randomString '
+          '--team-id $randomString',
         ),
       );
       expect(
@@ -897,6 +900,7 @@ status: Invalid''',
             randomString,
             '--team-id',
             randomString,
+            '--verbose',
           ],
           stdout: '''Error uploading file.
  Id: something that causes failure
@@ -914,6 +918,7 @@ status: Invalid''',
             randomString,
             '--team-id',
             randomString,
+            '--verbose',
           ],
           stdout: '''Successfully uploaded file.
  id: 2efe2717-52ef-43a5-96dc-0797e4ca1041
@@ -935,7 +940,8 @@ status: Invalid''',
         messages,
         contains('Failed to upload to the notary service with args: '
             'xcrun notarytool submit ${rootDirectory.absolute.path}/temp '
-            '--apple-id abcd1234 --password abcd1234 --team-id abcd1234'),
+            '--apple-id abcd1234 --password abcd1234 --team-id abcd1234 '
+            '--verbose'),
       );
       expect(
         messages,
@@ -958,6 +964,7 @@ status: Invalid''',
             randomString,
             '--team-id',
             randomString,
+            '--verbose',
           ],
           stdout: '''Error uploading file.
  Id: something that causes failure
@@ -993,6 +1000,7 @@ status: Invalid''',
             randomString,
             '--team-id',
             randomString,
+            '--verbose',
           ],
           stdout: '''Error uploading file.
  Id: something that causes failure
@@ -1010,6 +1018,7 @@ status: Invalid''',
             randomString,
             '--team-id',
             randomString,
+            '--verbose',
           ],
           stdout: '''Error uploading file.
  Id: something that causes failure
@@ -1027,6 +1036,7 @@ status: Invalid''',
             randomString,
             '--team-id',
             randomString,
+            '--verbose',
           ],
           stdout: '''Error uploading file.
  Id: something that causes failure
@@ -1123,6 +1133,7 @@ status: Invalid''',
             randomString,
             '--team-id',
             randomString,
+            '--verbose',
           ],
           stdout: 'id: $randomString',
         ),
@@ -1190,6 +1201,7 @@ status: Invalid''',
             randomString,
             '--team-id',
             randomString,
+            '--verbose',
           ],
           stdout: 'id: $randomString',
         ),
