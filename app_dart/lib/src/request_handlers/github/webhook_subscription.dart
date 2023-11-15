@@ -402,6 +402,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       final String filename = file.filename!;
       if (_fileContainsAddedCode(file) &&
           !_isTestExempt(filename) &&
+          // License goldens are auto-generated.
+          !filename.startsWith('ci/licenses_golden/') &&
           // Build files don't need unit tests.
           !filename.endsWith('.gn') &&
           !filename.endsWith('.gni')) {

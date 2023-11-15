@@ -1470,6 +1470,41 @@ void foo() {
       );
     });
 
+    test('Engine labels PRs, no comment for license goldens', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        baseRef: 'main',
+        slug: Config.engineSlug,
+      );
+
+      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'ci/licenses_golden/licenses_dart',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.addLabelsToIssue(
+          Config.engineSlug,
+          issueNumber,
+          any,
+        ),
+      );
+
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          any,
+        ),
+      );
+    });
+
     test('Engine labels PRs, no comment if Java tests', () async {
       const int issueNumber = 123;
 
