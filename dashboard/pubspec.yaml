@@ -42,7 +42,7 @@ dev_dependencies:
   flutter_lints: 3.0.1
   flutter_test:
     sdk: flutter
-  mockito: 5.4.2 # Remember to run ./regen_mocks.sh!
+  mockito: 5.4.3 # Remember to run ./regen_mocks.sh!
   path: 1.8.3
   url_launcher_platform_interface: 2.2.0
 
