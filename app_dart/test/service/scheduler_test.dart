@@ -698,11 +698,22 @@ targets:
               return http.Response(
                 '''
   enabled_branches:
+    - main
     - master
   targets:
     - name: Linux Presubmit
       presubmit: true
       scheduler: luci
+    - name: Linux Conditional Presubmit (runIf)
+      presubmit: true
+      scheduler: luci
+      runIf:
+        - dev/run_if/**
+    - name: Linux Conditional Presubmit (runIfNot)
+      presubmit: true
+      scheduler: luci
+      runIfNot:
+        - dev/run_if_not/**
     - name: Linux Postsubmit
       presubmit: false
       scheduler: luci
@@ -721,37 +732,56 @@ targets:
 
         test('with a specific label in the flutter/engine repo', () async {
           final enginePr = generatePullRequest(
+            branch: Config.defaultBranch(Config.engineSlug),
             labels: <IssueLabel>[runAllTests],
             repo: Config.engineSlug.name,
           );
           final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
           expect(
             presubmitTargets.map((Target target) => target.value.name).toList(),
-            <String>['Linux Presubmit', 'Linux Postsubmit'],
+            <String>[
+              // Always runs.
+              'Linux Presubmit',
+              // test: all label is present, so runIf is skipped.
+              'Linux Conditional Presubmit (runIf)',
+              'Linux Conditional Presubmit (runIfNot)',
+              // test: all label is present, so postsubmit is treated as presubmit.
+              'Linux Postsubmit',
+            ],
           );
         });
 
         test('with a specific label in the flutter/flutter repo', () async {
-          final enginePr = generatePullRequest(
+          final frameworkPr = generatePullRequest(
+            branch: Config.defaultBranch(Config.flutterSlug),
             labels: <IssueLabel>[runAllTests],
             repo: Config.flutterSlug.name,
           );
-          final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
+          final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(frameworkPr);
           expect(
             presubmitTargets.map((Target target) => target.value.name).toList(),
-            <String>['Linux Presubmit'],
+            <String>[
+              // Always runs.
+              'Linux Presubmit',
+              'Linux Conditional Presubmit (runIfNot)',
+            ],
           );
         });
 
         test('without a specific label', () async {
           final enginePr = generatePullRequest(
+            branch: Config.defaultBranch(Config.engineSlug),
             labels: <IssueLabel>[],
             repo: Config.engineSlug.name,
           );
           final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
           expect(
             presubmitTargets.map((Target target) => target.value.name).toList(),
-            (<String>['Linux Presubmit']),
+            (<String>[
+              // Always runs.
+              'Linux Presubmit',
+              'Linux Conditional Presubmit (runIfNot)',
+            ]),
           );
         });
       });
