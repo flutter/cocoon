@@ -444,7 +444,8 @@ class Scheduler {
         .toList();
 
     // See https://github.com/flutter/flutter/issues/138430.
-    if (_includePostsubmitAsPresubmit(ciYaml, pullRequest)) {
+    final includePostsubmitAsPresubmit = _includePostsubmitAsPresubmit(ciYaml, pullRequest);
+    if (includePostsubmitAsPresubmit) {
       log.info('Including postsubmit targets as presubmit for ${pullRequest.number}');
 
       for (Target target in ciYaml.postsubmitTargets) {
@@ -460,7 +461,11 @@ class Scheduler {
     // Release branches should run every test.
     if (pullRequest.base!.ref != Config.defaultBranch(pullRequest.base!.repo!.slug())) {
       log.info('Release branch found, scheduling all targets for ${pullRequest.number}');
-      return presubmitTargets.toList();
+      return presubmitTargets;
+    }
+    if (includePostsubmitAsPresubmit) {
+      log.info('Postsubmit targets included as presubmit, scheduling all targets for ${pullRequest.number}');
+      return presubmitTargets;
     }
 
     // Filter builders based on the PR diff
