@@ -87,3 +87,5 @@ updates:
     directory: '/gh_actions/third_party/no-response'
     schedule:
       interval: 'daily'
+    labels:
+      - "autosubmit"
