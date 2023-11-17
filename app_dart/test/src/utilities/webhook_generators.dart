@@ -23,6 +23,7 @@ PushMessage generateGithubWebhookMessage({
   bool mergeable = true,
   String mergeCommitSha = 'fd6b46416c18de36ce87d0241994b2da180cab4c',
   RepositorySlug? slug,
+  bool includeChanges = false,
 }) {
   final String data = (pb.GithubWebhookMessage.create()
         ..event = event
@@ -38,6 +39,7 @@ PushMessage generateGithubWebhookMessage({
           isMergeable: mergeable,
           slug: slug,
           mergeCommitSha: mergeCommitSha,
+          includeChanges: includeChanges,
         ))
       .writeToJson();
   return PushMessage(data: data, messageId: 'abc123');
@@ -56,9 +58,11 @@ String _generatePullRequestEvent(
   bool merged = false,
   bool isMergeable = true,
   String mergeCommitSha = 'fd6b46416c18de36ce87d0241994b2da180cab4c',
+  bool includeChanges = false,
 }) {
   slug ??= Config.flutterSlug;
   baseRef ??= Config.defaultBranch(slug);
+
   return '''{
   "action": "$action",
   "number": $number,
@@ -436,6 +440,17 @@ String _generatePullRequestEvent(
     "deletions": 36,
     "changed_files": 5
   },
+  ${includeChanges ? '''
+  "changes": {
+      "base": {
+        "ref": {
+          "from": "master"
+        },
+        "sha": {
+          "from": "b3af5d64d3e6e2110b07d71909fc432537339659"
+        }
+      }
+  },''' : ''}
   "repository": {
     "id": 1868532,
     "node_id": "MDEwOlJlcG9zaXRvcnkxODY4NTMwMDI=",

@@ -4,6 +4,7 @@
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/model/luci/push_message.dart' as pm;
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
@@ -272,12 +273,14 @@ void main() {
     test('Acts on opened against master when default is main', () async {
       const int issueNumber = 123;
 
-      tester.message = generateGithubWebhookMessage(
+      final pm.PushMessage pushMessage = generateGithubWebhookMessage(
         action: 'opened',
         number: issueNumber,
         baseRef: 'master',
         slug: Config.engineSlug,
       );
+
+      tester.message = pushMessage;
 
       when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
@@ -308,6 +311,56 @@ void main() {
           argThat(contains('master -> main')),
         ),
       ).called(1);
+
+      expect(scheduler.triggerPresubmitTargetsCallCount, 1);
+      scheduler.resetTriggerPresubmitTargetsCallCount();
+    });
+
+    test('Acts on edited against master when default is main', () async {
+      const int issueNumber = 123;
+
+      final pm.PushMessage pushMessage = generateGithubWebhookMessage(
+        action: 'edited',
+        number: issueNumber,
+        baseRef: 'master',
+        slug: Config.engineSlug,
+        includeChanges: true,
+      );
+
+      tester.message = pushMessage;
+
+      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'packages/flutter/blah.dart',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verify(
+        pullRequestsService.edit(
+          Config.engineSlug,
+          issueNumber,
+          base: 'main',
+        ),
+      ).called(1);
+
+      verify(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains('master -> main')),
+        ),
+      ).called(1);
+
+      expect(scheduler.triggerPresubmitTargetsCallCount, 1);
+      scheduler.resetTriggerPresubmitTargetsCallCount();
     });
 
     // We already schedule checks when a draft is opened, don't need to re-test

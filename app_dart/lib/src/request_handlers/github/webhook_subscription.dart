@@ -183,9 +183,11 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         }
         break;
       case 'edited':
-        // Editing a PR should not trigger new jobs, but may update whether
-        // it has tests.
         await _checkForTests(pullRequestEvent);
+        // In the event of the base ref changing we want to start new checks.
+        if (pullRequestEvent.changes != null && pullRequestEvent.changes!.base != null) {
+          await _scheduleIfMergeable(pullRequestEvent);
+        }
         break;
       case 'opened':
       case 'reopened':
