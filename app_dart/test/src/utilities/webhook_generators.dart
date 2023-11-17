@@ -9,7 +9,6 @@ import 'package:cocoon_service/src/model/luci/push_message.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
-import 'package:github/src/common/model/changes.dart';
 
 PushMessage generateGithubWebhookMessage({
   String event = 'pull_request',
