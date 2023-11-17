@@ -26,6 +26,7 @@ import '../../src/service/fake_scheduler.dart';
 import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.dart';
 import '../../src/utilities/webhook_generators.dart';
+import 'package:github/src/common/model/changes.dart';
 
 void main() {
   late GithubWebhookSubscription webhook;
@@ -319,11 +320,17 @@ void main() {
     test('Acts on edited against master when default is main', () async {
       const int issueNumber = 123;
 
+      const Ref ref = Ref('main');
+      const Sha sha = Sha('b3af5d64d3e6e2110b07d71909fc432537339659');
+      const Base base = Base(ref, sha);
+      const Changes changes = Changes(base, null, null);
+
       final pm.PushMessage pushMessage = generateGithubWebhookMessage(
         action: 'edited',
         number: issueNumber,
         baseRef: 'master',
         slug: Config.engineSlug,
+        includeChanges: true,
       );
 
       tester.message = pushMessage;
