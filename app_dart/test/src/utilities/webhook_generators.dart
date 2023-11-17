@@ -451,7 +451,7 @@ String _generatePullRequestEvent(
           "from": "b3af5d64d3e6e2110b07d71909fc432537339659"
         }
       }
-  },''': ''}
+  },''' : ''}
   "repository": {
     "id": 1868532,
     "node_id": "MDEwOlJlcG9zaXRvcnkxODY4NTMwMDI=",
