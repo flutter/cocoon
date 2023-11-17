@@ -9,6 +9,7 @@ import 'package:cocoon_service/src/model/luci/push_message.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
+import 'package:github/src/common/model/changes.dart';
 
 PushMessage generateGithubWebhookMessage({
   String event = 'pull_request',
@@ -23,6 +24,7 @@ PushMessage generateGithubWebhookMessage({
   bool mergeable = true,
   String mergeCommitSha = 'fd6b46416c18de36ce87d0241994b2da180cab4c',
   RepositorySlug? slug,
+  Changes? changes,
 }) {
   final String data = (pb.GithubWebhookMessage.create()
         ..event = event
@@ -38,6 +40,7 @@ PushMessage generateGithubWebhookMessage({
           isMergeable: mergeable,
           slug: slug,
           mergeCommitSha: mergeCommitSha,
+          changes: changes,
         ))
       .writeToJson();
   return PushMessage(data: data, messageId: 'abc123');
@@ -56,9 +59,14 @@ String _generatePullRequestEvent(
   bool merged = false,
   bool isMergeable = true,
   String mergeCommitSha = 'fd6b46416c18de36ce87d0241994b2da180cab4c',
+  Changes? changes,
 }) {
   slug ??= Config.flutterSlug;
   baseRef ??= Config.defaultBranch(slug);
+  String? changesStr;
+  if (changes != null) {
+    changesStr = changes.toString();
+  }
   return '''{
   "action": "$action",
   "number": $number,
@@ -436,6 +444,7 @@ String _generatePullRequestEvent(
     "deletions": 36,
     "changed_files": 5
   },
+  ${(changes == null) ? "" : "\"changes\" : $changesStr,"}
   "repository": {
     "id": 1868532,
     "node_id": "MDEwOlJlcG9zaXRvcnkxODY4NTMwMDI=",

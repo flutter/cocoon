@@ -312,9 +312,53 @@ void main() {
         ),
       ).called(1);
 
-      // Count two calls for the initial triggering and after the update of the
-      // base branch reference.
-      expect(scheduler.triggerPresubmitTargetsCallCount, 2);
+      expect(scheduler.triggerPresubmitTargetsCallCount, 1);
+      scheduler.resetTriggerPresubmitTargetsCallCount();
+    });
+
+    test('Acts on edited against master when default is main', () async {
+      const int issueNumber = 123;
+
+      final pm.PushMessage pushMessage = generateGithubWebhookMessage(
+        action: 'edited',
+        number: issueNumber,
+        baseRef: 'master',
+        slug: Config.engineSlug,
+      );
+
+      tester.message = pushMessage;
+
+      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'packages/flutter/blah.dart',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verify(
+        pullRequestsService.edit(
+          Config.engineSlug,
+          issueNumber,
+          base: 'main',
+        ),
+      ).called(1);
+
+      verify(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains('master -> main')),
+        ),
+      ).called(1);
+
+      expect(scheduler.triggerPresubmitTargetsCallCount, 1);
       scheduler.resetTriggerPresubmitTargetsCallCount();
     });
 

@@ -183,9 +183,11 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         }
         break;
       case 'edited':
-        // Editing a PR should not trigger new jobs, but may update whether
-        // it has tests.
         await _checkForTests(pullRequestEvent);
+        // In the event of the base ref changing we want to start new checks.
+        if (pullRequestEvent.changes != null && pullRequestEvent.changes!.base != null) {
+          await _scheduleIfMergeable(pullRequestEvent);
+        }
         break;
       case 'opened':
       case 'reopened':
@@ -280,7 +282,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     final RepositorySlug slug = pr.base!.repo!.slug();
     final bool isTipOfTree = pr.base!.ref == Config.defaultBranch(slug);
     final GitHub gitHubClient = await config.createGitHubClient(pullRequest: pr);
-    await _validateRefs(gitHubClient, pr, pullRequestEvent);
+    await _validateRefs(gitHubClient, pr);
     if (kNeedsTests.contains(slug) && isTipOfTree) {
       switch (slug.name) {
         case 'flutter':
@@ -490,7 +492,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   Future<void> _validateRefs(
     GitHub gitHubClient,
     PullRequest pr,
-    PullRequestEvent pullRequestEvent,
   ) async {
     final RepositorySlug slug = pr.base!.repo!.slug();
     String body;
@@ -539,8 +540,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           base: Config.defaultBranch(slug),
         );
         await gitHubClient.issues.createComment(slug, pr.number!, body);
-        // Not that this should cancel all existing running tasks.
-        await _scheduleIfMergeable(pullRequestEvent);
       }
     }
   }
