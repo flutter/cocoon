@@ -35,7 +35,7 @@ dependencies:
   url_launcher: 6.2.1
   flutter_app_icons: 0.0.8
   truncate: 3.0.1
-  url_launcher_web: 2.2.0
+  url_launcher_web: 2.2.1
 
 dev_dependencies:
   build_runner: 2.4.6
