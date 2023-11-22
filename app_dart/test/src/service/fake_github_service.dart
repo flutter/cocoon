@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
 
@@ -78,21 +76,22 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<String> getFileContent(RepositorySlug slug, String path, {String? ref}) async {
-    if (path == 'bin/internal/release-candidate-branch.version') {
-      // Test error handling when branch version file isn't available.
-      // https://github.com/flutter/flutter/issues/138755
-      if (slug.name != 'flutter') {
-        throw Exception('404 file not exist');
-      }
-      if (ref == 'beta') {
-        return 'flutter-3.2-candidate.5\n';
-      } else if (ref == 'stable') {
-        return 'flutter-2.13-candidate.0\n';
-      }
-      return Future<String>.value('');
-    } else {
-      return Future<String>.value('');
-    }
+    return GithubService(github).getFileContent(slug, path, ref: ref);
+    //   if (path == 'bin/internal/release-candidate-branch.version') {
+    //     // Test error handling when branch version file isn't available.
+    //     // https://github.com/flutter/flutter/issues/138755
+    //     if (slug.name != 'flutter') {
+    //       throw Exception('404 file not exist');
+    //     }
+    //     if (ref == 'beta') {
+    //       return 'flutter-3.2-candidate.5\n';
+    //     } else if (ref == 'stable') {
+    //       return 'flutter-2.13-candidate.0\n';
+    //     }
+    //     return Future<String>.value('');
+    //   } else {
+    //     return Future<String>.value('');
+    //   }
   }
 
   @override

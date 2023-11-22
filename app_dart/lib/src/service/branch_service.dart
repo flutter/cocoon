@@ -134,17 +134,14 @@ class BranchService {
     required gh.RepositorySlug slug,
     required String branchName,
   }) async {
-    String branchNameFromFile;
-    try {
-      branchNameFromFile = await githubService.getFileContent(
-        slug,
-        'bin/internal/release-candidate-branch.version',
-        ref: branchName,
-      );
-    } catch (e) {
-      return '$branchName: 404 file not found';
-    }
-    return branchNameFromFile.trim();
+    return githubService
+        .getFileContent(
+          slug,
+          'bin/internal/release-candidate-branch.version',
+          ref: branchName,
+        )
+        .then((String value) => value.trim())
+        .onError((e, _) => '');
   }
 
   /// Retrieve the latest canidate branch from all candidate branches.
