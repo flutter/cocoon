@@ -53,6 +53,20 @@ void main() {
       when(githubService.github.repositories).thenReturn(mockRepositoriesService);
     });
 
+    test('return 404 when branch version file does not exist', () async {
+      final gh.Branch candidateBranch = generateBranch(3, name: 'flutter-3.4-candidate.5', sha: '789dev');
+      when(mockRepositoriesService.listBranches(any)).thenAnswer((Invocation invocation) {
+        return Stream.fromIterable([candidateBranch]);
+      });
+      // Cocoon flug throws 404 file not found exceptions.
+      final List<Map<String, String>> result =
+          await branchService.getReleaseBranches(githubService: githubService, slug: Config.cocoonSlug);
+      final betaBranch = result.singleWhere((Map<String, String> branch) => branch['name'] == 'beta');
+      expect(betaBranch['branch'], 'beta: 404 file not found');
+      final stableBranch = result.singleWhere((Map<String, String> branch) => branch['name'] == 'stable');
+      expect(stableBranch['branch'], 'stable: 404 file not found');
+    });
+
     test('return beta, stable, and latest candidate branches', () async {
       final gh.Branch stableBranch = generateBranch(1, name: 'flutter-2.13-candidate.0', sha: '123stable');
       final gh.Branch betaBranch = generateBranch(2, name: 'flutter-3.2-candidate.5', sha: '456beta');
