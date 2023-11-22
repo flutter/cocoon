@@ -62,10 +62,6 @@ void main() {
       when(mockRepositoriesService.getContents(any, any)).thenAnswer((Invocation invocation) {
         throw Exception('404 file not found');
       });
-      // when(githubService.getBranchNameFromFile(any)).thenAnswer((Invocation invocation) {
-      //   return Stream.fromIterable([candidateBranch]);
-      // });
-      // Cocoon flug throws 404 file not found exceptions.
       final List<Map<String, String>> result =
           await branchService.getReleaseBranches(githubService: githubService, slug: Config.cocoonSlug);
       final betaBranch = result.singleWhere((Map<String, String> branch) => branch['name'] == 'beta');
