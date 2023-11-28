@@ -8,7 +8,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dashboard/widgets/task_box.dart';
 
 import 'build_dashboard_page.dart';
 import 'service/cocoon.dart';
@@ -16,6 +15,7 @@ import 'service/google_authentication.dart';
 import 'state/build.dart';
 import 'widgets/now.dart';
 import 'widgets/state_provider.dart';
+import 'widgets/task_box.dart';
 
 void usage() {
   // ignore: avoid_print
