@@ -27,10 +27,11 @@ void main() {
   late FakeGerritService gerritService;
   late FakeGithubService githubService;
   late MockRepositoriesService repositories;
+  late MockGitHub github;
 
   setUp(() {
     db = FakeDatastoreDB();
-    final MockGitHub github = MockGitHub();
+    github = MockGitHub();
     githubService = FakeGithubService(client: github);
     repositories = MockRepositoriesService();
     when(github.repositories).thenReturn(repositories);
@@ -54,20 +55,16 @@ void main() {
       when(githubService.github.repositories).thenReturn(mockRepositoriesService);
     });
 
-    test('return 404 when branch version file does not exist', () async {
+    test('return empty when branch version file does not exist', () async {
       final gh.Branch candidateBranch = generateBranch(3, name: 'flutter-3.4-candidate.5', sha: '789dev');
-      when(mockRepositoriesService.listBranches(any)).thenAnswer((Invocation invocation) {
-        return Stream.fromIterable([candidateBranch]);
-      });
-      when(mockRepositoriesService.getContents(any, any)).thenAnswer((Invocation invocation) {
-        throw Exception('404 file not found');
-      });
+      when(mockRepositoriesService.listBranches(any)).thenAnswer((_) => Stream.value(candidateBranch));
+      when(mockRepositoriesService.getContents(any, any)).thenThrow(gh.GitHubError(github, '404 file not found'));
       final List<Map<String, String>> result =
           await branchService.getReleaseBranches(githubService: githubService, slug: Config.cocoonSlug);
       final betaBranch = result.singleWhere((Map<String, String> branch) => branch['name'] == 'beta');
-      expect(betaBranch['branch'], '');
+      expect(betaBranch['branch']?.isEmpty, isTrue);
       final stableBranch = result.singleWhere((Map<String, String> branch) => branch['name'] == 'stable');
-      expect(stableBranch['branch'], '');
+      expect(stableBranch['branch']?.isEmpty, isTrue);
     });
 
     test('return beta, stable, and latest candidate branches', () async {
@@ -87,11 +84,9 @@ void main() {
           'bin/internal/release-candidate-branch.version',
           ref: 'beta',
         ),
-      ).thenAnswer((Invocation invocation) {
-        return Future<gh.RepositoryContents>.value(
-          gh.RepositoryContents(file: gh.GitHubFile(content: gitHubEncode('flutter-3.2-candidate.5\n'))),
-        );
-      });
+      ).thenAnswer(
+        (_) async => gh.RepositoryContents(file: gh.GitHubFile(content: gitHubEncode('flutter-3.2-candidate.5\n'))),
+      );
 
       when(
         mockRepositoriesService.getContents(
@@ -99,11 +94,9 @@ void main() {
           'bin/internal/release-candidate-branch.version',
           ref: 'stable',
         ),
-      ).thenAnswer((Invocation invocation) {
-        return Future<gh.RepositoryContents>.value(
-          gh.RepositoryContents(file: gh.GitHubFile(content: gitHubEncode('flutter-2.13-candidate.0\n'))),
-        );
-      });
+      ).thenAnswer(
+        (_) async => gh.RepositoryContents(file: gh.GitHubFile(content: gitHubEncode('flutter-2.13-candidate.0\n'))),
+      );
 
       when(mockRepositoriesService.listBranches(any)).thenAnswer((Invocation invocation) {
         return Stream.fromIterable([
