@@ -127,8 +127,8 @@ class Config {
 
   /// Pull request approval message
   static const String pullRequestApprovalRequirementsMessage =
-      '- Merge guidelines: You need at least one approved review if you are already '
-      'part of flutter-hackers or two member reviews if you are not a flutter-hacker '
+      '- Merge guidelines: A PR needs at least one approved review if the author is already '
+      'part of flutter-hackers or two member reviews if the author is not a flutter-hacker '
       'before re-applying the autosubmit label. __Reviewers__: If you left a comment '
       'approving, please use the "approve" review action instead.';
 
