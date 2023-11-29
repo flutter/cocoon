@@ -57,14 +57,14 @@ class Approval extends Validation {
 
       String approvedMessage;
       final String flutterHackerMessage = (authorIsFlutterHacker)
-          ? 'You are a member of ${repositoryConfiguration.approvalGroup}'
-          : 'You are not a member of ${repositoryConfiguration.approvalGroup}';
+          ? 'The PR author is a member of ${repositoryConfiguration.approvalGroup}'
+          : 'The PR author is not a member of ${repositoryConfiguration.approvalGroup}';
       // Changes were requested, review count does not matter.
       if (approver.changeRequestAuthors.isNotEmpty) {
         approved = false;
         approvedMessage =
             'This PR has not met approval requirements for merging. Changes were requested by ${approver.changeRequestAuthors}, please make the needed changes and resubmit this PR.\n'
-            '$flutterHackerMessage and need ${approver.remainingReviews} more review(s) in order to merge this PR.\n';
+            '$flutterHackerMessage and needs ${approver.remainingReviews} more review(s) in order to merge this PR.\n';
       } else {
         // No changes were requested so check approval count.
         approvedMessage = approved
