@@ -69,7 +69,7 @@ class Approval extends Validation {
         // No changes were requested so check approval count.
         approvedMessage = approved
             ? 'This PR has met approval requirements for merging.\n'
-            : 'This PR has not met approval requirements for merging. $flutterHackerMessage and need ${approver.remainingReviews} more review(s) in order to merge this PR.\n';
+            : 'This PR has not met approval requirements for merging. $flutterHackerMessage and needs ${approver.remainingReviews} more review(s) in order to merge this PR.\n';
         if (!approved && authorIsFlutterHacker) {
           // Flutter hackers are aware of the review requirements, and can add
           // the autosubmit label without waiting on review.
