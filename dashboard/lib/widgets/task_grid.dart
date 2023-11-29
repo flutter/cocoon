@@ -55,13 +55,11 @@ class TaskGridContainer extends StatelessWidget {
           );
         }
 
-        return TaskBox(
-          child: TaskGrid(
-            buildState: buildState,
-            commitStatuses: commitStatuses,
-            filter: filter,
-            useAnimatedLoading: useAnimatedLoading,
-          ),
+        return TaskGrid(
+          buildState: buildState,
+          commitStatuses: commitStatuses,
+          filter: filter,
+          useAnimatedLoading: useAnimatedLoading,
         );
       },
     );
