@@ -40,7 +40,7 @@ The following updates are among those that update the model:
  - changes to labels
  - updates to who is a team member
  - changes to an issue's lock state
- 
+
 Most of these updates are just a matter of tracking whether the issue
 is still open, and whether the update came from a team member, so that
 we can track how long it's been since an issue was updated.
@@ -54,7 +54,7 @@ The following updates are among those repeated on Discord:
  - when comments are left on issues and PRs
  - when issues are locked or unlocked
  - when the wiki is updated
- 
+
 The channels used vary based on the message. Most of them go to
 `#github2`, some go to `#hidden-chat`.
 
@@ -114,7 +114,7 @@ invariants applied, as follows:
    automatically unlocked.
  - Issues that have gained a lot of thumbs-up recently are flagged for
    additional triage.
-   
+
 ## The self-test issue
 
 Every now and then (`selfTestPeriod`), an issue is filed to test the
