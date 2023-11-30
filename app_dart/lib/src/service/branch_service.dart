@@ -141,6 +141,7 @@ class BranchService {
           ref: branchName,
         )
         .then((String value) => value.trim())
+        // return empty branch name if branch version file doesn't exist
         .onError((e, _) => '');
   }
 
