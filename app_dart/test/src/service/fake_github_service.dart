@@ -76,16 +76,7 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<String> getFileContent(RepositorySlug slug, String path, {String? ref}) async {
-    if (path == 'bin/internal/release-candidate-branch.version') {
-      if (ref == 'beta') {
-        return 'flutter-3.2-candidate.5\n';
-      } else if (ref == 'stable') {
-        return 'flutter-2.13-candidate.0\n';
-      }
-      return Future<String>.value('');
-    } else {
-      return Future<String>.value('');
-    }
+    return GithubService(github).getFileContent(slug, path, ref: ref);
   }
 
   @override
