@@ -4,6 +4,7 @@
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/model/luci/push_message.dart' as pm;
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
@@ -272,12 +273,14 @@ void main() {
     test('Acts on opened against master when default is main', () async {
       const int issueNumber = 123;
 
-      tester.message = generateGithubWebhookMessage(
+      final pm.PushMessage pushMessage = generateGithubWebhookMessage(
         action: 'opened',
         number: issueNumber,
         baseRef: 'master',
         slug: Config.engineSlug,
       );
+
+      tester.message = pushMessage;
 
       when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
@@ -308,6 +311,56 @@ void main() {
           argThat(contains('master -> main')),
         ),
       ).called(1);
+
+      expect(scheduler.triggerPresubmitTargetsCallCount, 1);
+      scheduler.resetTriggerPresubmitTargetsCallCount();
+    });
+
+    test('Acts on edited against master when default is main', () async {
+      const int issueNumber = 123;
+
+      final pm.PushMessage pushMessage = generateGithubWebhookMessage(
+        action: 'edited',
+        number: issueNumber,
+        baseRef: 'master',
+        slug: Config.engineSlug,
+        includeChanges: true,
+      );
+
+      tester.message = pushMessage;
+
+      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'packages/flutter/blah.dart',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verify(
+        pullRequestsService.edit(
+          Config.engineSlug,
+          issueNumber,
+          base: 'main',
+        ),
+      ).called(1);
+
+      verify(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains('master -> main')),
+        ),
+      ).called(1);
+
+      expect(scheduler.triggerPresubmitTargetsCallCount, 1);
+      scheduler.resetTriggerPresubmitTargetsCallCount();
     });
 
     // We already schedule checks when a draft is opened, don't need to re-test
@@ -1256,6 +1309,40 @@ void foo() {
       ).called(1);
     });
 
+    test('Engine labels PRs, comment if no tests for unknown file', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.engineSlug,
+        baseRef: Config.defaultBranch(Config.engineSlug),
+      );
+      final RepositorySlug slug = RepositorySlug('flutter', 'engine');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'foo/bar/baz.madeupextension',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verify(
+        issuesService.createComment(
+          slug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      ).called(1);
+    });
+
     group('Auto-roller accounts do not label Engine PR with test label or comment.', () {
       final Set<String> inputs = {
         'engine-flutter-autoroll',
@@ -1365,7 +1452,7 @@ void foo() {
       );
     });
 
-    test('Engine labels PRs, no code files', () async {
+    test('Engine labels PRs, no comment if DEPS-only', () async {
       const int issueNumber = 123;
 
       tester.message = generateGithubWebhookMessage(
@@ -1378,6 +1465,77 @@ void foo() {
       when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'DEPS',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.addLabelsToIssue(
+          Config.engineSlug,
+          issueNumber,
+          any,
+        ),
+      );
+
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          any,
+        ),
+      );
+    });
+
+    test('Engine labels PRs, no comment if build-file-only', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        baseRef: 'main',
+        slug: Config.engineSlug,
+      );
+
+      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'shell/config.gni',
+          PullRequestFile()..filename = 'shell/BUILD.gn',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.addLabelsToIssue(
+          Config.engineSlug,
+          issueNumber,
+          any,
+        ),
+      );
+
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          any,
+        ),
+      );
+    });
+
+    test('Engine labels PRs, no comment for license goldens', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        baseRef: 'main',
+        slug: Config.engineSlug,
+      );
+
+      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'ci/licenses_golden/licenses_dart',
         ),
       );
 
@@ -1689,6 +1847,11 @@ void foo() {
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()
             ..filename = 'flutter/lib/ui/foo.dart'
+            ..deletionsCount = 20
+            ..additionsCount = 0
+            ..changesCount = 20,
+          PullRequestFile()
+            ..filename = 'shell/platform/darwin/ios/platform_view_ios.mm'
             ..deletionsCount = 20
             ..additionsCount = 0
             ..changesCount = 20,

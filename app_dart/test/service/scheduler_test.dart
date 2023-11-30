@@ -690,6 +690,102 @@ targets:
         );
       });
 
+      group('treats postsubmit as presubmit if a label is present', () {
+        final IssueLabel runAllTests = IssueLabel(name: 'test: all');
+        setUp(() async {
+          httpClient = MockClient((http.Request request) async {
+            if (request.url.path.contains('.ci.yaml')) {
+              return http.Response(
+                '''
+  enabled_branches:
+    - main
+    - master
+  targets:
+    - name: Linux Presubmit
+      presubmit: true
+      scheduler: luci
+    - name: Linux Conditional Presubmit (runIf)
+      presubmit: true
+      scheduler: luci
+      runIf:
+        - dev/run_if/**
+    - name: Linux Conditional Presubmit (runIfNot)
+      presubmit: true
+      scheduler: luci
+      runIfNot:
+        - dev/run_if_not/**
+    - name: Linux Postsubmit
+      presubmit: false
+      scheduler: luci
+    - name: Linux Cache
+      presubmit: false
+      scheduler: luci
+      properties:
+        cache_name: "builder"
+  ''',
+                200,
+              );
+            }
+            throw Exception('Failed to find ${request.url.path}');
+          });
+        });
+
+        test('with a specific label in the flutter/engine repo', () async {
+          final enginePr = generatePullRequest(
+            branch: Config.defaultBranch(Config.engineSlug),
+            labels: <IssueLabel>[runAllTests],
+            repo: Config.engineSlug.name,
+          );
+          final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
+          expect(
+            presubmitTargets.map((Target target) => target.value.name).toList(),
+            <String>[
+              // Always runs.
+              'Linux Presubmit',
+              // test: all label is present, so runIf is skipped.
+              'Linux Conditional Presubmit (runIf)',
+              'Linux Conditional Presubmit (runIfNot)',
+              // test: all label is present, so postsubmit is treated as presubmit.
+              'Linux Postsubmit',
+            ],
+          );
+        });
+
+        test('with a specific label in the flutter/flutter repo', () async {
+          final frameworkPr = generatePullRequest(
+            branch: Config.defaultBranch(Config.flutterSlug),
+            labels: <IssueLabel>[runAllTests],
+            repo: Config.flutterSlug.name,
+          );
+          final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(frameworkPr);
+          expect(
+            presubmitTargets.map((Target target) => target.value.name).toList(),
+            <String>[
+              // Always runs.
+              'Linux Presubmit',
+              'Linux Conditional Presubmit (runIfNot)',
+            ],
+          );
+        });
+
+        test('without a specific label', () async {
+          final enginePr = generatePullRequest(
+            branch: Config.defaultBranch(Config.engineSlug),
+            labels: <IssueLabel>[],
+            repo: Config.engineSlug.name,
+          );
+          final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
+          expect(
+            presubmitTargets.map((Target target) => target.value.name).toList(),
+            (<String>[
+              // Always runs.
+              'Linux Presubmit',
+              'Linux Conditional Presubmit (runIfNot)',
+            ]),
+          );
+        });
+      });
+
       test('checks for release branches', () async {
         const String branch = 'flutter-1.24-candidate.1';
         httpClient = MockClient((http.Request request) async {

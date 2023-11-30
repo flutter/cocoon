@@ -56,7 +56,7 @@ void main() {
       expect(result.message.contains('This PR has met approval requirements for merging.'), isTrue);
     });
 
-    test('Author is a NON member and reviewer is a member, need 1 more review', () async {
+    test('Author is a NON member and reviewer is a member, needs 1 more review', () async {
       // githubService.isTeamMemberMockList = [true, true];
       githubService.isTeamMemberMockMap['author1'] = false;
       githubService.isTeamMemberMockMap['keyonghan'] = true;
@@ -69,10 +69,10 @@ void main() {
       expect(result.result, isFalse);
       expect(result.action, Action.REMOVE_LABEL);
       expect(result.message.contains('This PR has not met approval requirements for merging.'), isTrue);
-      expect(result.message.contains('need 1 more review'), isTrue);
+      expect(result.message.contains('needs 1 more review'), isTrue);
     });
 
-    test('Author is a NON member and reviewer is a NON member, need 2 more reviews', () async {
+    test('Author is a NON member and reviewer is a NON member, needs 2 more reviews', () async {
       // githubService.isTeamMemberMockList = [true, true];
       githubService.isTeamMemberMockMap['author1'] = false;
       githubService.isTeamMemberMockMap['keyonghan'] = false;
@@ -85,10 +85,10 @@ void main() {
       expect(result.result, isFalse);
       expect(result.action, Action.REMOVE_LABEL);
       expect(result.message.contains('This PR has not met approval requirements for merging.'), isTrue);
-      expect(result.message.contains('need 2 more review'), isTrue);
+      expect(result.message.contains('needs 2 more review'), isTrue);
     });
 
-    test('Author is a member and reviewer is NON member, need 1 more review', () async {
+    test('Author is a member and reviewer is NON member, needs 1 more review', () async {
       // githubService.isTeamMemberMockList = [true, true];
       githubService.isTeamMemberMockMap['author1'] = true;
       githubService.isTeamMemberMockMap['keyonghan'] = false;
@@ -101,7 +101,7 @@ void main() {
       expect(result.result, isFalse);
       expect(result.action, Action.IGNORE_TEMPORARILY);
       expect(result.message.contains('This PR has not met approval requirements for merging.'), isTrue);
-      expect(result.message.contains('need 1 more review'), isTrue);
+      expect(result.message.contains('needs 1 more review'), isTrue);
     });
 
     test('Author is NON member and reviewers are members, pr approved', () async {
@@ -120,7 +120,7 @@ void main() {
       expect(result.message.contains('This PR has met approval requirements for merging.'), isTrue);
     });
 
-    test('Author is NON member and one reviewer is a NON member, need 1 more review', () async {
+    test('Author is NON member and one reviewer is a NON member, needs 1 more review', () async {
       githubService.isTeamMemberMockMap['author1'] = false;
       githubService.isTeamMemberMockMap['author2'] = true;
       githubService.isTeamMemberMockMap['author3'] = false;
@@ -134,10 +134,10 @@ void main() {
       expect(result.result, isFalse);
       expect(result.action, Action.REMOVE_LABEL);
       expect(result.message.contains('This PR has not met approval requirements for merging.'), isTrue);
-      expect(result.message.contains('need 1 more review'), isTrue);
+      expect(result.message.contains('needs 1 more review'), isTrue);
     });
 
-    test('Author is member and reviewers are NON members, need 1 more review', () async {
+    test('Author is member and reviewers are NON members, needs 1 more review', () async {
       githubService.isTeamMemberMockMap['author1'] = true;
       githubService.isTeamMemberMockMap['author2'] = false;
       githubService.isTeamMemberMockMap['author3'] = false;
@@ -151,10 +151,10 @@ void main() {
       expect(result.result, isFalse);
       expect(result.action, Action.IGNORE_TEMPORARILY);
       expect(result.message.contains('This PR has not met approval requirements for merging.'), isTrue);
-      expect(result.message.contains('need 1 more review'), isTrue);
+      expect(result.message.contains('needs 1 more review'), isTrue);
     });
 
-    test('Author is NON member and reviewers are NON members, need 2 reviews', () async {
+    test('Author is NON member and reviewers are NON members, needs 2 reviews', () async {
       githubService.isTeamMemberMockMap['author1'] = false;
       githubService.isTeamMemberMockMap['author2'] = false;
       githubService.isTeamMemberMockMap['author3'] = false;
@@ -168,7 +168,7 @@ void main() {
       expect(result.result, isFalse);
       expect(result.action, Action.REMOVE_LABEL);
       expect(result.message.contains('This PR has not met approval requirements for merging.'), isTrue);
-      expect(result.message.contains('need 2 more review'), isTrue);
+      expect(result.message.contains('needs 2 more review'), isTrue);
     });
 
     test('Verify author review count does not go negative', () async {
@@ -187,7 +187,7 @@ void main() {
       expect(result.result, isFalse);
       expect(result.action, Action.REMOVE_LABEL);
       expect(result.message.contains('This PR has not met approval requirements for merging.'), isTrue);
-      expect(result.message.contains('need 2 more review'), isTrue);
+      expect(result.message.contains('needs 2 more review'), isTrue);
     });
 
     test('Verify author review count does not go negative', () async {
@@ -256,7 +256,7 @@ void main() {
       expect(result.action, Action.REMOVE_LABEL);
       expect(
         result.message.contains(
-          'This PR has not met approval requirements for merging. You are not a member of flutter-hackers and need 1 more review(s) in order to merge this PR.',
+          'This PR has not met approval requirements for merging. The PR author is not a member of flutter-hackers and needs 1 more review(s) in order to merge this PR.',
         ),
         isTrue,
       );
@@ -288,7 +288,7 @@ void main() {
       expect(result.action, Action.REMOVE_LABEL);
       expect(
         result.message.contains(
-          'This PR has not met approval requirements for merging. You are not a member of flutter-hackers',
+          'This PR has not met approval requirements for merging. The PR author is not a member of flutter-hackers',
         ),
         isTrue,
       );

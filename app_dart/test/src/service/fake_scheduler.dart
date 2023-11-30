@@ -61,13 +61,9 @@ class FakeScheduler extends Scheduler {
 
   int cancelPreSubmitTargetsCallCnt = 0;
 
-  int get cancelPreSubmitTargetsCallCount {
-    return cancelPreSubmitTargetsCallCnt;
-  }
+  int get cancelPreSubmitTargetsCallCount => cancelPreSubmitTargetsCallCnt;
 
-  void resetCancelPreSubmitTargetsCallCount() {
-    cancelPreSubmitTargetsCallCnt = 0;
-  }
+  void resetCancelPreSubmitTargetsCallCount() => cancelPreSubmitTargetsCallCnt = 0;
 
   @override
   Future<void> cancelPreSubmitTargets({
@@ -76,6 +72,22 @@ class FakeScheduler extends Scheduler {
   }) async {
     await super.cancelPreSubmitTargets(pullRequest: pullRequest);
     cancelPreSubmitTargetsCallCnt++;
+  }
+
+  int triggerPresubmitTargetsCnt = 0;
+
+  int get triggerPresubmitTargetsCallCount => triggerPresubmitTargetsCnt;
+
+  void resetTriggerPresubmitTargetsCallCount() => triggerPresubmitTargetsCnt = 0;
+
+  @override
+  Future<void> triggerPresubmitTargets({
+    required PullRequest pullRequest,
+    String reason = 'Newer commit available',
+    List<String>? builderTriggerList,
+  }) async {
+    await super.triggerPresubmitTargets(pullRequest: pullRequest);
+    triggerPresubmitTargetsCnt++;
   }
 
   int addPullRequestCallCnt = 0;

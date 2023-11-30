@@ -117,6 +117,26 @@ void main() {
     expect(find.byIcon(Icons.settings), findsOneWidget);
   });
 
+  testWidgets('shows infra ticket queue button', (WidgetTester tester) async {
+    configureView(tester.view);
+    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(useMaterial3: false),
+        home: ValueProvider<BuildState>(
+          value: fakeBuildState,
+          child: ValueProvider<GoogleSignInService>(
+            value: fakeBuildState.authService,
+            child: const BuildDashboardPage(),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.queue), findsOneWidget);
+  });
+
   testWidgets('shows file a bug button', (WidgetTester tester) async {
     configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;

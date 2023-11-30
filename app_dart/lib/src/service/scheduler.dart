@@ -436,16 +436,36 @@ class Scheduler {
     log.info('Collecting presubmit targets for ${pullRequest.number}');
 
     // Filter out schedulers targets with schedulers different than luci or cocoon.
-    final Iterable<Target> presubmitTargets = ciYaml.presubmitTargets.where(
-      (Target target) =>
-          target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon,
-    );
+    final List<Target> presubmitTargets = ciYaml.presubmitTargets
+        .where(
+          (Target target) =>
+              target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon,
+        )
+        .toList();
+
+    // See https://github.com/flutter/flutter/issues/138430.
+    final includePostsubmitAsPresubmit = _includePostsubmitAsPresubmit(ciYaml, pullRequest);
+    if (includePostsubmitAsPresubmit) {
+      log.info('Including postsubmit targets as presubmit for ${pullRequest.number}');
+
+      for (Target target in ciYaml.postsubmitTargets) {
+        // We don't want to include a presubmit twice
+        // We don't want to run the builder_cache target as a presubmit
+        if (!target.value.presubmit && !target.value.properties.containsKey('cache_name')) {
+          presubmitTargets.add(target);
+        }
+      }
+    }
 
     log.info('Collected ${presubmitTargets.length} presubmit targets.');
     // Release branches should run every test.
     if (pullRequest.base!.ref != Config.defaultBranch(pullRequest.base!.repo!.slug())) {
       log.info('Release branch found, scheduling all targets for ${pullRequest.number}');
-      return presubmitTargets.toList();
+      return presubmitTargets;
+    }
+    if (includePostsubmitAsPresubmit) {
+      log.info('Postsubmit targets included as presubmit, scheduling all targets for ${pullRequest.number}');
+      return presubmitTargets;
     }
 
     // Filter builders based on the PR diff
@@ -460,6 +480,19 @@ class Scheduler {
       return presubmitTargets.toList();
     }
     return getTargetsToRun(presubmitTargets, files);
+  }
+
+  /// Returns `true` if [ciYaml.postsubmitTargets] should be ran during presubmit.
+  static bool _includePostsubmitAsPresubmit(CiYaml ciYaml, PullRequest pullRequest) {
+    // Only allow this for flutter/engine.
+    // See https://github.com/flutter/cocoon/pull/3256#issuecomment-1811624351.
+    if (ciYaml.slug != Config.engineSlug) {
+      return false;
+    }
+    if (pullRequest.labels?.any((label) => label.name.contains('test: all')) ?? false) {
+      return true;
+    }
+    return false;
   }
 
   /// Reschedules a failed build using a [CheckRunEvent]. The CheckRunEvent is

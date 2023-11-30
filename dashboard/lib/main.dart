@@ -13,9 +13,9 @@ import 'build_dashboard_page.dart';
 import 'service/cocoon.dart';
 import 'service/google_authentication.dart';
 import 'state/build.dart';
-import 'state/index.dart';
 import 'widgets/now.dart';
 import 'widgets/state_provider.dart';
+import 'widgets/task_box.dart';
 
 void usage() {
   // ignore: avoid_print
@@ -48,7 +48,6 @@ void main([List<String> args = const <String>[]]) {
   runApp(
     StateProvider(
       signInService: authService,
-      indexState: IndexState(authService: authService),
       buildState: BuildState(authService: authService, cocoonService: cocoonService),
       child: Now(child: const MyApp()),
     ),
@@ -62,37 +61,39 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Build Dashboard — Cocoon',
-      shortcuts: <ShortcutActivator, Intent>{
-        ...WidgetsApp.defaultShortcuts,
-        const SingleActivator(LogicalKeyboardKey.select): const ActivateIntent(),
-      },
-      theme: ThemeData(
-        useMaterial3: false,
-        primaryTextTheme: const TextTheme(
-          bodyLarge: TextStyle(color: Colors.black87),
+    return TaskBox(
+      child: MaterialApp(
+        title: 'Flutter Build Dashboard — Cocoon',
+        shortcuts: <ShortcutActivator, Intent>{
+          ...WidgetsApp.defaultShortcuts,
+          const SingleActivator(LogicalKeyboardKey.select): const ActivateIntent(),
+        },
+        theme: ThemeData(
+          useMaterial3: false,
+          primaryTextTheme: const TextTheme(
+            bodyLarge: TextStyle(color: Colors.black87),
+          ),
         ),
+        darkTheme: ThemeData.dark(),
+        initialRoute: BuildDashboardPage.routeName,
+        routes: <String, WidgetBuilder>{
+          BuildDashboardPage.routeName: (BuildContext context) => const BuildDashboardPage(),
+        },
+        onGenerateRoute: (RouteSettings settings) {
+          final Uri uriData = Uri.parse(settings.name!);
+          if (uriData.path == BuildDashboardPage.routeName) {
+            return MaterialPageRoute<void>(
+              settings: RouteSettings(name: uriData.toString()),
+              builder: (BuildContext context) {
+                return BuildDashboardPage(
+                  queryParameters: uriData.queryParameters,
+                );
+              },
+            );
+          }
+          return null;
+        },
       ),
-      darkTheme: ThemeData.dark(),
-      initialRoute: BuildDashboardPage.routeName,
-      routes: <String, WidgetBuilder>{
-        BuildDashboardPage.routeName: (BuildContext context) => const BuildDashboardPage(),
-      },
-      onGenerateRoute: (RouteSettings settings) {
-        final Uri uriData = Uri.parse(settings.name!);
-        if (uriData.path == BuildDashboardPage.routeName) {
-          return MaterialPageRoute<void>(
-            settings: RouteSettings(name: uriData.toString()),
-            builder: (BuildContext context) {
-              return BuildDashboardPage(
-                queryParameters: uriData.queryParameters,
-              );
-            },
-          );
-        }
-        return null;
-      },
     );
   }
 }

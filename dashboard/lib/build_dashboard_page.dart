@@ -397,6 +397,9 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     final Uri flutterIssueUrl = Uri.parse(
       'https://github.com/flutter/flutter/issues/new?assignees=&labels=team-infra&projects=&template=6_infrastructure.yml',
     );
+    final Uri flutterInfraTicketQueue = Uri.parse(
+      'https://github.com/orgs/flutter/projects/81',
+    );
     final BuildState buildState = Provider.of<BuildState>(context);
     buildState.updateCurrentRepoBranch(repo!, branch!);
     return CallbackShortcuts(
@@ -421,6 +424,17 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
               backgroundColor: colorTable[buildState.isTreeBuilding],
               actions: <Widget>[
                 if (!_smallScreen) ..._buildRepositorySelectionWidgets(context, buildState),
+                IconButton(
+                  tooltip: 'Infra Ticket Queue',
+                  icon: const Icon(Icons.queue),
+                  onPressed: () async {
+                    if (await canLaunchUrl(flutterInfraTicketQueue)) {
+                      await launchUrl(flutterInfraTicketQueue);
+                    } else {
+                      throw 'Could not launch $flutterInfraTicketQueue';
+                    }
+                  },
+                ),
                 IconButton(
                   tooltip: 'Report Issue',
                   icon: const Icon(Icons.bug_report),
