@@ -141,8 +141,10 @@ class BranchService {
           ref: branchName,
         )
         .then((String value) => value.trim())
-        // return empty branch name if branch version file doesn't exist
-        .onError((e, _) => '');
+        .onError((e, _) {
+      log.severe('Could not fetch release version file: $e');
+      return '';
+    });
   }
 
   /// Retrieve the latest canidate branch from all candidate branches.
