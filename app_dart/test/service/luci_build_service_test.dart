@@ -333,6 +333,7 @@ void main() {
         'git_url': 'https://github.com/flutter/flutter',
         'git_ref': 'refs/pull/123/head',
         'exe_cipd_version': 'refs/heads/main',
+        'recipe': 'devicelab/devicelab',
       });
       expect(dimensions.length, 1);
       expect(dimensions[0].key, 'os');
@@ -391,6 +392,7 @@ void main() {
         'git_url': 'https://github.com/flutter/flutter',
         'git_ref': 'refs/pull/123/head',
         'exe_cipd_version': 'refs/heads/main',
+        'recipe': 'devicelab/devicelab',
         LuciBuildService.propertiesGithubBuildLabelName: [
           '${LuciBuildService.githubBuildLabelPrefix}hello',
           '${LuciBuildService.githubBuildLabelPrefix}world',
@@ -439,6 +441,7 @@ void main() {
         generateTarget(
           1,
           properties: <String, String>{
+            'recipe': 'devicelab/devicelab',
             'os': 'debian-10.12',
           },
           slug: Config.packagesSlug,
@@ -479,6 +482,7 @@ void main() {
         'git_branch': 'master',
         'exe_cipd_version': 'refs/heads/master',
         'os': 'debian-10.12',
+        'recipe': 'devicelab/devicelab',
       });
       expect(scheduleBuild.exe, <String, String>{
         'cipdVersion': 'refs/heads/master',
