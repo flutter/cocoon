@@ -134,12 +134,17 @@ class BranchService {
     required gh.RepositorySlug slug,
     required String branchName,
   }) async {
-    return (await githubService.getFileContent(
-      slug,
-      'bin/internal/release-candidate-branch.version',
-      ref: branchName,
-    ))
-        .trim();
+    return githubService
+        .getFileContent(
+          slug,
+          'bin/internal/release-candidate-branch.version',
+          ref: branchName,
+        )
+        .then((String value) => value.trim())
+        .onError((e, _) {
+      log.severe('Could not fetch release version file: $e');
+      return '';
+    });
   }
 
   /// Retrieve the latest canidate branch from all candidate branches.
