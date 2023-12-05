@@ -138,8 +138,8 @@ Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> fil
   log.info('Getting targets to run from diff.');
   final List<Target> targetsToRun = <Target>[];
   for (Target target in targets) {
-    final List<String> globs = target.value.runIf;
-    // Handle case where [Target] initializes empty runif
+    final List<String> globs = target.runIf;
+    // Handle case where [Target] initializes empty runIf
     if (globs.isEmpty) {
       // Evaluate run_if_not.
       final List<String> negativeGlobs = target.value.runIfNot;

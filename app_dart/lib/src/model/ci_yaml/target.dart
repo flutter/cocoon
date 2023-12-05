@@ -240,6 +240,16 @@ class Target {
     return value.bringup ? 'staging' : 'prod';
   }
 
+  /// Get the runIf globs for when this target should run.
+  ///
+  /// If not empty, will include default globs that should trigger all tests.
+  List<String> get runIf {
+    if (value.runIf.isEmpty) {
+      return <String>[];
+    }
+    return <String>['.ci.yaml', 'DEPS', ...value.runIf];
+  }
+
   /// Returns value of ignore_flakiness property.
   ///
   /// Returns the value of ignore_flakiness property if

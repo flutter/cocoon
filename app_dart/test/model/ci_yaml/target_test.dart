@@ -232,5 +232,21 @@ void main() {
         );
       });
     });
+
+    group('runIf', () {
+      test('empty', () {
+        final Target target = generateTarget(1);
+        expect(target.runIf, isEmpty);
+      });
+
+      test('include defaults', () {
+        final Target target = generateTarget(1, runIf: <String>['*.md']);
+        expect(target.runIf, <String>[
+          '.ci.yaml',
+          'DEPS',
+          '*.md',
+        ]);
+      });
+    });
   });
 }

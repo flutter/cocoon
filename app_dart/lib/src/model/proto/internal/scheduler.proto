@@ -52,8 +52,11 @@ message Target {
     optional bool presubmit = 9 [default = true];
     // Whether target should run post-submit. Defaults to true, will run in postsubmit.
     optional bool postsubmit = 10 [default = true];
-    // List of paths that trigger this target in presubmit when there is a diff.
-    // If no paths are given, it will always run.
+    // List of globs that trigger this target in presubmit when there is a diff.
+    // If a glob is given, it will include the following defaults as well:
+    //  * .ci.yaml - Rerun all targets as the properties may have changed
+    //  * DEPS - Rerun all targets as pinned dependencies have changed
+    // If no globs are given, it will always run.
     repeated string run_if = 11;
     // Override of enabled_branches for this target (for release targets).
     repeated string enabled_branches = 12;
