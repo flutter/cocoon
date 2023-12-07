@@ -416,15 +416,20 @@ update these file paths accordingly.
       'notarytool',
       'info',
       uuid,
-      '--password',
-      appSpecificPassword,
       '--apple-id',
       codesignAppstoreId,
+      '--password',
+      appSpecificPassword,
       '--team-id',
       codesignTeamId,
     ];
 
-    log.info('checking notary status with ${args.join(' ')}');
+    final String argsWithoutCredentials = args
+        .join(' ')
+        .replaceFirst(codesignAppstoreId, '<appleID>')
+        .replaceFirst(appSpecificPassword, '<appSpecificPassword>')
+        .replaceFirst(codesignTeamId, '<teamID>');
+    log.info('checking notary info: $argsWithoutCredentials');
     final io.ProcessResult result = processManager.runSync(args);
     final String combinedOutput = (result.stdout as String) + (result.stderr as String);
 
@@ -432,7 +437,7 @@ update these file paths accordingly.
 
     if (match == null) {
       throw CodesignException(
-        'Malformed output from "${args.join(' ')}"\n${combinedOutput.trim()}',
+        'Malformed output from "$argsWithoutCredentials"\n${combinedOutput.trim()}',
       );
     }
 
@@ -465,11 +470,16 @@ update these file paths accordingly.
         '--verbose',
       ];
 
-      log.info('uploading ${args.join(' ')}');
+      final String argsWithoutCredentials = args
+          .join(' ')
+          .replaceFirst(codesignAppstoreId, '<appleID>')
+          .replaceFirst(appSpecificPassword, '<appSpecificPassword>')
+          .replaceFirst(codesignTeamId, '<teamID>');
+      log.info('uploading to notary: $argsWithoutCredentials');
       final io.ProcessResult result = processManager.runSync(args);
       if (result.exitCode != 0) {
         throw CodesignException(
-          'Command "${args.join(' ')}" failed with exit code ${result.exitCode}\nStdout: ${result.stdout}\nStderr: ${result.stderr}',
+          'Command "$argsWithoutCredentials" failed with exit code ${result.exitCode}\nStdout: ${result.stdout}\nStderr: ${result.stderr}',
         );
       }
 
@@ -478,7 +488,7 @@ update these file paths accordingly.
       match = _notarytoolRequestPattern.firstMatch(combinedOutput);
 
       if (match == null) {
-        log.warning('Failed to upload to the notary service with args: ${args.join(' ')}');
+        log.warning('Failed to upload to the notary service with args: $argsWithoutCredentials');
         log.warning('{combinedOutput.trim()}');
         retryCount -= 1;
         log.warning('Trying again $retryCount more time${retryCount > 1 ? 's' : ''}...');
