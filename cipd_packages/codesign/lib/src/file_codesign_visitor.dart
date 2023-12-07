@@ -71,6 +71,7 @@ class FileCodesignVisitor {
     'CODESIGN_TEAM_ID': '',
     'APP_SPECIFIC_PASSWORD': '',
   };
+  Map<String, String> redactedCredentials = {};
 
   late final File entitlementsFile;
 
@@ -131,11 +132,19 @@ update these file paths accordingly.
     return fileSystem.file(passwordFilePath).readAsString();
   }
 
+  void redactPasswords() {
+    redactedCredentials[codesignAppstoreId] = '<appleID-redacted>';
+    redactedCredentials[codesignTeamId] = '<teamID-redacted>';
+    redactedCredentials[appSpecificPassword] = '<appSpecificPassword-redacted>';
+  }
+
   /// The entrance point of examining and code signing an engine artifact.
   Future<void> validateAll() async {
     codesignAppstoreId = await readPassword(codesignAppstoreIDFilePath);
     codesignTeamId = await readPassword(codesignTeamIDFilePath);
     appSpecificPassword = await readPassword(appSpecificPasswordFilePath);
+
+    redactPasswords();
 
     await processRemoteZip();
 
@@ -424,11 +433,10 @@ update these file paths accordingly.
       codesignTeamId,
     ];
 
-    final String argsWithoutCredentials = args
-        .join(' ')
-        .replaceFirst(codesignAppstoreId, '<appleID>')
-        .replaceFirst(appSpecificPassword, '<appSpecificPassword>')
-        .replaceFirst(codesignTeamId, '<teamID>');
+    String argsWithoutCredentials = args.join(' ');
+    for (var key in redactedCredentials.keys) {
+      argsWithoutCredentials = argsWithoutCredentials.replaceAll(key, redactedCredentials[key]!);
+    }
     log.info('checking notary info: $argsWithoutCredentials');
     final io.ProcessResult result = processManager.runSync(args);
     final String combinedOutput = (result.stdout as String) + (result.stderr as String);
@@ -470,11 +478,10 @@ update these file paths accordingly.
         '--verbose',
       ];
 
-      final String argsWithoutCredentials = args
-          .join(' ')
-          .replaceFirst(codesignAppstoreId, '<appleID>')
-          .replaceFirst(appSpecificPassword, '<appSpecificPassword>')
-          .replaceFirst(codesignTeamId, '<teamID>');
+      String argsWithoutCredentials = args.join(' ');
+      for (var key in redactedCredentials.keys) {
+        argsWithoutCredentials = argsWithoutCredentials.replaceAll(key, redactedCredentials[key]!);
+      }
       log.info('uploading to notary: $argsWithoutCredentials');
       final io.ProcessResult result = processManager.runSync(args);
       if (result.exitCode != 0) {

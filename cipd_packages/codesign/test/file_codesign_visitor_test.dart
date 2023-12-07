@@ -117,6 +117,7 @@ void main() {
       codesignVisitor.appSpecificPassword = fakePassword;
       codesignVisitor.codesignAppstoreId = fakeAppleID;
       codesignVisitor.codesignTeamId = fakeTeamID;
+      codesignVisitor.redactPasswords();
     });
 
     test('procesRemotezip triggers correct workflow', () async {
@@ -204,8 +205,8 @@ void main() {
       expect(
         messages,
         contains(
-          'uploading to notary: xcrun notarytool submit ${codesignVisitor.outputZipPath} --apple-id <appleID> --password <appSpecificPassword> '
-          '--team-id <teamID> --verbose',
+          'uploading to notary: xcrun notarytool submit ${codesignVisitor.outputZipPath} --apple-id <appleID-redacted> --password <appSpecificPassword-redacted> '
+          '--team-id <teamID-redacted> --verbose',
         ),
       );
       expect(
@@ -215,8 +216,8 @@ void main() {
       expect(
         messages,
         contains(
-          'checking notary info: xcrun notarytool info $uuid --apple-id <appleID> --password <appSpecificPassword> '
-          '--team-id <teamID>',
+          'checking notary info: xcrun notarytool info $uuid --apple-id <appleID-redacted> --password <appSpecificPassword-redacted> '
+          '--team-id <teamID-redacted>',
         ),
       );
       expect(
@@ -769,6 +770,7 @@ file_c''',
       codesignVisitor.appSpecificPassword = fakePassword;
       codesignVisitor.codesignAppstoreId = fakeAppleID;
       codesignVisitor.codesignTeamId = fakeTeamID;
+      codesignVisitor.redactPasswords();
     });
 
     test('successful notarization check returns true', () async {
@@ -944,7 +946,7 @@ status: Invalid''',
         messages,
         contains('Failed to upload to the notary service with args: '
             'xcrun notarytool submit ${rootDirectory.absolute.path}/temp '
-            '--apple-id <appleID> --password <appSpecificPassword> --team-id <teamID> '
+            '--apple-id <appleID-redacted> --password <appSpecificPassword-redacted> --team-id <teamID-redacted> '
             '--verbose'),
       );
       expect(
