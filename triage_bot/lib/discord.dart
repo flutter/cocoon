@@ -29,7 +29,7 @@ List<Pattern> get boilerplates => <Pattern>[
   RegExp(r'- \[[ xX]] I listed at least one issue that this PR fixes in the description above\.'),
   RegExp(r'- \[[ xX]] I updated/added relevant documentation \(doc comments with `///`\)\.'),
   RegExp(r'- \[[ xX]] I added new tests to check the change I am making, or this PR is \[test-exempt]\.'),
-  RegExp(r'- \[[ xX]] I added new tests to check the change I am making or feature I am adding, or Hixie said the PR is test-exempt\. See \[testing the engine] for instructions on writing and running engine tests\.'),
+  RegExp(r'- \[[ xX]] I added new tests to check the change I am making or feature I am adding, or @test-exemption-reviewers said the PR is test-exempt\. See \[testing the engine] for instructions on writing and running engine tests\.'),
   RegExp(r'- \[[ xX]] All existing and new tests are passing\.'),
   RegExp(r'- \[[ xX]] The title of the PR starts with the name of the package surrounded by square brackets, e\.g\. `\[shared_preferences]`'),
   RegExp(r'- \[[ xX]] I updated `pubspec.yaml` with an appropriate new version according to the \[pub versioning philosophy], or this PR is \[exempt from version changes]\.'),
