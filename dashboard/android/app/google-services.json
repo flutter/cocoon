@@ -1,0 +1,28 @@
+{
+  "project_info": {
+    "project_number": "790958376406",
+    "project_id": "google.com:flutter-roll-on-borg"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:790958376406:android:abb9b428ae957864439077",
+        "android_client_info": {
+          "package_name": "com.appspot.flutter_dashboard.dashboard"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfqDitDE3wWJCezm9PfkKBgaLjJrA4H-0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

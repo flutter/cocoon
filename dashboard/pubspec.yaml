@@ -5,7 +5,7 @@
 name: flutter_dashboard
 description: The Flutter dashboard.
 publish_to: none
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
   sdk: ^3.1.0
@@ -26,6 +26,8 @@ dependencies:
   url_launcher: 6.2.1 # Rolled by dependabot
   url_launcher_platform_interface: 2.2.0 # Rolled by dependabot
   url_launcher_web: 2.2.1 # Rolled by dependabot
+  firebase_crashlytics: ^3.4.7
+  firebase_core: ^2.24.2
 
 dev_dependencies:
   flutter_test:

@@ -4,12 +4,15 @@
 
 import 'dart:io' if (kIsWeb) '';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 import 'build_dashboard_page.dart';
+import 'firebase_options.dart';
 import 'service/cocoon.dart';
 import 'service/google_authentication.dart';
 import 'state/build.dart';
@@ -29,7 +32,7 @@ Usage: cocoon [--use-production-service | --no-use-production-service]
 ''');
 }
 
-void main([List<String> args = const <String>[]]) {
+void main([List<String> args = const <String>[]]) async {
   bool useProductionService = kReleaseMode;
   if (args.contains('--help')) {
     usage();
@@ -43,6 +46,18 @@ void main([List<String> args = const <String>[]]) {
   if (args.contains('--no-use-production-service')) {
     useProductionService = false;
   }
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  FlutterError.onError = (errorDetails) {
+    FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+  };
+  // Pass all uncaught asynchronous errors that aren't handled by the Flutter framework to Crashlytics
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
   final GoogleSignInService authService = GoogleSignInService();
   final CocoonService cocoonService = CocoonService(useProductionService: useProductionService);
   runApp(
