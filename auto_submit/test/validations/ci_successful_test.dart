@@ -69,15 +69,16 @@ void main() {
 
       checkRunFuture.then((checkRuns) {
         expect(
-            ciSuccessful.validateCheckRuns(
-              slug,
-              prNumber,
-              checkRuns,
-              failures,
-              allSuccess,
-              Author(login: 'testAuthor'),
-            ),
-            isTrue);
+          ciSuccessful.validateCheckRuns(
+            slug,
+            prNumber,
+            checkRuns,
+            failures,
+            allSuccess,
+            Author(login: 'testAuthor'),
+          ),
+          isTrue,
+        );
         expect(failures, isEmpty);
       });
     });
@@ -89,15 +90,16 @@ void main() {
 
       checkRunFuture.then((checkRuns) {
         expect(
-            ciSuccessful.validateCheckRuns(
-              slug,
-              prNumber,
-              checkRuns,
-              failures,
-              allSuccess,
-              Author(login: 'testAuthor'),
-            ),
-            isTrue);
+          ciSuccessful.validateCheckRuns(
+            slug,
+            prNumber,
+            checkRuns,
+            failures,
+            allSuccess,
+            Author(login: 'testAuthor'),
+          ),
+          isTrue,
+        );
         expect(failures, isEmpty);
       });
     });
@@ -109,15 +111,16 @@ void main() {
 
       checkRunFuture.then((checkRuns) {
         expect(
-            ciSuccessful.validateCheckRuns(
-              slug,
-              prNumber,
-              checkRuns,
-              failures,
-              allSuccess,
-              Author(login: 'testAuthor'),
-            ),
-            isTrue);
+          ciSuccessful.validateCheckRuns(
+            slug,
+            prNumber,
+            checkRuns,
+            failures,
+            allSuccess,
+            Author(login: 'testAuthor'),
+          ),
+          isTrue,
+        );
         expect(failures, isEmpty);
       });
     });
@@ -129,15 +132,16 @@ void main() {
 
       checkRunFuture.then((checkRuns) {
         expect(
-            ciSuccessful.validateCheckRuns(
-              slug,
-              prNumber,
-              checkRuns,
-              failures,
-              allSuccess,
-              Author(login: 'testAuthor'),
-            ),
-            isFalse);
+          ciSuccessful.validateCheckRuns(
+            slug,
+            prNumber,
+            checkRuns,
+            failures,
+            allSuccess,
+            Author(login: 'testAuthor'),
+          ),
+          isFalse,
+        );
         expect(failures, isNotEmpty);
         expect(failures.length, 1);
       });
@@ -150,15 +154,16 @@ void main() {
 
       checkRunFuture.then((checkRuns) {
         expect(
-            ciSuccessful.validateCheckRuns(
-              slug,
-              prNumber,
-              checkRuns,
-              failures,
-              allSuccess,
-              Author(login: 'testAuthor'),
-            ),
-            isTrue);
+          ciSuccessful.validateCheckRuns(
+            slug,
+            prNumber,
+            checkRuns,
+            failures,
+            allSuccess,
+            Author(login: 'testAuthor'),
+          ),
+          isTrue,
+        );
         expect(failures, isEmpty);
       });
     });
@@ -170,15 +175,16 @@ void main() {
 
       checkRunFuture.then((checkRuns) {
         expect(
-            ciSuccessful.validateCheckRuns(
-              slug,
-              prNumber,
-              checkRuns,
-              failures,
-              allSuccess,
-              Author(login: 'testAuthor'),
-            ),
-            isFalse);
+          ciSuccessful.validateCheckRuns(
+            slug,
+            prNumber,
+            checkRuns,
+            failures,
+            allSuccess,
+            Author(login: 'testAuthor'),
+          ),
+          isFalse,
+        );
         expect(failures, isNotEmpty);
         expect(failures.length, 1);
       });
@@ -193,15 +199,16 @@ void main() {
 
       checkRunFuture.then((checkRuns) {
         expect(
-            ciSuccessful.validateCheckRuns(
-              slug,
-              prNumber,
-              checkRuns,
-              failures,
-              allSuccess,
-              Author(login: 'testAuthor'),
-            ),
-            isFalse);
+          ciSuccessful.validateCheckRuns(
+            slug,
+            prNumber,
+            checkRuns,
+            failures,
+            allSuccess,
+            Author(login: 'testAuthor'),
+          ),
+          isFalse,
+        );
         expect(failures, isEmpty);
       });
     });
@@ -213,15 +220,16 @@ void main() {
 
       checkRunFuture.then((checkRuns) {
         expect(
-            ciSuccessful.validateCheckRuns(
-              slug,
-              prNumber,
-              checkRuns,
-              failures,
-              allSuccess,
-              Author(login: 'testAuthor'),
-            ),
-            isFalse);
+          ciSuccessful.validateCheckRuns(
+            slug,
+            prNumber,
+            checkRuns,
+            failures,
+            allSuccess,
+            Author(login: 'testAuthor'),
+          ),
+          isFalse,
+        );
         expect(failures, isNotEmpty);
         expect(failures.length, 1);
       });
@@ -611,7 +619,9 @@ void main() {
 
     test('when it is engine roller', () async {
       final bool isEngineRoller = ciSuccessful.isEngineRoller(
-          Author(login: 'engine-flutter-autoroll'), github.RepositorySlug('flutter', 'engine'));
+        Author(login: 'engine-flutter-autoroll'),
+        github.RepositorySlug('flutter', 'engine'),
+      );
       expect(isEngineRoller, true);
     });
     test('when it is not from roller', () async {
@@ -621,7 +631,9 @@ void main() {
     });
     test('when it is not from engine', () async {
       final bool isEngineRoller = ciSuccessful.isEngineRoller(
-          Author(login: 'engine-flutter-autoroll'), github.RepositorySlug('flutter', 'flutter'));
+        Author(login: 'engine-flutter-autoroll'),
+        github.RepositorySlug('flutter', 'flutter'),
+      );
       expect(isEngineRoller, false);
     });
   });
