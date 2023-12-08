@@ -35,7 +35,7 @@ class _PausedCommitStatus {
 
   void complete() {
     assert(_pausedStatus != null);
-    _completer.complete(_pausedStatus);
+    _completer.complete(_pausedStatus!);
     _pausedStatus = null;
   }
 }
