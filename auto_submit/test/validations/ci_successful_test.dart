@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:core';
 
 import 'ci_successful_test_data.dart';
 
@@ -510,6 +511,22 @@ void main() {
         validationResult.message,
         '- The status or check suite [failed_checkrun](https://example.com) has failed. Please fix the issues identified (or deflake) before re-applying this label.\n',
       );
+    });
+  });
+  group('Validate if a datetime is stale', () {
+    setUp(() {
+      githubService = FakeGithubService(client: MockGitHub());
+      config = FakeConfig(githubService: githubService);
+      ciSuccessful = CiSuccessful(config: config);
+    });
+
+    test('when it is stale', () async {
+      final bool isStale = ciSuccessful.isStale(DateTime.now().subtract(const Duration(hours: 3)));
+      expect(isStale, true);
+    });
+    test('when it is not stale', () async {
+      final bool isStale = ciSuccessful.isStale(DateTime.now().subtract(const Duration(hours: 1)));
+      expect(isStale, false);
     });
   });
 }

@@ -57,6 +57,7 @@ query LabeledPullRequestWithReviews($sOwner: String!, $sName: String!, $sPrNumbe
             pushedDate
             status {
               contexts {
+                createdAt
                 context
                 state
                 targetUrl

@@ -140,6 +140,7 @@ class CiSuccessful extends Validation {
     final String overrideTreeStatusLabel = config.overrideTreeStatusLabel;
     log.info('Validating name: ${slug.name}/$prNumber, statuses: $statuses');
 
+    final List<ContextNode> staleStatuses = <ContextNode>[];
     for (ContextNode status in statuses) {
       // How can name be null but presumed to not be null below when added to failure?
       final String? name = status.context;
@@ -158,7 +159,15 @@ class CiSuccessful extends Validation {
         if (status.state == STATUS_FAILURE && !notInAuthorsControl.contains(name)) {
           failures.add(FailureDetail(name!, status.targetUrl!));
         }
+        if (status.state == STATUS_PENDING && isStale(status.createdAt!)) {
+          staleStatuses.add(status);
+        }
       }
+    }
+    if (staleStatuses.isNotEmpty) {
+      log.warning(
+        'Pull request https://github.com/${slug.fullName}/pull/$prNumber from ${slug.name} repo has been hanging over ${Config.kGitHubCheckStaleThreshold} hours due to: ${staleStatuses.map((e) => e.context).toList()}',
+      );
     }
 
     return allSuccess;
@@ -177,8 +186,13 @@ class CiSuccessful extends Validation {
   ) {
     log.info('Validating name: ${slug.name}/$prNumber, checkRuns: $checkRuns');
 
+    final List<github.CheckRun> staleCheckRuns = <github.CheckRun>[];
     for (github.CheckRun checkRun in checkRuns) {
       final String? name = checkRun.name;
+
+      if (isStale(checkRun.startedAt)) {
+        staleCheckRuns.add(checkRun);
+      }
 
       if (checkRun.conclusion == github.CheckRunConclusion.skipped ||
           checkRun.conclusion == github.CheckRunConclusion.success ||
@@ -193,7 +207,17 @@ class CiSuccessful extends Validation {
       }
       allSuccess = false;
     }
+    if (staleCheckRuns.isNotEmpty) {
+      log.warning(
+        'Pull request https://github.com/${slug.fullName}/pull/$prNumber from ${slug.name} repo has been hanging over ${Config.kGitHubCheckStaleThreshold} hours due to: ${staleCheckRuns.map((e) => e.name).toList()}',
+      );
+    }
 
     return allSuccess;
+  }
+
+  // Treat any GitHub check run as stale if created over [Config.kGitHubCheckStaleThreshold] hours ago.
+  bool isStale(DateTime dateTime) {
+    return dateTime.compareTo(DateTime.now().subtract(const Duration(hours: Config.kGitHubCheckStaleThreshold))) < 0;
   }
 }
