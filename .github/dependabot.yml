@@ -82,3 +82,10 @@ updates:
       - "autosubmit"
     allow:
       - dependency-name: "github.com/slsa-framework/slsa-verifier/v2"
+  # Npm ecosystem.
+  - package-ecosystem: 'npm'
+    directory: '/gh_actions/third_party/no-response'
+    schedule:
+      interval: 'daily'
+    labels:
+      - "autosubmit"

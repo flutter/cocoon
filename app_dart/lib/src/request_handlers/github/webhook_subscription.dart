@@ -183,9 +183,11 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         }
         break;
       case 'edited':
-        // Editing a PR should not trigger new jobs, but may update whether
-        // it has tests.
         await _checkForTests(pullRequestEvent);
+        // In the event of the base ref changing we want to start new checks.
+        if (pullRequestEvent.changes != null && pullRequestEvent.changes!.base != null) {
+          await _scheduleIfMergeable(pullRequestEvent);
+        }
         break;
       case 'opened':
       case 'reopened':
@@ -371,6 +373,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.contains('analysis_options.yaml') ||
         filename.contains('AUTHORS') ||
         filename.contains('CODEOWNERS') ||
+        filename == 'DEPS' ||
         filename.contains('TESTOWNERS') ||
         filename.contains('pubspec.yaml') ||
         // Exempt categories.
@@ -379,6 +382,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         // Exempt paths.
         filename.startsWith('dev/devicelab/lib/versions/gallery.dart') ||
         filename.startsWith('dev/integration_tests') ||
+        filename.startsWith('impeller/fixtures') ||
+        filename.startsWith('impeller/golden_tests') ||
+        filename.startsWith('impeller/playground') ||
         filename.startsWith('shell/platform/embedder/tests') ||
         filename.startsWith('shell/platform/embedder/fixtures');
   }
@@ -395,16 +401,18 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     bool needsTests = false;
 
     await for (PullRequestFile file in files) {
-      final String filename = file.filename!.toLowerCase();
-      if (_fileContainsAddedCode(file) && filename.endsWith('.dart') ||
-          filename.endsWith('.mm') ||
-          filename.endsWith('.m') ||
-          filename.endsWith('.java') ||
-          filename.endsWith('.cc')) {
+      final String filename = file.filename!;
+      if (_fileContainsAddedCode(file) &&
+          !_isTestExempt(filename) &&
+          // License goldens are auto-generated.
+          !filename.startsWith('ci/licenses_golden/') &&
+          // Build files don't need unit tests.
+          !filename.endsWith('.gn') &&
+          !filename.endsWith('.gni')) {
         needsTests = !_allChangesAreCodeComments(file);
       }
 
-      if (kEngineTestRegExp.hasMatch(filename)) {
+      if (kEngineTestRegExp.hasMatch(filename.toLowerCase())) {
         hasTests = true;
       }
     }

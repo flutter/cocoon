@@ -7,20 +7,16 @@ import 'package:provider/provider.dart';
 
 import '../service/google_authentication.dart';
 import '../state/build.dart';
-import '../state/index.dart';
 
 class StateProvider extends StatelessWidget {
   const StateProvider({
     super.key,
     this.signInService,
-    this.indexState,
     this.buildState,
     this.child,
   });
 
   final GoogleSignInService? signInService;
-
-  final IndexState? indexState;
 
   final BuildState? buildState;
 
@@ -31,7 +27,6 @@ class StateProvider extends StatelessWidget {
     return MultiProvider(
       providers: <ValueProvider<Object?>>[
         ValueProvider<GoogleSignInService?>(value: signInService),
-        ValueProvider<IndexState?>(value: indexState),
         ValueProvider<BuildState?>(value: buildState),
       ],
       child: child,

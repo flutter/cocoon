@@ -10,6 +10,7 @@ import '../foundation/utils.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/github_service.dart';
+import '../service/logging.dart';
 
 @immutable
 
@@ -35,10 +36,18 @@ class GithubRateLimitStatus extends RequestHandler<Body> {
     final Map<String, dynamic> quotaUsage = (await githubService.getRateLimit()).toJson();
     quotaUsage['timestamp'] = DateTime.now().toIso8601String();
 
+    final int remainingQuota = quotaUsage['remaining'] as int;
+    final int quotaLimit = quotaUsage['limit'] as int;
+    const double githubQuotaUsageSLO = 0.5;
+    if (remainingQuota < githubQuotaUsageSLO * quotaLimit) {
+      log.warning(
+        'Remaining GitHub quota is $remainingQuota, which is less than quota usage SLO ${githubQuotaUsageSLO * quotaLimit} (${githubQuotaUsageSLO * 100}% of the limit $quotaLimit)).',
+      );
+    }
+
     /// Insert quota usage to BigQuery
     const String githubQuotaTable = 'GithubQuotaUsage';
     await insertBigquery(githubQuotaTable, quotaUsage, await config.createTabledataResourceApi());
-
     return Body.forJson(quotaUsage);
   }
 }

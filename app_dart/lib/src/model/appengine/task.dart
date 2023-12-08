@@ -537,10 +537,15 @@ class Task extends Model<int> {
         return status = statusSucceeded;
       case Result.canceled:
         return status = statusCancelled;
-      case Result.infraFailure:
-        return status = statusInfraFailure;
       case Result.failure:
-        return status = statusFailed;
+        // Note that `Result` does not support `infraFailure`:
+        // https://github.com/luci/luci-go/blob/main/common/api/buildbucket/buildbucket/v1/buildbucket-gen.go#L247-L251
+        // To determine an infra failure status, we need to combine `Result.failure` and `FailureReason.infraFailure`.
+        if (build.failureReason == FailureReason.infraFailure) {
+          return status = statusInfraFailure;
+        } else {
+          return status = statusFailed;
+        }
       default:
         throw BadRequestException('${build.result} is unknown');
     }

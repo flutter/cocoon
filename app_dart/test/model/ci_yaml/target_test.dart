@@ -19,6 +19,7 @@ void main() {
         expect(target.getProperties(), <String, Object>{
           'bringup': false,
           'dependencies': <String>[],
+          'recipe': 'devicelab/devicelab',
         });
       });
 
@@ -91,6 +92,7 @@ void main() {
             'runtime_versions': ['ios-13-0', 'ios-15-0'],
             'sdk_version': '14e222b',
           },
+          'recipe': 'devicelab/devicelab',
         });
       });
 

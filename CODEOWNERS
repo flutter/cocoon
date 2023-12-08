@@ -31,11 +31,15 @@ app_dart/lib/src/request_handlers/update_existing_flaky_issues.dart         @key
 app_dart/lib/src/request_handlers/update_task_status.dart                   @keyonghan
 app_dart/lib/src/request_handlers/vacuum_github_commits.dart                @keyonghan
 
-## auto_submit app
+## apps
 auto_submit                                                                 @ricardoamador
+triage_bot                                                                  @Hixie
 
 ## cipd packages
 cipd_packages/codesign/**                                                   @XilaiZhang
 cipd_packages/device_doctor/**                                              @yusuf-goog
 cipd_packages/doxygen/**                                                    @gspencergoog
 cipd_packages/ruby/**                                                       @godofredoc
+
+## gh_actions
+gh_actions/third_party/no-response/**                                       @godofredoc

@@ -201,7 +201,6 @@ const _$FailureReasonEnumMap = {
 const _$ResultEnumMap = {
   Result.canceled: 'CANCELED',
   Result.failure: 'FAILURE',
-  Result.infraFailure: 'INFRA_FAILURE',
   Result.success: 'SUCCESS',
 };
 

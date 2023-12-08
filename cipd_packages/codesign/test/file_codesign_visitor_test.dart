@@ -16,6 +16,10 @@ import './src/fake_process_manager.dart';
 
 void main() {
   const String randomString = 'abcd1234';
+  const String fakeAppleID = 'flutter-appleID';
+  const String fakePassword = 'flutter-password';
+  const String fakeTeamID = 'flutter-teamID';
+  const String uuid = 'uuid';
   const String appSpecificPasswordFilePath = '/tmp/passwords.txt';
   const String codesignAppstoreIDFilePath = '/tmp/appID.txt';
   const String codesignTeamIDFilePath = '/tmp/teamID.txt';
@@ -110,9 +114,10 @@ void main() {
         outputZipPath: outputZipPath,
       );
       codesignVisitor.directoriesVisited.clear();
-      codesignVisitor.appSpecificPassword = randomString;
-      codesignVisitor.codesignAppstoreId = randomString;
-      codesignVisitor.codesignTeamId = randomString;
+      codesignVisitor.appSpecificPassword = fakePassword;
+      codesignVisitor.codesignAppstoreId = fakeAppleID;
+      codesignVisitor.codesignTeamId = fakeTeamID;
+      codesignVisitor.redactPasswords();
     });
 
     test('procesRemotezip triggers correct workflow', () async {
@@ -148,26 +153,27 @@ void main() {
             'submit',
             codesignVisitor.outputZipPath,
             '--apple-id',
-            randomString,
+            fakeAppleID,
             '--password',
-            randomString,
+            fakePassword,
             '--team-id',
-            randomString,
+            fakeTeamID,
+            '--verbose',
           ],
-          stdout: 'id: $randomString',
+          stdout: 'id: $uuid',
         ),
         const FakeCommand(
           command: <String>[
             'xcrun',
             'notarytool',
             'info',
-            randomString,
-            '--password',
-            randomString,
+            uuid,
             '--apple-id',
-            randomString,
+            fakeAppleID,
+            '--password',
+            fakePassword,
             '--team-id',
-            randomString,
+            fakeTeamID,
           ],
           stdout: 'status: Accepted',
         ),
@@ -199,17 +205,19 @@ void main() {
       expect(
         messages,
         contains(
-          'uploading xcrun notarytool submit ${codesignVisitor.outputZipPath} --apple-id $randomString --password $randomString --team-id $randomString',
+          'uploading to notary: xcrun notarytool submit ${codesignVisitor.outputZipPath} --apple-id <appleID-redacted> --password <appSpecificPassword-redacted> '
+          '--team-id <teamID-redacted> --verbose',
         ),
       );
       expect(
         messages,
-        contains('RequestUUID for ${codesignVisitor.outputZipPath} is: $randomString'),
+        contains('RequestUUID for ${codesignVisitor.outputZipPath} is: $uuid'),
       );
       expect(
         messages,
         contains(
-          'checking notary status with xcrun notarytool info $randomString --password $randomString --apple-id $randomString --team-id $randomString',
+          'checking notary info: xcrun notarytool info $uuid --apple-id <appleID-redacted> --password <appSpecificPassword-redacted> '
+          '--team-id <teamID-redacted>',
         ),
       );
       expect(
@@ -759,9 +767,10 @@ file_c''',
         rootDirectory: rootDirectory,
       );
       codesignVisitor.directoriesVisited.clear();
-      codesignVisitor.appSpecificPassword = randomString;
-      codesignVisitor.codesignAppstoreId = randomString;
-      codesignVisitor.codesignTeamId = randomString;
+      codesignVisitor.appSpecificPassword = fakePassword;
+      codesignVisitor.codesignAppstoreId = fakeAppleID;
+      codesignVisitor.codesignTeamId = fakeTeamID;
+      codesignVisitor.redactPasswords();
     });
 
     test('successful notarization check returns true', () async {
@@ -771,13 +780,13 @@ file_c''',
             'xcrun',
             'notarytool',
             'info',
-            randomString,
-            '--password',
-            randomString,
+            uuid,
             '--apple-id',
-            randomString,
+            fakeAppleID,
+            '--password',
+            fakePassword,
             '--team-id',
-            randomString,
+            fakeTeamID,
           ],
           stdout: '''createdDate: 2021-04-29T01:38:09.498Z
 id: 2efe2717-52ef-43a5-96dc-0797e4ca1041
@@ -787,7 +796,7 @@ status: Accepted''',
       ]);
 
       expect(
-        codesignVisitor.checkNotaryJobFinished(randomString),
+        codesignVisitor.checkNotaryJobFinished(uuid),
         true,
       );
     });
@@ -799,13 +808,13 @@ status: Accepted''',
             'xcrun',
             'notarytool',
             'info',
-            randomString,
-            '--password',
-            randomString,
+            uuid,
             '--apple-id',
-            randomString,
+            fakeAppleID,
+            '--password',
+            fakePassword,
             '--team-id',
-            randomString,
+            fakeTeamID,
           ],
           stdout: '''RequestUUID: 2EFE2717-52EF-43A5-96DC-0797E4CA1041
 Date: 2021-07-02 20:32:01 +0000
@@ -817,7 +826,7 @@ Status Message: Package Invalid''',
       ]);
 
       expect(
-        () => codesignVisitor.checkNotaryJobFinished(randomString),
+        () => codesignVisitor.checkNotaryJobFinished(uuid),
         throwsA(
           isA<CodesignException>(),
         ),
@@ -831,13 +840,13 @@ Status Message: Package Invalid''',
             'xcrun',
             'notarytool',
             'info',
-            randomString,
-            '--password',
-            randomString,
+            uuid,
             '--apple-id',
-            randomString,
+            fakeAppleID,
+            '--password',
+            fakePassword,
             '--team-id',
-            randomString,
+            fakeTeamID,
           ],
           stdout: '''createdDate: 2021-04-29T01:38:09.498Z
 id: 2efe2717-52ef-43a5-96dc-0797e4ca1041
@@ -847,7 +856,7 @@ status: In Progress''',
       ]);
 
       expect(
-        codesignVisitor.checkNotaryJobFinished(randomString),
+        codesignVisitor.checkNotaryJobFinished(uuid),
         false,
       );
     });
@@ -859,13 +868,13 @@ status: In Progress''',
             'xcrun',
             'notarytool',
             'info',
-            randomString,
-            '--password',
-            randomString,
+            uuid,
             '--apple-id',
-            randomString,
+            fakeAppleID,
+            '--password',
+            fakePassword,
             '--team-id',
-            randomString,
+            fakeTeamID,
           ],
           stdout: '''createdDate: 2021-04-29T01:38:09.498Z
 id: 2efe2717-52ef-43a5-96dc-0797e4ca1041
@@ -875,7 +884,7 @@ status: Invalid''',
       ]);
 
       expect(
-        () => codesignVisitor.checkNotaryJobFinished(randomString),
+        () => codesignVisitor.checkNotaryJobFinished(uuid),
         throwsA(
           isA<CodesignException>(),
         ),
@@ -892,11 +901,12 @@ status: Invalid''',
             'submit',
             '${rootDirectory.absolute.path}/temp',
             '--apple-id',
-            randomString,
+            fakeAppleID,
             '--password',
-            randomString,
+            fakePassword,
             '--team-id',
-            randomString,
+            fakeTeamID,
+            '--verbose',
           ],
           stdout: '''Error uploading file.
  Id: something that causes failure
@@ -909,11 +919,12 @@ status: Invalid''',
             'submit',
             '${rootDirectory.absolute.path}/temp',
             '--apple-id',
-            randomString,
+            fakeAppleID,
             '--password',
-            randomString,
+            fakePassword,
             '--team-id',
-            randomString,
+            fakeTeamID,
+            '--verbose',
           ],
           stdout: '''Successfully uploaded file.
  id: 2efe2717-52ef-43a5-96dc-0797e4ca1041
@@ -935,7 +946,8 @@ status: Invalid''',
         messages,
         contains('Failed to upload to the notary service with args: '
             'xcrun notarytool submit ${rootDirectory.absolute.path}/temp '
-            '--apple-id abcd1234 --password abcd1234 --team-id abcd1234'),
+            '--apple-id <appleID-redacted> --password <appSpecificPassword-redacted> --team-id <teamID-redacted> '
+            '--verbose'),
       );
       expect(
         messages,
@@ -953,11 +965,12 @@ status: Invalid''',
             'submit',
             '${rootDirectory.absolute.path}/temp',
             '--apple-id',
-            randomString,
+            fakeAppleID,
             '--password',
-            randomString,
+            fakePassword,
             '--team-id',
-            randomString,
+            fakeTeamID,
+            '--verbose',
           ],
           stdout: '''Error uploading file.
  Id: something that causes failure
@@ -988,11 +1001,12 @@ status: Invalid''',
             'submit',
             '${rootDirectory.absolute.path}/temp',
             '--apple-id',
-            randomString,
+            fakeAppleID,
             '--password',
-            randomString,
+            fakePassword,
             '--team-id',
-            randomString,
+            fakeTeamID,
+            '--verbose',
           ],
           stdout: '''Error uploading file.
  Id: something that causes failure
@@ -1005,11 +1019,12 @@ status: Invalid''',
             'submit',
             '${rootDirectory.absolute.path}/temp',
             '--apple-id',
-            randomString,
+            fakeAppleID,
             '--password',
-            randomString,
+            fakePassword,
             '--team-id',
-            randomString,
+            fakeTeamID,
+            '--verbose',
           ],
           stdout: '''Error uploading file.
  Id: something that causes failure
@@ -1022,11 +1037,12 @@ status: Invalid''',
             'submit',
             '${rootDirectory.absolute.path}/temp',
             '--apple-id',
-            randomString,
+            fakeAppleID,
             '--password',
-            randomString,
+            fakePassword,
             '--team-id',
-            randomString,
+            fakeTeamID,
+            '--verbose',
           ],
           stdout: '''Error uploading file.
  Id: something that causes failure
@@ -1073,18 +1089,18 @@ status: Invalid''',
         notarizationTimerDuration: const Duration(seconds: 0),
       );
       codesignVisitor.directoriesVisited.clear();
-      codesignVisitor.appSpecificPassword = randomString;
-      codesignVisitor.codesignAppstoreId = randomString;
-      codesignVisitor.codesignTeamId = randomString;
+      codesignVisitor.appSpecificPassword = fakePassword;
+      codesignVisitor.codesignAppstoreId = fakeAppleID;
+      codesignVisitor.codesignTeamId = fakeTeamID;
       fileSystem.file(codesignAppstoreIDFilePath)
         ..createSync(recursive: true)
-        ..writeAsStringSync(randomString);
+        ..writeAsStringSync(fakeAppleID);
       fileSystem.file(codesignTeamIDFilePath)
         ..createSync(recursive: true)
-        ..writeAsStringSync(randomString);
+        ..writeAsStringSync(fakeTeamID);
       fileSystem.file(appSpecificPasswordFilePath)
         ..createSync(recursive: true)
-        ..writeAsStringSync(randomString);
+        ..writeAsStringSync(fakePassword);
     });
 
     test('codesign optional switches artifacts when dryrun is true', () async {
@@ -1118,26 +1134,27 @@ status: Invalid''',
             'submit',
             codesignVisitor.outputZipPath,
             '--apple-id',
-            randomString,
+            fakeAppleID,
             '--password',
-            randomString,
+            fakePassword,
             '--team-id',
-            randomString,
+            fakeTeamID,
+            '--verbose',
           ],
-          stdout: 'id: $randomString',
+          stdout: 'id: $uuid',
         ),
         const FakeCommand(
           command: <String>[
             'xcrun',
             'notarytool',
             'info',
-            randomString,
-            '--password',
-            randomString,
+            uuid,
             '--apple-id',
-            randomString,
+            fakeAppleID,
+            '--password',
+            fakePassword,
             '--team-id',
-            randomString,
+            fakeTeamID,
           ],
           stdout: 'status: Accepted',
         ),
@@ -1185,26 +1202,27 @@ status: Invalid''',
             'submit',
             codesignVisitor.outputZipPath,
             '--apple-id',
-            randomString,
+            fakeAppleID,
             '--password',
-            randomString,
+            fakePassword,
             '--team-id',
-            randomString,
+            fakeTeamID,
+            '--verbose',
           ],
-          stdout: 'id: $randomString',
+          stdout: 'id: $uuid',
         ),
         const FakeCommand(
           command: <String>[
             'xcrun',
             'notarytool',
             'info',
-            randomString,
-            '--password',
-            randomString,
+            uuid,
             '--apple-id',
-            randomString,
+            fakeAppleID,
+            '--password',
+            fakePassword,
             '--team-id',
-            randomString,
+            fakeTeamID,
           ],
           stdout: 'status: Accepted',
         ),
@@ -1222,9 +1240,9 @@ status: Invalid''',
         notarizationTimerDuration: const Duration(seconds: 0),
         dryrun: false,
       );
-      codesignVisitor.appSpecificPassword = randomString;
-      codesignVisitor.codesignAppstoreId = randomString;
-      codesignVisitor.codesignTeamId = randomString;
+      codesignVisitor.appSpecificPassword = fakePassword;
+      codesignVisitor.codesignAppstoreId = fakeAppleID;
+      codesignVisitor.codesignTeamId = fakeTeamID;
       codesignVisitor.directoriesVisited.clear();
       await codesignVisitor.validateAll();
       final Set<String> messages = records

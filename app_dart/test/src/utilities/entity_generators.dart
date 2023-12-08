@@ -107,6 +107,7 @@ Target generateTarget(
   bool? bringup,
   github.RepositorySlug? slug,
   pb.SchedulerSystem? schedulerSystem,
+  String recipe = 'devicelab/devicelab',
 }) {
   final pb.SchedulerConfig config = schedulerConfig ?? exampleConfig.config;
   if (platformProperties != null && platformDimensions != null) {
@@ -129,6 +130,7 @@ Target generateTarget(
       runIf: runIf ?? <String>[],
       runIfNot: runIfNot ?? <String>[],
       bringup: bringup ?? false,
+      recipe: recipe,
       scheduler: schedulerSystem ?? pb.SchedulerSystem.cocoon,
     ),
   );
@@ -167,6 +169,7 @@ push_message.Build generatePushMessageBuild(
   DateTime? completedTimestamp,
   DateTime? createdTimestamp,
   DateTime? startedTimestamp,
+  push_message.FailureReason? failureReason,
 }) {
   tags ??= <String>[];
   tags.add('build_address:luci.flutter.prod/$name/$buildNumber');
@@ -181,6 +184,7 @@ push_message.Build generatePushMessageBuild(
     completedTimestamp: completedTimestamp,
     startedTimestamp: startedTimestamp,
     tags: tags,
+    failureReason: failureReason,
   );
 }
 

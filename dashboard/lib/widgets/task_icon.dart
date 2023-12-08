@@ -7,6 +7,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../logic/qualified_task.dart';
 
+import 'task_box.dart';
+
 /// Header icon for all [Task]s that map to the same [Task.stageName]
 /// and [Task.name].
 ///
@@ -46,39 +48,55 @@ class TaskIcon extends StatelessWidget {
       );
     }
 
-    if (qualifiedTask.task!.toLowerCase().contains('_fuchsia')) {
-      return Image.asset(
-        'assets/fuchsia.png',
-        color: blendFilter,
+    final String matchedName = qualifiedTask.task!.toLowerCase();
+    final bool isWebTest = matchedName.contains('_web') || matchedName.contains('web_');
+    final bool isToolTest = matchedName.contains('_tool') || matchedName.contains('tool_');
+
+    if (matchedName.contains('_fuchsia')) {
+      return Padding(
+        padding: const EdgeInsets.all(2.0),
+        child: Image.asset(
+          'assets/fuchsia.png',
+          color: blendFilter,
+        ),
       );
-    } else if (qualifiedTask.task!.toLowerCase().contains('_web')) {
-      return Image.asset(
-        'assets/chromium.png',
-        color: blendFilter,
+    } else if (isWebTest && !isToolTest) {
+      return Padding(
+        padding: const EdgeInsets.all(2.0),
+        child: Image.asset(
+          'assets/chromium.png',
+          color: blendFilter,
+        ),
       );
-    } else if (qualifiedTask.task!.toLowerCase().contains('_android')) {
+    } else if (matchedName.contains('_android')) {
       return Icon(
         Icons.android,
         color: blendFilter,
       );
-    } else if (qualifiedTask.task!.toLowerCase().startsWith('linux')) {
-      return Image.asset(
-        'assets/linux.png',
-        color: blendFilter,
+    } else if (matchedName.startsWith('linux')) {
+      return Padding(
+        padding: const EdgeInsets.all(2.0),
+        child: Image.asset(
+          'assets/linux.png',
+          color: blendFilter,
+        ),
       );
-    } else if (qualifiedTask.task!.toLowerCase().startsWith('mac')) {
-      if (qualifiedTask.task!.toLowerCase().contains('_ios')) {
+    } else if (matchedName.startsWith('mac')) {
+      if (matchedName.contains('_ios')) {
         return Icon(
           Icons.phone_iphone,
           color: blendFilter,
         );
       } else {
-        return Image.asset(
-          'assets/apple.png',
-          color: blendFilter,
+        return Padding(
+          padding: const EdgeInsets.all(2.0),
+          child: Image.asset(
+            'assets/apple.png',
+            color: blendFilter,
+          ),
         );
       }
-    } else if (qualifiedTask.task!.toLowerCase().startsWith('win')) {
+    } else if (matchedName.startsWith('win')) {
       return Image.asset(
         'assets/windows.png',
         color: blendFilter,
@@ -96,15 +114,18 @@ class TaskIcon extends StatelessWidget {
     final Brightness brightness = Theme.of(context).brightness;
     final Widget icon = stageIconForBrightness(brightness);
 
-    return InkWell(
-      onTap: () {
-        launchUrl(Uri.parse(qualifiedTask.sourceConfigurationUrl));
-      },
-      child: Tooltip(
-        message: '${qualifiedTask.task} (${qualifiedTask.stage})',
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: icon,
+    return IconTheme.merge(
+      data: IconThemeData(size: TaskBox.of(context) - 5),
+      child: InkWell(
+        onTap: () {
+          launchUrl(Uri.parse(qualifiedTask.sourceConfigurationUrl));
+        },
+        child: Tooltip(
+          message: '${qualifiedTask.task} (${qualifiedTask.stage})',
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: icon,
+          ),
         ),
       ),
     );

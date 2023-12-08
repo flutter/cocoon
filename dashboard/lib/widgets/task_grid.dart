@@ -156,7 +156,6 @@ class _TaskGridState extends State<TaskGrid> {
       // TODO(ianh): Trigger the loading from the scroll offset,
       // rather than the current hack of loading during build.
       cells: _processCommitStatuses(widget),
-      cellSize: const Size.square(TaskBox.cellSize),
       verticalController: verticalController,
       horizontalController: horizontalController,
     );
@@ -307,21 +306,18 @@ class _TaskGridState extends State<TaskGrid> {
 
   WidgetBuilder? _builderFor(Task task) {
     if (task.attempts > 1 || task.isTestFlaky) {
-      return (BuildContext context) => const Padding(
-            padding: EdgeInsets.all(4.0),
-            child: Icon(Icons.priority_high),
-          );
+      return (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(4.0),
+          child: Icon(Icons.priority_high, size: TaskBox.of(context) * 0.4),
+        );
+      };
     }
     return null;
   }
 
   static final List<String> _loadingMessage =
       'LOADING...'.runes.map<String>((int codepoint) => String.fromCharCode(codepoint)).toList();
-
-  static const TextStyle loadingStyle = TextStyle(
-    fontSize: TaskBox.cellSize * 0.9,
-    fontWeight: FontWeight.w900,
-  );
 
   List<LatticeCell> _generateLoadingRow(int length) {
     return <LatticeCell>[
@@ -344,7 +340,10 @@ class _TaskGridState extends State<TaskGrid> {
             widget.buildState.fetchMoreCommitStatuses(); // This is safe to call many times.
             return Text(
               _loadingMessage[index % _loadingMessage.length],
-              style: loadingStyle,
+              style: TextStyle(
+                fontSize: TaskBox.of(context) * 0.9,
+                fontWeight: FontWeight.w900,
+              ),
               textAlign: TextAlign.center,
             );
           },
