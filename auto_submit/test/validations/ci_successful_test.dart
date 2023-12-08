@@ -68,7 +68,16 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isTrue);
+        expect(
+            ciSuccessful.validateCheckRuns(
+              slug,
+              prNumber,
+              checkRuns,
+              failures,
+              allSuccess,
+              Author(login: 'testAuthor'),
+            ),
+            isTrue);
         expect(failures, isEmpty);
       });
     });
@@ -79,7 +88,16 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isTrue);
+        expect(
+            ciSuccessful.validateCheckRuns(
+              slug,
+              prNumber,
+              checkRuns,
+              failures,
+              allSuccess,
+              Author(login: 'testAuthor'),
+            ),
+            isTrue);
         expect(failures, isEmpty);
       });
     });
@@ -90,7 +108,16 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isTrue);
+        expect(
+            ciSuccessful.validateCheckRuns(
+              slug,
+              prNumber,
+              checkRuns,
+              failures,
+              allSuccess,
+              Author(login: 'testAuthor'),
+            ),
+            isTrue);
         expect(failures, isEmpty);
       });
     });
@@ -101,7 +128,16 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isFalse);
+        expect(
+            ciSuccessful.validateCheckRuns(
+              slug,
+              prNumber,
+              checkRuns,
+              failures,
+              allSuccess,
+              Author(login: 'testAuthor'),
+            ),
+            isFalse);
         expect(failures, isNotEmpty);
         expect(failures.length, 1);
       });
@@ -113,7 +149,16 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isTrue);
+        expect(
+            ciSuccessful.validateCheckRuns(
+              slug,
+              prNumber,
+              checkRuns,
+              failures,
+              allSuccess,
+              Author(login: 'testAuthor'),
+            ),
+            isTrue);
         expect(failures, isEmpty);
       });
     });
@@ -124,7 +169,16 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isFalse);
+        expect(
+            ciSuccessful.validateCheckRuns(
+              slug,
+              prNumber,
+              checkRuns,
+              failures,
+              allSuccess,
+              Author(login: 'testAuthor'),
+            ),
+            isFalse);
         expect(failures, isNotEmpty);
         expect(failures.length, 1);
       });
@@ -138,7 +192,16 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isFalse);
+        expect(
+            ciSuccessful.validateCheckRuns(
+              slug,
+              prNumber,
+              checkRuns,
+              failures,
+              allSuccess,
+              Author(login: 'testAuthor'),
+            ),
+            isFalse);
         expect(failures, isEmpty);
       });
     });
@@ -149,7 +212,16 @@ void main() {
       const bool allSuccess = false;
 
       checkRunFuture.then((checkRuns) {
-        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isFalse);
+        expect(
+            ciSuccessful.validateCheckRuns(
+              slug,
+              prNumber,
+              checkRuns,
+              failures,
+              allSuccess,
+              Author(login: 'testAuthor'),
+            ),
+            isFalse);
         expect(failures, isNotEmpty);
         expect(failures.length, 1);
       });
@@ -527,6 +599,30 @@ void main() {
     test('when it is not stale', () async {
       final bool isStale = ciSuccessful.isStale(DateTime.now().subtract(const Duration(hours: 1)));
       expect(isStale, false);
+    });
+  });
+
+  group('Validate if an engine roller', () {
+    setUp(() {
+      githubService = FakeGithubService(client: MockGitHub());
+      config = FakeConfig(githubService: githubService);
+      ciSuccessful = CiSuccessful(config: config);
+    });
+
+    test('when it is engine roller', () async {
+      final bool isEngineRoller = ciSuccessful.isEngineRoller(
+          Author(login: 'engine-flutter-autoroll'), github.RepositorySlug('flutter', 'engine'));
+      expect(isEngineRoller, true);
+    });
+    test('when it is not from roller', () async {
+      final bool isEngineRoller =
+          ciSuccessful.isEngineRoller(Author(login: 'testAuthor'), github.RepositorySlug('flutter', 'engine'));
+      expect(isEngineRoller, false);
+    });
+    test('when it is not from engine', () async {
+      final bool isEngineRoller = ciSuccessful.isEngineRoller(
+          Author(login: 'engine-flutter-autoroll'), github.RepositorySlug('flutter', 'flutter'));
+      expect(isEngineRoller, false);
     });
   });
 }
