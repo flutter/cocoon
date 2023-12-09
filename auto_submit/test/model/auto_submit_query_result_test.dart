@@ -55,7 +55,9 @@ void main() {
       expect(commitNode.commit!.abbreviatedOid, '4009ecc');
       expect(commitNode.commit!.oid, '4009ecc0b6dbf5cb19cb97472147063e7368ec10');
       expect(commitNode.commit!.pushedDate, DateTime.parse('2022-05-11 22:35:03.000Z'));
-      expect(commitNode.commit!.status, isNull);
+      expect(commitNode.commit!.status, isNotNull);
+      final List<ContextNode> statuses = commitNode.commit!.status!.contexts!;
+      expect(statuses[0].createdAt, DateTime.parse('2023-12-01T23:29:12Z'));
     });
   });
 
@@ -114,7 +116,22 @@ const String dataString = '''
               "oid": "4009ecc0b6dbf5cb19cb97472147063e7368ec10",
               "committedDate": "2022-05-11T22:35:02Z",
               "pushedDate": "2022-05-11T22:35:03Z",
-              "status":null
+              "status": {
+                  "contexts": [
+                    {
+                      "createdAt": "2023-12-01T23:29:12Z",
+                      "context": "flutter-gold",
+                      "state": "SUCCESS",
+                      "targetUrl": "https://flutter-gold.skia.org/cl/github/139397"
+                    },
+                    {
+                      "createdAt": "2023-12-01T22:55:04Z",
+                      "context": "tree-status",
+                      "state": "SUCCESS",
+                      "targetUrl": "https://flutter-dashboard.appspot.com/#/build?repo=flutter"
+                    }
+                  ]
+                }
             }
           }
         ]

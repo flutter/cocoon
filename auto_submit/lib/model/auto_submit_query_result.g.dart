@@ -51,12 +51,14 @@ Map<String, dynamic> _$CommitsToJson(Commits instance) => <String, dynamic>{
     };
 
 ContextNode _$ContextNodeFromJson(Map<String, dynamic> json) => ContextNode(
+      createdAt: json['createdAt'] == null ? null : DateTime.parse(json['createdAt'] as String),
       context: json['context'] as String?,
       state: json['state'] as String?,
       targetUrl: json['targetUrl'] as String?,
     );
 
 Map<String, dynamic> _$ContextNodeToJson(ContextNode instance) => <String, dynamic>{
+      'createdAt': instance.createdAt?.toIso8601String(),
       'context': instance.context,
       'state': instance.state,
       'targetUrl': instance.targetUrl,
