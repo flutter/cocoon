@@ -1,6 +1,11 @@
 # Flutter Dashboard
 
-[User Guide](USER_GUIDE.md)
+For how to use the app, see the [user guide](USER_GUIDE.md)
+
+## Set up
+
+* Install Flutter
+* Install [Firebase CLI](https://firebase.google.com/docs/flutter/setup)
 
 ## Running for web locally
 
@@ -26,6 +31,10 @@ If you want to run a release native app with fake data, use:
 You can also build a release AOT-compiled desktop app with `flutter build
 <macos|linux|windows> --release` and then just run the app with the appropriate
 argument.
+
+## Rotating keys
+
+* Run `flutterfire configure -p flutter-dashboard` and check the files in
 
 ## Style
 
@@ -109,3 +118,7 @@ storeFile=$HOME/upload-keystore.jks
 We ship debug mode as it makes it easy to debug issues in production.
 
 In the Play Console for dashboards@flutter.dev, upload the new app.aab output.
+
+### Crashlytics
+
+Visit http://firebase/project/flutter-dashboard to get a list of recent crashes.
