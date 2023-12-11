@@ -2,16 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>308150028417-416s3rumsec22qlgm710vd3utvmnvr9r.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
-	<string>AIzaSyAOGTpCjagNvzVxgfsxMmISMN0Wgk2Wb7o</string>
+	<string>AIzaSyD_muVWfyvPVe1tA1BkGT-n9wPlUF0QzgY</string>
 	<key>GCM_SENDER_ID</key>
-	<string>790958376406</string>
+	<string>308150028417</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.example.appFlutter</string>
 	<key>PROJECT_ID</key>
-	<string>google.com:flutter-roll-on-borg</string>
+	<string>flutter-dashboard</string>
+	<key>STORAGE_BUCKET</key>
+	<string>flutter-dashboard.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -23,6 +27,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:790958376406:ios:d4e9c944f0a2af41439077</string>
+	<string>1:308150028417:ios:bfa7cf7c0a0daef8f72580</string>
 </dict>
 </plist>
