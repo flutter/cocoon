@@ -251,6 +251,15 @@ class CiYaml {
             }
           }
         }
+        // Verify runIf includes foundational files.
+        if (target.runIf.isNotEmpty) {
+          if (!target.runIf.contains('.ci.yaml')) {
+            exceptions.add('ERROR: ${target.name} is missing `.ci.yaml` in runIf');
+          }
+          if (slug == Config.engineSlug && !target.runIf.contains('DEPS')) {
+            exceptions.add('ERROR: ${target.name} is missing `DEPS` in runIf');
+          }
+        }
       }
 
       /// Check the dependencies for the current target if it is viable and to

@@ -18,10 +18,10 @@ import 'common.dart';
 
 /// List of repositories that have supported .ci.yaml config files.
 final List<SupportedConfig> configs = <SupportedConfig>[
-  SupportedConfig(RepositorySlug('flutter', 'cocoon'), 'main'),
-  SupportedConfig(RepositorySlug('flutter', 'engine'), 'main'),
+  SupportedConfig(RepositorySlug('flutter', 'cocoon')),
+  SupportedConfig(RepositorySlug('flutter', 'engine')),
   SupportedConfig(RepositorySlug('flutter', 'flutter')),
-  SupportedConfig(RepositorySlug('flutter', 'packages'), 'main'),
+  SupportedConfig(RepositorySlug('flutter', 'packages')),
 ];
 
 Future<void> main() async {
@@ -57,6 +57,12 @@ Future<void> main() async {
         );
         final YamlMap configYaml = loadYaml(configContent) as YamlMap;
         final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
+        final CiYaml ciYaml = CiYaml(
+          slug: config.slug,
+          branch: config.branch,
+          config: schedulerConfig,
+          validate: true,
+        );
 
         final List<String> githubBranches = getBranchesForRepository(config.slug);
 
@@ -81,11 +87,6 @@ Future<void> main() async {
           }
         }
 
-        if (config.slug.name == 'engine') {
-          print(githubBranches);
-          print(validEnabledBranches);
-        }
-
         // Verify the enabled branches
         for (String enabledBranch in validEnabledBranches.keys) {
           expect(
@@ -95,7 +96,6 @@ Future<void> main() async {
           );
         }
       },
-      skip: config.slug.name == 'flutter',
     );
   }
 }
