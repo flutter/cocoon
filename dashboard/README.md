@@ -1,6 +1,12 @@
 # Flutter Dashboard
 
-[User Guide](USER_GUIDE.md)
+For how to use the app, see the [user guide](USER_GUIDE.md)
+
+## Set up
+
+* Install Flutter
+* Install [Firebase CLI](https://firebase.google.com/docs/flutter/setup)
+* Run `flutterfire configure` and connect to `google.com:flutter-roll-on-borg`
 
 ## Running for web locally
 
