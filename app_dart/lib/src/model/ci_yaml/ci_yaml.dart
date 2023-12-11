@@ -204,6 +204,7 @@ class CiYaml {
   ///   5. [pb.Target] should not depend on self
   ///   6. [pb.Target] cannot have more than 1 dependency
   ///   7. [pb.Target] should depend on target that already exist in depedency graph, and already recorded in map [targetGraph]
+  ///   8. [pb.Target] has an empty runIf or the runIf includes `.ci.yaml` and `DEPS if on the engine repo.
   void _validate(pb.SchedulerConfig schedulerConfig, String branch, {pb.SchedulerConfig? totSchedulerConfig}) {
     if (schedulerConfig.targets.isEmpty) {
       throw const FormatException('Scheduler config must have at least 1 target');
