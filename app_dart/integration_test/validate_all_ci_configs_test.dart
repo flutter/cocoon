@@ -57,7 +57,8 @@ Future<void> main() async {
         );
         final YamlMap configYaml = loadYaml(configContent) as YamlMap;
         final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
-        final CiYaml ciYaml = CiYaml(
+        // Validate using the existing CiYaml logic.
+        CiYaml(
           slug: config.slug,
           branch: config.branch,
           config: schedulerConfig,
