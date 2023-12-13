@@ -18,7 +18,7 @@ dependencies:
   firebase_core: 2.24.2 # Rolled by dependabot
   fixnum: 1.1.0 # Rolled by dependabot
   flutter_app_icons: 0.0.9 # Rolled by dependabot
-  google_sign_in: 6.2.0 # Rolled by dependabot
+  google_sign_in: 6.2.1 # Rolled by dependabot
   google_sign_in_platform_interface: any # Match google_sign_in
   google_sign_in_web: 0.12.3 # Rolled by dependabot
   http: 1.1.2 # Rolled by dependabot
