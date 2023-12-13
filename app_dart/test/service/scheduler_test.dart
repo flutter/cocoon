@@ -55,6 +55,7 @@ targets:
     scheduler: luci
   - name: Linux runIf
     runIf:
+      - .ci.yaml
       - dev/**
   - name: Google Internal Roll
     postsubmit: true
@@ -708,6 +709,8 @@ targets:
       presubmit: true
       scheduler: luci
       runIf:
+        - .ci.yaml
+        - DEPS
         - dev/run_if/**
     - name: Linux Conditional Presubmit (runIfNot)
       presubmit: true
