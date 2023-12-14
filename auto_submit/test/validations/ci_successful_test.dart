@@ -648,13 +648,15 @@ void main() {
     test('when it is engine roller', () async {
       final bool isEngineRoller = ciSuccessful.isEngineToFrameworkRoller(
         Author(login: 'engine-flutter-autoroll'),
-        github.RepositorySlug('flutter', 'framework'),
+        github.RepositorySlug('flutter', 'flutter'),
       );
       expect(isEngineRoller, true);
     });
     test('when it is not from roller', () async {
       final bool isEngineRoller = ciSuccessful.isEngineToFrameworkRoller(
-          Author(login: 'testAuthor'), github.RepositorySlug('flutter', 'framework'));
+        Author(login: 'testAuthor'),
+        github.RepositorySlug('flutter', 'flutter'),
+      );
       expect(isEngineRoller, false);
     });
     test('when it is not from framework', () async {
