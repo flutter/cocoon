@@ -20,7 +20,7 @@ frustration later on.
 
 ### Implementations
 
-1. For breaking changes, please loop corresponding CODEOWNERs in to make sure they know and can provide a review before a merge to avoid potential regressions.
+1. For existing functionality contributions, please loop corresponding CODEOWNERs in to make sure they know and can provide a review before a merge to avoid potential regressions.
 
 2. For new functionality like an app, please add your application as a top level folder and yourself as the point of contact in the Cocoon CODEOWNERS file. One good example of an existing app is `autosubmit`. Feel free to open an infra bug for any design/support discussions, as we are willing to help out.
 
