@@ -7,12 +7,11 @@ cron:
   url: /api/vacuum-github-commits
   schedule: every 6 hours
 
-# Disabled for https://github.com/flutter/flutter/issues/121989
 # TODO(keyonghan): will delete if `In Progress` hanging issue is resolved:
 # https://github.com/flutter/flutter/issues/120395#issuecomment-1444810718
-#- description: vacuum stale tasks
-#  url: /api/scheduler/vacuum-stale-tasks
-#  schedule: every 10 minutes
+- description: vacuum stale tasks
+ url: /api/scheduler/vacuum-stale-tasks
+ schedule: every day 08:00 # PST 12:00am
 
 - description: backfills builds
   url: /api/scheduler/batch-backfiller

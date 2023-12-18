@@ -10,7 +10,6 @@ import 'package:meta/meta.dart';
 
 import '../../model/appengine/task.dart';
 import '../../service/datastore.dart';
-import '../../service/logging.dart';
 
 /// Vacuum stale tasks.
 ///
@@ -56,29 +55,12 @@ class VacuumStaleTasks extends RequestHandler<Body> {
     final Set<Task> tasksToBeReset = <Task>{};
     for (FullTask fullTask in tasks) {
       final Task task = fullTask.task;
-      if (task.status != Task.statusInProgress) {
-        continue;
-      }
-
-      if (task.createTimestamp == null) {
-        log.fine('Vacuuming $task due to createTimestamp being null');
+      if (task.status == Task.statusInProgress && task.buildNumber == null) {
+        task.status = Task.statusNew;
+        task.createTimestamp = 0;
         tasksToBeReset.add(task);
-        continue;
-      }
-
-      final DateTime now = nowValue ?? DateTime.now();
-      final DateTime create = DateTime.fromMillisecondsSinceEpoch(task.createTimestamp!);
-      final Duration queueTime = now.difference(create);
-
-      if (queueTime > kTimeoutLimit) {
-        log.fine('Vacuuming $task due to staleness');
-        tasksToBeReset.add(task);
-        continue;
       }
     }
-
-    final Iterable<Task> inserts =
-        tasksToBeReset.map((Task task) => task..status = Task.statusNew).map((Task task) => task..createTimestamp = 0);
-    await datastore.insert(inserts.toList());
+    await datastore.insert(tasksToBeReset.toList());
   }
 }

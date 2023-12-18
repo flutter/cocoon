@@ -20,14 +20,6 @@ void main() {
     late VacuumStaleTasks handler;
 
     final Commit commit = generateCommit(1);
-    final DateTime now = DateTime(2023, 2, 9, 13, 37);
-
-    /// Helper function for returning test times relative to [now].
-    DateTime relativeToNow(int minutes) {
-      final Duration duration = Duration(minutes: minutes);
-
-      return now.subtract(duration);
-    }
 
     setUp(() {
       config = FakeConfig();
@@ -41,32 +33,20 @@ void main() {
     });
 
     test('skips when no tasks are stale', () async {
-      final List<Task> expectedTasks = <Task>[
+      final List<Task> originalTasks = <Task>[
         generateTask(
           1,
           status: Task.statusInProgress,
-          created: relativeToNow(1),
           parent: commit,
-        ),
-        generateTask(
-          2,
-          status: Task.statusSucceeded,
-          created: relativeToNow(VacuumStaleTasks.kTimeoutLimit.inMinutes + 5),
-          parent: commit,
-        ),
-        generateTask(
-          3,
-          status: Task.statusInProgress,
-          created: relativeToNow(VacuumStaleTasks.kTimeoutLimit.inMinutes),
-          parent: commit,
+          buildNumber: 123,
         ),
       ];
-      await config.db.commit(inserts: expectedTasks);
+      await config.db.commit(inserts: originalTasks);
 
       await tester.get(handler);
 
       final List<Task> tasks = config.db.values.values.whereType<Task>().toList();
-      expect(tasks, expectedTasks);
+      expect(tasks[0].status, Task.statusInProgress);
     });
 
     test('resets stale task', () async {
@@ -74,20 +54,17 @@ void main() {
         generateTask(
           1,
           status: Task.statusInProgress,
-          created: relativeToNow(1),
           parent: commit,
         ),
         generateTask(
           2,
           status: Task.statusSucceeded,
-          created: relativeToNow(VacuumStaleTasks.kTimeoutLimit.inMinutes + 5),
           parent: commit,
         ),
         // Task 3 should be vacuumed
         generateTask(
           3,
           status: Task.statusInProgress,
-          created: relativeToNow(VacuumStaleTasks.kTimeoutLimit.inMinutes + 1),
           parent: commit,
         ),
       ];
@@ -97,10 +74,10 @@ void main() {
       await tester.get(handler);
 
       final List<Task> tasks = config.db.values.values.whereType<Task>().toList();
-      expect(tasks[0], originalTasks[0]);
-      expect(tasks[1], originalTasks[1]);
-      expect(tasks[2].status, Task.statusNew);
+      expect(tasks[0].createTimestamp, 0);
+      expect(tasks[0].status, Task.statusNew);
       expect(tasks[2].createTimestamp, 0);
+      expect(tasks[2].status, Task.statusNew);
     });
   });
 }
