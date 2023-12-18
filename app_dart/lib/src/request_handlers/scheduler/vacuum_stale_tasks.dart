@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 
 import '../../model/appengine/task.dart';
 import '../../service/datastore.dart';
+import '../../service/logging.dart';
 
 /// Vacuum stale tasks.
 ///
@@ -52,7 +53,7 @@ class VacuumStaleTasks extends RequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider(config.db);
 
     final List<FullTask> tasks = await datastore.queryRecentTasks(slug: slug).toList();
-    final Set<Task> tasksToBeReset = <Task>{};
+    final List<Task> tasksToBeReset = <Task>[];
     for (FullTask fullTask in tasks) {
       final Task task = fullTask.task;
       if (task.status == Task.statusInProgress && task.buildNumber == null) {
@@ -61,6 +62,7 @@ class VacuumStaleTasks extends RequestHandler<Body> {
         tasksToBeReset.add(task);
       }
     }
-    await datastore.insert(tasksToBeReset.toList());
+    log.info('Vacuuming stale tasks: $tasksToBeReset');
+    await datastore.insert(tasksToBeReset);
   }
 }
