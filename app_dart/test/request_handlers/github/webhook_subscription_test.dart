@@ -1558,167 +1558,63 @@ void foo() {
       );
     });
 
-    test('Engine labels PRs, no comment if Java tests', () async {
-      const int issueNumber = 123;
+    test('Engine labels PRs, no comment if tested', () async {
+      final List<List<String>> pullRequestFileList = [
+        <String>[
+          // Java tests.
+          'shell/platform/android/io/flutter/Blah.java',
+          'shell/platform/android/test/io/flutter/BlahTest.java',
+        ],
+        <String>[
+          // Script tests.
+          'fml/blah.cc',
+          'fml/testing/blah_test.sh',
+        ],
+        <String>[
+          // cc tests.
+          'fml/blah.cc',
+          'fml/blah_unittests.cc',
+        ],
+        <String>[
+          // cc benchmarks.
+          'fml/blah.cc',
+          'fml/blah_benchmarks.cc',
+        ],
+        <String>[
+          // py tests.
+          'tools/font-subset/main.cc',
+          'tools/font-subset/test.py',
+        ],
+        <String>[
+          // scenario app is a test.
+          'scenario_app/project.pbxproj',
+          'scenario_app/Info_Impeller.plist',
+        ],
+      ];
 
-      tester.message = generateGithubWebhookMessage(
-        action: 'opened',
-        number: issueNumber,
-        slug: Config.engineSlug,
-      );
+      for (int issueNumber = 0; issueNumber < pullRequestFileList.length; issueNumber++) {
+        tester.message = generateGithubWebhookMessage(
+          action: 'opened',
+          number: issueNumber,
+          slug: Config.engineSlug,
+        );
 
-      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
-        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
-          PullRequestFile()..filename = 'shell/platform/android/io/flutter/Blah.java',
-          PullRequestFile()..filename = 'shell/platform/android/test/io/flutter/BlahTest.java',
-        ]),
-      );
+        when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+          (_) => Stream<PullRequestFile>.fromIterable(
+            pullRequestFileList[issueNumber].map((String filename) => PullRequestFile()..filename = filename),
+          ),
+        );
 
-      await tester.post(webhook);
+        await tester.post(webhook);
 
-      verifyNever(
-        issuesService.addLabelsToIssue(Config.engineSlug, issueNumber, any),
-      );
-
-      verifyNever(
-        issuesService.createComment(
-          Config.engineSlug,
-          issueNumber,
-          argThat(contains(config.missingTestsPullRequestMessageValue)),
-        ),
-      );
-    });
-
-    test('Engine labels PRs, no comment if script tests', () async {
-      const int issueNumber = 123;
-
-      tester.message = generateGithubWebhookMessage(
-        action: 'opened',
-        number: issueNumber,
-        slug: Config.engineSlug,
-      );
-
-      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
-        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
-          PullRequestFile()..filename = 'fml/blah.cc',
-          PullRequestFile()..filename = 'fml/testing/blah_test.sh',
-        ]),
-      );
-
-      await tester.post(webhook);
-
-      verifyNever(
-        issuesService.createComment(
-          Config.engineSlug,
-          issueNumber,
-          argThat(contains(config.missingTestsPullRequestMessageValue)),
-        ),
-      );
-    });
-
-    test('Engine labels PRs, no comment if cc tests', () async {
-      const int issueNumber = 123;
-
-      tester.message = generateGithubWebhookMessage(
-        action: 'opened',
-        number: issueNumber,
-        slug: Config.engineSlug,
-      );
-
-      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
-        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
-          PullRequestFile()..filename = 'fml/blah.cc',
-          PullRequestFile()..filename = 'fml/blah_unittests.cc',
-        ]),
-      );
-
-      await tester.post(webhook);
-
-      verifyNever(
-        issuesService.addLabelsToIssue(
-          Config.engineSlug,
-          issueNumber,
-          any,
-        ),
-      );
-
-      verifyNever(
-        issuesService.createComment(
-          Config.engineSlug,
-          issueNumber,
-          argThat(contains(config.missingTestsPullRequestMessageValue)),
-        ),
-      );
-    });
-
-    test('Engine labels PRs, no comment if py tests', () async {
-      const int issueNumber = 123;
-
-      tester.message = generateGithubWebhookMessage(
-        action: 'opened',
-        number: issueNumber,
-        slug: Config.engineSlug,
-      );
-
-      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
-        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
-          PullRequestFile()..filename = 'tools/font-subset/main.cc',
-          PullRequestFile()..filename = 'tools/font-subset/test.py',
-        ]),
-      );
-
-      await tester.post(webhook);
-
-      verifyNever(
-        issuesService.addLabelsToIssue(
-          Config.engineSlug,
-          issueNumber,
-          any,
-        ),
-      );
-
-      verifyNever(
-        issuesService.createComment(
-          Config.engineSlug,
-          issueNumber,
-          argThat(contains(config.missingTestsPullRequestMessageValue)),
-        ),
-      );
-    });
-
-    test('Engine labels PRs, no comment if cc benchmarks', () async {
-      const int issueNumber = 123;
-
-      tester.message = generateGithubWebhookMessage(
-        action: 'opened',
-        number: issueNumber,
-        slug: Config.engineSlug,
-      );
-
-      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
-        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
-          PullRequestFile()..filename = 'fml/blah.cc',
-          PullRequestFile()..filename = 'fml/blah_benchmarks.cc',
-        ]),
-      );
-
-      await tester.post(webhook);
-
-      verifyNever(
-        issuesService.addLabelsToIssue(
-          Config.engineSlug,
-          issueNumber,
-          any,
-        ),
-      );
-
-      verifyNever(
-        issuesService.createComment(
-          Config.engineSlug,
-          issueNumber,
-          argThat(contains(config.missingTestsPullRequestMessageValue)),
-        ),
-      );
+        verifyNever(
+          issuesService.createComment(
+            Config.engineSlug,
+            issueNumber,
+            argThat(contains(config.missingTestsPullRequestMessageValue)),
+          ),
+        );
+      }
     });
 
     test('Engine labels PRs, no comments if pr is for release branches', () async {
