@@ -10,6 +10,7 @@ export 'src/request_handlers/dart_internal_subscription.dart';
 export 'src/request_handlers/file_flaky_issue_and_pr.dart';
 export 'src/request_handlers/flush_cache.dart';
 export 'src/request_handlers/get_build_status.dart';
+export 'src/request_handlers/get_build_status_badge.dart';
 export 'src/request_handlers/get_release_branches.dart';
 export 'src/request_handlers/get_repos.dart';
 export 'src/request_handlers/get_status.dart';
