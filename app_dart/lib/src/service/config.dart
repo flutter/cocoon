@@ -227,7 +227,7 @@ class Config {
       'request may not have tests. Please make sure to add tests before merging. '
       'If you need '
       '[an exemption](https://github.com/flutter/flutter/wiki/Tree-hygiene#tests) '
-      'to this rule, contact "@text-exemption-reviewers" in the #hackers '
+      'to this rule, contact "@test-exemption-reviewers" in the #hackers '
       'channel in [Chat](https://github.com/flutter/flutter/wiki/Chat) '
       '(don\'t just cc them here, they won\'t see it! Use Discord!).'
       '\n\n'
