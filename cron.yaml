@@ -11,7 +11,7 @@ cron:
 # https://github.com/flutter/flutter/issues/120395#issuecomment-1444810718
 - description: vacuum stale tasks
  url: /api/scheduler/vacuum-stale-tasks
- schedule: every day 08:00 # PST 12:00am
+ schedule: every 12 hours
 
 - description: backfills builds
   url: /api/scheduler/batch-backfiller
