@@ -32,7 +32,7 @@ class GetBuildStatusBadge extends GetBuildStatus {
   <linearGradient id="s" x2="0" y2="100%">
     <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
     <stop offset="1" stop-opacity=".1"/></linearGradient>
-    <clipPath id="r"><rect width="238" height="20" rx="3" fill="#fff"/></clipPath>
+    <clipPath id="r"><rect width="150" height="20" rx="3" fill="#fff"/></clipPath>
     <g clip-path="url(#r)">
     <rect width="80" height="20" fill="#555"/>
     <rect x="80" width="107" height="20" fill="{{ COLOR }}"/>
