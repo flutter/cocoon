@@ -11,6 +11,7 @@ app_dart/lib/src/request_handlers/dart_internal_subscription.dart           @dre
 app_dart/lib/src/request_handlers/file_flaky_issue_and_pr.dart              @keyonghan
 app_dart/lib/src/request_handlers/flush_cache.dart                          @keyonghan
 app_dart/lib/src/request_handlers/get_build_status.dart                     @keyonghan
+app_dart/lib/src/request_handlers/get_build_status.dart                     @CaseyHillers
 app_dart/lib/src/request_handlers/get_release_branches.dart                 @CaseyHillers
 app_dart/lib/src/request_handlers/get_repos.dart                            @keyonghan
 app_dart/lib/src/request_handlers/get_status.dart                           @keyonghan
