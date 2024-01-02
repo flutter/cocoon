@@ -167,6 +167,12 @@ Server createServer({
       delegate: GetBuildStatus(config: config),
       ttl: const Duration(seconds: 15),
     ),
+    '/api/public/build-status-badge': CacheRequestHandler<Body>(
+        cache: cache,
+        config: config,
+        delegate: GetBuildStatusBadge(config: config),
+        ttl: const Duration(seconds: 15),
+    ),
     '/api/public/get-release-branches': CacheRequestHandler<Body>(
       cache: cache,
       config: config,
