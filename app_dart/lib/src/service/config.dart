@@ -122,12 +122,10 @@ class Config {
   }
 
   Future<Uint8List> _getValueFromDatastore(String id) async {
-    final CocoonConfig cocoonConfig = CocoonConfig()
-      ..id = id
-      ..parentKey = _db.emptyKey;
-    final CocoonConfig result = await _db.lookupValue<CocoonConfig>(cocoonConfig.key);
-
-    return Uint8List.fromList(result.value.codeUnits);
+    final CocoonConfig? result = await _db.lookupOrNull<CocoonConfig>(
+      _db.emptyKey.append(CocoonConfig, id: id),
+    );
+    return Uint8List.fromList(result!.value.codeUnits);
   }
 
   // GitHub App properties.
