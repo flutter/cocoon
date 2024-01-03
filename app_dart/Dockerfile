@@ -4,7 +4,7 @@
 
 
 # Dart Docker official images can be found here: https://hub.docker.com/_/dart
-FROM dart:beta@sha256:e05aaad0f71e9d045e2a45b63a65f85e5e466b1cc1de34e7e684eede45a29d9b
+FROM dart:beta@sha256:4bddd6ccaed32d2d2b8c27bcd71b1ebca13cec47f3abe7b12f640f9432da8e83
 
 WORKDIR /app
 
@@ -14,4 +14,4 @@ RUN dart pub get
 
 # Start server.
 EXPOSE 8080
-CMD ["/usr/lib/dart/bin/dart", "/app/bin/server.dart"]
+CMD ["/usr/lib/dart/bin/dart", "/app/bin/gae_server.dart"]

@@ -146,7 +146,7 @@ class CiSuccessful extends Validation {
       final String? name = status.context;
 
       // If the account author is a roller account do not block merge on flutter-gold check.
-      if (isEngineRoller(author, slug) && name == 'flutter-gold') {
+      if (isToEngineRoller(author, slug) && name == 'flutter-gold') {
         log.info('Skipping status check for flutter-gold for ${slug.fullName}/$prNumber, pr author: $author.');
         continue;
       }
@@ -159,7 +159,7 @@ class CiSuccessful extends Validation {
         if (status.state == STATUS_FAILURE && !notInAuthorsControl.contains(name)) {
           failures.add(FailureDetail(name!, status.targetUrl!));
         }
-        if (status.state == STATUS_PENDING && isStale(status.createdAt!) && isEngineRoller(author, slug)) {
+        if (status.state == STATUS_PENDING && isStale(status.createdAt!) && supportStale(author, slug)) {
           staleStatuses.add(status);
         }
       }
@@ -191,10 +191,6 @@ class CiSuccessful extends Validation {
     for (github.CheckRun checkRun in checkRuns) {
       final String? name = checkRun.name;
 
-      if (isStale(checkRun.startedAt) && isEngineRoller(author, slug)) {
-        staleCheckRuns.add(checkRun);
-      }
-
       if (checkRun.conclusion == github.CheckRunConclusion.skipped ||
           checkRun.conclusion == github.CheckRunConclusion.success ||
           (checkRun.status == github.CheckRunStatus.completed &&
@@ -205,6 +201,10 @@ class CiSuccessful extends Validation {
         // checkrun has failed.
         log.info('${slug.name}/$prNumber: CheckRun $name failed.');
         failures.add(FailureDetail(name!, checkRun.detailsUrl as String));
+      } else if (checkRun.status == github.CheckRunStatus.queued) {
+        if (isStale(checkRun.startedAt) && supportStale(author, slug)) {
+          staleCheckRuns.add(checkRun);
+        }
       }
       allSuccess = false;
     }
@@ -222,7 +222,19 @@ class CiSuccessful extends Validation {
     return dateTime.compareTo(DateTime.now().subtract(const Duration(hours: Config.kGitHubCheckStaleThreshold))) < 0;
   }
 
-  bool isEngineRoller(Author author, github.RepositorySlug slug) {
+  /// Perform stale check only on Engine related rolled PRs.
+  ///
+  /// This includes those rolled PRs from upstream to Engine repo and those
+  /// rolled PRs from Engine to Framework.
+  bool supportStale(Author author, github.RepositorySlug slug) {
+    return isToEngineRoller(author, slug) || isEngineToFrameworkRoller(author, slug);
+  }
+
+  bool isToEngineRoller(Author author, github.RepositorySlug slug) {
     return config.rollerAccounts.contains(author.login!) && slug == Config.engineSlug;
+  }
+
+  bool isEngineToFrameworkRoller(Author author, github.RepositorySlug slug) {
+    return author.login! == 'engine-flutter-autoroll' && slug == Config.flutterSlug;
   }
 }

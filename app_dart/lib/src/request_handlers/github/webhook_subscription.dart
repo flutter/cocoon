@@ -34,8 +34,6 @@ Set<RepositorySlug> kNeedsTests = <RepositorySlug>{
   Config.packagesSlug,
 };
 
-final RegExp kEngineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc|sh|py)$');
-
 // Extentions for files that use // for single line comments.
 // See [_allChangesAreCodeComments] for more.
 @visibleForTesting
@@ -319,7 +317,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       }
 
       // Check to see if tests were submitted with this PR.
-      if (_isATest(filename)) {
+      if (_isAFrameworkTest(filename)) {
         hasTests = true;
       }
     }
@@ -346,7 +344,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
   }
 
-  bool _isATest(String filename) {
+  bool _isAFrameworkTest(String filename) {
     if (kNotActuallyATest.any(filename.endsWith)) {
       return false;
     }
@@ -412,7 +410,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         needsTests = !_allChangesAreCodeComments(file);
       }
 
-      if (kEngineTestRegExp.hasMatch(filename.toLowerCase())) {
+      if (_isAnEngineTest(filename)) {
         hasTests = true;
       }
     }
@@ -428,6 +426,14 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
       }
     }
+  }
+
+  bool _isAnEngineTest(String filename) {
+    final RegExp engineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc|sh|py)$');
+    return filename.contains('IosBenchmarks') ||
+        filename.contains('IosUnitTests') ||
+        filename.contains('scenario_app') ||
+        engineTestRegExp.hasMatch(filename.toLowerCase());
   }
 
   bool _fileContainsAddedCode(PullRequestFile file) {

@@ -11,7 +11,7 @@ This folder contains a Dart based backend for Cocoon.
 and authenticate yourself by running:
 
 ```sh
-gcloud auth login
+gcloud auth application-default login
 gcloud init
 ```
 * [Install Flutter](https://flutter.dev/docs/get-started/install )
@@ -82,20 +82,10 @@ $ gcloud datastore indexes create index.yaml
 
 #### Using physical machine
 
-* Setting up the environment
-
-```sh
-export COCOON_USE_IN_MEMORY_CACHE=true
-```
-
-This environment is needed as you don't have access to the remote redis
-instance during local development.
-
 * Starting server
 
 ```sh
-export COCOON_USE_IN_MEMORY_CACHE=true
-dart bin/server.dart
+dart bin/local_server.dart
 ```
 
 If you see Serving requests at 0.0.0.0:8080 the dev server is working.
