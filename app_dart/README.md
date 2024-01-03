@@ -49,7 +49,7 @@ To update the Protocol Buffer generated code:
    to include the path to the `protoc` binary.
 
    On Linux, use `sudo apt-get install protocol-compiler` to install.
-   On macOS, use `brew install protobuf`
+   On macOS, use `brew install protobuf`.
 
 2. Install the [`protoc_plugin`](https://pub.dev/packages/protoc_plugin) Dart
    package. Once installed, update your `PATH` to include the path to the
