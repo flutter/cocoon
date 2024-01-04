@@ -34,7 +34,7 @@ dependencies:
   mutex: 3.1.0
   neat_cache: 2.0.3
   path: 1.9.0
-  process: 5.0.1
+  process: 5.0.2
   process_runner: 4.2.0
   protobuf: 2.1.0
   retry: ^3.1.2
