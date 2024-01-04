@@ -136,8 +136,9 @@ class FakeDatastoreDB implements DatastoreDB {
   }
 
   @override
-  Future<T> lookupOrNull<T extends Model<dynamic>>(Key<dynamic> key) {
-    throw UnimplementedError();
+  Future<T?> lookupOrNull<T extends Model<dynamic>>(Key<dynamic> key) async {
+    final values = await lookup(<Key<dynamic>>[key]);
+    return values.firstOrNull as T?;
   }
 }
 

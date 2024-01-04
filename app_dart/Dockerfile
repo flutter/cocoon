@@ -14,4 +14,4 @@ RUN dart pub get
 
 # Start server.
 EXPOSE 8080
-CMD ["/usr/lib/dart/bin/dart", "/app/bin/server.dart"]
+CMD ["/usr/lib/dart/bin/dart", "/app/bin/gae_server.dart"]

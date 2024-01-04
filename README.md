@@ -71,23 +71,13 @@ All the commands in this section assume that you are in the
 
 ### Running a local dev server
 
-**This is for legacy users who were granted old security keys. Due to overground, this is no longer supported.**
-
 ```sh
-$ export GOOGLE_CLOUD_PROJECT=flutter-dashboard-dev # or flutter-dashboard for prod data
-$ export GCLOUD_KEY=#your_secret # Required for reading/writing from Google Cloud
-$ export COCOON_USE_IN_MEMORY_CACHE=true # Use an in memory cache locally instead of redis to prevent corruption
-$ dart bin/server.dart
+dart bin/local_server.dart
 ```
+
 This will output `Serving requests at 0.0.0.0:8080` indicating the server is working.
 
 New requests will be logged to the console.
-
-To develop and test some features, you need to have a local service
-account(key.json) with access to the project you will be connecting to.
-
-If you work for Google you can use the key with flutter-dashboard project
-via [internal doc](https://g3doc.corp.google.com/company/teams/flutter/infrastructure/cocoon/local_development.md?cl=head#test-with-flutter-dashboard-dev-project).
 
 ### Deploying a test version on Google Cloud
 
