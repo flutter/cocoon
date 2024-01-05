@@ -271,7 +271,8 @@ void main() {
           .single as Map<String, dynamic>;
 
       // Verify comment is created correctly.
-      List<dynamic> captured = verify(mockIssuesService.createComment(captureAny, captureAny, captureAny)).captured;
+      final List<dynamic> captured =
+          verify(mockIssuesService.createComment(captureAny, captureAny, captureAny)).captured;
       expect(captured.length, 6);
       expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], existingIssueNumber);
@@ -280,18 +281,14 @@ void main() {
       expect(captured[4], existingIssueNumber);
       expect(captured[5], expectedStagingCiyamlTestIssueComment);
 
-      // Verify labels are applied correctly.
-      captured = verify(
+      // Verify no labels are applied for already `bringup: true` target.
+      verifyNever(
         mockGitHubClient.request(
           captureAny,
           captureAny,
           body: captureAnyNamed('body'),
         ),
-      ).captured;
-      expect(captured.length, 6);
-      expect(captured[0].toString(), 'PUT');
-      expect(captured[1], '/repos/${Config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
-      expect(captured[2], GitHubJson.encode(<String>['some random label', 'P0']));
+      );
 
       expect(result['Status'], 'success');
     });

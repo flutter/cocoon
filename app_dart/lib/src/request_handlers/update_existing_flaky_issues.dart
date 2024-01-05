@@ -87,6 +87,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     GithubService gitHub,
     RepositorySlug slug, {
     required Bucket bucket,
+    required bool bringup,
     required BuilderStatistic statistic,
     required Issue existingIssue,
     required CiYaml ciYaml,
@@ -97,6 +98,10 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     final IssueUpdateBuilder updateBuilder =
         IssueUpdateBuilder(statistic: statistic, threshold: _threshold, existingIssue: existingIssue, bucket: bucket);
     await gitHub.createComment(slug, issueNumber: existingIssue.number, body: updateBuilder.issueUpdateComment);
+    // No need to bump priority and reassign if this is already marked as `bringup: true`.
+    if (bringup) {
+      return;
+    }
     await gitHub.replaceLabelsForIssue(slug, issueNumber: existingIssue.number, labels: updateBuilder.issueLabels);
     if (existingIssue.assignee == null && !updateBuilder.isBelow) {
       final String testOwnerContent = await gitHub.getFileContent(
@@ -150,6 +155,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
           gitHub,
           slug,
           bucket: Bucket.prod,
+          bringup: builderFlakyMap[statistic.name]!,
           statistic: statistic,
           existingIssue: nameToExistingIssue[statistic.name]!,
           ciYaml: ciYaml,
@@ -166,6 +172,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
           gitHub,
           slug,
           bucket: Bucket.staging,
+          bringup: builderFlakyMap[statistic.name]!,
           statistic: statistic,
           existingIssue: nameToExistingIssue[statistic.name]!,
           ciYaml: ciYaml,
