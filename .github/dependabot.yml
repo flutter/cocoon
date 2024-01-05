@@ -8,76 +8,100 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      time: "00:00" # 12 AM MTV
+      timezone: "America/Los_Angeles"
     labels:
       - "autosubmit"
   # Pub ecosystem.
   - package-ecosystem: "pub"
     directory: "/analyze"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      time: "00:00" # 12 AM MTV
+      timezone: "America/Los_Angeles"
     labels:
       - "autosubmit"
   - package-ecosystem: "pub"
     directory: "/app_dart"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      time: "00:00" # 12 AM MTV
+      timezone: "America/Los_Angeles"
     labels:
       - "autosubmit"
   - package-ecosystem: "pub"
     directory: "/auto_submit"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      time: "00:30" # 12:30 AM MTV
+      timezone: "America/Los_Angeles"
     labels:
       - "autosubmit"
   - package-ecosystem: "pub"
     directory: "/cipd_packages/codesign"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      time: "00:30" # 12:30 AM MTV
+      timezone: "America/Los_Angeles"
     labels:
       - "autosubmit"
   - package-ecosystem: "pub"
     directory: "/dashboard"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      time: "00:30" # 12:30 AM MTV
+      timezone: "America/Los_Angeles"
     labels:
       - "autosubmit"
   - package-ecosystem: "pub"
     directory: "/cipd_packages/device_doctor"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      time: "01:00" # 1 AM MTV
+      timezone: "America/Los_Angeles"
     labels:
       - "autosubmit"
   - package-ecosystem: "pub"
     directory: "/test_utilities"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      time: "01:00" # 1 AM MTV
+      timezone: "America/Los_Angeles"
     labels:
       - "autosubmit"
   - package-ecosystem: "pub"
     directory: "/licenses"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      time: "01:00" # 1 AM MTV
+      timezone: "America/Los_Angeles"
     labels:
       - "autosubmit"
   # Docker ecosystem.
   - package-ecosystem: "docker"
     directory: "/app_dart"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      time: "02:00" # 2 AM MTV
+      timezone: "America/Los_Angeles"
     labels:
       - "autosubmit"
   - package-ecosystem: "docker"
     directory: "/auto_submit"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      time: "02:00" # 2 AM MTV
+      timezone: "America/Los_Angeles"
     labels:
       - "autosubmit"
   # Go ecosystem.
   - package-ecosystem: "gomod"
     directory: "/tooling"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      time: "02:00" # 2 AM MTV
+      timezone: "America/Los_Angeles"
     labels:
       - "autosubmit"
     allow:
@@ -86,6 +110,8 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/gh_actions/third_party/no-response'
     schedule:
-      interval: 'daily'
+      interval: "weekly"
+      time: "02:00" # 2 AM MTV
+      timezone: "America/Los_Angeles"
     labels:
       - "autosubmit"
