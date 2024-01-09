@@ -768,6 +768,8 @@ void main() {
         'repo_name': 'flutter',
         'user_agent': 'flutter-cocoon',
       });
+      final Map<String, Object>? properties = scheduleBuildRequest.properties;
+      expect(properties!['overrides'], ['override: test']);
     });
   });
 

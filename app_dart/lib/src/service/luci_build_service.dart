@@ -27,6 +27,7 @@ import 'cache_service.dart';
 import 'config.dart';
 import 'exceptions.dart';
 import 'gerrit_service.dart';
+import 'github_service.dart';
 
 const Set<String> taskFailStatusSet = <String>{
   Task.statusInfraFailure,
@@ -203,15 +204,6 @@ class LuciBuildService {
       final Map<String, Object> properties = target.getProperties();
       properties.putIfAbsent('git_branch', () => pullRequest.base!.ref!.replaceAll('refs/heads/', ''));
 
-      final List<String>? labels = pullRequest.labels
-          ?.where((label) => label.name.startsWith(githubBuildLabelPrefix))
-          .map((obj) => obj.name)
-          .toList();
-
-      if (labels != null && labels.isNotEmpty) {
-        properties[propertiesGithubBuildLabelName] = labels;
-      }
-
       requests.add(
         Request(
           scheduleBuild: _createPresubmitScheduleBuild(
@@ -363,7 +355,15 @@ class LuciBuildService {
       'commit_branch': branch,
       'commit_sha': sha,
     };
-    final Map<String, Object>? properties = build.input!.properties;
+    final Map<String, Object> properties = Map.of(build.input!.properties ?? <String, Object>{});
+    final GithubService githubService = await config.createGithubService(slug);
+    final List<github.IssueLabel>? issueLabels = await githubService.getIssueLabels(slug, prNumber);
+    final List<String>? labels =
+        issueLabels?.where((label) => label.name.startsWith(githubBuildLabelPrefix)).map((obj) => obj.name).toList();
+
+    if (labels != null && labels.isNotEmpty) {
+      properties[propertiesGithubBuildLabelName] = labels;
+    }
     log.info('input ${build.input!} properties $properties');
 
     final ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
