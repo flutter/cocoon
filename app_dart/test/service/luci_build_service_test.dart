@@ -341,11 +341,7 @@ void main() {
     });
 
     test('schedule try builds with github build labels successfully', () async {
-      final issueLabels = [
-        IssueLabel(name: '${LuciBuildService.githubBuildLabelPrefix}hello'),
-        IssueLabel(name: '${LuciBuildService.githubBuildLabelPrefix}world'),
-      ];
-      final PullRequest pullRequest = generatePullRequest(labels: issueLabels);
+      final PullRequest pullRequest = generatePullRequest();
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return BatchResponse(
           responses: <Response>[
@@ -393,10 +389,6 @@ void main() {
         'git_ref': 'refs/pull/123/head',
         'exe_cipd_version': 'refs/heads/main',
         'recipe': 'devicelab/devicelab',
-        LuciBuildService.propertiesGithubBuildLabelName: [
-          '${LuciBuildService.githubBuildLabelPrefix}hello',
-          '${LuciBuildService.githubBuildLabelPrefix}world',
-        ],
       });
       expect(dimensions.length, 1);
       expect(dimensions[0].key, 'os');

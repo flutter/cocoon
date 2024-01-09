@@ -154,7 +154,7 @@ class GithubService {
   }
 
   /// Gets label list for an issue.
-  Future<List<IssueLabel>>? getIssueLabels(RepositorySlug slug, int issueNumber) async {
+  Future<List<IssueLabel>> getIssueLabels(RepositorySlug slug, int issueNumber) async {
     return github.issues.listLabelsByIssue(slug, issueNumber).toList();
   }
 

@@ -357,11 +357,11 @@ class LuciBuildService {
     };
     final Map<String, Object> properties = Map.of(build.input!.properties ?? <String, Object>{});
     final GithubService githubService = await config.createGithubService(slug);
-    final List<github.IssueLabel>? issueLabels = await githubService.getIssueLabels(slug, prNumber);
-    final List<String>? labels =
-        issueLabels?.where((label) => label.name.startsWith(githubBuildLabelPrefix)).map((obj) => obj.name).toList();
+    final List<github.IssueLabel> issueLabels = await githubService.getIssueLabels(slug, prNumber);
+    final List<String> labels =
+        issueLabels.where((label) => label.name.startsWith(githubBuildLabelPrefix)).map((obj) => obj.name).toList();
 
-    if (labels != null && labels.isNotEmpty) {
+    if (labels.isNotEmpty) {
       properties[propertiesGithubBuildLabelName] = labels;
     }
     log.info('input ${build.input!} properties $properties');
