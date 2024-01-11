@@ -55,7 +55,7 @@ class ApproverService {
     // TODO(ricardoamador) this will need to be refactored to make this code more general and
     // not applicable to only flutter.
     await for (github.PullRequestReview review in reviews) {
-      if (review.user.login == 'fluttergithubbot' && review.state == 'APPROVED') {
+      if (review.user?.login == 'fluttergithubbot' && review.state == 'APPROVED') {
         // Already approved.
         return;
       }
