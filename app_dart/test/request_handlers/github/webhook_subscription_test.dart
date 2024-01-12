@@ -1523,7 +1523,7 @@ void foo() {
       );
     });
 
-    test('Engine labels PRs, no comment for license goldens', () async {
+    test('Engine labels PRs, no comment for license goldens or build configs', () async {
       const int issueNumber = 123;
 
       tester.message = generateGithubWebhookMessage(
@@ -1534,9 +1534,10 @@ void foo() {
       );
 
       when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
-        (_) => Stream<PullRequestFile>.value(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'ci/licenses_golden/licenses_dart',
-        ),
+          PullRequestFile()..filename = 'ci/builders/linux_unopt.json',
+        ]),
       );
 
       await tester.post(webhook);

@@ -404,6 +404,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           !_isTestExempt(filename) &&
           // License goldens are auto-generated.
           !filename.startsWith('ci/licenses_golden/') &&
+          // Build configuration files tell CI what to run.
+          !filename.startsWith('ci/builders/') &&
           // Build files don't need unit tests.
           !filename.endsWith('.gn') &&
           !filename.endsWith('.gni')) {
