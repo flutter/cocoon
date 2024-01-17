@@ -389,7 +389,7 @@ class LuciBuildService {
   }
 
   /// Collect any label whose name is prefixed by the prefix [String].
-  /// 
+  ///
   /// Returns a [List] of prefixed label names as [String]s.
   List<String>? extractPrefixedLabels(List<github.IssueLabel>? issueLabels, String prefix) {
     return issueLabels?.where((label) => label.name.startsWith(prefix)).map((obj) => obj.name).toList();
