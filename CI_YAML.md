@@ -188,6 +188,48 @@ Example
 presubmit_max_attempts: "3"
 ```
 
+#### Engine V2 specific
+
+##### archive
+
+**cache_root** The base directory for the target cache where checkouts and other support files and 
+source code will be added.
+
+Example
+```yaml
+cache_name: "builder"
+```
+
+**cache_name** The target cache within the cache_root that will be archived/operated on.
+
+Example
+```yaml
+cache_root: "cache"
+```
+
+**cache_paths** The paths within the cache specified by cache_name that will be archived/operated on.
+These paths are assumed to have cache_root as a parent directory.
+
+Example
+```yaml
+cache_paths: >-
+  [
+    "builder",
+    "git"
+  ]
+```
+
+**ignore_cache_paths** The paths within the cache that we do not want to include in the archive/current
+operation. These paths are assumed to have cache_root as a parent directory. 
+
+Example
+```yaml
+ignore_cache_paths: >-
+  [
+    "builder/src/flutter/prebuilts/SDKs"
+  ]
+```
+
 ### Updating targets
 
 #### Properties
