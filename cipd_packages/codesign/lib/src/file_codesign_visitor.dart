@@ -255,6 +255,33 @@ update these file paths accordingly.
       }
       log.info('Child file of directory ${directory.basename} is ${entity.basename}');
     }
+    final String directoryExtension = directory.basename.split('.').last;
+    if( directoryExtension == 'framework' || directoryExtension == 'xcframework'){
+        final List<String> args = <String>[
+        '/usr/bin/codesign',
+        '--keychain',
+        'build.keychain', // specify the keychain to look for cert
+        '-f', // force. Possible re-signing of FlutterMacOS.framework, Flutter.xcframework/ios-arm64/Flutter.framework etc.
+        '-s', // use the cert provided by next argument
+        codesignCertName,
+        directory.absolute.path,
+        '--timestamp', // add a secure timestamp
+      ];
+
+      await retryOptions.retry(() async {
+        log.info('Code signing framework bundle: ${args.join(' ')}\n');
+        final io.ProcessResult result = await processManager.run(args);
+        if (result.exitCode == 0) {
+          return;
+        }
+
+      throw CodesignException(
+        'Failed to codesign bundle ${directory.absolute.path} with args: ${args.join(' ')}\n'
+        'stdout:\n${(result.stdout as String).trim()}'
+        'stderr:\n${(result.stderr as String).trim()}',
+      );
+    });
+    }
   }
 
   /// Unzip an [EmbeddedZip] and visit its children.
