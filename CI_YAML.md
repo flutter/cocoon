@@ -220,7 +220,8 @@ cache_paths: >-
 ```
 
 **ignore_cache_paths** The paths within the cache that we do not want to include in the archive/current
-operation. These paths are assumed to have cache_root as a parent directory. 
+operation. The paths specified here will be deleted from disk. These paths are assumed to have 
+cache_root as a parent directory. 
 
 Example
 ```yaml
