@@ -256,8 +256,8 @@ update these file paths accordingly.
       log.info('Child file of directory ${directory.basename} is ${entity.basename}');
     }
     final String directoryExtension = directory.basename.split('.').last;
-    if( directoryExtension == 'framework' || directoryExtension == 'xcframework'){
-        final List<String> args = <String>[
+    if (directoryExtension == 'framework' || directoryExtension == 'xcframework') {
+      final List<String> args = <String>[
         '/usr/bin/codesign',
         '--keychain',
         'build.keychain', // specify the keychain to look for cert
@@ -275,12 +275,12 @@ update these file paths accordingly.
           return;
         }
 
-      throw CodesignException(
-        'Failed to codesign bundle ${directory.absolute.path} with args: ${args.join(' ')}\n'
-        'stdout:\n${(result.stdout as String).trim()}'
-        'stderr:\n${(result.stderr as String).trim()}',
-      );
-    });
+        throw CodesignException(
+          'Failed to codesign bundle ${directory.absolute.path} with args: ${args.join(' ')}\n'
+          'stdout:\n${(result.stdout as String).trim()}'
+          'stderr:\n${(result.stderr as String).trim()}',
+        );
+      });
     }
   }
 

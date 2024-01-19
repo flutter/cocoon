@@ -564,7 +564,8 @@ void main() {
     test('visitDirectory codesigns framework bundle', () async {
       fileSystem
         ..file('${rootDirectory.path}/remote_zip_6/non_bundle/file_a').createSync(recursive: true)
-        ..file('${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework/file_b').createSync(recursive: true);
+        ..file('${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework/file_b')
+            .createSync(recursive: true);
       final Directory testDirectory = fileSystem.directory('${rootDirectory.path}/remote_zip_6');
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
@@ -621,9 +622,16 @@ void main() {
           .map((LogRecord record) => record.message)
           .toList();
       expect(messages, contains('Visiting directory ${rootDirectory.path}/remote_zip_6/non_bundle'));
-      expect(messages, contains('Visiting directory ${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework'));
-      expect(messages, contains('Code signing framework bundle: /usr/bin/codesign --keychain build.keychain -f -s $randomString ${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework --timestamp\n'));
-      expect(messages, contains('Code signing framework bundle: /usr/bin/codesign --keychain build.keychain -f -s $randomString ${rootDirectory.path}/remote_zip_6/bundle.xcframework --timestamp\n'));
+      expect(messages,
+          contains('Visiting directory ${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework'));
+      expect(
+          messages,
+          contains(
+              'Code signing framework bundle: /usr/bin/codesign --keychain build.keychain -f -s $randomString ${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework --timestamp\n'));
+      expect(
+          messages,
+          contains(
+              'Code signing framework bundle: /usr/bin/codesign --keychain build.keychain -f -s $randomString ${rootDirectory.path}/remote_zip_6/bundle.xcframework --timestamp\n'));
     });
 
     test('visitBinary codesigns binary with / without entitlement', () async {
