@@ -596,6 +596,7 @@ void main() {
             randomString,
             '${rootDirectory.absolute.path}/remote_zip_6/bundle.xcframework/bundle.framework',
             '--timestamp',
+            '--options=runtime',
           ],
           exitCode: 0,
         ),
@@ -609,6 +610,7 @@ void main() {
             randomString,
             '${rootDirectory.absolute.path}/remote_zip_6/bundle.xcframework',
             '--timestamp',
+            '--options=runtime',
           ],
           exitCode: 0,
         ),
@@ -617,10 +619,10 @@ void main() {
         directory: testDirectory,
         parentVirtualPath: '',
       );
-      final List<String> messages = records
+      final Set<String> messages = records
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
-          .toList();
+          .toSet();
       expect(messages, contains('Visiting directory ${rootDirectory.path}/remote_zip_6/non_bundle'));
       expect(
         messages,
@@ -629,13 +631,13 @@ void main() {
       expect(
         messages,
         contains(
-          'Code signing framework bundle: /usr/bin/codesign --keychain build.keychain -f -s $randomString ${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework --timestamp\n',
+          'Executing: /usr/bin/codesign --keychain build.keychain -f -s $randomString ${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework --timestamp --options=runtime\n',
         ),
       );
       expect(
         messages,
         contains(
-          'Code signing framework bundle: /usr/bin/codesign --keychain build.keychain -f -s $randomString ${rootDirectory.path}/remote_zip_6/bundle.xcframework --timestamp\n',
+          'Executing: /usr/bin/codesign --keychain build.keychain -f -s $randomString ${rootDirectory.path}/remote_zip_6/bundle.xcframework --timestamp --options=runtime\n',
         ),
       );
     });
