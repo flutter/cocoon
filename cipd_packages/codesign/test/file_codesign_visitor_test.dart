@@ -622,16 +622,22 @@ void main() {
           .map((LogRecord record) => record.message)
           .toList();
       expect(messages, contains('Visiting directory ${rootDirectory.path}/remote_zip_6/non_bundle'));
-      expect(messages,
-          contains('Visiting directory ${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework'));
       expect(
-          messages,
-          contains(
-              'Code signing framework bundle: /usr/bin/codesign --keychain build.keychain -f -s $randomString ${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework --timestamp\n'));
+        messages,
+        contains('Visiting directory ${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework'),
+      );
       expect(
-          messages,
-          contains(
-              'Code signing framework bundle: /usr/bin/codesign --keychain build.keychain -f -s $randomString ${rootDirectory.path}/remote_zip_6/bundle.xcframework --timestamp\n'));
+        messages,
+        contains(
+          'Code signing framework bundle: /usr/bin/codesign --keychain build.keychain -f -s $randomString ${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework --timestamp\n',
+        ),
+      );
+      expect(
+        messages,
+        contains(
+          'Code signing framework bundle: /usr/bin/codesign --keychain build.keychain -f -s $randomString ${rootDirectory.path}/remote_zip_6/bundle.xcframework --timestamp\n',
+        ),
+      );
     });
 
     test('visitBinary codesigns binary with / without entitlement', () async {
