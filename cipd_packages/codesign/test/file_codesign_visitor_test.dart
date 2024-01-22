@@ -561,6 +561,87 @@ void main() {
       );
     });
 
+    test('visitDirectory codesigns framework bundle', () async {
+      fileSystem
+        ..file('${rootDirectory.path}/remote_zip_6/non_bundle/file_a').createSync(recursive: true)
+        ..file('${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework/file_b')
+            .createSync(recursive: true);
+      final Directory testDirectory = fileSystem.directory('${rootDirectory.path}/remote_zip_6');
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(
+          command: <String>[
+            'file',
+            '--mime-type',
+            '-b',
+            '${rootDirectory.absolute.path}/remote_zip_6/non_bundle/file_a',
+          ],
+          stdout: 'other_files',
+        ),
+        FakeCommand(
+          command: <String>[
+            'file',
+            '--mime-type',
+            '-b',
+            '${rootDirectory.absolute.path}/remote_zip_6/bundle.xcframework/bundle.framework/file_b',
+          ],
+          stdout: 'other_files',
+        ),
+        FakeCommand(
+          command: <String>[
+            '/usr/bin/codesign',
+            '--keychain',
+            'build.keychain',
+            '-f',
+            '-s',
+            randomString,
+            '${rootDirectory.absolute.path}/remote_zip_6/bundle.xcframework/bundle.framework',
+            '--timestamp',
+            '--options=runtime',
+          ],
+          exitCode: 0,
+        ),
+        FakeCommand(
+          command: <String>[
+            '/usr/bin/codesign',
+            '--keychain',
+            'build.keychain',
+            '-f',
+            '-s',
+            randomString,
+            '${rootDirectory.absolute.path}/remote_zip_6/bundle.xcframework',
+            '--timestamp',
+            '--options=runtime',
+          ],
+          exitCode: 0,
+        ),
+      ]);
+      await codesignVisitor.visitDirectory(
+        directory: testDirectory,
+        parentVirtualPath: '',
+      );
+      final Set<String> messages = records
+          .where((LogRecord record) => record.level == Level.INFO)
+          .map((LogRecord record) => record.message)
+          .toSet();
+      expect(messages, contains('Visiting directory ${rootDirectory.path}/remote_zip_6/non_bundle'));
+      expect(
+        messages,
+        contains('Visiting directory ${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework'),
+      );
+      expect(
+        messages,
+        contains(
+          'Executing: /usr/bin/codesign --keychain build.keychain -f -s $randomString ${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework --timestamp --options=runtime\n',
+        ),
+      );
+      expect(
+        messages,
+        contains(
+          'Executing: /usr/bin/codesign --keychain build.keychain -f -s $randomString ${rootDirectory.path}/remote_zip_6/bundle.xcframework --timestamp --options=runtime\n',
+        ),
+      );
+    });
+
     test('visitBinary codesigns binary with / without entitlement', () async {
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
