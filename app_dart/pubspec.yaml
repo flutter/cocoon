@@ -26,7 +26,7 @@ dependencies:
   gql: 1.0.1-alpha+1696717343881
   graphql: 5.2.0-beta.7
   grpc: 3.2.4
-  http: 1.1.2
+  http: 1.2.0
   json_annotation: 4.8.1
   logging: 1.2.0
   meta: 1.11.0
