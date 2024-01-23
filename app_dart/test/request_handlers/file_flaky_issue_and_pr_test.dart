@@ -20,6 +20,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
+import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 import 'file_flaky_issue_and_pr_test_data.dart';
@@ -671,6 +672,28 @@ void main() {
       verifyNever(mockPullRequestsService.create(captureAny, captureAny));
 
       expect(result['Status'], 'success');
+    });
+
+    test('skips when the target doesn not exist', () {
+      final YamlMap? ci = loadYaml(ciYamlContent) as YamlMap?;
+      final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
+      final CiYaml ciYaml = CiYaml(
+        slug: Config.flutterSlug,
+        branch: Config.defaultBranch(Config.flutterSlug),
+        config: unCheckedSchedulerConfig,
+      );
+      final BuilderStatistic builderStatistic = BuilderStatistic(
+        name: 'Mac_android test',
+        flakyRate: 0.5,
+        flakyBuilds: <String>['103', '102', '101'],
+        succeededBuilds: <String>['203', '202', '201'],
+        recentCommit: 'abc',
+        flakyBuildOfRecentCommit: '103',
+        flakyNumber: 3,
+        totalNumber: 6,
+      );
+      final List<pb.Target> targets = unCheckedSchedulerConfig.targets;
+      expect(handler.shouldSkip(builderStatistic, ciYaml, targets), true);
     });
   });
 
