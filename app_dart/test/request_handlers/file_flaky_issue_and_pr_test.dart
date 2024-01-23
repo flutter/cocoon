@@ -20,7 +20,6 @@ import '../src/datastore/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
-import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 import 'file_flaky_issue_and_pr_test_data.dart';
