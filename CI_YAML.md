@@ -121,8 +121,8 @@ owner in [TESTOWNERS](https://github.com/flutter/flutter/blob/master/TESTOWNERS)
 Targets support specifying properties that can be passed throughout infrastructure. The
 following are a list of keys that are reserved for special use.
 
-**Properties is a Map<String, String> and any special values must be JSON encoded
-(i.e. no trailing commas). Additionally, these strings must be compatible with YAML multiline strings**
+**Properties** is a Map<String, String> and any special values must be JSON encoded
+(i.e. no trailing commas). Additionally, these strings must be compatible with YAML multiline strings
 
 **$flutter/osx_sdk**: xcode configs including sdk and runtime. **Note**: support on legacy `xcode`/`runtime`
 properties and `xcode` dependency has been deprecated.
@@ -187,6 +187,19 @@ Example
 ``` yaml
 presubmit_max_attempts: "3"
 ```
+
+**contexts** The list of contexts that will guide [recipes](https://flutter.googlesource.com/recipes/+/refs/heads/main/recipe_modules/flutter_deps/api.py#665) to add to [ExitStack](https://docs.python.org/3/library/contextlib.html#contextlib.ExitStack).
+
+Example
+```yaml
+contexts: >-
+        [
+          "android_virtual_device"
+        ]
+```
+This will initialize and prepare the virtual device used for tests. Other supported contexts include: `osx_sdk`, `depot_tools_on_path`, etc.
+
+**
 
 ### Updating targets
 
