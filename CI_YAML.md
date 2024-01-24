@@ -199,8 +199,6 @@ contexts: >-
 ```
 This will initialize and prepare the virtual device used for tests. Other supported contexts include: `osx_sdk`, `depot_tools_on_path`, etc.
 
-**
-
 ### Updating targets
 
 #### Properties
