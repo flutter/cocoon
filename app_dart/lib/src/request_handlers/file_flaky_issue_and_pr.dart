@@ -55,11 +55,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     final Map<String?, PullRequest> nameToExistingPR = await getExistingPRs(gitHub, slug);
     int filedIssueAndPRCount = 0;
     for (final BuilderStatistic statistic in builderStatisticList) {
-      // Skip if ignore_flakiness is specified.
-      if (getIgnoreFlakiness(statistic.name, ciYaml)) {
-        continue;
-      }
-      if (statistic.flakyRate < _threshold) {
+      if (shouldSkip(statistic, ciYaml, targets)) {
         continue;
       }
 
@@ -91,6 +87,22 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       'Status': 'success',
       'NumberOfCreatedIssuesAndPRs': filedIssueAndPRCount,
     });
+  }
+
+  bool shouldSkip(BuilderStatistic statistic, CiYaml ciYaml, List<pb.Target> targets) {
+    // Skips if the target has been removed from .ci.yaml.
+    if (!targets.map((e) => e.name).toList().contains(statistic.name)) {
+      return true;
+    }
+    // Skips if ignore_flakiness is specified.
+    if (getIgnoreFlakiness(statistic.name, ciYaml)) {
+      return true;
+    }
+    // Skips if the flaky percentage is below the threshold.
+    if (statistic.flakyRate < _threshold) {
+      return true;
+    }
+    return false;
   }
 
   double get _threshold => double.parse(request!.uri.queryParameters[kThresholdKey]!);
