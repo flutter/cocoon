@@ -255,6 +255,10 @@ update these file paths accordingly.
       }
       log.info('Child file of directory ${directory.basename} is ${entity.basename}');
     }
+    final String directoryExtension = directory.basename.split('.').last;
+    if (directoryExtension == 'framework' || directoryExtension == 'xcframework') {
+      await codesignAtPath(binaryOrBundlePath: directory.absolute.path);
+    }
   }
 
   /// Unzip an [EmbeddedZip] and visit its children.
@@ -314,17 +318,24 @@ update these file paths accordingly.
     if (dryrun) {
       return;
     }
+    await codesignAtPath(binaryOrBundlePath: binaryFile.absolute.path, entitlementCurrentPath: entitlementCurrentPath);
+  }
+
+  Future<void> codesignAtPath({
+    required String binaryOrBundlePath,
+    String? entitlementCurrentPath,
+  }) async {
     final List<String> args = <String>[
       '/usr/bin/codesign',
       '--keychain',
       'build.keychain', // specify the keychain to look for cert
-      '-f', // force
+      '-f', // force. Needed to overwrite signature if major executable of bundle is already signed before bundle is signed.
       '-s', // use the cert provided by next argument
       codesignCertName,
-      binaryFile.absolute.path,
+      binaryOrBundlePath,
       '--timestamp', // add a secure timestamp
       '--options=runtime', // hardened runtime
-      if (fileWithEntitlements.contains(entitlementCurrentPath)) ...<String>[
+      if (entitlementCurrentPath != '' && fileWithEntitlements.contains(entitlementCurrentPath)) ...<String>[
         '--entitlements',
         entitlementsFile.absolute.path,
       ],
@@ -338,7 +349,7 @@ update these file paths accordingly.
       }
 
       throw CodesignException(
-        'Failed to codesign ${binaryFile.absolute.path} with args: ${args.join(' ')}\n'
+        'Failed to codesign binary or bundle at $binaryOrBundlePath with args: ${args.join(' ')}\n'
         'stdout:\n${(result.stdout as String).trim()}'
         'stderr:\n${(result.stderr as String).trim()}',
       );
