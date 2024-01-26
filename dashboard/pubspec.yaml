@@ -24,7 +24,7 @@ dependencies:
   protobuf: 3.1.0 # Rolled by dependabot
   provider: 6.1.1 # Rolled by dependabot
   truncate: 3.0.1 # Rolled by dependabot
-  url_launcher: 6.2.3 # Rolled by dependabot
+  url_launcher: 6.2.4 # Rolled by dependabot
   url_launcher_platform_interface: 2.3.1 # Rolled by dependabot
   url_launcher_web: 2.2.3 # Rolled by dependabot
 
