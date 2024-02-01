@@ -168,7 +168,6 @@ class LuciBuildService {
       return targets;
     }
 
-    final List<Request> requests = <Request>[];
     final List<String> branches = await gerritService.branches(
       'flutter-review.googlesource.com',
       'recipes',
@@ -180,53 +179,18 @@ class LuciBuildService {
     String cipdVersion = 'refs/heads/${pullRequest.base!.ref!}';
     cipdVersion = branches.contains(cipdVersion) ? cipdVersion : config.defaultRecipeBundleRef;
 
+    final List<Future<Request>> futures = <Future<Request>>[];
     for (Target target in targets) {
-      final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
-        config,
-        target.slug,
-        sha,
-        target.value.name,
-      );
-
-      final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-
-      final Map<String, dynamic> userData = <String, dynamic>{
-        'builder_name': target.value.name,
-        'check_run_id': checkRun.id,
-        'commit_sha': sha,
-        'commit_branch': pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
-      };
-
-      final Map<String, List<String>> tags = <String, List<String>>{
-        'github_checkrun': <String>[checkRun.id.toString()],
-      };
-
-      final Map<String, Object> properties = target.getProperties();
-      properties.putIfAbsent('git_branch', () => pullRequest.base!.ref!.replaceAll('refs/heads/', ''));
-
-      final List<String>? labels = extractPrefixedLabels(pullRequest.labels, githubBuildLabelPrefix);
-
-      if (labels != null && labels.isNotEmpty) {
-        properties[propertiesGithubBuildLabelName] = labels;
-      }
-
-      requests.add(
-        Request(
-          scheduleBuild: _createPresubmitScheduleBuild(
-            slug: slug,
-            sha: pullRequest.head!.sha!,
-            //Use target.value.name here otherwise tests will die due to null checkRun.name.
-            checkName: target.value.name,
-            pullRequestNumber: pullRequest.number!,
-            cipdVersion: cipdVersion,
-            userData: userData,
-            properties: properties,
-            tags: tags,
-            dimensions: target.getDimensions(),
-          ),
+      futures.add(
+        _scheduleTryBuild(
+          target: target,
+          sha: sha,
+          pullRequest: pullRequest,
+          cipdVersion: cipdVersion,
         ),
       );
     }
+    final List<Request> requests = await Future.wait(futures);
 
     final Iterable<List<Request>> requestPartitions = await shard(requests, config.schedulingShardSize);
     for (List<Request> requestPartition in requestPartitions) {
@@ -235,6 +199,58 @@ class LuciBuildService {
     }
 
     return targets;
+  }
+
+  /// Create a GitHub Check Run then schedule a LUCI build with that ID.
+  Future<Request> _scheduleTryBuild({
+    required Target target,
+    required String sha,
+    required github.PullRequest pullRequest,
+    required String cipdVersion,
+  }) async {
+    final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
+      config,
+      target.slug,
+      sha,
+      target.value.name,
+    );
+
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+
+    final Map<String, dynamic> userData = <String, dynamic>{
+      'builder_name': target.value.name,
+      'check_run_id': checkRun.id,
+      'commit_sha': sha,
+      'commit_branch': pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
+    };
+
+    final Map<String, List<String>> tags = <String, List<String>>{
+      'github_checkrun': <String>[checkRun.id.toString()],
+    };
+
+    final Map<String, Object> properties = target.getProperties();
+    properties.putIfAbsent('git_branch', () => pullRequest.base!.ref!.replaceAll('refs/heads/', ''));
+
+    final List<String>? labels = extractPrefixedLabels(pullRequest.labels, githubBuildLabelPrefix);
+
+    if (labels != null && labels.isNotEmpty) {
+      properties[propertiesGithubBuildLabelName] = labels;
+    }
+
+    return Request(
+      scheduleBuild: _createPresubmitScheduleBuild(
+        slug: slug,
+        sha: pullRequest.head!.sha!,
+        //Use target.value.name here otherwise tests will die due to null checkRun.name.
+        checkName: target.value.name,
+        pullRequestNumber: pullRequest.number!,
+        cipdVersion: cipdVersion,
+        userData: userData,
+        properties: properties,
+        tags: tags,
+        dimensions: target.getDimensions(),
+      ),
+    );
   }
 
   /// Cancels all the current builds on [pullRequest] with [reason].
