@@ -387,4 +387,11 @@ class FakeGithubService implements GithubService {
   Future<bool> deleteBranch(RepositorySlug slug, String branchName) async {
     return deleteBranchMock;
   }
+  
+  List<PullRequestComment> pullRequestComments = [];
+
+  @override
+  Future<List<PullRequestComment>> getPullRequestComments(RepositorySlug slug, int issueNumber) async {
+    return pullRequestComments;
+  }
 }

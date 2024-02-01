@@ -255,6 +255,13 @@ void main() {
       githubService.pullRequestMock = pullRequest;
       revertMethod.object = pullRequest;
 
+      final PullRequestComment pullRequestComment = PullRequestComment(
+        body: "Revert reason: test is failing consistently.",
+      );
+
+      final List<PullRequestComment> pullRequestCommentList = [pullRequestComment];
+      githubService.pullRequestComments = pullRequestCommentList;
+
       // run test
       unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
       await validationService.processRevertRequest(

@@ -11,12 +11,14 @@ void main() {
   test('Allow nullable fields in formatter.', () {
     final PullRequest pullRequest = PullRequest(number: 123456, body: null, title: 'Interesting title.');
     const String sender = 'RevertAuthor';
+    const String reason = 'Revert reason: test xyz has began failing constantly.';
     RevertIssueBodyFormatter? revertIssueBodyFormatter;
     expect(
       () => revertIssueBodyFormatter = RevertIssueBodyFormatter(
         slug: RepositorySlug('flutter', 'flutter'),
         originalPrNumber: pullRequest.number!,
         initiatingAuthor: sender,
+        revertReason: reason,
         originalPrTitle: pullRequest.title,
         originalPrBody: pullRequest.body,
       ),

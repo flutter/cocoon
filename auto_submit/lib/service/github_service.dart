@@ -185,6 +185,10 @@ class GithubService {
     return github.issues.createComment(slug, issueNumber, body);
   }
 
+  Future<List<PullRequestComment>> getPullRequestComments(RepositorySlug slug, int issueNumber) {
+    return github.pullRequests.listCommentsByPullRequest(slug, issueNumber).toList();
+  }
+
   /// Update a pull request branch
   Future<bool> updateBranch(RepositorySlug slug, int number, String headSha) async {
     final response = await github.request(

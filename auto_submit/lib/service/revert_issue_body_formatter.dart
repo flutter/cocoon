@@ -9,6 +9,7 @@ class RevertIssueBodyFormatter {
     required this.slug,
     required this.originalPrNumber,
     required this.initiatingAuthor,
+    required this.revertReason,
     required this.originalPrTitle,
     required this.originalPrBody,
   });
@@ -20,6 +21,7 @@ class RevertIssueBodyFormatter {
   // These two fields can be null in the original pull request.
   String? originalPrTitle;
   String? originalPrBody;
+  String? revertReason;
 
   late String? revertPrTitle;
   late String? revertPrBody;
@@ -30,6 +32,7 @@ class RevertIssueBodyFormatter {
     originalPrTitle ??= 'No title provided.';
     revertPrTitle = 'Reverts "$originalPrTitle"';
 
+
     // create the reverts Link for the body. Looks like Reverts flutter/cocoon#123 but will render as a link.
     revertPrLink = 'Reverts ${slug.fullName}#$originalPrNumber';
 
@@ -39,6 +42,9 @@ class RevertIssueBodyFormatter {
     revertPrBody = '''
 $revertPrLink
 Initiated by: $initiatingAuthor
+
+Reason: $revertReason
+
 This change reverts the following previous change:
 Original Description:
 $originalPrBody

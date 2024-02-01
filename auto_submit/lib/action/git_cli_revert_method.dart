@@ -24,6 +24,7 @@ class GitCliRevertMethod implements RevertMethod {
   Future<github.PullRequest?> createRevert(
     Config config,
     String initiatingAuthor,
+    String reasonForRevert,
     github.PullRequest pullRequest,
   ) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
@@ -72,6 +73,7 @@ class GitCliRevertMethod implements RevertMethod {
       slug: slug,
       originalPrNumber: pullRequest.number!,
       initiatingAuthor: initiatingAuthor,
+      revertReason: reasonForRevert,
       originalPrTitle: pullRequest.title,
       originalPrBody: pullRequest.body,
     ).format;

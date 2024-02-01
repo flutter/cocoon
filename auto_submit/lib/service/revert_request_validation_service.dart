@@ -87,6 +87,19 @@ class RevertRequestValidationService extends ValidationService {
     return DateTime.now().difference(pullRequest.mergedAt!).inHours <= 24;
   }
 
+  /// Determine whether or not the original pull request to be reverted has a reason
+  /// why the issue is being reverted.
+  Future<String?> getReasonForRevert(GithubService githubService, github.RepositorySlug slug, int issueNumber) async {
+    final List<github.PullRequestComment> pullRequestComments = await githubService.getPullRequestComments(slug, issueNumber);
+    for (github.PullRequestComment prComment in pullRequestComments) {
+      final String? commentBody = prComment.body;
+      if (commentBody != null && commentBody.startsWith(RegExp(r'\s*(R|r)evert(\s+|_|-)(R|r)eason(:?)'))) {
+        return commentBody;
+      }
+    }
+    return null;
+  }
+
   /// Determine if we should process the incoming pull request webhook event.
   Future<RevertProcessMethod> shouldProcess(github.PullRequest pullRequest, List<String> labelNames) async {
     // This is the initial revert request state.
@@ -125,11 +138,24 @@ class RevertRequestValidationService extends ValidationService {
       return;
     }
 
+    final String? revertReason = await getReasonForRevert(githubService, slug, messagePullRequest.number!);
+    if (revertReason == null) {
+      final String message = '''A reason for requesting a revert of ${slug.fullName}/${messagePullRequest.number} could
+      not be found or the reason was not properly formatted. Start a comment with 'Revert reason:' to tell the bot why
+      this issue is being reverted.''';
+      log.info(message);
+      await githubService.createComment(slug, messagePullRequest.number!, message);
+      await githubService.removeLabel(slug, messagePullRequest.number!, Config.kRevertLabel);
+      log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
+      await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
+      return;
+    } 
+
     // Attempt to create the new revert pull request.
     try {
       // This is the autosubmit query result pull request from graphql.
       final github.PullRequest pullRequest =
-          await revertMethod!.createRevert(config, sender, messagePullRequest) as github.PullRequest;
+          await revertMethod!.createRevert(config, sender, revertReason, messagePullRequest) as github.PullRequest;
       log.info('Created revert pull request ${slug.fullName}/${pullRequest.number}.');
       // This will come through this service again for processing.
       await githubService.addLabels(slug, pullRequest.number!, [Config.kRevertOfLabel]);
