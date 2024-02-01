@@ -11,7 +11,12 @@ class FakeRevertMethod implements RevertMethod {
   bool throwException = false;
 
   @override
-  Future<Object?> createRevert(Config config, String initiatingAuthor, String reasonForRevert, PullRequest pullRequest) async {
+  Future<Object?> createRevert(
+    Config config,
+    String initiatingAuthor,
+    String reasonForRevert,
+    PullRequest pullRequest,
+  ) async {
     if (throwException) {
       throw 'Crappy github exception not related to the actual error.';
     }

@@ -90,7 +90,8 @@ class RevertRequestValidationService extends ValidationService {
   /// Determine whether or not the original pull request to be reverted has a reason
   /// why the issue is being reverted.
   Future<String?> getReasonForRevert(GithubService githubService, github.RepositorySlug slug, int issueNumber) async {
-    final List<github.PullRequestComment> pullRequestComments = await githubService.getPullRequestComments(slug, issueNumber);
+    final List<github.PullRequestComment> pullRequestComments =
+        await githubService.getPullRequestComments(slug, issueNumber);
     for (github.PullRequestComment prComment in pullRequestComments) {
       final String? commentBody = prComment.body;
       if (commentBody != null && commentBody.startsWith(RegExp(r'\s*(R|r)evert(\s+|_|-)(R|r)eason(:?)'))) {
@@ -141,7 +142,7 @@ class RevertRequestValidationService extends ValidationService {
     final String? revertReason = await getReasonForRevert(githubService, slug, messagePullRequest.number!);
     if (revertReason == null) {
       final String message = '''A reason for requesting a revert of ${slug.fullName}/${messagePullRequest.number} could
-      not be found or the reason was not properly formatted. Start a comment with 'Revert reason:' to tell the bot why
+      not be found or the reason was not properly formatted. Begin a comment with 'Revert reason:' to tell the bot why
       this issue is being reverted.''';
       log.info(message);
       await githubService.createComment(slug, messagePullRequest.number!, message);
@@ -149,7 +150,7 @@ class RevertRequestValidationService extends ValidationService {
       log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
       await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
       return;
-    } 
+    }
 
     // Attempt to create the new revert pull request.
     try {
