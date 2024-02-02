@@ -45,11 +45,13 @@ class RevertIssueBodyFormatter {
     // Create the body for the revert issue.
     revertPrBody = '''
 $revertPrLink
+
 Initiated by: $initiatingAuthor
 
 Reason for reverting: $revertReason
 
 Original PR Author: $prToRevertAuthor
+
 Reviewed By: ${SetBase.setToString(prToRevertReviewers)}
 
 This change reverts the following previous change:
