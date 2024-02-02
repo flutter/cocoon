@@ -149,7 +149,10 @@ class GithubService {
   }
 
   /// Get the reviews for Pull Request with number pullRequestNumber.
-  Future<List<PullRequestReview>> getPullRequestReviews(RepositorySlug slug, int pullRequestNumber,) async {
+  Future<List<PullRequestReview>> getPullRequestReviews(
+    RepositorySlug slug,
+    int pullRequestNumber,
+  ) async {
     return github.pullRequests.listReviews(slug, pullRequestNumber).toList();
   }
 
@@ -157,7 +160,11 @@ class GithubService {
   ///
   /// The response will include details on the files that were changed between the two commits.
   /// Relevant APIs: https://docs.github.com/en/rest/reference/commits#compare-two-commits
-  Future<GitHubComparison> compareTwoCommits(RepositorySlug slug, String refBase, String refHead,) async {
+  Future<GitHubComparison> compareTwoCommits(
+    RepositorySlug slug,
+    String refBase,
+    String refHead,
+  ) async {
     return github.repositories.compareCommits(slug, refBase, refHead);
   }
 
@@ -167,7 +174,11 @@ class GithubService {
   }
 
   /// Add labels to a pull request.
-  Future<List<IssueLabel>> addLabels(RepositorySlug slug, int issueNumber, List<String> labels,) async {
+  Future<List<IssueLabel>> addLabels(
+    RepositorySlug slug,
+    int issueNumber,
+    List<String> labels,
+  ) async {
     return github.issues.addLabelsToIssue(slug, issueNumber, labels);
   }
 

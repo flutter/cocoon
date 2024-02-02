@@ -67,9 +67,11 @@ class GitCliRevertMethod implements RevertMethod {
       retryIf: (Exception e) => e is NotFoundException,
     );
 
-    log.info('found branch ${slug.fullName}/${branch!.name}, safe to create revert request of ${pullRequestToRevert.number!}.');
+    log.info(
+        'found branch ${slug.fullName}/${branch!.name}, safe to create revert request of ${pullRequestToRevert.number!}.');
 
-    final Set<String> prToRevertReviewers = await getOriginalPrReviewers(githubService, slug, pullRequestToRevert.number!);
+    final Set<String> prToRevertReviewers =
+        await getOriginalPrReviewers(githubService, slug, pullRequestToRevert.number!);
 
     final RevertIssueBodyFormatter formatter = RevertIssueBodyFormatter(
       slug: slug,
@@ -101,7 +103,11 @@ class GitCliRevertMethod implements RevertMethod {
   /// The reviews come in oldest to newest in ascending order so we reverse them.
   /// Note: no attempt is made to validate if changes were requested then approved
   /// or not approved. We simply take the approvers from newest to oldest.
-  Future<Set<String>> getOriginalPrReviewers(GithubService githubService, github.RepositorySlug slug, int prNumber,) async {
+  Future<Set<String>> getOriginalPrReviewers(
+    GithubService githubService,
+    github.RepositorySlug slug,
+    int prNumber,
+  ) async {
     final List<github.PullRequestReview> pullRequestReviews = await githubService.getPullRequestReviews(slug, prNumber);
     final List<github.PullRequestReview> reversedPullRequestReviews = pullRequestReviews.reversed.toList();
     final Set<String> approvers = {};
