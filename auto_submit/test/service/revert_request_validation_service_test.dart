@@ -256,7 +256,7 @@ void main() {
       revertMethod.object = pullRequest;
 
       final PullRequestComment pullRequestComment = PullRequestComment(
-        body: 'Revert reason: test is failing consistently.',
+        body: 'Reason for revert: test is failing consistently.',
       );
 
       final List<PullRequestComment> pullRequestCommentList = [pullRequestComment];
@@ -304,6 +304,54 @@ void main() {
 
       final PullRequestComment pullRequestComment = PullRequestComment(
         body: 'Reverting this issue due to failures.',
+      );
+
+      final List<PullRequestComment> pullRequestCommentList = [pullRequestComment];
+      githubService.pullRequestCommentsMock = pullRequestCommentList;
+
+      // run test
+      unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
+      await validationService.processRevertRequest(
+        result: queryResult,
+        githubPullRequestEvent: githubPullRequestEvent,
+        ackId: 'test',
+        pubsub: pubsub,
+      );
+
+      // validate
+      expect(githubService.issueComment, isNotNull);
+      expect(githubService.issueComment!.body!.contains('A reason for requesting a revert of'), isTrue);
+      expect(githubService.labelRemoved, true);
+      assert(pubsub.messagesQueue.isEmpty);
+    });
+
+    test('Empty revert reason given, label removed.', () async {
+      // setup
+      final FakePubSub pubsub = FakePubSub();
+
+      final PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+      );
+
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name, author: 'auto-submit[bot]');
+
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+
+      final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(
+        pullRequest: pullRequest,
+        action: 'labeled',
+        sender: User(login: 'auto-submit[bot]'),
+      );
+
+      // setup fields
+      githubService.createCommentData = createPullRequestCommentMock;
+      githubService.pullRequestMock = pullRequest;
+      revertMethod.object = pullRequest;
+
+      final PullRequestComment pullRequestComment = PullRequestComment(
+        body: 'Reason for revert: ',
       );
 
       final List<PullRequestComment> pullRequestCommentList = [pullRequestComment];

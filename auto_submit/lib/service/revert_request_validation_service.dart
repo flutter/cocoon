@@ -87,6 +87,8 @@ class RevertRequestValidationService extends ValidationService {
     return DateTime.now().difference(pullRequest.mergedAt!).inHours <= 24;
   }
 
+  final RegExp regExp = RegExp(r'\s*[R|r]eason\s+for\s+[R|r]evert:?\s+([\S|\s]{1,400})', multiLine: true);
+
   /// Determine whether or not the original pull request to be reverted has a reason
   /// why the issue is being reverted.
   Future<String?> getReasonForRevert(
@@ -98,8 +100,10 @@ class RevertRequestValidationService extends ValidationService {
         await githubService.getPullRequestComments(slug, issueNumber);
     for (github.PullRequestComment prComment in pullRequestComments) {
       final String? commentBody = prComment.body;
-      if (commentBody != null && commentBody.startsWith(RegExp(r'\s*(R|r)evert(\s+|_|-)(R|r)eason(:?)'))) {
-        return commentBody;
+      if (commentBody != null && regExp.hasMatch(commentBody)) {
+        final matches = regExp.allMatches(commentBody);
+        final Match m = matches.first;
+        return m.group(1);
       }
     }
     return null;

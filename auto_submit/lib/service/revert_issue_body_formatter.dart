@@ -47,7 +47,7 @@ class RevertIssueBodyFormatter {
 $revertPrLink
 Initiated by: $initiatingAuthor
 
-Reason: $revertReason
+Reason for reverting: $revertReason
 
 Original PR Author: $prToRevertAuthor
 Reviewed By: ${SetBase.setToString(prToRevertReviewers)}
