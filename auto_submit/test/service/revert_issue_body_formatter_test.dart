@@ -18,13 +18,13 @@ void main() {
     expect(
       () => revertIssueBodyFormatter = RevertIssueBodyFormatter(
         slug: RepositorySlug('flutter', 'flutter'),
-        originalPrNumber: pullRequest.number!,
+        prToRevertNumber: pullRequest.number!,
         initiatingAuthor: sender,
         revertReason: reason,
-        originalPrAuthor: originalPrAuthor,
-        originalPrReviewers: originalPrReviewers,
-        originalPrTitle: pullRequest.title,
-        originalPrBody: pullRequest.body,
+        prToRevertAuthor: originalPrAuthor,
+        prToRevertReviewers: originalPrReviewers,
+        prToRevertTitle: pullRequest.title,
+        prToRevertBody: pullRequest.body,
       ),
       returnsNormally,
     );

@@ -68,20 +68,21 @@ class GitCliRevertMethod implements RevertMethod {
     );
 
     log.info(
-        'found branch ${slug.fullName}/${branch!.name}, safe to create revert request of ${pullRequestToRevert.number!}.');
+      'found branch ${slug.fullName}/${branch!.name}, safe to create revert request of ${pullRequestToRevert.number!}.',
+    );
 
     final Set<String> prToRevertReviewers =
         await getOriginalPrReviewers(githubService, slug, pullRequestToRevert.number!);
 
     final RevertIssueBodyFormatter formatter = RevertIssueBodyFormatter(
       slug: slug,
-      originalPrNumber: pullRequestToRevert.number!,
+      prToRevertNumber: pullRequestToRevert.number!,
       initiatingAuthor: initiatingAuthor,
       revertReason: reasonForRevert,
-      originalPrAuthor: pullRequestToRevert.user!.login,
-      originalPrReviewers: prToRevertReviewers,
-      originalPrTitle: pullRequestToRevert.title,
-      originalPrBody: pullRequestToRevert.body,
+      prToRevertAuthor: pullRequestToRevert.user!.login,
+      prToRevertReviewers: prToRevertReviewers,
+      prToRevertTitle: pullRequestToRevert.title,
+      prToRevertBody: pullRequestToRevert.body,
     ).format;
 
     log.info('Attempting to create pull request with ${slug.fullName}/${gitRevertBranchName.branch}.');
