@@ -316,7 +316,7 @@ class FakeGithubService implements GithubService {
   Map<String, bool> isTeamMemberMockMap = <String, bool>{};
 
   @override
-  Future<bool> isTeamMember(String team, String user, String org) async {
+  Future<bool> isTeamMember(String team, String user, String org,) async {
     if (!isTeamMemberMockMap.containsKey(user)) {
       return false;
     }
@@ -355,7 +355,7 @@ class FakeGithubService implements GithubService {
   set branchMock(String data) => branchMock = data;
 
   @override
-  Future<Branch> getBranch(RepositorySlug slug, String branchName) async {
+  Future<Branch> getBranch(RepositorySlug slug, String branchName,) async {
     return Branch.fromJson(json.decode(branchMockData!));
   }
 
@@ -384,14 +384,21 @@ class FakeGithubService implements GithubService {
   bool deleteBranchMock = true;
 
   @override
-  Future<bool> deleteBranch(RepositorySlug slug, String branchName) async {
+  Future<bool> deleteBranch(RepositorySlug slug, String branchName,) async {
     return deleteBranchMock;
   }
 
-  List<PullRequestComment> pullRequestComments = [];
+  List<PullRequestComment> pullRequestCommentsMock = [];
 
   @override
-  Future<List<PullRequestComment>> getPullRequestComments(RepositorySlug slug, int issueNumber) async {
-    return pullRequestComments;
+  Future<List<PullRequestComment>> getPullRequestComments(RepositorySlug slug, int issueNumber,) async {
+    return pullRequestCommentsMock;
+  }
+  
+  List<PullRequestReview> pullRequestReviewsMock = [];
+
+  @override
+  Future<List<PullRequestReview>> getPullRequestReviews(RepositorySlug slug, int pullRequestNumber,) async {
+    return pullRequestReviewsMock;
   }
 }

@@ -260,7 +260,7 @@ void main() {
       );
 
       final List<PullRequestComment> pullRequestCommentList = [pullRequestComment];
-      githubService.pullRequestComments = pullRequestCommentList;
+      githubService.pullRequestCommentsMock = pullRequestCommentList;
 
       // run test
       unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
@@ -307,7 +307,7 @@ void main() {
       );
 
       final List<PullRequestComment> pullRequestCommentList = [pullRequestComment];
-      githubService.pullRequestComments = pullRequestCommentList;
+      githubService.pullRequestCommentsMock = pullRequestCommentList;
 
       // run test
       unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
@@ -351,7 +351,7 @@ void main() {
       revertMethod.object = pullRequest;
 
       final List<PullRequestComment> pullRequestCommentList = [];
-      githubService.pullRequestComments = pullRequestCommentList;
+      githubService.pullRequestCommentsMock = pullRequestCommentList;
 
       // run test
       unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));

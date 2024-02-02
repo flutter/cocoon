@@ -25,10 +25,10 @@ class GitCliRevertMethod implements RevertMethod {
     Config config,
     String initiatingAuthor,
     String reasonForRevert,
-    github.PullRequest pullRequest,
+    github.PullRequest pullRequestToRevert,
   ) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final String commitSha = pullRequest.mergeCommitSha!;
+    final github.RepositorySlug slug = pullRequestToRevert.base!.repo!.slug();
+    final String commitSha = pullRequestToRevert.mergeCommitSha!;
     // we will need to collect the pr number after the revert request is generated.
 
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
@@ -67,15 +67,19 @@ class GitCliRevertMethod implements RevertMethod {
       retryIf: (Exception e) => e is NotFoundException,
     );
 
-    log.info('found branch ${slug.fullName}/${branch!.name}, safe to create revert request of ${pullRequest.number!}.');
+    log.info('found branch ${slug.fullName}/${branch!.name}, safe to create revert request of ${pullRequestToRevert.number!}.');
+
+    final Set<String> prToRevertReviewers = await getOriginalPrReviewers(githubService, slug, pullRequestToRevert.number!);
 
     final RevertIssueBodyFormatter formatter = RevertIssueBodyFormatter(
       slug: slug,
-      originalPrNumber: pullRequest.number!,
+      originalPrNumber: pullRequestToRevert.number!,
       initiatingAuthor: initiatingAuthor,
       revertReason: reasonForRevert,
-      originalPrTitle: pullRequest.title,
-      originalPrBody: pullRequest.body,
+      originalPrAuthor: pullRequestToRevert.user!.login,
+      originalPrReviewers: prToRevertReviewers,
+      originalPrTitle: pullRequestToRevert.title,
+      originalPrBody: pullRequestToRevert.body,
     ).format;
 
     log.info('Attempting to create pull request with ${slug.fullName}/${gitRevertBranchName.branch}.');
@@ -91,5 +95,21 @@ class GitCliRevertMethod implements RevertMethod {
     log.info('pull request number is: ${slug.fullName}/${revertPullRequest.number}');
 
     return revertPullRequest;
+  }
+
+  /// Get the list of reviewers that ultimately approved the original pull request.
+  /// The reviews come in oldest to newest in ascending order so we reverse them.
+  /// Note: no attempt is made to validate if changes were requested then approved
+  /// or not approved. We simply take the approvers from newest to oldest.
+  Future<Set<String>> getOriginalPrReviewers(GithubService githubService, github.RepositorySlug slug, int prNumber,) async {
+    final List<github.PullRequestReview> pullRequestReviews = await githubService.getPullRequestReviews(slug, prNumber);
+    final List<github.PullRequestReview> reversedPullRequestReviews = pullRequestReviews.reversed.toList();
+    final Set<String> approvers = {};
+    for (github.PullRequestReview review in reversedPullRequestReviews) {
+      if (review.state == 'APPROVED') {
+        approvers.add(review.user!.login!);
+      }
+    }
+    return approvers;
   }
 }

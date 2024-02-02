@@ -12,6 +12,8 @@ void main() {
     final PullRequest pullRequest = PullRequest(number: 123456, body: null, title: 'Interesting title.');
     const String sender = 'RevertAuthor';
     const String reason = 'Revert reason: test xyz has began failing constantly.';
+    const String originalPrAuthor = 'caradune';
+    final Set<String> originalPrReviewers = {'Mando', 'Grogu'};
     RevertIssueBodyFormatter? revertIssueBodyFormatter;
     expect(
       () => revertIssueBodyFormatter = RevertIssueBodyFormatter(
@@ -19,6 +21,8 @@ void main() {
         originalPrNumber: pullRequest.number!,
         initiatingAuthor: sender,
         revertReason: reason,
+        originalPrAuthor: originalPrAuthor,
+        originalPrReviewers: originalPrReviewers,
         originalPrTitle: pullRequest.title,
         originalPrBody: pullRequest.body,
       ),
@@ -27,5 +31,7 @@ void main() {
     revertIssueBodyFormatter!.format;
     expect(revertIssueBodyFormatter, isNotNull);
     expect(revertIssueBodyFormatter!.revertPrBody!.contains('No description provided.'), isTrue);
+    expect(revertIssueBodyFormatter!.formattedRevertPrBody!.contains(originalPrAuthor), isTrue);
+    expect(revertIssueBodyFormatter!.formattedRevertPrBody!.contains('Mando'), isTrue);
   });
 }

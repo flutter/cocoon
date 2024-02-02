@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:github/github.dart';
+import 'dart:collection';
 
 class RevertIssueBodyFormatter {
   RevertIssueBodyFormatter({
@@ -10,6 +11,8 @@ class RevertIssueBodyFormatter {
     required this.originalPrNumber,
     required this.initiatingAuthor,
     required this.revertReason,
+    required this.originalPrAuthor,
+    required this.originalPrReviewers,
     required this.originalPrTitle,
     required this.originalPrBody,
   });
@@ -22,6 +25,8 @@ class RevertIssueBodyFormatter {
   String? originalPrTitle;
   String? originalPrBody;
   String? revertReason;
+  String? originalPrAuthor;
+  Set<String> originalPrReviewers;
 
   late String? revertPrTitle;
   late String? revertPrBody;
@@ -43,6 +48,9 @@ $revertPrLink
 Initiated by: $initiatingAuthor
 
 Reason: $revertReason
+
+Original PR Author: $originalPrAuthor
+Reviewed By: ${SetBase.setToString(originalPrReviewers)}
 
 This change reverts the following previous change:
 Original Description:

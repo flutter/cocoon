@@ -89,7 +89,7 @@ class RevertRequestValidationService extends ValidationService {
 
   /// Determine whether or not the original pull request to be reverted has a reason
   /// why the issue is being reverted.
-  Future<String?> getReasonForRevert(GithubService githubService, github.RepositorySlug slug, int issueNumber) async {
+  Future<String?> getReasonForRevert(GithubService githubService, github.RepositorySlug slug, int issueNumber,) async {
     final List<github.PullRequestComment> pullRequestComments =
         await githubService.getPullRequestComments(slug, issueNumber);
     for (github.PullRequestComment prComment in pullRequestComments) {
