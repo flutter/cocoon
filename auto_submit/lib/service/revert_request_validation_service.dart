@@ -39,7 +39,11 @@ class RevertRequestValidationService extends ValidationService {
 
   /// TODO run the actual request from here and remove the shouldProcess call.
   /// Processes a pub/sub message associated with PullRequest event.
-  Future<void> processMessage(GithubPullRequestEvent githubPullRequestEvent, String ackId, PubSub pubsub) async {
+  Future<void> processMessage(
+    GithubPullRequestEvent githubPullRequestEvent,
+    String ackId,
+    PubSub pubsub,
+  ) async {
     // Make sure the pull request still contains the labels.
     final github.PullRequest messagePullRequest = githubPullRequestEvent.pullRequest!;
     final (currentPullRequest, labelNames) = await getPrWithLabels(messagePullRequest);
@@ -96,10 +100,9 @@ class RevertRequestValidationService extends ValidationService {
     github.RepositorySlug slug,
     int issueNumber,
   ) async {
-    final List<github.PullRequestComment> pullRequestComments =
-        await githubService.getPullRequestComments(slug, issueNumber);
+    final List<github.IssueComment> pullRequestComments = await githubService.getIssueComments(slug, issueNumber);
     log.info('Found ${pullRequestComments.length} comments for issue ${slug.fullName}/$issueNumber');
-    for (github.PullRequestComment prComment in pullRequestComments) {
+    for (github.IssueComment prComment in pullRequestComments) {
       final String? commentBody = prComment.body;
       log.info('Processing comment on ${slug.fullName}/$issueNumber: $commentBody');
       if (commentBody != null && regExp.hasMatch(commentBody)) {
@@ -112,7 +115,10 @@ class RevertRequestValidationService extends ValidationService {
   }
 
   /// Determine if we should process the incoming pull request webhook event.
-  Future<RevertProcessMethod> shouldProcess(github.PullRequest pullRequest, List<String> labelNames) async {
+  Future<RevertProcessMethod> shouldProcess(
+    github.PullRequest pullRequest,
+    List<String> labelNames,
+  ) async {
     // This is the initial revert request state.
     if (pullRequest.state == 'closed' && labelNames.contains(Config.kRevertLabel) && pullRequest.mergedAt != null) {
       return RevertProcessMethod.revert;
@@ -152,7 +158,7 @@ class RevertRequestValidationService extends ValidationService {
     final String? revertReason = await getReasonForRevert(githubService, slug, messagePullRequest.number!);
     if (revertReason == null) {
       final String message = '''A reason for requesting a revert of ${slug.fullName}/${messagePullRequest.number} could
-      not be found or the reason was not properly formatted. Begin a comment with 'Reason for revert:' to tell the bot why
+      not be found or the reason was not properly formatted. Begin a comment with **'Reason for revert:'** to tell the bot why
       this issue is being reverted.''';
       log.info(message);
       await githubService.createComment(slug, messagePullRequest.number!, message);

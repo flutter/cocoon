@@ -255,12 +255,12 @@ void main() {
       githubService.pullRequestMock = pullRequest;
       revertMethod.object = pullRequest;
 
-      final PullRequestComment pullRequestComment = PullRequestComment(
+      final IssueComment pullRequestComment = IssueComment(
         body: 'Reason for revert: test is failing consistently.',
       );
 
-      final List<PullRequestComment> pullRequestCommentList = [pullRequestComment];
-      githubService.pullRequestCommentsMock = pullRequestCommentList;
+      final List<IssueComment> pullRequestCommentList = [pullRequestComment];
+      githubService.issueCommentsMock = pullRequestCommentList;
 
       // run test
       unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
@@ -302,12 +302,12 @@ void main() {
       githubService.pullRequestMock = pullRequest;
       revertMethod.object = pullRequest;
 
-      final PullRequestComment pullRequestComment = PullRequestComment(
+      final IssueComment pullRequestComment = IssueComment(
         body: 'Reverting this issue due to failures.',
       );
 
-      final List<PullRequestComment> pullRequestCommentList = [pullRequestComment];
-      githubService.pullRequestCommentsMock = pullRequestCommentList;
+      final List<IssueComment> pullRequestCommentList = [pullRequestComment];
+      githubService.issueCommentsMock = pullRequestCommentList;
 
       // run test
       unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
@@ -350,12 +350,12 @@ void main() {
       githubService.pullRequestMock = pullRequest;
       revertMethod.object = pullRequest;
 
-      final PullRequestComment pullRequestComment = PullRequestComment(
+      final IssueComment pullRequestComment = IssueComment(
         body: 'Reason for revert: ',
       );
 
-      final List<PullRequestComment> pullRequestCommentList = [pullRequestComment];
-      githubService.pullRequestCommentsMock = pullRequestCommentList;
+      final List<IssueComment> pullRequestCommentList = [pullRequestComment];
+      githubService.issueCommentsMock = pullRequestCommentList;
 
       // run test
       unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
@@ -398,8 +398,8 @@ void main() {
       githubService.pullRequestMock = pullRequest;
       revertMethod.object = pullRequest;
 
-      final List<PullRequestComment> pullRequestCommentList = [];
-      githubService.pullRequestCommentsMock = pullRequestCommentList;
+      final List<IssueComment> pullRequestCommentList = [];
+      githubService.issueCommentsMock = pullRequestCommentList;
 
       // run test
       unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));

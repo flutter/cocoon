@@ -398,14 +398,14 @@ class FakeGithubService implements GithubService {
     return deleteBranchMock;
   }
 
-  List<PullRequestComment> pullRequestCommentsMock = [];
+  List<IssueComment> issueCommentsMock = [];
 
   @override
-  Future<List<PullRequestComment>> getPullRequestComments(
+  Future<List<IssueComment>> getIssueComments(
     RepositorySlug slug,
     int issueNumber,
   ) async {
-    return pullRequestCommentsMock;
+    return issueCommentsMock;
   }
 
   List<PullRequestReview> pullRequestReviewsMock = [];
