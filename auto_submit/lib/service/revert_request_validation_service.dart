@@ -98,8 +98,10 @@ class RevertRequestValidationService extends ValidationService {
   ) async {
     final List<github.PullRequestComment> pullRequestComments =
         await githubService.getPullRequestComments(slug, issueNumber);
+    log.info('Found ${pullRequestComments.length} comments for issue ${slug.fullName}/$issueNumber');
     for (github.PullRequestComment prComment in pullRequestComments) {
       final String? commentBody = prComment.body;
+      log.info('Processing comment on ${slug.fullName}/$issueNumber: $commentBody');
       if (commentBody != null && regExp.hasMatch(commentBody)) {
         final matches = regExp.allMatches(commentBody);
         final Match m = matches.first;
@@ -150,7 +152,7 @@ class RevertRequestValidationService extends ValidationService {
     final String? revertReason = await getReasonForRevert(githubService, slug, messagePullRequest.number!);
     if (revertReason == null) {
       final String message = '''A reason for requesting a revert of ${slug.fullName}/${messagePullRequest.number} could
-      not be found or the reason was not properly formatted. Begin a comment with 'Revert reason:' to tell the bot why
+      not be found or the reason was not properly formatted. Begin a comment with 'Reason for revert:' to tell the bot why
       this issue is being reverted.''';
       log.info(message);
       await githubService.createComment(slug, messagePullRequest.number!, message);
