@@ -10,6 +10,7 @@ import 'package:codesign/src/utils.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:logging/logging.dart';
+import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import './src/fake_process_manager.dart';
@@ -52,8 +53,9 @@ void main() {
         rootDirectory: rootDirectory,
         inputZipPath: inputZipPath,
         outputZipPath: outputZipPath,
-        notarizationTimerDuration: const Duration(seconds: 0),
+        notarizationTimerDuration: Duration.zero,
         dryrun: false,
+        retryOptions: const RetryOptions(maxAttempts: 0),
       );
       codesignVisitor.directoriesVisited.clear();
     });
@@ -108,10 +110,11 @@ void main() {
         codesignTeamIDFilePath: codesignTeamIDFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
-        notarizationTimerDuration: const Duration(seconds: 0),
+        notarizationTimerDuration: Duration.zero,
         dryrun: false,
         inputZipPath: inputZipPath,
         outputZipPath: outputZipPath,
+        retryOptions: const RetryOptions(maxAttempts: 0),
       );
       codesignVisitor.directoriesVisited.clear();
       codesignVisitor.appSpecificPassword = fakePassword;
@@ -240,6 +243,7 @@ void main() {
         inputZipPath: inputZipPath,
         outputZipPath: outputZipPath,
         notarizationTimerDuration: Duration.zero,
+        retryOptions: const RetryOptions(maxAttempts: 3, delayFactor: Duration.zero),
       );
       codesignVisitor.directoriesVisited.clear();
       codesignVisitor.appSpecificPassword = randomString;
@@ -557,6 +561,87 @@ void main() {
       );
     });
 
+    test('visitDirectory codesigns framework bundle', () async {
+      fileSystem
+        ..file('${rootDirectory.path}/remote_zip_6/non_bundle/file_a').createSync(recursive: true)
+        ..file('${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework/file_b')
+            .createSync(recursive: true);
+      final Directory testDirectory = fileSystem.directory('${rootDirectory.path}/remote_zip_6');
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(
+          command: <String>[
+            'file',
+            '--mime-type',
+            '-b',
+            '${rootDirectory.absolute.path}/remote_zip_6/non_bundle/file_a',
+          ],
+          stdout: 'other_files',
+        ),
+        FakeCommand(
+          command: <String>[
+            'file',
+            '--mime-type',
+            '-b',
+            '${rootDirectory.absolute.path}/remote_zip_6/bundle.xcframework/bundle.framework/file_b',
+          ],
+          stdout: 'other_files',
+        ),
+        FakeCommand(
+          command: <String>[
+            '/usr/bin/codesign',
+            '--keychain',
+            'build.keychain',
+            '-f',
+            '-s',
+            randomString,
+            '${rootDirectory.absolute.path}/remote_zip_6/bundle.xcframework/bundle.framework',
+            '--timestamp',
+            '--options=runtime',
+          ],
+          exitCode: 0,
+        ),
+        FakeCommand(
+          command: <String>[
+            '/usr/bin/codesign',
+            '--keychain',
+            'build.keychain',
+            '-f',
+            '-s',
+            randomString,
+            '${rootDirectory.absolute.path}/remote_zip_6/bundle.xcframework',
+            '--timestamp',
+            '--options=runtime',
+          ],
+          exitCode: 0,
+        ),
+      ]);
+      await codesignVisitor.visitDirectory(
+        directory: testDirectory,
+        parentVirtualPath: '',
+      );
+      final Set<String> messages = records
+          .where((LogRecord record) => record.level == Level.INFO)
+          .map((LogRecord record) => record.message)
+          .toSet();
+      expect(messages, contains('Visiting directory ${rootDirectory.path}/remote_zip_6/non_bundle'));
+      expect(
+        messages,
+        contains('Visiting directory ${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework'),
+      );
+      expect(
+        messages,
+        contains(
+          'Executing: /usr/bin/codesign --keychain build.keychain -f -s $randomString ${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework --timestamp --options=runtime\n',
+        ),
+      );
+      expect(
+        messages,
+        contains(
+          'Executing: /usr/bin/codesign --keychain build.keychain -f -s $randomString ${rootDirectory.path}/remote_zip_6/bundle.xcframework --timestamp --options=runtime\n',
+        ),
+      );
+    });
+
     test('visitBinary codesigns binary with / without entitlement', () async {
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -569,7 +654,8 @@ void main() {
         inputZipPath: inputZipPath,
         outputZipPath: outputZipPath,
         dryrun: false,
-        notarizationTimerDuration: const Duration(seconds: 0),
+        notarizationTimerDuration: Duration.zero,
+        retryOptions: const RetryOptions(maxAttempts: 0),
       );
       codesignVisitor.appSpecificPassword = randomString;
       codesignVisitor.codesignAppstoreId = randomString;
@@ -658,6 +744,7 @@ void main() {
         codesignTeamIDFilePath: codesignTeamIDFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
+        retryOptions: const RetryOptions(maxAttempts: 0),
       );
       codesignVisitor.directoriesVisited.clear();
       codesignVisitor.appSpecificPassword = randomString;
@@ -765,6 +852,7 @@ file_c''',
         codesignTeamIDFilePath: codesignTeamIDFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
+        retryOptions: const RetryOptions(maxAttempts: 3, delayFactor: Duration.zero),
       );
       codesignVisitor.directoriesVisited.clear();
       codesignVisitor.appSpecificPassword = fakePassword;
@@ -928,14 +1016,13 @@ status: Invalid''',
           ],
           stdout: '''Successfully uploaded file.
  id: 2efe2717-52ef-43a5-96dc-0797e4ca1041
+ RequestUUID: 2EFE2717-52EF-43A5-96DC-0797E4CA1041
  path: /Users/flutter/Desktop/OvernightTextEditor_11.6.8.zip''',
         ),
       ]);
 
-      final String uuid = codesignVisitor.uploadZipToNotary(
+      final String uuid = await codesignVisitor.uploadZipToNotary(
         fileSystem.file('${rootDirectory.absolute.path}/temp'),
-        3,
-        0,
       );
       expect(uuid, '2efe2717-52ef-43a5-96dc-0797e4ca1041');
       final List<String> messages = records
@@ -944,46 +1031,38 @@ status: Invalid''',
           .toList();
       expect(
         messages,
-        contains('Failed to upload to the notary service with args: '
-            'xcrun notarytool submit ${rootDirectory.absolute.path}/temp '
-            '--apple-id <appleID-redacted> --password <appSpecificPassword-redacted> --team-id <teamID-redacted> '
-            '--verbose'),
-      );
-      expect(
-        messages,
-        contains('Trying again 2 more times...'),
+        contains('Failed to upload to the notary service'),
       );
     });
 
     test('upload notary throws exception if exit code is unnormal', () async {
       fileSystem.file('${rootDirectory.absolute.path}/temp').createSync();
-      processManager.addCommands(<FakeCommand>[
-        FakeCommand(
-          command: <String>[
-            'xcrun',
-            'notarytool',
-            'submit',
-            '${rootDirectory.absolute.path}/temp',
-            '--apple-id',
-            fakeAppleID,
-            '--password',
-            fakePassword,
-            '--team-id',
-            fakeTeamID,
-            '--verbose',
-          ],
-          stdout: '''Error uploading file.
+      for (int i = 0; i < 3; i++) {
+        processManager.addCommands(<FakeCommand>[
+          FakeCommand(
+            command: <String>[
+              'xcrun',
+              'notarytool',
+              'submit',
+              '${rootDirectory.absolute.path}/temp',
+              '--apple-id',
+              fakeAppleID,
+              '--password',
+              fakePassword,
+              '--team-id',
+              fakeTeamID,
+              '--verbose',
+            ],
+            stdout: '''Error uploading file.
  Id: something that causes failure
  path: /Users/flutter/Desktop/OvernightTextEditor_11.6.8.zip''',
-          exitCode: -1,
-        ),
-      ]);
-
+            exitCode: 1,
+          ),
+        ]);
+      }
       expect(
-        () => codesignVisitor.uploadZipToNotary(
+        () async => codesignVisitor.uploadZipToNotary(
           fileSystem.file('${rootDirectory.absolute.path}/temp'),
-          1,
-          0,
         ),
         throwsA(
           isA<CodesignException>(),
@@ -1053,23 +1132,15 @@ status: Invalid''',
       expect(
         () => codesignVisitor.uploadZipToNotary(
           fileSystem.file('${rootDirectory.absolute.path}/temp'),
-          3,
-          0,
         ),
         throwsA(
           isA<CodesignException>(),
         ),
       );
-      final List<String> messages = records
-          .where((LogRecord record) => record.level == Level.WARNING)
-          .map((LogRecord record) => record.message)
-          .toList();
+      final List<String> messages = records.map((LogRecord record) => record.message).toList();
       expect(
         messages,
-        contains('The upload to notary service failed after retries, and'
-            '  the output format does not match the current notary tool version.'
-            ' If after inspecting the output, you believe the process finished '
-            'successfully but was not detected, please contact flutter release engineers'),
+        contains('Failed to upload to the notary service'),
       );
     });
   });
@@ -1086,7 +1157,8 @@ status: Invalid''',
         codesignTeamIDFilePath: codesignTeamIDFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
-        notarizationTimerDuration: const Duration(seconds: 0),
+        notarizationTimerDuration: Duration.zero,
+        retryOptions: const RetryOptions(maxAttempts: 0),
       );
       codesignVisitor.directoriesVisited.clear();
       codesignVisitor.appSpecificPassword = fakePassword;
@@ -1237,7 +1309,8 @@ status: Invalid''',
         codesignTeamIDFilePath: codesignTeamIDFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
-        notarizationTimerDuration: const Duration(seconds: 0),
+        notarizationTimerDuration: Duration.zero,
+        retryOptions: const RetryOptions(maxAttempts: 0),
         dryrun: false,
       );
       codesignVisitor.appSpecificPassword = fakePassword;

@@ -90,6 +90,11 @@ class FakeGithubService implements GithubService {
   }
 
   @override
+  Future<List<IssueLabel>> getIssueLabels(RepositorySlug slug, int issueNumber) {
+    return Future.value(<IssueLabel>[IssueLabel(name: 'override: test')]);
+  }
+
+  @override
   Future<List<Issue>> listIssues(
     RepositorySlug slug, {
     List<String>? labels,

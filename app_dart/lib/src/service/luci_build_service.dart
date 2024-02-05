@@ -27,6 +27,7 @@ import 'cache_service.dart';
 import 'config.dart';
 import 'exceptions.dart';
 import 'gerrit_service.dart';
+import 'github_service.dart';
 
 const Set<String> taskFailStatusSet = <String>{
   Task.statusInfraFailure,
@@ -203,10 +204,7 @@ class LuciBuildService {
       final Map<String, Object> properties = target.getProperties();
       properties.putIfAbsent('git_branch', () => pullRequest.base!.ref!.replaceAll('refs/heads/', ''));
 
-      final List<String>? labels = pullRequest.labels
-          ?.where((label) => label.name.startsWith(githubBuildLabelPrefix))
-          .map((obj) => obj.name)
-          .toList();
+      final List<String>? labels = extractPrefixedLabels(pullRequest.labels, githubBuildLabelPrefix);
 
       if (labels != null && labels.isNotEmpty) {
         properties[propertiesGithubBuildLabelName] = labels;
@@ -363,7 +361,15 @@ class LuciBuildService {
       'commit_branch': branch,
       'commit_sha': sha,
     };
-    final Map<String, Object>? properties = build.input!.properties;
+    final Map<String, Object> properties = Map.of(build.input!.properties ?? <String, Object>{});
+    final GithubService githubService = await config.createGithubService(slug);
+
+    final List<github.IssueLabel> issueLabels = await githubService.getIssueLabels(slug, prNumber);
+    final List<String>? labels = extractPrefixedLabels(issueLabels, githubBuildLabelPrefix);
+
+    if (labels != null && labels.isNotEmpty) {
+      properties[propertiesGithubBuildLabelName] = labels;
+    }
     log.info('input ${build.input!} properties $properties');
 
     final ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
@@ -380,6 +386,13 @@ class LuciBuildService {
     final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
     await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);
     return scheduleBuild;
+  }
+
+  /// Collect any label whose name is prefixed by the prefix [String].
+  ///
+  /// Returns a [List] of prefixed label names as [String]s.
+  List<String>? extractPrefixedLabels(List<github.IssueLabel>? issueLabels, String prefix) {
+    return issueLabels?.where((label) => label.name.startsWith(prefix)).map((obj) => obj.name).toList();
   }
 
   /// Sends postsubmit [ScheduleBuildRequest] for a commit using [checkRunEvent], [Commit], [Task], and [Target].

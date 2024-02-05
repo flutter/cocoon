@@ -44,11 +44,17 @@ class GithubService {
   }
 
   /// Fetches the specified commit.
-  Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
+  Future<RepositoryCommit> getCommit(
+    RepositorySlug slug,
+    String sha,
+  ) async {
     return github.repositories.getCommit(slug, sha);
   }
 
-  Future<List<PullRequestFile>> getPullRequestFiles(RepositorySlug slug, PullRequest pullRequest) async {
+  Future<List<PullRequestFile>> getPullRequestFiles(
+    RepositorySlug slug,
+    PullRequest pullRequest,
+  ) async {
     final int? pullRequestId = pullRequest.number;
     final List<PullRequestFile> listPullRequestFiles = [];
 
@@ -102,12 +108,21 @@ class GithubService {
     bool draft = false,
     String? body,
   }) async {
-    final CreatePullRequest createPullRequest = CreatePullRequest(title, head, base, draft: draft, body: body);
+    final CreatePullRequest createPullRequest = CreatePullRequest(
+      title,
+      head,
+      base,
+      draft: draft,
+      body: body,
+    );
     return github.pullRequests.create(slug, createPullRequest);
   }
 
   /// Fetches the specified pull request.
-  Future<PullRequest> getPullRequest(RepositorySlug slug, int pullRequestNumber) async {
+  Future<PullRequest> getPullRequest(
+    RepositorySlug slug,
+    int pullRequestNumber,
+  ) async {
     return github.pullRequests.get(slug, pullRequestNumber);
   }
 
@@ -148,26 +163,50 @@ class GithubService {
     return response.statusCode == StatusCodes.CREATED;
   }
 
+  /// Get the reviews for Pull Request with number pullRequestNumber.
+  Future<List<PullRequestReview>> getPullRequestReviews(
+    RepositorySlug slug,
+    int pullRequestNumber,
+  ) async {
+    return github.pullRequests.listReviews(slug, pullRequestNumber).toList();
+  }
+
   /// Compares two commits to fetch diff.
   ///
   /// The response will include details on the files that were changed between the two commits.
   /// Relevant APIs: https://docs.github.com/en/rest/reference/commits#compare-two-commits
-  Future<GitHubComparison> compareTwoCommits(RepositorySlug slug, String refBase, String refHead) async {
+  Future<GitHubComparison> compareTwoCommits(
+    RepositorySlug slug,
+    String refBase,
+    String refHead,
+  ) async {
     return github.repositories.compareCommits(slug, refBase, refHead);
   }
 
   /// Removes a label from a pull request.
-  Future<bool> removeLabel(RepositorySlug slug, int issueNumber, String label) async {
+  Future<bool> removeLabel(
+    RepositorySlug slug,
+    int issueNumber,
+    String label,
+  ) async {
     return github.issues.removeLabelForIssue(slug, issueNumber, label);
   }
 
   /// Add labels to a pull request.
-  Future<List<IssueLabel>> addLabels(RepositorySlug slug, int issueNumber, List<String> labels) async {
+  Future<List<IssueLabel>> addLabels(
+    RepositorySlug slug,
+    int issueNumber,
+    List<String> labels,
+  ) async {
     return github.issues.addLabelsToIssue(slug, issueNumber, labels);
   }
 
   /// Relevant API: https://docs.github.com/en/rest/issues/assignees?apiVersion=2022-11-28#add-assignees-to-an-issue
-  Future<bool> addAssignee(RepositorySlug slug, int number, List<String> assignees) async {
+  Future<bool> addAssignee(
+    RepositorySlug slug,
+    int number,
+    List<String> assignees,
+  ) async {
     final response = await github.request(
       'POST',
       '/repos/${slug.fullName}/issues/$number/assignees',
@@ -185,8 +224,19 @@ class GithubService {
     return github.issues.createComment(slug, issueNumber, body);
   }
 
+  Future<List<IssueComment>> getIssueComments(
+    RepositorySlug slug,
+    int issueNumber,
+  ) async {
+    return github.issues.listCommentsByIssue(slug, issueNumber).toList();
+  }
+
   /// Update a pull request branch
-  Future<bool> updateBranch(RepositorySlug slug, int number, String headSha) async {
+  Future<bool> updateBranch(
+    RepositorySlug slug,
+    int number,
+    String headSha,
+  ) async {
     final response = await github.request(
       'PUT',
       '/repos/${slug.fullName}/pulls/$number/update-branch',
@@ -195,11 +245,17 @@ class GithubService {
     return response.statusCode == StatusCodes.ACCEPTED;
   }
 
-  Future<Branch> getBranch(RepositorySlug slug, String branchName) async {
+  Future<Branch> getBranch(
+    RepositorySlug slug,
+    String branchName,
+  ) async {
     return github.repositories.getBranch(slug, branchName);
   }
 
-  Future<bool> deleteBranch(RepositorySlug slug, String branchName) async {
+  Future<bool> deleteBranch(
+    RepositorySlug slug,
+    String branchName,
+  ) async {
     final String ref = 'heads/$branchName';
     return github.git.deleteReference(slug, ref);
   }

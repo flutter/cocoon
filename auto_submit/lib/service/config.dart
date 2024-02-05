@@ -48,6 +48,9 @@ class Config {
   /// Labels autosubmit looks for on pull requests
   static const String kAutosubmitLabel = 'autosubmit';
 
+  /// GitHub check stale threshold.
+  static const int kGitHubCheckStaleThreshold = 2; // hours
+
   // Labels the bot looks for on revert requests.
   // TODO (ricardoamador) https://github.com/flutter/flutter/issues/134845:
   // add a link to a one page doc outlining the workflow that happens here.

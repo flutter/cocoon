@@ -18,7 +18,7 @@ void expectNoDiff(String path) {
 
 /// Wrapper class to make it easy to add new repos + branches to the validation suite.
 class SupportedConfig {
-  SupportedConfig(this.slug, [this.branch = 'master']);
+  SupportedConfig(this.slug, [this.branch = 'main']);
 
   final RepositorySlug slug;
   final String branch;
