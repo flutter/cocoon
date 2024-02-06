@@ -16,10 +16,10 @@ class AccessClientProvider {
 }
 
 /// Creates a Firestore base client for none (default) database.
-/// 
+///
 /// A default header is required for none (default) Firestore API calls.
 /// Both `project_id` and `database_id` are required.
-/// 
+///
 /// https://firebase.google.com/docs/firestore/manage-databases#access_a_named_database_with_a_client_library
 class FirestoreBaseClient extends BaseClient {
   FirestoreBaseClient({
