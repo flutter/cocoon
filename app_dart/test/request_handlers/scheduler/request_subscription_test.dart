@@ -59,14 +59,16 @@ void main() {
 
     // print(String.fromCharCodes((base64.decode(pushMessageV2.message!.data!))));
 
-    print(pushMessageV2.message!.data!.toString());
+    // print(pushMessageV2.message!.data!.toString());
 
     // final String unencodedData = String.fromCharCodes((base64.decode(pushMessageV2.message!.data!)));
 
     final bbv2.BatchRequest batchRequest = bbv2.BatchRequest.create();
-    batchRequest.mergeFromProto3Json(jsonDecode(pushMessageV2.message!.data!) as Map<String, dynamic>);
-    // expect(batchRequest.requests.length, 5);
 
+    batchRequest.mergeFromProto3Json(jsonDecode(pushMessageV2.message!.data!));
+    // expect(batchRequest.requests.length, 5);
+    // Absolutely need this Encode call before sending over https to prpc.
+    print(jsonEncode(batchRequest.toProto3Json()));
   });
 
   test('schedules request to buildbucket', () async {

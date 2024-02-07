@@ -60,21 +60,20 @@ class BuildBucketV2Client {
   /// The [http.Client] to use for requests.
   final http.Client httpClient;
 
-  Future<T> _postRequest<S, T, R>(
+  Future<String> _postRequest(
     String path,
-    S request,
-    T Function(R rawResponse) responseFromJson, {
+    String request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) async {
     final Uri url = Uri.parse('$buildBucketUri$path');
     final AccessToken? token = await accessTokenService?.createAccessToken();
 
-    log.fine('Making request with path: $url and body: ${json.encode(request)}');
+    log.info('Making request with path: $url and body: ${json.encode(request)}');
 
     //TODO most likely have issues here:
     final http.Response response = await httpClient.post(
       url,
-      body: json.encode(request),
+      body: request,
       headers: <String, String>{
         HttpHeaders.contentTypeHeader: 'application/json',
         HttpHeaders.acceptHeader: 'application/json',
@@ -82,10 +81,11 @@ class BuildBucketV2Client {
       },
     );
 
+    log.info('Request returned response code ${response.statusCode}');
+    log.info('Request response body: ${response.body}');
+
     if (response.statusCode < 300) {
-      return responseFromJson(
-        json.decode(response.body.substring(kRpcResponseGarbage.length)) as R,
-      );
+      return response.body.substring(kRpcResponseGarbage.length);
     }
     throw BuildBucketException(response.statusCode, response.body);
   }
@@ -94,26 +94,34 @@ class BuildBucketV2Client {
   Future<bbv2.Build> scheduleBuild(
     bbv2.ScheduleBuildRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
-  }) {
-    return _postRequest<bbv2.ScheduleBuildRequest, bbv2.Build, String>(
+  }) async {
+    final bbv2.Build build = bbv2.Build.create();
+
+     final String responseBody = await _postRequest(
       '/ScheduleBuild',
-      request,
-      bbv2.Build.fromJson,
+      jsonEncode(request.toProto3Json()),
       buildBucketUri: buildBucketUri,
     );
+
+    build.mergeFromProto3Json(jsonDecode(responseBody));
+    return build;
   }
 
   /// The RPC request to search for builds.
   Future<bbv2.SearchBuildsResponse> searchBuilds(
     bbv2.SearchBuildsRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
-  }) {
-    return _postRequest<bbv2.SearchBuildsRequest, bbv2.SearchBuildsResponse, String>(
+  }) async {
+    final bbv2.SearchBuildsResponse searchBuildsResponse = bbv2.SearchBuildsResponse.create();
+
+    final String responseBody = await _postRequest(
       '/SearchBuilds',
-      request,
-      bbv2.SearchBuildsResponse.fromJson,
+      jsonEncode(request.toProto3Json()),
       buildBucketUri: buildBucketUri,
     );
+
+    searchBuildsResponse.mergeFromProto3Json(jsonDecode(responseBody));
+    return searchBuildsResponse;
   }
 
   /// The RPC method to batch multiple RPC methods in a single HTTP request.
@@ -125,15 +133,18 @@ class BuildBucketV2Client {
     bbv2.BatchRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) async {
-    final bbv2.BatchResponse response = await _postRequest<bbv2.BatchRequest, bbv2.BatchResponse, String>(
+    final bbv2.BatchResponse response = bbv2.BatchResponse.create();
+    final String responseBody = await _postRequest(
       '/Batch',
-      request,
-      bbv2.BatchResponse.fromJson,
+      //For some reason this needs to be stringified as the proto message is not quoted for some reason.
+      jsonEncode(request.toProto3Json()),
+      // this needs to use an object with mergeFromProto3Json, cannot use fromJson here.
       buildBucketUri: buildBucketUri,
     );
     if (response.responses.length != request.requests.length) {
       throw BatchRequestException('Failed to execute all requests');
     }
+    response.mergeFromProto3Json(jsonDecode(responseBody));
     return response;
   }
 
@@ -141,39 +152,51 @@ class BuildBucketV2Client {
   Future<bbv2.Build> cancelBuild(
     bbv2.CancelBuildRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
-  }) {
-    return _postRequest<bbv2.CancelBuildRequest, bbv2.Build, String>(
+  }) async {
+    final bbv2.Build build = bbv2.Build.create();
+
+    final String responseBody = await _postRequest(
       '/CancelBuild',
-      request,
-      bbv2.Build.fromJson,
+      jsonEncode(request.toProto3Json()),
       buildBucketUri: buildBucketUri,
     );
+
+    build.mergeFromProto3Json(jsonDecode(responseBody));
+    return build;
   }
 
   /// The RPC request to get details about a build.
   Future<bbv2.Build> getBuild(
     bbv2.GetBuildRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
-  }) {
-    return _postRequest<bbv2.GetBuildRequest, bbv2.Build, String>(
+  }) async {
+    final bbv2.Build build = bbv2.Build.create();
+
+    final String responseBody = await _postRequest(
       '/GetBuild',
-      request,
-      bbv2.Build.fromJson,
+      jsonEncode(request.toProto3Json()),
       buildBucketUri: buildBucketUri,
     );
+
+    build.mergeFromProto3Json(jsonDecode(responseBody));
+    return build;
   }
 
   /// The RPC request to get a list of builders.
   Future<bbv2.ListBuildersResponse> listBuilders(
     bbv2.ListBuildersRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuilderUri,
-  }) {
-    return _postRequest<bbv2.ListBuildersRequest, bbv2.ListBuildersResponse, String>(
+  }) async {
+    final bbv2.ListBuildersResponse listBuildersResponse = bbv2.ListBuildersResponse.create();
+    
+    final String responseBody = await _postRequest(
       '/ListBuilders',
-      request,
-      bbv2.ListBuildersResponse.fromJson,
+      jsonEncode(request.toProto3Json()),
       buildBucketUri: buildBucketUri,
     );
+
+    listBuildersResponse.mergeFromProto3Json(jsonDecode(responseBody));
+    return listBuildersResponse;
   }
 
   /// Closes the underlying [HttpClient].

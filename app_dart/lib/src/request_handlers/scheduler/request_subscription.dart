@@ -84,7 +84,7 @@ class SchedulerRequestSubscription extends SubscriptionHandlerV2 {
         retryIf: (Exception e) => e is InternalServerError,
       );
     } catch (e) {
-      log.warning('Failed to schedule builds: $unscheduledBuilds.');
+      log.warning('Failed to schedule builds on exception: $unscheduledBuilds.');
       return Body.forString('Failed to schedule builds: $unscheduledBuilds.');
     }
 
@@ -94,9 +94,17 @@ class SchedulerRequestSubscription extends SubscriptionHandlerV2 {
   /// Returns [List<bbv2.BatchRequest_Request>] of requests that need to be retried.
   Future<List<bbv2.BatchRequest_Request>> _sendBatchRequest(bbv2.BatchRequest request) async {
     log.info('Sending batch request for ${request.toProto3Json().toString()}');
-    final bbv2.BatchResponse response = await buildBucketClient.batch(request);
-    log.fine('Made ${request.requests.length} and received ${response.responses.length}');
-    log.fine('Responses: ${response.responses}');
+
+    final bbv2.BatchResponse response;
+    try {
+      response = await buildBucketClient.batch(request);
+    } catch (e) {
+      log.severe('Exception making batch Requests.');
+      rethrow;
+    }
+    
+    log.info('Made ${request.requests.length} and received ${response.responses.length}');
+    log.info('Responses: ${response.responses}');
 
     // By default, retry everything. Then remove requests with a verified response.
     // THese are the requests in the batch request object. Just requests.
@@ -110,7 +118,7 @@ class SchedulerRequestSubscription extends SubscriptionHandlerV2 {
       }
 
       if (batchResponseResponse.hasError() && batchResponseResponse.error.code != 0) {
-        log.fine('Non-zero grpc code: $batchResponseResponse');
+        log.info('Non-zero grpc code: $batchResponseResponse');
       }
     }
 

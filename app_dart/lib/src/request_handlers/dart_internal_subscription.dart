@@ -50,7 +50,6 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
     final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack();
     pubSubCallBack.mergeFromProto3Json(jsonDecode(message.data!) as Map<String, dynamic>);
 
-    
     final bbv2.BuildsV2PubSub buildsV2PubSub = pubSubCallBack.buildPubsub;
 
     if (!buildsV2PubSub.hasBuild()) {
@@ -91,6 +90,8 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
     );
 
     final bbv2.Build existingBuild = await buildBucketV2Client.getBuild(getBuildRequest);
+
+    log.info('Got back existing builder with name: ${existingBuild.builder.builder}');
 
     log.info('Checking for existing task in datastore');
     final Task? existingTask = await datastore.getTaskFromBuildbucketV2Build(existingBuild);

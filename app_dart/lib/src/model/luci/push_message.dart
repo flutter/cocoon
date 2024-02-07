@@ -13,6 +13,8 @@ import '../common/json_converters.dart';
 
 part 'push_message.g.dart';
 
+//TODO remove this file when buildbucket v2 is working.
+
 /// A Cloud PubSub push message.
 ///
 /// For example:

@@ -10,6 +10,8 @@ import '../google/grpc.dart';
 
 part 'buildbucket.g.dart';
 
+// TODO Remove this file when buildbucket v2 is working.
+
 // The classes in this file are based on protos found in:
 // https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/build.proto
 // https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/common.proto

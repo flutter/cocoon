@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 
 typedef Server = Future<void> Function(HttpRequest);
@@ -18,6 +19,7 @@ Server createServer({
   required AuthenticationProvider swarmingAuthProvider,
   required BranchService branchService,
   required BuildBucketClient buildBucketClient,
+  required BuildBucketV2Client buildBucketV2Client,
   required LuciBuildService luciBuildService,
   required GithubChecksService githubChecksService,
   required CommitService commitService,
@@ -37,7 +39,7 @@ Server createServer({
     '/api/dart-internal-subscription': DartInternalSubscription(
       cache: cache,
       config: config,
-      buildBucketClient: buildBucketClient,
+      buildBucketV2Client: buildBucketV2Client,
     ),
     '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
       config: config,
@@ -109,7 +111,7 @@ Server createServer({
     '/api/scheduler/batch-request-subscription': SchedulerRequestSubscription(
       cache: cache,
       config: config,
-      buildBucketClient: buildBucketClient,
+      buildBucketClient: buildBucketV2Client,
     ),
     '/api/scheduler/vacuum-stale-tasks': VacuumStaleTasks(
       config: config,

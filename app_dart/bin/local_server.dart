@@ -8,6 +8,7 @@ import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/model/appengine/cocoon_config.dart';
+import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
@@ -25,7 +26,12 @@ Future<void> main() async {
   final Config config = Config(dbService, cache);
   final AuthenticationProvider authProvider = AuthenticationProvider(config: config);
   final AuthenticationProvider swarmingAuthProvider = SwarmingAuthenticationProvider(config: config);
+
   final BuildBucketClient buildBucketClient = BuildBucketClient(
+    accessTokenService: AccessTokenService.defaultProvider(config),
+  );
+
+  final BuildBucketV2Client buildBucketV2Client = BuildBucketV2Client(
     accessTokenService: AccessTokenService.defaultProvider(config),
   );
 
@@ -66,6 +72,7 @@ Future<void> main() async {
     authProvider: authProvider,
     branchService: branchService,
     buildBucketClient: buildBucketClient,
+    buildBucketV2Client: buildBucketV2Client,
     gerritService: gerritService,
     scheduler: scheduler,
     luciBuildService: luciBuildService,
