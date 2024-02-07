@@ -12,6 +12,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:github/github.dart' as gh;
 import 'package:googleapis/bigquery/v2.dart';
+import 'package:googleapis/firestore/v1.dart';
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -417,6 +418,11 @@ class Config {
       cache: GraphQLCache(),
       link: authLink.concat(httpLink),
     );
+  }
+
+  Future<FirestoreService> createFirestoreService() async {
+    final AccessClientProvider accessClientProvider = AccessClientProvider();
+    return FirestoreService(accessClientProvider);
   }
 
   Future<BigqueryService> createBigQueryService() async {

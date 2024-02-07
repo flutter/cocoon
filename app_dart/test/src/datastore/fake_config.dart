@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/branch.dart';
 import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
@@ -39,6 +40,7 @@ class FakeConfig implements Config {
     this.tabledataResource,
     this.githubService,
     this.bigqueryService,
+    this.firestoreService,
     this.githubGraphQLClient,
     this.rollerAccountsValue,
     this.flutterBuildValue,
@@ -67,6 +69,7 @@ class FakeConfig implements Config {
   GraphQLClient? githubGraphQLClient;
   TabledataResource? tabledataResource;
   BigqueryService? bigqueryService;
+  FirestoreService? firestoreService;
   GithubService? githubService;
   FakeDatastoreDB dbValue;
   ServiceAccountInfo? deviceLabServiceAccountValue;
@@ -119,6 +122,9 @@ class FakeConfig implements Config {
 
   @override
   Future<BigqueryService> createBigQueryService() async => bigqueryService!;
+
+  @override
+  Future<FirestoreService> createFirestoreService() async => firestoreService!;
 
   @override
   Future<GithubService> createGithubService(gh.RepositorySlug slug) async => githubService ?? FakeGithubService();
