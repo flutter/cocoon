@@ -52,8 +52,7 @@ class FirestoreService {
 List<Document> targetsToTaskDocuments(Commit commit, List<Target> targets) {
   final Iterable<Document> iterableDocuments = targets.map(
     (Target target) => Document(
-      name:
-          '$kDatabase/documents/tasks/${commit.sha}_${target.value.name}_1',
+      name: '$kDatabase/documents/tasks/${commit.sha}_${target.value.name}_1',
       fields: <String, Value>{
         'builderNumber': Value(integerValue: null),
         'createTimestamp': Value(integerValue: commit.timestamp!.toString()),
@@ -73,8 +72,7 @@ List<Document> targetsToTaskDocuments(Commit commit, List<Target> targets) {
 /// Generates commit document based on datastore commit data model.
 Document commitToCommitDocument(Commit commit) {
   return Document(
-    name:
-        '$kDatabase/documents/commits/${commit.sha}',
+    name: '$kDatabase/documents/commits/${commit.sha}',
     fields: <String, Value>{
       'avatar': Value(stringValue: commit.authorAvatarUrl),
       'branch': Value(stringValue: commit.branch),
