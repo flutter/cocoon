@@ -29,6 +29,7 @@ void main() {
     late FakeDatastoreDB db;
     FakeScheduler scheduler;
     late ApiRequestHandlerTester tester;
+    late MockFirestoreService mockFirestoreService;
     late VacuumGithubCommits handler;
 
     late List<String> githubCommits;
@@ -69,6 +70,7 @@ void main() {
       final MockRepositoriesService repositories = MockRepositoriesService();
       final FakeGithubService githubService = FakeGithubService();
       final MockTabledataResource tabledataResourceApi = MockTabledataResource();
+      mockFirestoreService = MockFirestoreService();
       when(tabledataResourceApi.insertAll(any, any, any, any)).thenAnswer((_) async {
         return TableDataInsertAllResponse();
       });
@@ -78,6 +80,7 @@ void main() {
       config = FakeConfig(
         tabledataResource: tabledataResourceApi,
         githubService: githubService,
+        firestoreService: mockFirestoreService,
         dbValue: db,
         supportedBranchesValue: <String>[
           'master',

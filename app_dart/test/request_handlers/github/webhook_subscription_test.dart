@@ -38,6 +38,7 @@ void main() {
   late FakeGerritService gerritService;
   late MockCommitService commitService;
   late MockGitHub gitHubClient;
+  late MockFirestoreService mockFirestoreService;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late MockGithubChecksService mockGithubChecksService;
   late MockIssuesService issuesService;
@@ -53,6 +54,7 @@ void main() {
   setUp(() {
     request = FakeHttpRequest();
     db = FakeDatastoreDB();
+    mockFirestoreService = MockFirestoreService();
     gitHubClient = MockGitHub();
     githubService = FakeGithubService();
     commitService = MockCommitService();
@@ -62,6 +64,7 @@ void main() {
       dbValue: db,
       githubClient: gitHubClient,
       githubService: githubService,
+      firestoreService: mockFirestoreService,
       githubOAuthTokenValue: 'githubOAuthKey',
       missingTestsPullRequestMessageValue: 'missingTestPullRequestMessage',
       releaseBranchPullRequestMessageValue: 'releaseBranchPullRequestMessage',
