@@ -93,6 +93,12 @@ class Config {
   /// Default properties when rerunning a prod build.
   static const Map<String, Object> defaultProperties = <String, Object>{'force_upload': true};
 
+  /// GCP project ID.
+  static const String flutterGcpProjectId = 'flutter-dashboard';
+
+  // GCP Firestore native database ID.
+  static const String flutterGcpFirestoreDatabase = 'cocoon';
+
   @visibleForTesting
   static const Duration configCacheTtl = Duration(hours: 12);
 
@@ -411,6 +417,11 @@ class Config {
       cache: GraphQLCache(),
       link: authLink.concat(httpLink),
     );
+  }
+
+  Future<FirestoreService> createFirestoreService() async {
+    final AccessClientProvider accessClientProvider = AccessClientProvider();
+    return FirestoreService(accessClientProvider);
   }
 
   Future<BigqueryService> createBigQueryService() async {

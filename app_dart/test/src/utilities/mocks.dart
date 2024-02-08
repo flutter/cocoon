@@ -16,6 +16,7 @@ import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
@@ -71,6 +72,7 @@ Future<AutoRefreshingAuthClient> authClientProviderShim({
     Config,
     DatastoreService,
     FakeEntry,
+    FirestoreService,
     IssuesService,
     GithubChecksService,
     GithubChecksUtil,
