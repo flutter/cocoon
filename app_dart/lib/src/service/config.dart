@@ -419,6 +419,11 @@ class Config {
     );
   }
 
+  Future<FirestoreService> createFirestoreService() async {
+    final AccessClientProvider accessClientProvider = AccessClientProvider();
+    return FirestoreService(accessClientProvider);
+  }
+
   Future<BigqueryService> createBigQueryService() async {
     final AccessClientProvider accessClientProvider = AccessClientProvider();
     return BigqueryService(accessClientProvider);
