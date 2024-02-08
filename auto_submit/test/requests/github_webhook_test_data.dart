@@ -555,6 +555,19 @@ const String createCommentMock = '''
   "body": "Great stuff!"
 }''';
 
+const String createPullRequestCommentMock = '''
+{
+  "id": 10,
+  "position": 1,
+  "commit_id": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+  "user": {
+    "login": "octocat",
+    "id": 1
+  },
+  "body": "A reason for requesting a revert of flutter/cocoon/0 could not be found or the reason was not properly formatted. Begin a comment with 'Revert reason:' to tell the bot why this issue is being reverted."
+}
+''';
+
 const String pullRequestMergeMock = '''
 {
   "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",

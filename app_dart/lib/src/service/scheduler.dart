@@ -13,6 +13,7 @@ import 'package:github/github.dart' as github;
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
+import 'package:googleapis/firestore/v1.dart';
 import 'package:retry/retry.dart';
 import 'package:truncate/truncate.dart';
 import 'package:yaml/yaml.dart';
@@ -31,6 +32,7 @@ import '../service/logging.dart';
 import 'cache_service.dart';
 import 'config.dart';
 import 'datastore.dart';
+import 'firestore.dart';
 import 'github_checks_service.dart';
 import 'github_service.dart';
 import 'luci_build_service.dart';
@@ -163,6 +165,16 @@ class Scheduler {
 
     await _batchScheduleBuilds(commit, toBeScheduled);
     await _uploadToBigQuery(commit);
+    final Document commitDocument = commitToCommitDocument(commit);
+    final List<Document> taskDocuments = targetsToTaskDocuments(commit, initialTargets);
+    final List<Write> writes = documentsToWrites([...taskDocuments, commitDocument]);
+    final FirestoreService firestoreService = await config.createFirestoreService();
+    // TODO(keyonghan): remove try catch logic after validated to work.
+    try {
+      await firestoreService.writeViaTransaction(writes);
+    } catch (error) {
+      log.warning('Failed to add to Firestore: $error');
+    }
   }
 
   /// Schedule all builds in batch requests instead of a single request.
