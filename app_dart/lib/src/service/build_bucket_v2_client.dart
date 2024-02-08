@@ -202,10 +202,6 @@ class BuildBucketV2Client {
 
   /// Closes the underlying [HttpClient].
   ///
-  /// If `force` is true, it will close immediately and cause outstanding
-  /// requests to end with an error. Otherwise, it will wait for outstanding
-  /// requests to finish before closing.
-  ///
   /// Once this call completes, additional RPC requests will throw an exception.
   void close() {
     httpClient.close();

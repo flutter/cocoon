@@ -89,7 +89,8 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
       'Calling buildbucket api to get build data for build ${build.id}',
     );
 
-    final bbv2.Build existingBuild = await buildBucketV2Client.getBuild(getBuildRequest);
+    bbv2.Build existingBuild = bbv2.Build.create();
+    existingBuild = await buildBucketV2Client.getBuild(getBuildRequest);
 
     log.info('Got back existing builder with name: ${existingBuild.builder.builder}');
 

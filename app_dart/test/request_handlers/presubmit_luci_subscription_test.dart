@@ -34,7 +34,6 @@ void main() {
 
   setUp(() async {
     config = FakeConfig();
-    buildbucket = FakeBuildBucketClient();
     mockLuciBuildService = MockLuciBuildService();
 
     mockGithubChecksService = MockGithubChecksService();
@@ -46,7 +45,6 @@ void main() {
     handler = PresubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,
-      buildBucketClient: buildbucket,
       luciBuildService: FakeLuciBuildService(config: config),
       githubChecksService: mockGithubChecksService,
       authProvider: FakeAuthenticationProvider(),

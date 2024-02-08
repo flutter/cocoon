@@ -45,9 +45,6 @@ class SchedulerRequestSubscription extends SubscriptionHandlerV2 {
       log.info('no data in message');
       throw const BadRequestException('no data in message');
     }
-    
-    // DO not need this if the converter line is included in the top level object.
-    // final String unencodedData = String.fromCharCodes((base64.decode(message.data!)));
 
     // final String data = message.data!;
     log.fine('attempting to read message ${message.data}');

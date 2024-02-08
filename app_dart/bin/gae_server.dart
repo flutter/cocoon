@@ -64,7 +64,6 @@ Future<void> main() async {
       cache: cache,
       authProvider: authProvider,
       branchService: branchService,
-      buildBucketClient: buildBucketClient,
       buildBucketV2Client: buildBucketV2Client,
       gerritService: gerritService,
       scheduler: scheduler,

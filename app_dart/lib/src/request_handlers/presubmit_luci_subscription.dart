@@ -37,14 +37,12 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   const PresubmitLuciSubscription({
     required super.cache,
     required super.config,
-    required this.buildBucketClient,
     required this.scheduler,
     required this.luciBuildService,
     required this.githubChecksService,
     AuthenticationProvider? authProvider,
   }) : super(subscriptionName: 'github-updater');
 
-  final BuildBucketClient buildBucketClient;
   final LuciBuildService luciBuildService;
   final GithubChecksService githubChecksService;
   final Scheduler scheduler;

@@ -18,7 +18,6 @@ Server createServer({
   required AuthenticationProvider authProvider,
   required AuthenticationProvider swarmingAuthProvider,
   required BranchService branchService,
-  required BuildBucketClient buildBucketClient,
   required BuildBucketV2Client buildBucketV2Client,
   required LuciBuildService luciBuildService,
   required GithubChecksService githubChecksService,
@@ -74,7 +73,6 @@ Server createServer({
     '/api/presubmit-luci-subscription': PresubmitLuciSubscription(
       cache: cache,
       config: config,
-      buildBucketClient: buildBucketClient,
       luciBuildService: luciBuildService,
       githubChecksService: githubChecksService,
       scheduler: scheduler,
