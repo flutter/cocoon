@@ -95,7 +95,9 @@ class SchedulerRequestSubscription extends SubscriptionHandlerV2 {
   Future<List<bbv2.BatchRequest_Request>> _sendBatchRequest(bbv2.BatchRequest request) async {
     log.info('Sending batch request for ${request.toProto3Json().toString()}');
 
-    final bbv2.BatchResponse response;
+    // Seems to be that the create is necessary here in order to be able to assign a 
+    // response here. Similar to instantiation.
+    bbv2.BatchResponse response = bbv2.BatchResponse.create();
     try {
       response = await buildBucketClient.batch(request);
     } catch (e) {

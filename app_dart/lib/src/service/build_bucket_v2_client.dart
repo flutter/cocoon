@@ -141,10 +141,11 @@ class BuildBucketV2Client {
       // this needs to use an object with mergeFromProto3Json, cannot use fromJson here.
       buildBucketUri: buildBucketUri,
     );
+    response.mergeFromProto3Json(jsonDecode(responseBody));
     if (response.responses.length != request.requests.length) {
       throw BatchRequestException('Failed to execute all requests');
     }
-    response.mergeFromProto3Json(jsonDecode(responseBody));
+    log.info('Batch response matches request size.');
     return response;
   }
 
