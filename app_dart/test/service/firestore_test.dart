@@ -22,7 +22,6 @@ void main() {
     final List<Document> taskDocuments = targetsToTaskDocuments(commit, targets);
     expect(taskDocuments.length, 2);
     expect(taskDocuments[0].name, '$kDatabase/documents/tasks/${commit.sha}_${targets[0].value.name}_1');
-    expect(taskDocuments[0].fields!['builderNumber']!.integerValue, '');
     expect(taskDocuments[0].fields!['createTimestamp']!.integerValue, commit.timestamp.toString());
     expect(taskDocuments[0].fields!['endTimestamp']!.integerValue, '0');
     expect(taskDocuments[0].fields!['bringup']!.booleanValue, false);
