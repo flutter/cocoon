@@ -35,7 +35,7 @@ class RevertIssueBodyFormatter {
   RevertIssueBodyFormatter get format {
     // Create the title for the revert issue.
     prToRevertTitle ??= 'No title provided.';
-    revertPrTitle = 'Reverts "$prToRevertTitle"';
+    revertPrTitle = 'Reverts "$prToRevertTitle (#$prToRevertNumber)"';
 
     // create the reverts Link for the body. Looks like Reverts flutter/cocoon#123 but will render as a link.
     revertPrLink = 'Reverts ${slug.fullName}#$prToRevertNumber';
