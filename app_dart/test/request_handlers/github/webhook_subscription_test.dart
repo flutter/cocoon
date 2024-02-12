@@ -1836,8 +1836,7 @@ void foo() {
       when(pullRequestsService.listFiles(Config.packagesSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'packages/foo/foo_foundation/darwin/Classes/SomeClass.m',
-          PullRequestFile()
-            ..filename = 'packages/foo/foo_foundation/darwin/Tests/SomeClassTest.m',
+          PullRequestFile()..filename = 'packages/foo/foo_foundation/darwin/Tests/SomeClassTest.m',
         ]),
       );
 
