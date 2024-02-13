@@ -87,7 +87,11 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       final String oldTaskStatus = task.status;
       task.updateFromBuild(build);
       await datastore.insert(<Task>[task]);
-      await updateFirestore(build, commitKey.id!, task.name!);
+      try {
+        await updateFirestore(build, commitKey.id!, task.name!);
+      } catch (error) {
+        log.warning('Failed to update task in Firestore: $error');
+      }
       log.fine('Updated datastore from $oldTaskStatus to ${task.status}');
     } else {
       log.fine('skip processing for build with status scheduled or task with status finished.');
