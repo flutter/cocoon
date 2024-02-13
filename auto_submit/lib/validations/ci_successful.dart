@@ -29,7 +29,8 @@ class CiSuccessful extends Validation {
   @override
 
   /// Implements the CI build/tests validations.
-  Future<ValidationResult> validate(QueryResult result, github.PullRequest messagePullRequest) async {
+  Future<ValidationResult> validate(
+      QueryResult result, github.PullRequest messagePullRequest) async {
     bool allSuccess = true;
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int prNumber = messagePullRequest.number!;
@@ -46,7 +47,8 @@ class CiSuccessful extends Validation {
       statuses.addAll(commit.status!.contexts!);
     }
 
-    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
+    final RepositoryConfiguration repositoryConfiguration =
+        await config.getRepositoryConfiguration(slug);
     final String targetBranch = repositoryConfiguration.defaultBranch;
     // Check tree status of repos. If the tree status is not ready,
     // we want to hold and wait for the status, same as waiting
@@ -55,20 +57,25 @@ class CiSuccessful extends Validation {
     if (baseBranch == targetBranch) {
       // Only validate tree status where base branch is the default branch.
       if (!treeStatusCheck(slug, prNumber, statuses)) {
-        log.warning('Statuses were not ready for ${slug.fullName}/$prNumber, sha: $commit.');
-        return ValidationResult(false, Action.IGNORE_TEMPORARILY, 'Hold to wait for the tree status ready.');
+        log.warning(
+            'Statuses were not ready for ${slug.fullName}/$prNumber, sha: $commit.');
+        return ValidationResult(false, Action.IGNORE_TEMPORARILY,
+            'Hold to wait for the tree status ready.');
       }
     } else {
-      log.info('Target branch is $baseBranch for ${slug.fullName}/$prNumber, skipping tree status check.');
+      log.info(
+          'Target branch is $baseBranch for ${slug.fullName}/$prNumber, skipping tree status check.');
     }
 
     // List of labels associated with the pull request.
-    final List<String> labelNames = (messagePullRequest.labels as List<github.IssueLabel>)
-        .map<String>((github.IssueLabel labelMap) => labelMap.name)
-        .toList();
+    final List<String> labelNames =
+        (messagePullRequest.labels as List<github.IssueLabel>)
+            .map<String>((github.IssueLabel labelMap) => labelMap.name)
+            .toList();
 
     /// Validate if all statuses have been successful.
-    allSuccess = validateStatuses(slug, prNumber, author, labelNames, statuses, failures, allSuccess);
+    allSuccess = validateStatuses(
+        slug, prNumber, author, labelNames, statuses, failures, allSuccess);
 
     final GithubService gitHubService = await config.createGithubService(slug);
     final String? sha = commit.oid;
@@ -79,7 +86,8 @@ class CiSuccessful extends Validation {
     }
 
     /// Validate if all checkRuns have succeeded.
-    allSuccess = validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess, author);
+    allSuccess = validateCheckRuns(
+        slug, prNumber, checkRuns, failures, allSuccess, author);
 
     if (!allSuccess && failures.isEmpty) {
       return ValidationResult(allSuccess, Action.IGNORE_TEMPORARILY, '');
@@ -88,12 +96,14 @@ class CiSuccessful extends Validation {
     final StringBuffer buffer = StringBuffer();
     if (failures.isNotEmpty) {
       for (FailureDetail detail in failures) {
-        buffer.writeln('- The status or check suite ${detail.markdownLink} has failed. Please fix the '
+        buffer.writeln(
+            '- The status or check suite ${detail.markdownLink} has failed. Please fix the '
             'issues identified (or deflake) before re-applying this label.');
       }
     }
-    final Action action =
-        labelNames.contains(config.overrideTreeStatusLabel) ? Action.IGNORE_FAILURE : Action.REMOVE_LABEL;
+    final Action action = labelNames.contains(config.overrideTreeStatusLabel)
+        ? Action.IGNORE_FAILURE
+        : Action.REMOVE_LABEL;
     return ValidationResult(allSuccess, action, buffer.toString());
   }
 
@@ -102,7 +112,8 @@ class CiSuccessful extends Validation {
   /// If a repo has a tree status, we should wait for it to show up instead of posting
   /// a failure to GitHub pull request.
   /// If a repo doesn't have a tree status, simply return `true`.
-  bool treeStatusCheck(github.RepositorySlug slug, int prNumber, List<ContextNode> statuses) {
+  bool treeStatusCheck(
+      github.RepositorySlug slug, int prNumber, List<ContextNode> statuses) {
     bool treeStatusValid = false;
     if (!Config.reposWithTreeStatus.contains(slug)) {
       return true;
@@ -111,7 +122,8 @@ class CiSuccessful extends Validation {
       return false;
     }
     const String treeStatusName = 'tree-status';
-    log.info('${slug.fullName}/$prNumber: Validating tree status for ${slug.name}/tree-status, statuses: $statuses');
+    log.info(
+        '${slug.fullName}/$prNumber: Validating tree status for ${slug.name}/tree-status, statuses: $statuses');
 
     /// Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
     for (ContextNode status in statuses) {
@@ -146,14 +158,19 @@ class CiSuccessful extends Validation {
       final String? name = status.context;
 
       if (status.state != STATUS_SUCCESS) {
-        if (notInAuthorsControl.contains(name) && labelNames.contains(overrideTreeStatusLabel)) {
+        if (notInAuthorsControl.contains(name) &&
+            labelNames.contains(overrideTreeStatusLabel)) {
           continue;
         }
         allSuccess = false;
-        if (status.state == STATUS_FAILURE && !notInAuthorsControl.contains(name)) {
+        if (status.state == STATUS_FAILURE &&
+            !notInAuthorsControl.contains(name)) {
           failures.add(FailureDetail(name!, status.targetUrl!));
         }
-        if (status.state == STATUS_PENDING && status.createdAt != null && isStale(status.createdAt!) && supportStale(author, slug)) {
+        if (status.state == STATUS_PENDING &&
+            status.createdAt != null &&
+            isStale(status.createdAt!) &&
+            supportStale(author, slug)) {
           staleStatuses.add(status);
         }
       }
@@ -213,7 +230,9 @@ class CiSuccessful extends Validation {
 
   // Treat any GitHub check run as stale if created over [Config.kGitHubCheckStaleThreshold] hours ago.
   bool isStale(DateTime dateTime) {
-    return dateTime.compareTo(DateTime.now().subtract(const Duration(hours: Config.kGitHubCheckStaleThreshold))) < 0;
+    return dateTime.compareTo(DateTime.now().subtract(
+            const Duration(hours: Config.kGitHubCheckStaleThreshold))) <
+        0;
   }
 
   /// Perform stale check only on Engine related rolled PRs.
@@ -221,14 +240,17 @@ class CiSuccessful extends Validation {
   /// This includes those rolled PRs from upstream to Engine repo and those
   /// rolled PRs from Engine to Framework.
   bool supportStale(Author author, github.RepositorySlug slug) {
-    return isToEngineRoller(author, slug) || isEngineToFrameworkRoller(author, slug);
+    return isToEngineRoller(author, slug) ||
+        isEngineToFrameworkRoller(author, slug);
   }
 
   bool isToEngineRoller(Author author, github.RepositorySlug slug) {
-    return config.rollerAccounts.contains(author.login!) && slug == Config.engineSlug;
+    return config.rollerAccounts.contains(author.login!) &&
+        slug == Config.engineSlug;
   }
 
   bool isEngineToFrameworkRoller(Author author, github.RepositorySlug slug) {
-    return author.login! == 'engine-flutter-autoroll' && slug == Config.flutterSlug;
+    return author.login! == 'engine-flutter-autoroll' &&
+        slug == Config.flutterSlug;
   }
 }
