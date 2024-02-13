@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:core';
 
 import 'ci_successful_test_data.dart';
 
@@ -68,17 +67,7 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(
-          ciSuccessful.validateCheckRuns(
-            slug,
-            prNumber,
-            checkRuns,
-            failures,
-            allSuccess,
-            Author(login: 'testAuthor'),
-          ),
-          isTrue,
-        );
+        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isTrue);
         expect(failures, isEmpty);
       });
     });
@@ -89,17 +78,7 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(
-          ciSuccessful.validateCheckRuns(
-            slug,
-            prNumber,
-            checkRuns,
-            failures,
-            allSuccess,
-            Author(login: 'testAuthor'),
-          ),
-          isTrue,
-        );
+        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isTrue);
         expect(failures, isEmpty);
       });
     });
@@ -110,17 +89,7 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(
-          ciSuccessful.validateCheckRuns(
-            slug,
-            prNumber,
-            checkRuns,
-            failures,
-            allSuccess,
-            Author(login: 'testAuthor'),
-          ),
-          isTrue,
-        );
+        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isTrue);
         expect(failures, isEmpty);
       });
     });
@@ -131,17 +100,7 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(
-          ciSuccessful.validateCheckRuns(
-            slug,
-            prNumber,
-            checkRuns,
-            failures,
-            allSuccess,
-            Author(login: 'testAuthor'),
-          ),
-          isFalse,
-        );
+        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isFalse);
         expect(failures, isNotEmpty);
         expect(failures.length, 1);
       });
@@ -153,17 +112,7 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(
-          ciSuccessful.validateCheckRuns(
-            slug,
-            prNumber,
-            checkRuns,
-            failures,
-            allSuccess,
-            Author(login: 'testAuthor'),
-          ),
-          isTrue,
-        );
+        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isTrue);
         expect(failures, isEmpty);
       });
     });
@@ -174,17 +123,7 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(
-          ciSuccessful.validateCheckRuns(
-            slug,
-            prNumber,
-            checkRuns,
-            failures,
-            allSuccess,
-            Author(login: 'testAuthor'),
-          ),
-          isFalse,
-        );
+        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isFalse);
         expect(failures, isNotEmpty);
         expect(failures.length, 1);
       });
@@ -198,17 +137,7 @@ void main() {
       const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
-        expect(
-          ciSuccessful.validateCheckRuns(
-            slug,
-            prNumber,
-            checkRuns,
-            failures,
-            allSuccess,
-            Author(login: 'testAuthor'),
-          ),
-          isFalse,
-        );
+        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isFalse);
         expect(failures, isEmpty);
       });
     });
@@ -219,17 +148,7 @@ void main() {
       const bool allSuccess = false;
 
       checkRunFuture.then((checkRuns) {
-        expect(
-          ciSuccessful.validateCheckRuns(
-            slug,
-            prNumber,
-            checkRuns,
-            failures,
-            allSuccess,
-            Author(login: 'testAuthor'),
-          ),
-          isFalse,
-        );
+        expect(ciSuccessful.validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess), isFalse);
         expect(failures, isNotEmpty);
         expect(failures.length, 1);
       });
@@ -331,13 +250,13 @@ void main() {
       convertContextNodeStatuses(contextNodeList);
       expect(
         ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
-        isTrue,
+        isFalse,
       );
       expect(failures, isEmpty);
       expect(failures.length, 0);
     });
 
-    test('Validate flutter-gold is not checked even if failing for engine auto roller pull requests.', () {
+    test('Validate flutter-gold is checked even if failing for engine auto roller pull requests.', () {
       final List<ContextNode> contextNodeList = getContextNodeListFromJson(repositoryStatusesWithFailedGoldMock);
       const bool allSuccess = true;
       final Author author = Author(login: 'skia-flutter-autoroll');
@@ -350,10 +269,10 @@ void main() {
       convertContextNodeStatuses(contextNodeList);
       expect(
         ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
-        isTrue,
+        isFalse,
       );
-      expect(failures, isEmpty);
-      expect(failures.length, 0);
+      expect(failures, isNotEmpty);
+      expect(failures.length, 1);
     });
 
     test('Validate flutter-gold is checked for non engine auto roller pull requests.', () {
@@ -591,80 +510,6 @@ void main() {
         validationResult.message,
         '- The status or check suite [failed_checkrun](https://example.com) has failed. Please fix the issues identified (or deflake) before re-applying this label.\n',
       );
-    });
-  });
-  group('Validate if a datetime is stale', () {
-    setUp(() {
-      githubService = FakeGithubService(client: MockGitHub());
-      config = FakeConfig(githubService: githubService);
-      ciSuccessful = CiSuccessful(config: config);
-    });
-
-    test('when it is stale', () async {
-      final bool isStale = ciSuccessful.isStale(DateTime.now().subtract(const Duration(hours: 3)));
-      expect(isStale, true);
-    });
-    test('when it is not stale', () async {
-      final bool isStale = ciSuccessful.isStale(DateTime.now().subtract(const Duration(hours: 1)));
-      expect(isStale, false);
-    });
-  });
-
-  group('Validate if an engine roller', () {
-    setUp(() {
-      githubService = FakeGithubService(client: MockGitHub());
-      config = FakeConfig(githubService: githubService);
-      ciSuccessful = CiSuccessful(config: config);
-    });
-
-    test('when it is engine roller', () async {
-      final bool isEngineRoller = ciSuccessful.isToEngineRoller(
-        Author(login: 'engine-flutter-autoroll'),
-        github.RepositorySlug('flutter', 'engine'),
-      );
-      expect(isEngineRoller, true);
-    });
-    test('when it is not from roller', () async {
-      final bool isEngineRoller =
-          ciSuccessful.isToEngineRoller(Author(login: 'testAuthor'), github.RepositorySlug('flutter', 'engine'));
-      expect(isEngineRoller, false);
-    });
-    test('when it is not from engine', () async {
-      final bool isEngineRoller = ciSuccessful.isToEngineRoller(
-        Author(login: 'engine-flutter-autoroll'),
-        github.RepositorySlug('flutter', 'flutter'),
-      );
-      expect(isEngineRoller, false);
-    });
-  });
-
-  group('Validate if an engine to framework roller', () {
-    setUp(() {
-      githubService = FakeGithubService(client: MockGitHub());
-      config = FakeConfig(githubService: githubService);
-      ciSuccessful = CiSuccessful(config: config);
-    });
-
-    test('when it is engine roller', () async {
-      final bool isEngineRoller = ciSuccessful.isEngineToFrameworkRoller(
-        Author(login: 'engine-flutter-autoroll'),
-        github.RepositorySlug('flutter', 'flutter'),
-      );
-      expect(isEngineRoller, true);
-    });
-    test('when it is not from roller', () async {
-      final bool isEngineRoller = ciSuccessful.isEngineToFrameworkRoller(
-        Author(login: 'testAuthor'),
-        github.RepositorySlug('flutter', 'flutter'),
-      );
-      expect(isEngineRoller, false);
-    });
-    test('when it is not from framework', () async {
-      final bool isEngineRoller = ciSuccessful.isEngineToFrameworkRoller(
-        Author(login: 'engine-flutter-autoroll'),
-        github.RepositorySlug('flutter', 'engine'),
-      );
-      expect(isEngineRoller, false);
     });
   });
 }
