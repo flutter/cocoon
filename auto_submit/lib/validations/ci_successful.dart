@@ -153,7 +153,7 @@ class CiSuccessful extends Validation {
         if (status.state == STATUS_FAILURE && !notInAuthorsControl.contains(name)) {
           failures.add(FailureDetail(name!, status.targetUrl!));
         }
-        if (status.state == STATUS_PENDING && isStale(status.createdAt!) && supportStale(author, slug)) {
+        if (status.state == STATUS_PENDING && status.createdAt != null && isStale(status.createdAt!) && supportStale(author, slug)) {
           staleStatuses.add(status);
         }
       }
