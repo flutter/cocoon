@@ -54,7 +54,6 @@ List<Document> targetsToTaskDocuments(Commit commit, List<Target> targets) {
     (Target target) => Document(
       name: '$kDatabase/documents/tasks/${commit.sha}_${target.value.name}_1',
       fields: <String, Value>{
-        'builderNumber': Value(integerValue: null),
         'createTimestamp': Value(integerValue: commit.timestamp!.toString()),
         'endTimestamp': Value(integerValue: '0'),
         'bringup': Value(booleanValue: target.value.bringup),
