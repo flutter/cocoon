@@ -88,7 +88,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       task.updateFromBuild(build);
       await datastore.insert(<Task>[task]);
       try {
-        await updateFirestore(build, commitKey.id!, task.name!);
+        await updateFirestore(build, rawCommitKey, task.name!);
       } catch (error) {
         log.warning('Failed to update task in Firestore: $error');
       }
@@ -144,12 +144,16 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
   }
 
   /// Queries the task document and updates based on the latest build data.
-  Future<void> updateFirestore(Build build, String sha, String taskName) async {
+  Future<void> updateFirestore(Build build, String commitKeyId, String taskName) async {
     final FirestoreService firestoreService = await config.createFirestoreService();
+    final String sha = commitKeyId.split('/').last;
     final String documentName = '$kDatabase/documents/tasks/${sha}_${taskName}_1';
+    log.info('getting firestore document: $documentName');
     final f.Task firestoreTask =
         await f.Task.fromFirestore(firestoreService: firestoreService, documentName: documentName);
+    log.info('updating firestoreTask based on build');
     firestoreTask.updateFromBuild(build);
+    log.info('finished updating firestoreTask based on builds');
     final List<Write> writes = documentsToWrites([firestoreTask], exists: true);
     await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
   }
