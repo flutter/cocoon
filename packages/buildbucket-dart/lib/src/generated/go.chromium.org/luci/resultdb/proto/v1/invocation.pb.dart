@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -21,8 +21,78 @@ import 'predicate.pb.dart' as $3;
 
 export 'invocation.pbenum.dart';
 
+///  A conceptual container of results. Immutable once finalized.
+///  It represents all results of some computation; examples: swarming task,
+///  buildbucket build, CQ attempt.
+///  Composable: can include other invocations, see inclusion.proto.
+///
+///  Next id: 17.
 class Invocation extends $pb.GeneratedMessage {
-  factory Invocation() => create();
+  factory Invocation({
+    $core.String? name,
+    Invocation_State? state,
+    $0.Timestamp? createTime,
+    $core.Iterable<$1.StringPair>? tags,
+    $0.Timestamp? finalizeTime,
+    $0.Timestamp? deadline,
+    $core.Iterable<$core.String>? includedInvocations,
+    $core.Iterable<BigQueryExport>? bigqueryExports,
+    $core.String? createdBy,
+    $core.String? producerResource,
+    $core.String? realm,
+    HistoryOptions? historyOptions,
+    $2.Struct? properties,
+    SourceSpec? sourceSpec,
+    $core.String? baselineId,
+  }) {
+    final $result = create();
+    if (name != null) {
+      $result.name = name;
+    }
+    if (state != null) {
+      $result.state = state;
+    }
+    if (createTime != null) {
+      $result.createTime = createTime;
+    }
+    if (tags != null) {
+      $result.tags.addAll(tags);
+    }
+    if (finalizeTime != null) {
+      $result.finalizeTime = finalizeTime;
+    }
+    if (deadline != null) {
+      $result.deadline = deadline;
+    }
+    if (includedInvocations != null) {
+      $result.includedInvocations.addAll(includedInvocations);
+    }
+    if (bigqueryExports != null) {
+      $result.bigqueryExports.addAll(bigqueryExports);
+    }
+    if (createdBy != null) {
+      $result.createdBy = createdBy;
+    }
+    if (producerResource != null) {
+      $result.producerResource = producerResource;
+    }
+    if (realm != null) {
+      $result.realm = realm;
+    }
+    if (historyOptions != null) {
+      $result.historyOptions = historyOptions;
+    }
+    if (properties != null) {
+      $result.properties = properties;
+    }
+    if (sourceSpec != null) {
+      $result.sourceSpec = sourceSpec;
+    }
+    if (baselineId != null) {
+      $result.baselineId = baselineId;
+    }
+    return $result;
+  }
   Invocation._() : super();
   factory Invocation.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -72,6 +142,12 @@ class Invocation extends $pb.GeneratedMessage {
   static Invocation getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Invocation>(create);
   static Invocation? _defaultInstance;
 
+  ///  Can be used to refer to this invocation, e.g. in ResultDB.GetInvocation
+  ///  RPC.
+  ///  Format: invocations/{INVOCATION_ID}
+  ///  See also https://aip.dev/122.
+  ///
+  ///  Output only.
   @$pb.TagNumber(1)
   $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -84,6 +160,12 @@ class Invocation extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearName() => clearField(1);
 
+  ///  Current state of the invocation.
+  ///
+  ///  At creation time this can be set to FINALIZING e.g. if this invocation is
+  ///  a simple wrapper of another and will itself not be modified.
+  ///
+  ///  Otherwise this is an output only field.
   @$pb.TagNumber(2)
   Invocation_State get state => $_getN(1);
   @$pb.TagNumber(2)
@@ -96,6 +178,8 @@ class Invocation extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearState() => clearField(2);
 
+  /// When the invocation was created.
+  /// Output only.
   @$pb.TagNumber(4)
   $0.Timestamp get createTime => $_getN(2);
   @$pb.TagNumber(4)
@@ -110,9 +194,15 @@ class Invocation extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $0.Timestamp ensureCreateTime() => $_ensure(2);
 
+  /// Invocation-level string key-value pairs.
+  /// A key can be repeated.
   @$pb.TagNumber(5)
   $core.List<$1.StringPair> get tags => $_getList(3);
 
+  ///  When the invocation was finalized, i.e. transitioned to FINALIZED state.
+  ///  If this field is set, implies that the invocation is finalized.
+  ///
+  ///  Output only.
   @$pb.TagNumber(6)
   $0.Timestamp get finalizeTime => $_getN(4);
   @$pb.TagNumber(6)
@@ -127,6 +217,8 @@ class Invocation extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $0.Timestamp ensureFinalizeTime() => $_ensure(4);
 
+  /// Timestamp when the invocation will be forcefully finalized.
+  /// Can be extended with UpdateInvocation until finalized.
   @$pb.TagNumber(7)
   $0.Timestamp get deadline => $_getN(5);
   @$pb.TagNumber(7)
@@ -141,12 +233,43 @@ class Invocation extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $0.Timestamp ensureDeadline() => $_ensure(5);
 
+  ///  Names of invocations included into this one. Overall results of this
+  ///  invocation is a UNION of results directly included into this invocation
+  ///  and results from the included invocations, recursively.
+  ///  For example, a Buildbucket build invocation may include invocations of its
+  ///  child swarming tasks and represent overall result of the build,
+  ///  encapsulating the internal structure of the build.
+  ///
+  ///  The graph is directed.
+  ///  There can be at most one edge between a given pair of invocations.
+  ///  The shape of the graph does not matter. What matters is only the set of
+  ///  reachable invocations. Thus cycles are allowed and are noop.
+  ///
+  ///  QueryTestResults returns test results from the transitive closure of
+  ///  invocations.
+  ///
+  ///  This field can be set under Recorder.CreateInvocationsRequest to include
+  ///  existing invocations at the moment of invocation creation.
+  ///  New invocations created in the same batch (via
+  ///  Recorder.BatchCreateInvocationsRequest) are also allowed.
+  ///  Otherwise, this field is to be treated as Output only.
+  ///
+  ///  To modify included invocations, use Recorder.UpdateIncludedInvocations in
+  ///  all other cases.
   @$pb.TagNumber(8)
   $core.List<$core.String> get includedInvocations => $_getList(6);
 
+  /// bigquery_exports indicates what BigQuery table(s) that results in this
+  /// invocation should export to.
   @$pb.TagNumber(9)
   $core.List<BigQueryExport> get bigqueryExports => $_getList(7);
 
+  ///  LUCI identity (e.g. "user:<email>") who created the invocation.
+  ///  Typically, a LUCI service account (e.g.
+  ///  "user:cr-buildbucket@appspot.gserviceaccount.com"), but can also be a user
+  ///  (e.g. "user:johndoe@example.com").
+  ///
+  ///  Output only.
   @$pb.TagNumber(10)
   $core.String get createdBy => $_getSZ(8);
   @$pb.TagNumber(10)
@@ -159,6 +282,11 @@ class Invocation extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   void clearCreatedBy() => clearField(10);
 
+  /// Full name of the resource that produced results in this invocation.
+  /// See also https://aip.dev/122#full-resource-names
+  /// Typical examples:
+  /// - Swarming task: "//chromium-swarm.appspot.com/tasks/deadbeef"
+  /// - Buildbucket build: "//cr-buildbucket.appspot.com/builds/1234567890".
   @$pb.TagNumber(11)
   $core.String get producerResource => $_getSZ(9);
   @$pb.TagNumber(11)
@@ -171,6 +299,8 @@ class Invocation extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   void clearProducerResource() => clearField(11);
 
+  /// Realm that the invocation exists under.
+  /// See https://chromium.googlesource.com/infra/luci/luci-py/+/refs/heads/master/appengine/auth_service/proto/realms_config.proto
   @$pb.TagNumber(12)
   $core.String get realm => $_getSZ(10);
   @$pb.TagNumber(12)
@@ -183,6 +313,7 @@ class Invocation extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   void clearRealm() => clearField(12);
 
+  /// Deprecated. Values specified here are ignored.
   @$pb.TagNumber(13)
   HistoryOptions get historyOptions => $_getN(11);
   @$pb.TagNumber(13)
@@ -197,6 +328,10 @@ class Invocation extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   HistoryOptions ensureHistoryOptions() => $_ensure(11);
 
+  ///  Arbitrary JSON object that contains structured, domain-specific properties
+  ///  of the invocation.
+  ///
+  ///  The serialized size must be <= 4096 bytes.
   @$pb.TagNumber(14)
   $2.Struct get properties => $_getN(12);
   @$pb.TagNumber(14)
@@ -211,6 +346,20 @@ class Invocation extends $pb.GeneratedMessage {
   @$pb.TagNumber(14)
   $2.Struct ensureProperties() => $_ensure(12);
 
+  ///  The code sources which were tested by this invocation.
+  ///  This is used to index test results for test history, and for
+  ///  related analyses (e.g. culprit analysis / changepoint analyses).
+  ///
+  ///  The sources specified here applies only to:
+  ///  - the test results directly contained in this invocation, and
+  ///  - any directly included invocations which set their source_spec.inherit to
+  ///  true.
+  ///
+  ///  Clients should be careful to ensure the uploaded source spec is consistent
+  ///  between included invocations that upload the same test variants.
+  ///  Verdicts are associated with the sources of *any* of their constituent
+  ///  test results, so if there is inconsistency between included invocations,
+  ///  the position of the verdict becomes not well defined.
   @$pb.TagNumber(15)
   SourceSpec get sourceSpec => $_getN(13);
   @$pb.TagNumber(15)
@@ -225,6 +374,22 @@ class Invocation extends $pb.GeneratedMessage {
   @$pb.TagNumber(15)
   SourceSpec ensureSourceSpec() => $_ensure(13);
 
+  ///  A user-specified baseline identifier that maps to a set of test variants.
+  ///  Often, this will be the source that generated the test result, such as the
+  ///  builder name for Chromium. For example, the baseline identifier may be
+  ///  try:linux-rel. The supported syntax for a baseline identifier is
+  ///  ^[a-z0-9\-_.]{1,100}:[a-zA-Z0-9\-_.\(\) ]{1,128}`$. This syntax was selected
+  ///  to allow <buildbucket bucket name>:<buildbucket builder name> as a valid
+  ///  baseline ID.
+  ///  See go/src/go.chromium.org/luci/buildbucket/proto/builder_common.proto for
+  ///  character lengths for buildbucket bucket name and builder name.
+  ///
+  ///  Baselines are used to identify new tests; a subtraction between the set of
+  ///  test variants for a baseline in the Baselines table and test variants from
+  ///  a given invocation determines whether a test is new.
+  ///
+  ///  The caller must have `resultdb.baselines.put` to be able to
+  ///  modify this field.
   @$pb.TagNumber(16)
   $core.String get baselineId => $_getSZ(14);
   @$pb.TagNumber(16)
@@ -238,8 +403,17 @@ class Invocation extends $pb.GeneratedMessage {
   void clearBaselineId() => clearField(16);
 }
 
+/// TestResults indicates that test results should be exported.
 class BigQueryExport_TestResults extends $pb.GeneratedMessage {
-  factory BigQueryExport_TestResults() => create();
+  factory BigQueryExport_TestResults({
+    $3.TestResultPredicate? predicate,
+  }) {
+    final $result = create();
+    if (predicate != null) {
+      $result.predicate = predicate;
+    }
+    return $result;
+  }
   BigQueryExport_TestResults._() : super();
   factory BigQueryExport_TestResults.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -274,6 +448,8 @@ class BigQueryExport_TestResults extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BigQueryExport_TestResults>(create);
   static BigQueryExport_TestResults? _defaultInstance;
 
+  /// Use predicate to query test results that should be exported to
+  /// BigQuery table.
   @$pb.TagNumber(1)
   $3.TestResultPredicate get predicate => $_getN(0);
   @$pb.TagNumber(1)
@@ -289,8 +465,17 @@ class BigQueryExport_TestResults extends $pb.GeneratedMessage {
   $3.TestResultPredicate ensurePredicate() => $_ensure(0);
 }
 
+/// TextArtifacts indicates that text artifacts should be exported.
 class BigQueryExport_TextArtifacts extends $pb.GeneratedMessage {
-  factory BigQueryExport_TextArtifacts() => create();
+  factory BigQueryExport_TextArtifacts({
+    $3.ArtifactPredicate? predicate,
+  }) {
+    final $result = create();
+    if (predicate != null) {
+      $result.predicate = predicate;
+    }
+    return $result;
+  }
   BigQueryExport_TextArtifacts._() : super();
   factory BigQueryExport_TextArtifacts.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -325,6 +510,10 @@ class BigQueryExport_TextArtifacts extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BigQueryExport_TextArtifacts>(create);
   static BigQueryExport_TextArtifacts? _defaultInstance;
 
+  ///  Use predicate to query artifacts that should be exported to
+  ///  BigQuery table.
+  ///
+  ///  Sub-field predicate.content_type_regexp defaults to "text/.*".
   @$pb.TagNumber(1)
   $3.ArtifactPredicate get predicate => $_getN(0);
   @$pb.TagNumber(1)
@@ -342,8 +531,34 @@ class BigQueryExport_TextArtifacts extends $pb.GeneratedMessage {
 
 enum BigQueryExport_ResultType { testResults, textArtifacts, notSet }
 
+/// BigQueryExport indicates that results in this invocation should be exported
+/// to BigQuery after finalization.
 class BigQueryExport extends $pb.GeneratedMessage {
-  factory BigQueryExport() => create();
+  factory BigQueryExport({
+    $core.String? project,
+    $core.String? dataset,
+    $core.String? table,
+    BigQueryExport_TestResults? testResults,
+    BigQueryExport_TextArtifacts? textArtifacts,
+  }) {
+    final $result = create();
+    if (project != null) {
+      $result.project = project;
+    }
+    if (dataset != null) {
+      $result.dataset = dataset;
+    }
+    if (table != null) {
+      $result.table = table;
+    }
+    if (testResults != null) {
+      $result.testResults = testResults;
+    }
+    if (textArtifacts != null) {
+      $result.textArtifacts = textArtifacts;
+    }
+    return $result;
+  }
   BigQueryExport._() : super();
   factory BigQueryExport.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -390,6 +605,7 @@ class BigQueryExport extends $pb.GeneratedMessage {
   BigQueryExport_ResultType whichResultType() => _BigQueryExport_ResultTypeByTag[$_whichOneof(0)]!;
   void clearResultType() => clearField($_whichOneof(0));
 
+  /// Name of the BigQuery project.
   @$pb.TagNumber(1)
   $core.String get project => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -402,6 +618,7 @@ class BigQueryExport extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearProject() => clearField(1);
 
+  /// Name of the BigQuery Dataset.
   @$pb.TagNumber(2)
   $core.String get dataset => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -414,6 +631,7 @@ class BigQueryExport extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearDataset() => clearField(2);
 
+  /// Name of the BigQuery Table.
   @$pb.TagNumber(3)
   $core.String get table => $_getSZ(2);
   @$pb.TagNumber(3)
@@ -455,8 +673,23 @@ class BigQueryExport extends $pb.GeneratedMessage {
   BigQueryExport_TextArtifacts ensureTextArtifacts() => $_ensure(4);
 }
 
+/// HistoryOptions indicates how the invocations should be indexed, so that their
+/// results can be queried over a range of time or of commits.
+/// Deprecated: do not use.
 class HistoryOptions extends $pb.GeneratedMessage {
-  factory HistoryOptions() => create();
+  factory HistoryOptions({
+    $core.bool? useInvocationTimestamp,
+    $1.CommitPosition? commit,
+  }) {
+    final $result = create();
+    if (useInvocationTimestamp != null) {
+      $result.useInvocationTimestamp = useInvocationTimestamp;
+    }
+    if (commit != null) {
+      $result.commit = commit;
+    }
+    return $result;
+  }
   HistoryOptions._() : super();
   factory HistoryOptions.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -489,6 +722,7 @@ class HistoryOptions extends $pb.GeneratedMessage {
   static HistoryOptions getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<HistoryOptions>(create);
   static HistoryOptions? _defaultInstance;
 
+  /// Set this to index the results by the containing invocation's create_time.
   @$pb.TagNumber(1)
   $core.bool get useInvocationTimestamp => $_getBF(0);
   @$pb.TagNumber(1)
@@ -501,6 +735,9 @@ class HistoryOptions extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearUseInvocationTimestamp() => clearField(1);
 
+  /// Set this to index by commit position.
+  /// It's up to the creator of the invocation to set this consistently over
+  /// time across the same test variant.
   @$pb.TagNumber(2)
   $1.CommitPosition get commit => $_getN(1);
   @$pb.TagNumber(2)
@@ -516,8 +753,22 @@ class HistoryOptions extends $pb.GeneratedMessage {
   $1.CommitPosition ensureCommit() => $_ensure(1);
 }
 
+/// Specifies the source code that was tested in an invocation, either directly
+/// (via the sources field) or indirectly (via inherit_sources).
 class SourceSpec extends $pb.GeneratedMessage {
-  factory SourceSpec() => create();
+  factory SourceSpec({
+    Sources? sources,
+    $core.bool? inherit,
+  }) {
+    final $result = create();
+    if (sources != null) {
+      $result.sources = sources;
+    }
+    if (inherit != null) {
+      $result.inherit = inherit;
+    }
+    return $result;
+  }
   SourceSpec._() : super();
   factory SourceSpec.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -550,6 +801,8 @@ class SourceSpec extends $pb.GeneratedMessage {
   static SourceSpec getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SourceSpec>(create);
   static SourceSpec? _defaultInstance;
 
+  /// Specifies the source position that was tested.
+  /// Either this or inherit_sources may be set, but not both.
   @$pb.TagNumber(1)
   Sources get sources => $_getN(0);
   @$pb.TagNumber(1)
@@ -564,6 +817,46 @@ class SourceSpec extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   Sources ensureSources() => $_ensure(0);
 
+  ///  Specifies that the source position of the invocation is inherited
+  ///  from the parent invocation it is included in.
+  ///
+  ///  # Use case
+  ///  This is useful in situations where the testing infrastructure deduplicates
+  ///  execution of tests on identical binaries (e.g. using swarming's task
+  ///  deduplication feature).
+  ///
+  ///  Let A be the invocation for a swarming task that receives only a
+  ///  test binary as input, with task deduplication enabled.
+  ///  Let B be the invocation for a buildbucket build which built the
+  ///  binary from sources (or at the very least knew the sources)
+  ///  and triggered invocation A.
+  ///  Invocation B includes invocation A.
+  ///
+  ///  By setting A's source_spec to inherit, and specifying the sources
+  ///  on invocation B, the test results in A will be associated with
+  ///  the sources specified on invocation B, when queried via invocation B.
+  ///
+  ///  This allows further invocations B2, B3 ... BN to be created which also
+  ///  re-use the test results in A but associate them with possibly different
+  ///  sources when queried via B2 ... BN (this is valid so long as the sources
+  ///  produce a binary-identical testing input).
+  ///
+  ///  # Multiple inclusion paths
+  ///  It is possible for an invocation A to be included in the reachable
+  ///  invocation graph for an invocation C in more than one way.
+  ///
+  ///  For example, we may have:
+  ///    A -> B1 -> C
+  ///    A -> B2 -> C
+  ///  as two paths of inclusion.
+  ///
+  ///  If A sets inherit to true, the commit position assigned to its
+  ///  test results will be selected via *one* of the paths of inclusion
+  ///  into C (i.e. from B1 or B2).
+  ///
+  ///  However, which path is selected is not guaranteed, so if clients
+  ///  must include the same invocation multiple times, they should
+  ///  make the source position via all paths the same.
   @$pb.TagNumber(2)
   $core.bool get inherit => $_getBF(1);
   @$pb.TagNumber(2)
@@ -577,8 +870,25 @@ class SourceSpec extends $pb.GeneratedMessage {
   void clearInherit() => clearField(2);
 }
 
+/// Specifies the source code that was tested.
 class Sources extends $pb.GeneratedMessage {
-  factory Sources() => create();
+  factory Sources({
+    $1.GitilesCommit? gitilesCommit,
+    $core.Iterable<$1.GerritChange>? changelists,
+    $core.bool? isDirty,
+  }) {
+    final $result = create();
+    if (gitilesCommit != null) {
+      $result.gitilesCommit = gitilesCommit;
+    }
+    if (changelists != null) {
+      $result.changelists.addAll(changelists);
+    }
+    if (isDirty != null) {
+      $result.isDirty = isDirty;
+    }
+    return $result;
+  }
   Sources._() : super();
   factory Sources.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -613,6 +923,14 @@ class Sources extends $pb.GeneratedMessage {
   static Sources getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Sources>(create);
   static Sources? _defaultInstance;
 
+  /// The base version of code sources checked out. Mandatory.
+  /// If necessary, we could add support for non-gitiles sources here in
+  /// future, using a oneof statement. E.g.
+  /// oneof system {
+  ///    GitilesCommit gitiles_commit = 1;
+  ///    SubversionRevision svn_revision = 4;
+  ///    ...
+  /// }
   @$pb.TagNumber(1)
   $1.GitilesCommit get gitilesCommit => $_getN(0);
   @$pb.TagNumber(1)
@@ -627,9 +945,20 @@ class Sources extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $1.GitilesCommit ensureGitilesCommit() => $_ensure(0);
 
+  ///  The changelist(s) which were applied upon the base version of sources
+  ///  checked out. E.g. in commit queue tryjobs.
+  ///
+  ///  At most 10 changelist(s) may be specified here. If there
+  ///  are more, only include the first 10 and set is_dirty.
   @$pb.TagNumber(2)
   $core.List<$1.GerritChange> get changelists => $_getList(1);
 
+  ///  Whether there were any changes made to the sources, not described above.
+  ///  For example, a version of a dependency was upgraded before testing (e.g.
+  ///  in an autoroller recipe).
+  ///
+  ///  Cherry-picking a changelist on top of the base checkout is not considered
+  ///  making the sources dirty as it is reported separately above.
   @$pb.TagNumber(3)
   $core.bool get isDirty => $_getBF(2);
   @$pb.TagNumber(3)

@@ -1,3 +1,7 @@
+# 1.0.7
+
+- Expose the google.protobuf dependency objects.
+
 # 1.0.6
 
 - Expose all objects in build, builds_service and builder_service.

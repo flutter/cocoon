@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -13,6 +13,7 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
+/// Status of a build or a step.
 class Status extends $pb.ProtobufEnum {
   static const Status STATUS_UNSPECIFIED = Status._(0, _omitEnumNames ? '' : 'STATUS_UNSPECIFIED');
   static const Status SCHEDULED = Status._(1, _omitEnumNames ? '' : 'SCHEDULED');
@@ -40,6 +41,7 @@ class Status extends $pb.ProtobufEnum {
   const Status._($core.int v, $core.String n) : super(v, n);
 }
 
+/// A boolean with an undefined value.
 class Trinary extends $pb.ProtobufEnum {
   static const Trinary UNSET = Trinary._(0, _omitEnumNames ? '' : 'UNSET');
   static const Trinary YES = Trinary._(1, _omitEnumNames ? '' : 'YES');
@@ -57,6 +59,7 @@ class Trinary extends $pb.ProtobufEnum {
   const Trinary._($core.int v, $core.String n) : super(v, n);
 }
 
+/// Compression method used in the corresponding data.
 class Compression extends $pb.ProtobufEnum {
   static const Compression ZLIB = Compression._(0, _omitEnumNames ? '' : 'ZLIB');
   static const Compression ZSTD = Compression._(1, _omitEnumNames ? '' : 'ZSTD');

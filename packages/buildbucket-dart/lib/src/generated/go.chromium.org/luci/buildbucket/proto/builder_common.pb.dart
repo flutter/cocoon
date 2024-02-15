@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -16,8 +16,26 @@ import 'package:protobuf/protobuf.dart' as $pb;
 import 'common.pb.dart' as $0;
 import 'project_config.pb.dart' as $1;
 
+/// Identifies a builder.
+/// Canonical string representation: "{project}/{bucket}/{builder}".
 class BuilderID extends $pb.GeneratedMessage {
-  factory BuilderID() => create();
+  factory BuilderID({
+    $core.String? project,
+    $core.String? bucket,
+    $core.String? builder,
+  }) {
+    final $result = create();
+    if (project != null) {
+      $result.project = project;
+    }
+    if (bucket != null) {
+      $result.bucket = bucket;
+    }
+    if (builder != null) {
+      $result.builder = builder;
+    }
+    return $result;
+  }
   BuilderID._() : super();
   factory BuilderID.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -51,6 +69,8 @@ class BuilderID extends $pb.GeneratedMessage {
   static BuilderID getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuilderID>(create);
   static BuilderID? _defaultInstance;
 
+  /// Project ID, e.g. "chromium". Unique within a LUCI deployment.
+  /// Regex: ^[a-z0-9\-_]+$
   @$pb.TagNumber(1)
   $core.String get project => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -63,6 +83,9 @@ class BuilderID extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearProject() => clearField(1);
 
+  /// Bucket name, e.g. "try". Unique within the project.
+  /// Regex: ^[a-z0-9\-_.]{1,100}$
+  /// Together with project, defines an ACL.
   @$pb.TagNumber(2)
   $core.String get bucket => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -75,6 +98,8 @@ class BuilderID extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearBucket() => clearField(2);
 
+  /// Builder name, e.g. "linux-rel". Unique within the bucket.
+  /// Regex: ^[a-zA-Z0-9\-_.\(\) ]{1,128}$
   @$pb.TagNumber(3)
   $core.String get builder => $_getSZ(2);
   @$pb.TagNumber(3)
@@ -89,7 +114,19 @@ class BuilderID extends $pb.GeneratedMessage {
 }
 
 class BuilderMetadata extends $pb.GeneratedMessage {
-  factory BuilderMetadata() => create();
+  factory BuilderMetadata({
+    $core.String? owner,
+    $0.HealthStatus? health,
+  }) {
+    final $result = create();
+    if (owner != null) {
+      $result.owner = owner;
+    }
+    if (health != null) {
+      $result.health = health;
+    }
+    return $result;
+  }
   BuilderMetadata._() : super();
   factory BuilderMetadata.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -124,6 +161,7 @@ class BuilderMetadata extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuilderMetadata>(create);
   static BuilderMetadata? _defaultInstance;
 
+  /// Team that owns the builder
   @$pb.TagNumber(1)
   $core.String get owner => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -136,6 +174,7 @@ class BuilderMetadata extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearOwner() => clearField(1);
 
+  /// Builders current health status
   @$pb.TagNumber(2)
   $0.HealthStatus get health => $_getN(1);
   @$pb.TagNumber(2)
@@ -151,8 +190,29 @@ class BuilderMetadata extends $pb.GeneratedMessage {
   $0.HealthStatus ensureHealth() => $_ensure(1);
 }
 
+///  A configured builder.
+///
+///  It is called BuilderItem and not Builder because
+///  1) Builder already exists
+///  2) Name "Builder" is incompatible with proto->Java compiler.
 class BuilderItem extends $pb.GeneratedMessage {
-  factory BuilderItem() => create();
+  factory BuilderItem({
+    BuilderID? id,
+    $1.BuilderConfig? config,
+    BuilderMetadata? metadata,
+  }) {
+    final $result = create();
+    if (id != null) {
+      $result.id = id;
+    }
+    if (config != null) {
+      $result.config = config;
+    }
+    if (metadata != null) {
+      $result.metadata = metadata;
+    }
+    return $result;
+  }
   BuilderItem._() : super();
   factory BuilderItem.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -186,6 +246,7 @@ class BuilderItem extends $pb.GeneratedMessage {
   static BuilderItem getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuilderItem>(create);
   static BuilderItem? _defaultInstance;
 
+  /// Uniquely identifies the builder in a given Buildbucket instance.
   @$pb.TagNumber(1)
   BuilderID get id => $_getN(0);
   @$pb.TagNumber(1)
@@ -200,6 +261,8 @@ class BuilderItem extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   BuilderID ensureId() => $_ensure(0);
 
+  /// User-supplied configuration after normalization.
+  /// Does not refer to mixins and has defaults inlined.
   @$pb.TagNumber(2)
   $1.BuilderConfig get config => $_getN(1);
   @$pb.TagNumber(2)
@@ -214,6 +277,7 @@ class BuilderItem extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $1.BuilderConfig ensureConfig() => $_ensure(1);
 
+  /// Metadata surrounding the builder.
   @$pb.TagNumber(3)
   BuilderMetadata get metadata => $_getN(2);
   @$pb.TagNumber(3)

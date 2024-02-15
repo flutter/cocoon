@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -13,6 +13,10 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
+/// Toggle is a boolean with an extra state UNSET.
+/// When protobuf messages are merged, UNSET does not overwrite an existing
+/// value.
+/// TODO(nodir): replace with Trinary in ../common.proto.
 class Toggle extends $pb.ProtobufEnum {
   static const Toggle UNSET = Toggle._(0, _omitEnumNames ? '' : 'UNSET');
   static const Toggle YES = Toggle._(1, _omitEnumNames ? '' : 'YES');

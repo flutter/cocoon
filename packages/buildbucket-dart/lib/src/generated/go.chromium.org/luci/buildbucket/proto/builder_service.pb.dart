@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -21,8 +21,21 @@ import 'common.pb.dart' as $2;
 
 export 'builder_service.pbenum.dart';
 
+/// A request message for GetBuilder rpc.
 class GetBuilderRequest extends $pb.GeneratedMessage {
-  factory GetBuilderRequest() => create();
+  factory GetBuilderRequest({
+    $1.BuilderID? id,
+    BuilderMask? mask,
+  }) {
+    final $result = create();
+    if (id != null) {
+      $result.id = id;
+    }
+    if (mask != null) {
+      $result.mask = mask;
+    }
+    return $result;
+  }
   GetBuilderRequest._() : super();
   factory GetBuilderRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -57,6 +70,7 @@ class GetBuilderRequest extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GetBuilderRequest>(create);
   static GetBuilderRequest? _defaultInstance;
 
+  /// ID of the builder to return.
   @$pb.TagNumber(1)
   $1.BuilderID get id => $_getN(0);
   @$pb.TagNumber(1)
@@ -71,6 +85,9 @@ class GetBuilderRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $1.BuilderID ensureId() => $_ensure(0);
 
+  ///  Mask for which fields to include in the response.
+  ///
+  ///  If not set, the default mask is CONFIG_ONLY.
   @$pb.TagNumber(2)
   BuilderMask get mask => $_getN(1);
   @$pb.TagNumber(2)
@@ -86,8 +103,29 @@ class GetBuilderRequest extends $pb.GeneratedMessage {
   BuilderMask ensureMask() => $_ensure(1);
 }
 
+/// A request message for ListBuilders.
 class ListBuildersRequest extends $pb.GeneratedMessage {
-  factory ListBuildersRequest() => create();
+  factory ListBuildersRequest({
+    $core.String? project,
+    $core.String? bucket,
+    $core.int? pageSize,
+    $core.String? pageToken,
+  }) {
+    final $result = create();
+    if (project != null) {
+      $result.project = project;
+    }
+    if (bucket != null) {
+      $result.bucket = bucket;
+    }
+    if (pageSize != null) {
+      $result.pageSize = pageSize;
+    }
+    if (pageToken != null) {
+      $result.pageToken = pageToken;
+    }
+    return $result;
+  }
   ListBuildersRequest._() : super();
   factory ListBuildersRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -124,6 +162,9 @@ class ListBuildersRequest extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ListBuildersRequest>(create);
   static ListBuildersRequest? _defaultInstance;
 
+  ///  LUCI project, e.g. "chromium". Omit to list all builders.
+  ///
+  ///  Required when bucket is specified.
   @$pb.TagNumber(1)
   $core.String get project => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -136,6 +177,9 @@ class ListBuildersRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearProject() => clearField(1);
 
+  ///  A bucket in the project, e.g. "try".
+  ///
+  ///  Omit to list all builders or all builders in a project.
   @$pb.TagNumber(2)
   $core.String get bucket => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -148,6 +192,11 @@ class ListBuildersRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearBucket() => clearField(2);
 
+  ///  The maximum number of builders to return.
+  ///
+  ///  The service may return fewer than this value.
+  ///  If unspecified, at most 100 builders will be returned.
+  ///  The maximum value is 1000; values above 1000 will be coerced to 1000.
   @$pb.TagNumber(3)
   $core.int get pageSize => $_getIZ(2);
   @$pb.TagNumber(3)
@@ -160,6 +209,11 @@ class ListBuildersRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearPageSize() => clearField(3);
 
+  ///  A page token, received from a previous `ListBuilders` call.
+  ///  Provide this to retrieve the subsequent page.
+  ///
+  ///  When paginating, all other parameters provided to `ListBuilders` MUST
+  ///  match the call that provided the page token.
   @$pb.TagNumber(4)
   $core.String get pageToken => $_getSZ(3);
   @$pb.TagNumber(4)
@@ -173,8 +227,21 @@ class ListBuildersRequest extends $pb.GeneratedMessage {
   void clearPageToken() => clearField(4);
 }
 
+/// A response message for ListBuilders.
 class ListBuildersResponse extends $pb.GeneratedMessage {
-  factory ListBuildersResponse() => create();
+  factory ListBuildersResponse({
+    $core.Iterable<$1.BuilderItem>? builders,
+    $core.String? nextPageToken,
+  }) {
+    final $result = create();
+    if (builders != null) {
+      $result.builders.addAll(builders);
+    }
+    if (nextPageToken != null) {
+      $result.nextPageToken = nextPageToken;
+    }
+    return $result;
+  }
   ListBuildersResponse._() : super();
   factory ListBuildersResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -209,9 +276,14 @@ class ListBuildersResponse extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ListBuildersResponse>(create);
   static ListBuildersResponse? _defaultInstance;
 
+  /// Matched builders.
   @$pb.TagNumber(1)
   $core.List<$1.BuilderItem> get builders => $_getList(0);
 
+  /// A token, which can be sent as `page_token` to retrieve the next page.
+  /// If this field is omitted, there were no subsequent pages at the time of
+  /// request.
+  /// If the invocation is not finalized, more results may appear later.
   @$pb.TagNumber(2)
   $core.String get nextPageToken => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -225,8 +297,22 @@ class ListBuildersResponse extends $pb.GeneratedMessage {
   void clearNextPageToken() => clearField(2);
 }
 
+/// BuilderHealth needs BuilderID so that SetBuilderHealth RPC can properly update
+/// the Builder datastore entity with the updated HealthStatus.
 class SetBuilderHealthRequest_BuilderHealth extends $pb.GeneratedMessage {
-  factory SetBuilderHealthRequest_BuilderHealth() => create();
+  factory SetBuilderHealthRequest_BuilderHealth({
+    $1.BuilderID? id,
+    $2.HealthStatus? health,
+  }) {
+    final $result = create();
+    if (id != null) {
+      $result.id = id;
+    }
+    if (health != null) {
+      $result.health = health;
+    }
+    return $result;
+  }
   SetBuilderHealthRequest_BuilderHealth._() : super();
   factory SetBuilderHealthRequest_BuilderHealth.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -264,6 +350,9 @@ class SetBuilderHealthRequest_BuilderHealth extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SetBuilderHealthRequest_BuilderHealth>(create);
   static SetBuilderHealthRequest_BuilderHealth? _defaultInstance;
 
+  /// Required. Builder to set the health score for.
+  /// You must have the 'buildbucket.builders.set_health' permission for
+  /// each of them.
   @$pb.TagNumber(1)
   $1.BuilderID get id => $_getN(0);
   @$pb.TagNumber(1)
@@ -278,6 +367,7 @@ class SetBuilderHealthRequest_BuilderHealth extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $1.BuilderID ensureId() => $_ensure(0);
 
+  /// Required. Health status of the builder.
   @$pb.TagNumber(2)
   $2.HealthStatus get health => $_getN(1);
   @$pb.TagNumber(2)
@@ -293,8 +383,17 @@ class SetBuilderHealthRequest_BuilderHealth extends $pb.GeneratedMessage {
   $2.HealthStatus ensureHealth() => $_ensure(1);
 }
 
+/// A request message for SetBuilderHealth RPC.
 class SetBuilderHealthRequest extends $pb.GeneratedMessage {
-  factory SetBuilderHealthRequest() => create();
+  factory SetBuilderHealthRequest({
+    $core.Iterable<SetBuilderHealthRequest_BuilderHealth>? health,
+  }) {
+    final $result = create();
+    if (health != null) {
+      $result.health.addAll(health);
+    }
+    return $result;
+  }
   SetBuilderHealthRequest._() : super();
   factory SetBuilderHealthRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -336,7 +435,19 @@ class SetBuilderHealthRequest extends $pb.GeneratedMessage {
 enum SetBuilderHealthResponse_Response_Response { result, error, notSet }
 
 class SetBuilderHealthResponse_Response extends $pb.GeneratedMessage {
-  factory SetBuilderHealthResponse_Response() => create();
+  factory SetBuilderHealthResponse_Response({
+    $3.Empty? result,
+    $4.Status? error,
+  }) {
+    final $result = create();
+    if (result != null) {
+      $result.result = result;
+    }
+    if (error != null) {
+      $result.error = error;
+    }
+    return $result;
+  }
   SetBuilderHealthResponse_Response._() : super();
   factory SetBuilderHealthResponse_Response.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -414,8 +525,17 @@ class SetBuilderHealthResponse_Response extends $pb.GeneratedMessage {
   $4.Status ensureError() => $_ensure(1);
 }
 
+/// A response message for SetBuilderHealth RPC.
 class SetBuilderHealthResponse extends $pb.GeneratedMessage {
-  factory SetBuilderHealthResponse() => create();
+  factory SetBuilderHealthResponse({
+    $core.Iterable<SetBuilderHealthResponse_Response>? responses,
+  }) {
+    final $result = create();
+    if (responses != null) {
+      $result.responses.addAll(responses);
+    }
+    return $result;
+  }
   SetBuilderHealthResponse._() : super();
   factory SetBuilderHealthResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -450,12 +570,22 @@ class SetBuilderHealthResponse extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SetBuilderHealthResponse>(create);
   static SetBuilderHealthResponse? _defaultInstance;
 
+  /// Responses should be empty protos or errors. They will map
+  /// directly with the repeated health fields from SetBuilderHealthRequest.
   @$pb.TagNumber(1)
   $core.List<SetBuilderHealthResponse_Response> get responses => $_getList(0);
 }
 
 class BuilderMask extends $pb.GeneratedMessage {
-  factory BuilderMask() => create();
+  factory BuilderMask({
+    BuilderMask_BuilderMaskType? type,
+  }) {
+    final $result = create();
+    if (type != null) {
+      $result.type = type;
+    }
+    return $result;
+  }
   BuilderMask._() : super();
   factory BuilderMask.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -490,6 +620,7 @@ class BuilderMask extends $pb.GeneratedMessage {
   static BuilderMask getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuilderMask>(create);
   static BuilderMask? _defaultInstance;
 
+  /// Type of mask to use to filter BuilderItem.
   @$pb.TagNumber(1)
   BuilderMask_BuilderMaskType get type => $_getN(0);
   @$pb.TagNumber(1)

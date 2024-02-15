@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -18,8 +18,46 @@ import '../../../../google/protobuf/struct.pb.dart' as $1;
 import 'common.pb.dart' as $0;
 import 'common.pbenum.dart' as $0;
 
+/// A backend task.
+/// Next id: 9.
 class Task extends $pb.GeneratedMessage {
-  factory Task() => create();
+  factory Task({
+    TaskID? id,
+    $core.String? link,
+    $0.Status? status,
+    $0.StatusDetails? statusDetails,
+    $core.String? summaryHtml,
+    $1.Struct? details,
+    $fixnum.Int64? updateId,
+    $core.String? summaryMarkdown,
+  }) {
+    final $result = create();
+    if (id != null) {
+      $result.id = id;
+    }
+    if (link != null) {
+      $result.link = link;
+    }
+    if (status != null) {
+      $result.status = status;
+    }
+    if (statusDetails != null) {
+      $result.statusDetails = statusDetails;
+    }
+    if (summaryHtml != null) {
+      $result.summaryHtml = summaryHtml;
+    }
+    if (details != null) {
+      $result.details = details;
+    }
+    if (updateId != null) {
+      $result.updateId = updateId;
+    }
+    if (summaryMarkdown != null) {
+      $result.summaryMarkdown = summaryMarkdown;
+    }
+    return $result;
+  }
   Task._() : super();
   factory Task.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -36,6 +74,7 @@ class Task extends $pb.GeneratedMessage {
     ..aOS(5, _omitFieldNames ? '' : 'summaryHtml')
     ..aOM<$1.Struct>(6, _omitFieldNames ? '' : 'details', subBuilder: $1.Struct.create)
     ..aInt64(7, _omitFieldNames ? '' : 'updateId')
+    ..aOS(8, _omitFieldNames ? '' : 'summaryMarkdown')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -71,6 +110,10 @@ class Task extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   TaskID ensureId() => $_ensure(0);
 
+  /// (optional) Human-clickable link to the status page for this task.
+  /// This should be populated as part of the Task response in RunTaskResponse.
+  /// Any update to this via the Task field in BuildTaskUpdate will override the
+  /// existing link that was provided in RunTaskResponse.
   @$pb.TagNumber(2)
   $core.String get link => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -83,6 +126,7 @@ class Task extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearLink() => clearField(2);
 
+  /// The backend's status for handling this task.
   @$pb.TagNumber(3)
   $0.Status get status => $_getN(2);
   @$pb.TagNumber(3)
@@ -95,6 +139,7 @@ class Task extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearStatus() => clearField(3);
 
+  /// The 'status_details' around handling this task.
   @$pb.TagNumber(4)
   $0.StatusDetails get statusDetails => $_getN(3);
   @$pb.TagNumber(4)
@@ -109,6 +154,7 @@ class Task extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $0.StatusDetails ensureStatusDetails() => $_ensure(3);
 
+  /// Deprecated. Use summary_markdown instead.
   @$pb.TagNumber(5)
   $core.String get summaryHtml => $_getSZ(4);
   @$pb.TagNumber(5)
@@ -121,6 +167,16 @@ class Task extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   void clearSummaryHtml() => clearField(5);
 
+  ///  Additional backend-specific details about the task.
+  ///
+  ///  This could be used to indicate things like named-cache status, task
+  ///  startup/end time, etc.
+  ///
+  ///  This is limited to 10KB (binary PB + gzip(5))
+  ///
+  ///  This should be populated as part of the Task response in RunTaskResponse.
+  ///  Any update to this via the Task field in BuildTaskUpdate will override the
+  ///  existing details that were provided in RunTaskResponse.
   @$pb.TagNumber(6)
   $1.Struct get details => $_getN(5);
   @$pb.TagNumber(6)
@@ -135,6 +191,12 @@ class Task extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $1.Struct ensureDetails() => $_ensure(5);
 
+  /// A monotonically increasing integer set by the backend to track
+  /// which task is the most up to date when calling UpdateBuildTask.
+  /// When the build is first created, this will be set to 0.
+  /// When RunTask is called and returns a task, this should not be 0 or nil.
+  /// Each UpdateBuildTask call will check this to ensure the latest task is
+  /// being stored in datastore.
   @$pb.TagNumber(7)
   $fixnum.Int64 get updateId => $_getI64(6);
   @$pb.TagNumber(7)
@@ -146,10 +208,36 @@ class Task extends $pb.GeneratedMessage {
   $core.bool hasUpdateId() => $_has(6);
   @$pb.TagNumber(7)
   void clearUpdateId() => clearField(7);
+
+  /// Human-readable commentary around the handling of this task.
+  @$pb.TagNumber(8)
+  $core.String get summaryMarkdown => $_getSZ(7);
+  @$pb.TagNumber(8)
+  set summaryMarkdown($core.String v) {
+    $_setString(7, v);
+  }
+
+  @$pb.TagNumber(8)
+  $core.bool hasSummaryMarkdown() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearSummaryMarkdown() => clearField(8);
 }
 
+/// A unique identifier for tasks.
 class TaskID extends $pb.GeneratedMessage {
-  factory TaskID() => create();
+  factory TaskID({
+    $core.String? target,
+    $core.String? id,
+  }) {
+    final $result = create();
+    if (target != null) {
+      $result.target = target;
+    }
+    if (id != null) {
+      $result.id = id;
+    }
+    return $result;
+  }
   TaskID._() : super();
   factory TaskID.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -181,6 +269,7 @@ class TaskID extends $pb.GeneratedMessage {
   static TaskID getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TaskID>(create);
   static TaskID? _defaultInstance;
 
+  /// Target backend. e.g. "swarming://chromium-swarm".
   @$pb.TagNumber(1)
   $core.String get target => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -193,6 +282,8 @@ class TaskID extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearTarget() => clearField(1);
 
+  /// An ID unique to the target used to identify this task. e.g. Swarming task
+  /// ID.
   @$pb.TagNumber(2)
   $core.String get id => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -206,8 +297,29 @@ class TaskID extends $pb.GeneratedMessage {
   void clearId() => clearField(2);
 }
 
+///  A message sent by task backends as part of the payload to a
+///  pubsub topic corresponding with that backend. Buildbucket handles these
+///  pubsub messages with the UpdateBuildTask cloud task.
+///  Backends must use this proto when sending pubsub updates to buildbucket.
+///
+///  NOTE: If the task has not been registered with buildbucket yet (by means of
+///  RunTask returning or StartBuild doing an initial associaton of the task to
+///  the build), then the message will be dropped and lost forever.
+///  Use with caution.
 class BuildTaskUpdate extends $pb.GeneratedMessage {
-  factory BuildTaskUpdate() => create();
+  factory BuildTaskUpdate({
+    $core.String? buildId,
+    Task? task,
+  }) {
+    final $result = create();
+    if (buildId != null) {
+      $result.buildId = buildId;
+    }
+    if (task != null) {
+      $result.task = task;
+    }
+    return $result;
+  }
   BuildTaskUpdate._() : super();
   factory BuildTaskUpdate.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -242,6 +354,7 @@ class BuildTaskUpdate extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildTaskUpdate>(create);
   static BuildTaskUpdate? _defaultInstance;
 
+  /// A build ID.
   @$pb.TagNumber(1)
   $core.String get buildId => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -254,6 +367,7 @@ class BuildTaskUpdate extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearBuildId() => clearField(1);
 
+  /// Task
   @$pb.TagNumber(2)
   Task get task => $_getN(1);
   @$pb.TagNumber(2)
