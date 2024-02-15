@@ -61,28 +61,30 @@ class Build_Input extends $pb.GeneratedMessage {
     return $result;
   }
   Build_Input._() : super();
-  factory Build_Input.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory Build_Input.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory Build_Input.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Build_Input.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Build.Input', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Build.Input',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOM<$5.Struct>(1, _omitFieldNames ? '' : 'properties', subBuilder: $5.Struct.create)
     ..aOM<$3.GitilesCommit>(2, _omitFieldNames ? '' : 'gitilesCommit', subBuilder: $3.GitilesCommit.create)
-    ..pc<$3.GerritChange>(3, _omitFieldNames ? '' : 'gerritChanges', $pb.PbFieldType.PM, subBuilder: $3.GerritChange.create)
+    ..pc<$3.GerritChange>(3, _omitFieldNames ? '' : 'gerritChanges', $pb.PbFieldType.PM,
+        subBuilder: $3.GerritChange.create)
     ..aOB(5, _omitFieldNames ? '' : 'experimental')
     ..pPS(6, _omitFieldNames ? '' : 'experiments')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   Build_Input clone() => Build_Input()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  Build_Input copyWith(void Function(Build_Input) updates) => super.copyWith((message) => updates(message as Build_Input)) as Build_Input;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  Build_Input copyWith(void Function(Build_Input) updates) =>
+      super.copyWith((message) => updates(message as Build_Input)) as Build_Input;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -102,7 +104,10 @@ class Build_Input extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $5.Struct get properties => $_getN(0);
   @$pb.TagNumber(1)
-  set properties($5.Struct v) { setField(1, v); }
+  set properties($5.Struct v) {
+    setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasProperties() => $_has(0);
   @$pb.TagNumber(1)
@@ -120,7 +125,10 @@ class Build_Input extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $3.GitilesCommit get gitilesCommit => $_getN(1);
   @$pb.TagNumber(2)
-  set gitilesCommit($3.GitilesCommit v) { setField(2, v); }
+  set gitilesCommit($3.GitilesCommit v) {
+    setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasGitilesCommit() => $_has(1);
   @$pb.TagNumber(2)
@@ -145,7 +153,10 @@ class Build_Input extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.bool get experimental => $_getBF(3);
   @$pb.TagNumber(5)
-  set experimental($core.bool v) { $_setBool(3, v); }
+  set experimental($core.bool v) {
+    $_setBool(3, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasExperimental() => $_has(3);
   @$pb.TagNumber(5)
@@ -169,8 +180,7 @@ class Build_Output extends $pb.GeneratedMessage {
     $core.Iterable<$3.Log>? logs,
     $3.Status? status,
     $3.StatusDetails? statusDetails,
-  @$core.Deprecated('This field is deprecated.')
-    $core.String? summaryHtml,
+    @$core.Deprecated('This field is deprecated.') $core.String? summaryHtml,
   }) {
     final $result = create();
     if (properties != null) {
@@ -198,30 +208,32 @@ class Build_Output extends $pb.GeneratedMessage {
     return $result;
   }
   Build_Output._() : super();
-  factory Build_Output.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory Build_Output.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory Build_Output.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Build_Output.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Build.Output', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Build.Output',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOM<$5.Struct>(1, _omitFieldNames ? '' : 'properties', subBuilder: $5.Struct.create)
     ..aOS(2, _omitFieldNames ? '' : 'summaryMarkdown')
     ..aOM<$3.GitilesCommit>(3, _omitFieldNames ? '' : 'gitilesCommit', subBuilder: $3.GitilesCommit.create)
     ..pc<$3.Log>(5, _omitFieldNames ? '' : 'logs', $pb.PbFieldType.PM, subBuilder: $3.Log.create)
-    ..e<$3.Status>(6, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE, defaultOrMaker: $3.Status.STATUS_UNSPECIFIED, valueOf: $3.Status.valueOf, enumValues: $3.Status.values)
+    ..e<$3.Status>(6, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE,
+        defaultOrMaker: $3.Status.STATUS_UNSPECIFIED, valueOf: $3.Status.valueOf, enumValues: $3.Status.values)
     ..aOM<$3.StatusDetails>(7, _omitFieldNames ? '' : 'statusDetails', subBuilder: $3.StatusDetails.create)
     ..aOS(8, _omitFieldNames ? '' : 'summaryHtml')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   Build_Output clone() => Build_Output()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  Build_Output copyWith(void Function(Build_Output) updates) => super.copyWith((message) => updates(message as Build_Output)) as Build_Output;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  Build_Output copyWith(void Function(Build_Output) updates) =>
+      super.copyWith((message) => updates(message as Build_Output)) as Build_Output;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -249,7 +261,10 @@ class Build_Output extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $5.Struct get properties => $_getN(0);
   @$pb.TagNumber(1)
-  set properties($5.Struct v) { setField(1, v); }
+  set properties($5.Struct v) {
+    setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasProperties() => $_has(0);
   @$pb.TagNumber(1)
@@ -260,7 +275,10 @@ class Build_Output extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get summaryMarkdown => $_getSZ(1);
   @$pb.TagNumber(2)
-  set summaryMarkdown($core.String v) { $_setString(1, v); }
+  set summaryMarkdown($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasSummaryMarkdown() => $_has(1);
   @$pb.TagNumber(2)
@@ -276,7 +294,10 @@ class Build_Output extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $3.GitilesCommit get gitilesCommit => $_getN(2);
   @$pb.TagNumber(3)
-  set gitilesCommit($3.GitilesCommit v) { setField(3, v); }
+  set gitilesCommit($3.GitilesCommit v) {
+    setField(3, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasGitilesCommit() => $_has(2);
   @$pb.TagNumber(3)
@@ -292,7 +313,10 @@ class Build_Output extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $3.Status get status => $_getN(4);
   @$pb.TagNumber(6)
-  set status($3.Status v) { setField(6, v); }
+  set status($3.Status v) {
+    setField(6, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasStatus() => $_has(4);
   @$pb.TagNumber(6)
@@ -301,7 +325,10 @@ class Build_Output extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $3.StatusDetails get statusDetails => $_getN(5);
   @$pb.TagNumber(7)
-  set statusDetails($3.StatusDetails v) { setField(7, v); }
+  set statusDetails($3.StatusDetails v) {
+    setField(7, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasStatusDetails() => $_has(5);
   @$pb.TagNumber(7)
@@ -315,7 +342,10 @@ class Build_Output extends $pb.GeneratedMessage {
   $core.String get summaryHtml => $_getSZ(6);
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
-  set summaryHtml($core.String v) { $_setString(6, v); }
+  set summaryHtml($core.String v) {
+    $_setString(6, v);
+  }
+
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   $core.bool hasSummaryHtml() => $_has(6);
@@ -340,24 +370,26 @@ class Build_BuilderInfo extends $pb.GeneratedMessage {
     return $result;
   }
   Build_BuilderInfo._() : super();
-  factory Build_BuilderInfo.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory Build_BuilderInfo.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory Build_BuilderInfo.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Build_BuilderInfo.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Build.BuilderInfo', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Build.BuilderInfo',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'description')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   Build_BuilderInfo clone() => Build_BuilderInfo()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  Build_BuilderInfo copyWith(void Function(Build_BuilderInfo) updates) => super.copyWith((message) => updates(message as Build_BuilderInfo)) as Build_BuilderInfo;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  Build_BuilderInfo copyWith(void Function(Build_BuilderInfo) updates) =>
+      super.copyWith((message) => updates(message as Build_BuilderInfo)) as Build_BuilderInfo;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -366,13 +398,17 @@ class Build_BuilderInfo extends $pb.GeneratedMessage {
   Build_BuilderInfo createEmptyInstance() => create();
   static $pb.PbList<Build_BuilderInfo> createRepeated() => $pb.PbList<Build_BuilderInfo>();
   @$core.pragma('dart2js:noInline')
-  static Build_BuilderInfo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Build_BuilderInfo>(create);
+  static Build_BuilderInfo getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Build_BuilderInfo>(create);
   static Build_BuilderInfo? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get description => $_getSZ(0);
   @$pb.TagNumber(1)
-  set description($core.String v) { $_setString(0, v); }
+  set description($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasDescription() => $_has(0);
   @$pb.TagNumber(1)
@@ -519,10 +555,13 @@ class Build extends $pb.GeneratedMessage {
     return $result;
   }
   Build._() : super();
-  factory Build.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory Build.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory Build.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Build.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Build', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Build',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aInt64(1, _omitFieldNames ? '' : 'id')
     ..aOM<$0.BuilderID>(2, _omitFieldNames ? '' : 'builder', subBuilder: $0.BuilderID.create)
     ..a<$core.int>(3, _omitFieldNames ? '' : 'number', $pb.PbFieldType.O3)
@@ -531,14 +570,16 @@ class Build extends $pb.GeneratedMessage {
     ..aOM<$1.Timestamp>(7, _omitFieldNames ? '' : 'startTime', subBuilder: $1.Timestamp.create)
     ..aOM<$1.Timestamp>(8, _omitFieldNames ? '' : 'endTime', subBuilder: $1.Timestamp.create)
     ..aOM<$1.Timestamp>(9, _omitFieldNames ? '' : 'updateTime', subBuilder: $1.Timestamp.create)
-    ..e<$3.Status>(12, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE, defaultOrMaker: $3.Status.STATUS_UNSPECIFIED, valueOf: $3.Status.valueOf, enumValues: $3.Status.values)
+    ..e<$3.Status>(12, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE,
+        defaultOrMaker: $3.Status.STATUS_UNSPECIFIED, valueOf: $3.Status.valueOf, enumValues: $3.Status.values)
     ..aOM<Build_Input>(15, _omitFieldNames ? '' : 'input', subBuilder: Build_Input.create)
     ..aOM<Build_Output>(16, _omitFieldNames ? '' : 'output', subBuilder: Build_Output.create)
     ..pc<$2.Step>(17, _omitFieldNames ? '' : 'steps', $pb.PbFieldType.PM, subBuilder: $2.Step.create)
     ..aOM<BuildInfra>(18, _omitFieldNames ? '' : 'infra', subBuilder: BuildInfra.create)
     ..pc<$3.StringPair>(19, _omitFieldNames ? '' : 'tags', $pb.PbFieldType.PM, subBuilder: $3.StringPair.create)
     ..aOS(20, _omitFieldNames ? '' : 'summaryMarkdown')
-    ..e<$3.Trinary>(21, _omitFieldNames ? '' : 'critical', $pb.PbFieldType.OE, defaultOrMaker: $3.Trinary.UNSET, valueOf: $3.Trinary.valueOf, enumValues: $3.Trinary.values)
+    ..e<$3.Trinary>(21, _omitFieldNames ? '' : 'critical', $pb.PbFieldType.OE,
+        defaultOrMaker: $3.Trinary.UNSET, valueOf: $3.Trinary.valueOf, enumValues: $3.Trinary.values)
     ..aOM<$3.StatusDetails>(22, _omitFieldNames ? '' : 'statusDetails', subBuilder: $3.StatusDetails.create)
     ..aOS(23, _omitFieldNames ? '' : 'canceledBy')
     ..aOM<$3.Executable>(24, _omitFieldNames ? '' : 'exe', subBuilder: $3.Executable.create)
@@ -552,19 +593,17 @@ class Build extends $pb.GeneratedMessage {
     ..aOM<$1.Timestamp>(32, _omitFieldNames ? '' : 'cancelTime', subBuilder: $1.Timestamp.create)
     ..aOS(33, _omitFieldNames ? '' : 'cancellationMarkdown')
     ..aOM<Build_BuilderInfo>(34, _omitFieldNames ? '' : 'builderInfo', subBuilder: Build_BuilderInfo.create)
-    ..e<$3.Trinary>(35, _omitFieldNames ? '' : 'retriable', $pb.PbFieldType.OE, defaultOrMaker: $3.Trinary.UNSET, valueOf: $3.Trinary.valueOf, enumValues: $3.Trinary.values)
-    ..hasRequiredFields = false
-  ;
+    ..e<$3.Trinary>(35, _omitFieldNames ? '' : 'retriable', $pb.PbFieldType.OE,
+        defaultOrMaker: $3.Trinary.UNSET, valueOf: $3.Trinary.valueOf, enumValues: $3.Trinary.values)
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   Build clone() => Build()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   Build copyWith(void Function(Build) updates) => super.copyWith((message) => updates(message as Build)) as Build;
 
   $pb.BuilderInfo get info_ => _i;
@@ -582,7 +621,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $fixnum.Int64 get id => $_getI64(0);
   @$pb.TagNumber(1)
-  set id($fixnum.Int64 v) { $_setInt64(0, v); }
+  set id($fixnum.Int64 v) {
+    $_setInt64(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasId() => $_has(0);
   @$pb.TagNumber(1)
@@ -595,7 +637,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $0.BuilderID get builder => $_getN(1);
   @$pb.TagNumber(2)
-  set builder($0.BuilderID v) { setField(2, v); }
+  set builder($0.BuilderID v) {
+    setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasBuilder() => $_has(1);
   @$pb.TagNumber(2)
@@ -622,7 +667,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.int get number => $_getIZ(2);
   @$pb.TagNumber(3)
-  set number($core.int v) { $_setSignedInt32(2, v); }
+  set number($core.int v) {
+    $_setSignedInt32(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasNumber() => $_has(2);
   @$pb.TagNumber(3)
@@ -632,7 +680,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.String get createdBy => $_getSZ(3);
   @$pb.TagNumber(4)
-  set createdBy($core.String v) { $_setString(3, v); }
+  set createdBy($core.String v) {
+    $_setString(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasCreatedBy() => $_has(3);
   @$pb.TagNumber(4)
@@ -642,7 +693,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $1.Timestamp get createTime => $_getN(4);
   @$pb.TagNumber(6)
-  set createTime($1.Timestamp v) { setField(6, v); }
+  set createTime($1.Timestamp v) {
+    setField(6, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasCreateTime() => $_has(4);
   @$pb.TagNumber(6)
@@ -655,7 +709,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $1.Timestamp get startTime => $_getN(5);
   @$pb.TagNumber(7)
-  set startTime($1.Timestamp v) { setField(7, v); }
+  set startTime($1.Timestamp v) {
+    setField(7, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasStartTime() => $_has(5);
   @$pb.TagNumber(7)
@@ -669,7 +726,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   $1.Timestamp get endTime => $_getN(6);
   @$pb.TagNumber(8)
-  set endTime($1.Timestamp v) { setField(8, v); }
+  set endTime($1.Timestamp v) {
+    setField(8, v);
+  }
+
   @$pb.TagNumber(8)
   $core.bool hasEndTime() => $_has(6);
   @$pb.TagNumber(8)
@@ -684,7 +744,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   $1.Timestamp get updateTime => $_getN(7);
   @$pb.TagNumber(9)
-  set updateTime($1.Timestamp v) { setField(9, v); }
+  set updateTime($1.Timestamp v) {
+    setField(9, v);
+  }
+
   @$pb.TagNumber(9)
   $core.bool hasUpdateTime() => $_has(7);
   @$pb.TagNumber(9)
@@ -701,7 +764,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   $3.Status get status => $_getN(8);
   @$pb.TagNumber(12)
-  set status($3.Status v) { setField(12, v); }
+  set status($3.Status v) {
+    setField(12, v);
+  }
+
   @$pb.TagNumber(12)
   $core.bool hasStatus() => $_has(8);
   @$pb.TagNumber(12)
@@ -711,7 +777,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(15)
   Build_Input get input => $_getN(9);
   @$pb.TagNumber(15)
-  set input(Build_Input v) { setField(15, v); }
+  set input(Build_Input v) {
+    setField(15, v);
+  }
+
   @$pb.TagNumber(15)
   $core.bool hasInput() => $_has(9);
   @$pb.TagNumber(15)
@@ -728,7 +797,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(16)
   Build_Output get output => $_getN(10);
   @$pb.TagNumber(16)
-  set output(Build_Output v) { setField(16, v); }
+  set output(Build_Output v) {
+    setField(16, v);
+  }
+
   @$pb.TagNumber(16)
   $core.bool hasOutput() => $_has(10);
   @$pb.TagNumber(16)
@@ -752,7 +824,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(18)
   BuildInfra get infra => $_getN(12);
   @$pb.TagNumber(18)
-  set infra(BuildInfra v) { setField(18, v); }
+  set infra(BuildInfra v) {
+    setField(18, v);
+  }
+
   @$pb.TagNumber(18)
   $core.bool hasInfra() => $_has(12);
   @$pb.TagNumber(18)
@@ -773,7 +848,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(20)
   $core.String get summaryMarkdown => $_getSZ(14);
   @$pb.TagNumber(20)
-  set summaryMarkdown($core.String v) { $_setString(14, v); }
+  set summaryMarkdown($core.String v) {
+    $_setString(14, v);
+  }
+
   @$pb.TagNumber(20)
   $core.bool hasSummaryMarkdown() => $_has(14);
   @$pb.TagNumber(20)
@@ -786,7 +864,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(21)
   $3.Trinary get critical => $_getN(15);
   @$pb.TagNumber(21)
-  set critical($3.Trinary v) { setField(21, v); }
+  set critical($3.Trinary v) {
+    setField(21, v);
+  }
+
   @$pb.TagNumber(21)
   $core.bool hasCritical() => $_has(15);
   @$pb.TagNumber(21)
@@ -797,7 +878,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(22)
   $3.StatusDetails get statusDetails => $_getN(16);
   @$pb.TagNumber(22)
-  set statusDetails($3.StatusDetails v) { setField(22, v); }
+  set statusDetails($3.StatusDetails v) {
+    setField(22, v);
+  }
+
   @$pb.TagNumber(22)
   $core.bool hasStatusDetails() => $_has(16);
   @$pb.TagNumber(22)
@@ -815,7 +899,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(23)
   $core.String get canceledBy => $_getSZ(17);
   @$pb.TagNumber(23)
-  set canceledBy($core.String v) { $_setString(17, v); }
+  set canceledBy($core.String v) {
+    $_setString(17, v);
+  }
+
   @$pb.TagNumber(23)
   $core.bool hasCanceledBy() => $_has(17);
   @$pb.TagNumber(23)
@@ -825,7 +912,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(24)
   $3.Executable get exe => $_getN(18);
   @$pb.TagNumber(24)
-  set exe($3.Executable v) { setField(24, v); }
+  set exe($3.Executable v) {
+    setField(24, v);
+  }
+
   @$pb.TagNumber(24)
   $core.bool hasExe() => $_has(18);
   @$pb.TagNumber(24)
@@ -841,7 +931,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(25)
   $core.bool get canary => $_getBF(19);
   @$pb.TagNumber(25)
-  set canary($core.bool v) { $_setBool(19, v); }
+  set canary($core.bool v) {
+    $_setBool(19, v);
+  }
+
   @$pb.TagNumber(25)
   $core.bool hasCanary() => $_has(19);
   @$pb.TagNumber(25)
@@ -853,7 +946,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(26)
   $4.Duration get schedulingTimeout => $_getN(20);
   @$pb.TagNumber(26)
-  set schedulingTimeout($4.Duration v) { setField(26, v); }
+  set schedulingTimeout($4.Duration v) {
+    setField(26, v);
+  }
+
   @$pb.TagNumber(26)
   $core.bool hasSchedulingTimeout() => $_has(20);
   @$pb.TagNumber(26)
@@ -875,7 +971,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(27)
   $4.Duration get executionTimeout => $_getN(21);
   @$pb.TagNumber(27)
-  set executionTimeout($4.Duration v) { setField(27, v); }
+  set executionTimeout($4.Duration v) {
+    setField(27, v);
+  }
+
   @$pb.TagNumber(27)
   $core.bool hasExecutionTimeout() => $_has(21);
   @$pb.TagNumber(27)
@@ -888,7 +987,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(28)
   $core.bool get waitForCapacity => $_getBF(22);
   @$pb.TagNumber(28)
-  set waitForCapacity($core.bool v) { $_setBool(22, v); }
+  set waitForCapacity($core.bool v) {
+    $_setBool(22, v);
+  }
+
   @$pb.TagNumber(28)
   $core.bool hasWaitForCapacity() => $_has(22);
   @$pb.TagNumber(28)
@@ -904,7 +1006,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(29)
   $4.Duration get gracePeriod => $_getN(23);
   @$pb.TagNumber(29)
-  set gracePeriod($4.Duration v) { setField(29, v); }
+  set gracePeriod($4.Duration v) {
+    setField(29, v);
+  }
+
   @$pb.TagNumber(29)
   $core.bool hasGracePeriod() => $_has(23);
   @$pb.TagNumber(29)
@@ -924,7 +1029,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(30)
   $core.bool get canOutliveParent => $_getBF(24);
   @$pb.TagNumber(30)
-  set canOutliveParent($core.bool v) { $_setBool(24, v); }
+  set canOutliveParent($core.bool v) {
+    $_setBool(24, v);
+  }
+
   @$pb.TagNumber(30)
   $core.bool hasCanOutliveParent() => $_has(24);
   @$pb.TagNumber(30)
@@ -970,7 +1078,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(32)
   $1.Timestamp get cancelTime => $_getN(26);
   @$pb.TagNumber(32)
-  set cancelTime($1.Timestamp v) { setField(32, v); }
+  set cancelTime($1.Timestamp v) {
+    setField(32, v);
+  }
+
   @$pb.TagNumber(32)
   $core.bool hasCancelTime() => $_has(26);
   @$pb.TagNumber(32)
@@ -983,7 +1094,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(33)
   $core.String get cancellationMarkdown => $_getSZ(27);
   @$pb.TagNumber(33)
-  set cancellationMarkdown($core.String v) { $_setString(27, v); }
+  set cancellationMarkdown($core.String v) {
+    $_setString(27, v);
+  }
+
   @$pb.TagNumber(33)
   $core.bool hasCancellationMarkdown() => $_has(27);
   @$pb.TagNumber(33)
@@ -992,7 +1106,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(34)
   Build_BuilderInfo get builderInfo => $_getN(28);
   @$pb.TagNumber(34)
-  set builderInfo(Build_BuilderInfo v) { setField(34, v); }
+  set builderInfo(Build_BuilderInfo v) {
+    setField(34, v);
+  }
+
   @$pb.TagNumber(34)
   $core.bool hasBuilderInfo() => $_has(28);
   @$pb.TagNumber(34)
@@ -1009,7 +1126,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(35)
   $3.Trinary get retriable => $_getN(29);
   @$pb.TagNumber(35)
-  set retriable($3.Trinary v) { setField(35, v); }
+  set retriable($3.Trinary v) {
+    setField(35, v);
+  }
+
   @$pb.TagNumber(35)
   $core.bool hasRetriable() => $_has(29);
   @$pb.TagNumber(35)
@@ -1034,25 +1154,27 @@ class InputDataRef_CAS_Digest extends $pb.GeneratedMessage {
     return $result;
   }
   InputDataRef_CAS_Digest._() : super();
-  factory InputDataRef_CAS_Digest.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory InputDataRef_CAS_Digest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory InputDataRef_CAS_Digest.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory InputDataRef_CAS_Digest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'InputDataRef.CAS.Digest', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'InputDataRef.CAS.Digest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'hash')
     ..aInt64(2, _omitFieldNames ? '' : 'sizeBytes')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   InputDataRef_CAS_Digest clone() => InputDataRef_CAS_Digest()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  InputDataRef_CAS_Digest copyWith(void Function(InputDataRef_CAS_Digest) updates) => super.copyWith((message) => updates(message as InputDataRef_CAS_Digest)) as InputDataRef_CAS_Digest;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  InputDataRef_CAS_Digest copyWith(void Function(InputDataRef_CAS_Digest) updates) =>
+      super.copyWith((message) => updates(message as InputDataRef_CAS_Digest)) as InputDataRef_CAS_Digest;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -1061,13 +1183,17 @@ class InputDataRef_CAS_Digest extends $pb.GeneratedMessage {
   InputDataRef_CAS_Digest createEmptyInstance() => create();
   static $pb.PbList<InputDataRef_CAS_Digest> createRepeated() => $pb.PbList<InputDataRef_CAS_Digest>();
   @$core.pragma('dart2js:noInline')
-  static InputDataRef_CAS_Digest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<InputDataRef_CAS_Digest>(create);
+  static InputDataRef_CAS_Digest getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<InputDataRef_CAS_Digest>(create);
   static InputDataRef_CAS_Digest? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get hash => $_getSZ(0);
   @$pb.TagNumber(1)
-  set hash($core.String v) { $_setString(0, v); }
+  set hash($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasHash() => $_has(0);
   @$pb.TagNumber(1)
@@ -1076,7 +1202,10 @@ class InputDataRef_CAS_Digest extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $fixnum.Int64 get sizeBytes => $_getI64(1);
   @$pb.TagNumber(2)
-  set sizeBytes($fixnum.Int64 v) { $_setInt64(1, v); }
+  set sizeBytes($fixnum.Int64 v) {
+    $_setInt64(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasSizeBytes() => $_has(1);
   @$pb.TagNumber(2)
@@ -1098,25 +1227,27 @@ class InputDataRef_CAS extends $pb.GeneratedMessage {
     return $result;
   }
   InputDataRef_CAS._() : super();
-  factory InputDataRef_CAS.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory InputDataRef_CAS.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory InputDataRef_CAS.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory InputDataRef_CAS.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'InputDataRef.CAS', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'InputDataRef.CAS',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'casInstance')
     ..aOM<InputDataRef_CAS_Digest>(2, _omitFieldNames ? '' : 'digest', subBuilder: InputDataRef_CAS_Digest.create)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   InputDataRef_CAS clone() => InputDataRef_CAS()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  InputDataRef_CAS copyWith(void Function(InputDataRef_CAS) updates) => super.copyWith((message) => updates(message as InputDataRef_CAS)) as InputDataRef_CAS;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  InputDataRef_CAS copyWith(void Function(InputDataRef_CAS) updates) =>
+      super.copyWith((message) => updates(message as InputDataRef_CAS)) as InputDataRef_CAS;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -1125,7 +1256,8 @@ class InputDataRef_CAS extends $pb.GeneratedMessage {
   InputDataRef_CAS createEmptyInstance() => create();
   static $pb.PbList<InputDataRef_CAS> createRepeated() => $pb.PbList<InputDataRef_CAS>();
   @$core.pragma('dart2js:noInline')
-  static InputDataRef_CAS getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<InputDataRef_CAS>(create);
+  static InputDataRef_CAS getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<InputDataRef_CAS>(create);
   static InputDataRef_CAS? _defaultInstance;
 
   /// Full name of RBE-CAS instance. `projects/{project_id}/instances/{instance}`.
@@ -1133,7 +1265,10 @@ class InputDataRef_CAS extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get casInstance => $_getSZ(0);
   @$pb.TagNumber(1)
-  set casInstance($core.String v) { $_setString(0, v); }
+  set casInstance($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasCasInstance() => $_has(0);
   @$pb.TagNumber(1)
@@ -1142,7 +1277,10 @@ class InputDataRef_CAS extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   InputDataRef_CAS_Digest get digest => $_getN(1);
   @$pb.TagNumber(2)
-  set digest(InputDataRef_CAS_Digest v) { setField(2, v); }
+  set digest(InputDataRef_CAS_Digest v) {
+    setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasDigest() => $_has(1);
   @$pb.TagNumber(2)
@@ -1166,25 +1304,27 @@ class InputDataRef_CIPD_PkgSpec extends $pb.GeneratedMessage {
     return $result;
   }
   InputDataRef_CIPD_PkgSpec._() : super();
-  factory InputDataRef_CIPD_PkgSpec.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory InputDataRef_CIPD_PkgSpec.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory InputDataRef_CIPD_PkgSpec.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory InputDataRef_CIPD_PkgSpec.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'InputDataRef.CIPD.PkgSpec', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'InputDataRef.CIPD.PkgSpec',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'package')
     ..aOS(2, _omitFieldNames ? '' : 'version')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   InputDataRef_CIPD_PkgSpec clone() => InputDataRef_CIPD_PkgSpec()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  InputDataRef_CIPD_PkgSpec copyWith(void Function(InputDataRef_CIPD_PkgSpec) updates) => super.copyWith((message) => updates(message as InputDataRef_CIPD_PkgSpec)) as InputDataRef_CIPD_PkgSpec;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  InputDataRef_CIPD_PkgSpec copyWith(void Function(InputDataRef_CIPD_PkgSpec) updates) =>
+      super.copyWith((message) => updates(message as InputDataRef_CIPD_PkgSpec)) as InputDataRef_CIPD_PkgSpec;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -1193,7 +1333,8 @@ class InputDataRef_CIPD_PkgSpec extends $pb.GeneratedMessage {
   InputDataRef_CIPD_PkgSpec createEmptyInstance() => create();
   static $pb.PbList<InputDataRef_CIPD_PkgSpec> createRepeated() => $pb.PbList<InputDataRef_CIPD_PkgSpec>();
   @$core.pragma('dart2js:noInline')
-  static InputDataRef_CIPD_PkgSpec getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<InputDataRef_CIPD_PkgSpec>(create);
+  static InputDataRef_CIPD_PkgSpec getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<InputDataRef_CIPD_PkgSpec>(create);
   static InputDataRef_CIPD_PkgSpec? _defaultInstance;
 
   /// Package MAY include CIPD variables, including conditional variables like
@@ -1201,7 +1342,10 @@ class InputDataRef_CIPD_PkgSpec extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get package => $_getSZ(0);
   @$pb.TagNumber(1)
-  set package($core.String v) { $_setString(0, v); }
+  set package($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasPackage() => $_has(0);
   @$pb.TagNumber(1)
@@ -1210,7 +1354,10 @@ class InputDataRef_CIPD_PkgSpec extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get version => $_getSZ(1);
   @$pb.TagNumber(2)
-  set version($core.String v) { $_setString(1, v); }
+  set version($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasVersion() => $_has(1);
   @$pb.TagNumber(2)
@@ -1232,25 +1379,28 @@ class InputDataRef_CIPD extends $pb.GeneratedMessage {
     return $result;
   }
   InputDataRef_CIPD._() : super();
-  factory InputDataRef_CIPD.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory InputDataRef_CIPD.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory InputDataRef_CIPD.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory InputDataRef_CIPD.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'InputDataRef.CIPD', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'InputDataRef.CIPD',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'server')
-    ..pc<InputDataRef_CIPD_PkgSpec>(2, _omitFieldNames ? '' : 'specs', $pb.PbFieldType.PM, subBuilder: InputDataRef_CIPD_PkgSpec.create)
-    ..hasRequiredFields = false
-  ;
+    ..pc<InputDataRef_CIPD_PkgSpec>(2, _omitFieldNames ? '' : 'specs', $pb.PbFieldType.PM,
+        subBuilder: InputDataRef_CIPD_PkgSpec.create)
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   InputDataRef_CIPD clone() => InputDataRef_CIPD()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  InputDataRef_CIPD copyWith(void Function(InputDataRef_CIPD) updates) => super.copyWith((message) => updates(message as InputDataRef_CIPD)) as InputDataRef_CIPD;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  InputDataRef_CIPD copyWith(void Function(InputDataRef_CIPD) updates) =>
+      super.copyWith((message) => updates(message as InputDataRef_CIPD)) as InputDataRef_CIPD;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -1259,13 +1409,17 @@ class InputDataRef_CIPD extends $pb.GeneratedMessage {
   InputDataRef_CIPD createEmptyInstance() => create();
   static $pb.PbList<InputDataRef_CIPD> createRepeated() => $pb.PbList<InputDataRef_CIPD>();
   @$core.pragma('dart2js:noInline')
-  static InputDataRef_CIPD getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<InputDataRef_CIPD>(create);
+  static InputDataRef_CIPD getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<InputDataRef_CIPD>(create);
   static InputDataRef_CIPD? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get server => $_getSZ(0);
   @$pb.TagNumber(1)
-  set server($core.String v) { $_setString(0, v); }
+  set server($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasServer() => $_has(0);
   @$pb.TagNumber(1)
@@ -1275,11 +1429,7 @@ class InputDataRef_CIPD extends $pb.GeneratedMessage {
   $core.List<InputDataRef_CIPD_PkgSpec> get specs => $_getList(1);
 }
 
-enum InputDataRef_DataType {
-  cas, 
-  cipd, 
-  notSet
-}
+enum InputDataRef_DataType { cas, cipd, notSet }
 
 class InputDataRef extends $pb.GeneratedMessage {
   factory InputDataRef({
@@ -1300,32 +1450,33 @@ class InputDataRef extends $pb.GeneratedMessage {
     return $result;
   }
   InputDataRef._() : super();
-  factory InputDataRef.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory InputDataRef.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory InputDataRef.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory InputDataRef.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static const $core.Map<$core.int, InputDataRef_DataType> _InputDataRef_DataTypeByTag = {
-    1 : InputDataRef_DataType.cas,
-    2 : InputDataRef_DataType.cipd,
-    0 : InputDataRef_DataType.notSet
+    1: InputDataRef_DataType.cas,
+    2: InputDataRef_DataType.cipd,
+    0: InputDataRef_DataType.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'InputDataRef', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'InputDataRef',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..oo(0, [1, 2])
     ..aOM<InputDataRef_CAS>(1, _omitFieldNames ? '' : 'cas', subBuilder: InputDataRef_CAS.create)
     ..aOM<InputDataRef_CIPD>(2, _omitFieldNames ? '' : 'cipd', subBuilder: InputDataRef_CIPD.create)
     ..pPS(3, _omitFieldNames ? '' : 'onPath')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   InputDataRef clone() => InputDataRef()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  InputDataRef copyWith(void Function(InputDataRef) updates) => super.copyWith((message) => updates(message as InputDataRef)) as InputDataRef;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  InputDataRef copyWith(void Function(InputDataRef) updates) =>
+      super.copyWith((message) => updates(message as InputDataRef)) as InputDataRef;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -1343,7 +1494,10 @@ class InputDataRef extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   InputDataRef_CAS get cas => $_getN(0);
   @$pb.TagNumber(1)
-  set cas(InputDataRef_CAS v) { setField(1, v); }
+  set cas(InputDataRef_CAS v) {
+    setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasCas() => $_has(0);
   @$pb.TagNumber(1)
@@ -1354,7 +1508,10 @@ class InputDataRef extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   InputDataRef_CIPD get cipd => $_getN(1);
   @$pb.TagNumber(2)
-  set cipd(InputDataRef_CIPD v) { setField(2, v); }
+  set cipd(InputDataRef_CIPD v) {
+    setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasCipd() => $_has(1);
   @$pb.TagNumber(2)
@@ -1387,25 +1544,27 @@ class ResolvedDataRef_Timing extends $pb.GeneratedMessage {
     return $result;
   }
   ResolvedDataRef_Timing._() : super();
-  factory ResolvedDataRef_Timing.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory ResolvedDataRef_Timing.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory ResolvedDataRef_Timing.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ResolvedDataRef_Timing.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ResolvedDataRef.Timing', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ResolvedDataRef.Timing',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOM<$4.Duration>(1, _omitFieldNames ? '' : 'fetchDuration', subBuilder: $4.Duration.create)
     ..aOM<$4.Duration>(2, _omitFieldNames ? '' : 'installDuration', subBuilder: $4.Duration.create)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ResolvedDataRef_Timing clone() => ResolvedDataRef_Timing()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  ResolvedDataRef_Timing copyWith(void Function(ResolvedDataRef_Timing) updates) => super.copyWith((message) => updates(message as ResolvedDataRef_Timing)) as ResolvedDataRef_Timing;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  ResolvedDataRef_Timing copyWith(void Function(ResolvedDataRef_Timing) updates) =>
+      super.copyWith((message) => updates(message as ResolvedDataRef_Timing)) as ResolvedDataRef_Timing;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -1414,13 +1573,17 @@ class ResolvedDataRef_Timing extends $pb.GeneratedMessage {
   ResolvedDataRef_Timing createEmptyInstance() => create();
   static $pb.PbList<ResolvedDataRef_Timing> createRepeated() => $pb.PbList<ResolvedDataRef_Timing>();
   @$core.pragma('dart2js:noInline')
-  static ResolvedDataRef_Timing getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ResolvedDataRef_Timing>(create);
+  static ResolvedDataRef_Timing getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ResolvedDataRef_Timing>(create);
   static ResolvedDataRef_Timing? _defaultInstance;
 
   @$pb.TagNumber(1)
   $4.Duration get fetchDuration => $_getN(0);
   @$pb.TagNumber(1)
-  set fetchDuration($4.Duration v) { setField(1, v); }
+  set fetchDuration($4.Duration v) {
+    setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasFetchDuration() => $_has(0);
   @$pb.TagNumber(1)
@@ -1431,7 +1594,10 @@ class ResolvedDataRef_Timing extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $4.Duration get installDuration => $_getN(1);
   @$pb.TagNumber(2)
-  set installDuration($4.Duration v) { setField(2, v); }
+  set installDuration($4.Duration v) {
+    setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasInstallDuration() => $_has(1);
   @$pb.TagNumber(2)
@@ -1451,24 +1617,26 @@ class ResolvedDataRef_CAS extends $pb.GeneratedMessage {
     return $result;
   }
   ResolvedDataRef_CAS._() : super();
-  factory ResolvedDataRef_CAS.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory ResolvedDataRef_CAS.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory ResolvedDataRef_CAS.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ResolvedDataRef_CAS.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ResolvedDataRef.CAS', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ResolvedDataRef.CAS',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOM<ResolvedDataRef_Timing>(1, _omitFieldNames ? '' : 'timing', subBuilder: ResolvedDataRef_Timing.create)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ResolvedDataRef_CAS clone() => ResolvedDataRef_CAS()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  ResolvedDataRef_CAS copyWith(void Function(ResolvedDataRef_CAS) updates) => super.copyWith((message) => updates(message as ResolvedDataRef_CAS)) as ResolvedDataRef_CAS;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  ResolvedDataRef_CAS copyWith(void Function(ResolvedDataRef_CAS) updates) =>
+      super.copyWith((message) => updates(message as ResolvedDataRef_CAS)) as ResolvedDataRef_CAS;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -1477,7 +1645,8 @@ class ResolvedDataRef_CAS extends $pb.GeneratedMessage {
   ResolvedDataRef_CAS createEmptyInstance() => create();
   static $pb.PbList<ResolvedDataRef_CAS> createRepeated() => $pb.PbList<ResolvedDataRef_CAS>();
   @$core.pragma('dart2js:noInline')
-  static ResolvedDataRef_CAS getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ResolvedDataRef_CAS>(create);
+  static ResolvedDataRef_CAS getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ResolvedDataRef_CAS>(create);
   static ResolvedDataRef_CAS? _defaultInstance;
 
   /// TODO(crbug.com/1266060): potential fields can be
@@ -1490,7 +1659,10 @@ class ResolvedDataRef_CAS extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   ResolvedDataRef_Timing get timing => $_getN(0);
   @$pb.TagNumber(1)
-  set timing(ResolvedDataRef_Timing v) { setField(1, v); }
+  set timing(ResolvedDataRef_Timing v) {
+    setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasTiming() => $_has(0);
   @$pb.TagNumber(1)
@@ -1526,28 +1698,32 @@ class ResolvedDataRef_CIPD_PkgSpec extends $pb.GeneratedMessage {
     return $result;
   }
   ResolvedDataRef_CIPD_PkgSpec._() : super();
-  factory ResolvedDataRef_CIPD_PkgSpec.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory ResolvedDataRef_CIPD_PkgSpec.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory ResolvedDataRef_CIPD_PkgSpec.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ResolvedDataRef_CIPD_PkgSpec.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ResolvedDataRef.CIPD.PkgSpec', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ResolvedDataRef.CIPD.PkgSpec',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'skipped')
     ..aOS(2, _omitFieldNames ? '' : 'package')
     ..aOS(3, _omitFieldNames ? '' : 'version')
-    ..e<$3.Trinary>(4, _omitFieldNames ? '' : 'wasCached', $pb.PbFieldType.OE, defaultOrMaker: $3.Trinary.UNSET, valueOf: $3.Trinary.valueOf, enumValues: $3.Trinary.values)
+    ..e<$3.Trinary>(4, _omitFieldNames ? '' : 'wasCached', $pb.PbFieldType.OE,
+        defaultOrMaker: $3.Trinary.UNSET, valueOf: $3.Trinary.valueOf, enumValues: $3.Trinary.values)
     ..aOM<ResolvedDataRef_Timing>(5, _omitFieldNames ? '' : 'timing', subBuilder: ResolvedDataRef_Timing.create)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ResolvedDataRef_CIPD_PkgSpec clone() => ResolvedDataRef_CIPD_PkgSpec()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  ResolvedDataRef_CIPD_PkgSpec copyWith(void Function(ResolvedDataRef_CIPD_PkgSpec) updates) => super.copyWith((message) => updates(message as ResolvedDataRef_CIPD_PkgSpec)) as ResolvedDataRef_CIPD_PkgSpec;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  ResolvedDataRef_CIPD_PkgSpec copyWith(void Function(ResolvedDataRef_CIPD_PkgSpec) updates) =>
+      super.copyWith((message) => updates(message as ResolvedDataRef_CIPD_PkgSpec)) as ResolvedDataRef_CIPD_PkgSpec;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -1556,7 +1732,8 @@ class ResolvedDataRef_CIPD_PkgSpec extends $pb.GeneratedMessage {
   ResolvedDataRef_CIPD_PkgSpec createEmptyInstance() => create();
   static $pb.PbList<ResolvedDataRef_CIPD_PkgSpec> createRepeated() => $pb.PbList<ResolvedDataRef_CIPD_PkgSpec>();
   @$core.pragma('dart2js:noInline')
-  static ResolvedDataRef_CIPD_PkgSpec getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ResolvedDataRef_CIPD_PkgSpec>(create);
+  static ResolvedDataRef_CIPD_PkgSpec getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ResolvedDataRef_CIPD_PkgSpec>(create);
   static ResolvedDataRef_CIPD_PkgSpec? _defaultInstance;
 
   /// True if this package wasn't installed because `package` contained a
@@ -1564,7 +1741,10 @@ class ResolvedDataRef_CIPD_PkgSpec extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.bool get skipped => $_getBF(0);
   @$pb.TagNumber(1)
-  set skipped($core.bool v) { $_setBool(0, v); }
+  set skipped($core.bool v) {
+    $_setBool(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasSkipped() => $_has(0);
   @$pb.TagNumber(1)
@@ -1573,7 +1753,10 @@ class ResolvedDataRef_CIPD_PkgSpec extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get package => $_getSZ(1);
   @$pb.TagNumber(2)
-  set package($core.String v) { $_setString(1, v); }
+  set package($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasPackage() => $_has(1);
   @$pb.TagNumber(2)
@@ -1582,7 +1765,10 @@ class ResolvedDataRef_CIPD_PkgSpec extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.String get version => $_getSZ(2);
   @$pb.TagNumber(3)
-  set version($core.String v) { $_setString(2, v); }
+  set version($core.String v) {
+    $_setString(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasVersion() => $_has(2);
   @$pb.TagNumber(3)
@@ -1591,7 +1777,10 @@ class ResolvedDataRef_CIPD_PkgSpec extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $3.Trinary get wasCached => $_getN(3);
   @$pb.TagNumber(4)
-  set wasCached($3.Trinary v) { setField(4, v); }
+  set wasCached($3.Trinary v) {
+    setField(4, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasWasCached() => $_has(3);
   @$pb.TagNumber(4)
@@ -1600,7 +1789,10 @@ class ResolvedDataRef_CIPD_PkgSpec extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   ResolvedDataRef_Timing get timing => $_getN(4);
   @$pb.TagNumber(5)
-  set timing(ResolvedDataRef_Timing v) { setField(5, v); }
+  set timing(ResolvedDataRef_Timing v) {
+    setField(5, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasTiming() => $_has(4);
   @$pb.TagNumber(5)
@@ -1620,24 +1812,27 @@ class ResolvedDataRef_CIPD extends $pb.GeneratedMessage {
     return $result;
   }
   ResolvedDataRef_CIPD._() : super();
-  factory ResolvedDataRef_CIPD.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory ResolvedDataRef_CIPD.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory ResolvedDataRef_CIPD.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ResolvedDataRef_CIPD.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ResolvedDataRef.CIPD', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
-    ..pc<ResolvedDataRef_CIPD_PkgSpec>(2, _omitFieldNames ? '' : 'specs', $pb.PbFieldType.PM, subBuilder: ResolvedDataRef_CIPD_PkgSpec.create)
-    ..hasRequiredFields = false
-  ;
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ResolvedDataRef.CIPD',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+    ..pc<ResolvedDataRef_CIPD_PkgSpec>(2, _omitFieldNames ? '' : 'specs', $pb.PbFieldType.PM,
+        subBuilder: ResolvedDataRef_CIPD_PkgSpec.create)
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ResolvedDataRef_CIPD clone() => ResolvedDataRef_CIPD()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  ResolvedDataRef_CIPD copyWith(void Function(ResolvedDataRef_CIPD) updates) => super.copyWith((message) => updates(message as ResolvedDataRef_CIPD)) as ResolvedDataRef_CIPD;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  ResolvedDataRef_CIPD copyWith(void Function(ResolvedDataRef_CIPD) updates) =>
+      super.copyWith((message) => updates(message as ResolvedDataRef_CIPD)) as ResolvedDataRef_CIPD;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -1646,18 +1841,15 @@ class ResolvedDataRef_CIPD extends $pb.GeneratedMessage {
   ResolvedDataRef_CIPD createEmptyInstance() => create();
   static $pb.PbList<ResolvedDataRef_CIPD> createRepeated() => $pb.PbList<ResolvedDataRef_CIPD>();
   @$core.pragma('dart2js:noInline')
-  static ResolvedDataRef_CIPD getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ResolvedDataRef_CIPD>(create);
+  static ResolvedDataRef_CIPD getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ResolvedDataRef_CIPD>(create);
   static ResolvedDataRef_CIPD? _defaultInstance;
 
   @$pb.TagNumber(2)
   $core.List<ResolvedDataRef_CIPD_PkgSpec> get specs => $_getList(0);
 }
 
-enum ResolvedDataRef_DataType {
-  cas, 
-  cipd, 
-  notSet
-}
+enum ResolvedDataRef_DataType { cas, cipd, notSet }
 
 class ResolvedDataRef extends $pb.GeneratedMessage {
   factory ResolvedDataRef({
@@ -1674,31 +1866,33 @@ class ResolvedDataRef extends $pb.GeneratedMessage {
     return $result;
   }
   ResolvedDataRef._() : super();
-  factory ResolvedDataRef.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory ResolvedDataRef.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory ResolvedDataRef.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ResolvedDataRef.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static const $core.Map<$core.int, ResolvedDataRef_DataType> _ResolvedDataRef_DataTypeByTag = {
-    1 : ResolvedDataRef_DataType.cas,
-    2 : ResolvedDataRef_DataType.cipd,
-    0 : ResolvedDataRef_DataType.notSet
+    1: ResolvedDataRef_DataType.cas,
+    2: ResolvedDataRef_DataType.cipd,
+    0: ResolvedDataRef_DataType.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ResolvedDataRef', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ResolvedDataRef',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..oo(0, [1, 2])
     ..aOM<ResolvedDataRef_CAS>(1, _omitFieldNames ? '' : 'cas', subBuilder: ResolvedDataRef_CAS.create)
     ..aOM<ResolvedDataRef_CIPD>(2, _omitFieldNames ? '' : 'cipd', subBuilder: ResolvedDataRef_CIPD.create)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ResolvedDataRef clone() => ResolvedDataRef()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  ResolvedDataRef copyWith(void Function(ResolvedDataRef) updates) => super.copyWith((message) => updates(message as ResolvedDataRef)) as ResolvedDataRef;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  ResolvedDataRef copyWith(void Function(ResolvedDataRef) updates) =>
+      super.copyWith((message) => updates(message as ResolvedDataRef)) as ResolvedDataRef;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -1707,7 +1901,8 @@ class ResolvedDataRef extends $pb.GeneratedMessage {
   ResolvedDataRef createEmptyInstance() => create();
   static $pb.PbList<ResolvedDataRef> createRepeated() => $pb.PbList<ResolvedDataRef>();
   @$core.pragma('dart2js:noInline')
-  static ResolvedDataRef getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ResolvedDataRef>(create);
+  static ResolvedDataRef getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ResolvedDataRef>(create);
   static ResolvedDataRef? _defaultInstance;
 
   ResolvedDataRef_DataType whichDataType() => _ResolvedDataRef_DataTypeByTag[$_whichOneof(0)]!;
@@ -1716,7 +1911,10 @@ class ResolvedDataRef extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   ResolvedDataRef_CAS get cas => $_getN(0);
   @$pb.TagNumber(1)
-  set cas(ResolvedDataRef_CAS v) { setField(1, v); }
+  set cas(ResolvedDataRef_CAS v) {
+    setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasCas() => $_has(0);
   @$pb.TagNumber(1)
@@ -1727,7 +1925,10 @@ class ResolvedDataRef extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   ResolvedDataRef_CIPD get cipd => $_getN(1);
   @$pb.TagNumber(2)
-  set cipd(ResolvedDataRef_CIPD v) { setField(2, v); }
+  set cipd(ResolvedDataRef_CIPD v) {
+    setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasCipd() => $_has(1);
   @$pb.TagNumber(2)
@@ -1759,36 +1960,47 @@ class BuildInfra_Buildbucket_Agent_Source_CIPD extends $pb.GeneratedMessage {
     return $result;
   }
   BuildInfra_Buildbucket_Agent_Source_CIPD._() : super();
-  factory BuildInfra_Buildbucket_Agent_Source_CIPD.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildInfra_Buildbucket_Agent_Source_CIPD.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildInfra_Buildbucket_Agent_Source_CIPD.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildInfra_Buildbucket_Agent_Source_CIPD.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Buildbucket.Agent.Source.CIPD', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Buildbucket.Agent.Source.CIPD',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'package')
     ..aOS(2, _omitFieldNames ? '' : 'version')
     ..aOS(3, _omitFieldNames ? '' : 'server')
-    ..m<$core.String, $core.String>(4, _omitFieldNames ? '' : 'resolvedInstances', entryClassName: 'BuildInfra.Buildbucket.Agent.Source.CIPD.ResolvedInstancesEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OS, packageName: const $pb.PackageName('buildbucket.v2'))
-    ..hasRequiredFields = false
-  ;
+    ..m<$core.String, $core.String>(4, _omitFieldNames ? '' : 'resolvedInstances',
+        entryClassName: 'BuildInfra.Buildbucket.Agent.Source.CIPD.ResolvedInstancesEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OS,
+        packageName: const $pb.PackageName('buildbucket.v2'))
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
-  BuildInfra_Buildbucket_Agent_Source_CIPD clone() => BuildInfra_Buildbucket_Agent_Source_CIPD()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildInfra_Buildbucket_Agent_Source_CIPD copyWith(void Function(BuildInfra_Buildbucket_Agent_Source_CIPD) updates) => super.copyWith((message) => updates(message as BuildInfra_Buildbucket_Agent_Source_CIPD)) as BuildInfra_Buildbucket_Agent_Source_CIPD;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  BuildInfra_Buildbucket_Agent_Source_CIPD clone() =>
+      BuildInfra_Buildbucket_Agent_Source_CIPD()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildInfra_Buildbucket_Agent_Source_CIPD copyWith(void Function(BuildInfra_Buildbucket_Agent_Source_CIPD) updates) =>
+      super.copyWith((message) => updates(message as BuildInfra_Buildbucket_Agent_Source_CIPD))
+          as BuildInfra_Buildbucket_Agent_Source_CIPD;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static BuildInfra_Buildbucket_Agent_Source_CIPD create() => BuildInfra_Buildbucket_Agent_Source_CIPD._();
   BuildInfra_Buildbucket_Agent_Source_CIPD createEmptyInstance() => create();
-  static $pb.PbList<BuildInfra_Buildbucket_Agent_Source_CIPD> createRepeated() => $pb.PbList<BuildInfra_Buildbucket_Agent_Source_CIPD>();
+  static $pb.PbList<BuildInfra_Buildbucket_Agent_Source_CIPD> createRepeated() =>
+      $pb.PbList<BuildInfra_Buildbucket_Agent_Source_CIPD>();
   @$core.pragma('dart2js:noInline')
-  static BuildInfra_Buildbucket_Agent_Source_CIPD getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Buildbucket_Agent_Source_CIPD>(create);
+  static BuildInfra_Buildbucket_Agent_Source_CIPD getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Buildbucket_Agent_Source_CIPD>(create);
   static BuildInfra_Buildbucket_Agent_Source_CIPD? _defaultInstance;
 
   ///  The CIPD package to use for the agent.
@@ -1801,7 +2013,10 @@ class BuildInfra_Buildbucket_Agent_Source_CIPD extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get package => $_getSZ(0);
   @$pb.TagNumber(1)
-  set package($core.String v) { $_setString(0, v); }
+  set package($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasPackage() => $_has(0);
   @$pb.TagNumber(1)
@@ -1811,7 +2026,10 @@ class BuildInfra_Buildbucket_Agent_Source_CIPD extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get version => $_getSZ(1);
   @$pb.TagNumber(2)
-  set version($core.String v) { $_setString(1, v); }
+  set version($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasVersion() => $_has(1);
   @$pb.TagNumber(2)
@@ -1821,7 +2039,10 @@ class BuildInfra_Buildbucket_Agent_Source_CIPD extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.String get server => $_getSZ(2);
   @$pb.TagNumber(3)
-  set server($core.String v) { $_setString(2, v); }
+  set server($core.String v) {
+    $_setString(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasServer() => $_has(2);
   @$pb.TagNumber(3)
@@ -1835,10 +2056,7 @@ class BuildInfra_Buildbucket_Agent_Source_CIPD extends $pb.GeneratedMessage {
   $core.Map<$core.String, $core.String> get resolvedInstances => $_getMap(3);
 }
 
-enum BuildInfra_Buildbucket_Agent_Source_DataType {
-  cipd, 
-  notSet
-}
+enum BuildInfra_Buildbucket_Agent_Source_DataType { cipd, notSet }
 
 /// Source describes where the Agent should be fetched from.
 class BuildInfra_Buildbucket_Agent_Source extends $pb.GeneratedMessage {
@@ -1852,47 +2070,59 @@ class BuildInfra_Buildbucket_Agent_Source extends $pb.GeneratedMessage {
     return $result;
   }
   BuildInfra_Buildbucket_Agent_Source._() : super();
-  factory BuildInfra_Buildbucket_Agent_Source.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildInfra_Buildbucket_Agent_Source.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildInfra_Buildbucket_Agent_Source.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildInfra_Buildbucket_Agent_Source.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static const $core.Map<$core.int, BuildInfra_Buildbucket_Agent_Source_DataType> _BuildInfra_Buildbucket_Agent_Source_DataTypeByTag = {
-    1 : BuildInfra_Buildbucket_Agent_Source_DataType.cipd,
-    0 : BuildInfra_Buildbucket_Agent_Source_DataType.notSet
+  static const $core.Map<$core.int, BuildInfra_Buildbucket_Agent_Source_DataType>
+      _BuildInfra_Buildbucket_Agent_Source_DataTypeByTag = {
+    1: BuildInfra_Buildbucket_Agent_Source_DataType.cipd,
+    0: BuildInfra_Buildbucket_Agent_Source_DataType.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Buildbucket.Agent.Source', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Buildbucket.Agent.Source',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..oo(0, [1])
-    ..aOM<BuildInfra_Buildbucket_Agent_Source_CIPD>(1, _omitFieldNames ? '' : 'cipd', subBuilder: BuildInfra_Buildbucket_Agent_Source_CIPD.create)
-    ..hasRequiredFields = false
-  ;
+    ..aOM<BuildInfra_Buildbucket_Agent_Source_CIPD>(1, _omitFieldNames ? '' : 'cipd',
+        subBuilder: BuildInfra_Buildbucket_Agent_Source_CIPD.create)
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildInfra_Buildbucket_Agent_Source clone() => BuildInfra_Buildbucket_Agent_Source()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildInfra_Buildbucket_Agent_Source copyWith(void Function(BuildInfra_Buildbucket_Agent_Source) updates) => super.copyWith((message) => updates(message as BuildInfra_Buildbucket_Agent_Source)) as BuildInfra_Buildbucket_Agent_Source;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildInfra_Buildbucket_Agent_Source copyWith(void Function(BuildInfra_Buildbucket_Agent_Source) updates) =>
+      super.copyWith((message) => updates(message as BuildInfra_Buildbucket_Agent_Source))
+          as BuildInfra_Buildbucket_Agent_Source;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static BuildInfra_Buildbucket_Agent_Source create() => BuildInfra_Buildbucket_Agent_Source._();
   BuildInfra_Buildbucket_Agent_Source createEmptyInstance() => create();
-  static $pb.PbList<BuildInfra_Buildbucket_Agent_Source> createRepeated() => $pb.PbList<BuildInfra_Buildbucket_Agent_Source>();
+  static $pb.PbList<BuildInfra_Buildbucket_Agent_Source> createRepeated() =>
+      $pb.PbList<BuildInfra_Buildbucket_Agent_Source>();
   @$core.pragma('dart2js:noInline')
-  static BuildInfra_Buildbucket_Agent_Source getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Buildbucket_Agent_Source>(create);
+  static BuildInfra_Buildbucket_Agent_Source getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Buildbucket_Agent_Source>(create);
   static BuildInfra_Buildbucket_Agent_Source? _defaultInstance;
 
-  BuildInfra_Buildbucket_Agent_Source_DataType whichDataType() => _BuildInfra_Buildbucket_Agent_Source_DataTypeByTag[$_whichOneof(0)]!;
+  BuildInfra_Buildbucket_Agent_Source_DataType whichDataType() =>
+      _BuildInfra_Buildbucket_Agent_Source_DataTypeByTag[$_whichOneof(0)]!;
   void clearDataType() => clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
   BuildInfra_Buildbucket_Agent_Source_CIPD get cipd => $_getN(0);
   @$pb.TagNumber(1)
-  set cipd(BuildInfra_Buildbucket_Agent_Source_CIPD v) { setField(1, v); }
+  set cipd(BuildInfra_Buildbucket_Agent_Source_CIPD v) {
+    setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasCipd() => $_has(0);
   @$pb.TagNumber(1)
@@ -1916,34 +2146,52 @@ class BuildInfra_Buildbucket_Agent_Input extends $pb.GeneratedMessage {
     return $result;
   }
   BuildInfra_Buildbucket_Agent_Input._() : super();
-  factory BuildInfra_Buildbucket_Agent_Input.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildInfra_Buildbucket_Agent_Input.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildInfra_Buildbucket_Agent_Input.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildInfra_Buildbucket_Agent_Input.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Buildbucket.Agent.Input', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
-    ..m<$core.String, InputDataRef>(1, _omitFieldNames ? '' : 'data', entryClassName: 'BuildInfra.Buildbucket.Agent.Input.DataEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OM, valueCreator: InputDataRef.create, valueDefaultOrMaker: InputDataRef.getDefault, packageName: const $pb.PackageName('buildbucket.v2'))
-    ..m<$core.String, InputDataRef>(2, _omitFieldNames ? '' : 'cipdSource', entryClassName: 'BuildInfra.Buildbucket.Agent.Input.CipdSourceEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OM, valueCreator: InputDataRef.create, valueDefaultOrMaker: InputDataRef.getDefault, packageName: const $pb.PackageName('buildbucket.v2'))
-    ..hasRequiredFields = false
-  ;
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Buildbucket.Agent.Input',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+    ..m<$core.String, InputDataRef>(1, _omitFieldNames ? '' : 'data',
+        entryClassName: 'BuildInfra.Buildbucket.Agent.Input.DataEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OM,
+        valueCreator: InputDataRef.create,
+        valueDefaultOrMaker: InputDataRef.getDefault,
+        packageName: const $pb.PackageName('buildbucket.v2'))
+    ..m<$core.String, InputDataRef>(2, _omitFieldNames ? '' : 'cipdSource',
+        entryClassName: 'BuildInfra.Buildbucket.Agent.Input.CipdSourceEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OM,
+        valueCreator: InputDataRef.create,
+        valueDefaultOrMaker: InputDataRef.getDefault,
+        packageName: const $pb.PackageName('buildbucket.v2'))
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildInfra_Buildbucket_Agent_Input clone() => BuildInfra_Buildbucket_Agent_Input()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildInfra_Buildbucket_Agent_Input copyWith(void Function(BuildInfra_Buildbucket_Agent_Input) updates) => super.copyWith((message) => updates(message as BuildInfra_Buildbucket_Agent_Input)) as BuildInfra_Buildbucket_Agent_Input;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildInfra_Buildbucket_Agent_Input copyWith(void Function(BuildInfra_Buildbucket_Agent_Input) updates) =>
+      super.copyWith((message) => updates(message as BuildInfra_Buildbucket_Agent_Input))
+          as BuildInfra_Buildbucket_Agent_Input;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static BuildInfra_Buildbucket_Agent_Input create() => BuildInfra_Buildbucket_Agent_Input._();
   BuildInfra_Buildbucket_Agent_Input createEmptyInstance() => create();
-  static $pb.PbList<BuildInfra_Buildbucket_Agent_Input> createRepeated() => $pb.PbList<BuildInfra_Buildbucket_Agent_Input>();
+  static $pb.PbList<BuildInfra_Buildbucket_Agent_Input> createRepeated() =>
+      $pb.PbList<BuildInfra_Buildbucket_Agent_Input>();
   @$core.pragma('dart2js:noInline')
-  static BuildInfra_Buildbucket_Agent_Input getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Buildbucket_Agent_Input>(create);
+  static BuildInfra_Buildbucket_Agent_Input getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Buildbucket_Agent_Input>(create);
   static BuildInfra_Buildbucket_Agent_Input? _defaultInstance;
 
   ///  Maps relative-to-root directory to the data.
@@ -1969,8 +2217,7 @@ class BuildInfra_Buildbucket_Agent_Output extends $pb.GeneratedMessage {
     $core.Map<$core.String, ResolvedDataRef>? resolvedData,
     $3.Status? status,
     $3.StatusDetails? statusDetails,
-  @$core.Deprecated('This field is deprecated.')
-    $core.String? summaryHtml,
+    @$core.Deprecated('This field is deprecated.') $core.String? summaryHtml,
     $core.String? agentPlatform,
     $4.Duration? totalDuration,
     $core.String? summaryMarkdown,
@@ -2001,39 +2248,52 @@ class BuildInfra_Buildbucket_Agent_Output extends $pb.GeneratedMessage {
     return $result;
   }
   BuildInfra_Buildbucket_Agent_Output._() : super();
-  factory BuildInfra_Buildbucket_Agent_Output.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildInfra_Buildbucket_Agent_Output.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildInfra_Buildbucket_Agent_Output.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildInfra_Buildbucket_Agent_Output.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Buildbucket.Agent.Output', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
-    ..m<$core.String, ResolvedDataRef>(1, _omitFieldNames ? '' : 'resolvedData', entryClassName: 'BuildInfra.Buildbucket.Agent.Output.ResolvedDataEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OM, valueCreator: ResolvedDataRef.create, valueDefaultOrMaker: ResolvedDataRef.getDefault, packageName: const $pb.PackageName('buildbucket.v2'))
-    ..e<$3.Status>(2, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE, defaultOrMaker: $3.Status.STATUS_UNSPECIFIED, valueOf: $3.Status.valueOf, enumValues: $3.Status.values)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Buildbucket.Agent.Output',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+    ..m<$core.String, ResolvedDataRef>(1, _omitFieldNames ? '' : 'resolvedData',
+        entryClassName: 'BuildInfra.Buildbucket.Agent.Output.ResolvedDataEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OM,
+        valueCreator: ResolvedDataRef.create,
+        valueDefaultOrMaker: ResolvedDataRef.getDefault,
+        packageName: const $pb.PackageName('buildbucket.v2'))
+    ..e<$3.Status>(2, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE,
+        defaultOrMaker: $3.Status.STATUS_UNSPECIFIED, valueOf: $3.Status.valueOf, enumValues: $3.Status.values)
     ..aOM<$3.StatusDetails>(3, _omitFieldNames ? '' : 'statusDetails', subBuilder: $3.StatusDetails.create)
     ..aOS(4, _omitFieldNames ? '' : 'summaryHtml')
     ..aOS(5, _omitFieldNames ? '' : 'agentPlatform')
     ..aOM<$4.Duration>(6, _omitFieldNames ? '' : 'totalDuration', subBuilder: $4.Duration.create)
     ..aOS(7, _omitFieldNames ? '' : 'summaryMarkdown')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildInfra_Buildbucket_Agent_Output clone() => BuildInfra_Buildbucket_Agent_Output()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildInfra_Buildbucket_Agent_Output copyWith(void Function(BuildInfra_Buildbucket_Agent_Output) updates) => super.copyWith((message) => updates(message as BuildInfra_Buildbucket_Agent_Output)) as BuildInfra_Buildbucket_Agent_Output;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildInfra_Buildbucket_Agent_Output copyWith(void Function(BuildInfra_Buildbucket_Agent_Output) updates) =>
+      super.copyWith((message) => updates(message as BuildInfra_Buildbucket_Agent_Output))
+          as BuildInfra_Buildbucket_Agent_Output;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static BuildInfra_Buildbucket_Agent_Output create() => BuildInfra_Buildbucket_Agent_Output._();
   BuildInfra_Buildbucket_Agent_Output createEmptyInstance() => create();
-  static $pb.PbList<BuildInfra_Buildbucket_Agent_Output> createRepeated() => $pb.PbList<BuildInfra_Buildbucket_Agent_Output>();
+  static $pb.PbList<BuildInfra_Buildbucket_Agent_Output> createRepeated() =>
+      $pb.PbList<BuildInfra_Buildbucket_Agent_Output>();
   @$core.pragma('dart2js:noInline')
-  static BuildInfra_Buildbucket_Agent_Output getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Buildbucket_Agent_Output>(create);
+  static BuildInfra_Buildbucket_Agent_Output getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Buildbucket_Agent_Output>(create);
   static BuildInfra_Buildbucket_Agent_Output? _defaultInstance;
 
   ///  Maps relative-to-root directory to the fully-resolved ref.
@@ -2045,7 +2305,10 @@ class BuildInfra_Buildbucket_Agent_Output extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $3.Status get status => $_getN(1);
   @$pb.TagNumber(2)
-  set status($3.Status v) { setField(2, v); }
+  set status($3.Status v) {
+    setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasStatus() => $_has(1);
   @$pb.TagNumber(2)
@@ -2054,7 +2317,10 @@ class BuildInfra_Buildbucket_Agent_Output extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $3.StatusDetails get statusDetails => $_getN(2);
   @$pb.TagNumber(3)
-  set statusDetails($3.StatusDetails v) { setField(3, v); }
+  set statusDetails($3.StatusDetails v) {
+    setField(3, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasStatusDetails() => $_has(2);
   @$pb.TagNumber(3)
@@ -2068,7 +2334,10 @@ class BuildInfra_Buildbucket_Agent_Output extends $pb.GeneratedMessage {
   $core.String get summaryHtml => $_getSZ(3);
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(4)
-  set summaryHtml($core.String v) { $_setString(3, v); }
+  set summaryHtml($core.String v) {
+    $_setString(3, v);
+  }
+
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(4)
   $core.bool hasSummaryHtml() => $_has(3);
@@ -2088,7 +2357,10 @@ class BuildInfra_Buildbucket_Agent_Output extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.String get agentPlatform => $_getSZ(4);
   @$pb.TagNumber(5)
-  set agentPlatform($core.String v) { $_setString(4, v); }
+  set agentPlatform($core.String v) {
+    $_setString(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasAgentPlatform() => $_has(4);
   @$pb.TagNumber(5)
@@ -2099,7 +2371,10 @@ class BuildInfra_Buildbucket_Agent_Output extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $4.Duration get totalDuration => $_getN(5);
   @$pb.TagNumber(6)
-  set totalDuration($4.Duration v) { setField(6, v); }
+  set totalDuration($4.Duration v) {
+    setField(6, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasTotalDuration() => $_has(5);
   @$pb.TagNumber(6)
@@ -2110,7 +2385,10 @@ class BuildInfra_Buildbucket_Agent_Output extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $core.String get summaryMarkdown => $_getSZ(6);
   @$pb.TagNumber(7)
-  set summaryMarkdown($core.String v) { $_setString(6, v); }
+  set summaryMarkdown($core.String v) {
+    $_setString(6, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasSummaryMarkdown() => $_has(6);
   @$pb.TagNumber(7)
@@ -2149,29 +2427,43 @@ class BuildInfra_Buildbucket_Agent extends $pb.GeneratedMessage {
     return $result;
   }
   BuildInfra_Buildbucket_Agent._() : super();
-  factory BuildInfra_Buildbucket_Agent.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildInfra_Buildbucket_Agent.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildInfra_Buildbucket_Agent.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildInfra_Buildbucket_Agent.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Buildbucket.Agent', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
-    ..aOM<BuildInfra_Buildbucket_Agent_Input>(1, _omitFieldNames ? '' : 'input', subBuilder: BuildInfra_Buildbucket_Agent_Input.create)
-    ..aOM<BuildInfra_Buildbucket_Agent_Output>(2, _omitFieldNames ? '' : 'output', subBuilder: BuildInfra_Buildbucket_Agent_Output.create)
-    ..aOM<BuildInfra_Buildbucket_Agent_Source>(3, _omitFieldNames ? '' : 'source', subBuilder: BuildInfra_Buildbucket_Agent_Source.create)
-    ..m<$core.String, BuildInfra_Buildbucket_Agent_Purpose>(4, _omitFieldNames ? '' : 'purposes', entryClassName: 'BuildInfra.Buildbucket.Agent.PurposesEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OE, valueOf: BuildInfra_Buildbucket_Agent_Purpose.valueOf, enumValues: BuildInfra_Buildbucket_Agent_Purpose.values, valueDefaultOrMaker: BuildInfra_Buildbucket_Agent_Purpose.PURPOSE_UNSPECIFIED, defaultEnumValue: BuildInfra_Buildbucket_Agent_Purpose.PURPOSE_UNSPECIFIED, packageName: const $pb.PackageName('buildbucket.v2'))
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Buildbucket.Agent',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+    ..aOM<BuildInfra_Buildbucket_Agent_Input>(1, _omitFieldNames ? '' : 'input',
+        subBuilder: BuildInfra_Buildbucket_Agent_Input.create)
+    ..aOM<BuildInfra_Buildbucket_Agent_Output>(2, _omitFieldNames ? '' : 'output',
+        subBuilder: BuildInfra_Buildbucket_Agent_Output.create)
+    ..aOM<BuildInfra_Buildbucket_Agent_Source>(3, _omitFieldNames ? '' : 'source',
+        subBuilder: BuildInfra_Buildbucket_Agent_Source.create)
+    ..m<$core.String, BuildInfra_Buildbucket_Agent_Purpose>(4, _omitFieldNames ? '' : 'purposes',
+        entryClassName: 'BuildInfra.Buildbucket.Agent.PurposesEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OE,
+        valueOf: BuildInfra_Buildbucket_Agent_Purpose.valueOf,
+        enumValues: BuildInfra_Buildbucket_Agent_Purpose.values,
+        valueDefaultOrMaker: BuildInfra_Buildbucket_Agent_Purpose.PURPOSE_UNSPECIFIED,
+        defaultEnumValue: BuildInfra_Buildbucket_Agent_Purpose.PURPOSE_UNSPECIFIED,
+        packageName: const $pb.PackageName('buildbucket.v2'))
     ..aOM<$3.CacheEntry>(5, _omitFieldNames ? '' : 'cipdClientCache', subBuilder: $3.CacheEntry.create)
     ..aOM<$3.CacheEntry>(6, _omitFieldNames ? '' : 'cipdPackagesCache', subBuilder: $3.CacheEntry.create)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildInfra_Buildbucket_Agent clone() => BuildInfra_Buildbucket_Agent()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildInfra_Buildbucket_Agent copyWith(void Function(BuildInfra_Buildbucket_Agent) updates) => super.copyWith((message) => updates(message as BuildInfra_Buildbucket_Agent)) as BuildInfra_Buildbucket_Agent;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildInfra_Buildbucket_Agent copyWith(void Function(BuildInfra_Buildbucket_Agent) updates) =>
+      super.copyWith((message) => updates(message as BuildInfra_Buildbucket_Agent)) as BuildInfra_Buildbucket_Agent;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -2180,7 +2472,8 @@ class BuildInfra_Buildbucket_Agent extends $pb.GeneratedMessage {
   BuildInfra_Buildbucket_Agent createEmptyInstance() => create();
   static $pb.PbList<BuildInfra_Buildbucket_Agent> createRepeated() => $pb.PbList<BuildInfra_Buildbucket_Agent>();
   @$core.pragma('dart2js:noInline')
-  static BuildInfra_Buildbucket_Agent getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Buildbucket_Agent>(create);
+  static BuildInfra_Buildbucket_Agent getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Buildbucket_Agent>(create);
   static BuildInfra_Buildbucket_Agent? _defaultInstance;
 
   /// TODO(crbug.com/1297809): for a long-term solution, we may need to add
@@ -2194,7 +2487,10 @@ class BuildInfra_Buildbucket_Agent extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   BuildInfra_Buildbucket_Agent_Input get input => $_getN(0);
   @$pb.TagNumber(1)
-  set input(BuildInfra_Buildbucket_Agent_Input v) { setField(1, v); }
+  set input(BuildInfra_Buildbucket_Agent_Input v) {
+    setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasInput() => $_has(0);
   @$pb.TagNumber(1)
@@ -2205,7 +2501,10 @@ class BuildInfra_Buildbucket_Agent extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   BuildInfra_Buildbucket_Agent_Output get output => $_getN(1);
   @$pb.TagNumber(2)
-  set output(BuildInfra_Buildbucket_Agent_Output v) { setField(2, v); }
+  set output(BuildInfra_Buildbucket_Agent_Output v) {
+    setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasOutput() => $_has(1);
   @$pb.TagNumber(2)
@@ -2216,7 +2515,10 @@ class BuildInfra_Buildbucket_Agent extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   BuildInfra_Buildbucket_Agent_Source get source => $_getN(2);
   @$pb.TagNumber(3)
-  set source(BuildInfra_Buildbucket_Agent_Source v) { setField(3, v); }
+  set source(BuildInfra_Buildbucket_Agent_Source v) {
+    setField(3, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasSource() => $_has(2);
   @$pb.TagNumber(3)
@@ -2236,7 +2538,10 @@ class BuildInfra_Buildbucket_Agent extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $3.CacheEntry get cipdClientCache => $_getN(4);
   @$pb.TagNumber(5)
-  set cipdClientCache($3.CacheEntry v) { setField(5, v); }
+  set cipdClientCache($3.CacheEntry v) {
+    setField(5, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasCipdClientCache() => $_has(4);
   @$pb.TagNumber(5)
@@ -2249,7 +2554,10 @@ class BuildInfra_Buildbucket_Agent extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $3.CacheEntry get cipdPackagesCache => $_getN(5);
   @$pb.TagNumber(6)
-  set cipdPackagesCache($3.CacheEntry v) { setField(6, v); }
+  set cipdPackagesCache($3.CacheEntry v) {
+    setField(6, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasCipdPackagesCache() => $_has(5);
   @$pb.TagNumber(6)
@@ -2266,8 +2574,7 @@ class BuildInfra_Buildbucket extends $pb.GeneratedMessage {
     $core.Iterable<$3.RequestedDimension>? requestedDimensions,
     $core.String? hostname,
     $core.Map<$core.String, BuildInfra_Buildbucket_ExperimentReason>? experimentReasons,
-  @$core.Deprecated('This field is deprecated.')
-    $core.Map<$core.String, ResolvedDataRef>? agentExecutable,
+    @$core.Deprecated('This field is deprecated.') $core.Map<$core.String, ResolvedDataRef>? agentExecutable,
     BuildInfra_Buildbucket_Agent? agent,
     $core.Iterable<$core.String>? knownPublicGerritHosts,
     $core.bool? buildNumber,
@@ -2304,32 +2611,50 @@ class BuildInfra_Buildbucket extends $pb.GeneratedMessage {
     return $result;
   }
   BuildInfra_Buildbucket._() : super();
-  factory BuildInfra_Buildbucket.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildInfra_Buildbucket.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildInfra_Buildbucket.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildInfra_Buildbucket.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Buildbucket', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Buildbucket',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(2, _omitFieldNames ? '' : 'serviceConfigRevision')
     ..aOM<$5.Struct>(5, _omitFieldNames ? '' : 'requestedProperties', subBuilder: $5.Struct.create)
-    ..pc<$3.RequestedDimension>(6, _omitFieldNames ? '' : 'requestedDimensions', $pb.PbFieldType.PM, subBuilder: $3.RequestedDimension.create)
+    ..pc<$3.RequestedDimension>(6, _omitFieldNames ? '' : 'requestedDimensions', $pb.PbFieldType.PM,
+        subBuilder: $3.RequestedDimension.create)
     ..aOS(7, _omitFieldNames ? '' : 'hostname')
-    ..m<$core.String, BuildInfra_Buildbucket_ExperimentReason>(8, _omitFieldNames ? '' : 'experimentReasons', entryClassName: 'BuildInfra.Buildbucket.ExperimentReasonsEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OE, valueOf: BuildInfra_Buildbucket_ExperimentReason.valueOf, enumValues: BuildInfra_Buildbucket_ExperimentReason.values, valueDefaultOrMaker: BuildInfra_Buildbucket_ExperimentReason.EXPERIMENT_REASON_UNSET, defaultEnumValue: BuildInfra_Buildbucket_ExperimentReason.EXPERIMENT_REASON_UNSET, packageName: const $pb.PackageName('buildbucket.v2'))
-    ..m<$core.String, ResolvedDataRef>(9, _omitFieldNames ? '' : 'agentExecutable', entryClassName: 'BuildInfra.Buildbucket.AgentExecutableEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OM, valueCreator: ResolvedDataRef.create, valueDefaultOrMaker: ResolvedDataRef.getDefault, packageName: const $pb.PackageName('buildbucket.v2'))
-    ..aOM<BuildInfra_Buildbucket_Agent>(10, _omitFieldNames ? '' : 'agent', subBuilder: BuildInfra_Buildbucket_Agent.create)
+    ..m<$core.String, BuildInfra_Buildbucket_ExperimentReason>(8, _omitFieldNames ? '' : 'experimentReasons',
+        entryClassName: 'BuildInfra.Buildbucket.ExperimentReasonsEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OE,
+        valueOf: BuildInfra_Buildbucket_ExperimentReason.valueOf,
+        enumValues: BuildInfra_Buildbucket_ExperimentReason.values,
+        valueDefaultOrMaker: BuildInfra_Buildbucket_ExperimentReason.EXPERIMENT_REASON_UNSET,
+        defaultEnumValue: BuildInfra_Buildbucket_ExperimentReason.EXPERIMENT_REASON_UNSET,
+        packageName: const $pb.PackageName('buildbucket.v2'))
+    ..m<$core.String, ResolvedDataRef>(9, _omitFieldNames ? '' : 'agentExecutable',
+        entryClassName: 'BuildInfra.Buildbucket.AgentExecutableEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OM,
+        valueCreator: ResolvedDataRef.create,
+        valueDefaultOrMaker: ResolvedDataRef.getDefault,
+        packageName: const $pb.PackageName('buildbucket.v2'))
+    ..aOM<BuildInfra_Buildbucket_Agent>(10, _omitFieldNames ? '' : 'agent',
+        subBuilder: BuildInfra_Buildbucket_Agent.create)
     ..pPS(11, _omitFieldNames ? '' : 'knownPublicGerritHosts')
     ..aOB(12, _omitFieldNames ? '' : 'buildNumber')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildInfra_Buildbucket clone() => BuildInfra_Buildbucket()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildInfra_Buildbucket copyWith(void Function(BuildInfra_Buildbucket) updates) => super.copyWith((message) => updates(message as BuildInfra_Buildbucket)) as BuildInfra_Buildbucket;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildInfra_Buildbucket copyWith(void Function(BuildInfra_Buildbucket) updates) =>
+      super.copyWith((message) => updates(message as BuildInfra_Buildbucket)) as BuildInfra_Buildbucket;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -2338,7 +2663,8 @@ class BuildInfra_Buildbucket extends $pb.GeneratedMessage {
   BuildInfra_Buildbucket createEmptyInstance() => create();
   static $pb.PbList<BuildInfra_Buildbucket> createRepeated() => $pb.PbList<BuildInfra_Buildbucket>();
   @$core.pragma('dart2js:noInline')
-  static BuildInfra_Buildbucket getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Buildbucket>(create);
+  static BuildInfra_Buildbucket getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Buildbucket>(create);
   static BuildInfra_Buildbucket? _defaultInstance;
 
   /// Version of swarming task template. Defines
@@ -2346,7 +2672,10 @@ class BuildInfra_Buildbucket extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get serviceConfigRevision => $_getSZ(0);
   @$pb.TagNumber(2)
-  set serviceConfigRevision($core.String v) { $_setString(0, v); }
+  set serviceConfigRevision($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasServiceConfigRevision() => $_has(0);
   @$pb.TagNumber(2)
@@ -2361,7 +2690,10 @@ class BuildInfra_Buildbucket extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $5.Struct get requestedProperties => $_getN(1);
   @$pb.TagNumber(5)
-  set requestedProperties($5.Struct v) { setField(5, v); }
+  set requestedProperties($5.Struct v) {
+    setField(5, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasRequestedProperties() => $_has(1);
   @$pb.TagNumber(5)
@@ -2378,7 +2710,10 @@ class BuildInfra_Buildbucket extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $core.String get hostname => $_getSZ(3);
   @$pb.TagNumber(7)
-  set hostname($core.String v) { $_setString(3, v); }
+  set hostname($core.String v) {
+    $_setString(3, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasHostname() => $_has(3);
   @$pb.TagNumber(7)
@@ -2406,7 +2741,10 @@ class BuildInfra_Buildbucket extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   BuildInfra_Buildbucket_Agent get agent => $_getN(6);
   @$pb.TagNumber(10)
-  set agent(BuildInfra_Buildbucket_Agent v) { setField(10, v); }
+  set agent(BuildInfra_Buildbucket_Agent v) {
+    setField(10, v);
+  }
+
   @$pb.TagNumber(10)
   $core.bool hasAgent() => $_has(6);
   @$pb.TagNumber(10)
@@ -2421,7 +2759,10 @@ class BuildInfra_Buildbucket extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   $core.bool get buildNumber => $_getBF(8);
   @$pb.TagNumber(12)
-  set buildNumber($core.bool v) { $_setBool(8, v); }
+  set buildNumber($core.bool v) {
+    $_setBool(8, v);
+  }
+
   @$pb.TagNumber(12)
   $core.bool hasBuildNumber() => $_has(8);
   @$pb.TagNumber(12)
@@ -2476,27 +2817,30 @@ class BuildInfra_Swarming_CacheEntry extends $pb.GeneratedMessage {
     return $result;
   }
   BuildInfra_Swarming_CacheEntry._() : super();
-  factory BuildInfra_Swarming_CacheEntry.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildInfra_Swarming_CacheEntry.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildInfra_Swarming_CacheEntry.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildInfra_Swarming_CacheEntry.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Swarming.CacheEntry', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Swarming.CacheEntry',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
     ..aOS(2, _omitFieldNames ? '' : 'path')
     ..aOM<$4.Duration>(3, _omitFieldNames ? '' : 'waitForWarmCache', subBuilder: $4.Duration.create)
     ..aOS(4, _omitFieldNames ? '' : 'envVar')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildInfra_Swarming_CacheEntry clone() => BuildInfra_Swarming_CacheEntry()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildInfra_Swarming_CacheEntry copyWith(void Function(BuildInfra_Swarming_CacheEntry) updates) => super.copyWith((message) => updates(message as BuildInfra_Swarming_CacheEntry)) as BuildInfra_Swarming_CacheEntry;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildInfra_Swarming_CacheEntry copyWith(void Function(BuildInfra_Swarming_CacheEntry) updates) =>
+      super.copyWith((message) => updates(message as BuildInfra_Swarming_CacheEntry)) as BuildInfra_Swarming_CacheEntry;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -2505,7 +2849,8 @@ class BuildInfra_Swarming_CacheEntry extends $pb.GeneratedMessage {
   BuildInfra_Swarming_CacheEntry createEmptyInstance() => create();
   static $pb.PbList<BuildInfra_Swarming_CacheEntry> createRepeated() => $pb.PbList<BuildInfra_Swarming_CacheEntry>();
   @$core.pragma('dart2js:noInline')
-  static BuildInfra_Swarming_CacheEntry getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Swarming_CacheEntry>(create);
+  static BuildInfra_Swarming_CacheEntry getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Swarming_CacheEntry>(create);
   static BuildInfra_Swarming_CacheEntry? _defaultInstance;
 
   ///  Identifier of the cache. Required. Length is limited to 128.
@@ -2518,7 +2863,10 @@ class BuildInfra_Swarming_CacheEntry extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
-  set name($core.String v) { $_setString(0, v); }
+  set name($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasName() => $_has(0);
   @$pb.TagNumber(1)
@@ -2535,7 +2883,10 @@ class BuildInfra_Swarming_CacheEntry extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get path => $_getSZ(1);
   @$pb.TagNumber(2)
-  set path($core.String v) { $_setString(1, v); }
+  set path($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasPath() => $_has(1);
   @$pb.TagNumber(2)
@@ -2555,7 +2906,10 @@ class BuildInfra_Swarming_CacheEntry extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $4.Duration get waitForWarmCache => $_getN(2);
   @$pb.TagNumber(3)
-  set waitForWarmCache($4.Duration v) { setField(3, v); }
+  set waitForWarmCache($4.Duration v) {
+    setField(3, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasWaitForWarmCache() => $_has(2);
   @$pb.TagNumber(3)
@@ -2568,7 +2922,10 @@ class BuildInfra_Swarming_CacheEntry extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.String get envVar => $_getSZ(3);
   @$pb.TagNumber(4)
-  set envVar($core.String v) { $_setString(3, v); }
+  set envVar($core.String v) {
+    $_setString(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasEnvVar() => $_has(3);
   @$pb.TagNumber(4)
@@ -2617,31 +2974,35 @@ class BuildInfra_Swarming extends $pb.GeneratedMessage {
     return $result;
   }
   BuildInfra_Swarming._() : super();
-  factory BuildInfra_Swarming.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildInfra_Swarming.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildInfra_Swarming.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildInfra_Swarming.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Swarming', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Swarming',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'hostname')
     ..aOS(2, _omitFieldNames ? '' : 'taskId')
     ..aOS(3, _omitFieldNames ? '' : 'taskServiceAccount')
     ..a<$core.int>(4, _omitFieldNames ? '' : 'priority', $pb.PbFieldType.O3)
-    ..pc<$3.RequestedDimension>(5, _omitFieldNames ? '' : 'taskDimensions', $pb.PbFieldType.PM, subBuilder: $3.RequestedDimension.create)
+    ..pc<$3.RequestedDimension>(5, _omitFieldNames ? '' : 'taskDimensions', $pb.PbFieldType.PM,
+        subBuilder: $3.RequestedDimension.create)
     ..pc<$3.StringPair>(6, _omitFieldNames ? '' : 'botDimensions', $pb.PbFieldType.PM, subBuilder: $3.StringPair.create)
-    ..pc<BuildInfra_Swarming_CacheEntry>(7, _omitFieldNames ? '' : 'caches', $pb.PbFieldType.PM, subBuilder: BuildInfra_Swarming_CacheEntry.create)
+    ..pc<BuildInfra_Swarming_CacheEntry>(7, _omitFieldNames ? '' : 'caches', $pb.PbFieldType.PM,
+        subBuilder: BuildInfra_Swarming_CacheEntry.create)
     ..aOS(9, _omitFieldNames ? '' : 'parentRunId')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildInfra_Swarming clone() => BuildInfra_Swarming()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildInfra_Swarming copyWith(void Function(BuildInfra_Swarming) updates) => super.copyWith((message) => updates(message as BuildInfra_Swarming)) as BuildInfra_Swarming;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildInfra_Swarming copyWith(void Function(BuildInfra_Swarming) updates) =>
+      super.copyWith((message) => updates(message as BuildInfra_Swarming)) as BuildInfra_Swarming;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -2650,7 +3011,8 @@ class BuildInfra_Swarming extends $pb.GeneratedMessage {
   BuildInfra_Swarming createEmptyInstance() => create();
   static $pb.PbList<BuildInfra_Swarming> createRepeated() => $pb.PbList<BuildInfra_Swarming>();
   @$core.pragma('dart2js:noInline')
-  static BuildInfra_Swarming getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Swarming>(create);
+  static BuildInfra_Swarming getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Swarming>(create);
   static BuildInfra_Swarming? _defaultInstance;
 
   /// Swarming hostname, e.g. "chromium-swarm.appspot.com".
@@ -2658,7 +3020,10 @@ class BuildInfra_Swarming extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get hostname => $_getSZ(0);
   @$pb.TagNumber(1)
-  set hostname($core.String v) { $_setString(0, v); }
+  set hostname($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasHostname() => $_has(0);
   @$pb.TagNumber(1)
@@ -2669,7 +3034,10 @@ class BuildInfra_Swarming extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get taskId => $_getSZ(1);
   @$pb.TagNumber(2)
-  set taskId($core.String v) { $_setString(1, v); }
+  set taskId($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasTaskId() => $_has(1);
   @$pb.TagNumber(2)
@@ -2681,7 +3049,10 @@ class BuildInfra_Swarming extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.String get taskServiceAccount => $_getSZ(2);
   @$pb.TagNumber(3)
-  set taskServiceAccount($core.String v) { $_setString(2, v); }
+  set taskServiceAccount($core.String v) {
+    $_setString(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasTaskServiceAccount() => $_has(2);
   @$pb.TagNumber(3)
@@ -2692,7 +3063,10 @@ class BuildInfra_Swarming extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.int get priority => $_getIZ(3);
   @$pb.TagNumber(4)
-  set priority($core.int v) { $_setSignedInt32(3, v); }
+  set priority($core.int v) {
+    $_setSignedInt32(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasPriority() => $_has(3);
   @$pb.TagNumber(4)
@@ -2717,7 +3091,10 @@ class BuildInfra_Swarming extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   $core.String get parentRunId => $_getSZ(7);
   @$pb.TagNumber(9)
-  set parentRunId($core.String v) { $_setString(7, v); }
+  set parentRunId($core.String v) {
+    $_setString(7, v);
+  }
+
   @$pb.TagNumber(9)
   $core.bool hasParentRunId() => $_has(7);
   @$pb.TagNumber(9)
@@ -2744,26 +3121,28 @@ class BuildInfra_LogDog extends $pb.GeneratedMessage {
     return $result;
   }
   BuildInfra_LogDog._() : super();
-  factory BuildInfra_LogDog.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildInfra_LogDog.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildInfra_LogDog.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildInfra_LogDog.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.LogDog', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.LogDog',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'hostname')
     ..aOS(2, _omitFieldNames ? '' : 'project')
     ..aOS(3, _omitFieldNames ? '' : 'prefix')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildInfra_LogDog clone() => BuildInfra_LogDog()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildInfra_LogDog copyWith(void Function(BuildInfra_LogDog) updates) => super.copyWith((message) => updates(message as BuildInfra_LogDog)) as BuildInfra_LogDog;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildInfra_LogDog copyWith(void Function(BuildInfra_LogDog) updates) =>
+      super.copyWith((message) => updates(message as BuildInfra_LogDog)) as BuildInfra_LogDog;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -2772,14 +3151,18 @@ class BuildInfra_LogDog extends $pb.GeneratedMessage {
   BuildInfra_LogDog createEmptyInstance() => create();
   static $pb.PbList<BuildInfra_LogDog> createRepeated() => $pb.PbList<BuildInfra_LogDog>();
   @$core.pragma('dart2js:noInline')
-  static BuildInfra_LogDog getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_LogDog>(create);
+  static BuildInfra_LogDog getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_LogDog>(create);
   static BuildInfra_LogDog? _defaultInstance;
 
   /// LogDog hostname, e.g. "logs.chromium.org".
   @$pb.TagNumber(1)
   $core.String get hostname => $_getSZ(0);
   @$pb.TagNumber(1)
-  set hostname($core.String v) { $_setString(0, v); }
+  set hostname($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasHostname() => $_has(0);
   @$pb.TagNumber(1)
@@ -2790,7 +3173,10 @@ class BuildInfra_LogDog extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get project => $_getSZ(1);
   @$pb.TagNumber(2)
-  set project($core.String v) { $_setString(1, v); }
+  set project($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasProject() => $_has(1);
   @$pb.TagNumber(2)
@@ -2803,7 +3189,10 @@ class BuildInfra_LogDog extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.String get prefix => $_getSZ(2);
   @$pb.TagNumber(3)
-  set prefix($core.String v) { $_setString(2, v); }
+  set prefix($core.String v) {
+    $_setString(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasPrefix() => $_has(2);
   @$pb.TagNumber(3)
@@ -2826,25 +3215,27 @@ class BuildInfra_Recipe extends $pb.GeneratedMessage {
     return $result;
   }
   BuildInfra_Recipe._() : super();
-  factory BuildInfra_Recipe.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildInfra_Recipe.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildInfra_Recipe.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildInfra_Recipe.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Recipe', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Recipe',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'cipdPackage')
     ..aOS(2, _omitFieldNames ? '' : 'name')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildInfra_Recipe clone() => BuildInfra_Recipe()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildInfra_Recipe copyWith(void Function(BuildInfra_Recipe) updates) => super.copyWith((message) => updates(message as BuildInfra_Recipe)) as BuildInfra_Recipe;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildInfra_Recipe copyWith(void Function(BuildInfra_Recipe) updates) =>
+      super.copyWith((message) => updates(message as BuildInfra_Recipe)) as BuildInfra_Recipe;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -2853,14 +3244,18 @@ class BuildInfra_Recipe extends $pb.GeneratedMessage {
   BuildInfra_Recipe createEmptyInstance() => create();
   static $pb.PbList<BuildInfra_Recipe> createRepeated() => $pb.PbList<BuildInfra_Recipe>();
   @$core.pragma('dart2js:noInline')
-  static BuildInfra_Recipe getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Recipe>(create);
+  static BuildInfra_Recipe getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Recipe>(create);
   static BuildInfra_Recipe? _defaultInstance;
 
   /// CIPD package name containing the recipe used to run this build.
   @$pb.TagNumber(1)
   $core.String get cipdPackage => $_getSZ(0);
   @$pb.TagNumber(1)
-  set cipdPackage($core.String v) { $_setString(0, v); }
+  set cipdPackage($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasCipdPackage() => $_has(0);
   @$pb.TagNumber(1)
@@ -2870,7 +3265,10 @@ class BuildInfra_Recipe extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get name => $_getSZ(1);
   @$pb.TagNumber(2)
-  set name($core.String v) { $_setString(1, v); }
+  set name($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasName() => $_has(1);
   @$pb.TagNumber(2)
@@ -2905,28 +3303,31 @@ class BuildInfra_ResultDB extends $pb.GeneratedMessage {
     return $result;
   }
   BuildInfra_ResultDB._() : super();
-  factory BuildInfra_ResultDB.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildInfra_ResultDB.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildInfra_ResultDB.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildInfra_ResultDB.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.ResultDB', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.ResultDB',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'hostname')
     ..aOS(2, _omitFieldNames ? '' : 'invocation')
     ..aOB(3, _omitFieldNames ? '' : 'enable')
-    ..pc<$6.BigQueryExport>(4, _omitFieldNames ? '' : 'bqExports', $pb.PbFieldType.PM, subBuilder: $6.BigQueryExport.create)
+    ..pc<$6.BigQueryExport>(4, _omitFieldNames ? '' : 'bqExports', $pb.PbFieldType.PM,
+        subBuilder: $6.BigQueryExport.create)
     ..aOM<$6.HistoryOptions>(5, _omitFieldNames ? '' : 'historyOptions', subBuilder: $6.HistoryOptions.create)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildInfra_ResultDB clone() => BuildInfra_ResultDB()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildInfra_ResultDB copyWith(void Function(BuildInfra_ResultDB) updates) => super.copyWith((message) => updates(message as BuildInfra_ResultDB)) as BuildInfra_ResultDB;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildInfra_ResultDB copyWith(void Function(BuildInfra_ResultDB) updates) =>
+      super.copyWith((message) => updates(message as BuildInfra_ResultDB)) as BuildInfra_ResultDB;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -2935,14 +3336,18 @@ class BuildInfra_ResultDB extends $pb.GeneratedMessage {
   BuildInfra_ResultDB createEmptyInstance() => create();
   static $pb.PbList<BuildInfra_ResultDB> createRepeated() => $pb.PbList<BuildInfra_ResultDB>();
   @$core.pragma('dart2js:noInline')
-  static BuildInfra_ResultDB getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_ResultDB>(create);
+  static BuildInfra_ResultDB getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_ResultDB>(create);
   static BuildInfra_ResultDB? _defaultInstance;
 
   /// Hostname of the ResultDB instance, such as "results.api.cr.dev".
   @$pb.TagNumber(1)
   $core.String get hostname => $_getSZ(0);
   @$pb.TagNumber(1)
-  set hostname($core.String v) { $_setString(0, v); }
+  set hostname($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasHostname() => $_has(0);
   @$pb.TagNumber(1)
@@ -2953,7 +3358,10 @@ class BuildInfra_ResultDB extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get invocation => $_getSZ(1);
   @$pb.TagNumber(2)
-  set invocation($core.String v) { $_setString(1, v); }
+  set invocation($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasInvocation() => $_has(1);
   @$pb.TagNumber(2)
@@ -2963,7 +3371,10 @@ class BuildInfra_ResultDB extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.bool get enable => $_getBF(2);
   @$pb.TagNumber(3)
-  set enable($core.bool v) { $_setBool(2, v); }
+  set enable($core.bool v) {
+    $_setBool(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasEnable() => $_has(2);
   @$pb.TagNumber(3)
@@ -2979,7 +3390,10 @@ class BuildInfra_ResultDB extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $6.HistoryOptions get historyOptions => $_getN(4);
   @$pb.TagNumber(5)
-  set historyOptions($6.HistoryOptions v) { setField(5, v); }
+  set historyOptions($6.HistoryOptions v) {
+    setField(5, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasHistoryOptions() => $_has(4);
   @$pb.TagNumber(5)
@@ -3000,24 +3414,25 @@ class BuildInfra_Led extends $pb.GeneratedMessage {
     return $result;
   }
   BuildInfra_Led._() : super();
-  factory BuildInfra_Led.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildInfra_Led.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildInfra_Led.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildInfra_Led.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Led', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Led',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'shadowedBucket')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildInfra_Led clone() => BuildInfra_Led()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildInfra_Led copyWith(void Function(BuildInfra_Led) updates) => super.copyWith((message) => updates(message as BuildInfra_Led)) as BuildInfra_Led;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildInfra_Led copyWith(void Function(BuildInfra_Led) updates) =>
+      super.copyWith((message) => updates(message as BuildInfra_Led)) as BuildInfra_Led;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -3033,7 +3448,10 @@ class BuildInfra_Led extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get shadowedBucket => $_getSZ(0);
   @$pb.TagNumber(1)
-  set shadowedBucket($core.String v) { $_setString(0, v); }
+  set shadowedBucket($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasShadowedBucket() => $_has(0);
   @$pb.TagNumber(1)
@@ -3064,36 +3482,42 @@ class BuildInfra_BBAgent_Input_CIPDPackage extends $pb.GeneratedMessage {
     return $result;
   }
   BuildInfra_BBAgent_Input_CIPDPackage._() : super();
-  factory BuildInfra_BBAgent_Input_CIPDPackage.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildInfra_BBAgent_Input_CIPDPackage.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildInfra_BBAgent_Input_CIPDPackage.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildInfra_BBAgent_Input_CIPDPackage.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.BBAgent.Input.CIPDPackage', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.BBAgent.Input.CIPDPackage',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
     ..aOS(2, _omitFieldNames ? '' : 'version')
     ..aOS(3, _omitFieldNames ? '' : 'server')
     ..aOS(4, _omitFieldNames ? '' : 'path')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildInfra_BBAgent_Input_CIPDPackage clone() => BuildInfra_BBAgent_Input_CIPDPackage()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildInfra_BBAgent_Input_CIPDPackage copyWith(void Function(BuildInfra_BBAgent_Input_CIPDPackage) updates) => super.copyWith((message) => updates(message as BuildInfra_BBAgent_Input_CIPDPackage)) as BuildInfra_BBAgent_Input_CIPDPackage;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildInfra_BBAgent_Input_CIPDPackage copyWith(void Function(BuildInfra_BBAgent_Input_CIPDPackage) updates) =>
+      super.copyWith((message) => updates(message as BuildInfra_BBAgent_Input_CIPDPackage))
+          as BuildInfra_BBAgent_Input_CIPDPackage;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static BuildInfra_BBAgent_Input_CIPDPackage create() => BuildInfra_BBAgent_Input_CIPDPackage._();
   BuildInfra_BBAgent_Input_CIPDPackage createEmptyInstance() => create();
-  static $pb.PbList<BuildInfra_BBAgent_Input_CIPDPackage> createRepeated() => $pb.PbList<BuildInfra_BBAgent_Input_CIPDPackage>();
+  static $pb.PbList<BuildInfra_BBAgent_Input_CIPDPackage> createRepeated() =>
+      $pb.PbList<BuildInfra_BBAgent_Input_CIPDPackage>();
   @$core.pragma('dart2js:noInline')
-  static BuildInfra_BBAgent_Input_CIPDPackage getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_BBAgent_Input_CIPDPackage>(create);
+  static BuildInfra_BBAgent_Input_CIPDPackage getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_BBAgent_Input_CIPDPackage>(create);
   static BuildInfra_BBAgent_Input_CIPDPackage? _defaultInstance;
 
   ///  Name of this CIPD package.
@@ -3102,7 +3526,10 @@ class BuildInfra_BBAgent_Input_CIPDPackage extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
-  set name($core.String v) { $_setString(0, v); }
+  set name($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasName() => $_has(0);
   @$pb.TagNumber(1)
@@ -3114,7 +3541,10 @@ class BuildInfra_BBAgent_Input_CIPDPackage extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get version => $_getSZ(1);
   @$pb.TagNumber(2)
-  set version($core.String v) { $_setString(1, v); }
+  set version($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasVersion() => $_has(1);
   @$pb.TagNumber(2)
@@ -3126,7 +3556,10 @@ class BuildInfra_BBAgent_Input_CIPDPackage extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.String get server => $_getSZ(2);
   @$pb.TagNumber(3)
-  set server($core.String v) { $_setString(2, v); }
+  set server($core.String v) {
+    $_setString(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasServer() => $_has(2);
   @$pb.TagNumber(3)
@@ -3138,7 +3571,10 @@ class BuildInfra_BBAgent_Input_CIPDPackage extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.String get path => $_getSZ(3);
   @$pb.TagNumber(4)
-  set path($core.String v) { $_setString(3, v); }
+  set path($core.String v) {
+    $_setString(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasPath() => $_has(3);
   @$pb.TagNumber(4)
@@ -3157,24 +3593,27 @@ class BuildInfra_BBAgent_Input extends $pb.GeneratedMessage {
     return $result;
   }
   BuildInfra_BBAgent_Input._() : super();
-  factory BuildInfra_BBAgent_Input.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildInfra_BBAgent_Input.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildInfra_BBAgent_Input.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildInfra_BBAgent_Input.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.BBAgent.Input', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
-    ..pc<BuildInfra_BBAgent_Input_CIPDPackage>(1, _omitFieldNames ? '' : 'cipdPackages', $pb.PbFieldType.PM, subBuilder: BuildInfra_BBAgent_Input_CIPDPackage.create)
-    ..hasRequiredFields = false
-  ;
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.BBAgent.Input',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+    ..pc<BuildInfra_BBAgent_Input_CIPDPackage>(1, _omitFieldNames ? '' : 'cipdPackages', $pb.PbFieldType.PM,
+        subBuilder: BuildInfra_BBAgent_Input_CIPDPackage.create)
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildInfra_BBAgent_Input clone() => BuildInfra_BBAgent_Input()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildInfra_BBAgent_Input copyWith(void Function(BuildInfra_BBAgent_Input) updates) => super.copyWith((message) => updates(message as BuildInfra_BBAgent_Input)) as BuildInfra_BBAgent_Input;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildInfra_BBAgent_Input copyWith(void Function(BuildInfra_BBAgent_Input) updates) =>
+      super.copyWith((message) => updates(message as BuildInfra_BBAgent_Input)) as BuildInfra_BBAgent_Input;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -3183,7 +3622,8 @@ class BuildInfra_BBAgent_Input extends $pb.GeneratedMessage {
   BuildInfra_BBAgent_Input createEmptyInstance() => create();
   static $pb.PbList<BuildInfra_BBAgent_Input> createRepeated() => $pb.PbList<BuildInfra_BBAgent_Input>();
   @$core.pragma('dart2js:noInline')
-  static BuildInfra_BBAgent_Input getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_BBAgent_Input>(create);
+  static BuildInfra_BBAgent_Input getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_BBAgent_Input>(create);
   static BuildInfra_BBAgent_Input? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -3198,10 +3638,8 @@ class BuildInfra_BBAgent extends $pb.GeneratedMessage {
   factory BuildInfra_BBAgent({
     $core.String? payloadPath,
     $core.String? cacheDir,
-  @$core.Deprecated('This field is deprecated.')
-    $core.Iterable<$core.String>? knownPublicGerritHosts,
-  @$core.Deprecated('This field is deprecated.')
-    BuildInfra_BBAgent_Input? input,
+    @$core.Deprecated('This field is deprecated.') $core.Iterable<$core.String>? knownPublicGerritHosts,
+    @$core.Deprecated('This field is deprecated.') BuildInfra_BBAgent_Input? input,
   }) {
     final $result = create();
     if (payloadPath != null) {
@@ -3221,27 +3659,29 @@ class BuildInfra_BBAgent extends $pb.GeneratedMessage {
     return $result;
   }
   BuildInfra_BBAgent._() : super();
-  factory BuildInfra_BBAgent.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildInfra_BBAgent.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildInfra_BBAgent.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildInfra_BBAgent.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.BBAgent', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.BBAgent',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'payloadPath')
     ..aOS(2, _omitFieldNames ? '' : 'cacheDir')
     ..pPS(3, _omitFieldNames ? '' : 'knownPublicGerritHosts')
     ..aOM<BuildInfra_BBAgent_Input>(4, _omitFieldNames ? '' : 'input', subBuilder: BuildInfra_BBAgent_Input.create)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildInfra_BBAgent clone() => BuildInfra_BBAgent()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildInfra_BBAgent copyWith(void Function(BuildInfra_BBAgent) updates) => super.copyWith((message) => updates(message as BuildInfra_BBAgent)) as BuildInfra_BBAgent;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildInfra_BBAgent copyWith(void Function(BuildInfra_BBAgent) updates) =>
+      super.copyWith((message) => updates(message as BuildInfra_BBAgent)) as BuildInfra_BBAgent;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -3250,7 +3690,8 @@ class BuildInfra_BBAgent extends $pb.GeneratedMessage {
   BuildInfra_BBAgent createEmptyInstance() => create();
   static $pb.PbList<BuildInfra_BBAgent> createRepeated() => $pb.PbList<BuildInfra_BBAgent>();
   @$core.pragma('dart2js:noInline')
-  static BuildInfra_BBAgent getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_BBAgent>(create);
+  static BuildInfra_BBAgent getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_BBAgent>(create);
   static BuildInfra_BBAgent? _defaultInstance;
 
   ///  Path to the base of the user executable package.
@@ -3259,7 +3700,10 @@ class BuildInfra_BBAgent extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get payloadPath => $_getSZ(0);
   @$pb.TagNumber(1)
-  set payloadPath($core.String v) { $_setString(0, v); }
+  set payloadPath($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasPayloadPath() => $_has(0);
   @$pb.TagNumber(1)
@@ -3271,7 +3715,10 @@ class BuildInfra_BBAgent extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get cacheDir => $_getSZ(1);
   @$pb.TagNumber(2)
-  set cacheDir($core.String v) { $_setString(1, v); }
+  set cacheDir($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasCacheDir() => $_has(1);
   @$pb.TagNumber(2)
@@ -3292,7 +3739,10 @@ class BuildInfra_BBAgent extends $pb.GeneratedMessage {
   BuildInfra_BBAgent_Input get input => $_getN(3);
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(4)
-  set input(BuildInfra_BBAgent_Input v) { setField(4, v); }
+  set input(BuildInfra_BBAgent_Input v) {
+    setField(4, v);
+  }
+
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(4)
   $core.bool hasInput() => $_has(3);
@@ -3332,28 +3782,31 @@ class BuildInfra_Backend extends $pb.GeneratedMessage {
     return $result;
   }
   BuildInfra_Backend._() : super();
-  factory BuildInfra_Backend.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildInfra_Backend.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildInfra_Backend.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildInfra_Backend.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Backend', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Backend',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOM<$5.Struct>(1, _omitFieldNames ? '' : 'config', subBuilder: $5.Struct.create)
     ..aOM<$7.Task>(2, _omitFieldNames ? '' : 'task', subBuilder: $7.Task.create)
     ..pc<$3.CacheEntry>(3, _omitFieldNames ? '' : 'caches', $pb.PbFieldType.PM, subBuilder: $3.CacheEntry.create)
-    ..pc<$3.RequestedDimension>(5, _omitFieldNames ? '' : 'taskDimensions', $pb.PbFieldType.PM, subBuilder: $3.RequestedDimension.create)
+    ..pc<$3.RequestedDimension>(5, _omitFieldNames ? '' : 'taskDimensions', $pb.PbFieldType.PM,
+        subBuilder: $3.RequestedDimension.create)
     ..aOS(6, _omitFieldNames ? '' : 'hostname')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildInfra_Backend clone() => BuildInfra_Backend()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildInfra_Backend copyWith(void Function(BuildInfra_Backend) updates) => super.copyWith((message) => updates(message as BuildInfra_Backend)) as BuildInfra_Backend;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildInfra_Backend copyWith(void Function(BuildInfra_Backend) updates) =>
+      super.copyWith((message) => updates(message as BuildInfra_Backend)) as BuildInfra_Backend;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -3362,7 +3815,8 @@ class BuildInfra_Backend extends $pb.GeneratedMessage {
   BuildInfra_Backend createEmptyInstance() => create();
   static $pb.PbList<BuildInfra_Backend> createRepeated() => $pb.PbList<BuildInfra_Backend>();
   @$core.pragma('dart2js:noInline')
-  static BuildInfra_Backend getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Backend>(create);
+  static BuildInfra_Backend getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Backend>(create);
   static BuildInfra_Backend? _defaultInstance;
 
   /// Configuration supplied to the backend at the time it was instructed to
@@ -3370,7 +3824,10 @@ class BuildInfra_Backend extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $5.Struct get config => $_getN(0);
   @$pb.TagNumber(1)
-  set config($5.Struct v) { setField(1, v); }
+  set config($5.Struct v) {
+    setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasConfig() => $_has(0);
   @$pb.TagNumber(1)
@@ -3383,7 +3840,10 @@ class BuildInfra_Backend extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $7.Task get task => $_getN(1);
   @$pb.TagNumber(2)
-  set task($7.Task v) { setField(2, v); }
+  set task($7.Task v) {
+    setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasTask() => $_has(1);
   @$pb.TagNumber(2)
@@ -3403,7 +3863,10 @@ class BuildInfra_Backend extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $core.String get hostname => $_getSZ(4);
   @$pb.TagNumber(6)
-  set hostname($core.String v) { $_setString(4, v); }
+  set hostname($core.String v) {
+    $_setString(4, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasHostname() => $_has(4);
   @$pb.TagNumber(6)
@@ -3450,10 +3913,13 @@ class BuildInfra extends $pb.GeneratedMessage {
     return $result;
   }
   BuildInfra._() : super();
-  factory BuildInfra.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildInfra.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildInfra.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildInfra.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOM<BuildInfra_Buildbucket>(1, _omitFieldNames ? '' : 'buildbucket', subBuilder: BuildInfra_Buildbucket.create)
     ..aOM<BuildInfra_Swarming>(2, _omitFieldNames ? '' : 'swarming', subBuilder: BuildInfra_Swarming.create)
     ..aOM<BuildInfra_LogDog>(3, _omitFieldNames ? '' : 'logdog', subBuilder: BuildInfra_LogDog.create)
@@ -3462,19 +3928,17 @@ class BuildInfra extends $pb.GeneratedMessage {
     ..aOM<BuildInfra_BBAgent>(6, _omitFieldNames ? '' : 'bbagent', subBuilder: BuildInfra_BBAgent.create)
     ..aOM<BuildInfra_Backend>(7, _omitFieldNames ? '' : 'backend', subBuilder: BuildInfra_Backend.create)
     ..aOM<BuildInfra_Led>(8, _omitFieldNames ? '' : 'led', subBuilder: BuildInfra_Led.create)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildInfra clone() => BuildInfra()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildInfra copyWith(void Function(BuildInfra) updates) => super.copyWith((message) => updates(message as BuildInfra)) as BuildInfra;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildInfra copyWith(void Function(BuildInfra) updates) =>
+      super.copyWith((message) => updates(message as BuildInfra)) as BuildInfra;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -3489,7 +3953,10 @@ class BuildInfra extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   BuildInfra_Buildbucket get buildbucket => $_getN(0);
   @$pb.TagNumber(1)
-  set buildbucket(BuildInfra_Buildbucket v) { setField(1, v); }
+  set buildbucket(BuildInfra_Buildbucket v) {
+    setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasBuildbucket() => $_has(0);
   @$pb.TagNumber(1)
@@ -3500,7 +3967,10 @@ class BuildInfra extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   BuildInfra_Swarming get swarming => $_getN(1);
   @$pb.TagNumber(2)
-  set swarming(BuildInfra_Swarming v) { setField(2, v); }
+  set swarming(BuildInfra_Swarming v) {
+    setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasSwarming() => $_has(1);
   @$pb.TagNumber(2)
@@ -3511,7 +3981,10 @@ class BuildInfra extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   BuildInfra_LogDog get logdog => $_getN(2);
   @$pb.TagNumber(3)
-  set logdog(BuildInfra_LogDog v) { setField(3, v); }
+  set logdog(BuildInfra_LogDog v) {
+    setField(3, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasLogdog() => $_has(2);
   @$pb.TagNumber(3)
@@ -3522,7 +3995,10 @@ class BuildInfra extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   BuildInfra_Recipe get recipe => $_getN(3);
   @$pb.TagNumber(4)
-  set recipe(BuildInfra_Recipe v) { setField(4, v); }
+  set recipe(BuildInfra_Recipe v) {
+    setField(4, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasRecipe() => $_has(3);
   @$pb.TagNumber(4)
@@ -3533,7 +4009,10 @@ class BuildInfra extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   BuildInfra_ResultDB get resultdb => $_getN(4);
   @$pb.TagNumber(5)
-  set resultdb(BuildInfra_ResultDB v) { setField(5, v); }
+  set resultdb(BuildInfra_ResultDB v) {
+    setField(5, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasResultdb() => $_has(4);
   @$pb.TagNumber(5)
@@ -3544,7 +4023,10 @@ class BuildInfra extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   BuildInfra_BBAgent get bbagent => $_getN(5);
   @$pb.TagNumber(6)
-  set bbagent(BuildInfra_BBAgent v) { setField(6, v); }
+  set bbagent(BuildInfra_BBAgent v) {
+    setField(6, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasBbagent() => $_has(5);
   @$pb.TagNumber(6)
@@ -3555,7 +4037,10 @@ class BuildInfra extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   BuildInfra_Backend get backend => $_getN(6);
   @$pb.TagNumber(7)
-  set backend(BuildInfra_Backend v) { setField(7, v); }
+  set backend(BuildInfra_Backend v) {
+    setField(7, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasBackend() => $_has(6);
   @$pb.TagNumber(7)
@@ -3567,7 +4052,10 @@ class BuildInfra extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   BuildInfra_Led get led => $_getN(7);
   @$pb.TagNumber(8)
-  set led(BuildInfra_Led v) { setField(8, v); }
+  set led(BuildInfra_Led v) {
+    setField(8, v);
+  }
+
   @$pb.TagNumber(8)
   $core.bool hasLed() => $_has(7);
   @$pb.TagNumber(8)
@@ -3575,7 +4063,6 @@ class BuildInfra extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   BuildInfra_Led ensureLed() => $_ensure(7);
 }
-
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
 const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
