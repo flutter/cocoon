@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -24,10 +24,10 @@ const BuilderID$json = {
 };
 
 /// Descriptor for `BuilderID`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List builderIDDescriptor =
-    $convert.base64Decode('CglCdWlsZGVySUQSLgoHcHJvamVjdBgBIAEoCUIUmsMaEFNldEJ1aWxkZXJIZWFsdGhSB3Byb2'
-        'plY3QSLAoGYnVja2V0GAIgASgJQhSawxoQU2V0QnVpbGRlckhlYWx0aFIGYnVja2V0Ei4KB2J1'
-        'aWxkZXIYAyABKAlCFJrDGhBTZXRCdWlsZGVySGVhbHRoUgdidWlsZGVy');
+final $typed_data.Uint8List builderIDDescriptor = $convert.base64Decode(
+    'CglCdWlsZGVySUQSLgoHcHJvamVjdBgBIAEoCUIUmsMaEFNldEJ1aWxkZXJIZWFsdGhSB3Byb2'
+    'plY3QSLAoGYnVja2V0GAIgASgJQhSawxoQU2V0QnVpbGRlckhlYWx0aFIGYnVja2V0Ei4KB2J1'
+    'aWxkZXIYAyABKAlCFJrDGhBTZXRCdWlsZGVySGVhbHRoUgdidWlsZGVy');
 
 @$core.Deprecated('Use builderMetadataDescriptor instead')
 const BuilderMetadata$json = {
@@ -39,9 +39,9 @@ const BuilderMetadata$json = {
 };
 
 /// Descriptor for `BuilderMetadata`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List builderMetadataDescriptor =
-    $convert.base64Decode('Cg9CdWlsZGVyTWV0YWRhdGESFAoFb3duZXIYASABKAlSBW93bmVyEjQKBmhlYWx0aBgCIAEoCz'
-        'IcLmJ1aWxkYnVja2V0LnYyLkhlYWx0aFN0YXR1c1IGaGVhbHRo');
+final $typed_data.Uint8List builderMetadataDescriptor = $convert.base64Decode(
+    'Cg9CdWlsZGVyTWV0YWRhdGESFAoFb3duZXIYASABKAlSBW93bmVyEjQKBmhlYWx0aBgCIAEoCz'
+    'IcLmJ1aWxkYnVja2V0LnYyLkhlYWx0aFN0YXR1c1IGaGVhbHRo');
 
 @$core.Deprecated('Use builderItemDescriptor instead')
 const BuilderItem$json = {
@@ -54,8 +54,9 @@ const BuilderItem$json = {
 };
 
 /// Descriptor for `BuilderItem`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List builderItemDescriptor =
-    $convert.base64Decode('CgtCdWlsZGVySXRlbRIpCgJpZBgBIAEoCzIZLmJ1aWxkYnVja2V0LnYyLkJ1aWxkZXJJRFICaW'
-        'QSMgoGY29uZmlnGAIgASgLMhouYnVpbGRidWNrZXQuQnVpbGRlckNvbmZpZ1IGY29uZmlnEjsK'
-        'CG1ldGFkYXRhGAMgASgLMh8uYnVpbGRidWNrZXQudjIuQnVpbGRlck1ldGFkYXRhUghtZXRhZG'
-        'F0YQ==');
+final $typed_data.Uint8List builderItemDescriptor = $convert.base64Decode(
+    'CgtCdWlsZGVySXRlbRIpCgJpZBgBIAEoCzIZLmJ1aWxkYnVja2V0LnYyLkJ1aWxkZXJJRFICaW'
+    'QSMgoGY29uZmlnGAIgASgLMhouYnVpbGRidWNrZXQuQnVpbGRlckNvbmZpZ1IGY29uZmlnEjsK'
+    'CG1ldGFkYXRhGAMgASgLMh8uYnVpbGRidWNrZXQudjIuQnVpbGRlck1ldGFkYXRhUghtZXRhZG'
+    'F0YQ==');
+

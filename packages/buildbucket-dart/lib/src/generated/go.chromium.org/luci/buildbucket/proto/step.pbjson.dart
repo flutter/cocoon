@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -39,14 +39,15 @@ const Step_MergeBuild$json = {
 };
 
 /// Descriptor for `Step`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List stepDescriptor =
-    $convert.base64Decode('CgRTdGVwEhIKBG5hbWUYASABKAlSBG5hbWUSOQoKc3RhcnRfdGltZRgCIAEoCzIaLmdvb2dsZS'
-        '5wcm90b2J1Zi5UaW1lc3RhbXBSCXN0YXJ0VGltZRI1CghlbmRfdGltZRgDIAEoCzIaLmdvb2ds'
-        'ZS5wcm90b2J1Zi5UaW1lc3RhbXBSB2VuZFRpbWUSLgoGc3RhdHVzGAQgASgOMhYuYnVpbGRidW'
-        'NrZXQudjIuU3RhdHVzUgZzdGF0dXMSJwoEbG9ncxgFIAMoCzITLmJ1aWxkYnVja2V0LnYyLkxv'
-        'Z1IEbG9ncxJACgttZXJnZV9idWlsZBgGIAEoCzIfLmJ1aWxkYnVja2V0LnYyLlN0ZXAuTWVyZ2'
-        'VCdWlsZFIKbWVyZ2VCdWlsZBIpChBzdW1tYXJ5X21hcmtkb3duGAcgASgJUg9zdW1tYXJ5TWFy'
-        'a2Rvd24SLgoEdGFncxgIIAMoCzIaLmJ1aWxkYnVja2V0LnYyLlN0cmluZ1BhaXJSBHRhZ3Macg'
-        'oKTWVyZ2VCdWlsZBIsChJmcm9tX2xvZ2RvZ19zdHJlYW0YASABKAlSEGZyb21Mb2dkb2dTdHJl'
-        'YW0SNgoXbGVnYWN5X2dsb2JhbF9uYW1lc3BhY2UYAiABKAhSFWxlZ2FjeUdsb2JhbE5hbWVzcG'
-        'FjZQ==');
+final $typed_data.Uint8List stepDescriptor = $convert.base64Decode(
+    'CgRTdGVwEhIKBG5hbWUYASABKAlSBG5hbWUSOQoKc3RhcnRfdGltZRgCIAEoCzIaLmdvb2dsZS'
+    '5wcm90b2J1Zi5UaW1lc3RhbXBSCXN0YXJ0VGltZRI1CghlbmRfdGltZRgDIAEoCzIaLmdvb2ds'
+    'ZS5wcm90b2J1Zi5UaW1lc3RhbXBSB2VuZFRpbWUSLgoGc3RhdHVzGAQgASgOMhYuYnVpbGRidW'
+    'NrZXQudjIuU3RhdHVzUgZzdGF0dXMSJwoEbG9ncxgFIAMoCzITLmJ1aWxkYnVja2V0LnYyLkxv'
+    'Z1IEbG9ncxJACgttZXJnZV9idWlsZBgGIAEoCzIfLmJ1aWxkYnVja2V0LnYyLlN0ZXAuTWVyZ2'
+    'VCdWlsZFIKbWVyZ2VCdWlsZBIpChBzdW1tYXJ5X21hcmtkb3duGAcgASgJUg9zdW1tYXJ5TWFy'
+    'a2Rvd24SLgoEdGFncxgIIAMoCzIaLmJ1aWxkYnVja2V0LnYyLlN0cmluZ1BhaXJSBHRhZ3Macg'
+    'oKTWVyZ2VCdWlsZBIsChJmcm9tX2xvZ2RvZ19zdHJlYW0YASABKAlSEGZyb21Mb2dkb2dTdHJl'
+    'YW0SNgoXbGVnYWN5X2dsb2JhbF9uYW1lc3BhY2UYAiABKAhSFWxlZ2FjeUdsb2JhbE5hbWVzcG'
+    'FjZQ==');
+

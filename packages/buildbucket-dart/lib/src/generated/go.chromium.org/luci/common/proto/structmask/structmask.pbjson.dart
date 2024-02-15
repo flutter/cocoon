@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -22,5 +22,6 @@ const StructMask$json = {
 };
 
 /// Descriptor for `StructMask`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List structMaskDescriptor =
-    $convert.base64Decode('CgpTdHJ1Y3RNYXNrEhIKBHBhdGgYASADKAlSBHBhdGg=');
+final $typed_data.Uint8List structMaskDescriptor = $convert.base64Decode(
+    'CgpTdHJ1Y3RNYXNrEhIKBHBhdGgYASADKAlSBHBhdGg=');
+

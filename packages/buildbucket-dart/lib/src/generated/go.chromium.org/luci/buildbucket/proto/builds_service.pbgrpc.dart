@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -22,8 +22,10 @@ export 'builds_service.pb.dart';
 
 @$pb.GrpcServiceName('buildbucket.v2.Builds')
 class BuildsClient extends $grpc.Client {
-  static final _$getBuild = $grpc.ClientMethod<$0.GetBuildRequest, $1.Build>('/buildbucket.v2.Builds/GetBuild',
-      ($0.GetBuildRequest value) => value.writeToBuffer(), ($core.List<$core.int> value) => $1.Build.fromBuffer(value));
+  static final _$getBuild = $grpc.ClientMethod<$0.GetBuildRequest, $1.Build>(
+      '/buildbucket.v2.Builds/GetBuild',
+      ($0.GetBuildRequest value) => value.writeToBuffer(),
+      ($core.List<$core.int> value) => $1.Build.fromBuffer(value));
   static final _$searchBuilds = $grpc.ClientMethod<$0.SearchBuildsRequest, $0.SearchBuildsResponse>(
       '/buildbucket.v2.Builds/SearchBuilds',
       ($0.SearchBuildsRequest value) => value.writeToBuffer(),
@@ -60,21 +62,18 @@ class BuildsClient extends $grpc.Client {
       '/buildbucket.v2.Builds/StartBuild',
       ($0.StartBuildRequest value) => value.writeToBuffer(),
       ($core.List<$core.int> value) => $0.StartBuildResponse.fromBuffer(value));
-  static final _$startBuildTask = $grpc.ClientMethod<$0.StartBuildTaskRequest, $0.StartBuildTaskResponse>(
-      '/buildbucket.v2.Builds/StartBuildTask',
-      ($0.StartBuildTaskRequest value) => value.writeToBuffer(),
-      ($core.List<$core.int> value) => $0.StartBuildTaskResponse.fromBuffer(value));
 
   BuildsClient($grpc.ClientChannel channel,
-      {$grpc.CallOptions? options, $core.Iterable<$grpc.ClientInterceptor>? interceptors})
-      : super(channel, options: options, interceptors: interceptors);
+      {$grpc.CallOptions? options,
+      $core.Iterable<$grpc.ClientInterceptor>? interceptors})
+      : super(channel, options: options,
+        interceptors: interceptors);
 
   $grpc.ResponseFuture<$1.Build> getBuild($0.GetBuildRequest request, {$grpc.CallOptions? options}) {
     return $createUnaryCall(_$getBuild, request, options: options);
   }
 
-  $grpc.ResponseFuture<$0.SearchBuildsResponse> searchBuilds($0.SearchBuildsRequest request,
-      {$grpc.CallOptions? options}) {
+  $grpc.ResponseFuture<$0.SearchBuildsResponse> searchBuilds($0.SearchBuildsRequest request, {$grpc.CallOptions? options}) {
     return $createUnaryCall(_$searchBuilds, request, options: options);
   }
 
@@ -108,11 +107,6 @@ class BuildsClient extends $grpc.Client {
 
   $grpc.ResponseFuture<$0.StartBuildResponse> startBuild($0.StartBuildRequest request, {$grpc.CallOptions? options}) {
     return $createUnaryCall(_$startBuild, request, options: options);
-  }
-
-  $grpc.ResponseFuture<$0.StartBuildTaskResponse> startBuildTask($0.StartBuildTaskRequest request,
-      {$grpc.CallOptions? options}) {
-    return $createUnaryCall(_$startBuildTask, request, options: options);
   }
 }
 
@@ -191,21 +185,13 @@ abstract class BuildsServiceBase extends $grpc.Service {
         false,
         ($core.List<$core.int> value) => $0.StartBuildRequest.fromBuffer(value),
         ($0.StartBuildResponse value) => value.writeToBuffer()));
-    $addMethod($grpc.ServiceMethod<$0.StartBuildTaskRequest, $0.StartBuildTaskResponse>(
-        'StartBuildTask',
-        startBuildTask_Pre,
-        false,
-        false,
-        ($core.List<$core.int> value) => $0.StartBuildTaskRequest.fromBuffer(value),
-        ($0.StartBuildTaskResponse value) => value.writeToBuffer()));
   }
 
   $async.Future<$1.Build> getBuild_Pre($grpc.ServiceCall call, $async.Future<$0.GetBuildRequest> request) async {
     return getBuild(call, await request);
   }
 
-  $async.Future<$0.SearchBuildsResponse> searchBuilds_Pre(
-      $grpc.ServiceCall call, $async.Future<$0.SearchBuildsRequest> request) async {
+  $async.Future<$0.SearchBuildsResponse> searchBuilds_Pre($grpc.ServiceCall call, $async.Future<$0.SearchBuildsRequest> request) async {
     return searchBuilds(call, await request);
   }
 
@@ -213,8 +199,7 @@ abstract class BuildsServiceBase extends $grpc.Service {
     return updateBuild(call, await request);
   }
 
-  $async.Future<$1.Build> scheduleBuild_Pre(
-      $grpc.ServiceCall call, $async.Future<$0.ScheduleBuildRequest> request) async {
+  $async.Future<$1.Build> scheduleBuild_Pre($grpc.ServiceCall call, $async.Future<$0.ScheduleBuildRequest> request) async {
     return scheduleBuild(call, await request);
   }
 
@@ -230,24 +215,16 @@ abstract class BuildsServiceBase extends $grpc.Service {
     return createBuild(call, await request);
   }
 
-  $async.Future<$1.Build> synthesizeBuild_Pre(
-      $grpc.ServiceCall call, $async.Future<$0.SynthesizeBuildRequest> request) async {
+  $async.Future<$1.Build> synthesizeBuild_Pre($grpc.ServiceCall call, $async.Future<$0.SynthesizeBuildRequest> request) async {
     return synthesizeBuild(call, await request);
   }
 
-  $async.Future<$1.Build> getBuildStatus_Pre(
-      $grpc.ServiceCall call, $async.Future<$0.GetBuildStatusRequest> request) async {
+  $async.Future<$1.Build> getBuildStatus_Pre($grpc.ServiceCall call, $async.Future<$0.GetBuildStatusRequest> request) async {
     return getBuildStatus(call, await request);
   }
 
-  $async.Future<$0.StartBuildResponse> startBuild_Pre(
-      $grpc.ServiceCall call, $async.Future<$0.StartBuildRequest> request) async {
+  $async.Future<$0.StartBuildResponse> startBuild_Pre($grpc.ServiceCall call, $async.Future<$0.StartBuildRequest> request) async {
     return startBuild(call, await request);
-  }
-
-  $async.Future<$0.StartBuildTaskResponse> startBuildTask_Pre(
-      $grpc.ServiceCall call, $async.Future<$0.StartBuildTaskRequest> request) async {
-    return startBuildTask(call, await request);
   }
 
   $async.Future<$1.Build> getBuild($grpc.ServiceCall call, $0.GetBuildRequest request);
@@ -260,5 +237,4 @@ abstract class BuildsServiceBase extends $grpc.Service {
   $async.Future<$1.Build> synthesizeBuild($grpc.ServiceCall call, $0.SynthesizeBuildRequest request);
   $async.Future<$1.Build> getBuildStatus($grpc.ServiceCall call, $0.GetBuildStatusRequest request);
   $async.Future<$0.StartBuildResponse> startBuild($grpc.ServiceCall call, $0.StartBuildRequest request);
-  $async.Future<$0.StartBuildTaskResponse> startBuildTask($grpc.ServiceCall call, $0.StartBuildTaskRequest request);
 }
