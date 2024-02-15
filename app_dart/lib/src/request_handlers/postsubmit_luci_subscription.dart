@@ -4,15 +4,18 @@
 
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:gcloud/db.dart';
+import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
+import '../model/firestore/task.dart' as f;
 import '../model/luci/push_message.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
+import '../service/firestore.dart';
 import '../service/logging.dart';
 import '../service/github_checks_service.dart';
 import '../service/scheduler.dart';
@@ -63,10 +66,10 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     }
     final Key<String> commitKey = Key<String>(Key<dynamic>.emptyKey(Partition(null)), Commit, rawCommitKey);
     Task? task;
+    final String? taskName = build.buildParameters?['builder_name'] as String?;
     if (rawTaskKey == null || rawTaskKey.isEmpty || rawTaskKey == 'null') {
       log.fine('Pulling builder name from parameters_json...');
       log.fine(build.buildParameters);
-      final String? taskName = build.buildParameters?['builder_name'] as String?;
       if (taskName == null || taskName.isEmpty) {
         throw const BadRequestException('task_key is null and parameters_json does not contain the builder name');
       }
@@ -84,6 +87,11 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       final String oldTaskStatus = task.status;
       task.updateFromBuild(build);
       await datastore.insert(<Task>[task]);
+      try {
+        await updateFirestore(build, rawCommitKey, task.name!);
+      } catch (error) {
+        log.warning('Failed to update task in Firestore: $error');
+      }
       log.fine('Updated datastore from $oldTaskStatus to ${task.status}');
     } else {
       log.fine('skip processing for build with status scheduled or task with status finished.');
@@ -133,5 +141,20 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
   //    The task may have been marked as completed from test framework via update-task-status API.
   bool _shouldUpdateTask(Build build, Task task) {
     return build.status != Status.scheduled && !Task.finishedStatusValues.contains(task.status);
+  }
+
+  /// Queries the task document and updates based on the latest build data.
+  Future<void> updateFirestore(Build build, String commitKeyId, String taskName) async {
+    final FirestoreService firestoreService = await config.createFirestoreService();
+    final String sha = commitKeyId.split('/').last;
+    final String documentName = '$kDatabase/documents/tasks/${sha}_${taskName}_1';
+    log.info('getting firestore document: $documentName');
+    final f.Task firestoreTask =
+        await f.Task.fromFirestore(firestoreService: firestoreService, documentName: documentName);
+    log.info('updating firestoreTask based on build');
+    firestoreTask.updateFromBuild(build);
+    log.info('finished updating firestoreTask based on builds');
+    final List<Write> writes = documentsToWrites([firestoreTask], exists: true);
+    await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
   }
 }
