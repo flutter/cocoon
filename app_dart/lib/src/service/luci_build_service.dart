@@ -10,6 +10,7 @@ import 'dart:typed_data';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 import 'package:googleapis/pubsub/v1.dart';
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 
 import '../foundation/github_checks_util.dart';
 import '../foundation/utils.dart';
@@ -209,6 +210,17 @@ class LuciBuildService {
       if (labels != null && labels.isNotEmpty) {
         properties[propertiesGithubBuildLabelName] = labels;
       }
+
+      //TODO might be able to duplicate the work here so that we can see what this
+      // pushes to the new sub.
+      bbv2.BatchRequest batchRequest = bbv2.BatchRequest.create();
+      _createPresubmitScheduleBuildV2(
+        slug: slug,
+        sha: sha,
+        checkName: target.value.name,
+        pullRequestNumber: pullRequest.number!,
+        cipdVersion: cipdVersion
+        );
 
       requests.add(
         Request(
@@ -579,6 +591,98 @@ class LuciBuildService {
       exe: exec,
       dimensions: dimensions,
     );
+  }
+
+  // build the same objects using the v2 and publish along side the v1 objects.
+  bbv2.ScheduleBuildRequest _createPresubmitScheduleBuildV2({
+    required github.RepositorySlug slug,
+    required String sha,
+    required String checkName,
+    required int pullRequestNumber,
+    required String cipdVersion,
+    Map<String, Object>? properties,
+    List<bbv2.StringPair>? tags,
+    Map<String, dynamic>? userData,
+    List<bbv2.RequestedDimension>? dimensions,}) {
+
+    final Map<String, dynamic> processedUserData = userData ?? <String, dynamic>{};
+    processedUserData['repo_owner'] = slug.owner;
+    processedUserData['repo_name'] = slug.name;
+    processedUserData['user_agent'] = 'flutter-cocoon';
+
+    final bbv2.BuilderID builderId = bbv2.BuilderID.create();
+    builderId.bucket = 'try';
+    builderId.project = 'flutter';
+    builderId.builder = 'checkName';
+
+
+    final Map<String, dynamic> exec = <String, dynamic>{'cipdVersion': cipdVersion};
+
+
+    // return ScheduleBuildRequest(
+    //   builderId: builderId,
+    //   tags: processedTags,
+    //   properties: processedProperties,
+    //   notify: notificationConfig,
+    //   fields: 'id,builder,number,status,tags',
+    //   exe: exec,
+    //   dimensions: dimensions,
+    // );
+
+    final bbv2.ScheduleBuildRequest scheduleBuildRequest = bbv2.ScheduleBuildRequest.create();
+    scheduleBuildRequest.builder = builderId;
+
+    final List<bbv2.RequestedDimension> instanceDimensions = scheduleBuildRequest.dimensions;
+    instanceDimensions.addAll(dimensions ?? []);
+
+    // Create the notification configuration for pubsub processing.
+    final bbv2.NotificationConfig notificationConfig = bbv2.NotificationConfig().createEmptyInstance();
+    notificationConfig.pubsubTopic = 'projects/flutter-dashboard/topics/luci-builds';
+    notificationConfig.userData = json.encode(processedUserData).codeUnits;
+    scheduleBuildRequest.notify = notificationConfig;
+
+    final List<bbv2.StringPair> processTags = tags ?? <bbv2.StringPair>[];
+    processTags.add(_createStringPair('buildset', 'pr/git/$pullRequestNumber'));
+    processTags.add(_createStringPair('buildset', 'sha/git/$sha'));
+    processTags.add(_createStringPair('user_agent', 'flutter-cocoon'));
+    processTags.add(_createStringPair('github_link', 'https://github.com/${slug.owner}/${slug.name}/pull/$pullRequestNumber'));
+    processTags.add(_createStringPair('cipd_version', cipdVersion));
+    scheduleBuildRequest.setField(scheduleBuildRequest.getTagNumber('tags')!, processTags);
+    
+    final Map<String, Object> processedProperties = <String, Object>{};
+    processedProperties.addAll(properties ?? <String, Object>{});
+    processedProperties.addEntries(
+      <String, Object>{
+        'git_url': 'https://github.com/${slug.owner}/${slug.name}',
+        'git_ref': 'refs/pull/$pullRequestNumber/head',
+        'exe_cipd_version': cipdVersion,
+      }.entries,
+    );
+
+
+    // scheduleBuildRequest.properties.mergeFromProto3Json(json.decode(processedProperties) as Map<String, dynamic>);
+
+    return bbv2.ScheduleBuildRequest().createEmptyInstance();
+    
+  }
+
+  bbv2.StringPair _createStringPair(String key, String value) {
+    final bbv2.StringPair stringPair = bbv2.StringPair.create();
+    stringPair.key = key;
+    stringPair.value = value;
+    return stringPair;
+  }
+
+  List<bbv2.StringPair> _createStringPairList(String key, List<String> values) {
+    final List<bbv2.StringPair> stringPairs = <bbv2.StringPair>[];
+    for (String v in values) {
+      final bbv2.StringPair stringPair = bbv2.StringPair.create();
+      stringPair.key = key;
+      stringPair.value = v;
+      stringPairs.add(stringPair);
+    }
+
+    return stringPairs;
   }
 
   /// Creates a [ScheduleBuildRequest] for [target] and [task] against [commit].

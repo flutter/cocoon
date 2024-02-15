@@ -12,7 +12,6 @@ import '../model/luci/push_message.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/subscription_handler.dart';
-import '../service/buildbucket.dart';
 import '../service/config.dart';
 import '../service/github_checks_service.dart';
 import '../service/logging.dart';

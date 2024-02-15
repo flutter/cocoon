@@ -1065,4 +1065,20 @@ void main() {
       expect(rerunFlag, isFalse);
     });
   });
+
+  group('Verify object creation', () {
+    test('Properties map to buildbucket v2 properties', () {
+      final Map<String, Object> properties = <String, Object>{};
+      properties.addEntries(<String, Object>{});
+      final Map<String, Object> processedProperties = <String, Object>{};
+      processedProperties.addAll(properties ?? <String, Object>{});
+      processedProperties.addEntries(
+        <String, Object>{
+          'git_url': 'https://github.com/${slug.owner}/${slug.name}',
+          'git_ref': 'refs/pull/$pullRequestNumber/head',
+          'exe_cipd_version': cipdVersion,
+        }.entries,
+      );
+    });
+  });
 }

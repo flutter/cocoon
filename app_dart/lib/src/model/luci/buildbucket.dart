@@ -780,8 +780,7 @@ class NotificationConfig extends JsonBody {
 
   static NotificationConfig fromJson(Map<String, dynamic> json) => _$NotificationConfigFromJson(json);
 
-  /// The Cloud PubSub topic to use, e.g.
-  /// `projects/flutter-dashboard/topics/luci-builds`.
+  /// The Cloud PubSub topic to use.
   final String? pubsubTopic;
 
   /// An optional user data field that will be delivered with the message.
