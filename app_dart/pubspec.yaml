@@ -13,6 +13,10 @@ environment:
 dependencies:
   appengine: 0.13.7
   args: 2.4.2
+<<<<<<< Updated upstream
+=======
+  buildbucket: 1.0.7
+>>>>>>> Stashed changes
   collection: 1.18.0
   corsac_jwt: 1.0.0-nullsafety.1
   crypto: 3.0.3
