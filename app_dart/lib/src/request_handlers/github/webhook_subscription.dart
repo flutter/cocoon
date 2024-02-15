@@ -473,6 +473,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           // Native iOS/macOS tests.
           filename.contains('RunnerTests/') ||
           filename.contains('RunnerUITests/') ||
+          filename.contains('darwin/Tests/') ||
           // Native Android tests.
           filename.contains('android/src/test/') ||
           filename.contains('androidTest/') ||

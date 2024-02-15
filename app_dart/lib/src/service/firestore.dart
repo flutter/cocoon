@@ -33,6 +33,25 @@ class FirestoreService {
     return FirestoreApi(client).projects.databases.documents;
   }
 
+  /// Gets a document based on name.
+  Future<Document> getDocument(
+    String name,
+  ) async {
+    final ProjectsDatabasesDocumentsResource databasesDocumentsResource = await documentResource();
+    return databasesDocumentsResource.get(name);
+  }
+
+  /// Batch writes documents to Firestore.
+  ///
+  /// It does not apply the write operations atomically and can apply them out of order.
+  /// Each write succeeds or fails independently.
+  ///
+  /// https://firebase.google.com/docs/firestore/reference/rest/v1/projects.databases.documents/batchWrite
+  Future<BatchWriteResponse> batchWriteDocuments(BatchWriteRequest request, String database) async {
+    final ProjectsDatabasesDocumentsResource databasesDocumentsResource = await documentResource();
+    return databasesDocumentsResource.batchWrite(request, database);
+  }
+
   /// Writes [writes] to Firestore within a transaction.
   ///
   /// This is an atomic operation: either all writes succeed or all writes fail.
@@ -54,7 +73,6 @@ List<Document> targetsToTaskDocuments(Commit commit, List<Target> targets) {
     (Target target) => Document(
       name: '$kDatabase/documents/tasks/${commit.sha}_${target.value.name}_1',
       fields: <String, Value>{
-        'builderNumber': Value(integerValue: null),
         'createTimestamp': Value(integerValue: commit.timestamp!.toString()),
         'endTimestamp': Value(integerValue: '0'),
         'bringup': Value(booleanValue: target.value.bringup),
@@ -86,12 +104,12 @@ Document commitToCommitDocument(Commit commit) {
 }
 
 /// Creates a list of [Write] based on documents.
-List<Write> documentsToWrites(List<Document> documents) {
+List<Write> documentsToWrites(List<Document> documents, {bool exists = false}) {
   return documents
       .map(
         (Document document) => Write(
           update: document,
-          currentDocument: Precondition(exists: false),
+          currentDocument: Precondition(exists: exists),
         ),
       )
       .toList();
