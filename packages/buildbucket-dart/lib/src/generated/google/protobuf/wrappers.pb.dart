@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -15,8 +15,19 @@ import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 import 'package:protobuf/src/protobuf/mixins/well_known.dart' as $mixin;
 
+///  Wrapper message for `double`.
+///
+///  The JSON representation for `DoubleValue` is JSON number.
 class DoubleValue extends $pb.GeneratedMessage with $mixin.DoubleValueMixin {
-  factory DoubleValue() => create();
+  factory DoubleValue({
+    $core.double? value,
+  }) {
+    final $result = create();
+    if (value != null) {
+      $result.value = value;
+    }
+    return $result;
+  }
   DoubleValue._() : super();
   factory DoubleValue.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -51,6 +62,7 @@ class DoubleValue extends $pb.GeneratedMessage with $mixin.DoubleValueMixin {
   static DoubleValue getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DoubleValue>(create);
   static DoubleValue? _defaultInstance;
 
+  /// The double value.
   @$pb.TagNumber(1)
   $core.double get value => $_getN(0);
   @$pb.TagNumber(1)
@@ -64,8 +76,19 @@ class DoubleValue extends $pb.GeneratedMessage with $mixin.DoubleValueMixin {
   void clearValue() => clearField(1);
 }
 
+///  Wrapper message for `float`.
+///
+///  The JSON representation for `FloatValue` is JSON number.
 class FloatValue extends $pb.GeneratedMessage with $mixin.FloatValueMixin {
-  factory FloatValue() => create();
+  factory FloatValue({
+    $core.double? value,
+  }) {
+    final $result = create();
+    if (value != null) {
+      $result.value = value;
+    }
+    return $result;
+  }
   FloatValue._() : super();
   factory FloatValue.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -100,6 +123,7 @@ class FloatValue extends $pb.GeneratedMessage with $mixin.FloatValueMixin {
   static FloatValue getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<FloatValue>(create);
   static FloatValue? _defaultInstance;
 
+  /// The float value.
   @$pb.TagNumber(1)
   $core.double get value => $_getN(0);
   @$pb.TagNumber(1)
@@ -113,8 +137,19 @@ class FloatValue extends $pb.GeneratedMessage with $mixin.FloatValueMixin {
   void clearValue() => clearField(1);
 }
 
+///  Wrapper message for `int64`.
+///
+///  The JSON representation for `Int64Value` is JSON string.
 class Int64Value extends $pb.GeneratedMessage with $mixin.Int64ValueMixin {
-  factory Int64Value() => create();
+  factory Int64Value({
+    $fixnum.Int64? value,
+  }) {
+    final $result = create();
+    if (value != null) {
+      $result.value = value;
+    }
+    return $result;
+  }
   Int64Value._() : super();
   factory Int64Value.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -149,6 +184,7 @@ class Int64Value extends $pb.GeneratedMessage with $mixin.Int64ValueMixin {
   static Int64Value getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Int64Value>(create);
   static Int64Value? _defaultInstance;
 
+  /// The int64 value.
   @$pb.TagNumber(1)
   $fixnum.Int64 get value => $_getI64(0);
   @$pb.TagNumber(1)
@@ -162,8 +198,19 @@ class Int64Value extends $pb.GeneratedMessage with $mixin.Int64ValueMixin {
   void clearValue() => clearField(1);
 }
 
+///  Wrapper message for `uint64`.
+///
+///  The JSON representation for `UInt64Value` is JSON string.
 class UInt64Value extends $pb.GeneratedMessage with $mixin.UInt64ValueMixin {
-  factory UInt64Value() => create();
+  factory UInt64Value({
+    $fixnum.Int64? value,
+  }) {
+    final $result = create();
+    if (value != null) {
+      $result.value = value;
+    }
+    return $result;
+  }
   UInt64Value._() : super();
   factory UInt64Value.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -198,6 +245,7 @@ class UInt64Value extends $pb.GeneratedMessage with $mixin.UInt64ValueMixin {
   static UInt64Value getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UInt64Value>(create);
   static UInt64Value? _defaultInstance;
 
+  /// The uint64 value.
   @$pb.TagNumber(1)
   $fixnum.Int64 get value => $_getI64(0);
   @$pb.TagNumber(1)
@@ -211,8 +259,19 @@ class UInt64Value extends $pb.GeneratedMessage with $mixin.UInt64ValueMixin {
   void clearValue() => clearField(1);
 }
 
+///  Wrapper message for `int32`.
+///
+///  The JSON representation for `Int32Value` is JSON number.
 class Int32Value extends $pb.GeneratedMessage with $mixin.Int32ValueMixin {
-  factory Int32Value() => create();
+  factory Int32Value({
+    $core.int? value,
+  }) {
+    final $result = create();
+    if (value != null) {
+      $result.value = value;
+    }
+    return $result;
+  }
   Int32Value._() : super();
   factory Int32Value.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -247,6 +306,7 @@ class Int32Value extends $pb.GeneratedMessage with $mixin.Int32ValueMixin {
   static Int32Value getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Int32Value>(create);
   static Int32Value? _defaultInstance;
 
+  /// The int32 value.
   @$pb.TagNumber(1)
   $core.int get value => $_getIZ(0);
   @$pb.TagNumber(1)
@@ -260,8 +320,19 @@ class Int32Value extends $pb.GeneratedMessage with $mixin.Int32ValueMixin {
   void clearValue() => clearField(1);
 }
 
+///  Wrapper message for `uint32`.
+///
+///  The JSON representation for `UInt32Value` is JSON number.
 class UInt32Value extends $pb.GeneratedMessage with $mixin.UInt32ValueMixin {
-  factory UInt32Value() => create();
+  factory UInt32Value({
+    $core.int? value,
+  }) {
+    final $result = create();
+    if (value != null) {
+      $result.value = value;
+    }
+    return $result;
+  }
   UInt32Value._() : super();
   factory UInt32Value.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -296,6 +367,7 @@ class UInt32Value extends $pb.GeneratedMessage with $mixin.UInt32ValueMixin {
   static UInt32Value getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UInt32Value>(create);
   static UInt32Value? _defaultInstance;
 
+  /// The uint32 value.
   @$pb.TagNumber(1)
   $core.int get value => $_getIZ(0);
   @$pb.TagNumber(1)
@@ -309,8 +381,19 @@ class UInt32Value extends $pb.GeneratedMessage with $mixin.UInt32ValueMixin {
   void clearValue() => clearField(1);
 }
 
+///  Wrapper message for `bool`.
+///
+///  The JSON representation for `BoolValue` is JSON `true` and `false`.
 class BoolValue extends $pb.GeneratedMessage with $mixin.BoolValueMixin {
-  factory BoolValue() => create();
+  factory BoolValue({
+    $core.bool? value,
+  }) {
+    final $result = create();
+    if (value != null) {
+      $result.value = value;
+    }
+    return $result;
+  }
   BoolValue._() : super();
   factory BoolValue.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -345,6 +428,7 @@ class BoolValue extends $pb.GeneratedMessage with $mixin.BoolValueMixin {
   static BoolValue getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BoolValue>(create);
   static BoolValue? _defaultInstance;
 
+  /// The bool value.
   @$pb.TagNumber(1)
   $core.bool get value => $_getBF(0);
   @$pb.TagNumber(1)
@@ -358,8 +442,19 @@ class BoolValue extends $pb.GeneratedMessage with $mixin.BoolValueMixin {
   void clearValue() => clearField(1);
 }
 
+///  Wrapper message for `string`.
+///
+///  The JSON representation for `StringValue` is JSON string.
 class StringValue extends $pb.GeneratedMessage with $mixin.StringValueMixin {
-  factory StringValue() => create();
+  factory StringValue({
+    $core.String? value,
+  }) {
+    final $result = create();
+    if (value != null) {
+      $result.value = value;
+    }
+    return $result;
+  }
   StringValue._() : super();
   factory StringValue.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -394,6 +489,7 @@ class StringValue extends $pb.GeneratedMessage with $mixin.StringValueMixin {
   static StringValue getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<StringValue>(create);
   static StringValue? _defaultInstance;
 
+  /// The string value.
   @$pb.TagNumber(1)
   $core.String get value => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -407,8 +503,19 @@ class StringValue extends $pb.GeneratedMessage with $mixin.StringValueMixin {
   void clearValue() => clearField(1);
 }
 
+///  Wrapper message for `bytes`.
+///
+///  The JSON representation for `BytesValue` is JSON string.
 class BytesValue extends $pb.GeneratedMessage with $mixin.BytesValueMixin {
-  factory BytesValue() => create();
+  factory BytesValue({
+    $core.List<$core.int>? value,
+  }) {
+    final $result = create();
+    if (value != null) {
+      $result.value = value;
+    }
+    return $result;
+  }
   BytesValue._() : super();
   factory BytesValue.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -443,6 +550,7 @@ class BytesValue extends $pb.GeneratedMessage with $mixin.BytesValueMixin {
   static BytesValue getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BytesValue>(create);
   static BytesValue? _defaultInstance;
 
+  /// The bytes value.
   @$pb.TagNumber(1)
   $core.List<$core.int> get value => $_getN(0);
   @$pb.TagNumber(1)

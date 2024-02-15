@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -27,8 +27,39 @@ import 'task.pb.dart' as $7;
 
 export 'build.pbenum.dart';
 
+///  Defines what to build/test.
+///
+///  Behavior of a build executable MAY depend on Input.
+///  It MAY NOT modify its behavior based on anything outside of Input.
+///  It MAY read non-Input fields to display for debugging or to pass-through to
+///  triggered builds. For example the "tags" field may be passed to triggered
+///  builds, or the "infra" field may be printed for debugging purposes.
 class Build_Input extends $pb.GeneratedMessage {
-  factory Build_Input() => create();
+  factory Build_Input({
+    $5.Struct? properties,
+    $3.GitilesCommit? gitilesCommit,
+    $core.Iterable<$3.GerritChange>? gerritChanges,
+    $core.bool? experimental,
+    $core.Iterable<$core.String>? experiments,
+  }) {
+    final $result = create();
+    if (properties != null) {
+      $result.properties = properties;
+    }
+    if (gitilesCommit != null) {
+      $result.gitilesCommit = gitilesCommit;
+    }
+    if (gerritChanges != null) {
+      $result.gerritChanges.addAll(gerritChanges);
+    }
+    if (experimental != null) {
+      $result.experimental = experimental;
+    }
+    if (experiments != null) {
+      $result.experiments.addAll(experiments);
+    }
+    return $result;
+  }
   Build_Input._() : super();
   factory Build_Input.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -65,6 +96,11 @@ class Build_Input extends $pb.GeneratedMessage {
   static Build_Input getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Build_Input>(create);
   static Build_Input? _defaultInstance;
 
+  ///  Arbitrary JSON object. Available at build run time.
+  ///
+  ///  RPC: By default, this field is excluded from responses.
+  ///
+  ///  V1 equivalent: corresponds to "properties" key in "parameters_json".
   @$pb.TagNumber(1)
   $5.Struct get properties => $_getN(0);
   @$pb.TagNumber(1)
@@ -79,6 +115,13 @@ class Build_Input extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $5.Struct ensureProperties() => $_ensure(0);
 
+  ///  The Gitiles commit to run against.
+  ///  Usually present in CI builds, set by LUCI Scheduler.
+  ///  If not present, the build may checkout "refs/heads/master".
+  ///  NOT a blamelist.
+  ///
+  ///  V1 equivalent: supersedes "revision" property and "buildset"
+  ///  tag that starts with "commit/gitiles/".
   @$pb.TagNumber(2)
   $3.GitilesCommit get gitilesCommit => $_getN(1);
   @$pb.TagNumber(2)
@@ -93,9 +136,20 @@ class Build_Input extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $3.GitilesCommit ensureGitilesCommit() => $_ensure(1);
 
+  ///  Gerrit patchsets to run against.
+  ///  Usually present in tryjobs, set by CQ, Gerrit, git-cl-try.
+  ///  Applied on top of gitiles_commit if specified, otherwise tip of the tree.
+  ///
+  ///  V1 equivalent: supersedes patch_* properties and "buildset"
+  ///  tag that starts with "patch/gerrit/".
   @$pb.TagNumber(3)
   $core.List<$3.GerritChange> get gerritChanges => $_getList(2);
 
+  ///  DEPRECATED
+  ///
+  ///  Equivalent to `"luci.non_production" in experiments`.
+  ///
+  ///  See `Builder.experiments` for well-known experiments.
   @$pb.TagNumber(5)
   $core.bool get experimental => $_getBF(3);
   @$pb.TagNumber(5)
@@ -108,12 +162,51 @@ class Build_Input extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   void clearExperimental() => clearField(5);
 
+  ///  The sorted list of experiments enabled on this build.
+  ///
+  ///  See `Builder.experiments` for a detailed breakdown on how experiments
+  ///  work, and go/buildbucket-settings.cfg for the current state of global
+  ///  experiments.
   @$pb.TagNumber(6)
   $core.List<$core.String> get experiments => $_getList(4);
 }
 
+/// Result of the build executable.
 class Build_Output extends $pb.GeneratedMessage {
-  factory Build_Output() => create();
+  factory Build_Output({
+    $5.Struct? properties,
+    $core.String? summaryMarkdown,
+    $3.GitilesCommit? gitilesCommit,
+    $core.Iterable<$3.Log>? logs,
+    $3.Status? status,
+    $3.StatusDetails? statusDetails,
+    @$core.Deprecated('This field is deprecated.') $core.String? summaryHtml,
+  }) {
+    final $result = create();
+    if (properties != null) {
+      $result.properties = properties;
+    }
+    if (summaryMarkdown != null) {
+      $result.summaryMarkdown = summaryMarkdown;
+    }
+    if (gitilesCommit != null) {
+      $result.gitilesCommit = gitilesCommit;
+    }
+    if (logs != null) {
+      $result.logs.addAll(logs);
+    }
+    if (status != null) {
+      $result.status = status;
+    }
+    if (statusDetails != null) {
+      $result.statusDetails = statusDetails;
+    }
+    if (summaryHtml != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.summaryHtml = summaryHtml;
+    }
+    return $result;
+  }
   Build_Output._() : super();
   factory Build_Output.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -152,6 +245,19 @@ class Build_Output extends $pb.GeneratedMessage {
   static Build_Output getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Build_Output>(create);
   static Build_Output? _defaultInstance;
 
+  ///  Arbitrary JSON object produced by the build.
+  ///
+  ///  In recipes, use step_result.presentation.properties to set these,
+  ///  for example
+  ///
+  ///    step_result = api.step(['echo'])
+  ///    step_result.presentation.properties['foo'] = 'bar'
+  ///
+  ///  More docs: https://chromium.googlesource.com/infra/luci/recipes-py/+/HEAD/doc/old_user_guide.md#Setting-properties
+  ///
+  ///  V1 equivalent: corresponds to "properties" key in
+  ///  "result_details_json".
+  ///  In V1 output properties are not populated until build ends.
   @$pb.TagNumber(1)
   $5.Struct get properties => $_getN(0);
   @$pb.TagNumber(1)
@@ -178,6 +284,13 @@ class Build_Output extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearSummaryMarkdown() => clearField(2);
 
+  ///  Build checked out and executed on this commit.
+  ///
+  ///  Should correspond to Build.Input.gitiles_commit.
+  ///  May be present even if Build.Input.gitiles_commit is not set, for example
+  ///  in cron builders.
+  ///
+  ///  V1 equivalent: this supersedes all got_revision output property.
   @$pb.TagNumber(3)
   $3.GitilesCommit get gitilesCommit => $_getN(2);
   @$pb.TagNumber(3)
@@ -192,9 +305,11 @@ class Build_Output extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $3.GitilesCommit ensureGitilesCommit() => $_ensure(2);
 
+  /// Logs produced by the build script, typically "stdout" and "stderr".
   @$pb.TagNumber(5)
   $core.List<$3.Log> get logs => $_getList(3);
 
+  /// Build status which is reported by the client via StartBuild or UpdateBuild.
   @$pb.TagNumber(6)
   $3.Status get status => $_getN(4);
   @$pb.TagNumber(6)
@@ -221,21 +336,39 @@ class Build_Output extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $3.StatusDetails ensureStatusDetails() => $_ensure(5);
 
+  /// Deprecated. Use summary_markdown instead.
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   $core.String get summaryHtml => $_getSZ(6);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   set summaryHtml($core.String v) {
     $_setString(6, v);
   }
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   $core.bool hasSummaryHtml() => $_has(6);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   void clearSummaryHtml() => clearField(8);
 }
 
+///  Information of the builder, propagated from builder config.
+///
+///  The info captures the state of the builder at creation time.
+///  If any information is updated, all future builds will have the new
+///  information, while the historical builds persist the old information.
 class Build_BuilderInfo extends $pb.GeneratedMessage {
-  factory Build_BuilderInfo() => create();
+  factory Build_BuilderInfo({
+    $core.String? description,
+  }) {
+    final $result = create();
+    if (description != null) {
+      $result.description = description;
+    }
+    return $result;
+  }
   Build_BuilderInfo._() : super();
   factory Build_BuilderInfo.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -282,8 +415,145 @@ class Build_BuilderInfo extends $pb.GeneratedMessage {
   void clearDescription() => clearField(1);
 }
 
+///  A single build, identified by an int64 ID.
+///  Belongs to a builder.
+///
+///  RPC: see Builds service for build creation and retrieval.
+///  Some Build fields are marked as excluded from responses by default.
+///  Use "mask" request field to specify that a field must be included.
+///
+///  BigQuery: this message also defines schema of a BigQuery table of completed
+///  builds. A BigQuery row is inserted soon after build ends, i.e. a row
+///  represents a state of a build at completion time and does not change after
+///  that. All fields are included.
+///
+///  Next id: 36.
 class Build extends $pb.GeneratedMessage {
-  factory Build() => create();
+  factory Build({
+    $fixnum.Int64? id,
+    $0.BuilderID? builder,
+    $core.int? number,
+    $core.String? createdBy,
+    $1.Timestamp? createTime,
+    $1.Timestamp? startTime,
+    $1.Timestamp? endTime,
+    $1.Timestamp? updateTime,
+    $3.Status? status,
+    Build_Input? input,
+    Build_Output? output,
+    $core.Iterable<$2.Step>? steps,
+    BuildInfra? infra,
+    $core.Iterable<$3.StringPair>? tags,
+    $core.String? summaryMarkdown,
+    $3.Trinary? critical,
+    $3.StatusDetails? statusDetails,
+    $core.String? canceledBy,
+    $3.Executable? exe,
+    $core.bool? canary,
+    $4.Duration? schedulingTimeout,
+    $4.Duration? executionTimeout,
+    $core.bool? waitForCapacity,
+    $4.Duration? gracePeriod,
+    $core.bool? canOutliveParent,
+    $core.Iterable<$fixnum.Int64>? ancestorIds,
+    $1.Timestamp? cancelTime,
+    $core.String? cancellationMarkdown,
+    Build_BuilderInfo? builderInfo,
+    $3.Trinary? retriable,
+  }) {
+    final $result = create();
+    if (id != null) {
+      $result.id = id;
+    }
+    if (builder != null) {
+      $result.builder = builder;
+    }
+    if (number != null) {
+      $result.number = number;
+    }
+    if (createdBy != null) {
+      $result.createdBy = createdBy;
+    }
+    if (createTime != null) {
+      $result.createTime = createTime;
+    }
+    if (startTime != null) {
+      $result.startTime = startTime;
+    }
+    if (endTime != null) {
+      $result.endTime = endTime;
+    }
+    if (updateTime != null) {
+      $result.updateTime = updateTime;
+    }
+    if (status != null) {
+      $result.status = status;
+    }
+    if (input != null) {
+      $result.input = input;
+    }
+    if (output != null) {
+      $result.output = output;
+    }
+    if (steps != null) {
+      $result.steps.addAll(steps);
+    }
+    if (infra != null) {
+      $result.infra = infra;
+    }
+    if (tags != null) {
+      $result.tags.addAll(tags);
+    }
+    if (summaryMarkdown != null) {
+      $result.summaryMarkdown = summaryMarkdown;
+    }
+    if (critical != null) {
+      $result.critical = critical;
+    }
+    if (statusDetails != null) {
+      $result.statusDetails = statusDetails;
+    }
+    if (canceledBy != null) {
+      $result.canceledBy = canceledBy;
+    }
+    if (exe != null) {
+      $result.exe = exe;
+    }
+    if (canary != null) {
+      $result.canary = canary;
+    }
+    if (schedulingTimeout != null) {
+      $result.schedulingTimeout = schedulingTimeout;
+    }
+    if (executionTimeout != null) {
+      $result.executionTimeout = executionTimeout;
+    }
+    if (waitForCapacity != null) {
+      $result.waitForCapacity = waitForCapacity;
+    }
+    if (gracePeriod != null) {
+      $result.gracePeriod = gracePeriod;
+    }
+    if (canOutliveParent != null) {
+      $result.canOutliveParent = canOutliveParent;
+    }
+    if (ancestorIds != null) {
+      $result.ancestorIds.addAll(ancestorIds);
+    }
+    if (cancelTime != null) {
+      $result.cancelTime = cancelTime;
+    }
+    if (cancellationMarkdown != null) {
+      $result.cancellationMarkdown = cancellationMarkdown;
+    }
+    if (builderInfo != null) {
+      $result.builderInfo = builderInfo;
+    }
+    if (retriable != null) {
+      $result.retriable = retriable;
+    }
+    return $result;
+  }
   Build._() : super();
   factory Build.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -346,6 +616,8 @@ class Build extends $pb.GeneratedMessage {
   static Build getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Build>(create);
   static Build? _defaultInstance;
 
+  /// Identifier of the build, unique per LUCI deployment.
+  /// IDs are monotonically decreasing.
   @$pb.TagNumber(1)
   $fixnum.Int64 get id => $_getI64(0);
   @$pb.TagNumber(1)
@@ -358,6 +630,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearId() => clearField(1);
 
+  ///  Required. The builder this build belongs to.
+  ///
+  ///  Tuple (builder.project, builder.bucket) defines build ACL
+  ///  which may change after build has ended.
   @$pb.TagNumber(2)
   $0.BuilderID get builder => $_getN(1);
   @$pb.TagNumber(2)
@@ -372,6 +648,22 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $0.BuilderID ensureBuilder() => $_ensure(1);
 
+  ///  Human-readable identifier of the build with the following properties:
+  ///  - unique within the builder
+  ///  - a monotonically increasing number
+  ///  - mostly contiguous
+  ///  - much shorter than id
+  ///
+  ///  Caution: populated (positive number) iff build numbers were enabled
+  ///  in the builder configuration at the time of build creation.
+  ///
+  ///  Caution: Build numbers are not guaranteed to be contiguous.
+  ///  There may be gaps during outages.
+  ///
+  ///  Caution: Build numbers, while monotonically increasing, do not
+  ///  necessarily reflect source-code order. For example, force builds
+  ///  or rebuilds can allocate new, higher, numbers, but build an older-
+  ///  than-HEAD version of the source.
   @$pb.TagNumber(3)
   $core.int get number => $_getIZ(2);
   @$pb.TagNumber(3)
@@ -384,6 +676,7 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearNumber() => clearField(3);
 
+  /// Verified LUCI identity that created this build.
   @$pb.TagNumber(4)
   $core.String get createdBy => $_getSZ(3);
   @$pb.TagNumber(4)
@@ -396,6 +689,7 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   void clearCreatedBy() => clearField(4);
 
+  /// When the build was created.
   @$pb.TagNumber(6)
   $1.Timestamp get createTime => $_getN(4);
   @$pb.TagNumber(6)
@@ -410,6 +704,8 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $1.Timestamp ensureCreateTime() => $_ensure(4);
 
+  /// When the build started.
+  /// Required iff status is STARTED, SUCCESS or FAILURE.
   @$pb.TagNumber(7)
   $1.Timestamp get startTime => $_getN(5);
   @$pb.TagNumber(7)
@@ -424,6 +720,9 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $1.Timestamp ensureStartTime() => $_ensure(5);
 
+  /// When the build ended.
+  /// Present iff status is terminal.
+  /// MUST NOT be before start_time.
   @$pb.TagNumber(8)
   $1.Timestamp get endTime => $_getN(6);
   @$pb.TagNumber(8)
@@ -438,6 +737,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   $1.Timestamp ensureEndTime() => $_ensure(6);
 
+  ///  When the build was most recently updated.
+  ///
+  ///  RPC: can be > end_time if, e.g. new tags were attached to a completed
+  ///  build.
   @$pb.TagNumber(9)
   $1.Timestamp get updateTime => $_getN(7);
   @$pb.TagNumber(9)
@@ -452,6 +755,12 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   $1.Timestamp ensureUpdateTime() => $_ensure(7);
 
+  ///  Status of the build.
+  ///  Must be specified, i.e. not STATUS_UNSPECIFIED.
+  ///
+  ///  RPC: Responses have most current status.
+  ///
+  ///  BigQuery: Final status of the build. Cannot be SCHEDULED or STARTED.
   @$pb.TagNumber(12)
   $3.Status get status => $_getN(8);
   @$pb.TagNumber(12)
@@ -464,6 +773,7 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   void clearStatus() => clearField(12);
 
+  /// Input to the build executable.
   @$pb.TagNumber(15)
   Build_Input get input => $_getN(9);
   @$pb.TagNumber(15)
@@ -478,6 +788,12 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(15)
   Build_Input ensureInput() => $_ensure(9);
 
+  ///  Output of the build executable.
+  ///  SHOULD depend only on input field and NOT other fields.
+  ///  MUST be unset if build status is SCHEDULED.
+  ///
+  ///  RPC: By default, this field is excluded from responses.
+  ///  Updated while the build is running and finalized when the build ends.
   @$pb.TagNumber(16)
   Build_Output get output => $_getN(10);
   @$pb.TagNumber(16)
@@ -492,9 +808,19 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(16)
   Build_Output ensureOutput() => $_ensure(10);
 
+  ///  Current list of build steps.
+  ///  Updated as build runs.
+  ///
+  ///  May take up to 1MB after zlib compression.
+  ///  MUST be unset if build status is SCHEDULED.
+  ///
+  ///  RPC: By default, this field is excluded from responses.
   @$pb.TagNumber(17)
   $core.List<$2.Step> get steps => $_getList(11);
 
+  ///  Build infrastructure used by the build.
+  ///
+  ///  RPC: By default, this field is excluded from responses.
   @$pb.TagNumber(18)
   BuildInfra get infra => $_getN(12);
   @$pb.TagNumber(18)
@@ -509,9 +835,16 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(18)
   BuildInfra ensureInfra() => $_ensure(12);
 
+  /// Arbitrary annotations for the build.
+  /// One key may have multiple values, which is why this is not a map<string,string>.
+  /// Indexed by the server, see also BuildPredicate.tags.
   @$pb.TagNumber(19)
   $core.List<$3.StringPair> get tags => $_getList(13);
 
+  /// Human-readable summary of the build in Markdown format
+  /// (https://spec.commonmark.org/0.28/).
+  /// Explains status.
+  /// Up to 4 KB.
   @$pb.TagNumber(20)
   $core.String get summaryMarkdown => $_getSZ(14);
   @$pb.TagNumber(20)
@@ -524,6 +857,10 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(20)
   void clearSummaryMarkdown() => clearField(20);
 
+  /// If NO, then the build status SHOULD NOT be used to assess correctness of
+  /// the input gitiles_commit or gerrit_changes.
+  /// For example, if a pre-submit build has failed, CQ MAY still land the CL.
+  /// For example, if a post-submit build has failed, CLs MAY continue landing.
   @$pb.TagNumber(21)
   $3.Trinary get critical => $_getN(15);
   @$pb.TagNumber(21)
@@ -536,6 +873,8 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(21)
   void clearCritical() => clearField(21);
 
+  /// Machine-readable details of the current status.
+  /// Human-readable status reason is available in summary_markdown.
   @$pb.TagNumber(22)
   $3.StatusDetails get statusDetails => $_getN(16);
   @$pb.TagNumber(22)
@@ -550,6 +889,13 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(22)
   $3.StatusDetails ensureStatusDetails() => $_ensure(16);
 
+  ///  Verified LUCI identity that canceled this build.
+  ///
+  ///  Special values:
+  ///  * buildbucket: The build is canceled by buildbucket. This can happen if the
+  ///  build's parent has ended, and the build cannot outlive its parent.
+  ///  * backend: The build's backend task is canceled. For example the build's
+  ///  Swarming task is killed.
   @$pb.TagNumber(23)
   $core.String get canceledBy => $_getSZ(17);
   @$pb.TagNumber(23)
@@ -562,6 +908,7 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(23)
   void clearCanceledBy() => clearField(23);
 
+  /// What to run when the build is ready to start.
   @$pb.TagNumber(24)
   $3.Executable get exe => $_getN(18);
   @$pb.TagNumber(24)
@@ -576,6 +923,11 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(24)
   $3.Executable ensureExe() => $_ensure(18);
 
+  ///  DEPRECATED
+  ///
+  ///  Equivalent to `"luci.buildbucket.canary_software" in input.experiments`.
+  ///
+  ///  See `Builder.experiments` for well-known experiments.
   @$pb.TagNumber(25)
   $core.bool get canary => $_getBF(19);
   @$pb.TagNumber(25)
@@ -588,6 +940,9 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(25)
   void clearCanary() => clearField(25);
 
+  /// Maximum build pending time.
+  /// If the timeout is reached, the build is marked as INFRA_FAILURE status
+  /// and both status_details.{timeout, resource_exhaustion} are set.
   @$pb.TagNumber(26)
   $4.Duration get schedulingTimeout => $_getN(20);
   @$pb.TagNumber(26)
@@ -602,6 +957,17 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(26)
   $4.Duration ensureSchedulingTimeout() => $_ensure(20);
 
+  ///  Maximum build execution time.
+  ///
+  ///  Not to be confused with scheduling_timeout.
+  ///
+  ///  If the timeout is reached, the task will be signaled according to the
+  ///  `deadline` section of
+  ///  https://chromium.googlesource.com/infra/luci/luci-py/+/HEAD/client/LUCI_CONTEXT.md
+  ///  and status_details.timeout is set.
+  ///
+  ///  The task will have `grace_period` amount of time to handle cleanup
+  ///  before being forcefully terminated.
   @$pb.TagNumber(27)
   $4.Duration get executionTimeout => $_getN(21);
   @$pb.TagNumber(27)
@@ -616,6 +982,8 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(27)
   $4.Duration ensureExecutionTimeout() => $_ensure(21);
 
+  /// If set, swarming was requested to wait until it sees at least one bot
+  /// report a superset of the build's requested dimensions.
   @$pb.TagNumber(28)
   $core.bool get waitForCapacity => $_getBF(22);
   @$pb.TagNumber(28)
@@ -628,6 +996,13 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(28)
   void clearWaitForCapacity() => clearField(28);
 
+  ///  Amount of cleanup time after execution_timeout.
+  ///
+  ///  After being signaled according to execution_timeout, the task will
+  ///  have this duration to clean up before being forcefully terminated.
+  ///
+  ///  The signalling process is explained in the `deadline` section of
+  ///  https://chromium.googlesource.com/infra/luci/luci-py/+/HEAD/client/LUCI_CONTEXT.md.
   @$pb.TagNumber(29)
   $4.Duration get gracePeriod => $_getN(23);
   @$pb.TagNumber(29)
@@ -642,6 +1017,15 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(29)
   $4.Duration ensureGracePeriod() => $_ensure(23);
 
+  ///  Flag to control if the build can outlive its parent.
+  ///
+  ///  This field is only meaningful if the build has ancestors.
+  ///  If the build has ancestors and the value is false, it means that the build
+  ///  SHOULD reach a terminal status (SUCCESS, FAILURE, INFRA_FAILURE or
+  ///  CANCELED) before its parent. If the child fails to do so, Buildbucket will
+  ///  cancel it some time after the parent build reaches a terminal status.
+  ///
+  ///  A build that can outlive its parent can also outlive its parent's ancestors.
   @$pb.TagNumber(30)
   $core.bool get canOutliveParent => $_getBF(24);
   @$pb.TagNumber(30)
@@ -654,9 +1038,43 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(30)
   void clearCanOutliveParent() => clearField(30);
 
+  /// IDs of the build's ancestors. This includes all parents/grandparents/etc.
+  /// This is ordered from top-to-bottom so `ancestor_ids[0]` is the root of
+  /// the builds tree, and `ancestor_ids[-1]` is this build's immediate parent.
+  /// This does not include any "siblings" at higher levels of the tree, just
+  /// the direct chain of ancestors from root to this build.
   @$pb.TagNumber(31)
   $core.List<$fixnum.Int64> get ancestorIds => $_getList(25);
 
+  ///  When the cancel process of the build started.
+  ///  Note it's not the time that the cancellation completed, which would be
+  ///  tracked by end_time.
+  ///
+  ///  During the cancel process, the build still accepts updates.
+  ///
+  ///  bbagent checks this field at the frequency of
+  ///  buildbucket.MinUpdateBuildInterval. When bbagent sees the build is in
+  ///  cancel process, there are two states:
+  ///   * it has NOT yet started the exe payload,
+  ///   * it HAS started the exe payload.
+  ///
+  ///  In the first state, bbagent will immediately terminate the build without
+  ///  invoking the exe payload at all.
+  ///
+  ///  In the second state, bbagent will send SIGTERM/CTRL-BREAK to the exe
+  ///  (according to the deadline protocol described in
+  ///  https://chromium.googlesource.com/infra/luci/luci-py/+/HEAD/client/LUCI_CONTEXT.md).
+  ///  After grace_period it will then try to kill the exe.
+  ///
+  ///  NOTE: There is a race condition here; If bbagent starts the luciexe and
+  ///  then immediately notices that the build is canceled, it's possible that
+  ///  bbagent can send SIGTERM/CTRL-BREAK to the exe before that exe sets up
+  ///  interrupt handlers. There is a bug on file (crbug.com/1311821)
+  ///  which we plan to implement at some point as a mitigation for this.
+  ///
+  ///  Additionally, the Buildbucket service itself will launch an asynchronous
+  ///  task to terminate the build via the backend API (e.g. Swarming cancellation)
+  ///  if bbagent cannot successfully terminate the exe in time.
   @$pb.TagNumber(32)
   $1.Timestamp get cancelTime => $_getN(26);
   @$pb.TagNumber(32)
@@ -671,6 +1089,8 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(32)
   $1.Timestamp ensureCancelTime() => $_ensure(26);
 
+  /// Markdown reasoning for cancelling the build.
+  /// Human readable and should be following https://spec.commonmark.org/0.28/.
   @$pb.TagNumber(33)
   $core.String get cancellationMarkdown => $_getSZ(27);
   @$pb.TagNumber(33)
@@ -697,6 +1117,12 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(34)
   Build_BuilderInfo ensureBuilderInfo() => $_ensure(28);
 
+  /// If UNSET, retrying the build is implicitly allowed;
+  /// If YES, retrying the build is explicitly allowed;
+  /// If NO, retrying the build is explicitly disallowed,
+  ///   * any UI displaying the build should remove "retry" button(s),
+  ///   * ScheduleBuild using the build as template should fail,
+  ///   * but the build can still be synthesized by SynthesizeBuild.
   @$pb.TagNumber(35)
   $3.Trinary get retriable => $_getN(29);
   @$pb.TagNumber(35)
@@ -710,8 +1136,23 @@ class Build extends $pb.GeneratedMessage {
   void clearRetriable() => clearField(35);
 }
 
+/// This is a [Digest][build.bazel.remote.execution.v2.Digest] of a blob on
+/// RBE-CAS. See the explanations at the original definition.
+/// https://github.com/bazelbuild/remote-apis/blob/77cfb44a88577a7ade5dd2400425f6d50469ec6d/build/bazel/remote/execution/v2/remote_execution.proto#L753-L791
 class InputDataRef_CAS_Digest extends $pb.GeneratedMessage {
-  factory InputDataRef_CAS_Digest() => create();
+  factory InputDataRef_CAS_Digest({
+    $core.String? hash,
+    $fixnum.Int64? sizeBytes,
+  }) {
+    final $result = create();
+    if (hash != null) {
+      $result.hash = hash;
+    }
+    if (sizeBytes != null) {
+      $result.sizeBytes = sizeBytes;
+    }
+    return $result;
+  }
   InputDataRef_CAS_Digest._() : super();
   factory InputDataRef_CAS_Digest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -772,7 +1213,19 @@ class InputDataRef_CAS_Digest extends $pb.GeneratedMessage {
 }
 
 class InputDataRef_CAS extends $pb.GeneratedMessage {
-  factory InputDataRef_CAS() => create();
+  factory InputDataRef_CAS({
+    $core.String? casInstance,
+    InputDataRef_CAS_Digest? digest,
+  }) {
+    final $result = create();
+    if (casInstance != null) {
+      $result.casInstance = casInstance;
+    }
+    if (digest != null) {
+      $result.digest = digest;
+    }
+    return $result;
+  }
   InputDataRef_CAS._() : super();
   factory InputDataRef_CAS.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -807,6 +1260,8 @@ class InputDataRef_CAS extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<InputDataRef_CAS>(create);
   static InputDataRef_CAS? _defaultInstance;
 
+  /// Full name of RBE-CAS instance. `projects/{project_id}/instances/{instance}`.
+  /// e.g. projects/chromium-swarm/instances/default_instance
   @$pb.TagNumber(1)
   $core.String get casInstance => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -835,7 +1290,19 @@ class InputDataRef_CAS extends $pb.GeneratedMessage {
 }
 
 class InputDataRef_CIPD_PkgSpec extends $pb.GeneratedMessage {
-  factory InputDataRef_CIPD_PkgSpec() => create();
+  factory InputDataRef_CIPD_PkgSpec({
+    $core.String? package,
+    $core.String? version,
+  }) {
+    final $result = create();
+    if (package != null) {
+      $result.package = package;
+    }
+    if (version != null) {
+      $result.version = version;
+    }
+    return $result;
+  }
   InputDataRef_CIPD_PkgSpec._() : super();
   factory InputDataRef_CIPD_PkgSpec.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -870,6 +1337,8 @@ class InputDataRef_CIPD_PkgSpec extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<InputDataRef_CIPD_PkgSpec>(create);
   static InputDataRef_CIPD_PkgSpec? _defaultInstance;
 
+  /// Package MAY include CIPD variables, including conditional variables like
+  /// `${os=windows}`. Additionally, version may be a ref or a tag.
   @$pb.TagNumber(1)
   $core.String get package => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -896,7 +1365,19 @@ class InputDataRef_CIPD_PkgSpec extends $pb.GeneratedMessage {
 }
 
 class InputDataRef_CIPD extends $pb.GeneratedMessage {
-  factory InputDataRef_CIPD() => create();
+  factory InputDataRef_CIPD({
+    $core.String? server,
+    $core.Iterable<InputDataRef_CIPD_PkgSpec>? specs,
+  }) {
+    final $result = create();
+    if (server != null) {
+      $result.server = server;
+    }
+    if (specs != null) {
+      $result.specs.addAll(specs);
+    }
+    return $result;
+  }
   InputDataRef_CIPD._() : super();
   factory InputDataRef_CIPD.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -951,7 +1432,23 @@ class InputDataRef_CIPD extends $pb.GeneratedMessage {
 enum InputDataRef_DataType { cas, cipd, notSet }
 
 class InputDataRef extends $pb.GeneratedMessage {
-  factory InputDataRef() => create();
+  factory InputDataRef({
+    InputDataRef_CAS? cas,
+    InputDataRef_CIPD? cipd,
+    $core.Iterable<$core.String>? onPath,
+  }) {
+    final $result = create();
+    if (cas != null) {
+      $result.cas = cas;
+    }
+    if (cipd != null) {
+      $result.cipd = cipd;
+    }
+    if (onPath != null) {
+      $result.onPath.addAll(onPath);
+    }
+    return $result;
+  }
   InputDataRef._() : super();
   factory InputDataRef.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -1022,12 +1519,30 @@ class InputDataRef extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   InputDataRef_CIPD ensureCipd() => $_ensure(1);
 
+  ///  TODO(crbug.com/1266060): TBD. `on_path` may need to move out to be incorporated into a field which captures other envvars.
+  ///  Subdirectories relative to the root of `ref` which should be set as a prefix to
+  ///  the $PATH variable.
+  ///
+  ///  A substitute of `env_prefixes` in SwarmingRpcsTaskProperties field -
+  ///  https://chromium.googlesource.com/infra/luci/luci-go/+/0048a84944e872776fba3542aa96d5943ae64bab/common/api/swarming/swarming/v1/swarming-gen.go#1495
   @$pb.TagNumber(3)
   $core.List<$core.String> get onPath => $_getList(2);
 }
 
 class ResolvedDataRef_Timing extends $pb.GeneratedMessage {
-  factory ResolvedDataRef_Timing() => create();
+  factory ResolvedDataRef_Timing({
+    $4.Duration? fetchDuration,
+    $4.Duration? installDuration,
+  }) {
+    final $result = create();
+    if (fetchDuration != null) {
+      $result.fetchDuration = fetchDuration;
+    }
+    if (installDuration != null) {
+      $result.installDuration = installDuration;
+    }
+    return $result;
+  }
   ResolvedDataRef_Timing._() : super();
   factory ResolvedDataRef_Timing.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1092,7 +1607,15 @@ class ResolvedDataRef_Timing extends $pb.GeneratedMessage {
 }
 
 class ResolvedDataRef_CAS extends $pb.GeneratedMessage {
-  factory ResolvedDataRef_CAS() => create();
+  factory ResolvedDataRef_CAS({
+    ResolvedDataRef_Timing? timing,
+  }) {
+    final $result = create();
+    if (timing != null) {
+      $result.timing = timing;
+    }
+    return $result;
+  }
   ResolvedDataRef_CAS._() : super();
   factory ResolvedDataRef_CAS.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1126,6 +1649,13 @@ class ResolvedDataRef_CAS extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ResolvedDataRef_CAS>(create);
   static ResolvedDataRef_CAS? _defaultInstance;
 
+  /// TODO(crbug.com/1266060): potential fields can be
+  /// int64 cache_hits = ?;
+  /// int64 cache_hit_size = ?:
+  /// int64 cache_misses = ?;
+  /// int64 cache_miss_size = ?;
+  /// need more thinking and better to determine when starting writing code
+  /// to download binaries in bbagent.
   @$pb.TagNumber(1)
   ResolvedDataRef_Timing get timing => $_getN(0);
   @$pb.TagNumber(1)
@@ -1142,7 +1672,31 @@ class ResolvedDataRef_CAS extends $pb.GeneratedMessage {
 }
 
 class ResolvedDataRef_CIPD_PkgSpec extends $pb.GeneratedMessage {
-  factory ResolvedDataRef_CIPD_PkgSpec() => create();
+  factory ResolvedDataRef_CIPD_PkgSpec({
+    $core.bool? skipped,
+    $core.String? package,
+    $core.String? version,
+    $3.Trinary? wasCached,
+    ResolvedDataRef_Timing? timing,
+  }) {
+    final $result = create();
+    if (skipped != null) {
+      $result.skipped = skipped;
+    }
+    if (package != null) {
+      $result.package = package;
+    }
+    if (version != null) {
+      $result.version = version;
+    }
+    if (wasCached != null) {
+      $result.wasCached = wasCached;
+    }
+    if (timing != null) {
+      $result.timing = timing;
+    }
+    return $result;
+  }
   ResolvedDataRef_CIPD_PkgSpec._() : super();
   factory ResolvedDataRef_CIPD_PkgSpec.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1182,6 +1736,8 @@ class ResolvedDataRef_CIPD_PkgSpec extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ResolvedDataRef_CIPD_PkgSpec>(create);
   static ResolvedDataRef_CIPD_PkgSpec? _defaultInstance;
 
+  /// True if this package wasn't installed because `package` contained a
+  /// non-applicable conditional (e.g. ${os=windows} on a mac machine).
   @$pb.TagNumber(1)
   $core.bool get skipped => $_getBF(0);
   @$pb.TagNumber(1)
@@ -1246,7 +1802,15 @@ class ResolvedDataRef_CIPD_PkgSpec extends $pb.GeneratedMessage {
 }
 
 class ResolvedDataRef_CIPD extends $pb.GeneratedMessage {
-  factory ResolvedDataRef_CIPD() => create();
+  factory ResolvedDataRef_CIPD({
+    $core.Iterable<ResolvedDataRef_CIPD_PkgSpec>? specs,
+  }) {
+    final $result = create();
+    if (specs != null) {
+      $result.specs.addAll(specs);
+    }
+    return $result;
+  }
   ResolvedDataRef_CIPD._() : super();
   factory ResolvedDataRef_CIPD.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1288,7 +1852,19 @@ class ResolvedDataRef_CIPD extends $pb.GeneratedMessage {
 enum ResolvedDataRef_DataType { cas, cipd, notSet }
 
 class ResolvedDataRef extends $pb.GeneratedMessage {
-  factory ResolvedDataRef() => create();
+  factory ResolvedDataRef({
+    ResolvedDataRef_CAS? cas,
+    ResolvedDataRef_CIPD? cipd,
+  }) {
+    final $result = create();
+    if (cas != null) {
+      $result.cas = cas;
+    }
+    if (cipd != null) {
+      $result.cipd = cipd;
+    }
+    return $result;
+  }
   ResolvedDataRef._() : super();
   factory ResolvedDataRef.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1362,7 +1938,27 @@ class ResolvedDataRef extends $pb.GeneratedMessage {
 }
 
 class BuildInfra_Buildbucket_Agent_Source_CIPD extends $pb.GeneratedMessage {
-  factory BuildInfra_Buildbucket_Agent_Source_CIPD() => create();
+  factory BuildInfra_Buildbucket_Agent_Source_CIPD({
+    $core.String? package,
+    $core.String? version,
+    $core.String? server,
+    $core.Map<$core.String, $core.String>? resolvedInstances,
+  }) {
+    final $result = create();
+    if (package != null) {
+      $result.package = package;
+    }
+    if (version != null) {
+      $result.version = version;
+    }
+    if (server != null) {
+      $result.server = server;
+    }
+    if (resolvedInstances != null) {
+      $result.resolvedInstances.addAll(resolvedInstances);
+    }
+    return $result;
+  }
   BuildInfra_Buildbucket_Agent_Source_CIPD._() : super();
   factory BuildInfra_Buildbucket_Agent_Source_CIPD.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1407,6 +2003,13 @@ class BuildInfra_Buildbucket_Agent_Source_CIPD extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Buildbucket_Agent_Source_CIPD>(create);
   static BuildInfra_Buildbucket_Agent_Source_CIPD? _defaultInstance;
 
+  ///  The CIPD package to use for the agent.
+  ///
+  ///  Must end in "/${platform}" with no other CIPD variables.
+  ///
+  ///  If using an experimental agent binary, please make sure the package
+  ///  prefix has been configured here -
+  ///  https://chrome-internal.googlesource.com/infradata/config/+/refs/heads/main/configs/chrome-infra-packages/bootstrap.cfg
   @$pb.TagNumber(1)
   $core.String get package => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -1419,6 +2022,7 @@ class BuildInfra_Buildbucket_Agent_Source_CIPD extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearPackage() => clearField(1);
 
+  /// The CIPD version to use for the agent.
   @$pb.TagNumber(2)
   $core.String get version => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -1431,6 +2035,7 @@ class BuildInfra_Buildbucket_Agent_Source_CIPD extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearVersion() => clearField(2);
 
+  /// The CIPD server to use.
   @$pb.TagNumber(3)
   $core.String get server => $_getSZ(2);
   @$pb.TagNumber(3)
@@ -1443,14 +2048,27 @@ class BuildInfra_Buildbucket_Agent_Source_CIPD extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearServer() => clearField(3);
 
+  ///  maps ${platform} -> instance_id for resolved agent packages.
+  ///
+  ///  Will be overwritten at CreateBuild time, should be left empty
+  ///  when creating a new Build.
   @$pb.TagNumber(4)
   $core.Map<$core.String, $core.String> get resolvedInstances => $_getMap(3);
 }
 
 enum BuildInfra_Buildbucket_Agent_Source_DataType { cipd, notSet }
 
+/// Source describes where the Agent should be fetched from.
 class BuildInfra_Buildbucket_Agent_Source extends $pb.GeneratedMessage {
-  factory BuildInfra_Buildbucket_Agent_Source() => create();
+  factory BuildInfra_Buildbucket_Agent_Source({
+    BuildInfra_Buildbucket_Agent_Source_CIPD? cipd,
+  }) {
+    final $result = create();
+    if (cipd != null) {
+      $result.cipd = cipd;
+    }
+    return $result;
+  }
   BuildInfra_Buildbucket_Agent_Source._() : super();
   factory BuildInfra_Buildbucket_Agent_Source.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1514,7 +2132,19 @@ class BuildInfra_Buildbucket_Agent_Source extends $pb.GeneratedMessage {
 }
 
 class BuildInfra_Buildbucket_Agent_Input extends $pb.GeneratedMessage {
-  factory BuildInfra_Buildbucket_Agent_Input() => create();
+  factory BuildInfra_Buildbucket_Agent_Input({
+    $core.Map<$core.String, InputDataRef>? data,
+    $core.Map<$core.String, InputDataRef>? cipdSource,
+  }) {
+    final $result = create();
+    if (data != null) {
+      $result.data.addAll(data);
+    }
+    if (cipdSource != null) {
+      $result.cipdSource.addAll(cipdSource);
+    }
+    return $result;
+  }
   BuildInfra_Buildbucket_Agent_Input._() : super();
   factory BuildInfra_Buildbucket_Agent_Input.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1527,6 +2157,13 @@ class BuildInfra_Buildbucket_Agent_Input extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..m<$core.String, InputDataRef>(1, _omitFieldNames ? '' : 'data',
         entryClassName: 'BuildInfra.Buildbucket.Agent.Input.DataEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OM,
+        valueCreator: InputDataRef.create,
+        valueDefaultOrMaker: InputDataRef.getDefault,
+        packageName: const $pb.PackageName('buildbucket.v2'))
+    ..m<$core.String, InputDataRef>(2, _omitFieldNames ? '' : 'cipdSource',
+        entryClassName: 'BuildInfra.Buildbucket.Agent.Input.CipdSourceEntry',
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OM,
         valueCreator: InputDataRef.create,
@@ -1557,12 +2194,59 @@ class BuildInfra_Buildbucket_Agent_Input extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Buildbucket_Agent_Input>(create);
   static BuildInfra_Buildbucket_Agent_Input? _defaultInstance;
 
+  ///  Maps relative-to-root directory to the data.
+  ///
+  ///  For now, data is only allowed at the 'leaves', e.g. you cannot
+  ///  specify data at "a/b/c" and "a/b" (but "a/b/c" and "a/q" would be OK).
+  ///  All directories beginning with "luci." are reserved for Buildbucket's own use.
+  ///
+  ///  TODO(crbug.com/1266060): Enforce the above constraints in a later phase.
+  ///  Currently users don't have the flexibility to set the parent directory path.
   @$pb.TagNumber(1)
   $core.Map<$core.String, InputDataRef> get data => $_getMap(0);
+
+  /// Maps relative-to-root directory to the cipd package itself.
+  /// This is the CIPD client itself and  should be downloaded first so that
+  /// the packages in the data field above can be downloaded.
+  @$pb.TagNumber(2)
+  $core.Map<$core.String, InputDataRef> get cipdSource => $_getMap(1);
 }
 
 class BuildInfra_Buildbucket_Agent_Output extends $pb.GeneratedMessage {
-  factory BuildInfra_Buildbucket_Agent_Output() => create();
+  factory BuildInfra_Buildbucket_Agent_Output({
+    $core.Map<$core.String, ResolvedDataRef>? resolvedData,
+    $3.Status? status,
+    $3.StatusDetails? statusDetails,
+    @$core.Deprecated('This field is deprecated.') $core.String? summaryHtml,
+    $core.String? agentPlatform,
+    $4.Duration? totalDuration,
+    $core.String? summaryMarkdown,
+  }) {
+    final $result = create();
+    if (resolvedData != null) {
+      $result.resolvedData.addAll(resolvedData);
+    }
+    if (status != null) {
+      $result.status = status;
+    }
+    if (statusDetails != null) {
+      $result.statusDetails = statusDetails;
+    }
+    if (summaryHtml != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.summaryHtml = summaryHtml;
+    }
+    if (agentPlatform != null) {
+      $result.agentPlatform = agentPlatform;
+    }
+    if (totalDuration != null) {
+      $result.totalDuration = totalDuration;
+    }
+    if (summaryMarkdown != null) {
+      $result.summaryMarkdown = summaryMarkdown;
+    }
+    return $result;
+  }
   BuildInfra_Buildbucket_Agent_Output._() : super();
   factory BuildInfra_Buildbucket_Agent_Output.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1586,6 +2270,7 @@ class BuildInfra_Buildbucket_Agent_Output extends $pb.GeneratedMessage {
     ..aOS(4, _omitFieldNames ? '' : 'summaryHtml')
     ..aOS(5, _omitFieldNames ? '' : 'agentPlatform')
     ..aOM<$4.Duration>(6, _omitFieldNames ? '' : 'totalDuration', subBuilder: $4.Duration.create)
+    ..aOS(7, _omitFieldNames ? '' : 'summaryMarkdown')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -1611,6 +2296,9 @@ class BuildInfra_Buildbucket_Agent_Output extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Buildbucket_Agent_Output>(create);
   static BuildInfra_Buildbucket_Agent_Output? _defaultInstance;
 
+  ///  Maps relative-to-root directory to the fully-resolved ref.
+  ///
+  ///  This will always have 1:1 mapping to Agent.Input.data
   @$pb.TagNumber(1)
   $core.Map<$core.String, ResolvedDataRef> get resolvedData => $_getMap(0);
 
@@ -1640,18 +2328,32 @@ class BuildInfra_Buildbucket_Agent_Output extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $3.StatusDetails ensureStatusDetails() => $_ensure(2);
 
+  /// Deprecated. Use summary_markdown instead.
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(4)
   $core.String get summaryHtml => $_getSZ(3);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(4)
   set summaryHtml($core.String v) {
     $_setString(3, v);
   }
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(4)
   $core.bool hasSummaryHtml() => $_has(3);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(4)
   void clearSummaryHtml() => clearField(4);
 
+  ///  The agent's resolved CIPD ${platform} (e.g. "linux-amd64",
+  ///  "windows-386", etc.).
+  ///
+  ///  This is trivial for bbagent to calculate (unlike trying to embed
+  ///  its cipd package version inside or along with the executable).
+  ///  Buildbucket is doing a full package -> instance ID resolution at
+  ///  CreateBuild time anyway, so Agent.Source.resolved_instances
+  ///  will give the mapping from `agent_platform` to a precise instance_id
+  ///  which was used.
   @$pb.TagNumber(5)
   $core.String get agentPlatform => $_getSZ(4);
   @$pb.TagNumber(5)
@@ -1664,6 +2366,8 @@ class BuildInfra_Buildbucket_Agent_Output extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   void clearAgentPlatform() => clearField(5);
 
+  /// Total installation duration for all input data. Currently only record
+  /// cipd packages installation time.
   @$pb.TagNumber(6)
   $4.Duration get totalDuration => $_getN(5);
   @$pb.TagNumber(6)
@@ -1677,10 +2381,51 @@ class BuildInfra_Buildbucket_Agent_Output extends $pb.GeneratedMessage {
   void clearTotalDuration() => clearField(6);
   @$pb.TagNumber(6)
   $4.Duration ensureTotalDuration() => $_ensure(5);
+
+  @$pb.TagNumber(7)
+  $core.String get summaryMarkdown => $_getSZ(6);
+  @$pb.TagNumber(7)
+  set summaryMarkdown($core.String v) {
+    $_setString(6, v);
+  }
+
+  @$pb.TagNumber(7)
+  $core.bool hasSummaryMarkdown() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearSummaryMarkdown() => clearField(7);
 }
 
+/// bbagent will interpret Agent.input, as well as update Agent.output.
 class BuildInfra_Buildbucket_Agent extends $pb.GeneratedMessage {
-  factory BuildInfra_Buildbucket_Agent() => create();
+  factory BuildInfra_Buildbucket_Agent({
+    BuildInfra_Buildbucket_Agent_Input? input,
+    BuildInfra_Buildbucket_Agent_Output? output,
+    BuildInfra_Buildbucket_Agent_Source? source,
+    $core.Map<$core.String, BuildInfra_Buildbucket_Agent_Purpose>? purposes,
+    $3.CacheEntry? cipdClientCache,
+    $3.CacheEntry? cipdPackagesCache,
+  }) {
+    final $result = create();
+    if (input != null) {
+      $result.input = input;
+    }
+    if (output != null) {
+      $result.output = output;
+    }
+    if (source != null) {
+      $result.source = source;
+    }
+    if (purposes != null) {
+      $result.purposes.addAll(purposes);
+    }
+    if (cipdClientCache != null) {
+      $result.cipdClientCache = cipdClientCache;
+    }
+    if (cipdPackagesCache != null) {
+      $result.cipdPackagesCache = cipdPackagesCache;
+    }
+    return $result;
+  }
   BuildInfra_Buildbucket_Agent._() : super();
   factory BuildInfra_Buildbucket_Agent.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1706,6 +2451,8 @@ class BuildInfra_Buildbucket_Agent extends $pb.GeneratedMessage {
         valueDefaultOrMaker: BuildInfra_Buildbucket_Agent_Purpose.PURPOSE_UNSPECIFIED,
         defaultEnumValue: BuildInfra_Buildbucket_Agent_Purpose.PURPOSE_UNSPECIFIED,
         packageName: const $pb.PackageName('buildbucket.v2'))
+    ..aOM<$3.CacheEntry>(5, _omitFieldNames ? '' : 'cipdClientCache', subBuilder: $3.CacheEntry.create)
+    ..aOM<$3.CacheEntry>(6, _omitFieldNames ? '' : 'cipdPackagesCache', subBuilder: $3.CacheEntry.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -1729,6 +2476,14 @@ class BuildInfra_Buildbucket_Agent extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Buildbucket_Agent>(create);
   static BuildInfra_Buildbucket_Agent? _defaultInstance;
 
+  /// TODO(crbug.com/1297809): for a long-term solution, we may need to add
+  /// a top-level `on_path` array field in the input and read the value from
+  /// configuration files (eg.settings.cfg, builder configs). So it can store
+  /// the intended order of PATH env var. Then the per-inputDataRef level
+  /// `on_path` field will be deprecated.
+  /// Currently, the new BBagent flow merges all inputDataRef-level `on_path`
+  /// values and sort. This mimics the same behavior of PyBB backend in order
+  /// to have the cipd_installation migration to roll out first under a minimal risk.
   @$pb.TagNumber(1)
   BuildInfra_Buildbucket_Agent_Input get input => $_getN(0);
   @$pb.TagNumber(1)
@@ -1771,12 +2526,90 @@ class BuildInfra_Buildbucket_Agent extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   BuildInfra_Buildbucket_Agent_Source ensureSource() => $_ensure(2);
 
+  ///  Maps the relative-to-root directory path in both `input` and `output`
+  ///  to the Purpose of the software in that directory.
+  ///
+  ///  If a path is not listed here, it is the same as PURPOSE_UNSPECIFIED.
   @$pb.TagNumber(4)
   $core.Map<$core.String, BuildInfra_Buildbucket_Agent_Purpose> get purposes => $_getMap(3);
+
+  /// Cache for the cipd client.
+  /// The cache name should be in the format like `cipd_client_<sha(client_version)>`.
+  @$pb.TagNumber(5)
+  $3.CacheEntry get cipdClientCache => $_getN(4);
+  @$pb.TagNumber(5)
+  set cipdClientCache($3.CacheEntry v) {
+    setField(5, v);
+  }
+
+  @$pb.TagNumber(5)
+  $core.bool hasCipdClientCache() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearCipdClientCache() => clearField(5);
+  @$pb.TagNumber(5)
+  $3.CacheEntry ensureCipdClientCache() => $_ensure(4);
+
+  /// Cache for the cipd packages.
+  /// The cache name should be in the format like `cipd_cache_<sha(task_service_account)>`.
+  @$pb.TagNumber(6)
+  $3.CacheEntry get cipdPackagesCache => $_getN(5);
+  @$pb.TagNumber(6)
+  set cipdPackagesCache($3.CacheEntry v) {
+    setField(6, v);
+  }
+
+  @$pb.TagNumber(6)
+  $core.bool hasCipdPackagesCache() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearCipdPackagesCache() => clearField(6);
+  @$pb.TagNumber(6)
+  $3.CacheEntry ensureCipdPackagesCache() => $_ensure(5);
 }
 
+/// Buildbucket-specific information, captured at the build creation time.
 class BuildInfra_Buildbucket extends $pb.GeneratedMessage {
-  factory BuildInfra_Buildbucket() => create();
+  factory BuildInfra_Buildbucket({
+    $core.String? serviceConfigRevision,
+    $5.Struct? requestedProperties,
+    $core.Iterable<$3.RequestedDimension>? requestedDimensions,
+    $core.String? hostname,
+    $core.Map<$core.String, BuildInfra_Buildbucket_ExperimentReason>? experimentReasons,
+    @$core.Deprecated('This field is deprecated.') $core.Map<$core.String, ResolvedDataRef>? agentExecutable,
+    BuildInfra_Buildbucket_Agent? agent,
+    $core.Iterable<$core.String>? knownPublicGerritHosts,
+    $core.bool? buildNumber,
+  }) {
+    final $result = create();
+    if (serviceConfigRevision != null) {
+      $result.serviceConfigRevision = serviceConfigRevision;
+    }
+    if (requestedProperties != null) {
+      $result.requestedProperties = requestedProperties;
+    }
+    if (requestedDimensions != null) {
+      $result.requestedDimensions.addAll(requestedDimensions);
+    }
+    if (hostname != null) {
+      $result.hostname = hostname;
+    }
+    if (experimentReasons != null) {
+      $result.experimentReasons.addAll(experimentReasons);
+    }
+    if (agentExecutable != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.agentExecutable.addAll(agentExecutable);
+    }
+    if (agent != null) {
+      $result.agent = agent;
+    }
+    if (knownPublicGerritHosts != null) {
+      $result.knownPublicGerritHosts.addAll(knownPublicGerritHosts);
+    }
+    if (buildNumber != null) {
+      $result.buildNumber = buildNumber;
+    }
+    return $result;
+  }
   BuildInfra_Buildbucket._() : super();
   factory BuildInfra_Buildbucket.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1834,6 +2667,8 @@ class BuildInfra_Buildbucket extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Buildbucket>(create);
   static BuildInfra_Buildbucket? _defaultInstance;
 
+  /// Version of swarming task template. Defines
+  /// versions of kitchen, git, git wrapper, python, vpython, etc.
   @$pb.TagNumber(2)
   $core.String get serviceConfigRevision => $_getSZ(0);
   @$pb.TagNumber(2)
@@ -1846,6 +2681,12 @@ class BuildInfra_Buildbucket extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearServiceConfigRevision() => clearField(2);
 
+  ///  Properties that were specified in ScheduleBuildRequest to create this
+  ///  build.
+  ///
+  ///  In particular, CQ uses this to decide whether the build created by
+  ///  someone else is appropriate for CQ, e.g. it was created with the same
+  ///  properties that CQ would use.
   @$pb.TagNumber(5)
   $5.Struct get requestedProperties => $_getN(1);
   @$pb.TagNumber(5)
@@ -1860,9 +2701,12 @@ class BuildInfra_Buildbucket extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $5.Struct ensureRequestedProperties() => $_ensure(1);
 
+  /// Dimensions that were specified in ScheduleBuildRequest to create this
+  /// build.
   @$pb.TagNumber(6)
   $core.List<$3.RequestedDimension> get requestedDimensions => $_getList(2);
 
+  /// Buildbucket hostname, e.g. "cr-buildbucket.appspot.com".
   @$pb.TagNumber(7)
   $core.String get hostname => $_getSZ(3);
   @$pb.TagNumber(7)
@@ -1875,9 +2719,21 @@ class BuildInfra_Buildbucket extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   void clearHostname() => clearField(7);
 
+  ///  This contains a map of all the experiments involved for this build, as
+  ///  well as which bit of configuration lead to them being set (or unset).
+  ///
+  ///  Note that if the reason here is EXPERIMENT_REASON_GLOBAL_INACTIVE,
+  ///  then that means that the experiment is completely disabled and has no
+  ///  effect, but your builder or ScheduleBuildRequest still indicated that
+  ///  the experiment should be set. If you see this, then please remove it
+  ///  from your configuration and/or requests.
   @$pb.TagNumber(8)
   $core.Map<$core.String, BuildInfra_Buildbucket_ExperimentReason> get experimentReasons => $_getMap(4);
 
+  /// The agent binary (bbagent or kitchen) resolutions Buildbucket made for this build.
+  /// This includes all agent_executable references supplied to
+  /// the TaskBackend in "original" (CIPD) form, to facilitate debugging.
+  /// DEPRECATED: Use agent.source instead.
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(9)
   $core.Map<$core.String, ResolvedDataRef> get agentExecutable => $_getMap(5);
@@ -1899,6 +2755,7 @@ class BuildInfra_Buildbucket extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   $core.List<$core.String> get knownPublicGerritHosts => $_getList(7);
 
+  /// Flag for if the build should have a build number.
   @$pb.TagNumber(12)
   $core.bool get buildNumber => $_getBF(8);
   @$pb.TagNumber(12)
@@ -1912,8 +2769,53 @@ class BuildInfra_Buildbucket extends $pb.GeneratedMessage {
   void clearBuildNumber() => clearField(12);
 }
 
+///  Describes a cache directory persisted on a bot.
+///
+///  If a build requested a cache, the cache directory is available on build
+///  startup. If the cache was present on the bot, the directory contains
+///  files from the previous run on that bot.
+///  The build can read/write to the cache directory while it runs.
+///  After build completes, the cache directory is persisted.
+///  The next time another build requests the same cache and runs on the same
+///  bot, the files will still be there (unless the cache was evicted,
+///  perhaps due to disk space reasons).
+///
+///  One bot can keep multiple caches at the same time and one build can request
+///  multiple different caches.
+///  A cache is identified by its name and mapped to a path.
+///
+///  If the bot is running out of space, caches are evicted in LRU manner
+///  before the next build on this bot starts.
+///
+///  Builder cache.
+///
+///  Buildbucket implicitly declares cache
+///    {"name": "<hash(project/bucket/builder)>", "path": "builder"}.
+///  This means that any LUCI builder has a "personal disk space" on the bot.
+///  Builder cache is often a good start before customizing caching.
+///  In recipes, it is available at api.buildbucket.builder_cache_path.
 class BuildInfra_Swarming_CacheEntry extends $pb.GeneratedMessage {
-  factory BuildInfra_Swarming_CacheEntry() => create();
+  factory BuildInfra_Swarming_CacheEntry({
+    $core.String? name,
+    $core.String? path,
+    $4.Duration? waitForWarmCache,
+    $core.String? envVar,
+  }) {
+    final $result = create();
+    if (name != null) {
+      $result.name = name;
+    }
+    if (path != null) {
+      $result.path = path;
+    }
+    if (waitForWarmCache != null) {
+      $result.waitForWarmCache = waitForWarmCache;
+    }
+    if (envVar != null) {
+      $result.envVar = envVar;
+    }
+    return $result;
+  }
   BuildInfra_Swarming_CacheEntry._() : super();
   factory BuildInfra_Swarming_CacheEntry.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1951,6 +2853,13 @@ class BuildInfra_Swarming_CacheEntry extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Swarming_CacheEntry>(create);
   static BuildInfra_Swarming_CacheEntry? _defaultInstance;
 
+  ///  Identifier of the cache. Required. Length is limited to 128.
+  ///  Must be unique in the build.
+  ///
+  ///  If the pool of swarming bots is shared among multiple LUCI projects and
+  ///  projects use same cache name, the cache will be shared across projects.
+  ///  To avoid affecting and being affected by other projects, prefix the
+  ///  cache name with something project-specific, e.g. "v8-".
   @$pb.TagNumber(1)
   $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -1963,6 +2872,14 @@ class BuildInfra_Swarming_CacheEntry extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearName() => clearField(1);
 
+  ///  Relative path where the cache in mapped into. Required.
+  ///
+  ///  Must use POSIX format (forward slashes).
+  ///  In most cases, it does not need slashes at all.
+  ///
+  ///  In recipes, use api.path['cache'].join(path) to get absolute path.
+  ///
+  ///  Must be unique in the build.
   @$pb.TagNumber(2)
   $core.String get path => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -1975,6 +2892,17 @@ class BuildInfra_Swarming_CacheEntry extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearPath() => clearField(2);
 
+  ///  Duration to wait for a bot with a warm cache to pick up the
+  ///  task, before falling back to a bot with a cold (non-existent) cache.
+  ///
+  ///  The default is 0, which means that no preference will be chosen for a
+  ///  bot with this or without this cache, and a bot without this cache may
+  ///  be chosen instead.
+  ///
+  ///  If no bot has this cache warm, the task will skip this wait and will
+  ///  immediately fallback to a cold cache request.
+  ///
+  ///  The value must be multiples of 60 seconds.
   @$pb.TagNumber(3)
   $4.Duration get waitForWarmCache => $_getN(2);
   @$pb.TagNumber(3)
@@ -1989,6 +2917,8 @@ class BuildInfra_Swarming_CacheEntry extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $4.Duration ensureWaitForWarmCache() => $_ensure(2);
 
+  /// Environment variable with this name will be set to the path to the cache
+  /// directory.
   @$pb.TagNumber(4)
   $core.String get envVar => $_getSZ(3);
   @$pb.TagNumber(4)
@@ -2002,8 +2932,47 @@ class BuildInfra_Swarming_CacheEntry extends $pb.GeneratedMessage {
   void clearEnvVar() => clearField(4);
 }
 
+///  Swarming-specific information.
+///
+///  Next ID: 10.
 class BuildInfra_Swarming extends $pb.GeneratedMessage {
-  factory BuildInfra_Swarming() => create();
+  factory BuildInfra_Swarming({
+    $core.String? hostname,
+    $core.String? taskId,
+    $core.String? taskServiceAccount,
+    $core.int? priority,
+    $core.Iterable<$3.RequestedDimension>? taskDimensions,
+    $core.Iterable<$3.StringPair>? botDimensions,
+    $core.Iterable<BuildInfra_Swarming_CacheEntry>? caches,
+    $core.String? parentRunId,
+  }) {
+    final $result = create();
+    if (hostname != null) {
+      $result.hostname = hostname;
+    }
+    if (taskId != null) {
+      $result.taskId = taskId;
+    }
+    if (taskServiceAccount != null) {
+      $result.taskServiceAccount = taskServiceAccount;
+    }
+    if (priority != null) {
+      $result.priority = priority;
+    }
+    if (taskDimensions != null) {
+      $result.taskDimensions.addAll(taskDimensions);
+    }
+    if (botDimensions != null) {
+      $result.botDimensions.addAll(botDimensions);
+    }
+    if (caches != null) {
+      $result.caches.addAll(caches);
+    }
+    if (parentRunId != null) {
+      $result.parentRunId = parentRunId;
+    }
+    return $result;
+  }
   BuildInfra_Swarming._() : super();
   factory BuildInfra_Swarming.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -2046,6 +3015,8 @@ class BuildInfra_Swarming extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Swarming>(create);
   static BuildInfra_Swarming? _defaultInstance;
 
+  /// Swarming hostname, e.g. "chromium-swarm.appspot.com".
+  /// Populated at the build creation time.
   @$pb.TagNumber(1)
   $core.String get hostname => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -2058,6 +3029,8 @@ class BuildInfra_Swarming extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearHostname() => clearField(1);
 
+  /// Swarming task id.
+  /// Not guaranteed to be populated at the build creation time.
   @$pb.TagNumber(2)
   $core.String get taskId => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -2070,6 +3043,9 @@ class BuildInfra_Swarming extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearTaskId() => clearField(2);
 
+  /// Task service account email address.
+  /// This is the service account used for all authenticated requests by the
+  /// build.
   @$pb.TagNumber(3)
   $core.String get taskServiceAccount => $_getSZ(2);
   @$pb.TagNumber(3)
@@ -2082,6 +3058,8 @@ class BuildInfra_Swarming extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearTaskServiceAccount() => clearField(3);
 
+  /// Priority of the task. The lower the more important.
+  /// Valid values are [20..255].
   @$pb.TagNumber(4)
   $core.int get priority => $_getIZ(3);
   @$pb.TagNumber(4)
@@ -2094,15 +3072,22 @@ class BuildInfra_Swarming extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   void clearPriority() => clearField(4);
 
+  /// Swarming dimensions for the task.
   @$pb.TagNumber(5)
   $core.List<$3.RequestedDimension> get taskDimensions => $_getList(4);
 
+  /// Swarming dimensions of the bot used for the task.
   @$pb.TagNumber(6)
   $core.List<$3.StringPair> get botDimensions => $_getList(5);
 
+  /// Caches requested by this build.
   @$pb.TagNumber(7)
   $core.List<BuildInfra_Swarming_CacheEntry> get caches => $_getList(6);
 
+  /// Swarming run id of the parent task from which this build is triggered.
+  /// If set, swarming promises to ensure this build won't outlive its parent
+  /// swarming task (which may or may not itself be a Buildbucket build).
+  /// Populated at the build creation time.
   @$pb.TagNumber(9)
   $core.String get parentRunId => $_getSZ(7);
   @$pb.TagNumber(9)
@@ -2116,8 +3101,25 @@ class BuildInfra_Swarming extends $pb.GeneratedMessage {
   void clearParentRunId() => clearField(9);
 }
 
+/// LogDog-specific information.
 class BuildInfra_LogDog extends $pb.GeneratedMessage {
-  factory BuildInfra_LogDog() => create();
+  factory BuildInfra_LogDog({
+    $core.String? hostname,
+    $core.String? project,
+    $core.String? prefix,
+  }) {
+    final $result = create();
+    if (hostname != null) {
+      $result.hostname = hostname;
+    }
+    if (project != null) {
+      $result.project = project;
+    }
+    if (prefix != null) {
+      $result.prefix = prefix;
+    }
+    return $result;
+  }
   BuildInfra_LogDog._() : super();
   factory BuildInfra_LogDog.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -2153,6 +3155,7 @@ class BuildInfra_LogDog extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_LogDog>(create);
   static BuildInfra_LogDog? _defaultInstance;
 
+  /// LogDog hostname, e.g. "logs.chromium.org".
   @$pb.TagNumber(1)
   $core.String get hostname => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -2165,6 +3168,8 @@ class BuildInfra_LogDog extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearHostname() => clearField(1);
 
+  /// LogDog project, e.g. "chromium".
+  /// Typically matches Build.builder.project.
   @$pb.TagNumber(2)
   $core.String get project => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -2177,6 +3182,10 @@ class BuildInfra_LogDog extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearProject() => clearField(2);
 
+  /// A slash-separated path prefix shared by all logs and artifacts of this
+  /// build.
+  /// No other build can have the same prefix.
+  /// Can be used to discover logs and/or load log contents.
   @$pb.TagNumber(3)
   $core.String get prefix => $_getSZ(2);
   @$pb.TagNumber(3)
@@ -2190,8 +3199,21 @@ class BuildInfra_LogDog extends $pb.GeneratedMessage {
   void clearPrefix() => clearField(3);
 }
 
+/// Recipe-specific information.
 class BuildInfra_Recipe extends $pb.GeneratedMessage {
-  factory BuildInfra_Recipe() => create();
+  factory BuildInfra_Recipe({
+    $core.String? cipdPackage,
+    $core.String? name,
+  }) {
+    final $result = create();
+    if (cipdPackage != null) {
+      $result.cipdPackage = cipdPackage;
+    }
+    if (name != null) {
+      $result.name = name;
+    }
+    return $result;
+  }
   BuildInfra_Recipe._() : super();
   factory BuildInfra_Recipe.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -2226,6 +3248,7 @@ class BuildInfra_Recipe extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Recipe>(create);
   static BuildInfra_Recipe? _defaultInstance;
 
+  /// CIPD package name containing the recipe used to run this build.
   @$pb.TagNumber(1)
   $core.String get cipdPackage => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -2238,6 +3261,7 @@ class BuildInfra_Recipe extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearCipdPackage() => clearField(1);
 
+  /// Name of the recipe used to run this build.
   @$pb.TagNumber(2)
   $core.String get name => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -2251,8 +3275,33 @@ class BuildInfra_Recipe extends $pb.GeneratedMessage {
   void clearName() => clearField(2);
 }
 
+/// ResultDB-specific information.
 class BuildInfra_ResultDB extends $pb.GeneratedMessage {
-  factory BuildInfra_ResultDB() => create();
+  factory BuildInfra_ResultDB({
+    $core.String? hostname,
+    $core.String? invocation,
+    $core.bool? enable,
+    $core.Iterable<$6.BigQueryExport>? bqExports,
+    $6.HistoryOptions? historyOptions,
+  }) {
+    final $result = create();
+    if (hostname != null) {
+      $result.hostname = hostname;
+    }
+    if (invocation != null) {
+      $result.invocation = invocation;
+    }
+    if (enable != null) {
+      $result.enable = enable;
+    }
+    if (bqExports != null) {
+      $result.bqExports.addAll(bqExports);
+    }
+    if (historyOptions != null) {
+      $result.historyOptions = historyOptions;
+    }
+    return $result;
+  }
   BuildInfra_ResultDB._() : super();
   factory BuildInfra_ResultDB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -2291,6 +3340,7 @@ class BuildInfra_ResultDB extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_ResultDB>(create);
   static BuildInfra_ResultDB? _defaultInstance;
 
+  /// Hostname of the ResultDB instance, such as "results.api.cr.dev".
   @$pb.TagNumber(1)
   $core.String get hostname => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -2303,6 +3353,8 @@ class BuildInfra_ResultDB extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearHostname() => clearField(1);
 
+  /// Name of the invocation for results of this build.
+  /// Typically "invocations/build:<build_id>".
   @$pb.TagNumber(2)
   $core.String get invocation => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -2315,6 +3367,7 @@ class BuildInfra_ResultDB extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearInvocation() => clearField(2);
 
+  /// Whether to enable ResultDB:Buildbucket integration.
   @$pb.TagNumber(3)
   $core.bool get enable => $_getBF(2);
   @$pb.TagNumber(3)
@@ -2327,9 +3380,13 @@ class BuildInfra_ResultDB extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearEnable() => clearField(3);
 
+  /// Configuration for exporting test results to BigQuery.
+  /// This can have multiple values to export results to multiple BigQuery
+  /// tables, or to support multiple test result predicates.
   @$pb.TagNumber(4)
   $core.List<$6.BigQueryExport> get bqExports => $_getList(3);
 
+  /// Deprecated. Any values specified here are ignored.
   @$pb.TagNumber(5)
   $6.HistoryOptions get historyOptions => $_getN(4);
   @$pb.TagNumber(5)
@@ -2345,8 +3402,85 @@ class BuildInfra_ResultDB extends $pb.GeneratedMessage {
   $6.HistoryOptions ensureHistoryOptions() => $_ensure(4);
 }
 
+/// Led specific information.
+class BuildInfra_Led extends $pb.GeneratedMessage {
+  factory BuildInfra_Led({
+    $core.String? shadowedBucket,
+  }) {
+    final $result = create();
+    if (shadowedBucket != null) {
+      $result.shadowedBucket = shadowedBucket;
+    }
+    return $result;
+  }
+  BuildInfra_Led._() : super();
+  factory BuildInfra_Led.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildInfra_Led.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildInfra.Led',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'shadowedBucket')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  BuildInfra_Led clone() => BuildInfra_Led()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildInfra_Led copyWith(void Function(BuildInfra_Led) updates) =>
+      super.copyWith((message) => updates(message as BuildInfra_Led)) as BuildInfra_Led;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static BuildInfra_Led create() => BuildInfra_Led._();
+  BuildInfra_Led createEmptyInstance() => create();
+  static $pb.PbList<BuildInfra_Led> createRepeated() => $pb.PbList<BuildInfra_Led>();
+  @$core.pragma('dart2js:noInline')
+  static BuildInfra_Led getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Led>(create);
+  static BuildInfra_Led? _defaultInstance;
+
+  /// The original bucket this led build is shadowing.
+  @$pb.TagNumber(1)
+  $core.String get shadowedBucket => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set shadowedBucket($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasShadowedBucket() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearShadowedBucket() => clearField(1);
+}
+
+/// CIPD Packages to make available for this build.
 class BuildInfra_BBAgent_Input_CIPDPackage extends $pb.GeneratedMessage {
-  factory BuildInfra_BBAgent_Input_CIPDPackage() => create();
+  factory BuildInfra_BBAgent_Input_CIPDPackage({
+    $core.String? name,
+    $core.String? version,
+    $core.String? server,
+    $core.String? path,
+  }) {
+    final $result = create();
+    if (name != null) {
+      $result.name = name;
+    }
+    if (version != null) {
+      $result.version = version;
+    }
+    if (server != null) {
+      $result.server = server;
+    }
+    if (path != null) {
+      $result.path = path;
+    }
+    return $result;
+  }
   BuildInfra_BBAgent_Input_CIPDPackage._() : super();
   factory BuildInfra_BBAgent_Input_CIPDPackage.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -2386,6 +3520,9 @@ class BuildInfra_BBAgent_Input_CIPDPackage extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_BBAgent_Input_CIPDPackage>(create);
   static BuildInfra_BBAgent_Input_CIPDPackage? _defaultInstance;
 
+  ///  Name of this CIPD package.
+  ///
+  ///  Required.
   @$pb.TagNumber(1)
   $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -2398,6 +3535,9 @@ class BuildInfra_BBAgent_Input_CIPDPackage extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearName() => clearField(1);
 
+  ///  CIPD package version.
+  ///
+  ///  Required.
   @$pb.TagNumber(2)
   $core.String get version => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -2410,6 +3550,9 @@ class BuildInfra_BBAgent_Input_CIPDPackage extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearVersion() => clearField(2);
 
+  ///  CIPD server to fetch this package from.
+  ///
+  ///  Required.
   @$pb.TagNumber(3)
   $core.String get server => $_getSZ(2);
   @$pb.TagNumber(3)
@@ -2422,6 +3565,9 @@ class BuildInfra_BBAgent_Input_CIPDPackage extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearServer() => clearField(3);
 
+  ///  Path where this CIPD package should be installed.
+  ///
+  ///  Required.
   @$pb.TagNumber(4)
   $core.String get path => $_getSZ(3);
   @$pb.TagNumber(4)
@@ -2435,8 +3581,17 @@ class BuildInfra_BBAgent_Input_CIPDPackage extends $pb.GeneratedMessage {
   void clearPath() => clearField(4);
 }
 
+/// BBAgent-specific input.
 class BuildInfra_BBAgent_Input extends $pb.GeneratedMessage {
-  factory BuildInfra_BBAgent_Input() => create();
+  factory BuildInfra_BBAgent_Input({
+    $core.Iterable<BuildInfra_BBAgent_Input_CIPDPackage>? cipdPackages,
+  }) {
+    final $result = create();
+    if (cipdPackages != null) {
+      $result.cipdPackages.addAll(cipdPackages);
+    }
+    return $result;
+  }
   BuildInfra_BBAgent_Input._() : super();
   factory BuildInfra_BBAgent_Input.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -2475,8 +3630,34 @@ class BuildInfra_BBAgent_Input extends $pb.GeneratedMessage {
   $core.List<BuildInfra_BBAgent_Input_CIPDPackage> get cipdPackages => $_getList(0);
 }
 
+///  BBAgent-specific information.
+///
+///  All paths are relateive to bbagent's working directory, and must be delimited
+///  with slashes ("/"), regardless of the host OS.
 class BuildInfra_BBAgent extends $pb.GeneratedMessage {
-  factory BuildInfra_BBAgent() => create();
+  factory BuildInfra_BBAgent({
+    $core.String? payloadPath,
+    $core.String? cacheDir,
+    @$core.Deprecated('This field is deprecated.') $core.Iterable<$core.String>? knownPublicGerritHosts,
+    @$core.Deprecated('This field is deprecated.') BuildInfra_BBAgent_Input? input,
+  }) {
+    final $result = create();
+    if (payloadPath != null) {
+      $result.payloadPath = payloadPath;
+    }
+    if (cacheDir != null) {
+      $result.cacheDir = cacheDir;
+    }
+    if (knownPublicGerritHosts != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.knownPublicGerritHosts.addAll(knownPublicGerritHosts);
+    }
+    if (input != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.input = input;
+    }
+    return $result;
+  }
   BuildInfra_BBAgent._() : super();
   factory BuildInfra_BBAgent.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -2513,6 +3694,9 @@ class BuildInfra_BBAgent extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_BBAgent>(create);
   static BuildInfra_BBAgent? _defaultInstance;
 
+  ///  Path to the base of the user executable package.
+  ///
+  ///  Required.
   @$pb.TagNumber(1)
   $core.String get payloadPath => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -2525,6 +3709,9 @@ class BuildInfra_BBAgent extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearPayloadPath() => clearField(1);
 
+  ///  Path to a directory where each subdirectory is a cache dir.
+  ///
+  ///  Required.
   @$pb.TagNumber(2)
   $core.String get cacheDir => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -2537,10 +3724,16 @@ class BuildInfra_BBAgent extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearCacheDir() => clearField(2);
 
+  ///  List of Gerrit hosts to force git authentication for.
+  ///
+  ///  By default public hosts are accessed anonymously, and the anonymous access
+  ///  has very low quota. Context needs to know all such hostnames in advance to
+  ///  be able to force authenticated access to them.
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(3)
   $core.List<$core.String> get knownPublicGerritHosts => $_getList(2);
 
+  /// DEPRECATED: Use build.Infra.Buildbucket.Agent.Input instead.
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(4)
   BuildInfra_BBAgent_Input get input => $_getN(3);
@@ -2561,8 +3754,33 @@ class BuildInfra_BBAgent extends $pb.GeneratedMessage {
   BuildInfra_BBAgent_Input ensureInput() => $_ensure(3);
 }
 
+/// Backend-specific information.
 class BuildInfra_Backend extends $pb.GeneratedMessage {
-  factory BuildInfra_Backend() => create();
+  factory BuildInfra_Backend({
+    $5.Struct? config,
+    $7.Task? task,
+    $core.Iterable<$3.CacheEntry>? caches,
+    $core.Iterable<$3.RequestedDimension>? taskDimensions,
+    $core.String? hostname,
+  }) {
+    final $result = create();
+    if (config != null) {
+      $result.config = config;
+    }
+    if (task != null) {
+      $result.task = task;
+    }
+    if (caches != null) {
+      $result.caches.addAll(caches);
+    }
+    if (taskDimensions != null) {
+      $result.taskDimensions.addAll(taskDimensions);
+    }
+    if (hostname != null) {
+      $result.hostname = hostname;
+    }
+    return $result;
+  }
   BuildInfra_Backend._() : super();
   factory BuildInfra_Backend.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -2577,6 +3795,7 @@ class BuildInfra_Backend extends $pb.GeneratedMessage {
     ..pc<$3.CacheEntry>(3, _omitFieldNames ? '' : 'caches', $pb.PbFieldType.PM, subBuilder: $3.CacheEntry.create)
     ..pc<$3.RequestedDimension>(5, _omitFieldNames ? '' : 'taskDimensions', $pb.PbFieldType.PM,
         subBuilder: $3.RequestedDimension.create)
+    ..aOS(6, _omitFieldNames ? '' : 'hostname')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -2600,6 +3819,8 @@ class BuildInfra_Backend extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildInfra_Backend>(create);
   static BuildInfra_Backend? _defaultInstance;
 
+  /// Configuration supplied to the backend at the time it was instructed to
+  /// run this build.
   @$pb.TagNumber(1)
   $5.Struct get config => $_getN(0);
   @$pb.TagNumber(1)
@@ -2614,6 +3835,8 @@ class BuildInfra_Backend extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $5.Struct ensureConfig() => $_ensure(0);
 
+  /// Current backend task status.
+  /// Updated as build runs.
   @$pb.TagNumber(2)
   $7.Task get task => $_getN(1);
   @$pb.TagNumber(2)
@@ -2628,15 +3851,67 @@ class BuildInfra_Backend extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $7.Task ensureTask() => $_ensure(1);
 
+  /// Caches requested by this build.
   @$pb.TagNumber(3)
   $core.List<$3.CacheEntry> get caches => $_getList(2);
 
+  /// Dimensions for the task.
   @$pb.TagNumber(5)
   $core.List<$3.RequestedDimension> get taskDimensions => $_getList(3);
+
+  /// Hostname is the hostname for the backend itself.
+  @$pb.TagNumber(6)
+  $core.String get hostname => $_getSZ(4);
+  @$pb.TagNumber(6)
+  set hostname($core.String v) {
+    $_setString(4, v);
+  }
+
+  @$pb.TagNumber(6)
+  $core.bool hasHostname() => $_has(4);
+  @$pb.TagNumber(6)
+  void clearHostname() => clearField(6);
 }
 
+/// Build infrastructure that was used for a particular build.
 class BuildInfra extends $pb.GeneratedMessage {
-  factory BuildInfra() => create();
+  factory BuildInfra({
+    BuildInfra_Buildbucket? buildbucket,
+    BuildInfra_Swarming? swarming,
+    BuildInfra_LogDog? logdog,
+    BuildInfra_Recipe? recipe,
+    BuildInfra_ResultDB? resultdb,
+    BuildInfra_BBAgent? bbagent,
+    BuildInfra_Backend? backend,
+    BuildInfra_Led? led,
+  }) {
+    final $result = create();
+    if (buildbucket != null) {
+      $result.buildbucket = buildbucket;
+    }
+    if (swarming != null) {
+      $result.swarming = swarming;
+    }
+    if (logdog != null) {
+      $result.logdog = logdog;
+    }
+    if (recipe != null) {
+      $result.recipe = recipe;
+    }
+    if (resultdb != null) {
+      $result.resultdb = resultdb;
+    }
+    if (bbagent != null) {
+      $result.bbagent = bbagent;
+    }
+    if (backend != null) {
+      $result.backend = backend;
+    }
+    if (led != null) {
+      $result.led = led;
+    }
+    return $result;
+  }
   BuildInfra._() : super();
   factory BuildInfra.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -2652,6 +3927,7 @@ class BuildInfra extends $pb.GeneratedMessage {
     ..aOM<BuildInfra_ResultDB>(5, _omitFieldNames ? '' : 'resultdb', subBuilder: BuildInfra_ResultDB.create)
     ..aOM<BuildInfra_BBAgent>(6, _omitFieldNames ? '' : 'bbagent', subBuilder: BuildInfra_BBAgent.create)
     ..aOM<BuildInfra_Backend>(7, _omitFieldNames ? '' : 'backend', subBuilder: BuildInfra_Backend.create)
+    ..aOM<BuildInfra_Led>(8, _omitFieldNames ? '' : 'led', subBuilder: BuildInfra_Led.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -2771,6 +4047,21 @@ class BuildInfra extends $pb.GeneratedMessage {
   void clearBackend() => clearField(7);
   @$pb.TagNumber(7)
   BuildInfra_Backend ensureBackend() => $_ensure(6);
+
+  /// It should only be set for led builds.
+  @$pb.TagNumber(8)
+  BuildInfra_Led get led => $_getN(7);
+  @$pb.TagNumber(8)
+  set led(BuildInfra_Led v) {
+    setField(8, v);
+  }
+
+  @$pb.TagNumber(8)
+  $core.bool hasLed() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearLed() => clearField(8);
+  @$pb.TagNumber(8)
+  BuildInfra_Led ensureLed() => $_ensure(7);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

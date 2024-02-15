@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -18,8 +18,33 @@ import 'predicate.pbenum.dart';
 
 export 'predicate.pbenum.dart';
 
+///  Represents a function TestResult -> bool.
+///  Empty message matches all test results.
+///
+///  Most clients would want to set expected_results to
+///  VARIANTS_WITH_UNEXPECTED_RESULTS.
 class TestResultPredicate extends $pb.GeneratedMessage {
-  factory TestResultPredicate() => create();
+  factory TestResultPredicate({
+    $core.String? testIdRegexp,
+    VariantPredicate? variant,
+    TestResultPredicate_Expectancy? expectancy,
+    $core.bool? excludeExonerated,
+  }) {
+    final $result = create();
+    if (testIdRegexp != null) {
+      $result.testIdRegexp = testIdRegexp;
+    }
+    if (variant != null) {
+      $result.variant = variant;
+    }
+    if (expectancy != null) {
+      $result.expectancy = expectancy;
+    }
+    if (excludeExonerated != null) {
+      $result.excludeExonerated = excludeExonerated;
+    }
+    return $result;
+  }
   TestResultPredicate._() : super();
   factory TestResultPredicate.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -59,6 +84,8 @@ class TestResultPredicate extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TestResultPredicate>(create);
   static TestResultPredicate? _defaultInstance;
 
+  /// A test result must have a test id matching this regular expression
+  /// entirely, i.e. the expression is implicitly wrapped with ^ and $.
   @$pb.TagNumber(1)
   $core.String get testIdRegexp => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -71,6 +98,7 @@ class TestResultPredicate extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearTestIdRegexp() => clearField(1);
 
+  /// A test result must have a variant satisfying this predicate.
   @$pb.TagNumber(2)
   VariantPredicate get variant => $_getN(1);
   @$pb.TagNumber(2)
@@ -85,6 +113,9 @@ class TestResultPredicate extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   VariantPredicate ensureVariant() => $_ensure(1);
 
+  /// A test result must match this predicate based on TestResult.expected field.
+  /// Most clients would want to override this field because the default
+  /// typically causes a large response size.
   @$pb.TagNumber(3)
   TestResultPredicate_Expectancy get expectancy => $_getN(2);
   @$pb.TagNumber(3)
@@ -97,6 +128,11 @@ class TestResultPredicate extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearExpectancy() => clearField(3);
 
+  ///  If true, filter out exonerated test variants.
+  ///  Mutually exclusive with Expectancy.ALL.
+  ///
+  ///  If false, the filter is NOT applied.
+  ///  That is, the test result may or may not be exonerated.
   @$pb.TagNumber(4)
   $core.bool get excludeExonerated => $_getBF(3);
   @$pb.TagNumber(4)
@@ -110,8 +146,22 @@ class TestResultPredicate extends $pb.GeneratedMessage {
   void clearExcludeExonerated() => clearField(4);
 }
 
+/// Represents a function TestExoneration -> bool.
+/// Empty message matches all test exonerations.
 class TestExonerationPredicate extends $pb.GeneratedMessage {
-  factory TestExonerationPredicate() => create();
+  factory TestExonerationPredicate({
+    $core.String? testIdRegexp,
+    VariantPredicate? variant,
+  }) {
+    final $result = create();
+    if (testIdRegexp != null) {
+      $result.testIdRegexp = testIdRegexp;
+    }
+    if (variant != null) {
+      $result.variant = variant;
+    }
+    return $result;
+  }
   TestExonerationPredicate._() : super();
   factory TestExonerationPredicate.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -146,6 +196,8 @@ class TestExonerationPredicate extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TestExonerationPredicate>(create);
   static TestExonerationPredicate? _defaultInstance;
 
+  /// A test exoneration must have a test id matching this regular expression
+  /// entirely, i.e. the expression is implicitly wrapped with ^ and $.
   @$pb.TagNumber(1)
   $core.String get testIdRegexp => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -158,6 +210,7 @@ class TestExonerationPredicate extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearTestIdRegexp() => clearField(1);
 
+  /// A test exoneration must have a variant satisfying this predicate.
   @$pb.TagNumber(2)
   VariantPredicate get variant => $_getN(1);
   @$pb.TagNumber(2)
@@ -175,8 +228,21 @@ class TestExonerationPredicate extends $pb.GeneratedMessage {
 
 enum VariantPredicate_Predicate { equals, contains, notSet }
 
+/// Represents a function Variant -> bool.
 class VariantPredicate extends $pb.GeneratedMessage {
-  factory VariantPredicate() => create();
+  factory VariantPredicate({
+    $0.Variant? equals,
+    $0.Variant? contains,
+  }) {
+    final $result = create();
+    if (equals != null) {
+      $result.equals = equals;
+    }
+    if (contains != null) {
+      $result.contains = contains;
+    }
+    return $result;
+  }
   VariantPredicate._() : super();
   factory VariantPredicate.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -220,6 +286,7 @@ class VariantPredicate extends $pb.GeneratedMessage {
   VariantPredicate_Predicate whichPredicate() => _VariantPredicate_PredicateByTag[$_whichOneof(0)]!;
   void clearPredicate() => clearField($_whichOneof(0));
 
+  /// A variant must be equal this definition exactly.
   @$pb.TagNumber(1)
   $0.Variant get equals => $_getN(0);
   @$pb.TagNumber(1)
@@ -234,6 +301,7 @@ class VariantPredicate extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $0.Variant ensureEquals() => $_ensure(0);
 
+  /// A variant's key-value pairs must contain those in this one.
   @$pb.TagNumber(2)
   $0.Variant get contains => $_getN(1);
   @$pb.TagNumber(2)
@@ -249,8 +317,21 @@ class VariantPredicate extends $pb.GeneratedMessage {
   $0.Variant ensureContains() => $_ensure(1);
 }
 
+/// A set of Invocation's outgoing edge types.
 class ArtifactPredicate_EdgeTypeSet extends $pb.GeneratedMessage {
-  factory ArtifactPredicate_EdgeTypeSet() => create();
+  factory ArtifactPredicate_EdgeTypeSet({
+    $core.bool? includedInvocations,
+    $core.bool? testResults,
+  }) {
+    final $result = create();
+    if (includedInvocations != null) {
+      $result.includedInvocations = includedInvocations;
+    }
+    if (testResults != null) {
+      $result.testResults = testResults;
+    }
+    return $result;
+  }
   ArtifactPredicate_EdgeTypeSet._() : super();
   factory ArtifactPredicate_EdgeTypeSet.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -286,6 +367,7 @@ class ArtifactPredicate_EdgeTypeSet extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ArtifactPredicate_EdgeTypeSet>(create);
   static ArtifactPredicate_EdgeTypeSet? _defaultInstance;
 
+  /// The edges represented by Invocation.included_invocations field.
   @$pb.TagNumber(1)
   $core.bool get includedInvocations => $_getBF(0);
   @$pb.TagNumber(1)
@@ -298,6 +380,7 @@ class ArtifactPredicate_EdgeTypeSet extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearIncludedInvocations() => clearField(1);
 
+  /// The parent-child relationship between Invocation and TestResult.
   @$pb.TagNumber(2)
   $core.bool get testResults => $_getBF(1);
   @$pb.TagNumber(2)
@@ -311,8 +394,29 @@ class ArtifactPredicate_EdgeTypeSet extends $pb.GeneratedMessage {
   void clearTestResults() => clearField(2);
 }
 
+/// Represents a function Artifact -> bool.
 class ArtifactPredicate extends $pb.GeneratedMessage {
-  factory ArtifactPredicate() => create();
+  factory ArtifactPredicate({
+    ArtifactPredicate_EdgeTypeSet? followEdges,
+    TestResultPredicate? testResultPredicate,
+    $core.String? contentTypeRegexp,
+    $core.String? artifactIdRegexp,
+  }) {
+    final $result = create();
+    if (followEdges != null) {
+      $result.followEdges = followEdges;
+    }
+    if (testResultPredicate != null) {
+      $result.testResultPredicate = testResultPredicate;
+    }
+    if (contentTypeRegexp != null) {
+      $result.contentTypeRegexp = contentTypeRegexp;
+    }
+    if (artifactIdRegexp != null) {
+      $result.artifactIdRegexp = artifactIdRegexp;
+    }
+    return $result;
+  }
   ArtifactPredicate._() : super();
   factory ArtifactPredicate.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -350,6 +454,14 @@ class ArtifactPredicate extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ArtifactPredicate>(create);
   static ArtifactPredicate? _defaultInstance;
 
+  ///  Specifies which edges to follow when retrieving directly/indirectly
+  ///  included artifacts.
+  ///  For example,
+  ///  - to retrieve only invocation-level artifacts, use
+  ///    {included_invocations: true}.
+  ///  - to retrieve only test-result-level artifacts, use {test_results: true}.
+  ///
+  ///  By default, follows all edges.
   @$pb.TagNumber(1)
   ArtifactPredicate_EdgeTypeSet get followEdges => $_getN(0);
   @$pb.TagNumber(1)
@@ -364,6 +476,10 @@ class ArtifactPredicate extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   ArtifactPredicate_EdgeTypeSet ensureFollowEdges() => $_ensure(0);
 
+  /// If an Artifact belongs to a TestResult, then the test result must satisfy
+  /// this predicate.
+  /// Note: this predicate does NOT apply to invocation-level artifacts.
+  /// To exclude them from the response, use follow_edges.
   @$pb.TagNumber(2)
   TestResultPredicate get testResultPredicate => $_getN(1);
   @$pb.TagNumber(2)
@@ -378,6 +494,9 @@ class ArtifactPredicate extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   TestResultPredicate ensureTestResultPredicate() => $_ensure(1);
 
+  /// An artifact must have a content type matching this regular expression
+  /// entirely, i.e. the expression is implicitly wrapped with ^ and $.
+  /// Defaults to ".*".
   @$pb.TagNumber(3)
   $core.String get contentTypeRegexp => $_getSZ(2);
   @$pb.TagNumber(3)
@@ -390,6 +509,8 @@ class ArtifactPredicate extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearContentTypeRegexp() => clearField(3);
 
+  /// An artifact must have an ID matching this regular expression entirely, i.e.
+  /// the expression is implicitly wrapped with ^ and $.  Defaults to ".*".
   @$pb.TagNumber(4)
   $core.String get artifactIdRegexp => $_getSZ(3);
   @$pb.TagNumber(4)
@@ -403,8 +524,18 @@ class ArtifactPredicate extends $pb.GeneratedMessage {
   void clearArtifactIdRegexp() => clearField(4);
 }
 
+/// Represents a function TestMetadata -> bool.
+/// Empty message matches all test metadata.
 class TestMetadataPredicate extends $pb.GeneratedMessage {
-  factory TestMetadataPredicate() => create();
+  factory TestMetadataPredicate({
+    $core.Iterable<$core.String>? testIds,
+  }) {
+    final $result = create();
+    if (testIds != null) {
+      $result.testIds.addAll(testIds);
+    }
+    return $result;
+  }
   TestMetadataPredicate._() : super();
   factory TestMetadataPredicate.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -438,6 +569,7 @@ class TestMetadataPredicate extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TestMetadataPredicate>(create);
   static TestMetadataPredicate? _defaultInstance;
 
+  /// A test metadata must have the test id in this list.
   @$pb.TagNumber(1)
   $core.List<$core.String> get testIds => $_getList(0);
 }

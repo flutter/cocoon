@@ -22,7 +22,7 @@ failing. Logs are found by clicking a task box then clicking "view logs."
 ### Why is a task stuck on "new task" status?
 
 The dashboard aggregates build results from multiple build environments,
-including Cirrus, LUCI, and DeviceLab. Due to limited capacity to run tests on
+including LUCI and DeviceLab. Due to limited capacity to run tests on
 physical devices, some tests may be batched (run for several commits).
 
 Flutter infra prioritizes running tasks against the most recent commits. This
