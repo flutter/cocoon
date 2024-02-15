@@ -17,6 +17,7 @@ import 'package:github/github.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_pubsub.dart';
@@ -1068,17 +1069,26 @@ void main() {
 
   group('Verify object creation', () {
     test('Properties map to buildbucket v2 properties', () {
-      final Map<String, Object> properties = <String, Object>{};
-      properties.addEntries(<String, Object>{});
-      final Map<String, Object> processedProperties = <String, Object>{};
-      processedProperties.addAll(properties ?? <String, Object>{});
+      final Map<String, bbv2.Value> properties = <String, bbv2.Value>{};
+      properties.addEntries(<String, bbv2.Value>{
+        'test_key': bbv2.Value(stringValue: 'test_value'),
+      }.entries,);
+      final Map<String, bbv2.Value> processedProperties = <String, bbv2.Value>{};
+      processedProperties.addAll(properties);
       processedProperties.addEntries(
-        <String, Object>{
-          'git_url': 'https://github.com/${slug.owner}/${slug.name}',
-          'git_ref': 'refs/pull/$pullRequestNumber/head',
-          'exe_cipd_version': cipdVersion,
+        <String, bbv2.Value>{
+          'git_url': bbv2.Value(stringValue: 'https://github.com/flutter/flutter'),
+          'git_ref': bbv2.Value(stringValue: 'refs/pull/123456/head'),
+          'exe_cipd_version': bbv2.Value(stringValue: '31.43.223.4'),
         }.entries,
       );
+
+      final bbv2.ScheduleBuildRequest scheduleBuildRequest = bbv2.ScheduleBuildRequest.create();
+      scheduleBuildRequest.properties = bbv2.Struct(fields: properties);
+
+      scheduleBuildRequest.properties.fields.addAll(processedProperties);
+
+      expect(scheduleBuildRequest.properties.fields.length, 4);
     });
   });
 }
