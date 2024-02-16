@@ -45,6 +45,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
   @override
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
+    final FirestoreService firestoreService = await config.createFirestoreService();
 
     final BuildPushMessage buildPushMessage = BuildPushMessage.fromPushMessage(message);
     log.fine('userData=${buildPushMessage.userData}');
@@ -83,12 +84,14 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     }
     log.fine('Found $task');
 
+    f.Task taskDocument = f.Task();
+
     if (_shouldUpdateTask(build, task)) {
       final String oldTaskStatus = task.status;
       task.updateFromBuild(build);
       await datastore.insert(<Task>[task]);
       try {
-        await updateFirestore(build, rawCommitKey, task.name!);
+        taskDocument = await updateFirestore(build, rawCommitKey, task.name!, firestoreService);
       } catch (error) {
         log.warning('Failed to update task in Firestore: $error');
       }
@@ -114,6 +117,8 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
         target: target,
         task: task,
         datastore: datastore,
+        taskDocument: taskDocument,
+        firestoreService: firestoreService,
       );
       log.info('Retried: $retried');
     }
@@ -144,10 +149,15 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
   }
 
   /// Queries the task document and updates based on the latest build data.
-  Future<void> updateFirestore(Build build, String commitKeyId, String taskName) async {
-    final FirestoreService firestoreService = await config.createFirestoreService();
+  Future<f.Task> updateFirestore(
+    Build build,
+    String commitKeyId,
+    String taskName,
+    FirestoreService firestoreService,
+  ) async {
+    final int currentAttempt = githubChecksService.currentAttempt(build);
     final String sha = commitKeyId.split('/').last;
-    final String documentName = '$kDatabase/documents/tasks/${sha}_${taskName}_1';
+    final String documentName = '$kDatabase/documents/tasks/${sha}_${taskName}_$currentAttempt';
     log.info('getting firestore document: $documentName');
     final f.Task firestoreTask =
         await f.Task.fromFirestore(firestoreService: firestoreService, documentName: documentName);
@@ -156,5 +166,6 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     log.info('finished updating firestoreTask based on builds');
     final List<Write> writes = documentsToWrites([firestoreTask], exists: true);
     await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
+    return firestoreTask;
   }
 }

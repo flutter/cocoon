@@ -112,7 +112,7 @@ f.Task generateFirestoreTask(
   final String taskName = name ?? 'task$i';
   final String sha = commitSha ?? 'testSha';
   final f.Task task = f.Task()
-    ..name = '${sha}_${taskName}_1'
+    ..name = '${sha}_${taskName}_$attempts'
     ..fields = <String, Value>{
       'createTimestamp': Value(integerValue: (created?.millisecondsSinceEpoch ?? 0).toString()),
       'startTimestamp': Value(integerValue: (started?.millisecondsSinceEpoch ?? 0).toString()),
@@ -121,6 +121,7 @@ f.Task generateFirestoreTask(
       'testFlaky': Value(booleanValue: testFlaky),
       'status': Value(stringValue: status),
       'name': Value(stringValue: taskName),
+      'commitSha': Value(stringValue: sha),
     };
   if (buildNumber != null) {
     task.fields!['buildNumber'] = Value(integerValue: buildNumber.toString());
