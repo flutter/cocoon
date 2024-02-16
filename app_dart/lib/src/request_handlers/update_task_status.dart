@@ -64,11 +64,11 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     await datastore.insert(<Task>[task]);
 
-    // try {
+    try {
       await updateTaskDocument(task.status, task.endTimestamp!, task.isTestFlaky!);
-    // } catch (error) {
-      // log.warning('Failed to update task in Firestore: $error');
-    // }
+    } catch (error) {
+      log.warning('Failed to update task in Firestore: $error');
+    }
     return UpdateTaskStatusResponse(task);
   }
 
