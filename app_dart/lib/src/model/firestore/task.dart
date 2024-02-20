@@ -141,6 +141,14 @@ class Task extends Document {
     return value;
   }
 
+  void setEndTimestamp(int endTimestamp) {
+    fields!['endTimestamp'] = Value(integerValue: endTimestamp.toString());
+  }
+
+  void setTestFlaky(bool testFlaky) {
+    fields!['testFlaky'] = Value(booleanValue: testFlaky);
+  }
+
   /// Update [Task] fields based on a LUCI [Build].
   void updateFromBuild(Build build) {
     final List<String>? tags = build.tags;

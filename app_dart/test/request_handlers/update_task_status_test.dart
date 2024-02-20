@@ -4,10 +4,13 @@
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/request_handlers/update_task_status.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
+import 'package:googleapis/firestore/v1.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/bigquery/fake_tabledata_resource.dart';
@@ -15,11 +18,14 @@ import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
+import '../src/utilities/entity_generators.dart';
+import '../src/utilities/mocks.dart';
 
 void main() {
   group('UpdateTaskStatus', () {
     late FakeConfig config;
     late ApiRequestHandlerTester tester;
+    late MockFirestoreService mockFirestoreService;
     late UpdateTaskStatus handler;
     final FakeTabledataResource tabledataResourceApi = FakeTabledataResource();
     late Commit commit;
@@ -27,11 +33,13 @@ void main() {
     const int taskId = 4506830800027648;
 
     setUp(() {
+      mockFirestoreService = MockFirestoreService();
       final FakeDatastoreDB datastoreDB = FakeDatastoreDB();
       config = FakeConfig(
         dbValue: datastoreDB,
         tabledataResource: tabledataResourceApi,
         maxTaskRetriesValue: 2,
+        firestoreService: mockFirestoreService,
       );
       tester = ApiRequestHandlerTester();
       handler = UpdateTaskStatus(
@@ -48,6 +56,24 @@ void main() {
     });
 
     test('TestFlaky is false when not injected', () async {
+      final firestore.Task firestoreTask = generateFirestoreTask(1);
+      when(
+        mockFirestoreService.getDocument(
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<Document>.value(
+          firestoreTask,
+        );
+      });
+      when(
+        mockFirestoreService.batchWriteDocuments(
+          captureAny,
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<BatchWriteResponse>.value(BatchWriteResponse());
+      });
       final Task task = Task(
         key: commit.key.append(Task, id: taskId),
         name: 'integration_ui_ios',
@@ -69,9 +95,28 @@ void main() {
       await tester.post(handler);
 
       expect(task.isTestFlaky, false);
+      expect(firestoreTask.testFlaky, false);
     });
 
     test('TestFlaky is true when injected', () async {
+      final firestore.Task firestoreTask = generateFirestoreTask(1);
+      when(
+        mockFirestoreService.getDocument(
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<Document>.value(
+          firestoreTask,
+        );
+      });
+      when(
+        mockFirestoreService.batchWriteDocuments(
+          captureAny,
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<BatchWriteResponse>.value(BatchWriteResponse());
+      });
       final Task task = Task(
         key: commit.key.append(Task, id: taskId),
         name: 'integration_ui_ios',
@@ -94,9 +139,28 @@ void main() {
       await tester.post(handler);
 
       expect(task.isTestFlaky, true);
+      expect(firestoreTask.testFlaky, true);
     });
 
     test('task name requests can update tasks', () async {
+      final firestore.Task firestoreTask = generateFirestoreTask(1);
+      when(
+        mockFirestoreService.getDocument(
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<Document>.value(
+          firestoreTask,
+        );
+      });
+      when(
+        mockFirestoreService.batchWriteDocuments(
+          captureAny,
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<BatchWriteResponse>.value(BatchWriteResponse());
+      });
       final Task task = Task(
         key: commit.key.append(Task, id: taskId),
         name: 'integration_ui_ios',
@@ -119,6 +183,8 @@ void main() {
 
       expect(task.status, 'Failed');
       expect(task.attempts, 1);
+      expect(firestoreTask.status, 'Failed');
+      expect(firestoreTask.attempts, 1);
     });
 
     test('task name requests when task does not exists returns exception', () async {
@@ -132,6 +198,24 @@ void main() {
     });
 
     test('task name request updates when input has whitespace', () async {
+      final firestore.Task firestoreTask = generateFirestoreTask(1);
+      when(
+        mockFirestoreService.getDocument(
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<Document>.value(
+          firestoreTask,
+        );
+      });
+      when(
+        mockFirestoreService.batchWriteDocuments(
+          captureAny,
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<BatchWriteResponse>.value(BatchWriteResponse());
+      });
       config.db.values[commit.key] = commit;
       final Task cocoonTask = Task(
         key: commit.key.append(Task, id: taskId),
