@@ -5,7 +5,7 @@
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/firestore/task.dart' as f;
+import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
@@ -92,7 +92,7 @@ void main() {
   });
 
   test('updates task based on message', () async {
-    final f.Task firestoreTask = generateFirestoreTask(1, attempts: 2);
+    final firestore.Task firestoreTask = generateFirestoreTask(1, attempts: 2);
     when(
       mockFirestoreService.getDocument(
         captureAny,
@@ -303,7 +303,7 @@ void main() {
 
   test('fallback to build parameters if task_key is not present', () async {
     when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
-    final f.Task firestoreTask = generateFirestoreTask(1, attempts: 2);
+    final firestore.Task firestoreTask = generateFirestoreTask(1, attempts: 2);
     when(
       mockFirestoreService.getDocument(
         captureAny,
@@ -346,7 +346,7 @@ void main() {
     scheduler.ciYaml = nonBringupPackagesConfig;
     when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
     when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
-    final f.Task firestoreTask = generateFirestoreTask(1, attempts: 2);
+    final firestore.Task firestoreTask = generateFirestoreTask(1, attempts: 2);
     when(
       mockFirestoreService.getDocument(
         captureAny,
@@ -389,7 +389,7 @@ void main() {
     scheduler.ciYaml = bringupPackagesConfig;
     when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
     when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
-    final f.Task firestoreTask = generateFirestoreTask(1, attempts: 2);
+    final firestore.Task firestoreTask = generateFirestoreTask(1, attempts: 2);
     when(
       mockFirestoreService.getDocument(
         captureAny,
@@ -432,7 +432,7 @@ void main() {
     scheduler.ciYaml = unsupportedPostsubmitCheckrunConfig;
     when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
     when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
-    final f.Task firestoreTask = generateFirestoreTask(1, attempts: 2);
+    final firestore.Task firestoreTask = generateFirestoreTask(1, attempts: 2);
     when(
       mockFirestoreService.getDocument(
         captureAny,
