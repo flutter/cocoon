@@ -19,6 +19,7 @@ import 'package:cocoon_service/src/model/appengine/key_helper.dart' as _i12;
 import 'package:cocoon_service/src/model/appengine/stage.dart' as _i34;
 import 'package:cocoon_service/src/model/appengine/task.dart' as _i33;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart' as _i38;
+import 'package:cocoon_service/src/model/firestore/task.dart' as _i40;
 import 'package:cocoon_service/src/model/github/checks.dart' as _i39;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart' as _i8;
 import 'package:cocoon_service/src/model/luci/push_message.dart' as _i37;
@@ -41,11 +42,11 @@ import 'package:http/http.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i28;
 import 'package:neat_cache/neat_cache.dart' as _i25;
-import 'package:process/src/interface/process_manager.dart' as _i40;
+import 'package:process/src/interface/process_manager.dart' as _i41;
 import 'package:retry/retry.dart' as _i27;
 
 import '../../service/cache_service_test.dart' as _i35;
-import 'mocks.dart' as _i41;
+import 'mocks.dart' as _i42;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -3395,10 +3396,10 @@ class MockGithubChecksService extends _i1.Mock implements _i15.GithubChecksServi
       ) as bool);
 
   @override
-  int currentAttempt(_i37.BuildPushMessage? buildPushMessage) => (super.noSuchMethod(
+  int currentAttempt(_i37.Build? build) => (super.noSuchMethod(
         Invocation.method(
           #currentAttempt,
-          [buildPushMessage],
+          [build],
         ),
         returnValue: 0,
       ) as int);
@@ -6600,8 +6601,10 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
     required _i38.Target? target,
     required _i33.Task? task,
     required _i9.DatastoreService? datastore,
+    _i15.FirestoreService? firestoreService,
     Map<String, List<String>>? tags,
     bool? ignoreChecks = false,
+    _i40.Task? taskDocument,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -6612,8 +6615,10 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
             #target: target,
             #task: task,
             #datastore: datastore,
+            #firestoreService: firestoreService,
             #tags: tags,
             #ignoreChecks: ignoreChecks,
+            #taskDocument: taskDocument,
           },
         ),
         returnValue: _i20.Future<bool>.value(false),
@@ -6623,7 +6628,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
 /// A class which mocks [ProcessManager].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockProcessManager extends _i1.Mock implements _i40.ProcessManager {
+class MockProcessManager extends _i1.Mock implements _i41.ProcessManager {
   MockProcessManager() {
     _i1.throwOnMissingStub(this);
   }
@@ -9354,7 +9359,7 @@ class MockGitHub extends _i1.Mock implements _i13.GitHub {
             #preview: preview,
           },
         ),
-        returnValue: _i41.postJsonShim<S, T>(
+        returnValue: _i42.postJsonShim<S, T>(
           path,
           statusCode: statusCode,
           fail: fail,

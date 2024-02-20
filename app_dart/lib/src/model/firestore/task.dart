@@ -94,7 +94,10 @@ class Task extends Document {
   ///
   /// This is a human-readable name, typically a test name (e.g.
   /// "hello_world__memory").
-  String? get taskName => fields!['endTimestamp']!.stringValue!;
+  String? get taskName => fields!['name']!.stringValue!;
+
+  /// The sha of the task commit.
+  String? get commitSha => fields!['commitSha']!.stringValue!;
 
   /// The number of attempts that have been made to run this task successfully.
   ///
@@ -164,6 +167,20 @@ class Task extends Document {
     fields!['endTimestamp'] = Value(integerValue: (build.completedTimestamp?.millisecondsSinceEpoch ?? 0).toString());
 
     _setStatusFromLuciStatus(build);
+  }
+
+  void resetAsRetry({int attempt = 1}) {
+    name = '$kDatabase/documents/tasks/${commitSha}_${taskName}_$attempt';
+    fields = <String, Value>{
+      'createTimestamp': Value(integerValue: DateTime.now().millisecondsSinceEpoch.toString()),
+      'endTimestamp': Value(integerValue: '0'),
+      'bringup': Value(booleanValue: bringup),
+      'name': Value(stringValue: taskName),
+      'startTimestamp': Value(integerValue: '0'),
+      'status': Value(stringValue: Task.statusNew),
+      'testFlaky': Value(booleanValue: false),
+      'commitSha': Value(stringValue: commitSha),
+    };
   }
 
   /// Get a [Task] status from a LUCI [Build] status/result.

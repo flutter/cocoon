@@ -146,4 +146,19 @@ void main() {
       expect(resultedTask.fields, firestoreTask.fields);
     });
   });
+
+  group('resert as retry', () {
+    test('success', () {
+      final Task task = generateFirestoreTask(
+        1,
+        status: Task.statusFailed,
+        testFlaky: true,
+      );
+      task.resetAsRetry(attempt: 2);
+
+      expect(int.parse(task.name!.split('_').last), 2);
+      expect(task.status, Task.statusNew);
+      expect(task.testFlaky, false);
+    });
+  });
 }
