@@ -1070,7 +1070,6 @@ void main() {
     });
 
     test('insert retried task document to firestore', () async {
-      // when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
       final f.Task firestoreTask = generateFirestoreTask(1, attempts: 1);
       when(
         mockFirestoreService.batchWriteDocuments(
@@ -1108,8 +1107,6 @@ void main() {
       expect(batchWriteRequest.writes!.length, 1);
       final Document insertedTaskDocument = batchWriteRequest.writes![0].update!;
       expect(insertedTaskDocument, firestoreTask);
-      // expect(firestoreTask.status, Task.statusSucceeded);
-      // expect(firestoreTask.buildNumber, 1698);
     });
   });
 }
