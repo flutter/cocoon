@@ -11,6 +11,7 @@ import 'package:meta/meta.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';
 import '../model/appengine/task.dart';
+import '../model/firestore/task.dart' as firestore;
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/google/token_info.dart';
@@ -19,6 +20,8 @@ import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
+import '../service/firestore.dart';
+import '../service/logging.dart';
 import '../service/luci_build_service.dart';
 import '../service/scheduler.dart';
 
@@ -54,6 +57,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   @override
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
+    final FirestoreService firestoreService = await config.createFirestoreService();
     final String? encodedKey = requestData![taskKeyParam] as String?;
     String? branch = requestData![branchParam] as String?;
     final String owner = requestData![ownerParam] as String? ?? 'flutter';
@@ -87,6 +91,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
         futures.add(
           rerun(
             datastore: datastore,
+            firestoreService: firestoreService,
             branch: branch,
             sha: sha,
             taskName: task.name,
@@ -99,6 +104,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     } else {
       await rerun(
         datastore: datastore,
+        firestoreService: firestoreService,
         encodedKey: encodedKey,
         branch: branch,
         sha: sha,
@@ -114,6 +120,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
 
   Future<void> rerun({
     required DatastoreService datastore,
+    required FirestoreService firestoreService,
     String? encodedKey,
     String? branch,
     String? sha,
@@ -135,9 +142,17 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final CiYaml ciYaml = await scheduler.getCiYaml(commit);
     final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
 
+    firestore.Task? taskDocument;
+    final int currentAttempt = task.attempts!;
+    final String documentName = '$kDatabase/documents/tasks/${sha}_${taskName}_$currentAttempt';
+    try {
+      taskDocument = await firestore.Task.fromFirestore(firestoreService: firestoreService, documentName: documentName);
+    } catch (error) {
+      log.warning('Failed to read task $documentName from Firestore: $error');
+    }
     final Map<String, List<String>> tags = <String, List<String>>{
       'triggered_by': <String>[email],
-      'trigger_type': <String>['manual'],
+      'trigger_type': <String>['manual_retry'],
     };
     final bool isRerunning = await luciBuildService.checkRerunBuilder(
       commit: commit,
@@ -146,6 +161,8 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       datastore: datastore,
       tags: tags,
       ignoreChecks: ignoreChecks,
+      firestoreService: firestoreService,
+      taskDocument: taskDocument,
     );
 
     // For human retries from the dashboard, notify if a task failed to rerun.
