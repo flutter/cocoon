@@ -10,7 +10,7 @@ import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
-import '../model/firestore/task.dart' as f;
+import '../model/firestore/task.dart' as firestore;
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
@@ -78,8 +78,8 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     final String? taskName = requestData![builderNameParam] as String?;
     final String documentName = '$kDatabase/documents/tasks/${sha}_${taskName}_1';
     log.info('getting firestore document: $documentName');
-    final f.Task firestoreTask =
-        await f.Task.fromFirestore(firestoreService: firestoreService, documentName: documentName);
+    final firestore.Task firestoreTask =
+        await firestore.Task.fromFirestore(firestoreService: firestoreService, documentName: documentName);
     firestoreTask.setStatus(status);
     firestoreTask.setEndTimestamp(endTimestamp);
     firestoreTask.setTestFlaky(isTestFlaky);

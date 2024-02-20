@@ -4,7 +4,7 @@
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/firestore/task.dart' as f;
+import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/request_handlers/update_task_status.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
@@ -56,7 +56,7 @@ void main() {
     });
 
     test('TestFlaky is false when not injected', () async {
-      final f.Task firestoreTask = generateFirestoreTask(1);
+      final firestore.Task firestoreTask = generateFirestoreTask(1);
       when(
         mockFirestoreService.getDocument(
           captureAny,
@@ -99,7 +99,7 @@ void main() {
     });
 
     test('TestFlaky is true when injected', () async {
-      final f.Task firestoreTask = generateFirestoreTask(1);
+      final firestore.Task firestoreTask = generateFirestoreTask(1);
       when(
         mockFirestoreService.getDocument(
           captureAny,
@@ -143,7 +143,7 @@ void main() {
     });
 
     test('task name requests can update tasks', () async {
-      final f.Task firestoreTask = generateFirestoreTask(1);
+      final firestore.Task firestoreTask = generateFirestoreTask(1);
       when(
         mockFirestoreService.getDocument(
           captureAny,
@@ -198,7 +198,7 @@ void main() {
     });
 
     test('task name request updates when input has whitespace', () async {
-      final f.Task firestoreTask = generateFirestoreTask(1);
+      final firestore.Task firestoreTask = generateFirestoreTask(1);
       when(
         mockFirestoreService.getDocument(
           captureAny,
