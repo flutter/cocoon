@@ -46,8 +46,6 @@ export 'src/generated/go.chromium.org/luci/buildbucket/proto/builds_service.pb.d
         ScheduleBuildRequest_Swarming,
         StartBuildRequest,
         StartBuildResponse,
-        StartBuildTaskRequest,
-        StartBuildTaskResponse,
         CancelBuildRequest,
         CreateBuildRequest,
         SynthesizeBuildRequest,
