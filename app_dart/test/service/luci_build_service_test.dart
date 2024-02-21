@@ -1084,9 +1084,9 @@ void main() {
       );
 
       final bbv2.ScheduleBuildRequest scheduleBuildRequest = bbv2.ScheduleBuildRequest.create();
-      scheduleBuildRequest.properties = bbv2.Struct(fields: properties);
+      scheduleBuildRequest.properties = bbv2.Struct(fields: processedProperties);
 
-      scheduleBuildRequest.properties.fields.addAll(processedProperties);
+      // scheduleBuildRequest.properties.fields.addAll(processedProperties);
 
       expect(scheduleBuildRequest.properties.fields.length, 4);
     });

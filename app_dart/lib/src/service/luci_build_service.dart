@@ -11,6 +11,7 @@ import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 import 'package:googleapis/pubsub/v1.dart';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:gql/schema.dart';
 
 import '../foundation/github_checks_util.dart';
 import '../foundation/utils.dart';
@@ -213,14 +214,14 @@ class LuciBuildService {
 
       //TODO might be able to duplicate the work here so that we can see what this
       // pushes to the new sub.
-      bbv2.BatchRequest batchRequest = bbv2.BatchRequest.create();
-      _createPresubmitScheduleBuildV2(
-        slug: slug,
-        sha: sha,
-        checkName: target.value.name,
-        pullRequestNumber: pullRequest.number!,
-        cipdVersion: cipdVersion
-        );
+      // bbv2.BatchRequest batchRequest = bbv2.BatchRequest.create();
+      // _createPresubmitScheduleBuildV2(
+      //   slug: slug,
+      //   sha: sha,
+      //   checkName: target.value.name,
+      //   pullRequestNumber: pullRequest.number!,
+      //   cipdVersion: cipdVersion
+      //   );
 
       requests.add(
         Request(
@@ -600,7 +601,7 @@ class LuciBuildService {
     required String checkName,
     required int pullRequestNumber,
     required String cipdVersion,
-    Map<String, Object>? properties,
+    Map<String, bbv2.Value>? properties,
     List<bbv2.StringPair>? tags,
     Map<String, dynamic>? userData,
     List<bbv2.RequestedDimension>? dimensions,}) {
@@ -615,23 +616,20 @@ class LuciBuildService {
     builderId.project = 'flutter';
     builderId.builder = 'checkName';
 
-
-    final Map<String, dynamic> exec = <String, dynamic>{'cipdVersion': cipdVersion};
-
-
-    // return ScheduleBuildRequest(
-    //   builderId: builderId,
-    //   tags: processedTags,
-    //   properties: processedProperties,
-    //   notify: notificationConfig,
-    //   fields: 'id,builder,number,status,tags',
-    //   exe: exec,
-    //   dimensions: dimensions,
-    // );
-
+    // Add the builderId.
     final bbv2.ScheduleBuildRequest scheduleBuildRequest = bbv2.ScheduleBuildRequest.create();
     scheduleBuildRequest.builder = builderId;
 
+    final List<String> fields = ['id','builder','number','status','tags'];
+    final bbv2.FieldMask fieldMask = bbv2.FieldMask(paths: fields);
+    final bbv2.BuildMask buildMask = bbv2.BuildMask(fields: fieldMask);
+    scheduleBuildRequest.mask = buildMask;
+
+    // Set the executable.
+    final bbv2.Executable executable = bbv2.Executable(cipdVersion: cipdVersion);
+    scheduleBuildRequest.exe = executable;
+
+    // Add the dimensions to the instance.
     final List<bbv2.RequestedDimension> instanceDimensions = scheduleBuildRequest.dimensions;
     instanceDimensions.addAll(dimensions ?? []);
 
@@ -641,28 +639,30 @@ class LuciBuildService {
     notificationConfig.userData = json.encode(processedUserData).codeUnits;
     scheduleBuildRequest.notify = notificationConfig;
 
+    // Add tags to the instance.
     final List<bbv2.StringPair> processTags = tags ?? <bbv2.StringPair>[];
     processTags.add(_createStringPair('buildset', 'pr/git/$pullRequestNumber'));
     processTags.add(_createStringPair('buildset', 'sha/git/$sha'));
     processTags.add(_createStringPair('user_agent', 'flutter-cocoon'));
     processTags.add(_createStringPair('github_link', 'https://github.com/${slug.owner}/${slug.name}/pull/$pullRequestNumber'));
     processTags.add(_createStringPair('cipd_version', cipdVersion));
-    scheduleBuildRequest.setField(scheduleBuildRequest.getTagNumber('tags')!, processTags);
+    final List<bbv2.StringPair> instanceTags = scheduleBuildRequest.tags;
+    instanceTags.addAll(processTags);
     
-    final Map<String, Object> processedProperties = <String, Object>{};
-    processedProperties.addAll(properties ?? <String, Object>{});
+    // Add the properties to the instance. 
+    final Map<String, bbv2.Value> processedProperties = <String, bbv2.Value>{};
+    processedProperties.addAll(properties ?? <String, bbv2.Value>{});
     processedProperties.addEntries(
-      <String, Object>{
-        'git_url': 'https://github.com/${slug.owner}/${slug.name}',
-        'git_ref': 'refs/pull/$pullRequestNumber/head',
-        'exe_cipd_version': cipdVersion,
+      <String, bbv2.Value>{
+        'git_url': bbv2.Value(stringValue: 'https://github.com/${slug.owner}/${slug.name}'),
+        'git_ref': bbv2.Value(stringValue: 'refs/pull/$pullRequestNumber/head'),
+        'exe_cipd_version': bbv2.Value(stringValue: cipdVersion),
       }.entries,
     );
+    scheduleBuildRequest.properties = bbv2.Struct(fields: processedProperties);
+    
 
-
-    // scheduleBuildRequest.properties.mergeFromProto3Json(json.decode(processedProperties) as Map<String, dynamic>);
-
-    return bbv2.ScheduleBuildRequest().createEmptyInstance();
+    return scheduleBuildRequest;
     
   }
 
