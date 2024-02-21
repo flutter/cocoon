@@ -154,7 +154,7 @@ changes to flutter/recipes pass on this target before landing.
 ``` yaml
 add_recipes_cq: "true"
 ```
-    </td>
+</td>
   </tr>
   <tr>
     <td>dependencies</td>
@@ -178,7 +178,7 @@ dependencies: >-
     {"dependency": "goldctl"}
   ]
 ```
-    </td>
+</td>
   </tr>
   <tr>
     <td>$flutter/osx_sdk</td>
@@ -198,7 +198,7 @@ $flutter/osx_sdk : >-
       ]
   }
 ```
-    </td>
+</td>
   </tr>
   <tr>
     <td>tags</td>
@@ -213,7 +213,7 @@ with TESTOWNERSHIP and test flakiness.
 tags: >
   ["devicelab","hostonly"]
 ```
-    </td>
+</td>
   </tr>
 </table>
 
