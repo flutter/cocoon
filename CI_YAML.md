@@ -157,6 +157,50 @@ add_recipes_cq: "true"
 </td>
   </tr>
   <tr>
+    <td>cache_name</td>
+    <td>The name identifier of the second layer Engine source cache.
+    </td>
+    <td>N/A</td>
+    <td>string</td>
+    <td>
+
+``` yaml
+cache_name: "builder"
+```
+</td>
+  </tr>
+  <tr>
+    <td>cache_path</td>
+    <td>The paths of Engine checkout source that will be auto saved to CAS for boosting source checkout when
+caches no longer exist from the bots.
+    </td>
+    <td>N/A</td>
+    <td>list</td>
+    <td>
+
+``` yaml
+cache_paths: >-
+  [
+    "builder",
+    "git"
+  ]
+```
+</td>
+  </tr>
+  <tr>
+    <td>cache_root</td>
+    <td>The root of cache directory used in recipes: `api.path[cache_root]`.
+    </td>
+    <td>N/A</td>
+    <td>string</td>
+    <td>
+
+``` yaml
+cache_name: "cache"
+```
+</td>
+  </tr>
+  <tr>
     <td>clobber</td>
     <td>Whether to clean the Engine source code cache.
     </td>
@@ -166,6 +210,21 @@ add_recipes_cq: "true"
 
 ``` yaml
 clobber: "true"
+```
+</td>
+  </tr>
+  <tr>
+    <td>config_name</td>
+    <td>The config name of the targets. It is used for [`Engine V2 recipes`](https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/engine_v2/),
+and is a one-on-one map to the config files located under [`ci/builders`](https://github.com/flutter/engine/tree/main/ci/builders). This is
+not needed for targets using none `Engine V2 recipes`.
+    </td>
+    <td>N/A</td>
+    <td>string</td>
+    <td>
+
+``` yaml
+config_name: linux_benchmarks
 ```
 </td>
   </tr>
@@ -230,6 +289,52 @@ $flutter/osx_sdk : >-
 </td>
   </tr>
   <tr>
+    <td>gclient_variables</td>
+    <td>The gclient variables populated to recipes when checking out sources via gclient sync.
+    </td>
+    <td>N/A</td>
+    <td>list</td>
+    <td>
+
+``` yaml
+gclient_variables: >-
+  {
+    "download_android_deps": "true"
+  }
+```
+</td>
+  </tr>
+  <tr>
+    <td>ignore_cache_paths</td>
+    <td>The paths of Engine checkout source that will be skipped when saved to CAS. Please reference to `cache_path`.
+    </td>
+    <td>N/A</td>
+    <td>list</td>
+    <td>
+
+``` yaml
+ignore_cache_paths: >-
+  [
+    "buibuilder/src/flutter/prebuilts/SDKs",
+    "builder/src/flutter/prebuilts/Library"lder"
+  ]
+```
+</td>
+  </tr>
+  <tr>
+    <td>no_goma</td>
+    <td>Whether to use goma when building artifacts.
+    </td>
+    <td>"false"</td>
+    <td>string bool</td>
+    <td>
+
+``` yaml
+no_goma: "true"
+```
+</td>
+  </tr>
+  <tr>
   <td>presubmit_max_attempts</td>
   <td>The max attempts the target will be auto executed in presubmit. If it is
 not specified, the default value is `1` and it means no auto rerun will happen. If explicitly defined,
@@ -241,6 +346,19 @@ it controls the max number of attempts. For example: `3` means it will be auto r
   
 ``` yaml
 presubmit_max_attempts: "3"
+```
+</td>
+  </tr>
+  <tr>
+    <td>release_build</td>
+    <td>Whether is required to run to release Engine. Will be triggered via [release_builder.py](https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/release/release_builder.py).
+    </td>
+    <td>"false"</td>
+    <td>string bool</td>
+    <td>
+
+``` yaml
+release_build: "true"
 ```
 </td>
   </tr>
