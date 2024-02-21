@@ -148,7 +148,7 @@ following are a list of keys that are reserved for special use.
 changes to flutter/recipes pass on this target before landing.
     </td>
     <td>"false"</td>
-    <td>String bool</td>
+    <td>string bool</td>
     <td>
 
 ``` yaml
@@ -223,7 +223,7 @@ not specified, the default value is `1` and it means no auto rerun will happen. 
 it controls the max number of attempts. For example: `3` means it will be auto rescheduled two more times.
   </td>
   <td>"1"</td>
-  <td>integer string</td>
+  <td>string int</td>
   <td>
   
 ``` yaml
@@ -253,7 +253,7 @@ Note that this is the timeout for a single test step rather than the entire buil
 timeout.
     </td>
     <td>"1800"</td>
-    <td>integer string</td>
+    <td>string int</td>
     <td>
     
 ``` yaml
