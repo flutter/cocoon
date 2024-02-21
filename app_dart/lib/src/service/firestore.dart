@@ -9,6 +9,7 @@ import 'package:http/http.dart';
 
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
+import '../model/firestore/task.dart' as firestore;
 import '../model/ci_yaml/target.dart';
 import 'access_client_provider.dart';
 import 'config.dart';
@@ -64,6 +65,25 @@ class FirestoreService {
     final CommitRequest commitRequest =
         CommitRequest(transaction: beginTransactionResponse.transaction, writes: writes);
     return databasesDocumentsResource.commit(commitRequest, kDatabase);
+  }
+
+  Future<List<firestore.Task>> queryCommitTasks(String commitSha) async {
+    const String parent = '$kDatabase/documents';
+    final ProjectsDatabasesDocumentsResource databasesDocumentsResource = await documentResource();
+    final List<CollectionSelector> from = <CollectionSelector>[CollectionSelector(collectionId: 'tasks')];
+    final Filter filter = Filter(
+      fieldFilter: FieldFilter(
+        field: FieldReference(fieldPath: 'commitSha'),
+        op: 'EQUAL',
+        value: Value(stringValue: commitSha),
+      ),
+    );
+    final RunQueryRequest runQueryRequest =
+        RunQueryRequest(structuredQuery: StructuredQuery(from: from, where: filter));
+    final List<RunQueryResponseElement> runQueryResponseElements =
+        await databasesDocumentsResource.runQuery(runQueryRequest, parent);
+    final List<Document> documents = runQueryResponseElements.map((e) => e.document!).toList();
+    return documents.map((Document document) => firestore.Task.fromDocument(taskDocument: document)).toList();
   }
 }
 

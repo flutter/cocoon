@@ -78,8 +78,10 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     final String? taskName = requestData![builderNameParam] as String?;
     final String documentName = '$kDatabase/documents/tasks/${sha}_${taskName}_1';
     log.info('getting firestore document: $documentName');
-    final firestore.Task firestoreTask =
-        await firestore.Task.fromFirestore(firestoreService: firestoreService, documentName: documentName);
+    final List<firestore.Task> initialTasks = await firestoreService.queryCommitTasks(sha);
+    final firestore.Task firestoreTask = initialTasks.where((firestore.Task task) => task.taskName == taskName).reduce(
+          (firestore.Task current, firestore.Task next) => current.name!.compareTo(next.name!) > 0 ? current : next,
+        );
     firestoreTask.setStatus(status);
     firestoreTask.setEndTimestamp(endTimestamp);
     firestoreTask.setTestFlaky(isTestFlaky);
