@@ -115,11 +115,11 @@ class BatchBackfiller extends RequestHandler {
     }
   }
 
+  /// Updates task documents in Firestore.
   Future<void> updateTaskDocuments(List<Task> tasks) async {
     if (tasks.isEmpty) {
       return;
     }
-    // Updates task documents in Firestore.
     final List<firestore.Task> taskDocuments = tasks.map((e) => taskToTaskDocument(e)).toList();
     final List<Write> writes = documentsToWrites(taskDocuments, exists: true);
     final FirestoreService firestoreService = await config.createFirestoreService();
