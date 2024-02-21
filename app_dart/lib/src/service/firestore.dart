@@ -119,7 +119,7 @@ List<Document> targetsToTaskDocuments(Commit commit, List<Target> targets) {
         kTaskCreateTimestampField: Value(integerValue: commit.timestamp!.toString()),
         kTaskEndTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
         kTaskBringupField: Value(booleanValue: target.value.bringup),
-        kTaskNameField: Value(stringValue: target.value.name.toString()),
+        kTaskNameField: Value(stringValue: target.value.name),
         kTaskStartTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
         kTaskStatusField: Value(stringValue: Task.statusNew),
         kTaskTestFlakyField: Value(booleanValue: false),
@@ -143,6 +143,26 @@ Document commitToCommitDocument(Commit commit) {
       kCommitRepositoryPathField: Value(stringValue: commit.repository),
       kCommitShaField: Value(stringValue: commit.sha),
     },
+  );
+}
+
+/// Generates task document based on datastore task data model.
+firestore.Task taskToTaskDocument(Task task) {
+  final String commitSha = task.commitKey!.id!.split('/').last;
+  return firestore.Task.fromDocument(
+    taskDocument: Document(
+      name: '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${task.name}_${task.attempts}',
+      fields: <String, Value>{
+        kTaskCreateTimestampField: Value(integerValue: task.createTimestamp.toString()),
+        kTaskEndTimestampField: Value(integerValue: task.endTimestamp.toString()),
+        kTaskBringupField: Value(booleanValue: task.isFlaky),
+        kTaskNameField: Value(stringValue: task.name),
+        kTaskStartTimestampField: Value(integerValue: task.startTimestamp.toString()),
+        kTaskStatusField: Value(stringValue: task.status),
+        kTaskTestFlakyField: Value(booleanValue: task.isTestFlaky),
+        kTaskCommitShaField: Value(stringValue: commitSha),
+      },
+    ),
   );
 }
 

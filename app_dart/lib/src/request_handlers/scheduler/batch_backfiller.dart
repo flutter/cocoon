@@ -2,24 +2,21 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/foundation/utils.dart';
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../../model/ci_yaml/ci_yaml.dart';
 import '../../model/ci_yaml/target.dart';
 import '../../request_handling/exceptions.dart';
-import '../../request_handling/request_handler.dart';
-import '../../service/config.dart';
 import '../../service/logging.dart';
-import '../../service/luci_build_service.dart';
-import '../../service/scheduler.dart';
 
 /// Cron request handler for scheduling targets when capacity becomes available.
 ///
@@ -103,12 +100,30 @@ class BatchBackfiller extends RequestHandler {
           'Updated ${backfillTasks.length} tasks: ${backfillTasks.map((e) => e.name).toList()} when backfilling.',
         );
       });
+      // TODO(keyonghan): remove try catch logic after validated to work.
+      try {
+        await updateTaskDocuments(backfillTasks);
+      } catch (error) {
+        log.warning('Failed to update batch backfilled task documents in Firestore: $error');
+      }
+
       // Schedule all builds asynchronously.
       // Schedule after db updates to avoid duplicate scheduling when db update fails.
       await _scheduleWithRetries(backfill);
     } catch (error) {
       log.severe('Failed to update tasks when backfilling: $error');
     }
+  }
+
+  Future<void> updateTaskDocuments(List<Task> tasks) async {
+    if (tasks.isEmpty) {
+      return;
+    }
+    // Updates task documents in Firestore.
+    final List<firestore.Task> taskDocuments = tasks.map((e) => taskToTaskDocument(e)).toList();
+    final List<Write> writes = documentsToWrites(taskDocuments, exists: true);
+    final FirestoreService firestoreService = await config.createFirestoreService();
+    await firestoreService.writeViaTransaction(writes);
   }
 
   /// Filters [config.backfillerTargetLimit] targets to backfill.
