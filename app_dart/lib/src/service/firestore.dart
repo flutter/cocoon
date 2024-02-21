@@ -20,6 +20,7 @@ const String kDocumentParent = '$kDatabase/documents';
 const String kFieldFilterOpEqual = 'EQUAL';
 
 const String kTaskCollectionId = 'tasks';
+const int kTaskDefaultTimestampValue = 0;
 const String kTaskBringupField = 'bringup';
 const String kTaskBuildNumberField = 'buildNumber';
 const String kTaskCommitShaField = 'commitSha';
@@ -116,10 +117,10 @@ List<Document> targetsToTaskDocuments(Commit commit, List<Target> targets) {
       name: '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${target.value.name}_1',
       fields: <String, Value>{
         kTaskCreateTimestampField: Value(integerValue: commit.timestamp!.toString()),
-        kTaskEndTimestampField: Value(integerValue: '0'),
+        kTaskEndTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
         kTaskBringupField: Value(booleanValue: target.value.bringup),
         kTaskNameField: Value(stringValue: target.value.name.toString()),
-        kTaskStartTimestampField: Value(integerValue: '0'),
+        kTaskStartTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
         kTaskStatusField: Value(stringValue: Task.statusNew),
         kTaskTestFlakyField: Value(booleanValue: false),
         kTaskCommitShaField: Value(stringValue: commit.sha),

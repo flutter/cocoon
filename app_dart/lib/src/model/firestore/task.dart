@@ -164,12 +164,15 @@ class Task extends Document {
       throw const BadRequestException('build_address does not contain build number');
     }
     fields![kTaskBuildNumberField] = Value(integerValue: buildAddress.split('/').last);
-    fields![kTaskCreateTimestampField] =
-        Value(integerValue: (build.createdTimestamp?.millisecondsSinceEpoch ?? 0).toString());
-    fields![kTaskStartTimestampField] =
-        Value(integerValue: (build.startedTimestamp?.millisecondsSinceEpoch ?? 0).toString());
-    fields![kTaskEndTimestampField] =
-        Value(integerValue: (build.completedTimestamp?.millisecondsSinceEpoch ?? 0).toString());
+    fields![kTaskCreateTimestampField] = Value(
+      integerValue: (build.createdTimestamp?.millisecondsSinceEpoch ?? kTaskDefaultTimestampValue).toString(),
+    );
+    fields![kTaskStartTimestampField] = Value(
+      integerValue: (build.startedTimestamp?.millisecondsSinceEpoch ?? kTaskDefaultTimestampValue).toString(),
+    );
+    fields![kTaskEndTimestampField] = Value(
+      integerValue: (build.completedTimestamp?.millisecondsSinceEpoch ?? kTaskDefaultTimestampValue).toString(),
+    );
 
     _setStatusFromLuciStatus(build);
   }
@@ -178,10 +181,10 @@ class Task extends Document {
     name = '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${taskName}_$attempt';
     fields = <String, Value>{
       kTaskCreateTimestampField: Value(integerValue: DateTime.now().millisecondsSinceEpoch.toString()),
-      kTaskEndTimestampField: Value(integerValue: '0'),
+      kTaskEndTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
       kTaskBringupField: Value(booleanValue: bringup),
       kTaskNameField: Value(stringValue: taskName),
-      kTaskStartTimestampField: Value(integerValue: '0'),
+      kTaskStartTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
       kTaskStatusField: Value(stringValue: Task.statusNew),
       kTaskTestFlakyField: Value(booleanValue: false),
       kTaskCommitShaField: Value(stringValue: commitSha),
