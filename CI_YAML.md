@@ -124,9 +124,12 @@ following are a list of keys that are reserved for special use.
 **Properties** is a Map<String, String> and any special values must be JSON encoded
 (i.e. no trailing commas). Additionally, these strings must be compatible with YAML multiline strings
 
-| Property Name | Description | Default Value | Type | Example |
-| --- | --- | --- | --- | --- |
-| $flutter/osx_sdk | xcode configs including sdk and runtime. | map | ``` yaml
+<table>
+<tr>
+<td>Property Name</td><td>Description</td><td>Default Value</td><td>Type</td><td>Example</td></tr>
+<tr><td>$flutter/osx_sdk</td><td>xcode configs including sdk and runtime</td><td>N/A</td><td>map</td><td>
+
+``` yaml
 $flutter/osx_sdk : >-
   {
     "sdk_version": "14e222b",
@@ -136,7 +139,9 @@ $flutter/osx_sdk : >-
         "ios-16-2_14c18"
       ]
   }
-```|
+```
+</td></tr>
+</table>
 
 **$flutter/osx_sdk**: xcode configs including sdk and runtime. **Note**: support on legacy `xcode`/`runtime`
 properties and `xcode` dependency has been deprecated.
