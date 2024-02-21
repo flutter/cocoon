@@ -961,6 +961,7 @@ void main() {
       }
       expect(scheduleBuildRequest.priority, LuciBuildService.kRerunPriority);
       expect(scheduleBuildRequest.gitilesCommit?.project, 'mirrors/engine');
+      expect(scheduleBuildRequest.tags?['trigger_type'], <String>['auto_retry']);
       expect(rerunFlag, isTrue);
       expect(task.attempts, 2);
       expect(task.status, Task.statusInProgress);
