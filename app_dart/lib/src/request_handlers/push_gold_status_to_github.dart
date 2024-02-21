@@ -119,11 +119,22 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       for (Map<String, dynamic> checkRun in checkRuns) {
         log.fine('Check run: $checkRun');
         final String name = checkRun['name'].toLowerCase() as String;
-        // Framework shards run framework goldens
-        // Web shards run web version of framework goldens
-        // Misc shard runs API docs goldens
-        if (name.contains('framework') || name.contains('web engine') || name.contains('misc')) {
-          runsGoldenFileTests = true;
+        if (slug == Config.engineSlug) {
+          if (const <String>[
+            'linux_android_emulator',
+            'linux_host_engine',
+            'mac_host_engine',
+            'linux_web_engine',
+          ].any(name.contains)) {
+            runsGoldenFileTests = true;
+          }
+        } else if (slug == Config.flutterSlug) {
+          if (const <String>[
+            'framework',
+            'misc',
+          ].any(name.contains)) {
+            runsGoldenFileTests = true;
+          }
         }
         if (checkRun['conclusion'] == null || checkRun['conclusion'].toUpperCase() != 'SUCCESS') {
           incompleteChecks.add(name);

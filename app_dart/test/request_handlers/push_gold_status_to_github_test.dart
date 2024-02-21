@@ -767,7 +767,7 @@ void main() {
             <String, String>{'name': 'framework', 'status': 'in_progress', 'conclusion': 'neutral'},
           ];
           engineCheckRuns = <dynamic>[
-            <String, String>{'name': 'web engine', 'status': 'in_progress', 'conclusion': 'neutral'},
+            <String, String>{'name': 'linux_web_engine', 'status': 'in_progress', 'conclusion': 'neutral'},
           ];
 
           final Body body = await tester.get<Body>(handler);
@@ -1482,7 +1482,7 @@ void main() {
           <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
         ];
         engineCheckRuns = <dynamic>[
-          <String, String>{'name': 'web engine', 'status': 'completed', 'conclusion': 'success'},
+          <String, String>{'name': 'linux_web_engine', 'status': 'completed', 'conclusion': 'success'},
         ];
 
         // Requests sent to Gold.
