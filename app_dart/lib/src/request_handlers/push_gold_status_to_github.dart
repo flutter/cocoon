@@ -125,14 +125,14 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
             'linux_host_engine',
             'mac_host_engine',
             'linux_web_engine',
-          ].any(name.contains)) {
+          ].any((String shard) => shard.contains(name))) {
             runsGoldenFileTests = true;
           }
         } else if (slug == Config.flutterSlug) {
           if (const <String>[
             'framework',
             'misc',
-          ].any(name.contains)) {
+          ].any((String shard) => shard.contains(name))) {
             runsGoldenFileTests = true;
           }
         }
