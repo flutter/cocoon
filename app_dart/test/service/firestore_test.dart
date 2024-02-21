@@ -4,6 +4,7 @@
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 
@@ -43,6 +44,21 @@ void main() {
     expect(commitDocument.fields![kCommitMessageField]!.stringValue, commit.message);
     expect(commitDocument.fields![kCommitRepositoryPathField]!.stringValue, commit.repository);
     expect(commitDocument.fields![kCommitShaField]!.stringValue, commit.sha);
+  });
+
+  test('creates task document correctly from task data model', () async {
+    final Task task = generateTask(1);
+    final String commitSha = task.commitKey!.id!.split('/').last;
+    final firestore.Task taskDocument = taskToTaskDocument(task);
+    expect(taskDocument.name, '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${task.name}_${task.attempts}');
+    expect(taskDocument.createTimestamp, task.createTimestamp);
+    expect(taskDocument.endTimestamp, task.endTimestamp);
+    expect(taskDocument.bringup, task.isFlaky);
+    expect(taskDocument.taskName, task.name);
+    expect(taskDocument.startTimestamp, task.startTimestamp);
+    expect(taskDocument.status, task.status);
+    expect(taskDocument.testFlaky, task.isTestFlaky);
+    expect(taskDocument.commitSha, commitSha);
   });
 
   test('creates writes correctly from documents', () async {
