@@ -139,7 +139,12 @@ following are a list of keys that are reserved for special use.
 changes to flutter/recipes pass on this target before landing.</td>
 <td>"false"</td>
 <td>String bool</td>
-<td>add_recipes_cq: "true"</td>
+<td>
+
+``` yaml
+add_recipes_cq: "true"
+```
+</td>
 </tr>
 <tr><td>$flutter/osx_sdk</td><td>xcode configs including sdk and runtime</td><td>N/A</td><td>map</td><td>
 
@@ -156,8 +161,6 @@ $flutter/osx_sdk : >-
 ```
 </td></tr>
 </table>
-
-**add_recipes_cq**: String boolean 
 
 **dependencies**: JSON list of objects with "dependency" and optionally "version".
 The list of supported deps is in [flutter_deps recipe_module](https://cs.opensource.google/flutter/recipes/+/master:recipe_modules/flutter_deps/api.py).
