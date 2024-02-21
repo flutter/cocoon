@@ -144,7 +144,7 @@ following are a list of keys that are reserved for special use.
   </tr>
   <tr>
     <td>add_recipes_cq</td>
-    <td>whether to add this target to flutter/recipes CQ. This ensures
+    <td>Whether to add this target to flutter/recipes CQ. This ensures
 changes to flutter/recipes pass on this target before landing.
     </td>
     <td>"false"</td>
@@ -153,6 +153,19 @@ changes to flutter/recipes pass on this target before landing.
 
 ``` yaml
 add_recipes_cq: "true"
+```
+</td>
+  </tr>
+  <tr>
+    <td>clobber</td>
+    <td>Whether to clean the Engine source code cache.
+    </td>
+    <td>"false"</td>
+    <td>string bool</td>
+    <td>
+
+``` yaml
+clobber: "true"
 ```
 </td>
   </tr>
@@ -198,7 +211,7 @@ dependencies: >-
   </tr>
   <tr>
     <td>$flutter/osx_sdk</td>
-    <td>xcode configs including sdk and runtime</td>
+    <td>Xcode configs including sdk and runtime</td>
     <td>N/A</td>
     <td>map</td>
     <td>
@@ -228,6 +241,34 @@ it controls the max number of attempts. For example: `3` means it will be auto r
   
 ``` yaml
 presubmit_max_attempts: "3"
+```
+</td>
+  </tr>
+  <tr>
+    <td>shard</td>
+    <td>The shard name of the sharding target, used in the [test.dart](https://github.com/flutter/flutter/blob/master/dev/bots/test.dart) test runner.
+    </td>
+    <td>N/A</td>
+    <td>string</td>
+    <td>
+
+``` yaml
+shard: web_tests
+```
+</td>
+  </tr>
+  <tr>
+    <td>subshards</td>
+    <td>The sub shards of the sharding target, used in the [test.dart](https://github.com/flutter/flutter/blob/master/dev/bots/test.dart) test runner.
+If omitted with `shard` defined, it will run all unit tests in a single shard.
+    </td>
+    <td>N/A</td>
+    <td>list</td>
+    <td>
+
+``` yaml
+subshards: >-
+  ["0", "1", "2", "3", "4", "5", "6", "7_last"]
 ```
 </td>
   </tr>
