@@ -145,12 +145,6 @@ class CiSuccessful extends Validation {
       // How can name be null but presumed to not be null below when added to failure?
       final String? name = status.context;
 
-      // If the account author is a roller account do not block merge on flutter-gold check.
-      if (isToEngineRoller(author, slug) && name == 'flutter-gold') {
-        log.info('Skipping status check for flutter-gold for ${slug.fullName}/$prNumber, pr author: $author.');
-        continue;
-      }
-
       if (status.state != STATUS_SUCCESS) {
         if (notInAuthorsControl.contains(name) && labelNames.contains(overrideTreeStatusLabel)) {
           continue;
@@ -159,7 +153,10 @@ class CiSuccessful extends Validation {
         if (status.state == STATUS_FAILURE && !notInAuthorsControl.contains(name)) {
           failures.add(FailureDetail(name!, status.targetUrl!));
         }
-        if (status.state == STATUS_PENDING && isStale(status.createdAt!) && supportStale(author, slug)) {
+        if (status.state == STATUS_PENDING &&
+            status.createdAt != null &&
+            isStale(status.createdAt!) &&
+            supportStale(author, slug)) {
           staleStatuses.add(status);
         }
       }

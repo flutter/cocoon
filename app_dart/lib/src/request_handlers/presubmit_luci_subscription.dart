@@ -72,7 +72,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       );
       bool rescheduled = false;
       if (githubChecksService.taskFailed(buildPushMessage)) {
-        final int currentAttempt = githubChecksService.currentAttempt(buildPushMessage);
+        final int currentAttempt = githubChecksService.currentAttempt(build);
         final int maxAttempt = await _getMaxAttempt(buildPushMessage, slug, builderName);
         if (currentAttempt < maxAttempt) {
           rescheduled = true;
