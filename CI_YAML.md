@@ -126,7 +126,21 @@ following are a list of keys that are reserved for special use.
 
 <table>
 <tr>
-<td>Property Name</td><td>Description</td><td>Default Value</td><td>Type</td><td>Example</td></tr>
+<td>
+<b>Property Name</b></td>
+<td><b>Description</b></td>
+<td><b>Default Value</b></td>
+<td><b>Type</b></td>
+<td><b>Example</b></td>
+</tr>
+<tr>
+<td>add_recipes_cq</td>
+<td>whether to add this target to flutter/recipes CQ. This ensures
+changes to flutter/recipes pass on this target before landing.</td>
+<td>"false"</td>
+<td>String bool</td>
+<td>add_recipes_cq: "true"</td>
+</tr>
 <tr><td>$flutter/osx_sdk</td><td>xcode configs including sdk and runtime</td><td>N/A</td><td>map</td><td>
 
 ``` yaml
@@ -143,24 +157,7 @@ $flutter/osx_sdk : >-
 </td></tr>
 </table>
 
-**$flutter/osx_sdk**: xcode configs including sdk and runtime. **Note**: support on legacy `xcode`/`runtime`
-properties and `xcode` dependency has been deprecated.
-
-Example:
-``` yaml
-$flutter/osx_sdk : >-
-  {
-    "sdk_version": "14e222b",
-    "runtime_versions":
-      [
-        "ios-16-4_14e222b",
-        "ios-16-2_14c18"
-      ]
-  }
-```
-
-**add_recipes_cq**: String boolean whether to add this target to flutter/recipes CQ. This ensures
-changes to flutter/recipes pass on this target before landing.
+**add_recipes_cq**: String boolean 
 
 **dependencies**: JSON list of objects with "dependency" and optionally "version".
 The list of supported deps is in [flutter_deps recipe_module](https://cs.opensource.google/flutter/recipes/+/master:recipe_modules/flutter_deps/api.py).
