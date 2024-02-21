@@ -1,3 +1,7 @@
+# 1.0.9
+
+- Pin versions due to https://github.com/flutter/flutter/issues/110272
+
 # 1.0.8
 
 - Update dependencies.

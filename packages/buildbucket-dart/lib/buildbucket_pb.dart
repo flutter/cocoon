@@ -82,5 +82,6 @@ export 'src/generated/google/protobuf/any.pb.dart' show Any;
 export 'src/generated/google/protobuf/duration.pb.dart' show Duration;
 export 'src/generated/google/protobuf/empty.pb.dart' show Empty;
 export 'src/generated/google/protobuf/timestamp.pb.dart' show Timestamp;
-export 'src/generated/google/protobuf/wrappers.pb.dart' show DoubleValue, FloatValue, Int32Value, Int64Value, BoolValue, BytesValue, UInt32Value, UInt64Value, StringValue;
+export 'src/generated/google/protobuf/wrappers.pb.dart'
+    show DoubleValue, FloatValue, Int32Value, Int64Value, BoolValue, BytesValue, UInt32Value, UInt64Value, StringValue;
 export 'src/generated/google/protobuf/field_mask.pb.dart' show FieldMask;
