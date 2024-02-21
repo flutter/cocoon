@@ -125,28 +125,67 @@ following are a list of keys that are reserved for special use.
 (i.e. no trailing commas). Additionally, these strings must be compatible with YAML multiline strings
 
 <table>
-<tr>
-<td>
-<b>Property Name</b></td>
-<td><b>Description</b></td>
-<td><b>Default Value</b></td>
-<td><b>Type</b></td>
-<td><b>Example</b></td>
-</tr>
-<tr>
-<td>add_recipes_cq</td>
-<td>whether to add this target to flutter/recipes CQ. This ensures
-changes to flutter/recipes pass on this target before landing.</td>
-<td>"false"</td>
-<td>String bool</td>
-<td>
+  <tr>
+    <td>
+      <b>Property Name</b>
+    </td>
+    <td>
+      <b>Description</b>
+    </td>
+    <td>
+      <b>Default Value</b>
+    </td>
+    <td>
+      <b>Type</b>
+    </td>
+    <td>
+      <b>Example</b>
+    </td>
+  </tr>
+  <tr>
+    <td>add_recipes_cq</td>
+    <td>whether to add this target to flutter/recipes CQ. This ensures
+changes to flutter/recipes pass on this target before landing.
+    </td>
+    <td>"false"</td>
+    <td>String bool</td>
+    <td>
 
 ``` yaml
 add_recipes_cq: "true"
 ```
-</td>
-</tr>
-<tr><td>$flutter/osx_sdk</td><td>xcode configs including sdk and runtime</td><td>N/A</td><td>map</td><td>
+    </td>
+  </tr>
+  <tr>
+    <td>dependencies</td>
+    <td>JSON list of objects with "dependency" and optionally "version".
+The list of supported deps is in [flutter_deps recipe_module](https://cs.opensource.google/flutter/recipes/+/master:recipe_modules/flutter_deps/api.py).
+Dependencies generate a corresponding swarming cache that can be used in the
+recipe code. The path of the cache will be the name of the dependency.
+
+Versions can be located in [CIPD](https://chrome-infra-packages.appspot.com/)
+    </td>
+    <td>N/A</td>
+    <td>list</td>
+    <td>
+
+``` yaml
+dependencies: >-
+  [
+    {"dependency": "android_sdk"},
+    {"dependency": "chrome_and_driver", "version": "latest"},
+    {"dependency": "clang"},
+    {"dependency": "goldctl"}
+  ]
+```
+    </td>
+  </tr>
+  <tr>
+    <td>$flutter/osx_sdk</td>
+    <td>xcode configs including sdk and runtime</td>
+    <td>N/A</td>
+    <td>map</td>
+    <td>
 
 ``` yaml
 $flutter/osx_sdk : >-
@@ -159,35 +198,26 @@ $flutter/osx_sdk : >-
       ]
   }
 ```
-</td></tr>
-</table>
-
-**dependencies**: JSON list of objects with "dependency" and optionally "version".
-The list of supported deps is in [flutter_deps recipe_module](https://cs.opensource.google/flutter/recipes/+/master:recipe_modules/flutter_deps/api.py).
-Dependencies generate a corresponding swarming cache that can be used in the
-recipe code. The path of the cache will be the name of the dependency.
-
-Versions can be located in [CIPD](https://chrome-infra-packages.appspot.com/)
-
-Example
-``` yaml
-dependencies: >-
-  [
-    {"dependency": "android_sdk"},
-    {"dependency": "chrome_and_driver", "version": "latest"},
-    {"dependency": "clang"},
-    {"dependency": "goldctl"}
-  ]
-```
-
-**tags**: JSON list of strings. These are currently only used in flutter/flutter to help
+    </td>
+  </tr>
+  <tr>
+    <td>tags</td>
+    <td>JSON list of strings. These are currently only used in flutter/flutter to help
 with TESTOWNERSHIP and test flakiness.
+    </td>
+    <td>N/A</td>
+    <td>list</td>
+    <td>
 
-Example
 ```yaml
 tags: >
   ["devicelab","hostonly"]
 ```
+    </td>
+  </tr>
+</table>
+
+
 
 **test_timeout_secs** String determining seconds before timeout for an individual test step.
 Note that this is the timeout for a single test step rather than the entire build execution
