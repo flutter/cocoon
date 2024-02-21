@@ -157,6 +157,22 @@ add_recipes_cq: "true"
 </td>
   </tr>
   <tr>
+  <td>contexts</td>
+  <td>The list of contexts that will guide [recipes](https://flutter.googlesource.com/recipes/+/refs/heads/main/recipe_modules/flutter_deps/api.py#665) to add to [ExitStack](https://docs.python.org/3/library/contextlib.html#contextlib.ExitStack). This will initialize and prepare the virtual device used for tests. Other supported contexts include: `osx_sdk`, `depot_tools_on_path`, etc.
+  </td>
+  <td>N/A</td>
+  <td>list</td>
+  <td>
+  
+```yaml
+contexts: >-
+        [
+          "android_virtual_device"
+        ]
+```
+</td>
+  </tr>
+  <tr>
     <td>dependencies</td>
     <td>JSON list of objects with "dependency" and optionally "version".
 The list of supported deps is in [flutter_deps recipe_module](https://cs.opensource.google/flutter/recipes/+/master:recipe_modules/flutter_deps/api.py).
@@ -201,6 +217,21 @@ $flutter/osx_sdk : >-
 </td>
   </tr>
   <tr>
+  <td>presubmit_max_attempts</td>
+  <td>The max attempts the target will be auto executed in presubmit. If it is
+not specified, the default value is `1` and it means no auto rerun will happen. If explicitly defined,
+it controls the max number of attempts. For example: `3` means it will be auto rescheduled two more times.
+  </td>
+  <td>"1"</td>
+  <td>integer string</td>
+  <td>
+  
+``` yaml
+presubmit_max_attempts: "3"
+```
+</td>
+  </tr>
+  <tr>
     <td>tags</td>
     <td>JSON list of strings. These are currently only used in flutter/flutter to help
 with TESTOWNERSHIP and test flakiness.
@@ -215,38 +246,22 @@ tags: >
 ```
 </td>
   </tr>
-</table>
-
-
-
-**test_timeout_secs** String determining seconds before timeout for an individual test step.
+  <tr>
+    <td>test_timeout_secs</td>
+    <td>String determining seconds before timeout for an individual test step.
 Note that this is the timeout for a single test step rather than the entire build execution
 timeout.
-
-Example
+    </td>
+    <td>"1800"</td>
+    <td>integer string</td>
+    <td>
+    
 ``` yaml
 test_timeout_secs: "2700"
 ```
-
-**presubmit_max_attempts** The max attempts the target will be auto executed in presubmit. If it is
-not specified, the default value is `1` and it means no auto rerun will happen. If explicitly defined,
-it controls the max number of attempts. For example: `3` means it will be auto rescheduled two more times.
-
-Example
-``` yaml
-presubmit_max_attempts: "3"
-```
-
-**contexts** The list of contexts that will guide [recipes](https://flutter.googlesource.com/recipes/+/refs/heads/main/recipe_modules/flutter_deps/api.py#665) to add to [ExitStack](https://docs.python.org/3/library/contextlib.html#contextlib.ExitStack).
-
-Example
-```yaml
-contexts: >-
-        [
-          "android_virtual_device"
-        ]
-```
-This will initialize and prepare the virtual device used for tests. Other supported contexts include: `osx_sdk`, `depot_tools_on_path`, etc.
+</td>
+  </tr>
+</table>
 
 ### Updating targets
 
