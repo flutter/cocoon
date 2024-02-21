@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 
 import '../../request_handling/exceptions.dart';
@@ -77,27 +78,27 @@ class Task extends Document {
   ///
   /// This is _not_ when the task first started running, as tasks start out in
   /// the 'New' state until they've been picked up by an [Agent].
-  int? get createTimestamp => int.parse(fields!['createTimestamp']!.integerValue!);
+  int? get createTimestamp => int.parse(fields![kTaskCreateTimestampField]!.integerValue!);
 
   /// The timestamp (in milliseconds since the Epoch) that this task started
   /// running.
   ///
   /// Tasks may be run more than once. If this task has been run more than
   /// once, this timestamp represents when the task was most recently started.
-  int? get startTimestamp => int.parse(fields!['startTimestamp']!.integerValue!);
+  int? get startTimestamp => int.parse(fields![kTaskStartTimestampField]!.integerValue!);
 
   /// The timestamp (in milliseconds since the Epoch) that this task last
   /// finished running.
-  int? get endTimestamp => int.parse(fields!['endTimestamp']!.integerValue!);
+  int? get endTimestamp => int.parse(fields![kTaskEndTimestampField]!.integerValue!);
 
   /// The name of the task.
   ///
   /// This is a human-readable name, typically a test name (e.g.
   /// "hello_world__memory").
-  String? get taskName => fields!['name']!.stringValue!;
+  String? get taskName => fields![kTaskNameField]!.stringValue!;
 
   /// The sha of the task commit.
-  String? get commitSha => fields!['commitSha']!.stringValue!;
+  String? get commitSha => fields![kTaskCommitShaField]!.stringValue!;
 
   /// The number of attempts that have been made to run this task successfully.
   ///
@@ -112,7 +113,7 @@ class Task extends Document {
   ///  * <https://github.com/flutter/flutter/blob/master/.ci.yaml>
   ///
   /// A flaky (`bringup: true`) task will not block the tree.
-  bool? get bringup => fields!['bringup']!.booleanValue!;
+  bool? get bringup => fields![kTaskBringupField]!.booleanValue!;
 
   /// Whether the test execution of this task shows flake.
   ///
@@ -120,16 +121,17 @@ class Task extends Document {
   ///
   /// See also:
   ///  * <https://github.com/flutter/flutter/blob/master/dev/devicelab/lib/framework/runner.dart>
-  bool? get testFlaky => fields!['testFlaky']!.booleanValue!;
+  bool? get testFlaky => fields![kTaskTestFlakyField]!.booleanValue!;
 
   /// The build number of luci build: https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/build.proto#146
-  int? get buildNumber => fields!.containsKey('buildNumber') ? int.parse(fields!['buildNumber']!.integerValue!) : null;
+  int? get buildNumber =>
+      fields!.containsKey(kTaskBuildNumberField) ? int.parse(fields![kTaskBuildNumberField]!.integerValue!) : null;
 
   /// The status of the task.
   ///
   /// Legal values and their meanings are defined in [legalStatusValues].
   String get status {
-    final String taskStatus = fields!['status']!.stringValue!;
+    final String taskStatus = fields![kTaskStatusField]!.stringValue!;
     if (!legalStatusValues.contains(taskStatus)) {
       throw ArgumentError('Invalid state: "$taskStatus"');
     }
@@ -140,16 +142,16 @@ class Task extends Document {
     if (!legalStatusValues.contains(value)) {
       throw ArgumentError('Invalid state: "$value"');
     }
-    fields!['status'] = Value(stringValue: value);
+    fields![kTaskStatusField] = Value(stringValue: value);
     return value;
   }
 
   void setEndTimestamp(int endTimestamp) {
-    fields!['endTimestamp'] = Value(integerValue: endTimestamp.toString());
+    fields![kTaskEndTimestampField] = Value(integerValue: endTimestamp.toString());
   }
 
   void setTestFlaky(bool testFlaky) {
-    fields!['testFlaky'] = Value(booleanValue: testFlaky);
+    fields![kTaskTestFlakyField] = Value(booleanValue: testFlaky);
   }
 
   /// Update [Task] fields based on a LUCI [Build].
@@ -161,25 +163,31 @@ class Task extends Document {
       log.warning('Tags: $tags');
       throw const BadRequestException('build_address does not contain build number');
     }
-    fields!['buildNumber'] = Value(integerValue: buildAddress.split('/').last);
-    fields!['createTimestamp'] = Value(integerValue: (build.createdTimestamp?.millisecondsSinceEpoch ?? 0).toString());
-    fields!['startTimestamp'] = Value(integerValue: (build.startedTimestamp?.millisecondsSinceEpoch ?? 0).toString());
-    fields!['endTimestamp'] = Value(integerValue: (build.completedTimestamp?.millisecondsSinceEpoch ?? 0).toString());
+    fields![kTaskBuildNumberField] = Value(integerValue: buildAddress.split('/').last);
+    fields![kTaskCreateTimestampField] = Value(
+      integerValue: (build.createdTimestamp?.millisecondsSinceEpoch ?? kTaskDefaultTimestampValue).toString(),
+    );
+    fields![kTaskStartTimestampField] = Value(
+      integerValue: (build.startedTimestamp?.millisecondsSinceEpoch ?? kTaskDefaultTimestampValue).toString(),
+    );
+    fields![kTaskEndTimestampField] = Value(
+      integerValue: (build.completedTimestamp?.millisecondsSinceEpoch ?? kTaskDefaultTimestampValue).toString(),
+    );
 
     _setStatusFromLuciStatus(build);
   }
 
   void resetAsRetry({int attempt = 1}) {
-    name = '$kDatabase/documents/tasks/${commitSha}_${taskName}_$attempt';
+    name = '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${taskName}_$attempt';
     fields = <String, Value>{
-      'createTimestamp': Value(integerValue: DateTime.now().millisecondsSinceEpoch.toString()),
-      'endTimestamp': Value(integerValue: '0'),
-      'bringup': Value(booleanValue: bringup),
-      'name': Value(stringValue: taskName),
-      'startTimestamp': Value(integerValue: '0'),
-      'status': Value(stringValue: Task.statusNew),
-      'testFlaky': Value(booleanValue: false),
-      'commitSha': Value(stringValue: commitSha),
+      kTaskCreateTimestampField: Value(integerValue: DateTime.now().millisecondsSinceEpoch.toString()),
+      kTaskEndTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
+      kTaskBringupField: Value(booleanValue: bringup),
+      kTaskNameField: Value(stringValue: taskName),
+      kTaskStartTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
+      kTaskStatusField: Value(stringValue: Task.statusNew),
+      kTaskTestFlakyField: Value(booleanValue: false),
+      kTaskCommitShaField: Value(stringValue: commitSha),
     };
   }
 
@@ -226,13 +234,13 @@ class Task extends Document {
   String toString() {
     final StringBuffer buf = StringBuffer()
       ..write('$runtimeType(')
-      ..write(', createTimestamp: $createTimestamp')
-      ..write(', startTimestamp: $startTimestamp')
-      ..write(', endTimestamp: $endTimestamp')
-      ..write(', name: $name')
-      ..write(', bringup: $bringup')
-      ..write(', testRunFlaky: $testFlaky')
-      ..write(', status: $status')
+      ..write(', $kTaskCreateTimestampField: $createTimestamp')
+      ..write(', $kTaskStartTimestampField: $startTimestamp')
+      ..write(', $kTaskEndTimestampField: $endTimestamp')
+      ..write(', $kTaskNameField: $name')
+      ..write(', $kTaskBringupField: $bringup')
+      ..write(', $kTaskTestFlakyField: $testFlaky')
+      ..write(', $kTaskStatusField: $status')
       ..write(')');
     return buf.toString();
   }
