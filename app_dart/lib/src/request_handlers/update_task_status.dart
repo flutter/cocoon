@@ -5,14 +5,17 @@
 import 'dart:async';
 
 import 'package:gcloud/db.dart';
+import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
+import '../model/firestore/task.dart' as firestore;
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
+import '../service/firestore.dart';
 import '../service/logging.dart';
 
 /// Endpoint for task runners to update Cocoon with test run information.
@@ -60,7 +63,31 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     task.isTestFlaky = isTestFlaky;
 
     await datastore.insert(<Task>[task]);
+
+    try {
+      await updateTaskDocument(task.status, task.endTimestamp!, task.isTestFlaky!);
+    } catch (error) {
+      log.warning('Failed to update task in Firestore: $error');
+    }
     return UpdateTaskStatusResponse(task);
+  }
+
+  Future<void> updateTaskDocument(String status, int endTimestamp, bool isTestFlaky) async {
+    final FirestoreService firestoreService = await config.createFirestoreService();
+    final String sha = (requestData![gitShaParam] as String).trim();
+    final String? taskName = requestData![builderNameParam] as String?;
+    final String documentName = '$kDatabase/documents/tasks/${sha}_${taskName}_1';
+    log.info('getting firestore document: $documentName');
+    final List<firestore.Task> initialTasks = await firestoreService.queryCommitTasks(sha);
+    // Targets the latest task. This assumes only one task is running at any time.
+    final firestore.Task firestoreTask = initialTasks.where((firestore.Task task) => task.taskName == taskName).reduce(
+          (firestore.Task current, firestore.Task next) => current.name!.compareTo(next.name!) > 0 ? current : next,
+        );
+    firestoreTask.setStatus(status);
+    firestoreTask.setEndTimestamp(endTimestamp);
+    firestoreTask.setTestFlaky(isTestFlaky);
+    final List<Write> writes = documentsToWrites([firestoreTask], exists: true);
+    await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
   }
 
   /// Retrieve [Task] from [DatastoreService] when given [gitShaParam], [gitBranchParam], and [builderNameParam].
