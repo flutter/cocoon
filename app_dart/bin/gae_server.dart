@@ -33,6 +33,7 @@ Future<void> main() async {
       config: config,
       cache: cache,
       buildBucketClient: buildBucketClient,
+      buildBucketV2Client: buildBucketV2Client,
       pubsub: const PubSub(),
     );
 

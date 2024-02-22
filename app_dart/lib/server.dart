@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/request_handlers/build_bucket_version_two.dart';
 import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 
@@ -69,6 +70,11 @@ Server createServer({
       githubChecksService: githubChecksService,
       scheduler: scheduler,
       commitService: commitService,
+    ),
+    '/api/build-bucket-version-two': BuildBucketVersionTwo(
+      cache: cache,
+      config: config,
+      buildBucketV2Client: buildBucketV2Client,
     ),
     '/api/presubmit-luci-subscription': PresubmitLuciSubscription(
       cache: cache,

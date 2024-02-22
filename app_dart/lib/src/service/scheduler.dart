@@ -557,6 +557,7 @@ class Scheduler {
 
             if (commit == null) {
               log.fine('Rescheduling presubmit build.');
+              // Does not do anything with the returned build oddly.
               await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent);
             } else {
               log.fine('Rescheduling postsubmit build.');

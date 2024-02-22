@@ -11,7 +11,6 @@ import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 import 'package:googleapis/pubsub/v1.dart';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:gql/schema.dart';
 
 import '../foundation/github_checks_util.dart';
 import '../foundation/utils.dart';
@@ -24,6 +23,7 @@ import '../model/luci/push_message.dart' as push_message;
 import '../request_handling/pubsub.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
+import 'build_bucket_v2_client.dart';
 import 'buildbucket.dart';
 import 'cache_service.dart';
 import 'config.dart';
@@ -45,6 +45,7 @@ class LuciBuildService {
     required this.config,
     required this.cache,
     required this.buildBucketClient,
+    required this.buildBucketV2Client,
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
     this.pubsub = const PubSub(),
@@ -52,6 +53,7 @@ class LuciBuildService {
         gerritService = gerritService ?? GerritService(config: config);
 
   BuildBucketClient buildBucketClient;
+  BuildBucketV2Client buildBucketV2Client;
   final CacheService cache;
   Config config;
   GithubChecksUtil githubChecksUtil;
@@ -345,6 +347,8 @@ class LuciBuildService {
     );
   }
 
+  bool _switchV2 = true;
+
   /// Sends presubmit [ScheduleBuildRequest] for a pull request using [checkRunEvent].
   ///
   /// Returns the [Build] returned by scheduleBuildRequest.
@@ -384,6 +388,15 @@ class LuciBuildService {
       properties[propertiesGithubBuildLabelName] = labels;
     }
     log.info('input ${build.input!} properties $properties');
+
+    //TODO craft a v2 request here. It is hacky but better than attempting to pipe into something else.
+    if (_switchV2) {
+      final bbv2.ScheduleBuildRequest scheduleBuildRequestv2 = _createPresubmitScheduleBuildV2(
+        slug: slug, sha: sha, checkName: checkName, pullRequestNumber: prNumber, cipdVersion: cipdVersion,);
+      // ignore: unused_local_variable
+      final bbv2.Build scheduleBuildV2 = await buildBucketV2Client.scheduleBuild(scheduleBuildRequestv2);
+      _switchV2 = false;  
+    }
 
     final ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
       slug: slug,
@@ -635,7 +648,7 @@ class LuciBuildService {
 
     // Create the notification configuration for pubsub processing.
     final bbv2.NotificationConfig notificationConfig = bbv2.NotificationConfig().createEmptyInstance();
-    notificationConfig.pubsubTopic = 'projects/flutter-dashboard/topics/luci-builds';
+    notificationConfig.pubsubTopic = 'projects/flutter-dashboard/topics/bbv2-test-topic';
     notificationConfig.userData = json.encode(processedUserData).codeUnits;
     scheduleBuildRequest.notify = notificationConfig;
 
@@ -661,9 +674,7 @@ class LuciBuildService {
     );
     scheduleBuildRequest.properties = bbv2.Struct(fields: processedProperties);
     
-
     return scheduleBuildRequest;
-    
   }
 
   bbv2.StringPair _createStringPair(String key, String value) {
