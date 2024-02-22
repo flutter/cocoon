@@ -5,24 +5,30 @@
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
+import 'package:googleapis/firestore/v1.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../src/datastore/fake_config.dart';
 import '../../src/request_handling/request_handler_tester.dart';
 import '../../src/utilities/entity_generators.dart';
+import '../../src/utilities/mocks.dart';
 
 void main() {
   group(VacuumStaleTasks, () {
     late FakeConfig config;
     late RequestHandlerTester tester;
     late VacuumStaleTasks handler;
+    late MockFirestoreService mockFirestoreService;
 
     final Commit commit = generateCommit(1);
 
     setUp(() {
-      config = FakeConfig();
+      mockFirestoreService = MockFirestoreService();
+      config = FakeConfig(firestoreService: mockFirestoreService);
       config.db.values[commit.key] = commit;
 
       tester = RequestHandlerTester();
@@ -50,6 +56,13 @@ void main() {
     });
 
     test('resets stale task', () async {
+      when(
+        mockFirestoreService.writeViaTransaction(
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<CommitResponse>.value(CommitResponse());
+      });
       final List<Task> originalTasks = <Task>[
         generateTask(
           1,
@@ -78,6 +91,15 @@ void main() {
       expect(tasks[0].status, Task.statusNew);
       expect(tasks[2].createTimestamp, 0);
       expect(tasks[2].status, Task.statusNew);
+
+      final List<dynamic> captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
+      expect(captured.length, 1);
+      final List<Write> commitResponse = captured[0] as List<Write>;
+      expect(commitResponse.length, 2);
+      final firestore.Task taskDocuemnt1 = firestore.Task.fromDocument(taskDocument: commitResponse[0].update!);
+      final firestore.Task taskDocuemnt2 = firestore.Task.fromDocument(taskDocument: commitResponse[0].update!);
+      expect(taskDocuemnt1.status, firestore.Task.statusNew);
+      expect(taskDocuemnt2.status, firestore.Task.statusNew);
     });
   });
 }
