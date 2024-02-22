@@ -1824,6 +1824,33 @@ void foo() {
       );
     });
 
+    test('Packages does not comment if shared Darwin native tests', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.packagesSlug,
+        baseRef: Config.defaultBranch(Config.packagesSlug),
+      );
+      when(pullRequestsService.listFiles(Config.packagesSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'packages/foo/foo_foundation/darwin/Classes/SomeClass.m',
+          PullRequestFile()..filename = 'packages/foo/foo_foundation/darwin/Tests/SomeClassTest.m',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.createComment(
+          Config.packagesSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+    });
+
     test('Packages does not comment if editing test files in go_router', () async {
       const int issueNumber = 123;
 

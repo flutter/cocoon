@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -16,8 +16,42 @@ import 'package:protobuf/protobuf.dart' as $pb;
 
 import '../../../../../google/protobuf/timestamp.pb.dart' as $0;
 
+///  A key-value map describing one variant of a test case.
+///
+///  The same test case can be executed in different ways, for example on
+///  different OS, GPUs, with different compile options or runtime flags.
+///  A variant definition captures one variant.
+///  A test case with a specific variant definition is called test variant.
+///
+///  Guidelines for variant definition design:
+///  - This rule guides what keys MUST be present in the definition.
+///    A single expected result of a given test variant is enough to consider it
+///    passing (potentially flakily). If it is important to differentiate across
+///    a certain dimension (e.g. whether web tests are executed with or without
+///    site per process isolation), then there MUST be a key that captures the
+///    dimension (e.g. a name from test_suites.pyl).
+///    Otherwise, a pass in one variant will hide a failure of another one.
+///
+///  - This rule guides what keys MUST NOT be present in the definition.
+///    A change in the key-value set essentially resets the test result history.
+///    For example, if GN args are among variant key-value pairs, then adding a
+///    new GN arg changes the identity of the test variant and resets its history.
+///
+///  In Chromium, variant keys are:
+///  - bucket: the LUCI bucket, e.g. "ci"
+///  - builder: the LUCI builder, e.g. "linux-rel"
+///  - test_suite: a name from
+///    https://cs.chromium.org/chromium/src/testing/buildbot/test_suites.pyl
 class Variant extends $pb.GeneratedMessage {
-  factory Variant() => create();
+  factory Variant({
+    $core.Map<$core.String, $core.String>? def,
+  }) {
+    final $result = create();
+    if (def != null) {
+      $result.def.addAll(def);
+    }
+    return $result;
+  }
   Variant._() : super();
   factory Variant.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -53,12 +87,28 @@ class Variant extends $pb.GeneratedMessage {
   static Variant getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Variant>(create);
   static Variant? _defaultInstance;
 
+  /// The definition of the variant.
+  /// Key and values must be valid StringPair keys and values, see their
+  /// constraints.
   @$pb.TagNumber(1)
   $core.Map<$core.String, $core.String> get def => $_getMap(0);
 }
 
+/// A string key-value pair. Typically used for tagging, see Invocation.tags
 class StringPair extends $pb.GeneratedMessage {
-  factory StringPair() => create();
+  factory StringPair({
+    $core.String? key,
+    $core.String? value,
+  }) {
+    final $result = create();
+    if (key != null) {
+      $result.key = key;
+    }
+    if (value != null) {
+      $result.value = value;
+    }
+    return $result;
+  }
   StringPair._() : super();
   factory StringPair.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -91,6 +141,8 @@ class StringPair extends $pb.GeneratedMessage {
   static StringPair getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<StringPair>(create);
   static StringPair? _defaultInstance;
 
+  /// Regex: ^[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*)*$
+  /// Max length: 64.
   @$pb.TagNumber(1)
   $core.String get key => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -103,6 +155,7 @@ class StringPair extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearKey() => clearField(1);
 
+  /// Max length: 256.
   @$pb.TagNumber(2)
   $core.String get value => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -116,8 +169,38 @@ class StringPair extends $pb.GeneratedMessage {
   void clearValue() => clearField(2);
 }
 
+///  GitilesCommit specifies the position of the gitiles commit an invocation
+///  ran against, in a repository's commit log. More specifically, a ref's commit
+///  log.
+///
+///  It also specifies the host/project/ref combination that the commit
+///  exists in, to provide context.
 class GitilesCommit extends $pb.GeneratedMessage {
-  factory GitilesCommit() => create();
+  factory GitilesCommit({
+    $core.String? host,
+    $core.String? project,
+    $core.String? ref,
+    $core.String? commitHash,
+    $fixnum.Int64? position,
+  }) {
+    final $result = create();
+    if (host != null) {
+      $result.host = host;
+    }
+    if (project != null) {
+      $result.project = project;
+    }
+    if (ref != null) {
+      $result.ref = ref;
+    }
+    if (commitHash != null) {
+      $result.commitHash = commitHash;
+    }
+    if (position != null) {
+      $result.position = position;
+    }
+    return $result;
+  }
   GitilesCommit._() : super();
   factory GitilesCommit.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -153,6 +236,8 @@ class GitilesCommit extends $pb.GeneratedMessage {
   static GitilesCommit getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GitilesCommit>(create);
   static GitilesCommit? _defaultInstance;
 
+  /// The identity of the gitiles host, e.g. "chromium.googlesource.com".
+  /// Mandatory.
   @$pb.TagNumber(1)
   $core.String get host => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -165,6 +250,7 @@ class GitilesCommit extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearHost() => clearField(1);
 
+  /// Repository name on the host, e.g. "chromium/src". Mandatory.
   @$pb.TagNumber(2)
   $core.String get project => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -177,6 +263,9 @@ class GitilesCommit extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearProject() => clearField(2);
 
+  /// Commit ref, e.g. "refs/heads/main" from which the commit was fetched.
+  /// Not the branch name, use "refs/heads/branch"
+  /// Mandatory.
   @$pb.TagNumber(3)
   $core.String get ref => $_getSZ(2);
   @$pb.TagNumber(3)
@@ -189,6 +278,7 @@ class GitilesCommit extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearRef() => clearField(3);
 
+  /// Commit HEX SHA1. All lowercase. Mandatory.
   @$pb.TagNumber(4)
   $core.String get commitHash => $_getSZ(3);
   @$pb.TagNumber(4)
@@ -201,6 +291,12 @@ class GitilesCommit extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   void clearCommitHash() => clearField(4);
 
+  /// Defines a total order of commits on the ref.
+  /// A positive, monotonically increasing integer. The recommended
+  /// way of obtaining this is by using the goto.google.com/git-numberer
+  /// Gerrit plugin. Other solutions can be used as well, so long
+  /// as the same scheme is used consistently for a ref.
+  /// Mandatory.
   @$pb.TagNumber(5)
   $fixnum.Int64 get position => $_getI64(4);
   @$pb.TagNumber(5)
@@ -214,8 +310,29 @@ class GitilesCommit extends $pb.GeneratedMessage {
   void clearPosition() => clearField(5);
 }
 
+/// A Gerrit patchset.
 class GerritChange extends $pb.GeneratedMessage {
-  factory GerritChange() => create();
+  factory GerritChange({
+    $core.String? host,
+    $core.String? project,
+    $fixnum.Int64? change,
+    $fixnum.Int64? patchset,
+  }) {
+    final $result = create();
+    if (host != null) {
+      $result.host = host;
+    }
+    if (project != null) {
+      $result.project = project;
+    }
+    if (change != null) {
+      $result.change = change;
+    }
+    if (patchset != null) {
+      $result.patchset = patchset;
+    }
+    return $result;
+  }
   GerritChange._() : super();
   factory GerritChange.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -250,6 +367,7 @@ class GerritChange extends $pb.GeneratedMessage {
   static GerritChange getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GerritChange>(create);
   static GerritChange? _defaultInstance;
 
+  /// Gerrit hostname, e.g. "chromium-review.googlesource.com".
   @$pb.TagNumber(1)
   $core.String get host => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -262,6 +380,7 @@ class GerritChange extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearHost() => clearField(1);
 
+  /// Gerrit project, e.g. "chromium/src".
   @$pb.TagNumber(2)
   $core.String get project => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -274,6 +393,7 @@ class GerritChange extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearProject() => clearField(2);
 
+  /// Change number, e.g. 12345.
   @$pb.TagNumber(3)
   $fixnum.Int64 get change => $_getI64(2);
   @$pb.TagNumber(3)
@@ -286,6 +406,7 @@ class GerritChange extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearChange() => clearField(3);
 
+  /// Patch set number, e.g. 1.
   @$pb.TagNumber(4)
   $fixnum.Int64 get patchset => $_getI64(3);
   @$pb.TagNumber(4)
@@ -299,8 +420,29 @@ class GerritChange extends $pb.GeneratedMessage {
   void clearPatchset() => clearField(4);
 }
 
+/// Deprecated: Use GitilesCommit instead.
 class CommitPosition extends $pb.GeneratedMessage {
-  factory CommitPosition() => create();
+  factory CommitPosition({
+    $core.String? host,
+    $core.String? project,
+    $core.String? ref,
+    $fixnum.Int64? position,
+  }) {
+    final $result = create();
+    if (host != null) {
+      $result.host = host;
+    }
+    if (project != null) {
+      $result.project = project;
+    }
+    if (ref != null) {
+      $result.ref = ref;
+    }
+    if (position != null) {
+      $result.position = position;
+    }
+    return $result;
+  }
   CommitPosition._() : super();
   factory CommitPosition.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -335,6 +477,8 @@ class CommitPosition extends $pb.GeneratedMessage {
   static CommitPosition getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CommitPosition>(create);
   static CommitPosition? _defaultInstance;
 
+  /// The following fields identify a git repository and a ref within which the
+  /// numerical position below identifies a single commit.
   @$pb.TagNumber(1)
   $core.String get host => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -371,6 +515,8 @@ class CommitPosition extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearRef() => clearField(3);
 
+  /// The numerical position of the commit in the log for the host/project/ref
+  /// above.
   @$pb.TagNumber(4)
   $fixnum.Int64 get position => $_getI64(3);
   @$pb.TagNumber(4)
@@ -384,8 +530,21 @@ class CommitPosition extends $pb.GeneratedMessage {
   void clearPosition() => clearField(4);
 }
 
+/// Deprecated: Do not use.
 class CommitPositionRange extends $pb.GeneratedMessage {
-  factory CommitPositionRange() => create();
+  factory CommitPositionRange({
+    CommitPosition? earliest,
+    CommitPosition? latest,
+  }) {
+    final $result = create();
+    if (earliest != null) {
+      $result.earliest = earliest;
+    }
+    if (latest != null) {
+      $result.latest = latest;
+    }
+    return $result;
+  }
   CommitPositionRange._() : super();
   factory CommitPositionRange.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -420,6 +579,7 @@ class CommitPositionRange extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CommitPositionRange>(create);
   static CommitPositionRange? _defaultInstance;
 
+  /// The lowest commit position to include in the range.
   @$pb.TagNumber(1)
   CommitPosition get earliest => $_getN(0);
   @$pb.TagNumber(1)
@@ -434,6 +594,7 @@ class CommitPositionRange extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   CommitPosition ensureEarliest() => $_ensure(0);
 
+  /// Include only commit positions that that are strictly lower than this.
   @$pb.TagNumber(2)
   CommitPosition get latest => $_getN(1);
   @$pb.TagNumber(2)
@@ -449,8 +610,23 @@ class CommitPositionRange extends $pb.GeneratedMessage {
   CommitPosition ensureLatest() => $_ensure(1);
 }
 
+///  A range of timestamps.
+///
+///  Currently unused.
 class TimeRange extends $pb.GeneratedMessage {
-  factory TimeRange() => create();
+  factory TimeRange({
+    $0.Timestamp? earliest,
+    $0.Timestamp? latest,
+  }) {
+    final $result = create();
+    if (earliest != null) {
+      $result.earliest = earliest;
+    }
+    if (latest != null) {
+      $result.latest = latest;
+    }
+    return $result;
+  }
   TimeRange._() : super();
   factory TimeRange.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -483,6 +659,7 @@ class TimeRange extends $pb.GeneratedMessage {
   static TimeRange getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TimeRange>(create);
   static TimeRange? _defaultInstance;
 
+  /// The oldest timestamp to include in the range.
   @$pb.TagNumber(1)
   $0.Timestamp get earliest => $_getN(0);
   @$pb.TagNumber(1)
@@ -497,6 +674,7 @@ class TimeRange extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $0.Timestamp ensureEarliest() => $_ensure(0);
 
+  /// Include only timestamps that are strictly older than this.
   @$pb.TagNumber(2)
   $0.Timestamp get latest => $_getN(1);
   @$pb.TagNumber(2)
@@ -514,8 +692,17 @@ class TimeRange extends $pb.GeneratedMessage {
 
 enum SourceRef_System { gitiles, notSet }
 
+/// Represents a reference in a source control system.
 class SourceRef extends $pb.GeneratedMessage {
-  factory SourceRef() => create();
+  factory SourceRef({
+    GitilesRef? gitiles,
+  }) {
+    final $result = create();
+    if (gitiles != null) {
+      $result.gitiles = gitiles;
+    }
+    return $result;
+  }
   SourceRef._() : super();
   factory SourceRef.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -555,6 +742,7 @@ class SourceRef extends $pb.GeneratedMessage {
   SourceRef_System whichSystem() => _SourceRef_SystemByTag[$_whichOneof(0)]!;
   void clearSystem() => clearField($_whichOneof(0));
 
+  /// A branch in gitiles repository.
   @$pb.TagNumber(1)
   GitilesRef get gitiles => $_getN(0);
   @$pb.TagNumber(1)
@@ -570,8 +758,25 @@ class SourceRef extends $pb.GeneratedMessage {
   GitilesRef ensureGitiles() => $_ensure(0);
 }
 
+/// Represents a branch in a gitiles repository.
 class GitilesRef extends $pb.GeneratedMessage {
-  factory GitilesRef() => create();
+  factory GitilesRef({
+    $core.String? host,
+    $core.String? project,
+    $core.String? ref,
+  }) {
+    final $result = create();
+    if (host != null) {
+      $result.host = host;
+    }
+    if (project != null) {
+      $result.project = project;
+    }
+    if (ref != null) {
+      $result.ref = ref;
+    }
+    return $result;
+  }
   GitilesRef._() : super();
   factory GitilesRef.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -605,6 +810,7 @@ class GitilesRef extends $pb.GeneratedMessage {
   static GitilesRef getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GitilesRef>(create);
   static GitilesRef? _defaultInstance;
 
+  /// The gitiles host, e.g. "chromium.googlesource.com".
   @$pb.TagNumber(1)
   $core.String get host => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -617,6 +823,7 @@ class GitilesRef extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearHost() => clearField(1);
 
+  /// The project on the gitiles host, e.g. "chromium/src".
   @$pb.TagNumber(2)
   $core.String get project => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -629,6 +836,8 @@ class GitilesRef extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearProject() => clearField(2);
 
+  /// Commit ref, e.g. "refs/heads/main" from which the commit was fetched.
+  /// Not the branch name, use "refs/heads/branch"
   @$pb.TagNumber(3)
   $core.String get ref => $_getSZ(2);
   @$pb.TagNumber(3)

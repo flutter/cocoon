@@ -5,12 +5,14 @@
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart' as f;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/gerrit/commit.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:gcloud/db.dart';
+import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:github/github.dart' as github;
 
 import '../service/fake_scheduler.dart';
@@ -93,6 +95,39 @@ Task generateTask(
       createTimestamp: created?.millisecondsSinceEpoch ?? 0,
       stageName: stage,
     );
+
+f.Task generateFirestoreTask(
+  int i, {
+  String? name,
+  String status = Task.statusNew,
+  int attempts = 1,
+  bool bringup = false,
+  bool testFlaky = false,
+  int? buildNumber,
+  DateTime? created,
+  DateTime? started,
+  DateTime? ended,
+  String? commitSha,
+}) {
+  final String taskName = name ?? 'task$i';
+  final String sha = commitSha ?? 'testSha';
+  final f.Task task = f.Task()
+    ..name = '${sha}_${taskName}_$attempts'
+    ..fields = <String, Value>{
+      'createTimestamp': Value(integerValue: (created?.millisecondsSinceEpoch ?? 0).toString()),
+      'startTimestamp': Value(integerValue: (started?.millisecondsSinceEpoch ?? 0).toString()),
+      'endTimestamp': Value(integerValue: (ended?.millisecondsSinceEpoch ?? 0).toString()),
+      'bringup': Value(booleanValue: bringup),
+      'testFlaky': Value(booleanValue: testFlaky),
+      'status': Value(stringValue: status),
+      'name': Value(stringValue: taskName),
+      'commitSha': Value(stringValue: sha),
+    };
+  if (buildNumber != null) {
+    task.fields!['buildNumber'] = Value(integerValue: buildNumber.toString());
+  }
+  return task;
+}
 
 Target generateTarget(
   int i, {
