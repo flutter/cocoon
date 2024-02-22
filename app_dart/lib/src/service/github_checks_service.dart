@@ -144,8 +144,7 @@ class GithubChecksService {
   /// Returns current reschedule attempt.
   ///
   /// It returns 1 if this is the first run, and +1 with each reschedule.
-  int currentAttempt(push_message.BuildPushMessage buildPushMessage) {
-    final push_message.Build build = buildPushMessage.build!;
+  int currentAttempt(push_message.Build build) {
     if (build.tagsByName('current_attempt').isEmpty) {
       return 1;
     } else {

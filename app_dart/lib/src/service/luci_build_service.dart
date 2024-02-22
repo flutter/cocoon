@@ -7,26 +7,23 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
+import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:googleapis/pubsub/v1.dart';
 
 import '../foundation/github_checks_util.dart';
-import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
+import '../model/firestore/task.dart' as f;
 import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
-import '../request_handling/pubsub.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
-import 'buildbucket.dart';
-import 'cache_service.dart';
-import 'config.dart';
 import 'exceptions.dart';
-import 'gerrit_service.dart';
 import 'github_service.dart';
 
 const Set<String> taskFailStatusSet = <String>{
@@ -619,6 +616,8 @@ class LuciBuildService {
     tags['user_agent'] = <String>['flutter-cocoon'];
     // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
     tags['scheduler_job_id'] = <String>['flutter/${target.value.name}'];
+    // Default attempt is the initial attempt, which is 1.
+    tags['current_attempt'] = tags['current_attempt'] ?? <String>['1'];
     final Map<String, Object> processedProperties = target.getProperties();
     processedProperties.addAll(properties ?? <String, Object>{});
     processedProperties['git_branch'] = commit.branch!;
@@ -682,15 +681,30 @@ class LuciBuildService {
     required Target target,
     required Task task,
     required DatastoreService datastore,
+    FirestoreService? firestoreService,
     Map<String, List<String>>? tags,
     bool ignoreChecks = false,
+    f.Task? taskDocument,
   }) async {
     if (ignoreChecks == false && await _shouldRerunBuilder(task, commit, datastore) == false) {
       return false;
     }
     log.info('Rerun builder: ${target.value.name} for commit ${commit.sha}');
     tags ??= <String, List<String>>{};
-    tags['trigger_type'] = <String>['retry'];
+    tags['trigger_type'] ??= <String>['auto_retry'];
+
+    // TODO(keyonghan): remove check when [ResetProdTask] supports firestore update.
+    if (taskDocument != null) {
+      try {
+        final int newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
+        tags['current_attempt'] = <String>[newAttempt.toString()];
+        taskDocument.resetAsRetry(attempt: newAttempt);
+        final List<Write> writes = documentsToWrites([taskDocument]);
+        await firestoreService!.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
+      } catch (error) {
+        log.warning('Failed to insert retried task in Firestore: $error');
+      }
+    }
 
     final BatchRequest request = BatchRequest(
       requests: <Request>[

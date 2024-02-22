@@ -5,7 +5,9 @@
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -24,13 +26,16 @@ void main() {
     late FakeConfig config;
     FakeKeyHelper keyHelper;
     late MockLuciBuildService mockLuciBuildService;
+    late MockFirestoreService mockFirestoreService;
     late ApiRequestHandlerTester tester;
     late Commit commit;
     late Task task;
+    final firestore.Task firestoreTask = generateFirestoreTask(1, attempts: 1);
 
     setUp(() {
       final FakeDatastoreDB datastoreDB = FakeDatastoreDB();
       clientContext = FakeClientContext();
+      mockFirestoreService = MockFirestoreService();
       clientContext.isDevelopmentEnvironment = false;
       keyHelper = FakeKeyHelper(applicationContext: clientContext.applicationContext);
       config = FakeConfig(
@@ -39,6 +44,7 @@ void main() {
         supportedBranchesValue: <String>[
           Config.defaultBranch(Config.flutterSlug),
         ],
+        firestoreService: mockFirestoreService,
       );
       final FakeAuthenticatedContext authContext = FakeAuthenticatedContext(clientContext: clientContext);
       tester = ApiRequestHandlerTester(context: authContext);
@@ -64,6 +70,16 @@ void main() {
       };
 
       when(
+        mockFirestoreService.getDocument(
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<Document>.value(
+          firestoreTask,
+        );
+      });
+
+      when(
         mockLuciBuildService.checkRerunBuilder(
           commit: anyNamed('commit'),
           datastore: anyNamed('datastore'),
@@ -71,6 +87,8 @@ void main() {
           target: anyNamed('target'),
           tags: anyNamed('tags'),
           ignoreChecks: anyNamed('ignoreChecks'),
+          firestoreService: mockFirestoreService,
+          taskDocument: anyNamed('taskDocument'),
         ),
       ).thenAnswer((_) async => true);
     });
@@ -103,6 +121,8 @@ void main() {
           target: anyNamed('target'),
           tags: anyNamed('tags'),
           ignoreChecks: true,
+          firestoreService: mockFirestoreService,
+          taskDocument: anyNamed('taskDocument'),
         ),
       ).called(1);
     });
@@ -127,6 +147,8 @@ void main() {
           target: anyNamed('target'),
           tags: anyNamed('tags'),
           ignoreChecks: false,
+          firestoreService: mockFirestoreService,
+          taskDocument: anyNamed('taskDocument'),
         ),
       ).called(2);
     });
@@ -173,6 +195,8 @@ void main() {
           target: anyNamed('target'),
           tags: anyNamed('tags'),
           ignoreChecks: true,
+          firestoreService: mockFirestoreService,
+          taskDocument: anyNamed('taskDocument'),
         ),
       ).thenAnswer((_) async => false);
       config.db.values[task.key] = task;
