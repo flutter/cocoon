@@ -159,7 +159,9 @@ add_recipes_cq: "true"
   </tr>
   <tr>
     <td>cache_name</td>
-    <td>The name identifier of the second layer Engine source cache.
+    <td>The name identifier of the second layer Engine source cache. This is maintained by flutter/infra
+    team via <a href="https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/engine_v2/cache.py">cache.py</a> recipe
+    and is separate from LUCI side default caches.
     </td>
     <td>N/A</td>
     <td>string</td>
@@ -185,19 +187,6 @@ cache_paths: >-
     "builder",
     "git"
   ]
-```
-</td>
-  </tr>
-  <tr>
-    <td>cache_root</td>
-    <td>The root of cache directory used in recipes: `api.path[cache_root]`.
-    </td>
-    <td>N/A</td>
-    <td>string</td>
-    <td>
-
-``` yaml
-cache_name: "cache"
 ```
 </td>
   </tr>
@@ -231,7 +220,7 @@ config_name: linux_benchmarks
   </tr>
   <tr>
   <td>contexts</td>
-  <td>The list of contexts that will guide <a href="https://flutter.googlesource.com/recipes/+/refs/heads/main/recipe_modules/flutter_deps/api.py#665">recipes</a> to add to <a href="https://docs.python.org/3/library/contextlib.html#contextlib.ExitStack">ExitStack</a>. This will initialize and prepare the virtual device used for tests. Other supported contexts include: `osx_sdk`, `depot_tools_on_path`, etc.
+  <td>The list of contexts that will guide <a href="https://flutter.googlesource.com/recipes/+/refs/heads/main/recipe_modules/flutter_deps/api.py#665">recipes</a> to add to the <a href="https://docs.python.org/3/library/contextlib.html#contextlib.ExitStack">ExitStack</a>. This will initialize and prepare the virtual device used for tests. Other supported contexts include: `osx_sdk`, `depot_tools_on_path`, etc.
   </td>
   <td>N/A</td>
   <td>list</td>
@@ -249,7 +238,7 @@ contexts: >-
     <td>cores</td>
     <td>The machine cores a target will be running against. A higher number of cores may be needed for extensive targets.
     <br>
-    Note: This property will be auto populated to CI builder dimensions, based on which CI determines which
+    Note: This property will be auto populated to CI builder dimensions, which CI uses to determine the
     testbed to run this target.
 </td>
     <td>N/A</td>
@@ -288,9 +277,9 @@ dependencies: >-
   <tr>
     <td>device_type</td>
     <td>The phone device type a target will be running against. For host only targets that do not need
-    a phone, a `none` value should be used.
+    a phone, a value of `none` should be used.
     <br>
-    Note: This property will be auto populated to CI builder dimensions, based on which CI determines which
+    Note: This property will be auto populated to CI builder dimensions, which CI uses to determine the
     testbed to run this target.
 </td>
     <td>N/A</td>
@@ -387,7 +376,7 @@ no_goma: "true"
     <td>os</td>
     <td>The machine os a target will be running against, such as `Linux`, `Mac-13`, etc.
     <br>
-    Note: This property will be auto populated to CI builder dimensions, based on which CI determines which
+    Note: This property will be auto populated to CI builder dimensions, which CI uses to determine the
     testbed to run this target.
 </td>
     <td>N/A</td>
