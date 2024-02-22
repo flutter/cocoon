@@ -52,6 +52,7 @@ targets:
 # properties: A map of string, string. Values are parsed to their closest data model.
 # postsubmit_properties: Properties that are only run on postsubmit.
 # timeout: Integer defining whole build execution time limit for all steps in minutes.
+# dimensions: A list of testbed dimensions which the CI determines what testbed to assign a target to.
 #
 # Minimal example:
 # Linux analyze will run on all presubmit and in postsubmit.
@@ -298,6 +299,21 @@ dependencies: >-
 
 ``` yaml
 device_type: "msm8952"
+```
+</td>
+  </tr>
+  <tr>
+    <td>drone_dimensions</td>
+    <td>A list of testbed dimensions which the CI determines what testbed to assign a subbuild drone of a target to. This
+    property will be auto populated to CI dimensions of a subbuild triggered from the orchestrator target.
+</td>
+    <td>N/A</td>
+    <td>string</td>
+    <td>
+
+``` yaml
+drone_dimensions: >
+  ["device_type=none", "os=Linux"]
 ```
 </td>
   </tr>
