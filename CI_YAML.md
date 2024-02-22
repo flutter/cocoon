@@ -215,8 +215,8 @@ clobber: "true"
   </tr>
   <tr>
     <td>config_name</td>
-    <td>The config name of the targets. It is used for [`Engine V2 recipes`](https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/engine_v2/),
-and is a one-on-one map to the config files located under [`ci/builders`](https://github.com/flutter/engine/tree/main/ci/builders). This is
+    <td>The config name of the targets. It is used for <a href="https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/engine_v2">`Engine V2 recipes`</a>,
+and is a one-on-one map to the config files located under <a href="https://github.com/flutter/engine/tree/main/ci/builders">`ci/builders`</a>. This is
 not needed for targets using none `Engine V2 recipes`.
     </td>
     <td>N/A</td>
@@ -230,7 +230,7 @@ config_name: linux_benchmarks
   </tr>
   <tr>
   <td>contexts</td>
-  <td>The list of contexts that will guide [recipes](https://flutter.googlesource.com/recipes/+/refs/heads/main/recipe_modules/flutter_deps/api.py#665) to add to [ExitStack](https://docs.python.org/3/library/contextlib.html#contextlib.ExitStack). This will initialize and prepare the virtual device used for tests. Other supported contexts include: `osx_sdk`, `depot_tools_on_path`, etc.
+  <td>The list of contexts that will guide <a href="https://flutter.googlesource.com/recipes/+/refs/heads/main/recipe_modules/flutter_deps/api.py#665">recipes</a> to add to <a href="https://docs.python.org/3/library/contextlib.html#contextlib.ExitStack">ExitStack</a>. This will initialize and prepare the virtual device used for tests. Other supported contexts include: `osx_sdk`, `depot_tools_on_path`, etc.
   </td>
   <td>N/A</td>
   <td>list</td>
@@ -247,11 +247,11 @@ contexts: >-
   <tr>
     <td>dependencies</td>
     <td>JSON list of objects with "dependency" and optionally "version".
-The list of supported deps is in [flutter_deps recipe_module](https://cs.opensource.google/flutter/recipes/+/master:recipe_modules/flutter_deps/api.py).
+The list of supported deps is in <a href="https://cs.opensource.google/flutter/recipes/+/master:recipe_modules/flutter_deps/api.py">flutter_deps recipe_module</a>.
 Dependencies generate a corresponding swarming cache that can be used in the
 recipe code. The path of the cache will be the name of the dependency.
 
-Versions can be located in [CIPD](https://chrome-infra-packages.appspot.com/)
+Versions can be located in <a href="https://chrome-infra-packages.appspot.com">CIPD</a>
     </td>
     <td>N/A</td>
     <td>list</td>
@@ -351,7 +351,8 @@ presubmit_max_attempts: "3"
   </tr>
   <tr>
     <td>release_build</td>
-    <td>Whether is required to run to release Engine. Will be triggered via [release_builder.py](https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/release/release_builder.py).
+    <td>Whether is required to run to release Engine. Will be triggered via 
+      <a href="https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/release/release_builder.py">release_builder.py</a>
     </td>
     <td>"false"</td>
     <td>string bool</td>
@@ -364,7 +365,7 @@ release_build: "true"
   </tr>
   <tr>
     <td>shard</td>
-    <td>The shard name of the sharding target, used in the [test.dart](https://github.com/flutter/flutter/blob/master/dev/bots/test.dart) test runner.
+    <td>The shard name of the sharding target, used in the <a href="https://github.com/flutter/flutter/blob/master/dev/bots/test.dart">test.dart</a> test runner.
     </td>
     <td>N/A</td>
     <td>string</td>
@@ -377,7 +378,7 @@ shard: web_tests
   </tr>
   <tr>
     <td>subshards</td>
-    <td>The sub shards of the sharding target, used in the [test.dart](https://github.com/flutter/flutter/blob/master/dev/bots/test.dart) test runner.
+    <td>The sub shards of the sharding target, used in the <a href="https://github.com/flutter/flutter/blob/master/dev/bots/test.dart">test.dart</a> test runner.
 If omitted with `shard` defined, it will run all unit tests in a single shard.
     </td>
     <td>N/A</td>
