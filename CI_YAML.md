@@ -245,12 +245,28 @@ contexts: >-
 </td>
   </tr>
   <tr>
+    <td>cores</td>
+    <td>The machine cores a target will be running against. A higher number of cores may be needed for extensive targets.
+    <br>
+    Note: This property will be auto populated to CI builder dimensions, based on which CI determines which
+    testbed to run this target.
+</td>
+    <td>N/A</td>
+    <td>string int</td>
+    <td>
+
+``` yaml
+cores: "8"
+```
+</td>
+  </tr>
+  <tr>
     <td>dependencies</td>
     <td>JSON list of objects with "dependency" and optionally "version".
 The list of supported deps is in <a href="https://cs.opensource.google/flutter/recipes/+/master:recipe_modules/flutter_deps/api.py">flutter_deps recipe_module</a>.
 Dependencies generate a corresponding swarming cache that can be used in the
 recipe code. The path of the cache will be the name of the dependency.
-
+<br>
 Versions can be located in <a href="https://chrome-infra-packages.appspot.com">CIPD</a>
     </td>
     <td>N/A</td>
@@ -265,6 +281,23 @@ dependencies: >-
     {"dependency": "clang"},
     {"dependency": "goldctl"}
   ]
+```
+</td>
+  </tr>
+  <tr>
+    <td>device_type</td>
+    <td>The phone device type a target will be running against. For host only targets that do not need
+    a phone, a `none` value should be used.
+    <br>
+    Note: This property will be auto populated to CI builder dimensions, based on which CI determines which
+    testbed to run this target.
+</td>
+    <td>N/A</td>
+    <td>string</td>
+    <td>
+
+``` yaml
+device_type: "msm8952"
 ```
 </td>
   </tr>
@@ -293,7 +326,7 @@ $flutter/osx_sdk : >-
     <td>The gclient variables populated to recipes when checking out sources via gclient sync.
     </td>
     <td>N/A</td>
-    <td>list</td>
+    <td>map</td>
     <td>
 
 ``` yaml
@@ -331,6 +364,22 @@ ignore_cache_paths: >-
 
 ``` yaml
 no_goma: "true"
+```
+</td>
+  </tr>
+  <tr>
+    <td>os</td>
+    <td>The machine os a target will be running against, such as `Linux`, `Mac-13`, etc.
+    <br>
+    Note: This property will be auto populated to CI builder dimensions, based on which CI determines which
+    testbed to run this target.
+</td>
+    <td>N/A</td>
+    <td>string</td>
+    <td>
+
+``` yaml
+os: Linux
 ```
 </td>
   </tr>
