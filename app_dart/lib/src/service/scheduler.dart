@@ -169,7 +169,7 @@ class Scheduler {
     await _uploadToBigQuery(commit);
     final firestore_commmit.Commit commitDocument = commitToCommitDocument(commit);
     final List<firestore.Task> taskDocuments = targetsToTaskDocuments(commit, initialTargets);
-    final List<Write> writes = documentsToWrites([...taskDocuments, commitDocument]);
+    final List<Write> writes = documentsToWrites([...taskDocuments, commitDocument], exists: false);
     final FirestoreService firestoreService = await config.createFirestoreService();
     // TODO(keyonghan): remove try catch logic after validated to work.
     try {

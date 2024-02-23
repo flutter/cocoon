@@ -9,8 +9,10 @@ import 'package:googleapis/firestore/v1.dart';
 import 'package:http/http.dart';
 
 import '../model/appengine/commit.dart';
+import '../model/appengine/github_gold_status_update.dart';
 import '../model/appengine/task.dart';
 import '../model/firestore/commit.dart' as firestore_comit;
+import '../model/firestore/github_gold_status.dart';
 import '../model/firestore/task.dart' as firestore;
 import '../model/ci_yaml/target.dart';
 import 'access_client_provider.dart';
@@ -41,6 +43,14 @@ const String kCommitAuthorField = 'author';
 const String kCommitMessageField = 'message';
 const String kCommitRepositoryPathField = 'repositoryPath';
 const String kCommitShaField = 'sha';
+
+const String kGithubGoldStatusCollectionId = 'githubGoldStatuses';
+const String kGithubGoldStatusPrNumberField = 'prNumber';
+const String kGithubGoldStatusHeadField = 'head';
+const String kGithubGoldStatusStatusField = 'status';
+const String kGithubGoldStatusDescriptionField = 'description';
+const String kGithubGoldStatusUpdatesField = 'updates';
+const String kGithubGoldStatusRepositoryField = 'repository';
 
 class FirestoreService {
   const FirestoreService(this.accessClientProvider);
@@ -172,8 +182,29 @@ firestore.Task taskToTaskDocument(Task task) {
   );
 }
 
+/// Generates task document based on datastore task data model.
+GithubGoldStatus githubGoldStatusToDocument(GithubGoldStatusUpdate githubGoldStatus) {
+  return GithubGoldStatus.fromDocument(
+    githubGoldStatus: Document(
+      name: '$kDatabase/documents/$kGithubGoldStatusCollectionId/${githubGoldStatus.pr}_${githubGoldStatus.head}',
+      fields: <String, Value>{
+        kGithubGoldStatusDescriptionField: Value(stringValue: githubGoldStatus.description),
+        kGithubGoldStatusHeadField: Value(stringValue: githubGoldStatus.head),
+        kGithubGoldStatusPrNumberField: Value(integerValue: githubGoldStatus.pr.toString()),
+        kGithubGoldStatusRepositoryField: Value(stringValue: githubGoldStatus.repository),
+        kGithubGoldStatusStatusField: Value(stringValue: githubGoldStatus.status),
+        kGithubGoldStatusUpdatesField: Value(integerValue: githubGoldStatus.updates.toString()),
+      },
+    ),
+  );
+}
+
 /// Creates a list of [Write] based on documents.
-List<Write> documentsToWrites(List<Document> documents, {bool exists = false}) {
+/// 
+/// Null `exists` means either update when a document exists or insert when a document doesn't.
+/// `exists = false` means inserting a new document, assuming a document doesn't exist.
+/// `exists = true` means updating an existing document, assuming it exisits.
+List<Write> documentsToWrites(List<Document> documents, {bool? exists}) {
   return documents
       .map(
         (Document document) => Write(

@@ -9,7 +9,7 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 import '../../service/firestore.dart';
 
 class Commit extends Document {
-  /// Lookup [Task] from Firestore.
+  /// Lookup [Commit] from Firestore.
   ///
   /// `documentName` follows `/projects/{project}/databases/{database}/documents/{document_path}`
   static Future<Commit> fromFirestore({

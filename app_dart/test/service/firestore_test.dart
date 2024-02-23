@@ -70,7 +70,7 @@ void main() {
       Document(name: 'd1', fields: <String, Value>{'key1': Value(stringValue: 'value1')}),
       Document(name: 'd2', fields: <String, Value>{'key1': Value(stringValue: 'value2')}),
     ];
-    final List<Write> writes = documentsToWrites(documents);
+    final List<Write> writes = documentsToWrites(documents, exists: false);
     expect(writes.length, documents.length);
     expect(writes[0].update, documents[0]);
     expect(writes[0].currentDocument!.exists, false);
