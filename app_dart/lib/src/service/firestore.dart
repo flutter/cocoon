@@ -186,7 +186,7 @@ firestore.Task taskToTaskDocument(Task task) {
 GithubGoldStatus githubGoldStatusToDocument(GithubGoldStatusUpdate githubGoldStatus) {
   return GithubGoldStatus.fromDocument(
     githubGoldStatus: Document(
-      name: '$kDatabase/documents/$kGithubGoldStatusCollectionId/${githubGoldStatus.pr}_${githubGoldStatus.head}',
+      name: '$kDatabase/documents/$kGithubGoldStatusCollectionId/${githubGoldStatus.head}_${githubGoldStatus.pr}',
       fields: <String, Value>{
         kGithubGoldStatusDescriptionField: Value(stringValue: githubGoldStatus.description),
         kGithubGoldStatusHeadField: Value(stringValue: githubGoldStatus.head),
