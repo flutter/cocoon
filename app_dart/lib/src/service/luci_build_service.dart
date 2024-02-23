@@ -328,6 +328,7 @@ class LuciBuildService {
       'github_checkrun': buildPushMessage.build!.tagsByName('github_checkrun'),
       'current_attempt': <String>[rescheduleAttempt.toString()],
     };
+
     return buildBucketClient.scheduleBuild(
       ScheduleBuildRequest(
         builderId: BuilderId(
@@ -627,7 +628,7 @@ class LuciBuildService {
     final bbv2.BuilderID builderId = bbv2.BuilderID.create();
     builderId.bucket = 'try';
     builderId.project = 'flutter';
-    builderId.builder = 'checkName';
+    builderId.builder = checkName;
 
     // Add the builderId.
     final bbv2.ScheduleBuildRequest scheduleBuildRequest = bbv2.ScheduleBuildRequest.create();

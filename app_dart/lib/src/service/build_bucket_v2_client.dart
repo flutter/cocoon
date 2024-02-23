@@ -68,7 +68,7 @@ class BuildBucketV2Client {
     final Uri url = Uri.parse('$buildBucketUri$path');
     final AccessToken? token = await accessTokenService?.createAccessToken();
 
-    log.info('Making request with path: $url and body: ${json.encode(request)}');
+    log.info('Making request with path: $url and body: $request');
 
     //TODO most likely have issues here:
     final http.Response response = await httpClient.post(
