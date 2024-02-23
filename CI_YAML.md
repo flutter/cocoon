@@ -225,7 +225,7 @@ config_name: linux_benchmarks
   <td>N/A</td>
   <td>list</td>
   <td>
-  
+
 ```yaml
 contexts: >-
         [
@@ -397,7 +397,7 @@ it controls the max number of attempts. For example: `3` means it will be auto r
   <td>"1"</td>
   <td>string int</td>
   <td>
-  
+
 ``` yaml
 presubmit_max_attempts: "3"
 ```
@@ -405,7 +405,7 @@ presubmit_max_attempts: "3"
   </tr>
   <tr>
     <td>release_build</td>
-    <td>Whether is required to run to release Engine. Will be triggered via 
+    <td>Whether is required to run to release Engine. Will be triggered via
       <a href="https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/release/release_builder.py">release_builder.py</a>
     </td>
     <td>"false"</td>
@@ -469,7 +469,7 @@ timeout.
     <td>"1800"</td>
     <td>string int</td>
     <td>
-    
+
 ``` yaml
 test_timeout_secs: "2700"
 ```
