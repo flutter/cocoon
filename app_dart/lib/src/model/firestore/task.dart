@@ -13,7 +13,7 @@ import '../luci/push_message.dart';
 class Task extends Document {
   /// Lookup [Task] from Firestore.
   ///
-  /// `documentName` follows `/projects/{project}/databases/{<}database}/documents/{document_path}`
+  /// `documentName` follows `/projects/{project}/databases/{database}/documents/{document_path}`
   static Future<Task> fromFirestore({
     required FirestoreService firestoreService,
     required String documentName,

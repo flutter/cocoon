@@ -9,7 +9,10 @@ import 'package:googleapis/firestore/v1.dart';
 import 'package:http/http.dart';
 
 import '../model/appengine/commit.dart';
+import '../model/appengine/github_gold_status_update.dart';
 import '../model/appengine/task.dart';
+import '../model/firestore/commit.dart' as firestore_comit;
+import '../model/firestore/github_gold_status.dart';
 import '../model/firestore/task.dart' as firestore;
 import '../model/ci_yaml/target.dart';
 import 'access_client_provider.dart';
@@ -21,6 +24,7 @@ const String kFieldFilterOpEqual = 'EQUAL';
 
 const String kTaskCollectionId = 'tasks';
 const int kTaskDefaultTimestampValue = 0;
+const int kTaskInitialAttempt = 1;
 const String kTaskBringupField = 'bringup';
 const String kTaskBuildNumberField = 'buildNumber';
 const String kTaskCommitShaField = 'commitSha';
@@ -39,6 +43,14 @@ const String kCommitAuthorField = 'author';
 const String kCommitMessageField = 'message';
 const String kCommitRepositoryPathField = 'repositoryPath';
 const String kCommitShaField = 'sha';
+
+const String kGithubGoldStatusCollectionId = 'githubGoldStatuses';
+const String kGithubGoldStatusPrNumberField = 'prNumber';
+const String kGithubGoldStatusHeadField = 'head';
+const String kGithubGoldStatusStatusField = 'status';
+const String kGithubGoldStatusDescriptionField = 'description';
+const String kGithubGoldStatusUpdatesField = 'updates';
+const String kGithubGoldStatusRepositoryField = 'repository';
 
 class FirestoreService {
   const FirestoreService(this.accessClientProvider);
@@ -111,38 +123,42 @@ class FirestoreService {
 }
 
 /// Generates task documents based on targets.
-List<Document> targetsToTaskDocuments(Commit commit, List<Target> targets) {
-  final Iterable<Document> iterableDocuments = targets.map(
-    (Target target) => Document(
-      name: '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${target.value.name}_1',
-      fields: <String, Value>{
-        kTaskCreateTimestampField: Value(integerValue: commit.timestamp!.toString()),
-        kTaskEndTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
-        kTaskBringupField: Value(booleanValue: target.value.bringup),
-        kTaskNameField: Value(stringValue: target.value.name),
-        kTaskStartTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
-        kTaskStatusField: Value(stringValue: Task.statusNew),
-        kTaskTestFlakyField: Value(booleanValue: false),
-        kTaskCommitShaField: Value(stringValue: commit.sha),
-      },
+List<firestore.Task> targetsToTaskDocuments(Commit commit, List<Target> targets) {
+  final Iterable<firestore.Task> iterableDocuments = targets.map(
+    (Target target) => firestore.Task.fromDocument(
+      taskDocument: Document(
+        name: '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${target.value.name}_$kTaskInitialAttempt',
+        fields: <String, Value>{
+          kTaskCreateTimestampField: Value(integerValue: commit.timestamp!.toString()),
+          kTaskEndTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
+          kTaskBringupField: Value(booleanValue: target.value.bringup),
+          kTaskNameField: Value(stringValue: target.value.name),
+          kTaskStartTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
+          kTaskStatusField: Value(stringValue: Task.statusNew),
+          kTaskTestFlakyField: Value(booleanValue: false),
+          kTaskCommitShaField: Value(stringValue: commit.sha),
+        },
+      ),
     ),
   );
   return iterableDocuments.toList();
 }
 
 /// Generates commit document based on datastore commit data model.
-Document commitToCommitDocument(Commit commit) {
-  return Document(
-    name: '$kDatabase/documents/$kCommitCollectionId/${commit.sha}',
-    fields: <String, Value>{
-      kCommitAvatarField: Value(stringValue: commit.authorAvatarUrl),
-      kCommitBranchField: Value(stringValue: commit.branch),
-      kCommitCreateTimestampField: Value(integerValue: commit.timestamp.toString()),
-      kCommitAuthorField: Value(stringValue: commit.author),
-      kCommitMessageField: Value(stringValue: commit.message),
-      kCommitRepositoryPathField: Value(stringValue: commit.repository),
-      kCommitShaField: Value(stringValue: commit.sha),
-    },
+firestore_comit.Commit commitToCommitDocument(Commit commit) {
+  return firestore_comit.Commit.fromDocument(
+    commitDocument: Document(
+      name: '$kDatabase/documents/$kCommitCollectionId/${commit.sha}',
+      fields: <String, Value>{
+        kCommitAvatarField: Value(stringValue: commit.authorAvatarUrl),
+        kCommitBranchField: Value(stringValue: commit.branch),
+        kCommitCreateTimestampField: Value(integerValue: commit.timestamp.toString()),
+        kCommitAuthorField: Value(stringValue: commit.author),
+        kCommitMessageField: Value(stringValue: commit.message),
+        kCommitRepositoryPathField: Value(stringValue: commit.repository),
+        kCommitShaField: Value(stringValue: commit.sha),
+      },
+    ),
   );
 }
 
@@ -166,8 +182,29 @@ firestore.Task taskToTaskDocument(Task task) {
   );
 }
 
+/// Generates GithubGoldStatus document based on datastore GithubGoldStatusUpdate data model.
+GithubGoldStatus githubGoldStatusToDocument(GithubGoldStatusUpdate githubGoldStatus) {
+  return GithubGoldStatus.fromDocument(
+    githubGoldStatus: Document(
+      name: '$kDatabase/documents/$kGithubGoldStatusCollectionId/${githubGoldStatus.head}_${githubGoldStatus.pr}',
+      fields: <String, Value>{
+        kGithubGoldStatusDescriptionField: Value(stringValue: githubGoldStatus.description),
+        kGithubGoldStatusHeadField: Value(stringValue: githubGoldStatus.head),
+        kGithubGoldStatusPrNumberField: Value(integerValue: githubGoldStatus.pr.toString()),
+        kGithubGoldStatusRepositoryField: Value(stringValue: githubGoldStatus.repository),
+        kGithubGoldStatusStatusField: Value(stringValue: githubGoldStatus.status),
+        kGithubGoldStatusUpdatesField: Value(integerValue: githubGoldStatus.updates.toString()),
+      },
+    ),
+  );
+}
+
 /// Creates a list of [Write] based on documents.
-List<Write> documentsToWrites(List<Document> documents, {bool exists = false}) {
+///
+/// Null `exists` means either update when a document exists or insert when a document doesn't.
+/// `exists = false` means inserting a new document, assuming a document doesn't exist.
+/// `exists = true` means updating an existing document, assuming it exisits.
+List<Write> documentsToWrites(List<Document> documents, {bool? exists}) {
   return documents
       .map(
         (Document document) => Write(

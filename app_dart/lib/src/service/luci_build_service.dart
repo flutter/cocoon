@@ -699,7 +699,7 @@ class LuciBuildService {
         final int newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
         tags['current_attempt'] = <String>[newAttempt.toString()];
         taskDocument.resetAsRetry(attempt: newAttempt);
-        final List<Write> writes = documentsToWrites([taskDocument]);
+        final List<Write> writes = documentsToWrites([taskDocument], exists: false);
         await firestoreService!.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
       } catch (error) {
         log.warning('Failed to insert retried task in Firestore: $error');

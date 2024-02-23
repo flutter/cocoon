@@ -23,6 +23,8 @@ import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
+import '../model/firestore/commit.dart' as firestore_commmit;
+import '../model/firestore/task.dart' as firestore;
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
@@ -165,9 +167,9 @@ class Scheduler {
 
     await _batchScheduleBuilds(commit, toBeScheduled);
     await _uploadToBigQuery(commit);
-    final Document commitDocument = commitToCommitDocument(commit);
-    final List<Document> taskDocuments = targetsToTaskDocuments(commit, initialTargets);
-    final List<Write> writes = documentsToWrites([...taskDocuments, commitDocument]);
+    final firestore_commmit.Commit commitDocument = commitToCommitDocument(commit);
+    final List<firestore.Task> taskDocuments = targetsToTaskDocuments(commit, initialTargets);
+    final List<Write> writes = documentsToWrites([...taskDocuments, commitDocument], exists: false);
     final FirestoreService firestoreService = await config.createFirestoreService();
     // TODO(keyonghan): remove try catch logic after validated to work.
     try {
