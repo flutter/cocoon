@@ -200,7 +200,7 @@ GithubGoldStatus githubGoldStatusToDocument(GithubGoldStatusUpdate githubGoldSta
 }
 
 /// Creates a list of [Write] based on documents.
-/// 
+///
 /// Null `exists` means either update when a document exists or insert when a document doesn't.
 /// `exists = false` means inserting a new document, assuming a document doesn't exist.
 /// `exists = true` means updating an existing document, assuming it exisits.
