@@ -7,6 +7,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_commit;
+import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/gerrit/commit.dart';
@@ -147,6 +148,27 @@ firestore_commit.Commit generateFirestoreCommit(
       kCommitRepositoryPathField: Value(stringValue: '$owner/$repo'),
       kCommitBranchField: Value(stringValue: branch),
       kCommitShaField: Value(stringValue: sha ?? '$i'),
+    };
+  return commit;
+}
+
+GithubGoldStatus generateFirestoreGithubGoldStatus(
+  int i, {
+  String? head,
+  int? pr,
+  String owner = 'flutter',
+  String repo = 'flutter',
+  int? updates,
+}) {
+  pr ??= i;
+  head ??= 'sha$i';
+  final GithubGoldStatus commit = GithubGoldStatus()
+    ..name = '{$pr}_$head'
+    ..fields = <String, Value>{
+      kGithubGoldStatusHeadField: Value(stringValue: head),
+      kGithubGoldStatusPrNumberField: Value(integerValue: pr.toString()),
+      kGithubGoldStatusRepositoryField: Value(stringValue: '$owner/$repo'),
+      kGithubGoldStatusUpdatesField: Value(integerValue: updates.toString()),
     };
   return commit;
 }

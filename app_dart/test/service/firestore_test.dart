@@ -3,8 +3,10 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/appengine/github_gold_status_update.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_commmit;
+import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
@@ -50,6 +52,31 @@ void main() {
     expect(commitDocument.fields![kCommitShaField]!.stringValue, commit.sha);
   });
 
+  test('creates github gold status document correctly from data model', () async {
+    final GithubGoldStatusUpdate githubGoldStatusUpdate = GithubGoldStatusUpdate(
+      head: 'sha',
+      pr: 1,
+      status: GithubGoldStatusUpdate.statusCompleted,
+      updates: 2,
+      description: '',
+      repository: '',
+    );
+    final GithubGoldStatus commitDocument = githubGoldStatusToDocument(githubGoldStatusUpdate);
+    expect(
+      commitDocument.name,
+      '$kDatabase/documents/$kGithubGoldStatusCollectionId/${githubGoldStatusUpdate.head}_${githubGoldStatusUpdate.pr}',
+    );
+    expect(commitDocument.fields![kGithubGoldStatusHeadField]!.stringValue, githubGoldStatusUpdate.head);
+    expect(commitDocument.fields![kGithubGoldStatusPrNumberField]!.integerValue, githubGoldStatusUpdate.pr.toString());
+    expect(commitDocument.fields![kGithubGoldStatusStatusField]!.stringValue, githubGoldStatusUpdate.status);
+    expect(
+      commitDocument.fields![kGithubGoldStatusUpdatesField]!.integerValue,
+      githubGoldStatusUpdate.updates.toString(),
+    );
+    expect(commitDocument.fields![kGithubGoldStatusDescriptionField]!.stringValue, '');
+    expect(commitDocument.fields![kGithubGoldStatusRepositoryField]!.stringValue, '');
+  });
+
   test('creates task document correctly from task data model', () async {
     final Task task = generateTask(1);
     final String commitSha = task.commitKey!.id!.split('/').last;
@@ -70,7 +97,7 @@ void main() {
       Document(name: 'd1', fields: <String, Value>{'key1': Value(stringValue: 'value1')}),
       Document(name: 'd2', fields: <String, Value>{'key1': Value(stringValue: 'value2')}),
     ];
-    final List<Write> writes = documentsToWrites(documents);
+    final List<Write> writes = documentsToWrites(documents, exists: false);
     expect(writes.length, documents.length);
     expect(writes[0].update, documents[0]);
     expect(writes[0].currentDocument!.exists, false);
