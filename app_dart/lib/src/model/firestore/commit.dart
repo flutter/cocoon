@@ -11,7 +11,7 @@ import '../../service/firestore.dart';
 class Commit extends Document {
   /// Lookup [Task] from Firestore.
   ///
-  /// `documentName` follows `/projects/{project}/databases/{<}database}/documents/{document_path}`
+  /// `documentName` follows `/projects/{project}/databases/{database}/documents/{document_path}`
   static Future<Commit> fromFirestore({
     required FirestoreService firestoreService,
     required String documentName,
