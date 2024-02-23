@@ -4,6 +4,7 @@
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_commmit;
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
@@ -20,7 +21,7 @@ void main() {
       generateTarget(1, platform: 'Mac'),
       generateTarget(2, platform: 'Linux'),
     ];
-    final List<Document> taskDocuments = targetsToTaskDocuments(commit, targets);
+    final List<firestore.Task> taskDocuments = targetsToTaskDocuments(commit, targets);
     expect(taskDocuments.length, 2);
     expect(taskDocuments[0].name, '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${targets[0].value.name}_1');
     expect(taskDocuments[0].fields![kTaskCreateTimestampField]!.integerValue, commit.timestamp.toString());
@@ -35,7 +36,7 @@ void main() {
 
   test('creates commit document correctly from commit data model', () async {
     final Commit commit = generateCommit(1);
-    final Document commitDocument = commitToCommitDocument(commit);
+    final firestore_commmit.Commit commitDocument = commitToCommitDocument(commit);
     expect(commitDocument.name, '$kDatabase/documents/$kCommitCollectionId/${commit.sha}');
     expect(commitDocument.fields![kCommitAvatarField]!.stringValue, commit.authorAvatarUrl);
     expect(commitDocument.fields![kCommitBranchField]!.stringValue, commit.branch);
