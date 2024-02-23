@@ -17,9 +17,7 @@ import 'package:meta/meta.dart';
 import '../model/appengine/github_gold_status_update.dart';
 import '../model/firestore/github_gold_status.dart';
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
-import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
 
