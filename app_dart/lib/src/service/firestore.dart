@@ -182,7 +182,7 @@ firestore.Task taskToTaskDocument(Task task) {
   );
 }
 
-/// Generates task document based on datastore task data model.
+/// Generates GithubGoldStatus document based on datastore GithubGoldStatusUpdate data model.
 GithubGoldStatus githubGoldStatusToDocument(GithubGoldStatusUpdate githubGoldStatus) {
   return GithubGoldStatus.fromDocument(
     githubGoldStatus: Document(
