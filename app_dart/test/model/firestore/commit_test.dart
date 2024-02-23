@@ -17,7 +17,7 @@ void main() {
       mockFirestoreService = MockFirestoreService();
     });
 
-    test('generates task correctly', () async {
+    test('generates commit correctly', () async {
       final Commit commit = generateFirestoreCommit(1);
       when(
         mockFirestoreService.getDocument(
