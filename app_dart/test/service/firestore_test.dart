@@ -62,13 +62,17 @@ void main() {
       repository: '',
     );
     final GithubGoldStatus commitDocument = githubGoldStatusToDocument(githubGoldStatusUpdate);
-    expect(commitDocument.name,
-        '$kDatabase/documents/$kGithubGoldStatusCollectionId/${githubGoldStatusUpdate.head}_${githubGoldStatusUpdate.pr}');
+    expect(
+      commitDocument.name,
+      '$kDatabase/documents/$kGithubGoldStatusCollectionId/${githubGoldStatusUpdate.head}_${githubGoldStatusUpdate.pr}',
+    );
     expect(commitDocument.fields![kGithubGoldStatusHeadField]!.stringValue, githubGoldStatusUpdate.head);
     expect(commitDocument.fields![kGithubGoldStatusPrNumberField]!.integerValue, githubGoldStatusUpdate.pr.toString());
     expect(commitDocument.fields![kGithubGoldStatusStatusField]!.stringValue, githubGoldStatusUpdate.status);
     expect(
-        commitDocument.fields![kGithubGoldStatusUpdatesField]!.integerValue, githubGoldStatusUpdate.updates.toString());
+      commitDocument.fields![kGithubGoldStatusUpdatesField]!.integerValue,
+      githubGoldStatusUpdate.updates.toString(),
+    );
     expect(commitDocument.fields![kGithubGoldStatusDescriptionField]!.stringValue, '');
     expect(commitDocument.fields![kGithubGoldStatusRepositoryField]!.stringValue, '');
   });
