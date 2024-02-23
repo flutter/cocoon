@@ -3,14 +3,17 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/ci_yaml.dart';
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/firestore/task.dart' as f;
+import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_commit;
+import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/gerrit/commit.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
+import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:github/github.dart' as github;
@@ -96,7 +99,7 @@ Task generateTask(
       stageName: stage,
     );
 
-f.Task generateFirestoreTask(
+firestore.Task generateFirestoreTask(
   int i, {
   String? name,
   String status = Task.statusNew,
@@ -111,22 +114,41 @@ f.Task generateFirestoreTask(
 }) {
   final String taskName = name ?? 'task$i';
   final String sha = commitSha ?? 'testSha';
-  final f.Task task = f.Task()
+  final firestore.Task task = firestore.Task()
     ..name = '${sha}_${taskName}_$attempts'
     ..fields = <String, Value>{
-      'createTimestamp': Value(integerValue: (created?.millisecondsSinceEpoch ?? 0).toString()),
-      'startTimestamp': Value(integerValue: (started?.millisecondsSinceEpoch ?? 0).toString()),
-      'endTimestamp': Value(integerValue: (ended?.millisecondsSinceEpoch ?? 0).toString()),
-      'bringup': Value(booleanValue: bringup),
-      'testFlaky': Value(booleanValue: testFlaky),
-      'status': Value(stringValue: status),
-      'name': Value(stringValue: taskName),
-      'commitSha': Value(stringValue: sha),
+      kTaskCreateTimestampField: Value(integerValue: (created?.millisecondsSinceEpoch ?? 0).toString()),
+      kTaskStartTimestampField: Value(integerValue: (started?.millisecondsSinceEpoch ?? 0).toString()),
+      kTaskEndTimestampField: Value(integerValue: (ended?.millisecondsSinceEpoch ?? 0).toString()),
+      kTaskBringupField: Value(booleanValue: bringup),
+      kTaskTestFlakyField: Value(booleanValue: testFlaky),
+      kTaskStatusField: Value(stringValue: status),
+      kTaskNameField: Value(stringValue: taskName),
+      kTaskCommitShaField: Value(stringValue: sha),
     };
   if (buildNumber != null) {
-    task.fields!['buildNumber'] = Value(integerValue: buildNumber.toString());
+    task.fields![kTaskBuildNumberField] = Value(integerValue: buildNumber.toString());
   }
   return task;
+}
+
+firestore_commit.Commit generateFirestoreCommit(
+  int i, {
+  String? sha,
+  String branch = 'master',
+  String? owner = 'flutter',
+  String repo = 'flutter',
+  int? createTimestamp,
+}) {
+  final firestore_commit.Commit commit = firestore_commit.Commit()
+    ..name = sha ?? '$i'
+    ..fields = <String, Value>{
+      kCommitCreateTimestampField: Value(integerValue: (createTimestamp ?? i).toString()),
+      kCommitRepositoryPathField: Value(stringValue: '$owner/$repo'),
+      kCommitBranchField: Value(stringValue: branch),
+      kCommitShaField: Value(stringValue: sha ?? '$i'),
+    };
+  return commit;
 }
 
 Target generateTarget(
