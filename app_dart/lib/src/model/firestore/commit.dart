@@ -29,7 +29,7 @@ class Commit extends Document {
       ..name = commitDocument.name!;
   }
 
- /// The timestamp (in milliseconds since the Epoch) of when the commit
+  /// The timestamp (in milliseconds since the Epoch) of when the commit
   /// landed.
   int? get createTimestamp => int.parse(fields![kCommitCreateTimestampField]!.integerValue!);
 

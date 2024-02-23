@@ -22,6 +22,7 @@ const String kFieldFilterOpEqual = 'EQUAL';
 
 const String kTaskCollectionId = 'tasks';
 const int kTaskDefaultTimestampValue = 0;
+const int kTaskInitialAttempt = 1;
 const String kTaskBringupField = 'bringup';
 const String kTaskBuildNumberField = 'buildNumber';
 const String kTaskCommitShaField = 'commitSha';
@@ -116,7 +117,7 @@ List<firestore.Task> targetsToTaskDocuments(Commit commit, List<Target> targets)
   final Iterable<firestore.Task> iterableDocuments = targets.map(
     (Target target) => firestore.Task.fromDocument(
       taskDocument: Document(
-        name: '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${target.value.name}_1',
+        name: '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${target.value.name}_$kTaskInitialAttempt',
         fields: <String, Value>{
           kTaskCreateTimestampField: Value(integerValue: commit.timestamp!.toString()),
           kTaskEndTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),

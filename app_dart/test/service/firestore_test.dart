@@ -23,7 +23,10 @@ void main() {
     ];
     final List<firestore.Task> taskDocuments = targetsToTaskDocuments(commit, targets);
     expect(taskDocuments.length, 2);
-    expect(taskDocuments[0].name, '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${targets[0].value.name}_1');
+    expect(
+      taskDocuments[0].name,
+      '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${targets[0].value.name}_$kTaskInitialAttempt',
+    );
     expect(taskDocuments[0].fields![kTaskCreateTimestampField]!.integerValue, commit.timestamp.toString());
     expect(taskDocuments[0].fields![kTaskEndTimestampField]!.integerValue, '0');
     expect(taskDocuments[0].fields![kTaskBringupField]!.booleanValue, false);
