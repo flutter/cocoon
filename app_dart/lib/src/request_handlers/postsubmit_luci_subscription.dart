@@ -4,15 +4,18 @@
 
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:gcloud/db.dart';
+import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
+import '../model/firestore/task.dart' as firestore;
 import '../model/luci/push_message.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
+import '../service/firestore.dart';
 import '../service/logging.dart';
 import '../service/github_checks_service.dart';
 import '../service/scheduler.dart';
@@ -42,6 +45,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
   @override
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
+    final FirestoreService firestoreService = await config.createFirestoreService();
 
     final BuildPushMessage buildPushMessage = BuildPushMessage.fromPushMessage(message);
     log.fine('userData=${buildPushMessage.userData}');
@@ -63,10 +67,10 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     }
     final Key<String> commitKey = Key<String>(Key<dynamic>.emptyKey(Partition(null)), Commit, rawCommitKey);
     Task? task;
+    final String? taskName = build.buildParameters?['builder_name'] as String?;
     if (rawTaskKey == null || rawTaskKey.isEmpty || rawTaskKey == 'null') {
       log.fine('Pulling builder name from parameters_json...');
       log.fine(build.buildParameters);
-      final String? taskName = build.buildParameters?['builder_name'] as String?;
       if (taskName == null || taskName.isEmpty) {
         throw const BadRequestException('task_key is null and parameters_json does not contain the builder name');
       }
@@ -80,10 +84,17 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     }
     log.fine('Found $task');
 
+    firestore.Task taskDocument = firestore.Task();
+
     if (_shouldUpdateTask(build, task)) {
       final String oldTaskStatus = task.status;
       task.updateFromBuild(build);
       await datastore.insert(<Task>[task]);
+      try {
+        taskDocument = await updateFirestore(build, rawCommitKey, task.name!, firestoreService);
+      } catch (error) {
+        log.warning('Failed to update task in Firestore: $error');
+      }
       log.fine('Updated datastore from $oldTaskStatus to ${task.status}');
     } else {
       log.fine('skip processing for build with status scheduled or task with status finished.');
@@ -106,6 +117,8 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
         target: target,
         task: task,
         datastore: datastore,
+        taskDocument: taskDocument,
+        firestoreService: firestoreService,
       );
       log.info('Retried: $retried');
     }
@@ -133,5 +146,26 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
   //    The task may have been marked as completed from test framework via update-task-status API.
   bool _shouldUpdateTask(Build build, Task task) {
     return build.status != Status.scheduled && !Task.finishedStatusValues.contains(task.status);
+  }
+
+  /// Queries the task document and updates based on the latest build data.
+  Future<firestore.Task> updateFirestore(
+    Build build,
+    String commitKeyId,
+    String taskName,
+    FirestoreService firestoreService,
+  ) async {
+    final int currentAttempt = githubChecksService.currentAttempt(build);
+    final String sha = commitKeyId.split('/').last;
+    final String documentName = '$kDatabase/documents/tasks/${sha}_${taskName}_$currentAttempt';
+    log.info('getting firestore document: $documentName');
+    final firestore.Task firestoreTask =
+        await firestore.Task.fromFirestore(firestoreService: firestoreService, documentName: documentName);
+    log.info('updating firestoreTask based on build');
+    firestoreTask.updateFromBuild(build);
+    log.info('finished updating firestoreTask based on builds');
+    final List<Write> writes = documentsToWrites([firestoreTask], exists: true);
+    await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
+    return firestoreTask;
   }
 }

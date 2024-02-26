@@ -8,13 +8,15 @@ import 'dart:core';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart' as f;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
+import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:github/github.dart';
-import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
+import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -333,6 +335,7 @@ void main() {
         'git_url': 'https://github.com/flutter/flutter',
         'git_ref': 'refs/pull/123/head',
         'exe_cipd_version': 'refs/heads/main',
+        'recipe': 'devicelab/devicelab',
       });
       expect(dimensions.length, 1);
       expect(dimensions[0].key, 'os');
@@ -340,11 +343,7 @@ void main() {
     });
 
     test('schedule try builds with github build labels successfully', () async {
-      final issueLabels = [
-        IssueLabel(name: '${LuciBuildService.githubBuildLabelPrefix}hello'),
-        IssueLabel(name: '${LuciBuildService.githubBuildLabelPrefix}world'),
-      ];
-      final PullRequest pullRequest = generatePullRequest(labels: issueLabels);
+      final PullRequest pullRequest = generatePullRequest();
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return BatchResponse(
           responses: <Response>[
@@ -391,10 +390,7 @@ void main() {
         'git_url': 'https://github.com/flutter/flutter',
         'git_ref': 'refs/pull/123/head',
         'exe_cipd_version': 'refs/heads/main',
-        LuciBuildService.propertiesGithubBuildLabelName: [
-          '${LuciBuildService.githubBuildLabelPrefix}hello',
-          '${LuciBuildService.githubBuildLabelPrefix}world',
-        ],
+        'recipe': 'devicelab/devicelab',
       });
       expect(dimensions.length, 1);
       expect(dimensions[0].key, 'os');
@@ -439,6 +435,7 @@ void main() {
         generateTarget(
           1,
           properties: <String, String>{
+            'recipe': 'devicelab/devicelab',
             'os': 'debian-10.12',
           },
           slug: Config.packagesSlug,
@@ -479,6 +476,7 @@ void main() {
         'git_branch': 'master',
         'exe_cipd_version': 'refs/heads/master',
         'os': 'debian-10.12',
+        'recipe': 'devicelab/devicelab',
       });
       expect(scheduleBuild.exe, <String, String>{
         'cipdVersion': 'refs/heads/master',
@@ -764,6 +762,8 @@ void main() {
         'repo_name': 'flutter',
         'user_agent': 'flutter-cocoon',
       });
+      final Map<String, Object>? properties = scheduleBuildRequest.properties;
+      expect(properties!['overrides'], ['override: test']);
     });
   });
 
@@ -913,11 +913,13 @@ void main() {
     late Commit totCommit;
     late DatastoreService datastore;
     late MockGithubChecksUtil mockGithubChecksUtil;
+    late MockFirestoreService mockFirestoreService;
     setUp(() {
       cache = CacheService(inMemory: true);
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
       mockGithubChecksUtil = MockGithubChecksUtil();
+      mockFirestoreService = MockFirestoreService();
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
           .thenAnswer((realInvocation) async => generateCheckRun(1));
       pubsub = FakePubSub();
@@ -959,6 +961,7 @@ void main() {
       }
       expect(scheduleBuildRequest.priority, LuciBuildService.kRerunPriority);
       expect(scheduleBuildRequest.gitilesCommit?.project, 'mirrors/engine');
+      expect(scheduleBuildRequest.tags?['trigger_type'], <String>['auto_retry']);
       expect(rerunFlag, isTrue);
       expect(task.attempts, 2);
       expect(task.status, Task.statusInProgress);
@@ -1065,6 +1068,46 @@ void main() {
         datastore: datastore,
       );
       expect(rerunFlag, isFalse);
+    });
+
+    test('insert retried task document to firestore', () async {
+      final f.Task firestoreTask = generateFirestoreTask(1, attempts: 1);
+      when(
+        mockFirestoreService.batchWriteDocuments(
+          captureAny,
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<BatchWriteResponse>.value(BatchWriteResponse());
+      });
+      totCommit = generateCommit(1);
+      config.db.values[totCommit.key] = totCommit;
+      config.maxLuciTaskRetriesValue = 1;
+      final Task task = generateTask(
+        1,
+        status: Task.statusInfraFailure,
+        parent: totCommit,
+        buildNumber: 1,
+      );
+      final Target target = generateTarget(1);
+      expect(firestoreTask.attempts, 1);
+      final bool rerunFlag = await service.checkRerunBuilder(
+        commit: totCommit,
+        task: task,
+        target: target,
+        datastore: datastore,
+        firestoreService: mockFirestoreService,
+        taskDocument: firestoreTask,
+      );
+      expect(rerunFlag, isTrue);
+
+      expect(firestoreTask.attempts, 2);
+      final List<dynamic> captured = verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+      expect(captured.length, 2);
+      final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+      expect(batchWriteRequest.writes!.length, 1);
+      final Document insertedTaskDocument = batchWriteRequest.writes![0].update!;
+      expect(insertedTaskDocument, firestoreTask);
     });
   });
 }

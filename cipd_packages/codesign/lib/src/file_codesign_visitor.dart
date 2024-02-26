@@ -6,7 +6,9 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:file/file.dart';
+import 'package:meta/meta.dart';
 import 'package:process/process.dart';
+import 'package:retry/retry.dart';
 
 import 'log.dart';
 import 'utils.dart';
@@ -34,6 +36,10 @@ class FileCodesignVisitor {
     required this.codesignAppstoreIDFilePath,
     required this.codesignTeamIDFilePath,
     this.dryrun = true,
+    @visibleForTesting this.retryOptions = const RetryOptions(
+      maxAttempts: 5,
+      delayFactor: Duration(seconds: 2),
+    ),
     this.notarizationTimerDuration = const Duration(seconds: 5),
   }) {
     entitlementsFile = rootDirectory.childFile('Entitlements.plist')..writeAsStringSync(_entitlementsFileContents);
@@ -54,6 +60,7 @@ class FileCodesignVisitor {
   final String codesignTeamIDFilePath;
   final bool dryrun;
   final Duration notarizationTimerDuration;
+  final RetryOptions retryOptions;
 
   // 'Apple developer account email used for authentication with notary service.'
   late String codesignAppstoreId;
@@ -71,6 +78,7 @@ class FileCodesignVisitor {
     'CODESIGN_TEAM_ID': '',
     'APP_SPECIFIC_PASSWORD': '',
   };
+  Map<String, String> redactedCredentials = {};
 
   late final File entitlementsFile;
 
@@ -131,11 +139,19 @@ update these file paths accordingly.
     return fileSystem.file(passwordFilePath).readAsString();
   }
 
+  void redactPasswords() {
+    redactedCredentials[codesignAppstoreId] = '<appleID-redacted>';
+    redactedCredentials[codesignTeamId] = '<teamID-redacted>';
+    redactedCredentials[appSpecificPassword] = '<appSpecificPassword-redacted>';
+  }
+
   /// The entrance point of examining and code signing an engine artifact.
   Future<void> validateAll() async {
     codesignAppstoreId = await readPassword(codesignAppstoreIDFilePath);
     codesignTeamId = await readPassword(codesignTeamIDFilePath);
     appSpecificPassword = await readPassword(appSpecificPasswordFilePath);
+
+    redactPasswords();
 
     await processRemoteZip();
 
@@ -239,6 +255,10 @@ update these file paths accordingly.
       }
       log.info('Child file of directory ${directory.basename} is ${entity.basename}');
     }
+    final String directoryExtension = directory.basename.split('.').last;
+    if (directoryExtension == 'framework' || directoryExtension == 'xcframework') {
+      await codesignAtPath(binaryOrBundlePath: directory.absolute.path);
+    }
   }
 
   /// Unzip an [EmbeddedZip] and visit its children.
@@ -278,8 +298,6 @@ update these file paths accordingly.
   Future<void> visitBinaryFile({
     required File binaryFile,
     required String parentVirtualPath,
-    int retryCount = 3,
-    int sleepTime = 1,
   }) async {
     final String currentFileName = binaryFile.basename;
     final String entitlementCurrentPath = joinEntitlementPaths(parentVirtualPath, currentFileName);
@@ -300,43 +318,42 @@ update these file paths accordingly.
     if (dryrun) {
       return;
     }
+    await codesignAtPath(binaryOrBundlePath: binaryFile.absolute.path, entitlementCurrentPath: entitlementCurrentPath);
+  }
+
+  Future<void> codesignAtPath({
+    required String binaryOrBundlePath,
+    String? entitlementCurrentPath,
+  }) async {
     final List<String> args = <String>[
       '/usr/bin/codesign',
       '--keychain',
       'build.keychain', // specify the keychain to look for cert
-      '-f', // force
+      '-f', // force. Needed to overwrite signature if major executable of bundle is already signed before bundle is signed.
       '-s', // use the cert provided by next argument
       codesignCertName,
-      binaryFile.absolute.path,
+      binaryOrBundlePath,
       '--timestamp', // add a secure timestamp
       '--options=runtime', // hardened runtime
-      if (fileWithEntitlements.contains(entitlementCurrentPath)) ...<String>[
+      if (entitlementCurrentPath != '' && fileWithEntitlements.contains(entitlementCurrentPath)) ...<String>[
         '--entitlements',
         entitlementsFile.absolute.path,
       ],
     ];
 
-    io.ProcessResult? result;
-    while (retryCount > 0) {
+    await retryOptions.retry(() async {
       log.info('Executing: ${args.join(' ')}\n');
-      result = await processManager.run(args);
+      final io.ProcessResult result = await processManager.run(args);
       if (result.exitCode == 0) {
         return;
       }
 
-      log.severe(
-        'Failed to codesign ${binaryFile.absolute.path} with args: ${args.join(' ')}\n'
+      throw CodesignException(
+        'Failed to codesign binary or bundle at $binaryOrBundlePath with args: ${args.join(' ')}\n'
         'stdout:\n${(result.stdout as String).trim()}'
         'stderr:\n${(result.stderr as String).trim()}',
       );
-
-      retryCount -= 1;
-      await Future.delayed(Duration(seconds: sleepTime));
-      sleepTime *= 2;
-    }
-    throw CodesignException('Failed to codesign ${binaryFile.absolute.path} with args: ${args.join(' ')}\n'
-        'stdout:\n${(result!.stdout as String).trim()}\n'
-        'stderr:\n${(result.stderr as String).trim()}');
+    });
   }
 
   /// Delete codesign metadata at ALL places inside engine binary.
@@ -386,7 +403,7 @@ update these file paths accordingly.
   /// binaries are properly codesigned, and notarize the entire archive.
   Future<void> notarize(File file) async {
     final Completer<void> completer = Completer<void>();
-    final String uuid = uploadZipToNotary(file);
+    final String uuid = await uploadZipToNotary(file);
 
     Future<void> callback(Timer timer) async {
       final bool notaryFinished = checkNotaryJobFinished(uuid);
@@ -416,15 +433,19 @@ update these file paths accordingly.
       'notarytool',
       'info',
       uuid,
-      '--password',
-      appSpecificPassword,
       '--apple-id',
       codesignAppstoreId,
+      '--password',
+      appSpecificPassword,
       '--team-id',
       codesignTeamId,
     ];
 
-    log.info('checking notary status with ${args.join(' ')}');
+    String argsWithoutCredentials = args.join(' ');
+    for (var key in redactedCredentials.keys) {
+      argsWithoutCredentials = argsWithoutCredentials.replaceAll(key, redactedCredentials[key]!);
+    }
+    log.info('checking notary info: $argsWithoutCredentials');
     final io.ProcessResult result = processManager.runSync(args);
     final String combinedOutput = (result.stdout as String) + (result.stderr as String);
 
@@ -432,7 +453,7 @@ update these file paths accordingly.
 
     if (match == null) {
       throw CodesignException(
-        'Malformed output from "${args.join(' ')}"\n${combinedOutput.trim()}',
+        'Malformed output from "$argsWithoutCredentials"\n${combinedOutput.trim()}',
       );
     }
 
@@ -448,53 +469,49 @@ update these file paths accordingly.
     throw CodesignException('Notarization failed with: $status\n$combinedOutput');
   }
 
-  /// Upload artifact to Apple notary service.
-  String uploadZipToNotary(File localFile, [int retryCount = 3, int sleepTime = 1]) {
-    while (retryCount > 0) {
-      final List<String> args = <String>[
-        'xcrun',
-        'notarytool',
-        'submit',
-        localFile.absolute.path,
-        '--apple-id',
-        codesignAppstoreId,
-        '--password',
-        appSpecificPassword,
-        '--team-id',
-        codesignTeamId,
-        '--verbose',
-      ];
+  /// Upload artifact to Apple notary service and return the tracking request UUID.
+  Future<String> uploadZipToNotary(File localFile) {
+    return retryOptions.retry(
+      () async {
+        final List<String> args = <String>[
+          'xcrun',
+          'notarytool',
+          'submit',
+          localFile.absolute.path,
+          '--apple-id',
+          codesignAppstoreId,
+          '--password',
+          appSpecificPassword,
+          '--team-id',
+          codesignTeamId,
+          '--verbose',
+        ];
 
-      log.info('uploading ${args.join(' ')}');
-      final io.ProcessResult result = processManager.runSync(args);
-      if (result.exitCode != 0) {
-        throw CodesignException(
-          'Command "${args.join(' ')}" failed with exit code ${result.exitCode}\nStdout: ${result.stdout}\nStderr: ${result.stderr}',
-        );
-      }
+        String argsWithoutCredentials = args.join(' ');
+        for (var key in redactedCredentials.keys) {
+          argsWithoutCredentials = argsWithoutCredentials.replaceAll(key, redactedCredentials[key]!);
+        }
+        log.info('uploading to notary: $argsWithoutCredentials');
+        final io.ProcessResult result = processManager.runSync(args);
+        if (result.exitCode != 0) {
+          throw CodesignException(
+            'Command "$argsWithoutCredentials" failed with exit code ${result.exitCode}\nStdout: ${result.stdout}\nStderr: ${result.stderr}',
+          );
+        }
 
-      final String combinedOutput = (result.stdout as String) + (result.stderr as String);
-      final RegExpMatch? match;
-      match = _notarytoolRequestPattern.firstMatch(combinedOutput);
+        final String combinedOutput = (result.stdout as String) + (result.stderr as String);
+        final RegExpMatch? match = _notarytoolRequestPattern.firstMatch(combinedOutput);
 
-      if (match == null) {
-        log.warning('Failed to upload to the notary service with args: ${args.join(' ')}');
-        log.warning('{combinedOutput.trim()}');
-        retryCount -= 1;
-        log.warning('Trying again $retryCount more time${retryCount > 1 ? 's' : ''}...');
-        io.sleep(Duration(seconds: sleepTime));
-        continue;
-      }
+        if (match == null) {
+          log.warning('Failed to upload to the notary service');
+          log.warning('$argsWithoutCredentials\n$combinedOutput');
+          throw CodesignException('Failed to upload to the notary service\n$combinedOutput');
+        }
 
-      final String requestUuid = match.group(1)!;
-      log.info('RequestUUID for ${localFile.path} is: $requestUuid');
-
-      return requestUuid;
-    }
-    log.warning('The upload to notary service failed after retries, and'
-        '  the output format does not match the current notary tool version.'
-        ' If after inspecting the output, you believe the process finished '
-        'successfully but was not detected, please contact flutter release engineers');
-    throw CodesignException('Failed to upload ${localFile.path} to the notary service');
+        final String requestUuid = match.group(1)!;
+        log.info('RequestUUID for ${localFile.path} is: $requestUuid');
+        return requestUuid;
+      },
+    );
   }
 }

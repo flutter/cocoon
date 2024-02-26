@@ -3,23 +3,30 @@
 // found in the LICENSE file.
 
 import 'package:github/github.dart';
+import 'dart:collection';
 
 class RevertIssueBodyFormatter {
   RevertIssueBodyFormatter({
     required this.slug,
-    required this.originalPrNumber,
+    required this.prToRevertNumber,
     required this.initiatingAuthor,
-    required this.originalPrTitle,
-    required this.originalPrBody,
+    required this.revertReason,
+    required this.prToRevertAuthor,
+    required this.prToRevertReviewers,
+    required this.prToRevertTitle,
+    required this.prToRevertBody,
   });
 
   // Possible format for the revert issue
   RepositorySlug slug;
   String initiatingAuthor;
-  int originalPrNumber;
+  int prToRevertNumber;
   // These two fields can be null in the original pull request.
-  String? originalPrTitle;
-  String? originalPrBody;
+  String? prToRevertTitle;
+  String? prToRevertBody;
+  String? revertReason;
+  String? prToRevertAuthor;
+  Set<String> prToRevertReviewers;
 
   late String? revertPrTitle;
   late String? revertPrBody;
@@ -27,21 +34,29 @@ class RevertIssueBodyFormatter {
 
   RevertIssueBodyFormatter get format {
     // Create the title for the revert issue.
-    originalPrTitle ??= 'No title provided.';
-    revertPrTitle = 'Reverts "$originalPrTitle"';
+    prToRevertTitle ??= 'No title provided.';
+    revertPrTitle = 'Reverts "$prToRevertTitle (#$prToRevertNumber)"';
 
     // create the reverts Link for the body. Looks like Reverts flutter/cocoon#123 but will render as a link.
-    revertPrLink = 'Reverts ${slug.fullName}#$originalPrNumber';
+    revertPrLink = 'Reverts ${slug.fullName}#$prToRevertNumber';
 
-    originalPrBody ??= 'No description provided.';
+    prToRevertBody ??= 'No description provided.';
 
     // Create the body for the revert issue.
     revertPrBody = '''
 $revertPrLink
+
 Initiated by: $initiatingAuthor
+
+Reason for reverting: $revertReason
+
+Original PR Author: $prToRevertAuthor
+
+Reviewed By: ${SetBase.setToString(prToRevertReviewers)}
+
 This change reverts the following previous change:
 Original Description:
-$originalPrBody
+$prToRevertBody
 ''';
 
     return this;

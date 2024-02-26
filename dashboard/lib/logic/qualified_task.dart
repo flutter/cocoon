@@ -9,7 +9,6 @@ import '../model/task.pb.dart';
 /// [Task.stageName] that maps to StageName enums.
 // TODO(chillers): Remove these and use StageName enum when available. https://github.com/flutter/cocoon/issues/441
 class StageName {
-  static const String cirrus = 'cirrus';
   static const String cocoon = 'cocoon';
   static const String legacyLuci = 'chromebot';
   static const String luci = 'luci';

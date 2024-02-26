@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -15,8 +15,25 @@ import 'package:protobuf/protobuf.dart' as $pb;
 
 import 'build.pb.dart' as $0;
 
+/// A collection of build-related secrets we might pass from Buildbucket to Kitchen.
 class BuildSecrets extends $pb.GeneratedMessage {
-  factory BuildSecrets() => create();
+  factory BuildSecrets({
+    $core.String? buildToken,
+    $core.String? resultdbInvocationUpdateToken,
+    $core.String? startBuildToken,
+  }) {
+    final $result = create();
+    if (buildToken != null) {
+      $result.buildToken = buildToken;
+    }
+    if (resultdbInvocationUpdateToken != null) {
+      $result.resultdbInvocationUpdateToken = resultdbInvocationUpdateToken;
+    }
+    if (startBuildToken != null) {
+      $result.startBuildToken = startBuildToken;
+    }
+    return $result;
+  }
   BuildSecrets._() : super();
   factory BuildSecrets.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -50,6 +67,7 @@ class BuildSecrets extends $pb.GeneratedMessage {
   static BuildSecrets getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildSecrets>(create);
   static BuildSecrets? _defaultInstance;
 
+  /// A BUILD token to identify UpdateBuild RPCs associated with the same build.
   @$pb.TagNumber(1)
   $core.String get buildToken => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -62,6 +80,7 @@ class BuildSecrets extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearBuildToken() => clearField(1);
 
+  /// Token to allow updating this build's invocation in ResultDB.
   @$pb.TagNumber(2)
   $core.String get resultdbInvocationUpdateToken => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -74,6 +93,8 @@ class BuildSecrets extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearResultdbInvocationUpdateToken() => clearField(2);
 
+  /// A START_BUILD token to identify StartBuild RPCs associated with
+  /// the same build.
   @$pb.TagNumber(3)
   $core.String get startBuildToken => $_getSZ(2);
   @$pb.TagNumber(3)
@@ -87,8 +108,36 @@ class BuildSecrets extends $pb.GeneratedMessage {
   void clearStartBuildToken() => clearField(3);
 }
 
+///  Arguments for bbagent command.
+///
+///  All paths are relateive to bbagent's working directory, and must be delimited
+///  with slashes ("/"), regardless of the host OS.
 class BBAgentArgs extends $pb.GeneratedMessage {
-  factory BBAgentArgs() => create();
+  factory BBAgentArgs({
+    $core.String? executablePath,
+    $core.String? cacheDir,
+    $core.Iterable<$core.String>? knownPublicGerritHosts,
+    $0.Build? build,
+    $core.String? payloadPath,
+  }) {
+    final $result = create();
+    if (executablePath != null) {
+      $result.executablePath = executablePath;
+    }
+    if (cacheDir != null) {
+      $result.cacheDir = cacheDir;
+    }
+    if (knownPublicGerritHosts != null) {
+      $result.knownPublicGerritHosts.addAll(knownPublicGerritHosts);
+    }
+    if (build != null) {
+      $result.build = build;
+    }
+    if (payloadPath != null) {
+      $result.payloadPath = payloadPath;
+    }
+    return $result;
+  }
   BBAgentArgs._() : super();
   factory BBAgentArgs.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -124,6 +173,9 @@ class BBAgentArgs extends $pb.GeneratedMessage {
   static BBAgentArgs getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BBAgentArgs>(create);
   static BBAgentArgs? _defaultInstance;
 
+  ///  Path to the user executable.
+  ///
+  ///  Deprecated. Superseded by payload_path and `build.exe.cmd`.
   @$pb.TagNumber(1)
   $core.String get executablePath => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -136,6 +188,9 @@ class BBAgentArgs extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearExecutablePath() => clearField(1);
 
+  ///  Path to a directory where each subdirectory is a cache dir.
+  ///
+  ///  Required.
   @$pb.TagNumber(2)
   $core.String get cacheDir => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -148,9 +203,16 @@ class BBAgentArgs extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearCacheDir() => clearField(2);
 
+  ///  List of Gerrit hosts to force git authentication for.
+  ///
+  ///  By default public hosts are accessed anonymously, and the anonymous access
+  ///  has very low quota. Context needs to know all such hostnames in advance to
+  ///  be able to force authenticated access to them.
   @$pb.TagNumber(3)
   $core.List<$core.String> get knownPublicGerritHosts => $_getList(2);
 
+  /// Initial state of the build, including immutable state such as id and input
+  /// properties.
   @$pb.TagNumber(4)
   $0.Build get build => $_getN(3);
   @$pb.TagNumber(4)
@@ -165,6 +227,9 @@ class BBAgentArgs extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $0.Build ensureBuild() => $_ensure(3);
 
+  ///  Path to the base of the user executable package.
+  ///
+  ///  Required.
   @$pb.TagNumber(5)
   $core.String get payloadPath => $_getSZ(4);
   @$pb.TagNumber(5)
@@ -179,7 +244,19 @@ class BBAgentArgs extends $pb.GeneratedMessage {
 }
 
 class BuildbucketAgentContext extends $pb.GeneratedMessage {
-  factory BuildbucketAgentContext() => create();
+  factory BuildbucketAgentContext({
+    $core.String? taskId,
+    BuildSecrets? secrets,
+  }) {
+    final $result = create();
+    if (taskId != null) {
+      $result.taskId = taskId;
+    }
+    if (secrets != null) {
+      $result.secrets = secrets;
+    }
+    return $result;
+  }
   BuildbucketAgentContext._() : super();
   factory BuildbucketAgentContext.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -214,6 +291,9 @@ class BuildbucketAgentContext extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildbucketAgentContext>(create);
   static BuildbucketAgentContext? _defaultInstance;
 
+  /// Should match the task_id that was sent to buildbucket in
+  /// either RunTaskResposne.Task.Id.Id or in
+  /// StartBuildTaskRequest.Task.Id.Id
   @$pb.TagNumber(1)
   $core.String get taskId => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -226,6 +306,14 @@ class BuildbucketAgentContext extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearTaskId() => clearField(1);
 
+  ///  The secrets that was provided to the backend from
+  ///  RunTaskRequest or StartBuildTaskResponse.
+  ///
+  ///  During the task backend migration, the BuildToken secret
+  ///  bytes sent to swarming will be populated here. Bbagent will
+  ///  read LUCI_CONTEXT provided by raw swarming tasks and convert it to
+  ///  BuildbucketAgentContext. All swarming tasks ran as task backend tasks
+  ///  will use BuildbucketAgentContext directly.
   @$pb.TagNumber(2)
   BuildSecrets get secrets => $_getN(1);
   @$pb.TagNumber(2)

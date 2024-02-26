@@ -7,26 +7,24 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
+import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:googleapis/pubsub/v1.dart';
 
 import '../foundation/github_checks_util.dart';
-import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
+import '../model/firestore/task.dart' as f;
 import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
-import '../request_handling/pubsub.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
-import 'buildbucket.dart';
-import 'cache_service.dart';
-import 'config.dart';
 import 'exceptions.dart';
-import 'gerrit_service.dart';
+import 'github_service.dart';
 
 const Set<String> taskFailStatusSet = <String>{
   Task.statusInfraFailure,
@@ -203,10 +201,7 @@ class LuciBuildService {
       final Map<String, Object> properties = target.getProperties();
       properties.putIfAbsent('git_branch', () => pullRequest.base!.ref!.replaceAll('refs/heads/', ''));
 
-      final List<String>? labels = pullRequest.labels
-          ?.where((label) => label.name.startsWith(githubBuildLabelPrefix))
-          .map((obj) => obj.name)
-          .toList();
+      final List<String>? labels = extractPrefixedLabels(pullRequest.labels, githubBuildLabelPrefix);
 
       if (labels != null && labels.isNotEmpty) {
         properties[propertiesGithubBuildLabelName] = labels;
@@ -363,7 +358,15 @@ class LuciBuildService {
       'commit_branch': branch,
       'commit_sha': sha,
     };
-    final Map<String, Object>? properties = build.input!.properties;
+    final Map<String, Object> properties = Map.of(build.input!.properties ?? <String, Object>{});
+    final GithubService githubService = await config.createGithubService(slug);
+
+    final List<github.IssueLabel> issueLabels = await githubService.getIssueLabels(slug, prNumber);
+    final List<String>? labels = extractPrefixedLabels(issueLabels, githubBuildLabelPrefix);
+
+    if (labels != null && labels.isNotEmpty) {
+      properties[propertiesGithubBuildLabelName] = labels;
+    }
     log.info('input ${build.input!} properties $properties');
 
     final ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
@@ -380,6 +383,13 @@ class LuciBuildService {
     final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
     await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);
     return scheduleBuild;
+  }
+
+  /// Collect any label whose name is prefixed by the prefix [String].
+  ///
+  /// Returns a [List] of prefixed label names as [String]s.
+  List<String>? extractPrefixedLabels(List<github.IssueLabel>? issueLabels, String prefix) {
+    return issueLabels?.where((label) => label.name.startsWith(prefix)).map((obj) => obj.name).toList();
   }
 
   /// Sends postsubmit [ScheduleBuildRequest] for a commit using [checkRunEvent], [Commit], [Task], and [Target].
@@ -606,6 +616,8 @@ class LuciBuildService {
     tags['user_agent'] = <String>['flutter-cocoon'];
     // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
     tags['scheduler_job_id'] = <String>['flutter/${target.value.name}'];
+    // Default attempt is the initial attempt, which is 1.
+    tags['current_attempt'] = tags['current_attempt'] ?? <String>['1'];
     final Map<String, Object> processedProperties = target.getProperties();
     processedProperties.addAll(properties ?? <String, Object>{});
     processedProperties['git_branch'] = commit.branch!;
@@ -669,15 +681,30 @@ class LuciBuildService {
     required Target target,
     required Task task,
     required DatastoreService datastore,
+    FirestoreService? firestoreService,
     Map<String, List<String>>? tags,
     bool ignoreChecks = false,
+    f.Task? taskDocument,
   }) async {
     if (ignoreChecks == false && await _shouldRerunBuilder(task, commit, datastore) == false) {
       return false;
     }
     log.info('Rerun builder: ${target.value.name} for commit ${commit.sha}');
     tags ??= <String, List<String>>{};
-    tags['trigger_type'] = <String>['retry'];
+    tags['trigger_type'] ??= <String>['auto_retry'];
+
+    // TODO(keyonghan): remove check when [ResetProdTask] supports firestore update.
+    if (taskDocument != null) {
+      try {
+        final int newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
+        tags['current_attempt'] = <String>[newAttempt.toString()];
+        taskDocument.resetAsRetry(attempt: newAttempt);
+        final List<Write> writes = documentsToWrites([taskDocument], exists: false);
+        await firestoreService!.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
+      } catch (error) {
+        log.warning('Failed to insert retried task in Firestore: $error');
+      }
+    }
 
     final BatchRequest request = BatchRequest(
       requests: <Request>[

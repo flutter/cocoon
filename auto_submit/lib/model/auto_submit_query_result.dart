@@ -83,11 +83,14 @@ enum MergeableState {
 @JsonSerializable()
 class ContextNode {
   ContextNode({
+    this.createdAt,
     this.context,
     this.state,
     this.targetUrl,
   });
 
+  @JsonKey(name: 'createdAt')
+  DateTime? createdAt;
   String? context;
   String? state;
   @JsonKey(name: 'targetUrl')

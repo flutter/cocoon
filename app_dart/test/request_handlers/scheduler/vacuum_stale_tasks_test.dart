@@ -5,32 +5,30 @@
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
+import 'package:googleapis/firestore/v1.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../src/datastore/fake_config.dart';
 import '../../src/request_handling/request_handler_tester.dart';
 import '../../src/utilities/entity_generators.dart';
+import '../../src/utilities/mocks.dart';
 
 void main() {
   group(VacuumStaleTasks, () {
     late FakeConfig config;
     late RequestHandlerTester tester;
     late VacuumStaleTasks handler;
+    late MockFirestoreService mockFirestoreService;
 
     final Commit commit = generateCommit(1);
-    final DateTime now = DateTime(2023, 2, 9, 13, 37);
-
-    /// Helper function for returning test times relative to [now].
-    DateTime relativeToNow(int minutes) {
-      final Duration duration = Duration(minutes: minutes);
-
-      return now.subtract(duration);
-    }
 
     setUp(() {
-      config = FakeConfig();
+      mockFirestoreService = MockFirestoreService();
+      config = FakeConfig(firestoreService: mockFirestoreService);
       config.db.values[commit.key] = commit;
 
       tester = RequestHandlerTester();
@@ -41,53 +39,45 @@ void main() {
     });
 
     test('skips when no tasks are stale', () async {
-      final List<Task> expectedTasks = <Task>[
-        generateTask(
-          1,
-          status: Task.statusInProgress,
-          created: relativeToNow(1),
-          parent: commit,
-        ),
-        generateTask(
-          2,
-          status: Task.statusSucceeded,
-          created: relativeToNow(VacuumStaleTasks.kTimeoutLimit.inMinutes + 5),
-          parent: commit,
-        ),
-        generateTask(
-          3,
-          status: Task.statusInProgress,
-          created: relativeToNow(VacuumStaleTasks.kTimeoutLimit.inMinutes),
-          parent: commit,
-        ),
-      ];
-      await config.db.commit(inserts: expectedTasks);
-
-      await tester.get(handler);
-
-      final List<Task> tasks = config.db.values.values.whereType<Task>().toList();
-      expect(tasks, expectedTasks);
-    });
-
-    test('resets stale task', () async {
       final List<Task> originalTasks = <Task>[
         generateTask(
           1,
           status: Task.statusInProgress,
-          created: relativeToNow(1),
+          parent: commit,
+          buildNumber: 123,
+        ),
+      ];
+      await config.db.commit(inserts: originalTasks);
+
+      await tester.get(handler);
+
+      final List<Task> tasks = config.db.values.values.whereType<Task>().toList();
+      expect(tasks[0].status, Task.statusInProgress);
+    });
+
+    test('resets stale task', () async {
+      when(
+        mockFirestoreService.writeViaTransaction(
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<CommitResponse>.value(CommitResponse());
+      });
+      final List<Task> originalTasks = <Task>[
+        generateTask(
+          1,
+          status: Task.statusInProgress,
           parent: commit,
         ),
         generateTask(
           2,
           status: Task.statusSucceeded,
-          created: relativeToNow(VacuumStaleTasks.kTimeoutLimit.inMinutes + 5),
           parent: commit,
         ),
         // Task 3 should be vacuumed
         generateTask(
           3,
           status: Task.statusInProgress,
-          created: relativeToNow(VacuumStaleTasks.kTimeoutLimit.inMinutes + 1),
           parent: commit,
         ),
       ];
@@ -97,10 +87,19 @@ void main() {
       await tester.get(handler);
 
       final List<Task> tasks = config.db.values.values.whereType<Task>().toList();
-      expect(tasks[0], originalTasks[0]);
-      expect(tasks[1], originalTasks[1]);
-      expect(tasks[2].status, Task.statusNew);
+      expect(tasks[0].createTimestamp, 0);
+      expect(tasks[0].status, Task.statusNew);
       expect(tasks[2].createTimestamp, 0);
+      expect(tasks[2].status, Task.statusNew);
+
+      final List<dynamic> captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
+      expect(captured.length, 1);
+      final List<Write> commitResponse = captured[0] as List<Write>;
+      expect(commitResponse.length, 2);
+      final firestore.Task taskDocuemnt1 = firestore.Task.fromDocument(taskDocument: commitResponse[0].update!);
+      final firestore.Task taskDocuemnt2 = firestore.Task.fromDocument(taskDocument: commitResponse[0].update!);
+      expect(taskDocuemnt1.status, firestore.Task.statusNew);
+      expect(taskDocuemnt2.status, firestore.Task.statusNew);
     });
   });
 }

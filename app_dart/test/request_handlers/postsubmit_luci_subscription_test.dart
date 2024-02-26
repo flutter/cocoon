@@ -5,9 +5,11 @@
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
+import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -25,14 +27,19 @@ void main() {
   late PostsubmitLuciSubscription handler;
   late FakeConfig config;
   late FakeHttpRequest request;
+  late MockFirestoreService mockFirestoreService;
   late SubscriptionTester tester;
   late MockGithubChecksService mockGithubChecksService;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late FakeScheduler scheduler;
 
   setUp(() async {
-    config = FakeConfig(maxLuciTaskRetriesValue: 3);
     mockGithubChecksUtil = MockGithubChecksUtil();
+    mockFirestoreService = MockFirestoreService();
+    config = FakeConfig(
+      maxLuciTaskRetriesValue: 3,
+      firestoreService: mockFirestoreService,
+    );
     mockGithubChecksService = MockGithubChecksService();
     when(mockGithubChecksService.githubChecksUtil).thenReturn(mockGithubChecksUtil);
     when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
@@ -85,6 +92,25 @@ void main() {
   });
 
   test('updates task based on message', () async {
+    final firestore.Task firestoreTask = generateFirestoreTask(1, attempts: 2);
+    when(
+      mockFirestoreService.getDocument(
+        captureAny,
+      ),
+    ).thenAnswer((Invocation invocation) {
+      return Future<Document>.value(
+        firestoreTask,
+      );
+    });
+    when(
+      mockFirestoreService.batchWriteDocuments(
+        captureAny,
+        captureAny,
+      ),
+    ).thenAnswer((Invocation invocation) {
+      return Future<BatchWriteResponse>.value(BatchWriteResponse());
+    });
+    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
       4507531199512576,
@@ -104,10 +130,24 @@ void main() {
     expect(task.status, Task.statusNew);
     expect(task.endTimestamp, 0);
 
+    // Firestore checks before API call.
+    expect(firestoreTask.status, Task.statusNew);
+    expect(firestoreTask.buildNumber, null);
+
     await tester.post(handler);
 
     expect(task.status, Task.statusSucceeded);
     expect(task.endTimestamp, 1565049193786);
+
+    // Firestore checks after API call.
+    final List<dynamic> captured = verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+    expect(captured.length, 2);
+    final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+    expect(batchWriteRequest.writes!.length, 1);
+    final Document updatedDocument = batchWriteRequest.writes![0].update!;
+    expect(updatedDocument.name, firestoreTask.name);
+    expect(firestoreTask.status, Task.statusSucceeded);
+    expect(firestoreTask.buildNumber, 1698);
   });
 
   test('skips task processing when build is with scheduled status', () async {
@@ -262,6 +302,25 @@ void main() {
   });
 
   test('fallback to build parameters if task_key is not present', () async {
+    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
+    final firestore.Task firestoreTask = generateFirestoreTask(1, attempts: 2);
+    when(
+      mockFirestoreService.getDocument(
+        captureAny,
+      ),
+    ).thenAnswer((Invocation invocation) {
+      return Future<Document>.value(
+        firestoreTask,
+      );
+    });
+    when(
+      mockFirestoreService.batchWriteDocuments(
+        captureAny,
+        captureAny,
+      ),
+    ).thenAnswer((Invocation invocation) {
+      return Future<BatchWriteResponse>.value(BatchWriteResponse());
+    });
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
       4507531199512576,
@@ -286,6 +345,25 @@ void main() {
   test('non-bringup target updates check run', () async {
     scheduler.ciYaml = nonBringupPackagesConfig;
     when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
+    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
+    final firestore.Task firestoreTask = generateFirestoreTask(1, attempts: 2);
+    when(
+      mockFirestoreService.getDocument(
+        captureAny,
+      ),
+    ).thenAnswer((Invocation invocation) {
+      return Future<Document>.value(
+        firestoreTask,
+      );
+    });
+    when(
+      mockFirestoreService.batchWriteDocuments(
+        captureAny,
+        captureAny,
+      ),
+    ).thenAnswer((Invocation invocation) {
+      return Future<BatchWriteResponse>.value(BatchWriteResponse());
+    });
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822', repo: 'packages');
     final Task task = generateTask(
       4507531199512576,
@@ -310,6 +388,25 @@ void main() {
   test('bringup target does not update check run', () async {
     scheduler.ciYaml = bringupPackagesConfig;
     when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
+    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
+    final firestore.Task firestoreTask = generateFirestoreTask(1, attempts: 2);
+    when(
+      mockFirestoreService.getDocument(
+        captureAny,
+      ),
+    ).thenAnswer((Invocation invocation) {
+      return Future<Document>.value(
+        firestoreTask,
+      );
+    });
+    when(
+      mockFirestoreService.batchWriteDocuments(
+        captureAny,
+        captureAny,
+      ),
+    ).thenAnswer((Invocation invocation) {
+      return Future<BatchWriteResponse>.value(BatchWriteResponse());
+    });
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
       4507531199512576,
@@ -334,6 +431,25 @@ void main() {
   test('unsupported repo target does not update check run', () async {
     scheduler.ciYaml = unsupportedPostsubmitCheckrunConfig;
     when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
+    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
+    final firestore.Task firestoreTask = generateFirestoreTask(1, attempts: 2);
+    when(
+      mockFirestoreService.getDocument(
+        captureAny,
+      ),
+    ).thenAnswer((Invocation invocation) {
+      return Future<Document>.value(
+        firestoreTask,
+      );
+    });
+    when(
+      mockFirestoreService.batchWriteDocuments(
+        captureAny,
+        captureAny,
+      ),
+    ).thenAnswer((Invocation invocation) {
+      return Future<BatchWriteResponse>.value(BatchWriteResponse());
+    });
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
       4507531199512576,

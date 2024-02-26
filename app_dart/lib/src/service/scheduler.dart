@@ -13,6 +13,7 @@ import 'package:github/github.dart' as github;
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
+import 'package:googleapis/firestore/v1.dart';
 import 'package:retry/retry.dart';
 import 'package:truncate/truncate.dart';
 import 'package:yaml/yaml.dart';
@@ -22,6 +23,8 @@ import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
+import '../model/firestore/commit.dart' as firestore_commmit;
+import '../model/firestore/task.dart' as firestore;
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
@@ -31,6 +34,7 @@ import '../service/logging.dart';
 import 'cache_service.dart';
 import 'config.dart';
 import 'datastore.dart';
+import 'firestore.dart';
 import 'github_checks_service.dart';
 import 'github_service.dart';
 import 'luci_build_service.dart';
@@ -163,6 +167,16 @@ class Scheduler {
 
     await _batchScheduleBuilds(commit, toBeScheduled);
     await _uploadToBigQuery(commit);
+    final firestore_commmit.Commit commitDocument = commitToCommitDocument(commit);
+    final List<firestore.Task> taskDocuments = targetsToTaskDocuments(commit, initialTargets);
+    final List<Write> writes = documentsToWrites([...taskDocuments, commitDocument], exists: false);
+    final FirestoreService firestoreService = await config.createFirestoreService();
+    // TODO(keyonghan): remove try catch logic after validated to work.
+    try {
+      await firestoreService.writeViaTransaction(writes);
+    } catch (error) {
+      log.warning('Failed to add to Firestore: $error');
+    }
   }
 
   /// Schedule all builds in batch requests instead of a single request.

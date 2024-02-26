@@ -5,8 +5,10 @@
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -33,11 +35,17 @@ void main() {
   late FakeScheduler scheduler;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Config config;
+  late MockFirestoreService mockFirestoreService;
 
   group('BatchBackfiller', () {
     setUp(() async {
+      mockFirestoreService = MockFirestoreService();
       db = FakeDatastoreDB()..addOnQuery<Commit>((Iterable<Commit> results) => commits);
-      config = FakeConfig(dbValue: db, backfillerTargetLimitValue: 2);
+      config = FakeConfig(
+        dbValue: db,
+        backfillerTargetLimitValue: 2,
+        firestoreService: mockFirestoreService,
+      );
       pubsub = FakePubSub();
       mockGithubChecksUtil = MockGithubChecksUtil();
       when(
@@ -49,6 +57,13 @@ void main() {
           output: anyNamed('output'),
         ),
       ).thenAnswer((_) async => generateCheckRun(1));
+      when(
+        mockFirestoreService.writeViaTransaction(
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<CommitResponse>.value(CommitResponse());
+      });
       scheduler = FakeScheduler(
         config: config,
         ciYaml: batchPolicyConfig,
@@ -202,6 +217,13 @@ void main() {
       await tester.get(handler);
       expect(db.values.length, 1);
       expect(task.status, Task.statusInProgress);
+
+      final List<dynamic> captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
+      expect(captured.length, 1);
+      final List<Write> commitResponse = captured[0] as List<Write>;
+      expect(commitResponse.length, 1);
+      final firestore.Task taskDocuemnt = firestore.Task.fromDocument(taskDocument: commitResponse[0].update!);
+      expect(taskDocuemnt.status, firestore.Task.statusInProgress);
     });
 
     test('skip scheduling builds if datastore commit fails', () async {
@@ -218,7 +240,7 @@ void main() {
       expect(pubsub.messages.length, 0);
     });
 
-    test('backfills only column A when B does need backfill', () async {
+    test('backfills only column A when B does not need backfill', () async {
       final List<Task> scheduleA = <Task>[
         // Linux_android A
         generateTask(1, name: 'Linux_android A', status: Task.statusSucceeded),

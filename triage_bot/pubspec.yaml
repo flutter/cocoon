@@ -1,0 +1,21 @@
+name: triage_bot
+description: Flutter's triage bot.
+version: 1.0.0
+repository: https://github.com/flutter/cocoon/
+publish_to: 'none'
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  appengine: ^0.13.5
+  crypto: ^3.0.3
+  dart_jsonwebtoken: ^2.8.1
+  github: ^9.14.0
+  googleapis: ^11.2.0
+  http: ^0.13.6
+  meta: ^1.9.1
+  nyxx: ^5.0.4
+
+dev_dependencies:
+  test: ^1.21.0

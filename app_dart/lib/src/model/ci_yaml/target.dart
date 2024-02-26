@@ -153,7 +153,9 @@ class Target {
   }
 
   Map<String, Object> _getTargetProperties() {
-    final Map<String, Object> properties = <String, Object>{};
+    final Map<String, Object> properties = <String, Object>{
+      'recipe': value.recipe,
+    };
     for (String key in value.properties.keys) {
       properties[key] = _parseProperty(key, value.properties[key]!);
     }

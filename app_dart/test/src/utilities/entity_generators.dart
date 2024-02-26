@@ -3,14 +3,20 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/ci_yaml.dart';
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_commit;
+import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/gerrit/commit.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
+import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:gcloud/db.dart';
+import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:github/github.dart' as github;
 
 import '../service/fake_scheduler.dart';
@@ -94,6 +100,79 @@ Task generateTask(
       stageName: stage,
     );
 
+firestore.Task generateFirestoreTask(
+  int i, {
+  String? name,
+  String status = Task.statusNew,
+  int attempts = 1,
+  bool bringup = false,
+  bool testFlaky = false,
+  int? buildNumber,
+  DateTime? created,
+  DateTime? started,
+  DateTime? ended,
+  String? commitSha,
+}) {
+  final String taskName = name ?? 'task$i';
+  final String sha = commitSha ?? 'testSha';
+  final firestore.Task task = firestore.Task()
+    ..name = '${sha}_${taskName}_$attempts'
+    ..fields = <String, Value>{
+      kTaskCreateTimestampField: Value(integerValue: (created?.millisecondsSinceEpoch ?? 0).toString()),
+      kTaskStartTimestampField: Value(integerValue: (started?.millisecondsSinceEpoch ?? 0).toString()),
+      kTaskEndTimestampField: Value(integerValue: (ended?.millisecondsSinceEpoch ?? 0).toString()),
+      kTaskBringupField: Value(booleanValue: bringup),
+      kTaskTestFlakyField: Value(booleanValue: testFlaky),
+      kTaskStatusField: Value(stringValue: status),
+      kTaskNameField: Value(stringValue: taskName),
+      kTaskCommitShaField: Value(stringValue: sha),
+    };
+  if (buildNumber != null) {
+    task.fields![kTaskBuildNumberField] = Value(integerValue: buildNumber.toString());
+  }
+  return task;
+}
+
+firestore_commit.Commit generateFirestoreCommit(
+  int i, {
+  String? sha,
+  String branch = 'master',
+  String? owner = 'flutter',
+  String repo = 'flutter',
+  int? createTimestamp,
+}) {
+  final firestore_commit.Commit commit = firestore_commit.Commit()
+    ..name = sha ?? '$i'
+    ..fields = <String, Value>{
+      kCommitCreateTimestampField: Value(integerValue: (createTimestamp ?? i).toString()),
+      kCommitRepositoryPathField: Value(stringValue: '$owner/$repo'),
+      kCommitBranchField: Value(stringValue: branch),
+      kCommitShaField: Value(stringValue: sha ?? '$i'),
+    };
+  return commit;
+}
+
+GithubGoldStatus generateFirestoreGithubGoldStatus(
+  int i, {
+  String? head,
+  int? pr,
+  String owner = 'flutter',
+  String repo = 'flutter',
+  int? updates,
+}) {
+  pr ??= i;
+  head ??= 'sha$i';
+  final GithubGoldStatus commit = GithubGoldStatus()
+    ..name = '{$pr}_$head'
+    ..fields = <String, Value>{
+      kGithubGoldStatusHeadField: Value(stringValue: head),
+      kGithubGoldStatusPrNumberField: Value(integerValue: pr.toString()),
+      kGithubGoldStatusRepositoryField: Value(stringValue: '$owner/$repo'),
+      kGithubGoldStatusUpdatesField: Value(integerValue: updates.toString()),
+    };
+  return commit;
+}
+
 Target generateTarget(
   int i, {
   pb.SchedulerConfig? schedulerConfig,
@@ -107,6 +186,7 @@ Target generateTarget(
   bool? bringup,
   github.RepositorySlug? slug,
   pb.SchedulerSystem? schedulerSystem,
+  String recipe = 'devicelab/devicelab',
 }) {
   final pb.SchedulerConfig config = schedulerConfig ?? exampleConfig.config;
   if (platformProperties != null && platformDimensions != null) {
@@ -129,6 +209,7 @@ Target generateTarget(
       runIf: runIf ?? <String>[],
       runIfNot: runIfNot ?? <String>[],
       bringup: bringup ?? false,
+      recipe: recipe,
       scheduler: schedulerSystem ?? pb.SchedulerSystem.cocoon,
     ),
   );

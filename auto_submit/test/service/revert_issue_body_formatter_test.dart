@@ -9,21 +9,30 @@ import 'package:test/test.dart';
 void main() {
   // Calls are made as they are done in git_cli_revert_method.dart.
   test('Allow nullable fields in formatter.', () {
-    final PullRequest pullRequest = PullRequest(number: 123456, body: null, title: 'Interesting title.');
+    final PullRequest pullRequest = PullRequest(number: 54, body: null, title: 'Interesting title.');
     const String sender = 'RevertAuthor';
+    const String reason = 'Revert reason: test xyz has began failing constantly.';
+    const String originalPrAuthor = 'caradune';
+    final Set<String> originalPrReviewers = {'Mando', 'Grogu'};
     RevertIssueBodyFormatter? revertIssueBodyFormatter;
     expect(
       () => revertIssueBodyFormatter = RevertIssueBodyFormatter(
         slug: RepositorySlug('flutter', 'flutter'),
-        originalPrNumber: pullRequest.number!,
+        prToRevertNumber: pullRequest.number!,
         initiatingAuthor: sender,
-        originalPrTitle: pullRequest.title,
-        originalPrBody: pullRequest.body,
+        revertReason: reason,
+        prToRevertAuthor: originalPrAuthor,
+        prToRevertReviewers: originalPrReviewers,
+        prToRevertTitle: pullRequest.title,
+        prToRevertBody: pullRequest.body,
       ),
       returnsNormally,
     );
     revertIssueBodyFormatter!.format;
     expect(revertIssueBodyFormatter, isNotNull);
+    expect(revertIssueBodyFormatter!.revertPrTitle, 'Reverts "Interesting title. (#54)"');
     expect(revertIssueBodyFormatter!.revertPrBody!.contains('No description provided.'), isTrue);
+    expect(revertIssueBodyFormatter!.formattedRevertPrBody!.contains(originalPrAuthor), isTrue);
+    expect(revertIssueBodyFormatter!.formattedRevertPrBody!.contains('Mando'), isTrue);
   });
 }

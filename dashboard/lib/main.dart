@@ -4,17 +4,21 @@
 
 import 'dart:io' if (kIsWeb) '';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 import 'build_dashboard_page.dart';
+import 'firebase_options.dart';
 import 'service/cocoon.dart';
 import 'service/google_authentication.dart';
 import 'state/build.dart';
 import 'widgets/now.dart';
 import 'widgets/state_provider.dart';
+import 'widgets/task_box.dart';
 
 void usage() {
   // ignore: avoid_print
@@ -28,7 +32,7 @@ Usage: cocoon [--use-production-service | --no-use-production-service]
 ''');
 }
 
-void main([List<String> args = const <String>[]]) {
+void main([List<String> args = const <String>[]]) async {
   bool useProductionService = kReleaseMode;
   if (args.contains('--help')) {
     usage();
@@ -42,6 +46,18 @@ void main([List<String> args = const <String>[]]) {
   if (args.contains('--no-use-production-service')) {
     useProductionService = false;
   }
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  FlutterError.onError = (errorDetails) {
+    FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+  };
+  // Pass all uncaught asynchronous errors that aren't handled by the Flutter framework to Crashlytics
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
   final GoogleSignInService authService = GoogleSignInService();
   final CocoonService cocoonService = CocoonService(useProductionService: useProductionService);
   runApp(
@@ -60,37 +76,39 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Build Dashboard — Cocoon',
-      shortcuts: <ShortcutActivator, Intent>{
-        ...WidgetsApp.defaultShortcuts,
-        const SingleActivator(LogicalKeyboardKey.select): const ActivateIntent(),
-      },
-      theme: ThemeData(
-        useMaterial3: false,
-        primaryTextTheme: const TextTheme(
-          bodyLarge: TextStyle(color: Colors.black87),
+    return TaskBox(
+      child: MaterialApp(
+        title: 'Flutter Build Dashboard — Cocoon',
+        shortcuts: <ShortcutActivator, Intent>{
+          ...WidgetsApp.defaultShortcuts,
+          const SingleActivator(LogicalKeyboardKey.select): const ActivateIntent(),
+        },
+        theme: ThemeData(
+          useMaterial3: false,
+          primaryTextTheme: const TextTheme(
+            bodyLarge: TextStyle(color: Colors.black87),
+          ),
         ),
+        darkTheme: ThemeData.dark(),
+        initialRoute: BuildDashboardPage.routeName,
+        routes: <String, WidgetBuilder>{
+          BuildDashboardPage.routeName: (BuildContext context) => const BuildDashboardPage(),
+        },
+        onGenerateRoute: (RouteSettings settings) {
+          final Uri uriData = Uri.parse(settings.name!);
+          if (uriData.path == BuildDashboardPage.routeName) {
+            return MaterialPageRoute<void>(
+              settings: RouteSettings(name: uriData.toString()),
+              builder: (BuildContext context) {
+                return BuildDashboardPage(
+                  queryParameters: uriData.queryParameters,
+                );
+              },
+            );
+          }
+          return null;
+        },
       ),
-      darkTheme: ThemeData.dark(),
-      initialRoute: BuildDashboardPage.routeName,
-      routes: <String, WidgetBuilder>{
-        BuildDashboardPage.routeName: (BuildContext context) => const BuildDashboardPage(),
-      },
-      onGenerateRoute: (RouteSettings settings) {
-        final Uri uriData = Uri.parse(settings.name!);
-        if (uriData.path == BuildDashboardPage.routeName) {
-          return MaterialPageRoute<void>(
-            settings: RouteSettings(name: uriData.toString()),
-            builder: (BuildContext context) {
-              return BuildDashboardPage(
-                queryParameters: uriData.queryParameters,
-              );
-            },
-          );
-        }
-        return null;
-      },
     );
   }
 }

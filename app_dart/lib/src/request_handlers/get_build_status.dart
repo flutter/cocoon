@@ -28,15 +28,18 @@ class GetBuildStatus extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
+    final BuildStatusResponse response = await createResponse();
+    return Body.forJson(response.writeToJsonMap());
+  }
+
+  Future<BuildStatusResponse> createResponse() async {
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusProvider(datastore);
     final String repoName = request!.uri.queryParameters[kRepoParam] ?? 'flutter';
     final RepositorySlug slug = RepositorySlug('flutter', repoName);
     final BuildStatus status = (await buildStatusService.calculateCumulativeStatus(slug))!;
-    final BuildStatusResponse response = BuildStatusResponse()
+    return BuildStatusResponse()
       ..buildStatus = status.succeeded ? EnumBuildStatus.success : EnumBuildStatus.failure
       ..failingTasks.addAll(status.failedTasks);
-
-    return Body.forJson(response.writeToJsonMap());
   }
 }

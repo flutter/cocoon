@@ -11,6 +11,7 @@ app_dart/lib/src/request_handlers/dart_internal_subscription.dart           @dre
 app_dart/lib/src/request_handlers/file_flaky_issue_and_pr.dart              @keyonghan
 app_dart/lib/src/request_handlers/flush_cache.dart                          @keyonghan
 app_dart/lib/src/request_handlers/get_build_status.dart                     @keyonghan
+app_dart/lib/src/request_handlers/get_build_status_badge.dart               @CaseyHillers
 app_dart/lib/src/request_handlers/get_release_branches.dart                 @CaseyHillers
 app_dart/lib/src/request_handlers/get_repos.dart                            @keyonghan
 app_dart/lib/src/request_handlers/get_status.dart                           @keyonghan
@@ -31,8 +32,9 @@ app_dart/lib/src/request_handlers/update_existing_flaky_issues.dart         @key
 app_dart/lib/src/request_handlers/update_task_status.dart                   @keyonghan
 app_dart/lib/src/request_handlers/vacuum_github_commits.dart                @keyonghan
 
-## auto_submit app
+## apps
 auto_submit                                                                 @ricardoamador
+triage_bot                                                                  @Hixie
 
 ## cipd packages
 cipd_packages/codesign/**                                                   @XilaiZhang

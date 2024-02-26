@@ -6,9 +6,11 @@ import 'dart:async';
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart' as gh;
+import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
 import '../../model/appengine/task.dart';
+import '../../model/firestore/task.dart' as firestore;
 import '../../service/datastore.dart';
 import '../../service/logging.dart';
 
@@ -53,32 +55,28 @@ class VacuumStaleTasks extends RequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider(config.db);
 
     final List<FullTask> tasks = await datastore.queryRecentTasks(slug: slug).toList();
-    final Set<Task> tasksToBeReset = <Task>{};
+    final List<Task> tasksToBeReset = <Task>[];
     for (FullTask fullTask in tasks) {
       final Task task = fullTask.task;
-      if (task.status != Task.statusInProgress) {
-        continue;
-      }
-
-      if (task.createTimestamp == null) {
-        log.fine('Vacuuming $task due to createTimestamp being null');
+      if (task.status == Task.statusInProgress && task.buildNumber == null) {
+        task.status = Task.statusNew;
+        task.createTimestamp = 0;
         tasksToBeReset.add(task);
-        continue;
-      }
-
-      final DateTime now = nowValue ?? DateTime.now();
-      final DateTime create = DateTime.fromMillisecondsSinceEpoch(task.createTimestamp!);
-      final Duration queueTime = now.difference(create);
-
-      if (queueTime > kTimeoutLimit) {
-        log.fine('Vacuuming $task due to staleness');
-        tasksToBeReset.add(task);
-        continue;
       }
     }
+    log.info('Vacuuming stale tasks: $tasksToBeReset');
+    await datastore.insert(tasksToBeReset);
 
-    final Iterable<Task> inserts =
-        tasksToBeReset.map((Task task) => task..status = Task.statusNew).map((Task task) => task..createTimestamp = 0);
-    await datastore.insert(inserts.toList());
+    await updateTaskDocuments(tasksToBeReset);
+  }
+
+  Future<void> updateTaskDocuments(List<Task> tasks) async {
+    if (tasks.isEmpty) {
+      return;
+    }
+    final List<firestore.Task> taskDocuments = tasks.map((e) => taskToTaskDocument(e)).toList();
+    final List<Write> writes = documentsToWrites(taskDocuments, exists: true);
+    final FirestoreService firestoreService = await config.createFirestoreService();
+    await firestoreService.writeViaTransaction(writes);
   }
 }

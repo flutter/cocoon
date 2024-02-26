@@ -672,6 +672,28 @@ void main() {
 
       expect(result['Status'], 'success');
     });
+
+    test('skips when the target doesn not exist', () {
+      final YamlMap? ci = loadYaml(ciYamlContent) as YamlMap?;
+      final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
+      final CiYaml ciYaml = CiYaml(
+        slug: Config.flutterSlug,
+        branch: Config.defaultBranch(Config.flutterSlug),
+        config: unCheckedSchedulerConfig,
+      );
+      final BuilderStatistic builderStatistic = BuilderStatistic(
+        name: 'Mac_android test',
+        flakyRate: 0.5,
+        flakyBuilds: <String>['103', '102', '101'],
+        succeededBuilds: <String>['203', '202', '201'],
+        recentCommit: 'abc',
+        flakyBuildOfRecentCommit: '103',
+        flakyNumber: 3,
+        totalNumber: 6,
+      );
+      final List<pb.Target> targets = unCheckedSchedulerConfig.targets;
+      expect(handler.shouldSkip(builderStatistic, ciYaml, targets), true);
+    });
   });
 
   test('retrieveMetaTagsFromContent can work with different newlines', () async {

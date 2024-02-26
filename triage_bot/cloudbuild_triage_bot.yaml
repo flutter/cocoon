@@ -1,0 +1,27 @@
+# Copyright 2019 The Flutter Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+steps:
+  # Build docker image
+  - name: 'us-docker.pkg.dev/cloud-builders/ga/v1/docker'
+    args: ['build', '-t', 'us-docker.pkg.dev/$PROJECT_ID/appengine/triage_bot.version-$SHORT_SHA', 'triage_bot']
+
+  # Trigger the cloud build that deploys the docker image
+  - name: gcr.io/cloud-builders/gcloud
+    entrypoint: '/bin/bash'
+    args:
+      - '-c'
+      - |-
+        gcloud builds submit \
+          --config triage_bot/cloudbuild_triage_bot_deploy.yaml \
+          --substitutions="SHORT_SHA=$SHORT_SHA" \
+          --async
+
+timeout: 1200s
+
+images: ['us-docker.pkg.dev/$PROJECT_ID/appengine/triage_bot.version-$SHORT_SHA']
+
+# If build provenance is not generated, the docker deployment will fail.
+options:
+  requestedVerifyOption: VERIFIED

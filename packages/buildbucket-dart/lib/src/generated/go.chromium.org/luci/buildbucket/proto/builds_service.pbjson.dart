@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -539,34 +539,3 @@ const BuildRange$json = {
 final $typed_data.Uint8List buildRangeDescriptor =
     $convert.base64Decode('CgpCdWlsZFJhbmdlEiQKDnN0YXJ0X2J1aWxkX2lkGAEgASgDUgxzdGFydEJ1aWxkSWQSIAoMZW'
         '5kX2J1aWxkX2lkGAIgASgDUgplbmRCdWlsZElk');
-
-@$core.Deprecated('Use startBuildTaskRequestDescriptor instead')
-const StartBuildTaskRequest$json = {
-  '1': 'StartBuildTaskRequest',
-  '2': [
-    {'1': 'request_id', '3': 1, '4': 1, '5': 9, '8': {}, '10': 'requestId'},
-    {'1': 'build_id', '3': 2, '4': 1, '5': 3, '8': {}, '10': 'buildId'},
-    {'1': 'task', '3': 3, '4': 1, '5': 11, '6': '.buildbucket.v2.Task', '8': {}, '10': 'task'},
-  ],
-};
-
-/// Descriptor for `StartBuildTaskRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List startBuildTaskRequestDescriptor =
-    $convert.base64Decode('ChVTdGFydEJ1aWxkVGFza1JlcXVlc3QSIgoKcmVxdWVzdF9pZBgBIAEoCUID4EECUglyZXF1ZX'
-        'N0SWQSHgoIYnVpbGRfaWQYAiABKANCA+BBAlIHYnVpbGRJZBItCgR0YXNrGAMgASgLMhQuYnVp'
-        'bGRidWNrZXQudjIuVGFza0ID4EECUgR0YXNr');
-
-@$core.Deprecated('Use startBuildTaskResponseDescriptor instead')
-const StartBuildTaskResponse$json = {
-  '1': 'StartBuildTaskResponse',
-  '2': [
-    {'1': 'secrets', '3': 1, '4': 1, '5': 11, '6': '.buildbucket.v2.BuildSecrets', '10': 'secrets'},
-    {'1': 'pubsub_topic', '3': 2, '4': 1, '5': 9, '10': 'pubsubTopic'},
-  ],
-};
-
-/// Descriptor for `StartBuildTaskResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List startBuildTaskResponseDescriptor =
-    $convert.base64Decode('ChZTdGFydEJ1aWxkVGFza1Jlc3BvbnNlEjYKB3NlY3JldHMYASABKAsyHC5idWlsZGJ1Y2tldC'
-        '52Mi5CdWlsZFNlY3JldHNSB3NlY3JldHMSIQoMcHVic3ViX3RvcGljGAIgASgJUgtwdWJzdWJU'
-        'b3BpYw==');

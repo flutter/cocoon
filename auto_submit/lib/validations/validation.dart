@@ -14,6 +14,7 @@ const CHANGES_REQUESTED_STATE = 'CHANGES_REQUESTED';
 /// GitHub status state.
 const STATUS_SUCCESS = 'SUCCESS';
 const STATUS_FAILURE = 'FAILURE';
+const STATUS_PENDING = 'PENDING';
 
 /// GitHub merge state.
 const UNKNOWN_MERGE_STATE = 'UNKNOWN';
