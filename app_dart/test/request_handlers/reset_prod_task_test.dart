@@ -96,6 +96,11 @@ void main() {
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
       expect(await tester.post(handler), Body.empty);
+
+      final List<dynamic> captured = verify(mockFirestoreService.getDocument(captureAny)).captured;
+      expect(captured.length, 1);
+      final String documentName = captured[0] as String;
+      expect(documentName, '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${task.name}_${task.attempts}');
     });
 
     test('Re-schedule existing task', () async {
