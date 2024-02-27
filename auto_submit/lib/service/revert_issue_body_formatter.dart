@@ -44,19 +44,28 @@ class RevertIssueBodyFormatter {
 
     // Create the body for the revert issue.
     revertPrBody = '''
+<!-- start_original_pr_link -->
 $revertPrLink
-
+<!-- end_original_pr_link -->
+<!-- start_initiating_author -->
 Initiated by: $initiatingAuthor
-
+<!-- end_initiating_author -->
+<!-- start_revert_reason -->
 Reason for reverting: $revertReason
-
+<!-- end_revert_reason -->
+<!-- start_original_pr_author -->
 Original PR Author: $prToRevertAuthor
+<!-- end_original_pr_author -->
 
+<!-- start_reviewers -->
 Reviewed By: ${SetBase.setToString(prToRevertReviewers)}
+<!-- end_reviewers -->
 
+<!-- start_revert_body -->
 This change reverts the following previous change:
 Original Description:
 $prToRevertBody
+<!-- end_revert_body -->
 ''';
 
     return this;
