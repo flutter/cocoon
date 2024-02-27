@@ -138,6 +138,8 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       slug: slug,
     );
     final Commit commit = await _getCommitFromTask(datastore, task);
+    sha ??= commit.id!.split('/').last;
+    taskName ??= task.name;
 
     final CiYaml ciYaml = await scheduler.getCiYaml(commit);
     final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
