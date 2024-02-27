@@ -4,10 +4,12 @@
 
 import 'dart:async';
 
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/service/config.dart';
+import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore;
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 import 'package:truncate/truncate.dart';
 
@@ -83,6 +85,7 @@ class CommitService {
   }
 
   Future<void> _insertCommitIntoDatastore(DatastoreService datastore, Commit commit) async {
+    final FirestoreService firestoreService = await config.createFirestoreService();
     final DatastoreService datastore = datastoreProvider(config.db);
     try {
       log.info('Checking for existing commit in the datastore');
@@ -90,6 +93,13 @@ class CommitService {
     } on KeyNotFoundException {
       log.info('Commit does not exist in datastore, inserting into datastore');
       await datastore.insert(<Commit>[commit]);
+      try {
+        final firestore.Commit commitDocument = commitToCommitDocument(commit);
+        final List<Write> writes = documentsToWrites([commitDocument], exists: false);
+        await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
+      } catch (error) {
+        log.warning('Failed to insert new branched commit in Firestore: $error');
+      }
     }
   }
 }
