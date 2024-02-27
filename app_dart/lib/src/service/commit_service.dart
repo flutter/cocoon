@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore;
-import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
@@ -16,7 +15,6 @@ import 'package:truncate/truncate.dart';
 
 import 'logging.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/hooks.dart';
 
