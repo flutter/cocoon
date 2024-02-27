@@ -1,19 +1,15 @@
-import 'dart:convert';
+// Copyright 2024 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 import 'package:http/http.dart' as http;
 
 import '../foundation/providers.dart';
-import 'access_client_provider.dart';
 import 'log.dart';
 
 class DiscordNotification {
-  /*
-    curl -X POST \
-    -H 'content-type: application/json' \
-    -d '{"content": "Testing webhook.", "username": "autosubmit"}' \
-    https://discord.com/api/webhooks/1026618310458081290/99V7abNhiKyJHZHn_RrSs0mJvxTg1aJYfhSlM8tTn6fQ86A0Jf1DL1Yp4I2NqZnbQUt3
-  */
-  Uri DISCORD_URI = Uri(host: 'https://discord.com/api/webhooks/895769852046893097/PKZyS2QKY--pH0wQIx2ThUegHcdh5yoSsZCFqJn94e8aP7kcxIaAKuDY7ztUweZtf2dE');
+  
+  final Uri discordUri = Uri(host: 'https://discord.com/api/webhooks/895769852046893097/PKZyS2QKY--pH0wQIx2ThUegHcdh5yoSsZCFqJn94e8aP7kcxIaAKuDY7ztUweZtf2dE');
   Map<String, String> headers = <String, String>{
     'content-type': 'application/json',
   };
@@ -22,22 +18,24 @@ class DiscordNotification {
 
   final HttpProvider httpProvider = Providers.freshHttpClient;
 
-  void notifyOfRevert(String prUrl) async {
+  void notifyOfRevert(String initiatingAuthor, String originalPrUrl, String revertPrUrl, String reasonForRevert) async {
      final http.Client client = httpProvider();
-    // TODO(KristinBi): Track the installation id by repo. https://github.com/flutter/flutter/issues/100808
+
     final http.Response response = await client.post(
-      DISCORD_URI,
+      discordUri,
       headers: headers,
-      body: _formatMessage(prUrl),
+      body: _formatMessage(initiatingAuthor, originalPrUrl, revertPrUrl, reasonForRevert),
     );
-    final List<Map<String, dynamic>> list = (json.decode(response.body) as List<dynamic>).cast<Map<String, dynamic>>();
+
+    log.info('discord webhook status: ${response.statusCode}');
+    log.info('discord webhook response body: ${response.body}');
   }
 
-  String _formatMessage(String prUrl) {
+  String _formatMessage(String initiatingAuthor, String originalPrUrl, String revertPrUrl, String reasonForRevert) {
     return '''
       {
-        "content": "$prUrl has been reverted.",
-        "username": "Revert-bot"
+        "content": "Pull Request $originalPrUrl has been reverted by $initiatingAuthor.\nReason: $reasonForRevert.\nRevert link: $revertPrUrl",
+        "username": "autosubmit[bot]"
       }
     ''';
   }

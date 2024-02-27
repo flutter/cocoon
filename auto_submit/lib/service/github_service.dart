@@ -324,4 +324,9 @@ class GithubService {
     final Repository repository = await getRepository(slug);
     return repository.defaultBranch;
   }
+
+  final String urlPrefix = 'https://github.com/';
+
+  // Returns a url of the form: 'https://github.com/flutter/flutter/pull/123456'
+  String prUrl(RepositorySlug slug, int pullRequestNumber) => '$urlPrefix${slug.fullName}/pull/$pullRequestNumber}';
 }

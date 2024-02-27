@@ -417,4 +417,10 @@ class FakeGithubService implements GithubService {
   ) async {
     return pullRequestReviewsMock;
   }
+  
+  @override
+  String prUrl(RepositorySlug slug, int pullRequestNumber) => '$urlPrefix${slug.fullName}/pull/$pullRequestNumber}';
+  
+  @override
+  final String urlPrefix = 'https://github.com/';
 }
