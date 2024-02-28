@@ -331,8 +331,8 @@ class RevertRequestValidationService extends ValidationService {
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int revertPrNumber = messagePullRequest.number!;
     // https://github.com/flutter/flutter/pulls
-    final String constructedOriginalPrUrl = '$githubPrefix/${slug.fullName}/pulls/$originalPrNumber';
-    final String constructedRevertPrUrl = '$githubPrefix/${slug.fullName}/pulls/$revertPrNumber';
+    final String constructedOriginalPrUrl = '$githubPrefix/${slug.fullName}/pull/$originalPrNumber';
+    final String constructedRevertPrUrl = '$githubPrefix/${slug.fullName}/pull/$revertPrNumber';
     final String? initiatingAuthor = revertInfoCollection.extractInitiatingAuthor(prBody);
     final String? revertReason = revertInfoCollection.extractRevertReason(prBody);
     final RevertDiscordMessage revertDiscordMessage = RevertDiscordMessage();

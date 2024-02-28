@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto hide PullRequest;
 import 'package:auto_submit/requests/github_pull_request_event.dart';
+import 'package:auto_submit/service/discord_notification.dart';
 import 'package:auto_submit/service/revert_request_validation_service.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/validations/validation.dart';
@@ -1179,6 +1180,24 @@ void main() {
       expect(githubService.issueComment, isNotNull);
       expect(githubService.labelRemoved, true);
       assert(pubsub.messagesQueue.isEmpty);
+    });
+  });
+
+  group('Craft discord message', () {
+    test('Craft discord message', () async {
+      const String expected = 'Pull Request https://github.com/flutter/cocoon/pull/3460 has been reverted by yusuf-goog here: https://github.com/flutter/cocoon/pull/3461.';
+      const String expectedReason = 'Reason for Revert: comment was added by mistake.';
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 3461,
+        repoName: slug.name,
+        labelName: 'revert of',
+        body: sampleRevertBody.replaceAll('\n', ''),
+      );
+
+      final Message message = validationService.craftDiscordRevertMessage(pullRequest);
+      expect(message.username, 'Revert bot');
+      expect(message.content!.contains(expected), isTrue);
+      expect(message.content!.contains(expectedReason), isTrue);
     });
   });
 
