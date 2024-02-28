@@ -7,9 +7,9 @@ part of 'discord_notification.dart';
 // **************************************************************************
 
 Message _$MessageFromJson(Map<String, dynamic> json) => Message(
-      json['content'] as String?,
-      json['username'] as String?,
-      json['avatar_url'] as String?,
+      content: json['content'] as String?,
+      username: json['username'] as String?,
+      avatarUrl: json['avatar_url'] as String?,
     );
 
 Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{

@@ -26,7 +26,7 @@ class DiscordNotification {
   final HttpProvider httpProvider = Providers.freshHttpClient;
 
   // void notifyOfRevert(String initiatingAuthor, String originalPrUrl, String revertPrUrl, String reasonForRevert) async {
-  void notifyDiscordChannelWebhook(String jsonMessageString) async {
+  notifyDiscordChannelWebhook(String jsonMessageString) async {
      final http.Client client = httpProvider();
 
     final http.Response response = await client.post(

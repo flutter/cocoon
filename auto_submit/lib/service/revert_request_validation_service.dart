@@ -29,7 +29,7 @@ import 'process_method.dart';
 enum RevertProcessMethod { revert, revertOf, none }
 
 class RevertRequestValidationService extends ValidationService {
-  RevertRequestValidationService(Config config, {RetryOptions? retryOptions, RevertMethod? revertMethod})
+  RevertRequestValidationService(Config config, {RetryOptions? retryOptions, RevertMethod? revertMethod,})
       : revertMethod = revertMethod ?? GitCliRevertMethod(),
         super(config, retryOptions: retryOptions) {
     /// Validates a PR marked with the reverts label.
@@ -41,6 +41,7 @@ class RevertRequestValidationService extends ValidationService {
   RevertMethod? revertMethod;
   @visibleForTesting
   ValidationFilter? validationFilter;
+  DiscordNotification? discordNotification;
 
   /// TODO run the actual request from here and remove the shouldProcess call.
   /// Processes a pub/sub message associated with PullRequest event.
@@ -295,7 +296,7 @@ class RevertRequestValidationService extends ValidationService {
       log.info(message);
     } else {
       // Need to add the discord notification here.
-      final DiscordNotification discordNotification = DiscordNotification(targetUri: config.treeStatusDiscordUri);
+      final DiscordNotification discordNotification = await discordNotificationClient;
       final Message discordMessage = craftDiscordRevertMessage(messagePullRequest);
       discordNotification.notifyDiscordChannelWebhook(jsonEncode(discordMessage.toJson()));
 
@@ -312,6 +313,11 @@ class RevertRequestValidationService extends ValidationService {
 
     log.info('Ack the processed message : $ackId.');
     await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
+  }
+
+  Future<DiscordNotification> get discordNotificationClient async {
+    discordNotification ??= DiscordNotification(targetUri: Uri(host: 'discord.com', path: await config.getTreeStatusDiscordUrl(), scheme: 'https'));
+    return discordNotification!;
   }
 
   Message craftDiscordRevertMessage(github.PullRequest messagePullRequest) {

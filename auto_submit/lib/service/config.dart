@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/configuration/repository_configuration_manager.dart';
+import 'package:auto_submit/service/discord_notification.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -44,6 +45,7 @@ class Config {
   static const String kGithubAppId = 'AUTO_SUBMIT_GITHUB_APP_ID';
   static const String kWebHookKey = 'AUTO_SUBMIT_WEBHOOK_TOKEN';
   static const String kFlutterGitHubBotKey = 'AUTO_SUBMIT_FLUTTER_GITHUB_TOKEN';
+  static const String kTreeStatusDiscordUrl = 'TREE_STATUS_DISCORD_WEBHOOK_URL';
 
   /// Labels autosubmit looks for on pull requests
   static const String kAutosubmitLabel = 'autosubmit';
@@ -99,8 +101,6 @@ class Config {
 
   /// PubSub configs
   int get kPullMesssageBatchSize => 100;
-
-  Uri get treeStatusDiscordUri => Uri(host: 'https://discord.com/api/webhooks/895769852046893097/PKZyS2QKY--pH0wQIx2ThUegHcdh5yoSsZCFqJn94e8aP7kcxIaAKuDY7ztUweZtf2dE');
 
   /// Number of Pub/Sub pull calls in each cron job run.
   ///
@@ -278,6 +278,13 @@ class Config {
   Future<String> getFlutterGitHubBotToken() async {
     final Uint8List? cacheValue = await cache[kFlutterGitHubBotKey].get(
       () => _getValueFromSecretManager(kFlutterGitHubBotKey),
+    ) as Uint8List?;
+    return String.fromCharCodes(cacheValue!);
+  }
+
+  Future<String> getTreeStatusDiscordUrl() async {
+    final Uint8List? cacheValue = await cache[kTreeStatusDiscordUrl].get(
+      () => _getValueFromSecretManager(kTreeStatusDiscordUrl),
     ) as Uint8List?;
     return String.fromCharCodes(cacheValue!);
   }
