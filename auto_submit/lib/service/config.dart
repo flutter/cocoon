@@ -100,6 +100,8 @@ class Config {
   /// PubSub configs
   int get kPullMesssageBatchSize => 100;
 
+  Uri get treeStatusDiscordUri => Uri(host: 'https://discord.com/api/webhooks/895769852046893097/PKZyS2QKY--pH0wQIx2ThUegHcdh5yoSsZCFqJn94e8aP7kcxIaAKuDY7ztUweZtf2dE');
+
   /// Number of Pub/Sub pull calls in each cron job run.
   ///
   /// TODO(keyonghan): monitor and optimize this number based on response time
