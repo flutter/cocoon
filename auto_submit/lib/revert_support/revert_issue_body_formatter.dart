@@ -73,5 +73,5 @@ $prToRevertBody
 
   String? get formattedRevertPrTitle => revertPrTitle;
 
-  String? get formattedRevertPrBody => revertPrBody; 
+  String? get formattedRevertPrBody => revertPrBody;
 }

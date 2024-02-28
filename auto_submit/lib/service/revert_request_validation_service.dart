@@ -29,8 +29,11 @@ import 'process_method.dart';
 enum RevertProcessMethod { revert, revertOf, none }
 
 class RevertRequestValidationService extends ValidationService {
-  RevertRequestValidationService(Config config, {RetryOptions? retryOptions, RevertMethod? revertMethod,})
-      : revertMethod = revertMethod ?? GitCliRevertMethod(),
+  RevertRequestValidationService(
+    Config config, {
+    RetryOptions? retryOptions,
+    RevertMethod? revertMethod,
+  })  : revertMethod = revertMethod ?? GitCliRevertMethod(),
         super(config, retryOptions: retryOptions) {
     /// Validates a PR marked with the reverts label.
     approverService = ApproverService(config);
@@ -316,7 +319,13 @@ class RevertRequestValidationService extends ValidationService {
   }
 
   Future<DiscordNotification> get discordNotificationClient async {
-    discordNotification ??= DiscordNotification(targetUri: Uri(host: 'discord.com', path: await config.getTreeStatusDiscordUrl(), scheme: 'https'));
+    discordNotification ??= DiscordNotification(
+      targetUri: Uri(
+        host: 'discord.com',
+        path: await config.getTreeStatusDiscordUrl(),
+        scheme: 'https',
+      ),
+    );
     return discordNotification!;
   }
 
@@ -336,6 +345,11 @@ class RevertRequestValidationService extends ValidationService {
     final String? initiatingAuthor = revertInfoCollection.extractInitiatingAuthor(prBody);
     final String? revertReason = revertInfoCollection.extractRevertReason(prBody);
     final RevertDiscordMessage revertDiscordMessage = RevertDiscordMessage();
-    return revertDiscordMessage.message(constructedOriginalPrUrl, constructedRevertPrUrl, initiatingAuthor!, revertReason!,);
+    return revertDiscordMessage.message(
+      constructedOriginalPrUrl,
+      constructedRevertPrUrl,
+      initiatingAuthor!,
+      revertReason!,
+    );
   }
 }

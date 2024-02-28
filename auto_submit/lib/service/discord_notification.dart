@@ -11,7 +11,6 @@ import 'log.dart';
 part 'discord_notification.g.dart';
 
 class DiscordNotification {
-
   DiscordNotification({required this.targetUri, Map<String, String>? headers}) {
     this.headers = headers ??= defaultHeaders;
   }
@@ -27,7 +26,7 @@ class DiscordNotification {
 
   // void notifyOfRevert(String initiatingAuthor, String originalPrUrl, String revertPrUrl, String reasonForRevert) async {
   notifyDiscordChannelWebhook(String jsonMessageString) async {
-     final http.Client client = httpProvider();
+    final http.Client client = httpProvider();
 
     final http.Response response = await client.post(
       targetUri!,
@@ -59,7 +58,6 @@ class Message {
   @JsonKey(name: 'avatar_url')
   String? avatarUrl;
 
-  factory Message.fromJson(Map<String, dynamic> input) =>
-      _$MessageFromJson(input);
+  factory Message.fromJson(Map<String, dynamic> input) => _$MessageFromJson(input);
   Map<String, dynamic> toJson() => _$MessageToJson(this);
 }

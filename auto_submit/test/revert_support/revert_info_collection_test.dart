@@ -7,7 +7,6 @@ import 'package:test/test.dart';
 import 'revert_support_data.dart';
 
 void main() {
-
   RevertInfoCollection? revertInfoCollection;
 
   setUp(() {

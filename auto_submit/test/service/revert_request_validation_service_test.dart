@@ -470,7 +470,6 @@ void main() {
 
   group('Process "revert of" pull requests:', () {
     test('Pull request is not processed due to repo config', () async {
-      
       // setup
       config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfigRevertReviewRequired);
       final FakePubSub pubsub = FakePubSub();
@@ -1185,7 +1184,8 @@ void main() {
 
   group('Craft discord message', () {
     test('Craft discord message', () async {
-      const String expected = 'Pull Request https://github.com/flutter/cocoon/pull/3460 has been reverted by yusuf-goog here: https://github.com/flutter/cocoon/pull/3461.';
+      const String expected =
+          'Pull Request https://github.com/flutter/cocoon/pull/3460 has been reverted by yusuf-goog here: https://github.com/flutter/cocoon/pull/3461.';
       const String expectedReason = 'Reason for Revert: comment was added by mistake.';
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 3461,

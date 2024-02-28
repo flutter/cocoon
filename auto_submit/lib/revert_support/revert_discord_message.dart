@@ -1,6 +1,5 @@
 import 'package:auto_submit/service/discord_notification.dart';
 
-
 class RevertDiscordMessage {
   final String _username = 'Revert bot';
   final int discordMessageLength = 2000;
@@ -10,7 +9,9 @@ class RevertDiscordMessage {
     final String content = '''
 Pull Request $originalPrUrl has been reverted by $initiatingAuthor here: $revertPrUrl.
 Reason for Revert: $reasonForRevert''';
-    final String truncatedContent = content.length <= discordMessageLength ? content : '${content.substring(0, discordMessageLength - elipsesOffset)}...';
+    final String truncatedContent = content.length <= discordMessageLength
+        ? content
+        : '${content.substring(0, discordMessageLength - elipsesOffset)}...';
     return Message(content: truncatedContent, username: _username);
   }
 }
