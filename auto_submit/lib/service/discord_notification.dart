@@ -17,14 +17,12 @@ class DiscordNotification {
 
   Uri? targetUri;
   Map<String, String>? headers;
-  // final Uri discordTreeStatus = Uri(host: 'https://discord.com/api/webhooks/895769852046893097/PKZyS2QKY--pH0wQIx2ThUegHcdh5yoSsZCFqJn94e8aP7kcxIaAKuDY7ztUweZtf2dE');
   Map<String, String> defaultHeaders = <String, String>{
     'content-type': 'application/json',
   };
 
   final HttpProvider httpProvider = Providers.freshHttpClient;
 
-  // void notifyOfRevert(String initiatingAuthor, String originalPrUrl, String revertPrUrl, String reasonForRevert) async {
   notifyDiscordChannelWebhook(String jsonMessageString) async {
     final http.Client client = httpProvider();
 
@@ -37,15 +35,6 @@ class DiscordNotification {
     log.info('discord webhook status: ${response.statusCode}');
     log.info('discord webhook response body: ${response.body}');
   }
-
-  // String _formatMessage(String initiatingAuthor, String originalPrUrl, String revertPrUrl, String reasonForRevert) {
-  //   return '''
-  //     {
-  //       "content": "Pull Request $originalPrUrl has been reverted by $initiatingAuthor.\nReason: $reasonForRevert.\nRevert link: $revertPrUrl",
-  //       "username": "autosubmit[bot]"
-  //     }
-  //   ''';
-  // }
 }
 
 @JsonSerializable()
