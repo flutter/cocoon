@@ -7,7 +7,6 @@ import 'dart:typed_data';
 
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/configuration/repository_configuration_manager.dart';
-import 'package:auto_submit/service/discord_notification.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
