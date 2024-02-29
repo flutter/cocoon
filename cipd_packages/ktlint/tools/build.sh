@@ -15,7 +15,11 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 KTLINT_MAJOR_VERSION=$(cat $DIR/../ktlint_metadata.txt | cut -d ',' -f 1)
 KTLINT_FILE_NAME=$(cat $DIR/../ktlint_metadata.txt | cut -d ',' -f 2)
 
+# Create the package structure.
+rm -rf $DIR/../build && mkdir -p $DIR/../build
+mkdir -p $DIR/../build/ktlint
+
 # Install brew dependencies
 brew install curl
 
-curl https://github.com/pinterest/ktlint/releases/download/"$KTLINT_MAJOR_VERSION"/"$KTLINT_FILE_NAME"
+curl https://github.com/pinterest/ktlint/releases/download/"$KTLINT_MAJOR_VERSION"/"$KTLINT_FILE_NAME" -o $DIR/../build/ktlint
