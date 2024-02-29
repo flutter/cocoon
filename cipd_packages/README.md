@@ -13,7 +13,7 @@ necessary lib files if needed.
 
 Note:
 
-1) make sure the build scripts to create a `build` dir under the package folder and generate artifacts there
+1) make sure the build scripts create a `build` dir under the package folder and generate artifacts there
 2) we do not archive the binaries in the repo, and they will be uploaded to cipd via a bot.
 3) please add a code owner entry under section `cipd packages` in [CODEOWNERS](https://github.com/flutter/cocoon/blob/main/CODEOWNERS) file.
 
