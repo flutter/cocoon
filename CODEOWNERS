@@ -40,8 +40,8 @@ triage_bot                                                                  @Hix
 cipd_packages/codesign/**                                                   @XilaiZhang
 cipd_packages/device_doctor/**                                              @yusuf-goog
 cipd_packages/doxygen/**                                                    @gspencergoog
-cipd_packages/ruby/**                                                       @godofredoc
 cipd_packages/ktlint/**                                                     @gmackall
+cipd_packages/ruby/**                                                       @godofredoc
 
 ## gh_actions
 gh_actions/third_party/no-response/**                                       @godofredoc
