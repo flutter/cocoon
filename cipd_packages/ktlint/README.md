@@ -1,6 +1,6 @@
-# Ruby at Flutter
+# ktlint at Flutter
 
-The scripts in this folder are used to build and package the kotlin linter
+The scripts in this folder are used to package the kotlin linter
 ktlint as a self contained CIPD package. This package is used
 for linting kotlin code in the flutter/flutter repository.
 
