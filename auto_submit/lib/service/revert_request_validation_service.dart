@@ -329,7 +329,7 @@ class RevertRequestValidationService extends ValidationService {
     return discordNotification!;
   }
 
-  Message craftDiscordRevertMessage(github.PullRequest messagePullRequest) {
+  RevertDiscordMessage craftDiscordRevertMessage(github.PullRequest messagePullRequest) {
     const String githubPrefix = 'https://github.com';
     final RevertInfoCollection revertInfoCollection = RevertInfoCollection();
     final String prBody = messagePullRequest.body!;
@@ -344,8 +344,7 @@ class RevertRequestValidationService extends ValidationService {
     final String constructedRevertPrUrl = '$githubPrefix/${slug.fullName}/pull/$revertPrNumber';
     final String? initiatingAuthor = revertInfoCollection.extractInitiatingAuthor(prBody);
     final String? revertReason = revertInfoCollection.extractRevertReason(prBody);
-    final RevertDiscordMessage revertDiscordMessage = RevertDiscordMessage();
-    return revertDiscordMessage.message(
+    return RevertDiscordMessage.generateMessage(
       constructedOriginalPrUrl,
       constructedRevertPrUrl,
       initiatingAuthor!,

@@ -44,7 +44,7 @@ class Message {
   String? content;
   String? username;
   // avatar_url
-  @JsonKey(name: 'avatar_url')
+  @JsonKey(name: 'avatar_url', includeIfNull: false)
   String? avatarUrl;
 
   factory Message.fromJson(Map<String, dynamic> input) => _$MessageFromJson(input);
