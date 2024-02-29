@@ -5,10 +5,12 @@
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
+import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -25,6 +27,7 @@ void main() {
   late FakeHttpRequest request;
   late MockBuildBucketClient buildBucketClient;
   late SubscriptionTester tester;
+  late MockFirestoreService mockFirestoreService;
   late Commit commit;
   final DateTime startTime = DateTime(2023, 1, 1, 0, 0, 0);
   final DateTime endTime = DateTime(2023, 1, 1, 0, 14, 23);
@@ -48,7 +51,8 @@ void main() {
   ''';
 
   setUp(() async {
-    config = FakeConfig();
+    mockFirestoreService = MockFirestoreService();
+    config = FakeConfig(firestoreService: mockFirestoreService);
     buildBucketClient = MockBuildBucketClient();
     handler = DartInternalSubscription(
       cache: CacheService(inMemory: true),
@@ -99,6 +103,14 @@ void main() {
   });
 
   test('creates a new task successfully', () async {
+    when(
+      mockFirestoreService.batchWriteDocuments(
+        captureAny,
+        captureAny,
+      ),
+    ).thenAnswer((Invocation invocation) {
+      return Future<BatchWriteResponse>.value(BatchWriteResponse());
+    });
     tester.message = const push.PushMessage(data: fakePubsubMessage);
 
     await tester.post(handler);
@@ -156,9 +168,25 @@ void main() {
       taskInDb.toString(),
       equals(expectedTask.toString()),
     );
+
+    final List<dynamic> captured = verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+    expect(captured.length, 2);
+    final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+    expect(batchWriteRequest.writes!.length, 1);
+    final firestore.Task insertedTaskDocument =
+        firestore.Task.fromDocument(taskDocument: batchWriteRequest.writes![0].update!);
+    expect(insertedTaskDocument.taskName, expectedTask.name);
   });
 
   test('updates an existing task successfully', () async {
+    when(
+      mockFirestoreService.batchWriteDocuments(
+        captureAny,
+        captureAny,
+      ),
+    ).thenAnswer((Invocation invocation) {
+      return Future<BatchWriteResponse>.value(BatchWriteResponse());
+    });
     const int existingTaskId = 123;
     final Task fakeTask = Task(
       attempts: 1,
@@ -240,6 +268,14 @@ void main() {
       taskInDb.toString(),
       equals(expectedTask.toString()),
     );
+
+    final List<dynamic> captured = verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+    expect(captured.length, 2);
+    final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+    expect(batchWriteRequest.writes!.length, 1);
+    final firestore.Task insertedTaskDocument =
+        firestore.Task.fromDocument(taskDocument: batchWriteRequest.writes![0].update!);
+    expect(insertedTaskDocument.status, expectedTask.status);
   });
 
   test('ignores null message', () async {
