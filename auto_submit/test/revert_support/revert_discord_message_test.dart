@@ -11,7 +11,6 @@ void main() {
     const String revertPrUrl = 'https://example.com/pr/2';
     const String initiatingAuthor = 'John Doe';
     const String reasonForRevert = '''Test failed very long reason that will exceed the character limit
-     very long reason that will exceed the character limit 
      very long reason that will exceed the character limit
      very long reason that will exceed the character limit
      very long reason that will exceed the character limit
@@ -25,7 +24,6 @@ void main() {
      very long reason that will exceed the character limit
      very long reason that will exceed the character limit
      very long reason that will exceed the character limit
-     very long reason that will exceed the character limit 
      very long reason that will exceed the character limit
      very long reason that will exceed the character limit
      very long reason that will exceed the character limit
@@ -39,7 +37,9 @@ void main() {
      very long reason that will exceed the character limit
      very long reason that will exceed the character limit
      very long reason that will exceed the character limit
-     very long reason that will exceed the character limit 
+     very long reason that will exceed the character limit
+     very long reason that will exceed the character limit
+     very long reason that will exceed the character limit
      very long reason that will exceed the character limit
      very long reason that will exceed the character limit
      very long reason that will exceed the character limit
