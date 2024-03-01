@@ -155,6 +155,17 @@ targets:
       - cipd_packages/ruby/**
       - .ci.yaml
 
+  - name: Linux ktlint
+    bringup: true
+    recipe: cocoon/cipd
+    timeout: 60
+    properties:
+      script: cipd_packages/ktlint/tools/build.sh
+      cipd_name: flutter/ktlint/linux-amd64
+    runIf:
+      - cipd_packages/ktlint/**
+      - .ci.yaml
+
   - name: Linux ci_yaml roller
     recipe: infra/ci_yaml
     properties:
