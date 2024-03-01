@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/service/discord_notification.dart';
+import 'package:auto_submit/model/discord_message.dart';
 
 class RevertDiscordMessage extends Message {
   static const String _username = 'Revert bot';

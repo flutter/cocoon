@@ -3,12 +3,9 @@
 // found in the LICENSE file.
 
 import 'package:http/http.dart' as http;
-import 'package:json_annotation/json_annotation.dart';
 
 import '../foundation/providers.dart';
 import 'log.dart';
-
-part 'discord_notification.g.dart';
 
 class DiscordNotification {
   DiscordNotification({required this.targetUri, Map<String, String>? headers}) {
@@ -35,18 +32,4 @@ class DiscordNotification {
     log.info('discord webhook status: ${response.statusCode}');
     log.info('discord webhook response body: ${response.body}');
   }
-}
-
-@JsonSerializable()
-class Message {
-  Message({this.content, this.username, this.avatarUrl});
-
-  String? content;
-  String? username;
-  // avatar_url
-  @JsonKey(name: 'avatar_url', includeIfNull: false)
-  String? avatarUrl;
-
-  factory Message.fromJson(Map<String, dynamic> input) => _$MessageFromJson(input);
-  Map<String, dynamic> toJson() => _$MessageToJson(this);
 }

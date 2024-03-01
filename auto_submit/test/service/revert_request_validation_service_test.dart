@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto hide PullRequest;
 import 'package:auto_submit/requests/github_pull_request_event.dart';
-import 'package:auto_submit/service/discord_notification.dart';
+import 'package:auto_submit/model/discord_message.dart';
 import 'package:auto_submit/service/revert_request_validation_service.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/validations/validation.dart';

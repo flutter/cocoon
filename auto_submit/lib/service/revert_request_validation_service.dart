@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:auto_submit/model/discord_message.dart';
 import 'package:auto_submit/action/git_cli_revert_method.dart';
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';

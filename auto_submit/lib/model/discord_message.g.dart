@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'discord_notification.dart';
+part of 'discord_message.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
