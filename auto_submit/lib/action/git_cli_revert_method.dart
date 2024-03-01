@@ -16,7 +16,6 @@ import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/revert_support/revert_issue_body_formatter.dart';
 import 'package:github/github.dart' as github;
-import 'package:github/github.dart';
 import 'package:retry/retry.dart';
 
 class GitCliRevertMethod implements RevertMethod {
@@ -57,7 +56,7 @@ class GitCliRevertMethod implements RevertMethod {
     const RetryOptions retryOptions =
         RetryOptions(delayFactor: Duration(seconds: 1), maxDelay: Duration(seconds: 1), maxAttempts: 4);
 
-    Branch? branch;
+    github.Branch? branch;
     // Attempt a few times to get the branch name. This may not be needed.
     // Let the exception bubble up from here.
     await retryOptions.retry(
