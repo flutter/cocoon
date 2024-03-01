@@ -1,15 +1,12 @@
 import 'package:auto_submit/revert_support/revert_discord_message.dart';
-import 'package:auto_submit/service/discord_notification.dart';
 import 'package:test/test.dart';
 
 void main() {
-
   test('generateMessage truncates content when necessary', () {
     const String originalPrUrl = 'https://example.com/pr/1';
     const String revertPrUrl = 'https://example.com/pr/2';
     const String initiatingAuthor = 'John Doe';
-    const String reasonForRevert = 
-    '''Test failed very long reason that will exceed the character limit
+    const String reasonForRevert = '''Test failed very long reason that will exceed the character limit
      very long reason that will exceed the character limit 
      very long reason that will exceed the character limit
      very long reason that will exceed the character limit
@@ -46,7 +43,12 @@ void main() {
      very long reason that will exceed the character limit
      ''';
 
-    final RevertDiscordMessage message = RevertDiscordMessage.generateMessage(originalPrUrl, revertPrUrl, initiatingAuthor, reasonForRevert,);
+    final RevertDiscordMessage message = RevertDiscordMessage.generateMessage(
+      originalPrUrl,
+      revertPrUrl,
+      initiatingAuthor,
+      reasonForRevert,
+    );
 
     expect(message.content!.contains('...'), isTrue);
   });
@@ -60,7 +62,12 @@ void main() {
 Pull Request $originalPrUrl has been reverted by $initiatingAuthor here: $revertPrUrl.
 Reason for Revert: $reasonForRevert''';
 
-    final RevertDiscordMessage message = RevertDiscordMessage.generateMessage(originalPrUrl, revertPrUrl, initiatingAuthor, reasonForRevert,);
+    final RevertDiscordMessage message = RevertDiscordMessage.generateMessage(
+      originalPrUrl,
+      revertPrUrl,
+      initiatingAuthor,
+      reasonForRevert,
+    );
 
     expect(message.content, equals(expectedContent));
   });
@@ -74,7 +81,12 @@ Reason for Revert: $reasonForRevert''';
 Pull Request $originalPrUrl has been reverted by $initiatingAuthor here: $revertPrUrl.
 Reason for Revert: $reasonForRevert''';
 
-    final RevertDiscordMessage message = RevertDiscordMessage.generateMessage(originalPrUrl, revertPrUrl, initiatingAuthor, reasonForRevert,);
+    final RevertDiscordMessage message = RevertDiscordMessage.generateMessage(
+      originalPrUrl,
+      revertPrUrl,
+      initiatingAuthor,
+      reasonForRevert,
+    );
 
     expect(message.content, equals(expectedContent));
   });
