@@ -156,7 +156,6 @@ targets:
       - .ci.yaml
 
   - name: Linux ktlint
-    bringup: true
     recipe: cocoon/cipd
     timeout: 60
     properties:
