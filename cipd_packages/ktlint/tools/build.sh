@@ -17,6 +17,5 @@ KTLINT_FILE_NAME=$(cat $DIR/../ktlint_metadata.txt | cut -d ',' -f 2)
 
 # Create the package structure.
 rm -rf $DIR/../build && mkdir -p $DIR/../build
-mkdir -p $DIR/../build/ktlint
 
-curl https://github.com/pinterest/ktlint/releases/download/"$KTLINT_MAJOR_VERSION"/"$KTLINT_FILE_NAME" -o $DIR/../build/ktlint/ktlint
+curl https://github.com/pinterest/ktlint/releases/download/"$KTLINT_MAJOR_VERSION"/"$KTLINT_FILE_NAME" -o $DIR/../build/ktlint
