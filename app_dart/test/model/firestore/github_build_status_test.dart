@@ -58,8 +58,10 @@ void main() {
         githubBuildStatusDocument.fields![kGithubBuildStatusPrNumberField]!.integerValue,
         githubBuildStatusUpdate.pr.toString(),
       );
-      expect(githubBuildStatusDocument.fields![kGithubBuildStatusStatusField]!.stringValue,
-          githubBuildStatusUpdate.status);
+      expect(
+        githubBuildStatusDocument.fields![kGithubBuildStatusStatusField]!.stringValue,
+        githubBuildStatusUpdate.status,
+      );
       expect(
         githubBuildStatusDocument.fields![kGithubBuildStatusUpdatesField]!.integerValue,
         githubBuildStatusUpdate.updates.toString(),
