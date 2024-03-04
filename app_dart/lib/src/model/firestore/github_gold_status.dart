@@ -20,7 +20,7 @@ class GithubGoldStatus extends Document {
     return GithubGoldStatus.fromDocument(githubGoldStatus: document);
   }
 
-  /// Create [Commit] from a Commit Document.
+  /// Create [GithubGoldStatus] from a GithubGoldStatus Document.
   static GithubGoldStatus fromDocument({
     required Document githubGoldStatus,
   }) {
