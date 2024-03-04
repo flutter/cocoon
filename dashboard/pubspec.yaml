@@ -15,7 +15,7 @@ dependencies:
     sdk: flutter
   collection: any # Match Flutter SDK
   firebase_crashlytics: 3.4.15 # Rolled by dependabot
-  firebase_core: 2.25.4 # Rolled by dependabot
+  firebase_core: 2.25.5 # Rolled by dependabot
   fixnum: 1.1.0 # Rolled by dependabot
   flutter_app_icons: 0.0.9 # Rolled by dependabot
   google_sign_in: 6.2.1 # Rolled by dependabot
