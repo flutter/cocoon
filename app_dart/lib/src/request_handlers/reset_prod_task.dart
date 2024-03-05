@@ -146,7 +146,8 @@ class ResetProdTask extends ApiRequestHandler<Body> {
 
     firestore.Task? taskDocument;
     final int currentAttempt = task.attempts!;
-    final String documentName = '$kDatabase/documents/$kTaskCollectionId/${sha}_${taskName}_$currentAttempt';
+    final String documentName =
+        '$kDatabase/documents/${firestore.kTaskCollectionId}/${sha}_${taskName}_$currentAttempt';
     try {
       taskDocument = await firestore.Task.fromFirestore(firestoreService: firestoreService, documentName: documentName);
     } catch (error) {

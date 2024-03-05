@@ -167,8 +167,8 @@ class Scheduler {
 
     await _batchScheduleBuilds(commit, toBeScheduled);
     await _uploadToBigQuery(commit);
-    final firestore_commmit.Commit commitDocument = commitToCommitDocument(commit);
-    final List<firestore.Task> taskDocuments = targetsToTaskDocuments(commit, initialTargets);
+    final firestore_commmit.Commit commitDocument = firestore_commmit.commitToCommitDocument(commit);
+    final List<firestore.Task> taskDocuments = firestore.targetsToTaskDocuments(commit, initialTargets);
     final List<Write> writes = documentsToWrites([...taskDocuments, commitDocument], exists: false);
     final FirestoreService firestoreService = await config.createFirestoreService();
     // TODO(keyonghan): remove try catch logic after validated to work.

@@ -2,7 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/src/model/appengine/commit.dart' as datastore;
 import 'package:cocoon_service/src/model/firestore/commit.dart';
+import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -35,5 +37,18 @@ void main() {
       expect(resultedCommit.name, commit.name);
       expect(resultedCommit.fields, commit.fields);
     });
+  });
+
+  test('creates commit document correctly from commit data model', () async {
+    final datastore.Commit commit = generateCommit(1);
+    final Commit commitDocument = commitToCommitDocument(commit);
+    expect(commitDocument.name, '$kDatabase/documents/$kCommitCollectionId/${commit.sha}');
+    expect(commitDocument.fields![kCommitAvatarField]!.stringValue, commit.authorAvatarUrl);
+    expect(commitDocument.fields![kCommitBranchField]!.stringValue, commit.branch);
+    expect(commitDocument.fields![kCommitCreateTimestampField]!.integerValue, commit.timestamp.toString());
+    expect(commitDocument.fields![kCommitAuthorField]!.stringValue, commit.author);
+    expect(commitDocument.fields![kCommitMessageField]!.stringValue, commit.message);
+    expect(commitDocument.fields![kCommitRepositoryPathField]!.stringValue, commit.repository);
+    expect(commitDocument.fields![kCommitShaField]!.stringValue, commit.sha);
   });
 }
