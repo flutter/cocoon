@@ -8,7 +8,23 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 import '../../request_handling/exceptions.dart';
 import '../../service/firestore.dart';
 import '../../service/logging.dart';
+import '../appengine/commit.dart';
+import '../appengine/task.dart' as datastore;
+import '../ci_yaml/target.dart';
 import '../luci/push_message.dart';
+
+const String kTaskCollectionId = 'tasks';
+const int kTaskDefaultTimestampValue = 0;
+const int kTaskInitialAttempt = 1;
+const String kTaskBringupField = 'bringup';
+const String kTaskBuildNumberField = 'buildNumber';
+const String kTaskCommitShaField = 'commitSha';
+const String kTaskCreateTimestampField = 'createTimestamp';
+const String kTaskEndTimestampField = 'endTimestamp';
+const String kTaskNameField = 'name';
+const String kTaskStartTimestampField = 'startTimestamp';
+const String kTaskStatusField = 'status';
+const String kTaskTestFlakyField = 'testFlaky';
 
 class Task extends Document {
   /// Lookup [Task] from Firestore.
@@ -244,4 +260,46 @@ class Task extends Document {
       ..write(')');
     return buf.toString();
   }
+}
+
+/// Generates task documents based on targets.
+List<Task> targetsToTaskDocuments(Commit commit, List<Target> targets) {
+  final Iterable<Task> iterableDocuments = targets.map(
+    (Target target) => Task.fromDocument(
+      taskDocument: Document(
+        name: '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${target.value.name}_$kTaskInitialAttempt',
+        fields: <String, Value>{
+          kTaskCreateTimestampField: Value(integerValue: commit.timestamp!.toString()),
+          kTaskEndTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
+          kTaskBringupField: Value(booleanValue: target.value.bringup),
+          kTaskNameField: Value(stringValue: target.value.name),
+          kTaskStartTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
+          kTaskStatusField: Value(stringValue: Task.statusNew),
+          kTaskTestFlakyField: Value(booleanValue: false),
+          kTaskCommitShaField: Value(stringValue: commit.sha),
+        },
+      ),
+    ),
+  );
+  return iterableDocuments.toList();
+}
+
+/// Generates task document based on datastore task data model.
+Task taskToDocument(datastore.Task task) {
+  final String commitSha = task.commitKey!.id!.split('/').last;
+  return Task.fromDocument(
+    taskDocument: Document(
+      name: '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${task.name}_${task.attempts}',
+      fields: <String, Value>{
+        kTaskCreateTimestampField: Value(integerValue: task.createTimestamp.toString()),
+        kTaskEndTimestampField: Value(integerValue: task.endTimestamp.toString()),
+        kTaskBringupField: Value(booleanValue: task.isFlaky),
+        kTaskNameField: Value(stringValue: task.name),
+        kTaskStartTimestampField: Value(integerValue: task.startTimestamp.toString()),
+        kTaskStatusField: Value(stringValue: task.status),
+        kTaskTestFlakyField: Value(booleanValue: task.isTestFlaky),
+        kTaskCommitShaField: Value(stringValue: commitSha),
+      },
+    ),
+  );
 }

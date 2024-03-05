@@ -4,6 +4,7 @@
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore;
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
@@ -99,7 +100,7 @@ void main() {
       final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
       expect(batchWriteRequest.writes!.length, 1);
       final Document insertedCommitDocument = batchWriteRequest.writes![0].update!;
-      expect(insertedCommitDocument.name, '$kDatabase/documents/$kCommitCollectionId/$sha');
+      expect(insertedCommitDocument.name, '$kDatabase/documents/${firestore.kCommitCollectionId}/$sha');
     });
 
     test('does not add commit to db if it exists in the datastore', () async {

@@ -7,6 +7,16 @@ import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 
 import '../../service/firestore.dart';
+import '../appengine/commit.dart' as datastore;
+
+const String kCommitCollectionId = 'commits';
+const String kCommitAvatarField = 'avatar';
+const String kCommitBranchField = 'branch';
+const String kCommitCreateTimestampField = 'createTimestamp';
+const String kCommitAuthorField = 'author';
+const String kCommitMessageField = 'message';
+const String kCommitRepositoryPathField = 'repositoryPath';
+const String kCommitShaField = 'sha';
 
 class Commit extends Document {
   /// Lookup [Commit] from Firestore.
@@ -75,4 +85,22 @@ class Commit extends Document {
       ..write(')');
     return buf.toString();
   }
+}
+
+/// Generates commit document based on datastore commit data model.
+Commit commitToCommitDocument(datastore.Commit commit) {
+  return Commit.fromDocument(
+    commitDocument: Document(
+      name: '$kDatabase/documents/$kCommitCollectionId/${commit.sha}',
+      fields: <String, Value>{
+        kCommitAvatarField: Value(stringValue: commit.authorAvatarUrl),
+        kCommitBranchField: Value(stringValue: commit.branch),
+        kCommitCreateTimestampField: Value(integerValue: commit.timestamp.toString()),
+        kCommitAuthorField: Value(stringValue: commit.author),
+        kCommitMessageField: Value(stringValue: commit.message),
+        kCommitRepositoryPathField: Value(stringValue: commit.repository),
+        kCommitShaField: Value(stringValue: commit.sha),
+      },
+    ),
+  );
 }

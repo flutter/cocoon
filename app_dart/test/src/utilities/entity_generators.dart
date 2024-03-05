@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/ci_yaml.dart';
-import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_commit;
@@ -15,7 +14,6 @@ import 'package:cocoon_service/src/model/gerrit/commit.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
-import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:github/github.dart' as github;
@@ -119,17 +117,17 @@ firestore.Task generateFirestoreTask(
   final firestore.Task task = firestore.Task()
     ..name = '${sha}_${taskName}_$attempts'
     ..fields = <String, Value>{
-      kTaskCreateTimestampField: Value(integerValue: (created?.millisecondsSinceEpoch ?? 0).toString()),
-      kTaskStartTimestampField: Value(integerValue: (started?.millisecondsSinceEpoch ?? 0).toString()),
-      kTaskEndTimestampField: Value(integerValue: (ended?.millisecondsSinceEpoch ?? 0).toString()),
-      kTaskBringupField: Value(booleanValue: bringup),
-      kTaskTestFlakyField: Value(booleanValue: testFlaky),
-      kTaskStatusField: Value(stringValue: status),
-      kTaskNameField: Value(stringValue: taskName),
-      kTaskCommitShaField: Value(stringValue: sha),
+      firestore.kTaskCreateTimestampField: Value(integerValue: (created?.millisecondsSinceEpoch ?? 0).toString()),
+      firestore.kTaskStartTimestampField: Value(integerValue: (started?.millisecondsSinceEpoch ?? 0).toString()),
+      firestore.kTaskEndTimestampField: Value(integerValue: (ended?.millisecondsSinceEpoch ?? 0).toString()),
+      firestore.kTaskBringupField: Value(booleanValue: bringup),
+      firestore.kTaskTestFlakyField: Value(booleanValue: testFlaky),
+      firestore.kTaskStatusField: Value(stringValue: status),
+      firestore.kTaskNameField: Value(stringValue: taskName),
+      firestore.kTaskCommitShaField: Value(stringValue: sha),
     };
   if (buildNumber != null) {
-    task.fields![kTaskBuildNumberField] = Value(integerValue: buildNumber.toString());
+    task.fields![firestore.kTaskBuildNumberField] = Value(integerValue: buildNumber.toString());
   }
   return task;
 }
@@ -145,10 +143,10 @@ firestore_commit.Commit generateFirestoreCommit(
   final firestore_commit.Commit commit = firestore_commit.Commit()
     ..name = sha ?? '$i'
     ..fields = <String, Value>{
-      kCommitCreateTimestampField: Value(integerValue: (createTimestamp ?? i).toString()),
-      kCommitRepositoryPathField: Value(stringValue: '$owner/$repo'),
-      kCommitBranchField: Value(stringValue: branch),
-      kCommitShaField: Value(stringValue: sha ?? '$i'),
+      firestore_commit.kCommitCreateTimestampField: Value(integerValue: (createTimestamp ?? i).toString()),
+      firestore_commit.kCommitRepositoryPathField: Value(stringValue: '$owner/$repo'),
+      firestore_commit.kCommitBranchField: Value(stringValue: branch),
+      firestore_commit.kCommitShaField: Value(stringValue: sha ?? '$i'),
     };
   return commit;
 }
