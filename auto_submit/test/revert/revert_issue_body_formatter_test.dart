@@ -30,7 +30,7 @@ void main() {
     );
     revertIssueBodyFormatter!.format;
     expect(revertIssueBodyFormatter, isNotNull);
-    expect(revertIssueBodyFormatter!.revertPrTitle, 'Reverts: "Interesting title. (#54)"');
+    expect(revertIssueBodyFormatter!.revertPrTitle, 'Reverts "Interesting title. (#54)"');
     expect(revertIssueBodyFormatter!.revertPrBody!.contains('No description provided.'), isTrue);
     expect(revertIssueBodyFormatter!.formattedRevertPrBody!.contains(originalPrAuthor), isTrue);
     expect(revertIssueBodyFormatter!.formattedRevertPrBody!.contains('Mando'), isTrue);

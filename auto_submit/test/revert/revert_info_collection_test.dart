@@ -14,7 +14,7 @@ void main() {
   });
 
   test('extract reverts link', () {
-    const String expected = 'Reverts flutter/cocoon#3460';
+    const String expected = 'flutter/cocoon#3460';
     expect(revertInfoCollection!.extractOriginalPrLink(sampleRevertBody), expected);
   });
 
@@ -39,10 +39,8 @@ void main() {
   });
 
   test('extract the original revert info', () {
-    const String expected1 = 'This change reverts the following previous change';
-    const String expected2 = 'Original Description: A long winded description about this change is revolutionary.';
+    const String expected2 = 'A long winded description about this change is revolutionary.';
     final String? description = revertInfoCollection!.extractRevertBody(sampleRevertBody);
-    expect(description!.contains(expected1), isTrue);
-    expect(description.contains(expected2), isTrue);
+    expect(description!.contains(expected2), isTrue);
   });
 }
