@@ -70,7 +70,7 @@ class FirestoreService {
   Future<List<firestore.Task>> queryCommitTasks(String commitSha) async {
     final ProjectsDatabasesDocumentsResource databasesDocumentsResource = await documentResource();
     final List<CollectionSelector> from = <CollectionSelector>[
-      CollectionSelector(collectionId: firestore.kTaskCollectionId)
+      CollectionSelector(collectionId: firestore.kTaskCollectionId),
     ];
     final Filter filter = Filter(
       fieldFilter: FieldFilter(
