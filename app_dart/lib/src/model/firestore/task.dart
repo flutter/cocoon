@@ -285,7 +285,7 @@ List<Task> targetsToTaskDocuments(Commit commit, List<Target> targets) {
 }
 
 /// Generates task document based on datastore task data model.
-Task taskToTaskDocument(datastore.Task task) {
+Task taskToDocument(datastore.Task task) {
   final String commitSha = task.commitKey!.id!.split('/').last;
   return Task.fromDocument(
     taskDocument: Document(

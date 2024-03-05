@@ -25,7 +25,7 @@ void main() {
     test('creates task document correctly from task data model', () async {
       final datastore.Task task = generateTask(1);
       final String commitSha = task.commitKey!.id!.split('/').last;
-      final Task taskDocument = taskToTaskDocument(task);
+      final Task taskDocument = taskToDocument(task);
       expect(taskDocument.name, '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${task.name}_${task.attempts}');
       expect(taskDocument.createTimestamp, task.createTimestamp);
       expect(taskDocument.endTimestamp, task.endTimestamp);
