@@ -100,7 +100,8 @@ void main() {
       final List<dynamic> captured = verify(mockFirestoreService.getDocument(captureAny)).captured;
       expect(captured.length, 1);
       final String documentName = captured[0] as String;
-      expect(documentName, '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${task.name}_${task.attempts}');
+      expect(documentName,
+          '$kDatabase/documents/${firestore.kTaskCollectionId}/${commit.sha}_${task.name}_${task.attempts}');
     });
 
     test('Re-schedule existing task', () async {
