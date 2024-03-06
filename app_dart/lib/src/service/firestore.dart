@@ -8,49 +8,13 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:http/http.dart';
 
-import '../model/appengine/commit.dart';
-import '../model/appengine/github_gold_status_update.dart';
-import '../model/appengine/task.dart';
-import '../model/firestore/commit.dart' as firestore_comit;
-import '../model/firestore/github_gold_status.dart';
 import '../model/firestore/task.dart' as firestore;
-import '../model/ci_yaml/target.dart';
 import 'access_client_provider.dart';
 import 'config.dart';
 
 const String kDatabase = 'projects/${Config.flutterGcpProjectId}/databases/${Config.flutterGcpFirestoreDatabase}';
 const String kDocumentParent = '$kDatabase/documents';
 const String kFieldFilterOpEqual = 'EQUAL';
-
-const String kTaskCollectionId = 'tasks';
-const int kTaskDefaultTimestampValue = 0;
-const int kTaskInitialAttempt = 1;
-const String kTaskBringupField = 'bringup';
-const String kTaskBuildNumberField = 'buildNumber';
-const String kTaskCommitShaField = 'commitSha';
-const String kTaskCreateTimestampField = 'createTimestamp';
-const String kTaskEndTimestampField = 'endTimestamp';
-const String kTaskNameField = 'name';
-const String kTaskStartTimestampField = 'startTimestamp';
-const String kTaskStatusField = 'status';
-const String kTaskTestFlakyField = 'testFlaky';
-
-const String kCommitCollectionId = 'commits';
-const String kCommitAvatarField = 'avatar';
-const String kCommitBranchField = 'branch';
-const String kCommitCreateTimestampField = 'createTimestamp';
-const String kCommitAuthorField = 'author';
-const String kCommitMessageField = 'message';
-const String kCommitRepositoryPathField = 'repositoryPath';
-const String kCommitShaField = 'sha';
-
-const String kGithubGoldStatusCollectionId = 'githubGoldStatuses';
-const String kGithubGoldStatusPrNumberField = 'prNumber';
-const String kGithubGoldStatusHeadField = 'head';
-const String kGithubGoldStatusStatusField = 'status';
-const String kGithubGoldStatusDescriptionField = 'description';
-const String kGithubGoldStatusUpdatesField = 'updates';
-const String kGithubGoldStatusRepositoryField = 'repository';
 
 class FirestoreService {
   const FirestoreService(this.accessClientProvider);
@@ -105,10 +69,12 @@ class FirestoreService {
 
   Future<List<firestore.Task>> queryCommitTasks(String commitSha) async {
     final ProjectsDatabasesDocumentsResource databasesDocumentsResource = await documentResource();
-    final List<CollectionSelector> from = <CollectionSelector>[CollectionSelector(collectionId: kTaskCollectionId)];
+    final List<CollectionSelector> from = <CollectionSelector>[
+      CollectionSelector(collectionId: firestore.kTaskCollectionId),
+    ];
     final Filter filter = Filter(
       fieldFilter: FieldFilter(
-        field: FieldReference(fieldPath: kTaskCommitShaField),
+        field: FieldReference(fieldPath: firestore.kTaskCommitShaField),
         op: kFieldFilterOpEqual,
         value: Value(stringValue: commitSha),
       ),
@@ -120,83 +86,6 @@ class FirestoreService {
     final List<Document> documents = runQueryResponseElements.map((e) => e.document!).toList();
     return documents.map((Document document) => firestore.Task.fromDocument(taskDocument: document)).toList();
   }
-}
-
-/// Generates task documents based on targets.
-List<firestore.Task> targetsToTaskDocuments(Commit commit, List<Target> targets) {
-  final Iterable<firestore.Task> iterableDocuments = targets.map(
-    (Target target) => firestore.Task.fromDocument(
-      taskDocument: Document(
-        name: '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${target.value.name}_$kTaskInitialAttempt',
-        fields: <String, Value>{
-          kTaskCreateTimestampField: Value(integerValue: commit.timestamp!.toString()),
-          kTaskEndTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
-          kTaskBringupField: Value(booleanValue: target.value.bringup),
-          kTaskNameField: Value(stringValue: target.value.name),
-          kTaskStartTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
-          kTaskStatusField: Value(stringValue: Task.statusNew),
-          kTaskTestFlakyField: Value(booleanValue: false),
-          kTaskCommitShaField: Value(stringValue: commit.sha),
-        },
-      ),
-    ),
-  );
-  return iterableDocuments.toList();
-}
-
-/// Generates commit document based on datastore commit data model.
-firestore_comit.Commit commitToCommitDocument(Commit commit) {
-  return firestore_comit.Commit.fromDocument(
-    commitDocument: Document(
-      name: '$kDatabase/documents/$kCommitCollectionId/${commit.sha}',
-      fields: <String, Value>{
-        kCommitAvatarField: Value(stringValue: commit.authorAvatarUrl),
-        kCommitBranchField: Value(stringValue: commit.branch),
-        kCommitCreateTimestampField: Value(integerValue: commit.timestamp.toString()),
-        kCommitAuthorField: Value(stringValue: commit.author),
-        kCommitMessageField: Value(stringValue: commit.message),
-        kCommitRepositoryPathField: Value(stringValue: commit.repository),
-        kCommitShaField: Value(stringValue: commit.sha),
-      },
-    ),
-  );
-}
-
-/// Generates task document based on datastore task data model.
-firestore.Task taskToTaskDocument(Task task) {
-  final String commitSha = task.commitKey!.id!.split('/').last;
-  return firestore.Task.fromDocument(
-    taskDocument: Document(
-      name: '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${task.name}_${task.attempts}',
-      fields: <String, Value>{
-        kTaskCreateTimestampField: Value(integerValue: task.createTimestamp.toString()),
-        kTaskEndTimestampField: Value(integerValue: task.endTimestamp.toString()),
-        kTaskBringupField: Value(booleanValue: task.isFlaky),
-        kTaskNameField: Value(stringValue: task.name),
-        kTaskStartTimestampField: Value(integerValue: task.startTimestamp.toString()),
-        kTaskStatusField: Value(stringValue: task.status),
-        kTaskTestFlakyField: Value(booleanValue: task.isTestFlaky),
-        kTaskCommitShaField: Value(stringValue: commitSha),
-      },
-    ),
-  );
-}
-
-/// Generates GithubGoldStatus document based on datastore GithubGoldStatusUpdate data model.
-GithubGoldStatus githubGoldStatusToDocument(GithubGoldStatusUpdate githubGoldStatus) {
-  return GithubGoldStatus.fromDocument(
-    githubGoldStatus: Document(
-      name: '$kDatabase/documents/$kGithubGoldStatusCollectionId/${githubGoldStatus.head}_${githubGoldStatus.pr}',
-      fields: <String, Value>{
-        kGithubGoldStatusDescriptionField: Value(stringValue: githubGoldStatus.description),
-        kGithubGoldStatusHeadField: Value(stringValue: githubGoldStatus.head),
-        kGithubGoldStatusPrNumberField: Value(integerValue: githubGoldStatus.pr.toString()),
-        kGithubGoldStatusRepositoryField: Value(stringValue: githubGoldStatus.repository),
-        kGithubGoldStatusStatusField: Value(stringValue: githubGoldStatus.status),
-        kGithubGoldStatusUpdatesField: Value(integerValue: githubGoldStatus.updates.toString()),
-      },
-    ),
-  );
 }
 
 /// Creates a list of [Write] based on documents.

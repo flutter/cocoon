@@ -94,7 +94,7 @@ class CommitService {
       log.info('Commit does not exist in datastore, inserting into datastore');
       await datastore.insert(<Commit>[commit]);
       try {
-        final firestore.Commit commitDocument = commitToCommitDocument(commit);
+        final firestore.Commit commitDocument = firestore.commitToCommitDocument(commit);
         final List<Write> writes = documentsToWrites([commitDocument], exists: false);
         await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
       } catch (error) {

@@ -89,6 +89,9 @@ class FakeConfig extends Config {
   }
 
   @override
+  Future<String> getTreeStatusDiscordUrl() async => 'discord.com';
+
+  @override
   Future<BigqueryService> createBigQueryService() async => bigqueryService!;
 
   @override

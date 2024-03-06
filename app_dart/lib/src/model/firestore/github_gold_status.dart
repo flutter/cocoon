@@ -7,6 +7,15 @@ import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 
 import '../../service/firestore.dart';
+import '../appengine/github_gold_status_update.dart';
+
+const String kGithubGoldStatusCollectionId = 'githubGoldStatuses';
+const String kGithubGoldStatusPrNumberField = 'prNumber';
+const String kGithubGoldStatusHeadField = 'head';
+const String kGithubGoldStatusStatusField = 'status';
+const String kGithubGoldStatusDescriptionField = 'description';
+const String kGithubGoldStatusUpdatesField = 'updates';
+const String kGithubGoldStatusRepositoryField = 'repository';
 
 class GithubGoldStatus extends Document {
   /// Lookup [GithubGoldStatus] from Firestore.
@@ -70,4 +79,23 @@ class GithubGoldStatus extends Document {
       ..write(')');
     return buf.toString();
   }
+}
+
+/// Generates GithubGoldStatus document based on datastore GithubGoldStatusUpdate data model.
+GithubGoldStatus githubGoldStatusToDocument(GithubGoldStatusUpdate githubGoldStatus) {
+  // Prefers `_` instead of `/` in Firestore document names.
+  final String repo = githubGoldStatus.repository!.replaceAll('/', '_');
+  return GithubGoldStatus.fromDocument(
+    githubGoldStatus: Document(
+      name: '$kDatabase/documents/$kGithubGoldStatusCollectionId/${repo}_${githubGoldStatus.pr}',
+      fields: <String, Value>{
+        kGithubGoldStatusDescriptionField: Value(stringValue: githubGoldStatus.description),
+        kGithubGoldStatusHeadField: Value(stringValue: githubGoldStatus.head),
+        kGithubGoldStatusPrNumberField: Value(integerValue: githubGoldStatus.pr.toString()),
+        kGithubGoldStatusRepositoryField: Value(stringValue: githubGoldStatus.repository),
+        kGithubGoldStatusStatusField: Value(stringValue: githubGoldStatus.status),
+        kGithubGoldStatusUpdatesField: Value(integerValue: githubGoldStatus.updates.toString()),
+      },
+    ),
+  );
 }

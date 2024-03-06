@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto hide PullRequest;
 import 'package:auto_submit/requests/github_pull_request_event.dart';
+import 'package:auto_submit/model/discord_message.dart';
 import 'package:auto_submit/service/revert_request_validation_service.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/validations/validation.dart';
@@ -19,11 +20,13 @@ import 'package:test/test.dart';
 
 import '../configuration/repository_configuration_data.dart';
 import '../requests/github_webhook_test_data.dart';
+import '../revert/revert_support_data.dart';
 import '../src/action/fake_revert_method.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_approver_service.dart';
 import '../src/service/fake_bigquery_service.dart';
 import '../src/service/fake_config.dart';
+import '../src/service/fake_discord_notification.dart';
 import '../src/service/fake_graphql_client.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/validations/fake_approval.dart';
@@ -44,6 +47,7 @@ void main() {
   late MockJobsResource jobsResource;
   late FakeBigqueryService bigqueryService;
   late FakeRevertMethod revertMethod;
+  late FakeDiscordNotification discordNotification;
 
   setUp(() {
     githubGraphQLClient = FakeGraphQLClient();
@@ -60,6 +64,8 @@ void main() {
     bigqueryService = FakeBigqueryService(jobsResource);
     config.bigqueryService = bigqueryService;
     config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfigNoOverride);
+    discordNotification = FakeDiscordNotification(targetUri: Uri(host: 'localhost'));
+    validationService.discordNotification = discordNotification;
 
     when(jobsResource.query(captureAny, any)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(
@@ -480,7 +486,8 @@ void main() {
         prNumber: 0,
         repoName: slug.name,
         labelName: 'revert of',
-        body: 'Reverts flutter/flutter#1234',
+        // body: 'Reverts flutter/flutter#1234',
+        body: sampleRevertBody.replaceAll('\n', ''),
       );
 
       final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(
@@ -549,7 +556,7 @@ void main() {
         prNumber: 0,
         repoName: slug.name,
         labelName: 'revert of',
-        body: 'Reverts flutter/flutter#1234',
+        body: sampleRevertBody.replaceAll('\n', ''),
       );
 
       final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(
@@ -616,7 +623,7 @@ void main() {
         prNumber: 0,
         repoName: slug.name,
         labelName: 'revert of',
-        body: 'Reverts flutter/flutter#1234',
+        body: sampleRevertBody.replaceAll('\n', ''),
       );
 
       final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(
@@ -686,7 +693,7 @@ void main() {
         prNumber: 0,
         repoName: slug.name,
         labelName: 'revert of',
-        body: 'Reverts flutter/flutter#1234',
+        body: sampleRevertBody.replaceAll('\n', ''),
       );
 
       final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(
@@ -762,7 +769,7 @@ void main() {
         prNumber: 0,
         repoName: slug.name,
         labelName: 'revert of',
-        body: 'Reverts flutter/flutter#1234',
+        body: sampleRevertBody.replaceAll('\n', ''),
       );
 
       final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(
@@ -843,7 +850,7 @@ void main() {
         prNumber: 0,
         repoName: slug.name,
         labelName: 'revert of',
-        body: 'Reverts flutter/flutter#1234',
+        body: sampleRevertBody.replaceAll('\n', ''),
       );
 
       final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(
@@ -934,7 +941,7 @@ void main() {
         prNumber: 0,
         repoName: slug.name,
         labelName: 'revert of',
-        body: 'Reverts flutter/flutter#1234',
+        body: sampleRevertBody.replaceAll('\n', ''),
       );
 
       final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(
@@ -1027,7 +1034,7 @@ void main() {
         prNumber: 0,
         repoName: slug.name,
         labelName: 'revert of',
-        body: 'Reverts flutter/flutter#1234',
+        body: sampleRevertBody.replaceAll('\n', ''),
       );
 
       final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(
@@ -1129,7 +1136,7 @@ void main() {
         prNumber: 0,
         repoName: slug.name,
         labelName: 'revert of',
-        body: 'Reverts flutter/flutter#1234',
+        body: sampleRevertBody.replaceAll('\n', ''),
       );
 
       final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(
@@ -1172,6 +1179,29 @@ void main() {
       expect(githubService.issueComment, isNotNull);
       expect(githubService.labelRemoved, true);
       assert(pubsub.messagesQueue.isEmpty);
+    });
+  });
+
+  group('Craft discord message', () {
+    test('Craft discord message', () async {
+      const String expected = '''
+Pull Request [flutter/cocoon#3460](<https://github.com/flutter/cocoon/pull/3460>) has been reverted by yusuf-goog.
+Please see the revert PR here: [flutter/cocoon#3461](<https://github.com/flutter/cocoon/pull/3461>).
+Reason for reverting: comment was added by mistake.''';
+
+      const String expectedReason = 'Reason for reverting: comment was added by mistake.';
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 3461,
+        repoName: slug.name,
+        labelName: 'revert of',
+        body: sampleRevertBody.replaceAll('\n', ''),
+      );
+
+      final Message message = validationService.craftDiscordRevertMessage(pullRequest);
+
+      expect(message.username, 'Revert bot');
+      expect(message.content!.contains(expected), isTrue);
+      expect(message.content!.contains(expectedReason), isTrue);
     });
   });
 

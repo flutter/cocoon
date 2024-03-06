@@ -29,7 +29,7 @@ class CommitAuthorAvatar extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
 
     final double hue = (360.0 * authorHash / (1 << 15)) % 360.0;
-    final double themeValue = HSVColor.fromColor(theme.colorScheme.background).value;
+    final double themeValue = HSVColor.fromColor(theme.colorScheme.surface).value;
     Color authorColor = HSVColor.fromAHSV(1.0, hue, 0.4, themeValue).toColor();
     if (theme.brightness == Brightness.dark) {
       authorColor = HSLColor.fromColor(authorColor).withLightness(.65).toColor();
