@@ -6,9 +6,27 @@ import 'package:auto_submit/revert/revert_discord_message.dart';
 import 'package:test/test.dart';
 
 void main() {
+  void checkExpectedOutput(
+    String originalPrUrl,
+    String originalPrDisplayText,
+    String revertPrUrl,
+    String revertPrDisplayText,
+    String initiatingAuthor,
+    String reasonForRevert,
+    String realOutput,
+  ) {
+    final String expectedFormattedOutput = '''
+Pull Request [$originalPrDisplayText](<$originalPrUrl>) has been reverted by $initiatingAuthor. 
+Please see the revert PR here: [$revertPrDisplayText](<$revertPrUrl>).
+Reason for reverting: $reasonForRevert''';
+    expect(expectedFormattedOutput, equals(realOutput));
+  }
+
   test('generateMessage truncates content when necessary', () {
     const String originalPrUrl = 'https://example.com/pr/1';
+    const String originalPrDisplayText = 'flutter/coconut#1234';
     const String revertPrUrl = 'https://example.com/pr/2';
+    const String revertPrDisplayText = 'flutter/coconut#1235';
     const String initiatingAuthor = 'John Doe';
     const String reasonForRevert = '''Test failed very long reason that will exceed the character limit
      very long reason that will exceed the character limit
@@ -49,7 +67,9 @@ void main() {
 
     final RevertDiscordMessage message = RevertDiscordMessage.generateMessage(
       originalPrUrl,
+      originalPrDisplayText,
       revertPrUrl,
+      revertPrDisplayText,
       initiatingAuthor,
       reasonForRevert,
     );
@@ -58,40 +78,58 @@ void main() {
   });
 
   test('generateMessage does not truncate short content', () {
-    const originalPrUrl = 'https://example.com/pr/1';
-    const revertPrUrl = 'https://example.com/pr/2';
-    const initiatingAuthor = 'John Doe';
-    const reasonForRevert = 'Test failed';
-    const expectedContent = '''
-Pull Request $originalPrUrl has been reverted by $initiatingAuthor here: $revertPrUrl.
-Reason for Revert: $reasonForRevert''';
+    const String originalPrUrl = 'https://example.com/pr/1';
+    const String originalPrDisplayText = 'flutter/coconut#1234';
+    const String revertPrUrl = 'https://example.com/pr/2';
+    const String revertPrDisplayText = 'flutter/coconut#1235';
+    const String initiatingAuthor = 'John Doe';
+    const String reasonForRevert = 'Test failed';
 
     final RevertDiscordMessage message = RevertDiscordMessage.generateMessage(
       originalPrUrl,
+      originalPrDisplayText,
       revertPrUrl,
+      revertPrDisplayText,
       initiatingAuthor,
       reasonForRevert,
     );
 
-    expect(message.content, equals(expectedContent));
+    checkExpectedOutput(
+      originalPrUrl,
+      originalPrDisplayText,
+      revertPrUrl,
+      revertPrDisplayText,
+      initiatingAuthor,
+      reasonForRevert,
+      message.content!,
+    );
   });
 
   test('RevertDiscordMessage generates a RevertDiscordMessage', () {
-    const originalPrUrl = 'https://example.com/pr/1';
-    const revertPrUrl = 'https://example.com/pr/2';
-    const initiatingAuthor = 'John Doe';
-    const reasonForRevert = 'Test failed';
-    const expectedContent = '''
-Pull Request $originalPrUrl has been reverted by $initiatingAuthor here: $revertPrUrl.
-Reason for Revert: $reasonForRevert''';
+    const String originalPrUrl = 'https://example.com/pr/1';
+    const String originalPrDisplayText = 'flutter/coconut#1234';
+    const String revertPrUrl = 'https://example.com/pr/2';
+    const String revertPrDisplayText = 'flutter/coconut#1235';
+    const String initiatingAuthor = 'John Doe';
+    const String reasonForRevert = 'Test failed';
 
     final RevertDiscordMessage message = RevertDiscordMessage.generateMessage(
       originalPrUrl,
+      originalPrDisplayText,
       revertPrUrl,
+      revertPrDisplayText,
       initiatingAuthor,
       reasonForRevert,
     );
 
-    expect(message.content, equals(expectedContent));
+    checkExpectedOutput(
+      originalPrUrl,
+      originalPrDisplayText,
+      revertPrUrl,
+      revertPrDisplayText,
+      initiatingAuthor,
+      reasonForRevert,
+      message.content!,
+    );
   });
 }

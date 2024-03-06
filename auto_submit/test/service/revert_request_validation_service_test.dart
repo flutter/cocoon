@@ -1184,9 +1184,14 @@ void main() {
 
   group('Craft discord message', () {
     test('Craft discord message', () async {
-      const String expected =
-          'Pull Request https://github.com/flutter/cocoon/pull/3460 has been reverted by yusuf-goog here: https://github.com/flutter/cocoon/pull/3461.';
-      const String expectedReason = 'Reason for Revert: comment was added by mistake.';
+      // const String expected = '''
+      //     'Pull Request https://github.com/flutter/cocoon/pull/3460 has been reverted by yusuf-goog here: https://github.com/flutter/cocoon/pull/3461.''';
+      const String expected = '''
+Pull Request [flutter/cocoon#3460](<https://github.com/flutter/cocoon/pull/3460>) has been reverted by yusuf-goog. 
+Please see the revert PR here: [flutter/cocoon#3461](<https://github.com/flutter/cocoon/pull/3461>).
+Reason for reverting: comment was added by mistake.''';
+
+      const String expectedReason = 'Reason for reverting: comment was added by mistake.';
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 3461,
         repoName: slug.name,
@@ -1195,6 +1200,7 @@ void main() {
       );
 
       final Message message = validationService.craftDiscordRevertMessage(pullRequest);
+
       expect(message.username, 'Revert bot');
       expect(message.content!.contains(expected), isTrue);
       expect(message.content!.contains(expectedReason), isTrue);

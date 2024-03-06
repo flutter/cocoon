@@ -335,19 +335,22 @@ class RevertRequestValidationService extends ValidationService {
     final RevertInfoCollection revertInfoCollection = RevertInfoCollection();
     final String prBody = messagePullRequest.body!;
     // Reverts ${slug.fullName}#$prToRevertNumber'
-    final String? originalPrLink = revertInfoCollection.extractOriginalPrLink(prBody);
-    final List<String> prLinkSplit = originalPrLink!.split('#');
+    final String? githubFormattedPrLink = revertInfoCollection.extractOriginalPrLink(prBody);
+    final List<String> prLinkSplit = githubFormattedPrLink!.split('#');
     final int originalPrNumber = int.parse(prLinkSplit.elementAt(1));
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int revertPrNumber = messagePullRequest.number!;
-    // https://github.com/flutter/flutter/pulls
+    final String githubFormattedRevertPrLink = '${slug.fullName}#$revertPrNumber';
+    // https://github.com/flutter/flutter/pull
     final String constructedOriginalPrUrl = '$githubPrefix/${slug.fullName}/pull/$originalPrNumber';
     final String constructedRevertPrUrl = '$githubPrefix/${slug.fullName}/pull/$revertPrNumber';
     final String? initiatingAuthor = revertInfoCollection.extractInitiatingAuthor(prBody);
     final String? revertReason = revertInfoCollection.extractRevertReason(prBody);
     return RevertDiscordMessage.generateMessage(
       constructedOriginalPrUrl,
+      githubFormattedPrLink,
       constructedRevertPrUrl,
+      githubFormattedRevertPrLink,
       initiatingAuthor!,
       revertReason!,
     );

@@ -39,8 +39,8 @@ void main() {
   });
 
   test('extract the original revert info', () {
-    const String expected2 = 'A long winded description about this change is revolutionary.';
+    const String expected = 'A long winded description about this change is revolutionary.';
     final String? description = revertInfoCollection!.extractRevertBody(sampleRevertBody);
-    expect(description!.contains(expected2), isTrue);
+    expect(description!.contains(expected), isTrue);
   });
 }

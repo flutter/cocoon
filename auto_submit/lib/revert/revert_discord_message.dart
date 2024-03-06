@@ -13,13 +13,16 @@ class RevertDiscordMessage extends Message {
 
   static RevertDiscordMessage generateMessage(
     String originalPrUrl,
+    String originalPrDisplayText,
     String revertPrUrl,
+    String revertPrDisplayText,
     String initiatingAuthor,
     String reasonForRevert,
   ) {
     final String content = '''
-Pull Request $originalPrUrl has been reverted by $initiatingAuthor here: $revertPrUrl.
-Reason for Revert: $reasonForRevert''';
+Pull Request [$originalPrDisplayText](<$originalPrUrl>) has been reverted by $initiatingAuthor. 
+Please see the revert PR here: [$revertPrDisplayText](<$revertPrUrl>).
+Reason for reverting: $reasonForRevert''';
 
     final String truncatedContent = content.length <= discordMessageLength
         ? content
