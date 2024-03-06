@@ -100,12 +100,12 @@ sealed class Timings {
   static const Duration cleanupUpdatePeriod = Duration(seconds: 60); // time between attempting to clean up the pending cleanup issues
   static const Duration longTermTidyingPeriod = Duration(hours: 5); // time between attempting to run long-term tidying of all issues
   static const Duration credentialsUpdatePeriod = Duration(minutes: 45); // how often to update GitHub credentials
-  static const Duration timeUntilStale = Duration(days: 20 * 7); // how long since the last team interaction before considering an issue stale
-  static const Duration timeUntilReallyStale = Duration(days: 30 * 7); // how long since the last team interaction before unassigning an issue
+  static const Duration timeUntilStale = Duration(days: 18 * 7); // how long since the last team interaction before considering an issue stale
+  static const Duration timeUntilReallyStale = Duration(days: 29 * 7); // how long since the last team interaction before unassigning an issue
   static const Duration timeUntilUnlock = Duration(days: 28); // how long to leave open issues locked
-  static const Duration selfTestPeriod = Duration(days: 4 * 7); // how often to file an issue to test the triage process
-  static const Duration selfTestWindow = Duration(days: 14); // how long to leave the self-test issue open before assigning it to critical triage
-  static const Duration refeedDelay = Duration(hours: 48); // how long between times we mark an issue as needing retriage (~3 a week)
+  static const Duration selfTestPeriod = Duration(days: 6 * 7); // how often to file an issue to test the triage process
+  static const Duration selfTestWindow = Duration(days: 18); // how long to leave the self-test issue open before assigning it to critical triage
+  static const Duration refeedDelay = Duration(hours: 24); // how long between times we mark an issue as needing retriage (max 7 a week per team)
 }
 
 final class Secrets {
