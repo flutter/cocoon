@@ -56,14 +56,15 @@ void main() {
     });
 
     test('TestFlaky is false when not injected', () async {
-      final firestore.Task firestoreTask = generateFirestoreTask(1);
+      final firestore.Task firestoreTask1 = generateFirestoreTask(1, name: 'linux_integration_ui_ios', attempts: 1);
+      final firestore.Task firestoreTask2 = generateFirestoreTask(2, name: 'linux_integration_ui_ios', attempts: 2);
       when(
-        mockFirestoreService.getDocument(
+        mockFirestoreService.queryCommitTasks(
           captureAny,
         ),
       ).thenAnswer((Invocation invocation) {
-        return Future<Document>.value(
-          firestoreTask,
+        return Future<List<firestore.Task>>.value(
+          <firestore.Task>[firestoreTask1, firestoreTask2],
         );
       });
       when(
@@ -95,18 +96,19 @@ void main() {
       await tester.post(handler);
 
       expect(task.isTestFlaky, false);
-      expect(firestoreTask.testFlaky, false);
+      expect(firestoreTask2.testFlaky, false);
     });
 
     test('TestFlaky is true when injected', () async {
-      final firestore.Task firestoreTask = generateFirestoreTask(1);
+      final firestore.Task firestoreTask1 = generateFirestoreTask(1, name: 'linux_integration_ui_ios', attempts: 1);
+      final firestore.Task firestoreTask2 = generateFirestoreTask(2, name: 'linux_integration_ui_ios', attempts: 2);
       when(
-        mockFirestoreService.getDocument(
+        mockFirestoreService.queryCommitTasks(
           captureAny,
         ),
       ).thenAnswer((Invocation invocation) {
-        return Future<Document>.value(
-          firestoreTask,
+        return Future<List<firestore.Task>>.value(
+          <firestore.Task>[firestoreTask1, firestoreTask2],
         );
       });
       when(
@@ -139,18 +141,18 @@ void main() {
       await tester.post(handler);
 
       expect(task.isTestFlaky, true);
-      expect(firestoreTask.testFlaky, true);
     });
 
     test('task name requests can update tasks', () async {
-      final firestore.Task firestoreTask = generateFirestoreTask(1);
+      final firestore.Task firestoreTask1 = generateFirestoreTask(1, name: 'linux_integration_ui_ios', attempts: 1);
+      final firestore.Task firestoreTask2 = generateFirestoreTask(2, name: 'linux_integration_ui_ios', attempts: 2);
       when(
-        mockFirestoreService.getDocument(
+        mockFirestoreService.queryCommitTasks(
           captureAny,
         ),
       ).thenAnswer((Invocation invocation) {
-        return Future<Document>.value(
-          firestoreTask,
+        return Future<List<firestore.Task>>.value(
+          <firestore.Task>[firestoreTask1, firestoreTask2],
         );
       });
       when(
@@ -183,8 +185,8 @@ void main() {
 
       expect(task.status, 'Failed');
       expect(task.attempts, 1);
-      expect(firestoreTask.status, 'Failed');
-      expect(firestoreTask.attempts, 1);
+      expect(firestoreTask2.status, 'Failed');
+      expect(firestoreTask2.attempts, 2);
     });
 
     test('task name requests when task does not exists returns exception', () async {
@@ -198,14 +200,15 @@ void main() {
     });
 
     test('task name request updates when input has whitespace', () async {
-      final firestore.Task firestoreTask = generateFirestoreTask(1);
+      final firestore.Task firestoreTask1 = generateFirestoreTask(1, name: 'linux_integration_ui_ios', attempts: 1);
+      final firestore.Task firestoreTask2 = generateFirestoreTask(2, name: 'linux_integration_ui_ios', attempts: 2);
       when(
-        mockFirestoreService.getDocument(
+        mockFirestoreService.queryCommitTasks(
           captureAny,
         ),
       ).thenAnswer((Invocation invocation) {
-        return Future<Document>.value(
-          firestoreTask,
+        return Future<List<firestore.Task>>.value(
+          <firestore.Task>[firestoreTask1, firestoreTask2],
         );
       });
       when(

@@ -44,6 +44,7 @@ targets:
       - packages/**
       - test_utilities/**
       - tooling/**
+      - CI_YAML.md
 
   - name: Linux device_doctor
     recipe: cocoon/cipd
@@ -152,6 +153,16 @@ targets:
         }
     runIf:
       - cipd_packages/ruby/**
+      - .ci.yaml
+
+  - name: Linux ktlint
+    recipe: cocoon/cipd
+    timeout: 60
+    properties:
+      script: cipd_packages/ktlint/tools/build.sh
+      cipd_name: flutter/ktlint/linux-amd64
+    runIf:
+      - cipd_packages/ktlint/**
       - .ci.yaml
 
   - name: Linux ci_yaml roller

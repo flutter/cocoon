@@ -4,16 +4,17 @@
 
 import 'dart:async';
 
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:http/http.dart';
 
-import '../model/appengine/commit.dart';
-import '../model/appengine/task.dart';
-import '../model/ci_yaml/target.dart';
+import '../model/firestore/task.dart' as firestore;
 import 'access_client_provider.dart';
 import 'config.dart';
 
 const String kDatabase = 'projects/${Config.flutterGcpProjectId}/databases/${Config.flutterGcpFirestoreDatabase}';
+const String kDocumentParent = '$kDatabase/documents';
+const String kFieldFilterOpEqual = 'EQUAL';
 
 class FirestoreService {
   const FirestoreService(this.accessClientProvider);
@@ -65,46 +66,34 @@ class FirestoreService {
         CommitRequest(transaction: beginTransactionResponse.transaction, writes: writes);
     return databasesDocumentsResource.commit(commitRequest, kDatabase);
   }
-}
 
-/// Generates task documents based on targets.
-List<Document> targetsToTaskDocuments(Commit commit, List<Target> targets) {
-  final Iterable<Document> iterableDocuments = targets.map(
-    (Target target) => Document(
-      name: '$kDatabase/documents/tasks/${commit.sha}_${target.value.name}_1',
-      fields: <String, Value>{
-        'createTimestamp': Value(integerValue: commit.timestamp!.toString()),
-        'endTimestamp': Value(integerValue: '0'),
-        'bringup': Value(booleanValue: target.value.bringup),
-        'name': Value(stringValue: target.value.name.toString()),
-        'startTimestamp': Value(integerValue: '0'),
-        'status': Value(stringValue: Task.statusNew),
-        'testFlaky': Value(booleanValue: false),
-        'commitSha': Value(stringValue: commit.sha),
-      },
-    ),
-  );
-  return iterableDocuments.toList();
-}
-
-/// Generates commit document based on datastore commit data model.
-Document commitToCommitDocument(Commit commit) {
-  return Document(
-    name: '$kDatabase/documents/commits/${commit.sha}',
-    fields: <String, Value>{
-      'avatar': Value(stringValue: commit.authorAvatarUrl),
-      'branch': Value(stringValue: commit.branch),
-      'createTimestamp': Value(integerValue: commit.timestamp.toString()),
-      'author': Value(stringValue: commit.author),
-      'message': Value(stringValue: commit.message),
-      'repositoryPath': Value(stringValue: commit.repository),
-      'sha': Value(stringValue: commit.sha),
-    },
-  );
+  Future<List<firestore.Task>> queryCommitTasks(String commitSha) async {
+    final ProjectsDatabasesDocumentsResource databasesDocumentsResource = await documentResource();
+    final List<CollectionSelector> from = <CollectionSelector>[
+      CollectionSelector(collectionId: firestore.kTaskCollectionId),
+    ];
+    final Filter filter = Filter(
+      fieldFilter: FieldFilter(
+        field: FieldReference(fieldPath: firestore.kTaskCommitShaField),
+        op: kFieldFilterOpEqual,
+        value: Value(stringValue: commitSha),
+      ),
+    );
+    final RunQueryRequest runQueryRequest =
+        RunQueryRequest(structuredQuery: StructuredQuery(from: from, where: filter));
+    final List<RunQueryResponseElement> runQueryResponseElements =
+        await databasesDocumentsResource.runQuery(runQueryRequest, kDocumentParent);
+    final List<Document> documents = runQueryResponseElements.map((e) => e.document!).toList();
+    return documents.map((Document document) => firestore.Task.fromDocument(taskDocument: document)).toList();
+  }
 }
 
 /// Creates a list of [Write] based on documents.
-List<Write> documentsToWrites(List<Document> documents, {bool exists = false}) {
+///
+/// Null `exists` means either update when a document exists or insert when a document doesn't.
+/// `exists = false` means inserting a new document, assuming a document doesn't exist.
+/// `exists = true` means updating an existing document, assuming it exisits.
+List<Write> documentsToWrites(List<Document> documents, {bool? exists}) {
   return documents
       .map(
         (Document document) => Write(

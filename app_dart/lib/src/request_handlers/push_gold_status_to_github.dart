@@ -6,17 +6,18 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/firestore/v1.dart';
 import 'package:gql/language.dart' as lang;
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../model/appengine/github_gold_status_update.dart';
+import '../model/firestore/github_gold_status.dart';
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
-import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
 
@@ -119,11 +120,22 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       for (Map<String, dynamic> checkRun in checkRuns) {
         log.fine('Check run: $checkRun');
         final String name = checkRun['name'].toLowerCase() as String;
-        // Framework shards run framework goldens
-        // Web shards run web version of framework goldens
-        // Misc shard runs API docs goldens
-        if (name.contains('framework') || name.contains('web engine') || name.contains('misc')) {
-          runsGoldenFileTests = true;
+        if (slug == Config.engineSlug) {
+          if (const <String>[
+            'linux_android_emulator',
+            'linux_host_engine',
+            'mac_host_engine',
+            'linux_web_engine',
+          ].any((String shardSubString) => name.contains(shardSubString))) {
+            runsGoldenFileTests = true;
+          }
+        } else if (slug == Config.flutterSlug) {
+          if (const <String>[
+            'framework',
+            'misc',
+          ].any((String shardSubString) => name.contains(shardSubString))) {
+            runsGoldenFileTests = true;
+          }
         }
         if (checkRun['conclusion'] == null || checkRun['conclusion'].toUpperCase() != 'SUCCESS') {
           incompleteChecks.add(name);
@@ -194,6 +206,25 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     }
     await datastore.insert(statusUpdates);
     log.fine('Committed all updates for $slug');
+
+    // TODO(keyonghan): remove try block after fully migrated to firestore
+    // https://github.com/flutter/flutter/issues/142951
+    try {
+      await updateGithubGoldStatusDocuments(statusUpdates);
+    } catch (error) {
+      log.warning('Failed to update github gold status in Firestore: $error');
+    }
+  }
+
+  Future<void> updateGithubGoldStatusDocuments(List<GithubGoldStatusUpdate> statusUpdates) async {
+    if (statusUpdates.isEmpty) {
+      return;
+    }
+    final List<GithubGoldStatus> githubGoldStatusDocuments =
+        statusUpdates.map((e) => githubGoldStatusToDocument(e)).toList();
+    final List<Write> writes = documentsToWrites(githubGoldStatusDocuments);
+    final FirestoreService firestoreService = await config.createFirestoreService();
+    await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
   }
 
   /// Returns a GitHub Status for the given state and description.

@@ -691,7 +691,7 @@ class LuciBuildService {
     }
     log.info('Rerun builder: ${target.value.name} for commit ${commit.sha}');
     tags ??= <String, List<String>>{};
-    tags['trigger_type'] = <String>['retry'];
+    tags['trigger_type'] ??= <String>['auto_retry'];
 
     // TODO(keyonghan): remove check when [ResetProdTask] supports firestore update.
     if (taskDocument != null) {
@@ -699,7 +699,7 @@ class LuciBuildService {
         final int newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
         tags['current_attempt'] = <String>[newAttempt.toString()];
         taskDocument.resetAsRetry(attempt: newAttempt);
-        final List<Write> writes = documentsToWrites([taskDocument]);
+        final List<Write> writes = documentsToWrites([taskDocument], exists: false);
         await firestoreService!.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
       } catch (error) {
         log.warning('Failed to insert retried task in Firestore: $error');

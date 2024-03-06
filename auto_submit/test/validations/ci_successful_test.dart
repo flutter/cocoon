@@ -318,7 +318,7 @@ void main() {
       expect(failures.length, 2);
     });
 
-    test('Validate flutter-gold is not checked for engine auto roller pull requests.', () {
+    test('Validate flutter-gold is checked for engine auto roller pull requests.', () {
       final List<ContextNode> contextNodeList = getContextNodeListFromJson(repositoryStatusesWithGoldMock);
       const bool allSuccess = true;
       final Author author = Author(login: 'skia-flutter-autoroll');
@@ -331,13 +331,13 @@ void main() {
       convertContextNodeStatuses(contextNodeList);
       expect(
         ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
-        isTrue,
+        isFalse,
       );
       expect(failures, isEmpty);
       expect(failures.length, 0);
     });
 
-    test('Validate flutter-gold is not checked even if failing for engine auto roller pull requests.', () {
+    test('Validate flutter-gold is checked even if failing for engine auto roller pull requests.', () {
       final List<ContextNode> contextNodeList = getContextNodeListFromJson(repositoryStatusesWithFailedGoldMock);
       const bool allSuccess = true;
       final Author author = Author(login: 'skia-flutter-autoroll');
@@ -350,10 +350,10 @@ void main() {
       convertContextNodeStatuses(contextNodeList);
       expect(
         ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
-        isTrue,
+        isFalse,
       );
-      expect(failures, isEmpty);
-      expect(failures.length, 0);
+      expect(failures, isNotEmpty);
+      expect(failures.length, 1);
     });
 
     test('Validate flutter-gold is checked for non engine auto roller pull requests.', () {

@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/model/appengine/github_build_status_update.dart';
+import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/request_handlers/push_build_status_to_github.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
@@ -11,6 +12,7 @@ import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart' hide Model;
+import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -27,6 +29,7 @@ import '../src/utilities/mocks.dart';
 void main() {
   group('PushStatusToGithub', () {
     late FakeBuildStatusService buildStatusService;
+    late MockFirestoreService mockFirestoreService;
     late FakeClientContext clientContext;
     late FakeConfig config;
     late FakeDatastoreDB db;
@@ -52,6 +55,7 @@ void main() {
     }
 
     setUp(() async {
+      mockFirestoreService = MockFirestoreService();
       clientContext = FakeClientContext();
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       clientContext.isDevelopmentEnvironment = false;
@@ -67,6 +71,7 @@ void main() {
         tabledataResource: tabledataResourceApi,
         githubService: githubService,
         dbValue: db,
+        firestoreService: mockFirestoreService,
         githubClient: github,
       );
       tester = ApiRequestHandlerTester(context: authContext);
@@ -154,6 +159,14 @@ void main() {
     });
 
     test('updates github and datastore if status has changed since last update', () async {
+      when(
+        mockFirestoreService.batchWriteDocuments(
+          captureAny,
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<BatchWriteResponse>.value(BatchWriteResponse());
+      });
       final PullRequest pr = generatePullRequest(id: 1, sha: '1');
       when(pullRequestsService.list(any, base: anyNamed('base'))).thenAnswer((_) => Stream<PullRequest>.value(pr));
       buildStatusService.cumulativeStatus = BuildStatus.success();
@@ -164,6 +177,14 @@ void main() {
       expect(status.updates, 1);
       expect(status.updateTimeMillis, isNotNull);
       expect(status.status, BuildStatus.success().githubStatus);
+
+      final List<dynamic> captured = verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+      expect(captured.length, 2);
+      final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+      expect(batchWriteRequest.writes!.length, 1);
+      final GithubBuildStatus updatedDocument =
+          GithubBuildStatus.fromDocument(githubBuildStatus: batchWriteRequest.writes![0].update!);
+      expect(updatedDocument.updates, status.updates);
     });
   });
 }
