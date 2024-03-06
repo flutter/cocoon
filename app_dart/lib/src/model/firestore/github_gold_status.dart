@@ -83,6 +83,7 @@ class GithubGoldStatus extends Document {
 
 /// Generates GithubGoldStatus document based on datastore GithubGoldStatusUpdate data model.
 GithubGoldStatus githubGoldStatusToDocument(GithubGoldStatusUpdate githubGoldStatus) {
+  // Prefers `_` instead of `/` in Firestore document names.
   final String repo = githubGoldStatus.repository!.replaceAll('/', '_');
   return GithubGoldStatus.fromDocument(
     githubGoldStatus: Document(
