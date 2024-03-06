@@ -46,12 +46,12 @@ void main() {
       status: GithubGoldStatusUpdate.statusCompleted,
       updates: 2,
       description: '',
-      repository: '',
+      repository: 'flutter/flutter',
     );
     final GithubGoldStatus commitDocument = githubGoldStatusToDocument(githubGoldStatusUpdate);
     expect(
       commitDocument.name,
-      '$kDatabase/documents/$kGithubGoldStatusCollectionId/${githubGoldStatusUpdate.head}_${githubGoldStatusUpdate.pr}',
+      '$kDatabase/documents/$kGithubGoldStatusCollectionId/${githubGoldStatusUpdate.repository!.replaceAll('/', '_')}_${githubGoldStatusUpdate.pr}',
     );
     expect(commitDocument.fields![kGithubGoldStatusHeadField]!.stringValue, githubGoldStatusUpdate.head);
     expect(commitDocument.fields![kGithubGoldStatusPrNumberField]!.integerValue, githubGoldStatusUpdate.pr.toString());
@@ -60,7 +60,7 @@ void main() {
       commitDocument.fields![kGithubGoldStatusUpdatesField]!.integerValue,
       githubGoldStatusUpdate.updates.toString(),
     );
-    expect(commitDocument.fields![kGithubGoldStatusDescriptionField]!.stringValue, '');
-    expect(commitDocument.fields![kGithubGoldStatusRepositoryField]!.stringValue, '');
+    expect(commitDocument.fields![kGithubGoldStatusDescriptionField]!.stringValue, githubGoldStatusUpdate.description);
+    expect(commitDocument.fields![kGithubGoldStatusRepositoryField]!.stringValue, githubGoldStatusUpdate.repository);
   });
 }
