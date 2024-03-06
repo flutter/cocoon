@@ -5,9 +5,11 @@
 import 'dart:async';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:http/http.dart';
 
+import '../model/firestore/github_gold_status.dart';
 import '../model/firestore/task.dart';
 import 'access_client_provider.dart';
 import 'config.dart';
@@ -82,6 +84,39 @@ class FirestoreService {
     };
     final List<Document> documents = await query(kTaskCollectionId, filterMap);
     return documents.map((Document document) => Task.fromDocument(taskDocument: document)).toList();
+  }
+
+  /// Queries the last updated Gold status for the [slug] and [prNumber].
+  /// 
+  /// If not existing, returns a fresh new Gold status.
+  Future<GithubGoldStatus> queryLastGoldStatus(RepositorySlug slug, int prNumber) async {
+    final Map<String, Object> filterMap = <String, Object>{
+      '$kGithubGoldStatusPrNumberField = ': prNumber,
+      '$kGithubGoldStatusRepositoryField = ': slug.fullName,
+    };
+    final List<Document> documents = await query(kGithubGoldStatusCollectionId, filterMap);
+    final List<GithubGoldStatus> githubGoldStatuses =
+        documents.map((Document document) => GithubGoldStatus.fromDocument(githubGoldStatus: document)).toList();
+    if (githubGoldStatuses.isEmpty) {
+      return GithubGoldStatus.fromDocument(
+        githubGoldStatus: Document(
+          fields: <String, Value>{
+            kGithubGoldStatusPrNumberField: Value(integerValue: prNumber.toString()),
+            kGithubGoldStatusHeadField: Value(stringValue: ''),
+            kGithubGoldStatusStatusField: Value(stringValue: ''),
+            kGithubGoldStatusUpdatesField: Value(integerValue: '0'),
+            kGithubGoldStatusDescriptionField: Value(stringValue: ''),
+            kGithubGoldStatusRepositoryField: Value(stringValue: slug.fullName),
+          },
+        ),
+      );
+    } else {
+      if (githubGoldStatuses.length > 1) {
+        throw StateError('GithubGoldStatusUpdate should have no more than one entry on '
+            'repository ${slug.fullName}, pr $prNumber.');
+      }
+      return githubGoldStatuses.single;
+    }
   }
 
   /// Returns Firestore [Value] based on corresponding object type.
