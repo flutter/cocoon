@@ -1184,8 +1184,6 @@ void main() {
 
   group('Craft discord message', () {
     test('Craft discord message', () async {
-      // const String expected = '''
-      //     'Pull Request https://github.com/flutter/cocoon/pull/3460 has been reverted by yusuf-goog here: https://github.com/flutter/cocoon/pull/3461.''';
       const String expected = '''
 Pull Request [flutter/cocoon#3460](<https://github.com/flutter/cocoon/pull/3460>) has been reverted by yusuf-goog. 
 Please see the revert PR here: [flutter/cocoon#3461](<https://github.com/flutter/cocoon/pull/3461>).
