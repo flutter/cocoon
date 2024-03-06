@@ -44,6 +44,7 @@ class Config {
   static const String kGithubAppId = 'AUTO_SUBMIT_GITHUB_APP_ID';
   static const String kWebHookKey = 'AUTO_SUBMIT_WEBHOOK_TOKEN';
   static const String kFlutterGitHubBotKey = 'AUTO_SUBMIT_FLUTTER_GITHUB_TOKEN';
+  static const String kTreeStatusDiscordUrl = 'TREE_STATUS_DISCORD_WEBHOOK_URL';
 
   /// Labels autosubmit looks for on pull requests
   static const String kAutosubmitLabel = 'autosubmit';
@@ -276,6 +277,13 @@ class Config {
   Future<String> getFlutterGitHubBotToken() async {
     final Uint8List? cacheValue = await cache[kFlutterGitHubBotKey].get(
       () => _getValueFromSecretManager(kFlutterGitHubBotKey),
+    ) as Uint8List?;
+    return String.fromCharCodes(cacheValue!);
+  }
+
+  Future<String> getTreeStatusDiscordUrl() async {
+    final Uint8List? cacheValue = await cache[kTreeStatusDiscordUrl].get(
+      () => _getValueFromSecretManager(kTreeStatusDiscordUrl),
     ) as Uint8List?;
     return String.fromCharCodes(cacheValue!);
   }

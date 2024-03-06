@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/service/revert_issue_body_formatter.dart';
+import 'package:auto_submit/revert/revert_issue_body_formatter.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
 
