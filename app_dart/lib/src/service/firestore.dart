@@ -17,6 +17,9 @@ const String kDocumentParent = '$kDatabase/documents';
 const String kFieldFilterOpEqual = 'EQUAL';
 const String kCompositeFilterOpAnd = 'AND';
 
+const int kFilterStringSpaceSplitElements = 2;
+const int kFilterStringSpaceSplitOpIndex = 1;
+
 const Map<String, String> kRelationMapping = <String, String>{
   '=': 'EQUAL',
 };
@@ -96,7 +99,8 @@ class FirestoreService {
     final List<Filter> filters = <Filter>[];
     filterMap.forEach((filterString, comparisonOject) {
       final List<String> parts = filterString.split(' ');
-      if (parts.length != 2 || !kRelationMapping.containsKey(parts[1])) {
+      if (parts.length != kFilterStringSpaceSplitElements ||
+          !kRelationMapping.containsKey(parts[kFilterStringSpaceSplitOpIndex])) {
         throw ArgumentError("Invalid filter string '$filterString'.");
       }
       final String name = parts[0];
@@ -113,18 +117,12 @@ class FirestoreService {
         ),
       );
     });
-    Filter? finalFilter;
-    if (filters.length == 1) {
-      finalFilter = filters.single;
-    } else {
-      finalFilter = Filter(
-        compositeFilter: CompositeFilter(
-          filters: filters,
-          op: compositeFilterOp,
-        ),
-      );
-    }
-    return finalFilter;
+    return Filter(
+      compositeFilter: CompositeFilter(
+        filters: filters,
+        op: compositeFilterOp,
+      ),
+    );
   }
 
   /// Wrapper to simplify Firestore query.

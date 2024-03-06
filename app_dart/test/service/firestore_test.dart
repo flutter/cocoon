@@ -40,20 +40,21 @@ void main() {
 
   group('generateFilter', () {
     final FirestoreService firestoreService = FirestoreService(AccessClientProvider());
-    test('a field filter', () async {
+    test('a composite filter with a single field filter', () async {
       final Map<String, Object> filterMap = <String, Object>{
         'intField =': 1,
       };
       const String compositeFilterOp = kCompositeFilterOpAnd;
       final Filter filter = firestoreService.generateFilter(filterMap, compositeFilterOp);
-      expect(filter.fieldFilter, isNotNull);
-      expect(filter.compositeFilter, isNull);
-      expect(filter.fieldFilter!.field!.fieldPath, 'intField');
-      expect(filter.fieldFilter!.value!.integerValue, '1');
-      expect(filter.fieldFilter!.op, kFieldFilterOpEqual);
+      expect(filter.compositeFilter, isNotNull);
+      final List<Filter> filters = filter.compositeFilter!.filters!;
+      expect(filters.length, 1);
+      expect(filters[0].fieldFilter!.field!.fieldPath, 'intField');
+      expect(filters[0].fieldFilter!.value!.integerValue, '1');
+      expect(filters[0].fieldFilter!.op, kFieldFilterOpEqual);
     });
 
-    test('a composite filter', () async {
+    test('a composite filter with multiple field filters', () async {
       final Map<String, Object> filterMap = <String, Object>{
         'intField =': 1,
         'stringField =': 'string',
