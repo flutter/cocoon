@@ -20,7 +20,7 @@ class RevertDiscordMessage extends Message {
     String reasonForRevert,
   ) {
     final String content = '''
-Pull Request [$originalPrDisplayText](<$originalPrUrl>) has been reverted by $initiatingAuthor. 
+Pull Request [$originalPrDisplayText](<$originalPrUrl>) has been reverted by $initiatingAuthor.
 Please see the revert PR here: [$revertPrDisplayText](<$revertPrUrl>).
 Reason for reverting: $reasonForRevert''';
 

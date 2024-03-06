@@ -16,7 +16,7 @@ void main() {
     String realOutput,
   ) {
     final String expectedFormattedOutput = '''
-Pull Request [$originalPrDisplayText](<$originalPrUrl>) has been reverted by $initiatingAuthor. 
+Pull Request [$originalPrDisplayText](<$originalPrUrl>) has been reverted by $initiatingAuthor.
 Please see the revert PR here: [$revertPrDisplayText](<$revertPrUrl>).
 Reason for reverting: $reasonForRevert''';
     expect(expectedFormattedOutput, equals(realOutput));
