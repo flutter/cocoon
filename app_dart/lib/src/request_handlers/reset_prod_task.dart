@@ -138,13 +138,16 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       slug: slug,
     );
     final Commit commit = await _getCommitFromTask(datastore, task);
+    sha ??= commit.id!.split('/').last;
+    taskName ??= task.name;
 
     final CiYaml ciYaml = await scheduler.getCiYaml(commit);
     final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
 
     firestore.Task? taskDocument;
     final int currentAttempt = task.attempts!;
-    final String documentName = '$kDatabase/documents/$kTaskCollectionId/${sha}_${taskName}_$currentAttempt';
+    final String documentName =
+        '$kDatabase/documents/${firestore.kTaskCollectionId}/${sha}_${taskName}_$currentAttempt';
     try {
       taskDocument = await firestore.Task.fromFirestore(firestoreService: firestoreService, documentName: documentName);
     } catch (error) {

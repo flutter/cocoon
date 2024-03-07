@@ -5,7 +5,10 @@
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/firestore/task.dart' as f;
+import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_commit;
+import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
+import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/gerrit/commit.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
@@ -96,7 +99,7 @@ Task generateTask(
       stageName: stage,
     );
 
-f.Task generateFirestoreTask(
+firestore.Task generateFirestoreTask(
   int i, {
   String? name,
   String status = Task.statusNew,
@@ -111,22 +114,83 @@ f.Task generateFirestoreTask(
 }) {
   final String taskName = name ?? 'task$i';
   final String sha = commitSha ?? 'testSha';
-  final f.Task task = f.Task()
+  final firestore.Task task = firestore.Task()
     ..name = '${sha}_${taskName}_$attempts'
     ..fields = <String, Value>{
-      'createTimestamp': Value(integerValue: (created?.millisecondsSinceEpoch ?? 0).toString()),
-      'startTimestamp': Value(integerValue: (started?.millisecondsSinceEpoch ?? 0).toString()),
-      'endTimestamp': Value(integerValue: (ended?.millisecondsSinceEpoch ?? 0).toString()),
-      'bringup': Value(booleanValue: bringup),
-      'testFlaky': Value(booleanValue: testFlaky),
-      'status': Value(stringValue: status),
-      'name': Value(stringValue: taskName),
-      'commitSha': Value(stringValue: sha),
+      firestore.kTaskCreateTimestampField: Value(integerValue: (created?.millisecondsSinceEpoch ?? 0).toString()),
+      firestore.kTaskStartTimestampField: Value(integerValue: (started?.millisecondsSinceEpoch ?? 0).toString()),
+      firestore.kTaskEndTimestampField: Value(integerValue: (ended?.millisecondsSinceEpoch ?? 0).toString()),
+      firestore.kTaskBringupField: Value(booleanValue: bringup),
+      firestore.kTaskTestFlakyField: Value(booleanValue: testFlaky),
+      firestore.kTaskStatusField: Value(stringValue: status),
+      firestore.kTaskNameField: Value(stringValue: taskName),
+      firestore.kTaskCommitShaField: Value(stringValue: sha),
     };
   if (buildNumber != null) {
-    task.fields!['buildNumber'] = Value(integerValue: buildNumber.toString());
+    task.fields![firestore.kTaskBuildNumberField] = Value(integerValue: buildNumber.toString());
   }
   return task;
+}
+
+firestore_commit.Commit generateFirestoreCommit(
+  int i, {
+  String? sha,
+  String branch = 'master',
+  String? owner = 'flutter',
+  String repo = 'flutter',
+  int? createTimestamp,
+}) {
+  final firestore_commit.Commit commit = firestore_commit.Commit()
+    ..name = sha ?? '$i'
+    ..fields = <String, Value>{
+      firestore_commit.kCommitCreateTimestampField: Value(integerValue: (createTimestamp ?? i).toString()),
+      firestore_commit.kCommitRepositoryPathField: Value(stringValue: '$owner/$repo'),
+      firestore_commit.kCommitBranchField: Value(stringValue: branch),
+      firestore_commit.kCommitShaField: Value(stringValue: sha ?? '$i'),
+    };
+  return commit;
+}
+
+GithubGoldStatus generateFirestoreGithubGoldStatus(
+  int i, {
+  String? head,
+  int? pr,
+  String owner = 'flutter',
+  String repo = 'flutter',
+  int? updates,
+}) {
+  pr ??= i;
+  head ??= 'sha$i';
+  final GithubGoldStatus githubGoldStatus = GithubGoldStatus()
+    ..name = '{$pr}_$head'
+    ..fields = <String, Value>{
+      kGithubGoldStatusHeadField: Value(stringValue: head),
+      kGithubGoldStatusPrNumberField: Value(integerValue: pr.toString()),
+      kGithubGoldStatusRepositoryField: Value(stringValue: '$owner/$repo'),
+      kGithubGoldStatusUpdatesField: Value(integerValue: updates.toString()),
+    };
+  return githubGoldStatus;
+}
+
+GithubBuildStatus generateFirestoreGithubBuildStatus(
+  int i, {
+  String? head,
+  int? pr,
+  String owner = 'flutter',
+  String repo = 'flutter',
+  int? updates,
+}) {
+  pr ??= i;
+  head ??= 'sha$i';
+  final GithubBuildStatus githubBuildStatus = GithubBuildStatus()
+    ..name = '{$pr}_$head'
+    ..fields = <String, Value>{
+      kGithubBuildStatusHeadField: Value(stringValue: head),
+      kGithubBuildStatusPrNumberField: Value(integerValue: pr.toString()),
+      kGithubBuildStatusRepositoryField: Value(stringValue: '$owner/$repo'),
+      kGithubBuildStatusUpdatesField: Value(integerValue: updates.toString()),
+    };
+  return githubBuildStatus;
 }
 
 Target generateTarget(

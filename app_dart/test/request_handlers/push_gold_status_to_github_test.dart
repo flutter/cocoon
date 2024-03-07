@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cocoon_service/src/model/appengine/github_gold_status_update.dart';
+import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/request_handlers/push_gold_status_to_github.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
@@ -13,6 +14,7 @@ import 'package:cocoon_service/src/service/logging.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/firestore/v1.dart';
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -36,6 +38,7 @@ void main() {
     late FakeClientContext clientContext;
     FakeAuthenticatedContext authContext;
     late FakeAuthenticationProvider auth;
+    late MockFirestoreService mockFirestoreService;
     late FakeDatastoreDB db;
     late ApiRequestHandlerTester tester;
     late PushGoldStatusToGithub handler;
@@ -51,12 +54,14 @@ void main() {
 
     setUp(() {
       clientContext = FakeClientContext();
+      mockFirestoreService = MockFirestoreService();
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       auth = FakeAuthenticationProvider(clientContext: clientContext);
       githubGraphQLClient = FakeGraphQLClient();
       db = FakeDatastoreDB();
       config = FakeConfig(
         dbValue: db,
+        firestoreService: mockFirestoreService,
       );
       tester = ApiRequestHandlerTester(context: authContext);
       mockHttpClient = MockClient((_) async => http.Response('{}', HttpStatus.ok));
@@ -749,6 +754,16 @@ void main() {
       });
 
       group('updates GitHub and/or Datastore', () {
+        setUp(() {
+          when(
+            mockFirestoreService.batchWriteDocuments(
+              captureAny,
+              captureAny,
+            ),
+          ).thenAnswer((Invocation invocation) {
+            return Future<BatchWriteResponse>.value(BatchWriteResponse());
+          });
+        });
         test('new commit, checks running', () async {
           // New commit
           final PullRequest flutterPr = newPullRequest(123, 'f-abc', 'master');
@@ -778,6 +793,22 @@ void main() {
           expect(engineStatus.status, GithubGoldStatusUpdate.statusRunning);
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
+
+          final List<dynamic> captured =
+              verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+          expect(captured.length, 4);
+          // The first element corresponds to the `status`.
+          final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+          expect(batchWriteRequest.writes!.length, 1);
+          final GithubGoldStatus updatedDocument =
+              GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
+          expect(updatedDocument.updates, status.updates);
+          // The third element corresponds to the `engineStatus`.
+          final BatchWriteRequest batchWriteRequestEngine = captured[2] as BatchWriteRequest;
+          expect(batchWriteRequestEngine.writes!.length, 1);
+          final GithubGoldStatus updatedDocumentEngine =
+              GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
+          expect(updatedDocumentEngine.updates, engineStatus.updates);
 
           // Should not apply labels or make comments
           verifyNever(
@@ -1353,6 +1384,14 @@ void main() {
       });
 
       test('Completed pull request does not skip follow-up prs with early return', () async {
+        when(
+          mockFirestoreService.batchWriteDocuments(
+            captureAny,
+            captureAny,
+          ),
+        ).thenAnswer((Invocation invocation) {
+          return Future<BatchWriteResponse>.value(BatchWriteResponse());
+        });
         final PullRequest completedPR = newPullRequest(123, 'abc', 'master');
         final PullRequest followUpPR = newPullRequest(456, 'def', 'master');
         prsFromGitHub = <PullRequest>[
@@ -1466,6 +1505,14 @@ void main() {
       });
 
       test('uses the correct Gold endpoint to get status', () async {
+        when(
+          mockFirestoreService.batchWriteDocuments(
+            captureAny,
+            captureAny,
+          ),
+        ).thenAnswer((Invocation invocation) {
+          return Future<BatchWriteResponse>.value(BatchWriteResponse());
+        });
         // New commit
         final PullRequest pr = newPullRequest(123, 'abc', 'master');
         prsFromGitHub = <PullRequest>[pr];

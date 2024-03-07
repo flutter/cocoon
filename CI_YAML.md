@@ -52,6 +52,7 @@ targets:
 # properties: A map of string, string. Values are parsed to their closest data model.
 # postsubmit_properties: Properties that are only run on postsubmit.
 # timeout: Integer defining whole build execution time limit for all steps in minutes.
+# dimensions: A list of testbed dimensions which the CI determines what testbed to assign a target to.
 #
 # Minimal example:
 # Linux analyze will run on all presubmit and in postsubmit.
@@ -124,10 +125,194 @@ following are a list of keys that are reserved for special use.
 **Properties** is a Map<String, String> and any special values must be JSON encoded
 (i.e. no trailing commas). Additionally, these strings must be compatible with YAML multiline strings
 
-**$flutter/osx_sdk**: xcode configs including sdk and runtime. **Note**: support on legacy `xcode`/`runtime`
-properties and `xcode` dependency has been deprecated.
+<table>
+  <tr>
+    <td>
+      <b>Property Name</b>
+    </td>
+    <td>
+      <b>Description</b>
+    </td>
+    <td>
+      <b>Default Value</b>
+    </td>
+    <td>
+      <b>Type</b>
+    </td>
+    <td>
+      <b>Example</b>
+    </td>
+  </tr>
+  <tr>
+    <td>add_recipes_cq</td>
+    <td>Whether to add this target to flutter/recipes CQ. This ensures
+changes to flutter/recipes pass on this target before landing.
+    </td>
+    <td>"false"</td>
+    <td>string bool</td>
+    <td>
 
-Example:
+``` yaml
+add_recipes_cq: "true"
+```
+</td>
+  </tr>
+  <tr>
+    <td>cache_name</td>
+    <td>The name identifier of the second layer Engine source cache. This is maintained by flutter/infra
+    team via <a href="https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/engine_v2/cache.py">cache.py</a> recipe
+    and is separate from LUCI side default caches.
+    </td>
+    <td>N/A</td>
+    <td>string</td>
+    <td>
+
+``` yaml
+cache_name: "builder"
+```
+</td>
+  </tr>
+  <tr>
+    <td>cache_path</td>
+    <td>The paths of Engine checkout source that will be auto saved to CAS for boosting source checkout when
+caches no longer exist from the bots.
+    </td>
+    <td>N/A</td>
+    <td>list</td>
+    <td>
+
+``` yaml
+cache_paths: >-
+  [
+    "builder",
+    "git"
+  ]
+```
+</td>
+  </tr>
+  <tr>
+    <td>clobber</td>
+    <td>Whether to clean the Engine source code cache.
+    </td>
+    <td>"false"</td>
+    <td>string bool</td>
+    <td>
+
+``` yaml
+clobber: "true"
+```
+</td>
+  </tr>
+  <tr>
+    <td>config_name</td>
+    <td>The config name of the targets. It is used for <a href="https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/engine_v2">`Engine V2 recipes`</a>,
+and is a one-on-one map to the config files located under <a href="https://github.com/flutter/engine/tree/main/ci/builders">`ci/builders`</a>. This is
+not needed for targets using none `Engine V2 recipes`.
+    </td>
+    <td>N/A</td>
+    <td>string</td>
+    <td>
+
+``` yaml
+config_name: linux_benchmarks
+```
+</td>
+  </tr>
+  <tr>
+  <td>contexts</td>
+  <td>The list of contexts that will guide <a href="https://flutter.googlesource.com/recipes/+/refs/heads/main/recipe_modules/flutter_deps/api.py#665">recipes</a> to add to the <a href="https://docs.python.org/3/library/contextlib.html#contextlib.ExitStack">ExitStack</a>. This will initialize and prepare the virtual device used for tests. Other supported contexts include: `osx_sdk`, `depot_tools_on_path`, etc.
+  </td>
+  <td>N/A</td>
+  <td>list</td>
+  <td>
+
+```yaml
+contexts: >-
+        [
+          "android_virtual_device"
+        ]
+```
+</td>
+  </tr>
+  <tr>
+    <td>cores</td>
+    <td>The machine cores a target will be running against. A higher number of cores may be needed for extensive targets.
+    <br>
+    Note: This property will be auto populated to CI builder dimensions, which CI uses to determine the
+    testbed to run this target.
+</td>
+    <td>N/A</td>
+    <td>string int</td>
+    <td>
+
+``` yaml
+cores: "8"
+```
+</td>
+  </tr>
+  <tr>
+    <td>dependencies</td>
+    <td>JSON list of objects with "dependency" and optionally "version".
+The list of supported deps is in <a href="https://cs.opensource.google/flutter/recipes/+/master:recipe_modules/flutter_deps/api.py">flutter_deps recipe_module</a>.
+Dependencies generate a corresponding swarming cache that can be used in the
+recipe code. The path of the cache will be the name of the dependency.
+<br>
+Versions can be located in <a href="https://chrome-infra-packages.appspot.com">CIPD</a>
+    </td>
+    <td>N/A</td>
+    <td>list</td>
+    <td>
+
+``` yaml
+dependencies: >-
+  [
+    {"dependency": "android_sdk"},
+    {"dependency": "chrome_and_driver", "version": "latest"},
+    {"dependency": "clang"},
+    {"dependency": "goldctl"}
+  ]
+```
+</td>
+  </tr>
+  <tr>
+    <td>device_type</td>
+    <td>The phone device type a target will be running against. For host only targets that do not need
+    a phone, a value of `none` should be used.
+    <br>
+    Note: This property will be auto populated to CI builder dimensions, which CI uses to determine the
+    testbed to run this target.
+</td>
+    <td>N/A</td>
+    <td>string</td>
+    <td>
+
+``` yaml
+device_type: "msm8952"
+```
+</td>
+  </tr>
+  <tr>
+    <td>drone_dimensions</td>
+    <td>A list of testbed dimensions which the CI determines what testbed to assign a subbuild drone of a target to. This
+    property will be auto populated to CI dimensions of a subbuild triggered from the orchestrator target.
+</td>
+    <td>N/A</td>
+    <td>string</td>
+    <td>
+
+``` yaml
+drone_dimensions: >
+  ["device_type=none", "os=Linux"]
+```
+</td>
+  </tr>
+  <tr>
+    <td>$flutter/osx_sdk</td>
+    <td>Xcode configs including sdk and runtime</td>
+    <td>N/A</td>
+    <td>map</td>
+    <td>
+
 ``` yaml
 $flutter/osx_sdk : >-
   {
@@ -139,65 +324,158 @@ $flutter/osx_sdk : >-
       ]
   }
 ```
+</td>
+  </tr>
+  <tr>
+    <td>gclient_variables</td>
+    <td>The gclient variables populated to recipes when checking out sources via gclient sync.
+    </td>
+    <td>N/A</td>
+    <td>map</td>
+    <td>
 
-**add_recipes_cq**: String boolean whether to add this target to flutter/recipes CQ. This ensures
-changes to flutter/recipes pass on this target before landing.
-
-**dependencies**: JSON list of objects with "dependency" and optionally "version".
-The list of supported deps is in [flutter_deps recipe_module](https://cs.opensource.google/flutter/recipes/+/master:recipe_modules/flutter_deps/api.py).
-Dependencies generate a corresponding swarming cache that can be used in the
-recipe code. The path of the cache will be the name of the dependency.
-
-Versions can be located in [CIPD](https://chrome-infra-packages.appspot.com/)
-
-Example
 ``` yaml
-dependencies: >-
+gclient_variables: >-
+  {
+    "download_android_deps": "true"
+  }
+```
+</td>
+  </tr>
+  <tr>
+    <td>ignore_cache_paths</td>
+    <td>The paths of Engine checkout source that will be skipped when saved to CAS. Please reference to `cache_path`.
+    </td>
+    <td>N/A</td>
+    <td>list</td>
+    <td>
+
+``` yaml
+ignore_cache_paths: >-
   [
-    {"dependency": "android_sdk"},
-    {"dependency": "chrome_and_driver", "version": "latest"},
-    {"dependency": "clang"},
-    {"dependency": "goldctl"}
+    "buibuilder/src/flutter/prebuilts/SDKs",
+    "builder/src/flutter/prebuilts/Library"lder"
   ]
 ```
+</td>
+  </tr>
+  <tr>
+    <td>no_goma</td>
+    <td>Whether to use goma when building artifacts.
+    </td>
+    <td>"false"</td>
+    <td>string bool</td>
+    <td>
 
-**tags**: JSON list of strings. These are currently only used in flutter/flutter to help
+``` yaml
+no_goma: "true"
+```
+</td>
+  </tr>
+  <tr>
+    <td>os</td>
+    <td>The machine os a target will be running against, such as `Linux`, `Mac-13`, etc.
+    <br>
+    Note: This property will be auto populated to CI builder dimensions, which CI uses to determine the
+    testbed to run this target.
+</td>
+    <td>N/A</td>
+    <td>string</td>
+    <td>
+
+``` yaml
+os: Linux
+```
+</td>
+  </tr>
+  <tr>
+  <td>presubmit_max_attempts</td>
+  <td>The max attempts the target will be auto executed in presubmit. If it is
+not specified, the default value is `1` and it means no auto rerun will happen. If explicitly defined,
+it controls the max number of attempts. For example: `3` means it will be auto rescheduled two more times.
+  </td>
+  <td>"1"</td>
+  <td>string int</td>
+  <td>
+
+``` yaml
+presubmit_max_attempts: "3"
+```
+</td>
+  </tr>
+  <tr>
+    <td>release_build</td>
+    <td>Whether is required to run to release Engine. Will be triggered via
+      <a href="https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/release/release_builder.py">release_builder.py</a>
+    </td>
+    <td>"false"</td>
+    <td>string bool</td>
+    <td>
+
+``` yaml
+release_build: "true"
+```
+</td>
+  </tr>
+  <tr>
+    <td>shard</td>
+    <td>The shard name of the sharding target, used in the <a href="https://github.com/flutter/flutter/blob/master/dev/bots/test.dart">test.dart</a> test runner.
+    </td>
+    <td>N/A</td>
+    <td>string</td>
+    <td>
+
+``` yaml
+shard: web_tests
+```
+</td>
+  </tr>
+  <tr>
+    <td>subshards</td>
+    <td>The sub shards of the sharding target, used in the <a href="https://github.com/flutter/flutter/blob/master/dev/bots/test.dart">test.dart</a> test runner.
+If omitted with `shard` defined, it will run all unit tests in a single shard.
+    </td>
+    <td>N/A</td>
+    <td>list</td>
+    <td>
+
+``` yaml
+subshards: >-
+  ["0", "1", "2", "3", "4", "5", "6", "7_last"]
+```
+</td>
+  </tr>
+  <tr>
+    <td>tags</td>
+    <td>JSON list of strings. These are currently only used in flutter/flutter to help
 with TESTOWNERSHIP and test flakiness.
+    </td>
+    <td>N/A</td>
+    <td>list</td>
+    <td>
 
-Example
 ```yaml
 tags: >
   ["devicelab","hostonly"]
 ```
-
-**test_timeout_secs** String determining seconds before timeout for an individual test step.
+</td>
+  </tr>
+  <tr>
+    <td>test_timeout_secs</td>
+    <td>String determining seconds before timeout for an individual test step.
 Note that this is the timeout for a single test step rather than the entire build execution
 timeout.
+    </td>
+    <td>"1800"</td>
+    <td>string int</td>
+    <td>
 
-Example
 ``` yaml
 test_timeout_secs: "2700"
 ```
-
-**presubmit_max_attempts** The max attempts the target will be auto executed in presubmit. If it is
-not specified, the default value is `1` and it means no auto rerun will happen. If explicitly defined,
-it controls the max number of attempts. For example: `3` means it will be auto rescheduled two more times.
-
-Example
-``` yaml
-presubmit_max_attempts: "3"
-```
-
-**contexts** The list of contexts that will guide [recipes](https://flutter.googlesource.com/recipes/+/refs/heads/main/recipe_modules/flutter_deps/api.py#665) to add to [ExitStack](https://docs.python.org/3/library/contextlib.html#contextlib.ExitStack).
-
-Example
-```yaml
-contexts: >-
-        [
-          "android_virtual_device"
-        ]
-```
-This will initialize and prepare the virtual device used for tests. Other supported contexts include: `osx_sdk`, `depot_tools_on_path`, etc.
+</td>
+  </tr>
+</table>
 
 ### Updating targets
 

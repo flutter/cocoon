@@ -2,13 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
+import 'package:auto_submit/model/discord_message.dart';
 import 'package:auto_submit/action/git_cli_revert_method.dart';
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/model/pull_request_data_types.dart';
 import 'package:auto_submit/request_handling/pubsub.dart';
 import 'package:auto_submit/requests/github_pull_request_event.dart';
+import 'package:auto_submit/revert/revert_discord_message.dart';
+import 'package:auto_submit/revert/revert_info_collection.dart';
 import 'package:auto_submit/service/approver_service.dart';
+import 'package:auto_submit/service/discord_notification.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
@@ -24,8 +30,11 @@ import 'process_method.dart';
 enum RevertProcessMethod { revert, revertOf, none }
 
 class RevertRequestValidationService extends ValidationService {
-  RevertRequestValidationService(Config config, {RetryOptions? retryOptions, RevertMethod? revertMethod})
-      : revertMethod = revertMethod ?? GitCliRevertMethod(),
+  RevertRequestValidationService(
+    Config config, {
+    RetryOptions? retryOptions,
+    RevertMethod? revertMethod,
+  })  : revertMethod = revertMethod ?? GitCliRevertMethod(),
         super(config, retryOptions: retryOptions) {
     /// Validates a PR marked with the reverts label.
     approverService = ApproverService(config);
@@ -36,6 +45,7 @@ class RevertRequestValidationService extends ValidationService {
   RevertMethod? revertMethod;
   @visibleForTesting
   ValidationFilter? validationFilter;
+  DiscordNotification? discordNotification;
 
   /// TODO run the actual request from here and remove the shouldProcess call.
   /// Processes a pub/sub message associated with PullRequest event.
@@ -289,6 +299,11 @@ class RevertRequestValidationService extends ValidationService {
       await githubService.createComment(slug, prNumber, message);
       log.info(message);
     } else {
+      // Need to add the discord notification here.
+      final DiscordNotification discordNotification = await discordNotificationClient;
+      final Message discordMessage = craftDiscordRevertMessage(messagePullRequest);
+      discordNotification.notifyDiscordChannelWebhook(jsonEncode(discordMessage.toJson()));
+
       log.info('Revert merged successfully, deleting branch ${messagePullRequest.head!.ref!}');
       await githubService.deleteBranch(slug, messagePullRequest.head!.ref!);
       log.info('Pull Request ${slug.fullName}/$prNumber was merged successfully!');
@@ -302,5 +317,42 @@ class RevertRequestValidationService extends ValidationService {
 
     log.info('Ack the processed message : $ackId.');
     await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
+  }
+
+  Future<DiscordNotification> get discordNotificationClient async {
+    discordNotification ??= DiscordNotification(
+      targetUri: Uri(
+        host: 'discord.com',
+        path: await config.getTreeStatusDiscordUrl(),
+        scheme: 'https',
+      ),
+    );
+    return discordNotification!;
+  }
+
+  RevertDiscordMessage craftDiscordRevertMessage(github.PullRequest messagePullRequest) {
+    const String githubPrefix = 'https://github.com';
+    final RevertInfoCollection revertInfoCollection = RevertInfoCollection();
+    final String prBody = messagePullRequest.body!;
+    // Reverts ${slug.fullName}#$prToRevertNumber'
+    final String? githubFormattedPrLink = revertInfoCollection.extractOriginalPrLink(prBody);
+    final List<String> prLinkSplit = githubFormattedPrLink!.split('#');
+    final int originalPrNumber = int.parse(prLinkSplit.elementAt(1));
+    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    final int revertPrNumber = messagePullRequest.number!;
+    final String githubFormattedRevertPrLink = '${slug.fullName}#$revertPrNumber';
+    // https://github.com/flutter/flutter/pull
+    final String constructedOriginalPrUrl = '$githubPrefix/${slug.fullName}/pull/$originalPrNumber';
+    final String constructedRevertPrUrl = '$githubPrefix/${slug.fullName}/pull/$revertPrNumber';
+    final String? initiatingAuthor = revertInfoCollection.extractInitiatingAuthor(prBody);
+    final String? revertReason = revertInfoCollection.extractRevertReason(prBody);
+    return RevertDiscordMessage.generateMessage(
+      constructedOriginalPrUrl,
+      githubFormattedPrLink,
+      constructedRevertPrUrl,
+      githubFormattedRevertPrLink,
+      initiatingAuthor!,
+      revertReason!,
+    );
   }
 }

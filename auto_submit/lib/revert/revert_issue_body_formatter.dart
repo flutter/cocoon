@@ -38,25 +38,33 @@ class RevertIssueBodyFormatter {
     revertPrTitle = 'Reverts "$prToRevertTitle (#$prToRevertNumber)"';
 
     // create the reverts Link for the body. Looks like Reverts flutter/cocoon#123 but will render as a link.
-    revertPrLink = 'Reverts ${slug.fullName}#$prToRevertNumber';
+    revertPrLink = '${slug.fullName}#$prToRevertNumber';
 
     prToRevertBody ??= 'No description provided.';
 
     // Create the body for the revert issue.
     revertPrBody = '''
-$revertPrLink
-
+<!-- start_original_pr_link -->
+Reverts: $revertPrLink
+<!-- end_original_pr_link -->
+<!-- start_initiating_author -->
 Initiated by: $initiatingAuthor
-
+<!-- end_initiating_author -->
+<!-- start_revert_reason -->
 Reason for reverting: $revertReason
-
+<!-- end_revert_reason -->
+<!-- start_original_pr_author -->
 Original PR Author: $prToRevertAuthor
+<!-- end_original_pr_author -->
 
+<!-- start_reviewers -->
 Reviewed By: ${SetBase.setToString(prToRevertReviewers)}
+<!-- end_reviewers -->
 
+<!-- start_revert_body -->
 This change reverts the following previous change:
-Original Description:
 $prToRevertBody
+<!-- end_revert_body -->
 ''';
 
     return this;

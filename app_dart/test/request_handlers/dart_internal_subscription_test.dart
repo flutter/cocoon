@@ -8,11 +8,13 @@ import 'package:buildbucket/src/generated/google/protobuf/timestamp.pb.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_service/src/model/luci/pubsub_message_v2.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
+import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/model/luci/push_message.dart' as push;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart';
+import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -56,8 +58,9 @@ void main() {
   late DartInternalSubscription handler;
   late FakeConfig config;
   late FakeHttpRequest request;
-  late MockBuildBucketV2Client buildBucketClient;
-  late SubscriptionV2Tester tester;
+  late MockBuildBucketClient buildBucketClient;
+  late SubscriptionTester tester;
+  late MockFirestoreService mockFirestoreService;
   late Commit commit;
 
   // ignore: unused_local_variable
@@ -71,8 +74,9 @@ void main() {
   const String fakeBranch = 'test-branch';
 
   setUp(() async {
-    config = FakeConfig();
-    buildBucketClient = MockBuildBucketV2Client();
+    mockFirestoreService = MockFirestoreService();
+    config = FakeConfig(firestoreService: mockFirestoreService);
+    buildBucketClient = MockBuildBucketClient();
     handler = DartInternalSubscription(
       cache: CacheService(inMemory: true),
       config: config,
@@ -113,12 +117,15 @@ void main() {
   });
 
   test('creates a new task successfully', () async {
-    // This needs to be written as JSON for some reason for it to be parsed successfully.
-    final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
-    pubSubCallBackTest.mergeFromProto3Json(jsonDecode(message));
-    
-    const PushMessageV2 pushMessageV2 = PushMessageV2(data: message, messageId: '798274983');
-    tester.message = pushMessageV2;
+    when(
+      mockFirestoreService.batchWriteDocuments(
+        captureAny,
+        captureAny,
+      ),
+    ).thenAnswer((Invocation invocation) {
+      return Future<BatchWriteResponse>.value(BatchWriteResponse());
+    });
+    tester.message = const push.PushMessage(data: fakePubsubMessage);
 
     await tester.post(handler);
 
@@ -172,9 +179,25 @@ void main() {
       taskInDb.toString(),
       equals(expectedTask.toString()),
     );
+
+    final List<dynamic> captured = verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+    expect(captured.length, 2);
+    final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+    expect(batchWriteRequest.writes!.length, 1);
+    final firestore.Task insertedTaskDocument =
+        firestore.Task.fromDocument(taskDocument: batchWriteRequest.writes![0].update!);
+    expect(insertedTaskDocument.taskName, expectedTask.name);
   });
 
   test('updates an existing task successfully', () async {
+    when(
+      mockFirestoreService.batchWriteDocuments(
+        captureAny,
+        captureAny,
+      ),
+    ).thenAnswer((Invocation invocation) {
+      return Future<BatchWriteResponse>.value(BatchWriteResponse());
+    });
     const int existingTaskId = 123;
     final Task fakeTask = Task(
       attempts: 1,
@@ -254,6 +277,14 @@ void main() {
       taskInDb.toString(),
       equals(expectedTask.toString()),
     );
+
+    final List<dynamic> captured = verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+    expect(captured.length, 2);
+    final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+    expect(batchWriteRequest.writes!.length, 1);
+    final firestore.Task insertedTaskDocument =
+        firestore.Task.fromDocument(taskDocument: batchWriteRequest.writes![0].update!);
+    expect(insertedTaskDocument.status, expectedTask.status);
   });
 
   test('ignores message with empty build data', () async {

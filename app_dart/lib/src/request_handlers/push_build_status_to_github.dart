@@ -5,10 +5,12 @@
 import 'dart:async';
 
 import 'package:github/github.dart';
+import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../model/appengine/github_build_status_update.dart';
+import '../model/firestore/github_build_status.dart';
 import '../request_handling/api_request_handler.dart';
 import '../service/build_status_provider.dart';
 import '../service/datastore.dart';
@@ -79,6 +81,24 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       }
     }
     await datastore.insert(updates);
+    // TODO(keyonghan): remove try block after fully migrated to firestore
+    // https://github.com/flutter/flutter/issues/142951
+    try {
+      await updateGithubBuildStatusDocuments(updates);
+    } catch (error) {
+      log.warning('Failed to update github build status in Firestore: $error');
+    }
+  }
+
+  Future<void> updateGithubBuildStatusDocuments(List<GithubBuildStatusUpdate> updates) async {
+    if (updates.isEmpty) {
+      return;
+    }
+    final List<GithubBuildStatus> githubBuildStatusDocuments =
+        updates.map((e) => githubBuildStatusToDocument(e)).toList();
+    final List<Write> writes = documentsToWrites(githubBuildStatusDocuments);
+    final FirestoreService firestoreService = await config.createFirestoreService();
+    await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
   }
 
   Future<void> _insertBigquery(RepositorySlug slug, String status, String branch, Config config) async {
