@@ -142,6 +142,10 @@ void main() {
         pullRequestsService = MockPullRequestsService();
         issuesService = MockIssuesService();
         repositoriesService = MockRepositoriesService();
+        githubGoldStatus = null;
+        githubGoldStatusNext = null;
+        githubGoldStatusEngine = null;
+
         when(github.pullRequests).thenReturn(pullRequestsService);
         when(github.issues).thenReturn(issuesService);
         when(github.repositories).thenReturn(repositoriesService);
@@ -1427,6 +1431,13 @@ void main() {
           final GithubGoldStatusUpdate status =
               newStatusUpdate(slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(
+            slug,
+            pr,
+            GithubGoldStatusUpdate.statusRunning,
+            'abc',
+            config.flutterGoldPendingValue!,
+          );
 
           // Checks completed
           checkRuns = <dynamic>[
@@ -1443,6 +1454,7 @@ void main() {
           expect(status.updates, 0);
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
+          verifyNever(mockFirestoreService.batchWriteDocuments(captureAny, captureAny));
 
           // Should not apply labels or make comments
           verifyNever(
@@ -1604,6 +1616,13 @@ void main() {
           config.flutterGoldPendingValue!,
         );
         db.values[status.key] = status;
+        githubGoldStatus = newGithubGoldStatus(
+          slug,
+          pr,
+          GithubGoldStatusUpdate.statusRunning,
+          'abc',
+          config.flutterGoldPendingValue!,
+        );
 
         // null status for luci build
         checkRuns = <dynamic>[
@@ -1619,6 +1638,7 @@ void main() {
         expect(status.updates, 0);
         expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
         expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
+        verifyNever(mockFirestoreService.batchWriteDocuments(captureAny, captureAny));
 
         // Should not apply labels or make comments
         verifyNever(
