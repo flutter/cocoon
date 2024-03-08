@@ -80,7 +80,7 @@ class FirestoreService {
   /// Returns all tasks running against the speificed [commitSha].
   Future<List<Task>> queryCommitTasks(String commitSha) async {
     final Map<String, Object> filterMap = <String, Object>{
-      '$kTaskCommitShaField = ': commitSha,
+      '$kTaskCommitShaField =': commitSha,
     };
     final List<Document> documents = await query(kTaskCollectionId, filterMap);
     return documents.map((Document document) => Task.fromDocument(taskDocument: document)).toList();
@@ -91,8 +91,8 @@ class FirestoreService {
   /// If not existing, returns a fresh new Gold status.
   Future<GithubGoldStatus> queryLastGoldStatus(RepositorySlug slug, int prNumber) async {
     final Map<String, Object> filterMap = <String, Object>{
-      '$kGithubGoldStatusPrNumberField = ': prNumber,
-      '$kGithubGoldStatusRepositoryField = ': slug.fullName,
+      '$kGithubGoldStatusPrNumberField =': prNumber,
+      '$kGithubGoldStatusRepositoryField =': slug.fullName,
     };
     final List<Document> documents = await query(kGithubGoldStatusCollectionId, filterMap);
     final List<GithubGoldStatus> githubGoldStatuses =
