@@ -87,7 +87,7 @@ class FirestoreService {
   }
 
   /// Queries the last updated Gold status for the [slug] and [prNumber].
-  /// 
+  ///
   /// If not existing, returns a fresh new Gold status.
   Future<GithubGoldStatus> queryLastGoldStatus(RepositorySlug slug, int prNumber) async {
     final Map<String, Object> filterMap = <String, Object>{
@@ -100,6 +100,7 @@ class FirestoreService {
     if (githubGoldStatuses.isEmpty) {
       return GithubGoldStatus.fromDocument(
         githubGoldStatus: Document(
+          name: '$kDatabase/documents/$kGithubGoldStatusCollectionId/${slug.owner}_${slug.name}_$prNumber',
           fields: <String, Value>{
             kGithubGoldStatusPrNumberField: Value(integerValue: prNumber.toString()),
             kGithubGoldStatusHeadField: Value(stringValue: ''),

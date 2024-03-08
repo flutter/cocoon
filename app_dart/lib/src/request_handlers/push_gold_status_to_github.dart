@@ -59,7 +59,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   ) async {
     final GitHub gitHubClient = await config.createGitHubClient(slug: slug);
     final List<GithubGoldStatusUpdate> statusUpdates = <GithubGoldStatusUpdate>[];
-    final List<GithubGoldStatus> githubGoldStatuses= <GithubGoldStatus>[];
+    final List<GithubGoldStatus> githubGoldStatuses = <GithubGoldStatus>[];
     log.fine('Beginning Gold checks...');
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
       assert(pr.number != null);
@@ -168,8 +168,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           // should just be pending. Any draft PRs are skipped
           // until marked ready for review.
           log.fine('Waiting for checks to be completed.');
-          statusRequest =
-              _createStatus(GithubGoldStatus.statusRunning, config.flutterGoldPending, slug, pr.number!);
+          statusRequest = _createStatus(GithubGoldStatus.statusRunning, config.flutterGoldPending, slug, pr.number!);
         } else {
           // We do not want to query Gold on a draft PR.
           assert(!pr.draft!);
@@ -203,9 +202,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
             githubGoldStatus.setStatus(statusRequest.state!);
             githubGoldStatus.setHead(pr.head!.sha!);
-            githubGoldStatus.setUpdates((lastUpdate.updates ?? 0) + 1);
+            githubGoldStatus.setUpdates((githubGoldStatus.updates ?? 0) + 1);
             githubGoldStatus.setDescription(statusRequest.description!);
-            githubGoldStatus.name = '$kDatabase/documents/$kGithubGoldStatusCollectionId/${githubGoldStatus.head}_${githubGoldStatus.prNumber}';
             githubGoldStatuses.add(githubGoldStatus);
           } catch (error) {
             log.severe('Failed to post status update to ${slug.fullName}#${pr.number}: $error');
@@ -217,14 +215,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     }
     await datastore.insert(statusUpdates);
     log.fine('Committed all updates for $slug');
-
-    // TODO(keyonghan): remove try block after fully migrated to firestore
-    // https://github.com/flutter/flutter/issues/142951
-    try {
-      await updateGithubGoldStatusDocuments(statusUpdates, firestoreService);
-    } catch (error) {
-      log.warning('Failed to update github gold status in Firestore: $error');
-    }
+    await updateGithubGoldStatusDocuments(statusUpdates, firestoreService);
+    log.fine('Saved all updates to firestore for $slug');
   }
 
   Future<void> updateGithubGoldStatusDocuments(

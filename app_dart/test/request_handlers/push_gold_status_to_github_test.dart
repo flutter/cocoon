@@ -28,6 +28,7 @@ import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/service/fake_graphql_client.dart';
+import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
@@ -120,11 +121,6 @@ void main() {
 
       test('Does nothing', () async {
         config.githubClient = ThrowingGitHub();
-        db.onCommit =
-            (List<gcloud_db.Model<dynamic>> insert, List<gcloud_db.Key<dynamic>> deletes) => throw AssertionError();
-        db.addOnQuery<GithubGoldStatusUpdate>((Iterable<GithubGoldStatusUpdate> results) {
-          throw AssertionError();
-        });
         final Body body = await tester.get<Body>(handler);
         expect(body, same(Body.empty));
       });
@@ -137,6 +133,9 @@ void main() {
       late MockRepositoriesService repositoriesService;
       List<PullRequest> prsFromGitHub = <PullRequest>[];
       List<PullRequest> enginePrsFromGitHub = <PullRequest>[];
+      GithubGoldStatus? githubGoldStatus;
+      GithubGoldStatus? githubGoldStatusNext;
+      GithubGoldStatus? githubGoldStatusEngine;
 
       setUp(() {
         github = MockGitHub();
@@ -155,6 +154,38 @@ void main() {
         enginePrsFromGitHub.clear();
         when(pullRequestsService.list(engineSlug)).thenAnswer((Invocation _) {
           return Stream<PullRequest>.fromIterable(enginePrsFromGitHub);
+        });
+
+        when(
+          mockFirestoreService.queryLastGoldStatus(slug, 123),
+        ).thenAnswer((Invocation invocation) {
+          return Future<GithubGoldStatus>.value(
+            githubGoldStatus,
+          );
+        });
+        when(
+          mockFirestoreService.queryLastGoldStatus(slug, 456),
+        ).thenAnswer((Invocation invocation) {
+          return Future<GithubGoldStatus>.value(
+            githubGoldStatusNext,
+          );
+        });
+
+        when(
+          mockFirestoreService.queryLastGoldStatus(engineSlug, captureAny),
+        ).thenAnswer((Invocation invocation) {
+          return Future<GithubGoldStatus>.value(
+            githubGoldStatusEngine,
+          );
+        });
+
+        when(
+          mockFirestoreService.batchWriteDocuments(
+            captureAny,
+            captureAny,
+          ),
+        ).thenAnswer((Invocation invocation) {
+          return Future<BatchWriteResponse>.value(BatchWriteResponse());
         });
 
         when(repositoriesService.createStatus(any, any, any)).thenAnswer((_) async => RepositoryStatus());
@@ -179,6 +210,24 @@ void main() {
           updates: 0,
           description: description,
           repository: slug.fullName,
+        );
+      }
+
+      GithubGoldStatus newGithubGoldStatus(
+        RepositorySlug slug,
+        PullRequest pr,
+        String statusUpdate,
+        String sha,
+        String description,
+      ) {
+        return generateFirestoreGithubGoldStatus(
+          1,
+          head: sha,
+          pr: pr.number,
+          status: statusUpdate,
+          updates: 0,
+          description: description,
+          repo: slug.name,
         );
       }
 
@@ -212,16 +261,14 @@ void main() {
           ];
           final PullRequest flutterPr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[flutterPr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(slug, flutterPr, '', '', '');
-          db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(slug, flutterPr, '', '', '');
 
           engineCheckRuns = <dynamic>[
             <String, String>{'name': 'linux-host1', 'status': 'completed', 'conclusion': 'success'},
           ];
           final PullRequest enginePr = newPullRequest(456, 'def', 'main');
           enginePrsFromGitHub = <PullRequest>[enginePr];
-          final GithubGoldStatusUpdate engineStatus = newStatusUpdate(engineSlug, enginePr, '', '', '');
-          db.values[engineStatus.key] = engineStatus;
+          githubGoldStatusEngine = newGithubGoldStatus(engineSlug, enginePr, '', '', '');
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
@@ -270,8 +317,7 @@ void main() {
           ];
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
-          db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
@@ -301,14 +347,13 @@ void main() {
           // Same commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(
+          githubGoldStatus = newGithubGoldStatus(
             slug,
             pr,
             GithubGoldStatusUpdate.statusRunning,
             'abc',
             config.flutterGoldPendingValue!,
           );
-          db.values[status.key] = status;
 
           // Checks still running
           checkRuns = <dynamic>[
@@ -318,7 +363,7 @@ void main() {
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(status.updates, 0);
+          verifyNever(mockFirestoreService.batchWriteDocuments(captureAny, captureAny));
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
@@ -346,14 +391,13 @@ void main() {
           // Same commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(
+          githubGoldStatus = newGithubGoldStatus(
             slug,
             pr,
             GithubGoldStatusUpdate.statusCompleted,
             'abc',
             config.flutterGoldSuccessValue!,
           );
-          db.values[status.key] = status;
 
           // Checks complete
           checkRuns = <dynamic>[
@@ -363,7 +407,7 @@ void main() {
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(status.updates, 0);
+          verifyNever(mockFirestoreService.batchWriteDocuments(captureAny, captureAny));
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
@@ -392,25 +436,23 @@ void main() {
           // Same commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(
+          githubGoldStatus = newGithubGoldStatus(
             slug,
             pr,
             GithubGoldStatusUpdate.statusRunning,
             'abc',
             config.flutterGoldChangesValue!,
           );
-          db.values[status.key] = status;
 
           final PullRequest enginePr = newPullRequest(456, 'def', 'main');
           enginePrsFromGitHub = <PullRequest>[enginePr];
-          final GithubGoldStatusUpdate engineStatus = newStatusUpdate(
+          githubGoldStatusEngine = newGithubGoldStatus(
             engineSlug,
             enginePr,
             GithubGoldStatusUpdate.statusRunning,
             'def',
             config.flutterGoldChangesValue!,
           );
-          db.values[engineStatus.key] = engineStatus;
 
           // Checks complete
           checkRuns = <dynamic>[
@@ -460,7 +502,7 @@ void main() {
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(status.updates, 0);
+          verifyNever(mockFirestoreService.batchWriteDocuments(captureAny, captureAny));
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
@@ -504,8 +546,7 @@ void main() {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc', 'release');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
-          db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
 
           // All checks completed
           checkRuns = <dynamic>[
@@ -514,7 +555,7 @@ void main() {
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(status.updates, 0);
+          verifyNever(mockFirestoreService.batchWriteDocuments(captureAny, captureAny));
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
@@ -542,8 +583,7 @@ void main() {
           // New commit, draft PR
           final PullRequest pr = newPullRequest(123, 'abc', 'master', draft: true);
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
-          db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
 
           // Checks completed
           checkRuns = <dynamic>[
@@ -552,7 +592,7 @@ void main() {
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(status.updates, 0);
+          verifyNever(mockFirestoreService.batchWriteDocuments(captureAny, captureAny));
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
@@ -580,8 +620,7 @@ void main() {
           // New commit, draft PR
           final PullRequest pr = newPullRequest(123, 'abc', 'master', draft: true);
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
-          db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
 
           // Checks completed
           checkRuns = <dynamic>[
@@ -590,7 +629,7 @@ void main() {
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(status.updates, 0);
+          verifyNever(mockFirestoreService.batchWriteDocuments(captureAny, captureAny));
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
@@ -619,8 +658,7 @@ void main() {
           final PullRequest pr =
               newPullRequest(123, 'abc', 'master', updated: DateTime.now().subtract(const Duration(days: 30)));
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
-          db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
 
           // Checks completed
           checkRuns = <dynamic>[
@@ -636,7 +674,7 @@ void main() {
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(status.updates, 0);
+          verifyNever(mockFirestoreService.batchWriteDocuments(captureAny, captureAny));
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
@@ -665,8 +703,7 @@ void main() {
           final PullRequest pr =
               newPullRequest(123, 'abc', 'master', updated: DateTime.now().subtract(const Duration(days: 30)));
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
-          db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
 
           // Checks completed
           checkRuns = <dynamic>[
@@ -682,7 +719,7 @@ void main() {
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(status.updates, 0);
+          verifyNever(mockFirestoreService.batchWriteDocuments(captureAny, captureAny));
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
@@ -711,8 +748,7 @@ void main() {
           final PullRequest pr =
               newPullRequest(123, 'abc', 'master', updated: DateTime.now().subtract(const Duration(days: 30)));
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
-          db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
 
           // Checks completed
           checkRuns = <dynamic>[
@@ -728,7 +764,7 @@ void main() {
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(status.updates, 0);
+          verifyNever(mockFirestoreService.batchWriteDocuments(captureAny, captureAny));
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
@@ -754,25 +790,18 @@ void main() {
       });
 
       group('updates GitHub and/or Datastore', () {
-        setUp(() {
-          when(
-            mockFirestoreService.batchWriteDocuments(
-              captureAny,
-              captureAny,
-            ),
-          ).thenAnswer((Invocation invocation) {
-            return Future<BatchWriteResponse>.value(BatchWriteResponse());
-          });
-        });
         test('new commit, checks running', () async {
           // New commit
           final PullRequest flutterPr = newPullRequest(123, 'f-abc', 'master');
           prsFromGitHub = <PullRequest>[flutterPr];
           final GithubGoldStatusUpdate status = newStatusUpdate(slug, flutterPr, '', '', '');
+          githubGoldStatus = newGithubGoldStatus(slug, flutterPr, '', '', '');
+          expect(githubGoldStatus!.updates, 0);
 
           final PullRequest enginePr = newPullRequest(567, 'e-abc', 'main');
           enginePrsFromGitHub = <PullRequest>[enginePr];
           final GithubGoldStatusUpdate engineStatus = newStatusUpdate(engineSlug, enginePr, '', '', '');
+          githubGoldStatusEngine = newGithubGoldStatus(engineSlug, enginePr, '', '', '');
 
           db.values[status.key] = status;
           db.values[engineStatus.key] = engineStatus;
@@ -802,13 +831,13 @@ void main() {
           expect(batchWriteRequest.writes!.length, 1);
           final GithubGoldStatus updatedDocument =
               GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
-          expect(updatedDocument.updates, status.updates);
+          expect(updatedDocument.updates, 1);
           // The third element corresponds to the `engineStatus`.
           final BatchWriteRequest batchWriteRequestEngine = captured[2] as BatchWriteRequest;
           expect(batchWriteRequestEngine.writes!.length, 1);
           final GithubGoldStatus updatedDocumentEngine =
               GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
-          expect(updatedDocumentEngine.updates, engineStatus.updates);
+          expect(updatedDocumentEngine.updates, 1);
 
           // Should not apply labels or make comments
           verifyNever(
@@ -852,6 +881,7 @@ void main() {
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
           db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
 
           // Checks completed
           checkRuns = <dynamic>[
@@ -887,6 +917,16 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
+          final List<dynamic> captured =
+              verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+          expect(captured.length, 2);
+          // The first element corresponds to the `status`.
+          final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+          expect(batchWriteRequest.writes!.length, 1);
+          final GithubGoldStatus updatedDocument =
+              GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
+          expect(updatedDocument.updates, 1);
+
           // Should not label or comment
           verifyNever(
             issuesService.addLabelsToIssue(
@@ -913,6 +953,7 @@ void main() {
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
           db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
 
           // Checks completed
           checkRuns = <dynamic>[
@@ -948,6 +989,16 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
+          final List<dynamic> captured =
+              verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+          expect(captured.length, 2);
+          // The first element corresponds to the `status`.
+          final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+          expect(batchWriteRequest.writes!.length, 1);
+          final GithubGoldStatus updatedDocument =
+              GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
+          expect(updatedDocument.updates, 1);
+
           // Should not label or comment
           verifyNever(
             issuesService.addLabelsToIssue(
@@ -974,6 +1025,7 @@ void main() {
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
           db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
 
           // Checks completed
           checkRuns = <dynamic>[
@@ -1016,6 +1068,16 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
+          final List<dynamic> captured =
+              verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+          expect(captured.length, 2);
+          // The first element corresponds to the `status`.
+          final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+          expect(batchWriteRequest.writes!.length, 1);
+          final GithubGoldStatus updatedDocument =
+              GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
+          expect(updatedDocument.updates, 1);
+
           // Should label and comment
           verify(
             issuesService.addLabelsToIssue(
@@ -1044,6 +1106,8 @@ void main() {
           final GithubGoldStatusUpdate status =
               newStatusUpdate(slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(
+              slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
 
           // Checks complete
           checkRuns = <dynamic>[
@@ -1085,6 +1149,16 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
+          final List<dynamic> captured =
+              verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+          expect(captured.length, 2);
+          // The first element corresponds to the `status`.
+          final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+          expect(batchWriteRequest.writes!.length, 1);
+          final GithubGoldStatus updatedDocument =
+              GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
+          expect(updatedDocument.updates, 1);
+
           // Should apply labels and make comment
           verify(
             issuesService.addLabelsToIssue(
@@ -1112,6 +1186,8 @@ void main() {
           final GithubGoldStatusUpdate status =
               newStatusUpdate(slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(
+              slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
 
           // Checks complete
           checkRuns = <dynamic>[
@@ -1152,6 +1228,16 @@ void main() {
           expect(status.updates, 1);
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
+
+          final List<dynamic> captured =
+              verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+          expect(captured.length, 2);
+          // The first element corresponds to the `status`.
+          final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+          expect(batchWriteRequest.writes!.length, 1);
+          final GithubGoldStatus updatedDocument =
+              GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
+          expect(updatedDocument.updates, 1);
 
           // Should apply labels and make comment
           verify(
@@ -1194,6 +1280,8 @@ void main() {
           final GithubGoldStatusUpdate status =
               newStatusUpdate(slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(
+              slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
 
           // Checks completed
           checkRuns = <dynamic>[
@@ -1235,6 +1323,16 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
+          final List<dynamic> captured =
+              verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+          expect(captured.length, 2);
+          // The first element corresponds to the `status`.
+          final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+          expect(batchWriteRequest.writes!.length, 1);
+          final GithubGoldStatus updatedDocument =
+              GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
+          expect(updatedDocument.updates, 1);
+
           // Should not label or comment
           verifyNever(
             issuesService.addLabelsToIssue(
@@ -1262,6 +1360,8 @@ void main() {
           final GithubGoldStatusUpdate status =
               newStatusUpdate(slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(
+              slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
 
           // Checks completed
           checkRuns = <dynamic>[
@@ -1278,6 +1378,7 @@ void main() {
           expect(status.updates, 0);
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
+          verifyNever(mockFirestoreService.batchWriteDocuments(captureAny, captureAny));
 
           // Should not apply labels or make comments
           verifyNever(
@@ -1349,6 +1450,7 @@ void main() {
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
           db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
 
           // Checks failed
           checkRuns = <dynamic>[
@@ -1361,6 +1463,16 @@ void main() {
           expect(status.status, GithubGoldStatusUpdate.statusRunning);
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
+
+          final List<dynamic> captured =
+              verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+          expect(captured.length, 2);
+          // The first element corresponds to the `status`.
+          final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+          expect(batchWriteRequest.writes!.length, 1);
+          final GithubGoldStatus updatedDocument =
+              GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
+          expect(updatedDocument.updates, 1);
 
           // Should not apply labels or make comments
           verifyNever(
@@ -1384,14 +1496,6 @@ void main() {
       });
 
       test('Completed pull request does not skip follow-up prs with early return', () async {
-        when(
-          mockFirestoreService.batchWriteDocuments(
-            captureAny,
-            captureAny,
-          ),
-        ).thenAnswer((Invocation invocation) {
-          return Future<BatchWriteResponse>.value(BatchWriteResponse());
-        });
         final PullRequest completedPR = newPullRequest(123, 'abc', 'master');
         final PullRequest followUpPR = newPullRequest(456, 'def', 'master');
         prsFromGitHub = <PullRequest>[
@@ -1408,6 +1512,14 @@ void main() {
         final GithubGoldStatusUpdate followUpStatus = newStatusUpdate(slug, followUpPR, '', '', '');
         db.values[completedStatus.key] = completedStatus;
         db.values[followUpStatus.key] = followUpStatus;
+        githubGoldStatus = newGithubGoldStatus(
+          slug,
+          completedPR,
+          GithubGoldStatusUpdate.statusCompleted,
+          'abc',
+          config.flutterGoldSuccessValue!,
+        );
+        githubGoldStatusNext = newGithubGoldStatus(slug, followUpPR, '', '', '');
 
         // Checks completed
         checkRuns = <dynamic>[
@@ -1450,8 +1562,12 @@ void main() {
         expect(body, same(Body.empty));
         expect(completedStatus.updates, 0);
         expect(followUpStatus.updates, 1);
+        expect(githubGoldStatus!.updates, 0);
+        expect(githubGoldStatusNext!.updates, 1);
         expect(completedStatus.status, GithubGoldStatusUpdate.statusCompleted);
         expect(followUpStatus.status, GithubGoldStatusUpdate.statusCompleted);
+        expect(githubGoldStatus!.status, GithubGoldStatusUpdate.statusCompleted);
+        expect(githubGoldStatusNext!.status, GithubGoldStatusUpdate.statusCompleted);
         expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
         expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
       });
@@ -1505,24 +1621,18 @@ void main() {
       });
 
       test('uses the correct Gold endpoint to get status', () async {
-        when(
-          mockFirestoreService.batchWriteDocuments(
-            captureAny,
-            captureAny,
-          ),
-        ).thenAnswer((Invocation invocation) {
-          return Future<BatchWriteResponse>.value(BatchWriteResponse());
-        });
         // New commit
         final PullRequest pr = newPullRequest(123, 'abc', 'master');
         prsFromGitHub = <PullRequest>[pr];
         final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
         db.values[status.key] = status;
+        githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
 
         final PullRequest enginePr = newPullRequest(456, 'def', 'main');
         enginePrsFromGitHub = <PullRequest>[enginePr];
         final GithubGoldStatusUpdate engineStatus = newStatusUpdate(engineSlug, enginePr, '', '', '');
         db.values[engineStatus.key] = engineStatus;
+        githubGoldStatusEngine = newGithubGoldStatus(engineSlug, enginePr, '', '', '');
 
         // Checks completed
         checkRuns = <dynamic>[
