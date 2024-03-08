@@ -48,7 +48,7 @@ void main() {
     expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
   });
 
-  test('Push Message v2 decoding', (){
+  test('Push Message v2 decoding', () {
     // we get this after calling utf8 decode and transforming into messagev2
     // object comes in proto 3 form.
     const String message = '''
@@ -68,7 +68,7 @@ void main() {
     batchRequest.mergeFromProto3Json(jsonDecode(pushMessageV2.message!.data!));
     // expect(batchRequest.requests.length, 5);
     // Absolutely need this Encode call before sending over https to prpc.
-    print(jsonEncode(batchRequest.toProto3Json()));
+    // print(jsonEncode(batchRequest.toProto3Json()));
   });
 
   test('schedules request to buildbucket', () async {
@@ -107,7 +107,6 @@ void main() {
     tester.message = pushMessageV2;
     final Body body = await tester.post(handler);
     expect(body, Body.empty);
-    
   });
 
   test('retries schedule build if no response comes back', () async {
@@ -123,7 +122,7 @@ void main() {
 
     final bbv2.BatchResponse_Response batchResponseResponse = bbv2.BatchResponse_Response();
     batchResponseResponse.scheduleBuild = responseBuild;
-    
+
     batchResponse.responses.add(batchResponseResponse);
 
     int attempt = 0;
@@ -136,7 +135,6 @@ void main() {
 
       return bbv2.BatchResponse().createEmptyInstance();
     });
-
 
     const String messageData = '''
 {

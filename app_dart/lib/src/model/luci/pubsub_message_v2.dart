@@ -4,7 +4,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'pubsub_message_v2.g.dart';
 
-
 @JsonSerializable(includeIfNull: false)
 class PubSubPushMessageV2 extends JsonBody {
   const PubSubPushMessageV2({

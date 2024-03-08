@@ -55,7 +55,6 @@ class BuildBucketVersionTwo extends SubscriptionHandlerV2 {
     // final String bucket = build.builder.bucket;
     // final String builder = build.builder.builder;
 
-
     // log.info('Creating build request object with build id ${build.id}');
 
     return Body.empty;

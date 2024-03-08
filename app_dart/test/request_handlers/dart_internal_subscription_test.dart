@@ -4,13 +4,14 @@
 
 import 'dart:convert';
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:buildbucket/src/generated/google/protobuf/timestamp.pb.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
-import 'package:cocoon_service/src/model/luci/push_message.dart' as push;
+import 'package:cocoon_service/src/model/luci/pubsub_message_v2.dart';
+// import 'package:cocoon_service/src/model/luci/push_message.dart' as push;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart';
@@ -26,7 +27,6 @@ import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
-
   final DateTime startTime = DateTime(2023, 11, 03, 20, 25, 0, 518383633);
   final DateTime endTime = DateTime(2023, 11, 03, 20, 25, 0, 518383633);
 
@@ -59,7 +59,8 @@ void main() {
   late FakeConfig config;
   late FakeHttpRequest request;
   late MockBuildBucketClient buildBucketClient;
-  late SubscriptionTester tester;
+  late MockBuildBucketV2Client buildBucketV2Client;
+  late SubscriptionV2Tester tester;
   late MockFirestoreService mockFirestoreService;
   late Commit commit;
 
@@ -77,11 +78,12 @@ void main() {
     mockFirestoreService = MockFirestoreService();
     config = FakeConfig(firestoreService: mockFirestoreService);
     buildBucketClient = MockBuildBucketClient();
+    buildBucketV2Client = MockBuildBucketV2Client();
     handler = DartInternalSubscription(
       cache: CacheService(inMemory: true),
       config: config,
       authProvider: FakeAuthenticationProvider(),
-      buildBucketV2Client: buildBucketClient,
+      buildBucketV2Client: buildBucketV2Client,
       datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
     );
     request = FakeHttpRequest();
@@ -106,7 +108,7 @@ void main() {
     tester.message = pushMessageV2;
 
     when(
-      buildBucketClient.getBuild(
+      buildBucketV2Client.getBuild(
         any,
         buildBucketUri: 'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds',
       ),
@@ -125,12 +127,12 @@ void main() {
     ).thenAnswer((Invocation invocation) {
       return Future<BatchWriteResponse>.value(BatchWriteResponse());
     });
-    tester.message = const push.PushMessage(data: fakePubsubMessage);
+    tester.message = const PushMessageV2(data: message);
 
     await tester.post(handler);
 
     verify(
-      buildBucketClient.getBuild(any),
+      buildBucketV2Client.getBuild(any),
     ).called(1);
 
     // This is used for testing to pull the data out of the "datastore" so that
@@ -218,16 +220,16 @@ void main() {
     final List<Task> datastoreCommit = <Task>[fakeTask];
     await config.db.commit(inserts: datastoreCommit);
 
-     final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
+    final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
     pubSubCallBackTest.mergeFromProto3Json(jsonDecode(message));
-    
+
     const PushMessageV2 pushMessageV2 = PushMessageV2(data: message, messageId: '798274983');
     tester.message = pushMessageV2;
 
     await tester.post(handler);
 
     verify(
-      buildBucketClient.getBuild(any),
+      buildBucketV2Client.getBuild(any),
     ).called(1);
 
     // This is used for testing to pull the data out of the "datastore" so that
@@ -320,14 +322,14 @@ void main() {
 
     final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
     pubSubCallBackTest.mergeFromProto3Json(jsonDecode(dartMessage));
-    
+
     const PushMessageV2 pushMessageV2 = PushMessageV2(data: dartMessage, messageId: '798274983');
     tester.message = pushMessageV2;
     expect(await tester.post(handler), equals(Body.empty));
   });
 
   test('ignores message not from dart-internal project', () async {
-     const String unsupportedProjectMessage = '''
+    const String unsupportedProjectMessage = '''
 {
   "buildPubsub":{
     "build":{
@@ -353,7 +355,7 @@ void main() {
 
     final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
     pubSubCallBackTest.mergeFromProto3Json(jsonDecode(unsupportedProjectMessage));
-    
+
     const PushMessageV2 pushMessageV2 = PushMessageV2(data: unsupportedProjectMessage, messageId: '798274983');
     tester.message = pushMessageV2;
     expect(await tester.post(handler), equals(Body.empty));
@@ -386,7 +388,7 @@ void main() {
 
     final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
     pubSubCallBackTest.mergeFromProto3Json(jsonDecode(unknownBuilderMessage));
-    
+
     const PushMessageV2 pushMessageV2 = PushMessageV2(data: unknownBuilderMessage, messageId: '798274983');
     tester.message = pushMessageV2;
     expect(await tester.post(handler), equals(Body.empty));

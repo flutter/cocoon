@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:fixnum/src/int64.dart';
 import 'package:http/http.dart' as http;
@@ -43,7 +44,7 @@ class FakeBuildBucketV2Client extends BuildBucketV2Client {
   }) async {
     if (scheduleBuildResponse != null) {
       return scheduleBuildResponse!;
-    }    
+    }
 
     final bbv2.Build build = bbv2.Build.create();
     build.id = 123 as Int64;
@@ -53,7 +54,6 @@ class FakeBuildBucketV2Client extends BuildBucketV2Client {
     existingTags.addAll(request.tags);
     return build;
   }
-
 
   @override
   Future<bbv2.SearchBuildsResponse> searchBuilds(
@@ -102,34 +102,56 @@ class FakeBuildBucketV2Client extends BuildBucketV2Client {
       return batchResponse!();
     }
 
-    // final List<bbv2.BatchRequest_Request> batchRequests = request.requests;
+    final bbv2.BatchResponse batchResponseRc = bbv2.BatchResponse.create();
+    // a batch response has a response and the naming convention is terrible.
+    final List<bbv2.BatchResponse_Response> batchResponseResponses = batchResponseRc.responses;
 
-    // final bbv2.BatchResponse batchResponses = bbv2.BatchResponse.create();
-    // final List<bbv2.BatchResponse_Response> responses = batchResponses.responses;
+    for (bbv2.BatchRequest_Request request in request.requests) {
+      if (request.hasCancelBuild()) {
+        final bbv2.CancelBuildRequest cancelBuildRequest = request.cancelBuild;
+        batchResponseResponses.add(
+          bbv2.BatchResponse_Response(
+            cancelBuild: bbv2.Build(
+              id: cancelBuildRequest.id,
+            ),
+          ),
+        );
+      } else if (request.hasGetBuild()) {
+        final bbv2.GetBuildRequest getBuildRequest = request.getBuild;
+        batchResponseResponses.add(
+          bbv2.BatchResponse_Response(
+            getBuild: bbv2.Build(
+              id: getBuildRequest.id,
+              builder: getBuildRequest.builder,
+              number: getBuildRequest.buildNumber,
+            ),
+          ),
+        );
+      } else if (request.hasScheduleBuild()) {
+        final bbv2.ScheduleBuildRequest scheduleBuildRequest = request.scheduleBuild;
+        batchResponseResponses.add(
+          bbv2.BatchResponse_Response(
+            scheduleBuild: bbv2.Build(
+              builder: scheduleBuildRequest.builder,
+            ),
+          ),
+        );
+      } else if (request.hasSearchBuilds()) {
+        // final bbv2.SearchBuildsRequest searchBuildsRequest = request.searchBuilds;
+        // for (searchBuildsRequest.) {
 
-    // for (bbv2.BatchRequest_Request request in request.requests) {
-    //   if (request.cancelBuild.isInitialized()) {
-    //     final bbv2.CancelBuildRequest cancelBuildRequest = request.cancelBuild;
-    //     cancelBuild
-        
-    //     responses.add(bbv2.BatchResponse_Response(cancelBuild: ));
-    //     // responses.add();
-    //   }
-    // }
-    
-    // for (bbv2.BatchRequest_Request request in request.requests) {
-    //   if (request.cancelBuild.isInitialized()) {
-    //     responses.add(bbv2.BatchResponse(cancelBuild: await cancelBuild(request.cancelBuild)));
-    //   } else if (request.getBuild.isInitialized()) {
-    //     responses.add(bbv2.BatchResponse(getBuild: await getBuild(request.getBuild)));
-    //   } else if (request.scheduleBuild.isInitialized()) {
-    //     responses.add(bbv2.BatchResponse(scheduleBuild: await scheduleBuild(request.scheduleBuild)));
-    //   } else if (request.searchBuilds.isInitialized()) {
-    //     responses.add(bbv2.BatchResponse(searchBuilds: await searchBuilds(request.searchBuilds)));
-    //   }
-    // }
+        // }
+        // final bbv2.SearchBuildsResponse searchBuildsResponse = bbv2.SearchBuildsResponse();
 
-    // return bbv2.BatchResponse(responses: batchResponses);
+        // batchResponseResponses.add(
+        //   bbv2.BatchResponse_Response(
+        //     searchBuilds: SearchBuildsResponse(nextPageToken: searchBuildsRequest.pageToken),
+        //   ),
+        // );
+      }
+    }
+
+    return batchResponseRc;
   }
 
   @override
@@ -179,30 +201,23 @@ class FakeBuildBucketV2Client extends BuildBucketV2Client {
       return listBuildersResponse!;
     }
 
-    final bbv2.ListBuildersResponse listBuildersResponseRc = bbv2.ListBuildersResponse(
+    return bbv2.ListBuildersResponse(
       builders: <bbv2.BuilderItem>[
-        bbv2.BuilderItem
+        bbv2.BuilderItem(
+          id: bbv2.BuilderID(
+            bucket: 'prod',
+            project: 'flutter',
+            builder: 'Linux_android A',
+          ),
+        ),
+        bbv2.BuilderItem(
+          id: bbv2.BuilderID(
+            bucket: 'prod',
+            project: 'flutter',
+            builder: 'Linux_android B',
+          ),
+        ),
       ],
     );
   }
-      // (listBuildersResponse != null)
-      //     ? await listBuildersResponse!
-      //     : const bbv2.ListBuildersResponse(
-      //         builders: <BuilderItem>[
-      //           BuilderItem(
-      //             id: BuilderId(
-      //               bucket: 'prod',
-      //               project: 'flutter',
-      //               builder: 'Linux_android A',
-      //             ),
-      //           ),
-      //           BuilderItem(
-      //             id: BuilderId(
-      //               bucket: 'prod',
-      //               project: 'flutter',
-      //               builder: 'Linux_android B',
-      //             ),
-      //           ),
-      //         ],
-      //       );
 }

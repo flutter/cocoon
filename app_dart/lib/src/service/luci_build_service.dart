@@ -391,10 +391,15 @@ class LuciBuildService {
     if (_switchV2) {
       log.info('Creafting buildbucket v2 message.');
       final bbv2.ScheduleBuildRequest scheduleBuildRequestv2 = _createPresubmitScheduleBuildV2(
-        slug: slug, sha: sha, checkName: checkName, pullRequestNumber: prNumber, cipdVersion: cipdVersion,);
+        slug: slug,
+        sha: sha,
+        checkName: checkName,
+        pullRequestNumber: prNumber,
+        cipdVersion: cipdVersion,
+      );
       // ignore: unused_local_variable
       final bbv2.Build scheduleBuildV2 = await buildBucketV2Client.scheduleBuild(scheduleBuildRequestv2);
-      _switchV2 = false;  
+      _switchV2 = false;
     }
 
     final ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
@@ -616,8 +621,8 @@ class LuciBuildService {
     Map<String, bbv2.Value>? properties,
     List<bbv2.StringPair>? tags,
     Map<String, dynamic>? userData,
-    List<bbv2.RequestedDimension>? dimensions,}) {
-
+    List<bbv2.RequestedDimension>? dimensions,
+  }) {
     final Map<String, dynamic> processedUserData = userData ?? <String, dynamic>{};
     processedUserData['repo_owner'] = slug.owner;
     processedUserData['repo_name'] = slug.name;
@@ -632,7 +637,7 @@ class LuciBuildService {
     final bbv2.ScheduleBuildRequest scheduleBuildRequest = bbv2.ScheduleBuildRequest.create();
     scheduleBuildRequest.builder = builderId;
 
-    final List<String> fields = ['id','builder','number','status','tags'];
+    final List<String> fields = ['id', 'builder', 'number', 'status', 'tags'];
     final bbv2.FieldMask fieldMask = bbv2.FieldMask(paths: fields);
     final bbv2.BuildMask buildMask = bbv2.BuildMask(fields: fieldMask);
     scheduleBuildRequest.mask = buildMask;
@@ -656,12 +661,13 @@ class LuciBuildService {
     processTags.add(_createStringPair('buildset', 'pr/git/$pullRequestNumber'));
     processTags.add(_createStringPair('buildset', 'sha/git/$sha'));
     processTags.add(_createStringPair('user_agent', 'flutter-cocoon'));
-    processTags.add(_createStringPair('github_link', 'https://github.com/${slug.owner}/${slug.name}/pull/$pullRequestNumber'));
+    processTags
+        .add(_createStringPair('github_link', 'https://github.com/${slug.owner}/${slug.name}/pull/$pullRequestNumber'));
     processTags.add(_createStringPair('cipd_version', cipdVersion));
     final List<bbv2.StringPair> instanceTags = scheduleBuildRequest.tags;
     instanceTags.addAll(processTags);
-    
-    // Add the properties to the instance. 
+
+    // Add the properties to the instance.
     final Map<String, bbv2.Value> processedProperties = <String, bbv2.Value>{};
     processedProperties.addAll(properties ?? <String, bbv2.Value>{});
     processedProperties.addEntries(
@@ -672,7 +678,7 @@ class LuciBuildService {
       }.entries,
     );
     scheduleBuildRequest.properties = bbv2.Struct(fields: processedProperties);
-    
+
     return scheduleBuildRequest;
   }
 

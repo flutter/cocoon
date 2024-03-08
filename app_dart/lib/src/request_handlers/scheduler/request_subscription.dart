@@ -50,7 +50,7 @@ class SchedulerRequestSubscription extends SubscriptionHandlerV2 {
     log.fine('attempting to read message ${message.data}');
 
     final bbv2.BatchRequest batchRequest = bbv2.BatchRequest.create();
-    
+
     // Merge from json only works with the integer field names.
     batchRequest.mergeFromProto3Json(jsonDecode(message.data!) as Map<String, dynamic>);
 
@@ -72,7 +72,7 @@ class SchedulerRequestSubscription extends SubscriptionHandlerV2 {
           requestListCopy.addAll(requestsToRetry);
           batchRequest.requests.clear();
           batchRequest.requests.addAll(requestListCopy);
-          
+
           unscheduledBuilds = requestsToRetry.map((e) => e.scheduleBuild.builder).toString();
           if (requestsToRetry.isNotEmpty) {
             throw InternalServerError('Failed to schedule builds: $unscheduledBuilds.');
@@ -92,7 +92,7 @@ class SchedulerRequestSubscription extends SubscriptionHandlerV2 {
   Future<List<bbv2.BatchRequest_Request>> _sendBatchRequest(bbv2.BatchRequest request) async {
     log.info('Sending batch request for ${request.toProto3Json().toString()}');
 
-    // Seems to be that the create is necessary here in order to be able to assign a 
+    // Seems to be that the create is necessary here in order to be able to assign a
     // response here. Similar to instantiation.
     bbv2.BatchResponse response = bbv2.BatchResponse.create();
     try {
@@ -101,7 +101,7 @@ class SchedulerRequestSubscription extends SubscriptionHandlerV2 {
       log.severe('Exception making batch Requests.');
       rethrow;
     }
-    
+
     log.info('Made ${request.requests.length} and received ${response.responses.length}');
     log.info('Responses: ${response.responses}');
 

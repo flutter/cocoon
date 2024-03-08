@@ -97,7 +97,7 @@ class BuildBucketV2Client {
   }) async {
     final bbv2.Build build = bbv2.Build.create();
 
-     final String responseBody = await _postRequest(
+    final String responseBody = await _postRequest(
       '/ScheduleBuild',
       jsonEncode(request.toProto3Json()),
       buildBucketUri: buildBucketUri,
@@ -189,7 +189,7 @@ class BuildBucketV2Client {
     String buildBucketUri = kDefaultBuildBucketBuilderUri,
   }) async {
     final bbv2.ListBuildersResponse listBuildersResponse = bbv2.ListBuildersResponse.create();
-    
+
     final String responseBody = await _postRequest(
       '/ListBuilders',
       jsonEncode(request.toProto3Json()),
