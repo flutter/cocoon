@@ -1107,7 +1107,12 @@ void main() {
               newStatusUpdate(slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
           githubGoldStatus = newGithubGoldStatus(
-              slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
+            slug,
+            pr,
+            GithubGoldStatusUpdate.statusRunning,
+            'abc',
+            config.flutterGoldPendingValue!,
+          );
 
           // Checks complete
           checkRuns = <dynamic>[
@@ -1187,7 +1192,12 @@ void main() {
               newStatusUpdate(slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
           githubGoldStatus = newGithubGoldStatus(
-              slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
+            slug,
+            pr,
+            GithubGoldStatusUpdate.statusRunning,
+            'abc',
+            config.flutterGoldPendingValue!,
+          );
 
           // Checks complete
           checkRuns = <dynamic>[
@@ -1281,7 +1291,12 @@ void main() {
               newStatusUpdate(slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
           githubGoldStatus = newGithubGoldStatus(
-              slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
+            slug,
+            pr,
+            GithubGoldStatusUpdate.statusRunning,
+            'abc',
+            config.flutterGoldPendingValue!,
+          );
 
           // Checks completed
           checkRuns = <dynamic>[
@@ -1361,7 +1376,12 @@ void main() {
               newStatusUpdate(slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
           githubGoldStatus = newGithubGoldStatus(
-              slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
+            slug,
+            pr,
+            GithubGoldStatusUpdate.statusRunning,
+            'abc',
+            config.flutterGoldPendingValue!,
+          );
 
           // Checks completed
           checkRuns = <dynamic>[
