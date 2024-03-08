@@ -177,6 +177,7 @@ class FirestoreService {
     Map<String, Object> filterMap, {
     String compositeFilterOp = kCompositeFilterOpAnd,
   }) async {
+    final List<Document> documents = <Document>[];
     final ProjectsDatabasesDocumentsResource databasesDocumentsResource = await documentResource();
     final List<CollectionSelector> from = <CollectionSelector>[
       CollectionSelector(collectionId: collectionId),
@@ -186,7 +187,11 @@ class FirestoreService {
         RunQueryRequest(structuredQuery: StructuredQuery(from: from, where: filter));
     final List<RunQueryResponseElement> runQueryResponseElements =
         await databasesDocumentsResource.runQuery(runQueryRequest, kDocumentParent);
-    final List<Document> documents = runQueryResponseElements.map((e) => e.document!).toList();
+    for (RunQueryResponseElement runQueryResponseElement in runQueryResponseElements) {
+      if (runQueryResponseElement.document != null) {
+        documents.add(runQueryResponseElement.document!);
+      }
+    }
     return documents;
   }
 }

@@ -215,20 +215,18 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     }
     await datastore.insert(statusUpdates);
     log.fine('Committed all updates for $slug');
-    await updateGithubGoldStatusDocuments(statusUpdates, firestoreService);
+    await updateGithubGoldStatusDocuments(githubGoldStatuses, firestoreService);
     log.fine('Saved all updates to firestore for $slug');
   }
 
   Future<void> updateGithubGoldStatusDocuments(
-    List<GithubGoldStatusUpdate> statusUpdates,
+    List<GithubGoldStatus> githubGoldStatuses,
     FirestoreService firestoreService,
   ) async {
-    if (statusUpdates.isEmpty) {
+    if (githubGoldStatuses.isEmpty) {
       return;
     }
-    final List<GithubGoldStatus> githubGoldStatusDocuments =
-        statusUpdates.map((e) => githubGoldStatusToDocument(e)).toList();
-    final List<Write> writes = documentsToWrites(githubGoldStatusDocuments);
+    final List<Write> writes = documentsToWrites(githubGoldStatuses);
     await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
   }
 
