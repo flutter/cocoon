@@ -1732,6 +1732,28 @@ void main() {
           'https://flutter-engine-gold.skia.org/json/v1/changelist_summary/github/${enginePr.number}',
         ]);
       });
+      group('updateGithubGoldStatusDocuments', () {
+        test('when no updates are needed', () async {
+          await handler.updateGithubGoldStatusDocuments(<GithubGoldStatus>[], mockFirestoreService);
+          verifyNever(mockFirestoreService.batchWriteDocuments(captureAny, captureAny));
+        });
+
+        test('when updates are needed', () async {
+          await handler.updateGithubGoldStatusDocuments(
+            <GithubGoldStatus>[generateFirestoreGithubGoldStatus(1)],
+            mockFirestoreService,
+          );
+          final List<dynamic> captured =
+              verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+          expect(captured.length, 2);
+          // The first element corresponds to the `status`.
+          final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+          expect(batchWriteRequest.writes!.length, 1);
+          final GithubGoldStatus updatedDocument =
+              GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
+          expect(updatedDocument.head, 'sha1');
+        });
+      });
     });
   });
 }
