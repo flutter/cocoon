@@ -4,15 +4,15 @@
 
 // import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'dart:convert';
-
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../model/appengine/task.dart';
 import '../model/firestore/task.dart' as firestore;
-import '../request_handling/subscription_handler.dart';
+import '../request_handling/subscription_handler_v2.dart';
+import '../service/build_bucket_v2_client.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
 

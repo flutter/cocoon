@@ -7,7 +7,6 @@ import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
-import '../model/appengine/task.dart';
 import '../service/logging.dart';
 
 // https://flutter-dashboard.appspot.com/api/build-bucket-version-two
@@ -28,7 +27,7 @@ class BuildBucketVersionTwo extends SubscriptionHandlerV2 {
 
   @override
   Future<Body> post() async {
-    final DatastoreService datastore = datastoreProvider(config.db);
+    // final DatastoreService datastore = datastoreProvider(config.db);
 
     if (message.data == null) {
       log.info('no data in message');
@@ -45,7 +44,7 @@ class BuildBucketVersionTwo extends SubscriptionHandlerV2 {
 
     if (!buildsV2PubSub.hasBuild()) {
       log.info('no build information in message');
-      return Body.empty;
+      // return Body.empty;
     } else {
       log.info('Success buildsV2PubSub decoded!');
     }

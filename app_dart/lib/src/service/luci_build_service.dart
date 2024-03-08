@@ -25,9 +25,6 @@ import '../model/luci/push_message.dart' as push_message;
 import '../service/datastore.dart';
 import '../service/logging.dart';
 import 'build_bucket_v2_client.dart';
-import 'buildbucket.dart';
-import 'cache_service.dart';
-import 'config.dart';
 import 'exceptions.dart';
 import 'github_service.dart';
 
@@ -392,6 +389,7 @@ class LuciBuildService {
 
     //TODO craft a v2 request here. It is hacky but better than attempting to pipe into something else.
     if (_switchV2) {
+      log.info('Creafting buildbucket v2 message.');
       final bbv2.ScheduleBuildRequest scheduleBuildRequestv2 = _createPresubmitScheduleBuildV2(
         slug: slug, sha: sha, checkName: checkName, pullRequestNumber: prNumber, cipdVersion: cipdVersion,);
       // ignore: unused_local_variable
@@ -685,17 +683,17 @@ class LuciBuildService {
     return stringPair;
   }
 
-  List<bbv2.StringPair> _createStringPairList(String key, List<String> values) {
-    final List<bbv2.StringPair> stringPairs = <bbv2.StringPair>[];
-    for (String v in values) {
-      final bbv2.StringPair stringPair = bbv2.StringPair.create();
-      stringPair.key = key;
-      stringPair.value = v;
-      stringPairs.add(stringPair);
-    }
+  // List<bbv2.StringPair> _createStringPairList(String key, List<String> values) {
+  //   final List<bbv2.StringPair> stringPairs = <bbv2.StringPair>[];
+  //   for (String v in values) {
+  //     final bbv2.StringPair stringPair = bbv2.StringPair.create();
+  //     stringPair.key = key;
+  //     stringPair.value = v;
+  //     stringPairs.add(stringPair);
+  //   }
 
-    return stringPairs;
-  }
+  //   return stringPairs;
+  // }
 
   /// Creates a [ScheduleBuildRequest] for [target] and [task] against [commit].
   ///
