@@ -36,20 +36,20 @@ class BuildersClient extends $grpc.Client {
       ($core.List<$core.int> value) => $0.SetBuilderHealthResponse.fromBuffer(value));
 
   BuildersClient($grpc.ClientChannel channel,
-      {$grpc.CallOptions? options, $core.Iterable<$grpc.ClientInterceptor>? interceptors})
-      : super(channel, options: options, interceptors: interceptors);
+      {$grpc.CallOptions? options,
+      $core.Iterable<$grpc.ClientInterceptor>? interceptors})
+      : super(channel, options: options,
+        interceptors: interceptors);
 
   $grpc.ResponseFuture<$1.BuilderItem> getBuilder($0.GetBuilderRequest request, {$grpc.CallOptions? options}) {
     return $createUnaryCall(_$getBuilder, request, options: options);
   }
 
-  $grpc.ResponseFuture<$0.ListBuildersResponse> listBuilders($0.ListBuildersRequest request,
-      {$grpc.CallOptions? options}) {
+  $grpc.ResponseFuture<$0.ListBuildersResponse> listBuilders($0.ListBuildersRequest request, {$grpc.CallOptions? options}) {
     return $createUnaryCall(_$listBuilders, request, options: options);
   }
 
-  $grpc.ResponseFuture<$0.SetBuilderHealthResponse> setBuilderHealth($0.SetBuilderHealthRequest request,
-      {$grpc.CallOptions? options}) {
+  $grpc.ResponseFuture<$0.SetBuilderHealthResponse> setBuilderHealth($0.SetBuilderHealthRequest request, {$grpc.CallOptions? options}) {
     return $createUnaryCall(_$setBuilderHealth, request, options: options);
   }
 }
@@ -82,23 +82,19 @@ abstract class BuildersServiceBase extends $grpc.Service {
         ($0.SetBuilderHealthResponse value) => value.writeToBuffer()));
   }
 
-  $async.Future<$1.BuilderItem> getBuilder_Pre(
-      $grpc.ServiceCall call, $async.Future<$0.GetBuilderRequest> request) async {
+  $async.Future<$1.BuilderItem> getBuilder_Pre($grpc.ServiceCall call, $async.Future<$0.GetBuilderRequest> request) async {
     return getBuilder(call, await request);
   }
 
-  $async.Future<$0.ListBuildersResponse> listBuilders_Pre(
-      $grpc.ServiceCall call, $async.Future<$0.ListBuildersRequest> request) async {
+  $async.Future<$0.ListBuildersResponse> listBuilders_Pre($grpc.ServiceCall call, $async.Future<$0.ListBuildersRequest> request) async {
     return listBuilders(call, await request);
   }
 
-  $async.Future<$0.SetBuilderHealthResponse> setBuilderHealth_Pre(
-      $grpc.ServiceCall call, $async.Future<$0.SetBuilderHealthRequest> request) async {
+  $async.Future<$0.SetBuilderHealthResponse> setBuilderHealth_Pre($grpc.ServiceCall call, $async.Future<$0.SetBuilderHealthRequest> request) async {
     return setBuilderHealth(call, await request);
   }
 
   $async.Future<$1.BuilderItem> getBuilder($grpc.ServiceCall call, $0.GetBuilderRequest request);
   $async.Future<$0.ListBuildersResponse> listBuilders($grpc.ServiceCall call, $0.ListBuildersRequest request);
-  $async.Future<$0.SetBuilderHealthResponse> setBuilderHealth(
-      $grpc.ServiceCall call, $0.SetBuilderHealthRequest request);
+  $async.Future<$0.SetBuilderHealthResponse> setBuilderHealth($grpc.ServiceCall call, $0.SetBuilderHealthRequest request);
 }

@@ -24,7 +24,7 @@ class Status extends $pb.ProtobufEnum {
   static const Status INFRA_FAILURE = Status._(36, _omitEnumNames ? '' : 'INFRA_FAILURE');
   static const Status CANCELED = Status._(68, _omitEnumNames ? '' : 'CANCELED');
 
-  static const $core.List<Status> values = <Status>[
+  static const $core.List<Status> values = <Status> [
     STATUS_UNSPECIFIED,
     SCHEDULED,
     STARTED,
@@ -47,7 +47,7 @@ class Trinary extends $pb.ProtobufEnum {
   static const Trinary YES = Trinary._(1, _omitEnumNames ? '' : 'YES');
   static const Trinary NO = Trinary._(2, _omitEnumNames ? '' : 'NO');
 
-  static const $core.List<Trinary> values = <Trinary>[
+  static const $core.List<Trinary> values = <Trinary> [
     UNSET,
     YES,
     NO,
@@ -64,7 +64,7 @@ class Compression extends $pb.ProtobufEnum {
   static const Compression ZLIB = Compression._(0, _omitEnumNames ? '' : 'ZLIB');
   static const Compression ZSTD = Compression._(1, _omitEnumNames ? '' : 'ZSTD');
 
-  static const $core.List<Compression> values = <Compression>[
+  static const $core.List<Compression> values = <Compression> [
     ZLIB,
     ZSTD,
   ];
@@ -74,5 +74,6 @@ class Compression extends $pb.ProtobufEnum {
 
   const Compression._($core.int v, $core.String n) : super(v, n);
 }
+
 
 const _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');

@@ -20,7 +20,7 @@ import 'package:protobuf/protobuf.dart' as $pb;
 class NullValue extends $pb.ProtobufEnum {
   static const NullValue NULL_VALUE = NullValue._(0, _omitEnumNames ? '' : 'NULL_VALUE');
 
-  static const $core.List<NullValue> values = <NullValue>[
+  static const $core.List<NullValue> values = <NullValue> [
     NULL_VALUE,
   ];
 
@@ -29,5 +29,6 @@ class NullValue extends $pb.ProtobufEnum {
 
   const NullValue._($core.int v, $core.String n) : super(v, n);
 }
+
 
 const _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');

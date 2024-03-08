@@ -14,15 +14,12 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class BuilderMask_BuilderMaskType extends $pb.ProtobufEnum {
-  static const BuilderMask_BuilderMaskType BUILDER_MASK_TYPE_UNSPECIFIED =
-      BuilderMask_BuilderMaskType._(0, _omitEnumNames ? '' : 'BUILDER_MASK_TYPE_UNSPECIFIED');
-  static const BuilderMask_BuilderMaskType CONFIG_ONLY =
-      BuilderMask_BuilderMaskType._(1, _omitEnumNames ? '' : 'CONFIG_ONLY');
+  static const BuilderMask_BuilderMaskType BUILDER_MASK_TYPE_UNSPECIFIED = BuilderMask_BuilderMaskType._(0, _omitEnumNames ? '' : 'BUILDER_MASK_TYPE_UNSPECIFIED');
+  static const BuilderMask_BuilderMaskType CONFIG_ONLY = BuilderMask_BuilderMaskType._(1, _omitEnumNames ? '' : 'CONFIG_ONLY');
   static const BuilderMask_BuilderMaskType ALL = BuilderMask_BuilderMaskType._(2, _omitEnumNames ? '' : 'ALL');
-  static const BuilderMask_BuilderMaskType METADATA_ONLY =
-      BuilderMask_BuilderMaskType._(3, _omitEnumNames ? '' : 'METADATA_ONLY');
+  static const BuilderMask_BuilderMaskType METADATA_ONLY = BuilderMask_BuilderMaskType._(3, _omitEnumNames ? '' : 'METADATA_ONLY');
 
-  static const $core.List<BuilderMask_BuilderMaskType> values = <BuilderMask_BuilderMaskType>[
+  static const $core.List<BuilderMask_BuilderMaskType> values = <BuilderMask_BuilderMaskType> [
     BUILDER_MASK_TYPE_UNSPECIFIED,
     CONFIG_ONLY,
     ALL,
@@ -34,5 +31,6 @@ class BuilderMask_BuilderMaskType extends $pb.ProtobufEnum {
 
   const BuilderMask_BuilderMaskType._($core.int v, $core.String n) : super(v, n);
 }
+
 
 const _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');

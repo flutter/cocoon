@@ -54,9 +54,9 @@ export 'src/generated/go.chromium.org/luci/buildbucket/proto/builds_service.pb.d
         BuildRange,
         GetBuildStatusRequest;
 export 'src/generated/go.chromium.org/luci/buildbucket/proto/builder_service.pb.dart'
-    show GetBuilderRequest, ListBuildersRequest, ListBuildersResponse;
+    show GetBuilderRequest, ListBuildersRequest, ListBuildersResponse, BuilderMask, BuilderMask_BuilderMaskType;
 export 'src/generated/go.chromium.org/luci/buildbucket/proto/task.pb.dart' show Task, TaskID;
-export 'src/generated/go.chromium.org/luci/buildbucket/proto/builder_common.pb.dart' show BuilderID;
+export 'src/generated/go.chromium.org/luci/buildbucket/proto/builder_common.pb.dart' show BuilderID, BuilderItem, BuilderMetadata;
 export 'src/generated/go.chromium.org/luci/buildbucket/proto/common.pb.dart'
     show
         Status,
