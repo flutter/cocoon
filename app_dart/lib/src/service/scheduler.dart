@@ -10,7 +10,6 @@ import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as github;
-import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/firestore/v1.dart';
@@ -497,7 +496,7 @@ class Scheduler {
   }
 
   /// Returns `true` if [ciYaml.postsubmitTargets] should be ran during presubmit.
-  static bool _includePostsubmitAsPresubmit(CiYaml ciYaml, PullRequest pullRequest) {
+  static bool _includePostsubmitAsPresubmit(CiYaml ciYaml, github.PullRequest pullRequest) {
     // Only allow this for flutter/engine.
     // See https://github.com/flutter/cocoon/pull/3256#issuecomment-1811624351.
     if (ciYaml.slug != Config.engineSlug) {
@@ -527,10 +526,10 @@ class Scheduler {
         if (name == kCiYamlCheckName) {
           // The CheckRunEvent.checkRun.pullRequests array is empty for this
           // event, so we need to find the matching pull request.
-          final RepositorySlug slug = checkRunEvent.repository!.slug();
+          final github.RepositorySlug slug = checkRunEvent.repository!.slug();
           final String headSha = checkRunEvent.checkRun!.headSha!;
           final int checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
-          final PullRequest? pullRequest =
+          final github.PullRequest? pullRequest =
               await githubChecksService.findMatchingPullRequest(slug, headSha, checkSuiteId);
           if (pullRequest != null) {
             log.fine('Matched PR: ${pullRequest.number} Repo: ${slug.fullName}');
@@ -541,7 +540,7 @@ class Scheduler {
           }
         } else {
           try {
-            final RepositorySlug slug = checkRunEvent.repository!.slug();
+            final github.RepositorySlug slug = checkRunEvent.repository!.slug();
             final String gitBranch = checkRunEvent.checkRun!.checkSuite!.headBranch ?? Config.defaultBranch(slug);
             final String sha = checkRunEvent.checkRun!.headSha!;
 
@@ -637,7 +636,7 @@ class Scheduler {
   /// A tip of tree [Commit] is used to help generate the tip of tree [CiYaml].
   /// The generated tip of tree [CiYaml] will be compared against Presubmit Targets in current [CiYaml],
   /// to ensure new targets without `bringup: true` label are not added into the build.
-  Future<Commit> generateTotCommit({required String branch, required RepositorySlug slug}) async {
+  Future<Commit> generateTotCommit({required String branch, required github.RepositorySlug slug}) async {
     datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusProvider(datastore);
     final Commit totCommit = (await buildStatusService
