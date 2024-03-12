@@ -153,7 +153,7 @@ void main() {
       });
       // When get issue
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
-        return Future<Issue>.value(Issue(state: 'closed', htmlUrl: existingIssueURL));
+        return Future<Issue>.value(Issue(state: 'CLOSED', htmlUrl: existingIssueURL));
       });
       // When creates git tree
       when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
@@ -408,7 +408,7 @@ void main() {
       });
       // When get issue
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
-        return Future<Issue>.value(Issue(state: 'open', htmlUrl: existingIssueURL));
+        return Future<Issue>.value(Issue(state: 'OPEN', htmlUrl: existingIssueURL));
       });
       CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length;
       final Map<String, dynamic> result = await utf8.decoder
@@ -444,7 +444,7 @@ void main() {
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
         return Future<Issue>.value(
           Issue(
-            state: 'closed',
+            state: 'CLOSED',
             htmlUrl: existingIssueURL,
             closedAt: DateTime.now().subtract(const Duration(days: kGracePeriodForClosedFlake - 1)),
           ),
@@ -477,7 +477,7 @@ void main() {
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
         return Future<Issue>.value(
           Issue(
-            state: 'open',
+            state: 'OPEN',
             htmlUrl: existingIssueURL,
           ),
         );
@@ -523,7 +523,7 @@ void main() {
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
         return Future<Issue>.value(
           Issue(
-            state: 'closed',
+            state: 'CLOSED',
             htmlUrl: existingIssueURL,
             closedAt: DateTime.now().subtract(const Duration(days: 50)),
           ),
@@ -583,7 +583,7 @@ void main() {
       });
       // When get issue
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
-        return Future<Issue>.value(Issue(state: 'closed', htmlUrl: existingIssueURL));
+        return Future<Issue>.value(Issue(state: 'CLOSED', htmlUrl: existingIssueURL));
       });
 
       CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length;
@@ -618,7 +618,7 @@ void main() {
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
         return Future<Issue>.value(
           Issue(
-            state: 'closed',
+            state: 'CLOSED',
             htmlUrl: existingIssueURL,
             closedAt: DateTime.now().subtract(const Duration(days: 50)),
           ),
