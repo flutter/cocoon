@@ -2,11 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/service/access_client_provider.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 
 import 'package:googleapis/firestore/v1.dart';
 import 'package:test/test.dart';
+
+import '../src/utilities/entity_generators.dart';
 
 void main() {
   test('creates writes correctly from documents', () async {
@@ -71,6 +74,28 @@ void main() {
       expect(filters[1].fieldFilter!.field!.fieldPath, 'stringField');
       expect(filters[1].fieldFilter!.value!.stringValue, 'string');
       expect(filters[1].fieldFilter!.op, kFieldFilterOpEqual);
+    });
+  });
+
+  group('documentsFromQueryResponse', () {
+    final FirestoreService firestoreService = FirestoreService(AccessClientProvider());
+    late List<RunQueryResponseElement> runQueryResponseElements;
+    test('when null document returns', () async {
+      runQueryResponseElements = <RunQueryResponseElement>[
+        RunQueryResponseElement(),
+      ];
+      final List<Document> documents = firestoreService.documentsFromQueryResponse(runQueryResponseElements);
+      expect(documents.isEmpty, true);
+    });
+
+    test('when non-null document returns', () async {
+      final GithubGoldStatus githubGoldStatus = generateFirestoreGithubGoldStatus(1);
+      runQueryResponseElements = <RunQueryResponseElement>[
+        RunQueryResponseElement(document: githubGoldStatus),
+      ];
+      final List<Document> documents = firestoreService.documentsFromQueryResponse(runQueryResponseElements);
+      expect(documents.length, 1);
+      expect(documents[0].name, githubGoldStatus.name);
     });
   });
 }
