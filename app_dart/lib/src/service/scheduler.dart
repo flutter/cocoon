@@ -5,6 +5,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
@@ -28,7 +29,6 @@ import '../model/firestore/task.dart' as firestore;
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
-import '../model/luci/buildbucket.dart';
 import '../model/proto/internal/scheduler.pb.dart' as pb;
 import '../service/logging.dart';
 import 'cache_service.dart';
@@ -411,8 +411,8 @@ class Scheduler {
       checkSuiteEvent,
     );
     final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
-    final List<Build?> failedBuilds = await luciBuildService.failedBuilds(pullRequest, presubmitTargets);
-    for (Build? build in failedBuilds) {
+    final List<bbv2.Build?> failedBuilds = await luciBuildService.failedBuilds(pullRequest, presubmitTargets);
+    for (bbv2.Build? build in failedBuilds) {
       final github.CheckRun checkRun = checkRuns[build!.builderId.builder!]!;
 
       if (checkRun.status != github.CheckRunStatus.completed) {

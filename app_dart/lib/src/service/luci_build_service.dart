@@ -86,80 +86,90 @@ class LuciBuildService {
     return shards;
   }
 
-  /// Returns an Iterable of try BuildBucket build for a given Github [slug], [sha], [builderName].
-  Future<Iterable<Build>> getTryBuilds(
+  
+  Future<Iterable<bbv2.Build>> getTryBuildsV2(
     github.RepositorySlug slug,
     String sha,
     String? builderName,
   ) async {
-    final Map<String, List<String>> tags = <String, List<String>>{
-      'buildset': <String>['sha/git/$sha'],
-      'user_agent': const <String>['flutter-cocoon'],
-    };
-    return getBuilds(slug, sha, builderName, 'try', tags);
+    final List<bbv2.StringPair> tags = [
+      bbv2.StringPair(key: 'buildset', value: 'sha/git/$sha'),
+      bbv2.StringPair(key: 'user_agent', value: 'flutter-cocoon'),
+    ];
+    return getBuildsV2(slug, sha, builderName, 'try', tags,);
   }
 
-  /// Returns an Iterable of try Buildbucket [Build]s for a given [PullRequest].
-  Future<Iterable<Build>> getTryBuildsByPullRequest(
+  Future<Iterable<bbv2.Build>> getTryBuildsByPullRequestV2(
     github.PullRequest pullRequest,
   ) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final Map<String, List<String>> tags = <String, List<String>>{
-      'buildset': <String>['pr/git/${pullRequest.number}'],
-      'github_link': <String>['https://github.com/${slug.fullName}/pull/${pullRequest.number}'],
-      'user_agent': const <String>['flutter-cocoon'],
-    };
-    return getBuilds(slug, null, null, 'try', tags);
+    final List<bbv2.StringPair> tags = [
+      bbv2.StringPair(key: 'buildset', value: 'pr/git/${pullRequest.number}'),
+      bbv2.StringPair(key: 'github_link', value: 'https://github.com/${slug.fullName}/pull/${pullRequest.number}'),
+      bbv2.StringPair(key: 'user_agent', value: 'flutter_cocoon'),
+    ];
+    return getBuildsV2(slug, null, null, 'try', tags,);
   }
 
-  /// Returns an Iterable of prod BuildBucket build for a given Github [slug], [commitSha],
-  /// [builderName] and [repo].
-  Future<Iterable<Build>> getProdBuilds(
+  Future<Iterable<bbv2.Build>> getProdBuildsV2(
     github.RepositorySlug slug,
     String commitSha,
     String? builderName,
   ) async {
-    final Map<String, List<String>> tags = <String, List<String>>{};
-    return getBuilds(slug, commitSha, builderName, 'prod', tags);
+    final List<bbv2.StringPair> tags = [];
+    return getBuildsV2(slug, commitSha, builderName, 'prod', tags,);
   }
 
-  /// Returns an iterable of BuildBucket builds for a given Github [slug], [commitSha],
-  /// [builderName], [bucket] and [tags].
-  Future<Iterable<Build>> getBuilds(
+  Future<Iterable<bbv2.Build>> getBuildsV2(
     github.RepositorySlug? slug,
     String? commitSha,
     String? builderName,
     String bucket,
-    Map<String, List<String>> tags,
+    List<bbv2.StringPair> tags,
   ) async {
-    final BatchResponse batch = await buildBucketClient.batch(
-      BatchRequest(
-        requests: <Request>[
-          Request(
-            searchBuilds: SearchBuildsRequest(
-              predicate: BuildPredicate(
-                builderId: BuilderId(
-                  project: 'flutter',
-                  bucket: bucket,
-                  builder: builderName,
-                ),
-                tags: tags,
-              ),
-              fields: 'builds.*.id,builds.*.builder,builds.*.tags,builds.*.status,builds.*.input.properties',
-            ),
-          ),
-        ],
+    final bbv2.FieldMask fieldMask = bbv2.FieldMask(paths: {
+      'builds.*.id',
+      'builds.*.builder',
+      'builds.*.tags',
+      'builds.*.status',
+      'builds.*.input.properties',
+    },);
+
+    final bbv2.BuildMask buildMask = bbv2.BuildMask(fields: fieldMask);
+
+    final bbv2.BuildPredicate buildPredicate = bbv2.BuildPredicate(
+      builder: bbv2.BuilderID(
+        project: 'flutter',
+        bucket: bucket,
+        builder: builderName,
+      ),
+      tags: tags,
+    );
+
+    final bbv2.SearchBuildsRequest searchBuildsRequest = bbv2.SearchBuildsRequest(
+      predicate: buildPredicate,
+      mask: buildMask,
+    );
+
+    // Need to create one of these for each request in the batch.
+    final bbv2.BatchRequest_Request batchRequestRequest = bbv2.BatchRequest_Request(
+      searchBuilds: searchBuildsRequest,
+    );
+
+    final bbv2.BatchResponse batchResponse = await buildBucketV2Client.batch(
+      bbv2.BatchRequest(
+        requests: {batchRequestRequest},
       ),
     );
 
-    log.info('Reponses from get builds batch request = ${batch.responses!.length}');
-    for (Response response in batch.responses!) {
+    log.info('Reponses from get builds batch request = ${batchResponse.responses.length}');
+    for (bbv2.BatchResponse_Response response in batchResponse.responses) {
       log.info('Found a response: ${response.toString()}');
     }
 
-    final Iterable<Build> builds = batch.responses!
-        .map((Response response) => response.searchBuilds)
-        .expand((SearchBuildsResponse? response) => response!.builds ?? <Build>[]);
+    final Iterable<bbv2.Build> builds = batchResponse.responses
+        .map((bbv2.BatchResponse_Response response) => response.searchBuilds)
+        .expand((bbv2.SearchBuildsResponse? response) => response!.builds);
     return builds;
   }
 
@@ -215,20 +225,89 @@ class LuciBuildService {
         properties[propertiesGithubBuildLabelName] = labels;
       }
 
-      //TODO might be able to duplicate the work here so that we can see what this
-      // pushes to the new sub.
-      // bbv2.BatchRequest batchRequest = bbv2.BatchRequest.create();
-      // _createPresubmitScheduleBuildV2(
-      //   slug: slug,
-      //   sha: sha,
-      //   checkName: target.value.name,
-      //   pullRequestNumber: pullRequest.number!,
-      //   cipdVersion: cipdVersion
-      //   );
-
       requests.add(
         Request(
           scheduleBuild: _createPresubmitScheduleBuild(
+            slug: slug,
+            sha: pullRequest.head!.sha!,
+            //Use target.value.name here otherwise tests will die due to null checkRun.name.
+            checkName: target.value.name,
+            pullRequestNumber: pullRequest.number!,
+            cipdVersion: cipdVersion,
+            userData: userData,
+            properties: properties,
+            tags: tags,
+            dimensions: target.getDimensions(),
+          ),
+        ),
+      );
+    }
+
+    final Iterable<List<Request>> requestPartitions = await shard(requests, config.schedulingShardSize);
+    for (List<Request> requestPartition in requestPartitions) {
+      final BatchRequest batchRequest = BatchRequest(requests: requestPartition);
+      await pubsub.publish('scheduler-requests', batchRequest);
+    }
+
+    return targets;
+  }
+
+
+  
+  Future<List<Target>> scheduleTryBuildsV2({
+    required List<Target> targets,
+    required github.PullRequest pullRequest,
+    CheckSuiteEvent? checkSuiteEvent,
+  }) async {
+    if (targets.isEmpty) {
+      return targets;
+    }
+
+    final List<Request> requests = <Request>[];
+    final List<String> branches = await gerritService.branches(
+      'flutter-review.googlesource.com',
+      'recipes',
+      filterRegex: 'flutter-.*|fuchsia.*',
+    );
+    log.info('Available release branches: $branches');
+
+    final String sha = pullRequest.head!.sha!;
+    String cipdVersion = 'refs/heads/${pullRequest.base!.ref!}';
+    cipdVersion = branches.contains(cipdVersion) ? cipdVersion : config.defaultRecipeBundleRef;
+
+    for (Target target in targets) {
+      final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
+        config,
+        target.slug,
+        sha,
+        target.value.name,
+      );
+
+      final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+
+      final Map<String, dynamic> userData = <String, dynamic>{
+        'builder_name': target.value.name,
+        'check_run_id': checkRun.id,
+        'commit_sha': sha,
+        'commit_branch': pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
+      };
+
+      final List<bbv2.StringPair> tags = [
+        bbv2.StringPair(key: 'github_checkrun', value: checkRun.id.toString()),
+      ];
+
+      final Map<String, Object> properties = target.getProperties();
+      properties.putIfAbsent('git_branch', () => pullRequest.base!.ref!.replaceAll('refs/heads/', ''));
+
+      final List<String>? labels = extractPrefixedLabels(pullRequest.labels, githubBuildLabelPrefix);
+
+      if (labels != null && labels.isNotEmpty) {
+        properties[propertiesGithubBuildLabelName] = labels;
+      }
+
+      requests.add(
+        Request(
+          scheduleBuild: _createPresubmitScheduleBuildV2(
             slug: slug,
             sha: pullRequest.head!.sha!,
             //Use target.value.name here otherwise tests will die due to null checkRun.name.
@@ -301,6 +380,20 @@ class LuciBuildService {
     final Iterable<Build?> failedBuilds = builds.where((Build? build) => failStatusSet.contains(build!.status));
     final Iterable<Build?> expectedFailedBuilds =
         failedBuilds.where((Build? build) => builderNames.contains(build!.builderId.builder));
+    return expectedFailedBuilds.toList();
+  }
+
+  /// Filters [builders] to only those that failed on [pullRequest].
+  Future<List<Build?>> failedBuildsV2(
+    github.PullRequest pullRequest,
+    List<Target> targets,
+  ) async {
+    final Iterable<bbv2.Build> builds = await getTryBuilds(pullRequest.base!.repo!.slug(), pullRequest.head!.sha!, null);
+    final Iterable<String> builderNames = targets.map((Target target) => target.value.name);
+    // Return only builds that exist in the configuration file.
+    final Iterable<bbv2.Build?> failedBuilds = builds.where((Build? build) => failStatusSet.contains(build!.status));
+    final Iterable<bbv2.Build?> expectedFailedBuilds =
+        failedBuilds.where((bbv2.Build? build) => builderNames.contains(build!.builderId.builder));
     return expectedFailedBuilds.toList();
   }
  
@@ -721,17 +814,7 @@ class LuciBuildService {
     return stringPair;
   }
 
-  // List<bbv2.StringPair> _createStringPairList(String key, List<String> values) {
-  //   final List<bbv2.StringPair> stringPairs = <bbv2.StringPair>[];
-  //   for (String v in values) {
-  //     final bbv2.StringPair stringPair = bbv2.StringPair.create();
-  //     stringPair.key = key;
-  //     stringPair.value = v;
-  //     stringPairs.add(stringPair);
-  //   }
-
-  //   return stringPairs;
-  // }
+  
 
   /// Creates a [ScheduleBuildRequest] for [target] and [task] against [commit].
   ///
