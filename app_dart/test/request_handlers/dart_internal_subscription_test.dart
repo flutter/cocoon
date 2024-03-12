@@ -11,7 +11,6 @@ import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/luci/pubsub_message_v2.dart';
-// import 'package:cocoon_service/src/model/luci/push_message.dart' as push;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart';
@@ -27,9 +26,6 @@ import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
-  final DateTime startTime = DateTime(2023, 11, 03, 20, 25, 0, 518383633);
-  final DateTime endTime = DateTime(2023, 11, 03, 20, 25, 0, 518383633);
-
   // Omit the timestamps for expect purposes.
   const String message = '''
 {
@@ -58,7 +54,6 @@ void main() {
   late DartInternalSubscription handler;
   late FakeConfig config;
   late FakeHttpRequest request;
-  late MockBuildBucketClient buildBucketClient;
   late MockBuildBucketV2Client buildBucketV2Client;
   late SubscriptionV2Tester tester;
   late MockFirestoreService mockFirestoreService;
@@ -77,7 +72,6 @@ void main() {
   setUp(() async {
     mockFirestoreService = MockFirestoreService();
     config = FakeConfig(firestoreService: mockFirestoreService);
-    buildBucketClient = MockBuildBucketClient();
     buildBucketV2Client = MockBuildBucketV2Client();
     handler = DartInternalSubscription(
       cache: CacheService(inMemory: true),

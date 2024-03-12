@@ -8,6 +8,7 @@ import 'package:github/hooks.dart';
 import '../foundation/github_checks_util.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'config.dart';
 import 'github_service.dart';
 import 'logging.dart';
@@ -132,6 +133,82 @@ class GithubChecksService {
     return true;
   }
 
+  // TODO
+  Future<bool> updateCheckStatusV2({
+    required bbv2.Build build,
+    required Map<String, dynamic> userDataMap,
+    required LuciBuildService luciBuildService,
+    required github.RepositorySlug slug,
+    bool rescheduled = false,
+  }) async {
+    if (userDataMap.isEmpty) {
+      return false;
+    }
+
+    if (!userDataMap.containsKey('check_run_id') ||
+        !userDataMap.containsKey('repo_owner') ||
+        !userDataMap.containsKey('repo_name')) {
+      log.severe(
+        'UserData did not contain check_run_id,'
+        'repo_owner, or repo_name: $userDataMap',
+      );
+      return false;
+    }
+
+    github.CheckRunStatus status = statusToResultV2(build.status);
+    // Only `id` and `name` in the CheckRun are needed.
+    // Instead of making an API call to get the details of each check run, we
+    // generate the check run with only necessary info.
+    final github.CheckRun checkRun = github.CheckRun.fromJson({
+      'id': userDataMap['check_run_id'] as int?,
+      'status': status,
+      'check_suite': const {'id': null},
+      'started_at': build.startTime.toString(),
+      'conclusion': null,
+      'name': build.input.properties.fields['builder_name'],
+    });
+
+    // if conclusion is empty then we treat that as null as before.
+    github.CheckRunConclusion? conclusion = conclusionFromResult(build.status);
+
+    final String url = build.viewUrl;
+    github.CheckRunOutput? output;
+    // If status has completed with failure then provide more details.
+    if (taskFailedV2(build.status)) {
+      if (rescheduled) {
+        status = github.CheckRunStatus.queued;
+        conclusion = null;
+        output = github.CheckRunOutput(
+          title: checkRun.name!,
+          summary: 'Note: this is an auto rerun. The timestamp above is based on the first attempt of this check run.',
+        );
+      } else {
+        final bbv2.Build buildbucketBuild =
+            await luciBuildService.getBuildByIdV2(
+              build.id,
+              buildMask: bbv2.BuildMask(
+                fields: bbv2.FieldMask(paths: {'id', 'builder', 'summaryMarkDown'})
+              ,)
+            ,);
+        output = github.CheckRunOutput(
+          title: checkRun.name!,
+          summary: getGithubSummary(buildbucketBuild.summaryMarkdown),
+        );
+        log.fine('Updating check run with output: [$output]');
+      }
+    }
+    await githubChecksUtil.updateCheckRun(
+      config,
+      slug,
+      checkRun,
+      status: status,
+      conclusion: conclusion,
+      detailsUrl: url,
+      output: output,
+    );
+    return true;
+  }
+
   /// Check if task has completed with failure.
   bool taskFailed(push_message.BuildPushMessage buildPushMessage) {
     final push_message.Build? build = buildPushMessage.build;
@@ -139,6 +216,13 @@ class GithubChecksService {
     final github.CheckRunConclusion? conclusion =
         (buildPushMessage.build!.result != null) ? conclusionForResult(buildPushMessage.build!.result) : null;
     return status == github.CheckRunStatus.completed && failedStatesSet.contains(conclusion);
+  }
+
+
+  bool taskFailedV2(bbv2.Status status) {
+    final github.CheckRunStatus checkRunStatus = statusToResultV2(status);
+    final github.CheckRunConclusion conclusion = conclusionFromResult(status);
+    return checkRunStatus == github.CheckRunStatus.completed && failedStatesSet.contains(conclusion);
   }
 
   /// Returns current reschedule attempt.
@@ -149,6 +233,15 @@ class GithubChecksService {
       return 1;
     } else {
       return int.parse(build.tagsByName('current_attempt').single);
+    }
+  }
+
+  int currentAttemptV2(final List<bbv2.StringPair> tags) {
+    final bbv2.StringPair attempt = tags.firstWhere((element) => element.key == 'current_attempt', orElse: () => bbv2.StringPair().createEmptyInstance());
+    if (!attempt.hasKey()) {
+      return 1;
+    } else {
+      return int.parse(attempt.value);
     }
   }
 
@@ -188,6 +281,18 @@ class GithubChecksService {
     }
   }
 
+  // Result does not exist anymore in the buildbucket output.
+  github.CheckRunConclusion conclusionFromResult(bbv2.Status status) {
+    if (status == bbv2.Status.CANCELED || status == bbv2.Status.FAILURE) {
+      return github.CheckRunConclusion.failure;
+    } else if (status == bbv2.Status.SUCCESS) {
+      return github.CheckRunConclusion.success;
+    } else {
+      // Now that result is gone this is a non terminal step.
+      return github.CheckRunConclusion.empty;
+    }
+  }
+
   /// Transforms a [push_message.Status] to a [github.CheckRunStatus].
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs
@@ -200,6 +305,25 @@ class GithubChecksService {
       case push_message.Status.started:
         return github.CheckRunStatus.inProgress;
       case null:
+        throw StateError('unreachable');
+    }
+  }
+
+  // TODO temporary as this needs to be adjusted as a COMPLETED state is no longer
+  // a valid state from buildbucket v2.
+  github.CheckRunStatus statusToResultV2(bbv2.Status status) {
+    // ignore: exhaustive_cases
+    switch (status) {
+      case bbv2.Status.SUCCESS:
+      case bbv2.Status.FAILURE:
+      case bbv2.Status.CANCELED:
+      case bbv2.Status.INFRA_FAILURE:
+        return github.CheckRunStatus.completed;
+      case bbv2.Status.SCHEDULED:
+        return github.CheckRunStatus.queued;
+      case bbv2.Status.STARTED:
+        return github.CheckRunStatus.inProgress;
+      default:
         throw StateError('unreachable');
     }
   }

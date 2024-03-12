@@ -8,6 +8,8 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:collection/collection.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
@@ -22,6 +24,7 @@ import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
+import '../model/luci/user_data.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
 import 'build_bucket_v2_client.dart';
@@ -58,7 +61,7 @@ class LuciBuildService {
 
   final PubSub pubsub;
 
-  static const Set<Status> failStatusSet = <Status>{Status.canceled, Status.failure, Status.infraFailure};
+  static const Set<bbv2.Status> failStatusSet = <bbv2.Status>{bbv2.Status.CANCELED, bbv2.Status.FAILURE, bbv2.Status.INFRA_FAILURE};
 
   static const int kBackfillPriority = 35;
   static const int kDefaultPriority = 30;
@@ -73,6 +76,7 @@ class LuciBuildService {
   /// Name of the subcache to store luci build related values in redis.
   static const String subCacheName = 'luci';
 
+  // the Request objects here are the BatchRequest object in bbv2.
   /// Shards [rows] into several sublists of size [maxEntityGroups].
   Future<List<List<Request>>> shard(List<Request> requests, int max) async {
     final List<List<Request>> shards = <List<Request>>[];
@@ -299,7 +303,7 @@ class LuciBuildService {
         failedBuilds.where((Build? build) => builderNames.contains(build!.builderId.builder));
     return expectedFailedBuilds.toList();
   }
-
+ 
   /// Sends [ScheduleBuildRequest] using information from a given build's
   /// [BuildPushMessage].
   ///
@@ -343,6 +347,28 @@ class LuciBuildService {
         ),
       ),
     );
+  }
+
+  Future<bbv2.Build> rescheduleBuildV2({
+    required String builderName,
+    required bbv2.Build build,
+    required int rescheduleAttempt,
+    required Map<String, dynamic> userDataMap,
+  }) async {
+    final List<bbv2.StringPair> tags = build.tags;
+    // need to replace the current_attempt
+    bbv2.StringPair? attempt = tags.firstWhereOrNull((element) => element.key == 'current_attempt');
+    attempt ??= bbv2.StringPair(key: 'current_attempt', value: rescheduleAttempt.toString(),);
+    tags.add(attempt);
+
+    return buildBucketV2Client.scheduleBuild(bbv2.ScheduleBuildRequest(
+      builder: build.builder,
+      tags: tags,
+      properties: build.input.properties,
+      notify: bbv2.NotificationConfig(
+        pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
+        userData: UserData.encodeUserDataToBytes(userDataMap),),
+    ),);
   }
 
   bool _switchV2 = true;
@@ -458,6 +484,12 @@ class LuciBuildService {
   Future<Build> getBuildById(String? id, {String? fields}) async {
     final GetBuildRequest request = GetBuildRequest(id: id, fields: fields);
     return buildBucketClient.getBuild(request);
+  }
+
+  // TODO
+  Future<bbv2.Build> getBuildByIdV2(Int64 id, {bbv2.BuildMask? buildMask}) async {
+    final bbv2.GetBuildRequest request = bbv2.GetBuildRequest(id: id, mask: buildMask);
+    return buildBucketV2Client.getBuild(request);
   }
 
   /// Gets builder list whose config is pre-defined in LUCI.

@@ -2,16 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_service/src/model/luci/user_data.dart';
+import 'package:cocoon_service/src/request_handling/subscription_handler_v2.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
-import '../model/luci/push_message.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
-import '../request_handling/subscription_handler.dart';
 import '../service/config.dart';
 import '../service/github_checks_service.dart';
 import '../service/logging.dart';
@@ -31,7 +34,7 @@ import '../service/scheduler.dart';
 /// This endpoint is responsible for updating GitHub with the status of
 /// completed builds from LUCI.
 @immutable
-class PresubmitLuciSubscription extends SubscriptionHandler {
+class PresubmitLuciSubscription extends SubscriptionHandlerV2 {
   /// Creates an endpoint for listening to LUCI status updates.
   const PresubmitLuciSubscription({
     required super.cache,
@@ -48,67 +51,80 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
 
   @override
   Future<Body> post() async {
-    RepositorySlug slug;
-    final BuildPushMessage buildPushMessage = BuildPushMessage.fromPushMessage(message);
-    final Build build = buildPushMessage.build!;
-    final String builderName = build.tagsByName('builder').single;
-    log.fine('Available tags: ${build.tags.toString()}');
+    if (message.data == null) {
+      log.info('no data in message');
+      return Body.empty;
+    }
+
+    final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack();
+    pubSubCallBack.mergeFromProto3Json(jsonDecode(message.data!) as Map<String, dynamic>);  
+
+    final bbv2.BuildsV2PubSub buildsV2PubSub = pubSubCallBack.buildPubsub;
+
+    if (!buildsV2PubSub.hasBuild()) {
+      log.info('no build information in message');
+      return Body.empty;
+    }
+
+    final bbv2.Build build = buildsV2PubSub.build;
+
+    // final String builderName = build.builder.builder;
+
+    final List<bbv2.StringPair> tags = build.tags;
+    final String builderName = tags.where((element) => element.key == 'builder').single.value;
+
+    // final String builderName = build.tagsByName('builder').single;
+    log.fine('Available tags: ${tags.toString()}');
+
     // Skip status update if we can not get the sha tag.
-    if (build.tagsByName('buildset').isEmpty) {
+    if (tags.where((element) => element.key == 'buildset').isEmpty) {
       log.warning('Buildset tag not included, skipping Status Updates');
       return Body.empty;
     }
-    log.fine('Setting status: ${buildPushMessage.toJson()} for $builderName');
-    if (buildPushMessage.userData.containsKey('repo_owner') && buildPushMessage.userData.containsKey('repo_name')) {
-      // Message is coming from a github checks api enabled repo. We need to
-      // create the slug from the data in the message and send the check status
-      // update.
-      slug = RepositorySlug(
-        buildPushMessage.userData['repo_owner'] as String,
-        buildPushMessage.userData['repo_name'] as String,
-      );
-      bool rescheduled = false;
-      if (githubChecksService.taskFailed(buildPushMessage)) {
-        final int currentAttempt = githubChecksService.currentAttempt(build);
-        final int maxAttempt = await _getMaxAttempt(buildPushMessage, slug, builderName);
-        if (currentAttempt < maxAttempt) {
-          rescheduled = true;
-          log.fine('Rerun a failed task: $builderName');
-          await luciBuildService.rescheduleBuild(
-            builderName: builderName,
-            buildPushMessage: buildPushMessage,
-            rescheduleAttempt: currentAttempt + 1,
-          );
+
+    log.fine('Setting status for $builderName');
+
+    if (pubSubCallBack.hasUserData()) {
+      // Not sure if this is base64 encoded or not.
+      final Map<String, dynamic> userDataMap = UserData.decodeUserDataBytes(pubSubCallBack.userData);
+      if (userDataMap.containsKey('repo_owner') && userDataMap.containsKey('repo_name')) {
+        final RepositorySlug slug = RepositorySlug(userDataMap['repo_owner'] as String, userDataMap['repo_name'] as String);
+
+        bool rescheduled = false;
+        if (githubChecksService.taskFailedV2(build.status)) {
+          final int currentAttempt = githubChecksService.currentAttemptV2(tags);
+          final int maxAttempt = await _getMaxAttemptV2(userDataMap, slug, builderName,);
+          if (currentAttempt < maxAttempt) {
+            rescheduled = true;
+            log.fine('Rerunning failed task: $builderName');
+            await luciBuildService.rescheduleBuildV2(
+              builderName: builderName,
+              build: build,
+              rescheduleAttempt: currentAttempt + 1,
+              userDataMap: userDataMap,
+            );
+          }
         }
+        await githubChecksService.updateCheckStatusV2(build: build, userDataMap: userDataMap, luciBuildService: luciBuildService, slug: slug, rescheduled: rescheduled,);
+      } else {
+        log.info('This repo does not support checks API');
       }
-      await githubChecksService.updateCheckStatus(
-        buildPushMessage,
-        luciBuildService,
-        slug,
-        rescheduled: rescheduled,
-      );
     } else {
-      log.shout('This repo does not support checks API');
+      log.info('No user data was found in this request');
     }
+    
     return Body.empty;
   }
 
-  /// Gets target's allowed reschedule attempt.
-  ///
-  /// Each target can define their own allowed max number of reschedule attemp, and it
-  /// is defined as a property `presubmit_max_attempts`.
-  ///
-  /// If not property is defined, the target doesn't allow a reschedule after failures.
-  /// Typically the property will be used for targets that are likely flaky.
-  Future<int> _getMaxAttempt(
-    BuildPushMessage buildPushMessage,
+  Future<int> _getMaxAttemptV2(
+    Map<String, dynamic> userData,
     RepositorySlug slug,
-    String builderName,
+    String builderName, 
   ) async {
     final Commit commit = Commit(
-      branch: buildPushMessage.userData['commit_branch'] as String,
+      branch: userData['commit_branch'] as String,
       repository: slug.fullName,
-      sha: buildPushMessage.userData['commit_sha'] as String,
+      sha: userData['commit_sha'] as String,
     );
     late CiYaml ciYaml;
     if (commit.branch == Config.defaultBranch(commit.slug)) {
