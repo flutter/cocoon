@@ -39,35 +39,39 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider(config.db);
+    final FirestoreService firestoreService = await config.createFirestoreService();
 
     if (authContext!.clientContext.isDevelopmentEnvironment) {
       // Don't push gold status from the local dev server.
       return Body.empty;
     }
 
-    await _sendStatusUpdates(datastore, Config.flutterSlug);
-    await _sendStatusUpdates(datastore, Config.engineSlug);
+    await _sendStatusUpdates(datastore, firestoreService, Config.flutterSlug);
+    await _sendStatusUpdates(datastore, firestoreService, Config.engineSlug);
 
     return Body.empty;
   }
 
   Future<void> _sendStatusUpdates(
     DatastoreService datastore,
+    FirestoreService firestoreService,
     RepositorySlug slug,
   ) async {
     final GitHub gitHubClient = await config.createGitHubClient(slug: slug);
     final List<GithubGoldStatusUpdate> statusUpdates = <GithubGoldStatusUpdate>[];
+    final List<GithubGoldStatus> githubGoldStatuses = <GithubGoldStatus>[];
     log.fine('Beginning Gold checks...');
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
       assert(pr.number != null);
-      // Get last known Gold status from datastore.
+      // Get last known Gold status from firestore.
       final GithubGoldStatusUpdate lastUpdate = await datastore.queryLastGoldUpdate(slug, pr);
+      final GithubGoldStatus githubGoldStatus = await firestoreService.queryLastGoldStatus(slug, pr.number!);
       CreateStatus statusRequest;
 
       log.fine('Last known Gold status for $slug#${pr.number} was with sha: '
-          '${lastUpdate.head}, status: ${lastUpdate.status}, description: ${lastUpdate.description}');
+          '${githubGoldStatus.head}, status: ${githubGoldStatus.status}, description: ${githubGoldStatus.description}');
 
-      if (lastUpdate.status == GithubGoldStatusUpdate.statusCompleted && lastUpdate.head == pr.head!.sha) {
+      if (githubGoldStatus.status == GithubGoldStatus.statusCompleted && githubGoldStatus.head == pr.head!.sha) {
         log.fine('Completed status already reported for this commit.');
         // We have already seen this commit and it is completed or, this is not
         // a change staged to land on master, which we should ignore.
@@ -90,8 +94,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         // been a new commit, we cannot rescind a previously posted status, so
         // if it is already pending, we should make the contributor aware of
         // that fact.
-        if (lastUpdate.status == GithubGoldStatusUpdate.statusRunning &&
-            lastUpdate.head == pr.head!.sha &&
+        if (githubGoldStatus.status == GithubGoldStatus.statusRunning &&
+            githubGoldStatus.head == pr.head!.sha &&
             !await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldDraftChange)) {
           await gitHubClient.issues
               .createComment(slug, pr.number!, config.flutterGoldDraftChange + config.flutterGoldAlertConstant(slug));
@@ -99,7 +103,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         continue;
       }
 
-      log.fine('Querying builds for pull request #${pr.number} with sha: ${lastUpdate.head}...');
+      log.fine('Querying builds for pull request #${pr.number} with sha: ${githubGoldStatus.head}...');
       final GraphQLClient gitHubGraphQLClient = await config.createGitHubGraphQLClient();
       final List<String> incompleteChecks = <String>[];
       bool runsGoldenFileTests = false;
@@ -164,8 +168,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           // should just be pending. Any draft PRs are skipped
           // until marked ready for review.
           log.fine('Waiting for checks to be completed.');
-          statusRequest =
-              _createStatus(GithubGoldStatusUpdate.statusRunning, config.flutterGoldPending, slug, pr.number!);
+          statusRequest = _createStatus(GithubGoldStatus.statusRunning, config.flutterGoldPending, slug, pr.number!);
         } else {
           // We do not want to query Gold on a draft PR.
           assert(!pr.draft!);
@@ -173,12 +176,12 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           final String goldStatus = await _getGoldStatus(slug, pr);
           statusRequest = _createStatus(
             goldStatus,
-            goldStatus == GithubGoldStatusUpdate.statusRunning ? config.flutterGoldChanges : config.flutterGoldSuccess,
+            goldStatus == GithubGoldStatus.statusRunning ? config.flutterGoldChanges : config.flutterGoldSuccess,
             slug,
             pr.number!,
           );
           log.fine('New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
-          if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
+          if (goldStatus == GithubGoldStatus.statusRunning &&
               !await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldCommentID(pr))) {
             log.fine('Notifying for triage.');
             await _commentAndApplyGoldLabels(gitHubClient, pr, slug);
@@ -187,7 +190,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
         // Push updates if there is a status change (detected by unique description)
         // or this is a new commit.
-        if (lastUpdate.description != statusRequest.description || lastUpdate.head != pr.head!.sha) {
+        if (githubGoldStatus.description != statusRequest.description || githubGoldStatus.head != pr.head!.sha) {
           try {
             log.fine('Pushing status to GitHub: ${statusRequest.state}, ${statusRequest.description}');
             await gitHubClient.repositories.createStatus(slug, pr.head!.sha!, statusRequest);
@@ -196,6 +199,12 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
             lastUpdate.updates = (lastUpdate.updates ?? 0) + 1;
             lastUpdate.description = statusRequest.description!;
             statusUpdates.add(lastUpdate);
+
+            githubGoldStatus.setStatus(statusRequest.state!);
+            githubGoldStatus.setHead(pr.head!.sha!);
+            githubGoldStatus.setUpdates((githubGoldStatus.updates ?? 0) + 1);
+            githubGoldStatus.setDescription(statusRequest.description!);
+            githubGoldStatuses.add(githubGoldStatus);
           } catch (error) {
             log.severe('Failed to post status update to ${slug.fullName}#${pr.number}: $error');
           }
@@ -206,24 +215,18 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     }
     await datastore.insert(statusUpdates);
     log.fine('Committed all updates for $slug');
-
-    // TODO(keyonghan): remove try block after fully migrated to firestore
-    // https://github.com/flutter/flutter/issues/142951
-    try {
-      await updateGithubGoldStatusDocuments(statusUpdates);
-    } catch (error) {
-      log.warning('Failed to update github gold status in Firestore: $error');
-    }
+    await updateGithubGoldStatusDocuments(githubGoldStatuses, firestoreService);
+    log.fine('Saved all updates to firestore for $slug');
   }
 
-  Future<void> updateGithubGoldStatusDocuments(List<GithubGoldStatusUpdate> statusUpdates) async {
-    if (statusUpdates.isEmpty) {
+  Future<void> updateGithubGoldStatusDocuments(
+    List<GithubGoldStatus> githubGoldStatuses,
+    FirestoreService firestoreService,
+  ) async {
+    if (githubGoldStatuses.isEmpty) {
       return;
     }
-    final List<GithubGoldStatus> githubGoldStatusDocuments =
-        statusUpdates.map((e) => githubGoldStatusToDocument(e)).toList();
-    final List<Write> writes = documentsToWrites(githubGoldStatusDocuments);
-    final FirestoreService firestoreService = await config.createFirestoreService();
+    final List<Write> writes = documentsToWrites(githubGoldStatuses);
     await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
   }
 

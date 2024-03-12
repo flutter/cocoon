@@ -434,6 +434,7 @@ class Build extends $pb.GeneratedMessage {
     $0.BuilderID? builder,
     $core.int? number,
     $core.String? createdBy,
+    $core.String? viewUrl,
     $1.Timestamp? createTime,
     $1.Timestamp? startTime,
     $1.Timestamp? endTime,
@@ -473,6 +474,9 @@ class Build extends $pb.GeneratedMessage {
     }
     if (createdBy != null) {
       $result.createdBy = createdBy;
+    }
+    if (viewUrl != null) {
+      $result.viewUrl = viewUrl;
     }
     if (createTime != null) {
       $result.createTime = createTime;
@@ -566,6 +570,7 @@ class Build extends $pb.GeneratedMessage {
     ..aOM<$0.BuilderID>(2, _omitFieldNames ? '' : 'builder', subBuilder: $0.BuilderID.create)
     ..a<$core.int>(3, _omitFieldNames ? '' : 'number', $pb.PbFieldType.O3)
     ..aOS(4, _omitFieldNames ? '' : 'createdBy')
+    ..aOS(5, _omitFieldNames ? '' : 'viewUrl')
     ..aOM<$1.Timestamp>(6, _omitFieldNames ? '' : 'createTime', subBuilder: $1.Timestamp.create)
     ..aOM<$1.Timestamp>(7, _omitFieldNames ? '' : 'startTime', subBuilder: $1.Timestamp.create)
     ..aOM<$1.Timestamp>(8, _omitFieldNames ? '' : 'endTime', subBuilder: $1.Timestamp.create)
@@ -689,71 +694,84 @@ class Build extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   void clearCreatedBy() => clearField(4);
 
+  /// Redirect url for the build.
+  @$pb.TagNumber(5)
+  $core.String get viewUrl => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set viewUrl($core.String v) {
+    $_setString(4, v);
+  }
+
+  @$pb.TagNumber(5)
+  $core.bool hasViewUrl() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearViewUrl() => clearField(5);
+
   /// When the build was created.
   @$pb.TagNumber(6)
-  $1.Timestamp get createTime => $_getN(4);
+  $1.Timestamp get createTime => $_getN(5);
   @$pb.TagNumber(6)
   set createTime($1.Timestamp v) {
     setField(6, v);
   }
 
   @$pb.TagNumber(6)
-  $core.bool hasCreateTime() => $_has(4);
+  $core.bool hasCreateTime() => $_has(5);
   @$pb.TagNumber(6)
   void clearCreateTime() => clearField(6);
   @$pb.TagNumber(6)
-  $1.Timestamp ensureCreateTime() => $_ensure(4);
+  $1.Timestamp ensureCreateTime() => $_ensure(5);
 
   /// When the build started.
   /// Required iff status is STARTED, SUCCESS or FAILURE.
   @$pb.TagNumber(7)
-  $1.Timestamp get startTime => $_getN(5);
+  $1.Timestamp get startTime => $_getN(6);
   @$pb.TagNumber(7)
   set startTime($1.Timestamp v) {
     setField(7, v);
   }
 
   @$pb.TagNumber(7)
-  $core.bool hasStartTime() => $_has(5);
+  $core.bool hasStartTime() => $_has(6);
   @$pb.TagNumber(7)
   void clearStartTime() => clearField(7);
   @$pb.TagNumber(7)
-  $1.Timestamp ensureStartTime() => $_ensure(5);
+  $1.Timestamp ensureStartTime() => $_ensure(6);
 
   /// When the build ended.
   /// Present iff status is terminal.
   /// MUST NOT be before start_time.
   @$pb.TagNumber(8)
-  $1.Timestamp get endTime => $_getN(6);
+  $1.Timestamp get endTime => $_getN(7);
   @$pb.TagNumber(8)
   set endTime($1.Timestamp v) {
     setField(8, v);
   }
 
   @$pb.TagNumber(8)
-  $core.bool hasEndTime() => $_has(6);
+  $core.bool hasEndTime() => $_has(7);
   @$pb.TagNumber(8)
   void clearEndTime() => clearField(8);
   @$pb.TagNumber(8)
-  $1.Timestamp ensureEndTime() => $_ensure(6);
+  $1.Timestamp ensureEndTime() => $_ensure(7);
 
   ///  When the build was most recently updated.
   ///
   ///  RPC: can be > end_time if, e.g. new tags were attached to a completed
   ///  build.
   @$pb.TagNumber(9)
-  $1.Timestamp get updateTime => $_getN(7);
+  $1.Timestamp get updateTime => $_getN(8);
   @$pb.TagNumber(9)
   set updateTime($1.Timestamp v) {
     setField(9, v);
   }
 
   @$pb.TagNumber(9)
-  $core.bool hasUpdateTime() => $_has(7);
+  $core.bool hasUpdateTime() => $_has(8);
   @$pb.TagNumber(9)
   void clearUpdateTime() => clearField(9);
   @$pb.TagNumber(9)
-  $1.Timestamp ensureUpdateTime() => $_ensure(7);
+  $1.Timestamp ensureUpdateTime() => $_ensure(8);
 
   ///  Status of the build.
   ///  Must be specified, i.e. not STATUS_UNSPECIFIED.
@@ -762,31 +780,31 @@ class Build extends $pb.GeneratedMessage {
   ///
   ///  BigQuery: Final status of the build. Cannot be SCHEDULED or STARTED.
   @$pb.TagNumber(12)
-  $3.Status get status => $_getN(8);
+  $3.Status get status => $_getN(9);
   @$pb.TagNumber(12)
   set status($3.Status v) {
     setField(12, v);
   }
 
   @$pb.TagNumber(12)
-  $core.bool hasStatus() => $_has(8);
+  $core.bool hasStatus() => $_has(9);
   @$pb.TagNumber(12)
   void clearStatus() => clearField(12);
 
   /// Input to the build executable.
   @$pb.TagNumber(15)
-  Build_Input get input => $_getN(9);
+  Build_Input get input => $_getN(10);
   @$pb.TagNumber(15)
   set input(Build_Input v) {
     setField(15, v);
   }
 
   @$pb.TagNumber(15)
-  $core.bool hasInput() => $_has(9);
+  $core.bool hasInput() => $_has(10);
   @$pb.TagNumber(15)
   void clearInput() => clearField(15);
   @$pb.TagNumber(15)
-  Build_Input ensureInput() => $_ensure(9);
+  Build_Input ensureInput() => $_ensure(10);
 
   ///  Output of the build executable.
   ///  SHOULD depend only on input field and NOT other fields.
@@ -795,18 +813,18 @@ class Build extends $pb.GeneratedMessage {
   ///  RPC: By default, this field is excluded from responses.
   ///  Updated while the build is running and finalized when the build ends.
   @$pb.TagNumber(16)
-  Build_Output get output => $_getN(10);
+  Build_Output get output => $_getN(11);
   @$pb.TagNumber(16)
   set output(Build_Output v) {
     setField(16, v);
   }
 
   @$pb.TagNumber(16)
-  $core.bool hasOutput() => $_has(10);
+  $core.bool hasOutput() => $_has(11);
   @$pb.TagNumber(16)
   void clearOutput() => clearField(16);
   @$pb.TagNumber(16)
-  Build_Output ensureOutput() => $_ensure(10);
+  Build_Output ensureOutput() => $_ensure(11);
 
   ///  Current list of build steps.
   ///  Updated as build runs.
@@ -816,44 +834,44 @@ class Build extends $pb.GeneratedMessage {
   ///
   ///  RPC: By default, this field is excluded from responses.
   @$pb.TagNumber(17)
-  $core.List<$2.Step> get steps => $_getList(11);
+  $core.List<$2.Step> get steps => $_getList(12);
 
   ///  Build infrastructure used by the build.
   ///
   ///  RPC: By default, this field is excluded from responses.
   @$pb.TagNumber(18)
-  BuildInfra get infra => $_getN(12);
+  BuildInfra get infra => $_getN(13);
   @$pb.TagNumber(18)
   set infra(BuildInfra v) {
     setField(18, v);
   }
 
   @$pb.TagNumber(18)
-  $core.bool hasInfra() => $_has(12);
+  $core.bool hasInfra() => $_has(13);
   @$pb.TagNumber(18)
   void clearInfra() => clearField(18);
   @$pb.TagNumber(18)
-  BuildInfra ensureInfra() => $_ensure(12);
+  BuildInfra ensureInfra() => $_ensure(13);
 
   /// Arbitrary annotations for the build.
   /// One key may have multiple values, which is why this is not a map<string,string>.
   /// Indexed by the server, see also BuildPredicate.tags.
   @$pb.TagNumber(19)
-  $core.List<$3.StringPair> get tags => $_getList(13);
+  $core.List<$3.StringPair> get tags => $_getList(14);
 
   /// Human-readable summary of the build in Markdown format
   /// (https://spec.commonmark.org/0.28/).
   /// Explains status.
   /// Up to 4 KB.
   @$pb.TagNumber(20)
-  $core.String get summaryMarkdown => $_getSZ(14);
+  $core.String get summaryMarkdown => $_getSZ(15);
   @$pb.TagNumber(20)
   set summaryMarkdown($core.String v) {
-    $_setString(14, v);
+    $_setString(15, v);
   }
 
   @$pb.TagNumber(20)
-  $core.bool hasSummaryMarkdown() => $_has(14);
+  $core.bool hasSummaryMarkdown() => $_has(15);
   @$pb.TagNumber(20)
   void clearSummaryMarkdown() => clearField(20);
 
@@ -862,32 +880,32 @@ class Build extends $pb.GeneratedMessage {
   /// For example, if a pre-submit build has failed, CQ MAY still land the CL.
   /// For example, if a post-submit build has failed, CLs MAY continue landing.
   @$pb.TagNumber(21)
-  $3.Trinary get critical => $_getN(15);
+  $3.Trinary get critical => $_getN(16);
   @$pb.TagNumber(21)
   set critical($3.Trinary v) {
     setField(21, v);
   }
 
   @$pb.TagNumber(21)
-  $core.bool hasCritical() => $_has(15);
+  $core.bool hasCritical() => $_has(16);
   @$pb.TagNumber(21)
   void clearCritical() => clearField(21);
 
   /// Machine-readable details of the current status.
   /// Human-readable status reason is available in summary_markdown.
   @$pb.TagNumber(22)
-  $3.StatusDetails get statusDetails => $_getN(16);
+  $3.StatusDetails get statusDetails => $_getN(17);
   @$pb.TagNumber(22)
   set statusDetails($3.StatusDetails v) {
     setField(22, v);
   }
 
   @$pb.TagNumber(22)
-  $core.bool hasStatusDetails() => $_has(16);
+  $core.bool hasStatusDetails() => $_has(17);
   @$pb.TagNumber(22)
   void clearStatusDetails() => clearField(22);
   @$pb.TagNumber(22)
-  $3.StatusDetails ensureStatusDetails() => $_ensure(16);
+  $3.StatusDetails ensureStatusDetails() => $_ensure(17);
 
   ///  Verified LUCI identity that canceled this build.
   ///
@@ -897,31 +915,31 @@ class Build extends $pb.GeneratedMessage {
   ///  * backend: The build's backend task is canceled. For example the build's
   ///  Swarming task is killed.
   @$pb.TagNumber(23)
-  $core.String get canceledBy => $_getSZ(17);
+  $core.String get canceledBy => $_getSZ(18);
   @$pb.TagNumber(23)
   set canceledBy($core.String v) {
-    $_setString(17, v);
+    $_setString(18, v);
   }
 
   @$pb.TagNumber(23)
-  $core.bool hasCanceledBy() => $_has(17);
+  $core.bool hasCanceledBy() => $_has(18);
   @$pb.TagNumber(23)
   void clearCanceledBy() => clearField(23);
 
   /// What to run when the build is ready to start.
   @$pb.TagNumber(24)
-  $3.Executable get exe => $_getN(18);
+  $3.Executable get exe => $_getN(19);
   @$pb.TagNumber(24)
   set exe($3.Executable v) {
     setField(24, v);
   }
 
   @$pb.TagNumber(24)
-  $core.bool hasExe() => $_has(18);
+  $core.bool hasExe() => $_has(19);
   @$pb.TagNumber(24)
   void clearExe() => clearField(24);
   @$pb.TagNumber(24)
-  $3.Executable ensureExe() => $_ensure(18);
+  $3.Executable ensureExe() => $_ensure(19);
 
   ///  DEPRECATED
   ///
@@ -929,14 +947,14 @@ class Build extends $pb.GeneratedMessage {
   ///
   ///  See `Builder.experiments` for well-known experiments.
   @$pb.TagNumber(25)
-  $core.bool get canary => $_getBF(19);
+  $core.bool get canary => $_getBF(20);
   @$pb.TagNumber(25)
   set canary($core.bool v) {
-    $_setBool(19, v);
+    $_setBool(20, v);
   }
 
   @$pb.TagNumber(25)
-  $core.bool hasCanary() => $_has(19);
+  $core.bool hasCanary() => $_has(20);
   @$pb.TagNumber(25)
   void clearCanary() => clearField(25);
 
@@ -944,18 +962,18 @@ class Build extends $pb.GeneratedMessage {
   /// If the timeout is reached, the build is marked as INFRA_FAILURE status
   /// and both status_details.{timeout, resource_exhaustion} are set.
   @$pb.TagNumber(26)
-  $4.Duration get schedulingTimeout => $_getN(20);
+  $4.Duration get schedulingTimeout => $_getN(21);
   @$pb.TagNumber(26)
   set schedulingTimeout($4.Duration v) {
     setField(26, v);
   }
 
   @$pb.TagNumber(26)
-  $core.bool hasSchedulingTimeout() => $_has(20);
+  $core.bool hasSchedulingTimeout() => $_has(21);
   @$pb.TagNumber(26)
   void clearSchedulingTimeout() => clearField(26);
   @$pb.TagNumber(26)
-  $4.Duration ensureSchedulingTimeout() => $_ensure(20);
+  $4.Duration ensureSchedulingTimeout() => $_ensure(21);
 
   ///  Maximum build execution time.
   ///
@@ -969,30 +987,30 @@ class Build extends $pb.GeneratedMessage {
   ///  The task will have `grace_period` amount of time to handle cleanup
   ///  before being forcefully terminated.
   @$pb.TagNumber(27)
-  $4.Duration get executionTimeout => $_getN(21);
+  $4.Duration get executionTimeout => $_getN(22);
   @$pb.TagNumber(27)
   set executionTimeout($4.Duration v) {
     setField(27, v);
   }
 
   @$pb.TagNumber(27)
-  $core.bool hasExecutionTimeout() => $_has(21);
+  $core.bool hasExecutionTimeout() => $_has(22);
   @$pb.TagNumber(27)
   void clearExecutionTimeout() => clearField(27);
   @$pb.TagNumber(27)
-  $4.Duration ensureExecutionTimeout() => $_ensure(21);
+  $4.Duration ensureExecutionTimeout() => $_ensure(22);
 
   /// If set, swarming was requested to wait until it sees at least one bot
   /// report a superset of the build's requested dimensions.
   @$pb.TagNumber(28)
-  $core.bool get waitForCapacity => $_getBF(22);
+  $core.bool get waitForCapacity => $_getBF(23);
   @$pb.TagNumber(28)
   set waitForCapacity($core.bool v) {
-    $_setBool(22, v);
+    $_setBool(23, v);
   }
 
   @$pb.TagNumber(28)
-  $core.bool hasWaitForCapacity() => $_has(22);
+  $core.bool hasWaitForCapacity() => $_has(23);
   @$pb.TagNumber(28)
   void clearWaitForCapacity() => clearField(28);
 
@@ -1004,18 +1022,18 @@ class Build extends $pb.GeneratedMessage {
   ///  The signalling process is explained in the `deadline` section of
   ///  https://chromium.googlesource.com/infra/luci/luci-py/+/HEAD/client/LUCI_CONTEXT.md.
   @$pb.TagNumber(29)
-  $4.Duration get gracePeriod => $_getN(23);
+  $4.Duration get gracePeriod => $_getN(24);
   @$pb.TagNumber(29)
   set gracePeriod($4.Duration v) {
     setField(29, v);
   }
 
   @$pb.TagNumber(29)
-  $core.bool hasGracePeriod() => $_has(23);
+  $core.bool hasGracePeriod() => $_has(24);
   @$pb.TagNumber(29)
   void clearGracePeriod() => clearField(29);
   @$pb.TagNumber(29)
-  $4.Duration ensureGracePeriod() => $_ensure(23);
+  $4.Duration ensureGracePeriod() => $_ensure(24);
 
   ///  Flag to control if the build can outlive its parent.
   ///
@@ -1027,14 +1045,14 @@ class Build extends $pb.GeneratedMessage {
   ///
   ///  A build that can outlive its parent can also outlive its parent's ancestors.
   @$pb.TagNumber(30)
-  $core.bool get canOutliveParent => $_getBF(24);
+  $core.bool get canOutliveParent => $_getBF(25);
   @$pb.TagNumber(30)
   set canOutliveParent($core.bool v) {
-    $_setBool(24, v);
+    $_setBool(25, v);
   }
 
   @$pb.TagNumber(30)
-  $core.bool hasCanOutliveParent() => $_has(24);
+  $core.bool hasCanOutliveParent() => $_has(25);
   @$pb.TagNumber(30)
   void clearCanOutliveParent() => clearField(30);
 
@@ -1044,7 +1062,7 @@ class Build extends $pb.GeneratedMessage {
   /// This does not include any "siblings" at higher levels of the tree, just
   /// the direct chain of ancestors from root to this build.
   @$pb.TagNumber(31)
-  $core.List<$fixnum.Int64> get ancestorIds => $_getList(25);
+  $core.List<$fixnum.Int64> get ancestorIds => $_getList(26);
 
   ///  When the cancel process of the build started.
   ///  Note it's not the time that the cancellation completed, which would be
@@ -1076,46 +1094,46 @@ class Build extends $pb.GeneratedMessage {
   ///  task to terminate the build via the backend API (e.g. Swarming cancellation)
   ///  if bbagent cannot successfully terminate the exe in time.
   @$pb.TagNumber(32)
-  $1.Timestamp get cancelTime => $_getN(26);
+  $1.Timestamp get cancelTime => $_getN(27);
   @$pb.TagNumber(32)
   set cancelTime($1.Timestamp v) {
     setField(32, v);
   }
 
   @$pb.TagNumber(32)
-  $core.bool hasCancelTime() => $_has(26);
+  $core.bool hasCancelTime() => $_has(27);
   @$pb.TagNumber(32)
   void clearCancelTime() => clearField(32);
   @$pb.TagNumber(32)
-  $1.Timestamp ensureCancelTime() => $_ensure(26);
+  $1.Timestamp ensureCancelTime() => $_ensure(27);
 
   /// Markdown reasoning for cancelling the build.
   /// Human readable and should be following https://spec.commonmark.org/0.28/.
   @$pb.TagNumber(33)
-  $core.String get cancellationMarkdown => $_getSZ(27);
+  $core.String get cancellationMarkdown => $_getSZ(28);
   @$pb.TagNumber(33)
   set cancellationMarkdown($core.String v) {
-    $_setString(27, v);
+    $_setString(28, v);
   }
 
   @$pb.TagNumber(33)
-  $core.bool hasCancellationMarkdown() => $_has(27);
+  $core.bool hasCancellationMarkdown() => $_has(28);
   @$pb.TagNumber(33)
   void clearCancellationMarkdown() => clearField(33);
 
   @$pb.TagNumber(34)
-  Build_BuilderInfo get builderInfo => $_getN(28);
+  Build_BuilderInfo get builderInfo => $_getN(29);
   @$pb.TagNumber(34)
   set builderInfo(Build_BuilderInfo v) {
     setField(34, v);
   }
 
   @$pb.TagNumber(34)
-  $core.bool hasBuilderInfo() => $_has(28);
+  $core.bool hasBuilderInfo() => $_has(29);
   @$pb.TagNumber(34)
   void clearBuilderInfo() => clearField(34);
   @$pb.TagNumber(34)
-  Build_BuilderInfo ensureBuilderInfo() => $_ensure(28);
+  Build_BuilderInfo ensureBuilderInfo() => $_ensure(29);
 
   /// If UNSET, retrying the build is implicitly allowed;
   /// If YES, retrying the build is explicitly allowed;
@@ -1124,14 +1142,14 @@ class Build extends $pb.GeneratedMessage {
   ///   * ScheduleBuild using the build as template should fail,
   ///   * but the build can still be synthesized by SynthesizeBuild.
   @$pb.TagNumber(35)
-  $3.Trinary get retriable => $_getN(29);
+  $3.Trinary get retriable => $_getN(30);
   @$pb.TagNumber(35)
   set retriable($3.Trinary v) {
     setField(35, v);
   }
 
   @$pb.TagNumber(35)
-  $core.bool hasRetriable() => $_has(29);
+  $core.bool hasRetriable() => $_has(30);
   @$pb.TagNumber(35)
   void clearRetriable() => clearField(35);
 }

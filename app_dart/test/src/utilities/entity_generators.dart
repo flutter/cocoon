@@ -157,7 +157,9 @@ GithubGoldStatus generateFirestoreGithubGoldStatus(
   int? pr,
   String owner = 'flutter',
   String repo = 'flutter',
+  String? status,
   int? updates,
+  String? description,
 }) {
   pr ??= i;
   head ??= 'sha$i';
@@ -168,6 +170,8 @@ GithubGoldStatus generateFirestoreGithubGoldStatus(
       kGithubGoldStatusPrNumberField: Value(integerValue: pr.toString()),
       kGithubGoldStatusRepositoryField: Value(stringValue: '$owner/$repo'),
       kGithubGoldStatusUpdatesField: Value(integerValue: updates.toString()),
+      kGithubGoldStatusDescriptionField: Value(stringValue: description),
+      kGithubGoldStatusStatusField: Value(stringValue: status),
     };
   return githubGoldStatus;
 }

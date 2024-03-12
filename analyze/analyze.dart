@@ -57,6 +57,7 @@ Future<void> verifyNoTrailingSpaces(
       .where((File file) => path.extension(file.path) != '.ico')
       .where((File file) => path.extension(file.path) != '.jar')
       .where((File file) => path.extension(file.path) != '.swp')
+      .where((File file) => path.extension(file.path) != '.zip')
       .where((File file) => !path.basename(file.path).endsWith('pbserver.dart'))
       .where((File file) => !path.basename(file.path).endsWith('pb.dart'))
       .where((File file) => !path.basename(file.path).endsWith('pbenum.dart'))
