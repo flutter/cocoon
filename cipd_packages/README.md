@@ -51,7 +51,7 @@ cipd set-ref flutter/PackageName/mac-amd64 -ref Reference -version InstanceID
 ```
 
 * Reference: e.g. major release versions. If not specified, `latest` will be used based on the latest package instance.
-* InstaneID: this can be obtained from the package page, e.g. [ruby](https://chrome-infra-packages.appspot.com/p/flutter/ruby/mac-amd64/+/TyvPskvefNRkTDmiDcwRHrdL_a2FQE_4wBojOqhxdtYC).
+* InstanceID: this can be obtained from the package page, e.g. [ruby](https://chrome-infra-packages.appspot.com/p/flutter/ruby/mac-amd64/+/TyvPskvefNRkTDmiDcwRHrdL_a2FQE_4wBojOqhxdtYC).
 
 Note: for non-Googler contributors, please file an [infra bug](https://github.com/flutter/flutter/issues/new?assignees=&labels=team-infra&projects=&template=6_infrastructure.yml) to make a reference request.
 
