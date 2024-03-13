@@ -18,6 +18,7 @@ import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/service/fake_build_status_provider.dart';
+import '../src/utilities/mocks.dart';
 
 void main() {
   group('GetStatus', () {
@@ -27,6 +28,7 @@ void main() {
     FakeBuildStatusService buildStatusService;
     late RequestHandlerTester tester;
     late GetStatus handler;
+    late MockFirestoreService mockFirestoreService;
 
     late Commit commit1;
     late Commit commit2;
@@ -38,9 +40,10 @@ void main() {
 
     setUp(() {
       clientContext = FakeClientContext();
+      mockFirestoreService = MockFirestoreService();
       keyHelper = FakeKeyHelper(applicationContext: clientContext.applicationContext);
       tester = RequestHandlerTester();
-      config = FakeConfig(keyHelperValue: keyHelper);
+      config = FakeConfig(keyHelperValue: keyHelper, firestoreService: mockFirestoreService);
       buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[]);
       handler = GetStatus(
         config: config,

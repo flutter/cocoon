@@ -1041,6 +1041,7 @@ targets:
             dbValue: db,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
+            firestoreService: mockFirestoreService,
           ),
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
