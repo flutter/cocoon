@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -14,20 +15,27 @@ import '../model/appengine/task.dart';
 import 'datastore.dart';
 
 /// Function signature for a [BuildStatusService] provider.
-typedef BuildStatusServiceProvider = BuildStatusService Function(DatastoreService datastoreService);
+typedef BuildStatusServiceProvider = BuildStatusService Function(
+  DatastoreService datastoreService,
+  FirestoreService firestoreService,
+);
 
 /// Branches that are used to calculate the tree status.
 const Set<String> defaultBranches = <String>{'refs/heads/main', 'refs/heads/master'};
 
 /// Class that calculates the current build status.
 class BuildStatusService {
-  const BuildStatusService(this.datastoreService);
+  const BuildStatusService(
+    this.datastoreService,
+    this.firestoreService,
+  );
 
   final DatastoreService datastoreService;
+  final FirestoreService firestoreService;
 
   /// Creates and returns a [DatastoreService] using [db] and [maxEntityGroups].
-  static BuildStatusService defaultProvider(DatastoreService datastoreService) {
-    return BuildStatusService(datastoreService);
+  static BuildStatusService defaultProvider(DatastoreService datastoreService, FirestoreService firestoreService) {
+    return BuildStatusService(datastoreService, firestoreService);
   }
 
   @visibleForTesting

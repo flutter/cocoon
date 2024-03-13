@@ -81,7 +81,7 @@ void main() {
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusProvider: (_, __) => buildStatusService,
       );
     });
 
@@ -100,7 +100,7 @@ void main() {
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusProvider: (_, __) => buildStatusService,
       );
 
       final List<String?> result = (await decodeHandlerBody())!;
@@ -122,7 +122,7 @@ void main() {
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusProvider: (_, __) => buildStatusService,
       );
 
       final List<String?> result = (await decodeHandlerBody())!;
@@ -141,7 +141,7 @@ void main() {
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusProvider: (_, __) => buildStatusService,
       );
 
       final List<String?> result = (await decodeHandlerBody())!;
@@ -160,7 +160,7 @@ void main() {
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusProvider: (_, __) => buildStatusService,
       );
 
       final List<String?> result = (await decodeHandlerBody())!;
@@ -186,7 +186,7 @@ void main() {
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusProvider: (_, __) => buildStatusService,
       );
 
       final List<String?> result = (await decodeHandlerBody())!;

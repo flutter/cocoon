@@ -78,7 +78,7 @@ void main() {
       handler = PushBuildStatusToGithub(
         config: config,
         authenticationProvider: FakeAuthenticationProvider(clientContext: clientContext),
-        buildStatusServiceProvider: (_) => buildStatusService,
+        buildStatusServiceProvider: (_, __) => buildStatusService,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
 

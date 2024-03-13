@@ -45,7 +45,7 @@ void main() {
       handler = GetStatus(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusProvider: (_, __) => buildStatusService,
       );
       commit1 = Commit(
         key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
@@ -79,7 +79,7 @@ void main() {
       handler = GetStatus(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusProvider: (_, __) => buildStatusService,
       );
 
       final Map<String, dynamic> result = (await decodeHandlerBody())!;
@@ -112,7 +112,7 @@ void main() {
       handler = GetStatus(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusProvider: (_, __) => buildStatusService,
       );
 
       const String expectedLastCommitKeyEncoded =
@@ -154,7 +154,7 @@ void main() {
       handler = GetStatus(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusProvider: (_, __) => buildStatusService,
       );
 
       const String branch = 'flutter-1.1-candidate.1';
