@@ -63,6 +63,7 @@ class Scheduler {
   final HttpClientProvider httpClientProvider;
 
   late DatastoreService datastore;
+  late FirestoreService firestoreService;
   LuciBuildService luciBuildService;
 
   /// Name of the subcache to store scheduler related values in redis.
@@ -638,7 +639,8 @@ class Scheduler {
   /// to ensure new targets without `bringup: true` label are not added into the build.
   Future<Commit> generateTotCommit({required String branch, required RepositorySlug slug}) async {
     datastore = datastoreProvider(config.db);
-    final BuildStatusService buildStatusService = buildStatusProvider(datastore);
+    firestoreService = await config.createFirestoreService();
+    final BuildStatusService buildStatusService = buildStatusProvider(datastore, firestoreService);
     final Commit totCommit = (await buildStatusService
             .retrieveCommitStatus(
               limit: 1,

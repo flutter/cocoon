@@ -15,6 +15,7 @@ import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
+import '../service/firestore.dart';
 
 /// Returns [List<String>] of the commit shas that had all passing tests.
 ///
@@ -52,7 +53,8 @@ class GetGreenCommits extends RequestHandler<Body> {
     final RepositorySlug slug = RepositorySlug('flutter', repoName);
     final String branch = request!.uri.queryParameters[kBranchParam] ?? Config.defaultBranch(slug);
     final DatastoreService datastore = datastoreProvider(config.db);
-    final BuildStatusService buildStatusService = buildStatusProvider(datastore);
+    final FirestoreService firestoreService = await config.createFirestoreService();
+    final BuildStatusService buildStatusService = buildStatusProvider(datastore, firestoreService);
     final int commitNumber = config.commitNumber;
 
     final List<String?> greenCommits = await buildStatusService
