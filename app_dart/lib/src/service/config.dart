@@ -269,8 +269,9 @@ class Config {
       'resolve the images on the Flutter Gold dashboard, consider marking this PR '
       'as a draft pull request above. You will still be able to view image results '
       'on the dashboard, commenting will be silenced, and the check will not try to resolve itself until '
-      'marked ready for review.\n\n'
-      '> [!CAUTION]\n'
+      'marked ready for review.\n\n';
+
+  String get flutterGoldAvoidNegativeTriage => '> [!CAUTION]\n'
       '> Do **NOT** mark an untriaged digest as **negative**. Our workflow is to either mark the imaage '
       '> as **✅ positive** or to continue iterating on the change until it produces an image that either '
       '> is or can be marked as **✅ positive**.\n\n'

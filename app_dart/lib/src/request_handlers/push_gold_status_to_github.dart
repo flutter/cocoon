@@ -321,6 +321,11 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       body = config.flutterGoldFollowUpAlert(_getTriageUrl(slug, pr.number!));
     }
     body += config.flutterGoldAlertConstant(slug) + config.flutterGoldCommentID(pr);
+    // TODO(matanlurey), https://github.com/flutter/flutter/issues/145043.
+    // If we would leave a comment, for any reason (i.e. there are untriaged
+    // digests on this PR), we need to include a warning never to use the
+    // "mark negative" option in Gold.
+    body += config.flutterGoldAvoidNegativeTriage;
     await gitHubClient.issues.createComment(slug, pr.number!, body);
     await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, <String>[
       'will affect goldens',
