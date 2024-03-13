@@ -9,6 +9,7 @@ import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:http/http.dart';
 
+import '../model/firestore/commit.dart';
 import '../model/firestore/github_gold_status.dart';
 import '../model/firestore/task.dart';
 import 'access_client_provider.dart';
@@ -18,12 +19,17 @@ const String kDatabase = 'projects/${Config.flutterGcpProjectId}/databases/${Con
 const String kDocumentParent = '$kDatabase/documents';
 const String kFieldFilterOpEqual = 'EQUAL';
 const String kCompositeFilterOpAnd = 'AND';
+const String kQueryOrderDescending = 'DESCENDING';
 
 const int kFilterStringSpaceSplitElements = 2;
 const int kFilterStringSpaceSplitOpIndex = 1;
 
 const Map<String, String> kRelationMapping = <String, String>{
   '=': 'EQUAL',
+  '<': 'LESS_THAN',
+  '<=': 'LESS_THAN_OR_EQUAL',
+  '>': 'GREATER_THAN',
+  '>=': 'GREATER_THAN_OR_EQUAL',
 };
 
 class FirestoreService {
@@ -75,6 +81,31 @@ class FirestoreService {
     final CommitRequest commitRequest =
         CommitRequest(transaction: beginTransactionResponse.transaction, writes: writes);
     return databasesDocumentsResource.commit(commitRequest, kDatabase);
+  }
+
+  /// Queries for recent commits.
+  ///
+  /// The [limit] argument specifies the maximum number of commits to retrieve.
+  ///
+  /// The returned commits will be ordered by most recent [Commit.timestamp].
+  Future<List<Commit>> queryRecentCommits({
+    int limit = 100,
+    int? timestamp,
+    String? branch,
+    required RepositorySlug slug,
+  }) async {
+    timestamp ??= DateTime.now().millisecondsSinceEpoch;
+    branch ??= Config.defaultBranch(slug);
+    final Map<String, Object> filterMap = <String, Object>{
+      '$kCommitBranchField =': branch,
+      '$kCommitRepositoryPathField =': slug.fullName,
+      '$kCommitCreateTimestampField <': timestamp,
+    };
+    final Map<String, String> orderMap = <String, String>{
+      kCommitCreateTimestampField: kQueryOrderDescending,
+    };
+    final List<Document> documents = await query(kCommitCollectionId, filterMap, orderMap: orderMap, limit: limit);
+    return documents.map((Document document) => Commit.fromDocument(commitDocument: document)).toList();
   }
 
   /// Returns all tasks running against the speificed [commitSha].
@@ -161,6 +192,17 @@ class FirestoreService {
     );
   }
 
+  List<Order>? generateOrders(Map<String, String>? orderMap) {
+    if (orderMap == null || orderMap.isEmpty) {
+      return null;
+    }
+    final List<Order> orders = <Order>[];
+    orderMap.forEach((field, direction) {
+      orders.add(Order(field: FieldReference(fieldPath: field), direction: direction));
+    });
+    return orders;
+  }
+
   /// Wrapper to simplify Firestore query.
   ///
   /// The [filterMap] follows format:
@@ -175,6 +217,8 @@ class FirestoreService {
   Future<List<Document>> query(
     String collectionId,
     Map<String, Object> filterMap, {
+    int? limit,
+    Map<String, String>? orderMap,
     String compositeFilterOp = kCompositeFilterOpAnd,
   }) async {
     final ProjectsDatabasesDocumentsResource databasesDocumentsResource = await documentResource();
@@ -182,8 +226,15 @@ class FirestoreService {
       CollectionSelector(collectionId: collectionId),
     ];
     final Filter filter = generateFilter(filterMap, compositeFilterOp);
-    final RunQueryRequest runQueryRequest =
-        RunQueryRequest(structuredQuery: StructuredQuery(from: from, where: filter));
+    final List<Order>? orders = generateOrders(orderMap);
+    final RunQueryRequest runQueryRequest = RunQueryRequest(
+      structuredQuery: StructuredQuery(
+        from: from,
+        where: filter,
+        orderBy: orders,
+        limit: limit,
+      ),
+    );
     final List<RunQueryResponseElement> runQueryResponseElements =
         await databasesDocumentsResource.runQuery(runQueryRequest, kDocumentParent);
     return documentsFromQueryResponse(runQueryResponseElements);
