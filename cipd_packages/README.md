@@ -45,7 +45,7 @@ Until this step, artifacts are being uploaded to CIPD whenever a new commit is m
 to the package, so that we can use the reference in the CI recipe. This way we won’t need to change the recipe
 whenever we update the package.
 
-Googlers have default access to add a reference to a package via:
+Googlers can request [cipd write access](http://go/flutter-aod#available-groups) to add a reference to a package via:
 ```sh
 cipd set-ref flutter/PackageName/mac-amd64 -ref Reference -version InstanceID
 ```

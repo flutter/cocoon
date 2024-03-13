@@ -103,6 +103,7 @@ void main() {
     final FirestoreService firestoreService = FirestoreService(AccessClientProvider());
     Map<String, String>? orderMap;
     test('when there is no orderMap', () async {
+      orderMap = null;
       final List<Order>? orders = firestoreService.generateOrders(orderMap);
       expect(orders, isNull);
     });
