@@ -6,6 +6,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
@@ -296,6 +297,14 @@ class Scheduler {
     await luciBuildService.cancelBuilds(pullRequest, reason);
   }
 
+  Future<void> cancelPreSubmitTargetsV2({
+    required github.PullRequest pullRequest,
+    String reason = 'Newer commit available',
+  }) async {
+    log.info('Cancelling presubmit targets with buildbucket v2.');
+    await luciBuildService.cancelBuildsV2(pullRequest, reason);
+  }
+
   /// Schedule presubmit targets against a pull request.
   ///
   /// Cancels all existing targets then schedules the targets.
@@ -309,7 +318,7 @@ class Scheduler {
   }) async {
     // Always cancel running builds so we don't ever schedule duplicates.
     log.info('Attempting to cancel existing presubmit targets for ${pullRequest.number}');
-    await cancelPreSubmitTargets(
+    await cancelPreSubmitTargetsV2(
       pullRequest: pullRequest,
       reason: reason,
     );
@@ -411,9 +420,9 @@ class Scheduler {
       checkSuiteEvent,
     );
     final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
-    final List<bbv2.Build?> failedBuilds = await luciBuildService.failedBuilds(pullRequest, presubmitTargets);
-    for (bbv2.Build? build in failedBuilds) {
-      final github.CheckRun checkRun = checkRuns[build!.builderId.builder!]!;
+    final List<Build?> failedBuilds = await luciBuildService.failedBuilds(pullRequest, presubmitTargets);
+    for (Build? build in failedBuilds) {
+      final github.CheckRun checkRun = checkRuns[build!.builderId.builder]!;
 
       if (checkRun.status != github.CheckRunStatus.completed) {
         // Check run is still in progress, do not retry.

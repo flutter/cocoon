@@ -4,14 +4,13 @@
 
 import 'dart:convert';
 
-import 'package:cocoon_service/src/request_handling/subscription_handler_v2.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../../../cocoon_service.dart';
-import '../../service/build_bucket_v2_client.dart';
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import '../../model/luci/buildbucket.dart';
 import '../../request_handling/exceptions.dart';
+import '../../request_handling/subscription_handler.dart';
 import '../../service/logging.dart';
 
 /// Subscription for making requests to BuildBucket.
@@ -22,10 +21,10 @@ import '../../service/logging.dart';
 /// This endpoint allows Cocoon to defer BuildBucket requests off the main request loop. This is critical when new
 /// commits are pushed, and they can schedule 100+ builds at once.
 ///
-/// This endpoint takes in a POST request with the JSON of a [bbv2.BatchRequest]. In practice, the
-/// [bbv2.BatchRequest] should contain a single request.
+/// This endpoint takes in a POST request with the JSON of a [BatchRequest]. In practice, the
+/// [BatchRequest] should contain a single request.
 @immutable
-class SchedulerRequestSubscription extends SubscriptionHandlerV2 {
+class SchedulerRequestSubscription extends SubscriptionHandler {
   /// Creates a subscription for sending BuildBucket requests.
   const SchedulerRequestSubscription({
     required super.cache,
@@ -35,91 +34,75 @@ class SchedulerRequestSubscription extends SubscriptionHandlerV2 {
     this.retryOptions = Config.schedulerRetry,
   }) : super(subscriptionName: 'scheduler-requests');
 
-  final BuildBucketV2Client buildBucketClient;
+  final BuildBucketClient buildBucketClient;
 
   final RetryOptions retryOptions;
 
   @override
   Future<Body> post() async {
-    if (message.data == null) {
-      log.info('no data in message');
-      throw const BadRequestException('no data in message');
+    BatchRequest request;
+    try {
+      final String data = message.data!;
+      Map<String, dynamic> jsonData;
+      log.info('rawJson: $data');
+      try {
+        jsonData = jsonDecode(data) as Map<String, dynamic>;
+      } on FormatException {
+        jsonData = json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>;
+      }
+      request = BatchRequest.fromJson(jsonData);
+    } catch (e) {
+      log.severe('Failed to construct BatchRequest from message');
+      log.severe(e);
+      throw BadRequestException(e.toString());
     }
-
-    // final String data = message.data!;
-    log.fine('attempting to read message ${message.data}');
-
-    final bbv2.BatchRequest batchRequest = bbv2.BatchRequest.create();
-
-    // Merge from json only works with the integer field names.
-    batchRequest.mergeFromProto3Json(jsonDecode(message.data!) as Map<String, dynamic>);
-
-    log.info('Read the following data: ${batchRequest.toProto3Json().toString()}');
 
     /// Retry scheduling builds upto 3 times.
     ///
     /// Log error message when still failing after retry. Avoid endless rescheduling
     /// by acking the pub/sub message without throwing an exception.
-    String? unscheduledBuilds;
+    String? unScheduledBuilds;
     try {
       await retryOptions.retry(
         () async {
-          final List<bbv2.BatchRequest_Request> requestsToRetry = await _sendBatchRequest(batchRequest);
-
-          // Make a copy of the requests that are passed in as if simply access the list
-          // we make changes for all instances.
-          final List<bbv2.BatchRequest_Request> requestListCopy = [];
-          requestListCopy.addAll(requestsToRetry);
-          batchRequest.requests.clear();
-          batchRequest.requests.addAll(requestListCopy);
-
-          unscheduledBuilds = requestsToRetry.map((e) => e.scheduleBuild.builder).toString();
+          final List<Request> requestsToRetry = await _sendBatchRequest(request);
+          request = BatchRequest(requests: requestsToRetry);
+          unScheduledBuilds = requestsToRetry.map((e) => e.scheduleBuild!.builderId.builder).toString();
           if (requestsToRetry.isNotEmpty) {
-            throw InternalServerError('Failed to schedule builds: $unscheduledBuilds.');
+            throw InternalServerError('Failed to schedule builds: $unScheduledBuilds.');
           }
         },
         retryIf: (Exception e) => e is InternalServerError,
       );
     } catch (e) {
-      log.warning('Failed to schedule builds on exception: $unscheduledBuilds.');
-      return Body.forString('Failed to schedule builds: $unscheduledBuilds.');
+      log.warning('Failed to schedule builds: $unScheduledBuilds.');
+      return Body.forString('Failed to schedule builds: $unScheduledBuilds.');
     }
 
     return Body.empty;
   }
 
-  /// Returns [List<bbv2.BatchRequest_Request>] of requests that need to be retried.
-  Future<List<bbv2.BatchRequest_Request>> _sendBatchRequest(bbv2.BatchRequest request) async {
-    log.info('Sending batch request for ${request.toProto3Json().toString()}');
-
-    // Seems to be that the create is necessary here in order to be able to assign a
-    // response here. Similar to instantiation.
-    bbv2.BatchResponse response = bbv2.BatchResponse.create();
-    try {
-      response = await buildBucketClient.batch(request);
-    } catch (e) {
-      log.severe('Exception making batch Requests.');
-      rethrow;
-    }
-
-    log.info('Made ${request.requests.length} and received ${response.responses.length}');
-    log.info('Responses: ${response.responses}');
+  /// Wrapper around [BuildbucketClient.batch] to ensure all requests are made.
+  ///
+  /// Returns [List<Request>] of requests that need to be retried.
+  Future<List<Request>> _sendBatchRequest(BatchRequest request) async {
+    final BatchResponse response = await buildBucketClient.batch(request);
+    log.fine('Made ${request.requests?.length} and received ${response.responses?.length}');
+    log.fine('Responses: ${response.responses}');
 
     // By default, retry everything. Then remove requests with a verified response.
-    // THese are the requests in the batch request object. Just requests.
-    final List<bbv2.BatchRequest_Request> retry = request.requests;
-
-    for (bbv2.BatchResponse_Response batchResponseResponse in response.responses) {
-      if (batchResponseResponse.hasScheduleBuild()) {
-        retry.removeWhere((element) => batchResponseResponse.scheduleBuild.builder == element.scheduleBuild.builder);
+    final List<Request> retry = request.requests ?? <Request>[];
+    response.responses?.forEach((Response subresponse) {
+      if (subresponse.scheduleBuild != null) {
+        retry
+            .removeWhere((Request request) => request.scheduleBuild?.builderId == subresponse.scheduleBuild!.builderId);
       } else {
-        log.warning('Response does not have schedule build: $batchResponseResponse');
+        log.warning('Response does not have schedule build: $subresponse');
       }
-
-      if (batchResponseResponse.hasError() && batchResponseResponse.error.code != 0) {
-        log.info('Non-zero grpc code: $batchResponseResponse');
+      if (subresponse.error?.code != 0) {
+        log.fine('Non-zero grpc code: $subresponse');
       }
-    }
+    });
 
     return retry;
   }

@@ -164,7 +164,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         // If it was closed without merging, cancel any outstanding tryjobs.
         // We'll leave unfinished jobs if it was merged since we care about those
         // results.
-        await scheduler.cancelPreSubmitTargets(
+        await scheduler.cancelPreSubmitTargetsV2(
           pullRequest: pr,
           reason: (!pr.merged!) ? 'Pull request closed' : 'Pull request merged',
         );

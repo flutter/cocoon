@@ -7,6 +7,7 @@ import 'dart:math';
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/build_bucket_version_two.dart';
+import 'package:cocoon_service/src/request_handlers/presubmit_luci_subscription_v2.dart';
 import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 
@@ -19,6 +20,7 @@ Server createServer({
   required AuthenticationProvider authProvider,
   required AuthenticationProvider swarmingAuthProvider,
   required BranchService branchService,
+  required BuildBucketClient buildBucketClient,
   required BuildBucketV2Client buildBucketV2Client,
   required LuciBuildService luciBuildService,
   required GithubChecksService githubChecksService,
@@ -84,6 +86,13 @@ Server createServer({
       githubChecksService: githubChecksService,
       scheduler: scheduler,
     ),
+    // '/api/v2/presubmit-luci-subscription': PresubmitLuciSubscriptionV2(
+    //   cache: cache,
+    //   config: config,
+    //   luciBuildService: luciBuildService,
+    //   githubChecksService: githubChecksService,
+    //   scheduler: scheduler,
+    // ),
     '/api/postsubmit-luci-subscription': PostsubmitLuciSubscription(
       cache: cache,
       config: config,
@@ -116,7 +125,7 @@ Server createServer({
     '/api/scheduler/batch-request-subscription': SchedulerRequestSubscription(
       cache: cache,
       config: config,
-      buildBucketClient: buildBucketV2Client,
+      buildBucketClient: buildBucketClient,
     ),
     '/api/scheduler/vacuum-stale-tasks': VacuumStaleTasks(
       config: config,
