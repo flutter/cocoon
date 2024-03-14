@@ -98,4 +98,23 @@ void main() {
       expect(documents[0].name, githubGoldStatus.name);
     });
   });
+
+  group('generateOrders', () {
+    final FirestoreService firestoreService = FirestoreService(AccessClientProvider());
+    Map<String, String>? orderMap;
+    test('when there is no orderMap', () async {
+      orderMap = null;
+      final List<Order>? orders = firestoreService.generateOrders(orderMap);
+      expect(orders, isNull);
+    });
+
+    test('when there is non-null orderMap', () async {
+      orderMap = <String, String>{'createTimestamp': kQueryOrderDescending};
+      final List<Order>? orders = firestoreService.generateOrders(orderMap);
+      expect(orders!.length, 1);
+      final Order resultOrder = orders[0];
+      expect(resultOrder.direction, kQueryOrderDescending);
+      expect(resultOrder.field!.fieldPath, 'createTimestamp');
+    });
+  });
 }

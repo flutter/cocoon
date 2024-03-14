@@ -128,7 +128,7 @@ void main() {
         cache: cache,
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusProvider: (_, __) => buildStatusService,
         githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
         httpClientProvider: () => httpClient,
         luciBuildService: FakeLuciBuildService(
@@ -285,7 +285,7 @@ void main() {
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          buildStatusProvider: (_) => buildStatusService,
+          buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
@@ -346,7 +346,7 @@ void main() {
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          buildStatusProvider: (_) => buildStatusService,
+          buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
@@ -469,7 +469,7 @@ targets:
           cache: cache,
           config: config,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          buildStatusProvider: (_) => buildStatusService,
+          buildStatusProvider: (_, __) => buildStatusService,
           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
@@ -547,11 +547,12 @@ targets:
             FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
         config = FakeConfig(
           githubService: mockGithubService,
+          firestoreService: mockFirestoreService,
         );
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          buildStatusProvider: (_) => buildStatusService,
+          buildStatusProvider: (_, __) => buildStatusService,
           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
@@ -644,7 +645,11 @@ targets:
       test('rerequested postsubmit check triggers postsubmit build', () async {
         // Set up datastore with postsubmit entities matching [checkRunString].
         db = FakeDatastoreDB();
-        config = FakeConfig(dbValue: db, postsubmitSupportedReposValue: {RepositorySlug('abc', 'cocoon')});
+        config = FakeConfig(
+          dbValue: db,
+          postsubmitSupportedReposValue: {RepositorySlug('abc', 'cocoon')},
+          firestoreService: mockFirestoreService,
+        );
         final Commit commit = generateCommit(
           1,
           sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
@@ -1006,7 +1011,7 @@ targets:
           cache: cache,
           config: config,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          buildStatusProvider: (_) => buildStatusService,
+          buildStatusProvider: (_, __) => buildStatusService,
           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
@@ -1041,8 +1046,9 @@ targets:
             dbValue: db,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
+            firestoreService: mockFirestoreService,
           ),
-          buildStatusProvider: (_) => buildStatusService,
+          buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
@@ -1197,7 +1203,7 @@ targets:
           config: config,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
-          buildStatusProvider: (_) => buildStatusService,
+          buildStatusProvider: (_, __) => buildStatusService,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
             config: config,
@@ -1266,7 +1272,7 @@ targets:
           config: config,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
-          buildStatusProvider: (_) => buildStatusService,
+          buildStatusProvider: (_, __) => buildStatusService,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
             config: config,
