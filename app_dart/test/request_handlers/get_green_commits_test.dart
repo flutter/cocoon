@@ -19,6 +19,7 @@ import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/service/fake_build_status_provider.dart';
 import '../src/utilities/entity_generators.dart';
+import '../src/utilities/mocks.dart';
 
 void main() {
   group('GetGreenCommits', () {
@@ -26,6 +27,7 @@ void main() {
     FakeClientContext clientContext;
     FakeKeyHelper keyHelper;
     FakeBuildStatusService buildStatusService;
+    late MockFirestoreService mockFirestoreService;
     late RequestHandlerTester tester;
     late GetGreenCommits handler;
 
@@ -74,14 +76,15 @@ void main() {
 
     setUp(() {
       clientContext = FakeClientContext();
+      mockFirestoreService = MockFirestoreService();
       keyHelper = FakeKeyHelper(applicationContext: clientContext.applicationContext);
       tester = RequestHandlerTester();
-      config = FakeConfig(keyHelperValue: keyHelper);
+      config = FakeConfig(keyHelperValue: keyHelper, firestoreService: mockFirestoreService);
       buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[]);
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusProvider: (_, __) => buildStatusService,
       );
     });
 
@@ -100,7 +103,7 @@ void main() {
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusProvider: (_, __) => buildStatusService,
       );
 
       final List<String?> result = (await decodeHandlerBody())!;
@@ -122,7 +125,7 @@ void main() {
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusProvider: (_, __) => buildStatusService,
       );
 
       final List<String?> result = (await decodeHandlerBody())!;
@@ -141,7 +144,7 @@ void main() {
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusProvider: (_, __) => buildStatusService,
       );
 
       final List<String?> result = (await decodeHandlerBody())!;
@@ -160,7 +163,7 @@ void main() {
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusProvider: (_, __) => buildStatusService,
       );
 
       final List<String?> result = (await decodeHandlerBody())!;
@@ -186,7 +189,7 @@ void main() {
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusProvider: (_, __) => buildStatusService,
       );
 
       final List<String?> result = (await decodeHandlerBody())!;

@@ -1,3 +1,7 @@
+# 1.0.10
+
+- Expose Builder_Item and Builder_Metadata.
+
 # 1.0.9
 
 - Pin versions due to https://github.com/flutter/flutter/issues/110272

@@ -16,6 +16,7 @@ import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
+import '../service/firestore.dart';
 
 @immutable
 class GetStatus extends RequestHandler<Body> {
@@ -39,7 +40,8 @@ class GetStatus extends RequestHandler<Body> {
     final RepositorySlug slug = RepositorySlug('flutter', repoName);
     final String branch = request!.uri.queryParameters[kBranchParam] ?? Config.defaultBranch(slug);
     final DatastoreService datastore = datastoreProvider(config.db);
-    final BuildStatusService buildStatusService = buildStatusProvider(datastore);
+    final FirestoreService firestoreService = await config.createFirestoreService();
+    final BuildStatusService buildStatusService = buildStatusProvider(datastore, firestoreService);
     final KeyHelper keyHelper = config.keyHelper;
     final int commitNumber = config.commitNumber;
     final int lastCommitTimestamp = await _obtainTimestamp(encodedLastCommitKey, keyHelper, datastore);

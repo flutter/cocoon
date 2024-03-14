@@ -41,7 +41,8 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     final String repository = request!.uri.queryParameters[fullNameRepoParam] ?? 'flutter/flutter';
     final RepositorySlug slug = RepositorySlug.full(repository);
     final DatastoreService datastore = datastoreProvider(config.db);
-    final BuildStatusService buildStatusService = buildStatusServiceProvider(datastore);
+    final FirestoreService firestoreService = await config.createFirestoreService();
+    final BuildStatusService buildStatusService = buildStatusServiceProvider(datastore, firestoreService);
 
     final BuildStatus status = (await buildStatusService.calculateCumulativeStatus(slug))!;
     await _insertBigquery(slug, status.githubStatus, Config.defaultBranch(slug), config);

@@ -11,7 +11,6 @@ import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:gcloud/db.dart';
-import 'package:github/github.dart' as github;
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -65,6 +64,7 @@ class Scheduler {
   final HttpClientProvider httpClientProvider;
 
   late DatastoreService datastore;
+  late FirestoreService firestoreService;
   LuciBuildService luciBuildService;
 
   /// Name of the subcache to store scheduler related values in redis.
@@ -91,7 +91,7 @@ class Scheduler {
   ///
   /// If [PullRequest] was merged, schedule prod tasks against it.
   /// Otherwise if it is presubmit, schedule try tasks against it.
-  Future<void> addPullRequest(github.PullRequest pr) async {
+  Future<void> addPullRequest(PullRequest pr) async {
     datastore = datastoreProvider(config.db);
     // TODO(chillers): Support triggering on presubmit. https://github.com/flutter/flutter/issues/77858
     if (!pr.merged!) {
@@ -291,7 +291,7 @@ class Scheduler {
 
   /// Cancel all incomplete targets against a pull request.
   Future<void> cancelPreSubmitTargets({
-    required github.PullRequest pullRequest,
+    required PullRequest pullRequest,
     String reason = 'Newer commit available',
   }) async {
     await luciBuildService.cancelBuilds(pullRequest, reason);
@@ -312,7 +312,7 @@ class Scheduler {
   /// Schedules a [kCiYamlCheckName] to validate [CiYaml] is valid and all builds were able to be triggered.
   /// If [builderTriggerList] is specified, then trigger only those targets.
   Future<void> triggerPresubmitTargets({
-    required github.PullRequest pullRequest,
+    required PullRequest pullRequest,
     String reason = 'Newer commit available',
     List<String>? builderTriggerList,
   }) async {
@@ -324,19 +324,19 @@ class Scheduler {
     );
 
     log.info('Creating ciYaml validation check run for ${pullRequest.number}');
-    final github.CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
+    final CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
       config,
       pullRequest.base!.repo!.slug(),
       pullRequest.head!.sha!,
       kCiYamlCheckName,
-      output: const github.CheckRunOutput(
+      output: const CheckRunOutput(
         title: kCiYamlCheckName,
         summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
       ),
     );
 
     log.info('Creating presubmit targets for ${pullRequest.number}');
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final RepositorySlug slug = pullRequest.base!.repo!.slug();
     dynamic exception;
     try {
       // Both the author and label should be checked to make sure that no one is
@@ -371,8 +371,8 @@ class Scheduler {
         config,
         slug,
         ciValidationCheckRun,
-        status: github.CheckRunStatus.completed,
-        conclusion: github.CheckRunConclusion.success,
+        status: CheckRunStatus.completed,
+        conclusion: CheckRunConclusion.success,
       );
     } else {
       log.warning('Marking PR #${pullRequest.number} $kCiYamlCheckName as failed');
@@ -382,9 +382,9 @@ class Scheduler {
         config,
         slug,
         ciValidationCheckRun,
-        status: github.CheckRunStatus.completed,
-        conclusion: github.CheckRunConclusion.failure,
-        output: github.CheckRunOutput(
+        status: CheckRunStatus.completed,
+        conclusion: CheckRunConclusion.failure,
+        output: CheckRunOutput(
           title: kCiYamlCheckName,
           summary: '.ci.yaml has failures',
           text: exception.toString(),
@@ -411,20 +411,20 @@ class Scheduler {
   /// 2. Get failed LUCI builds for this pull request at [commitSha].
   /// 3. Rerun the failed builds that also have a failed check status.
   Future<void> retryPresubmitTargets({
-    required github.PullRequest pullRequest,
+    required PullRequest pullRequest,
     required CheckSuiteEvent checkSuiteEvent,
   }) async {
-    final github.GitHub githubClient = await config.createGitHubClient(pullRequest: pullRequest);
-    final Map<String, github.CheckRun> checkRuns = await githubChecksService.githubChecksUtil.allCheckRuns(
+    final GitHub githubClient = await config.createGitHubClient(pullRequest: pullRequest);
+    final Map<String, CheckRun> checkRuns = await githubChecksService.githubChecksUtil.allCheckRuns(
       githubClient,
       checkSuiteEvent,
     );
     final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
     final List<Build?> failedBuilds = await luciBuildService.failedBuilds(pullRequest, presubmitTargets);
     for (Build? build in failedBuilds) {
-      final github.CheckRun checkRun = checkRuns[build!.builderId.builder]!;
+      final CheckRun checkRun = checkRuns[build!.builderId.builder!]!;
 
-      if (checkRun.status != github.CheckRunStatus.completed) {
+      if (checkRun.status != CheckRunStatus.completed) {
         // Check run is still in progress, do not retry.
         continue;
       }
@@ -442,7 +442,7 @@ class Scheduler {
   /// Filters targets with runIf, matching them to the diff of [pullRequest].
   ///
   /// In the case there is an issue getting the diff from GitHub, all targets are returned.
-  Future<List<Target>> getPresubmitTargets(github.PullRequest pullRequest) async {
+  Future<List<Target>> getPresubmitTargets(PullRequest pullRequest) async {
     final Commit commit = Commit(
       branch: pullRequest.base!.ref,
       repository: pullRequest.base!.repo!.fullName,
@@ -496,7 +496,7 @@ class Scheduler {
     List<String> files = <String>[];
     try {
       files = await githubService.listFiles(pullRequest);
-    } on github.GitHubError catch (error) {
+    } on GitHubError catch (error) {
       log.warning(error);
       log.warning('Unable to get diff for pullRequest=$pullRequest');
       log.warning('Running all targets');
@@ -649,7 +649,8 @@ class Scheduler {
   /// to ensure new targets without `bringup: true` label are not added into the build.
   Future<Commit> generateTotCommit({required String branch, required RepositorySlug slug}) async {
     datastore = datastoreProvider(config.db);
-    final BuildStatusService buildStatusService = buildStatusProvider(datastore);
+    firestoreService = await config.createFirestoreService();
+    final BuildStatusService buildStatusService = buildStatusProvider(datastore, firestoreService);
     final Commit totCommit = (await buildStatusService
             .retrieveCommitStatus(
               limit: 1,

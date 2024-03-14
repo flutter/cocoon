@@ -13,6 +13,7 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/utilities/entity_generators.dart';
+import '../src/utilities/mocks.dart';
 
 List<Commit> oneCommit = <Commit>[
   Commit(
@@ -95,14 +96,16 @@ void main() {
     late BuildStatusService buildStatusService;
     FakeConfig config;
     DatastoreService datastoreService;
+    late MockFirestoreService mockFirestoreService;
 
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
     setUp(() {
       db = FakeDatastoreDB();
-      config = FakeConfig(dbValue: db);
+      mockFirestoreService = MockFirestoreService();
+      config = FakeConfig(dbValue: db, firestoreService: mockFirestoreService);
       datastoreService = DatastoreService(config.db, 5);
-      buildStatusService = BuildStatusService.defaultProvider(datastoreService);
+      buildStatusService = BuildStatusService.defaultProvider(datastoreService, mockFirestoreService);
     });
 
     group('calculateStatus', () {

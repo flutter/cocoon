@@ -4,12 +4,11 @@
 
 import 'dart:async';
 
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../protos.dart' show BuildStatusResponse, EnumBuildStatus;
-import '../request_handling/body.dart';
-import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
 import '../service/datastore.dart';
 
@@ -34,7 +33,8 @@ class GetBuildStatus extends RequestHandler<Body> {
 
   Future<BuildStatusResponse> createResponse() async {
     final DatastoreService datastore = datastoreProvider(config.db);
-    final BuildStatusService buildStatusService = buildStatusProvider(datastore);
+    final FirestoreService firestoreService = await config.createFirestoreService();
+    final BuildStatusService buildStatusService = buildStatusProvider(datastore, firestoreService);
     final String repoName = request!.uri.queryParameters[kRepoParam] ?? 'flutter';
     final RepositorySlug slug = RepositorySlug('flutter', repoName);
     final BuildStatus status = (await buildStatusService.calculateCumulativeStatus(slug))!;
