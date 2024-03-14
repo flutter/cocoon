@@ -34,12 +34,15 @@ void main() {
     });
 
     group('calculateStatus', () {
-      List<Commit> commits = <Commit>[];
-      List<Task> tasks1 = <Task>[];
-      List<Task> tasks2 = <Task>[];
+      List<Commit> commits;
+      List<Task> tasks1;
+      List<Task> tasks2;
       late int row;
       setUp(() {
         row = 0;
+        tasks1 = <Task>[];
+        tasks2 = <Task>[];
+        commits = <Commit>[];
         when(
           mockFirestoreService.queryRecentCommits(
             limit: captureAnyNamed('limit'),
