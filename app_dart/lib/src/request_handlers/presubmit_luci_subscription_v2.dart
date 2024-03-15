@@ -57,7 +57,7 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     }
 
     final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack();
-    pubSubCallBack.mergeFromProto3Json(jsonDecode(message.data!) as Map<String, dynamic>);  
+    pubSubCallBack.mergeFromProto3Json(jsonDecode(message.data!) as Map<String, dynamic>);
 
     final bbv2.BuildsV2PubSub buildsV2PubSub = pubSubCallBack.buildPubsub;
 
@@ -112,14 +112,14 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     // } else {
     //   log.info('No user data was found in this request');
     // }
-    
+
     return Body.empty;
   }
 
   Future<int> _getMaxAttemptV2(
     Map<String, dynamic> userData,
     RepositorySlug slug,
-    String builderName, 
+    String builderName,
   ) async {
     final Commit commit = Commit(
       branch: userData['commit_branch'] as String,

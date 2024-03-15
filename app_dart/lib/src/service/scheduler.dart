@@ -298,7 +298,7 @@ class Scheduler {
   }
 
   Future<void> cancelPreSubmitTargetsV2({
-    required github.PullRequest pullRequest,
+    required PullRequest pullRequest,
     String reason = 'Newer commit available',
   }) async {
     log.info('Cancelling presubmit targets with buildbucket v2.');

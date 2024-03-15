@@ -183,13 +183,12 @@ class GithubChecksService {
           summary: 'Note: this is an auto rerun. The timestamp above is based on the first attempt of this check run.',
         );
       } else {
-        final bbv2.Build buildbucketBuild =
-            await luciBuildService.getBuildByIdV2(
-              build.id,
-              buildMask: bbv2.BuildMask(
-                fields: bbv2.FieldMask(paths: {'id', 'builder', 'summaryMarkDown'})
-              ,)
-            ,);
+        final bbv2.Build buildbucketBuild = await luciBuildService.getBuildByIdV2(
+          build.id,
+          buildMask: bbv2.BuildMask(
+            fields: bbv2.FieldMask(paths: {'id', 'builder', 'summaryMarkDown'}),
+          ),
+        );
         output = github.CheckRunOutput(
           title: checkRun.name!,
           summary: getGithubSummary(buildbucketBuild.summaryMarkdown),
@@ -218,7 +217,6 @@ class GithubChecksService {
     return status == github.CheckRunStatus.completed && failedStatesSet.contains(conclusion);
   }
 
-
   bool taskFailedV2(bbv2.Status status) {
     final github.CheckRunStatus checkRunStatus = statusToResultV2(status);
     final github.CheckRunConclusion conclusion = conclusionFromResult(status);
@@ -237,7 +235,8 @@ class GithubChecksService {
   }
 
   int currentAttemptV2(final List<bbv2.StringPair> tags) {
-    final bbv2.StringPair attempt = tags.firstWhere((element) => element.key == 'current_attempt', orElse: () => bbv2.StringPair().createEmptyInstance());
+    final bbv2.StringPair attempt = tags.firstWhere((element) => element.key == 'current_attempt',
+        orElse: () => bbv2.StringPair().createEmptyInstance());
     if (!attempt.hasKey()) {
       return 1;
     } else {
