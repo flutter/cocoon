@@ -7,7 +7,9 @@ import 'dart:convert';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:cocoon_service/src/request_handling/subscription_handler_v2.dart';
+import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
 import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
+import 'package:cocoon_service/src/service/scheduler_v2.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -17,10 +19,7 @@ import '../model/ci_yaml/target.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/config.dart';
-import '../service/github_checks_service.dart';
 import '../service/logging.dart';
-import '../service/luci_build_service.dart';
-import '../service/scheduler.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
 ///
@@ -41,14 +40,14 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     required super.cache,
     required super.config,
     required this.scheduler,
-    required this.luciBuildServiceV2,
+    required this.luciBuildService,
     required this.githubChecksService,
     AuthenticationProvider? authProvider,
   }) : super(subscriptionName: 'github-updater');
 
-  final LuciBuildServiceV2 luciBuildServiceV2;
-  final GithubChecksService githubChecksService;
-  final Scheduler scheduler;
+  final LuciBuildServiceV2 luciBuildService;
+  final GithubChecksServiceV2 githubChecksService;
+  final SchedulerV2 scheduler;
 
   @override
   Future<Body> post() async {
@@ -93,8 +92,8 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
             RepositorySlug(userDataMap['repo_owner'] as String, userDataMap['repo_name'] as String);
 
         bool rescheduled = false;
-        if (githubChecksService.taskFailedV2(build.status)) {
-          final int currentAttempt = githubChecksService.currentAttemptV2(tags);
+        if (githubChecksService.taskFailed(build.status)) {
+          final int currentAttempt = githubChecksService.currentAttempt(tags);
           final int maxAttempt = await _getMaxAttemptV2(
             userDataMap,
             slug,
@@ -103,7 +102,7 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
           if (currentAttempt < maxAttempt) {
             rescheduled = true;
             log.fine('Rerunning failed task: $builderName');
-            await luciBuildServiceV2.rescheduleBuildV2(
+            await luciBuildService.rescheduleBuild(
               builderName: builderName,
               build: build,
               rescheduleAttempt: currentAttempt + 1,
@@ -111,10 +110,10 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
             );
           }
         }
-        await githubChecksService.updateCheckStatusV2(
+        await githubChecksService.updateCheckStatus(
           build: build,
           userDataMap: userDataMap,
-          luciBuildService: luciBuildServiceV2,
+          luciBuildService: luciBuildService,
           slug: slug,
           rescheduled: rescheduled,
         );

@@ -6,8 +6,6 @@ import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 
 import '../foundation/github_checks_util.dart';
-import '../model/luci/buildbucket.dart';
-// import '../model/luci/push_message.dart' as push_message;
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'config.dart';
 import 'github_service.dart';
@@ -66,78 +64,10 @@ class GithubChecksServiceV2 {
   /// a pub/sub notification.
   /// Relevant APIs:
   ///   https://docs.github.com/en/rest/reference/checks#update-a-check-run
-  Future<bool> updateCheckStatus(
-    push_message.BuildPushMessage buildPushMessage,
-    LuciBuildService luciBuildService,
-    github.RepositorySlug slug, {
-    bool rescheduled = false,
-  }) async {
-    final push_message.Build? build = buildPushMessage.build;
-    if (buildPushMessage.userData.isEmpty) {
-      return false;
-    }
-
-    if (!buildPushMessage.userData.containsKey('check_run_id') ||
-        !buildPushMessage.userData.containsKey('repo_owner') ||
-        !buildPushMessage.userData.containsKey('repo_name')) {
-      log.severe(
-        'UserData did not contain check_run_id,'
-        'repo_owner, or repo_name: ${buildPushMessage.userData}',
-      );
-      return false;
-    }
-    github.CheckRunStatus status = statusForResult(build!.status);
-    // Only `id` and `name` in the CheckRun are needed.
-    // Instead of making an API call to get the details of each check run, we
-    // generate the check run with only necessary info.
-    final github.CheckRun checkRun = github.CheckRun.fromJson({
-      'id': buildPushMessage.userData['check_run_id'] as int?,
-      'status': status,
-      'check_suite': const {'id': null},
-      'started_at': build.createdTimestamp.toString(),
-      'conclusion': null,
-      'name': build.buildParameters!['builder_name'],
-    });
-    github.CheckRunConclusion? conclusion =
-        (buildPushMessage.build!.result != null) ? conclusionForResult(buildPushMessage.build!.result) : null;
-    final String? url = buildPushMessage.build!.url;
-    github.CheckRunOutput? output;
-    // If status has completed with failure then provide more details.
-    if (taskFailed(buildPushMessage)) {
-      if (rescheduled) {
-        status = github.CheckRunStatus.queued;
-        conclusion = null;
-        output = github.CheckRunOutput(
-          title: checkRun.name!,
-          summary: 'Note: this is an auto rerun. The timestamp above is based on the first attempt of this check run.',
-        );
-      } else {
-        final Build buildbucketBuild =
-            await luciBuildService.getBuildById(buildPushMessage.build!.id, fields: 'id,builder,summaryMarkdown');
-        output = github.CheckRunOutput(
-          title: checkRun.name!,
-          summary: getGithubSummary(buildbucketBuild.summaryMarkdown),
-        );
-        log.fine('Updating check run with output: [$output]');
-      }
-    }
-    await githubChecksUtil.updateCheckRun(
-      config,
-      slug,
-      checkRun,
-      status: status,
-      conclusion: conclusion,
-      detailsUrl: url,
-      output: output,
-    );
-    return true;
-  }
-
-  // TODO
-  Future<bool> updateCheckStatusV2({
+  Future<bool> updateCheckStatus({
     required bbv2.Build build,
     required Map<String, dynamic> userDataMap,
-    required LuciBuildService luciBuildService,
+    required LuciBuildServiceV2 luciBuildService,
     required github.RepositorySlug slug,
     bool rescheduled = false,
   }) async {
@@ -155,7 +85,7 @@ class GithubChecksServiceV2 {
       return false;
     }
 
-    github.CheckRunStatus status = statusToResultV2(build.status);
+    github.CheckRunStatus status = statusForResult(build.status);
     // Only `id` and `name` in the CheckRun are needed.
     // Instead of making an API call to get the details of each check run, we
     // generate the check run with only necessary info.
@@ -169,12 +99,12 @@ class GithubChecksServiceV2 {
     });
 
     // if conclusion is empty then we treat that as null as before.
-    github.CheckRunConclusion? conclusion = conclusionFromResult(build.status);
+    github.CheckRunConclusion? conclusion = conclusionForResult(build.status);
 
     final String url = build.viewUrl;
     github.CheckRunOutput? output;
     // If status has completed with failure then provide more details.
-    if (taskFailedV2(build.status)) {
+    if (taskFailed(build.status)) {
       if (rescheduled) {
         status = github.CheckRunStatus.queued;
         conclusion = null;
@@ -183,7 +113,7 @@ class GithubChecksServiceV2 {
           summary: 'Note: this is an auto rerun. The timestamp above is based on the first attempt of this check run.',
         );
       } else {
-        final bbv2.Build buildbucketBuild = await luciBuildService.getBuildByIdV2(
+        final bbv2.Build buildbucketBuild = await luciBuildService.getBuildById(
           build.id,
           buildMask: bbv2.BuildMask(
             fields: bbv2.FieldMask(paths: {'id', 'builder', 'summaryMarkDown'}),
@@ -209,34 +139,18 @@ class GithubChecksServiceV2 {
   }
 
   /// Check if task has completed with failure.
-  bool taskFailed(push_message.BuildPushMessage buildPushMessage) {
-    final push_message.Build? build = buildPushMessage.build;
-    final github.CheckRunStatus status = statusForResult(build!.status);
-    final github.CheckRunConclusion? conclusion =
-        (buildPushMessage.build!.result != null) ? conclusionForResult(buildPushMessage.build!.result) : null;
-    return status == github.CheckRunStatus.completed && failedStatesSet.contains(conclusion);
-  }
-
-  bool taskFailedV2(bbv2.Status status) {
-    final github.CheckRunStatus checkRunStatus = statusToResultV2(status);
-    final github.CheckRunConclusion conclusion = conclusionFromResult(status);
+  bool taskFailed(bbv2.Status status) {
+    final github.CheckRunStatus checkRunStatus = statusForResult(status);
+    final github.CheckRunConclusion conclusion = conclusionForResult(status);
     return checkRunStatus == github.CheckRunStatus.completed && failedStatesSet.contains(conclusion);
   }
 
   /// Returns current reschedule attempt.
   ///
   /// It returns 1 if this is the first run, and +1 with each reschedule.
-  int currentAttempt(push_message.Build build) {
-    if (build.tagsByName('current_attempt').isEmpty) {
-      return 1;
-    } else {
-      return int.parse(build.tagsByName('current_attempt').single);
-    }
-  }
-
-  int currentAttemptV2(final List<bbv2.StringPair> tags) {
+  int currentAttempt(final List<bbv2.StringPair> tags) {
     final bbv2.StringPair attempt = tags.firstWhere((element) => element.key == 'current_attempt',
-        orElse: () => bbv2.StringPair().createEmptyInstance());
+        orElse: () => bbv2.StringPair().createEmptyInstance(),);
     if (!attempt.hasKey()) {
       return 1;
     } else {
@@ -265,23 +179,7 @@ class GithubChecksServiceV2 {
   /// Transforms a [push_message.Result] to a [github.CheckRunConclusion].
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs
-  github.CheckRunConclusion conclusionForResult(push_message.Result? result) {
-    switch (result) {
-      case push_message.Result.canceled:
-        // Set conclusion cancelled as a failure to ensure developers can retry
-        // tasks when builds timeout.
-        return github.CheckRunConclusion.failure;
-      case push_message.Result.failure:
-        return github.CheckRunConclusion.failure;
-      case push_message.Result.success:
-        return github.CheckRunConclusion.success;
-      case null:
-        throw StateError('unreachable');
-    }
-  }
-
-  // Result does not exist anymore in the buildbucket output.
-  github.CheckRunConclusion conclusionFromResult(bbv2.Status status) {
+  github.CheckRunConclusion conclusionForResult(bbv2.Status status) {
     if (status == bbv2.Status.CANCELED || status == bbv2.Status.FAILURE) {
       return github.CheckRunConclusion.failure;
     } else if (status == bbv2.Status.SUCCESS) {
@@ -295,22 +193,9 @@ class GithubChecksServiceV2 {
   /// Transforms a [push_message.Status] to a [github.CheckRunStatus].
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs
-  github.CheckRunStatus statusForResult(push_message.Status? status) {
-    switch (status) {
-      case push_message.Status.completed:
-        return github.CheckRunStatus.completed;
-      case push_message.Status.scheduled:
-        return github.CheckRunStatus.queued;
-      case push_message.Status.started:
-        return github.CheckRunStatus.inProgress;
-      case null:
-        throw StateError('unreachable');
-    }
-  }
-
   // TODO temporary as this needs to be adjusted as a COMPLETED state is no longer
   // a valid state from buildbucket v2.
-  github.CheckRunStatus statusToResultV2(bbv2.Status status) {
+  github.CheckRunStatus statusForResult(bbv2.Status status) {
     // ignore: exhaustive_cases
     switch (status) {
       case bbv2.Status.SUCCESS:
