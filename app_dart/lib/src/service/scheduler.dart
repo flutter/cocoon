@@ -5,7 +5,6 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';

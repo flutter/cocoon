@@ -1,9 +1,16 @@
+// Copyright 2024 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/common/json_converters.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'pubsub_message_v2.g.dart';
 
+// TODO (ricardoamador) look to see how this can be removed in favor of the gcloud lib pub/sub.
+// the initial finding is that it may be an issue with how gcloud packages the
+// message.
 @JsonSerializable(includeIfNull: false)
 class PubSubPushMessageV2 extends JsonBody {
   const PubSubPushMessageV2({

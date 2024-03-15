@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:cocoon_service/src/request_handling/subscription_handler_v2.dart';
+import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -40,12 +41,12 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     required super.cache,
     required super.config,
     required this.scheduler,
-    required this.luciBuildService,
+    required this.luciBuildServiceV2,
     required this.githubChecksService,
     AuthenticationProvider? authProvider,
   }) : super(subscriptionName: 'github-updater');
 
-  final LuciBuildService luciBuildService;
+  final LuciBuildServiceV2 luciBuildServiceV2;
   final GithubChecksService githubChecksService;
   final Scheduler scheduler;
 
@@ -84,34 +85,45 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
 
     log.fine('Setting status for $builderName');
 
-    // if (pubSubCallBack.hasUserData()) {
-    //   // Not sure if this is base64 encoded or not.
-    //   final Map<String, dynamic> userDataMap = UserData.decodeUserDataBytes(pubSubCallBack.userData);
-    //   if (userDataMap.containsKey('repo_owner') && userDataMap.containsKey('repo_name')) {
-    //     final RepositorySlug slug = RepositorySlug(userDataMap['repo_owner'] as String, userDataMap['repo_name'] as String);
+    if (pubSubCallBack.hasUserData()) {
+      // Not sure if this is base64 encoded or not.
+      final Map<String, dynamic> userDataMap = UserData.decodeUserDataBytes(pubSubCallBack.userData);
+      if (userDataMap.containsKey('repo_owner') && userDataMap.containsKey('repo_name')) {
+        final RepositorySlug slug =
+            RepositorySlug(userDataMap['repo_owner'] as String, userDataMap['repo_name'] as String);
 
-    //     bool rescheduled = false;
-    //     if (githubChecksService.taskFailedV2(build.status)) {
-    //       final int currentAttempt = githubChecksService.currentAttemptV2(tags);
-    //       final int maxAttempt = await _getMaxAttemptV2(userDataMap, slug, builderName,);
-    //       if (currentAttempt < maxAttempt) {
-    //         rescheduled = true;
-    //         log.fine('Rerunning failed task: $builderName');
-    //         await luciBuildService.rescheduleBuildV2(
-    //           builderName: builderName,
-    //           build: build,
-    //           rescheduleAttempt: currentAttempt + 1,
-    //           userDataMap: userDataMap,
-    //         );
-    //       }
-    //     }
-    //     await githubChecksService.updateCheckStatusV2(build: build, userDataMap: userDataMap, luciBuildService: luciBuildService, slug: slug, rescheduled: rescheduled,);
-    //   } else {
-    //     log.info('This repo does not support checks API');
-    //   }
-    // } else {
-    //   log.info('No user data was found in this request');
-    // }
+        bool rescheduled = false;
+        if (githubChecksService.taskFailedV2(build.status)) {
+          final int currentAttempt = githubChecksService.currentAttemptV2(tags);
+          final int maxAttempt = await _getMaxAttemptV2(
+            userDataMap,
+            slug,
+            builderName,
+          );
+          if (currentAttempt < maxAttempt) {
+            rescheduled = true;
+            log.fine('Rerunning failed task: $builderName');
+            await luciBuildServiceV2.rescheduleBuildV2(
+              builderName: builderName,
+              build: build,
+              rescheduleAttempt: currentAttempt + 1,
+              userDataMap: userDataMap,
+            );
+          }
+        }
+        await githubChecksService.updateCheckStatusV2(
+          build: build,
+          userDataMap: userDataMap,
+          luciBuildService: luciBuildServiceV2,
+          slug: slug,
+          rescheduled: rescheduled,
+        );
+      } else {
+        log.info('This repo does not support checks API');
+      }
+    } else {
+      log.info('No user data was found in this request');
+    }
 
     return Body.empty;
   }
