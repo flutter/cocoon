@@ -43,4 +43,9 @@ void main() {
     final String? description = revertInfoCollection!.extractRevertBody(sampleRevertBody);
     expect(description!.contains(expected), isTrue);
   });
+
+  test('extract reason with link', () {
+    final String? reasonForRevert = revertInfoCollection!.extractRevertReason(sampleRevertBodyWithTrailingLink);
+    print(reasonForRevert);
+  });
 }

@@ -283,6 +283,53 @@ void main() {
       assert(pubsub.messagesQueue.isEmpty);
     });
 
+    test('Create the new revert issue, reason has links.', () async {
+      // setup
+      final FakePubSub pubsub = FakePubSub();
+
+      final PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+      );
+
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name, author: 'auto-submit[bot]');
+
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+
+      final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(
+        pullRequest: pullRequest,
+        action: 'labeled',
+        sender: User(login: 'auto-submit[bot]'),
+      );
+
+      // setup fields
+      githubService.createCommentData = createCommentMock;
+      githubService.pullRequestMock = pullRequest;
+      revertMethod.object = pullRequest;
+
+      final IssueComment pullRequestComment = IssueComment(
+        body: 'Reason for revert: Broke engine post-submit, see https://logs.chromium.org/logs/flutter/buildbucket/cr-buildbucket/8753367119442265873/+/u/test:_Android_Unit_Tests__API_28_/stdout.',
+      );
+
+      final List<IssueComment> pullRequestCommentList = [pullRequestComment];
+      githubService.issueCommentsMock = pullRequestCommentList;
+
+      // run test
+      unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
+      await validationService.processRevertRequest(
+        result: queryResult,
+        githubPullRequestEvent: githubPullRequestEvent,
+        ackId: 'test',
+        pubsub: pubsub,
+      );
+
+      // validate
+      expect(githubService.issueComment, isNull);
+      expect(githubService.labelRemoved, true);
+      assert(pubsub.messagesQueue.isEmpty);
+    });
+
     test('Improperly formatted revert reason given, label removed.', () async {
       // setup
       final FakePubSub pubsub = FakePubSub();

@@ -105,7 +105,8 @@ class RevertInfoCollection {
       match = m.group(1);
     }
     final String foundMatch = match!.trim();
-    final List<String> split = foundMatch.split(':');
-    return split.elementAt(1).trim();
+    // Explicit assignment for debugging.
+    final String matchedText = foundMatch.substring(foundMatch.indexOf(':') + 1).trim();
+    return matchedText;
   }
 }
