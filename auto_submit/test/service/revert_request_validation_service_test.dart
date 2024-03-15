@@ -309,7 +309,8 @@ void main() {
       revertMethod.object = pullRequest;
 
       final IssueComment pullRequestComment = IssueComment(
-        body: 'Reason for revert: Broke engine post-submit, see https://logs.chromium.org/logs/flutter/buildbucket/cr-buildbucket/8753367119442265873/+/u/test:_Android_Unit_Tests__API_28_/stdout.',
+        body:
+            'Reason for revert: Broke engine post-submit, see https://logs.chromium.org/logs/flutter/buildbucket/cr-buildbucket/8753367119442265873/+/u/test:_Android_Unit_Tests__API_28_/stdout.',
       );
 
       final List<IssueComment> pullRequestCommentList = [pullRequestComment];

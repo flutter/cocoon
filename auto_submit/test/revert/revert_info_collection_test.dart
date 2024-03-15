@@ -45,7 +45,9 @@ void main() {
   });
 
   test('extract reason with link', () {
+    const String expected =
+        'Broke engine post-submit, see https://logs.chromium.org/logs/flutter/buildbucket/cr-buildbucket/8753367119442265873/+/u/test:_Android_Unit_Tests__API_28_/stdout.';
     final String? reasonForRevert = revertInfoCollection!.extractRevertReason(sampleRevertBodyWithTrailingLink);
-    print(reasonForRevert);
+    expect(reasonForRevert, expected);
   });
 }
