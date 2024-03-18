@@ -8,10 +8,11 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
-import '../model/appengine/commit.dart';
+import '../model/appengine/commit.dart' as datastore;
 import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/stage.dart';
-import '../model/appengine/task.dart';
+import '../model/firestore/commit.dart';
+import '../model/firestore/task.dart';
 import 'datastore.dart';
 
 /// Function signature for a [BuildStatusService] provider.
@@ -64,7 +65,7 @@ class BuildStatusService {
   ///
   /// Tree status is only for [defaultBranches].
   Future<BuildStatus?> calculateCumulativeStatus(RepositorySlug slug) async {
-    final List<CommitStatus> statuses = await retrieveCommitStatus(
+    final List<CommitTasksStatus> statuses = await retrieveCommitStatusFirestore(
       limit: numberOfCommitsToReferenceForTreeStatus,
       slug: slug,
     ).toList();
@@ -78,30 +79,28 @@ class BuildStatusService {
     }
 
     final List<String> failedTasks = <String>[];
-    for (CommitStatus status in statuses) {
-      for (Stage stage in status.stages) {
-        for (Task task in stage.tasks) {
-          /// If a task [isRelevantToLatestStatus] but has not run yet, we look
-          /// for a previous run of the task from the previous commit.
-          final bool isRelevantToLatestStatus = tasksInProgress.containsKey(task.name);
+    for (CommitTasksStatus status in statuses) {
+      for (Task task in status.tasks) {
+        /// If a task [isRelevantToLatestStatus] but has not run yet, we look
+        /// for a previous run of the task from the previous commit.
+        final bool isRelevantToLatestStatus = tasksInProgress.containsKey(task.taskName);
 
-          /// Tasks that are not relevant to the latest status will have a
-          /// null value in the map.
-          final bool taskInProgress = tasksInProgress[task.name] ?? true;
+        /// Tasks that are not relevant to the latest status will have a
+        /// null value in the map.
+        final bool taskInProgress = tasksInProgress[task.taskName] ?? true;
 
-          if (isRelevantToLatestStatus && taskInProgress) {
-            if (task.isFlaky! || _isSuccessful(task)) {
-              /// This task no longer needs to be checked to see if it causing
-              /// the build status to fail.
-              tasksInProgress[task.name!] = false;
-            } else if (_isFailed(task) || _isRerunning(task)) {
-              failedTasks.add(task.name!);
+        if (isRelevantToLatestStatus && taskInProgress) {
+          if (task.bringup! || _isSuccessful(task)) {
+            /// This task no longer needs to be checked to see if it causing
+            /// the build status to fail.
+            tasksInProgress[task.taskName!] = false;
+          } else if (_isFailed(task) || _isRerunning(task)) {
+            failedTasks.add(task.taskName!);
 
-              /// This task no longer needs to be checked to see if its causing
-              /// the build status to fail since its been
-              /// added to the failedTasks list.
-              tasksInProgress[task.name!] = false;
-            }
+            /// This task no longer needs to be checked to see if its causing
+            /// the build status to fail since its been
+            /// added to the failedTasks list.
+            tasksInProgress[task.taskName!] = false;
           }
         }
       }
@@ -112,15 +111,12 @@ class BuildStatusService {
   /// Creates a map of the tasks that need to be checked for the build status.
   ///
   /// This is based on the most recent [CommitStatus] and all of its tasks.
-  Map<String, bool> _findTasksRelevantToLatestStatus(List<CommitStatus> statuses) {
+  Map<String, bool> _findTasksRelevantToLatestStatus(List<CommitTasksStatus> statuses) {
     final Map<String, bool> tasks = <String, bool>{};
 
-    for (Stage stage in statuses.first.stages) {
-      for (Task task in stage.tasks) {
-        tasks[task.name!] = true;
-      }
+    for (Task task in statuses.first.tasks) {
+      tasks[task.taskName!] = true;
     }
-
     return tasks;
   }
 
@@ -128,13 +124,31 @@ class BuildStatusService {
   ///
   /// The returned stream will be ordered by most recent commit first, then
   /// the next newest, and so on.
+  Stream<CommitTasksStatus> retrieveCommitStatusFirestore({
+    required int limit,
+    int? timestamp,
+    String? branch,
+    required RepositorySlug slug,
+  }) async* {
+    final List<Commit> commits = await firestoreService.queryRecentCommits(
+      limit: limit,
+      timestamp: timestamp,
+      branch: branch,
+      slug: slug,
+    );
+    for (Commit commit in commits) {
+      final List<Task> tasks = await firestoreService.queryCommitTasks(commit.sha!);
+      yield CommitTasksStatus(commit, tasks);
+    }
+  }
+
   Stream<CommitStatus> retrieveCommitStatus({
     required int limit,
     int? timestamp,
     String? branch,
     required RepositorySlug slug,
   }) async* {
-    await for (Commit commit in datastoreService.queryRecentCommits(
+    await for (datastore.Commit commit in datastoreService.queryRecentCommits(
       limit: limit,
       timestamp: timestamp,
       branch: branch,
@@ -166,12 +180,24 @@ class BuildStatusService {
 /// Tasks may still be running, and thus their status is subject to change.
 /// Put another way, this class holds information that is a snapshot in time.
 @immutable
+class CommitTasksStatus {
+  /// Creates a new [CommitTasksStatus].
+  const CommitTasksStatus(this.commit, this.tasks);
+
+  /// The commit against which all the tasks are run.
+  final Commit commit;
+
+  /// Tasks running against the commit.
+  final List<Task> tasks;
+}
+
+@immutable
 class CommitStatus {
   /// Creates a new [CommitStatus].
   const CommitStatus(this.commit, this.stages);
 
   /// The commit against which all the tasks in [stages] are run.
-  final Commit commit;
+  final datastore.Commit commit;
 
   /// The partitioned stages, each of which holds a bucket of tasks that
   /// belong in the stage.
