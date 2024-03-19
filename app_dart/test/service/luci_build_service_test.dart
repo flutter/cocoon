@@ -8,7 +8,7 @@ import 'dart:core';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/firestore/task.dart' as f;
+import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
@@ -1077,7 +1077,7 @@ void main() {
     });
 
     test('insert retried task document to firestore', () async {
-      final f.Task firestoreTask = generateFirestoreTask(1, attempts: 1);
+      final firestore.Task firestoreTask = generateFirestoreTask(1, attempts: 1);
       when(
         mockFirestoreService.batchWriteDocuments(
           captureAny,
@@ -1114,6 +1114,7 @@ void main() {
       expect(batchWriteRequest.writes!.length, 1);
       final Document insertedTaskDocument = batchWriteRequest.writes![0].update!;
       expect(insertedTaskDocument, firestoreTask);
+      expect(firestoreTask.status, firestore.Task.statusInProgress);
     });
   });
 }
