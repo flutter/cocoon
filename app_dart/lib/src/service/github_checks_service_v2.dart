@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/src/service/scheduler_v2.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 
@@ -11,7 +12,6 @@ import 'config.dart';
 import 'github_service.dart';
 import 'logging.dart';
 import 'luci_build_service_v2.dart';
-import 'scheduler.dart';
 
 const String kGithubSummary = '''
 **[Understanding a LUCI build failure](https://github.com/flutter/flutter/wiki/Understanding-a-LUCI-build-failure)**
@@ -42,7 +42,7 @@ class GithubChecksServiceV2 {
   Future<void> handleCheckSuite(
     github.PullRequest pullRequest,
     CheckSuiteEvent checkSuiteEvent,
-    Scheduler scheduler,
+    SchedulerV2 scheduler,
   ) async {
     switch (checkSuiteEvent.action) {
       case 'requested':
