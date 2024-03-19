@@ -10,6 +10,7 @@ import 'package:googleapis/firestore/v1.dart';
 import 'package:http/http.dart';
 
 import '../model/firestore/commit.dart';
+import '../model/firestore/github_build_status.dart';
 import '../model/firestore/github_gold_status.dart';
 import '../model/firestore/task.dart';
 import 'access_client_provider.dart';
@@ -151,6 +152,42 @@ class FirestoreService {
             'repository ${slug.fullName}, pr $prNumber.');
       }
       return githubGoldStatuses.single;
+    }
+  }
+
+  /// Queries the last updated build status for the [slug], [prNumber], and [head].
+  ///
+  /// If not existing, returns a fresh new Build status.
+  Future<GithubBuildStatus> queryLastBuildStatus(RepositorySlug slug, int prNumber, String head) async {
+    final Map<String, Object> filterMap = <String, Object>{
+      '$kGithubBuildStatusPrNumberField =': prNumber,
+      '$kGithubBuildStatusRepositoryField =': slug.fullName,
+      '$kGithubBuildStatusHeadField =': head,
+    };
+    final List<Document> documents = await query(kGithubBuildStatusCollectionId, filterMap);
+    final List<GithubBuildStatus> githubBuildStatuses =
+        documents.map((Document document) => GithubBuildStatus.fromDocument(githubBuildStatus: document)).toList();
+    if (githubBuildStatuses.isEmpty) {
+      return GithubBuildStatus.fromDocument(
+        githubBuildStatus: Document(
+          name: '$kDatabase/documents/$kGithubBuildStatusCollectionId/${head}_$prNumber',
+          fields: <String, Value>{
+            kGithubBuildStatusPrNumberField: Value(integerValue: prNumber.toString()),
+            kGithubBuildStatusHeadField: Value(stringValue: head),
+            kGithubBuildStatusStatusField: Value(stringValue: ''),
+            kGithubBuildStatusUpdatesField: Value(integerValue: '0'),
+            kGithubBuildStatusUpdateTimeMillisField:
+                Value(integerValue: DateTime.now().millisecondsSinceEpoch.toString()),
+            kGithubBuildStatusRepositoryField: Value(stringValue: slug.fullName),
+          },
+        ),
+      );
+    } else {
+      if (githubBuildStatuses.length > 1) {
+        throw StateError('GithubBuildStatus should have no more than one entry on '
+            'repository ${slug.fullName}, pr $prNumber, and head $head.');
+      }
+      return githubBuildStatuses.single;
     }
   }
 

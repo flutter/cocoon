@@ -46,15 +46,21 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
 
     final BuildStatus status = (await buildStatusService.calculateCumulativeStatus(slug))!;
     await _insertBigquery(slug, status.githubStatus, Config.defaultBranch(slug), config);
-    await _updatePRs(slug, status.githubStatus, datastore);
+    await _updatePRs(slug, status.githubStatus, datastore, firestoreService);
     log.fine('All the PRs for $repository have been updated with $status');
 
     return Body.empty;
   }
 
-  Future<void> _updatePRs(RepositorySlug slug, String status, DatastoreService datastore) async {
+  Future<void> _updatePRs(
+    RepositorySlug slug,
+    String status,
+    DatastoreService datastore,
+    FirestoreService firestoreService,
+  ) async {
     final GitHub github = await config.createGitHubClient(slug: slug);
     final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
+    final List<GithubBuildStatus> githubBuildStatuses = <GithubBuildStatus>[];
     await for (PullRequest pr in github.pullRequests.list(slug)) {
       // Tree status is only put on PRs merging into ToT.
       if (pr.base!.ref != Config.defaultBranch(slug)) {
@@ -62,42 +68,42 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
         continue;
       }
       final GithubBuildStatusUpdate update = await datastore.queryLastStatusUpdate(slug, pr);
-      if (update.status != status) {
-        log.fine('Updating status of ${slug.fullName}#${pr.number} from ${update.status} to $status');
+      final GithubBuildStatus githubBuildStatus =
+          await firestoreService.queryLastBuildStatus(slug, pr.number!, pr.head!.sha!);
+      if (githubBuildStatus.status != status) {
+        log.fine('Updating status of ${slug.fullName}#${pr.number} from ${githubBuildStatus.status} to $status');
         final CreateStatus request = CreateStatus(status);
         request.targetUrl = 'https://flutter-dashboard.appspot.com/#/build?repo=${slug.name}';
         request.context = 'tree-status';
-        if (status != GithubBuildStatusUpdate.statusSuccess) {
+        if (status != GithubBuildStatus.statusSuccess) {
           request.description = config.flutterBuildDescription;
         }
         try {
           await github.repositories.createStatus(slug, pr.head!.sha!, request);
+          final int currentTimeMillisecondsSinceEpoch = DateTime.now().millisecondsSinceEpoch;
           update.status = status;
           update.updates = (update.updates ?? 0) + 1;
-          update.updateTimeMillis = DateTime.now().millisecondsSinceEpoch;
+          update.updateTimeMillis = currentTimeMillisecondsSinceEpoch;
           updates.add(update);
+
+          githubBuildStatus.setStatus(status);
+          githubBuildStatus.setUpdates((githubBuildStatus.updates ?? 0) + 1);
+          githubBuildStatus.setUpdateTimeMillis(currentTimeMillisecondsSinceEpoch);
+          githubBuildStatuses.add(githubBuildStatus);
         } catch (error) {
           log.severe('Failed to post status update to ${slug.fullName}#${pr.number}: $error');
         }
       }
     }
     await datastore.insert(updates);
-    // TODO(keyonghan): remove try block after fully migrated to firestore
-    // https://github.com/flutter/flutter/issues/142951
-    try {
-      await updateGithubBuildStatusDocuments(updates);
-    } catch (error) {
-      log.warning('Failed to update github build status in Firestore: $error');
-    }
+    await updateGithubBuildStatusDocuments(githubBuildStatuses);
   }
 
-  Future<void> updateGithubBuildStatusDocuments(List<GithubBuildStatusUpdate> updates) async {
-    if (updates.isEmpty) {
+  Future<void> updateGithubBuildStatusDocuments(List<GithubBuildStatus> githubBuildStatuses) async {
+    if (githubBuildStatuses.isEmpty) {
       return;
     }
-    final List<GithubBuildStatus> githubBuildStatusDocuments =
-        updates.map((e) => githubBuildStatusToDocument(e)).toList();
-    final List<Write> writes = documentsToWrites(githubBuildStatusDocuments);
+    final List<Write> writes = documentsToWrites(githubBuildStatuses);
     final FirestoreService firestoreService = await config.createFirestoreService();
     await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
   }
