@@ -16,7 +16,7 @@ import 'package:googleapis/pubsub/v1.dart';
 import '../foundation/github_checks_util.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
-import '../model/firestore/task.dart' as f;
+import '../model/firestore/task.dart' as firestore;
 import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/buildbucket.dart';
@@ -688,7 +688,7 @@ class LuciBuildService {
     FirestoreService? firestoreService,
     Map<String, List<String>>? tags,
     bool ignoreChecks = false,
-    f.Task? taskDocument,
+    firestore.Task? taskDocument,
   }) async {
     if (ignoreChecks == false && await _shouldRerunBuilder(task, commit, datastore) == false) {
       return false;
@@ -703,6 +703,7 @@ class LuciBuildService {
         final int newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
         tags['current_attempt'] = <String>[newAttempt.toString()];
         taskDocument.resetAsRetry(attempt: newAttempt);
+        taskDocument.setStatus(firestore.Task.statusInProgress);
         final List<Write> writes = documentsToWrites([taskDocument], exists: false);
         await firestoreService!.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
       } catch (error) {
