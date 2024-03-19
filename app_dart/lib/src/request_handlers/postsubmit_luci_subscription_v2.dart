@@ -72,7 +72,6 @@ class PostsubmitLuciSubscription extends SubscriptionHandlerV2 {
     final bbv2.Build build = buildsV2PubSub.build;
     // Note that result is no longer present in the output.
     log.fine('Updating buildId=${build.id} for result=${build.status}');
-    
 
     final String? rawTaskKey = userDataMap['task_key'] as String?;
     final String? rawCommitKey = userDataMap['commit_key'] as String?;
@@ -87,10 +86,10 @@ class PostsubmitLuciSubscription extends SubscriptionHandlerV2 {
     final FirestoreService firestoreService = await config.createFirestoreService();
 
     final bbv2.Struct propertiesStruct = build.input.properties;
-    
+
     final String taskName = propertiesStruct.fields['builder_name']!.stringValue;
     Task? task;
-    
+
     // final String? taskName = build.buildParameters?['builder_name'] as String?;
     if (rawTaskKey == null || rawTaskKey.isEmpty || rawTaskKey == 'null') {
       log.fine('Pulling builder name from parameters_json...');

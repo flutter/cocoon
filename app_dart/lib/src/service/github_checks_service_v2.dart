@@ -20,8 +20,10 @@ const String kGithubSummary = '''
 
 /// Controls triggering builds and updating their status in the Github UI.
 class GithubChecksServiceV2 {
-  GithubChecksServiceV2(this.config, {GithubChecksUtil? githubChecksUtil,})
-      : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil();
+  GithubChecksServiceV2(
+    this.config, {
+    GithubChecksUtil? githubChecksUtil,
+  }) : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil();
 
   Config config;
   GithubChecksUtil githubChecksUtil;
@@ -149,8 +151,10 @@ class GithubChecksServiceV2 {
   ///
   /// It returns 1 if this is the first run, and +1 with each reschedule.
   int currentAttempt(final List<bbv2.StringPair> tags) {
-    final bbv2.StringPair attempt = tags.firstWhere((element) => element.key == 'current_attempt',
-        orElse: () => bbv2.StringPair().createEmptyInstance(),);
+    final bbv2.StringPair attempt = tags.firstWhere(
+      (element) => element.key == 'current_attempt',
+      orElse: () => bbv2.StringPair().createEmptyInstance(),
+    );
     if (!attempt.hasKey()) {
       return 1;
     } else {

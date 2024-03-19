@@ -200,12 +200,12 @@ class Task extends Document {
     // final String? buildAddress = tags?.firstWhere((String tag) => tag.contains('build_address'));
 
     final String? buildAddress = tags?.firstWhere((tag) => tag.key.contains('build_address')).value;
-    
+
     if (buildAddress == null) {
       log.warning('Tags: $tags');
       throw const BadRequestException('build_address does not contain build number');
     }
-    
+
     fields![kTaskBuildNumberField] = Value(integerValue: buildAddress.split('/').last);
     fields![kTaskCreateTimestampField] = Value(
       integerValue: (build.createTime.toDateTime().millisecondsSinceEpoch).toString(),

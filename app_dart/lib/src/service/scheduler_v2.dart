@@ -294,7 +294,10 @@ class SchedulerV2 {
     String reason = 'Newer commit available',
   }) async {
     log.info('Cancelling presubmit targets with buildbucket v2.');
-    await luciBuildService.cancelBuilds(pullRequest: pullRequest, reason: reason,);
+    await luciBuildService.cancelBuilds(
+      pullRequest: pullRequest,
+      reason: reason,
+    );
   }
 
   /// Schedule presubmit targets against a pull request.
@@ -390,7 +393,10 @@ class SchedulerV2 {
 
   /// If [builderTriggerList] is specificed, return only builders that are contained in [presubmitTarget].
   /// Otherwise, return [presubmitTarget].
-  List<Target> getTriggerList(List<Target> presubmitTarget, List<String>? builderTriggerList,) {
+  List<Target> getTriggerList(
+    List<Target> presubmitTarget,
+    List<String>? builderTriggerList,
+  ) {
     if (builderTriggerList != null && builderTriggerList.isNotEmpty) {
       return presubmitTarget.where((Target target) => builderTriggerList.contains(target.value.name)).toList();
     }
@@ -412,7 +418,8 @@ class SchedulerV2 {
       checkSuiteEvent,
     );
     final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
-    final List<bbv2.Build?> failedBuilds = await luciBuildService.failedBuilds(pullRequest: pullRequest, targets: presubmitTargets);
+    final List<bbv2.Build?> failedBuilds =
+        await luciBuildService.failedBuilds(pullRequest: pullRequest, targets: presubmitTargets);
     for (bbv2.Build? build in failedBuilds) {
       final CheckRun checkRun = checkRuns[build!.builder.builder]!;
 
