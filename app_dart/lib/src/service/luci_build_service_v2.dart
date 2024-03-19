@@ -404,7 +404,7 @@ class LuciBuildServiceV2 {
 
   /// Sends presubmit [ScheduleBuildRequest] for a pull request using [checkRunEvent].
   ///
-  /// Returns the [Build] returned by scheduleBuildRequest.
+  /// Returns the [bbv2.Build] returned by scheduleBuildRequest.
   Future<bbv2.Build> reschedulePresubmitBuildUsingCheckRunEvent(
       {required cocoon_checks.CheckRunEvent checkRunEvent}) async {
     final github.RepositorySlug slug = checkRunEvent.repository!.slug();
@@ -498,7 +498,7 @@ class LuciBuildServiceV2 {
 
   /// Sends postsubmit [ScheduleBuildRequest] for a commit using [checkRunEvent], [Commit], [Task], and [Target].
   ///
-  /// Returns the [Build] returned by scheduleBuildRequest.
+  /// Returns the [bbv2.Build] returned by scheduleBuildRequest.
   Future<bbv2.Build> reschedulePostsubmitBuildUsingCheckRunEvent(
     cocoon_checks.CheckRunEvent checkRunEvent, {
     required Commit commit,
@@ -537,7 +537,7 @@ class LuciBuildServiceV2 {
     return scheduleBuild;
   }
 
-  /// Gets [Build] using its [id] and passing the additional
+  /// Gets [bbv2.Build] using its [id] and passing the additional
   /// fields to be populated in the response.
   Future<bbv2.Build> getBuildById(
     Int64 id, {
