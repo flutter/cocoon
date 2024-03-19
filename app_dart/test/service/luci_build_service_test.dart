@@ -468,6 +468,8 @@ void main() {
         'builder_name': 'Linux 1',
         'repo_owner': 'flutter',
         'repo_name': 'packages',
+        'firestore_commit_document_name': '0',
+        'firestore_task_document_name': '0_task1_1',
       });
       final Map<String, dynamic> properties = scheduleBuild.properties!;
       expect(properties, <String, dynamic>{
@@ -535,6 +537,8 @@ void main() {
         'builder_name': 'Linux 1',
         'repo_owner': 'flutter',
         'repo_name': 'packages',
+        'firestore_commit_document_name': '0',
+        'firestore_task_document_name': '0_task1_1',
       });
     });
 
@@ -640,6 +644,8 @@ void main() {
       expect(userData, <String, dynamic>{
         'commit_key': 'flutter/packages/master/0',
         'task_key': '1',
+        'firestore_commit_document_name': '0',
+        'firestore_task_document_name': '0_task1_1',
       });
     });
 
