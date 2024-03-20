@@ -1,6 +1,6 @@
 //
 //  Generated code. Do not modify.
-//  source: google/protobuf/timestamp.proto
+//  source: go.chromium.org/luci/resultdb/sink/proto/v1/sink.proto
 //
 // @dart = 2.12
 

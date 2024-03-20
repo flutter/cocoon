@@ -22,5 +22,6 @@ const StructMask$json = {
 };
 
 /// Descriptor for `StructMask`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List structMaskDescriptor =
-    $convert.base64Decode('CgpTdHJ1Y3RNYXNrEhIKBHBhdGgYASADKAlSBHBhdGg=');
+final $typed_data.Uint8List structMaskDescriptor = $convert.base64Decode(
+    'CgpTdHJ1Y3RNYXNrEhIKBHBhdGgYASADKAlSBHBhdGg=');
+

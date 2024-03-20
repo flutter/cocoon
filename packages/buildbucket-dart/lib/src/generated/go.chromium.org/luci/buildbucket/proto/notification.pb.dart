@@ -33,27 +33,25 @@ class NotificationConfig extends $pb.GeneratedMessage {
     return $result;
   }
   NotificationConfig._() : super();
-  factory NotificationConfig.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory NotificationConfig.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
+  factory NotificationConfig.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory NotificationConfig.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'NotificationConfig',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'NotificationConfig', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'pubsubTopic')
     ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'userData', $pb.PbFieldType.OY)
-    ..hasRequiredFields = false;
+    ..hasRequiredFields = false
+  ;
 
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   NotificationConfig clone() => NotificationConfig()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  NotificationConfig copyWith(void Function(NotificationConfig) updates) =>
-      super.copyWith((message) => updates(message as NotificationConfig)) as NotificationConfig;
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  NotificationConfig copyWith(void Function(NotificationConfig) updates) => super.copyWith((message) => updates(message as NotificationConfig)) as NotificationConfig;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -62,8 +60,7 @@ class NotificationConfig extends $pb.GeneratedMessage {
   NotificationConfig createEmptyInstance() => create();
   static $pb.PbList<NotificationConfig> createRepeated() => $pb.PbList<NotificationConfig>();
   @$core.pragma('dart2js:noInline')
-  static NotificationConfig getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<NotificationConfig>(create);
+  static NotificationConfig getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<NotificationConfig>(create);
   static NotificationConfig? _defaultInstance;
 
   ///  Target Cloud PubSub topic.
@@ -89,10 +86,7 @@ class NotificationConfig extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get pubsubTopic => $_getSZ(0);
   @$pb.TagNumber(1)
-  set pubsubTopic($core.String v) {
-    $_setString(0, v);
-  }
-
+  set pubsubTopic($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
   $core.bool hasPubsubTopic() => $_has(0);
   @$pb.TagNumber(1)
@@ -103,10 +97,7 @@ class NotificationConfig extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.List<$core.int> get userData => $_getN(1);
   @$pb.TagNumber(2)
-  set userData($core.List<$core.int> v) {
-    $_setBytes(1, v);
-  }
-
+  set userData($core.List<$core.int> v) { $_setBytes(1, v); }
   @$pb.TagNumber(2)
   $core.bool hasUserData() => $_has(1);
   @$pb.TagNumber(2)
@@ -139,28 +130,26 @@ class BuildsV2PubSub extends $pb.GeneratedMessage {
     return $result;
   }
   BuildsV2PubSub._() : super();
-  factory BuildsV2PubSub.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory BuildsV2PubSub.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
+  factory BuildsV2PubSub.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory BuildsV2PubSub.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildsV2PubSub',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildsV2PubSub', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOM<$0.Build>(1, _omitFieldNames ? '' : 'build', subBuilder: $0.Build.create)
     ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'buildLargeFields', $pb.PbFieldType.OY)
-    ..e<$1.Compression>(3, _omitFieldNames ? '' : 'compression', $pb.PbFieldType.OE,
-        defaultOrMaker: $1.Compression.ZLIB, valueOf: $1.Compression.valueOf, enumValues: $1.Compression.values)
-    ..hasRequiredFields = false;
+    ..e<$1.Compression>(3, _omitFieldNames ? '' : 'compression', $pb.PbFieldType.OE, defaultOrMaker: $1.Compression.ZLIB, valueOf: $1.Compression.valueOf, enumValues: $1.Compression.values)
+    ..hasRequiredFields = false
+  ;
 
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   BuildsV2PubSub clone() => BuildsV2PubSub()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  BuildsV2PubSub copyWith(void Function(BuildsV2PubSub) updates) =>
-      super.copyWith((message) => updates(message as BuildsV2PubSub)) as BuildsV2PubSub;
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  BuildsV2PubSub copyWith(void Function(BuildsV2PubSub) updates) => super.copyWith((message) => updates(message as BuildsV2PubSub)) as BuildsV2PubSub;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -176,10 +165,7 @@ class BuildsV2PubSub extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $0.Build get build => $_getN(0);
   @$pb.TagNumber(1)
-  set build($0.Build v) {
-    setField(1, v);
-  }
-
+  set build($0.Build v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasBuild() => $_has(0);
   @$pb.TagNumber(1)
@@ -193,10 +179,7 @@ class BuildsV2PubSub extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.List<$core.int> get buildLargeFields => $_getN(1);
   @$pb.TagNumber(2)
-  set buildLargeFields($core.List<$core.int> v) {
-    $_setBytes(1, v);
-  }
-
+  set buildLargeFields($core.List<$core.int> v) { $_setBytes(1, v); }
   @$pb.TagNumber(2)
   $core.bool hasBuildLargeFields() => $_has(1);
   @$pb.TagNumber(2)
@@ -208,10 +191,7 @@ class BuildsV2PubSub extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $1.Compression get compression => $_getN(2);
   @$pb.TagNumber(3)
-  set compression($1.Compression v) {
-    setField(3, v);
-  }
-
+  set compression($1.Compression v) { setField(3, v); }
   @$pb.TagNumber(3)
   $core.bool hasCompression() => $_has(2);
   @$pb.TagNumber(3)
@@ -241,26 +221,25 @@ class PubSubCallBack extends $pb.GeneratedMessage {
     return $result;
   }
   PubSubCallBack._() : super();
-  factory PubSubCallBack.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory PubSubCallBack.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
+  factory PubSubCallBack.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory PubSubCallBack.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PubSubCallBack',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PubSubCallBack', package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
     ..aOM<BuildsV2PubSub>(1, _omitFieldNames ? '' : 'buildPubsub', subBuilder: BuildsV2PubSub.create)
     ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'userData', $pb.PbFieldType.OY)
-    ..hasRequiredFields = false;
+    ..hasRequiredFields = false
+  ;
 
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   PubSubCallBack clone() => PubSubCallBack()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  PubSubCallBack copyWith(void Function(PubSubCallBack) updates) =>
-      super.copyWith((message) => updates(message as PubSubCallBack)) as PubSubCallBack;
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  PubSubCallBack copyWith(void Function(PubSubCallBack) updates) => super.copyWith((message) => updates(message as PubSubCallBack)) as PubSubCallBack;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -276,10 +255,7 @@ class PubSubCallBack extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   BuildsV2PubSub get buildPubsub => $_getN(0);
   @$pb.TagNumber(1)
-  set buildPubsub(BuildsV2PubSub v) {
-    setField(1, v);
-  }
-
+  set buildPubsub(BuildsV2PubSub v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasBuildPubsub() => $_has(0);
   @$pb.TagNumber(1)
@@ -291,15 +267,13 @@ class PubSubCallBack extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.List<$core.int> get userData => $_getN(1);
   @$pb.TagNumber(2)
-  set userData($core.List<$core.int> v) {
-    $_setBytes(1, v);
-  }
-
+  set userData($core.List<$core.int> v) { $_setBytes(1, v); }
   @$pb.TagNumber(2)
   $core.bool hasUserData() => $_has(1);
   @$pb.TagNumber(2)
   void clearUserData() => clearField(2);
 }
+
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
 const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
