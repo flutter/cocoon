@@ -9,6 +9,9 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
+import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
+import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
+import 'package:cocoon_service/src/service/scheduler_v2.dart';
 import 'package:gcloud/db.dart';
 
 Future<void> main() async {
@@ -37,8 +40,19 @@ Future<void> main() async {
       pubsub: const PubSub(),
     );
 
+    final LuciBuildServiceV2 luciBuildServiceV2 = LuciBuildServiceV2(
+      config: config,
+      cache: cache,
+      buildBucketV2Client: buildBucketV2Client,
+      pubsub: const PubSub(),
+    );
+
     /// Github checks api service used to provide luci test execution status on the Github UI.
     final GithubChecksService githubChecksService = GithubChecksService(
+      config,
+    );
+
+    final GithubChecksServiceV2 githubChecksServiceV2 = GithubChecksServiceV2(
       config,
     );
 
@@ -51,6 +65,13 @@ Future<void> main() async {
       config: config,
       githubChecksService: githubChecksService,
       luciBuildService: luciBuildService,
+    );
+
+    final SchedulerV2 schedulerV2 = SchedulerV2(
+      cache: cache,
+      config: config,
+      githubChecksService: githubChecksServiceV2,
+      luciBuildService: luciBuildServiceV2,
     );
 
     final BranchService branchService = BranchService(
@@ -69,8 +90,11 @@ Future<void> main() async {
       buildBucketV2Client: buildBucketV2Client,
       gerritService: gerritService,
       scheduler: scheduler,
+      schedulerV2: schedulerV2,
       luciBuildService: luciBuildService,
+      luciBuildServiceV2: luciBuildServiceV2,
       githubChecksService: githubChecksService,
+      githubChecksServiceV2: githubChecksServiceV2,
       commitService: commitService,
       swarmingAuthProvider: swarmingAuthProvider,
     );

@@ -4,6 +4,9 @@
 
 import 'dart:async';
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
+import 'package:cocoon_service/src/service/scheduler_v2.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -22,8 +25,6 @@ import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/firestore.dart';
 import '../service/logging.dart';
-import '../service/luci_build_service.dart';
-import '../service/scheduler.dart';
 
 /// Reruns a postsubmit LUCI build.
 ///
@@ -39,8 +40,8 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   }) : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider;
 
   final DatastoreServiceProvider datastoreProvider;
-  final LuciBuildService luciBuildService;
-  final Scheduler scheduler;
+  final LuciBuildServiceV2 luciBuildService;
+  final SchedulerV2 scheduler;
 
   static const String branchParam = 'Branch';
   static const String taskKeyParam = 'Key';
@@ -84,10 +85,10 @@ class ResetProdTask extends ApiRequestHandler<Body> {
         gitBranch: branch!,
         sha: sha!,
       );
-      final tasks = await datastore.db.query<Task>(ancestorKey: commitKey).run().toList();
+      final List<Task> tasks = await datastore.db.query<Task>(ancestorKey: commitKey).run().toList();
       final List<Future<void>> futures = <Future<void>>[];
       for (final Task task in tasks) {
-        if (!taskFailStatusSet.contains(task.status)) continue;
+        if (!Task.taskFailStatusSet.contains(task.status)) continue;
         futures.add(
           rerun(
             datastore: datastore,
@@ -153,10 +154,16 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     } catch (error) {
       log.warning('Failed to read task $documentName from Firestore: $error');
     }
-    final Map<String, List<String>> tags = <String, List<String>>{
-      'triggered_by': <String>[email],
-      'trigger_type': <String>['manual_retry'],
-    };
+    // final Map<String, List<String>> tags = <String, List<String>>{
+    //   'triggered_by': <String>[email],
+    //   'trigger_type': <String>['manual_retry'],
+    // };
+
+    final List<bbv2.StringPair> tags = <bbv2.StringPair>[
+      bbv2.StringPair(key: 'triggered_by', value: email),
+      bbv2.StringPair(key: 'trigger_type', value: 'manual_retry'),
+    ];
+
     final bool isRerunning = await luciBuildService.checkRerunBuilder(
       commit: commit,
       task: task,

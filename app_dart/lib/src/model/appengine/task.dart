@@ -309,6 +309,12 @@ class Task extends Model<int> {
     statusSucceeded,
   ];
 
+  static const Set<String> taskFailStatusSet = <String>{
+    Task.statusInfraFailure,
+    Task.statusFailed,
+    Task.statusCancelled,
+  };
+
   /// The key of the commit that owns this task.
   @ModelKeyProperty(propertyName: 'ChecklistKey')
   @JsonKey(name: 'ChecklistKey')

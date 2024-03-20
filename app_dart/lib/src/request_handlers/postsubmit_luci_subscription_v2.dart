@@ -27,20 +27,20 @@ import '../service/scheduler_v2.dart';
 /// An endpoint for listening to build updates for postsubmit builds.
 ///
 /// The PubSub subscription is set up here:
-/// https://cloud.google.com/cloudpubsub/subscription/detail/luci-postsubmit?project=flutter-dashboard&tab=overview
+/// https://cloud.google.com/cloudpubsub/subscription/detail/build-bucket-postsubmit-sub?project=flutter-dashboard&tab=overview
 ///
 /// This endpoint is responsible for updating Datastore with the result of builds from LUCI.
 @immutable
-class PostsubmitLuciSubscription extends SubscriptionHandlerV2 {
+class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
   /// Creates an endpoint for listening to LUCI status updates.
-  const PostsubmitLuciSubscription({
+  const PostsubmitLuciSubscriptionV2({
     required super.cache,
     required super.config,
     super.authProvider,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
     required this.scheduler,
     required this.githubChecksService,
-  }) : super(subscriptionName: 'luci-postsubmit');
+  }) : super(subscriptionName: 'build-bucket-postsubmit-sub');
 
   final DatastoreServiceProvider datastoreProvider;
   final SchedulerV2 scheduler;

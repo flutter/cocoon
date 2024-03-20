@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_service/src/service/scheduler_v2.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -21,7 +22,7 @@ class ResetTryTask extends ApiRequestHandler<Body> {
     required this.scheduler,
   });
 
-  final Scheduler scheduler;
+  final SchedulerV2 scheduler;
 
   static const String kOwnerParam = 'owner';
   static const String kRepoParam = 'repo';

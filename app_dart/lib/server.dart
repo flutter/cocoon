@@ -7,9 +7,13 @@ import 'dart:math';
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/build_bucket_version_two.dart';
+import 'package:cocoon_service/src/request_handlers/postsubmit_luci_subscription_v2.dart';
 import 'package:cocoon_service/src/request_handlers/presubmit_luci_subscription_v2.dart';
 import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
+import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
+import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
+import 'package:cocoon_service/src/service/scheduler_v2.dart';
 
 typedef Server = Future<void> Function(HttpRequest);
 
@@ -23,10 +27,13 @@ Server createServer({
   required BuildBucketClient buildBucketClient,
   required BuildBucketV2Client buildBucketV2Client,
   required LuciBuildService luciBuildService,
+  required LuciBuildServiceV2 luciBuildServiceV2,
   required GithubChecksService githubChecksService,
+  required GithubChecksServiceV2 githubChecksServiceV2,
   required CommitService commitService,
   required GerritService gerritService,
   required Scheduler scheduler,
+  required SchedulerV2 schedulerV2,
 }) {
   final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
     '/api/check_flaky_builders': CheckFlakyBuilders(
@@ -73,12 +80,6 @@ Server createServer({
       scheduler: scheduler,
       commitService: commitService,
     ),
-    // TODO remove this when testing is finished.
-    '/api/build-bucket-version-two': BuildBucketVersionTwo(
-      cache: cache,
-      config: config,
-      buildBucketV2Client: buildBucketV2Client,
-    ),
     '/api/presubmit-luci-subscription': PresubmitLuciSubscription(
       cache: cache,
       config: config,
@@ -86,18 +87,24 @@ Server createServer({
       githubChecksService: githubChecksService,
       scheduler: scheduler,
     ),
-    // '/api/v2/presubmit-luci-subscription': PresubmitLuciSubscriptionV2(
-    //   cache: cache,
-    //   config: config,
-    //   luciBuildService: luciBuildService,
-    //   githubChecksService: githubChecksService,
-    //   scheduler: scheduler,
-    // ),
+    '/api/v2/presubmit-luci-subscription': PresubmitLuciSubscriptionV2(
+      cache: cache,
+      config: config,
+      luciBuildService: luciBuildServiceV2,
+      githubChecksService: githubChecksServiceV2,
+      scheduler: schedulerV2,
+    ),
     '/api/postsubmit-luci-subscription': PostsubmitLuciSubscription(
       cache: cache,
       config: config,
       scheduler: scheduler,
       githubChecksService: githubChecksService,
+    ),
+    '/api/v2/postsubmit-luci-subscription': PostsubmitLuciSubscriptionV2(
+      cache: cache,
+      config: config,
+      scheduler: schedulerV2,
+      githubChecksService: githubChecksServiceV2,
     ),
     '/api/push-build-status-to-github': PushBuildStatusToGithub(
       config: config,
@@ -107,16 +114,17 @@ Server createServer({
       config: config,
       authenticationProvider: authProvider,
     ),
+    // I do not believe these recieve a build message.
     '/api/reset-prod-task': ResetProdTask(
       config: config,
       authenticationProvider: authProvider,
-      luciBuildService: luciBuildService,
-      scheduler: scheduler,
+      luciBuildService: luciBuildServiceV2,
+      scheduler: schedulerV2,
     ),
     '/api/reset-try-task': ResetTryTask(
       config: config,
       authenticationProvider: authProvider,
-      scheduler: scheduler,
+      scheduler: schedulerV2,
     ),
     '/api/scheduler/batch-backfiller': BatchBackfiller(
       config: config,

@@ -28,12 +28,6 @@ import 'build_bucket_v2_client.dart';
 import 'exceptions.dart';
 import 'github_service.dart';
 
-const Set<String> taskFailStatusSet = <String>{
-  Task.statusInfraFailure,
-  Task.statusFailed,
-  Task.statusCancelled,
-};
-
 /// Class to interact with LUCI buildbucket to get, trigger
 /// and cancel builds for github repos. It uses [config.luciTryBuilders] to
 /// get the list of available builders.
@@ -870,7 +864,7 @@ class LuciBuildService {
   ///
   /// A rerun happens when a build fails, the retry number hasn't reached the limit, and the build is on TOT.
   Future<bool> _shouldRerunBuilder(Task task, Commit commit, DatastoreService? datastore) async {
-    if (!taskFailStatusSet.contains(task.status)) {
+    if (!Task.taskFailStatusSet.contains(task.status)) {
       return false;
     }
     final int retries = task.attempts ?? 1;

@@ -29,7 +29,7 @@ import '../service/logging.dart';
 /// arrive, they are posted to this web service.
 ///
 /// The PubSub subscription is set up here:
-/// https://console.cloud.google.com/cloudpubsub/subscription/detail/github-updater?project=flutter-dashboard
+/// https://console.cloud.google.com/cloudpubsub/subscription/detail/build-bucket-presubmit-sub?project=flutter-dashboard
 ///
 /// This endpoint is responsible for updating GitHub with the status of
 /// completed builds from LUCI.
@@ -43,7 +43,7 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     required this.luciBuildService,
     required this.githubChecksService,
     AuthenticationProvider? authProvider,
-  }) : super(subscriptionName: 'github-updater');
+  }) : super(subscriptionName: 'build-bucket-presubmit-sub');
 
   final LuciBuildServiceV2 luciBuildService;
   final GithubChecksServiceV2 githubChecksService;

@@ -29,12 +29,6 @@ import 'build_bucket_v2_client.dart';
 import 'exceptions.dart';
 import 'github_service.dart';
 
-const Set<String> taskFailStatusSet = <String>{
-  Task.statusInfraFailure,
-  Task.statusFailed,
-  Task.statusCancelled,
-};
-
 /// Class to interact with LUCI buildbucket to get, trigger
 /// and cancel builds for github repos. It uses [config.luciTryBuilders] to
 /// get the list of available builders.
@@ -395,7 +389,7 @@ class LuciBuildServiceV2 {
         tags: tags,
         properties: build.input.properties,
         notify: bbv2.NotificationConfig(
-          pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
+          pubsubTopic: 'projects/flutter-dashboard/topics/build-bucket-presubmit',
           userData: UserData.encodeUserDataToBytes(userDataMap),
         ),
       ),
@@ -709,7 +703,7 @@ class LuciBuildServiceV2 {
 
     // Create the notification configuration for pubsub processing.
     final bbv2.NotificationConfig notificationConfig = bbv2.NotificationConfig().createEmptyInstance();
-    notificationConfig.pubsubTopic = 'projects/flutter-dashboard/topics/bbv2-test-topic';
+    notificationConfig.pubsubTopic = 'projects/flutter-dashboard/topics/build-bucket-presubmit';
     notificationConfig.userData = json.encode(processedUserData).codeUnits;
     scheduleBuildRequest.notify = notificationConfig;
 
@@ -850,7 +844,7 @@ class LuciBuildServiceV2 {
         id: commit.sha,
       ),
       notify: bbv2.NotificationConfig(
-        pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds-prod',
+        pubsubTopic: 'projects/flutter-dashboard/topics/build-bucket-postsubmit',
         userData: UserData.encodeUserDataToBytes(rawUserData),
       ),
       tags: tags,
@@ -976,7 +970,7 @@ class LuciBuildServiceV2 {
     required Commit commit,
     required DatastoreService? datastore,
   }) async {
-    if (!taskFailStatusSet.contains(task.status)) {
+    if (!Task.taskFailStatusSet.contains(task.status)) {
       return false;
     }
     final int retries = task.attempts ?? 1;
