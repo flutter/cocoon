@@ -6,7 +6,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/request_handlers/build_bucket_version_two.dart';
 import 'package:cocoon_service/src/request_handlers/postsubmit_luci_subscription_v2.dart';
 import 'package:cocoon_service/src/request_handlers/presubmit_luci_subscription_v2.dart';
 import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
@@ -77,7 +76,9 @@ Server createServer({
       cache: cache,
       gerritService: gerritService,
       githubChecksService: githubChecksService,
+      githubChecksServiceV2: githubChecksServiceV2,
       scheduler: scheduler,
+      schedulerV2: schedulerV2,
       commitService: commitService,
     ),
     '/api/presubmit-luci-subscription': PresubmitLuciSubscription(

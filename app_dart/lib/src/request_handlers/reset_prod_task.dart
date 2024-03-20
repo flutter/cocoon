@@ -150,14 +150,10 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final String documentName =
         '$kDatabase/documents/${firestore.kTaskCollectionId}/${sha}_${taskName}_$currentAttempt';
     try {
-      taskDocument = await firestore.Task.fromFirestore(firestoreService: firestoreService, documentName: documentName);
+      taskDocument = await firestore.Task.fromFirestore(firestoreService: firestoreService, documentName: documentName,);
     } catch (error) {
       log.warning('Failed to read task $documentName from Firestore: $error');
     }
-    // final Map<String, List<String>> tags = <String, List<String>>{
-    //   'triggered_by': <String>[email],
-    //   'trigger_type': <String>['manual_retry'],
-    // };
 
     final List<bbv2.StringPair> tags = <bbv2.StringPair>[
       bbv2.StringPair(key: 'triggered_by', value: email),

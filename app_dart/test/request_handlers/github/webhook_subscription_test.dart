@@ -114,8 +114,8 @@ void main() {
       cache: CacheService(inMemory: true),
       datastoreProvider: (_) => DatastoreService(config.db, 5),
       gerritService: gerritService,
-      githubChecksService: mockGithubChecksService,
-      scheduler: scheduler,
+      githubChecksServiceV2: mockGithubChecksService,
+      schedulerV2: scheduler,
       commitService: commitService,
     );
   });

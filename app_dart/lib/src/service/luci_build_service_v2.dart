@@ -399,8 +399,9 @@ class LuciBuildServiceV2 {
   /// Sends presubmit [ScheduleBuildRequest] for a pull request using [checkRunEvent].
   ///
   /// Returns the [bbv2.Build] returned by scheduleBuildRequest.
-  Future<bbv2.Build> reschedulePresubmitBuildUsingCheckRunEvent(
-      {required cocoon_checks.CheckRunEvent checkRunEvent}) async {
+  Future<bbv2.Build> reschedulePresubmitBuildUsingCheckRunEvent({
+    required cocoon_checks.CheckRunEvent checkRunEvent,
+  }) async {
     final github.RepositorySlug slug = checkRunEvent.repository!.slug();
 
     final String sha = checkRunEvent.checkRun!.headSha!;
@@ -774,8 +775,9 @@ class LuciBuildServiceV2 {
         value: 'commit/git/${commit.sha}',
       ),
       bbv2.StringPair(
-          key: 'buildset',
-          value: 'commit/gitiles/flutter.googlesource.com/mirrors/${commit.slug.name}/+/${commit.sha}'),
+        key: 'buildset',
+        value: 'commit/gitiles/flutter.googlesource.com/mirrors/${commit.slug.name}/+/${commit.sha}',
+      ),
     ]);
 
     final String commitKey = task.parentKey!.id.toString();
@@ -798,22 +800,28 @@ class LuciBuildServiceV2 {
       );
     }
 
-    tags.add(bbv2.StringPair(
-      key: 'user_agent',
-      value: 'flutter-cocoon',
-    ));
+    tags.add(
+      bbv2.StringPair(
+        key: 'user_agent',
+        value: 'flutter-cocoon',
+      ),
+    );
     // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
-    tags.add(bbv2.StringPair(
-      key: 'scheduler_job_id',
-      value: 'flutter/${target.value.name}',
-    ));
+    tags.add(
+      bbv2.StringPair(
+        key: 'scheduler_job_id',
+        value: 'flutter/${target.value.name}',
+      ),
+    );
     // Default attempt is the initial attempt, which is 1.
     final bbv2.StringPair? attemptTag = tags.singleWhereOrNull((tag) => tag.key == 'current_attempt');
     if (attemptTag == null) {
-      tags.add(bbv2.StringPair(
-        key: 'current_attempt',
-        value: '1',
-      ));
+      tags.add(
+        bbv2.StringPair(
+          key: 'current_attempt',
+          value: '1',
+        ),
+      );
     }
 
     final Map<String, Object> processedProperties = target.getProperties();
@@ -905,10 +913,12 @@ class LuciBuildServiceV2 {
     final bbv2.StringPair? triggerTag =
         tags.singleWhereOrNull((element) => element.key == 'trigger_type' && element.value == 'auto_retry');
     if (triggerTag == null) {
-      tags.add(bbv2.StringPair(
-        key: 'trigger_type',
-        value: 'auto_retry',
-      ));
+      tags.add(
+        bbv2.StringPair(
+          key: 'trigger_type',
+          value: 'auto_retry',
+        ),
+      );
     }
 
     // TODO(keyonghan): remove check when [ResetProdTask] supports firestore update.
@@ -919,10 +929,12 @@ class LuciBuildServiceV2 {
         if (attemptTag != null) {
           tags.remove(attemptTag);
         }
-        tags.add(bbv2.StringPair(
-          key: 'current_attempt',
-          value: newAttempt.toString(),
-        ));
+        tags.add(
+          bbv2.StringPair(
+            key: 'current_attempt',
+            value: newAttempt.toString(),
+          ),
+        );
 
         taskDocument.resetAsRetry(attempt: newAttempt);
         final List<Write> writes = documentsToWrites(
