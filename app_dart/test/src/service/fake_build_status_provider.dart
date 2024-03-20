@@ -15,6 +15,7 @@ class FakeBuildStatusService implements BuildStatusService {
 
   BuildStatus? cumulativeStatus;
   List<CommitStatus>? commitStatuses;
+  List<CommitTasksStatus>? commitTasksStatuses;
 
   @override
   Future<BuildStatus?> calculateCumulativeStatus(RepositorySlug slug) async {
@@ -43,6 +44,29 @@ class FakeBuildStatusService implements BuildStatusService {
                 ? true
                 : commitStatus.commit.timestamp! < timestamp) &&
             commitStatus.commit.branch == branch,
+      ),
+    );
+  }
+
+  @override
+  Stream<CommitTasksStatus> retrieveCommitStatusFirestore({
+    int limit = 100,
+    int? timestamp,
+    String? branch,
+    required RepositorySlug slug,
+  }) {
+    if (commitStatuses == null) {
+      throw AssertionError();
+    }
+    commitStatuses!.sort((CommitStatus a, CommitStatus b) => a.commit.timestamp!.compareTo(b.commit.timestamp!));
+
+    return Stream<CommitTasksStatus>.fromIterable(
+      commitTasksStatuses!.where(
+        (CommitTasksStatus commitTasksStatus) =>
+            ((commitTasksStatus.commit.createTimestamp == null || timestamp == null)
+                ? true
+                : commitTasksStatus.commit.createTimestamp! < timestamp) &&
+            commitTasksStatus.commit.branch == branch,
       ),
     );
   }
