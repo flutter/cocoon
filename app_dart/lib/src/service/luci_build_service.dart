@@ -16,7 +16,7 @@ import 'package:googleapis/pubsub/v1.dart';
 import '../foundation/github_checks_util.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
-import '../model/firestore/task.dart' as f;
+import '../model/firestore/task.dart' as firestore;
 import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/buildbucket.dart';
@@ -606,6 +606,7 @@ class LuciBuildService {
     final Map<String, dynamic> rawUserData = <String, dynamic>{
       'commit_key': commitKey,
       'task_key': taskKey,
+      'firestore_commit_document_name': commit.sha,
     };
 
     // Creates post submit checkrun only for unflaky targets from [config.postsubmitSupportedRepos].
@@ -618,6 +619,9 @@ class LuciBuildService {
     tags['scheduler_job_id'] = <String>['flutter/${target.value.name}'];
     // Default attempt is the initial attempt, which is 1.
     tags['current_attempt'] = tags['current_attempt'] ?? <String>['1'];
+    final String currentAttempt = tags['current_attempt']!.single;
+    rawUserData['firestore_task_document_name'] = '${commit.sha}_${task.name}_$currentAttempt';
+
     final Map<String, Object> processedProperties = target.getProperties();
     processedProperties.addAll(properties ?? <String, Object>{});
     processedProperties['git_branch'] = commit.branch!;
@@ -684,7 +688,7 @@ class LuciBuildService {
     FirestoreService? firestoreService,
     Map<String, List<String>>? tags,
     bool ignoreChecks = false,
-    f.Task? taskDocument,
+    firestore.Task? taskDocument,
   }) async {
     if (ignoreChecks == false && await _shouldRerunBuilder(task, commit, datastore) == false) {
       return false;
@@ -699,6 +703,7 @@ class LuciBuildService {
         final int newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
         tags['current_attempt'] = <String>[newAttempt.toString()];
         taskDocument.resetAsRetry(attempt: newAttempt);
+        taskDocument.setStatus(firestore.Task.statusInProgress);
         final List<Write> writes = documentsToWrites([taskDocument], exists: false);
         await firestoreService!.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
       } catch (error) {

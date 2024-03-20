@@ -63,6 +63,21 @@ class GithubBuildStatus extends Document {
 
   int? get updates => int.parse(fields![kGithubBuildStatusUpdatesField]!.integerValue!);
 
+  String setStatus(String status) {
+    fields![kGithubBuildStatusStatusField] = Value(stringValue: status);
+    return status;
+  }
+
+  int setUpdates(int updates) {
+    fields![kGithubBuildStatusUpdatesField] = Value(integerValue: updates.toString());
+    return updates;
+  }
+
+  int setUpdateTimeMillis(int updateTimeMillis) {
+    fields![kGithubBuildStatusUpdateTimeMillisField] = Value(integerValue: updateTimeMillis.toString());
+    return updateTimeMillis;
+  }
+
   @override
   String toString() {
     final StringBuffer buf = StringBuffer()
