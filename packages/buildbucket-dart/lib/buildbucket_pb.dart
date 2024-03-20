@@ -4,8 +4,6 @@
 
 library buildbucket;
 
-import 'package:buildbucket/src/generated/go.chromium.org/luci/buildbucket/proto/project_config.pb.dart';
-
 export 'src/generated/go.chromium.org/luci/buildbucket/proto/build.pb.dart'
     show
         Build,
