@@ -4,6 +4,8 @@
 
 library buildbucket;
 
+import 'package:buildbucket/src/generated/go.chromium.org/luci/buildbucket/proto/project_config.pb.dart';
+
 export 'src/generated/go.chromium.org/luci/buildbucket/proto/build.pb.dart'
     show
         Build,
@@ -77,6 +79,14 @@ export 'src/generated/go.chromium.org/luci/buildbucket/proto/common.pb.dart'
 export 'src/generated/go.chromium.org/luci/buildbucket/proto/common.pbenum.dart';
 export 'src/generated/go.chromium.org/luci/buildbucket/proto/notification.pb.dart'
     show NotificationConfig, BuildsV2PubSub, PubSubCallBack;
+
+// resultsDb
+export 'src/generated/go.chromium.org/luci/resultdb/sink/proto/v1/test_result.pb.dart'
+    show TestResult, TestResultFile, TestResultFile_Format, Artifact, Artifact_Body;
+export 'src/generated/go.chromium.org/luci/resultdb/sink/proto/v1/sink.pb.dart'
+    show ReportTestResultsRequest, ReportTestResultsResponse, ReportInvocationLevelArtifactsRequest;
+export 'src/generated/go.chromium.org/luci/resultdb/sink/proto/v1/location_tag.pb.dart'
+    show LocationTags, LocationTags_Dir, LocationTags_File, LocationTags_Repo;
 
 export 'src/generated/google/protobuf/struct.pb.dart' show Struct, Value, Value_Kind, NullValue, ListValue;
 export 'src/generated/google/protobuf/any.pb.dart' show Any;
