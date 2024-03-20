@@ -86,36 +86,46 @@ class TestResult extends $pb.GeneratedMessage {
     return $result;
   }
   TestResult._() : super();
-  factory TestResult.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory TestResult.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory TestResult.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory TestResult.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TestResult', package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TestResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'testId')
     ..aOS(2, _omitFieldNames ? '' : 'resultId')
     ..aOB(3, _omitFieldNames ? '' : 'expected')
-    ..e<$6.TestStatus>(4, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE, defaultOrMaker: $6.TestStatus.STATUS_UNSPECIFIED, valueOf: $6.TestStatus.valueOf, enumValues: $6.TestStatus.values)
+    ..e<$6.TestStatus>(4, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE,
+        defaultOrMaker: $6.TestStatus.STATUS_UNSPECIFIED,
+        valueOf: $6.TestStatus.valueOf,
+        enumValues: $6.TestStatus.values)
     ..aOS(5, _omitFieldNames ? '' : 'summaryHtml')
     ..aOM<$0.Timestamp>(6, _omitFieldNames ? '' : 'startTime', subBuilder: $0.Timestamp.create)
     ..aOM<$1.Duration>(7, _omitFieldNames ? '' : 'duration', subBuilder: $1.Duration.create)
     ..pc<$2.StringPair>(8, _omitFieldNames ? '' : 'tags', $pb.PbFieldType.PM, subBuilder: $2.StringPair.create)
-    ..m<$core.String, Artifact>(9, _omitFieldNames ? '' : 'artifacts', entryClassName: 'TestResult.ArtifactsEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OM, valueCreator: Artifact.create, valueDefaultOrMaker: Artifact.getDefault, packageName: const $pb.PackageName('luci.resultsink.v1'))
+    ..m<$core.String, Artifact>(9, _omitFieldNames ? '' : 'artifacts',
+        entryClassName: 'TestResult.ArtifactsEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OM,
+        valueCreator: Artifact.create,
+        valueDefaultOrMaker: Artifact.getDefault,
+        packageName: const $pb.PackageName('luci.resultsink.v1'))
     ..aOM<$3.TestMetadata>(11, _omitFieldNames ? '' : 'testMetadata', subBuilder: $3.TestMetadata.create)
     ..aOM<$4.FailureReason>(12, _omitFieldNames ? '' : 'failureReason', subBuilder: $4.FailureReason.create)
     ..aOM<$2.Variant>(13, _omitFieldNames ? '' : 'variant', subBuilder: $2.Variant.create)
     ..aOM<$5.Struct>(14, _omitFieldNames ? '' : 'properties', subBuilder: $5.Struct.create)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   TestResult clone() => TestResult()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  TestResult copyWith(void Function(TestResult) updates) => super.copyWith((message) => updates(message as TestResult)) as TestResult;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  TestResult copyWith(void Function(TestResult) updates) =>
+      super.copyWith((message) => updates(message as TestResult)) as TestResult;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -131,7 +141,10 @@ class TestResult extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get testId => $_getSZ(0);
   @$pb.TagNumber(1)
-  set testId($core.String v) { $_setString(0, v); }
+  set testId($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasTestId() => $_has(0);
   @$pb.TagNumber(1)
@@ -143,7 +156,10 @@ class TestResult extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get resultId => $_getSZ(1);
   @$pb.TagNumber(2)
-  set resultId($core.String v) { $_setString(1, v); }
+  set resultId($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasResultId() => $_has(1);
   @$pb.TagNumber(2)
@@ -153,7 +169,10 @@ class TestResult extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.bool get expected => $_getBF(2);
   @$pb.TagNumber(3)
-  set expected($core.bool v) { $_setBool(2, v); }
+  set expected($core.bool v) {
+    $_setBool(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasExpected() => $_has(2);
   @$pb.TagNumber(3)
@@ -163,7 +182,10 @@ class TestResult extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $6.TestStatus get status => $_getN(3);
   @$pb.TagNumber(4)
-  set status($6.TestStatus v) { setField(4, v); }
+  set status($6.TestStatus v) {
+    setField(4, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasStatus() => $_has(3);
   @$pb.TagNumber(4)
@@ -173,7 +195,10 @@ class TestResult extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.String get summaryHtml => $_getSZ(4);
   @$pb.TagNumber(5)
-  set summaryHtml($core.String v) { $_setString(4, v); }
+  set summaryHtml($core.String v) {
+    $_setString(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasSummaryHtml() => $_has(4);
   @$pb.TagNumber(5)
@@ -183,7 +208,10 @@ class TestResult extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $0.Timestamp get startTime => $_getN(5);
   @$pb.TagNumber(6)
-  set startTime($0.Timestamp v) { setField(6, v); }
+  set startTime($0.Timestamp v) {
+    setField(6, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasStartTime() => $_has(5);
   @$pb.TagNumber(6)
@@ -195,7 +223,10 @@ class TestResult extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $1.Duration get duration => $_getN(6);
   @$pb.TagNumber(7)
-  set duration($1.Duration v) { setField(7, v); }
+  set duration($1.Duration v) {
+    setField(7, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasDuration() => $_has(6);
   @$pb.TagNumber(7)
@@ -216,7 +247,10 @@ class TestResult extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   $3.TestMetadata get testMetadata => $_getN(9);
   @$pb.TagNumber(11)
-  set testMetadata($3.TestMetadata v) { setField(11, v); }
+  set testMetadata($3.TestMetadata v) {
+    setField(11, v);
+  }
+
   @$pb.TagNumber(11)
   $core.bool hasTestMetadata() => $_has(9);
   @$pb.TagNumber(11)
@@ -228,7 +262,10 @@ class TestResult extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   $4.FailureReason get failureReason => $_getN(10);
   @$pb.TagNumber(12)
-  set failureReason($4.FailureReason v) { setField(12, v); }
+  set failureReason($4.FailureReason v) {
+    setField(12, v);
+  }
+
   @$pb.TagNumber(12)
   $core.bool hasFailureReason() => $_has(10);
   @$pb.TagNumber(12)
@@ -243,7 +280,10 @@ class TestResult extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   $2.Variant get variant => $_getN(11);
   @$pb.TagNumber(13)
-  set variant($2.Variant v) { setField(13, v); }
+  set variant($2.Variant v) {
+    setField(13, v);
+  }
+
   @$pb.TagNumber(13)
   $core.bool hasVariant() => $_has(11);
   @$pb.TagNumber(13)
@@ -258,7 +298,10 @@ class TestResult extends $pb.GeneratedMessage {
   @$pb.TagNumber(14)
   $5.Struct get properties => $_getN(12);
   @$pb.TagNumber(14)
-  set properties($5.Struct v) { setField(14, v); }
+  set properties($5.Struct v) {
+    setField(14, v);
+  }
+
   @$pb.TagNumber(14)
   $core.bool hasProperties() => $_has(12);
   @$pb.TagNumber(14)
@@ -267,12 +310,7 @@ class TestResult extends $pb.GeneratedMessage {
   $5.Struct ensureProperties() => $_ensure(12);
 }
 
-enum Artifact_Body {
-  filePath, 
-  contents, 
-  gcsUri, 
-  notSet
-}
+enum Artifact_Body { filePath, contents, gcsUri, notSet }
 
 /// A local equivalent of luci.resultdb.Artifact message
 /// in ../../rpc/v1/artifact.proto.
@@ -303,34 +341,35 @@ class Artifact extends $pb.GeneratedMessage {
     return $result;
   }
   Artifact._() : super();
-  factory Artifact.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory Artifact.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory Artifact.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Artifact.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static const $core.Map<$core.int, Artifact_Body> _Artifact_BodyByTag = {
-    1 : Artifact_Body.filePath,
-    2 : Artifact_Body.contents,
-    4 : Artifact_Body.gcsUri,
-    0 : Artifact_Body.notSet
+    1: Artifact_Body.filePath,
+    2: Artifact_Body.contents,
+    4: Artifact_Body.gcsUri,
+    0: Artifact_Body.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Artifact', package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Artifact',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'), createEmptyInstance: create)
     ..oo(0, [1, 2, 4])
     ..aOS(1, _omitFieldNames ? '' : 'filePath')
     ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'contents', $pb.PbFieldType.OY)
     ..aOS(3, _omitFieldNames ? '' : 'contentType')
     ..aOS(4, _omitFieldNames ? '' : 'gcsUri')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   Artifact clone() => Artifact()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  Artifact copyWith(void Function(Artifact) updates) => super.copyWith((message) => updates(message as Artifact)) as Artifact;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  Artifact copyWith(void Function(Artifact) updates) =>
+      super.copyWith((message) => updates(message as Artifact)) as Artifact;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -350,7 +389,10 @@ class Artifact extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get filePath => $_getSZ(0);
   @$pb.TagNumber(1)
-  set filePath($core.String v) { $_setString(0, v); }
+  set filePath($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasFilePath() => $_has(0);
   @$pb.TagNumber(1)
@@ -362,7 +404,10 @@ class Artifact extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.List<$core.int> get contents => $_getN(1);
   @$pb.TagNumber(2)
-  set contents($core.List<$core.int> v) { $_setBytes(1, v); }
+  set contents($core.List<$core.int> v) {
+    $_setBytes(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasContents() => $_has(1);
   @$pb.TagNumber(2)
@@ -372,7 +417,10 @@ class Artifact extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.String get contentType => $_getSZ(2);
   @$pb.TagNumber(3)
-  set contentType($core.String v) { $_setString(2, v); }
+  set contentType($core.String v) {
+    $_setString(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasContentType() => $_has(2);
   @$pb.TagNumber(3)
@@ -382,7 +430,10 @@ class Artifact extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.String get gcsUri => $_getSZ(3);
   @$pb.TagNumber(4)
-  set gcsUri($core.String v) { $_setString(3, v); }
+  set gcsUri($core.String v) {
+    $_setString(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasGcsUri() => $_has(3);
   @$pb.TagNumber(4)
@@ -405,25 +456,29 @@ class TestResultFile extends $pb.GeneratedMessage {
     return $result;
   }
   TestResultFile._() : super();
-  factory TestResultFile.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory TestResultFile.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory TestResultFile.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory TestResultFile.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TestResultFile', package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TestResultFile',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'path')
-    ..e<TestResultFile_Format>(2, _omitFieldNames ? '' : 'format', $pb.PbFieldType.OE, defaultOrMaker: TestResultFile_Format.LUCI, valueOf: TestResultFile_Format.valueOf, enumValues: TestResultFile_Format.values)
-    ..hasRequiredFields = false
-  ;
+    ..e<TestResultFile_Format>(2, _omitFieldNames ? '' : 'format', $pb.PbFieldType.OE,
+        defaultOrMaker: TestResultFile_Format.LUCI,
+        valueOf: TestResultFile_Format.valueOf,
+        enumValues: TestResultFile_Format.values)
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   TestResultFile clone() => TestResultFile()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  TestResultFile copyWith(void Function(TestResultFile) updates) => super.copyWith((message) => updates(message as TestResultFile)) as TestResultFile;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  TestResultFile copyWith(void Function(TestResultFile) updates) =>
+      super.copyWith((message) => updates(message as TestResultFile)) as TestResultFile;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -440,7 +495,10 @@ class TestResultFile extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get path => $_getSZ(0);
   @$pb.TagNumber(1)
-  set path($core.String v) { $_setString(0, v); }
+  set path($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasPath() => $_has(0);
   @$pb.TagNumber(1)
@@ -450,13 +508,15 @@ class TestResultFile extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   TestResultFile_Format get format => $_getN(1);
   @$pb.TagNumber(2)
-  set format(TestResultFile_Format v) { setField(2, v); }
+  set format(TestResultFile_Format v) {
+    setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasFormat() => $_has(1);
   @$pb.TagNumber(2)
   void clearFormat() => clearField(2);
 }
-
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
 const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');

@@ -22,9 +22,9 @@ const ReportTestResultsRequest$json = {
 };
 
 /// Descriptor for `ReportTestResultsRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List reportTestResultsRequestDescriptor = $convert.base64Decode(
-    'ChhSZXBvcnRUZXN0UmVzdWx0c1JlcXVlc3QSQQoMdGVzdF9yZXN1bHRzGAEgAygLMh4ubHVjaS'
-    '5yZXN1bHRzaW5rLnYxLlRlc3RSZXN1bHRSC3Rlc3RSZXN1bHRz');
+final $typed_data.Uint8List reportTestResultsRequestDescriptor =
+    $convert.base64Decode('ChhSZXBvcnRUZXN0UmVzdWx0c1JlcXVlc3QSQQoMdGVzdF9yZXN1bHRzGAEgAygLMh4ubHVjaS'
+        '5yZXN1bHRzaW5rLnYxLlRlc3RSZXN1bHRSC3Rlc3RSZXN1bHRz');
 
 @$core.Deprecated('Use reportTestResultsResponseDescriptor instead')
 const ReportTestResultsResponse$json = {
@@ -35,15 +35,22 @@ const ReportTestResultsResponse$json = {
 };
 
 /// Descriptor for `ReportTestResultsResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List reportTestResultsResponseDescriptor = $convert.base64Decode(
-    'ChlSZXBvcnRUZXN0UmVzdWx0c1Jlc3BvbnNlEioKEXRlc3RfcmVzdWx0X25hbWVzGAEgAygJUg'
-    '90ZXN0UmVzdWx0TmFtZXM=');
+final $typed_data.Uint8List reportTestResultsResponseDescriptor =
+    $convert.base64Decode('ChlSZXBvcnRUZXN0UmVzdWx0c1Jlc3BvbnNlEioKEXRlc3RfcmVzdWx0X25hbWVzGAEgAygJUg'
+        '90ZXN0UmVzdWx0TmFtZXM=');
 
 @$core.Deprecated('Use reportInvocationLevelArtifactsRequestDescriptor instead')
 const ReportInvocationLevelArtifactsRequest$json = {
   '1': 'ReportInvocationLevelArtifactsRequest',
   '2': [
-    {'1': 'artifacts', '3': 1, '4': 3, '5': 11, '6': '.luci.resultsink.v1.ReportInvocationLevelArtifactsRequest.ArtifactsEntry', '10': 'artifacts'},
+    {
+      '1': 'artifacts',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.luci.resultsink.v1.ReportInvocationLevelArtifactsRequest.ArtifactsEntry',
+      '10': 'artifacts'
+    },
   ],
   '3': [ReportInvocationLevelArtifactsRequest_ArtifactsEntry$json],
 };
@@ -59,10 +66,9 @@ const ReportInvocationLevelArtifactsRequest_ArtifactsEntry$json = {
 };
 
 /// Descriptor for `ReportInvocationLevelArtifactsRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List reportInvocationLevelArtifactsRequestDescriptor = $convert.base64Decode(
-    'CiVSZXBvcnRJbnZvY2F0aW9uTGV2ZWxBcnRpZmFjdHNSZXF1ZXN0EmYKCWFydGlmYWN0cxgBIA'
-    'MoCzJILmx1Y2kucmVzdWx0c2luay52MS5SZXBvcnRJbnZvY2F0aW9uTGV2ZWxBcnRpZmFjdHNS'
-    'ZXF1ZXN0LkFydGlmYWN0c0VudHJ5UglhcnRpZmFjdHMaWgoOQXJ0aWZhY3RzRW50cnkSEAoDa2'
-    'V5GAEgASgJUgNrZXkSMgoFdmFsdWUYAiABKAsyHC5sdWNpLnJlc3VsdHNpbmsudjEuQXJ0aWZh'
-    'Y3RSBXZhbHVlOgI4AQ==');
-
+final $typed_data.Uint8List reportInvocationLevelArtifactsRequestDescriptor =
+    $convert.base64Decode('CiVSZXBvcnRJbnZvY2F0aW9uTGV2ZWxBcnRpZmFjdHNSZXF1ZXN0EmYKCWFydGlmYWN0cxgBIA'
+        'MoCzJILmx1Y2kucmVzdWx0c2luay52MS5SZXBvcnRJbnZvY2F0aW9uTGV2ZWxBcnRpZmFjdHNS'
+        'ZXF1ZXN0LkFydGlmYWN0c0VudHJ5UglhcnRpZmFjdHMaWgoOQXJ0aWZhY3RzRW50cnkSEAoDa2'
+        'V5GAEgASgJUgNrZXkSMgoFdmFsdWUYAiABKAsyHC5sdWNpLnJlc3VsdHNpbmsudjEuQXJ0aWZh'
+        'Y3RSBXZhbHVlOgI4AQ==');

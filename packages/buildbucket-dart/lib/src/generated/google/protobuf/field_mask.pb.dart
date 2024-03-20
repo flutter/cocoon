@@ -224,24 +224,28 @@ class FieldMask extends $pb.GeneratedMessage with $mixin.FieldMaskMixin {
     return $result;
   }
   FieldMask._() : super();
-  factory FieldMask.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory FieldMask.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory FieldMask.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory FieldMask.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'FieldMask', package: const $pb.PackageName(_omitMessageNames ? '' : 'google.protobuf'), createEmptyInstance: create, toProto3Json: $mixin.FieldMaskMixin.toProto3JsonHelper, fromProto3Json: $mixin.FieldMaskMixin.fromProto3JsonHelper)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'FieldMask',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'google.protobuf'),
+      createEmptyInstance: create,
+      toProto3Json: $mixin.FieldMaskMixin.toProto3JsonHelper,
+      fromProto3Json: $mixin.FieldMaskMixin.fromProto3JsonHelper)
     ..pPS(1, _omitFieldNames ? '' : 'paths')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   FieldMask clone() => FieldMask()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  FieldMask copyWith(void Function(FieldMask) updates) => super.copyWith((message) => updates(message as FieldMask)) as FieldMask;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  FieldMask copyWith(void Function(FieldMask) updates) =>
+      super.copyWith((message) => updates(message as FieldMask)) as FieldMask;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -257,7 +261,6 @@ class FieldMask extends $pb.GeneratedMessage with $mixin.FieldMaskMixin {
   @$pb.TagNumber(1)
   $core.List<$core.String> get paths => $_getList(0);
 }
-
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
 const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');

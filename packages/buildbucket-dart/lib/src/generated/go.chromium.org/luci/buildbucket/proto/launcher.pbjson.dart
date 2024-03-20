@@ -24,10 +24,10 @@ const BuildSecrets$json = {
 };
 
 /// Descriptor for `BuildSecrets`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List buildSecretsDescriptor = $convert.base64Decode(
-    'CgxCdWlsZFNlY3JldHMSHwoLYnVpbGRfdG9rZW4YASABKAlSCmJ1aWxkVG9rZW4SRwogcmVzdW'
-    'x0ZGJfaW52b2NhdGlvbl91cGRhdGVfdG9rZW4YAiABKAlSHXJlc3VsdGRiSW52b2NhdGlvblVw'
-    'ZGF0ZVRva2VuEioKEXN0YXJ0X2J1aWxkX3Rva2VuGAMgASgJUg9zdGFydEJ1aWxkVG9rZW4=');
+final $typed_data.Uint8List buildSecretsDescriptor =
+    $convert.base64Decode('CgxCdWlsZFNlY3JldHMSHwoLYnVpbGRfdG9rZW4YASABKAlSCmJ1aWxkVG9rZW4SRwogcmVzdW'
+        'x0ZGJfaW52b2NhdGlvbl91cGRhdGVfdG9rZW4YAiABKAlSHXJlc3VsdGRiSW52b2NhdGlvblVw'
+        'ZGF0ZVRva2VuEioKEXN0YXJ0X2J1aWxkX3Rva2VuGAMgASgJUg9zdGFydEJ1aWxkVG9rZW4=');
 
 @$core.Deprecated('Use bBAgentArgsDescriptor instead')
 const BBAgentArgs$json = {
@@ -42,11 +42,11 @@ const BBAgentArgs$json = {
 };
 
 /// Descriptor for `BBAgentArgs`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List bBAgentArgsDescriptor = $convert.base64Decode(
-    'CgtCQkFnZW50QXJncxInCg9leGVjdXRhYmxlX3BhdGgYASABKAlSDmV4ZWN1dGFibGVQYXRoEi'
-    'EKDHBheWxvYWRfcGF0aBgFIAEoCVILcGF5bG9hZFBhdGgSGwoJY2FjaGVfZGlyGAIgASgJUghj'
-    'YWNoZURpchI5Chlrbm93bl9wdWJsaWNfZ2Vycml0X2hvc3RzGAMgAygJUhZrbm93blB1YmxpY0'
-    'dlcnJpdEhvc3RzEisKBWJ1aWxkGAQgASgLMhUuYnVpbGRidWNrZXQudjIuQnVpbGRSBWJ1aWxk');
+final $typed_data.Uint8List bBAgentArgsDescriptor =
+    $convert.base64Decode('CgtCQkFnZW50QXJncxInCg9leGVjdXRhYmxlX3BhdGgYASABKAlSDmV4ZWN1dGFibGVQYXRoEi'
+        'EKDHBheWxvYWRfcGF0aBgFIAEoCVILcGF5bG9hZFBhdGgSGwoJY2FjaGVfZGlyGAIgASgJUghj'
+        'YWNoZURpchI5Chlrbm93bl9wdWJsaWNfZ2Vycml0X2hvc3RzGAMgAygJUhZrbm93blB1YmxpY0'
+        'dlcnJpdEhvc3RzEisKBWJ1aWxkGAQgASgLMhUuYnVpbGRidWNrZXQudjIuQnVpbGRSBWJ1aWxk');
 
 @$core.Deprecated('Use buildbucketAgentContextDescriptor instead')
 const BuildbucketAgentContext$json = {
@@ -58,7 +58,6 @@ const BuildbucketAgentContext$json = {
 };
 
 /// Descriptor for `BuildbucketAgentContext`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List buildbucketAgentContextDescriptor = $convert.base64Decode(
-    'ChdCdWlsZGJ1Y2tldEFnZW50Q29udGV4dBIXCgd0YXNrX2lkGAEgASgJUgZ0YXNrSWQSNgoHc2'
-    'VjcmV0cxgCIAEoCzIcLmJ1aWxkYnVja2V0LnYyLkJ1aWxkU2VjcmV0c1IHc2VjcmV0cw==');
-
+final $typed_data.Uint8List buildbucketAgentContextDescriptor =
+    $convert.base64Decode('ChdCdWlsZGJ1Y2tldEFnZW50Q29udGV4dBIXCgd0YXNrX2lkGAEgASgJUgZ0YXNrSWQSNgoHc2'
+        'VjcmV0cxgCIAEoCzIcLmJ1aWxkYnVja2V0LnYyLkJ1aWxkU2VjcmV0c1IHc2VjcmV0cw==');

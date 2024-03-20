@@ -32,25 +32,39 @@ class LocationTags_Repo extends $pb.GeneratedMessage {
     return $result;
   }
   LocationTags_Repo._() : super();
-  factory LocationTags_Repo.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory LocationTags_Repo.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory LocationTags_Repo.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory LocationTags_Repo.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'LocationTags.Repo', package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'), createEmptyInstance: create)
-    ..m<$core.String, LocationTags_Dir>(1, _omitFieldNames ? '' : 'dirs', entryClassName: 'LocationTags.Repo.DirsEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OM, valueCreator: LocationTags_Dir.create, valueDefaultOrMaker: LocationTags_Dir.getDefault, packageName: const $pb.PackageName('luci.resultsink.v1'))
-    ..m<$core.String, LocationTags_File>(2, _omitFieldNames ? '' : 'files', entryClassName: 'LocationTags.Repo.FilesEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OM, valueCreator: LocationTags_File.create, valueDefaultOrMaker: LocationTags_File.getDefault, packageName: const $pb.PackageName('luci.resultsink.v1'))
-    ..hasRequiredFields = false
-  ;
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'LocationTags.Repo',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'), createEmptyInstance: create)
+    ..m<$core.String, LocationTags_Dir>(1, _omitFieldNames ? '' : 'dirs',
+        entryClassName: 'LocationTags.Repo.DirsEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OM,
+        valueCreator: LocationTags_Dir.create,
+        valueDefaultOrMaker: LocationTags_Dir.getDefault,
+        packageName: const $pb.PackageName('luci.resultsink.v1'))
+    ..m<$core.String, LocationTags_File>(2, _omitFieldNames ? '' : 'files',
+        entryClassName: 'LocationTags.Repo.FilesEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OM,
+        valueCreator: LocationTags_File.create,
+        valueDefaultOrMaker: LocationTags_File.getDefault,
+        packageName: const $pb.PackageName('luci.resultsink.v1'))
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   LocationTags_Repo clone() => LocationTags_Repo()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  LocationTags_Repo copyWith(void Function(LocationTags_Repo) updates) => super.copyWith((message) => updates(message as LocationTags_Repo)) as LocationTags_Repo;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  LocationTags_Repo copyWith(void Function(LocationTags_Repo) updates) =>
+      super.copyWith((message) => updates(message as LocationTags_Repo)) as LocationTags_Repo;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -59,7 +73,8 @@ class LocationTags_Repo extends $pb.GeneratedMessage {
   LocationTags_Repo createEmptyInstance() => create();
   static $pb.PbList<LocationTags_Repo> createRepeated() => $pb.PbList<LocationTags_Repo>();
   @$core.pragma('dart2js:noInline')
-  static LocationTags_Repo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<LocationTags_Repo>(create);
+  static LocationTags_Repo getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<LocationTags_Repo>(create);
   static LocationTags_Repo? _defaultInstance;
 
   /// The key is a relative dir path.
@@ -90,25 +105,27 @@ class LocationTags_Dir extends $pb.GeneratedMessage {
     return $result;
   }
   LocationTags_Dir._() : super();
-  factory LocationTags_Dir.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory LocationTags_Dir.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory LocationTags_Dir.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory LocationTags_Dir.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'LocationTags.Dir', package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'LocationTags.Dir',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'), createEmptyInstance: create)
     ..pc<$0.StringPair>(1, _omitFieldNames ? '' : 'tags', $pb.PbFieldType.PM, subBuilder: $0.StringPair.create)
     ..aOM<$1.BugComponent>(2, _omitFieldNames ? '' : 'bugComponent', subBuilder: $1.BugComponent.create)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   LocationTags_Dir clone() => LocationTags_Dir()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  LocationTags_Dir copyWith(void Function(LocationTags_Dir) updates) => super.copyWith((message) => updates(message as LocationTags_Dir)) as LocationTags_Dir;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  LocationTags_Dir copyWith(void Function(LocationTags_Dir) updates) =>
+      super.copyWith((message) => updates(message as LocationTags_Dir)) as LocationTags_Dir;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -117,7 +134,8 @@ class LocationTags_Dir extends $pb.GeneratedMessage {
   LocationTags_Dir createEmptyInstance() => create();
   static $pb.PbList<LocationTags_Dir> createRepeated() => $pb.PbList<LocationTags_Dir>();
   @$core.pragma('dart2js:noInline')
-  static LocationTags_Dir getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<LocationTags_Dir>(create);
+  static LocationTags_Dir getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<LocationTags_Dir>(create);
   static LocationTags_Dir? _defaultInstance;
 
   ///  If a key is not defined for subdir, but defined for an ancestor dir, then
@@ -133,7 +151,10 @@ class LocationTags_Dir extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $1.BugComponent get bugComponent => $_getN(1);
   @$pb.TagNumber(2)
-  set bugComponent($1.BugComponent v) { setField(2, v); }
+  set bugComponent($1.BugComponent v) {
+    setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasBugComponent() => $_has(1);
   @$pb.TagNumber(2)
@@ -158,25 +179,27 @@ class LocationTags_File extends $pb.GeneratedMessage {
     return $result;
   }
   LocationTags_File._() : super();
-  factory LocationTags_File.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory LocationTags_File.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory LocationTags_File.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory LocationTags_File.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'LocationTags.File', package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'LocationTags.File',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'), createEmptyInstance: create)
     ..pc<$0.StringPair>(1, _omitFieldNames ? '' : 'tags', $pb.PbFieldType.PM, subBuilder: $0.StringPair.create)
     ..aOM<$1.BugComponent>(2, _omitFieldNames ? '' : 'bugComponent', subBuilder: $1.BugComponent.create)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   LocationTags_File clone() => LocationTags_File()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  LocationTags_File copyWith(void Function(LocationTags_File) updates) => super.copyWith((message) => updates(message as LocationTags_File)) as LocationTags_File;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  LocationTags_File copyWith(void Function(LocationTags_File) updates) =>
+      super.copyWith((message) => updates(message as LocationTags_File)) as LocationTags_File;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -185,7 +208,8 @@ class LocationTags_File extends $pb.GeneratedMessage {
   LocationTags_File createEmptyInstance() => create();
   static $pb.PbList<LocationTags_File> createRepeated() => $pb.PbList<LocationTags_File>();
   @$core.pragma('dart2js:noInline')
-  static LocationTags_File getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<LocationTags_File>(create);
+  static LocationTags_File getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<LocationTags_File>(create);
   static LocationTags_File? _defaultInstance;
 
   /// A key can be repeated.
@@ -198,7 +222,10 @@ class LocationTags_File extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $1.BugComponent get bugComponent => $_getN(1);
   @$pb.TagNumber(2)
-  set bugComponent($1.BugComponent v) { setField(2, v); }
+  set bugComponent($1.BugComponent v) {
+    setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasBugComponent() => $_has(1);
   @$pb.TagNumber(2)
@@ -260,24 +287,31 @@ class LocationTags extends $pb.GeneratedMessage {
     return $result;
   }
   LocationTags._() : super();
-  factory LocationTags.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory LocationTags.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory LocationTags.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory LocationTags.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'LocationTags', package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'), createEmptyInstance: create)
-    ..m<$core.String, LocationTags_Repo>(1, _omitFieldNames ? '' : 'repos', entryClassName: 'LocationTags.ReposEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OM, valueCreator: LocationTags_Repo.create, valueDefaultOrMaker: LocationTags_Repo.getDefault, packageName: const $pb.PackageName('luci.resultsink.v1'))
-    ..hasRequiredFields = false
-  ;
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'LocationTags',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'), createEmptyInstance: create)
+    ..m<$core.String, LocationTags_Repo>(1, _omitFieldNames ? '' : 'repos',
+        entryClassName: 'LocationTags.ReposEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OM,
+        valueCreator: LocationTags_Repo.create,
+        valueDefaultOrMaker: LocationTags_Repo.getDefault,
+        packageName: const $pb.PackageName('luci.resultsink.v1'))
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   LocationTags clone() => LocationTags()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  LocationTags copyWith(void Function(LocationTags) updates) => super.copyWith((message) => updates(message as LocationTags)) as LocationTags;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  LocationTags copyWith(void Function(LocationTags) updates) =>
+      super.copyWith((message) => updates(message as LocationTags)) as LocationTags;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -296,7 +330,6 @@ class LocationTags extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.Map<$core.String, LocationTags_Repo> get repos => $_getMap(0);
 }
-
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
 const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');

@@ -29,14 +29,14 @@ const Task$json = {
 };
 
 /// Descriptor for `Task`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List taskDescriptor = $convert.base64Decode(
-    'CgRUYXNrEiYKAmlkGAEgASgLMhYuYnVpbGRidWNrZXQudjIuVGFza0lEUgJpZBISCgRsaW5rGA'
-    'IgASgJUgRsaW5rEi4KBnN0YXR1cxgDIAEoDjIWLmJ1aWxkYnVja2V0LnYyLlN0YXR1c1IGc3Rh'
-    'dHVzEkQKDnN0YXR1c19kZXRhaWxzGAQgASgLMh0uYnVpbGRidWNrZXQudjIuU3RhdHVzRGV0YW'
-    'lsc1INc3RhdHVzRGV0YWlscxIhCgxzdW1tYXJ5X2h0bWwYBSABKAlSC3N1bW1hcnlIdG1sEjEK'
-    'B2RldGFpbHMYBiABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0UgdkZXRhaWxzEhsKCXVwZG'
-    'F0ZV9pZBgHIAEoA1IIdXBkYXRlSWQSKQoQc3VtbWFyeV9tYXJrZG93bhgIIAEoCVIPc3VtbWFy'
-    'eU1hcmtkb3du');
+final $typed_data.Uint8List taskDescriptor =
+    $convert.base64Decode('CgRUYXNrEiYKAmlkGAEgASgLMhYuYnVpbGRidWNrZXQudjIuVGFza0lEUgJpZBISCgRsaW5rGA'
+        'IgASgJUgRsaW5rEi4KBnN0YXR1cxgDIAEoDjIWLmJ1aWxkYnVja2V0LnYyLlN0YXR1c1IGc3Rh'
+        'dHVzEkQKDnN0YXR1c19kZXRhaWxzGAQgASgLMh0uYnVpbGRidWNrZXQudjIuU3RhdHVzRGV0YW'
+        'lsc1INc3RhdHVzRGV0YWlscxIhCgxzdW1tYXJ5X2h0bWwYBSABKAlSC3N1bW1hcnlIdG1sEjEK'
+        'B2RldGFpbHMYBiABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0UgdkZXRhaWxzEhsKCXVwZG'
+        'F0ZV9pZBgHIAEoA1IIdXBkYXRlSWQSKQoQc3VtbWFyeV9tYXJrZG93bhgIIAEoCVIPc3VtbWFy'
+        'eU1hcmtkb3du');
 
 @$core.Deprecated('Use taskIDDescriptor instead')
 const TaskID$json = {
@@ -48,9 +48,9 @@ const TaskID$json = {
 };
 
 /// Descriptor for `TaskID`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List taskIDDescriptor = $convert.base64Decode(
-    'CgZUYXNrSUQSHgoGdGFyZ2V0GAEgASgJQgaKwxoCCAJSBnRhcmdldBIOCgJpZBgCIAEoCVICaW'
-    'Q=');
+final $typed_data.Uint8List taskIDDescriptor =
+    $convert.base64Decode('CgZUYXNrSUQSHgoGdGFyZ2V0GAEgASgJQgaKwxoCCAJSBnRhcmdldBIOCgJpZBgCIAEoCVICaW'
+        'Q=');
 
 @$core.Deprecated('Use buildTaskUpdateDescriptor instead')
 const BuildTaskUpdate$json = {
@@ -62,7 +62,6 @@ const BuildTaskUpdate$json = {
 };
 
 /// Descriptor for `BuildTaskUpdate`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List buildTaskUpdateDescriptor = $convert.base64Decode(
-    'Cg9CdWlsZFRhc2tVcGRhdGUSGQoIYnVpbGRfaWQYASABKAlSB2J1aWxkSWQSKAoEdGFzaxgCIA'
-    'EoCzIULmJ1aWxkYnVja2V0LnYyLlRhc2tSBHRhc2s=');
-
+final $typed_data.Uint8List buildTaskUpdateDescriptor =
+    $convert.base64Decode('Cg9CdWlsZFRhc2tVcGRhdGUSGQoIYnVpbGRfaWQYASABKAlSB2J1aWxkSWQSKAoEdGFzaxgCIA'
+        'EoCzIULmJ1aWxkYnVja2V0LnYyLlRhc2tSBHRhc2s=');
