@@ -270,6 +270,12 @@ class LuciBuildServiceV2 {
         properties[propertiesGithubBuildLabelName] = labels;
       }
 
+      final List<RequestedDimension> targetDimensions = target.getDimensions();
+      final List<bbv2.RequestedDimension> requestedDimensions = <bbv2.RequestedDimension>[];
+      for (RequestedDimension requestedDimension in targetDimensions) {
+        requestedDimensions.add(bbv2.RequestedDimension(key: requestedDimension.key, value: requestedDimension.value));
+      }
+
       batchRequestList.add(
         bbv2.BatchRequest_Request(
           scheduleBuild: await _createPresubmitScheduleBuild(
@@ -282,7 +288,7 @@ class LuciBuildServiceV2 {
             userData: userData,
             properties: properties,
             tags: tags,
-            dimensions: target.getDimensions() as List<bbv2.RequestedDimension>?,
+            dimensions: requestedDimensions,
           ),
         ),
       );
