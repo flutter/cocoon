@@ -10,6 +10,7 @@ import 'package:googleapis/firestore/v1.dart';
 import 'package:http/http.dart';
 
 import '../model/firestore/commit.dart';
+
 import '../model/firestore/github_gold_status.dart';
 import '../model/firestore/task.dart';
 import 'access_client_provider.dart';
@@ -108,11 +109,57 @@ class FirestoreService {
     return documents.map((Document document) => Commit.fromDocument(commitDocument: document)).toList();
   }
 
+  /// Queries for recent tasks that meet the specified criteria.
+  ///
+  /// Since each task belongs to a commit, this query implicitly includes a
+  /// query of the most recent N commits (see [queryRecentCommits]). The
+  /// [commitLimit] argument specifies how many commits to consider when
+  /// retrieving the list of recent tasks.
+  ///
+  /// If [taskName] is specified, only tasks whose [Task.name] matches the
+  /// specified value will be returned. By default, tasks will be returned
+  /// regardless of their name.
+  ///
+  /// The returned tasks will be ordered by most recent [Commit.timestamp]
+  /// first, then by most recent [Task.createTimestamp].
+  Future<List<FullTask>> queryRecentTasks({
+    String? taskName,
+    int commitLimit = 20,
+    String? branch,
+    required RepositorySlug slug,
+  }) async {
+    final List<Commit> commits = await queryRecentCommits(limit: commitLimit, branch: branch, slug: slug); 
+    final List<FullTask> allTasks = [];
+    for (Commit commit in commits) {
+      final String? sha = commit.sha;
+      if(sha != null){
+        final Map<String, String> orderMap = <String, String>{
+          kCommitCreateTimestampField: kQueryOrderDescending,
+        };
+        final List<Task> tasks = await queryCommitTasks(sha, orderMap);
+        List<FullTask> commitTasks = tasks.map((Task task) => FullTask(task, commit)).toList();
+        
+        // Filter by taskName if provided
+        if (taskName != null) {
+            commitTasks = commitTasks.where((fullTask) => fullTask.task.name == taskName).toList();
+        }
+
+        allTasks.addAll(commitTasks);
+      }
+    }
+    return allTasks;
+  }
+  
   /// Returns all tasks running against the speificed [commitSha].
-  Future<List<Task>> queryCommitTasks(String commitSha) async {
+  Future<List<Task>> queryCommitTasks(String commitSha, Map<String, String>? filters) async {
     final Map<String, Object> filterMap = <String, Object>{
       '$kTaskCommitShaField =': commitSha,
     };
+
+    if (filters != null) {
+      filterMap.addAll(filters);
+    }
+    
     final List<Document> documents = await query(kTaskCollectionId, filterMap);
     return documents.map((Document document) => Task.fromDocument(taskDocument: document)).toList();
   }

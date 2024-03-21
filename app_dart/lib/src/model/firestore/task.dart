@@ -8,10 +8,9 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 import '../../request_handling/exceptions.dart';
 import '../../service/firestore.dart';
 import '../../service/logging.dart';
-import '../appengine/commit.dart';
-import '../appengine/task.dart' as datastore;
 import '../ci_yaml/target.dart';
 import '../luci/push_message.dart';
+import 'commit.dart';
 
 const String kTaskCollectionId = 'tasks';
 const int kTaskDefaultTimestampValue = 0;
@@ -166,6 +165,11 @@ class Task extends Document {
     fields![kTaskEndTimestampField] = Value(integerValue: endTimestamp.toString());
   }
 
+
+  void setCreateTimestamp(int createTimestamp) {
+    fields![kTaskCreateTimestampField] = Value(integerValue: createTimestamp.toString());
+  }
+
   void setTestFlaky(bool testFlaky) {
     fields![kTaskTestFlakyField] = Value(booleanValue: testFlaky);
   }
@@ -269,7 +273,7 @@ List<Task> targetsToTaskDocuments(Commit commit, List<Target> targets) {
       taskDocument: Document(
         name: '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${target.value.name}_$kTaskInitialAttempt',
         fields: <String, Value>{
-          kTaskCreateTimestampField: Value(integerValue: commit.timestamp!.toString()),
+          kTaskCreateTimestampField: Value(integerValue: commit.createTimestamp.toString()),
           kTaskEndTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
           kTaskBringupField: Value(booleanValue: target.value.bringup),
           kTaskNameField: Value(stringValue: target.value.name),
@@ -285,21 +289,39 @@ List<Task> targetsToTaskDocuments(Commit commit, List<Target> targets) {
 }
 
 /// Generates task document based on datastore task data model.
-Task taskToDocument(datastore.Task task) {
-  final String commitSha = task.commitKey!.id!.split('/').last;
+Task taskToDocument(Task task) {
+  final String? commitSha = task.commitSha;
   return Task.fromDocument(
     taskDocument: Document(
       name: '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${task.name}_${task.attempts}',
       fields: <String, Value>{
         kTaskCreateTimestampField: Value(integerValue: task.createTimestamp.toString()),
         kTaskEndTimestampField: Value(integerValue: task.endTimestamp.toString()),
-        kTaskBringupField: Value(booleanValue: task.isFlaky),
+        kTaskBringupField: Value(booleanValue: task.testFlaky),
         kTaskNameField: Value(stringValue: task.name),
         kTaskStartTimestampField: Value(integerValue: task.startTimestamp.toString()),
         kTaskStatusField: Value(stringValue: task.status),
-        kTaskTestFlakyField: Value(booleanValue: task.isTestFlaky),
+        kTaskTestFlakyField: Value(booleanValue: task.testFlaky),
         kTaskCommitShaField: Value(stringValue: commitSha),
       },
     ),
   );
+}
+
+/// A [Task], paired with its associated parent [Commit].
+///
+/// The [Task] model object references its parent [Commit] through the
+/// [Task.commitKey] field, but it does not hold a reference to the associated
+/// [Commit] object (just the relational mapping). This class exists for those
+/// times when the caller has loaded the associated commit from the datastore
+/// and would like to pass both the task its commit around.
+class FullTask {
+  /// Creates a new [FullTask].
+  const FullTask(this.task, this.commit);
+
+  /// The [Task] object.
+  final Task task;
+
+  ///  The [Commit] object references by this [task]'s [Task.commitKey].
+  final Commit commit;
 }

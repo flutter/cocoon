@@ -9,8 +9,7 @@ import 'package:github/github.dart' as gh;
 import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
-import '../../model/appengine/task.dart';
-import '../../model/firestore/task.dart' as firestore;
+import '../../model/firestore/task.dart';
 import '../../service/datastore.dart';
 import '../../service/logging.dart';
 
@@ -54,18 +53,20 @@ class VacuumStaleTasks extends RequestHandler<Body> {
   Future<void> _vacuumRepository(gh.RepositorySlug slug) async {
     final DatastoreService datastore = datastoreProvider(config.db);
 
-    final List<FullTask> tasks = await datastore.queryRecentTasks(slug: slug).toList();
+    final FirestoreService firestoreService = await config.createFirestoreService();
+
+    final List<FullTask> tasks = await firestoreService.queryRecentTasks(slug: slug);
     final List<Task> tasksToBeReset = <Task>[];
     for (FullTask fullTask in tasks) {
       final Task task = fullTask.task;
       if (task.status == Task.statusInProgress && task.buildNumber == null) {
-        task.status = Task.statusNew;
-        task.createTimestamp = 0;
+        task.setStatus(Task.statusNew);
+        task.setCreateTimestamp(0);
         tasksToBeReset.add(task);
       }
     }
     log.info('Vacuuming stale tasks: $tasksToBeReset');
-    await datastore.insert(tasksToBeReset);
+    // await datastore.insert(tasksToBeReset);
 
     await updateTaskDocuments(tasksToBeReset);
   }
@@ -74,7 +75,7 @@ class VacuumStaleTasks extends RequestHandler<Body> {
     if (tasks.isEmpty) {
       return;
     }
-    final List<firestore.Task> taskDocuments = tasks.map((e) => firestore.taskToDocument(e)).toList();
+    final List<Task> taskDocuments = tasks.map((e) => taskToDocument(e)).toList();
     final List<Write> writes = documentsToWrites(taskDocuments, exists: true);
     final FirestoreService firestoreService = await config.createFirestoreService();
     await firestoreService.writeViaTransaction(writes);
