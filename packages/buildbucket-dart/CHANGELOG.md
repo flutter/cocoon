@@ -1,7 +1,3 @@
-# 1.0.11
-
-- Add resultsDb protos to the lib.
-
 # 1.0.10
 
 - Expose Builder_Item and Builder_Metadata.

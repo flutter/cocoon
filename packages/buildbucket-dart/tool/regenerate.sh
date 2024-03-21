@@ -30,9 +30,6 @@ $PROTOC go.chromium.org/luci/buildbucket/proto/project_config.proto
 $PROTOC go.chromium.org/luci/buildbucket/proto/step.proto
 $PROTOC go.chromium.org/luci/buildbucket/proto/task.proto
 $PROTOC go.chromium.org/luci/buildbucket/proto/notification.proto
-$PROTOC go.chromium.org/luci/resultdb/sink/proto/v1/test_result.proto
-$PROTOC go.chromium.org/luci/resultdb/sink/proto/v1/sink.proto
-$PROTOC go.chromium.org/luci/resultdb/sink/proto/v1/location_tag.proto
 $PROTOC go.chromium.org/luci/resultdb/proto/v1/common.proto
 $PROTOC go.chromium.org/luci/resultdb/proto/v1/invocation.proto
 $PROTOC go.chromium.org/luci/resultdb/proto/v1/predicate.proto
