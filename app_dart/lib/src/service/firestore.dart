@@ -127,7 +127,7 @@ class FirestoreService {
     String? branch,
     required RepositorySlug slug,
   }) async {
-    final List<Commit> commits = await queryRecentCommits(limit: commitLimit, branch: branch, slug: slug); 
+    final List<Commit> commits = await queryRecentCommits(limit: commitLimit, branch: branch, slug: slug);
     final List<FullTask> allTasks = [];
     for (Commit commit in commits) {
       final String? sha = commit.sha;
@@ -137,7 +137,7 @@ class FirestoreService {
         };
         final List<Task> tasks = await queryCommitTasks(sha, orderMap);
         List<FullTask> commitTasks = tasks.map((Task task) => FullTask(task, commit)).toList();
-        
+
         // Filter by taskName if provided
         if (taskName != null) {
             commitTasks = commitTasks.where((fullTask) => fullTask.task.name == taskName).toList();
@@ -148,7 +148,7 @@ class FirestoreService {
     }
     return allTasks;
   }
-  
+
   /// Returns all tasks running against the speificed [commitSha].
   Future<List<Task>> queryCommitTasks(String commitSha, Map<String, String>? filters) async {
     final Map<String, Object> filterMap = <String, Object>{
@@ -158,7 +158,7 @@ class FirestoreService {
     if (filters != null) {
       filterMap.addAll(filters);
     }
-    
+
     final List<Document> documents = await query(kTaskCollectionId, filterMap);
     return documents.map((Document document) => Task.fromDocument(taskDocument: document)).toList();
   }
