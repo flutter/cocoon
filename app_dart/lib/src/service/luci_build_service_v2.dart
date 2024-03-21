@@ -122,7 +122,7 @@ class LuciBuildServiceV2 {
       ),
       bbv2.StringPair(
         key: 'user_agent',
-        value: 'flutter_cocoon',
+        value: 'flutter-cocoon',
       ),
     ];
     return getBuilds(
@@ -158,11 +158,11 @@ class LuciBuildServiceV2 {
   }) async {
     final bbv2.FieldMask fieldMask = bbv2.FieldMask(
       paths: {
-        'builds.*.id',
-        'builds.*.builder',
-        'builds.*.tags',
-        'builds.*.status',
-        'builds.*.input.properties',
+        'id',
+        'builder',
+        'tags',
+        'status',
+        'input.properties',
       },
     );
 
