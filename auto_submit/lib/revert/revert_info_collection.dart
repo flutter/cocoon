@@ -105,7 +105,12 @@ class RevertInfoCollection {
       match = m.group(1);
     }
     final String foundMatch = match!.trim();
-    final List<String> split = foundMatch.split(':');
-    return split.elementAt(1).trim();
+    // Explicit assignment for debugging.
+    // Each entry we are interested in is of the form 'key: value' where value
+    // is a block of text that contain links. We want to preserve the link so we
+    // take text after the first colon ':' to avoid destroying information with
+    // a split.
+    final String matchedText = foundMatch.substring(foundMatch.indexOf(':') + 1).trim();
+    return matchedText;
   }
 }
