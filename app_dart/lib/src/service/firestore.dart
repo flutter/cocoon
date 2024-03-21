@@ -10,7 +10,6 @@ import 'package:googleapis/firestore/v1.dart';
 import 'package:http/http.dart';
 
 import '../model/firestore/commit.dart';
-
 import '../model/firestore/github_gold_status.dart';
 import '../model/firestore/task.dart';
 import 'access_client_provider.dart';
