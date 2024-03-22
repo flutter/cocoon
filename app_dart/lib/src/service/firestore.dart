@@ -143,10 +143,7 @@ class FirestoreService {
     final Map<String, Object> filterMap = <String, Object>{
       '$kTaskCommitShaField =': commitSha,
     };
-    final Map<String, String> orderMap = <String, String>{
-      kTaskCreateTimestampField: kQueryOrderDescending,
-    };
-    final List<Document> documents = await query(kTaskCollectionId, filterMap, orderMap: orderMap);
+    final List<Document> documents = await query(kTaskCollectionId, filterMap);
     return documents.map((Document document) => Task.fromDocument(taskDocument: document)).toList();
   }
 
