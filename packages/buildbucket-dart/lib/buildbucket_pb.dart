@@ -85,6 +85,9 @@ export 'src/generated/go.chromium.org/luci/resultdb/sink/proto/v1/sink.pb.dart'
     show ReportTestResultsRequest, ReportTestResultsResponse, ReportInvocationLevelArtifactsRequest;
 export 'src/generated/go.chromium.org/luci/resultdb/sink/proto/v1/location_tag.pb.dart'
     show LocationTags, LocationTags_Dir, LocationTags_File, LocationTags_Repo;
+export 'src/generated/go.chromium.org/luci/resultdb/proto/v1/test_metadata.pb.dart'
+    show TestMetadata, TestLocation, TestMetadataDetail, IssueTrackerComponent;
+export 'src/generated/go.chromium.org/luci/resultdb/proto/v1/test_result.pb.dart' show TestStatus, TestExoneration;
 
 export 'src/generated/google/protobuf/struct.pb.dart' show Struct, Value, Value_Kind, NullValue, ListValue;
 export 'src/generated/google/protobuf/any.pb.dart' show Any;
