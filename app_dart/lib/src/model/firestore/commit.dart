@@ -44,7 +44,7 @@ class Commit extends Document {
   int? get createTimestamp => int.parse(fields![kCommitCreateTimestampField]!.integerValue!);
 
   /// The SHA1 hash of the commit.
-  String? get sha => fields![kCommitShaField]!.stringValue!;
+  String get sha => fields![kCommitShaField]!.stringValue!;
 
   /// The GitHub username of the commit author.
   String? get author => fields![kCommitAuthorField]!.stringValue!;

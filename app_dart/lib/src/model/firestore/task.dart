@@ -8,6 +8,8 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 import '../../request_handling/exceptions.dart';
 import '../../service/firestore.dart';
 import '../../service/logging.dart';
+import '../appengine/commit.dart' as datastore;
+import '../appengine/task.dart' as datastore;
 import '../ci_yaml/target.dart';
 import '../luci/push_message.dart';
 import 'commit.dart';
@@ -113,7 +115,7 @@ class Task extends Document {
   String? get taskName => fields![kTaskNameField]!.stringValue!;
 
   /// The sha of the task commit.
-  String? get commitSha => fields![kTaskCommitShaField]!.stringValue!;
+  String get commitSha => fields![kTaskCommitShaField]!.stringValue!;
 
   /// The number of attempts that have been made to run this task successfully.
   ///
@@ -267,13 +269,13 @@ class Task extends Document {
 }
 
 /// Generates task documents based on targets.
-List<Task> targetsToTaskDocuments(Commit commit, List<Target> targets) {
+List<Task> targetsToTaskDocuments(datastore.Commit commit, List<Target> targets) {
   final Iterable<Task> iterableDocuments = targets.map(
     (Target target) => Task.fromDocument(
       taskDocument: Document(
         name: '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${target.value.name}_$kTaskInitialAttempt',
         fields: <String, Value>{
-          kTaskCreateTimestampField: Value(integerValue: commit.createTimestamp.toString()),
+          kTaskCreateTimestampField: Value(integerValue: commit.timestamp!.toString()),
           kTaskEndTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
           kTaskBringupField: Value(booleanValue: target.value.bringup),
           kTaskNameField: Value(stringValue: target.value.name),
@@ -289,19 +291,19 @@ List<Task> targetsToTaskDocuments(Commit commit, List<Target> targets) {
 }
 
 /// Generates task document based on datastore task data model.
-Task taskToDocument(Task task) {
-  final String? commitSha = task.commitSha;
+Task taskToDocument(datastore.Task task) {
+  final String commitSha = task.commitKey!.id!.split('/').last;
   return Task.fromDocument(
     taskDocument: Document(
       name: '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${task.name}_${task.attempts}',
       fields: <String, Value>{
         kTaskCreateTimestampField: Value(integerValue: task.createTimestamp.toString()),
         kTaskEndTimestampField: Value(integerValue: task.endTimestamp.toString()),
-        kTaskBringupField: Value(booleanValue: task.testFlaky),
+        kTaskBringupField: Value(booleanValue: task.isFlaky),
         kTaskNameField: Value(stringValue: task.name),
         kTaskStartTimestampField: Value(integerValue: task.startTimestamp.toString()),
         kTaskStatusField: Value(stringValue: task.status),
-        kTaskTestFlakyField: Value(booleanValue: task.testFlaky),
+        kTaskTestFlakyField: Value(booleanValue: task.isTestFlaky),
         kTaskCommitShaField: Value(stringValue: commitSha),
       },
     ),
