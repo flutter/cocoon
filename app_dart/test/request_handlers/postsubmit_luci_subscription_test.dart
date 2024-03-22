@@ -5,6 +5,7 @@
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_commit;
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
@@ -32,9 +33,12 @@ void main() {
   late MockGithubChecksUtil mockGithubChecksUtil;
   late FakeScheduler scheduler;
   firestore.Task? firestoreTask;
+  firestore_commit.Commit? firestoreCommit;
+  late int attempt;
 
   setUp(() async {
     firestoreTask = null;
+    attempt = 0;
     mockGithubChecksUtil = MockGithubChecksUtil();
     mockFirestoreService = MockFirestoreService();
     config = FakeConfig(
@@ -51,10 +55,37 @@ void main() {
         captureAny,
       ),
     ).thenAnswer((Invocation invocation) {
-      return Future<Document>.value(
-        firestoreTask,
+      attempt++;
+      if (attempt == 1) {
+        return Future<Document>.value(
+          firestoreTask,
+        );
+      } else {
+        return Future<Document>.value(
+          firestoreCommit,
+        );
+      }
+    });
+    when(
+      mockFirestoreService.queryRecentCommits(
+        limit: captureAnyNamed('limit'),
+        slug: captureAnyNamed('slug'),
+        branch: captureAnyNamed('branch'),
+      ),
+    ).thenAnswer((Invocation invocation) {
+      return Future<List<firestore_commit.Commit>>.value(
+        <firestore_commit.Commit>[firestoreCommit!],
       );
     });
+    // when(
+    //   mockFirestoreService.getDocument(
+    //     'projects/flutter-dashboard/databases/cocoon/documents/tasks/87f88734747805589f2131753620d61b22922822_Linux A_1',
+    //   ),
+    // ).thenAnswer((Invocation invocation) {
+    //   return Future<Document>.value(
+    //     firestoreCommit,
+    //   );
+    // });
     when(
       mockFirestoreService.batchWriteDocuments(
         captureAny,
@@ -230,7 +261,13 @@ void main() {
   });
 
   test('on failed builds auto-rerun the build', () async {
-    firestoreTask = generateFirestoreTask(1, name: 'Linux A', status: firestore.Task.statusFailed);
+    firestoreTask = generateFirestoreTask(
+      1,
+      name: 'Linux A',
+      status: firestore.Task.statusFailed,
+      commitSha: '87f88734747805589f2131753620d61b22922822',
+    );
+    firestoreCommit = generateFirestoreCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
       4507531199512576,
@@ -263,7 +300,13 @@ void main() {
   });
 
   test('on canceled builds auto-rerun the build if they timed out', () async {
-    firestoreTask = generateFirestoreTask(1, name: 'Linux A', status: firestore.Task.statusInfraFailure);
+    firestoreTask = generateFirestoreTask(
+      1,
+      name: 'Linux A',
+      status: firestore.Task.statusInfraFailure,
+      commitSha: '87f88734747805589f2131753620d61b22922822',
+    );
+    firestoreCommit = generateFirestoreCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
       4507531199512576,
@@ -296,7 +339,13 @@ void main() {
   });
 
   test('on builds resulting in an infra failure auto-rerun the build if they timed out', () async {
-    firestoreTask = generateFirestoreTask(1, name: 'Linux A', status: firestore.Task.statusInfraFailure);
+    firestoreTask = generateFirestoreTask(
+      1,
+      name: 'Linux A',
+      status: firestore.Task.statusInfraFailure,
+      commitSha: '87f88734747805589f2131753620d61b22922822',
+    );
+    firestoreCommit = generateFirestoreCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
       4507531199512576,

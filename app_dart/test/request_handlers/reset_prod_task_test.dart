@@ -185,6 +185,8 @@ void main() {
           task: anyNamed('task'),
           target: anyNamed('target'),
           tags: anyNamed('tags'),
+          firestoreService: anyNamed('firestoreService'),
+          taskDocument: anyNamed('taskDocument'),
           ignoreChecks: false,
         ),
       );
