@@ -68,7 +68,7 @@ class BuildBucketV2Client {
     final Uri url = Uri.parse('$buildBucketUri$path');
     final AccessToken? token = await accessTokenService?.createAccessToken();
 
-    log.info('Making request with path: $url and body: $request');
+    log.info('Making bbv2 request with path: $url and body: $request');
 
     //TODO most likely have issues here:
     final http.Response response = await httpClient.post(
@@ -81,8 +81,8 @@ class BuildBucketV2Client {
       },
     );
 
-    log.info('Request returned response code ${response.statusCode}');
-    log.info('Request response body: ${response.body}');
+    log.info('bbv2 request returned response code ${response.statusCode}');
+    log.info('bbv2 request response body: ${response.body}');
 
     if (response.statusCode < 300) {
       return response.body.substring(kRpcResponseGarbage.length);

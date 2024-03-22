@@ -17,7 +17,7 @@ import '../../service/logging.dart';
 /// Subscription for making requests to BuildBucket.
 ///
 /// The PubSub subscription is set up here:
-/// https://console.cloud.google.com/cloudpubsub/subscription/detail/scheduler-requests?project=flutter-dashboard
+/// https://console.cloud.google.com/cloudpubsub/subscription/detail/cocoon-scheduler-requests?project=flutter-dashboard
 ///
 /// This endpoint allows Cocoon to defer BuildBucket requests off the main request loop. This is critical when new
 /// commits are pushed, and they can schedule 100+ builds at once.
@@ -33,7 +33,7 @@ class SchedulerRequestSubscriptionV2 extends SubscriptionHandlerV2 {
     required this.buildBucketClient,
     super.authProvider,
     this.retryOptions = Config.schedulerRetry,
-  }) : super(subscriptionName: 'scheduler-requests');
+  }) : super(subscriptionName: 'cocoon-scheduler-requests-sub');
 
   final BuildBucketV2Client buildBucketClient;
 

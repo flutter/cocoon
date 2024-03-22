@@ -59,12 +59,12 @@ void main() {
     final PubSubPushMessageV2 pushMessageV2 = PubSubPushMessageV2.fromJson(json.decode(message));
     final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack();
 
-    print(pubSubCallBack.hasUserData());
+    // print(pubSubCallBack.hasUserData());
 
     // pubSubCallBack.mergeFromProto3Json(jsonDecode(message) as Map<String, dynamic>);
-    print('...');
-    print(String.fromCharCodes(base64Decode(String.fromCharCodes(pubSubCallBack.userData))));
-    print('...');
+    // print('...');
+    // print(String.fromCharCodes(base64Decode(String.fromCharCodes(pubSubCallBack.userData))));
+    // print('...');
 
     // print(String.fromCharCodes((base64.decode(pushMessageV2.message!.data!))));
 
@@ -75,6 +75,8 @@ void main() {
     final bbv2.BatchRequest batchRequest = bbv2.BatchRequest.create();
 
     batchRequest.mergeFromProto3Json(jsonDecode(pushMessageV2.message!.data!));
+
+    print(jsonEncode(batchRequest.toProto3Json()));
 
     // expect(batchRequest.requests.length, 5);
     // Absolutely need this Encode call before sending over https to prpc.

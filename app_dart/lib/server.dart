@@ -8,6 +8,7 @@ import 'dart:math';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/postsubmit_luci_subscription_v2.dart';
 import 'package:cocoon_service/src/request_handlers/presubmit_luci_subscription_v2.dart';
+import 'package:cocoon_service/src/request_handlers/scheduler/scheduler_request_subscription.dart';
 import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
@@ -135,6 +136,11 @@ Server createServer({
       cache: cache,
       config: config,
       buildBucketClient: buildBucketClient,
+    ),
+    '/api/v2/scheduler/batch-request-subscription': SchedulerRequestSubscriptionV2(
+      cache: cache,
+      config: config,
+      buildBucketClient: buildBucketV2Client,
     ),
     '/api/scheduler/vacuum-stale-tasks': VacuumStaleTasks(
       config: config,

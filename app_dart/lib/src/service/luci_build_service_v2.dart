@@ -300,7 +300,7 @@ class LuciBuildServiceV2 {
     );
     for (List<bbv2.BatchRequest_Request> requestPartition in requestPartitions) {
       final bbv2.BatchRequest batchRequest = bbv2.BatchRequest(requests: requestPartition);
-      await pubsub.publish('scheduler-requests', batchRequest);
+      await pubsub.publish('cocoon-scheduler-requests', batchRequest.toProto3Json());
     }
 
     return targets;
@@ -646,7 +646,7 @@ class LuciBuildServiceV2 {
     List<String> messageIds;
 
     try {
-      messageIds = await pubsub.publish('scheduler-requests', batchRequest);
+      messageIds = await pubsub.publish('cocoon-scheduler-requests', batchRequest.toProto3Json());
       log.info('Published $messageIds for commit ${commit.sha}');
     } catch (error) {
       log.severe('Failed to publish message to pub/sub due to $error');
@@ -961,8 +961,8 @@ class LuciBuildServiceV2 {
       ],
     );
     await pubsub.publish(
-      'scheduler-requests',
-      request,
+      'cocoon-scheduler-requests',
+      request.toProto3Json(),
     );
 
     task.attempts = (task.attempts ?? 0) + 1;
