@@ -448,14 +448,8 @@ class LuciBuildServiceV2 {
       'commit_sha': sha,
     };
 
-    bbv2.Struct? propertiesStruct;
-    if (build.input.hasProperties()) {
-      propertiesStruct = build.input.properties;
-    }
-
-    propertiesStruct ??= bbv2.Struct();
-
-    final Map<String, Object> properties = propertiesStruct.toProto3Json() as Map<String, Object>;
+    final bbv2.Struct propertiesStruct = (build.input.hasProperties()) ? build.input.properties : bbv2.Struct().createEmptyInstance();
+    final Map<String, Object?> properties = propertiesStruct.toProto3Json() as Map<String, Object?>;
     final GithubService githubService = await config.createGithubService(slug);
 
     final List<github.IssueLabel> issueLabels = await githubService.getIssueLabels(
@@ -670,7 +664,7 @@ class LuciBuildServiceV2 {
     required String checkName,
     required int pullRequestNumber,
     required String cipdVersion,
-    Map<String, Object>? properties,
+    Map<String, Object?>? properties,
     List<bbv2.StringPair>? tags,
     Map<String, dynamic>? userData,
     List<bbv2.RequestedDimension>? dimensions,
@@ -757,7 +751,6 @@ class LuciBuildServiceV2 {
     final bbv2.Struct propertiesStruct = bbv2.Struct.create();
     propertiesStruct.mergeFromProto3Json(properties);
 
-    // scheduleBuildRequest.properties = bbv2.Struct(fields: processedProperties);
     scheduleBuildRequest.properties = propertiesStruct;
 
     return scheduleBuildRequest;

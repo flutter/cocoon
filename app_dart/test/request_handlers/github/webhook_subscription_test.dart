@@ -2,10 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as pm;
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
+import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
@@ -19,10 +21,12 @@ import '../../src/datastore/fake_config.dart';
 import '../../src/datastore/fake_datastore.dart';
 import '../../src/request_handling/fake_http.dart';
 import '../../src/request_handling/subscription_tester.dart';
+import '../../src/service/fake_build_bucket_v2_client.dart';
 import '../../src/service/fake_buildbucket.dart';
 import '../../src/service/fake_github_service.dart';
 import '../../src/service/fake_gerrit_service.dart';
 import '../../src/service/fake_scheduler.dart';
+import '../../src/service/fake_scheduler_v2.dart';
 import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.dart';
 import '../../src/utilities/webhook_generators.dart';
@@ -30,17 +34,20 @@ import '../../src/utilities/webhook_generators.dart';
 void main() {
   late GithubWebhookSubscription webhook;
   late FakeBuildBucketClient fakeBuildBucketClient;
+  late FakeBuildBucketV2Client fakeBuildBucketV2Client;
   late FakeConfig config;
   late FakeDatastoreDB db;
   late FakeGithubService githubService;
   late FakeHttpRequest request;
   late FakeScheduler scheduler;
+  late FakeSchedulerV2 schedulerV2;
   late FakeGerritService gerritService;
   late MockCommitService commitService;
   late MockGitHub gitHubClient;
   late MockFirestoreService mockFirestoreService;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late MockGithubChecksService mockGithubChecksService;
+  late MockGithubChecksServiceV2 mockGithubChecksServiceV2;
   late MockIssuesService issuesService;
   late MockPullRequestsService pullRequestsService;
   late SubscriptionTester tester;
@@ -89,12 +96,14 @@ void main() {
     when(pullRequestsService.edit(any, any, title: anyNamed('title'), state: anyNamed('state'), base: anyNamed('base')))
         .thenAnswer((_) async => PullRequest());
     fakeBuildBucketClient = FakeBuildBucketClient();
+    fakeBuildBucketV2Client = FakeBuildBucketV2Client();
     mockGithubChecksUtil = MockGithubChecksUtil();
     scheduler = FakeScheduler(
       config: config,
       buildbucket: fakeBuildBucketClient,
       githubChecksUtil: mockGithubChecksUtil,
     );
+    schedulerV2 = FakeSchedulerV2(config: config, buildbucket: fakeBuildBucketV2Client, githubChecksUtil: mockGithubChecksUtil);
     tester = SubscriptionTester(request: request);
 
     mockGithubChecksService = MockGithubChecksService();
@@ -107,6 +116,7 @@ void main() {
         'check_suite': <String, dynamic>{'id': 2},
       });
     });
+    mockGithubChecksServiceV2 = MockGithubChecksServiceV2();
 
     gerritService = FakeGerritService();
     webhook = GithubWebhookSubscription(
@@ -114,8 +124,10 @@ void main() {
       cache: CacheService(inMemory: true),
       datastoreProvider: (_) => DatastoreService(config.db, 5),
       gerritService: gerritService,
-      githubChecksServiceV2: mockGithubChecksService,
-      schedulerV2: scheduler,
+      githubChecksService: mockGithubChecksService,
+      githubChecksServiceV2: mockGithubChecksServiceV2,
+      scheduler: scheduler,
+      schedulerV2: schedulerV2,
       commitService: commitService,
     );
   });

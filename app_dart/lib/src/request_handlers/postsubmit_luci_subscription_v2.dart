@@ -14,7 +14,6 @@ import 'package:meta/meta.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/firestore/task.dart' as firestore;
-// import '../model/luci/push_message.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler_v2.dart';
