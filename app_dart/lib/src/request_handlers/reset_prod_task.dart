@@ -24,7 +24,6 @@ import '../request_handling/exceptions.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/firestore.dart';
-import '../service/logging.dart';
 
 /// Reruns a postsubmit LUCI build.
 ///

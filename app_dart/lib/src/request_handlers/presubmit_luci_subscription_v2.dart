@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:cocoon_service/src/request_handling/subscription_handler_v2.dart';
 import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
 import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
