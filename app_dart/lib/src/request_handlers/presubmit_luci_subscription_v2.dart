@@ -86,7 +86,8 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
 
     if (pubSubCallBack.hasUserData()) {
       // Not sure if this is it has an automatic base64 decoder so we don't need to do that.
-      final Map<String, dynamic> userDataMap = jsonDecode(String.fromCharCodes(pubSubCallBack.userData)) as Map<String, dynamic>;
+      final Map<String, dynamic> userDataMap =
+          jsonDecode(String.fromCharCodes(pubSubCallBack.userData)) as Map<String, dynamic>;
       if (userDataMap.containsKey('repo_owner') && userDataMap.containsKey('repo_name')) {
         final RepositorySlug slug =
             RepositorySlug(userDataMap['repo_owner'] as String, userDataMap['repo_name'] as String);

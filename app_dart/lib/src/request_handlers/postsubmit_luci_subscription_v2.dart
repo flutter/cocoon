@@ -61,7 +61,8 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
       return Body.empty;
     }
 
-    final Map<String, dynamic> userDataMap = jsonDecode(String.fromCharCodes(pubSubCallBack.userData)) as Map<String, dynamic>;
+    final Map<String, dynamic> userDataMap =
+        jsonDecode(String.fromCharCodes(pubSubCallBack.userData)) as Map<String, dynamic>;
     log.fine('userData=$userDataMap');
 
     if (!buildsV2PubSub.hasBuild()) {

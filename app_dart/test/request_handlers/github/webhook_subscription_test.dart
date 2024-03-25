@@ -103,7 +103,8 @@ void main() {
       buildbucket: fakeBuildBucketClient,
       githubChecksUtil: mockGithubChecksUtil,
     );
-    schedulerV2 = FakeSchedulerV2(config: config, buildbucket: fakeBuildBucketV2Client, githubChecksUtil: mockGithubChecksUtil);
+    schedulerV2 =
+        FakeSchedulerV2(config: config, buildbucket: fakeBuildBucketV2Client, githubChecksUtil: mockGithubChecksUtil);
     tester = SubscriptionTester(request: request);
 
     mockGithubChecksService = MockGithubChecksService();

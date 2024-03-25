@@ -157,16 +157,24 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       final int currentAttempt = task.attempts!;
       taskDocumentName = '$kDatabase/documents/${firestore.kTaskCollectionId}/${sha}_${taskName}_$currentAttempt';
     }
-    taskDocument =
-        await firestore.Task.fromFirestore(firestoreService: firestoreService, documentName: taskDocumentName,);
+    taskDocument = await firestore.Task.fromFirestore(
+      firestoreService: firestoreService,
+      documentName: taskDocumentName,
+    );
     // final Map<String, List<String>> tags = <String, List<String>>{
     //   'triggered_by': <String>[email],
     //   'trigger_type': <String>['manual_retry'],
     // };
 
     final List<bbv2.StringPair> tags = <bbv2.StringPair>[
-      bbv2.StringPair(key: 'triggered_by', value: email,),
-      bbv2.StringPair(key: 'trigger_type', value: 'manual_retry',),
+      bbv2.StringPair(
+        key: 'triggered_by',
+        value: email,
+      ),
+      bbv2.StringPair(
+        key: 'trigger_type',
+        value: 'manual_retry',
+      ),
     ];
 
     final bool isRerunning = await luciBuildService.checkRerunBuilder(

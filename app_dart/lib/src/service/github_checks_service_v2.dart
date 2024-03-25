@@ -18,7 +18,12 @@ const String kGithubSummary = '''
 
 ''';
 
-final List<bbv2.Status> terminalStatuses = [bbv2.Status.CANCELED, bbv2.Status.FAILURE, bbv2.Status.INFRA_FAILURE, bbv2.Status.SUCCESS,];
+final List<bbv2.Status> terminalStatuses = [
+  bbv2.Status.CANCELED,
+  bbv2.Status.FAILURE,
+  bbv2.Status.INFRA_FAILURE,
+  bbv2.Status.SUCCESS,
+];
 
 /// Controls triggering builds and updating their status in the Github UI.
 class GithubChecksServiceV2 {
@@ -104,7 +109,8 @@ class GithubChecksServiceV2 {
       'name': build.input.properties.fields['builder_name'],
     });
 
-    github.CheckRunConclusion? conclusion = (terminalStatuses.contains(build.status)) ? conclusionForResult(build.status) : null;
+    github.CheckRunConclusion? conclusion =
+        (terminalStatuses.contains(build.status)) ? conclusionForResult(build.status) : null;
     log.info('conclusion for build ${build.id} is ${(conclusion != null) ? conclusion.value : null}');
 
     final String url = 'https://cr-buildbucket.appspot.com/build/${build.id}';

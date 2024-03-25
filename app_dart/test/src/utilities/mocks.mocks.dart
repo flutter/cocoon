@@ -3829,29 +3829,6 @@ class MockGithubChecksService extends _i1.Mock implements _i16.GithubChecksServi
       ) as _i21.Future<bool>);
 
   @override
-  _i21.Future<bool> updateCheckStatusV2({
-    required _i9.Build? build,
-    required Map<String, dynamic>? userDataMap,
-    required _i16.LuciBuildService? luciBuildService,
-    required _i14.RepositorySlug? slug,
-    bool? rescheduled = false,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #updateCheckStatusV2,
-          [],
-          {
-            #build: build,
-            #userDataMap: userDataMap,
-            #luciBuildService: luciBuildService,
-            #slug: slug,
-            #rescheduled: rescheduled,
-          },
-        ),
-        returnValue: _i21.Future<bool>.value(false),
-      ) as _i21.Future<bool>);
-
-  @override
   bool taskFailed(_i43.BuildPushMessage? buildPushMessage) => (super.noSuchMethod(
         Invocation.method(
           #taskFailed,
@@ -3861,28 +3838,10 @@ class MockGithubChecksService extends _i1.Mock implements _i16.GithubChecksServi
       ) as bool);
 
   @override
-  bool taskFailedV2(_i9.Status? status) => (super.noSuchMethod(
-        Invocation.method(
-          #taskFailedV2,
-          [status],
-        ),
-        returnValue: false,
-      ) as bool);
-
-  @override
   int currentAttempt(_i43.Build? build) => (super.noSuchMethod(
         Invocation.method(
           #currentAttempt,
           [build],
-        ),
-        returnValue: 0,
-      ) as int);
-
-  @override
-  int currentAttemptV2(List<_i9.StringPair>? tags) => (super.noSuchMethod(
-        Invocation.method(
-          #currentAttemptV2,
-          [tags],
         ),
         returnValue: 0,
       ) as int);
@@ -3918,21 +3877,6 @@ class MockGithubChecksService extends _i1.Mock implements _i16.GithubChecksServi
       ) as _i14.CheckRunConclusion);
 
   @override
-  _i14.CheckRunConclusion conclusionFromResult(_i9.Status? status) => (super.noSuchMethod(
-        Invocation.method(
-          #conclusionFromResult,
-          [status],
-        ),
-        returnValue: _FakeCheckRunConclusion_41(
-          this,
-          Invocation.method(
-            #conclusionFromResult,
-            [status],
-          ),
-        ),
-      ) as _i14.CheckRunConclusion);
-
-  @override
   _i14.CheckRunStatus statusForResult(_i43.Status? status) => (super.noSuchMethod(
         Invocation.method(
           #statusForResult,
@@ -3942,21 +3886,6 @@ class MockGithubChecksService extends _i1.Mock implements _i16.GithubChecksServi
           this,
           Invocation.method(
             #statusForResult,
-            [status],
-          ),
-        ),
-      ) as _i14.CheckRunStatus);
-
-  @override
-  _i14.CheckRunStatus statusToResultV2(_i9.Status? status) => (super.noSuchMethod(
-        Invocation.method(
-          #statusToResultV2,
-          [status],
-        ),
-        returnValue: _FakeCheckRunStatus_42(
-          this,
-          Invocation.method(
-            #statusToResultV2,
             [status],
           ),
         ),
@@ -7387,10 +7316,10 @@ class MockLuciBuildService extends _i1.Mock implements _i16.LuciBuildService {
     required _i47.Target? target,
     required _i37.Task? task,
     required _i10.DatastoreService? datastore,
-    _i16.FirestoreService? firestoreService,
+    required _i42.Task? taskDocument,
+    required _i16.FirestoreService? firestoreService,
     Map<String, List<String>>? tags,
     bool? ignoreChecks = false,
-    _i42.Task? taskDocument,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -7401,10 +7330,10 @@ class MockLuciBuildService extends _i1.Mock implements _i16.LuciBuildService {
             #target: target,
             #task: task,
             #datastore: datastore,
+            #taskDocument: taskDocument,
             #firestoreService: firestoreService,
             #tags: tags,
             #ignoreChecks: ignoreChecks,
-            #taskDocument: taskDocument,
           },
         ),
         returnValue: _i21.Future<bool>.value(false),
@@ -7829,10 +7758,10 @@ class MockLuciBuildServiceV2 extends _i1.Mock implements _i46.LuciBuildServiceV2
     required _i47.Target? target,
     required _i37.Task? task,
     required _i10.DatastoreService? datastore,
-    _i16.FirestoreService? firestoreService,
+    required _i42.Task? taskDocument,
+    required _i16.FirestoreService? firestoreService,
     List<_i9.StringPair>? tags,
     bool? ignoreChecks = false,
-    _i42.Task? taskDocument,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -7843,10 +7772,10 @@ class MockLuciBuildServiceV2 extends _i1.Mock implements _i46.LuciBuildServiceV2
             #target: target,
             #task: task,
             #datastore: datastore,
+            #taskDocument: taskDocument,
             #firestoreService: firestoreService,
             #tags: tags,
             #ignoreChecks: ignoreChecks,
-            #taskDocument: taskDocument,
           },
         ),
         returnValue: _i21.Future<bool>.value(false),

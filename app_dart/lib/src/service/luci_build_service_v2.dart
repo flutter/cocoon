@@ -449,7 +449,8 @@ class LuciBuildServiceV2 {
       'commit_sha': sha,
     };
 
-    final bbv2.Struct propertiesStruct = (build.input.hasProperties()) ? build.input.properties : bbv2.Struct().createEmptyInstance();
+    final bbv2.Struct propertiesStruct =
+        (build.input.hasProperties()) ? build.input.properties : bbv2.Struct().createEmptyInstance();
     final Map<String, Object?> properties = propertiesStruct.toProto3Json() as Map<String, Object?>;
     final GithubService githubService = await config.createGithubService(slug);
 
@@ -801,9 +802,19 @@ class LuciBuildServiceV2 {
       );
     }
 
-    tags.add(bbv2.StringPair(key: 'user_agent', value: 'flutter-cocoon',),);
+    tags.add(
+      bbv2.StringPair(
+        key: 'user_agent',
+        value: 'flutter-cocoon',
+      ),
+    );
     // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
-    tags.add(bbv2.StringPair(key: 'scheduler_job_id', value: 'flutter/${target.value.name}',),);
+    tags.add(
+      bbv2.StringPair(
+        key: 'scheduler_job_id',
+        value: 'flutter/${target.value.name}',
+      ),
+    );
     // Default attempt is the initial attempt, which is 1.
     final bbv2.StringPair? attemptTag = tags.singleWhereOrNull((tag) => tag.key == 'current_attempt');
     if (attemptTag == null) {
@@ -895,7 +906,7 @@ class LuciBuildServiceV2 {
     if (ignoreChecks == false && await _shouldRerunBuilderFirestore(taskDocument, firestoreService) == false) {
       return false;
     }
-    
+
     log.info('Rerun builder: ${target.value.name} for commit ${commit.sha}');
     tags ??= <bbv2.StringPair>[];
     final bbv2.StringPair? triggerTag =
