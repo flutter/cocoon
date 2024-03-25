@@ -290,6 +290,12 @@ class Task extends Model<int> {
   /// This status is only used by LUCI tasks.
   static const String statusSkipped = 'Skipped';
 
+  static const Set<String> taskFailStatusSet = <String>{
+    Task.statusInfraFailure,
+    Task.statusFailed,
+    Task.statusCancelled,
+  };
+
   /// The list of legal values for the [status] property.
   static const List<String> legalStatusValues = <String>[
     statusCancelled,
@@ -308,12 +314,6 @@ class Task extends Model<int> {
     statusSkipped,
     statusSucceeded,
   ];
-
-  static const Set<String> taskFailStatusSet = <String>{
-    Task.statusInfraFailure,
-    Task.statusFailed,
-    Task.statusCancelled,
-  };
 
   /// The key of the commit that owns this task.
   @ModelKeyProperty(propertyName: 'ChecklistKey')

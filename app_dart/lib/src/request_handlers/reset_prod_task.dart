@@ -48,6 +48,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   static const String ownerParam = 'Owner';
   static const String repoParam = 'Repo';
   static const String commitShaParam = 'Commit';
+  static const String taskDocumentNameParam = 'taskDocumentName';
 
   /// Name of the task to be retried.
   ///
@@ -66,6 +67,8 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final String? sha = requestData![commitShaParam] as String?;
     final TokenInfo token = await tokenInfo(request!);
     final String? taskName = requestData![taskParam] as String?;
+    // When Frontend is switched to Firstore, the task document name will be passed over.
+    final String? taskDocumentName = requestData![taskDocumentNameParam] as String?;
 
     RepositorySlug? slug;
     if (encodedKey != null && encodedKey.isNotEmpty) {
@@ -110,6 +113,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
         branch: branch,
         sha: sha,
         taskName: taskName,
+        taskDocumentName: taskDocumentName,
         slug: slug,
         email: token.email!,
         ignoreChecks: true,
@@ -127,9 +131,11 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     String? sha,
     String? taskName,
     RepositorySlug? slug,
+    String? taskDocumentName,
     required String email,
     bool ignoreChecks = false,
   }) async {
+    // Prepares Datastore task.
     final Task task = await _getTaskFromNamedParams(
       datastore: datastore,
       encodedKey: encodedKey,
@@ -145,22 +151,22 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final CiYaml ciYaml = await scheduler.getCiYaml(commit);
     final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
 
+    // Prepares Firestore task.
     firestore.Task? taskDocument;
-    final int currentAttempt = task.attempts!;
-    final String documentName =
-        '$kDatabase/documents/${firestore.kTaskCollectionId}/${sha}_${taskName}_$currentAttempt';
-    try {
-      taskDocument = await firestore.Task.fromFirestore(
-        firestoreService: firestoreService,
-        documentName: documentName,
-      );
-    } catch (error) {
-      log.warning('Failed to read task $documentName from Firestore: $error');
+    if (taskDocumentName == null) {
+      final int currentAttempt = task.attempts!;
+      taskDocumentName = '$kDatabase/documents/${firestore.kTaskCollectionId}/${sha}_${taskName}_$currentAttempt';
     }
+    taskDocument =
+        await firestore.Task.fromFirestore(firestoreService: firestoreService, documentName: taskDocumentName,);
+    // final Map<String, List<String>> tags = <String, List<String>>{
+    //   'triggered_by': <String>[email],
+    //   'trigger_type': <String>['manual_retry'],
+    // };
 
     final List<bbv2.StringPair> tags = <bbv2.StringPair>[
-      bbv2.StringPair(key: 'triggered_by', value: email),
-      bbv2.StringPair(key: 'trigger_type', value: 'manual_retry'),
+      bbv2.StringPair(key: 'triggered_by', value: email,),
+      bbv2.StringPair(key: 'trigger_type', value: 'manual_retry',),
     ];
 
     final bool isRerunning = await luciBuildService.checkRerunBuilder(

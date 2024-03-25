@@ -106,9 +106,16 @@ void main() {
   //     );
   //   });
 
-  //   test('Re-schedule existing task', () async {
+  //   test('schedule new task when task document is aviable', () async {
   //     config.db.values[task.key] = task;
   //     config.db.values[commit.key] = commit;
+  //     tester.requestData = <String, dynamic>{
+  //       'taskDocumentName':
+  //           '$kDatabase/documents/${firestore.kTaskCollectionId}/${commit.sha}_${task.name}_${task.attempts}}',
+  //       'Commit': commit.sha,
+  //       'Task': task.name,
+  //       'Repo': commit.slug.name,
+  //     };
   //     expect(await tester.post(handler), Body.empty);
   //   });
 
@@ -178,6 +185,8 @@ void main() {
   //         task: anyNamed('task'),
   //         target: anyNamed('target'),
   //         tags: anyNamed('tags'),
+  //         firestoreService: anyNamed('firestoreService'),
+  //         taskDocument: anyNamed('taskDocument'),
   //         ignoreChecks: false,
   //       ),
   //     );

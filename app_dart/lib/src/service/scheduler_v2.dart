@@ -165,8 +165,6 @@ class SchedulerV2 {
       log.severe('Failed to add commit ${commit.sha!}: $error');
     }
 
-    await _batchScheduleBuilds(commit, toBeScheduled);
-    await _uploadToBigQuery(commit);
     final firestore_commmit.Commit commitDocument = firestore_commmit.commitToCommitDocument(commit);
     final List<firestore.Task> taskDocuments = firestore.targetsToTaskDocuments(commit, initialTargets);
     final List<Write> writes = documentsToWrites([...taskDocuments, commitDocument], exists: false);
@@ -177,6 +175,9 @@ class SchedulerV2 {
     } catch (error) {
       log.warning('Failed to add to Firestore: $error');
     }
+
+    await _batchScheduleBuilds(commit, toBeScheduled);
+    await _uploadToBigQuery(commit);
   }
 
   /// Schedule all builds in batch requests instead of a single request.

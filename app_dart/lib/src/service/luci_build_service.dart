@@ -17,6 +17,7 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import '../foundation/github_checks_util.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
+import '../model/firestore/commit.dart' as firestore_commit;
 import '../model/firestore/task.dart' as firestore;
 import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
@@ -815,31 +816,17 @@ class LuciBuildService {
     required Target target,
     required Task task,
     required DatastoreService datastore,
-    FirestoreService? firestoreService,
+    required firestore.Task taskDocument,
+    required FirestoreService firestoreService,
     Map<String, List<String>>? tags,
     bool ignoreChecks = false,
-    firestore.Task? taskDocument,
   }) async {
-    if (ignoreChecks == false && await _shouldRerunBuilder(task, commit, datastore) == false) {
+    if (ignoreChecks == false && await _shouldRerunBuilderFirestore(taskDocument, firestoreService) == false) {
       return false;
     }
     log.info('Rerun builder: ${target.value.name} for commit ${commit.sha}');
     tags ??= <String, List<String>>{};
     tags['trigger_type'] ??= <String>['auto_retry'];
-
-    // TODO(keyonghan): remove check when [ResetProdTask] supports firestore update.
-    if (taskDocument != null) {
-      try {
-        final int newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
-        tags['current_attempt'] = <String>[newAttempt.toString()];
-        taskDocument.resetAsRetry(attempt: newAttempt);
-        taskDocument.setStatus(firestore.Task.statusInProgress);
-        final List<Write> writes = documentsToWrites([taskDocument], exists: false);
-        await firestoreService!.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
-      } catch (error) {
-        log.warning('Failed to insert retried task in Firestore: $error');
-      }
-    }
 
     final BatchRequest request = BatchRequest(
       requests: <Request>[
@@ -857,10 +844,19 @@ class LuciBuildService {
     );
     await pubsub.publish('scheduler-requests', request);
 
+    // Updates task status in Datastore.
     task.attempts = (task.attempts ?? 0) + 1;
     // Mark task as in progress to ensure it isn't scheduled over
     task.status = Task.statusInProgress;
     await datastore.insert(<Task>[task]);
+
+    // Updates task status in Firestore.
+    final int newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
+    tags['current_attempt'] = <String>[newAttempt.toString()];
+    taskDocument.resetAsRetry(attempt: newAttempt);
+    taskDocument.setStatus(firestore.Task.statusInProgress);
+    final List<Write> writes = documentsToWrites([taskDocument], exists: false);
+    await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
 
     return true;
   }
@@ -868,8 +864,8 @@ class LuciBuildService {
   /// Check if a builder should be rerun.
   ///
   /// A rerun happens when a build fails, the retry number hasn't reached the limit, and the build is on TOT.
-  Future<bool> _shouldRerunBuilder(Task task, Commit commit, DatastoreService? datastore) async {
-    if (!Task.taskFailStatusSet.contains(task.status)) {
+  Future<bool> _shouldRerunBuilderFirestore(firestore.Task task, FirestoreService firestoreService) async {
+    if (!firestore.Task.taskFailStatusSet.contains(task.status)) {
       return false;
     }
     final int retries = task.attempts ?? 1;
@@ -878,13 +874,17 @@ class LuciBuildService {
       return false;
     }
 
-    final Commit latestCommit = await datastore!
-        .queryRecentCommits(
-          limit: 1,
-          slug: commit.slug,
-          branch: commit.branch,
-        )
-        .single;
-    return latestCommit.sha == commit.sha;
+    final String commitDocumentName = '$kDatabase/documents/${firestore_commit.kCommitCollectionId}/${task.commitSha}';
+    final firestore_commit.Commit currentCommit = await firestore_commit.Commit.fromFirestore(
+      firestoreService: firestoreService,
+      documentName: commitDocumentName,
+    );
+    final List<firestore_commit.Commit> commitList = await firestoreService.queryRecentCommits(
+      limit: 1,
+      slug: currentCommit.slug,
+      branch: currentCommit.branch,
+    );
+    final firestore_commit.Commit latestCommit = commitList.single;
+    return latestCommit.sha == currentCommit.sha;
   }
 }
