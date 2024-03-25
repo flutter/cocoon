@@ -8,6 +8,7 @@ import 'dart:core';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_commit;
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
@@ -920,14 +921,46 @@ void main() {
     late DatastoreService datastore;
     late MockGithubChecksUtil mockGithubChecksUtil;
     late MockFirestoreService mockFirestoreService;
+    firestore.Task? firestoreTask;
+    firestore_commit.Commit? firestoreCommit;
     setUp(() {
       cache = CacheService(inMemory: true);
       config = FakeConfig();
+      firestoreTask = null;
+      firestoreCommit = null;
       mockBuildBucketClient = MockBuildBucketClient();
       mockGithubChecksUtil = MockGithubChecksUtil();
       mockFirestoreService = MockFirestoreService();
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
           .thenAnswer((realInvocation) async => generateCheckRun(1));
+      when(
+        mockFirestoreService.batchWriteDocuments(
+          captureAny,
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<BatchWriteResponse>.value(BatchWriteResponse());
+      });
+      when(
+        mockFirestoreService.getDocument(
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<firestore_commit.Commit>.value(
+          firestoreCommit,
+        );
+      });
+      when(
+        mockFirestoreService.queryRecentCommits(
+          limit: captureAnyNamed('limit'),
+          slug: captureAnyNamed('slug'),
+          branch: captureAnyNamed('branch'),
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<List<firestore_commit.Commit>>.value(
+          <firestore_commit.Commit>[firestoreCommit!],
+        );
+      });
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
@@ -940,6 +973,8 @@ void main() {
     });
 
     test('Pass repo and properties correctly', () async {
+      firestoreTask = generateFirestoreTask(1, attempts: 1, status: firestore.Task.statusFailed);
+      firestoreCommit = generateFirestoreCommit(1);
       totCommit = generateCommit(1, repo: 'engine', branch: 'main');
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
@@ -957,6 +992,8 @@ void main() {
         task: task,
         target: target,
         datastore: datastore,
+        firestoreService: mockFirestoreService,
+        taskDocument: firestoreTask!,
       );
       expect(pubsub.messages.length, 1);
       final ScheduleBuildRequest scheduleBuildRequest =
@@ -974,6 +1011,8 @@ void main() {
     });
 
     test('Rerun a test failed builder', () async {
+      firestoreTask = generateFirestoreTask(1, attempts: 1, status: firestore.Task.statusFailed);
+      firestoreCommit = generateFirestoreCommit(1);
       totCommit = generateCommit(1);
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
@@ -989,11 +1028,15 @@ void main() {
         task: task,
         target: target,
         datastore: datastore,
+        firestoreService: mockFirestoreService,
+        taskDocument: firestoreTask!,
       );
       expect(rerunFlag, isTrue);
     });
 
     test('Rerun an infra failed builder', () async {
+      firestoreTask = generateFirestoreTask(1, attempts: 1, status: firestore.Task.statusInfraFailure);
+      firestoreCommit = generateFirestoreCommit(1);
       totCommit = generateCommit(1);
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
@@ -1009,11 +1052,14 @@ void main() {
         task: task,
         target: target,
         datastore: datastore,
+        firestoreService: mockFirestoreService,
+        taskDocument: firestoreTask!,
       );
       expect(rerunFlag, isTrue);
     });
 
     test('Do not rerun a successful builder', () async {
+      firestoreTask = generateFirestoreTask(1, attempts: 1);
       totCommit = generateCommit(1);
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
@@ -1029,11 +1075,14 @@ void main() {
         task: task,
         target: target,
         datastore: datastore,
+        firestoreService: mockFirestoreService,
+        taskDocument: firestoreTask!,
       );
       expect(rerunFlag, isFalse);
     });
 
     test('Do not rerun a builder exceeding retry limit', () async {
+      firestoreTask = generateFirestoreTask(1, attempts: 1);
       totCommit = generateCommit(1);
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
@@ -1050,11 +1099,14 @@ void main() {
         task: task,
         target: target,
         datastore: datastore,
+        firestoreService: mockFirestoreService,
+        taskDocument: firestoreTask!,
       );
       expect(rerunFlag, isFalse);
     });
 
     test('Do not rerun a builder when not tip of tree', () async {
+      firestoreTask = generateFirestoreTask(1, attempts: 1);
       totCommit = generateCommit(2, sha: 'def');
       commit = generateCommit(1, sha: 'abc');
       config.db.values[totCommit.key] = totCommit;
@@ -1072,20 +1124,15 @@ void main() {
         task: task,
         target: target,
         datastore: datastore,
+        firestoreService: mockFirestoreService,
+        taskDocument: firestoreTask!,
       );
       expect(rerunFlag, isFalse);
     });
 
     test('insert retried task document to firestore', () async {
-      final firestore.Task firestoreTask = generateFirestoreTask(1, attempts: 1);
-      when(
-        mockFirestoreService.batchWriteDocuments(
-          captureAny,
-          captureAny,
-        ),
-      ).thenAnswer((Invocation invocation) {
-        return Future<BatchWriteResponse>.value(BatchWriteResponse());
-      });
+      firestoreTask = generateFirestoreTask(1, attempts: 1, status: firestore.Task.statusInfraFailure);
+      firestoreCommit = generateFirestoreCommit(1);
       totCommit = generateCommit(1);
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
@@ -1096,25 +1143,25 @@ void main() {
         buildNumber: 1,
       );
       final Target target = generateTarget(1);
-      expect(firestoreTask.attempts, 1);
+      expect(firestoreTask!.attempts, 1);
       final bool rerunFlag = await service.checkRerunBuilder(
         commit: totCommit,
         task: task,
         target: target,
         datastore: datastore,
         firestoreService: mockFirestoreService,
-        taskDocument: firestoreTask,
+        taskDocument: firestoreTask!,
       );
       expect(rerunFlag, isTrue);
 
-      expect(firestoreTask.attempts, 2);
+      expect(firestoreTask!.attempts, 2);
       final List<dynamic> captured = verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
       expect(captured.length, 2);
       final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
       expect(batchWriteRequest.writes!.length, 1);
       final Document insertedTaskDocument = batchWriteRequest.writes![0].update!;
       expect(insertedTaskDocument, firestoreTask);
-      expect(firestoreTask.status, firestore.Task.statusInProgress);
+      expect(firestoreTask!.status, firestore.Task.statusInProgress);
     });
   });
 }
