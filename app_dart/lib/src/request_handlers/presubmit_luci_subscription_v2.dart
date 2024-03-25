@@ -68,10 +68,10 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
 
     final bbv2.Build build = buildsV2PubSub.build;
 
-    // final String builderName = build.builder.builder;
+    final String builderName = build.builder.builder;
 
     final List<bbv2.StringPair> tags = build.tags;
-    final String builderName = tags.where((element) => element.key == 'builder').single.value;
+    // final String builderName = tags.where((element) => element.key == 'builder_name').single.value;
 
     // final String builderName = build.tagsByName('builder').single;
     log.fine('Available tags: ${tags.toString()}');
@@ -82,11 +82,11 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
       return Body.empty;
     }
 
-    log.fine('Setting status for $builderName');
+    log.fine('Setting status (${build.status.toString()}) for $builderName');
 
     if (pubSubCallBack.hasUserData()) {
-      // Not sure if this is base64 encoded or not.
-      final Map<String, dynamic> userDataMap = UserData.decodeUserDataBytes(pubSubCallBack.userData);
+      // Not sure if this is it has an automatic base64 decoder so we don't need to do that.
+      final Map<String, dynamic> userDataMap = jsonDecode(String.fromCharCodes(pubSubCallBack.userData)) as Map<String, dynamic>;
       if (userDataMap.containsKey('repo_owner') && userDataMap.containsKey('repo_name')) {
         final RepositorySlug slug =
             RepositorySlug(userDataMap['repo_owner'] as String, userDataMap['repo_name'] as String);

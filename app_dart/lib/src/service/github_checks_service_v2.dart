@@ -18,6 +18,8 @@ const String kGithubSummary = '''
 
 ''';
 
+final List<bbv2.Status> terminalStatuses = [bbv2.Status.CANCELED, bbv2.Status.FAILURE, bbv2.Status.INFRA_FAILURE, bbv2.Status.SUCCESS,];
+
 /// Controls triggering builds and updating their status in the Github UI.
 class GithubChecksServiceV2 {
   GithubChecksServiceV2(
@@ -88,6 +90,8 @@ class GithubChecksServiceV2 {
     }
 
     github.CheckRunStatus status = statusForResult(build.status);
+    log.info('status for build ${build.id} is ${status.value}');
+
     // Only `id` and `name` in the CheckRun are needed.
     // Instead of making an API call to get the details of each check run, we
     // generate the check run with only necessary info.
@@ -95,18 +99,19 @@ class GithubChecksServiceV2 {
       'id': userDataMap['check_run_id'] as int?,
       'status': status,
       'check_suite': const {'id': null},
-      'started_at': build.startTime.toString(),
+      'started_at': build.startTime.toDateTime().toString(),
       'conclusion': null,
       'name': build.input.properties.fields['builder_name'],
     });
 
-    // if conclusion is empty then we treat that as null as before.
-    github.CheckRunConclusion? conclusion = conclusionForResult(build.status);
+    github.CheckRunConclusion? conclusion = (terminalStatuses.contains(build.status)) ? conclusionForResult(build.status) : null;
+    log.info('conclusion for build ${build.id} is ${(conclusion != null) ? conclusion.value : null}');
 
-    final String url = build.viewUrl;
+    final String url = 'https://cr-buildbucket.appspot.com/build/${build.id}';
     github.CheckRunOutput? output;
     // If status has completed with failure then provide more details.
     if (taskFailed(build.status)) {
+      log.info('failed presubmit task, ${build.id} has failed, status = ${build.status.toString()}');
       if (rescheduled) {
         status = github.CheckRunStatus.queued;
         conclusion = null;
@@ -115,10 +120,11 @@ class GithubChecksServiceV2 {
           summary: 'Note: this is an auto rerun. The timestamp above is based on the first attempt of this check run.',
         );
       } else {
+        // summaryMarkdown should be present
         final bbv2.Build buildbucketBuild = await luciBuildService.getBuildById(
           build.id,
           buildMask: bbv2.BuildMask(
-            fields: bbv2.FieldMask(paths: {'id', 'builder', 'summaryMarkDown'}),
+            fields: bbv2.FieldMask(paths: {'id', 'builder', 'summaryMarkdown'}),
           ),
         );
         output = github.CheckRunOutput(
@@ -144,7 +150,7 @@ class GithubChecksServiceV2 {
   bool taskFailed(bbv2.Status status) {
     final github.CheckRunStatus checkRunStatus = statusForResult(status);
     final github.CheckRunConclusion conclusion = conclusionForResult(status);
-    return checkRunStatus == github.CheckRunStatus.completed && failedStatesSet.contains(conclusion);
+    return (checkRunStatus == github.CheckRunStatus.completed) && failedStatesSet.contains(conclusion);
   }
 
   /// Returns current reschedule attempt.
@@ -180,7 +186,6 @@ class GithubChecksServiceV2 {
     return '$kGithubSummary$summary';
   }
 
-  /// Transforms a [push_message.Result] to a [github.CheckRunConclusion].
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs
   github.CheckRunConclusion conclusionForResult(bbv2.Status status) {
