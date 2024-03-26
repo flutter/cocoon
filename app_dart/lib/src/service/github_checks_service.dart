@@ -117,10 +117,9 @@ class GithubChecksService {
           title: checkRun.name!,
           summary: getGithubSummary(buildbucketBuild.summaryMarkdown),
         );
-        log.fine('Updating check run with output: [$output]');
+        log.fine('Updating check run with output: [${output.toJson()}]');
       }
     }
-    log.info('About to update checks output with: $output');
     await githubChecksUtil.updateCheckRun(
       config,
       slug,
