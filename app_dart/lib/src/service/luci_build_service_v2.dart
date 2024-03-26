@@ -920,6 +920,27 @@ class LuciBuildServiceV2 {
       );
     }
 
+    try {
+      // Updates task status in Datastore.
+      task.attempts = (task.attempts ?? 0) + 1;
+      // Mark task as in progress to ensure it isn't scheduled over
+      task.status = Task.statusInProgress;
+      await datastore.insert(<Task>[task]);
+
+      // Updates task status in Firestore.
+      final int newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
+      tags.add(bbv2.StringPair(key: 'current_attempt', value: newAttempt.toString()));
+      taskDocument.resetAsRetry(attempt: newAttempt);
+      taskDocument.setStatus(firestore.Task.statusInProgress);
+      final List<Write> writes = documentsToWrites([taskDocument], exists: false);
+      await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
+    } catch (error) {
+      log.severe(
+        'updating task ${taskDocument.taskName} of commit ${taskDocument.commitSha} failure: $error. Skipping rescheduling.',
+      );
+      return false;
+    }
+
     final bbv2.BatchRequest request = bbv2.BatchRequest(
       requests: <bbv2.BatchRequest_Request>[
         bbv2.BatchRequest_Request(
@@ -934,24 +955,12 @@ class LuciBuildServiceV2 {
         ),
       ],
     );
+    
     await pubsub.publish(
       'cocoon-scheduler-requests',
       request.toProto3Json(),
     );
 
-    // Updates task status in Datastore.
-    task.attempts = (task.attempts ?? 0) + 1;
-    // Mark task as in progress to ensure it isn't scheduled over
-    task.status = Task.statusInProgress;
-    await datastore.insert(<Task>[task]);
-
-    // Updates task status in Firestore.
-    final int newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
-    tags.add(bbv2.StringPair(key: 'current_attempt', value: newAttempt.toString()));
-    taskDocument.resetAsRetry(attempt: newAttempt);
-    taskDocument.setStatus(firestore.Task.statusInProgress);
-    final List<Write> writes = documentsToWrites([taskDocument], exists: false);
-    await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
     return true;
   }
 
