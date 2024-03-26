@@ -16,6 +16,7 @@ import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:gcloud/datastore.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:mockito/mockito.dart';
@@ -1068,6 +1069,39 @@ void main() {
         taskDocument: firestoreTask!,
       );
       expect(rerunFlag, isTrue);
+    });
+
+    test('Skip rerun a failed test when task status update hit exception', () async {
+      firestoreTask = generateFirestoreTask(1, attempts: 1, status: firestore.Task.statusInfraFailure);
+      when(
+        mockFirestoreService.batchWriteDocuments(
+          captureAny,
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        throw InternalError();
+      });
+      firestoreCommit = generateFirestoreCommit(1);
+      totCommit = generateCommit(1);
+      config.db.values[totCommit.key] = totCommit;
+      config.maxLuciTaskRetriesValue = 1;
+      final Task task = generateTask(
+        1,
+        status: Task.statusFailed,
+        parent: totCommit,
+        buildNumber: 1,
+      );
+      final Target target = generateTarget(1);
+      final bool rerunFlag = await service.checkRerunBuilder(
+        commit: totCommit,
+        task: task,
+        target: target,
+        datastore: datastore,
+        firestoreService: mockFirestoreService,
+        taskDocument: firestoreTask!,
+      );
+      expect(rerunFlag, isFalse);
+      expect(pubsub.messages.length, 0);
     });
 
     test('Do not rerun a successful builder', () async {
