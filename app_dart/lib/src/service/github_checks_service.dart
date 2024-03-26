@@ -120,6 +120,7 @@ class GithubChecksService {
         log.fine('Updating check run with output: [$output]');
       }
     }
+    log.info('About to update checks output with: $output');
     await githubChecksUtil.updateCheckRun(
       config,
       slug,
