@@ -160,10 +160,6 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       firestoreService: firestoreService,
       documentName: taskDocumentName,
     );
-    // final Map<String, List<String>> tags = <String, List<String>>{
-    //   'triggered_by': <String>[email],
-    //   'trigger_type': <String>['manual_retry'],
-    // };
 
     final List<bbv2.StringPair> tags = <bbv2.StringPair>[
       bbv2.StringPair(
