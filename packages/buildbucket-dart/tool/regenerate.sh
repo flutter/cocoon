@@ -11,6 +11,7 @@ mkdir -p buildbucket_tmp
 
 pushd buildbucket_tmp
 
+
 git clone https://chromium.googlesource.com/infra/luci/luci-go
 git clone https://github.com/googleapis/googleapis
 git clone https://github.com/protocolbuffers/protobuf
@@ -30,6 +31,16 @@ $PROTOC go.chromium.org/luci/buildbucket/proto/project_config.proto
 $PROTOC go.chromium.org/luci/buildbucket/proto/step.proto
 $PROTOC go.chromium.org/luci/buildbucket/proto/task.proto
 $PROTOC go.chromium.org/luci/buildbucket/proto/notification.proto
+$PROTOC go.chromium.org/luci/resultdb/sink/proto/v1/test_result.proto
+$PROTOC go.chromium.org/luci/resultdb/sink/proto/v1/sink.proto
+$PROTOC go.chromium.org/luci/resultdb/sink/proto/v1/location_tag.proto
+$PROTOC go.chromium.org/luci/resultdb/proto/v1/artifact.proto
+$PROTOC go.chromium.org/luci/resultdb/proto/v1/common.proto
+$PROTOC go.chromium.org/luci/resultdb/proto/v1/resultdb.proto
+$PROTOC go.chromium.org/luci/resultdb/proto/v1/failure_reason.proto
+$PROTOC go.chromium.org/luci/resultdb/proto/v1/test_result.proto
+$PROTOC go.chromium.org/luci/resultdb/proto/v1/test_metadata.proto
+$PROTOC go.chromium.org/luci/resultdb/proto/v1/location_tag.proto
 $PROTOC go.chromium.org/luci/resultdb/proto/v1/common.proto
 $PROTOC go.chromium.org/luci/resultdb/proto/v1/invocation.proto
 $PROTOC go.chromium.org/luci/resultdb/proto/v1/predicate.proto
