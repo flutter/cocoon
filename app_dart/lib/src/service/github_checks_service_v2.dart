@@ -106,7 +106,7 @@ class GithubChecksServiceV2 {
       'check_suite': const {'id': null},
       'started_at': build.startTime.toDateTime().toString(),
       'conclusion': null,
-      'name': build.input.properties.fields['builder_name'],
+      'name': build.builder.builder,
     });
 
     github.CheckRunConclusion? conclusion =
@@ -130,14 +130,15 @@ class GithubChecksServiceV2 {
         final bbv2.Build buildbucketBuild = await luciBuildService.getBuildById(
           build.id,
           buildMask: bbv2.BuildMask(
-            fields: bbv2.FieldMask(paths: {'id', 'builder', 'summaryMarkdown'}),
+            // Need to use allFields as there is a bug with fieldMask and summaryMarkdown.
+            allFields: true,
           ),
         );
         output = github.CheckRunOutput(
           title: checkRun.name!,
           summary: getGithubSummary(buildbucketBuild.summaryMarkdown),
         );
-        log.fine('Updating check run with output: [$output]');
+        log.fine('Updating check run with output: [${output.toJson().toString()}]');
       }
     }
     await githubChecksUtil.updateCheckRun(
