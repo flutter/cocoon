@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -708,7 +707,7 @@ class LuciBuildServiceV2 {
     // Create the notification configuration for pubsub processing.
     final bbv2.NotificationConfig notificationConfig = bbv2.NotificationConfig().createEmptyInstance();
     notificationConfig.pubsubTopic = 'projects/flutter-dashboard/topics/build-bucket-presubmit';
-    notificationConfig.userData = json.encode(processedUserData).codeUnits;
+    notificationConfig.userData = UserData.encodeUserDataToBytes(processedUserData)!;
     scheduleBuildRequest.notify = notificationConfig;
 
     // Add tags to the instance.

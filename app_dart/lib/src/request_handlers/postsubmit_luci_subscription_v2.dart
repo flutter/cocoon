@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/ci_yaml.dart';
+import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
@@ -60,8 +61,8 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
       return Body.empty;
     }
 
-    final Map<String, dynamic> userDataMap =
-        jsonDecode(String.fromCharCodes(pubSubCallBack.userData)) as Map<String, dynamic>;
+    final Map<String, dynamic> userDataMap = json.decode(String.fromCharCodes(pubSubCallBack.userData)); //UserData.decodeUserDataBytes(pubSubCallBack.userData);
+    
     log.fine('userData=$userDataMap');
 
     if (!buildsV2PubSub.hasBuild()) {

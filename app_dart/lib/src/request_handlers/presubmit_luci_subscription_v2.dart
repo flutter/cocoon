@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:cocoon_service/src/request_handling/subscription_handler_v2.dart';
 import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
 import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
@@ -84,9 +85,15 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     log.fine('Setting status (${build.status.toString()}) for $builderName');
 
     if (pubSubCallBack.hasUserData()) {
-      // Not sure if this is it has an automatic base64 decoder so we don't need to do that.
-      final Map<String, dynamic> userDataMap =
-          jsonDecode(String.fromCharCodes(pubSubCallBack.userData)) as Map<String, dynamic>;
+      Map<String, dynamic> userDataMap = <String, dynamic>{}; 
+      try {
+        log.info('User data was not base64 encoded.');
+        userDataMap = json.decode(String.fromCharCodes(pubSubCallBack.userData));
+      } on FormatException {
+        log.info('Decoding base64 encoded user data.');
+        userDataMap = UserData.decodeUserDataBytes(pubSubCallBack.userData);
+      }
+
       if (userDataMap.containsKey('repo_owner') && userDataMap.containsKey('repo_name')) {
         final RepositorySlug slug =
             RepositorySlug(userDataMap['repo_owner'] as String, userDataMap['repo_name'] as String);

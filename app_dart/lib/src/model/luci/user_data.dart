@@ -14,6 +14,7 @@ class UserData {
   }
 
   static Map<String, dynamic> decodeUserDataString(String encoded) {
+    // it was already json here for some reason
     final Uint8List bytes = base64.decode(encoded);
     final String rawJson = String.fromCharCodes(bytes);
     if (rawJson.isEmpty) {
@@ -21,11 +22,22 @@ class UserData {
     }
     return json.decode(rawJson) as Map<String, dynamic>;
   }
+  
+  // string.fromcharcodes
+  // base64.decode
+  // string.fromcharcodes
+  // json.decode;
 
   static List<int>? encodeUserDataToBytes(Map<String, dynamic> userDataMap) {
     return base64Encode(json.encode(userDataMap).codeUnits).codeUnits;
   }
 
+  // json.encode
+  // string.codeUnits
+  // base64.encode
+  // string.codeUnits
+
+  // similar to the original code.
   static String? encodeUserDataToString(Map<String, dynamic> userDataMap) {
     return base64Encode(json.encode(userDataMap).codeUnits);
   }
