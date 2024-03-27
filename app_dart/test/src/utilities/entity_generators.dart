@@ -266,7 +266,7 @@ Build generateBuild(
     );
 
 bbv2.Build generateBbv2Build(
-  int i, {
+  Int64 i, {
   String bucket = 'prod',
   String name = 'Linux test_builder',
   bbv2.Status status = bbv2.Status.SUCCESS,
@@ -275,7 +275,7 @@ bbv2.Build generateBbv2Build(
   int buildNumber = 1,
 }) =>
     bbv2.Build(
-      id: i as Int64,
+      id: i,
       builder: bbv2.BuilderID(
         project: 'flutter',
         bucket: bucket,

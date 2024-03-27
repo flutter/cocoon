@@ -8,7 +8,10 @@ import 'dart:math';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/postsubmit_luci_subscription_v2.dart';
 import 'package:cocoon_service/src/request_handlers/presubmit_luci_subscription_v2.dart';
+import 'package:cocoon_service/src/request_handlers/reset_prod_task_v2.dart';
+import 'package:cocoon_service/src/request_handlers/reset_try_task_v2.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/scheduler_request_subscription.dart';
+import 'package:cocoon_service/src/request_handlers/vacuum_github_commits_v2.dart';
 import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
@@ -120,10 +123,21 @@ Server createServer({
     '/api/reset-prod-task': ResetProdTask(
       config: config,
       authenticationProvider: authProvider,
+      luciBuildService: luciBuildService,
+      scheduler: scheduler,
+    ),
+    '/api/v2/reset-prod-task': ResetProdTaskV2(
+      config: config,
+      authenticationProvider: authProvider,
       luciBuildService: luciBuildServiceV2,
       scheduler: schedulerV2,
     ),
     '/api/reset-try-task': ResetTryTask(
+      config: config,
+      authenticationProvider: authProvider,
+      scheduler: scheduler,
+    ),
+    '/api/v2/reset-try-task': ResetTryTaskV2(
       config: config,
       authenticationProvider: authProvider,
       scheduler: schedulerV2,
@@ -174,6 +188,11 @@ Server createServer({
       config: config,
       authenticationProvider: authProvider,
       scheduler: scheduler,
+    ),
+    '/api/v2/vacuum-github-commits': VacuumGithubCommitsV2(
+      config: config,
+      authenticationProvider: authProvider,
+      scheduler: schedulerV2,
     ),
 
     /// Returns status of the framework tree.

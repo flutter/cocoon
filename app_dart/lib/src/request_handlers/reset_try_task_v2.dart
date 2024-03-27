@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_service/src/service/scheduler_v2.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -14,14 +15,14 @@ import '../request_handling/exceptions.dart';
 /// Runs all the applicable tasks for a given PR and commit hash. This will be
 /// used to unblock rollers when creating a new commit is not possible.
 @immutable
-class ResetTryTask extends ApiRequestHandler<Body> {
-  const ResetTryTask({
+class ResetTryTaskV2 extends ApiRequestHandler<Body> {
+  const ResetTryTaskV2({
     required super.config,
     required super.authenticationProvider,
     required this.scheduler,
   });
 
-  final Scheduler scheduler;
+  final SchedulerV2 scheduler;
 
   static const String kOwnerParam = 'owner';
   static const String kRepoParam = 'repo';

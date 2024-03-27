@@ -955,7 +955,7 @@ class LuciBuildServiceV2 {
         ),
       ],
     );
-    
+
     await pubsub.publish(
       'cocoon-scheduler-requests',
       request.toProto3Json(),
