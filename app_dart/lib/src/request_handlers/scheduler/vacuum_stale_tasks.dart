@@ -54,6 +54,9 @@ class VacuumStaleTasks extends RequestHandler<Body> {
   Future<void> _vacuumRepository(gh.RepositorySlug slug) async {
     final DatastoreService datastore = datastoreProvider(config.db);
 
+    final FirestoreService firestoreService = await config.createFirestoreService();
+
+    // Datastore logic to query for recent tasks and assign to commits
     final List<FullTask> tasks = await datastore.queryRecentTasks(slug: slug).toList();
     final List<Task> tasksToBeReset = <Task>[];
     for (FullTask fullTask in tasks) {
@@ -64,18 +67,30 @@ class VacuumStaleTasks extends RequestHandler<Body> {
         tasksToBeReset.add(task);
       }
     }
-    log.info('Vacuuming stale tasks: $tasksToBeReset');
+
+    // Firestore logic to query for recent tasks and assign to commits
+    final List<firestore.FullTask> firestoreTasks = await firestoreService.queryRecentTasks(slug: slug);
+    final List<firestore.Task> firestoreTasksToBeReset = <firestore.Task>[];
+    for (firestore.FullTask fullTask in firestoreTasks) {
+      final firestore.Task task = fullTask.task;
+      if (task.status == Task.statusInProgress && task.buildNumber == null) {
+        task.setStatus(Task.statusNew);
+        task.setCreateTimestamp(0);
+        firestoreTasksToBeReset.add(task);
+      }
+    }
+    log.info('Vacuuming stale firestore tasks: $tasksToBeReset');
     await datastore.insert(tasksToBeReset);
 
-    await updateTaskDocuments(tasksToBeReset);
+    log.info('Vacuuming stale firestore tasks: $firestoreTasksToBeReset');
+    await updateTaskDocuments(firestoreTasksToBeReset);
   }
 
-  Future<void> updateTaskDocuments(List<Task> tasks) async {
+  Future<void> updateTaskDocuments(List<firestore.Task> tasks) async {
     if (tasks.isEmpty) {
       return;
     }
-    final List<firestore.Task> taskDocuments = tasks.map((e) => firestore.taskToDocument(e)).toList();
-    final List<Write> writes = documentsToWrites(taskDocuments, exists: true);
+    final List<Write> writes = documentsToWrites(tasks, exists: true);
     final FirestoreService firestoreService = await config.createFirestoreService();
     await firestoreService.writeViaTransaction(writes);
   }
