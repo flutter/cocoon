@@ -202,9 +202,8 @@ class Task extends Document {
 
   void updateFromBuildV2(bbv2.Build build) {
     final List<bbv2.StringPair> tags = build.tags;
-    // Example tag: build_address:luci.flutter.prod/Linux Cocoon/271
-    // final String? buildAddress = tags?.firstWhere((String tag) => tag.contains('build_address'));
 
+    // ignore: unnecessary_nullable_for_final_variable_declarations
     final String? buildAddress =
         tags.firstWhere((tag) => tag.key.contains('build_address'), orElse: () => bbv2.StringPair()).value;
 

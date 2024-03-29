@@ -196,7 +196,7 @@ class GithubChecksServiceV2 {
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs
   github.CheckRunConclusion conclusionForResult(bbv2.Status status) {
-    if (status == bbv2.Status.CANCELED || status == bbv2.Status.FAILURE) {
+    if (status == bbv2.Status.CANCELED || status == bbv2.Status.FAILURE || status == bbv2.Status.INFRA_FAILURE) {
       return github.CheckRunConclusion.failure;
     } else if (status == bbv2.Status.SUCCESS) {
       return github.CheckRunConclusion.success;

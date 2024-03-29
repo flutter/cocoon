@@ -71,9 +71,7 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     final String builderName = build.builder.builder;
 
     final List<bbv2.StringPair> tags = build.tags;
-    // final String builderName = tags.where((element) => element.key == 'builder_name').single.value;
 
-    // final String builderName = build.tagsByName('builder').single;
     log.fine('Available tags: ${tags.toString()}');
 
     // Skip status update if we can not get the sha tag.
@@ -85,7 +83,7 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     log.fine('Setting status (${build.status.toString()}) for $builderName');
 
     if (pubSubCallBack.hasUserData()) {
-      Map<String, dynamic> userDataMap = <String, dynamic>{}; 
+      Map<String, dynamic> userDataMap = <String, dynamic>{};
       try {
         log.info('User data was not base64 encoded.');
         userDataMap = json.decode(String.fromCharCodes(pubSubCallBack.userData));

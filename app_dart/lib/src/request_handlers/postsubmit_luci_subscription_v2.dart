@@ -52,23 +52,34 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
       return Body.empty;
     }
 
+    final DatastoreService datastore = datastoreProvider(config.db);
+    final FirestoreService firestoreService = await config.createFirestoreService();
+
     final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack();
     pubSubCallBack.mergeFromProto3Json(jsonDecode(message.data!) as Map<String, dynamic>);
     final bbv2.BuildsV2PubSub buildsV2PubSub = pubSubCallBack.buildPubsub;
 
+    // collect userData
     if (!pubSubCallBack.hasUserData()) {
       log.info('User data is empty');
       return Body.empty;
     }
+    Map<String, dynamic> userDataMap = <String, dynamic>{};
+    try {
+      log.info('User data was not base64 encoded.');
+      userDataMap = json.decode(String.fromCharCodes(pubSubCallBack.userData));
+    } on FormatException {
+      log.info('Decoding base64 encoded user data.');
+      userDataMap = UserData.decodeUserDataBytes(pubSubCallBack.userData);
+    }
 
-    final Map<String, dynamic> userDataMap = json.decode(String.fromCharCodes(pubSubCallBack.userData)); //UserData.decodeUserDataBytes(pubSubCallBack.userData);
-    
     log.fine('userData=$userDataMap');
 
     if (!buildsV2PubSub.hasBuild()) {
-      log.fine('User data is empty');
+      log.warning('No build was found in message.');
       return Body.empty;
     }
+
     final bbv2.Build build = buildsV2PubSub.build;
     // Note that result is no longer present in the output.
     log.fine('Updating buildId=${build.id} for result=${build.status}');
@@ -76,48 +87,30 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     final String? rawTaskKey = userDataMap['task_key'] as String?;
     final String? rawCommitKey = userDataMap['commit_key'] as String?;
 
-    if (rawCommitKey == null) {
-      throw const BadRequestException('userData does not contain commit_key');
+    final String? taskDocumentName = userDataMap['firestore_task_document_name'] as String?;
+    if (taskDocumentName == null) {
+      throw const BadRequestException('userData does not contain firestore_task_document_name');
     }
 
     final Key<String> commitKey = Key<String>(Key<dynamic>.emptyKey(Partition(null)), Commit, rawCommitKey);
-
-    final DatastoreService datastore = datastoreProvider(config.db);
-    final FirestoreService firestoreService = await config.createFirestoreService();
-
-    final bbv2.Struct propertiesStruct = build.input.properties;
-
-    final String taskName = propertiesStruct.fields['builder_name']!.stringValue;
     Task? task;
+    firestore.Task? firestoreTask;
+    log.info('Looking up task document...');
+    final int taskId = int.parse(rawTaskKey!);
+    final Key<int> taskKey = Key<int>(commitKey, Task, taskId);
+    task = await datastore.lookupByValue<Task>(taskKey);
+    firestoreTask = await firestore.Task.fromFirestore(
+      firestoreService: firestoreService,
+      documentName: '$kDatabase/documents/${firestore.kTaskCollectionId}/$taskDocumentName',
+    );
+    log.info('Found $firestoreTask');
 
-    // final String? taskName = build.buildParameters?['builder_name'] as String?;
-    if (rawTaskKey == null || rawTaskKey.isEmpty || rawTaskKey == 'null') {
-      log.fine('Pulling builder name from parameters_json...');
-      log.fine(propertiesStruct.toProto3Json());
-      if (taskName.isEmpty) {
-        throw const BadRequestException('task_key is null and parameters_json does not contain the builder name');
-      }
-      final List<Task> tasks = await datastore.queryRecentTasksByName(name: taskName).toList();
-      task = tasks.singleWhere((Task task) => task.parentKey?.id == commitKey.id);
-    } else {
-      log.fine('Looking up key...');
-      final int taskId = int.parse(rawTaskKey);
-      final Key<int> taskKey = Key<int>(commitKey, Task, taskId);
-      task = await datastore.lookupByValue<Task>(taskKey);
-    }
-    log.fine('Found $task');
-
-    firestore.Task taskDocument = firestore.Task();
-
-    if (_shouldUpdateTask(build, task)) {
-      final String oldTaskStatus = task.status;
+    if (_shouldUpdateTask(build, firestoreTask)) {
+      final String oldTaskStatus = firestoreTask.status;
       task.updateFromBuildbucketV2Build(build);
       await datastore.insert(<Task>[task]);
-      try {
-        taskDocument = await updateFirestore(build, rawCommitKey, task.name!, firestoreService);
-      } catch (error) {
-        log.warning('Failed to update task in Firestore: $error');
-      }
+      final List<Write> writes = documentsToWrites([firestoreTask], exists: true);
+      await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
       log.fine('Updated datastore from $oldTaskStatus to ${task.status}');
     } else {
       log.fine('skip processing for build with status scheduled or task with status finished.');
@@ -126,21 +119,22 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     final Commit commit = await datastore.lookupByValue<Commit>(commitKey);
     final CiYaml ciYaml = await scheduler.getCiYaml(commit);
     final List<Target> postsubmitTargets = ciYaml.postsubmitTargets;
-    if (!postsubmitTargets.any((element) => element.value.name == task!.name)) {
-      log.warning('Target ${task.name} has been deleted from TOT. Skip updating.');
+    if (!postsubmitTargets.any((element) => element.value.name == firestoreTask!.name)) {
+      log.warning('Target ${firestoreTask.name} has been deleted from TOT. Skip updating.');
       return Body.empty;
     }
-    final Target target = postsubmitTargets.singleWhere((Target target) => target.value.name == task!.name);
-    if (task.status == Task.statusFailed ||
-        task.status == Task.statusInfraFailure ||
-        task.status == Task.statusCancelled) {
+    final Target target =
+        postsubmitTargets.singleWhere((Target target) => target.value.name == firestoreTask!.taskName);
+    if (firestoreTask.status == firestore.Task.statusFailed ||
+        firestoreTask.status == firestore.Task.statusInfraFailure ||
+        firestoreTask.status == firestore.Task.statusCancelled) {
       log.fine('Trying to auto-retry...');
       final bool retried = await scheduler.luciBuildService.checkRerunBuilder(
         commit: commit,
         target: target,
         task: task,
         datastore: datastore,
-        taskDocument: taskDocument,
+        taskDocument: firestoreTask,
         firestoreService: firestoreService,
       );
       log.info('Retried: $retried');
@@ -168,7 +162,7 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
   //    b) `completed`: update info like status.
   // 2) the task is already completed.
   //    The task may have been marked as completed from test framework via update-task-status API.
-  bool _shouldUpdateTask(bbv2.Build build, Task task) {
+  bool _shouldUpdateTask(bbv2.Build build, firestore.Task task) {
     return build.status != bbv2.Status.SCHEDULED && !Task.finishedStatusValues.contains(task.status);
   }
 

@@ -5,6 +5,7 @@
 // import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'dart:convert';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:fixnum/fixnum.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
@@ -48,21 +49,14 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
       return Body.empty;
     }
 
-    final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack();
-    pubSubCallBack.mergeFromProto3Json(jsonDecode(message.data!) as Map<String, dynamic>);
+    // This looks to be like we are simply getting the build and not the top level
+    // buildsPubSub message.
+    final Map<String, dynamic> jsonBuildMap = json.decode(message.data!);
 
-    final bbv2.BuildsV2PubSub buildsV2PubSub = pubSubCallBack.buildPubsub;
-
-    if (!buildsV2PubSub.hasBuild()) {
-      log.info('no build information in message');
-      return Body.empty;
-    }
-
-    final bbv2.Build build = buildsV2PubSub.build;
-
-    final String project = build.builder.project;
-    final String bucket = build.builder.bucket;
-    final String builder = build.builder.builder;
+    final String project = jsonBuildMap['build']['builder']['project'];
+    final String bucket = jsonBuildMap['build']['builder']['bucket'];
+    final String builder = jsonBuildMap['build']['builder']['builder'];
+    final Int64 buildId = Int64.parseInt(jsonBuildMap['build']['id']);
 
     // This should already be covered by the pubsub filter, but adding an additional check
     // to ensure we don't process builds that aren't from dart-internal/flutter.
@@ -81,13 +75,13 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
       return Body.empty;
     }
 
-    log.info('Creating build request object with build id ${build.id}');
+    log.info('Creating build request object with build id $buildId');
 
     final bbv2.GetBuildRequest getBuildRequest = bbv2.GetBuildRequest();
-    getBuildRequest.id = build.id;
+    getBuildRequest.id = buildId;
 
     log.info(
-      'Calling buildbucket api to get build data for build ${build.id}',
+      'Calling buildbucket api to get build data for build $buildId',
     );
 
     bbv2.Build existingBuild = bbv2.Build.create();

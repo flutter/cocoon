@@ -22,7 +22,7 @@ class UserData {
     }
     return json.decode(rawJson) as Map<String, dynamic>;
   }
-  
+
   // string.fromcharcodes
   // base64.decode
   // string.fromcharcodes

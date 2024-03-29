@@ -769,6 +769,7 @@ class LuciBuildServiceV2 {
     List<bbv2.StringPair>? tags,
     int priority = kDefaultPriority,
   }) async {
+    log.info('Creating postsubmit schedule builder for ${target.value.name} on commit ${commit.sha}');
     tags ??= [];
     tags.addAll([
       bbv2.StringPair(
@@ -826,8 +827,8 @@ class LuciBuildServiceV2 {
       );
     }
 
-    final bbv2.StringPair currentAttemptSp = tags.firstWhere((tag) => tag.key == 'current_attempt');
-    rawUserData['firestore_task_document_name'] = '${commit.sha}_${task.name}_$currentAttemptSp';
+    final String currentAttemptStr = tags.firstWhere((tag) => tag.key == 'current_attempt').value;
+    rawUserData['firestore_task_document_name'] = '${commit.sha}_${task.name}_$currentAttemptStr';
 
     final Map<String, Object> processedProperties = target.getProperties();
     processedProperties.addAll(properties ?? <String, Object>{});
@@ -840,12 +841,14 @@ class LuciBuildServiceV2 {
 
     // Convert from target RequestedDimensions to bbv2.RequestedDimensions.
     final List<RequestedDimension> targetDimensions = target.getDimensions();
-      final List<bbv2.RequestedDimension> requestedDimensions = <bbv2.RequestedDimension>[];
-      for (RequestedDimension requestedDimension in targetDimensions) {
-        requestedDimensions.add(bbv2.RequestedDimension(key: requestedDimension.key, value: requestedDimension.value));
-      }
+    final List<bbv2.RequestedDimension> requestedDimensions = <bbv2.RequestedDimension>[];
+    for (RequestedDimension requestedDimension in targetDimensions) {
+      requestedDimensions.add(bbv2.RequestedDimension(key: requestedDimension.key, value: requestedDimension.value));
+    }
 
     final bbv2.Executable executable = bbv2.Executable(cipdVersion: cipdExe);
+
+    log.info('Constructing the postsubmit schedule build request for ${target.value.name} on commit ${commit.sha}.');
 
     return bbv2.ScheduleBuildRequest(
       builder: bbv2.BuilderID(
