@@ -13,6 +13,7 @@ import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_com
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
+import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
@@ -27,6 +28,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_github_service.dart';
+import '../src/utilities/build_bucket_v2_messages.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 import '../src/utilities/webhook_generators.dart';
@@ -35,7 +37,6 @@ void main() {
   late CacheService cache;
   late FakeConfig config;
   FakeGithubService githubService;
-  // late MockBuildBucketClient mockBuildBucketClient;
   late MockBuildBucketV2Client mockBuildBucketV2Client;
   late LuciBuildServiceV2 service;
   late RepositorySlug slug;
@@ -314,17 +315,19 @@ void main() {
 
       final Iterable<String> scheduledTargetNames = scheduledTargets.map((Target target) => target.value.name);
       expect(scheduledTargetNames, <String>['Linux 1']);
-      // TODO this cast does not work here.
-      final bbv2.BatchRequest batchRequest = pubsub.messages.single as bbv2.BatchRequest;
+
+      final bbv2.BatchRequest batchRequest = bbv2.BatchRequest().createEmptyInstance();
+      batchRequest.mergeFromProto3Json(pubsub.messages.single);
       expect(batchRequest.requests.single.scheduleBuild, isNotNull);
 
       final bbv2.ScheduleBuildRequest scheduleBuild = batchRequest.requests.single.scheduleBuild;
       expect(scheduleBuild.builder.bucket, 'try');
       expect(scheduleBuild.builder.builder, 'Linux 1');
-      expect(scheduleBuild.notify.pubsubTopic, 'projects/flutter-dashboard/topics/luci-builds');
-      final Map<String, dynamic> userData =
-          jsonDecode(String.fromCharCodes(scheduleBuild.notify.userData)) as Map<String, dynamic>;
-      expect(userData, <String, dynamic>{
+      expect(scheduleBuild.notify.pubsubTopic, 'projects/flutter-dashboard/topics/build-bucket-presubmit');
+
+      final Map<String, dynamic> userDataMap = UserData.decodeUserDataBytes(scheduleBuild.notify.userData);
+
+      expect(userDataMap, <String, dynamic>{
         'repo_owner': 'flutter',
         'repo_name': 'flutter',
         'user_agent': 'flutter-cocoon',
@@ -370,17 +373,19 @@ void main() {
       );
       final Iterable<String> scheduledTargetNames = scheduledTargets.map((Target target) => target.value.name);
       expect(scheduledTargetNames, <String>['Linux 1']);
-      // I doubt that this cast will work.
-      final bbv2.BatchRequest batchRequest = pubsub.messages.single as bbv2.BatchRequest;
+      
+      final bbv2.BatchRequest batchRequest = bbv2.BatchRequest().createEmptyInstance();
+      batchRequest.mergeFromProto3Json(pubsub.messages.single);
       expect(batchRequest.requests.single.scheduleBuild, isNotNull);
 
       final bbv2.ScheduleBuildRequest scheduleBuild = batchRequest.requests.single.scheduleBuild;
       expect(scheduleBuild.builder.bucket, 'try');
       expect(scheduleBuild.builder.builder, 'Linux 1');
-      expect(scheduleBuild.notify.pubsubTopic, 'projects/flutter-dashboard/topics/luci-builds');
-      final Map<String, dynamic> userData =
-          jsonDecode(String.fromCharCodes(scheduleBuild.notify.userData)) as Map<String, dynamic>;
-      expect(userData, <String, dynamic>{
+      expect(scheduleBuild.notify.pubsubTopic, 'projects/flutter-dashboard/topics/build-bucket-presubmit');
+
+      final Map<String, dynamic> userDataMap = UserData.decodeUserDataBytes(scheduleBuild.notify.userData);
+
+      expect(userDataMap, <String, dynamic>{
         'repo_owner': 'flutter',
         'repo_name': 'flutter',
         'user_agent': 'flutter-cocoon',
@@ -461,26 +466,31 @@ void main() {
       );
       // Only one batch request should be published
       expect(pubsub.messages.length, 1);
-      final bbv2.BatchRequest request = pubsub.messages.first as bbv2.BatchRequest;
+
+      final bbv2.BatchRequest request = bbv2.BatchRequest().createEmptyInstance();
+      request.mergeFromProto3Json(pubsub.messages.single);
       expect(request.requests.single.scheduleBuild, isNotNull);
+
       final bbv2.ScheduleBuildRequest scheduleBuild = request.requests.single.scheduleBuild;
       expect(scheduleBuild.builder.bucket, 'prod');
       expect(scheduleBuild.builder.builder, 'Linux 1');
-      expect(scheduleBuild.notify?.pubsubTopic, 'projects/flutter-dashboard/topics/luci-builds-prod');
-      final Map<String, dynamic> userData =
-          jsonDecode(String.fromCharCodes(scheduleBuild.notify.userData)) as Map<String, dynamic>;
-      expect(userData, <String, bbv2.Value>{
-        'commit_key': bbv2.Value(stringValue: 'flutter/flutter/master/1'),
-        'task_key': bbv2.Value(stringValue: '1'),
-        'check_run_id': bbv2.Value(numberValue: 1),
-        'commit_sha': bbv2.Value(stringValue: '0'),
-        'commit_branch': bbv2.Value(stringValue: 'master'),
-        'builder_name': bbv2.Value(stringValue: 'Linux 1'),
-        'repo_owner': bbv2.Value(stringValue: 'flutter'),
-        'repo_name': bbv2.Value(stringValue: 'packages'),
-        'firestore_commit_document_name': bbv2.Value(stringValue: '0'),
-        'firestore_task_document_name': bbv2.Value(stringValue: '0_task1_1'),
+      expect(scheduleBuild.notify.pubsubTopic, 'projects/flutter-dashboard/topics/build-bucket-postsubmit');
+
+      final Map<String, dynamic> userDataMap = UserData.decodeUserDataBytes(scheduleBuild.notify.userData);
+
+      expect(userDataMap, <String, dynamic>{
+        'commit_key': 'flutter/flutter/master/1',
+        'task_key': '1',
+        'check_run_id': 1,
+        'commit_sha': '0',
+        'commit_branch': 'master',
+        'builder_name': 'Linux 1',
+        'repo_owner': 'flutter',
+        'repo_name': 'packages',
+        'firestore_commit_document_name': '0',
+        'firestore_task_document_name': '0_task1_1',
       });
+
       final Map<String, bbv2.Value> properties = scheduleBuild.properties.fields;
       expect(properties, <String, bbv2.Value>{
         'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
@@ -490,6 +500,7 @@ void main() {
         'os': bbv2.Value(stringValue: 'debian-10.12'),
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
       });
+
       expect(scheduleBuild.exe, bbv2.Executable(cipdVersion: 'refs/heads/master'));
       expect(scheduleBuild.dimensions, isNotEmpty);
       expect(
@@ -528,25 +539,29 @@ void main() {
       );
       // Only one batch request should be published
       expect(pubsub.messages.length, 1);
-      final bbv2.BatchRequest request = pubsub.messages.first as bbv2.BatchRequest;
+      
+      final bbv2.BatchRequest request = bbv2.BatchRequest().createEmptyInstance();
+      request.mergeFromProto3Json(pubsub.messages.single);
       expect(request.requests.single.scheduleBuild, isNotNull);
+
       final bbv2.ScheduleBuildRequest scheduleBuild = request.requests.single.scheduleBuild;
       expect(scheduleBuild.builder.bucket, 'prod');
       expect(scheduleBuild.builder.builder, 'Linux 1');
-      expect(scheduleBuild.notify.pubsubTopic, 'projects/flutter-dashboard/topics/luci-builds-prod');
-      final Map<String, bbv2.Value> userData =
-          jsonDecode(String.fromCharCodes(scheduleBuild.notify.userData)) as Map<String, bbv2.Value>;
-      expect(userData, <String, bbv2.Value>{
-        'commit_key': bbv2.Value(stringValue: 'flutter/flutter/master/1'),
-        'task_key': bbv2.Value(stringValue: '1'),
-        'check_run_id': bbv2.Value(numberValue: 1),
-        'commit_sha': bbv2.Value(stringValue: '0'),
-        'commit_branch': bbv2.Value(stringValue: 'master'),
-        'builder_name': bbv2.Value(stringValue: 'Linux 1'),
-        'repo_owner': bbv2.Value(stringValue: 'flutter'),
-        'repo_name': bbv2.Value(stringValue: 'packages'),
-        'firestore_commit_document_name': bbv2.Value(stringValue: '0'),
-        'firestore_task_document_name': bbv2.Value(stringValue: '0_task1_1'),
+      expect(scheduleBuild.notify.pubsubTopic, 'projects/flutter-dashboard/topics/build-bucket-postsubmit');
+
+      final Map<String, dynamic> userData = UserData.decodeUserDataBytes(scheduleBuild.notify.userData);
+
+      expect(userData, <String, dynamic>{
+        'commit_key': 'flutter/flutter/master/1',
+        'task_key': '1',
+        'check_run_id': 1,
+        'commit_sha': '0',
+        'commit_branch': 'master',
+        'builder_name': 'Linux 1',
+        'repo_owner': 'flutter',
+        'repo_name': 'packages',
+        'firestore_commit_document_name': '0',
+        'firestore_task_document_name': '0_task1_1',
       });
     });
 
@@ -640,14 +655,16 @@ void main() {
       );
       // Only one batch request should be published
       expect(pubsub.messages.length, 1);
-      final bbv2.BatchRequest request = pubsub.messages.first as bbv2.BatchRequest;
+      
+      final bbv2.BatchRequest request = bbv2.BatchRequest().createEmptyInstance();
+      request.mergeFromProto3Json(pubsub.messages.single);
       expect(request.requests.single.scheduleBuild, isNotNull);
+      
       final bbv2.ScheduleBuildRequest scheduleBuild = request.requests.single.scheduleBuild;
       expect(scheduleBuild.builder.bucket, 'staging');
       expect(scheduleBuild.builder.builder, 'Linux 1');
-      expect(scheduleBuild.notify?.pubsubTopic, 'projects/flutter-dashboard/topics/luci-builds-prod');
-      final Map<String, dynamic> userData =
-          jsonDecode(String.fromCharCodes(scheduleBuild.notify.userData)) as Map<String, dynamic>;
+      expect(scheduleBuild.notify.pubsubTopic, 'projects/flutter-dashboard/topics/build-bucket-postsubmit');
+      final Map<String, dynamic> userData = UserData.decodeUserDataBytes(scheduleBuild.notify.userData);
       // No check run related data.
       expect(userData, <String, dynamic>{
         'commit_key': 'flutter/packages/master/0',
@@ -698,7 +715,8 @@ void main() {
         ],
       );
       expect(pubsub.messages.length, 1);
-      final bbv2.BatchRequest request = pubsub.messages.first as bbv2.BatchRequest;
+      final bbv2.BatchRequest request = bbv2.BatchRequest().createEmptyInstance();
+      request.mergeFromProto3Json(pubsub.messages.single);
       // Only existing builder: `Linux 2` is scheduled.
       expect(request.requests.length, 1);
       expect(request.requests.single.scheduleBuild, isNotNull);
@@ -759,25 +777,34 @@ void main() {
       await service.reschedulePresubmitBuildUsingCheckRunEvent(
         checkRunEvent: checkRunEvent,
       );
+
       final List<dynamic> captured = verify(
         mockBuildBucketV2Client.scheduleBuild(
           captureAny,
         ),
       ).captured;
       expect(captured.length, 1);
+
       final bbv2.ScheduleBuildRequest scheduleBuildRequest = captured[0] as bbv2.ScheduleBuildRequest;
-      final Map<String, bbv2.Value> userData =
-          jsonDecode(String.fromCharCodes(scheduleBuildRequest.notify.userData)) as Map<String, bbv2.Value>;
-      expect(userData, <String, bbv2.Value>{
-        'check_run_id': bbv2.Value(numberValue: 1),
-        'commit_branch': bbv2.Value(stringValue: 'master'),
-        'commit_sha': bbv2.Value(stringValue: 'ec26c3e57ca3a959ca5aad62de7213c562f8c821'),
-        'repo_owner': bbv2.Value(stringValue: 'flutter'),
-        'repo_name': bbv2.Value(stringValue: 'flutter'),
-        'user_agent': bbv2.Value(stringValue: 'flutter-cocoon'),
+
+      final Map<String, dynamic> userData = UserData.decodeUserDataBytes(scheduleBuildRequest.notify.userData);
+
+      expect(userData, <String, dynamic>{
+        'check_run_id': 1,
+        'commit_branch': 'master',
+        'commit_sha': 'ec26c3e57ca3a959ca5aad62de7213c562f8c821',
+        'repo_owner': 'flutter',
+        'repo_name': 'flutter',
+        'user_agent': 'flutter-cocoon',
       });
+
+      final Map<String, dynamic> expectedProperties = {};
+      expectedProperties['overrides'] = ['override: test'];
+      final bbv2.Struct propertiesStruct = bbv2.Struct().createEmptyInstance();
+      propertiesStruct.mergeFromProto3Json(expectedProperties);
+
       final Map<String, bbv2.Value> properties = scheduleBuildRequest.properties.fields;
-      expect(properties['overrides'], ['override: test']);
+      expect(properties['overrides'], propertiesStruct.fields['overrides']);
     });
   });
 
@@ -825,10 +852,25 @@ void main() {
         );
       });
       await service.cancelBuilds(pullRequest: pullRequest, reason: 'new builds');
-      expect(
-        verify(mockBuildBucketV2Client.batch(captureAny)).captured[1].requests[0].cancelBuild.toJson(),
-        json.decode('{"id": "998", "summaryMarkdown": "new builds"}'),
-      );
+
+      final List<dynamic> captured = verify(
+        mockBuildBucketV2Client.batch(
+          captureAny,
+        ),
+      ).captured;
+
+      final List<bbv2.BatchRequest_Request> capturedBatchRequests = [];
+      for (dynamic cap in captured) {
+        capturedBatchRequests.add((cap as bbv2.BatchRequest).requests.first);
+      }
+
+      final bbv2.SearchBuildsRequest searchBuildRequest = capturedBatchRequests.firstWhere((req) => req.hasSearchBuilds()).searchBuilds;
+      final bbv2.CancelBuildRequest cancelBuildRequest = capturedBatchRequests.firstWhere((req) => req.hasCancelBuild()).cancelBuild;
+      expect(searchBuildRequest, isNotNull);
+      expect(cancelBuildRequest, isNotNull);
+
+      expect(cancelBuildRequest.id, Int64(998));
+      expect(cancelBuildRequest.summaryMarkdown, 'new builds');
     });
   });
 
@@ -878,50 +920,43 @@ void main() {
     });
   });
 
-  // group('rescheduleBuild', () {
-  //   late push_message.BuildPushMessage buildPushMessage;
+  group('rescheduleBuild', () {
+    late bbv2.BuildsV2PubSub rescheduleBuild;
 
-  //   setUp(() {
-  //     cache = CacheService(inMemory: true);
-  //     config = FakeConfig();
-  //     mockBuildBucketV2Client = MockBuildBucketV2Client();
-  //     pubsub = FakePubSub();
-  //     service = LuciBuildServiceV2(
-  //       config: config,
-  //       cache: cache,
-  //       buildBucketV2Client: mockBuildBucketV2Client,
-  //       pubsub: pubsub,
-  //     );
-  //     final Map<String, dynamic> json = jsonDecode(
-  //       buildPushMessageString(
-  //         'COMPLETED',
-  //         result: 'FAILURE',
-  //         builderName: 'Linux Host Engine',
-  //         userData: '{}',
-  //       ),
-  //     ) as Map<String, dynamic>;
-  //     buildPushMessage = push_message.BuildPushMessage.fromJson(json);
-  //   });
+    setUp(() {
+      cache = CacheService(inMemory: true);
+      config = FakeConfig();
+      mockBuildBucketV2Client = MockBuildBucketV2Client();
+      pubsub = FakePubSub();
+      service = LuciBuildServiceV2(
+        config: config,
+        cache: cache,
+        buildBucketV2Client: mockBuildBucketV2Client,
+        pubsub: pubsub,
+      );
+      rescheduleBuild = createBuild(Int64(1), status: 'FAILURE', builder: 'Linux Host Engine');
+    });
 
-  //   test('Reschedule an existing build', () async {
-  //     when(mockBuildBucketV2Client.scheduleBuild(any)).thenAnswer((_) async => generateBbv2Build(1));
-  //     final build = await service.rescheduleBuild(
-  //       builderName: 'mybuild',
-  //       buildPushMessage: buildPushMessage,
-  //       rescheduleAttempt: 2,
-  //     );
-  //     expect(build.id, '1');
-  //     expect(build.status, Status.success);
-  //     final List<dynamic> captured = verify(mockBuildBucketClient.scheduleBuild(captureAny)).captured;
-  //     expect(captured.length, 1);
-  //     final ScheduleBuildRequest scheduleBuildRequest = captured[0] as ScheduleBuildRequest;
-  //     // This is to validate `scheduleBuildRequest` can be json.encoded correctly.
-  //     // It complains when some non-String typed data exists.
-  //     expect(json.encode(scheduleBuildRequest), isNotNull);
-  //     expect(scheduleBuildRequest.tags!.containsKey('current_attempt'), true);
-  //     expect(scheduleBuildRequest.tags!['current_attempt'], <String>['2']);
-  //   });
-  // });
+    test('Reschedule an existing build', () async {
+      when(mockBuildBucketV2Client.scheduleBuild(any)).thenAnswer((_) async => generateBbv2Build(Int64(1)));
+      final build = await service.rescheduleBuild(
+        builderName: 'mybuild',
+        build: rescheduleBuild.build,
+        rescheduleAttempt: 2,
+        userDataMap: {},
+      );
+      expect(build.id, Int64(1));
+      expect(build.status, bbv2.Status.SUCCESS);
+      final List<dynamic> captured = verify(mockBuildBucketV2Client.scheduleBuild(captureAny)).captured;
+      expect(captured.length, 1);
+
+      final bbv2.ScheduleBuildRequest scheduleBuildRequest = captured[0];
+      expect(scheduleBuildRequest, isNotNull);
+      final List<bbv2.StringPair> tags = scheduleBuildRequest.tags;
+      final bbv2.StringPair attemptPair = tags.firstWhere((element) => element.key == 'current_attempt');
+      expect(attemptPair.value, '2');
+    });
+  });
 
   group('checkRerunBuilder', () {
     late Commit commit;
@@ -938,6 +973,7 @@ void main() {
       firestoreCommit = null;
       mockGithubChecksUtil = MockGithubChecksUtil();
       mockFirestoreService = MockFirestoreService();
+      mockBuildBucketV2Client = MockBuildBucketV2Client();
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
           .thenAnswer((realInvocation) async => generateCheckRun(1));
       when(
@@ -1003,8 +1039,12 @@ void main() {
         taskDocument: firestoreTask!,
       );
       expect(pubsub.messages.length, 1);
-      final bbv2.ScheduleBuildRequest scheduleBuildRequest =
-          (pubsub.messages.single as bbv2.BatchRequest).requests.single.scheduleBuild;
+
+      final bbv2.BatchRequest request = bbv2.BatchRequest().createEmptyInstance();
+      request.mergeFromProto3Json(pubsub.messages.single);
+      expect(request, isNotNull);
+      final bbv2.ScheduleBuildRequest scheduleBuildRequest = request.requests.first.scheduleBuild;
+
       final Map<String, bbv2.Value> properties = scheduleBuildRequest.properties.fields;
       for (String key in Config.defaultProperties.keys) {
         expect(properties.containsKey(key), true);

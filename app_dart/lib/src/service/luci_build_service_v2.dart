@@ -383,11 +383,17 @@ class LuciBuildServiceV2 {
   }) async {
     final List<bbv2.StringPair> tags = build.tags;
     // need to replace the current_attempt
-    bbv2.StringPair? attempt = tags.firstWhereOrNull((element) => element.key == 'current_attempt');
-    attempt ??= bbv2.StringPair(
-      key: 'current_attempt',
-      value: rescheduleAttempt.toString(),
-    );
+    bbv2.StringPair attempt;
+    final (int, bbv2.StringPair)? record = tags.indexed.firstWhereOrNull((element) => element.$2.key == 'current_attempt');
+    if (record == null) {
+      attempt = bbv2.StringPair(
+        key: 'current_attempt',
+        value: rescheduleAttempt.toString(),
+      );
+    } else {
+      attempt = tags.removeAt(record.$1);
+      attempt.value = rescheduleAttempt.toString();
+    }
     tags.add(attempt);
 
     return buildBucketV2Client.scheduleBuild(
