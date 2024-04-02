@@ -236,11 +236,13 @@ void main() {
 
     group('scheduler policy - firestore', () {
       test('devicelab targets use batch policy', () {
-        expect(generateTarget(1, platform: 'Linux_android').schedulerPolicyFirestore, isA<firestore_policy.BatchPolicy>());
+        expect(
+            generateTarget(1, platform: 'Linux_android').schedulerPolicyFirestore, isA<firestore_policy.BatchPolicy>());
       });
 
       test('devicelab samsung targets use batch policy', () {
-        expect(generateTarget(1, platform: 'Linux_samsung_a02').schedulerPolicyFirestore, isA<firestore_policy.BatchPolicy>());
+        expect(generateTarget(1, platform: 'Linux_samsung_a02').schedulerPolicyFirestore,
+            isA<firestore_policy.BatchPolicy>());
       });
 
       test('mac host only targets use batch policy', () {
@@ -249,7 +251,8 @@ void main() {
 
       test('non-cocoon scheduler targets return omit policy', () {
         expect(
-          generateTarget(1, platform: 'Linux_android', schedulerSystem: pb.SchedulerSystem.luci).schedulerPolicyFirestore,
+          generateTarget(1, platform: 'Linux_android', schedulerSystem: pb.SchedulerSystem.luci)
+              .schedulerPolicyFirestore,
           isA<firestore_policy.OmitPolicy>(),
         );
       });

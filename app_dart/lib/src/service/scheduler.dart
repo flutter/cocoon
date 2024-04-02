@@ -267,7 +267,9 @@ class Scheduler {
   }
 
   Future<void> _batchScheduleBuildsFirestore(
-      firestore_commit.Commit commit, List<BuildSchedule> toBeScheduled,) async {
+    firestore_commit.Commit commit,
+    List<BuildSchedule> toBeScheduled,
+  ) async {
     log.info('Batching ${toBeScheduled.length} for ${commit.sha}');
     final List<Future<void>> futures = <Future<void>>[];
     for (int i = 0; i < toBeScheduled.length; i += config.batchSize) {
