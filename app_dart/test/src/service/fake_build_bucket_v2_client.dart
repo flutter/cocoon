@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:fixnum/src/int64.dart';
 import 'package:http/http.dart' as http;

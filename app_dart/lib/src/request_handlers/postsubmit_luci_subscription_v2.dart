@@ -95,7 +95,7 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     final Key<String> commitKey = Key<String>(Key<dynamic>.emptyKey(Partition(null)), Commit, rawCommitKey);
     Task? task;
     firestore.Task? firestoreTask;
-    log.info('Looking up task document...');
+    log.info('Looking up task document $kDatabase/documents/${firestore.kTaskCollectionId}/$taskDocumentName...');
     final int taskId = int.parse(rawTaskKey!);
     final Key<int> taskKey = Key<int>(commitKey, Task, taskId);
     task = await datastore.lookupByValue<Task>(taskKey);
@@ -107,11 +107,12 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
 
     if (_shouldUpdateTask(build, firestoreTask)) {
       final String oldTaskStatus = firestoreTask.status;
+      firestoreTask.updateFromBuildV2(build);
       task.updateFromBuildbucketV2Build(build);
       await datastore.insert(<Task>[task]);
       final List<Write> writes = documentsToWrites([firestoreTask], exists: true);
       await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
-      log.fine('Updated datastore from $oldTaskStatus to ${task.status}');
+      log.fine('Updated datastore from $oldTaskStatus to ${firestoreTask.status}');
     } else {
       log.fine('skip processing for build with status scheduled or task with status finished.');
     }
@@ -119,8 +120,8 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     final Commit commit = await datastore.lookupByValue<Commit>(commitKey);
     final CiYaml ciYaml = await scheduler.getCiYaml(commit);
     final List<Target> postsubmitTargets = ciYaml.postsubmitTargets;
-    if (!postsubmitTargets.any((element) => element.value.name == firestoreTask!.name)) {
-      log.warning('Target ${firestoreTask.name} has been deleted from TOT. Skip updating.');
+    if (!postsubmitTargets.any((element) => element.value.name == firestoreTask!.taskName)) {
+      log.warning('Target ${firestoreTask.taskName} has been deleted from TOT. Skip updating.');
       return Body.empty;
     }
     final Target target =
