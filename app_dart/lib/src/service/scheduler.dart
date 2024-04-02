@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
+import 'package:cocoon_service/src/service/scheduler/policy_firestore.dart' as firestore_policy;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
@@ -22,7 +23,7 @@ import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
-import '../model/firestore/commit.dart' as firestore_commmit;
+import '../model/firestore/commit.dart' as firestore_commit;
 import '../model/firestore/task.dart' as firestore;
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
@@ -92,6 +93,7 @@ class Scheduler {
   /// Otherwise if it is presubmit, schedule try tasks against it.
   Future<void> addPullRequest(PullRequest pr) async {
     datastore = datastoreProvider(config.db);
+    firestoreService = await config.createFirestoreService();
     // TODO(chillers): Support triggering on presubmit. https://github.com/flutter/flutter/issues/77858
     if (!pr.merged!) {
       log.warning('Only pull requests that were closed and merged should have tasks scheduled');
@@ -101,6 +103,17 @@ class Scheduler {
     final String fullRepo = pr.base!.repo!.fullName;
     final String? branch = pr.base!.ref;
     final String sha = pr.mergeCommitSha!;
+
+    final firestore_commit.Commit mergedCommitFirestore = firestore_commit.Commit.newCommit(
+      author: pr.user!.login!,
+      avatar: pr.user!.avatarUrl!,
+      branch: branch!,
+      // The field has a max length of 1500 so ensure the commit message is not longer.
+      message: truncate(pr.title!, 1490, omission: '...'),
+      repositoryPath: fullRepo,
+      sha: sha,
+      createTimestamp: pr.mergedAt!.millisecondsSinceEpoch,
+    );
 
     final String id = '$fullRepo/$branch/$sha';
     final Key<String> key = datastore.db.emptyKey.append<String>(Commit, id: id);
@@ -116,13 +129,13 @@ class Scheduler {
       timestamp: pr.mergedAt!.millisecondsSinceEpoch,
     );
 
-    if (await _commitExistsInDatastore(mergedCommit)) {
-      log.fine('$sha already exists in datastore. Scheduling skipped.');
+    if (await _commitExistsInFirestore(mergedCommitFirestore)) {
+      log.fine('$sha already exists in firestore. Scheduling skipped.');
       return;
     }
 
     log.fine('Scheduling $sha via GitHub webhook');
-    await _addCommit(mergedCommit);
+    await _addCommitFirestore(mergedCommitFirestore, mergedCommit);
   }
 
   /// Processes postsubmit tasks.
@@ -165,7 +178,7 @@ class Scheduler {
       log.severe('Failed to add commit ${commit.sha!}: $error');
     }
 
-    final firestore_commmit.Commit commitDocument = firestore_commmit.commitToCommitDocument(commit);
+    final firestore_commit.Commit commitDocument = firestore_commit.commitToCommitDocument(commit);
     final List<firestore.Task> taskDocuments = firestore.targetsToTaskDocuments(commit, initialTargets);
     final List<Write> writes = documentsToWrites([...taskDocuments, commitDocument], exists: false);
     final FirestoreService firestoreService = await config.createFirestoreService();
@@ -180,6 +193,62 @@ class Scheduler {
     await _uploadToBigQuery(commit);
   }
 
+  Future<void> _addCommitFirestore(firestore_commit.Commit commitDocument, Commit commit) async {
+    if (!config.supportedRepos.contains(commitDocument.slug)) {
+      log.fine('Skipping ${commitDocument.sha} as repo ${commitDocument.slug} is not supported');
+      return;
+    }
+
+    final CiYaml ciYaml = await getCiYamlFirestore(commitDocument);
+
+    final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets);
+    final List<Task> tasks = targetsToTask(commit, initialTargets).toList();
+    final List<firestore.Task> taskDocuments =
+        firestore.targetsToTaskDocumentsFirestore(commitDocument, initialTargets);
+
+    final List<BuildSchedule> toBeScheduled = <BuildSchedule>[];
+    for (Target target in initialTargets) {
+      final Task task = tasks.singleWhere((Task task) => task.name == target.value.name);
+      final firestore.Task taskDocument =
+          taskDocuments.singleWhere((firestore.Task taskDocument) => taskDocument.taskName == target.value.name);
+      firestore_policy.SchedulerPolicy policy = target.schedulerPolicyFirestore;
+      // Release branches should run every task
+      if (Config.defaultBranch(commit.slug) != commit.branch) {
+        policy = firestore_policy.GuaranteedPolicy();
+      }
+      final int? priority = await policy.triggerPriority(task: taskDocument, firestoreService: firestoreService);
+      if (priority != null) {
+        // Mark task as in progress to ensure it isn't scheduled over
+        taskDocument.setStatus(firestore.Task.statusInProgress);
+        task.status = Task.statusInProgress;
+        toBeScheduled.add(BuildSchedule(target, taskDocument, task, priority));
+      }
+    }
+
+    // Datastore must be written to generate task keys
+    try {
+      await datastore.withTransaction<void>((Transaction transaction) async {
+        transaction.queueMutations(inserts: <Commit>[commit]);
+        transaction.queueMutations(inserts: tasks);
+        await transaction.commit();
+        log.fine('Committed ${tasks.length} new tasks for commit ${commit.sha!}');
+      });
+    } catch (error) {
+      log.severe('Failed to add commit ${commit.sha!}: $error');
+    }
+
+    final List<Write> writes = documentsToWrites([...taskDocuments, commitDocument], exists: false);
+    // TODO(keyonghan): remove try catch logic after validated to work.
+    try {
+      await firestoreService.writeViaTransaction(writes);
+    } catch (error) {
+      log.warning('Failed to add to Firestore: $error');
+    }
+
+    await _batchScheduleBuildsFirestore(commitDocument, toBeScheduled);
+    await _uploadToBigQueryFirestore(commitDocument);
+  }
+
   /// Schedule all builds in batch requests instead of a single request.
   ///
   /// Each batch request contains [Config.batchSize] builds to be scheduled.
@@ -189,6 +258,21 @@ class Scheduler {
     for (int i = 0; i < toBeScheduled.length; i += config.batchSize) {
       futures.add(
         luciBuildService.schedulePostsubmitBuilds(
+          commit: commit,
+          toBeScheduled: toBeScheduled.sublist(i, min(i + config.batchSize, toBeScheduled.length)),
+        ),
+      );
+    }
+    await Future.wait<void>(futures);
+  }
+
+  Future<void> _batchScheduleBuildsFirestore(
+      firestore_commit.Commit commit, List<BuildSchedule> toBeScheduled,) async {
+    log.info('Batching ${toBeScheduled.length} for ${commit.sha}');
+    final List<Future<void>> futures = <Future<void>>[];
+    for (int i = 0; i < toBeScheduled.length; i += config.batchSize) {
+      futures.add(
+        luciBuildService.schedulePostsubmitBuildsFirestore(
           commit: commit,
           toBeScheduled: toBeScheduled.sublist(i, min(i + config.batchSize, toBeScheduled.length)),
         ),
@@ -227,6 +311,20 @@ class Scheduler {
     return true;
   }
 
+  /// Whether [Commit] already exists in [datastore].
+  ///
+  /// Datastore is Cocoon's source of truth for what commits have been scheduled.
+  /// Since webhooks or cron jobs can schedule commits, we must verify a commit
+  /// has not already been scheduled.
+  Future<bool> _commitExistsInFirestore(firestore_commit.Commit commit) async {
+    try {
+      await firestoreService.getDocument(commit.name!);
+    } on ApiRequestError {
+      return false;
+    }
+    return true;
+  }
+
   /// Process and filters ciyaml.
   Future<CiYaml> getCiYaml(
     Commit commit, {
@@ -235,6 +333,16 @@ class Scheduler {
     final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
     final CiYaml totYaml = await _getCiYaml(totCommit);
     return _getCiYaml(commit, totCiYaml: totYaml, validate: validate);
+  }
+
+  Future<CiYaml> getCiYamlFirestore(
+    firestore_commit.Commit commit, {
+    bool validate = false,
+  }) async {
+    final firestore_commit.Commit totCommit =
+        await generateTotCommitFirestore(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
+    final CiYaml totYaml = await _getCiYamlFirestore(totCommit);
+    return _getCiYamlFirestore(commit, totCiYaml: totYaml, validate: validate);
   }
 
   /// Load in memory the `.ci.yaml`.
@@ -268,12 +376,59 @@ class Scheduler {
     );
   }
 
+  Future<CiYaml> _getCiYamlFirestore(
+    firestore_commit.Commit commit, {
+    CiYaml? totCiYaml,
+    bool validate = false,
+    RetryOptions retryOptions = const RetryOptions(delayFactor: Duration(seconds: 2), maxAttempts: 4),
+  }) async {
+    String ciPath;
+    ciPath = '${commit.repositoryPath}/${commit.sha!}/$kCiYamlPath';
+    final Uint8List ciYamlBytes = (await cache.getOrCreate(
+      subcacheName,
+      ciPath,
+      createFn: () => _downloadCiYamlFirestore(
+        commit,
+        ciPath,
+        retryOptions: retryOptions,
+      ),
+      ttl: const Duration(hours: 1),
+    ))!;
+    final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig.fromBuffer(ciYamlBytes);
+    log.fine('Retrieved .ci.yaml for $ciPath');
+    // If totCiYaml is not null, we assume upper level function has verified that current branch is not a release branch.
+    return CiYaml(
+      config: schedulerConfig,
+      slug: commit.slug,
+      branch: commit.branch!,
+      totConfig: totCiYaml,
+      validate: validate,
+    );
+  }
+
   /// Get `.ci.yaml` from GitHub, and store the bytes in redis for future retrieval.
   ///
   /// If GitHub returns [HttpStatus.notFound], an empty config will be inserted assuming
   /// that commit does not support the scheduler config file.
   Future<Uint8List> _downloadCiYaml(
     Commit commit,
+    String ciPath, {
+    RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
+  }) async {
+    final String configContent = await githubFileContent(
+      commit.slug,
+      '.ci.yaml',
+      httpClientProvider: httpClientProvider,
+      ref: commit.sha!,
+      retryOptions: retryOptions,
+    );
+    final YamlMap configYaml = loadYaml(configContent) as YamlMap;
+    final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
+    return schedulerConfig.writeToBuffer();
+  }
+
+  Future<Uint8List> _downloadCiYamlFirestore(
+    firestore_commit.Commit commit,
     String ciPath, {
     RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
   }) async {
@@ -590,6 +745,49 @@ class Scheduler {
   }
 
   /// Push [Commit] to BigQuery as part of the infra metrics dashboards.
+  Future<void> _uploadToBigQueryFirestore(firestore_commit.Commit commit) async {
+    const String projectId = 'flutter-dashboard';
+    const String dataset = 'cocoon';
+    const String table = 'Checklist';
+
+    log.info('Uploading commit ${commit.sha} info to bigquery.');
+
+    final TabledataResource tabledataResource = await config.createTabledataResourceApi();
+    final List<Map<String, Object>> tableDataInsertAllRequestRows = <Map<String, Object>>[];
+
+    /// Consolidate [commits] together
+    ///
+    /// Prepare for bigquery [insertAll]
+    tableDataInsertAllRequestRows.add(<String, Object>{
+      'json': <String, Object?>{
+        'ID': '${commit.repositoryPath}/${commit.branch}/${commit.sha}',
+        'CreateTimestamp': commit.createTimestamp,
+        'FlutterRepositoryPath': commit.repositoryPath,
+        'CommitSha': commit.sha!,
+        'CommitAuthorLogin': commit.author,
+        'CommitAuthorAvatarURL': commit.avatar,
+        'CommitMessage': commit.message,
+        'Branch': commit.branch,
+      },
+    });
+
+    /// Final [rows] to be inserted to [BigQuery]
+    final TableDataInsertAllRequest rows =
+        TableDataInsertAllRequest.fromJson(<String, Object>{'rows': tableDataInsertAllRequestRows});
+
+    /// Insert [commits] to [BigQuery]
+    try {
+      if (rows.rows == null) {
+        log.warning('Rows to be inserted is null');
+      } else {
+        log.info('Inserting ${rows.rows!.length} into big query for ${commit.sha}');
+      }
+      await tabledataResource.insertAll(rows, projectId, dataset, table);
+    } on ApiRequestError {
+      log.warning('Failed to add commits to BigQuery: $ApiRequestError');
+    }
+  }
+
   Future<void> _uploadToBigQuery(Commit commit) async {
     const String projectId = 'flutter-dashboard';
     const String dataset = 'cocoon';
@@ -654,4 +852,32 @@ class Scheduler {
 
     return totCommit;
   }
+
+  Future<firestore_commit.Commit> generateTotCommitFirestore(
+      {required String branch, required RepositorySlug slug}) async {
+    datastore = datastoreProvider(config.db);
+    firestoreService = await config.createFirestoreService();
+    final firestore_commit.Commit totCommit = (await firestoreService.queryRecentCommits(
+      slug: slug,
+      branch: branch,
+      limit: 1,
+    ))
+        .single;
+    return totCommit;
+  }
+}
+
+/// A group of entries needed for Buildbucket schedule preparation.
+class BuildSchedule {
+  BuildSchedule(
+    this.target,
+    this.taskDocument,
+    this.task,
+    this.priority,
+  );
+
+  Target target;
+  firestore.Task taskDocument;
+  Task task;
+  int priority;
 }

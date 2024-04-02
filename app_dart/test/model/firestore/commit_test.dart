@@ -51,4 +51,25 @@ void main() {
     expect(commitDocument.fields![kCommitRepositoryPathField]!.stringValue, commit.repository);
     expect(commitDocument.fields![kCommitShaField]!.stringValue, commit.sha);
   });
+
+  test('creates a new Commit document', () {
+    final Commit initialCommit = generateFirestoreCommit(1);
+    final Commit resultedCommit = Commit.newCommit(
+      author: initialCommit.author!,
+      avatar: initialCommit.avatar!,
+      branch: initialCommit.branch!,
+      message: initialCommit.message!,
+      repositoryPath: initialCommit.repositoryPath!,
+      sha: initialCommit.sha!,
+      createTimestamp: initialCommit.createTimestamp!,
+    );
+    expect(initialCommit.name, resultedCommit.name);
+    expect(initialCommit.author, resultedCommit.author);
+    expect(initialCommit.avatar, resultedCommit.avatar);
+    expect(initialCommit.branch, resultedCommit.branch);
+    expect(initialCommit.message, resultedCommit.message);
+    expect(initialCommit.repositoryPath, resultedCommit.repositoryPath);
+    expect(initialCommit.sha, resultedCommit.sha);
+    expect(initialCommit.createTimestamp, resultedCommit.createTimestamp);
+  });
 }

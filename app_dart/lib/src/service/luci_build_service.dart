@@ -519,6 +519,54 @@ class LuciBuildService {
     return <Tuple<Target, Task, int>>[];
   }
 
+  Future<List<BuildSchedule>> schedulePostsubmitBuildsFirestore({
+    required firestore_commit.Commit commit,
+    required List<BuildSchedule> toBeScheduled,
+  }) async {
+    if (toBeScheduled.isEmpty) {
+      log.fine('Skipping schedulePostsubmitBuilds as there are no targets to be scheduled by Cocoon');
+      return toBeScheduled;
+    }
+    final List<Request> buildRequests = <Request>[];
+    Set<String> availableBuilderSet;
+    try {
+      availableBuilderSet = await getAvailableBuilderSet(project: 'flutter', bucket: 'prod');
+    } catch (error) {
+      log.severe('Failed to get buildbucket builder list due to $error');
+      return toBeScheduled;
+    }
+    log.info('Available builder list: $availableBuilderSet');
+    for (BuildSchedule buildSchedule in toBeScheduled) {
+      // Non-existing builder target will be skipped from scheduling.
+      if (!availableBuilderSet.contains(buildSchedule.target.value.name)) {
+        log.warning('Found no available builder for ${buildSchedule.target.value.name}, commit ${commit.sha}');
+        continue;
+      }
+      log.info('create postsubmit schedule request for target: ${buildSchedule.target.value} in commit ${commit.sha}');
+      final ScheduleBuildRequest scheduleBuildRequest = await _createPostsubmitScheduleBuildFirestore(
+        commit: commit,
+        target: buildSchedule.target,
+        taskDocument: buildSchedule.taskDocument,
+        task: buildSchedule.task,
+        priority: buildSchedule.priority,
+      );
+      buildRequests.add(Request(scheduleBuild: scheduleBuildRequest));
+      log.info('created postsubmit schedule request for target: ${buildSchedule.target.value} in commit ${commit.sha}');
+    }
+    final BatchRequest batchRequest = BatchRequest(requests: buildRequests);
+    log.fine(batchRequest);
+    List<String> messageIds;
+    try {
+      messageIds = await pubsub.publish('scheduler-requests', batchRequest);
+      log.info('Published $messageIds for commit ${commit.sha}');
+    } catch (error) {
+      log.severe('Failed to publish message to pub/sub due to $error');
+      return toBeScheduled;
+    }
+    log.info('Published a request with ${buildRequests.length} builds');
+    return <BuildSchedule>[];
+  }
+
   /// Create a Presubmit ScheduleBuildRequest using the [slug], [sha], and
   /// [checkName] for the provided [build] with the provided [checkRunId].
   ScheduleBuildRequest _createPresubmitScheduleBuild({
@@ -648,9 +696,101 @@ class LuciBuildService {
     );
   }
 
+  Future<ScheduleBuildRequest> _createPostsubmitScheduleBuildFirestore({
+    required firestore_commit.Commit commit,
+    required Target target,
+    required firestore.Task taskDocument,
+    required Task task,
+    Map<String, Object>? properties,
+    Map<String, List<String>>? tags,
+    int priority = kDefaultPriority,
+  }) async {
+    tags ??= <String, List<String>>{};
+    tags.addAll(<String, List<String>>{
+      'buildset': <String>[
+        'commit/git/${commit.sha}',
+        'commit/gitiles/flutter.googlesource.com/mirrors/${commit.slug.name}/+/${commit.sha}',
+      ],
+    });
+
+    final String commitKey = task.parentKey!.id.toString();
+    final String taskKey = task.key.id.toString();
+    log.info('Scheduling builder: ${target.value.name} for commit ${commit.sha}');
+    log.info('Task commit_key: $commitKey for task name: ${task.name}');
+    log.info('Task task_key: $taskKey for task name: ${task.name}');
+
+    final Map<String, dynamic> rawUserData = <String, dynamic>{
+      'commit_key': commitKey,
+      'task_key': taskKey,
+      'firestore_commit_document_name': commit.sha,
+    };
+
+    // Creates post submit checkrun only for unflaky targets from [config.postsubmitSupportedRepos].
+    if (!target.value.bringup && config.postsubmitSupportedRepos.contains(target.slug)) {
+      await createPostsubmitCheckRunFirestore(commit, target, rawUserData);
+    }
+
+    tags['user_agent'] = <String>['flutter-cocoon'];
+    // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
+    tags['scheduler_job_id'] = <String>['flutter/${target.value.name}'];
+    // Default attempt is the initial attempt, which is 1.
+    tags['current_attempt'] = tags['current_attempt'] ?? <String>['1'];
+    final String currentAttempt = tags['current_attempt']!.single;
+    rawUserData['firestore_task_document_name'] = '${commit.sha}_${taskDocument.taskName}_$currentAttempt';
+
+    final Map<String, Object> processedProperties = target.getProperties();
+    processedProperties.addAll(properties ?? <String, Object>{});
+    processedProperties['git_branch'] = commit.branch!;
+    final String cipdVersion = 'refs/heads/${commit.branch}';
+    processedProperties['exe_cipd_version'] = cipdVersion;
+    return ScheduleBuildRequest(
+      builderId: BuilderId(
+        project: 'flutter',
+        bucket: target.getBucket(),
+        builder: target.value.name,
+      ),
+      dimensions: target.getDimensions(),
+      exe: <String, dynamic>{
+        'cipdVersion': cipdVersion,
+      },
+      gitilesCommit: GitilesCommit(
+        project: 'mirrors/${commit.slug.name}',
+        host: 'flutter.googlesource.com',
+        ref: 'refs/heads/${commit.branch}',
+        hash: commit.sha,
+      ),
+      notify: NotificationConfig(
+        pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds-prod',
+        userData: base64Encode(json.encode(rawUserData).codeUnits),
+      ),
+      tags: tags,
+      properties: processedProperties,
+      priority: priority,
+    );
+  }
+
   /// Creates postsubmit check runs for prod targets in supported repositories.
   Future<void> createPostsubmitCheckRun(
     Commit commit,
+    Target target,
+    Map<String, dynamic> rawUserData,
+  ) async {
+    final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
+      config,
+      target.slug,
+      commit.sha!,
+      target.value.name,
+    );
+    rawUserData['check_run_id'] = checkRun.id;
+    rawUserData['commit_sha'] = commit.sha;
+    rawUserData['commit_branch'] = commit.branch;
+    rawUserData['builder_name'] = target.value.name;
+    rawUserData['repo_owner'] = target.slug.owner;
+    rawUserData['repo_name'] = target.slug.name;
+  }
+
+  Future<void> createPostsubmitCheckRunFirestore(
+    firestore_commit.Commit commit,
     Target target,
     Map<String, dynamic> rawUserData,
   ) async {

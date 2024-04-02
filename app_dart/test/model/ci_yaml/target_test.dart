@@ -6,6 +6,7 @@ import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
+import 'package:cocoon_service/src/service/scheduler/policy_firestore.dart' as firestore_policy;
 import 'package:github/github.dart' as github;
 import 'package:test/test.dart';
 
@@ -218,6 +219,38 @@ void main() {
         expect(
           generateTarget(1, platform: 'Linux_android', schedulerSystem: pb.SchedulerSystem.luci).schedulerPolicy,
           isA<OmitPolicy>(),
+        );
+      });
+
+      test('vm cocoon targets return batch policy', () {
+        expect(generateTarget(1, platform: 'Linux').schedulerPolicy, isA<BatchPolicy>());
+      });
+
+      test('packages targets use guaranteed policy', () {
+        expect(
+          generateTarget(1, platform: 'Mac', slug: github.RepositorySlug('flutter', 'packages')).schedulerPolicy,
+          isA<GuaranteedPolicy>(),
+        );
+      });
+    });
+
+    group('scheduler policy - firestore', () {
+      test('devicelab targets use batch policy', () {
+        expect(generateTarget(1, platform: 'Linux_android').schedulerPolicyFirestore, isA<firestore_policy.BatchPolicy>());
+      });
+
+      test('devicelab samsung targets use batch policy', () {
+        expect(generateTarget(1, platform: 'Linux_samsung_a02').schedulerPolicyFirestore, isA<firestore_policy.BatchPolicy>());
+      });
+
+      test('mac host only targets use batch policy', () {
+        expect(generateTarget(1, platform: 'Mac').schedulerPolicyFirestore, isA<firestore_policy.BatchPolicy>());
+      });
+
+      test('non-cocoon scheduler targets return omit policy', () {
+        expect(
+          generateTarget(1, platform: 'Linux_android', schedulerSystem: pb.SchedulerSystem.luci).schedulerPolicyFirestore,
+          isA<firestore_policy.OmitPolicy>(),
         );
       });
 

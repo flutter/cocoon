@@ -9,6 +9,8 @@ import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/stage.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_commit;
+import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
@@ -73,6 +75,8 @@ void main() {
   late MockFirestoreService mockFirestoreService;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Scheduler scheduler;
+  firestore_commit.Commit? commitDocument;
+  final List<firestore.Task> tasks = <firestore.Task>[];
 
   final PullRequest pullRequest = generatePullRequest(id: 42);
 
@@ -88,6 +92,8 @@ void main() {
 
   group('Scheduler', () {
     setUp(() {
+      tasks.clear;
+      commitDocument = null;
       final MockTabledataResource tabledataResource = MockTabledataResource();
       when(tabledataResource.insertAll(any, any, any, any)).thenAnswer((_) async {
         return TableDataInsertAllResponse();
@@ -147,6 +153,38 @@ void main() {
           'check_suite': <String, dynamic>{'id': 2},
         });
       });
+      when(
+        mockFirestoreService.writeViaTransaction(
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<CommitResponse>.value(CommitResponse());
+      });
+      when(
+        mockFirestoreService.getDocument(
+          captureAny,
+        ),
+      ).thenThrow(ApiRequestError('test'));
+      when(
+        mockFirestoreService.queryRecentCommits(
+          limit: captureAnyNamed('limit'),
+          slug: captureAnyNamed('slug'),
+          branch: captureAnyNamed('branch'),
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<List<firestore_commit.Commit>>.value(
+          <firestore_commit.Commit>[commitDocument!],
+        );
+      });
+      when(
+        mockFirestoreService.queryRecentTasksByName(
+          name: captureAnyNamed('name'),
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<List<firestore.Task>>.value(
+          tasks,
+        );
+      });
     });
 
     group('add commits', () {
@@ -177,13 +215,6 @@ void main() {
       });
 
       test('inserts all relevant fields of the commit', () async {
-        when(
-          mockFirestoreService.writeViaTransaction(
-            captureAny,
-          ),
-        ).thenAnswer((Invocation invocation) {
-          return Future<CommitResponse>.value(CommitResponse());
-        });
         config.supportedBranchesValue = <String>['master'];
         expect(db.values.values.whereType<Commit>().length, 0);
         await scheduler.addCommits(createCommitList(<String>['1']));
@@ -205,13 +236,6 @@ void main() {
       });
 
       test('skips commits for which transaction commit fails', () async {
-        when(
-          mockFirestoreService.writeViaTransaction(
-            captureAny,
-          ),
-        ).thenAnswer((Invocation invocation) {
-          return Future<CommitResponse>.value(CommitResponse());
-        });
         config.supportedBranchesValue = <String>['master'];
 
         // Existing commits should not be duplicated.
@@ -234,13 +258,6 @@ void main() {
       });
 
       test('skips commits for which task transaction fails', () async {
-        when(
-          mockFirestoreService.writeViaTransaction(
-            captureAny,
-          ),
-        ).thenAnswer((Invocation invocation) {
-          return Future<CommitResponse>.value(CommitResponse());
-        });
         config.supportedBranchesValue = <String>['master'];
 
         // Existing commits should not be duplicated.
@@ -263,13 +280,6 @@ void main() {
       });
 
       test('schedules cocoon based targets', () async {
-        when(
-          mockFirestoreService.writeViaTransaction(
-            captureAny,
-          ),
-        ).thenAnswer((Invocation invocation) {
-          return Future<CommitResponse>.value(CommitResponse());
-        });
         final MockLuciBuildService luciBuildService = MockLuciBuildService();
         when(
           luciBuildService.schedulePostsubmitBuilds(
@@ -312,13 +322,6 @@ void main() {
       });
 
       test('schedules cocoon based targets - multiple batch requests', () async {
-        when(
-          mockFirestoreService.writeViaTransaction(
-            captureAny,
-          ),
-        ).thenAnswer((Invocation invocation) {
-          return Future<CommitResponse>.value(CommitResponse());
-        });
         final MockBuildBucketClient mockBuildBucketClient = MockBuildBucketClient();
         final FakeLuciBuildService luciBuildService = FakeLuciBuildService(
           config: config,
@@ -360,14 +363,14 @@ void main() {
 
     group('add pull request', () {
       test('creates expected commit', () async {
-        when(
-          mockFirestoreService.writeViaTransaction(
-            captureAny,
-          ),
-        ).thenAnswer((Invocation invocation) {
-          return Future<CommitResponse>.value(CommitResponse());
-        });
         final PullRequest mergedPr = generatePullRequest();
+        commitDocument = generateFirestoreCommit(
+          1,
+          sha: mergedPr.mergeCommitSha,
+          branch: mergedPr.base!.ref!,
+          repo: mergedPr.base!.repo!.name,
+          owner: mergedPr.base!.repo!.owner!.login,
+        );
         await scheduler.addPullRequest(mergedPr);
 
         expect(db.values.values.whereType<Commit>().length, 1);
@@ -384,51 +387,76 @@ void main() {
         expect(captured.length, 1);
         final List<Write> commitResponse = captured[0] as List<Write>;
         expect(commitResponse.length, 4);
+        final firestore_commit.Commit resultCommitDocument =
+            firestore_commit.Commit.fromDocument(commitDocument: commitResponse[3].update!);
+        expect(resultCommitDocument.repositoryPath, 'flutter/flutter');
+        expect(resultCommitDocument.branch, 'master');
+        expect(resultCommitDocument.sha, 'abc');
+        expect(resultCommitDocument.createTimestamp, 1);
+        expect(resultCommitDocument.author, 'dash');
+        expect(resultCommitDocument.avatar, 'dashatar');
+        expect(resultCommitDocument.message, 'example message');
       });
 
       test('schedules tasks against merged PRs', () async {
-        when(
-          mockFirestoreService.writeViaTransaction(
-            captureAny,
-          ),
-        ).thenAnswer((Invocation invocation) {
-          return Future<CommitResponse>.value(CommitResponse());
-        });
         final PullRequest mergedPr = generatePullRequest();
+        commitDocument = generateFirestoreCommit(
+          1,
+          sha: mergedPr.mergeCommitSha,
+          branch: mergedPr.base!.ref!,
+          repo: mergedPr.base!.repo!.name,
+          owner: mergedPr.base!.repo!.owner!.login,
+        );
         await scheduler.addPullRequest(mergedPr);
 
         expect(db.values.values.whereType<Commit>().length, 1);
         expect(db.values.values.whereType<Task>().length, 3);
+
+        final List<dynamic> captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
+        expect(captured.length, 1);
+        final List<Write> commitResponse = captured[0] as List<Write>;
+        expect(commitResponse.length, 4);
       });
 
       test('guarantees scheduling of tasks against merged release branch PR', () async {
-        when(
-          mockFirestoreService.writeViaTransaction(
-            captureAny,
-          ),
-        ).thenAnswer((Invocation invocation) {
-          return Future<CommitResponse>.value(CommitResponse());
-        });
         final PullRequest mergedPr = generatePullRequest(branch: 'flutter-3.2-candidate.5');
+        commitDocument = generateFirestoreCommit(
+          1,
+          sha: mergedPr.mergeCommitSha,
+          branch: mergedPr.base!.ref!,
+          repo: mergedPr.base!.repo!.name,
+          owner: mergedPr.base!.repo!.owner!.login,
+        );
         await scheduler.addPullRequest(mergedPr);
 
         expect(db.values.values.whereType<Commit>().length, 1);
         expect(db.values.values.whereType<Task>().length, 3);
         // Ensure all tasks have been marked in progress
         expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusNew), isEmpty);
+
+        final List<dynamic> captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
+        expect(captured.length, 1);
+        final List<Write> commitResponse = captured[0] as List<Write>;
+        expect(commitResponse.length, 4);
+        final firestore.Task task1 = firestore.Task.fromDocument(taskDocument: commitResponse[0].update!);
+        expect(task1.status, firestore.Task.statusInProgress);
+        final firestore.Task task2 = firestore.Task.fromDocument(taskDocument: commitResponse[1].update!);
+        expect(task2.status, firestore.Task.statusInProgress);
+        final firestore.Task task3 = firestore.Task.fromDocument(taskDocument: commitResponse[2].update!);
+        expect(task3.status, firestore.Task.statusInProgress);
       });
 
       test('guarantees scheduling of tasks against merged engine PR', () async {
-        when(
-          mockFirestoreService.writeViaTransaction(
-            captureAny,
-          ),
-        ).thenAnswer((Invocation invocation) {
-          return Future<CommitResponse>.value(CommitResponse());
-        });
         final PullRequest mergedPr = generatePullRequest(
           repo: Config.engineSlug.name,
           branch: Config.defaultBranch(Config.engineSlug),
+        );
+        commitDocument = generateFirestoreCommit(
+          1,
+          sha: mergedPr.mergeCommitSha,
+          branch: mergedPr.base!.ref!,
+          repo: mergedPr.base!.repo!.name,
+          owner: mergedPr.base!.repo!.owner!.login,
         );
         await scheduler.addPullRequest(mergedPr);
 
@@ -436,16 +464,20 @@ void main() {
         expect(db.values.values.whereType<Task>().length, 3);
         // Ensure all tasks under cocoon scheduler have been marked in progress
         expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusInProgress).length, 2);
+
+        final List<dynamic> captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
+        expect(captured.length, 1);
+        final List<Write> commitResponse = captured[0] as List<Write>;
+        expect(commitResponse.length, 4);
+        final firestore.Task task1 = firestore.Task.fromDocument(taskDocument: commitResponse[0].update!);
+        expect(task1.status, firestore.Task.statusInProgress);
+        final firestore.Task task2 = firestore.Task.fromDocument(taskDocument: commitResponse[1].update!);
+        expect(task2.status, firestore.Task.statusInProgress);
+        final firestore.Task task3 = firestore.Task.fromDocument(taskDocument: commitResponse[2].update!);
+        expect(task3.status, firestore.Task.statusNew);
       });
 
       test('Release candidate branch commit filters builders not in default branch', () async {
-        when(
-          mockFirestoreService.writeViaTransaction(
-            captureAny,
-          ),
-        ).thenAnswer((Invocation invocation) {
-          return Future<CommitResponse>.value(CommitResponse());
-        });
         const String totCiYaml = r'''
 enabled_branches:
   - main
@@ -485,6 +517,13 @@ targets:
           repo: Config.engineSlug.name,
           branch: 'flutter-3.10-candidate.1',
         );
+        commitDocument = generateFirestoreCommit(
+          1,
+          sha: mergedPr.mergeCommitSha,
+          branch: mergedPr.base!.ref!,
+          repo: mergedPr.base!.repo!.name,
+          owner: mergedPr.base!.repo!.owner!.login,
+        );
         await scheduler.addPullRequest(mergedPr);
 
         final List<Task> tasks = db.values.values.whereType<Task>().toList();
@@ -493,6 +532,14 @@ targets:
         expect(tasks.first.name, 'Linux A');
         // Ensure all tasks under cocoon scheduler have been marked in progress
         expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusInProgress).length, 1);
+
+        final List<dynamic> captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
+        expect(captured.length, 1);
+        final List<Write> commitResponse = captured[0] as List<Write>;
+        expect(commitResponse.length, 2);
+        final firestore.Task task1 = firestore.Task.fromDocument(taskDocument: commitResponse[0].update!);
+        expect(task1.status, firestore.Task.statusInProgress);
+        expect(task1.taskName, 'Linux A');
       });
 
       test('does not schedule tasks against non-merged PRs', () async {
@@ -509,22 +556,40 @@ targets:
         db.values[commit.key] = commit;
 
         final PullRequest alreadyLandedPr = generatePullRequest(sha: '1');
+        commitDocument = generateFirestoreCommit(
+          1,
+          sha: alreadyLandedPr.mergeCommitSha,
+          branch: alreadyLandedPr.base!.ref!,
+          repo: alreadyLandedPr.base!.repo!.name,
+          owner: alreadyLandedPr.base!.repo!.owner!.login,
+        );
+        when(
+          mockFirestoreService.getDocument(
+            captureAny,
+          ),
+        ).thenAnswer((Invocation invocation) {
+          return Future<firestore_commit.Commit>.value(
+            commitDocument,
+          );
+        });
         await scheduler.addPullRequest(alreadyLandedPr);
 
         expect(db.values.values.whereType<Commit>().map<String>(toSha).length, 1);
         // No tasks should be scheduled as that is done on commit insert.
         expect(db.values.values.whereType<Task>().length, 0);
+
+        verifyNever(mockFirestoreService.writeViaTransaction(captureAny));
       });
 
       test('creates expected commit from release branch PR', () async {
-        when(
-          mockFirestoreService.writeViaTransaction(
-            captureAny,
-          ),
-        ).thenAnswer((Invocation invocation) {
-          return Future<CommitResponse>.value(CommitResponse());
-        });
         final PullRequest mergedPr = generatePullRequest(branch: '1.26');
+        commitDocument = generateFirestoreCommit(
+          1,
+          sha: mergedPr.mergeCommitSha,
+          branch: mergedPr.base!.ref!,
+          repo: mergedPr.base!.repo!.name,
+          owner: mergedPr.base!.repo!.owner!.login,
+        );
         await scheduler.addPullRequest(mergedPr);
 
         expect(db.values.values.whereType<Commit>().length, 1);
@@ -536,6 +601,20 @@ targets:
         expect(commit.author, 'dash');
         expect(commit.authorAvatarUrl, 'dashatar');
         expect(commit.message, 'example message');
+
+        final List<dynamic> captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
+        expect(captured.length, 1);
+        final List<Write> commitResponse = captured[0] as List<Write>;
+        expect(commitResponse.length, 1);
+        final firestore_commit.Commit resultCommitDocument =
+            firestore_commit.Commit.fromDocument(commitDocument: commitResponse[0].update!);
+        expect(resultCommitDocument.repositoryPath, 'flutter/flutter');
+        expect(resultCommitDocument.branch, '1.26');
+        expect(resultCommitDocument.sha, 'abc');
+        expect(resultCommitDocument.createTimestamp, 1);
+        expect(resultCommitDocument.author, 'dash');
+        expect(resultCommitDocument.avatar, 'dashatar');
+        expect(resultCommitDocument.message, 'example message');
       });
     });
 

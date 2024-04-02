@@ -702,6 +702,307 @@ void main() {
     });
   });
 
+  group('schedulePostsubmitBuildsFirestore', () {
+    setUp(() {
+      cache = CacheService(inMemory: true);
+      mockBuildBucketClient = MockBuildBucketClient();
+      pubsub = FakePubSub();
+      service = LuciBuildService(
+        config: FakeConfig(),
+        cache: cache,
+        buildBucketClient: mockBuildBucketClient,
+        githubChecksUtil: mockGithubChecksUtil,
+        pubsub: pubsub,
+      );
+    });
+
+    test('schedule packages postsubmit builds successfully', () async {
+      final firestore_commit.Commit commit = generateFirestoreCommit(0);
+      when(mockGithubChecksUtil.createCheckRun(any, Config.packagesSlug, any, 'Linux 1'))
+          .thenAnswer((_) async => generateCheckRun(1));
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+        return const ListBuildersResponse(
+          builders: [
+            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux 1')),
+          ],
+        );
+      });
+      final BuildSchedule toBeScheduled = BuildSchedule(
+        generateTarget(
+          1,
+          properties: <String, String>{
+            'recipe': 'devicelab/devicelab',
+            'os': 'debian-10.12',
+          },
+          slug: Config.packagesSlug,
+        ),
+        generateFirestoreTask(1),
+        generateTask(1),
+        LuciBuildService.kDefaultPriority,
+      );
+      await service.schedulePostsubmitBuildsFirestore(
+        commit: commit,
+        toBeScheduled: <BuildSchedule>[
+          toBeScheduled,
+        ],
+      );
+      // Only one batch request should be published
+      expect(pubsub.messages.length, 1);
+      final BatchRequest request = pubsub.messages.first as BatchRequest;
+      expect(request.requests?.single.scheduleBuild, isNotNull);
+      final ScheduleBuildRequest scheduleBuild = request.requests!.single.scheduleBuild!;
+      expect(scheduleBuild.builderId.bucket, 'prod');
+      expect(scheduleBuild.builderId.builder, 'Linux 1');
+      expect(scheduleBuild.notify?.pubsubTopic, 'projects/flutter-dashboard/topics/luci-builds-prod');
+      final Map<String, dynamic> userData =
+          jsonDecode(String.fromCharCodes(base64Decode(scheduleBuild.notify!.userData!))) as Map<String, dynamic>;
+      expect(userData, <String, dynamic>{
+        'commit_key': 'flutter/flutter/master/1',
+        'task_key': '1',
+        'check_run_id': 1,
+        'commit_sha': '0',
+        'commit_branch': 'master',
+        'builder_name': 'Linux 1',
+        'repo_owner': 'flutter',
+        'repo_name': 'packages',
+        'firestore_commit_document_name': '0',
+        'firestore_task_document_name': '0_task1_1',
+      });
+      final Map<String, dynamic> properties = scheduleBuild.properties!;
+      expect(properties, <String, dynamic>{
+        'dependencies': <dynamic>[],
+        'bringup': false,
+        'git_branch': 'master',
+        'exe_cipd_version': 'refs/heads/master',
+        'os': 'debian-10.12',
+        'recipe': 'devicelab/devicelab',
+      });
+      expect(scheduleBuild.exe, <String, String>{
+        'cipdVersion': 'refs/heads/master',
+      });
+      expect(scheduleBuild.dimensions, isNotEmpty);
+      expect(
+        scheduleBuild.dimensions!.singleWhere((RequestedDimension dimension) => dimension.key == 'os').value,
+        'debian-10.12',
+      );
+    });
+
+    test('schedule postsubmit builds with correct userData for checkRuns', () async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+      final firestore_commit.Commit commit = generateFirestoreCommit(0, repo: 'packages');
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+        return const ListBuildersResponse(
+          builders: [
+            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux 1')),
+          ],
+        );
+      });
+      final BuildSchedule toBeScheduled = BuildSchedule(
+        generateTarget(
+          1,
+          properties: <String, String>{
+            'os': 'debian-10.12',
+          },
+          slug: RepositorySlug('flutter', 'packages'),
+        ),
+        generateFirestoreTask(1),
+        generateTask(1),
+        LuciBuildService.kDefaultPriority,
+      );
+      await service.schedulePostsubmitBuildsFirestore(
+        commit: commit,
+        toBeScheduled: <BuildSchedule>[
+          toBeScheduled,
+        ],
+      );
+      // Only one batch request should be published
+      expect(pubsub.messages.length, 1);
+      final BatchRequest request = pubsub.messages.first as BatchRequest;
+      expect(request.requests?.single.scheduleBuild, isNotNull);
+      final ScheduleBuildRequest scheduleBuild = request.requests!.single.scheduleBuild!;
+      expect(scheduleBuild.builderId.bucket, 'prod');
+      expect(scheduleBuild.builderId.builder, 'Linux 1');
+      expect(scheduleBuild.notify?.pubsubTopic, 'projects/flutter-dashboard/topics/luci-builds-prod');
+      final Map<String, dynamic> userData =
+          jsonDecode(String.fromCharCodes(base64Decode(scheduleBuild.notify!.userData!))) as Map<String, dynamic>;
+      expect(userData, <String, dynamic>{
+        'commit_key': 'flutter/flutter/master/1',
+        'task_key': '1',
+        'check_run_id': 1,
+        'commit_sha': '0',
+        'commit_branch': 'master',
+        'builder_name': 'Linux 1',
+        'repo_owner': 'flutter',
+        'repo_name': 'packages',
+        'firestore_commit_document_name': '0',
+        'firestore_task_document_name': '0_task1_1',
+      });
+    });
+
+    test('return the orignal list when hitting buildbucket exception', () async {
+      final firestore_commit.Commit commit = generateFirestoreCommit(0, repo: 'packages');
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+        throw const BuildBucketException(1, 'error');
+      });
+      final BuildSchedule toBeScheduled = BuildSchedule(
+        generateTarget(
+          1,
+          properties: <String, String>{
+            'os': 'debian-10.12',
+          },
+          slug: RepositorySlug('flutter', 'packages'),
+        ),
+        generateFirestoreTask(1),
+        generateTask(1),
+        LuciBuildService.kDefaultPriority,
+      );
+      final List<BuildSchedule> results = await service.schedulePostsubmitBuildsFirestore(
+        commit: commit,
+        toBeScheduled: <BuildSchedule>[
+          toBeScheduled,
+        ],
+      );
+      expect(results, <BuildSchedule>[
+        toBeScheduled,
+      ]);
+    });
+
+    test('reschedule using checkrun event fails gracefully', () async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[
+            Response(
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[],
+              ),
+            ),
+          ],
+        );
+      });
+
+      final pushMessage = generateCheckRunEvent(action: 'created', numberOfPullRequests: 1);
+      final Map<String, dynamic> jsonMap = json.decode(pushMessage.data!);
+      final Map<String, dynamic> jsonSubMap = json.decode(jsonMap['2']);
+      final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
+
+      expect(
+        () async => service.reschedulePostsubmitBuildUsingCheckRunEvent(
+          checkRunEvent,
+          commit: generateCommit(0),
+          task: generateTask(0),
+          target: generateTarget(0),
+        ),
+        throwsA(const TypeMatcher<NoBuildFoundException>()),
+      );
+    });
+
+    test('do not create postsubmit checkrun for bringup: true target', () async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+      final firestore_commit.Commit commit = generateFirestoreCommit(0, repo: 'packages');
+      final Commit datastoreCommit = generateCommit(0, repo: Config.packagesSlug.name);
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+        return const ListBuildersResponse(
+          builders: [
+            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux 1')),
+          ],
+        );
+      });
+      final BuildSchedule toBeScheduled = BuildSchedule(
+        generateTarget(
+          1,
+          properties: <String, String>{
+            'os': 'debian-10.12',
+          },
+          bringup: true,
+          slug: Config.packagesSlug,
+        ),
+        generateFirestoreTask(1),
+        generateTask(1, parent: datastoreCommit),
+        LuciBuildService.kDefaultPriority,
+      );
+      await service.schedulePostsubmitBuildsFirestore(
+        commit: commit,
+        toBeScheduled: <BuildSchedule>[
+          toBeScheduled,
+        ],
+      );
+      // Only one batch request should be published
+      expect(pubsub.messages.length, 1);
+      final BatchRequest request = pubsub.messages.first as BatchRequest;
+      expect(request.requests?.single.scheduleBuild, isNotNull);
+      final ScheduleBuildRequest scheduleBuild = request.requests!.single.scheduleBuild!;
+      expect(scheduleBuild.builderId.bucket, 'staging');
+      expect(scheduleBuild.builderId.builder, 'Linux 1');
+      expect(scheduleBuild.notify?.pubsubTopic, 'projects/flutter-dashboard/topics/luci-builds-prod');
+      final Map<String, dynamic> userData =
+          jsonDecode(String.fromCharCodes(base64Decode(scheduleBuild.notify!.userData!))) as Map<String, dynamic>;
+      // No check run related data.
+      expect(userData, <String, dynamic>{
+        'commit_key': 'flutter/packages/master/0',
+        'task_key': '1',
+        'firestore_commit_document_name': '0',
+        'firestore_task_document_name': '0_task1_1',
+      });
+    });
+
+    test('Skip non-existing builder', () async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+      final firestore_commit.Commit commit = generateFirestoreCommit(0);
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 2'));
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+        return const ListBuildersResponse(
+          builders: [
+            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux 2')),
+          ],
+        );
+      });
+      final BuildSchedule toBeScheduled1 = BuildSchedule(
+        generateTarget(
+          1,
+          properties: <String, String>{
+            'os': 'debian-10.12',
+          },
+        ),
+        generateFirestoreTask(1),
+        generateTask(1),
+        LuciBuildService.kDefaultPriority,
+      );
+      final BuildSchedule toBeScheduled2 = BuildSchedule(
+        generateTarget(
+          2,
+          properties: <String, String>{
+            'os': 'debian-10.12',
+          },
+        ),
+        generateFirestoreTask(1),
+        generateTask(1),
+        LuciBuildService.kDefaultPriority,
+      );
+      await service.schedulePostsubmitBuildsFirestore(
+        commit: commit,
+        toBeScheduled: <BuildSchedule>[
+          toBeScheduled1,
+          toBeScheduled2,
+        ],
+      );
+      expect(pubsub.messages.length, 1);
+      final BatchRequest request = pubsub.messages.first as BatchRequest;
+      // Only existing builder: `Linux 2` is scheduled.
+      expect(request.requests?.length, 1);
+      expect(request.requests?.single.scheduleBuild, isNotNull);
+      final ScheduleBuildRequest scheduleBuild = request.requests!.single.scheduleBuild!;
+      expect(scheduleBuild.builderId.bucket, 'prod');
+      expect(scheduleBuild.builderId.builder, 'Linux 2');
+    });
+  });
+
   group('schedulePresubmitBuilds', () {
     setUp(() {
       cache = CacheService(inMemory: true);

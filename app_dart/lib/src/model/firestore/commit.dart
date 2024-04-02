@@ -39,6 +39,29 @@ class Commit extends Document {
       ..name = commitDocument.name!;
   }
 
+  /// Createa a new [Commit]
+  static Commit newCommit({
+    required String author,
+    required String avatar,
+    required String branch,
+    required String message,
+    required String repositoryPath,
+    required String sha,
+    required int createTimestamp,
+  }) {
+    return Commit()
+      ..name = '$kDatabase/documents/$kCommitCollectionId/$sha'
+      ..fields = <String, Value>{
+        kCommitAuthorField: Value(stringValue: author),
+        kCommitAvatarField: Value(stringValue: avatar),
+        kCommitBranchField: Value(stringValue: branch),
+        kCommitMessageField: Value(stringValue: message),
+        kCommitRepositoryPathField: Value(stringValue: repositoryPath),
+        kCommitShaField: Value(stringValue: sha),
+        kCommitCreateTimestampField: Value(integerValue: createTimestamp.toString()),
+      };
+  }
+
   /// The timestamp (in milliseconds since the Epoch) of when the commit
   /// landed.
   int? get createTimestamp => int.parse(fields![kCommitCreateTimestampField]!.integerValue!);

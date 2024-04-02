@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
+import 'package:cocoon_service/src/service/scheduler/policy_firestore.dart' as firestore_policy;
 import 'package:github/github.dart';
 
 import '../../service/config.dart';
@@ -90,6 +91,21 @@ class Target {
       return GuaranteedPolicy();
     }
     return BatchPolicy();
+  }
+
+  /// [SchedulerPolicy] this target follows.
+  ///
+  /// Targets not triggered by Cocoon will not be triggered.
+  ///
+  /// All targets except from [Config.guaranteedSchedulingRepos] run with [BatchPolicy] to reduce queue time.
+  firestore_policy.SchedulerPolicy get schedulerPolicyFirestore {
+    if (value.scheduler != pb.SchedulerSystem.cocoon) {
+      return firestore_policy.OmitPolicy();
+    }
+    if (Config.guaranteedSchedulingRepos.contains(slug)) {
+      return firestore_policy.GuaranteedPolicy();
+    }
+    return firestore_policy.BatchPolicy();
   }
 
   /// Get the tags from the defined properties in the ci.

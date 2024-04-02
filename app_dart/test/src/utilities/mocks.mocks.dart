@@ -2657,6 +2657,23 @@ class MockFirestoreService extends _i1.Mock implements _i15.FirestoreService {
       ) as _i20.Future<List<_i39.Commit>>);
 
   @override
+  _i20.Future<List<_i40.Task>> queryRecentTasksByName({
+    int? limit = 100,
+    required String? name,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #queryRecentTasksByName,
+          [],
+          {
+            #limit: limit,
+            #name: name,
+          },
+        ),
+        returnValue: _i20.Future<List<_i40.Task>>.value(<_i40.Task>[]),
+      ) as _i20.Future<List<_i40.Task>>);
+
+  @override
   _i20.Future<List<_i40.Task>> queryCommitTasks(String? commitSha) => (super.noSuchMethod(
         Invocation.method(
           #queryCommitTasks,
@@ -6777,6 +6794,23 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
       ) as _i20.Future<List<_i15.Tuple<_i42.Target, _i35.Task, int>>>);
 
   @override
+  _i20.Future<List<_i15.BuildSchedule>> schedulePostsubmitBuildsFirestore({
+    required _i39.Commit? commit,
+    required List<_i15.BuildSchedule>? toBeScheduled,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #schedulePostsubmitBuildsFirestore,
+          [],
+          {
+            #commit: commit,
+            #toBeScheduled: toBeScheduled,
+          },
+        ),
+        returnValue: _i20.Future<List<_i15.BuildSchedule>>.value(<_i15.BuildSchedule>[]),
+      ) as _i20.Future<List<_i15.BuildSchedule>>);
+
+  @override
   _i20.Future<void> createPostsubmitCheckRun(
     _i34.Commit? commit,
     _i42.Target? target,
@@ -6796,15 +6830,34 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
       ) as _i20.Future<void>);
 
   @override
+  _i20.Future<void> createPostsubmitCheckRunFirestore(
+    _i39.Commit? commit,
+    _i42.Target? target,
+    Map<String, dynamic>? rawUserData,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #createPostsubmitCheckRunFirestore,
+          [
+            commit,
+            target,
+            rawUserData,
+          ],
+        ),
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
+
+  @override
   _i20.Future<bool> checkRerunBuilder({
     required _i34.Commit? commit,
     required _i42.Target? target,
     required _i35.Task? task,
     required _i9.DatastoreService? datastore,
-    _i15.FirestoreService? firestoreService,
+    required _i40.Task? taskDocument,
+    required _i15.FirestoreService? firestoreService,
     Map<String, List<String>>? tags,
     bool? ignoreChecks = false,
-    _i40.Task? taskDocument,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -6815,10 +6868,10 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
             #target: target,
             #task: task,
             #datastore: datastore,
+            #taskDocument: taskDocument,
             #firestoreService: firestoreService,
             #tags: tags,
             #ignoreChecks: ignoreChecks,
-            #taskDocument: taskDocument,
           },
         ),
         returnValue: _i20.Future<bool>.value(false),

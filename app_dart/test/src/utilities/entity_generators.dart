@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/ci_yaml.dart';
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_commit;
@@ -139,14 +140,21 @@ firestore_commit.Commit generateFirestoreCommit(
   String? owner = 'flutter',
   String repo = 'flutter',
   int? createTimestamp,
+  String? author,
+  String? avatar,
+  String? message,
 }) {
+  final String commitSha = sha ?? '$i';
   final firestore_commit.Commit commit = firestore_commit.Commit()
-    ..name = sha ?? '$i'
+    ..name = '$kDatabase/documents/${firestore_commit.kCommitCollectionId}/$commitSha'
     ..fields = <String, Value>{
       firestore_commit.kCommitCreateTimestampField: Value(integerValue: (createTimestamp ?? i).toString()),
       firestore_commit.kCommitRepositoryPathField: Value(stringValue: '$owner/$repo'),
+      firestore_commit.kCommitAuthorField: Value(stringValue: 'author$i'),
+      firestore_commit.kCommitAvatarField: Value(stringValue: 'avatar$i'),
       firestore_commit.kCommitBranchField: Value(stringValue: branch),
-      firestore_commit.kCommitShaField: Value(stringValue: sha ?? '$i'),
+      firestore_commit.kCommitShaField: Value(stringValue: commitSha),
+      firestore_commit.kCommitMessageField: Value(stringValue: 'message$i'),
     };
   return commit;
 }

@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/appengine/commit.dart' as datastore_commit;
 import 'package:cocoon_service/src/model/appengine/task.dart' as datastore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
+import 'package:cocoon_service/src/model/firestore/commit.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as pm;
 import 'package:cocoon_service/src/service/firestore.dart';
@@ -37,8 +38,8 @@ void main() {
       expect(taskDocument.commitSha, commitSha);
     });
 
-    test('creates task documents correctly from targets', () async {
-      final Commit commit = generateCommit(1);
+    test('creates task documents correctly from targets and datastore commit', () async {
+      final datastore_commit.Commit commit = generateCommit(1);
       final List<Target> targets = <Target>[
         generateTarget(1, platform: 'Mac'),
         generateTarget(2, platform: 'Linux'),
@@ -50,6 +51,28 @@ void main() {
         '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${targets[0].value.name}_$kTaskInitialAttempt',
       );
       expect(taskDocuments[0].fields![kTaskCreateTimestampField]!.integerValue, commit.timestamp.toString());
+      expect(taskDocuments[0].fields![kTaskEndTimestampField]!.integerValue, '0');
+      expect(taskDocuments[0].fields![kTaskBringupField]!.booleanValue, false);
+      expect(taskDocuments[0].fields![kTaskNameField]!.stringValue, targets[0].value.name);
+      expect(taskDocuments[0].fields![kTaskStartTimestampField]!.integerValue, '0');
+      expect(taskDocuments[0].fields![kTaskStatusField]!.stringValue, Task.statusNew);
+      expect(taskDocuments[0].fields![kTaskTestFlakyField]!.booleanValue, false);
+      expect(taskDocuments[0].fields![kTaskCommitShaField]!.stringValue, commit.sha);
+    });
+
+    test('creates task documents correctly from targets and firestore commit', () async {
+      final Commit commit = generateFirestoreCommit(1);
+      final List<Target> targets = <Target>[
+        generateTarget(1, platform: 'Mac'),
+        generateTarget(2, platform: 'Linux'),
+      ];
+      final List<Task> taskDocuments = targetsToTaskDocumentsFirestore(commit, targets);
+      expect(taskDocuments.length, 2);
+      expect(
+        taskDocuments[0].name,
+        '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${targets[0].value.name}_$kTaskInitialAttempt',
+      );
+      expect(taskDocuments[0].fields![kTaskCreateTimestampField]!.integerValue, commit.createTimestamp.toString());
       expect(taskDocuments[0].fields![kTaskEndTimestampField]!.integerValue, '0');
       expect(taskDocuments[0].fields![kTaskBringupField]!.booleanValue, false);
       expect(taskDocuments[0].fields![kTaskNameField]!.stringValue, targets[0].value.name);

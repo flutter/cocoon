@@ -88,7 +88,7 @@ class FirestoreService {
   ///
   /// The [limit] argument specifies the maximum number of commits to retrieve.
   ///
-  /// The returned commits will be ordered by most recent [Commit.timestamp].
+  /// The returned commits will be ordered by most recent [Commit.createTimestamp].
   Future<List<Commit>> queryRecentCommits({
     int limit = 100,
     int? timestamp,
@@ -107,6 +107,25 @@ class FirestoreService {
     };
     final List<Document> documents = await query(kCommitCollectionId, filterMap, orderMap: orderMap, limit: limit);
     return documents.map((Document document) => Commit.fromDocument(commitDocument: document)).toList();
+  }
+
+  /// Queries for recent tasks.
+  ///
+  /// The [limit] argument specifies the maximum number of tasks to retrieve.
+  ///
+  /// The returned tasks will be ordered by most recent [task.createTimestamp].
+  Future<List<Task>> queryRecentTasksByName({
+    int limit = 100,
+    required String name,
+  }) async {
+    final Map<String, Object> filterMap = <String, Object>{
+      '$kTaskNameField =': name,
+    };
+    final Map<String, String> orderMap = <String, String>{
+      kTaskCreateTimestampField: kQueryOrderDescending,
+    };
+    final List<Document> documents = await query(kTaskCollectionId, filterMap, orderMap: orderMap, limit: limit);
+    return documents.map((Document document) => Task.fromDocument(taskDocument: document)).toList();
   }
 
   /// Returns all tasks running against the speificed [commitSha].
