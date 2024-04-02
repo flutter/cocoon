@@ -46,7 +46,7 @@ class FakeBuildBucketV2Client extends BuildBucketV2Client {
     }
 
     final bbv2.Build build = bbv2.Build.create();
-    build.id = 123 as Int64;
+    build.id = Int64(123);
     build.builder = request!.builder;
     // The tags here should be empty.
     final List<bbv2.StringPair> existingTags = build.tags;
@@ -64,7 +64,7 @@ class FakeBuildBucketV2Client extends BuildBucketV2Client {
     }
 
     final bbv2.Build build = bbv2.Build.create();
-    build.id = 123 as Int64;
+    build.id = Int64(123);
     final bbv2.BuilderID builderID = bbv2.BuilderID.create();
     builderID.builder = 'builder_abc';
     builderID.bucket = 'try';

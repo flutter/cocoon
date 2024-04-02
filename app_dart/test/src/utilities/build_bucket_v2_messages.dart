@@ -13,6 +13,7 @@ PushMessageV2 createPushMessageV2(
   int? number = 259942,
   bbv2.Status? status = bbv2.Status.SCHEDULED,
   Map<String, dynamic>? userData = const {},
+  bool? addBuildSet = true,
 }) {
   final bbv2.PubSubCallBack pubSubCallBack = createPubSubCallBack(
     id,
@@ -22,14 +23,13 @@ PushMessageV2 createPushMessageV2(
     number: number,
     status: status,
     userData: userData,
+    addBuildSet: addBuildSet,
   );
+
   final Map<String, dynamic> pubSubCallBackMap = pubSubCallBack.toProto3Json() as Map<String, dynamic>;
 
   final String pubSubCallBackString = jsonEncode(pubSubCallBackMap);
 
-  // final String pubSubCallBackString = jsonEncode(pubSubCallBackMap);
-  // final List<int> encodedMessage = utf8.encode(pubSubCallBackString);
-  // final String base64EncodedString = base64.encode(encodedMessage);
   return PushMessageV2(data: pubSubCallBackString);
 }
 
@@ -41,6 +41,7 @@ bbv2.PubSubCallBack createPubSubCallBack(
   int? number = 259942,
   bbv2.Status? status = bbv2.Status.SCHEDULED,
   Map<String, dynamic>? userData = const {},
+  bool? addBuildSet = true,
 }) {
   // this contains BuildsV2PubSub and UserData (List<int>).
   final bbv2.BuildsV2PubSub buildsV2PubSub = createBuild(
@@ -50,6 +51,7 @@ bbv2.PubSubCallBack createPubSubCallBack(
     builder: builder,
     number: number,
     status: status,
+    addBuildSet: addBuildSet,
   );
   final List<int>? userDataBytes = UserData.encodeUserDataToBytes(userData!);
   return bbv2.PubSubCallBack(buildPubsub: buildsV2PubSub, userData: userDataBytes);
@@ -62,6 +64,7 @@ bbv2.BuildsV2PubSub createBuild(
   String? builder = 'Windows Engine Drone',
   int? number = 259942,
   bbv2.Status? status = bbv2.Status.SCHEDULED,
+  bool? addBuildSet = true,
 }) {
   final bbv2.BuildsV2PubSub build = bbv2.BuildsV2PubSub().createEmptyInstance();
   build.mergeFromProto3Json(
@@ -73,6 +76,7 @@ bbv2.BuildsV2PubSub createBuild(
         builder: builder,
         number: number,
         status: status,
+        addBuildSet: addBuildSet,
       ),
     ) as Map<String, dynamic>,
   );
@@ -86,6 +90,7 @@ String createBuildString(
   String? builder = 'Windows Engine Drone',
   int? number = 259942,
   bbv2.Status? status = bbv2.Status.SCHEDULED,
+  bool? addBuildSet = true,
 }) {
   return '''
   {
@@ -1599,6 +1604,7 @@ String createBuildString(
           "key": "builder",
           "value": "$builder"
         },
+        ${addBuildSet! ? '''
         {
           "key": "buildset",
           "value": "pr/git/47066"
@@ -1607,6 +1613,7 @@ String createBuildString(
           "key": "buildset",
           "value": "sha/git/4d97460a271ceab7335b4e22110df77e9d3fd9a7"
         },
+        ''' : ''}
         {
           "key": "parent_buildbucket_id",
           "value": "8766855244016195329"
