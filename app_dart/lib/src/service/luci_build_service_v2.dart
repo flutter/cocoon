@@ -384,7 +384,8 @@ class LuciBuildServiceV2 {
     final List<bbv2.StringPair> tags = build.tags;
     // need to replace the current_attempt
     bbv2.StringPair attempt;
-    final (int, bbv2.StringPair)? record = tags.indexed.firstWhereOrNull((element) => element.$2.key == 'current_attempt');
+    final (int, bbv2.StringPair)? record =
+        tags.indexed.firstWhereOrNull((element) => element.$2.key == 'current_attempt');
     if (record == null) {
       attempt = bbv2.StringPair(
         key: 'current_attempt',

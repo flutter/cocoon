@@ -59,11 +59,6 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     pubSubCallBack.mergeFromProto3Json(jsonDecode(message.data!) as Map<String, dynamic>);
     final bbv2.BuildsV2PubSub buildsV2PubSub = pubSubCallBack.buildPubsub;
 
-    // collect userData
-    if (!pubSubCallBack.hasUserData()) {
-      log.info('User data is empty');
-      return Body.empty;
-    }
     Map<String, dynamic> userDataMap = <String, dynamic>{};
     try {
       log.info('User data was not base64 encoded.');
@@ -71,6 +66,12 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     } on FormatException {
       log.info('Decoding base64 encoded user data.');
       userDataMap = UserData.decodeUserDataBytes(pubSubCallBack.userData);
+    }
+
+    // collect userData
+    if (userDataMap.isEmpty) {
+      log.info('User data is empty');
+      return Body.empty;
     }
 
     log.fine('userData=$userDataMap');
@@ -86,7 +87,6 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
 
     final String? rawTaskKey = userDataMap['task_key'] as String?;
     final String? rawCommitKey = userDataMap['commit_key'] as String?;
-
     final String? taskDocumentName = userDataMap['firestore_task_document_name'] as String?;
     if (taskDocumentName == null) {
       throw const BadRequestException('userData does not contain firestore_task_document_name');

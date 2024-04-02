@@ -1,33 +1,91 @@
 import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_service/src/model/luci/pubsub_message_v2.dart';
+import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:fixnum/fixnum.dart';
 
-bbv2.BuildsV2PubSub createBuild(Int64 id, {
-    String? project = 'flutter',
-    String? bucket = 'try',
-    String? builder = 'Windows Engine Drone',
-    int? number = 259942,
-    String? status = 'SCHEDULED',
+PushMessageV2 createPushMessageV2(
+  Int64 id, {
+  String? project = 'flutter',
+  String? bucket = 'try',
+  String? builder = 'Windows Engine Drone',
+  int? number = 259942,
+  bbv2.Status? status = bbv2.Status.SCHEDULED,
+  Map<String, dynamic>? userData = const {},
 }) {
-  final bbv2.BuildsV2PubSub build = bbv2.BuildsV2PubSub().createEmptyInstance();
-  build.mergeFromProto3Json(jsonDecode(createBuildString(
+  final bbv2.PubSubCallBack pubSubCallBack = createPubSubCallBack(
     id,
     project: project,
     bucket: bucket,
     builder: builder,
     number: number,
-    status: status,),) as Map<String, dynamic>,);
+    status: status,
+    userData: userData,
+  );
+  final Map<String, dynamic> pubSubCallBackMap = pubSubCallBack.toProto3Json() as Map<String, dynamic>;
+
+  final String pubSubCallBackString = jsonEncode(pubSubCallBackMap);
+
+  // final String pubSubCallBackString = jsonEncode(pubSubCallBackMap);
+  // final List<int> encodedMessage = utf8.encode(pubSubCallBackString);
+  // final String base64EncodedString = base64.encode(encodedMessage);
+  return PushMessageV2(data: pubSubCallBackString);
+}
+
+bbv2.PubSubCallBack createPubSubCallBack(
+  Int64 id, {
+  String? project = 'flutter',
+  String? bucket = 'try',
+  String? builder = 'Windows Engine Drone',
+  int? number = 259942,
+  bbv2.Status? status = bbv2.Status.SCHEDULED,
+  Map<String, dynamic>? userData = const {},
+}) {
+  // this contains BuildsV2PubSub and UserData (List<int>).
+  final bbv2.BuildsV2PubSub buildsV2PubSub = createBuild(
+    id,
+    project: project,
+    bucket: bucket,
+    builder: builder,
+    number: number,
+    status: status,
+  );
+  final List<int>? userDataBytes = UserData.encodeUserDataToBytes(userData!);
+  return bbv2.PubSubCallBack(buildPubsub: buildsV2PubSub, userData: userDataBytes);
+}
+
+bbv2.BuildsV2PubSub createBuild(
+  Int64 id, {
+  String? project = 'flutter',
+  String? bucket = 'try',
+  String? builder = 'Windows Engine Drone',
+  int? number = 259942,
+  bbv2.Status? status = bbv2.Status.SCHEDULED,
+}) {
+  final bbv2.BuildsV2PubSub build = bbv2.BuildsV2PubSub().createEmptyInstance();
+  build.mergeFromProto3Json(
+    jsonDecode(
+      createBuildString(
+        id,
+        project: project,
+        bucket: bucket,
+        builder: builder,
+        number: number,
+        status: status,
+      ),
+    ) as Map<String, dynamic>,
+  );
   return build;
 }
 
 String createBuildString(
-    Int64 id, {
-    String? project = 'flutter',
-    String? bucket = 'try',
-    String? builder = 'Windows Engine Drone',
-    int? number = 259942,
-    String? status = 'SCHEDULED',
+  Int64 id, {
+  String? project = 'flutter',
+  String? bucket = 'try',
+  String? builder = 'Windows Engine Drone',
+  int? number = 259942,
+  bbv2.Status? status = bbv2.Status.SCHEDULED,
 }) {
   return '''
   {
@@ -44,6 +102,7 @@ String createBuildString(
       "createTime": "2023-10-18T23:40:43.480388983Z",
       "startTime": "2023-10-18T23:40:45.692900Z",
       "updateTime": "2023-10-18T23:47:04.674226745Z",
+      "endTime": "2023-10-18T23:47:04.674226745Z",
       "status": "$status",
       "input": {
         "properties": {
@@ -1532,6 +1591,14 @@ String createBuildString(
         }
       },
       "tags": [
+        {
+          "key": "build_address",
+          "value": "luci.flutter.prod/$builder/1698"
+        },
+        {
+          "key": "builder",
+          "value": "$builder"
+        },
         {
           "key": "buildset",
           "value": "pr/git/47066"

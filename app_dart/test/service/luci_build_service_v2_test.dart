@@ -373,7 +373,7 @@ void main() {
       );
       final Iterable<String> scheduledTargetNames = scheduledTargets.map((Target target) => target.value.name);
       expect(scheduledTargetNames, <String>['Linux 1']);
-      
+
       final bbv2.BatchRequest batchRequest = bbv2.BatchRequest().createEmptyInstance();
       batchRequest.mergeFromProto3Json(pubsub.messages.single);
       expect(batchRequest.requests.single.scheduleBuild, isNotNull);
@@ -539,7 +539,7 @@ void main() {
       );
       // Only one batch request should be published
       expect(pubsub.messages.length, 1);
-      
+
       final bbv2.BatchRequest request = bbv2.BatchRequest().createEmptyInstance();
       request.mergeFromProto3Json(pubsub.messages.single);
       expect(request.requests.single.scheduleBuild, isNotNull);
@@ -655,11 +655,11 @@ void main() {
       );
       // Only one batch request should be published
       expect(pubsub.messages.length, 1);
-      
+
       final bbv2.BatchRequest request = bbv2.BatchRequest().createEmptyInstance();
       request.mergeFromProto3Json(pubsub.messages.single);
       expect(request.requests.single.scheduleBuild, isNotNull);
-      
+
       final bbv2.ScheduleBuildRequest scheduleBuild = request.requests.single.scheduleBuild;
       expect(scheduleBuild.builder.bucket, 'staging');
       expect(scheduleBuild.builder.builder, 'Linux 1');
@@ -864,8 +864,10 @@ void main() {
         capturedBatchRequests.add((cap as bbv2.BatchRequest).requests.first);
       }
 
-      final bbv2.SearchBuildsRequest searchBuildRequest = capturedBatchRequests.firstWhere((req) => req.hasSearchBuilds()).searchBuilds;
-      final bbv2.CancelBuildRequest cancelBuildRequest = capturedBatchRequests.firstWhere((req) => req.hasCancelBuild()).cancelBuild;
+      final bbv2.SearchBuildsRequest searchBuildRequest =
+          capturedBatchRequests.firstWhere((req) => req.hasSearchBuilds()).searchBuilds;
+      final bbv2.CancelBuildRequest cancelBuildRequest =
+          capturedBatchRequests.firstWhere((req) => req.hasCancelBuild()).cancelBuild;
       expect(searchBuildRequest, isNotNull);
       expect(cancelBuildRequest, isNotNull);
 
@@ -934,7 +936,7 @@ void main() {
         buildBucketV2Client: mockBuildBucketV2Client,
         pubsub: pubsub,
       );
-      rescheduleBuild = createBuild(Int64(1), status: 'FAILURE', builder: 'Linux Host Engine');
+      rescheduleBuild = createBuild(Int64(1), status: bbv2.Status.FAILURE, builder: 'Linux Host Engine');
     });
 
     test('Reschedule an existing build', () async {
