@@ -260,10 +260,10 @@ void main() {
     test('Acts on closed, cancels presubmit targets, add pr for postsubmit target create', () async {
       const int issueNumber = 123;
       final firestore_commit.Commit commitDocument = generateFirestoreCommit(
-          1,
-          sha: 'sha1',
-          branch: 'dev',
-        );
+        1,
+        sha: 'sha1',
+        branch: 'dev',
+      );
       when(
         mockFirestoreService.getDocument(
           captureAny,
@@ -2064,9 +2064,9 @@ void foo() {
         ),
       ).thenThrow(ApiRequestError('test'));
       final firestore_commit.Commit commitDocument = generateFirestoreCommit(
-          1,
-          sha: 'sha2',
-        );
+        1,
+        sha: 'sha2',
+      );
       when(
         mockFirestoreService.queryRecentCommits(
           limit: captureAnyNamed('limit'),
@@ -2092,13 +2092,13 @@ void foo() {
       expect(db.values.values.whereType<Commit>().length, 1);
 
       final List<dynamic> captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
-        expect(captured.length, 1);
-        final List<Write> commitResponse = captured[0] as List<Write>;
-        expect(commitResponse.length, 2);
-        final firestore_commit.Commit resultCommitDocument =
-            firestore_commit.Commit.fromDocument(commitDocument: commitResponse[1].update!);
-        expect(resultCommitDocument.repositoryPath, 'flutter/flutter');
-        expect(resultCommitDocument.sha, 'sha2');
+      expect(captured.length, 1);
+      final List<Write> commitResponse = captured[0] as List<Write>;
+      expect(commitResponse.length, 2);
+      final firestore_commit.Commit resultCommitDocument =
+          firestore_commit.Commit.fromDocument(commitDocument: commitResponse[1].update!);
+      expect(resultCommitDocument.repositoryPath, 'flutter/flutter');
+      expect(resultCommitDocument.sha, 'sha2');
     });
 
     test('Fail when pull request is closed and merged, but merged commit is not found on GoB', () async {
