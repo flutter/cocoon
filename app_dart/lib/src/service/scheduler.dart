@@ -855,8 +855,10 @@ class Scheduler {
     return totCommit;
   }
 
-  Future<firestore_commit.Commit> generateTotCommitFirestore(
-      {required String branch, required RepositorySlug slug}) async {
+  Future<firestore_commit.Commit> generateTotCommitFirestore({
+    required String branch,
+    required RepositorySlug slug,
+  }) async {
     datastore = datastoreProvider(config.db);
     firestoreService = await config.createFirestoreService();
     final firestore_commit.Commit totCommit = (await firestoreService.queryRecentCommits(
