@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_commit;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as pm;
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
@@ -12,6 +13,7 @@ import 'package:cocoon_service/src/service/datastore.dart';
 
 import 'package:github/github.dart' hide Branch;
 import 'package:googleapis/bigquery/v2.dart';
+import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -257,7 +259,20 @@ void main() {
 
     test('Acts on closed, cancels presubmit targets, add pr for postsubmit target create', () async {
       const int issueNumber = 123;
-
+      final firestore_commit.Commit commitDocument = generateFirestoreCommit(
+          1,
+          sha: 'sha1',
+          branch: 'dev',
+        );
+      when(
+        mockFirestoreService.getDocument(
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<firestore_commit.Commit>.value(
+          commitDocument,
+        );
+      });
       tester.message = generateGithubWebhookMessage(
         action: 'closed',
         number: issueNumber,
@@ -2043,6 +2058,26 @@ void foo() {
 
     test('Schedule tasks when pull request is closed and merged', () async {
       const int issueNumber = 123;
+      when(
+        mockFirestoreService.getDocument(
+          captureAny,
+        ),
+      ).thenThrow(ApiRequestError('test'));
+      final firestore_commit.Commit commitDocument = generateFirestoreCommit(
+          1,
+          sha: 'sha2',
+        );
+      when(
+        mockFirestoreService.queryRecentCommits(
+          limit: captureAnyNamed('limit'),
+          slug: captureAnyNamed('slug'),
+          branch: captureAnyNamed('branch'),
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<List<firestore_commit.Commit>>.value(
+          <firestore_commit.Commit>[commitDocument],
+        );
+      });
 
       tester.message = generateGithubWebhookMessage(
         action: 'closed',
@@ -2055,6 +2090,15 @@ void foo() {
       expect(db.values.values.whereType<Commit>().length, 0);
       await tester.post(webhook);
       expect(db.values.values.whereType<Commit>().length, 1);
+
+      final List<dynamic> captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
+        expect(captured.length, 1);
+        final List<Write> commitResponse = captured[0] as List<Write>;
+        expect(commitResponse.length, 2);
+        final firestore_commit.Commit resultCommitDocument =
+            firestore_commit.Commit.fromDocument(commitDocument: commitResponse[1].update!);
+        expect(resultCommitDocument.repositoryPath, 'flutter/flutter');
+        expect(resultCommitDocument.sha, 'sha2');
     });
 
     test('Fail when pull request is closed and merged, but merged commit is not found on GoB', () async {

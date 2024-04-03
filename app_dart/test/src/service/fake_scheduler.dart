@@ -4,6 +4,7 @@
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_commit;
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:cocoon_service/src/service/buildbucket.dart';
@@ -57,6 +58,23 @@ class FakeScheduler extends Scheduler {
   @override
   Future<Commit> generateTotCommit({required String branch, required RepositorySlug slug}) async {
     return generateCommit(1);
+  }
+
+  @override
+  Future<CiYaml> getCiYamlFirestore(
+    firestore_commit.Commit commit, {
+    CiYaml? totCiYaml,
+    RetryOptions? retryOptions,
+    bool validate = false,
+  }) async =>
+      ciYaml ?? _defaultConfig;
+
+  @override
+  Future<firestore_commit.Commit> generateTotCommitFirestore({
+    required String branch,
+    required RepositorySlug slug,
+  }) async {
+    return generateFirestoreCommit(1);
   }
 
   int cancelPreSubmitTargetsCallCnt = 0;
