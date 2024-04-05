@@ -71,6 +71,19 @@ class Commit extends Document {
   /// [RepositorySlug] of where this commit exists.
   RepositorySlug get slug => RepositorySlug.full(repositoryPath!);
 
+  Map<String, dynamic> get facade {
+    return <String, dynamic>{
+      'DocumentName': name,
+      'FlutterRepositoryPath': repositoryPath,
+      'CreateTimestamp': createTimestamp,
+      'Sha': sha,
+      'Message': message,
+      'Author': author,
+      'Avatar_url': avatar,
+      'Branch': branch,
+    };
+  }
+
   @override
   String toString() {
     final StringBuffer buf = StringBuffer()

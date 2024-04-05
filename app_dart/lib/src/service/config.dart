@@ -305,7 +305,7 @@ class Config {
   int get maxLuciTaskRetries => 2;
 
   /// The default number of commit shown in flutter build dashboard.
-  int get commitNumber => 30;
+  int get commitNumber => 1;
 
   KeyHelper get keyHelper => KeyHelper(applicationContext: context.applicationContext);
 

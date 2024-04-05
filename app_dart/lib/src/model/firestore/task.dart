@@ -253,6 +253,22 @@ class Task extends Document {
   }
 
   @override
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'DocumentName': name,
+      'CreateTimestamp': createTimestamp,
+      'StartTimestamp': startTimestamp,
+      'EndTimestamp': endTimestamp,
+      'TaskName': taskName,
+      'Attempts': attempts,
+      'Bringup': bringup,
+      'TestFlaky': testFlaky,
+      'BuildNumber': buildNumber,
+      'Status': status,
+    };
+  }
+
+  @override
   String toString() {
     final StringBuffer buf = StringBuffer()
       ..write('$runtimeType(')
