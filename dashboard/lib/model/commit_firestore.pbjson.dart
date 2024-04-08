@@ -29,9 +29,9 @@ const CommitDocument$json = {
 };
 
 /// Descriptor for `CommitDocument`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List commitDocumentDescriptor = $convert.base64Decode(
-    'Cg5Db21taXREb2N1bWVudBIiCgxkb2N1bWVudE5hbWUYASABKAlSDGRvY3VtZW50TmFtZRIoCg'
-    '9jcmVhdGVUaW1lc3RhbXAYAiABKANSD2NyZWF0ZVRpbWVzdGFtcBIQCgNzaGEYAyABKAlSA3No'
-    'YRIWCgZhdXRob3IYBCABKAlSBmF1dGhvchIWCgZhdmF0YXIYBSABKAlSBmF2YXRhchImCg5yZX'
-    'Bvc2l0b3J5UGF0aBgGIAEoCVIOcmVwb3NpdG9yeVBhdGgSFgoGYnJhbmNoGAcgASgJUgZicmFu'
-    'Y2gSGAoHbWVzc2FnZRgIIAEoCVIHbWVzc2FnZQ==');
+final $typed_data.Uint8List commitDocumentDescriptor =
+    $convert.base64Decode('Cg5Db21taXREb2N1bWVudBIiCgxkb2N1bWVudE5hbWUYASABKAlSDGRvY3VtZW50TmFtZRIoCg'
+        '9jcmVhdGVUaW1lc3RhbXAYAiABKANSD2NyZWF0ZVRpbWVzdGFtcBIQCgNzaGEYAyABKAlSA3No'
+        'YRIWCgZhdXRob3IYBCABKAlSBmF1dGhvchIWCgZhdmF0YXIYBSABKAlSBmF2YXRhchImCg5yZX'
+        'Bvc2l0b3J5UGF0aBgGIAEoCVIOcmVwb3NpdG9yeVBhdGgSFgoGYnJhbmNoGAcgASgJUgZicmFu'
+        'Y2gSGAoHbWVzc2FnZRgIIAEoCVIHbWVzc2FnZQ==');
