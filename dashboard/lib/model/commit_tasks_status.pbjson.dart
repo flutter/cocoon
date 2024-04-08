@@ -28,4 +28,3 @@ final $typed_data.Uint8List commitTasksStatusDescriptor = $convert.base64Decode(
     'ChFDb21taXRUYXNrc1N0YXR1cxIxCgZjb21taXQYASABKAsyGS5kYXNoYm9hcmQuQ29tbWl0RG'
     '9jdW1lbnRSBmNvbW1pdBItCgV0YXNrcxgCIAMoCzIXLmRhc2hib2FyZC5UYXNrRG9jdW1lbnRS'
     'BXRhc2tzEhYKBmJyYW5jaBgDIAEoCVIGYnJhbmNo');
-

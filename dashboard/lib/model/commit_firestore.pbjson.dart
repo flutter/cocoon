@@ -35,4 +35,3 @@ final $typed_data.Uint8List commitDocumentDescriptor = $convert.base64Decode(
     'YRIWCgZhdXRob3IYBCABKAlSBmF1dGhvchIWCgZhdmF0YXIYBSABKAlSBmF2YXRhchImCg5yZX'
     'Bvc2l0b3J5UGF0aBgGIAEoCVIOcmVwb3NpdG9yeVBhdGgSFgoGYnJhbmNoGAcgASgJUgZicmFu'
     'Y2gSGAoHbWVzc2FnZRgIIAEoCVIHbWVzc2FnZQ==');
-

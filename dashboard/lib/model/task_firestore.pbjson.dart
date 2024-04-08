@@ -39,4 +39,3 @@ final $typed_data.Uint8List taskDocumentDescriptor = $convert.base64Decode(
     'dHRlbXB0cxIYCgdicmluZ3VwGAcgASgIUgdicmluZ3VwEh0KCnRlc3RfZmxha3kYCCABKAhSCX'
     'Rlc3RGbGFreRIhCgxidWlsZF9udW1iZXIYCSABKAVSC2J1aWxkTnVtYmVyEhYKBnN0YXR1cxgK'
     'IAEoCVIGc3RhdHVz');
-
