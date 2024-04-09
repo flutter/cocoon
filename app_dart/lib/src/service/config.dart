@@ -50,6 +50,7 @@ class Config {
 
   /// List of guaranteed scheduling Github repos.
   static Set<gh.RepositorySlug> get guaranteedSchedulingRepos => <gh.RepositorySlug>{
+        cocoonSlug,
         engineSlug,
         packagesSlug,
       };
