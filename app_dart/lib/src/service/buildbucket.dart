@@ -75,7 +75,7 @@ class BuildBucketClient {
       url,
       body: json.encode(request),
       headers: <String, String>{
-        HttpHeaders.contentTypeHeader: 'application/json',
+        HttpHeaders.contentTypeHeader: 'application/json; charset=utf-8',
         HttpHeaders.acceptHeader: 'application/json',
         if (token != null) HttpHeaders.authorizationHeader: '${token.type} ${token.data}',
       },
@@ -83,7 +83,7 @@ class BuildBucketClient {
 
     if (response.statusCode < 300) {
       return responseFromJson(
-        json.decode(response.body.substring(kRpcResponseGarbage.length)) as Map<String, dynamic>?,
+        json.decode(utf8.decode(response.bodyBytes).substring(kRpcResponseGarbage.length)) as Map<String, dynamic>?,
       );
     }
     throw BuildBucketException(response.statusCode, response.body);

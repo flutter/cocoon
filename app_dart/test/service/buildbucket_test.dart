@@ -58,7 +58,13 @@ void main() {
         expect(request.headers['accept'], 'application/json');
         expect(request.headers['authorization'], 'Bearer data');
         if (request.method == 'POST' && request.url.toString() == 'https://localhost/$urlPrefix/$expectedPath') {
-          return http.Response(response, HttpStatus.accepted);
+          return http.Response(
+            response,
+            HttpStatus.accepted,
+            headers: {
+              HttpHeaders.contentTypeHeader: 'application/json; charset=utf-8',
+            },
+          );
         }
         return http.Response('Test exception: A mock response was not returned', HttpStatus.internalServerError);
       });
@@ -216,6 +222,7 @@ void main() {
 
       expect(build.id, '123');
       expect(build.tags!.length, 3);
+      expect(build.summaryMarkdown, '```╔═╡ERROR #1╞```');
     });
 
     test('SearchBuilds', () async {
@@ -359,7 +366,9 @@ const String buildJson = '''${BuildBucketClient.kRpcResponseGarbage}
   "canceledBy": null,
   "startTime": "2019-08-01T11:00:00",
   "endTime": null,
-  "status": "SCHEDULED",
+  "status": "SUCCESS",
+  "status": "FAILURE",
+  "summaryMarkdown": "```╔═╡ERROR #1╞```",
   "input": {
     "experimental": true
   },

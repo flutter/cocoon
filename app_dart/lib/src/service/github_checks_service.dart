@@ -113,11 +113,13 @@ class GithubChecksService {
       } else {
         final Build buildbucketBuild =
             await luciBuildService.getBuildById(buildPushMessage.build!.id, fields: 'id,builder,summaryMarkdown');
+        final String summary = getGithubSummary(buildbucketBuild.summaryMarkdown);
+        log.fine('From LUCI: ${buildbucketBuild.summaryMarkdown} after summary: $summary');
         output = github.CheckRunOutput(
           title: checkRun.name!,
           summary: getGithubSummary(buildbucketBuild.summaryMarkdown),
         );
-        log.fine('Updating check run with output: [$output]');
+        log.fine('Updating check run with output: [${output.toJson()}]');
       }
     }
     await githubChecksUtil.updateCheckRun(
