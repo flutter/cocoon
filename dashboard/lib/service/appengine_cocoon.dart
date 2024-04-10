@@ -87,7 +87,7 @@ class AppEngineCocoonService implements CocoonService {
     final http.Response response = await _client.get(getStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<List<CommitTasksStatus>>.error('/api/public/get-status returned ${response.statusCode}');
+      return CocoonResponse<List<CommitTasksStatus>>.error('/api/public/get-status-firestore returned ${response.statusCode}');
     }
 
     try {
@@ -262,7 +262,6 @@ class AppEngineCocoonService implements CocoonService {
     // TODO(chillers): Remove adapter code to just use proto fromJson method. https://github.com/flutter/cocoon/issues/441
 
     final List<CommitTasksStatus> statuses = <CommitTasksStatus>[];
-
     for (final Map<String, dynamic> jsonCommitStatus in jsonCommitStatuses!) {
       final Map<String, dynamic> jsonCommit = jsonCommitStatus['Commit'];
 
@@ -391,8 +390,8 @@ class AppEngineCocoonService implements CocoonService {
       ..bringup = taskData['Bringup'] as bool
       ..status = taskData['Status'] as String
       ..testFlaky = taskData['TestFlaky'] as bool? ?? false;
-    if (taskData['buildNumber'] != null) {
-      task.buildNumber = taskData['buildNumber'] as int;
+    if (taskData['BuildNumber'] != null) {
+      task.buildNumber = taskData['BuildNumber'] as int;
     }
     return task;
   }

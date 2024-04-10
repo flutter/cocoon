@@ -79,7 +79,7 @@ class Commit extends Document {
       'Sha': sha,
       'Message': message,
       'Author': author,
-      'Avatar_url': avatar,
+      'Avatar': avatar,
       'Branch': branch,
     };
   }
