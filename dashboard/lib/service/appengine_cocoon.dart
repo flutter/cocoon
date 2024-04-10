@@ -83,11 +83,13 @@ class AppEngineCocoonService implements CocoonService {
     };
     final Uri getStatusUrl = apiEndpoint('/api/public/get-status-firestore', queryParameters: queryParameters);
 
-    /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
+    /// This endpoint returns JSON [List<CommitTasksStatus>]
     final http.Response response = await _client.get(getStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<List<CommitTasksStatus>>.error('/api/public/get-status-firestore returned ${response.statusCode}');
+      return CocoonResponse<List<CommitTasksStatus>>.error(
+        '/api/public/get-status-firestore returned ${response.statusCode}',
+      );
     }
 
     try {
