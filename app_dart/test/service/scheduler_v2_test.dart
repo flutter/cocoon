@@ -17,7 +17,6 @@ import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:cocoon_service/src/service/scheduler_v2.dart';
@@ -25,7 +24,6 @@ import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
-import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:http/http.dart' as http;
@@ -39,10 +37,8 @@ import '../src/datastore/fake_datastore.dart';
 import '../src/service/fake_build_bucket_v2_client.dart';
 import '../src/service/fake_build_status_provider.dart';
 import '../src/request_handling/fake_pubsub.dart';
-import '../src/service/fake_buildbucket.dart';
 import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_github_service.dart';
-import '../src/service/fake_luci_build_service.dart';
 import '../src/service/fake_luci_build_service_v2.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
@@ -546,108 +542,113 @@ targets:
       });
     });
 
-//     group('process check run', () {
-//       test('rerequested ci.yaml check retriggers presubmit', () async {
-//         final MockGithubService mockGithubService = MockGithubService();
-//         final MockGitHub mockGithubClient = MockGitHub();
-//         buildStatusService =
-//             FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
-//         config = FakeConfig(
-//           githubService: mockGithubService,
-//           firestoreService: mockFirestoreService,
-//         );
-//         scheduler = SchedulerV2(
-//           cache: cache,
-//           config: config,
-//           buildStatusProvider: (_, __) => buildStatusService,
-//           githubChecksService: GithubChecksServiceV2(config, githubChecksUtil: mockGithubChecksUtil),
-//           httpClientProvider: () => httpClient,
-//           luciBuildService: FakeLuciBuildServiceV2(
-//             config: config,
-//             githubChecksUtil: mockGithubChecksUtil,
-//           ),
-//         );
-//         when(mockGithubService.github).thenReturn(mockGithubClient);
-//         when(mockGithubService.searchIssuesAndPRs(any, any, sort: anyNamed('sort'), pages: anyNamed('pages')))
-//             .thenAnswer((_) async => [generateIssue(3)]);
-//         when(mockGithubChecksUtil.listCheckSuitesForRef(any, any, ref: anyNamed('ref'))).thenAnswer(
-//           (_) async => [
-//             // From check_run.check_suite.id in [checkRunString].
-//             generateCheckSuite(668083231),
-//           ],
-//         );
-//         when(mockGithubService.getPullRequest(any, any)).thenAnswer((_) async => generatePullRequest());
-//         when(mockGithubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
-//         when(
-//           mockGithubChecksUtil.createCheckRun(
-//             any,
-//             any,
-//             any,
-//             any,
-//             output: anyNamed('output'),
-//           ),
-//         ).thenAnswer((_) async {
-//           return CheckRun.fromJson(const <String, dynamic>{
-//             'id': 1,
-//             'started_at': '2020-05-10T02:49:31Z',
-//             'name': Scheduler.kCiYamlCheckName,
-//             'check_suite': <String, dynamic>{'id': 2},
-//           });
-//         });
-//         final Map<String, dynamic> checkRunEventJson = jsonDecode(checkRunString) as Map<String, dynamic>;
-//         checkRunEventJson['check_run']['name'] = Scheduler.kCiYamlCheckName;
-//         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(checkRunEventJson);
-//         expect(await scheduler.processCheckRun(checkRunEvent), true);
-//         verify(
-//           mockGithubChecksUtil.createCheckRun(
-//             any,
-//             any,
-//             any,
-//             Scheduler.kCiYamlCheckName,
-//             output: anyNamed('output'),
-//           ),
-//         );
-//         // Verfies Linux A was created
-//         verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
-//       });
+    group('process check run', () {
+      test('rerequested ci.yaml check retriggers presubmit', () async {
+        final MockGithubService mockGithubService = MockGithubService();
+        final MockGitHub mockGithubClient = MockGitHub();
+        buildStatusService =
+            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
+        config = FakeConfig(
+          githubService: mockGithubService,
+          firestoreService: mockFirestoreService,
+        );
+        scheduler = SchedulerV2(
+          cache: cache,
+          config: config,
+          buildStatusProvider: (_, __) => buildStatusService,
+          githubChecksService: GithubChecksServiceV2(config, githubChecksUtil: mockGithubChecksUtil),
+          httpClientProvider: () => httpClient,
+          luciBuildService: FakeLuciBuildServiceV2(
+            config: config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+        );
+        when(mockGithubService.github).thenReturn(mockGithubClient);
+        when(mockGithubService.searchIssuesAndPRs(any, any, sort: anyNamed('sort'), pages: anyNamed('pages')))
+            .thenAnswer((_) async => [generateIssue(3)]);
+        when(mockGithubChecksUtil.listCheckSuitesForRef(any, any, ref: anyNamed('ref'))).thenAnswer(
+          (_) async => [
+            // From check_run.check_suite.id in [checkRunString].
+            generateCheckSuite(668083231),
+          ],
+        );
+        when(mockGithubService.getPullRequest(any, any)).thenAnswer((_) async => generatePullRequest());
+        when(mockGithubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+        when(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            any,
+            output: anyNamed('output'),
+          ),
+        ).thenAnswer((_) async {
+          return CheckRun.fromJson(const <String, dynamic>{
+            'id': 1,
+            'started_at': '2020-05-10T02:49:31Z',
+            'name': Scheduler.kCiYamlCheckName,
+            'check_suite': <String, dynamic>{'id': 2},
+          });
+        });
+        final Map<String, dynamic> checkRunEventJson = jsonDecode(checkRunString) as Map<String, dynamic>;
+        checkRunEventJson['check_run']['name'] = Scheduler.kCiYamlCheckName;
+        final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(checkRunEventJson);
+        expect(await scheduler.processCheckRun(checkRunEvent), true);
+        verify(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            Scheduler.kCiYamlCheckName,
+            output: anyNamed('output'),
+          ),
+        );
+        // Verfies Linux A was created
+        verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
+      });
 
-//       test('rerequested presubmit check triggers presubmit build', () async {
-//         // Note that we're not inserting any commits into the db, because
-//         // only postsubmit commits are stored in the datastore.
-//         config = FakeConfig(dbValue: db);
-//         db = FakeDatastoreDB();
+      test('rerequested presubmit check triggers presubmit build', () async {
+        // Note that we're not inserting any commits into the db, because
+        // only postsubmit commits are stored in the datastore.
+        config = FakeConfig(dbValue: db);
+        db = FakeDatastoreDB();
 
-//         // Set up mock buildbucket to validate which bucket is requested.
-//         final MockBuildBucketV2Client mockBuildbucket = MockBuildBucketV2Client();
-//         when(mockBuildbucket.batch(any)).thenAnswer((i) async {
-//           return FakeBuildBucketV2Client().batch(i.positionalArguments[0]);
-//         });
-//         when(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri')))
-//             .thenAnswer((realInvocation) async {
-//           final ScheduleBuildRequest scheduleBuildRequest = realInvocation.positionalArguments[0];
-//           // Ensure this is an attempt to schedule a presubmit build by
-//           // verifying that bucket == 'try'.
-//           expect(scheduleBuildRequest.builderId.bucket, equals('try'));
-//           return bbv2.Build(builder: bbv2.BuilderID(), id: Int64());
-//         });
+        // Set up mock buildbucket to validate which bucket is requested.
+        final MockBuildBucketV2Client mockBuildbucket = MockBuildBucketV2Client();
 
-//         scheduler = SchedulerV2(
-//           cache: cache,
-//           config: config,
-//           githubChecksService: GithubChecksServiceV2(config, githubChecksUtil: mockGithubChecksUtil),
-//           luciBuildService: FakeLuciBuildServiceV2(
-//             config: config,
-//             githubChecksUtil: mockGithubChecksUtil,
-//             buildBucketV2Client: mockBuildbucket,
-//           ),
-//         );
-//         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
-//           jsonDecode(checkRunString) as Map<String, dynamic>,
-//         );
-//         expect(await scheduler.processCheckRun(checkRunEvent), true);
-//         verify(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri'))).called(1);
-//         verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
-//       });
+        when(mockBuildbucket.batch(any)).thenAnswer((i) async {
+          return FakeBuildBucketV2Client().batch(i.positionalArguments[0]);
+        });
+
+        when(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri')))
+            .thenAnswer((realInvocation) async {
+          final ScheduleBuildRequest scheduleBuildRequest = realInvocation.positionalArguments[0];
+          // Ensure this is an attempt to schedule a presubmit build by
+          // verifying that bucket == 'try'.
+          expect(scheduleBuildRequest.builderId.bucket, equals('try'));
+          return bbv2.Build(builder: bbv2.BuilderID(), id: Int64());
+        });
+
+        scheduler = SchedulerV2(
+          cache: cache,
+          config: config,
+          githubChecksService: GithubChecksServiceV2(config, githubChecksUtil: mockGithubChecksUtil),
+          luciBuildService: FakeLuciBuildServiceV2(
+            config: config,
+            githubChecksUtil: mockGithubChecksUtil,
+            buildBucketV2Client: mockBuildbucket,
+          ),
+        );
+
+        final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
+          jsonDecode(checkRunString) as Map<String, dynamic>,
+        );
+
+        expect(await scheduler.processCheckRun(checkRunEvent), true);
+
+        verify(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri'))).called(1);
+        verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
+      });
 
 //       test('rerequested postsubmit check triggers postsubmit build', () async {
 //         // Set up datastore with postsubmit entities matching [checkRunString].
@@ -729,21 +730,21 @@ targets:
 //         verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
 //       });
 
-//       test('rerequested does not fail on empty pull request list', () async {
-//         when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
-//           return CheckRun.fromJson(const <String, dynamic>{
-//             'id': 1,
-//             'started_at': '2020-05-10T02:49:31Z',
-//             'check_suite': <String, dynamic>{'id': 2},
-//           });
-//         });
-//         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
-//           jsonDecode(checkRunWithEmptyPullRequests) as Map<String, dynamic>,
-//         );
-//         expect(await scheduler.processCheckRun(checkRunEvent), true);
-//         verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
-//       });
-//     });
+      // test('rerequested does not fail on empty pull request list', () async {
+      //   when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
+      //     return CheckRun.fromJson(const <String, dynamic>{
+      //       'id': 1,
+      //       'started_at': '2020-05-10T02:49:31Z',
+      //       'check_suite': <String, dynamic>{'id': 2},
+      //     });
+      //   });
+      //   final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
+      //     jsonDecode(checkRunWithEmptyPullRequests) as Map<String, dynamic>,
+      //   );
+      //   expect(await scheduler.processCheckRun(checkRunEvent), true);
+      //   verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
+      // });
+    });
 
     group('presubmit', () {
       test('gets only enabled .ci.yaml builds', () async {

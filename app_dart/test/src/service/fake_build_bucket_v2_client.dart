@@ -137,14 +137,16 @@ class FakeBuildBucketV2Client extends BuildBucketV2Client {
         );
       } else if (request.hasSearchBuilds()) {
         // final bbv2.SearchBuildsRequest searchBuildsRequest = request.searchBuilds;
-        // for (searchBuildsRequest.) {
+        
+        // searchBuildsRequest.
 
-        // }
+
         // final bbv2.SearchBuildsResponse searchBuildsResponse = bbv2.SearchBuildsResponse();
+        
 
         // batchResponseResponses.add(
         //   bbv2.BatchResponse_Response(
-        //     searchBuilds: SearchBuildsResponse(nextPageToken: searchBuildsRequest.pageToken),
+        //     searchBuilds: bbv2.SearchBuildsResponse(nextPageToken: searchBuildsRequest.pageToken),
         //   ),
         // );
       }
