@@ -85,6 +85,8 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     // Note that result is no longer present in the output.
     log.fine('Updating buildId=${build.id} for result=${build.status}');
 
+    log.info('build ${build.toProto3Json()}');
+
     final String? rawTaskKey = userDataMap['task_key'] as String?;
     final String? rawCommitKey = userDataMap['commit_key'] as String?;
     final String? taskDocumentName = userDataMap['firestore_task_document_name'] as String?;
@@ -108,6 +110,9 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     if (_shouldUpdateTask(build, firestoreTask)) {
       final String oldTaskStatus = firestoreTask.status;
       firestoreTask.updateFromBuildV2(build);
+
+      log.info('Updated firestore task $firestoreTask');
+
       task.updateFromBuildbucketV2Build(build);
       await datastore.insert(<Task>[task]);
       final List<Write> writes = documentsToWrites([firestoreTask], exists: true);
@@ -165,27 +170,5 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
   //    The task may have been marked as completed from test framework via update-task-status API.
   bool _shouldUpdateTask(bbv2.Build build, firestore.Task task) {
     return build.status != bbv2.Status.SCHEDULED && !Task.finishedStatusValues.contains(task.status);
-  }
-
-  /// Queries the task document and updates based on the latest build data.
-  Future<firestore.Task> updateFirestore(
-    bbv2.Build build,
-    String commitKeyId,
-    String taskName,
-    FirestoreService firestoreService,
-  ) async {
-    final List<bbv2.StringPair> buildTags = build.tags;
-    final int currentAttempt = githubChecksService.currentAttempt(buildTags);
-    final String sha = commitKeyId.split('/').last;
-    final String documentName = '$kDatabase/documents/tasks/${sha}_${taskName}_$currentAttempt';
-    log.info('getting firestore document: $documentName');
-    final firestore.Task firestoreTask =
-        await firestore.Task.fromFirestore(firestoreService: firestoreService, documentName: documentName);
-    log.info('updating firestoreTask based on build');
-    firestoreTask.updateFromBuildV2(build);
-    log.info('finished updating firestoreTask based on builds');
-    final List<Write> writes = documentsToWrites([firestoreTask], exists: true);
-    await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
-    return firestoreTask;
   }
 }

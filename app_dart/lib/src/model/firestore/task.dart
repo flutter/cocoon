@@ -201,18 +201,8 @@ class Task extends Document {
   }
 
   void updateFromBuildV2(bbv2.Build build) {
-    final List<bbv2.StringPair> tags = build.tags;
+    fields![kTaskBuildNumberField] = Value(integerValue: build.number.toString());
 
-    // ignore: unnecessary_nullable_for_final_variable_declarations
-    final String? buildAddress =
-        tags.firstWhere((tag) => tag.key.contains('build_address'), orElse: () => bbv2.StringPair()).value;
-
-    if (buildAddress == null) {
-      log.warning('Tags: $tags');
-      throw const BadRequestException('build_address does not contain build number');
-    }
-
-    fields![kTaskBuildNumberField] = Value(integerValue: buildAddress.split('/').last);
     fields![kTaskCreateTimestampField] = Value(
       integerValue: (build.createTime.toDateTime().millisecondsSinceEpoch).toString(),
     );
@@ -304,6 +294,7 @@ class Task extends Document {
   String toString() {
     final StringBuffer buf = StringBuffer()
       ..write('$runtimeType(')
+      ..write('$kTaskBuildNumberField: $buildNumber')
       ..write(', $kTaskCreateTimestampField: $createTimestamp')
       ..write(', $kTaskStartTimestampField: $startTimestamp')
       ..write(', $kTaskEndTimestampField: $endTimestamp')
