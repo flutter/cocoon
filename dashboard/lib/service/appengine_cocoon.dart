@@ -38,6 +38,27 @@ class AppEngineCocoonService implements CocoonService {
   /// This is the base for all API requests to cocoon
   static const String _baseApiUrl = 'flutter-dashboard.appspot.com';
 
+  /// Json keys from response data.
+  static const String kCommitAvatar = 'Avatar';
+  static const String kCommitAuthor = 'Author';
+  static const String kCommitBranch = 'Branch';
+  static const String kCommitCreateTimestamp = 'CreateTimestamp';
+  static const String kCommitDocumentName = 'DocumentName';
+  static const String kCommitMessage = 'Message';
+  static const String kCommitRepositoryPath = 'RepositoryPath';
+  static const String kCommitSha = 'Sha';
+
+  static const String kTaskAttempts = 'Attempts';
+  static const String kTaskBringup = 'Bringup';
+  static const String kTaskBuildNumber = 'BuildNumber';
+  static const String kTaskCreateTimestamp = 'CreateTimestamp';
+  static const String kTaskDocumentName = 'DocumentName';
+  static const String kTaskEndTimestamp = 'EndTimestamp';
+  static const String kTaskStartTimestamp = 'StartTimestamp';
+  static const String kTaskStatus = 'Status';
+  static const String kTaskTaskNmae = 'TaskName';
+  static const String kTaskTestFlaky = 'TestFlaky';
+
   final http.Client _client;
 
   @override
@@ -242,7 +263,6 @@ class AppEngineCocoonService implements CocoonService {
 
   List<CommitStatus> _commitStatusesFromJson(List<dynamic>? jsonCommitStatuses) {
     assert(jsonCommitStatuses != null);
-    // TODO(chillers): Remove adapter code to just use proto fromJson method. https://github.com/flutter/cocoon/issues/441
 
     final List<CommitStatus> statuses = <CommitStatus>[];
 
@@ -309,15 +329,15 @@ class AppEngineCocoonService implements CocoonService {
 
   CommitDocument _commitFromJsonFirestore(Map<String, dynamic> jsonCommit) {
     final CommitDocument result = CommitDocument()
-      ..documentName = jsonCommit['DocumentName']
-      ..createTimestamp = Int64() + jsonCommit['CreateTimestamp']!
-      ..sha = jsonCommit['Sha'] as String
-      ..author = jsonCommit['Author'] as String
-      ..avatar = jsonCommit['Avatar'] as String
-      ..repositoryPath = jsonCommit['RepositoryPath'] as String
-      ..branch = jsonCommit['Branch'] as String;
-    if (jsonCommit['Message'] != null) {
-      result.message = jsonCommit['Message'] as String;
+      ..documentName = jsonCommit[kCommitDocumentName]
+      ..createTimestamp = Int64(jsonCommit[kCommitCreateTimestamp] as int)
+      ..sha = jsonCommit[kCommitSha] as String
+      ..author = jsonCommit[kCommitAuthor] as String
+      ..avatar = jsonCommit[kCommitAvatar] as String
+      ..repositoryPath = jsonCommit[kCommitRepositoryPath] as String
+      ..branch = jsonCommit[kCommitBranch] as String;
+    if (jsonCommit[kCommitMessage] != null) {
+      result.message = jsonCommit[kCommitMessage] as String;
     }
     return result;
   }
@@ -383,17 +403,17 @@ class AppEngineCocoonService implements CocoonService {
 
   TaskDocument _taskFromJsonFirestore(Map<String, dynamic> taskData) {
     final TaskDocument task = TaskDocument()
-      ..createTimestamp = Int64(taskData['CreateTimestamp'] as int)
-      ..startTimestamp = Int64(taskData['StartTimestamp'] as int)
-      ..endTimestamp = Int64(taskData['EndTimestamp'] as int)
-      ..documentName = taskData['DocumentName'] as String
-      ..taskName = taskData['TaskName'] as String
-      ..attempts = taskData['Attempts'] as int
-      ..bringup = taskData['Bringup'] as bool
-      ..status = taskData['Status'] as String
-      ..testFlaky = taskData['TestFlaky'] as bool? ?? false;
-    if (taskData['BuildNumber'] != null) {
-      task.buildNumber = taskData['BuildNumber'] as int;
+      ..createTimestamp = Int64(taskData[kTaskCreateTimestamp] as int)
+      ..startTimestamp = Int64(taskData[kTaskStartTimestamp] as int)
+      ..endTimestamp = Int64(taskData[kTaskEndTimestamp] as int)
+      ..documentName = taskData[kTaskDocumentName] as String
+      ..taskName = taskData[kTaskTaskNmae] as String
+      ..attempts = taskData[kTaskAttempts] as int
+      ..bringup = taskData[kTaskBringup] as bool
+      ..status = taskData[kTaskStatus] as String
+      ..testFlaky = taskData[kTaskTestFlaky] as bool? ?? false;
+    if (taskData[kTaskBuildNumber] != null) {
+      task.buildNumber = taskData[kTaskBuildNumber] as int;
     }
     return task;
   }
