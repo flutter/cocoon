@@ -83,8 +83,6 @@ class GetStatusFirestore extends RequestHandler<Body> {
   }
 }
 
-/// The serialized representation of a [CommitStatus].
-// TODO(tvolkert): Directly serialize [CommitStatus] once frontends migrate to new format.
 class SerializableCommitTasksStatus {
   const SerializableCommitTasksStatus(this.status);
 
