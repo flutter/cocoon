@@ -7,6 +7,7 @@ import 'package:flutter_dashboard/model/branch.pb.dart';
 
 import '../model/build_status_response.pb.dart';
 import '../model/commit_status.pb.dart';
+import '../model/commit_tasks_status.pb.dart';
 import '../model/task.pb.dart';
 import 'appengine_cocoon.dart';
 import 'dev_cocoon.dart';
@@ -33,6 +34,16 @@ abstract class CocoonService {
   /// If [lastCommitStatus] is given, it will return the next page of
   /// [List<CommitStatus>] after [lastCommitStatus], not including it.
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
+    CommitStatus? lastCommitStatus,
+    String? branch,
+    required String repo,
+  });
+
+  /// Gets build information on the most recent commits.
+  ///
+  /// If [lastCommitStatus] is given, it will return the next page of
+  /// [List<CommitTasksStatus>] after [lastCommitStatus], not including it.
+  Future<CocoonResponse<List<CommitTasksStatus>>> fetchCommitStatusesFirestore({
     CommitStatus? lastCommitStatus,
     String? branch,
     required String repo,
