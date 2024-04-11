@@ -7,11 +7,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-// import 'package:cocoon_service/src/model/luci/buildbucket.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:fixnum/fixnum.dart';
-// import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -27,8 +24,6 @@ void main() {
       final Map<String, dynamic> map = json.decode(jsonString) as Map<String, dynamic>;
       final bbv2.BatchResponse batchResponse = bbv2.BatchResponse().createEmptyInstance();
       batchResponse.mergeFromProto3Json(map);
-
-      // final bbv2.BatchResponse response = bbv2.BatchResponse;
       expect(batchResponse, isNotNull);
       expect(batchResponse.responses, isNotNull);
     });
