@@ -136,7 +136,8 @@ class FakeBuildBucketV2Client extends BuildBucketV2Client {
           ),
         );
       } else if (request.hasSearchBuilds()) {
-        // final bbv2.SearchBuildsRequest searchBuildsRequest = request.searchBuilds;
+        final bbv2.SearchBuildsRequest searchBuildsRequest = request.searchBuilds;
+        
         
         // searchBuildsRequest.
 
