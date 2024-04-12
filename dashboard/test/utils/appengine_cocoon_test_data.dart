@@ -57,6 +57,39 @@ const String luciJsonGetStatsResponse = '''
   }
 ''';
 
+const String luciJsonGetStatsResponseFirestore = '''
+      {
+        "Statuses": [
+          {
+          "Commit": {
+            "DocumentName": "commit/document/name",
+            "Branch": "master",
+            "RepositoryPath": "flutter/cocoon",
+            "CreateTimestamp": 123456789,
+            "Sha": "ShaShankHash",
+            "Author": "ShaSha",
+            "Avatar": "https://flutter.dev",
+            "Message": "message"
+            },
+          "Tasks": [
+            {
+              "DocumentName": "task/document/name",
+              "Status": "Succeeded",
+              "Attempts": 1,
+              "CreateTimestamp": 1569353940885,
+              "EndTimestamp": 1569354700642,
+              "Bringup": false,
+              "TaskName": "linux",
+              "StartTimestamp": 1569354594672,
+              "BuildNumber": 123,
+              "TestFlaky": false
+            }
+          ]
+        }
+      ]
+  }
+''';
+
 const String jsonGetBranchesResponse = '''[
   {
     "branch":"flutter-3.13-candidate.0",
