@@ -273,13 +273,14 @@ Future<int> full(final Directory cache, final GitHub github) async {
       } else {
         priorityResults.openedByNonTeam += 1;
       }
-      if (issue.metadata.isOpen) {
+      // Temporary workaround for https://github.com/SpinlockLabs/github.dart/issues/401
+      if (issue.metadata.isOpen || issue.metadata.state.toUpperCase() == 'OPEN') {
         priorityResults.open += 1;
       } else {
         priorityResults.closed += 1;
         if (issue.metadata.closedAt == null || issue.metadata.createdAt == null) {
           print(
-            'WARNING: bogus open/close timeline data in ${issue.issueNumber}: opened at ${issue.metadata.createdAt}, closed at ${issue.metadata.closedAt}',
+            'WARNING: bogus open/close timeline data in ${issue.issueNumber}: opened at ${issue.metadata.createdAt}, closed at ${issue.metadata.closedAt}, state: ${issue.metadata.state}',
           );
         } else {
           final Duration timeOpen = issue.metadata.closedAt!.difference(issue.metadata.createdAt!);
