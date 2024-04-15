@@ -21,7 +21,7 @@ dependencies:
   http: 1.2.1
   json_annotation: 4.8.1
   meta: 1.14.0
-  neat_cache: 2.0.3
+  neat_cache: 2.0.4
   shelf: 1.4.1
   shelf_router: 1.1.4
   crypto: 3.0.3
