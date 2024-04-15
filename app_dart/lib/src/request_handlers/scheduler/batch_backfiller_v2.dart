@@ -24,7 +24,6 @@ import '../../service/logging.dart';
 /// Targets that have a [BatchPolicy] need to have backfilling enabled to ensure that ToT is always being tested.
 @immutable
 class BatchBackfillerV2 extends RequestHandler {
-
   /// Creates a subscription for sending BuildBucket requests.
   const BatchBackfillerV2({
     required super.config,

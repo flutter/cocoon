@@ -93,7 +93,7 @@ void main() {
 
     test('ScheduleBuild', () async {
       final Map<String, bbv2.Value> propertiesMap = {
-        'git_url': bbv2.Value(stringValue:  'https://github.com/flutter/flutter'),
+        'git_url': bbv2.Value(stringValue: 'https://github.com/flutter/flutter'),
         'git_ref': bbv2.Value(stringValue: 'refs/pull/1/head'),
       };
 
@@ -146,7 +146,7 @@ void main() {
 
     test('BatchBuildRequest', () async {
       final Map<String, bbv2.Value> propertiesMap = {
-        'git_url': bbv2.Value(stringValue:  'https://github.com/flutter/flutter'),
+        'git_url': bbv2.Value(stringValue: 'https://github.com/flutter/flutter'),
         'git_ref': bbv2.Value(stringValue: 'refs/pull/1/head'),
       };
 
@@ -249,7 +249,8 @@ void main() {
     test('ListBuilders', () async {
       final bbv2.ListBuildersRequest request = bbv2.ListBuildersRequest(project: 'test');
 
-      final bbv2.ListBuildersResponse listBuildersResponse = await httpTest<bbv2.ListBuildersRequest, bbv2.ListBuildersResponse>(
+      final bbv2.ListBuildersResponse listBuildersResponse =
+          await httpTest<bbv2.ListBuildersRequest, bbv2.ListBuildersResponse>(
         request,
         builderJson,
         'builders',

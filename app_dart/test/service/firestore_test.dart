@@ -128,16 +128,19 @@ void main() {
       final bbv2.BuildsV2PubSub pubSubCallBack = bbv2.BuildsV2PubSub().createEmptyInstance();
       pubSubCallBack.mergeFromProto3Json(jsonDecode(buildMessage) as Map<String, dynamic>);
       final bbv2.Build build = pubSubCallBack.build;
-      
+
       final Task task = generateFirestoreTask(
         1,
         name: build.builder.builder,
         commitSha: 'asldjflaksdjflkasjdflkasjf',
       );
-      
+
       task.updateFromBuildV2(build);
-      
-      final Write w = Write(update: task, currentDocument: Precondition(exists: true),);
+
+      final Write w = Write(
+        update: task,
+        currentDocument: Precondition(exists: true),
+      );
 
       final BatchWriteRequest batchWriteRequest = BatchWriteRequest(writes: [w]);
       print(json.encode(batchWriteRequest));
@@ -212,7 +215,6 @@ void main() {
   });
 }
 
-
 String buildMessage = '''
 {
 	"build":  {
@@ -268,7 +270,6 @@ String buildMessage = '''
 	"buildLargeFields":  "eJycVE+LI8UbTvdMksmbX+aXVBh2tmYXg66CwdqazcyusjCoC+LJk6jHslL1JqlNd1VbVZ2ZnZsieBE8eBSEBb+AB8GzX0PRs99CunsyCC7+2T4V1PO8/dbzPs97+SvAzwC3oeNRmQLJmI7QLo1FsZnxeWkyjR4m0FfOLsxSWJkjGdH/51KJlQtRNGA4hdFSZQZtFBvpjZxnGMgL09twBAfandvMSS2k1d4ZLTQWgaSTFhxAX+PGKBTxSYGkQ3etswg3Yewx+ifCbdB7o1FkJkSS0hbcgIHHDGVAUTdXcaIvEQbQtU4sXS5JOklgH3ZUUZIubUufPziF3zvQbgi/daa/dGAJ6dISORPQpW3GcqmgT3v1gamihGvikO4z5ksbTY4sdxqhR7tXLQDQPcasY1l0cEDHjBUeq79EpqWPLOg1HMFurdmYjirNts03xX9KoG2NfSzJj8n0h6QaQ6Pzs+FfJ9CN0i8xBvJFMvs8gSN6c5GVMaLn0bks8IWzUYRyHjDCi3SyvayfzqVXK7PB8FD6aBZSxQBv0ze3mLDCLONFJuPC+Zxr6c+N5blULjy8NIWoT+IKLRZe5nju/BoeARTeFeijwUBOpzM4huGdbVUXLkTQa3JrSuEQ+kGvxQZ9MM6SHu3eO8WT42P1T/77PoW9bfPku3T2NIVv0+k3KQxgt3ZOm+4sVYAZ9OaVXIWMK/IyfcmVkf9FRl49ZluNw9MEBsaqrNQNL5CvktmXSaXMv6A3KrHmphKfNeLfvTQFvEvf+Y8l2BWOX0+oLvS3JjqAtkeZ5eR/tBqELlU0zsIjGGrvLAptcrSV4IHcnb0GhA7/lLmzOnB92nPh7D2p2L2Tyt+qKM8u3njwnKm+AZ25i8JoMqD9KlAn99nq/uz15/DFIexLrUXjjSDUJ9d5P4R+7Q5b5nP0pDdqVd/Hn74FGYzvNISr5cRrO3wwfR9egb2IeSG08YTSQ/6hy8ocA//I+TUP/Jwbzy94hFehp6RaYQ28RekzgTUChtCrlo547OaB7NDkuNpEKnPzqqt00vosaf0RAAD//yypqMk="
 }
 ''';
-
 
 String oldBuild = '''
 {

@@ -43,17 +43,17 @@ void main() {
       mockFirestoreService = MockFirestoreService();
 
       db = FakeDatastoreDB()..addOnQuery<Commit>((Iterable<Commit> results) => commits);
-      
+
       config = FakeConfig(
         dbValue: db,
         backfillerTargetLimitValue: 2,
         firestoreService: mockFirestoreService,
       );
-      
+
       pubsub = FakePubSub();
-      
+
       mockGithubChecksUtil = MockGithubChecksUtil();
-      
+
       when(
         mockGithubChecksUtil.createCheckRun(
           any,
@@ -63,7 +63,7 @@ void main() {
           output: anyNamed('output'),
         ),
       ).thenAnswer((_) async => generateCheckRun(1));
-      
+
       when(
         mockFirestoreService.writeViaTransaction(
           captureAny,
@@ -71,7 +71,7 @@ void main() {
       ).thenAnswer((Invocation invocation) {
         return Future<CommitResponse>.value(CommitResponse());
       });
-      
+
       scheduler = FakeSchedulerV2(
         config: config,
         ciYaml: batchPolicyConfig,
@@ -82,12 +82,12 @@ void main() {
           githubChecksUtil: mockGithubChecksUtil,
         ),
       );
-      
+
       handler = BatchBackfillerV2(
         config: config,
         scheduler: scheduler,
       );
-      
+
       tester = RequestHandlerTester();
     });
 
@@ -172,7 +172,7 @@ void main() {
       db.addOnQuery<Task>((Iterable<Task> results) => allGray);
       await tester.get(handler);
       expect(pubsub.messages.length, 1);
-      
+
       final bbv2.BatchRequest batchRequest = bbv2.BatchRequest.create();
       batchRequest.mergeFromProto3Json(pubsub.messages.first);
 
@@ -192,7 +192,7 @@ void main() {
       db.addOnQuery<Task>((Iterable<Task> results) => allGray);
       await tester.get(handler);
       expect(pubsub.messages.length, 1);
-      
+
       final bbv2.BatchRequest batchRequest = bbv2.BatchRequest.create();
       batchRequest.mergeFromProto3Json(pubsub.messages.first);
 
