@@ -32,7 +32,7 @@ dependencies:
   meta: 1.14.0
   mime: 1.0.5
   mutex: 3.1.0
-  neat_cache: 2.0.3
+  neat_cache: 2.0.4
   path: 1.9.0
   process: 5.0.2
   process_runner: 4.2.0
