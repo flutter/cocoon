@@ -56,7 +56,7 @@ class AppEngineCocoonService implements CocoonService {
   static const String kTaskEndTimestamp = 'EndTimestamp';
   static const String kTaskStartTimestamp = 'StartTimestamp';
   static const String kTaskStatus = 'Status';
-  static const String kTaskTaskNmae = 'TaskName';
+  static const String kTaskTaskName = 'TaskName';
   static const String kTaskTestFlaky = 'TestFlaky';
 
   final http.Client _client;
@@ -407,7 +407,7 @@ class AppEngineCocoonService implements CocoonService {
       ..startTimestamp = Int64(taskData[kTaskStartTimestamp] as int)
       ..endTimestamp = Int64(taskData[kTaskEndTimestamp] as int)
       ..documentName = taskData[kTaskDocumentName] as String
-      ..taskName = taskData[kTaskTaskNmae] as String
+      ..taskName = taskData[kTaskTaskName] as String
       ..attempts = taskData[kTaskAttempts] as int
       ..bringup = taskData[kTaskBringup] as bool
       ..status = taskData[kTaskStatus] as String
