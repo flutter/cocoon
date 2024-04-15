@@ -14,6 +14,7 @@ export 'src/request_handlers/get_build_status_badge.dart';
 export 'src/request_handlers/get_release_branches.dart';
 export 'src/request_handlers/get_repos.dart';
 export 'src/request_handlers/get_status.dart';
+export 'src/request_handlers/get_status_firestore.dart';
 export 'src/request_handlers/get_green_commits.dart';
 export 'src/request_handlers/github_rate_limit_status.dart';
 export 'src/request_handlers/github_webhook.dart';

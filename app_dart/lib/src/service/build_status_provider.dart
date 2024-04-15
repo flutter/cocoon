@@ -12,6 +12,7 @@ import '../model/appengine/commit.dart' as datastore;
 import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/stage.dart';
 import '../model/firestore/commit.dart';
+import '../model/firestore/commit_tasks_status.dart';
 import '../model/firestore/task.dart';
 import 'datastore.dart';
 
@@ -172,23 +173,6 @@ class BuildStatusService {
   bool _isRerunning(Task task) {
     return task.attempts! > 1 && (task.status == Task.statusInProgress || task.status == Task.statusNew);
   }
-}
-
-/// Class that holds the status for all tasks corresponding to a particular
-/// commit.
-///
-/// Tasks may still be running, and thus their status is subject to change.
-/// Put another way, this class holds information that is a snapshot in time.
-@immutable
-class CommitTasksStatus {
-  /// Creates a new [CommitTasksStatus].
-  const CommitTasksStatus(this.commit, this.tasks);
-
-  /// The commit against which all the tasks are run.
-  final Commit commit;
-
-  /// Tasks running against the commit.
-  final List<Task> tasks;
 }
 
 @immutable

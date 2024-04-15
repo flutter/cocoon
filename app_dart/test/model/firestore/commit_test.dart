@@ -51,4 +51,19 @@ void main() {
     expect(commitDocument.fields![kCommitRepositoryPathField]!.stringValue, commit.repository);
     expect(commitDocument.fields![kCommitShaField]!.stringValue, commit.sha);
   });
+
+  test('commit toJson', () {
+    final Commit commitDocument = generateFirestoreCommit(1);
+    final Map<String, dynamic> expectedResult = <String, dynamic>{
+      kCommitDocumentName: commitDocument.name,
+      kCommitRepositoryPath: commitDocument.repositoryPath,
+      kCommitCreateTimestamp: commitDocument.createTimestamp,
+      kCommitSha: commitDocument.sha,
+      kCommitMessage: commitDocument.message,
+      kCommitAuthor: commitDocument.author,
+      kCommitAvatar: commitDocument.avatar,
+      kCommitBranch: commitDocument.branch,
+    };
+    expect(commitDocument.toJson(), expectedResult);
+  });
 }
