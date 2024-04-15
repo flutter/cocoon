@@ -141,7 +141,7 @@ void main() {
       expect(result['Statuses'].first, <String, dynamic>{
         'Commit': <String, dynamic>{
           'DocumentName': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
-          'FlutterRepositoryPath': 'flutter/flutter',
+          'RepositoryPath': 'flutter/flutter',
           'CreateTimestamp': 1,
           'Sha': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
           'Message': 'test message',
@@ -194,7 +194,7 @@ void main() {
       expect(result['Statuses'].first, <String, dynamic>{
         'Commit': <String, dynamic>{
           'DocumentName': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
-          'FlutterRepositoryPath': 'flutter/flutter',
+          'RepositoryPath': 'flutter/flutter',
           'CreateTimestamp': 2,
           'Sha': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
           'Message': 'test message',
