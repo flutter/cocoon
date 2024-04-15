@@ -67,6 +67,16 @@ class Config {
     flutterSlug,
   };
 
+  static bool doesSkiaGoldRunOnBranch(gh.RepositorySlug slug, String? branch) {
+    if (slug == engineSlug) {
+      final RegExp releaseRegex = RegExp(r'flutter-\d?\.\d?-candidate\.\d?');
+      return defaultBranch(slug) == branch ||
+          (branch != null && releaseRegex.hasMatch(branch));
+    } else {
+      return defaultBranch(slug) == branch;
+    }
+  }
+
   /// The tip of tree branch for [slug].
   static String defaultBranch(gh.RepositorySlug slug) {
     final Map<gh.RepositorySlug, String> defaultBranches = <gh.RepositorySlug, String>{
