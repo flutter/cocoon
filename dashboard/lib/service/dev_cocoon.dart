@@ -12,6 +12,7 @@ import '../logic/qualified_task.dart';
 import '../model/build_status_response.pb.dart';
 import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
+import '../model/commit_tasks_status.pb.dart';
 import '../model/key.pb.dart';
 import '../model/task.pb.dart';
 import 'cocoon.dart';
@@ -66,6 +67,16 @@ class DevelopmentCocoonService implements CocoonService {
       _pausedStatus = null;
     }
     _paused = pause;
+  }
+
+  @override
+  Future<CocoonResponse<List<CommitTasksStatus>>> fetchCommitStatusesFirestore({
+    CommitStatus? lastCommitStatus,
+    String? branch,
+    required String repo,
+  }) async {
+    // TODO(keyonghan): to be impelemented when logics are switched to Firestore.
+    return const CocoonResponse<List<CommitTasksStatus>>.error('');
   }
 
   @override

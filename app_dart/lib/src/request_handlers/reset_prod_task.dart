@@ -19,6 +19,10 @@ import '../model/google/token_info.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
+import '../service/firestore.dart';
+import '../service/luci_build_service.dart';
+import '../service/scheduler.dart';
+import '../service/logging.dart';
 
 /// Reruns a postsubmit LUCI build.
 ///
@@ -76,6 +80,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     }
 
     if (taskName == 'all') {
+      log.info('Attempting to reset all failed prod tasks for $sha in $repo...');
       final Key<String> commitKey = Commit.createKey(
         db: datastore.db,
         slug: slug!,
@@ -86,6 +91,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       final List<Future<void>> futures = <Future<void>>[];
       for (final Task task in tasks) {
         if (!Task.taskFailStatusSet.contains(task.status)) continue;
+        log.info('Resetting failed task ${task.name}');
         futures.add(
           rerun(
             datastore: datastore,
@@ -100,6 +106,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       }
       await Future.wait(futures);
     } else {
+      log.info('Attempting to reset prod task "$taskName" for $sha in $repo...');
       await rerun(
         datastore: datastore,
         firestoreService: firestoreService,
@@ -113,6 +120,8 @@ class ResetProdTask extends ApiRequestHandler<Body> {
         ignoreChecks: true,
       );
     }
+
+    log.info('$taskName reset initiated successfully.');
 
     return Body.empty;
   }

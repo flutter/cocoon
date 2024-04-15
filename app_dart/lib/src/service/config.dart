@@ -300,8 +300,6 @@ class Config {
     'flutter-dashboard@appspot.gserviceaccount.com',
   };
 
-  int get maxTaskRetries => 2;
-
   /// Max retries for Luci builder with infra failure.
   int get maxLuciTaskRetries => 2;
 

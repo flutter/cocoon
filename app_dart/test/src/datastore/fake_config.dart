@@ -136,9 +136,6 @@ class FakeConfig implements Config {
   @override
   Duration get githubRequestDelay => githubRequestDelayValue ?? Duration.zero;
 
-  @override
-  int get maxTaskRetries => maxTaskRetriesValue!;
-
   /// Size of the shards to send to buildBucket when scheduling builds.
   @override
   int get schedulingShardSize => 5;

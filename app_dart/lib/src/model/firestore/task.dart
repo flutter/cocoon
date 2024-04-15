@@ -27,6 +27,18 @@ const String kTaskStartTimestampField = 'startTimestamp';
 const String kTaskStatusField = 'status';
 const String kTaskTestFlakyField = 'testFlaky';
 
+/// Task Json keys.
+const String kTaskAttempts = 'Attempts';
+const String kTaskBringup = 'Bringup';
+const String kTaskBuildNumber = 'BuildNumber';
+const String kTaskCreateTimestamp = 'CreateTimestamp';
+const String kTaskDocumentName = 'DocumentName';
+const String kTaskEndTimestamp = 'EndTimestamp';
+const String kTaskStartTimestamp = 'StartTimestamp';
+const String kTaskStatus = 'Status';
+const String kTaskTaskName = 'TaskName';
+const String kTaskTestFlaky = 'TestFlaky';
+
 class Task extends Document {
   /// Lookup [Task] from Firestore.
   ///
@@ -288,6 +300,22 @@ class Task extends Document {
       statusSucceeded,
     ];
     return completedStatuses.contains(status);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      kTaskDocumentName: name,
+      kTaskCreateTimestamp: createTimestamp,
+      kTaskStartTimestamp: startTimestamp,
+      kTaskEndTimestamp: endTimestamp,
+      kTaskTaskName: taskName,
+      kTaskAttempts: attempts,
+      kTaskBringup: bringup,
+      kTaskTestFlaky: testFlaky,
+      kTaskBuildNumber: buildNumber,
+      kTaskStatus: status,
+    };
   }
 
   @override
