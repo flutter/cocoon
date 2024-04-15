@@ -49,7 +49,8 @@ class Config {
       };
 
   /// List of guaranteed scheduling Github repos.
-  static Set<gh.RepositorySlug> get guaranteedSchedulingRepos => <gh.RepositorySlug>{
+  static Set<gh.RepositorySlug> get guaranteedSchedulingRepos =>
+      <gh.RepositorySlug>{
         engineSlug,
         packagesSlug,
       };
@@ -79,7 +80,8 @@ class Config {
 
   /// The tip of tree branch for [slug].
   static String defaultBranch(gh.RepositorySlug slug) {
-    final Map<gh.RepositorySlug, String> defaultBranches = <gh.RepositorySlug, String>{
+    final Map<gh.RepositorySlug, String> defaultBranches =
+        <gh.RepositorySlug, String>{
       cocoonSlug: 'main',
       flutterSlug: 'master',
       engineSlug: 'main',
@@ -101,7 +103,9 @@ class Config {
   static const String configCacheName = 'config';
 
   /// Default properties when rerunning a prod build.
-  static const Map<String, Object> defaultProperties = <String, Object>{'force_upload': true};
+  static const Map<String, Object> defaultProperties = <String, Object>{
+    'force_upload': true
+  };
 
   /// GCP project ID.
   static const String flutterGcpProjectId = 'flutter-dashboard';
@@ -115,14 +119,16 @@ class Config {
   Logging get loggingService => ss.lookup(#appengine.logging) as Logging;
 
   Future<Iterable<Branch>> getBranches(gh.RepositorySlug slug) async {
-    final DatastoreService datastore = DatastoreService(db, defaultMaxEntityGroups);
+    final DatastoreService datastore =
+        DatastoreService(db, defaultMaxEntityGroups);
     final List<Branch> branches = await (datastore.queryBranches().toList());
 
     return branches.where((Branch branch) => branch.slug == slug);
   }
 
   Future<List<String>> _getReleaseAccounts() async {
-    final String releaseAccountsConcat = await _getSingleValue('ReleaseAccounts');
+    final String releaseAccountsConcat =
+        await _getSingleValue('ReleaseAccounts');
     return releaseAccountsConcat.split(',');
   }
 
@@ -145,12 +151,15 @@ class Config {
   }
 
   // GitHub App properties.
-  Future<String> get githubPrivateKey => _getSingleValue('githubapp_private_pem');
-  Future<String> get overrideTreeStatusLabel => _getSingleValue('override_tree_status_label');
+  Future<String> get githubPrivateKey =>
+      _getSingleValue('githubapp_private_pem');
+  Future<String> get overrideTreeStatusLabel =>
+      _getSingleValue('override_tree_status_label');
   Future<String> get githubPublicKey => _getSingleValue('githubapp_public_pem');
   Future<String> get githubAppId => _getSingleValue('githubapp_id');
   Future<Map<String, dynamic>> get githubAppInstallations async {
-    final String installations = await _getSingleValue('githubapp_installations');
+    final String installations =
+        await _getSingleValue('githubapp_installations');
     return jsonDecode(installations) as Map<String, dynamic>;
   }
 
@@ -198,7 +207,8 @@ class Config {
 
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
 
-  String get wrongBaseBranchPullRequestMessage => 'This pull request was opened against a branch other than '
+  String get wrongBaseBranchPullRequestMessage =>
+      'This pull request was opened against a branch other than '
       '_{{default_branch}}_. Since Flutter pull requests should not '
       'normally be opened against branches other than {{default_branch}}, I '
       'have changed the base to {{default_branch}}. If this was intended, you '
@@ -255,7 +265,8 @@ class Config {
       '(https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
       'and make sure this patch meets those guidelines before LGTMing.';
 
-  String get flutterGoldPending => 'Waiting for all other checks to be successful before querying Gold.';
+  String get flutterGoldPending =>
+      'Waiting for all other checks to be successful before querying Gold.';
 
   String get flutterGoldSuccess => 'All golden file tests have passed.';
 
@@ -267,12 +278,14 @@ class Config {
       'Gold expire after as many days, so this pull request will need to be '
       'updated with a fresh commit in order to get results from Gold.';
 
-  String get flutterGoldDraftChange => 'This pull request has been changed to a '
+  String get flutterGoldDraftChange =>
+      'This pull request has been changed to a '
       'draft. The currently pending flutter-gold status will not be able '
       'to resolve until a new commit is pushed or the change is marked ready for '
       'review again.';
 
-  String flutterGoldInitialAlert(String url) => 'Golden file changes have been found for this pull '
+  String flutterGoldInitialAlert(String url) =>
+      'Golden file changes have been found for this pull '
       'request. Click [here to view and triage]($url) '
       '(e.g. because this is an intentional change).\n\n'
       'If you are still iterating on this change and are not ready to '
@@ -281,7 +294,8 @@ class Config {
       'on the dashboard, commenting will be silenced, and the check will not try to resolve itself until '
       'marked ready for review.\n\n';
 
-  String flutterGoldFollowUpAlert(String url) => 'Golden file changes are available for triage from new commit, '
+  String flutterGoldFollowUpAlert(String url) =>
+      'Golden file changes are available for triage from new commit, '
       'Click [here to view]($url).\n\n';
 
   String flutterGoldAlertConstant(gh.RepositorySlug slug) {
@@ -298,10 +312,12 @@ class Config {
       '_Changes reported for pull request #${pr.number} at sha ${pr.head!.sha}_\n\n';
 
   /// Post submit service account email used by LUCI swarming tasks.
-  static const String luciProdAccount = 'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
+  static const String luciProdAccount =
+      'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
 
   /// Internal Google service account used to surface FRoB results.
-  static const String frobAccount = 'flutter-roll-on-borg@flutter-roll-on-borg.google.com.iam.gserviceaccount.com';
+  static const String frobAccount =
+      'flutter-roll-on-borg@flutter-roll-on-borg.google.com.iam.gserviceaccount.com';
 
   /// Service accounts used for PubSub messages.
   static const Set<String> allowedPubsubServiceAccounts = <String>{
@@ -315,7 +331,8 @@ class Config {
   /// The default number of commit shown in flutter build dashboard.
   int get commitNumber => 30;
 
-  KeyHelper get keyHelper => KeyHelper(applicationContext: context.applicationContext);
+  KeyHelper get keyHelper =>
+      KeyHelper(applicationContext: context.applicationContext);
 
   // Default number of commits to return for benchmark dashboard.
   int /*!*/ get maxRecords => 50;
@@ -327,16 +344,22 @@ class Config {
   String get flutterBuild => 'flutter-build';
 
   // Repository status description for github status.
-  String get flutterBuildDescription => 'Tree is currently broken. Please do not merge this '
+  String get flutterBuildDescription =>
+      'Tree is currently broken. Please do not merge this '
       'PR unless it contains a fix for the tree.';
 
-  static gh.RepositorySlug get cocoonSlug => gh.RepositorySlug('flutter', 'cocoon');
-  static gh.RepositorySlug get engineSlug => gh.RepositorySlug('flutter', 'engine');
-  static gh.RepositorySlug get flutterSlug => gh.RepositorySlug('flutter', 'flutter');
-  static gh.RepositorySlug get packagesSlug => gh.RepositorySlug('flutter', 'packages');
+  static gh.RepositorySlug get cocoonSlug =>
+      gh.RepositorySlug('flutter', 'cocoon');
+  static gh.RepositorySlug get engineSlug =>
+      gh.RepositorySlug('flutter', 'engine');
+  static gh.RepositorySlug get flutterSlug =>
+      gh.RepositorySlug('flutter', 'flutter');
+  static gh.RepositorySlug get packagesSlug =>
+      gh.RepositorySlug('flutter', 'packages');
 
   /// Flutter recipes is hosted on Gerrit instead of GitHub.
-  static gh.RepositorySlug get recipesSlug => gh.RepositorySlug('flutter', 'recipes');
+  static gh.RepositorySlug get recipesSlug =>
+      gh.RepositorySlug('flutter', 'recipes');
 
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
 
@@ -360,7 +383,8 @@ class Config {
       ..issuer = await githubAppId
       ..issuedAt = now
       ..expiresAt = now.add(const Duration(minutes: 10));
-    final JWTRsaSha256Signer signer = JWTRsaSha256Signer(privateKey: privateKey, publicKey: publicKey);
+    final JWTRsaSha256Signer signer =
+        JWTRsaSha256Signer(privateKey: privateKey, publicKey: publicKey);
     final JWT signedToken = builder.getSignedToken(signer);
     return signedToken.toString();
   }
@@ -380,25 +404,31 @@ class Config {
 
   Future<Uint8List> _generateGithubToken(gh.RepositorySlug slug) async {
     final Map<String, dynamic> appInstallations = await githubAppInstallations;
-    final String? appInstallation = appInstallations[slug.fullName]['installation_id'] as String?;
+    final String? appInstallation =
+        appInstallations[slug.fullName]['installation_id'] as String?;
     final String jsonWebToken = await generateJsonWebToken();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jsonWebToken',
       'Accept': 'application/vnd.github.machine-man-preview+json',
     };
-    final Uri githubAccessTokensUri = Uri.https('api.github.com', 'app/installations/$appInstallation/access_tokens');
-    final http.Response response = await http.post(githubAccessTokensUri, headers: headers);
-    final Map<String, dynamic> jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
+    final Uri githubAccessTokensUri = Uri.https(
+        'api.github.com', 'app/installations/$appInstallation/access_tokens');
+    final http.Response response =
+        await http.post(githubAccessTokensUri, headers: headers);
+    final Map<String, dynamic> jsonBody =
+        jsonDecode(response.body) as Map<String, dynamic>;
     if (jsonBody.containsKey('token') == false) {
       log.warning(response.body);
-      throw Exception('generateGitHubToken failed to get token from Github for repo=${slug.fullName}');
+      throw Exception(
+          'generateGitHubToken failed to get token from Github for repo=${slug.fullName}');
     }
     final String token = jsonBody['token'] as String;
     log.fine('Generated a new GitHub token for ${slug.fullName}');
     return Uint8List.fromList(token.codeUnits);
   }
 
-  Future<gh.GitHub> createGitHubClient({gh.PullRequest? pullRequest, gh.RepositorySlug? slug}) async {
+  Future<gh.GitHub> createGitHubClient(
+      {gh.PullRequest? pullRequest, gh.RepositorySlug? slug}) async {
     slug ??= pullRequest!.base!.repo!.slug();
     final String githubToken = await generateGithubToken(slug);
     return createGitHubClientWithToken(githubToken);
