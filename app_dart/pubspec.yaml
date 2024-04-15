@@ -22,7 +22,7 @@ dependencies:
   gcloud: 0.8.12
   github: 9.24.0
   googleapis: 12.0.0
-  googleapis_auth: 1.5.1
+  googleapis_auth: 1.6.0
   gql: 1.0.1-alpha+1696717343881
   graphql: 5.2.0-beta.7
   grpc: 3.2.4
