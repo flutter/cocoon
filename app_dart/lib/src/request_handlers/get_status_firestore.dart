@@ -9,6 +9,7 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
+import '../model/firestore/commit_tasks_status.dart';
 import '../model/appengine/key_helper.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
@@ -80,18 +81,5 @@ class GetStatusFirestore extends RequestHandler<Body> {
       lastCommitTimestamp = commit.timestamp!;
     }
     return lastCommitTimestamp;
-  }
-}
-
-class SerializableCommitTasksStatus {
-  const SerializableCommitTasksStatus(this.status);
-
-  final CommitTasksStatus status;
-
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'Commit': status.commit.toJson(),
-      'Tasks': status.tasks,
-    };
   }
 }
