@@ -5,6 +5,10 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/src/service/commit_service.dart';
+import 'package:cocoon_service/src/service/github_checks_service.dart';
+import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
+import 'package:cocoon_service/src/service/scheduler.dart';
+import 'package:cocoon_service/src/service/scheduler_v2.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
@@ -18,9 +22,7 @@ import '../../request_handling/subscription_handler.dart';
 import '../../service/config.dart';
 import '../../service/datastore.dart';
 import '../../service/gerrit_service.dart';
-import '../../service/github_checks_service.dart';
 import '../../service/logging.dart';
-import '../../service/scheduler.dart';
 
 // Filenames which are not actually tests.
 const List<String> kNotActuallyATest = <String>[
@@ -68,14 +70,19 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     required super.cache,
     required super.config,
     required this.scheduler,
+    required this.schedulerV2,
     required this.gerritService,
     required this.commitService,
     this.githubChecksService,
+    this.githubChecksServiceV2,
     this.datastoreProvider = DatastoreService.defaultProvider,
     super.authProvider,
+    // Gets the initial github events from this sub after the webhook uploads them.
   }) : super(subscriptionName: 'github-webhooks-sub');
 
   /// Cocoon scheduler to trigger tasks against changes from GitHub.
+  final SchedulerV2 schedulerV2;
+
   final Scheduler scheduler;
 
   /// To verify whether a commit was mirrored to GoB.
@@ -84,8 +91,10 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   /// Used to handle push events and create commits based on those events.
   final CommitService commitService;
 
-  /// To provide build status updates to GitHub pull requests.
   final GithubChecksService? githubChecksService;
+
+  /// To provide build status updates to GitHub pull requests.
+  final GithubChecksServiceV2? githubChecksServiceV2;
 
   final DatastoreServiceProvider datastoreProvider;
 
@@ -107,7 +116,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'check_run':
         final Map<String, dynamic> event = jsonDecode(webhook.payload) as Map<String, dynamic>;
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
-        if (await scheduler.processCheckRun(checkRunEvent) == false) {
+        if (await schedulerV2.processCheckRun(checkRunEvent) == false) {
           throw InternalServerError('Failed to process check_run event. checkRunEvent: $checkRunEvent');
         }
         break;
@@ -164,7 +173,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         // If it was closed without merging, cancel any outstanding tryjobs.
         // We'll leave unfinished jobs if it was merged since we care about those
         // results.
-        await scheduler.cancelPreSubmitTargets(
+        await schedulerV2.cancelPreSubmitTargets(
           pullRequest: pr,
           reason: (!pr.merged!) ? 'Pull request closed' : 'Pull request merged',
         );
@@ -173,7 +182,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           log.fine('Pull request ${pr.number} was closed and merged.');
           if (await _commitExistsInGob(pr)) {
             log.fine('Merged commit was found on GoB mirror. Scheduling postsubmit tasks...');
-            return scheduler.addPullRequest(pr);
+            return schedulerV2.addPullRequest(pr);
           }
           throw InternalServerError(
             '${pr.mergeCommitSha!} was not found on GoB. Failing so this event can be retried...',
@@ -246,7 +255,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       return;
     }
 
-    await scheduler.triggerPresubmitTargets(pullRequest: pr);
+    await schedulerV2.triggerPresubmitTargets(pullRequest: pr);
   }
 
   /// Release tooling generates cherrypick pull requests that should be granted an approval.
