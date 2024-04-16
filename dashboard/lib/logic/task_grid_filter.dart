@@ -7,7 +7,7 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import '../logic/qualified_task.dart';
-import '../model/commit_status.pb.dart';
+import '../model/commit_tasks_status.pb.dart';
 import '../widgets/filter_property_sheet.dart';
 
 /// A filter object for controlling which entries are visible in the Build dashboard grid
@@ -146,16 +146,16 @@ class TaskGridFilter extends FilterPropertySource {
 
   set showStaging(bool? value) => _stagingProperty.value = value;
 
-  /// Check the values in the [CommitStatus] for compatibility with the properties of this
+  /// Check the values in the [CommitTasksStatus] for compatibility with the properties of this
   /// filter and return [true] iff the commit row should be displayed.
-  bool matchesCommit(CommitStatus commitStatus) {
-    if (!_authorProperty.matches(commitStatus.commit.author)) {
+  bool matchesCommit(CommitTasksStatus commitTasksStatus) {
+    if (!_authorProperty.matches(commitTasksStatus.commit.author)) {
       return false;
     }
-    if (!_messageProperty.matches(commitStatus.commit.message)) {
+    if (!_messageProperty.matches(commitTasksStatus.commit.message)) {
       return false;
     }
-    if (!_hashProperty.matches(commitStatus.commit.sha)) {
+    if (!_hashProperty.matches(commitTasksStatus.commit.sha)) {
       return false;
     }
     return true;

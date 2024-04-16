@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 
 import '../model/commit.pb.dart';
+import '../model/commit_firestore.pb.dart';
 import 'web_image.dart';
 
 /// Shows the appropriate avatar for a [Commit]'s author.
@@ -18,7 +19,7 @@ class CommitAuthorAvatar extends StatelessWidget {
     this.commit,
   });
 
-  final Commit? commit;
+  final CommitDocument? commit;
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +47,7 @@ class CommitAuthorAvatar extends StatelessWidget {
     );
 
     return WebImage(
-      imageUrl: commit!.authorAvatarUrl,
+      imageUrl: commit!.avatar,
       placeholder: avatar,
     );
   }

@@ -4,59 +4,57 @@
 
 import 'package:flutter/foundation.dart';
 
-import '../model/task.pb.dart';
+import '../model/task_firestore.pb.dart';
 
-/// [Task.stageName] that maps to StageName enums.
-// TODO(chillers): Remove these and use StageName enum when available. https://github.com/flutter/cocoon/issues/441
 class StageName {
-  static const String cocoon = 'cocoon';
-  static const String legacyLuci = 'chromebot';
   static const String luci = 'luci';
-  static const String googleTest = 'google_internal';
   static const String dartInternal = 'dart-internal';
 }
 
+const Set<String> dartInternalTasks = <String>{
+  'Linux engine_release_builder',
+  'Linux flutter_release',
+  'Linux flutter_release_builder',
+  'Linux packaging_release_builder',
+  'Mac engine_release_builder',
+  'Mac packaging_release_builder',
+  'Windows engine_release_builder',
+  'Windows packaging_release_builder',
+};
+
 /// Base URLs for various endpoints that can relate to a [Task].
 const String _luciUrl = 'https://ci.chromium.org/p/flutter';
-const String _googleTestUrl = 'https://flutter-rob.corp.google.com';
 const String _dartInternalUrl = 'https://ci.chromium.org/p/dart-internal';
 
 @immutable
 class QualifiedTask {
-  const QualifiedTask({this.stage, this.task, this.pool});
+  const QualifiedTask({this.task, this.pool});
 
-  QualifiedTask.fromTask(Task task)
-      : stage = task.stageName,
-        task = task.builderName,
-        pool = task.isFlaky ? 'luci.flutter.staging' : 'luci.flutter.prod';
+  QualifiedTask.fromTask(TaskDocument task)
+      : task = task.taskName,
+        pool = task.bringup ? 'luci.flutter.staging' : 'luci.flutter.prod';
 
   final String? pool;
-  final String? stage;
   final String? task;
 
   /// Get the URL for the configuration of this task.
   ///
   /// Luci tasks are stored on Luci.
   String get sourceConfigurationUrl {
-    assert(isLuci || isGoogleTest || isDartInternal);
+    assert(isLuci || isDartInternal);
     if (isLuci) {
       return '$_luciUrl/builders/$pool/$task';
-    } else if (isGoogleTest) {
-      return _googleTestUrl;
     } else if (isDartInternal) {
       return '$_dartInternalUrl/builders/$pool/$task';
     }
-    throw Exception('Failed to get source configuration url for $stage.');
+    throw Exception('Failed to get source configuration url for $task.');
   }
 
-  /// Whether this task was run on google test.
-  bool get isGoogleTest => stage == StageName.googleTest;
-
   /// Whether the task was run on the LUCI infrastructure.
-  bool get isLuci => stage == StageName.cocoon || stage == StageName.legacyLuci || stage == StageName.luci;
+  bool get isLuci => !dartInternalTasks.contains(task);
 
   /// Whether this task was run on internal infrastructure (example: luci dart-internal).
-  bool get isDartInternal => stage == StageName.dartInternal;
+  bool get isDartInternal => dartInternalTasks.contains(task);
 
   @override
   bool operator ==(Object other) {
@@ -68,16 +66,16 @@ class QualifiedTask {
       return other is QualifiedTask && other.task == task;
     }
 
-    return other is QualifiedTask && other.stage == stage && other.task == task;
+    return other is QualifiedTask && other.isDartInternal && isDartInternal && other.task == task;
   }
 
   @override
   int get hashCode {
     // Ensure tasks from Cocoon or LUCI share the same columns.
     if (isLuci) {
-      return StageName.cocoon.hashCode ^ task.hashCode;
+      return StageName.luci.hashCode ^ task.hashCode;
     }
 
-    return stage.hashCode ^ task.hashCode;
+    return StageName.dartInternal.hashCode ^ task.hashCode;
   }
 }

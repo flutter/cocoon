@@ -8,11 +8,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_icons/flutter_app_icons.dart';
 import 'package:flutter_dashboard/model/branch.pb.dart';
+import 'package:flutter_dashboard/model/commit_firestore.pb.dart';
+import 'package:flutter_dashboard/model/task_firestore.pb.dart';
 
 import '../logic/brooks.dart';
 import '../model/build_status_response.pb.dart';
 import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
+import '../model/commit_tasks_status.pb.dart';
 import '../model/key.pb.dart';
 import '../model/task.pb.dart';
 import '../service/cocoon.dart';
@@ -56,6 +59,9 @@ class BuildState extends ChangeNotifier {
   /// The current status of the commits loaded.
   List<CommitStatus> get statuses => _statuses;
   List<CommitStatus> _statuses = <CommitStatus>[];
+
+  List<CommitTasksStatus> get statusesFirestore => _statusesFirestore;
+  List<CommitTasksStatus> _statusesFirestore = <CommitTasksStatus>[];
 
   /// Whether or not flutter/flutter currently passes tests.
   bool? get isTreeBuilding => _isTreeBuilding;
@@ -168,8 +174,8 @@ class BuildState extends ChangeNotifier {
     await Future.wait<void>(<Future<void>>[
       () async {
         final String queriedRepoBranch = '$currentRepo/$currentBranch';
-        final CocoonResponse<List<CommitStatus>> response =
-            await cocoonService.fetchCommitStatuses(branch: currentBranch, repo: currentRepo);
+        final CocoonResponse<List<CommitTasksStatus>> response =
+            await cocoonService.fetchCommitStatusesFirestore(branch: currentBranch, repo: currentRepo);
         if (!_active) {
           return null;
         }
@@ -179,7 +185,7 @@ class BuildState extends ChangeNotifier {
           // No-op as the dashboard shouldn't update with old data
           return;
         } else {
-          _mergeRecentCommitStatusesWithStoredStatuses(response.data!);
+          _mergeRecentCommitStatusesWithStoredStatusesFirestore(response.data!);
           notifyListeners();
         }
       }(),
@@ -225,6 +231,7 @@ class BuildState extends ChangeNotifier {
     _isTreeBuilding = null;
     _failingTasks = <String>[];
     _statuses = <CommitStatus>[];
+    _statusesFirestore = <CommitTasksStatus>[];
 
     _fetchStatusUpdates();
   }
@@ -293,6 +300,56 @@ class BuildState extends ChangeNotifier {
     assert(_statusesAreUnique(statuses));
   }
 
+  void _mergeRecentCommitStatusesWithStoredStatusesFirestore(
+    List<CommitTasksStatus> recentStatuses,
+  ) {
+    if (!_statusesMatchCurrentBranchFirestore(recentStatuses)) {
+      // Do not merge statuses if they are not from the current branch.
+      // Happens in delayed network requests after switching branches.
+      return;
+    }
+
+    /// If the current statuses is empty, no merge logic is necessary.
+    /// This is used on the first call for statuses.
+    if (_statusesFirestore.isEmpty) {
+      _statusesFirestore = recentStatuses;
+      return;
+    }
+
+    assert(_statusesInOrderFirestore(recentStatuses));
+    final List<CommitTasksStatus> mergedStatuses = List<CommitTasksStatus>.from(recentStatuses);
+
+    /// Bisect statuses to find the set that doesn't exist in [recentStatuses].
+    final CommitTasksStatus lastRecentStatus = recentStatuses.last;
+    final int lastKnownIndex = _findCommitStatusIndexFirestore(_statusesFirestore, lastRecentStatus);
+
+    /// If this assertion error occurs, the Cocoon backend needs to be updated
+    /// to return more commit statuses. This error will only occur if there
+    /// is a gap between [recentStatuses] and [statuses].
+    assert(lastKnownIndex != -1);
+
+    final int firstIndex = lastKnownIndex + 1;
+    final int lastIndex = _statuses.length;
+
+    /// If the current statuses has the same statuses as [recentStatuses],
+    /// there will be no subset of remaining statuses. Instead, it will give
+    /// a list with a null generated [CommitStatus]. Therefore we manually
+    /// return an empty list.
+    final List<CommitTasksStatus> remainingStatuses = (firstIndex < lastIndex)
+        ? _statusesFirestore
+            .getRange(
+              firstIndex,
+              lastIndex,
+            )
+            .toList()
+        : <CommitTasksStatus>[];
+
+    mergedStatuses.addAll(remainingStatuses);
+
+    _statusesFirestore = mergedStatuses;
+    assert(_statusesAreUniqueFirestore(statusesFirestore));
+  }
+
   /// Find the index in [statuses] that has [statusToFind] based on the key.
   /// Return -1 if it does not exist.
   ///
@@ -304,6 +361,19 @@ class BuildState extends ChangeNotifier {
     for (int index = 0; index < statuses.length; index += 1) {
       final CommitStatus current = _statuses[index];
       if (current.commit.key == statusToFind.commit.key) {
+        return index;
+      }
+    }
+    return -1;
+  }
+
+  int _findCommitStatusIndexFirestore(
+    List<CommitTasksStatus> statuses,
+    CommitTasksStatus statusToFind,
+  ) {
+    for (int index = 0; index < statusesFirestore.length; index += 1) {
+      final CommitTasksStatus current = _statusesFirestore[index];
+      if (current.commit.documentName == statusToFind.commit.documentName) {
         return index;
       }
     }
@@ -322,6 +392,17 @@ class BuildState extends ChangeNotifier {
       return _moreStatuses;
     }
     _moreStatuses = _fetchMoreCommitStatusesInternal();
+    _moreStatuses!.whenComplete(() {
+      _moreStatuses = null;
+    });
+    return _moreStatuses;
+  }
+
+  Future<void>? fetchMoreCommitStatusesFirestore() {
+    if (_moreStatuses != null) {
+      return _moreStatuses;
+    }
+    _moreStatuses = _fetchMoreCommitStatusesInternalFirestore();
     _moreStatuses!.whenComplete(() {
       _moreStatuses = null;
     });
@@ -362,6 +443,40 @@ class BuildState extends ChangeNotifier {
     assert(_statusesAreUnique(statuses));
   }
 
+  Future<void> _fetchMoreCommitStatusesInternalFirestore() async {
+    assert(_statuses.isNotEmpty);
+
+    final CocoonResponse<List<CommitTasksStatus>> response = await cocoonService.fetchCommitStatusesFirestore(
+      lastCommitStatus: _statuses.last,
+      branch: currentBranch,
+      repo: currentRepo,
+    );
+    if (!_active) {
+      return;
+    }
+    if (response.error != null) {
+      _errors.send('$errorMessageFetchingStatuses: ${response.error}');
+      return;
+    }
+    final List<CommitTasksStatus> newStatuses = response.data!;
+
+    /// Handle the case where release branches only have a few commits.
+    if (newStatuses.isEmpty) {
+      _moreStatusesExist = false;
+      notifyListeners();
+      return;
+    }
+
+    assert(_statusesInOrderFirestore(newStatuses));
+
+    /// The [List<CommitStatus>] returned is the statuses that come at the end
+    /// of our current list and can just be appended.
+    _statusesFirestore.addAll(newStatuses);
+    notifyListeners();
+
+    assert(_statusesAreUniqueFirestore(statusesFirestore));
+  }
+
   Future<bool> refreshGitHubCommits() async {
     if (!authService.isAuthenticated) {
       return false;
@@ -374,7 +489,7 @@ class BuildState extends ChangeNotifier {
     return successful;
   }
 
-  Future<bool> rerunTask(Task task) async {
+  Future<bool> rerunTask(TaskDocument task) async {
     if (!authService.isAuthenticated) {
       return false;
     }
@@ -401,6 +516,19 @@ class BuildState extends ChangeNotifier {
     return true;
   }
 
+  bool _statusesInOrderFirestore(List<CommitTasksStatus> statuses) {
+    for (int i = 0; i < statuses.length - 1; i++) {
+      final CommitDocument current = statuses[i].commit;
+      final CommitDocument next = statuses[i + 1].commit;
+
+      if (current.createTimestamp < next.createTimestamp) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   /// Assert that there are no duplicate commits in [statuses].
   bool _statusesAreUnique(List<CommitStatus> statuses) {
     final Set<RootKey> uniqueStatuses = <RootKey>{};
@@ -410,6 +538,18 @@ class BuildState extends ChangeNotifier {
         return false;
       }
       uniqueStatuses.add(current.key);
+    }
+    return true;
+  }
+
+  bool _statusesAreUniqueFirestore(List<CommitTasksStatus> statuses) {
+    final Set<String> uniqueStatuses = <String>{};
+    for (int i = 0; i < statuses.length; i += 1) {
+      final CommitDocument current = statuses[i].commit;
+      if (uniqueStatuses.contains(current.documentName)) {
+        return false;
+      }
+      uniqueStatuses.add(current.documentName);
     }
     return true;
   }
@@ -424,6 +564,13 @@ class BuildState extends ChangeNotifier {
     assert(statuses.isNotEmpty);
 
     final CommitStatus exampleStatus = statuses.first;
+    return exampleStatus.branch == _currentBranch;
+  }
+
+  bool _statusesMatchCurrentBranchFirestore(List<CommitTasksStatus> statuses) {
+    assert(statuses.isNotEmpty);
+
+    final CommitTasksStatus exampleStatus = statuses.first;
     return exampleStatus.branch == _currentBranch;
   }
 

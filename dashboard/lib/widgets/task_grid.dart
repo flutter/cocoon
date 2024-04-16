@@ -5,12 +5,15 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dashboard/model/commit_firestore.pb.dart';
+import 'package:flutter_dashboard/model/task_firestore.pb.dart';
 import 'package:provider/provider.dart';
 
 import '../logic/qualified_task.dart';
 import '../logic/task_grid_filter.dart';
 import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
+import '../model/commit_tasks_status.pb.dart';
 import '../model/task.pb.dart';
 import '../state/build.dart';
 import 'commit_box.dart';
@@ -46,10 +49,10 @@ class TaskGridContainer extends StatelessWidget {
     return AnimatedBuilder(
       animation: buildState,
       builder: (BuildContext context, Widget? child) {
-        final List<CommitStatus> commitStatuses = buildState.statuses;
+        final List<CommitTasksStatus> commitTasksStatuses = buildState.statusesFirestore;
 
         // Assume if there is no data that it is loading.
-        if (commitStatuses.isEmpty) {
+        if (commitTasksStatuses.isEmpty) {
           return const Center(
             child: CircularProgressIndicator(),
           );
@@ -57,7 +60,7 @@ class TaskGridContainer extends StatelessWidget {
 
         return TaskGrid(
           buildState: buildState,
-          commitStatuses: commitStatuses,
+          commitTasksStatuses: commitTasksStatuses,
           filter: filter,
           useAnimatedLoading: useAnimatedLoading,
         );
@@ -76,13 +79,13 @@ class TaskGrid extends StatefulWidget {
     // TODO(ianh): We really shouldn't take both of these, since buildState exposes status as well;
     // it's asking for trouble because the tests can (and do) describe a mutually inconsistent state.
     required this.buildState,
-    required this.commitStatuses,
+    required this.commitTasksStatuses,
     this.filter,
     this.useAnimatedLoading = false,
   });
 
   /// The build status data to display in the grid.
-  final List<CommitStatus> commitStatuses;
+  final List<CommitTasksStatus> commitTasksStatuses;
 
   /// Reference to the build state to perform actions on [TaskMatrix], like rerunning tasks.
   final BuildState buildState;
@@ -198,18 +201,18 @@ class _TaskGridState extends State<TaskGrid> {
     TaskGridFilter? filter = taskGrid.filter;
     filter ??= TaskGridFilter();
     // 1: PREPARE ROWS
-    final List<CommitStatus> filteredStatuses =
-        taskGrid.commitStatuses.where((CommitStatus commitStatus) => filter!.matchesCommit(commitStatus)).toList();
+    final List<CommitTasksStatus> filteredStatuses =
+        taskGrid.commitTasksStatuses.where((CommitTasksStatus commitTasksStatus) => filter!.matchesCommit(commitTasksStatus)).toList();
     final List<_Row> rows =
-        filteredStatuses.map<_Row>((CommitStatus commitStatus) => _Row(commitStatus.commit)).toList();
+        filteredStatuses.map<_Row>((CommitTasksStatus commitTasksStatus) => _Row(commitTasksStatus.commit)).toList();
     // 2: WALK ALL TASKS
     final Map<QualifiedTask, double> scores = <QualifiedTask, double>{};
-    final Map<QualifiedTask, Task> taskLookupMap = <QualifiedTask, Task>{};
+    final Map<QualifiedTask, TaskDocument> taskLookupMap = <QualifiedTask, TaskDocument>{};
 
     int commitCount = 0;
-    for (final CommitStatus status in filteredStatuses) {
+    for (final CommitTasksStatus status in filteredStatuses) {
       commitCount += 1;
-      for (final Task task in status.tasks) {
+      for (final TaskDocument task in status.tasks) {
         final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
         if (!filter.matchesTask(qualifiedTask)) {
           continue;
@@ -217,7 +220,7 @@ class _TaskGridState extends State<TaskGrid> {
         taskLookupMap[qualifiedTask] = task;
         if (commitCount <= 25) {
           String weightStatus = task.status;
-          if (task.isFlaky || task.isTestFlaky) {
+          if (task.bringup || task.testFlaky) {
             // Flaky tasks should be shown after failures and reruns as they take up infra capacity.
             weightStatus += ' - Flaky';
           } else if (task.attempts > 1) {
@@ -258,9 +261,6 @@ class _TaskGridState extends State<TaskGrid> {
         }
         // If the scores are identical, break ties on the name of the task.
         // We do that because otherwise the sort order isn't stable.
-        if (a.stage != b.stage) {
-          return a.stage!.compareTo(b.stage!);
-        }
         return a.task!.compareTo(b.task!);
       });
 
@@ -270,7 +270,7 @@ class _TaskGridState extends State<TaskGrid> {
         const LatticeCell(),
         ...tasks.map<LatticeCell>(
           (QualifiedTask task) =>
-              LatticeCell(builder: (BuildContext context) => TaskIcon(qualifiedTask: task), taskName: task.stage),
+              LatticeCell(builder: (BuildContext context) => TaskIcon(qualifiedTask: task)),
         ),
       ],
       ...rows.map<List<LatticeCell>>(
@@ -285,11 +285,11 @@ class _TaskGridState extends State<TaskGrid> {
     ];
   }
 
-  Painter _painterFor(Task task) {
+  Painter _painterFor(TaskDocument task) {
     final Paint backgroundPaint = Paint()..color = Theme.of(context).canvasColor;
     final Paint paint = Paint()
       ..color = TaskBox.statusColor.containsKey(task.status) ? TaskBox.statusColor[task.status]! : Colors.black;
-    if (task.isFlaky) {
+    if (task.bringup) {
       paint.style = PaintingStyle.stroke;
       paint.strokeWidth = 2.0;
       return (Canvas canvas, Rect rect) {
@@ -298,14 +298,14 @@ class _TaskGridState extends State<TaskGrid> {
     }
     return (Canvas canvas, Rect rect) {
       canvas.drawRect(rect.deflate(2.0), paint);
-      if (task.attempts > 1 || task.isTestFlaky) {
+      if (task.attempts > 1 || task.testFlaky) {
         canvas.drawCircle(rect.center, (rect.shortestSide / 2.0) - 6.0, backgroundPaint);
       }
     };
   }
 
-  WidgetBuilder? _builderFor(Task task) {
-    if (task.attempts > 1 || task.isTestFlaky) {
+  WidgetBuilder? _builderFor(TaskDocument task) {
+    if (task.attempts > 1 || task.testFlaky) {
       return (BuildContext context) {
         return Padding(
           padding: const EdgeInsets.all(4.0),
@@ -353,7 +353,7 @@ class _TaskGridState extends State<TaskGrid> {
 
   OverlayEntry? _taskOverlay;
 
-  LatticeTapCallback _tapHandlerFor(Commit commit, Task task) {
+  LatticeTapCallback _tapHandlerFor(CommitDocument commit, TaskDocument task) {
     return (Offset? localPosition) {
       _taskOverlay?.remove();
       _taskOverlay = OverlayEntry(
@@ -379,6 +379,6 @@ class _TaskGridState extends State<TaskGrid> {
 
 class _Row {
   _Row(this.commit);
-  final Commit commit;
+  final CommitDocument commit;
   final Map<QualifiedTask, LatticeCell> cells = <QualifiedTask, LatticeCell>{};
 }

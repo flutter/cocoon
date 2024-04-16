@@ -9,7 +9,9 @@ import 'package:flutter/material.dart';
 
 import '../logic/qualified_task.dart';
 import '../model/commit.pb.dart';
+import '../model/commit_firestore.pb.dart';
 import '../model/task.pb.dart';
+import '../model/task_firestore.pb.dart';
 import '../state/build.dart';
 import 'luci_task_attempt_summary.dart';
 import 'now.dart';
@@ -96,7 +98,7 @@ class TaskOverlayEntry extends StatelessWidget {
   final Offset position;
 
   /// The [Task] to display in the overlay.
-  final Task task;
+  final TaskDocument task;
 
   final ShowSnackBarCallback showSnackBarCallback;
 
@@ -110,7 +112,7 @@ class TaskOverlayEntry extends StatelessWidget {
   final BuildState buildState;
 
   /// [Commit] for tasks to show log.
-  final Commit commit;
+  final CommitDocument commit;
 
   @override
   Widget build(BuildContext context) {
@@ -179,10 +181,10 @@ class TaskOverlayContents extends StatelessWidget {
   final BuildState buildState;
 
   /// The [Task] to display in the overlay
-  final Task task;
+  final TaskDocument task;
 
   /// [Commit] for tasks to show log.
-  final Commit? commit;
+  final CommitDocument? commit;
 
   /// This callback removes the parent overlay from the widget tree.
   ///
@@ -240,7 +242,7 @@ class TaskOverlayContents extends StatelessWidget {
       'Attempts: ${task.attempts}',
       if (runText.isNotEmpty) runText,
       queueText,
-      if (task.isFlaky) 'Flaky: ${task.isFlaky}',
+      if (task.bringup) 'Flaky: ${task.bringup}',
     ].join('\n');
 
     return Card(
@@ -267,7 +269,7 @@ class TaskOverlayContents extends StatelessWidget {
                       child: ListBody(
                         children: <Widget>[
                           SelectableText(
-                            task.name,
+                            task.taskName,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                           Text(
@@ -314,7 +316,7 @@ class TaskOverlayContents extends StatelessWidget {
     );
   }
 
-  Future<void> _rerunTask(Task task) async {
+  Future<void> _rerunTask(TaskDocument task) async {
     final bool rerunResponse = await buildState.rerunTask(task);
     if (rerunResponse) {
       showSnackBarCallback(

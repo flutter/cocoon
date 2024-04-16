@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../model/commit.pb.dart';
+import '../model/commit_firestore.pb.dart';
 import 'commit_author_avatar.dart';
 
 // TODO(ianh): Factor out the logic in task_overlay.dart and use it here as well,
@@ -27,7 +27,7 @@ class CommitBox extends StatefulWidget {
   });
 
   /// The commit being shown
-  final Commit commit;
+  final CommitDocument commit;
 
   @override
   CommitBoxState createState() => CommitBoxState();
@@ -78,7 +78,7 @@ class CommitOverlayContents extends StatelessWidget {
   final BuildContext parentContext;
 
   /// The commit data to display in the overlay
-  final Commit commit;
+  final CommitDocument commit;
 
   /// This callback removes the parent overlay from the widget tree.
   ///
@@ -170,7 +170,7 @@ class CommitOverlayContents extends StatelessWidget {
   }
 
   Future<void> _openGithub() async {
-    final String githubUrl = 'https://github.com/${commit.repository}/commit/${commit.sha}';
+    final String githubUrl = 'https://github.com/${commit.repositoryPath}/commit/${commit.sha}';
     await launchUrl(Uri.parse(githubUrl));
   }
 }

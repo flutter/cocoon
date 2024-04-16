@@ -210,7 +210,7 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<bool>> rerunTask(Task task, String? idToken, String repo) async {
+  Future<CocoonResponse<bool>> rerunTask(TaskDocument task, String? idToken, String repo) async {
     if (idToken == null || idToken.isEmpty) {
       return const CocoonResponse<bool>.error('Sign in to trigger reruns');
     }
@@ -226,8 +226,7 @@ class AppEngineCocoonService implements CocoonService {
         'X-Flutter-IdToken': idToken,
       },
       body: jsonEncode(<String, String>{
-        'Key': task.key.child.name,
-        'Repo': repo,
+        'taskDocumentName': task.documentName,
       }),
     );
 

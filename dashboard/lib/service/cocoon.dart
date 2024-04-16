@@ -4,6 +4,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dashboard/model/branch.pb.dart';
+import 'package:flutter_dashboard/model/task_firestore.pb.dart';
 
 import '../model/build_status_response.pb.dart';
 import '../model/commit_status.pb.dart';
@@ -65,7 +66,7 @@ abstract class CocoonService {
   ///
   /// Will not rerun tasks that are outside of devicelab.
 
-  Future<CocoonResponse<bool>> rerunTask(Task task, String? idToken, String repo);
+  Future<CocoonResponse<bool>> rerunTask(TaskDocument task, String? idToken, String repo);
 
   /// Force update Cocoon to get the latest commits.
   Future<bool> vacuumGitHubCommits(String idToken);

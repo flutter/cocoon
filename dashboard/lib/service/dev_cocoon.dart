@@ -7,6 +7,7 @@ import 'dart:math' as math;
 
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter_dashboard/model/branch.pb.dart';
+import 'package:flutter_dashboard/model/task_firestore.pb.dart';
 
 import '../logic/qualified_task.dart';
 import '../model/build_status_response.pb.dart';
@@ -160,7 +161,7 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<bool>> rerunTask(Task task, String? accessToken, String repo) async {
+  Future<CocoonResponse<bool>> rerunTask(TaskDocument task, String? accessToken, String repo) async {
     return const CocoonResponse<bool>.error(
       'Unable to retry against fake data. Try building the app to use prod data.',
     );

@@ -5,7 +5,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../model/task.pb.dart';
+import '../logic/qualified_task.dart';
+import '../model/task_firestore.pb.dart';
 
 /// Show information regarding each attempt for a luci Task.
 ///
@@ -18,7 +19,7 @@ class LuciTaskAttemptSummary extends StatelessWidget {
   });
 
   /// The task to show information from.
-  final Task task;
+  final TaskDocument task;
 
   @visibleForTesting
   static const String luciProdLogBase = 'https://ci.chromium.org/p/flutter/builders';
@@ -28,16 +29,18 @@ class LuciTaskAttemptSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> buildNumberList = task.buildNumberList.isEmpty ? <String>[] : task.buildNumberList.split(',');
+    // TODO: Need to handle case of multiple runs.
+    // final List<String> buildNumberList = task.buildNumberList.isEmpty ? <String>[] : task.buildNumberList.split(',');
+    final List<String> buildNumberList = task.hasBuildNumber() ? <String>[task.buildNumber.toString()] : <String>[];
     return ListBody(
       children: List<Widget>.generate(buildNumberList.length, (int i) {
         return ElevatedButton(
           child: Text('OPEN LOG FOR BUILD #${buildNumberList[i]}'),
           onPressed: () {
-            if (task.stageName == 'dart-internal') {
-              launchUrl(_dartInternalLogUrl(task.builderName, buildNumberList[i]));
+            if (dartInternalTasks.contains(task.taskName)) {
+              launchUrl(_dartInternalLogUrl(task.taskName, buildNumberList[i]));
             } else {
-              launchUrl(_luciProdLogUrl(task.builderName, buildNumberList[i]));
+              launchUrl(_luciProdLogUrl(task.taskName, buildNumberList[i]));
             }
           },
         );
@@ -46,7 +49,7 @@ class LuciTaskAttemptSummary extends StatelessWidget {
   }
 
   Uri _luciProdLogUrl(String builderName, String buildNumber) {
-    final String pool = task.isFlaky ? 'staging' : 'prod';
+    final String pool = task.bringup ? 'staging' : 'prod';
     return Uri.parse('$luciProdLogBase/$pool/$builderName/$buildNumber');
   }
 
