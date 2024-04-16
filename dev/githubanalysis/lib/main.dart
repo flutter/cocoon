@@ -51,6 +51,16 @@ const Duration issueMaxAge = Duration(days: 365);
 
 const Set<String> csvSpecials = <String>{'\'', '"', ',', '\n'};
 
+// Temporary workaround for https://github.com/SpinlockLabs/github.dart/issues/401
+bool issueIsOpen(final FullIssue issue) {
+  return issue.metadata.isOpen || issue.metadata.state.toUpperCase() == 'OPEN';
+}
+
+// Temporary workaround for https://github.com/SpinlockLabs/github.dart/issues/401
+bool issueIsClosed(final FullIssue issue) {
+  return issue.metadata.isClosed || issue.metadata.state.toUpperCase() == 'CLOSED';
+}
+
 Future<int> full(final Directory cache, final GitHub github) async {
   try {
     // FETCH USER AND TEAM DATA
@@ -273,8 +283,7 @@ Future<int> full(final Directory cache, final GitHub github) async {
       } else {
         priorityResults.openedByNonTeam += 1;
       }
-      // Temporary workaround for https://github.com/SpinlockLabs/github.dart/issues/401
-      if (issue.metadata.isOpen || issue.metadata.state.toUpperCase() == 'OPEN') {
+      if (issueIsOpen(issue)) {
         priorityResults.open += 1;
       } else {
         priorityResults.closed += 1;
@@ -351,7 +360,7 @@ Future<int> full(final Directory cache, final GitHub github) async {
     for (final FullIssue issue in allIssues.where((final FullIssue issue) => !issue.isPullRequest)) {
       verifyStringSanity(issue.metadata.state, csvSpecials);
       summary.write(
-        '${issue.repo.fullName},${issue.issueNumber},${issue.metadata.state},${issue.metadata.createdAt},${issue.metadata.user!.login},${issue.metadata.closedAt},${issue.metadata.closedBy?.login ?? (issue.isValid && issue.metadata.isClosed ? "<unknown>" : "")},${issue.isValid && issue.metadata.isClosed ? issue.metadata.closedAt!.difference(issue.metadata.createdAt!).inMilliseconds / Duration.millisecondsPerDay : ""},${issue.metadata.updatedAt},${issue.priority ?? ""},${issue.labels.length},${issue.comments.length}',
+        '${issue.repo.fullName},${issue.issueNumber},${issue.metadata.state},${issue.metadata.createdAt},${issue.metadata.user!.login},${issue.metadata.closedAt},${issue.metadata.closedBy?.login ?? (issue.isValid && issueIsClosed(issue) ? "<unknown>" : "")},${issue.isValid && issueIsClosed(issue) ? issue.metadata.closedAt!.difference(issue.metadata.createdAt!).inMilliseconds / Duration.millisecondsPerDay : ""},${issue.metadata.updatedAt},${issue.priority ?? ""},${issue.labels.length},${issue.comments.length}',
       );
       for (final String reactionKind in sortedReactionKinds) {
         int count = 0;
@@ -383,8 +392,8 @@ Future<int> full(final Directory cache, final GitHub github) async {
         ..writeln();
       if ((daysToTwentyVotes == null || daysToTwentyVotes > 60) &&
           issue.labels.contains('new feature') &&
-          (issue.metadata.isOpen || issue.metadata.closedAt!.difference(issue.metadata.createdAt!).inDays > 60)) {
-        if (issue.metadata.isOpen) {
+          (issueIsOpen(issue) || issue.metadata.closedAt!.difference(issue.metadata.createdAt!).inDays > 60)) {
+        if (issueIsOpen(issue)) {
           deadCount += 1;
         } else {
           zombieCount += 1;
@@ -402,7 +411,7 @@ Future<int> full(final Directory cache, final GitHub github) async {
       null: 0,
       for (final String priority in priorities) priority: 0,
     };
-    for (final FullIssue issue in primaryIssues.where((final FullIssue issue) => issue.metadata.isClosed)) {
+    for (final FullIssue issue in primaryIssues.where(issueIsClosed)) {
       final int timeOpen = issue.metadata.closedAt!.difference(issue.metadata.createdAt!).inDays;
       final String? priority = issue.priority;
       closureTimeHistogramClosed.putIfAbsent(timeOpen, () => <String?, int>{}).update(
@@ -467,7 +476,7 @@ Future<int> full(final Directory cache, final GitHub github) async {
     for (final FullIssue issue in primaryIssues) {
       final String? priority = issue.priority;
       closureTimeTotalsAll[priority] = closureTimeTotalsAll[priority]! + 1;
-      final int timeOpen = issue.metadata.isClosed
+      final int timeOpen = issueIsClosed(issue)
           ? issue.metadata.closedAt!.difference(issue.metadata.createdAt!).inDays
           : maxDaysToClose + 1;
       closureTimeHistogramAll.putIfAbsent(timeOpen, () => <String?, int>{}).update(
@@ -528,7 +537,7 @@ Future<int> full(final Directory cache, final GitHub github) async {
     for (final FullIssue issue in allIssues.where((final FullIssue issue) => issue.isPullRequest)) {
       verifyStringSanity(issue.metadata.state, csvSpecials);
       summary.write(
-        '${issue.repo.fullName},${issue.issueNumber},${issue.metadata.user!.login},${issue.metadata.state},${issue.metadata.createdAt},${issue.metadata.closedAt},${issue.metadata.isClosed ? issue.metadata.closedAt!.difference(issue.metadata.createdAt!).inMilliseconds / Duration.millisecondsPerDay : ""},${issue.metadata.updatedAt},${issue.labels.length},${issue.comments.length}',
+        '${issue.repo.fullName},${issue.issueNumber},${issue.metadata.user!.login},${issue.metadata.state},${issue.metadata.createdAt},${issue.metadata.closedAt},${issueIsClosed(issue) ? issue.metadata.closedAt!.difference(issue.metadata.createdAt!).inMilliseconds / Duration.millisecondsPerDay : ""},${issue.metadata.updatedAt},${issue.labels.length},${issue.comments.length}',
       );
       for (final String reactionKind in sortedReactionKinds) {
         int count = 0;
@@ -597,7 +606,7 @@ Future<int> full(final Directory cache, final GitHub github) async {
           forWeek(issue.metadata.createdAt)!.issues += 1;
           forWeek(issue.metadata.createdAt)!.priorityCount[issue.priority] =
               forWeek(issue.metadata.createdAt)!.priorityCount[issue.priority]! + 1;
-          if (issue.metadata.isOpen) {
+          if (issueIsOpen(issue)) {
             forWeek(issue.metadata.createdAt)!.remainingIssues += 1;
           }
         }
@@ -654,10 +663,10 @@ Future<int> full(final Directory cache, final GitHub github) async {
         final LabelData data = labels.putIfAbsent(label.name, () => LabelData(label.name))
           ..all += 1
           ..issues += 1;
-        if (issue.metadata.isOpen) {
+        if (issueIsOpen(issue)) {
           data.open += 1;
         }
-        if (issue.metadata.isClosed) {
+        if (issueIsClosed(issue)) {
           data.closed += 1;
         }
         if (now.difference(issue.metadata.updatedAt!) < const Duration(days: 52 * 7)) {
