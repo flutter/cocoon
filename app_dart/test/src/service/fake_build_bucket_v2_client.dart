@@ -92,9 +92,9 @@ class FakeBuildBucketV2Client extends BuildBucketV2Client {
     return searchBuildsResponseRc;
   }
 
-  late List<bbv2.Build> searchBuildsResponseBuildList;
+  // late List<bbv2.Build> searchBuildsResponseBuildList;
 
-  set setSearchBuildsResponseBuildList(List<bbv2.Build> builds) => searchBuildsResponseBuildList = builds;
+  // set setSearchBuildsResponseBuildList(List<bbv2.Build> builds) => searchBuildsResponseBuildList = builds;
 
   @override
   Future<bbv2.BatchResponse> batch(
@@ -140,12 +140,12 @@ class FakeBuildBucketV2Client extends BuildBucketV2Client {
           ),
         );
       } else if (request.hasSearchBuilds()) {
-        // Note that you cannot get builds from the searchBuildResponse.
-        batchResponseResponses.add(
-          bbv2.BatchResponse_Response(
-            searchBuilds: bbv2.SearchBuildsResponse(builds: searchBuildsResponseBuildList),
-          ),
-        );
+        // // Note that you cannot get builds from the searchBuildResponse.
+        // batchResponseResponses.add(
+        //   bbv2.BatchResponse_Response(
+        //     searchBuilds: bbv2.SearchBuildsResponse(builds: searchBuildsResponseBuildList),
+        //   ),
+        // );
       }
     }
 

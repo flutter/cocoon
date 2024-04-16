@@ -143,7 +143,6 @@ void main() {
       );
 
       final BatchWriteRequest batchWriteRequest = BatchWriteRequest(writes: [w]);
-      print(json.encode(batchWriteRequest));
 
       // gives
       /*
@@ -201,16 +200,12 @@ void main() {
     test('update succeeds from build', () {
       final BuildPushMessage buildPushMessage = BuildPushMessage.fromJson(jsonDecode(oldBuild) as Map<String, dynamic>);
       final Build? build = buildPushMessage.build;
-      print(build!.status);
       final Task task = generateFirestoreTask(
         1,
         name: 'Mac_arm64 module_test_ios',
         commitSha: 'asldjflaksdjflkasjdflkasjf',
       );
-
-      print(task);
-      task.updateFromBuild(build);
-      print(task);
+      task.updateFromBuild(build!);
     });
   });
 }

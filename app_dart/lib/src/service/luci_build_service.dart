@@ -53,10 +53,10 @@ class LuciBuildService {
 
   final PubSub pubsub;
 
-  static const Set<bbv2.Status> failStatusSet = <bbv2.Status>{
-    bbv2.Status.CANCELED,
-    bbv2.Status.FAILURE,
-    bbv2.Status.INFRA_FAILURE,
+  static const Set<Status> failStatusSet = <Status>{
+    Status.canceled,
+    Status.failure,
+    Status.infraFailure,
   };
 
   static const int kBackfillPriority = 35;

@@ -11,14 +11,21 @@ void main() {
 
     final List<int>? userDataBytes = UserData.encodeUserDataToBytes(userDataMap);
     final String? userDataString = UserData.encodeUserDataToString(userDataMap);
-    print(userDataString);
     final returnUserDataMap = UserData.decodeUserDataBytes(userDataBytes!);
-    print(returnUserDataMap);
   });
 
-  test('Map test', () {
+  test('Find build properties.', () {
     final bbv2.Build build = bbv2.Build.create();
     build.mergeFromProto3Json(jsonDecode(sampleBuildNoProperties));
+    final bbv2.Struct propertiesStruct =
+        (build.input.hasProperties()) ? build.input.properties : bbv2.Struct().createEmptyInstance();
+    final Map<String, Object?> properties = propertiesStruct.toProto3Json() as Map<String, Object?>;
+    assert(properties.isEmpty);
+  });
+
+  test('No build properties found.', () {
+    final bbv2.Build build = bbv2.Build.create();
+    build.mergeFromProto3Json(jsonDecode(sampleBuild));
     final bbv2.Struct propertiesStruct =
         (build.input.hasProperties()) ? build.input.properties : bbv2.Struct().createEmptyInstance();
     final Map<String, Object?> properties = propertiesStruct.toProto3Json() as Map<String, Object?>;

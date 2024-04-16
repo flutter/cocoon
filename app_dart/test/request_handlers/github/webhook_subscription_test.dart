@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as pm;
@@ -261,9 +263,9 @@ void main() {
       );
 
       await tester.post(webhook);
-
-      expect(scheduler.cancelPreSubmitTargetsCallCnt, 1);
-      expect(scheduler.addPullRequestCallCnt, 0);
+      // TODO this is v2 to route event temporarily from v1 to v2.
+      expect(schedulerV2.cancelPreSubmitTargetsCallCnt, 1);
+      expect(schedulerV2.addPullRequestCallCnt, 0);
     });
 
     test('Acts on closed, cancels presubmit targets, add pr for postsubmit target create', () async {
@@ -280,8 +282,8 @@ void main() {
 
       await tester.post(webhook);
 
-      expect(scheduler.cancelPreSubmitTargetsCallCnt, 1);
-      expect(scheduler.addPullRequestCallCnt, 1);
+      expect(schedulerV2.cancelPreSubmitTargetsCallCnt, 1);
+      expect(schedulerV2.addPullRequestCallCnt, 1);
     });
 
     test('Acts on opened against master when default is main', () async {
@@ -326,8 +328,8 @@ void main() {
         ),
       ).called(1);
 
-      expect(scheduler.triggerPresubmitTargetsCallCount, 1);
-      scheduler.resetTriggerPresubmitTargetsCallCount();
+      expect(schedulerV2.triggerPresubmitTargetsCallCount, 1);
+      schedulerV2.resetTriggerPresubmitTargetsCallCount();
     });
 
     test('Acts on edited against master when default is main', () async {
@@ -373,8 +375,8 @@ void main() {
         ),
       ).called(1);
 
-      expect(scheduler.triggerPresubmitTargetsCallCount, 1);
-      scheduler.resetTriggerPresubmitTargetsCallCount();
+      expect(schedulerV2.triggerPresubmitTargetsCallCount, 1);
+      schedulerV2.resetTriggerPresubmitTargetsCallCount();
     });
 
     // We already schedule checks when a draft is opened, don't need to re-test
@@ -408,23 +410,24 @@ void main() {
         number: issueNumber,
         isDraft: true,
       );
+
       bool batchRequestCalled = false;
 
-      Future<BatchResponse> getBatchResponse() async {
+      Future<bbv2.BatchResponse> getBatchResponse() async {
         batchRequestCalled = true;
-        return BatchResponse(
-          responses: <Response>[
-            Response(
-              searchBuilds: SearchBuildsResponse(
-                builds: <Build>[
-                  generateBuild(999, name: 'Linux', status: Status.ended),
+        return bbv2.BatchResponse(
+          responses: <bbv2.BatchResponse_Response>[
+            bbv2.BatchResponse_Response(
+              searchBuilds: bbv2.SearchBuildsResponse(
+                builds: <bbv2.Build>[
+                  bbv2.Build(number: 999, builder: bbv2.BuilderID(builder: 'Linux'), status: bbv2.Status.SUCCESS),
                 ],
               ),
             ),
-            Response(
-              searchBuilds: SearchBuildsResponse(
-                builds: <Build>[
-                  generateBuild(998, name: 'Linux', status: Status.ended),
+            bbv2.BatchResponse_Response(
+              searchBuilds: bbv2.SearchBuildsResponse(
+                builds: <bbv2.Build>[
+                  bbv2.Build(number: 998, builder: bbv2.BuilderID(builder: 'Linux'), status: bbv2.Status.SUCCESS),
                 ],
               ),
             ),
@@ -432,12 +435,12 @@ void main() {
         );
       }
 
-      fakeBuildBucketClient.batchResponse = getBatchResponse;
+      fakeBuildBucketV2Client.batchResponse = getBatchResponse;
 
       await tester.post(webhook);
 
       expect(batchRequestCalled, isTrue);
-      expect(scheduler.cancelPreSubmitTargetsCallCnt, 1);
+      expect(schedulerV2.cancelPreSubmitTargetsCallCnt, 1);
     });
 
     test('Does nothing against cherry pick PR', () async {
@@ -2199,21 +2202,22 @@ void foo() {
     test('When synchronized, cancels existing builds and schedules new ones', () async {
       const int issueNumber = 12345;
       bool batchRequestCalled = false;
-      Future<BatchResponse> getBatchResponse() async {
+
+      Future<bbv2.BatchResponse> getBatchResponse() async {
         batchRequestCalled = true;
-        return BatchResponse(
-          responses: <Response>[
-            Response(
-              searchBuilds: SearchBuildsResponse(
-                builds: <Build>[
-                  generateBuild(999, name: 'Linux', status: Status.ended),
+        return bbv2.BatchResponse(
+          responses: <bbv2.BatchResponse_Response>[
+            bbv2.BatchResponse_Response(
+              searchBuilds: bbv2.SearchBuildsResponse(
+                builds: <bbv2.Build>[
+                  bbv2.Build(number: 999, builder: bbv2.BuilderID(builder: 'Linux'), status: bbv2.Status.SUCCESS),
                 ],
               ),
             ),
-            Response(
-              searchBuilds: SearchBuildsResponse(
-                builds: <Build>[
-                  generateBuild(998, name: 'Linux', status: Status.ended),
+            bbv2.BatchResponse_Response(
+              searchBuilds: bbv2.SearchBuildsResponse(
+                builds: <bbv2.Build>[
+                  bbv2.Build(number: 998, builder: bbv2.BuilderID(builder: 'Linux'), status: bbv2.Status.SUCCESS),
                 ],
               ),
             ),
@@ -2221,7 +2225,7 @@ void foo() {
         );
       }
 
-      fakeBuildBucketClient.batchResponse = getBatchResponse;
+      fakeBuildBucketV2Client.batchResponse = getBatchResponse;
 
       tester.message = generateGithubWebhookMessage(
         action: 'synchronize',

@@ -55,6 +55,7 @@ void main() {
       cache = CacheService(inMemory: true);
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
+      mockBuildBucketClient = MockBuildBucketClient();
       mockBuildBucketV2Client = MockBuildBucketV2Client();
       pubsub = FakePubSub();
       service = LuciBuildService(
@@ -840,6 +841,7 @@ void main() {
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
+      mockBuildBucketV2Client = MockBuildBucketV2Client();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
@@ -887,6 +889,7 @@ void main() {
       cache = CacheService(inMemory: true);
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
+      mockBuildBucketV2Client = MockBuildBucketV2Client();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,

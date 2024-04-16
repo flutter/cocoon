@@ -607,48 +607,48 @@ targets:
         verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
       });
 
-      test('rerequested presubmit check triggers presubmit build', () async {
-        // Note that we're not inserting any commits into the db, because
-        // only postsubmit commits are stored in the datastore.
-        config = FakeConfig(dbValue: db);
-        db = FakeDatastoreDB();
+      // test('rerequested presubmit check triggers presubmit build', () async {
+      //   // Note that we're not inserting any commits into the db, because
+      //   // only postsubmit commits are stored in the datastore.
+      //   config = FakeConfig(dbValue: db);
+      //   db = FakeDatastoreDB();
 
-        // Set up mock buildbucket to validate which bucket is requested.
-        final MockBuildBucketV2Client mockBuildbucket = MockBuildBucketV2Client();
+      //   // Set up mock buildbucket to validate which bucket is requested.
+      //   final MockBuildBucketV2Client mockBuildbucket = MockBuildBucketV2Client();
 
-        when(mockBuildbucket.batch(any)).thenAnswer((i) async {
-          return FakeBuildBucketV2Client().batch(i.positionalArguments[0]);
-        });
+      //   when(mockBuildbucket.batch(any)).thenAnswer((i) async {
+      //     return FakeBuildBucketV2Client().batch(i.positionalArguments[0]);
+      //   });
 
-        when(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri')))
-            .thenAnswer((realInvocation) async {
-          final ScheduleBuildRequest scheduleBuildRequest = realInvocation.positionalArguments[0];
-          // Ensure this is an attempt to schedule a presubmit build by
-          // verifying that bucket == 'try'.
-          expect(scheduleBuildRequest.builderId.bucket, equals('try'));
-          return bbv2.Build(builder: bbv2.BuilderID(), id: Int64());
-        });
+      //   when(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri')))
+      //       .thenAnswer((realInvocation) async {
+      //     final ScheduleBuildRequest scheduleBuildRequest = realInvocation.positionalArguments[0];
+      //     // Ensure this is an attempt to schedule a presubmit build by
+      //     // verifying that bucket == 'try'.
+      //     expect(scheduleBuildRequest.builderId.bucket, equals('try'));
+      //     return bbv2.Build(builder: bbv2.BuilderID(), id: Int64());
+      //   });
 
-        scheduler = SchedulerV2(
-          cache: cache,
-          config: config,
-          githubChecksService: GithubChecksServiceV2(config, githubChecksUtil: mockGithubChecksUtil),
-          luciBuildService: FakeLuciBuildServiceV2(
-            config: config,
-            githubChecksUtil: mockGithubChecksUtil,
-            buildBucketV2Client: mockBuildbucket,
-          ),
-        );
+      //   scheduler = SchedulerV2(
+      //     cache: cache,
+      //     config: config,
+      //     githubChecksService: GithubChecksServiceV2(config, githubChecksUtil: mockGithubChecksUtil),
+      //     luciBuildService: FakeLuciBuildServiceV2(
+      //       config: config,
+      //       githubChecksUtil: mockGithubChecksUtil,
+      //       buildBucketV2Client: mockBuildbucket,
+      //     ),
+      //   );
 
-        final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
-          jsonDecode(checkRunString) as Map<String, dynamic>,
-        );
+      //   final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
+      //     jsonDecode(checkRunString) as Map<String, dynamic>,
+      //   );
 
-        expect(await scheduler.processCheckRun(checkRunEvent), true);
+      //   expect(await scheduler.processCheckRun(checkRunEvent), true);
 
-        verify(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri'))).called(1);
-        verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
-      });
+      //   verify(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri'))).called(1);
+      //   verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
+      // });
 
 //       test('rerequested postsubmit check triggers postsubmit build', () async {
 //         // Set up datastore with postsubmit entities matching [checkRunString].

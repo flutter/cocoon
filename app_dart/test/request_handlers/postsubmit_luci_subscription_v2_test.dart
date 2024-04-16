@@ -188,7 +188,7 @@ void main() {
     final Document updatedDocument = batchWriteRequest.writes![0].update!;
     expect(updatedDocument.name, firestoreTask!.name);
     expect(firestoreTask!.status, Task.statusSucceeded);
-    expect(firestoreTask!.buildNumber, 1698);
+    expect(firestoreTask!.buildNumber, 259942);
   });
 
   test('skips task processing when build is with scheduled status', () async {

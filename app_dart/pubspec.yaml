@@ -12,8 +12,8 @@ environment:
 
 dependencies:
   appengine: 0.13.7
-  buildbucket: 1.0.10
   args: 2.5.0
+  buildbucket: 1.0.10
   collection: 1.18.0
   corsac_jwt: 1.0.0-nullsafety.1
   crypto: 3.0.3
