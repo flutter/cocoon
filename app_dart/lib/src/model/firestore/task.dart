@@ -264,8 +264,7 @@ class Task extends Document {
     return completedStatuses.contains(status);
   }
 
-  @override
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> get facade {
     return <String, dynamic>{
       kTaskDocumentName: name,
       kTaskCreateTimestamp: createTimestamp,
