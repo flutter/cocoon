@@ -3,11 +3,11 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:collection/collection.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
@@ -21,8 +21,8 @@ import '../model/firestore/commit.dart' as firestore_commit;
 import '../model/firestore/task.dart' as firestore;
 import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
-import '../model/luci/push_message.dart' as push_message;
-import '../model/luci/buildbucket.dart';
+import '../model/luci/buildbucket.dart'; // targets use their own RequestedDimension which is defined here for some reason.
+import '../model/luci/user_data.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
 import 'build_bucket_v2_client.dart';
@@ -32,11 +32,10 @@ import 'github_service.dart';
 /// Class to interact with LUCI buildbucket to get, trigger
 /// and cancel builds for github repos. It uses [config.luciTryBuilders] to
 /// get the list of available builders.
-class LuciBuildService {
-  LuciBuildService({
+class LuciBuildServiceV2 {
+  LuciBuildServiceV2({
     required this.config,
     required this.cache,
-    required this.buildBucketClient,
     required this.buildBucketV2Client,
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
@@ -44,7 +43,6 @@ class LuciBuildService {
   })  : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
         gerritService = gerritService ?? GerritService(config: config);
 
-  BuildBucketClient buildBucketClient;
   BuildBucketV2Client buildBucketV2Client;
   final CacheService cache;
   Config config;
@@ -53,10 +51,10 @@ class LuciBuildService {
 
   final PubSub pubsub;
 
-  static const Set<Status> failStatusSet = <Status>{
-    Status.canceled,
-    Status.failure,
-    Status.infraFailure,
+  static const Set<bbv2.Status> failStatusSet = <bbv2.Status>{
+    bbv2.Status.CANCELED,
+    bbv2.Status.FAILURE,
+    bbv2.Status.INFRA_FAILURE,
   };
 
   static const int kBackfillPriority = 35;
@@ -74,129 +72,90 @@ class LuciBuildService {
 
   // the Request objects here are the BatchRequest object in bbv2.
   /// Shards [rows] into several sublists of size [maxEntityGroups].
-  Future<List<List<Request>>> shard(List<Request> requests, int max) async {
-    final List<List<Request>> shards = <List<Request>>[];
-    for (int i = 0; i < requests.length; i += max) {
-      shards.add(requests.sublist(i, i + min<int>(requests.length - i, max)));
+  Future<List<List<bbv2.BatchRequest_Request>>> shard({
+    required List<bbv2.BatchRequest_Request> requests,
+    required int maxShardSize,
+  }) async {
+    final List<List<bbv2.BatchRequest_Request>> shards = [];
+    for (int i = 0; i < requests.length; i += maxShardSize) {
+      shards.add(requests.sublist(i, i + min<int>(requests.length - i, maxShardSize)));
     }
     return shards;
   }
 
-  Future<Iterable<Build>> getTryBuilds(
-    github.RepositorySlug slug,
-    String sha,
+  Future<Iterable<bbv2.Build>> getTryBuilds({
+    required github.RepositorySlug slug,
+    required String sha,
     String? builderName,
-  ) async {
-    final Map<String, List<String>> tags = <String, List<String>>{
-      'buildset': <String>['sha/git/$sha'],
-      'user_agent': const <String>['flutter-cocoon'],
-    };
-    return getBuilds(slug, sha, builderName, 'try', tags);
-  }
-
-  Future<Iterable<bbv2.Build>> getTryBuildsV2(
-    github.RepositorySlug slug,
-    String sha,
-    String? builderName,
-  ) async {
+  }) async {
     final List<bbv2.StringPair> tags = [
-      bbv2.StringPair(key: 'buildset', value: 'sha/git/$sha'),
-      bbv2.StringPair(key: 'user_agent', value: 'flutter-cocoon'),
-    ];
-    return getBuildsV2(
-      slug,
-      sha,
-      builderName,
-      'try',
-      tags,
-    );
-  }
-
-  Future<Iterable<Build>> getTryBuildsByPullRequest(
-    github.PullRequest pullRequest,
-  ) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final Map<String, List<String>> tags = <String, List<String>>{
-      'buildset': <String>['pr/git/${pullRequest.number}'],
-      'github_link': <String>['https://github.com/${slug.fullName}/pull/${pullRequest.number}'],
-      'user_agent': const <String>['flutter-cocoon'],
-    };
-    return getBuilds(slug, null, null, 'try', tags);
-  }
-
-  Future<Iterable<bbv2.Build>> getTryBuildsByPullRequestV2(
-    github.PullRequest pullRequest,
-  ) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final List<bbv2.StringPair> tags = [
-      bbv2.StringPair(key: 'buildset', value: 'pr/git/${pullRequest.number}'),
-      bbv2.StringPair(key: 'github_link', value: 'https://github.com/${slug.fullName}/pull/${pullRequest.number}'),
-      bbv2.StringPair(key: 'user_agent', value: 'flutter-cocoon'),
-    ];
-    return getBuildsV2(
-      slug,
-      null,
-      null,
-      'try',
-      tags,
-    );
-  }
-
-  Future<Iterable<Build>> getProdBuilds(
-    github.RepositorySlug slug,
-    String commitSha,
-    String? builderName,
-  ) async {
-    final Map<String, List<String>> tags = <String, List<String>>{};
-    return getBuilds(slug, commitSha, builderName, 'prod', tags);
-  }
-
-  Future<Iterable<Build>> getBuilds(
-    github.RepositorySlug? slug,
-    String? commitSha,
-    String? builderName,
-    String bucket,
-    Map<String, List<String>> tags,
-  ) async {
-    final BatchResponse batch = await buildBucketClient.batch(
-      BatchRequest(
-        requests: <Request>[
-          Request(
-            searchBuilds: SearchBuildsRequest(
-              predicate: BuildPredicate(
-                builderId: BuilderId(
-                  project: 'flutter',
-                  bucket: bucket,
-                  builder: builderName,
-                ),
-                tags: tags,
-              ),
-              fields: 'builds.*.id,builds.*.builder,builds.*.tags,builds.*.status,builds.*.input.properties',
-            ),
-          ),
-        ],
+      bbv2.StringPair(
+        key: 'buildset',
+        value: 'sha/git/$sha',
       ),
+      bbv2.StringPair(
+        key: 'user_agent',
+        value: 'flutter-cocoon',
+      ),
+    ];
+    return getBuilds(
+      slug: slug,
+      commitSha: sha,
+      builderName: builderName,
+      bucket: 'try',
+      tags: tags,
     );
-
-    log.info('Reponses from get builds batch request = ${batch.responses!.length}');
-    for (Response response in batch.responses!) {
-      log.info('Found a response: ${response.toString()}');
-    }
-
-    final Iterable<Build> builds = batch.responses!
-        .map((Response response) => response.searchBuilds)
-        .expand((SearchBuildsResponse? response) => response!.builds ?? <Build>[]);
-    return builds;
   }
 
-  Future<Iterable<bbv2.Build>> getBuildsV2(
-    github.RepositorySlug? slug,
-    String? commitSha,
+  Future<Iterable<bbv2.Build>> getTryBuildsByPullRequest({
+    required github.PullRequest pullRequest,
+  }) async {
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final List<bbv2.StringPair> tags = [
+      bbv2.StringPair(
+        key: 'buildset',
+        value: 'pr/git/${pullRequest.number}',
+      ),
+      bbv2.StringPair(
+        key: 'github_link',
+        value: 'https://github.com/${slug.fullName}/pull/${pullRequest.number}',
+      ),
+      bbv2.StringPair(
+        key: 'user_agent',
+        value: 'flutter-cocoon',
+      ),
+    ];
+    return getBuilds(
+      slug: slug,
+      commitSha: null,
+      builderName: null,
+      bucket: 'try',
+      tags: tags,
+    );
+  }
+
+  Future<Iterable<bbv2.Build>> getProdBuilds({
+    required github.RepositorySlug slug,
+    required String commitSha,
     String? builderName,
-    String bucket,
-    List<bbv2.StringPair> tags,
-  ) async {
-    // These paths are fields in the Build message.
+  }) async {
+    final List<bbv2.StringPair> tags = [];
+    return getBuilds(
+      slug: slug,
+      commitSha: commitSha,
+      builderName: builderName,
+      bucket: 'prod',
+      tags: tags,
+    );
+  }
+
+  Future<Iterable<bbv2.Build>> getBuilds({
+    required github.RepositorySlug? slug,
+    required String? commitSha,
+    required String? builderName,
+    required String bucket,
+    required List<bbv2.StringPair> tags,
+  }) async {
     final bbv2.FieldMask fieldMask = bbv2.FieldMask(
       paths: {
         'id',
@@ -255,7 +214,8 @@ class LuciBuildService {
       return targets;
     }
 
-    final List<Request> requests = <Request>[];
+    // final bbv2.BatchRequest batchRequest = bbv2.BatchRequest().createEmptyInstance();
+    final List<bbv2.BatchRequest_Request> batchRequestList = [];
     final List<String> branches = await gerritService.branches(
       'flutter-review.googlesource.com',
       'recipes',
@@ -284,22 +244,42 @@ class LuciBuildService {
         'commit_branch': pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
       };
 
-      final Map<String, List<String>> tags = <String, List<String>>{
-        'github_checkrun': <String>[checkRun.id.toString()],
-      };
+      final List<bbv2.StringPair> tags = [
+        bbv2.StringPair(
+          key: 'github_checkrun',
+          value: checkRun.id.toString(),
+        ),
+      ];
 
       final Map<String, Object> properties = target.getProperties();
-      properties.putIfAbsent('git_branch', () => pullRequest.base!.ref!.replaceAll('refs/heads/', ''));
+      properties.putIfAbsent(
+        'git_branch',
+        () => pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
+      );
 
-      final List<String>? labels = extractPrefixedLabels(pullRequest.labels, githubBuildLabelPrefix);
+      // final String json = jsonEncode(properties);
+      final bbv2.Struct struct = bbv2.Struct.create();
+      struct.mergeFromProto3Json(properties);
+
+      final List<String>? labels = extractPrefixedLabels(
+        issueLabels: pullRequest.labels,
+        prefix: githubBuildLabelPrefix,
+      );
 
       if (labels != null && labels.isNotEmpty) {
         properties[propertiesGithubBuildLabelName] = labels;
       }
 
-      requests.add(
-        Request(
-          scheduleBuild: _createPresubmitScheduleBuild(
+      // Convert from target RequestedDimensions to bbv2.RequestedDimensions.
+      final List<RequestedDimension> targetDimensions = target.getDimensions();
+      final List<bbv2.RequestedDimension> requestedDimensions = <bbv2.RequestedDimension>[];
+      for (RequestedDimension requestedDimension in targetDimensions) {
+        requestedDimensions.add(bbv2.RequestedDimension(key: requestedDimension.key, value: requestedDimension.value));
+      }
+
+      batchRequestList.add(
+        bbv2.BatchRequest_Request(
+          scheduleBuild: await _createPresubmitScheduleBuild(
             slug: slug,
             sha: pullRequest.head!.sha!,
             //Use target.value.name here otherwise tests will die due to null checkRun.name.
@@ -309,16 +289,19 @@ class LuciBuildService {
             userData: userData,
             properties: properties,
             tags: tags,
-            dimensions: target.getDimensions(),
+            dimensions: requestedDimensions,
           ),
         ),
       );
     }
 
-    final Iterable<List<Request>> requestPartitions = await shard(requests, config.schedulingShardSize);
-    for (List<Request> requestPartition in requestPartitions) {
-      final BatchRequest batchRequest = BatchRequest(requests: requestPartition);
-      await pubsub.publish('scheduler-requests', batchRequest);
+    final Iterable<List<bbv2.BatchRequest_Request>> requestPartitions = await shard(
+      requests: batchRequestList,
+      maxShardSize: config.schedulingShardSize,
+    );
+    for (List<bbv2.BatchRequest_Request> requestPartition in requestPartitions) {
+      final bbv2.BatchRequest batchRequest = bbv2.BatchRequest(requests: requestPartition);
+      await pubsub.publish('cocoon-scheduler-requests', batchRequest.toProto3Json());
     }
 
     return targets;
@@ -328,46 +311,15 @@ class LuciBuildService {
   ///
   /// Builds are queried based on the [RepositorySlug] and pull request number.
   //
-  Future<void> cancelBuilds(github.PullRequest pullRequest, String reason) async {
-    log.info(
-      'Attempting to cancel builds for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}',
-    );
-
-    final Iterable<Build> builds = await getTryBuildsByPullRequest(pullRequest);
-    log.info('Found ${builds.length} builds.');
-
-    if (builds.isEmpty) {
-      log.warning('No builds were found for pull request ${pullRequest.base!.repo!.fullName}.');
-      return;
-    }
-
-    final List<Request> requests = <Request>[];
-    for (Build build in builds) {
-      if (build.status == Status.scheduled || build.status == Status.started) {
-        // Scheduled status includes scheduled and pending tasks.
-        log.info('Cancelling build with build id ${build.id}.');
-        requests.add(
-          Request(
-            cancelBuild: CancelBuildRequest(
-              id: build.id,
-              summaryMarkdown: reason,
-            ),
-          ),
-        );
-      }
-    }
-
-    if (requests.isNotEmpty) {
-      await buildBucketClient.batch(BatchRequest(requests: requests));
-    }
-  }
-
-  Future<void> cancelBuildsV2(github.PullRequest pullRequest, String reason) async {
+  Future<void> cancelBuilds({
+    required github.PullRequest pullRequest,
+    required String reason,
+  }) async {
     log.info(
       'Attempting to cancel builds (v2) for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}',
     );
 
-    final Iterable<bbv2.Build> builds = await getTryBuildsByPullRequestV2(pullRequest);
+    final Iterable<bbv2.Build> builds = await getTryBuildsByPullRequest(pullRequest: pullRequest);
     log.info('Found ${builds.length} builds.');
 
     if (builds.isEmpty) {
@@ -397,16 +349,21 @@ class LuciBuildService {
   }
 
   /// Filters [builders] to only those that failed on [pullRequest].
-  Future<List<Build?>> failedBuilds(
-    github.PullRequest pullRequest,
-    List<Target> targets,
-  ) async {
-    final Iterable<Build> builds = await getTryBuilds(pullRequest.base!.repo!.slug(), pullRequest.head!.sha!, null);
+  Future<List<bbv2.Build?>> failedBuilds({
+    required github.PullRequest pullRequest,
+    required List<Target> targets,
+  }) async {
+    final Iterable<bbv2.Build> builds = await getTryBuilds(
+      slug: pullRequest.base!.repo!.slug(),
+      sha: pullRequest.head!.sha!,
+      builderName: null,
+    );
     final Iterable<String> builderNames = targets.map((Target target) => target.value.name);
     // Return only builds that exist in the configuration file.
-    final Iterable<Build?> failedBuilds = builds.where((Build? build) => failStatusSet.contains(build!.status));
-    final Iterable<Build?> expectedFailedBuilds =
-        failedBuilds.where((Build? build) => builderNames.contains(build!.builderId.builder));
+    final Iterable<bbv2.Build?> failedBuilds =
+        builds.where((bbv2.Build? build) => failStatusSet.contains(build!.status));
+    final Iterable<bbv2.Build?> expectedFailedBuilds =
+        failedBuilds.where((bbv2.Build? build) => builderNames.contains(build!.builder.builder));
     return expectedFailedBuilds.toList();
   }
 
@@ -418,37 +375,36 @@ class LuciBuildService {
   /// are also preserved.
   ///
   /// The [currentAttempt] is used to track the number of current build attempt.
-  Future<Build> rescheduleBuild({
+  Future<bbv2.Build> rescheduleBuild({
     required String builderName,
-    required push_message.BuildPushMessage buildPushMessage,
+    required bbv2.Build build,
     required int rescheduleAttempt,
+    required Map<String, dynamic> userDataMap,
   }) async {
-    // Ensure we are using V2 bucket name istead of V1.
-    // V1 bucket name  is "luci.flutter.prod" while the api
-    // is expecting just the last part after "."(prod).
-    final String bucketName = buildPushMessage.build!.bucket!.split('.').last;
-    final Map<String, List<String>> tags = <String, List<String>>{
-      'buildset': buildPushMessage.build!.tagsByName('buildset'),
-      'user_agent': buildPushMessage.build!.tagsByName('user_agent'),
-      'github_link': buildPushMessage.build!.tagsByName('github_link'),
-      'cipd_version': buildPushMessage.build!.tagsByName('cipd_version'),
-      'github_checkrun': buildPushMessage.build!.tagsByName('github_checkrun'),
-      'current_attempt': <String>[rescheduleAttempt.toString()],
-    };
-    return buildBucketClient.scheduleBuild(
-      ScheduleBuildRequest(
-        builderId: BuilderId(
-          project: buildPushMessage.build!.project,
-          bucket: bucketName,
-          builder: builderName,
-        ),
+    final List<bbv2.StringPair> tags = build.tags;
+    // need to replace the current_attempt
+    bbv2.StringPair attempt;
+    final (int, bbv2.StringPair)? record =
+        tags.indexed.firstWhereOrNull((element) => element.$2.key == 'current_attempt');
+    if (record == null) {
+      attempt = bbv2.StringPair(
+        key: 'current_attempt',
+        value: rescheduleAttempt.toString(),
+      );
+    } else {
+      attempt = tags.removeAt(record.$1);
+      attempt.value = rescheduleAttempt.toString();
+    }
+    tags.add(attempt);
+
+    return buildBucketV2Client.scheduleBuild(
+      bbv2.ScheduleBuildRequest(
+        builder: build.builder,
         tags: tags,
-        // We need to cast to <String, Object> to bypass json.encode error when scheduling builds.
-        properties:
-            (buildPushMessage.build!.buildParameters!['properties'] as Map<String, Object?>).cast<String, Object>(),
-        notify: NotificationConfig(
-          pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
-          userData: base64Encode(json.encode(buildPushMessage.userData).codeUnits),
+        properties: build.input.properties,
+        notify: bbv2.NotificationConfig(
+          pubsubTopic: 'projects/flutter-dashboard/topics/build-bucket-presubmit',
+          userData: UserData.encodeUserDataToBytes(userDataMap),
         ),
       ),
     );
@@ -456,24 +412,40 @@ class LuciBuildService {
 
   /// Sends presubmit [ScheduleBuildRequest] for a pull request using [checkRunEvent].
   ///
-  /// Returns the [Build] returned by scheduleBuildRequest.
-  Future<Build> reschedulePresubmitBuildUsingCheckRunEvent(cocoon_checks.CheckRunEvent checkRunEvent) async {
+  /// Returns the [bbv2.Build] returned by scheduleBuildRequest.
+  Future<bbv2.Build> reschedulePresubmitBuildUsingCheckRunEvent({
+    required cocoon_checks.CheckRunEvent checkRunEvent,
+  }) async {
     final github.RepositorySlug slug = checkRunEvent.repository!.slug();
 
     final String sha = checkRunEvent.checkRun!.headSha!;
     final String checkName = checkRunEvent.checkRun!.name!;
 
-    final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(config, slug, sha, checkName);
+    final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(
+      config,
+      slug,
+      sha,
+      checkName,
+    );
 
-    final Iterable<Build> builds = await getTryBuilds(slug, sha, checkName);
+    final Iterable<bbv2.Build> builds = await getTryBuilds(
+      slug: slug,
+      sha: sha,
+      builderName: checkName,
+    );
     if (builds.isEmpty) {
       throw NoBuildFoundException('Unable to find try build.');
     }
 
-    final Build build = builds.first;
-    final String prString = build.tags!['buildset']!.firstWhere((String? element) => element!.startsWith('pr/git/'))!;
-    final String cipdVersion = build.tags!['cipd_version']![0]!;
-    final String githubLink = build.tags!['github_link']![0]!;
+    final bbv2.Build build = builds.first;
+
+    // Assumes that the tags are already defined.
+    final List<bbv2.StringPair> tags = build.tags;
+    final String prString =
+        tags.firstWhere((element) => element.key == 'buildset' && element.value.startsWith('pr/git')).value;
+    final String cipdVersion = tags.firstWhere((element) => element.key == 'cipd_version').value;
+    final String githubLink = tags.firstWhere((element) => element.key == 'github_link').value;
+
     final String repoName = githubLink.split('/')[4];
     final String branch = Config.defaultBranch(github.RepositorySlug('flutter', repoName));
     final int prNumber = int.parse(prString.split('/')[2]);
@@ -483,18 +455,26 @@ class LuciBuildService {
       'commit_branch': branch,
       'commit_sha': sha,
     };
-    final Map<String, Object> properties = Map.of(build.input!.properties ?? <String, Object>{});
+
+    final bbv2.Struct propertiesStruct =
+        (build.input.hasProperties()) ? build.input.properties : bbv2.Struct().createEmptyInstance();
+    final Map<String, Object?> properties = propertiesStruct.toProto3Json() as Map<String, Object?>;
     final GithubService githubService = await config.createGithubService(slug);
 
-    final List<github.IssueLabel> issueLabels = await githubService.getIssueLabels(slug, prNumber);
-    final List<String>? labels = extractPrefixedLabels(issueLabels, githubBuildLabelPrefix);
+    final List<github.IssueLabel> issueLabels = await githubService.getIssueLabels(
+      slug,
+      prNumber,
+    );
+    final List<String>? labels = extractPrefixedLabels(
+      issueLabels: issueLabels,
+      prefix: githubBuildLabelPrefix,
+    );
 
     if (labels != null && labels.isNotEmpty) {
       properties[propertiesGithubBuildLabelName] = labels;
     }
-    log.info('input ${build.input!} properties $properties');
 
-    final ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
+    final bbv2.ScheduleBuildRequest scheduleBuildRequest = await _createPresubmitScheduleBuild(
       slug: slug,
       sha: sha,
       checkName: checkName,
@@ -504,7 +484,7 @@ class LuciBuildService {
       userData: userData,
     );
 
-    final Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
+    final bbv2.Build scheduleBuild = await buildBucketV2Client.scheduleBuild(scheduleBuildRequest);
     final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
     await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);
     return scheduleBuild;
@@ -513,14 +493,17 @@ class LuciBuildService {
   /// Collect any label whose name is prefixed by the prefix [String].
   ///
   /// Returns a [List] of prefixed label names as [String]s.
-  List<String>? extractPrefixedLabels(List<github.IssueLabel>? issueLabels, String prefix) {
+  List<String>? extractPrefixedLabels({
+    List<github.IssueLabel>? issueLabels,
+    required String prefix,
+  }) {
     return issueLabels?.where((label) => label.name.startsWith(prefix)).map((obj) => obj.name).toList();
   }
 
   /// Sends postsubmit [ScheduleBuildRequest] for a commit using [checkRunEvent], [Commit], [Task], and [Target].
   ///
-  /// Returns the [Build] returned by scheduleBuildRequest.
-  Future<Build> reschedulePostsubmitBuildUsingCheckRunEvent(
+  /// Returns the [bbv2.Build] returned by scheduleBuildRequest.
+  Future<bbv2.Build> reschedulePostsubmitBuildUsingCheckRunEvent(
     cocoon_checks.CheckRunEvent checkRunEvent, {
     required Commit commit,
     required Task task,
@@ -530,31 +513,44 @@ class LuciBuildService {
     final String sha = checkRunEvent.checkRun!.headSha!;
     final String checkName = checkRunEvent.checkRun!.name!;
 
-    final Iterable<Build> builds = await getProdBuilds(slug, sha, checkName);
+    final Iterable<bbv2.Build> builds = await getProdBuilds(
+      slug: slug,
+      commitSha: sha,
+      builderName: checkName,
+    );
     if (builds.isEmpty) {
       throw NoBuildFoundException('Unable to find prod build.');
     }
 
-    final Build build = builds.first;
-    final Map<String, Object>? properties = build.input!.properties;
-    log.info('input ${build.input!} properties $properties');
+    final bbv2.Build build = builds.first;
 
-    final ScheduleBuildRequest scheduleBuildRequest =
-        await _createPostsubmitScheduleBuild(commit: commit, target: target, task: task, properties: properties);
-    final Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
+    // get it as a struct first and convert it.
+    final bbv2.Struct propertiesStruct = build.input.properties;
+    final Map<String, Object> properties = propertiesStruct.toProto3Json() as Map<String, Object>;
+
+    // final Map<String, Object>? properties = build.input.properties;
+    log.info('input ${build.input} properties $properties');
+
+    final bbv2.ScheduleBuildRequest scheduleBuildRequest = await _createPostsubmitScheduleBuild(
+      commit: commit,
+      target: target,
+      task: task,
+      properties: properties,
+    );
+    final bbv2.Build scheduleBuild = await buildBucketV2Client.scheduleBuild(scheduleBuildRequest);
     return scheduleBuild;
   }
 
-  /// Gets [Build] using its [id] and passing the additional
+  /// Gets [bbv2.Build] using its [id] and passing the additional
   /// fields to be populated in the response.
-  Future<Build> getBuildById(String? id, {String? fields}) async {
-    final GetBuildRequest request = GetBuildRequest(id: id, fields: fields);
-    return buildBucketClient.getBuild(request);
-  }
-
-  // TODO
-  Future<bbv2.Build> getBuildByIdV2(Int64 id, {bbv2.BuildMask? buildMask}) async {
-    final bbv2.GetBuildRequest request = bbv2.GetBuildRequest(id: id, mask: buildMask);
+  Future<bbv2.Build> getBuildById(
+    Int64 id, {
+    bbv2.BuildMask? buildMask,
+  }) async {
+    final bbv2.GetBuildRequest request = bbv2.GetBuildRequest(
+      id: id,
+      mask: buildMask,
+    );
     return buildBucketV2Client.getBuild(request);
   }
 
@@ -568,7 +564,10 @@ class LuciBuildService {
     final Uint8List? cacheValue = await cache.getOrCreate(
       subCacheName,
       'builderlist',
-      createFn: () => _getAvailableBuilderSet(project: project, bucket: bucket),
+      createFn: () => _getAvailableBuilderSet(
+        project: project,
+        bucket: bucket,
+      ),
       // New commit triggering tasks should be finished within 5 mins.
       // The batch backfiller's execution frequency is also 5 mins.
       ttl: const Duration(minutes: 5),
@@ -586,19 +585,23 @@ class LuciBuildService {
   }) async {
     log.info('No cached value for builderList, start fetching via the rpc call.');
     final Set<String> availableBuilderSet = <String>{};
+    bool hasToken = true;
     String? token;
     do {
-      final ListBuildersResponse listBuildersResponse = await buildBucketClient.listBuilders(
-        ListBuildersRequest(
+      final bbv2.ListBuildersResponse listBuildersResponse = await buildBucketV2Client.listBuilders(
+        bbv2.ListBuildersRequest(
           project: project,
           bucket: bucket,
           pageToken: token,
         ),
       );
-      final List<String> availableBuilderList = listBuildersResponse.builders!.map((e) => e.id!.builder!).toList();
+      final List<String> availableBuilderList = listBuildersResponse.builders.map((e) => e.id.builder).toList();
       availableBuilderSet.addAll(<String>{...availableBuilderList});
-      token = listBuildersResponse.nextPageToken;
-    } while (token != null);
+      hasToken = listBuildersResponse.hasNextPageToken();
+      if (hasToken) {
+        token = listBuildersResponse.nextPageToken;
+      }
+    } while (hasToken && token != null);
     final String joinedBuilderSet = availableBuilderSet.toList().join(',');
     log.info('successfully fetched the builderSet: $joinedBuilderSet');
     return Uint8List.fromList(joinedBuilderSet.codeUnits);
@@ -616,10 +619,15 @@ class LuciBuildService {
       log.fine('Skipping schedulePostsubmitBuilds as there are no targets to be scheduled by Cocoon');
       return toBeScheduled;
     }
-    final List<Request> buildRequests = <Request>[];
+    final List<bbv2.BatchRequest_Request> buildRequests = [];
+    // bbv2.BatchRequest_Request batchRequest_Request = bbv2.BatchRequest_Request();
+
     Set<String> availableBuilderSet;
     try {
-      availableBuilderSet = await getAvailableBuilderSet(project: 'flutter', bucket: 'prod');
+      availableBuilderSet = await getAvailableBuilderSet(
+        project: 'flutter',
+        bucket: 'prod',
+      );
     } catch (error) {
       log.severe('Failed to get buildbucket builder list due to $error');
       return toBeScheduled;
@@ -632,20 +640,22 @@ class LuciBuildService {
         continue;
       }
       log.info('create postsubmit schedule request for target: ${tuple.first.value} in commit ${commit.sha}');
-      final ScheduleBuildRequest scheduleBuildRequest = await _createPostsubmitScheduleBuild(
+      final bbv2.ScheduleBuildRequest scheduleBuildRequest = await _createPostsubmitScheduleBuild(
         commit: commit,
         target: tuple.first,
         task: tuple.second,
         priority: tuple.third,
       );
-      buildRequests.add(Request(scheduleBuild: scheduleBuildRequest));
+      buildRequests.add(bbv2.BatchRequest_Request(scheduleBuild: scheduleBuildRequest));
       log.info('created postsubmit schedule request for target: ${tuple.first.value} in commit ${commit.sha}');
     }
-    final BatchRequest batchRequest = BatchRequest(requests: buildRequests);
+
+    final bbv2.BatchRequest batchRequest = bbv2.BatchRequest(requests: buildRequests);
     log.fine(batchRequest);
     List<String> messageIds;
+
     try {
-      messageIds = await pubsub.publish('scheduler-requests', batchRequest);
+      messageIds = await pubsub.publish('cocoon-scheduler-requests', batchRequest.toProto3Json());
       log.info('Published $messageIds for commit ${commit.sha}');
     } catch (error) {
       log.severe('Failed to publish message to pub/sub due to $error');
@@ -657,76 +667,127 @@ class LuciBuildService {
 
   /// Create a Presubmit ScheduleBuildRequest using the [slug], [sha], and
   /// [checkName] for the provided [build] with the provided [checkRunId].
-  ScheduleBuildRequest _createPresubmitScheduleBuild({
+  Future<bbv2.ScheduleBuildRequest> _createPresubmitScheduleBuild({
     required github.RepositorySlug slug,
     required String sha,
     required String checkName,
     required int pullRequestNumber,
     required String cipdVersion,
-    Map<String, Object>? properties,
-    Map<String, List<String>>? tags,
+    Map<String, Object?>? properties,
+    List<bbv2.StringPair>? tags,
     Map<String, dynamic>? userData,
-    List<RequestedDimension>? dimensions,
-  }) {
-    final Map<String, Object> processedProperties = <String, Object>{};
-    processedProperties.addAll(properties ?? <String, Object>{});
-    processedProperties.addEntries(
-      <String, Object>{
-        'git_url': 'https://github.com/${slug.owner}/${slug.name}',
-        'git_ref': 'refs/pull/$pullRequestNumber/head',
-        'exe_cipd_version': cipdVersion,
-      }.entries,
-    );
-
+    List<bbv2.RequestedDimension>? dimensions,
+  }) async {
     final Map<String, dynamic> processedUserData = userData ?? <String, dynamic>{};
     processedUserData['repo_owner'] = slug.owner;
     processedUserData['repo_name'] = slug.name;
     processedUserData['user_agent'] = 'flutter-cocoon';
 
-    final BuilderId builderId = BuilderId(project: 'flutter', bucket: 'try', builder: checkName);
+    final bbv2.BuilderID builderId = bbv2.BuilderID.create();
+    builderId.bucket = 'try';
+    builderId.project = 'flutter';
+    builderId.builder = checkName;
 
-    final Map<String, List<String>> processedTags = tags ?? <String, List<String>>{};
-    processedTags['buildset'] = <String>['pr/git/$pullRequestNumber', 'sha/git/$sha'];
-    processedTags['user_agent'] = const <String>['flutter-cocoon'];
-    processedTags['github_link'] = <String>['https://github.com/${slug.owner}/${slug.name}/pull/$pullRequestNumber'];
-    processedTags['cipd_version'] = <String>[cipdVersion];
+    // Add the builderId.
+    final bbv2.ScheduleBuildRequest scheduleBuildRequest = bbv2.ScheduleBuildRequest.create();
+    scheduleBuildRequest.builder = builderId;
 
-    final NotificationConfig notificationConfig = NotificationConfig(
-      pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
-      userData: base64Encode(json.encode(processedUserData).codeUnits),
+    final List<String> fields = [
+      'id',
+      'builder',
+      'number',
+      'status',
+      'tags',
+    ];
+    final bbv2.FieldMask fieldMask = bbv2.FieldMask(paths: fields);
+    final bbv2.BuildMask buildMask = bbv2.BuildMask(fields: fieldMask);
+    scheduleBuildRequest.mask = buildMask;
+
+    // Set the executable.
+    final bbv2.Executable executable = bbv2.Executable(cipdVersion: cipdVersion);
+    scheduleBuildRequest.exe = executable;
+
+    // Add the dimensions to the instance.
+    final List<bbv2.RequestedDimension> instanceDimensions = scheduleBuildRequest.dimensions;
+    instanceDimensions.addAll(dimensions ?? []);
+
+    // Create the notification configuration for pubsub processing.
+    final bbv2.NotificationConfig notificationConfig = bbv2.NotificationConfig().createEmptyInstance();
+    notificationConfig.pubsubTopic = 'projects/flutter-dashboard/topics/build-bucket-presubmit';
+    notificationConfig.userData = UserData.encodeUserDataToBytes(processedUserData)!;
+    scheduleBuildRequest.notify = notificationConfig;
+
+    // Add tags to the instance.
+    final List<bbv2.StringPair> processTags = tags ?? <bbv2.StringPair>[];
+    processTags.add(
+      bbv2.StringPair(
+        key: 'buildset',
+        value: 'pr/git/$pullRequestNumber',
+      ),
     );
-
-    final Map<String, dynamic> exec = <String, dynamic>{'cipdVersion': cipdVersion};
-
-    return ScheduleBuildRequest(
-      builderId: builderId,
-      tags: processedTags,
-      properties: processedProperties,
-      notify: notificationConfig,
-      fields: 'id,builder,number,status,tags',
-      exe: exec,
-      dimensions: dimensions,
+    processTags.add(
+      bbv2.StringPair(
+        key: 'buildset',
+        value: 'sha/git/$sha',
+      ),
     );
+    processTags.add(
+      bbv2.StringPair(
+        key: 'user_agent',
+        value: 'flutter-cocoon',
+      ),
+    );
+    processTags.add(
+      bbv2.StringPair(
+        key: 'github_link',
+        value: 'https://github.com/${slug.owner}/${slug.name}/pull/$pullRequestNumber',
+      ),
+    );
+    processTags.add(
+      bbv2.StringPair(
+        key: 'cipd_version',
+        value: cipdVersion,
+      ),
+    );
+    final List<bbv2.StringPair> instanceTags = scheduleBuildRequest.tags;
+    instanceTags.addAll(processTags);
+
+    properties ??= {};
+    properties['git_url'] = 'https://github.com/${slug.owner}/${slug.name}';
+    properties['git_ref'] = 'refs/pull/$pullRequestNumber/head';
+    properties['exe_cipd_version'] = cipdVersion;
+
+    final bbv2.Struct propertiesStruct = bbv2.Struct.create();
+    propertiesStruct.mergeFromProto3Json(properties);
+
+    scheduleBuildRequest.properties = propertiesStruct;
+
+    return scheduleBuildRequest;
   }
 
   /// Creates a [ScheduleBuildRequest] for [target] and [task] against [commit].
   ///
   /// By default, build [priority] is increased for release branches.
-  Future<ScheduleBuildRequest> _createPostsubmitScheduleBuild({
+  Future<bbv2.ScheduleBuildRequest> _createPostsubmitScheduleBuild({
     required Commit commit,
     required Target target,
     required Task task,
     Map<String, Object>? properties,
-    Map<String, List<String>>? tags,
+    List<bbv2.StringPair>? tags,
     int priority = kDefaultPriority,
   }) async {
-    tags ??= <String, List<String>>{};
-    tags.addAll(<String, List<String>>{
-      'buildset': <String>[
-        'commit/git/${commit.sha}',
-        'commit/gitiles/flutter.googlesource.com/mirrors/${commit.slug.name}/+/${commit.sha}',
-      ],
-    });
+    log.info('Creating postsubmit schedule builder for ${target.value.name} on commit ${commit.sha}');
+    tags ??= [];
+    tags.addAll([
+      bbv2.StringPair(
+        key: 'buildset',
+        value: 'commit/git/${commit.sha}',
+      ),
+      bbv2.StringPair(
+        key: 'buildset',
+        value: 'commit/gitiles/flutter.googlesource.com/mirrors/${commit.slug.name}/+/${commit.sha}',
+      ),
+    ]);
 
     final String commitKey = task.parentKey!.id.toString();
     final String taskKey = task.key.id.toString();
@@ -742,44 +803,80 @@ class LuciBuildService {
 
     // Creates post submit checkrun only for unflaky targets from [config.postsubmitSupportedRepos].
     if (!target.value.bringup && config.postsubmitSupportedRepos.contains(target.slug)) {
-      await createPostsubmitCheckRun(commit, target, rawUserData);
+      await createPostsubmitCheckRun(
+        commit,
+        target,
+        rawUserData,
+      );
     }
 
-    tags['user_agent'] = <String>['flutter-cocoon'];
+    tags.add(
+      bbv2.StringPair(
+        key: 'user_agent',
+        value: 'flutter-cocoon',
+      ),
+    );
     // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
-    tags['scheduler_job_id'] = <String>['flutter/${target.value.name}'];
+    tags.add(
+      bbv2.StringPair(
+        key: 'scheduler_job_id',
+        value: 'flutter/${target.value.name}',
+      ),
+    );
     // Default attempt is the initial attempt, which is 1.
-    tags['current_attempt'] = tags['current_attempt'] ?? <String>['1'];
-    final String currentAttempt = tags['current_attempt']!.single;
-    rawUserData['firestore_task_document_name'] = '${commit.sha}_${task.name}_$currentAttempt';
+    final bbv2.StringPair? attemptTag = tags.singleWhereOrNull((tag) => tag.key == 'current_attempt');
+    if (attemptTag == null) {
+      tags.add(
+        bbv2.StringPair(
+          key: 'current_attempt',
+          value: '1',
+        ),
+      );
+    }
+
+    final String currentAttemptStr = tags.firstWhere((tag) => tag.key == 'current_attempt').value;
+    rawUserData['firestore_task_document_name'] = '${commit.sha}_${task.name}_$currentAttemptStr';
 
     final Map<String, Object> processedProperties = target.getProperties();
     processedProperties.addAll(properties ?? <String, Object>{});
     processedProperties['git_branch'] = commit.branch!;
-    final String cipdVersion = 'refs/heads/${commit.branch}';
-    processedProperties['exe_cipd_version'] = cipdVersion;
-    return ScheduleBuildRequest(
-      builderId: BuilderId(
+    final String cipdExe = 'refs/heads/${commit.branch}';
+    processedProperties['exe_cipd_version'] = cipdExe;
+
+    final bbv2.Struct propertiesStruct = bbv2.Struct.create();
+    propertiesStruct.mergeFromProto3Json(processedProperties);
+
+    // Convert from target RequestedDimensions to bbv2.RequestedDimensions.
+    final List<RequestedDimension> targetDimensions = target.getDimensions();
+    final List<bbv2.RequestedDimension> requestedDimensions = <bbv2.RequestedDimension>[];
+    for (RequestedDimension requestedDimension in targetDimensions) {
+      requestedDimensions.add(bbv2.RequestedDimension(key: requestedDimension.key, value: requestedDimension.value));
+    }
+
+    final bbv2.Executable executable = bbv2.Executable(cipdVersion: cipdExe);
+
+    log.info('Constructing the postsubmit schedule build request for ${target.value.name} on commit ${commit.sha}.');
+
+    return bbv2.ScheduleBuildRequest(
+      builder: bbv2.BuilderID(
         project: 'flutter',
         bucket: target.getBucket(),
         builder: target.value.name,
       ),
-      dimensions: target.getDimensions(),
-      exe: <String, dynamic>{
-        'cipdVersion': cipdVersion,
-      },
-      gitilesCommit: GitilesCommit(
+      dimensions: requestedDimensions,
+      exe: executable,
+      gitilesCommit: bbv2.GitilesCommit(
         project: 'mirrors/${commit.slug.name}',
         host: 'flutter.googlesource.com',
         ref: 'refs/heads/${commit.branch}',
-        hash: commit.sha,
+        id: commit.sha,
       ),
-      notify: NotificationConfig(
-        pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds-prod',
-        userData: base64Encode(json.encode(rawUserData).codeUnits),
+      notify: bbv2.NotificationConfig(
+        pubsubTopic: 'projects/flutter-dashboard/topics/build-bucket-postsubmit',
+        userData: UserData.encodeUserDataToBytes(rawUserData),
       ),
       tags: tags,
-      properties: processedProperties,
+      properties: propertiesStruct,
       priority: priority,
     );
   }
@@ -818,17 +915,26 @@ class LuciBuildService {
     required DatastoreService datastore,
     required firestore.Task taskDocument,
     required FirestoreService firestoreService,
-    Map<String, List<String>>? tags,
+    List<bbv2.StringPair>? tags,
     bool ignoreChecks = false,
   }) async {
     if (ignoreChecks == false && await _shouldRerunBuilderFirestore(taskDocument, firestoreService) == false) {
       return false;
     }
-    log.info('Rerun builder: ${target.value.name} for commit ${commit.sha}');
-    tags ??= <String, List<String>>{};
-    tags['trigger_type'] ??= <String>['auto_retry'];
 
-    // Updating task status first to avoid endless rerun when datastore transaction aborts.
+    log.info('Rerun builder: ${target.value.name} for commit ${commit.sha}');
+    tags ??= <bbv2.StringPair>[];
+    final bbv2.StringPair? triggerTag =
+        tags.singleWhereOrNull((element) => element.key == 'trigger_type' && element.value == 'auto_retry');
+    if (triggerTag == null) {
+      tags.add(
+        bbv2.StringPair(
+          key: 'trigger_type',
+          value: 'auto_retry',
+        ),
+      );
+    }
+
     try {
       // Updates task status in Datastore.
       task.attempts = (task.attempts ?? 0) + 1;
@@ -838,7 +944,7 @@ class LuciBuildService {
 
       // Updates task status in Firestore.
       final int newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
-      tags['current_attempt'] = <String>[newAttempt.toString()];
+      tags.add(bbv2.StringPair(key: 'current_attempt', value: newAttempt.toString()));
       taskDocument.resetAsRetry(attempt: newAttempt);
       taskDocument.setStatus(firestore.Task.statusInProgress);
       final List<Write> writes = documentsToWrites([taskDocument], exists: false);
@@ -849,9 +955,10 @@ class LuciBuildService {
       );
       return false;
     }
-    final BatchRequest request = BatchRequest(
-      requests: <Request>[
-        Request(
+
+    final bbv2.BatchRequest request = bbv2.BatchRequest(
+      requests: <bbv2.BatchRequest_Request>[
+        bbv2.BatchRequest_Request(
           scheduleBuild: await _createPostsubmitScheduleBuild(
             commit: commit,
             target: target,
@@ -863,7 +970,11 @@ class LuciBuildService {
         ),
       ],
     );
-    await pubsub.publish('scheduler-requests', request);
+
+    await pubsub.publish(
+      'cocoon-scheduler-requests',
+      request.toProto3Json(),
+    );
 
     return true;
   }
