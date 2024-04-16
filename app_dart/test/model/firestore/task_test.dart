@@ -203,7 +203,7 @@ void main() {
     });
   });
 
-  test('task toJson', () {
+  test('task facade', () {
     final Task taskDocument = generateFirestoreTask(1);
     final Map<String, dynamic> expectedResult = <String, dynamic>{
       kTaskDocumentName: taskDocument.name,
@@ -217,6 +217,6 @@ void main() {
       kTaskBuildNumber: taskDocument.buildNumber,
       kTaskStatus: taskDocument.status,
     };
-    expect(taskDocument.toJson(), expectedResult);
+    expect(taskDocument.facade, expectedResult);
   });
 }

@@ -52,7 +52,7 @@ void main() {
     expect(commitDocument.fields![kCommitShaField]!.stringValue, commit.sha);
   });
 
-  test('commit toJson', () {
+  test('commit facade', () {
     final Commit commitDocument = generateFirestoreCommit(1);
     final Map<String, dynamic> expectedResult = <String, dynamic>{
       kCommitDocumentName: commitDocument.name,
@@ -64,6 +64,6 @@ void main() {
       kCommitAvatar: commitDocument.avatar,
       kCommitBranch: commitDocument.branch,
     };
-    expect(commitDocument.toJson(), expectedResult);
+    expect(commitDocument.facade, expectedResult);
   });
 }
