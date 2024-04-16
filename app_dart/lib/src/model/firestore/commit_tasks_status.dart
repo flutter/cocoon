@@ -29,7 +29,7 @@ class SerializableCommitTasksStatus {
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'Commit': status.commit.toJson(),
-      'Tasks': status.tasks,
+      'Tasks': status.tasks.map((task) => task.facade).toList(),
     };
   }
 }
