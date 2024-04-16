@@ -5,9 +5,11 @@
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_commit;
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
+import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -26,6 +28,8 @@ void main() {
 
     final Commit commit = generateCommit(1);
 
+    final firestore_commit.Commit firestoreCommit = generateFirestoreCommit(1);
+
     setUp(() {
       mockFirestoreService = MockFirestoreService();
       config = FakeConfig(firestoreService: mockFirestoreService);
@@ -36,6 +40,46 @@ void main() {
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
+
+            final List<firestore.Task> originalFirestoreTasks = <firestore.Task>[
+        generateFirestoreTask(
+          1,
+          status: firestore.Task.statusInProgress,
+          commitSha: firestoreCommit.sha,
+        ),
+        generateFirestoreTask(
+          2,
+          status: firestore.Task.statusSucceeded,
+          commitSha: firestoreCommit.sha,
+        ),
+        // Task 3 should be vacuumed
+        generateFirestoreTask(
+          3,
+          status: firestore.Task.statusInProgress,
+          commitSha: firestoreCommit.sha,
+        ),
+      ];
+
+      final List<firestore.FullTask> originalFullTasks = originalFirestoreTasks.map((firestore.Task task) => firestore.FullTask(task, firestoreCommit)).toList();
+      
+      when(
+        mockFirestoreService.queryRecentTasks(
+          taskName: null,
+          commitLimit: 20,
+          branch: null,
+          slug: anyNamed('slug'),
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<List<firestore.FullTask>>.value(originalFullTasks);
+      });
+
+      when(
+        mockFirestoreService.writeViaTransaction(
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<CommitResponse>.value(CommitResponse());
+      });
     });
 
     test('skips when no tasks are stale', () async {
@@ -81,6 +125,7 @@ void main() {
           parent: commit,
         ),
       ];
+
       final DatastoreService datastore = DatastoreService(config.db, 5);
       await datastore.insert(originalTasks);
 

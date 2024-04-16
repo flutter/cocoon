@@ -95,21 +95,18 @@ class Task extends Document {
   ///
   /// This is _not_ when the task first started running, as tasks start out in
   /// the 'New' state until they've been picked up by an [Agent].
-  int? get createTimestamp =>
-      int.parse(fields![kTaskCreateTimestampField]!.integerValue!);
+  int? get createTimestamp => int.parse(fields![kTaskCreateTimestampField]!.integerValue!);
 
   /// The timestamp (in milliseconds since the Epoch) that this task started
   /// running.
   ///
   /// Tasks may be run more than once. If this task has been run more than
   /// once, this timestamp represents when the task was most recently started.
-  int? get startTimestamp =>
-      int.parse(fields![kTaskStartTimestampField]!.integerValue!);
+  int? get startTimestamp => int.parse(fields![kTaskStartTimestampField]!.integerValue!);
 
   /// The timestamp (in milliseconds since the Epoch) that this task last
   /// finished running.
-  int? get endTimestamp =>
-      int.parse(fields![kTaskEndTimestampField]!.integerValue!);
+  int? get endTimestamp => int.parse(fields![kTaskEndTimestampField]!.integerValue!);
 
   /// The name of the task.
   ///
@@ -144,9 +141,8 @@ class Task extends Document {
   bool? get testFlaky => fields![kTaskTestFlakyField]!.booleanValue!;
 
   /// The build number of luci build: https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/build.proto#146
-  int? get buildNumber => fields!.containsKey(kTaskBuildNumberField)
-      ? int.parse(fields![kTaskBuildNumberField]!.integerValue!)
-      : null;
+  int? get buildNumber =>
+      fields!.containsKey(kTaskBuildNumberField) ? int.parse(fields![kTaskBuildNumberField]!.integerValue!) : null;
 
   /// The status of the task.
   ///
@@ -168,13 +164,12 @@ class Task extends Document {
   }
 
   void setEndTimestamp(int endTimestamp) {
-    fields![kTaskEndTimestampField] =
-        Value(integerValue: endTimestamp.toString());
+    fields![kTaskEndTimestampField] = Value(integerValue: endTimestamp.toString());
   }
 
+
   void setCreateTimestamp(int createTimestamp) {
-    fields![kTaskCreateTimestampField] =
-        Value(integerValue: createTimestamp.toString());
+    fields![kTaskCreateTimestampField] = Value(integerValue: createTimestamp.toString());
   }
 
   void setTestFlaky(bool testFlaky) {
@@ -185,46 +180,33 @@ class Task extends Document {
   void updateFromBuild(Build build) {
     final List<String>? tags = build.tags;
     // Example tag: build_address:luci.flutter.prod/Linux Cocoon/271
-    final String? buildAddress =
-        tags?.firstWhere((String tag) => tag.contains('build_address'));
+    final String? buildAddress = tags?.firstWhere((String tag) => tag.contains('build_address'));
     if (buildAddress == null) {
       log.warning('Tags: $tags');
-      throw const BadRequestException(
-          'build_address does not contain build number');
+      throw const BadRequestException('build_address does not contain build number');
     }
-    fields![kTaskBuildNumberField] =
-        Value(integerValue: buildAddress.split('/').last);
+    fields![kTaskBuildNumberField] = Value(integerValue: buildAddress.split('/').last);
     fields![kTaskCreateTimestampField] = Value(
-      integerValue: (build.createdTimestamp?.millisecondsSinceEpoch ??
-              kTaskDefaultTimestampValue)
-          .toString(),
+      integerValue: (build.createdTimestamp?.millisecondsSinceEpoch ?? kTaskDefaultTimestampValue).toString(),
     );
     fields![kTaskStartTimestampField] = Value(
-      integerValue: (build.startedTimestamp?.millisecondsSinceEpoch ??
-              kTaskDefaultTimestampValue)
-          .toString(),
+      integerValue: (build.startedTimestamp?.millisecondsSinceEpoch ?? kTaskDefaultTimestampValue).toString(),
     );
     fields![kTaskEndTimestampField] = Value(
-      integerValue: (build.completedTimestamp?.millisecondsSinceEpoch ??
-              kTaskDefaultTimestampValue)
-          .toString(),
+      integerValue: (build.completedTimestamp?.millisecondsSinceEpoch ?? kTaskDefaultTimestampValue).toString(),
     );
 
     _setStatusFromLuciStatus(build);
   }
 
   void resetAsRetry({int attempt = 1}) {
-    name =
-        '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${taskName}_$attempt';
+    name = '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${taskName}_$attempt';
     fields = <String, Value>{
-      kTaskCreateTimestampField:
-          Value(integerValue: DateTime.now().millisecondsSinceEpoch.toString()),
-      kTaskEndTimestampField:
-          Value(integerValue: kTaskDefaultTimestampValue.toString()),
+      kTaskCreateTimestampField: Value(integerValue: DateTime.now().millisecondsSinceEpoch.toString()),
+      kTaskEndTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
       kTaskBringupField: Value(booleanValue: bringup),
       kTaskNameField: Value(stringValue: taskName),
-      kTaskStartTimestampField:
-          Value(integerValue: kTaskDefaultTimestampValue.toString()),
+      kTaskStartTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
       kTaskStatusField: Value(stringValue: Task.statusNew),
       kTaskTestFlakyField: Value(booleanValue: false),
       kTaskCommitShaField: Value(stringValue: commitSha),
@@ -287,22 +269,17 @@ class Task extends Document {
 }
 
 /// Generates task documents based on targets.
-List<Task> targetsToTaskDocuments(
-    datastore.Commit commit, List<Target> targets) {
+List<Task> targetsToTaskDocuments(datastore.Commit commit, List<Target> targets) {
   final Iterable<Task> iterableDocuments = targets.map(
     (Target target) => Task.fromDocument(
       taskDocument: Document(
-        name:
-            '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${target.value.name}_$kTaskInitialAttempt',
+        name: '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${target.value.name}_$kTaskInitialAttempt',
         fields: <String, Value>{
-          kTaskCreateTimestampField:
-              Value(integerValue: commit.timestamp!.toString()),
-          kTaskEndTimestampField:
-              Value(integerValue: kTaskDefaultTimestampValue.toString()),
+          kTaskCreateTimestampField: Value(integerValue: commit.timestamp!.toString()),
+          kTaskEndTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
           kTaskBringupField: Value(booleanValue: target.value.bringup),
           kTaskNameField: Value(stringValue: target.value.name),
-          kTaskStartTimestampField:
-              Value(integerValue: kTaskDefaultTimestampValue.toString()),
+          kTaskStartTimestampField: Value(integerValue: kTaskDefaultTimestampValue.toString()),
           kTaskStatusField: Value(stringValue: Task.statusNew),
           kTaskTestFlakyField: Value(booleanValue: false),
           kTaskCommitShaField: Value(stringValue: commit.sha),
@@ -318,17 +295,13 @@ Task taskToDocument(datastore.Task task) {
   final String commitSha = task.commitKey!.id!.split('/').last;
   return Task.fromDocument(
     taskDocument: Document(
-      name:
-          '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${task.name}_${task.attempts}',
+      name: '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${task.name}_${task.attempts}',
       fields: <String, Value>{
-        kTaskCreateTimestampField:
-            Value(integerValue: task.createTimestamp.toString()),
-        kTaskEndTimestampField:
-            Value(integerValue: task.endTimestamp.toString()),
+        kTaskCreateTimestampField: Value(integerValue: task.createTimestamp.toString()),
+        kTaskEndTimestampField: Value(integerValue: task.endTimestamp.toString()),
         kTaskBringupField: Value(booleanValue: task.isFlaky),
         kTaskNameField: Value(stringValue: task.name),
-        kTaskStartTimestampField:
-            Value(integerValue: task.startTimestamp.toString()),
+        kTaskStartTimestampField: Value(integerValue: task.startTimestamp.toString()),
         kTaskStatusField: Value(stringValue: task.status),
         kTaskTestFlakyField: Value(booleanValue: task.isTestFlaky),
         kTaskCommitShaField: Value(stringValue: commitSha),
