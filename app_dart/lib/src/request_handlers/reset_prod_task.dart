@@ -19,9 +19,6 @@ import '../model/google/token_info.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
-import '../service/firestore.dart';
-import '../service/luci_build_service.dart';
-import '../service/scheduler.dart';
 import '../service/logging.dart';
 
 /// Reruns a postsubmit LUCI build.

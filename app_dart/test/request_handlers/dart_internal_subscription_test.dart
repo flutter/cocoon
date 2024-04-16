@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:buildbucket/src/generated/google/protobuf/timestamp.pb.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
@@ -27,24 +26,42 @@ import '../src/utilities/mocks.dart';
 
 void main() {
   // Omit the timestamps for expect purposes.
-  const String message = '''
+  const String buildJson = '''
 {
-  "buildPubsub":{
-    "build":{
-      "id":8766855135863637953,
-      "builder":{
-        "project":"dart-internal",
-        "bucket":"flutter",
-        "builder":"Linux packaging_release_builder"
-      },
-      "number":123456,
-      "status":"SUCCESS",
-      "input":{
-        "gitilesCommit":{
-          "project":"flutter/flutter",
-          "id":"HASH12345",
-          "ref":"refs/heads/test-branch"
-        }
+  "id": "8766855135863637953",
+  "builder": {
+    "project": "dart-internal",
+    "bucket": "flutter",
+    "builder": "Linux packaging_release_builder"
+  },
+  "number": 123456,
+  "status": "SUCCESS",
+  "input": {
+    "gitilesCommit": {
+      "project": "flutter/flutter",
+      "id": "HASH12345",
+      "ref": "refs/heads/test-branch"
+    }
+  }
+}
+''';
+
+  const String buildMessageJson = '''
+{
+  "build": {
+    "id": "8766855135863637953",
+    "builder": {
+      "project": "dart-internal",
+      "bucket": "flutter",
+      "builder": "Linux packaging_release_builder"
+    },
+    "number": 123456,
+    "status": "SUCCESS",
+    "input": {
+      "gitilesCommit": {
+        "project": "flutter/flutter",
+        "id": "HASH12345",
+        "ref": "refs/heads/test-branch"
       }
     }
   }
@@ -95,10 +112,12 @@ void main() {
       timestamp: 0,
     );
 
-    final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
-    pubSubCallBackTest.mergeFromProto3Json(jsonDecode(message));
+    // final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
+    // pubSubCallBackTest.mergeFromProto3Json(jsonDecode(message));
+    final bbv2.Build build = bbv2.Build().createEmptyInstance();
+    build.mergeFromProto3Json(jsonDecode(buildJson) as Map<String, dynamic>);
 
-    const PushMessageV2 pushMessageV2 = PushMessageV2(data: message, messageId: '798274983');
+    const PushMessageV2 pushMessageV2 = PushMessageV2(data: buildJson, messageId: '798274983');
     tester.message = pushMessageV2;
 
     when(
@@ -106,7 +125,7 @@ void main() {
         any,
         buildBucketUri: 'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds',
       ),
-    ).thenAnswer((_) => Future<bbv2.Build>.value(pubSubCallBackTest.buildPubsub.build));
+    ).thenAnswer((_) => Future<bbv2.Build>.value(build));
 
     final List<Commit> datastoreCommit = <Commit>[commit];
     await config.db.commit(inserts: datastoreCommit);
@@ -121,7 +140,7 @@ void main() {
     ).thenAnswer((Invocation invocation) {
       return Future<BatchWriteResponse>.value(BatchWriteResponse());
     });
-    tester.message = const PushMessageV2(data: message);
+    tester.message = const PushMessageV2(data: buildMessageJson);
 
     await tester.post(handler);
 
@@ -214,10 +233,7 @@ void main() {
     final List<Task> datastoreCommit = <Task>[fakeTask];
     await config.db.commit(inserts: datastoreCommit);
 
-    final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
-    pubSubCallBackTest.mergeFromProto3Json(jsonDecode(message));
-
-    const PushMessageV2 pushMessageV2 = PushMessageV2(data: message, messageId: '798274983');
+    const PushMessageV2 pushMessageV2 = PushMessageV2(data: buildMessageJson, messageId: '798274983');
     tester.message = pushMessageV2;
 
     await tester.post(handler);
@@ -292,30 +308,25 @@ void main() {
   test('ignores message not from flutter bucket', () async {
     const String dartMessage = '''
 {
-  "buildPubsub":{
-    "build":{
-      "id":8766855135863637953,
-      "builder":{
-        "project":"dart-internal",
-        "bucket":"dart",
-        "builder":"Linux packaging_release_builder"
-      },
-      "number":123456,
-      "status":"SUCCESS",
-      "input":{
-        "gitilesCommit":{
-          "project":"flutter/flutter",
-          "id":"HASH12345",
-          "ref":"refs/heads/test-branch"
-        }
+  "build": {
+    "id": "8766855135863637953",
+    "builder": {
+      "project": "dart-internal",
+      "bucket": "dart",
+      "builder": "Linux packaging_release_builder"
+    },
+    "number": 123456,
+    "status": "SUCCESS",
+    "input": {
+      "gitilesCommit": {
+        "project":"flutter/flutter",
+        "id":"HASH12345",
+        "ref":"refs/heads/test-branch"
       }
     }
   }
 }
 ''';
-
-    final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
-    pubSubCallBackTest.mergeFromProto3Json(jsonDecode(dartMessage));
 
     const PushMessageV2 pushMessageV2 = PushMessageV2(data: dartMessage, messageId: '798274983');
     tester.message = pushMessageV2;
@@ -325,30 +336,25 @@ void main() {
   test('ignores message not from dart-internal project', () async {
     const String unsupportedProjectMessage = '''
 {
-  "buildPubsub":{
-    "build":{
-      "id":8766855135863637953,
-      "builder":{
-        "project":"unsupported-project",
-        "bucket":"dart",
-        "builder":"Linux packaging_release_builder"
-      },
-      "number":123456,
-      "status":"SUCCESS",
-      "input":{
-        "gitilesCommit":{
-          "project":"flutter/flutter",
-          "id":"HASH12345",
-          "ref":"refs/heads/test-branch"
-        }
+  "build": {
+    "id": "8766855135863637953",
+    "builder": {
+      "project": "unsupported-project",
+      "bucket": "dart",
+      "builder": "Linux packaging_release_builder"
+    },
+    "number": 123456,
+    "status": "SUCCESS",
+    "input": {
+      "gitilesCommit": {
+        "project": "flutter/flutter",
+        "id": "HASH12345",
+        "ref": "refs/heads/test-branch"
       }
     }
   }
 }
 ''';
-
-    final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
-    pubSubCallBackTest.mergeFromProto3Json(jsonDecode(unsupportedProjectMessage));
 
     const PushMessageV2 pushMessageV2 = PushMessageV2(data: unsupportedProjectMessage, messageId: '798274983');
     tester.message = pushMessageV2;
@@ -358,101 +364,28 @@ void main() {
   test('ignores message not from an accepted builder', () async {
     const String unknownBuilderMessage = '''
 {
-  "buildPubsub":{
-    "build":{
-      "id":8766855135863637953,
-      "builder":{
-        "project":"dart-internal",
-        "bucket":"dart",
-        "builder":"different builder"
-      },
-      "number":123456,
-      "status":"SUCCESS",
-      "input":{
-        "gitilesCommit":{
-          "project":"flutter/flutter",
-          "id":"HASH12345",
-          "ref":"refs/heads/test-branch"
-        }
+  "build": {
+    "id": "8766855135863637953",
+    "builder": {
+      "project": "dart-internal",
+      "bucket": "dart",
+      "builder": "different builder"
+    },
+    "number": 123456,
+    "status": "SUCCESS",
+    "input": {
+      "gitilesCommit": {
+        "project": "flutter/flutter",
+        "id": "HASH12345",
+        "ref": "refs/heads/test-branch"
       }
     }
   }
 }
 ''';
 
-    final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
-    pubSubCallBackTest.mergeFromProto3Json(jsonDecode(unknownBuilderMessage));
-
     const PushMessageV2 pushMessageV2 = PushMessageV2(data: unknownBuilderMessage, messageId: '798274983');
     tester.message = pushMessageV2;
     expect(await tester.post(handler), equals(Body.empty));
   });
-}
-
-bbv2.PubSubCallBack _constructPubSubCallBack({
-  String? project,
-  String? bucket,
-  String? builder,
-  String? gitilesCommitProject,
-  String? gitilesHash,
-  String? gitilesRef,
-  int? buildNumber,
-  Int64? buildId,
-  bbv2.Status? buildStatus,
-  DateTime? createTime,
-  DateTime? startTime,
-  DateTime? endTime,
-}) {
-  project = project ?? 'dart-internal';
-  bucket = bucket ?? 'flutter';
-  builder = builder ?? 'Linux packaging_release_builder';
-  gitilesCommitProject = gitilesCommitProject ?? 'flutter/flutter';
-  gitilesHash = gitilesHash ?? 'HASH12345';
-  gitilesRef = gitilesRef ?? 'refs/heads/test-branch';
-  buildNumber = buildNumber ?? 123456;
-  buildId = buildId ?? Int64(8766855135863637953);
-  buildStatus = buildStatus ?? bbv2.Status.SUCCESS;
-  createTime = createTime ?? DateTime(2023, 1, 1, 0, 0, 0);
-  startTime = startTime ?? DateTime(2023, 1, 1, 0, 0, 0);
-  endTime = endTime ?? DateTime(2023, 1, 1, 0, 14, 23);
-
-  final bbv2.Build fakeBuild = bbv2.Build();
-
-  // Create the builder id for the fake build.
-  final bbv2.BuilderID builderID = bbv2.BuilderID();
-  builderID.project = project;
-  builderID.bucket = bucket;
-  builderID.builder = builder;
-
-  // Create the gitilescommit for the build input.
-  final bbv2.GitilesCommit gitilesCommit = bbv2.GitilesCommit();
-  gitilesCommit.project = gitilesCommitProject;
-  gitilesCommit.id = gitilesHash;
-  gitilesCommit.ref = gitilesRef;
-
-  // Init the build input which is actually just the input.
-  final bbv2.Build_Input input = bbv2.Build_Input();
-  input.gitilesCommit = gitilesCommit;
-
-  // Compile the build object with the required params.
-  fakeBuild.builder = builderID;
-  fakeBuild.input = input;
-  fakeBuild.number = buildNumber;
-  fakeBuild.id = buildId;
-  fakeBuild.status = buildStatus;
-  final Timestamp buildCreateTime = Timestamp.fromDateTime(createTime);
-  fakeBuild.createTime = buildCreateTime;
-  final Timestamp buildStartTime = Timestamp.fromDateTime(startTime);
-  fakeBuild.startTime = buildStartTime;
-  final Timestamp buildEndTime = Timestamp.fromDateTime(endTime);
-  fakeBuild.endTime = buildEndTime;
-
-  final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack();
-  final bbv2.BuildsV2PubSub buildsV2PubSub = bbv2.BuildsV2PubSub();
-
-  buildsV2PubSub.build = fakeBuild;
-
-  pubSubCallBack.buildPubsub = buildsV2PubSub;
-
-  return pubSubCallBack;
 }
