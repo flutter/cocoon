@@ -546,6 +546,70 @@ void main() {
           );
         });
 
+        test('runs on engine release branches', () async {
+          // New commit
+          final PullRequest pr = newPullRequest(123, 'abc', 'flutter-3.8-candidate.8');
+          enginePrsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(engineSlug, pr, '', '', '');
+          db.values[status.key] = status;
+          githubGoldStatusEngine = newGithubGoldStatus(engineSlug, pr, '', '', '');
+
+          // All checks completed
+          engineCheckRuns = <dynamic>[
+            <String, String>{'name': 'Linux linux_web_engine', 'status': 'completed', 'conclusion': 'success'},
+          ];
+
+          // Change detected by Gold
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'https://flutter-engine-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+              return http.Response(tryjobDigests(pr), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config: config,
+            authenticationProvider: auth,
+            datastoreProvider: (DatastoreDB db) {
+              return DatastoreService(
+                config.db,
+                5,
+                retryOptions: retryOptions,
+              );
+            },
+            goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
+          );
+
+          // Have not already commented for this commit.
+          when(issuesService.listCommentsByIssue(engineSlug, pr.number!)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = 'some other comment',
+            ),
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+
+          verify(
+            issuesService.addLabelsToIssue(
+              engineSlug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          ).called(1);
+
+          verify(
+            issuesService.createComment(
+              engineSlug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          ).called(1);
+        });
+
         test('does nothing for branches not staged to land on main/master', () async {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc', 'release');
