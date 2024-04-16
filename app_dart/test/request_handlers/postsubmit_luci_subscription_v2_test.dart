@@ -52,12 +52,14 @@ void main() {
     when(mockGithubChecksService.githubChecksUtil).thenReturn(mockGithubChecksUtil);
     when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
         .thenAnswer((_) async => generateCheckRun(1, name: 'Linux A'));
-    when(mockGithubChecksService.updateCheckStatus(
-            build: anyNamed('build'),
-            userDataMap: anyNamed('userDataMap'),
-            luciBuildService: anyNamed('luciBuildService'),
-            slug: anyNamed('slug')))
-        .thenAnswer((_) async => true);
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+      ),
+    ).thenAnswer((_) async => true);
     when(
       mockFirestoreService.getDocument(
         captureAny,
@@ -439,12 +441,14 @@ void main() {
   test('non-bringup target updates check run', () async {
     firestoreTask = generateFirestoreTask(1, name: 'Linux nonbringup');
     scheduler.ciYaml = nonBringupPackagesConfig;
-    when(mockGithubChecksService.updateCheckStatus(
-      build: anyNamed('build'),
-      userDataMap: anyNamed('userDataMap'),
-      luciBuildService: anyNamed('luciBuildService'),
-      slug: anyNamed('slug'),
-    )).thenAnswer((_) async => true);
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+      ),
+    ).thenAnswer((_) async => true);
     when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822', repo: 'packages');
     final Task task = generateTask(
@@ -471,23 +475,27 @@ void main() {
     );
 
     await tester.post(handler);
-    verify(mockGithubChecksService.updateCheckStatus(
-      build: anyNamed('build'),
-      userDataMap: anyNamed('userDataMap'),
-      luciBuildService: anyNamed('luciBuildService'),
-      slug: anyNamed('slug'),
-    )).called(1);
+    verify(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+      ),
+    ).called(1);
   });
 
   test('bringup target does not update check run', () async {
     firestoreTask = generateFirestoreTask(1, name: 'Linux bringup');
     scheduler.ciYaml = bringupPackagesConfig;
-    when(mockGithubChecksService.updateCheckStatus(
-      build: anyNamed('build'),
-      userDataMap: anyNamed('userDataMap'),
-      luciBuildService: anyNamed('luciBuildService'),
-      slug: anyNamed('slug'),
-    )).thenAnswer((_) async => true);
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+      ),
+    ).thenAnswer((_) async => true);
     when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
@@ -514,22 +522,26 @@ void main() {
     );
 
     await tester.post(handler);
-    verifyNever(mockGithubChecksService.updateCheckStatus(
-      build: anyNamed('build'),
-      userDataMap: anyNamed('userDataMap'),
-      luciBuildService: anyNamed('luciBuildService'),
-      slug: anyNamed('slug'),
-    ));
+    verifyNever(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+      ),
+    );
   });
 
   test('unsupported repo target does not update check run', () async {
     scheduler.ciYaml = unsupportedPostsubmitCheckrunConfig;
-    when(mockGithubChecksService.updateCheckStatus(
-      build: anyNamed('build'),
-      userDataMap: anyNamed('userDataMap'),
-      luciBuildService: anyNamed('luciBuildService'),
-      slug: anyNamed('slug'),
-    )).thenAnswer((_) async => true);
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+      ),
+    ).thenAnswer((_) async => true);
     when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
     firestoreTask = generateFirestoreTask(1, attempts: 2, name: 'Linux flutter');
 
@@ -558,11 +570,13 @@ void main() {
     );
 
     await tester.post(handler);
-    verifyNever(mockGithubChecksService.updateCheckStatus(
-      build: anyNamed('build'),
-      userDataMap: anyNamed('userDataMap'),
-      luciBuildService: anyNamed('luciBuildService'),
-      slug: anyNamed('slug'),
-    ));
+    verifyNever(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+      ),
+    );
   });
 }

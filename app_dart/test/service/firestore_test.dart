@@ -136,63 +136,7 @@ void main() {
       );
 
       task.updateFromBuildV2(build);
-
-      final Write w = Write(
-        update: task,
-        currentDocument: Precondition(exists: true),
-      );
-
-      final BatchWriteRequest batchWriteRequest = BatchWriteRequest(writes: [w]);
-
-      // gives
-      /*
-{
-  "writes":[
-    {
-      "currentDocument":{
-        "exists":true
-      },
-      "update":{
-        "fields":{
-          "createTimestamp":{
-            "integerValue":"1711582571895"
-          },
-          "startTimestamp":{
-            "integerValue":"1711582578758"
-          },
-          "endTimestamp":{
-            "integerValue":"0"
-          },
-          "bringup":{
-            "booleanValue":false
-          },
-          "testFlaky":{
-            "booleanValue":false
-          },
-          "status":{
-            "stringValue":"In Progress"
-          },
-          "name":{
-            "stringValue":"Mac_arm64 module_test_ios"
-          },
-          "commitSha":{
-            "stringValue":"asldjflaksdjflkasjdflkasjf"
-          },
-          "buildNumber":{
-            "integerValue":"561"
-          }
-        },
-        "name":"asldjflaksdjflkasjdflkasjf_Mac_arm64 module_test_ios_1"
-      }
-    }
-  ]
-}
-      */
-    });
-
-    test('Empty tag', () {
-      final bbv2.StringPair stringPair = bbv2.StringPair().createEmptyInstance();
-      expect(stringPair.hasKey(), false);
+      expect(task.status, 'In Progress');
     });
   });
 
@@ -206,6 +150,7 @@ void main() {
         commitSha: 'asldjflaksdjflkasjdflkasjf',
       );
       task.updateFromBuild(build!);
+      expect(task.status, 'Succeeded');
     });
   });
 }

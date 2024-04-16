@@ -4,8 +4,6 @@
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/cocoon_service.dart';
-// import 'package:cocoon_service/src/model/luci/buildbucket.dart' as bb;
-// import 'package:cocoon_service/src/model/luci/push_message.dart';
 import 'package:cocoon_service/src/request_handlers/presubmit_luci_subscription_v2.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:mockito/mockito.dart';
@@ -14,15 +12,11 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
-// import '../src/request_handling/subscription_tester.dart';
 import '../src/request_handling/subscription_v2_tester.dart';
-// import '../src/service/fake_luci_build_service.dart';
-// import '../src/service/fake_scheduler.dart';
 import '../src/service/fake_luci_build_service_v2.dart';
 import '../src/service/fake_scheduler_v2.dart';
 import '../src/utilities/build_bucket_v2_messages.dart';
 import '../src/utilities/mocks.dart';
-// import '../src/utilities/push_message.dart';
 
 const String ref = 'deadbeef';
 
@@ -124,12 +118,14 @@ void main() {
   });
 
   test('Requests when task failed but no need to reschedule', () async {
-    when(mockGithubChecksService.updateCheckStatus(
-      build: anyNamed('build'),
-      userDataMap: anyNamed('userDataMap'),
-      luciBuildService: anyNamed('luciBuildService'),
-      slug: anyNamed('slug'),
-    )).thenAnswer((_) async => true);
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+      ),
+    ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
     when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 1);
 
@@ -187,13 +183,15 @@ void main() {
   });
 
   test('Requests when task failed but need to reschedule', () async {
-    when(mockGithubChecksService.updateCheckStatus(
-      build: anyNamed('build'),
-      userDataMap: anyNamed('userDataMap'),
-      luciBuildService: anyNamed('luciBuildService'),
-      slug: anyNamed('slug'),
-      rescheduled: true,
-    )).thenAnswer((_) async => true);
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        rescheduled: true,
+      ),
+    ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
     when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 0);
 
@@ -239,23 +237,27 @@ void main() {
         userDataMap: userDataMap,
       ),
     );
-    verify(mockGithubChecksService.updateCheckStatus(
-      build: anyNamed('build'),
-      userDataMap: anyNamed('userDataMap'),
-      luciBuildService: anyNamed('luciBuildService'),
-      slug: anyNamed('slug'),
-      rescheduled: true,
-    )).called(1);
+    verify(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        rescheduled: true,
+      ),
+    ).called(1);
   });
 
   test('Build not rescheduled if not found in ciYaml list.', () async {
-    when(mockGithubChecksService.updateCheckStatus(
-      build: anyNamed('build'),
-      userDataMap: anyNamed('userDataMap'),
-      luciBuildService: anyNamed('luciBuildService'),
-      slug: anyNamed('slug'),
-      rescheduled: false,
-    )).thenAnswer((_) async => true);
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        rescheduled: false,
+      ),
+    ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
     when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 1);
 
@@ -288,12 +290,14 @@ void main() {
         rescheduleAttempt: 1,
       ),
     );
-    verify(mockGithubChecksService.updateCheckStatus(
-      build: anyNamed('build'),
-      userDataMap: anyNamed('userDataMap'),
-      luciBuildService: anyNamed('luciBuildService'),
-      slug: anyNamed('slug'),
-      rescheduled: false,
-    )).called(1);
+    verify(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        rescheduled: false,
+      ),
+    ).called(1);
   });
 }
