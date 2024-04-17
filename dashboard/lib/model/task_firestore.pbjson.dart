@@ -28,6 +28,7 @@ const TaskDocument$json = {
     {'1': 'build_number', '3': 9, '4': 1, '5': 5, '10': 'buildNumber'},
     {'1': 'status', '3': 10, '4': 1, '5': 9, '10': 'status'},
     {'1': 'build_list', '3': 11, '4': 1, '5': 9, '10': 'buildList'},
+    {'1': 'commit_sha', '3': 12, '4': 1, '5': 9, '10': 'commitSha'},
   ],
 };
 
@@ -39,4 +40,5 @@ final $typed_data.Uint8List taskDocumentDescriptor =
         'VzdGFtcBIbCgl0YXNrX25hbWUYBSABKAlSCHRhc2tOYW1lEhoKCGF0dGVtcHRzGAYgASgFUghh'
         'dHRlbXB0cxIYCgdicmluZ3VwGAcgASgIUgdicmluZ3VwEh0KCnRlc3RfZmxha3kYCCABKAhSCX'
         'Rlc3RGbGFreRIhCgxidWlsZF9udW1iZXIYCSABKAVSC2J1aWxkTnVtYmVyEhYKBnN0YXR1cxgK'
-        'IAEoCVIGc3RhdHVzEh0KCmJ1aWxkX2xpc3QYCyABKAlSCWJ1aWxkTGlzdA==');
+        'IAEoCVIGc3RhdHVzEh0KCmJ1aWxkX2xpc3QYCyABKAlSCWJ1aWxkTGlzdBIdCgpjb21taXRfc2'
+        'hhGAwgASgJUgljb21taXRTaGE=');

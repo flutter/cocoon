@@ -83,7 +83,8 @@ const String luciJsonGetStatsResponseFirestore = '''
                 "TaskName": "linux",
                 "StartTimestamp": 1569354594672,
                 "BuildNumber": 123,
-                "TestFlaky": false
+                "TestFlaky": false,
+                "CommitSha": "testSha"
               },
               "BuildList": "123"
             }

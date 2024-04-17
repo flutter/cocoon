@@ -50,7 +50,9 @@ class AppEngineCocoonService implements CocoonService {
 
   static const String kTaskAttempts = 'Attempts';
   static const String kTaskBringup = 'Bringup';
+  static const String kTaskBuildList = 'BuildList';
   static const String kTaskBuildNumber = 'BuildNumber';
+  static const String kTaskCommitSha = 'CommitSha';
   static const String kTaskCreateTimestamp = 'CreateTimestamp';
   static const String kTaskDocumentName = 'DocumentName';
   static const String kTaskEndTimestamp = 'EndTimestamp';
@@ -413,7 +415,8 @@ class AppEngineCocoonService implements CocoonService {
       ..bringup = taskData[kTaskBringup] as bool
       ..status = taskData[kTaskStatus] as String
       ..testFlaky = taskData[kTaskTestFlaky] as bool? ?? false
-      ..buildList = taskModelData['BuildList'] as String;
+      ..buildList = taskModelData[kTaskBuildList] as String
+      ..commitSha = taskData[kTaskCommitSha] as String;
     if (taskData[kTaskBuildNumber] != null) {
       task.buildNumber = taskData[kTaskBuildNumber] as int;
     }
