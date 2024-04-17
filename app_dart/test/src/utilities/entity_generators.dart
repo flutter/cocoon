@@ -182,7 +182,8 @@ GithubBuildStatus generateFirestoreGithubBuildStatus(
   int? pr,
   String owner = 'flutter',
   String repo = 'flutter',
-  int? updates,
+  int updates = 0,
+  String status = GithubBuildStatus.statusSuccess,
 }) {
   pr ??= i;
   head ??= 'sha$i';
@@ -193,6 +194,7 @@ GithubBuildStatus generateFirestoreGithubBuildStatus(
       kGithubBuildStatusPrNumberField: Value(integerValue: pr.toString()),
       kGithubBuildStatusRepositoryField: Value(stringValue: '$owner/$repo'),
       kGithubBuildStatusUpdatesField: Value(integerValue: updates.toString()),
+      kGithubBuildStatusStatusField: Value(stringValue: status),
     };
   return githubBuildStatus;
 }
