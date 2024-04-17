@@ -1053,9 +1053,9 @@ class BuilderConfig extends $pb.GeneratedMessage {
   ///  Lower means more important.
   ///
   ///  The default value is configured in
-  ///  https://chrome-internal.googlesource.com/infradata/config/+/master/configs/cr-buildbucket/swarming_task_template.json
+  ///  https://chrome-internal.googlesource.com/infradata/config/+/89dede6f6a67eb06946a6009a6a88d377e957d25/configs/cr-buildbucket/swarming_task_template.json
   ///
-  ///  See also https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/doc/User-Guide.md#request
+  ///  See also https://chromium.googlesource.com/infra/luci/luci-py.git/+/main/appengine/swarming/doc/User-Guide.md#request
   @$pb.TagNumber(5)
   $core.int get priority => $_getIZ(4);
   @$pb.TagNumber(5)
