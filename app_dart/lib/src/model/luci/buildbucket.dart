@@ -11,9 +11,9 @@ import '../google/grpc.dart';
 part 'buildbucket.g.dart';
 
 // The classes in this file are based on protos found in:
-// https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/build.proto
-// https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/common.proto
-// https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/rpc.proto
+// https://chromium.googlesource.com/infra/luci/luci-go/+/main/buildbucket/proto/build.proto
+// https://chromium.googlesource.com/infra/luci/luci-go/+/main/buildbucket/proto/common.proto
+// https://chromium.googlesource.com/infra/luci/luci-go/+/main/buildbucket/proto/builds_service.proto
 //
 // The `fromJson` methods in this class are static rather than factories so that
 // they can be passed as arguments to other functions looking for a parser.

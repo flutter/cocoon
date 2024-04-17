@@ -253,7 +253,7 @@ cores: "8"
   <tr>
     <td>dependencies</td>
     <td>JSON list of objects with "dependency" and optionally "version".
-The list of supported deps is in <a href="https://cs.opensource.google/flutter/recipes/+/master:recipe_modules/flutter_deps/api.py">flutter_deps recipe_module</a>.
+The list of supported deps is in <a href="https://cs.opensource.google/flutter/recipes/+/main:recipe_modules/flutter_deps/api.py">flutter_deps recipe_module</a>.
 Dependencies generate a corresponding swarming cache that can be used in the
 recipe code. The path of the cache will be the name of the dependency.
 <br>

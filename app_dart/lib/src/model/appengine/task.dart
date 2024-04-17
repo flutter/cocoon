@@ -324,7 +324,7 @@ class Task extends Model<int> {
   @JsonKey(name: 'Reason')
   String? reason;
 
-  /// The build number of luci build: https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/build.proto#146
+  /// The build number of luci build: https://chromium.googlesource.com/infra/luci/luci-go/+/main/buildbucket/proto/build.proto#146
   @IntProperty(propertyName: 'BuildNumber')
   @JsonKey(name: 'BuildNumber')
   int? buildNumber;

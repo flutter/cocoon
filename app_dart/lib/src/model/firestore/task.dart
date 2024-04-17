@@ -157,7 +157,7 @@ class Task extends Document {
   ///  * <https://github.com/flutter/flutter/blob/main/dev/devicelab/lib/framework/runner.dart>
   bool? get testFlaky => fields![kTaskTestFlakyField]!.booleanValue!;
 
-  /// The build number of luci build: https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/build.proto#146
+  /// The build number of luci build: https://chromium.googlesource.com/infra/luci/luci-go/+/main/buildbucket/proto/build.proto#146
   int? get buildNumber =>
       fields!.containsKey(kTaskBuildNumberField) ? int.parse(fields![kTaskBuildNumberField]!.integerValue!) : null;
 
