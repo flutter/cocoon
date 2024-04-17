@@ -54,7 +54,7 @@ made of multiple _tasks_. Tasks are _performed_ by _LUCI bots_.
 ## Getting started
 
 First, [set up a Flutter development
-environment](https://github.com/flutter/flutter/blob/master/CONTRIBUTING.md#developing-for-flutter).
+environment](https://github.com/flutter/flutter/blob/main/CONTRIBUTING.md#developing-for-flutter).
 This will, as a side-effect, provide you with a Dart SDK. Your life
 will be easier if you add that (`.../flutter/bin/cache/dart-sdk/bin/`)
 to your path.

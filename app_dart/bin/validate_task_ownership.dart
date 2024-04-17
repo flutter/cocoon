@@ -67,7 +67,7 @@ Future<void> main(List<String> args) async {
   if (noOwnerBuilders.isNotEmpty) {
     print('# Test ownership check failed.');
     print('Builders missing owner: $noOwnerBuilders');
-    print('Please define ownership in https://github.com/flutter/flutter/blob/master/TESTOWNERS');
+    print('Please define ownership in https://github.com/flutter/flutter/blob/main/TESTOWNERS');
     io.exit(1);
   } else {
     print('# Test ownership check succeeded.');

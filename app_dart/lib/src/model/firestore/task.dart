@@ -144,7 +144,7 @@ class Task extends Document {
   ///
   /// See also:
   ///
-  ///  * <https://github.com/flutter/flutter/blob/master/.ci.yaml>
+  ///  * <https://github.com/flutter/flutter/blob/main/.ci.yaml>
   ///
   /// A flaky (`bringup: true`) task will not block the tree.
   bool? get bringup => fields![kTaskBringupField]!.booleanValue!;
@@ -154,7 +154,7 @@ class Task extends Document {
   /// Test runner supports rerun, and this flag tracks if a flake happens.
   ///
   /// See also:
-  ///  * <https://github.com/flutter/flutter/blob/master/dev/devicelab/lib/framework/runner.dart>
+  ///  * <https://github.com/flutter/flutter/blob/main/dev/devicelab/lib/framework/runner.dart>
   bool? get testFlaky => fields![kTaskTestFlakyField]!.booleanValue!;
 
   /// The build number of luci build: https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/build.proto#146

@@ -150,7 +150,7 @@ class BuildPushMessage extends JsonBody {
   Map<String, dynamic> toJson() => _$BuildPushMessageToJson(this);
 }
 
-/// See https://github.com/luci/luci-go/blob/master/common/api/buildbucket/buildbucket/v1/buildbucket-gen.go#L332ƒ
+/// See https://github.com/luci/luci-go/blob/main/common/api/buildbucket/buildbucket/v1/buildbucket-gen.go#L332ƒ
 @JsonSerializable(includeIfNull: false)
 class Build extends JsonBody {
   const Build({
