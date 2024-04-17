@@ -80,7 +80,7 @@ targets:
 
 #
 # Devicelab example:
-# For tests that are located https://github.com/flutter/flutter/tree/master/dev/devicelab/bin/tasks:
+# For tests that are located https://github.com/flutter/flutter/tree/main/dev/devicelab/bin/tasks:
 # 1) target name follows format of `<platform> <taskname>`
 # 2) properties
 #    2.1) update `tags` based on hosts, devices, and tests type. These tags will be used for statistic analysis.

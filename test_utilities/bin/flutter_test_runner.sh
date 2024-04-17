@@ -4,7 +4,7 @@
 # found in the LICENSE file.
 
 # This file is used by
-# https://github.com/flutter/tests/tree/master/registry/flutter_cocoon.test
+# https://github.com/flutter/tests/tree/main/registry/flutter_cocoon.test
 # to run the tests of certain packages in this repository as a presubmit
 # for the flutter/flutter repository.
 # Changes to this file (and any tests in this repository) are only honored
