@@ -73,16 +73,19 @@ const String luciJsonGetStatsResponseFirestore = '''
             },
           "Tasks": [
             {
-              "DocumentName": "task/document/name",
-              "Status": "Succeeded",
-              "Attempts": 1,
-              "CreateTimestamp": 1569353940885,
-              "EndTimestamp": 1569354700642,
-              "Bringup": false,
-              "TaskName": "linux",
-              "StartTimestamp": 1569354594672,
-              "BuildNumber": 123,
-              "TestFlaky": false
+              "Task": {
+                "DocumentName": "task/document/name",
+                "Status": "Succeeded",
+                "Attempts": 1,
+                "CreateTimestamp": 1569353940885,
+                "EndTimestamp": 1569354700642,
+                "Bringup": false,
+                "TaskName": "linux",
+                "StartTimestamp": 1569354594672,
+                "BuildNumber": 123,
+                "TestFlaky": false
+              },
+              "BuildList": "123"
             }
           ]
         }
