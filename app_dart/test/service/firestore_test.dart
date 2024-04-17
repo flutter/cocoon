@@ -117,20 +117,4 @@ void main() {
       expect(resultOrder.field!.fieldPath, 'createTimestamp');
     });
   });
-
-  group('queryRecentTasks', () {
-
-    test('returns list of FullTask tasks', () async {
-      final FirestoreService firestoreService = FirestoreService(AccessClientProvider());
-
-      final List<Task> originalTasks = <Task>[
-        generateFirestoreTask(1);,
-        generateFirestoreTask(2);,
-      ];
-
-      final List<Write> writes firestoreService.documentsToWrites(originalTasks)
-      await firestoreService.writeViaTransaction(writes);
-      expect(originalTasks, firestoreService.queryRecentTasks())
-    });
-  });
 }
