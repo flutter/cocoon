@@ -61,7 +61,7 @@ void main() {
       ];
 
       final List<firestore.FullTask> originalFullTasks = originalFirestoreTasks.map((firestore.Task task) => firestore.FullTask(task, firestoreCommit)).toList();
-      
+
       when(
         mockFirestoreService.queryRecentTasks(
           taskName: null,
