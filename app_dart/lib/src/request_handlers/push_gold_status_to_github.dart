@@ -78,9 +78,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         continue;
       }
 
-      final String defaultBranch = Config.defaultBranch(slug);
-      if (pr.base!.ref != defaultBranch) {
-        log.fine('This change is not staged to land on $defaultBranch, skipping.');
+      if (!Config.doesSkiaGoldRunOnBranch(slug, pr.base!.ref)) {
+        log.fine('This change\'s destination, ${pr.base!.ref}, does not run Skia Gold checks, skipping.');
         // This is potentially a release branch, or another change not landing
         // on master, we don't need a Gold check.
         continue;

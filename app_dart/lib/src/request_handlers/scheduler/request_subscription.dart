@@ -48,6 +48,7 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
       try {
         jsonData = jsonDecode(data) as Map<String, dynamic>;
       } on FormatException {
+        log.info('alternate decoding method being tried.');
         jsonData = json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>;
       }
       request = BatchRequest.fromJson(jsonData);

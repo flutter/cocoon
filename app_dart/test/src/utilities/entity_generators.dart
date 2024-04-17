@@ -139,6 +139,9 @@ firestore_commit.Commit generateFirestoreCommit(
   String? owner = 'flutter',
   String repo = 'flutter',
   int? createTimestamp,
+  String? message = 'test message',
+  String? author = 'author',
+  String? avatar = 'avatar',
 }) {
   final firestore_commit.Commit commit = firestore_commit.Commit()
     ..name = sha ?? '$i'
@@ -146,6 +149,9 @@ firestore_commit.Commit generateFirestoreCommit(
       firestore_commit.kCommitCreateTimestampField: Value(integerValue: (createTimestamp ?? i).toString()),
       firestore_commit.kCommitRepositoryPathField: Value(stringValue: '$owner/$repo'),
       firestore_commit.kCommitBranchField: Value(stringValue: branch),
+      firestore_commit.kCommitMessageField: Value(stringValue: message),
+      firestore_commit.kCommitAuthorField: Value(stringValue: author),
+      firestore_commit.kCommitAvatarField: Value(stringValue: avatar),
       firestore_commit.kCommitShaField: Value(stringValue: sha ?? '$i'),
     };
   return commit;

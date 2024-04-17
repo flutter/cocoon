@@ -18,6 +18,16 @@ const String kCommitMessageField = 'message';
 const String kCommitRepositoryPathField = 'repositoryPath';
 const String kCommitShaField = 'sha';
 
+/// Commit Json keys.
+const String kCommitAvatar = 'Avatar';
+const String kCommitAuthor = 'Author';
+const String kCommitBranch = 'Branch';
+const String kCommitCreateTimestamp = 'CreateTimestamp';
+const String kCommitDocumentName = 'DocumentName';
+const String kCommitMessage = 'Message';
+const String kCommitRepositoryPath = 'RepositoryPath';
+const String kCommitSha = 'Sha';
+
 class Commit extends Document {
   /// Lookup [Commit] from Firestore.
   ///
@@ -70,6 +80,19 @@ class Commit extends Document {
 
   /// [RepositorySlug] of where this commit exists.
   RepositorySlug get slug => RepositorySlug.full(repositoryPath!);
+
+  Map<String, dynamic> get facade {
+    return <String, dynamic>{
+      kCommitDocumentName: name,
+      kCommitRepositoryPath: repositoryPath,
+      kCommitCreateTimestamp: createTimestamp,
+      kCommitSha: sha,
+      kCommitMessage: message,
+      kCommitAuthor: author,
+      kCommitAvatar: avatar,
+      kCommitBranch: branch,
+    };
+  }
 
   @override
   String toString() {

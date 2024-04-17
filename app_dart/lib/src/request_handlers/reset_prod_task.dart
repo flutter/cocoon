@@ -21,9 +21,9 @@ import '../request_handling/exceptions.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/firestore.dart';
-import '../service/logging.dart';
 import '../service/luci_build_service.dart';
 import '../service/scheduler.dart';
+import '../service/logging.dart';
 
 /// Reruns a postsubmit LUCI build.
 ///
@@ -47,6 +47,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   static const String ownerParam = 'Owner';
   static const String repoParam = 'Repo';
   static const String commitShaParam = 'Commit';
+  static const String taskDocumentNameParam = 'taskDocumentName';
 
   /// Name of the task to be retried.
   ///
@@ -65,6 +66,8 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final String? sha = requestData![commitShaParam] as String?;
     final TokenInfo token = await tokenInfo(request!);
     final String? taskName = requestData![taskParam] as String?;
+    // When Frontend is switched to Firstore, the task document name will be passed over.
+    final String? taskDocumentName = requestData![taskDocumentNameParam] as String?;
 
     RepositorySlug? slug;
     if (encodedKey != null && encodedKey.isNotEmpty) {
@@ -78,6 +81,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     }
 
     if (taskName == 'all') {
+      log.info('Attempting to reset all failed prod tasks for $sha in $repo...');
       final Key<String> commitKey = Commit.createKey(
         db: datastore.db,
         slug: slug!,
@@ -87,7 +91,8 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       final tasks = await datastore.db.query<Task>(ancestorKey: commitKey).run().toList();
       final List<Future<void>> futures = <Future<void>>[];
       for (final Task task in tasks) {
-        if (!taskFailStatusSet.contains(task.status)) continue;
+        if (!Task.taskFailStatusSet.contains(task.status)) continue;
+        log.info('Resetting failed task ${task.name}');
         futures.add(
           rerun(
             datastore: datastore,
@@ -102,6 +107,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       }
       await Future.wait(futures);
     } else {
+      log.info('Attempting to reset prod task "$taskName" for $sha in $repo...');
       await rerun(
         datastore: datastore,
         firestoreService: firestoreService,
@@ -109,11 +115,14 @@ class ResetProdTask extends ApiRequestHandler<Body> {
         branch: branch,
         sha: sha,
         taskName: taskName,
+        taskDocumentName: taskDocumentName,
         slug: slug,
         email: token.email!,
         ignoreChecks: true,
       );
     }
+
+    log.info('$taskName reset initiated successfully.');
 
     return Body.empty;
   }
@@ -126,9 +135,11 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     String? sha,
     String? taskName,
     RepositorySlug? slug,
+    String? taskDocumentName,
     required String email,
     bool ignoreChecks = false,
   }) async {
+    // Prepares Datastore task.
     final Task task = await _getTaskFromNamedParams(
       datastore: datastore,
       encodedKey: encodedKey,
@@ -144,15 +155,14 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final CiYaml ciYaml = await scheduler.getCiYaml(commit);
     final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
 
+    // Prepares Firestore task.
     firestore.Task? taskDocument;
-    final int currentAttempt = task.attempts!;
-    final String documentName =
-        '$kDatabase/documents/${firestore.kTaskCollectionId}/${sha}_${taskName}_$currentAttempt';
-    try {
-      taskDocument = await firestore.Task.fromFirestore(firestoreService: firestoreService, documentName: documentName);
-    } catch (error) {
-      log.warning('Failed to read task $documentName from Firestore: $error');
+    if (taskDocumentName == null) {
+      final int currentAttempt = task.attempts!;
+      taskDocumentName = '$kDatabase/documents/${firestore.kTaskCollectionId}/${sha}_${taskName}_$currentAttempt';
     }
+    taskDocument =
+        await firestore.Task.fromFirestore(firestoreService: firestoreService, documentName: taskDocumentName);
     final Map<String, List<String>> tags = <String, List<String>>{
       'triggered_by': <String>[email],
       'trigger_type': <String>['manual_retry'],

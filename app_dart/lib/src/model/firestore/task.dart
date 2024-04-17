@@ -27,6 +27,18 @@ const String kTaskStartTimestampField = 'startTimestamp';
 const String kTaskStatusField = 'status';
 const String kTaskTestFlakyField = 'testFlaky';
 
+/// Task Json keys.
+const String kTaskAttempts = 'Attempts';
+const String kTaskBringup = 'Bringup';
+const String kTaskBuildNumber = 'BuildNumber';
+const String kTaskCreateTimestamp = 'CreateTimestamp';
+const String kTaskDocumentName = 'DocumentName';
+const String kTaskEndTimestamp = 'EndTimestamp';
+const String kTaskStartTimestamp = 'StartTimestamp';
+const String kTaskStatus = 'Status';
+const String kTaskTaskName = 'TaskName';
+const String kTaskTestFlaky = 'TestFlaky';
+
 class Task extends Document {
   /// Lookup [Task] from Firestore.
   ///
@@ -70,6 +82,12 @@ class Task extends Document {
   ///
   /// This status is only used by LUCI tasks.
   static const String statusSkipped = 'Skipped';
+
+  static const Set<String> taskFailStatusSet = <String>{
+    Task.statusInfraFailure,
+    Task.statusFailed,
+    Task.statusCancelled,
+  };
 
   /// The list of legal values for the [status] property.
   static const List<String> legalStatusValues = <String>[
@@ -250,6 +268,21 @@ class Task extends Document {
       statusSucceeded,
     ];
     return completedStatuses.contains(status);
+  }
+
+  Map<String, dynamic> get facade {
+    return <String, dynamic>{
+      kTaskDocumentName: name,
+      kTaskCreateTimestamp: createTimestamp,
+      kTaskStartTimestamp: startTimestamp,
+      kTaskEndTimestamp: endTimestamp,
+      kTaskTaskName: taskName,
+      kTaskAttempts: attempts,
+      kTaskBringup: bringup,
+      kTaskTestFlaky: testFlaky,
+      kTaskBuildNumber: buildNumber,
+      kTaskStatus: status,
+    };
   }
 
   @override

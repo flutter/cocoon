@@ -50,10 +50,16 @@ Googlers can request [cipd write access](http://go/flutter-aod#available-groups)
 cipd set-ref flutter/PackageName/mac-amd64 -ref Reference -version InstanceID
 ```
 
-* Reference: e.g. major release versions. If not specified, `latest` will be used based on the latest package instance.
+* Reference: e.g. major release versions, like `stable`, `dev`, etc. You can update/point to a newer instance with the same reference name later. If not
+specified, `latest` will be used based on the latest package instance.
 * InstanceID: this can be obtained from the package page, e.g. [ruby](https://chrome-infra-packages.appspot.com/p/flutter/ruby/mac-amd64/+/TyvPskvefNRkTDmiDcwRHrdL_a2FQE_4wBojOqhxdtYC).
 
 Note: for non-Googler contributors, please file an [infra bug](https://github.com/flutter/flutter/issues/new?assignees=&labels=team-infra&projects=&template=6_infrastructure.yml) to make a reference request.
+
+Note: if you want to define a specific version tied to a specific instance (e.g. `version: version_1_1_1`), you can  use a tag instead to reference an instance.
+```sh
+cipd set-tag flutter/PackageName/mac-amd64 -tag Tag -version InstanceID
+```
 
 ## Supporting packages download from CI recipe
 

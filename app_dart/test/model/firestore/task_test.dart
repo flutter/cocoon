@@ -202,4 +202,21 @@ void main() {
       expect(task.testFlaky, false);
     });
   });
+
+  test('task facade', () {
+    final Task taskDocument = generateFirestoreTask(1);
+    final Map<String, dynamic> expectedResult = <String, dynamic>{
+      kTaskDocumentName: taskDocument.name,
+      kTaskCreateTimestamp: taskDocument.createTimestamp,
+      kTaskStartTimestamp: taskDocument.startTimestamp,
+      kTaskEndTimestamp: taskDocument.endTimestamp,
+      kTaskTaskName: taskDocument.taskName,
+      kTaskAttempts: taskDocument.attempts,
+      kTaskBringup: taskDocument.bringup,
+      kTaskTestFlaky: taskDocument.testFlaky,
+      kTaskBuildNumber: taskDocument.buildNumber,
+      kTaskStatus: taskDocument.status,
+    };
+    expect(taskDocument.facade, expectedResult);
+  });
 }
