@@ -23,7 +23,7 @@ import 'request_handler.dart';
 /// Messages adhere to a specific contract, as follows:
 ///
 ///  * All requests must be authenticated per [AuthenticationProvider].
-///  * Request body is passed following the format of [PushMessageEnvelope].
+///  * Request body is passed following the format of [PubSubPushMessageV2].
 @immutable
 abstract class SubscriptionHandlerV2 extends RequestHandler<Body> {
   /// Creates a new [SubscriptionHandlerV2].
@@ -49,7 +49,7 @@ abstract class SubscriptionHandlerV2 extends RequestHandler<Body> {
   @protected
   AuthenticatedContext get authContext => getValue<AuthenticatedContext>(ApiKey.authContext)!;
 
-  /// The [PushMessage] from this [HttpRequest].
+  /// The [PushMessageV2] from this [HttpRequest].
   @protected
   PushMessageV2 get message => getValue<PushMessageV2>(PubSubKey.message)!;
 
