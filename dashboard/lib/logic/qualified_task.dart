@@ -11,6 +11,8 @@ class StageName {
   static const String dartInternal = 'dart-internal';
 }
 
+/// This is a side effect after deprecating `stage` field from Task model. A
+/// more generic way to detect dart internal targets may be preferred.
 const Set<String> dartInternalTasks = <String>{
   'Linux engine_release_builder',
   'Linux flutter_release',
@@ -32,7 +34,9 @@ class QualifiedTask {
 
   QualifiedTask.fromTask(TaskDocument task)
       : task = task.taskName,
-        pool = task.bringup ? 'luci.flutter.staging' : 'luci.flutter.prod';
+        pool = dartInternalTasks.contains(task.taskName)
+            ? 'flutter'
+            : (task.bringup ? 'luci.flutter.staging' : 'luci.flutter.prod');
 
   final String? pool;
   final String? task;

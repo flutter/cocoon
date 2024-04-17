@@ -30,6 +30,7 @@ const String kTaskTestFlakyField = 'testFlaky';
 const String kTaskAttempts = 'Attempts';
 const String kTaskBringup = 'Bringup';
 const String kTaskBuildNumber = 'BuildNumber';
+const String kTaskCommitSha = 'CommitSha';
 const String kTaskCreateTimestamp = 'CreateTimestamp';
 const String kTaskDocumentName = 'DocumentName';
 const String kTaskEndTimestamp = 'EndTimestamp';
@@ -267,6 +268,7 @@ class Task extends Document {
   Map<String, dynamic> get facade {
     return <String, dynamic>{
       kTaskDocumentName: name,
+      kTaskCommitSha: commitSha,
       kTaskCreateTimestamp: createTimestamp,
       kTaskStartTimestamp: startTimestamp,
       kTaskEndTimestamp: endTimestamp,

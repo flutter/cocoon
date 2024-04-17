@@ -29,9 +29,7 @@ class LuciTaskAttemptSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Need to handle case of multiple runs.
-    // final List<String> buildNumberList = task.buildNumberList.isEmpty ? <String>[] : task.buildNumberList.split(',');
-    final List<String> buildNumberList = task.hasBuildNumber() ? <String>[task.buildNumber.toString()] : <String>[];
+    final List<String> buildNumberList = task.buildList.isEmpty ? <String>[] : task.buildList.split(',');
     return ListBody(
       children: List<Widget>.generate(buildNumberList.length, (int i) {
         return ElevatedButton(
