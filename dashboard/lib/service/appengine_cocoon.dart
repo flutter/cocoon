@@ -401,7 +401,8 @@ class AppEngineCocoonService implements CocoonService {
     return task;
   }
 
-  TaskDocument _taskFromJsonFirestore(Map<String, dynamic> taskData) {
+  TaskDocument _taskFromJsonFirestore(Map<String, dynamic> taskModelData) {
+    final Map<String, dynamic> taskData = taskModelData['Task'];
     final TaskDocument task = TaskDocument()
       ..createTimestamp = Int64(taskData[kTaskCreateTimestamp] as int)
       ..startTimestamp = Int64(taskData[kTaskStartTimestamp] as int)
@@ -411,7 +412,8 @@ class AppEngineCocoonService implements CocoonService {
       ..attempts = taskData[kTaskAttempts] as int
       ..bringup = taskData[kTaskBringup] as bool
       ..status = taskData[kTaskStatus] as String
-      ..testFlaky = taskData[kTaskTestFlaky] as bool? ?? false;
+      ..testFlaky = taskData[kTaskTestFlaky] as bool? ?? false
+      ..buildList = taskModelData['BuildList'] as String;
     if (taskData[kTaskBuildNumber] != null) {
       task.buildNumber = taskData[kTaskBuildNumber] as int;
     }
