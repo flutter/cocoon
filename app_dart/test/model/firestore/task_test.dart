@@ -207,6 +207,7 @@ void main() {
     final Task taskDocument = generateFirestoreTask(1);
     final Map<String, dynamic> expectedResult = <String, dynamic>{
       kTaskDocumentName: taskDocument.name,
+      kTaskCommitSha: taskDocument.commitSha,
       kTaskCreateTimestamp: taskDocument.createTimestamp,
       kTaskStartTimestamp: taskDocument.startTimestamp,
       kTaskEndTimestamp: taskDocument.endTimestamp,
