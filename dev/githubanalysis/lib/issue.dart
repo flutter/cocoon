@@ -124,7 +124,8 @@ class FullIssue {
         ..writeln(
           'Created by ${metadata.user!.login} on ${metadata.createdAt}, last updated on ${metadata.updatedAt}.',
         );
-      if (metadata.isClosed) {
+      // Temporary workaround for https://github.com/SpinlockLabs/github.dart/issues/401
+      if (metadata.isClosed || metadata.state.toUpperCase() == 'CLOSED') {
         result.writeln('Closed by ${metadata.closedBy?.login} on ${metadata.closedAt}.');
         if (metadata.closedBy != null) {
           final User user = metadata.closedBy!;
