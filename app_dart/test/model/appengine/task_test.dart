@@ -16,9 +16,7 @@ import 'package:cocoon_service/src/model/luci/buildbucket.dart' as bb;
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 
 import '../../src/datastore/fake_config.dart';
-import '../../src/datastore/fake_datastore.dart';
 import '../../src/utilities/entity_generators.dart';
-import '../../src/utilities/mocks.dart';
 
 void main() {
   group('Task', () {
