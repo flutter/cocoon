@@ -286,7 +286,7 @@ class DevelopmentCocoonService implements CocoonService {
       ..repository = 'flutter/$repo'
       ..sha = commitSha
       ..timestamp = Int64(commitTimestamp)
-      ..branch = 'master';
+      ..branch = 'main';
   }
 
   static const Map<String, int> _repoTaskCount = <String, int>{

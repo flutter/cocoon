@@ -846,7 +846,7 @@ class GitilesCommit extends JsonBody {
   @JsonKey(name: 'id')
   final String? hash;
 
-  /// The Git ref of the commit, e.g. "refs/heads/master".
+  /// The Git ref of the commit, e.g. "refs/heads/main".
   final String? ref;
 
   @override

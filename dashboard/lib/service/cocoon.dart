@@ -90,6 +90,6 @@ class CocoonResponse<T> {
 final Map<String, String> defaultBranches = <String, String>{
   'cocoon': 'main',
   'engine': 'main',
-  'flutter': 'master',
+  'flutter': 'main',
   'packages': 'main',
 };

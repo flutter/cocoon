@@ -74,14 +74,14 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       if (githubGoldStatus.status == GithubGoldStatus.statusCompleted && githubGoldStatus.head == pr.head!.sha) {
         log.fine('Completed status already reported for this commit.');
         // We have already seen this commit and it is completed or, this is not
-        // a change staged to land on master, which we should ignore.
+        // a change staged to land on main, which we should ignore.
         continue;
       }
 
       if (!Config.doesSkiaGoldRunOnBranch(slug, pr.base!.ref)) {
         log.fine('This change\'s destination, ${pr.base!.ref}, does not run Skia Gold checks, skipping.');
         // This is potentially a release branch, or another change not landing
-        // on master, we don't need a Gold check.
+        // on main, we don't need a Gold check.
         continue;
       }
 

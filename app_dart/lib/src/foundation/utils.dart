@@ -42,7 +42,7 @@ Future<String> githubFileContent(
   RepositorySlug slug,
   String filePath, {
   required HttpClientProvider httpClientProvider,
-  String ref = 'master',
+  String ref = 'main',
   Duration timeout = const Duration(seconds: 5),
   RetryOptions retryOptions = const RetryOptions(
     maxAttempts: 3,

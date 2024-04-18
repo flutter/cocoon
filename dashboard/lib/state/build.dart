@@ -37,13 +37,13 @@ class BuildState extends ChangeNotifier {
   List<Branch> get branches => _branches;
   List<Branch> _branches = <Branch>[
     Branch()
-      ..branch = 'master'
+      ..branch = 'main'
       ..repository = 'flutter',
   ];
 
   /// The active flutter branches to show data from.
   String get currentBranch => _currentBranch;
-  String _currentBranch = 'master';
+  String _currentBranch = 'main';
 
   /// The current repo from [repos] to show data from.
   String get currentRepo => _currentRepo;

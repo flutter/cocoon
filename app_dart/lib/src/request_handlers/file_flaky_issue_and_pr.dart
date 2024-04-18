@@ -134,7 +134,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       builderDetail.statistic.name,
       issue.htmlUrl,
     );
-    final GitReference masterRef = await gitHub.getReference(slug, kMasterRefs);
+    final GitReference mainRef = await gitHub.getReference(slug, kMainRefs);
     final PullRequestBuilder prBuilder =
         PullRequestBuilder(statistic: builderDetail.statistic, ownership: builderDetail.ownership, issue: issue);
     final PullRequest pullRequest = await gitHub.createPullRequest(
@@ -142,7 +142,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       title: prBuilder.pullRequestTitle,
       body: prBuilder.pullRequestBody,
       commitMessage: prBuilder.pullRequestTitle,
-      baseRef: masterRef,
+      baseRef: mainRef,
       entries: <CreateGitTreeEntry>[
         CreateGitTreeEntry(
           kCiYamlPath,

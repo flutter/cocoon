@@ -232,7 +232,7 @@ class CiYaml {
         // link to wiki - https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#adding-a-new-devicelab-test
         if (totTargets.isNotEmpty && !totTargets.contains(target.name) && target.bringup != true) {
           exceptions.add(
-            'ERROR: ${target.name} is a new builder added. it needs to be marked bringup: true\nIf ci.yaml wasn\'t changed, try `git fetch upstream && git merge upstream/master`',
+            'ERROR: ${target.name} is a new builder added. it needs to be marked bringup: true\nIf ci.yaml wasn\'t changed, try `git fetch upstream && git merge upstream/main`',
           );
           continue;
         }

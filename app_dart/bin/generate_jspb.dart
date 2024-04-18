@@ -14,7 +14,7 @@ import 'package:yaml/yaml.dart';
 Future<String> githubFileContent(
   RepositorySlug slug,
   String filePath, {
-  String ref = 'master',
+  String ref = 'main',
   Duration timeout = const Duration(seconds: 5),
 }) async {
   final Uri githubUrl = Uri.https('raw.githubusercontent.com', '${slug.fullName}/$ref/$filePath');

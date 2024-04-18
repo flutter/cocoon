@@ -12,7 +12,7 @@ import 'key_converter.dart';
 
 part 'commit.g.dart';
 
-/// Class that represents a commit that has landed on the master branch of a
+/// Class that represents a commit that has landed on the main branch of a
 /// Flutter repository.
 @Kind(name: 'Checklist', idType: IdType.String)
 class Commit extends Model<String> {
@@ -24,7 +24,7 @@ class Commit extends Model<String> {
     this.authorAvatarUrl,
     this.message,
     this.repository,
-    this.branch = 'master',
+    this.branch = 'main',
   }) {
     parentKey = key?.parent;
     id = key?.id;

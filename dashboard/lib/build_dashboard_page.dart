@@ -64,10 +64,10 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     super.initState();
     if (widget.queryParameters != null) {
       repo = widget.queryParameters!['repo'] ?? 'flutter';
-      branch = widget.queryParameters!['branch'] ?? 'master';
+      branch = widget.queryParameters!['branch'] ?? 'main';
     }
     repo ??= 'flutter';
-    branch ??= 'master';
+    branch ??= 'main';
     if (branch == 'master' || branch == 'main') {
       branch = defaultBranches[repo!];
     }
@@ -404,7 +404,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     buildState.updateCurrentRepoBranch(repo!, branch!);
     return CallbackShortcuts(
       bindings: <ShortcutActivator, VoidCallback>{
-        const SingleActivator(LogicalKeyboardKey.arrowUp): () => _updatePage(context, 'flutter', 'master'),
+        const SingleActivator(LogicalKeyboardKey.arrowUp): () => _updatePage(context, 'flutter', 'main'),
         const SingleActivator(LogicalKeyboardKey.arrowDown): () => _updatePage(context, 'engine', 'main'),
         const SingleActivator(LogicalKeyboardKey.arrowLeft): () => _updatePage(context, 'cocoon', 'main'),
         const SingleActivator(LogicalKeyboardKey.arrowRight): () => _updatePage(context, 'packages', 'main'),

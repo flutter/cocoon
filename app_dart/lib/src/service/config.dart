@@ -27,7 +27,7 @@ import 'github_service.dart';
 import 'logging.dart';
 
 /// Name of the default git branch.
-const String kDefaultBranchName = 'master';
+const String kDefaultBranchName = 'main';
 
 class Config {
   Config(this._db, this._cache);
@@ -80,7 +80,7 @@ class Config {
   static String defaultBranch(gh.RepositorySlug slug) {
     final Map<gh.RepositorySlug, String> defaultBranches = <gh.RepositorySlug, String>{
       cocoonSlug: 'main',
-      flutterSlug: 'master',
+      flutterSlug: 'main',
       engineSlug: 'main',
       packagesSlug: 'main',
       recipesSlug: 'main',

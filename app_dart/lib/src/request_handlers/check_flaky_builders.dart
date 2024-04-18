@@ -179,7 +179,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     required TestOwnership testOwnership,
   }) async {
     final String modifiedContent = _deflakeBuilderInContent(ciContent, info.name);
-    final GitReference masterRef = await gitHub.getReference(slug, kMasterRefs);
+    final GitReference mainRef = await gitHub.getReference(slug, kMainRefs);
     final DeflakePullRequestBuilder prBuilder = DeflakePullRequestBuilder(
       name: info.name,
       recordNumber: kRecordNumber,
@@ -191,7 +191,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
       title: prBuilder.pullRequestTitle,
       body: prBuilder.pullRequestBody,
       commitMessage: prBuilder.pullRequestTitle,
-      baseRef: masterRef,
+      baseRef: mainRef,
       entries: <CreateGitTreeEntry>[
         CreateGitTreeEntry(
           kCiYamlPath,

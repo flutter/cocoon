@@ -31,7 +31,7 @@ class AppEngineCocoonService implements CocoonService {
   AppEngineCocoonService({http.Client? client}) : _client = client ?? http.Client();
 
   /// Branch on flutter/flutter to default requests for.
-  final String _defaultBranch = 'master';
+  final String _defaultBranch = 'main';
 
   /// The Cocoon API endpoint to query
   ///

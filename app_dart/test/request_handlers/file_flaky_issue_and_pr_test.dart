@@ -95,9 +95,9 @@ void main() {
         return const Stream<PullRequest>.empty();
       });
       // when gets the current head of master branch
-      when(mockGitService.getReference(captureAny, kMasterRefs)).thenAnswer((Invocation invocation) {
+      when(mockGitService.getReference(captureAny, kMainRefs)).thenAnswer((Invocation invocation) {
         return Future<GitReference>.value(
-          GitReference(ref: 'refs/$kMasterRefs', object: GitObject('', kCurrentMasterSHA, '')),
+          GitReference(ref: 'refs/$kMainRefs', object: GitObject('', kCurrentMasterSHA, '')),
         );
       });
       // when gets the current user.
@@ -238,7 +238,7 @@ void main() {
       expect(pr.title, expectedSemanticsIntegrationTestPullRequestTitle);
       expect(pr.body, expectedSemanticsIntegrationTestPullRequestBody);
       expect(pr.head, '$kCurrentUserLogin:$ref');
-      expect(pr.base, 'refs/$kMasterRefs');
+      expect(pr.base, 'refs/$kMainRefs');
 
       expect(result['Status'], 'success');
     });
