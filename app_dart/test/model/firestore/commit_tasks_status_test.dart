@@ -48,6 +48,7 @@ void main() {
           <String, dynamic>{
             'Task': <String, dynamic>{
               'DocumentName': 'testSha_task1_1',
+              'CommitSha': 'testSha',
               'CreateTimestamp': 0,
               'StartTimestamp': 0,
               'EndTimestamp': 0,
@@ -83,6 +84,7 @@ void main() {
           <String, dynamic>{
             'Task': <String, dynamic>{
               'DocumentName': 'testSha_task1_1',
+              'CommitSha': 'testSha',
               'CreateTimestamp': 0,
               'StartTimestamp': 0,
               'EndTimestamp': 0,
@@ -119,6 +121,7 @@ void main() {
           <String, dynamic>{
             'Task': <String, dynamic>{
               'DocumentName': 'testSha_task1_1',
+              'CommitSha': 'testSha',
               'CreateTimestamp': 0,
               'StartTimestamp': 0,
               'EndTimestamp': 0,
