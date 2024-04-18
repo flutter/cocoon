@@ -10,15 +10,14 @@ import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:test/test.dart';
 
 void main() {
-
   final Map<String, dynamic> userDataMap = {
     'builder_name': 'Linux_web web_build_all_packages master',
     'check_run_id': 23005733384,
-    'commit_sha':'272c0683235ac8c7e93d12caf3f64b7e5a0b5c32',
-    'commit_branch':'main',
-    'repo_owner':'flutter',
-    'repo_name':'packages',
-    'user_agent':'flutter-cocoon',
+    'commit_sha': '272c0683235ac8c7e93d12caf3f64b7e5a0b5c32',
+    'commit_branch': 'main',
+    'repo_owner': 'flutter',
+    'repo_name': 'packages',
+    'user_agent': 'flutter-cocoon',
   };
 
   late String mapStr;
@@ -30,7 +29,6 @@ void main() {
     mapStr = jsonEncode(userDataMap);
     encodedStr = base64Encode(mapStr.codeUnits);
     encodedBytes = encodedStr.codeUnits;
-
   });
 
   test('user data conversions from bytes', () {
