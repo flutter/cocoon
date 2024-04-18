@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 
@@ -212,6 +213,22 @@ class Task extends Document {
     _setStatusFromLuciStatus(build);
   }
 
+  void updateFromBuildV2(bbv2.Build build) {
+    fields![kTaskBuildNumberField] = Value(integerValue: build.number.toString());
+
+    fields![kTaskCreateTimestampField] = Value(
+      integerValue: (build.createTime.toDateTime().millisecondsSinceEpoch).toString(),
+    );
+    fields![kTaskStartTimestampField] = Value(
+      integerValue: (build.startTime.toDateTime().millisecondsSinceEpoch).toString(),
+    );
+    fields![kTaskEndTimestampField] = Value(
+      integerValue: (build.endTime.toDateTime().millisecondsSinceEpoch).toString(),
+    );
+
+    _setStatusFromLuciStatusV2(build);
+  }
+
   void resetAsRetry({int attempt = 1}) {
     name = '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${taskName}_$attempt';
     fields = <String, Value>{
@@ -255,6 +272,27 @@ class Task extends Document {
     }
   }
 
+  String _setStatusFromLuciStatusV2(bbv2.Build build) {
+    // Updates can come out of order. Ensure completed statuses are kept.
+    if (_isStatusCompleted()) {
+      return status;
+    }
+
+    if (build.status == bbv2.Status.STARTED) {
+      return setStatus(statusInProgress);
+    } else if (build.status == bbv2.Status.SUCCESS) {
+      return setStatus(statusSucceeded);
+    } else if (build.status == bbv2.Status.CANCELED) {
+      return setStatus(statusCancelled);
+    } else if (build.status == bbv2.Status.FAILURE) {
+      return setStatus(statusFailed);
+    } else if (build.status == bbv2.Status.INFRA_FAILURE) {
+      return setStatus(statusInfraFailure);
+    } else {
+      throw BadRequestException('${build.status} is unknown');
+    }
+  }
+
   bool _isStatusCompleted() {
     const List<String> completedStatuses = <String>[
       statusCancelled,
@@ -285,6 +323,7 @@ class Task extends Document {
   String toString() {
     final StringBuffer buf = StringBuffer()
       ..write('$runtimeType(')
+      ..write('$kTaskBuildNumberField: $buildNumber')
       ..write(', $kTaskCreateTimestampField: $createTimestamp')
       ..write(', $kTaskStartTimestampField: $startTimestamp')
       ..write(', $kTaskEndTimestampField: $endTimestamp')
