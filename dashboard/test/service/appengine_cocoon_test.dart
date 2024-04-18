@@ -128,18 +128,21 @@ void main() {
           ..repositoryPath = 'flutter/cocoon'
           ..branch = 'master'
           ..message = 'message')
-        ..tasks.add(TaskDocument()
-          ..documentName = 'task/document/name'
-          ..createTimestamp = Int64(1569353940885)
-          ..startTimestamp = Int64(1569354594672)
-          ..endTimestamp = Int64(1569354700642)
-          ..taskName = 'linux'
-          ..attempts = 1
-          ..bringup = false
-          ..status = 'Succeeded'
-          ..testFlaky = false
-          ..buildNumber = 123
-          ..buildList = '123');
+        ..tasks.add(
+          TaskDocument()
+            ..documentName = 'task/document/name'
+            ..createTimestamp = Int64(1569353940885)
+            ..startTimestamp = Int64(1569354594672)
+            ..endTimestamp = Int64(1569354700642)
+            ..taskName = 'linux'
+            ..attempts = 1
+            ..bringup = false
+            ..status = 'Succeeded'
+            ..testFlaky = false
+            ..buildNumber = 123
+            ..buildList = '123'
+            ..commitSha = 'testSha',
+        );
 
       expect(statuses.data!.length, 1);
       expect(statuses.data!.first, expectedStatus);
