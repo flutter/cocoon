@@ -4,8 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_service/src/model/luci/pubsub_message_v2.dart';
 import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:test/test.dart';
 

@@ -2,12 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
-import 'package:cocoon_service/src/model/firestore/task.dart';
-import 'package:cocoon_service/src/model/luci/push_message.dart';
 import 'package:cocoon_service/src/service/access_client_provider.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 
