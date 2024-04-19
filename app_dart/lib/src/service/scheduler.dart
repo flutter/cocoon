@@ -565,6 +565,10 @@ class Scheduler {
               log.fine('Rescheduling postsubmit build.');
               final String checkName = checkRunEvent.checkRun!.name!;
               final Task task = await Task.fromDatastore(datastore: datastore, commitKey: commitKey, name: checkName);
+              // Query the lastest run of the `checkName` againt commit `sha`.
+              final List<firestore.Task> taskDocuments = await firestoreService.queryCommitTasks(commit.sha!);
+              final firestore.Task taskDocument = taskDocuments.where((taskDocument) => taskDocument.taskName == checkName).toList().first;
+              log.fine('Latest firestore task is $taskDocument');
               final CiYaml ciYaml = await getCiYaml(commit);
               final Target target =
                   ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
@@ -573,6 +577,9 @@ class Scheduler {
                 commit: commit,
                 task: task,
                 target: target,
+                taskDocument: taskDocument,
+                datastore: datastore,
+                firestoreService: firestoreService,
               );
             }
 

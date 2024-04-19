@@ -8,6 +8,8 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/service/firestore.dart';
+import 'package:gcloud/datastore.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
@@ -390,11 +392,14 @@ class LuciBuildService {
   /// Sends postsubmit [ScheduleBuildRequest] for a commit using [checkRunEvent], [Commit], [Task], and [Target].
   ///
   /// Returns the [Build] returned by scheduleBuildRequest.
-  Future<Build> reschedulePostsubmitBuildUsingCheckRunEvent(
+  Future<void> reschedulePostsubmitBuildUsingCheckRunEvent(
     cocoon_checks.CheckRunEvent checkRunEvent, {
     required Commit commit,
     required Task task,
     required Target target,
+    required firestore.Task taskDocument,
+    required DatastoreService datastore,
+    required FirestoreService firestoreService,
   }) async {
     final github.RepositorySlug slug = checkRunEvent.repository!.slug();
     final String sha = checkRunEvent.checkRun!.headSha!;
@@ -407,12 +412,41 @@ class LuciBuildService {
 
     final Build build = builds.first;
     final Map<String, Object>? properties = build.input!.properties;
+    final Map<String?, List<String?>> tags = build.tags!;
     log.info('input ${build.input!} properties $properties');
+    log.info('input ${build.input!} tags $tags');
+    tags['trigger_type'] = <String>['check_run_manual_retry'];
 
-    final ScheduleBuildRequest scheduleBuildRequest =
-        await _createPostsubmitScheduleBuild(commit: commit, target: target, task: task, properties: properties);
-    final Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
-    return scheduleBuild;
+    try {
+      await updateTaskStatusInDatabase(
+        task = task,
+        taskDocument = taskDocument,
+        firestoreService = firestoreService,
+        datastore = datastore,
+      );
+    } catch (error) {
+      log.severe(
+        'updating task ${taskDocument.taskName} of commit ${taskDocument.commitSha} failure: $error. Skipping rescheduling.',
+      );
+      return;
+    }
+    tags['current_attempt'] = <String>[(taskDocument.attempts!).toString()];
+    log.info('Updated input ${build.input!} tags $tags');
+    final BatchRequest request = BatchRequest(
+      requests: <Request>[
+        Request(
+          scheduleBuild: await _createPostsubmitScheduleBuild(
+            commit: commit,
+            target: target,
+            task: task,
+            properties: properties,
+            priority: kRerunPriority,
+            tags: tags,
+          ),
+        ),
+      ],
+    );
+    await pubsub.publish('scheduler-requests', request);
   }
 
   /// Gets [Build] using its [id] and passing the additional
@@ -581,7 +615,7 @@ class LuciBuildService {
     required Target target,
     required Task task,
     Map<String, Object>? properties,
-    Map<String, List<String>>? tags,
+    Map<String?, List<String?>>? tags,
     int priority = kDefaultPriority,
   }) async {
     tags ??= <String, List<String>>{};
@@ -614,7 +648,7 @@ class LuciBuildService {
     tags['scheduler_job_id'] = <String>['flutter/${target.value.name}'];
     // Default attempt is the initial attempt, which is 1.
     tags['current_attempt'] = tags['current_attempt'] ?? <String>['1'];
-    final String currentAttempt = tags['current_attempt']!.single;
+    final String currentAttempt = tags['current_attempt']!.single!;
     rawUserData['firestore_task_document_name'] = '${commit.sha}_${task.name}_$currentAttempt';
 
     final Map<String, Object> processedProperties = target.getProperties();
@@ -691,28 +725,24 @@ class LuciBuildService {
     log.info('Rerun builder: ${target.value.name} for commit ${commit.sha}');
     tags ??= <String, List<String>>{};
     tags['trigger_type'] ??= <String>['auto_retry'];
+    log.info('Tags from rerun before update: $tags');
 
     // Updating task status first to avoid endless rerun when datastore transaction aborts.
     try {
-      // Updates task status in Datastore.
-      task.attempts = (task.attempts ?? 0) + 1;
-      // Mark task as in progress to ensure it isn't scheduled over
-      task.status = Task.statusInProgress;
-      await datastore.insert(<Task>[task]);
-
-      // Updates task status in Firestore.
-      final int newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
-      tags['current_attempt'] = <String>[newAttempt.toString()];
-      taskDocument.resetAsRetry(attempt: newAttempt);
-      taskDocument.setStatus(firestore.Task.statusInProgress);
-      final List<Write> writes = documentsToWrites([taskDocument], exists: false);
-      await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
+      await updateTaskStatusInDatabase(
+        task = task,
+        taskDocument = taskDocument,
+        firestoreService = firestoreService,
+        datastore = datastore,
+      );
     } catch (error) {
       log.severe(
         'updating task ${taskDocument.taskName} of commit ${taskDocument.commitSha} failure: $error. Skipping rescheduling.',
       );
       return false;
     }
+    tags['current_attempt'] = <String>[(taskDocument.attempts!).toString()];
+    log.info('Tags from rerun after update: $tags');
     final BatchRequest request = BatchRequest(
       requests: <Request>[
         Request(
@@ -730,6 +760,25 @@ class LuciBuildService {
     await pubsub.publish('scheduler-requests', request);
 
     return true;
+  }
+
+  Future<void> updateTaskStatusInDatabase(
+    Task task,
+    firestore.Task taskDocument,
+    FirestoreService firestoreService,
+    DatastoreService datastore,
+  ) async {
+    task.attempts = (task.attempts ?? 0) + 1;
+    // Mark task as in progress to ensure it isn't scheduled over
+    task.status = Task.statusInProgress;
+    await datastore.insert(<Task>[task]);
+
+    // Updates task status in Firestore.
+    final int newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
+    taskDocument.resetAsRetry(attempt: newAttempt);
+    taskDocument.setStatus(firestore.Task.statusInProgress);
+    final List<Write> writes = documentsToWrites([taskDocument], exists: false);
+    await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
   }
 
   /// Check if a builder should be rerun.
