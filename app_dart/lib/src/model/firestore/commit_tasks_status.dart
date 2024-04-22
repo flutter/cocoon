@@ -19,17 +19,51 @@ class CommitTasksStatus {
 
   /// Tasks running against the commit.
   final List<Task> tasks;
-}
 
-class SerializableCommitTasksStatus {
-  const SerializableCommitTasksStatus(this.status);
-
-  final CommitTasksStatus status;
+  /// Refactors task list to fullTask list.
+  ///
+  /// After migrated to Firestore, we are tracking each rerun as a separate Task entry.
+  /// But from Frontend side, it is expecting a build list for all retries.
+  ///
+  /// Instead of adding burden to the frondend loading, a proactive preparation is
+  /// added here to provide build list explicitly.
+  ///
+  /// Note we use the lastest run as the `task`, surfacing on the dashboard.
+  List<FullTask> toFullTasks(List<Task> tasks) {
+    final Map<String, FullTask> fullTasksMap = <String, FullTask>{};
+    for (Task task in tasks) {
+      if (!fullTasksMap.containsKey(task.taskName)) {
+        if (task.buildNumber == null) {
+          fullTasksMap[task.taskName!] = FullTask(task, <int>[]);
+        } else {
+          fullTasksMap[task.taskName!] = FullTask(task, <int>[task.buildNumber!]);
+        }
+      } else if (fullTasksMap.containsKey(task.taskName)) {
+        fullTasksMap[task.taskName]!.buildList.add(task.buildNumber!);
+      }
+    }
+    return fullTasksMap.entries.map((entry) => entry.value).toList();
+  }
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'Commit': status.commit.toJson(),
-      'Tasks': status.tasks,
+      'Commit': commit.facade,
+      'Tasks': toFullTasks(tasks).map((e) => e.toJson()).toList(),
+    };
+  }
+}
+
+/// Latest task entry and its rerun build list.
+class FullTask {
+  const FullTask(this.task, this.buildList);
+
+  final Task task;
+  final List<int> buildList;
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'Task': task.facade,
+      'BuildList': buildList.join(','),
     };
   }
 }
