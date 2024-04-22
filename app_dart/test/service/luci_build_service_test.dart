@@ -418,6 +418,7 @@ void main() {
     setUp(() {
       cache = CacheService(inMemory: true);
       mockBuildBucketClient = MockBuildBucketClient();
+      mockBuildBucketV2Client = MockBuildBucketV2Client();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: FakeConfig(),
