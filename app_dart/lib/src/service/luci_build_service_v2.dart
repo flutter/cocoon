@@ -84,7 +84,7 @@ class LuciBuildServiceV2 {
   }
 
   /// Fetches an Iterable of try BuildBucket [Build]s.
-  /// 
+  ///
   /// Returns a list of BuildBucket [Build]s for a given Github [slug], [sha],
   /// and [builderName].
   Future<Iterable<bbv2.Build>> getTryBuilds({
@@ -112,7 +112,7 @@ class LuciBuildServiceV2 {
   }
 
   /// Fetches an Iterable of try BuildBucket [Build]s.
-  /// 
+  ///
   /// Returns a list of BuildBucket [Build]s for a given Github [PullRequest].
   Future<Iterable<bbv2.Build>> getTryBuildsByPullRequest({
     required github.PullRequest pullRequest,
@@ -142,7 +142,7 @@ class LuciBuildServiceV2 {
   }
 
   /// Fetches an Iterable of prod BuildBucket [Build]s.
-  /// 
+  ///
   /// Returns an Iterable of prod BuildBucket [Build]s for a given Github
   /// [slug], [sha], and [builderName].
   Future<Iterable<bbv2.Build>> getProdBuilds({
@@ -161,7 +161,7 @@ class LuciBuildServiceV2 {
   }
 
   /// Fetches an Iterable of try BuildBucket [Build]s.
-  /// 
+  ///
   /// Returns an iterable of try BuildBucket [Build]s for a given Github [slug],
   /// [sha], [builderName], [bucket], and [tags].
   Future<Iterable<bbv2.Build>> getBuilds({
