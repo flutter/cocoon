@@ -154,6 +154,7 @@ void main() {
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
+      mockBuildBucketV2Client = MockBuildBucketV2Client();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
@@ -218,6 +219,7 @@ void main() {
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
+      mockBuildBucketV2Client = MockBuildBucketV2Client();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
@@ -281,6 +283,7 @@ void main() {
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
+      mockBuildBucketV2Client = MockBuildBucketV2Client();
       mockGithubChecksUtil = MockGithubChecksUtil();
       pubsub = FakePubSub();
       service = LuciBuildService(
@@ -714,6 +717,7 @@ void main() {
     setUp(() {
       cache = CacheService(inMemory: true);
       mockBuildBucketClient = MockBuildBucketClient();
+      mockBuildBucketV2Client = MockBuildBucketV2Client();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: FakeConfig(),
@@ -789,6 +793,7 @@ void main() {
       cache = CacheService(inMemory: true);
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
+      mockBuildBucketV2Client = MockBuildBucketV2Client();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
@@ -944,6 +949,7 @@ void main() {
       firestoreTask = null;
       firestoreCommit = null;
       mockBuildBucketClient = MockBuildBucketClient();
+      mockBuildBucketV2Client = MockBuildBucketV2Client();
       mockGithubChecksUtil = MockGithubChecksUtil();
       mockFirestoreService = MockFirestoreService();
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
