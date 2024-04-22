@@ -563,6 +563,7 @@ class Scheduler {
               await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent);
             } else {
               log.fine('Rescheduling postsubmit build.');
+              firestoreService = await config.createFirestoreService();
               final String checkName = checkRunEvent.checkRun!.name!;
               final Task task = await Task.fromDatastore(datastore: datastore, commitKey: commitKey, name: checkName);
               // Query the lastest run of the `checkName` againt commit `sha`.

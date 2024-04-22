@@ -610,6 +610,63 @@ void main() {
       );
     });
 
+    test('reschedule using checkrun event successfully', () async {
+      when(
+        mockFirestoreService.batchWriteDocuments(
+          captureAny,
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<BatchWriteResponse>.value(BatchWriteResponse());
+      });
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return BatchResponse(
+          responses: <Response>[
+            Response(
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[
+                  generateBuild(
+                    999,
+                    name: 'Linux 1',
+                    status: Status.ended,
+                    input: const Input(
+                      properties: <String, Object>{},
+                    ),
+                    tags: <String, List<String>>{},
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      });
+
+      final pushMessage = generateCheckRunEvent(action: 'created', numberOfPullRequests: 1);
+      final Map<String, dynamic> jsonMap = json.decode(pushMessage.data!);
+      final Map<String, dynamic> jsonSubMap = json.decode(jsonMap['2']);
+      final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
+
+      final firestore.Task taskDocument = generateFirestoreTask(0);
+      final Task task = generateTask(0);
+      expect(taskDocument.attempts, 1);
+      expect(task.attempts, 1);
+      await service.reschedulePostsubmitBuildUsingCheckRunEvent(
+        checkRunEvent,
+        commit: generateCommit(0),
+        task: task,
+        target: generateTarget(0),
+        taskDocument: taskDocument,
+        datastore: datastore,
+        firestoreService: mockFirestoreService,
+      );
+      expect(taskDocument.attempts, 2);
+      expect(task.attempts, 2);
+      expect(pubsub.messages.length, 1);
+    });
+
     test('do not create postsubmit checkrun for bringup: true target', () async {
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
           .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));

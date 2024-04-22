@@ -5,10 +5,12 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/stage.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
@@ -650,6 +652,23 @@ targets:
           postsubmitSupportedReposValue: {RepositorySlug('abc', 'cocoon')},
           firestoreService: mockFirestoreService,
         );
+        when(
+          mockFirestoreService.queryCommitTasks(
+            captureAny,
+          ),
+        ).thenAnswer((Invocation invocation) {
+          return Future<List<firestore.Task>>.value(
+            <firestore.Task>[generateFirestoreTask(1, name: 'test1')],
+          );
+        });
+        when(
+          mockFirestoreService.batchWriteDocuments(
+            captureAny,
+            captureAny,
+          ),
+        ).thenAnswer((Invocation invocation) {
+          return Future<BatchWriteResponse>.value(BatchWriteResponse());
+        });
         final Commit commit = generateCommit(
           1,
           sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
@@ -699,27 +718,29 @@ targets:
           expect(scheduleBuildRequest.builderId.bucket, equals('prod'));
           return const Build(builderId: BuilderId(), id: '');
         });
-
+        final FakePubSub pubsub = FakePubSub();
+        final FakeLuciBuildService luciBuildService = FakeLuciBuildService(
+          config: config,
+          githubChecksUtil: mockGithubChecksUtil,
+          buildbucket: mockBuildbucket,
+          gerritService: FakeGerritService(
+            branchesValue: <String>['master', 'main'],
+          ),
+          pubsub: pubsub,
+        );
         scheduler = Scheduler(
           cache: cache,
           config: config,
           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
-          luciBuildService: FakeLuciBuildService(
-            config: config,
-            githubChecksUtil: mockGithubChecksUtil,
-            buildbucket: mockBuildbucket,
-            gerritService: FakeGerritService(
-              branchesValue: <String>['master', 'main'],
-            ),
-          ),
+          luciBuildService: luciBuildService,
         );
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           jsonDecode(checkRunString) as Map<String, dynamic>,
         );
         expect(await scheduler.processCheckRun(checkRunEvent), true);
-        verify(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri'))).called(1);
         verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
+        expect(pubsub.messages.length, 1);
       });
 
       test('rerequested does not fail on empty pull request list', () async {

@@ -412,11 +412,10 @@ class LuciBuildService {
 
     final Build build = builds.first;
     final Map<String, Object>? properties = build.input!.properties;
-    final Map<String?, List<String?>> tags = build.tags!;
+    final Map<String?, List<String?>> tags = Map<String?, List<String?>>.from(build.tags!);
     log.info('input ${build.input!} properties $properties');
     log.info('input ${build.input!} tags $tags');
     tags['trigger_type'] = <String>['check_run_manual_retry'];
-
     try {
       await updateTaskStatusInDatabase(
         task = task,
