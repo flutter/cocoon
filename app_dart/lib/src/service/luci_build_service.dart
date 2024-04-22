@@ -82,6 +82,10 @@ class LuciBuildService {
     return shards;
   }
 
+  /// Fetches an Iterable of try BuildBucket [Build]s.
+  /// 
+  /// Returns a list of BuildBucket [Build]s for a given Github [slug], [sha],
+  /// and [builderName].
   Future<Iterable<Build>> getTryBuilds(
     github.RepositorySlug slug,
     String sha,
@@ -94,6 +98,10 @@ class LuciBuildService {
     return getBuilds(slug, sha, builderName, 'try', tags);
   }
 
+  /// Fetches an Iterable of try BuildBucket V2 [Build]s.
+  /// 
+  /// Returns a list of BuildBucket [Build]s for a given Github [slug], [sha],
+  /// and [builderName].
   Future<Iterable<bbv2.Build>> getTryBuildsV2(
     github.RepositorySlug slug,
     String sha,
@@ -112,6 +120,9 @@ class LuciBuildService {
     );
   }
 
+  /// Fetches an Iterable of try BuildBucket [Build]s.
+  /// 
+  /// Returns a list of BuildBucket [Build]s for a given Github [PullRequest].
   Future<Iterable<Build>> getTryBuildsByPullRequest(
     github.PullRequest pullRequest,
   ) async {
@@ -124,6 +135,10 @@ class LuciBuildService {
     return getBuilds(slug, null, null, 'try', tags);
   }
 
+  /// Fetches an Iterable of try BuildBucket V2 [Build]s.
+  /// 
+  /// Returns a list of BuildBucket V2 [Build]s for a given Github
+  /// [PullRequest].
   Future<Iterable<bbv2.Build>> getTryBuildsByPullRequestV2(
     github.PullRequest pullRequest,
   ) async {
@@ -142,6 +157,10 @@ class LuciBuildService {
     );
   }
 
+  /// Fetches an Iterable of prod BuildBucket [Build]s.
+  /// 
+  /// Returns an Iterable of prod BuildBucket [Build]s for a given Github
+  /// [slug], [sha], and [builderName].
   Future<Iterable<Build>> getProdBuilds(
     github.RepositorySlug slug,
     String commitSha,
@@ -151,6 +170,10 @@ class LuciBuildService {
     return getBuilds(slug, commitSha, builderName, 'prod', tags);
   }
 
+  /// Fetches an Iterable of try BuildBucket [Build]s.
+  /// 
+  /// Returns an iterable of try BuildBucket [Build]s for a given Github [slug],
+  /// [sha], [builderName], [bucket], and [tags].
   Future<Iterable<Build>> getBuilds(
     github.RepositorySlug? slug,
     String? commitSha,

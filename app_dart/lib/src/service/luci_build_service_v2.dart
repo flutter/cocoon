@@ -83,6 +83,10 @@ class LuciBuildServiceV2 {
     return shards;
   }
 
+  /// Fetches an Iterable of try BuildBucket [Build]s.
+  /// 
+  /// Returns a list of BuildBucket [Build]s for a given Github [slug], [sha],
+  /// and [builderName].
   Future<Iterable<bbv2.Build>> getTryBuilds({
     required github.RepositorySlug slug,
     required String sha,
@@ -107,6 +111,9 @@ class LuciBuildServiceV2 {
     );
   }
 
+  /// Fetches an Iterable of try BuildBucket [Build]s.
+  /// 
+  /// Returns a list of BuildBucket [Build]s for a given Github [PullRequest].
   Future<Iterable<bbv2.Build>> getTryBuildsByPullRequest({
     required github.PullRequest pullRequest,
   }) async {
@@ -134,6 +141,10 @@ class LuciBuildServiceV2 {
     );
   }
 
+  /// Fetches an Iterable of prod BuildBucket [Build]s.
+  /// 
+  /// Returns an Iterable of prod BuildBucket [Build]s for a given Github
+  /// [slug], [sha], and [builderName].
   Future<Iterable<bbv2.Build>> getProdBuilds({
     required github.RepositorySlug slug,
     required String commitSha,
@@ -149,6 +160,10 @@ class LuciBuildServiceV2 {
     );
   }
 
+  /// Fetches an Iterable of try BuildBucket [Build]s.
+  /// 
+  /// Returns an iterable of try BuildBucket [Build]s for a given Github [slug],
+  /// [sha], [builderName], [bucket], and [tags].
   Future<Iterable<bbv2.Build>> getBuilds({
     required github.RepositorySlug? slug,
     required String? commitSha,
