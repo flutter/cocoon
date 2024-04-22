@@ -409,7 +409,11 @@ void main() {
   });
 
   group('schedulePostsubmitBuilds', () {
+    late DatastoreService datastore;
+    late MockFirestoreService mockFirestoreService;
     setUp(() {
+      datastore = DatastoreService(config.db, 5);
+      mockFirestoreService = MockFirestoreService();
       cache = CacheService(inMemory: true);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
@@ -598,6 +602,9 @@ void main() {
           commit: generateCommit(0),
           task: generateTask(0),
           target: generateTarget(0),
+          taskDocument: generateFirestoreTask(0),
+          datastore: datastore,
+          firestoreService: mockFirestoreService,
         ),
         throwsA(const TypeMatcher<NoBuildFoundException>()),
       );
