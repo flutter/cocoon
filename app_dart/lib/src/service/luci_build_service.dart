@@ -8,8 +8,6 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/service/firestore.dart';
-import 'package:gcloud/datastore.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
