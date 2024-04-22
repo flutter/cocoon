@@ -47,15 +47,12 @@ class GetStatusFirestore extends RequestHandler<Body> {
     final int commitNumber = config.commitNumber;
     final int lastCommitTimestamp = await _obtainTimestamp(encodedLastCommitKey, keyHelper, datastore);
 
-    final List<SerializableCommitTasksStatus> statuses = await buildStatusService
+    final List<CommitTasksStatus> statuses = await buildStatusService
         .retrieveCommitStatusFirestore(
           limit: commitNumber,
           timestamp: lastCommitTimestamp,
           branch: branch,
           slug: slug,
-        )
-        .map<SerializableCommitTasksStatus>(
-          (CommitTasksStatus status) => SerializableCommitTasksStatus(status),
         )
         .toList();
 

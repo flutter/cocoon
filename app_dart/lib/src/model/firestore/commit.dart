@@ -81,8 +81,7 @@ class Commit extends Document {
   /// [RepositorySlug] of where this commit exists.
   RepositorySlug get slug => RepositorySlug.full(repositoryPath!);
 
-  @override
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> get facade {
     return <String, dynamic>{
       kCommitDocumentName: name,
       kCommitRepositoryPath: repositoryPath,
