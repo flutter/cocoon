@@ -6,7 +6,7 @@ import 'package:cocoon_service/src/model/appengine/stage.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:test/test.dart';
 
-import '../src/utilities/entity_generators.dart';
+import '../../src/utilities/entity_generators.dart';
 
 Stage buildStage({
   String name = 'stage',
