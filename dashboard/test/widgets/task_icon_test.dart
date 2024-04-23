@@ -13,15 +13,39 @@ import '../utils/fake_url_launcher.dart';
 
 void main() {
   testWidgets('TaskIcon tooltip shows task name', (WidgetTester tester) async {
-    const String stageName = 'stagey stage';
     const String taskName = 'tasky task';
-    const String expectedLabel = 'tasky task (stagey stage)';
+    const String expectedLabel = 'tasky task';
 
     await tester.pumpWidget(
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: stageName, task: taskName),
+            qualifiedTask: QualifiedTask(task: taskName),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text(expectedLabel), findsNothing);
+
+    final Finder taskIcon = find.byType(TaskIcon);
+    final TestGesture gesture = await tester.startGesture(tester.getCenter(taskIcon));
+    await tester.pump(kLongPressTimeout);
+
+    expect(find.text(expectedLabel), findsOneWidget);
+
+    await gesture.up();
+  });
+
+  testWidgets('TaskIcon tooltip shows task name and dart-internal stage', (WidgetTester tester) async {
+    const String taskName = 'Linux engine_release_builder';
+    const String expectedLabel = 'Linux engine_release_builder (dart-internal)';
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Material(
+          child: TaskIcon(
+            qualifiedTask: QualifiedTask(task: taskName),
           ),
         ),
       ),
@@ -42,7 +66,7 @@ void main() {
     final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
     UrlLauncherPlatform.instance = urlLauncher;
 
-    const QualifiedTask luciTask = QualifiedTask(stage: StageName.luci, task: 'test');
+    const QualifiedTask luciTask = QualifiedTask(task: 'test');
 
     await tester.pumpWidget(
       const MaterialApp(
@@ -62,41 +86,12 @@ void main() {
     expect(urlLauncher.launches.single, luciTask.sourceConfigurationUrl);
   });
 
-  testWidgets('Unknown stage name shows helper icon in TaskIcon', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Material(
-          child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'stage not to be named', task: 'macbeth'),
-          ),
-        ),
-      ),
-    );
-
-    expect(find.byIcon(Icons.help), findsOneWidget);
-  });
-
-  testWidgets('TaskIcon shows the right icon for google test', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Material(
-          child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'google_internal'),
-          ),
-        ),
-      ),
-    );
-
-    expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
-    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/googleLogo.png');
-  });
-
   testWidgets('TaskIcon shows the right icon for web', (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Windows_web test', pool: 'luci.flutter.prod'),
+            qualifiedTask: QualifiedTask(task: 'Windows_web test', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
@@ -111,7 +106,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Windows something', pool: 'luci.flutter.prod'),
+            qualifiedTask: QualifiedTask(task: 'Windows something', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
@@ -126,8 +121,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask:
-                QualifiedTask(stage: 'chromebot', task: 'Windows_fuchsia something', pool: 'luci.flutter.prod'),
+            qualifiedTask: QualifiedTask(task: 'Windows_fuchsia something', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
@@ -142,7 +136,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Windows_android test', pool: 'luci.flutter.prod'),
+            qualifiedTask: QualifiedTask(task: 'Windows_android test', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
@@ -157,7 +151,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Mac test', pool: 'luci.flutter.prod'),
+            qualifiedTask: QualifiedTask(task: 'Mac test', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
@@ -172,7 +166,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Mac_ios test', pool: 'luci.flutter.prod'),
+            qualifiedTask: QualifiedTask(task: 'Mac_ios test', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
@@ -187,7 +181,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Linux test', pool: 'luci.flutter.prod'),
+            qualifiedTask: QualifiedTask(task: 'Linux test', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
@@ -202,7 +196,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Unknown', pool: 'luci.flutter.prod'),
+            qualifiedTask: QualifiedTask(task: 'Unknown', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
@@ -217,8 +211,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask:
-                QualifiedTask(stage: 'dart-internal', task: 'Linux dart-internal test', pool: 'luci.flutter.prod'),
+            qualifiedTask: QualifiedTask(task: 'Linux dart-internal test', pool: 'luci.flutter.prod'),
           ),
         ),
       ),

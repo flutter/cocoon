@@ -20,25 +20,29 @@ void main() {
     );
   });
 
-  test('QualifiedTask.sourceConfigurationUrl for google test', () {
-    final Task googleTestTask = Task()..stageName = 'google_internal';
-
-    expect(QualifiedTask.fromTask(googleTestTask).sourceConfigurationUrl, 'https://flutter-rob.corp.google.com');
-  });
-
   test('QualifiedTask.sourceConfigurationUrl for dart-internal', () {
-    final Task dartInternalTask = Task()..stageName = 'dart-internal';
+    final Task dartInternalTask = Task()..builderName = 'Linux engine_release_builder';
 
     expect(
       QualifiedTask.fromTask(dartInternalTask).sourceConfigurationUrl,
-      'https://ci.chromium.org/p/dart-internal/builders/luci.flutter.prod/',
+      'https://ci.chromium.org/p/dart-internal/builders/flutter/Linux engine_release_builder',
     );
   });
 
   test('QualifiedTask.isLuci', () {
-    expect(const QualifiedTask(stage: 'luci', task: 'abc').isLuci, true);
-    expect(const QualifiedTask(stage: 'chromebot', task: 'abc').isLuci, true);
-    expect(const QualifiedTask(stage: 'cocoon', task: 'abc').isLuci, true);
-    expect(const QualifiedTask(stage: 'google_internal', task: 'abc').isLuci, false);
+    expect(const QualifiedTask(task: 'abc').isLuci, true);
+    expect(const QualifiedTask(task: 'Linux engine_release_builder').isLuci, false);
+  });
+
+  test('QualifiedTask.isDartInternal', () {
+    expect(const QualifiedTask(task: 'abc').isDartInternal, false);
+    expect(const QualifiedTask(task: 'Linux engine_release_builder').isDartInternal, true);
+  });
+
+  test('QualifiedTask.isEqual', () {
+    const QualifiedTask task1 = QualifiedTask(task: 'abc');
+    const QualifiedTask task2 = QualifiedTask(task: 'abc');
+
+    expect(task1, task2);
   });
 }

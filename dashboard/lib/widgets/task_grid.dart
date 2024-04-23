@@ -258,9 +258,6 @@ class _TaskGridState extends State<TaskGrid> {
         }
         // If the scores are identical, break ties on the name of the task.
         // We do that because otherwise the sort order isn't stable.
-        if (a.stage != b.stage) {
-          return a.stage!.compareTo(b.stage!);
-        }
         return a.task!.compareTo(b.task!);
       });
 
@@ -270,7 +267,7 @@ class _TaskGridState extends State<TaskGrid> {
         const LatticeCell(),
         ...tasks.map<LatticeCell>(
           (QualifiedTask task) =>
-              LatticeCell(builder: (BuildContext context) => TaskIcon(qualifiedTask: task), taskName: task.stage),
+              LatticeCell(builder: (BuildContext context) => TaskIcon(qualifiedTask: task), taskName: task.task),
         ),
       ],
       ...rows.map<List<LatticeCell>>(

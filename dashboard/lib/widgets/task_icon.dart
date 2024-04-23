@@ -34,13 +34,6 @@ class TaskIcon extends StatelessWidget {
     // different assets.
     final Color? blendFilter = brightness == Brightness.dark ? Colors.white : null;
 
-    if (qualifiedTask.isGoogleTest) {
-      return Image.asset(
-        'assets/googleLogo.png',
-        color: blendFilter,
-      );
-    }
-
     if (qualifiedTask.task == null || !(qualifiedTask.isLuci || qualifiedTask.isDartInternal)) {
       return Icon(
         Icons.help,
@@ -113,6 +106,8 @@ class TaskIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final Brightness brightness = Theme.of(context).brightness;
     final Widget icon = stageIconForBrightness(brightness);
+    final String tooltipMessage =
+        qualifiedTask.isDartInternal ? '${qualifiedTask.task} (dart-internal)' : qualifiedTask.task!;
 
     return IconTheme.merge(
       data: IconThemeData(size: TaskBox.of(context) - 5),
@@ -121,7 +116,7 @@ class TaskIcon extends StatelessWidget {
           launchUrl(Uri.parse(qualifiedTask.sourceConfigurationUrl));
         },
         child: Tooltip(
-          message: '${qualifiedTask.task} (${qualifiedTask.stage})',
+          message: tooltipMessage,
           child: Align(
             alignment: Alignment.bottomCenter,
             child: icon,

@@ -378,7 +378,6 @@ void main() {
         ..tasks.addAll(
           <Task>[
             Task()
-              ..stageName = StageName.cocoon
               ..name = '1'
               ..builderName = '1'
               ..status = TaskBox.statusSucceeded,
@@ -425,14 +424,12 @@ void main() {
         ..tasks.addAll(
           <Task>[
             Task()
-              ..name = 'Task Name'
-              ..builderName = 'Task Name'
-              ..stageName = 'Stage Nome 1'
+              ..name = 'Task Name 1'
+              ..builderName = 'Task Name 1'
               ..status = TaskBox.statusSucceeded,
             Task()
-              ..name = 'Task Name'
-              ..builderName = 'Task Name'
-              ..stageName = 'Stage Nome 2'
+              ..name = 'Task Name 2'
+              ..builderName = 'Task Name 2'
               ..status = TaskBox.statusFailed,
           ],
         ),
@@ -659,8 +656,8 @@ void main() {
     final List<LatticeCell> myCells = cells.first;
     expect(myCells.length, 3);
     myCells.removeAt(0); // the first element is the github author box.
-    expect(myCells[0].taskName, 'A');
-    expect(myCells[1].taskName, 'B');
+    expect(myCells[0].taskName, '1');
+    expect(myCells[1].taskName, '2');
   });
 
   testWidgets('TaskGrid can handle all the various different statuses', (WidgetTester tester) async {
