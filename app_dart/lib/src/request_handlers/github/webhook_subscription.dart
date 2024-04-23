@@ -5,8 +5,6 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/src/service/commit_service.dart';
-import 'package:cocoon_service/src/service/github_checks_service.dart';
-import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:cocoon_service/src/service/scheduler_v2.dart';
 import 'package:github/github.dart';
@@ -73,8 +71,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     required this.schedulerV2,
     required this.gerritService,
     required this.commitService,
-    this.githubChecksService,
-    this.githubChecksServiceV2,
     this.datastoreProvider = DatastoreService.defaultProvider,
     super.authProvider,
     // Gets the initial github events from this sub after the webhook uploads them.
@@ -90,11 +86,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
   /// Used to handle push events and create commits based on those events.
   final CommitService commitService;
-
-  final GithubChecksService? githubChecksService;
-
-  /// To provide build status updates to GitHub pull requests.
-  final GithubChecksServiceV2? githubChecksServiceV2;
 
   final DatastoreServiceProvider datastoreProvider;
 

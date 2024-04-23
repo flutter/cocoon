@@ -80,8 +80,6 @@ Server createServer({
       config: config,
       cache: cache,
       gerritService: gerritService,
-      githubChecksService: githubChecksService,
-      githubChecksServiceV2: githubChecksServiceV2,
       scheduler: scheduler,
       schedulerV2: schedulerV2,
       commitService: commitService,

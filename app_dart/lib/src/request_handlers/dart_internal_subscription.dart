@@ -53,6 +53,11 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
     // buildsPubSub message.
     final Map<String, dynamic> jsonBuildMap = json.decode(message.data!);
 
+    if (jsonBuildMap['build'] == null) {
+      log.info('no build information in message');
+      return Body.empty;
+    }
+
     final String project = jsonBuildMap['build']['builder']['project'];
     final String bucket = jsonBuildMap['build']['builder']['bucket'];
     final String builder = jsonBuildMap['build']['builder']['builder'];
@@ -77,15 +82,15 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
 
     log.info('Creating build request object with build id $buildId');
 
-    final bbv2.GetBuildRequest getBuildRequest = bbv2.GetBuildRequest();
-    getBuildRequest.id = buildId;
+    final bbv2.GetBuildRequest getBuildRequest = bbv2.GetBuildRequest(
+      id: buildId,
+    );
 
     log.info(
       'Calling buildbucket api to get build data for build $buildId',
     );
 
-    bbv2.Build existingBuild = bbv2.Build.create();
-    existingBuild = await buildBucketV2Client.getBuild(getBuildRequest);
+    final bbv2.Build existingBuild = await buildBucketV2Client.getBuild(getBuildRequest);
 
     log.info('Got back existing builder with name: ${existingBuild.builder.builder}');
 

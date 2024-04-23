@@ -46,8 +46,6 @@ void main() {
   late MockGitHub gitHubClient;
   late MockFirestoreService mockFirestoreService;
   late MockGithubChecksUtil mockGithubChecksUtil;
-  late MockGithubChecksService mockGithubChecksService;
-  late MockGithubChecksServiceV2 mockGithubChecksServiceV2;
   late MockIssuesService issuesService;
   late MockPullRequestsService pullRequestsService;
   late SubscriptionTester tester;
@@ -107,7 +105,6 @@ void main() {
         FakeSchedulerV2(config: config, buildbucket: fakeBuildBucketV2Client, githubChecksUtil: mockGithubChecksUtil);
     tester = SubscriptionTester(request: request);
 
-    mockGithubChecksService = MockGithubChecksService();
     when(gitHubClient.issues).thenReturn(issuesService);
     when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
     when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output'))).thenAnswer((_) async {
@@ -117,7 +114,6 @@ void main() {
         'check_suite': <String, dynamic>{'id': 2},
       });
     });
-    mockGithubChecksServiceV2 = MockGithubChecksServiceV2();
 
     gerritService = FakeGerritService();
     webhook = GithubWebhookSubscription(
@@ -125,8 +121,6 @@ void main() {
       cache: CacheService(inMemory: true),
       datastoreProvider: (_) => DatastoreService(config.db, 5),
       gerritService: gerritService,
-      githubChecksService: mockGithubChecksService,
-      githubChecksServiceV2: mockGithubChecksServiceV2,
       scheduler: scheduler,
       schedulerV2: schedulerV2,
       commitService: commitService,
