@@ -32,3 +32,4 @@ Then, run: `dart run --enable-asserts bin/githubanalysis.dart`
 See also:
 
  * [Output from 2023-03-30](https://docs.google.com/spreadsheets/d/15hyxxapUmsK6J05X1goQ__9xJdzhJQM-BqsvM31-CTk/edit#gid=0) as a spreadsheet (with graphs).
+ * [Output from 2024-04-12](https://docs.google.com/spreadsheets/d/1h9IPF4ZKhfh4FbdzzqFFbznbGSxj-syVfruOIge9fac/edit?usp=sharing) as a spreadsheet (with graphs).

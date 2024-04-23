@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <!-- Copyright 2019 The Flutter Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file. -->
@@ -21,19 +22,11 @@ found in the LICENSE file. -->
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
-
-  <script src="flutter.js" defer></script>
 </head>
 <body>
 <script>
-  window.addEventListener('load', function() {
-    _flutter.loader.loadEntrypoint({
-      onEntrypointLoaded: async function(engineInitializer) {
-        let appRunner = await engineInitializer.initializeEngine();
-        appRunner.runApp();
-      }
-    })
-  });
+  {{flutter_bootstrap_js}}
+
   (function(w,d,s,g,js,fjs){
     g=w.gapi||(w.gapi={});g.analytics={q:[],ready:function(cb){this.q.push(cb)}};
     js=d.createElement(s);fjs=d.getElementsByTagName(s)[0];

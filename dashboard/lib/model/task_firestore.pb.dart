@@ -26,6 +26,8 @@ class TaskDocument extends $pb.GeneratedMessage {
     $core.bool? testFlaky,
     $core.int? buildNumber,
     $core.String? status,
+    $core.String? buildList,
+    $core.String? commitSha,
   }) {
     final $result = create();
     if (documentName != null) {
@@ -58,6 +60,12 @@ class TaskDocument extends $pb.GeneratedMessage {
     if (status != null) {
       $result.status = status;
     }
+    if (buildList != null) {
+      $result.buildList = buildList;
+    }
+    if (commitSha != null) {
+      $result.commitSha = commitSha;
+    }
     return $result;
   }
   TaskDocument._() : super();
@@ -78,6 +86,8 @@ class TaskDocument extends $pb.GeneratedMessage {
     ..aOB(8, _omitFieldNames ? '' : 'testFlaky')
     ..a<$core.int>(9, _omitFieldNames ? '' : 'buildNumber', $pb.PbFieldType.O3)
     ..aOS(10, _omitFieldNames ? '' : 'status')
+    ..aOS(11, _omitFieldNames ? '' : 'buildList')
+    ..aOS(12, _omitFieldNames ? '' : 'commitSha')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -100,7 +110,7 @@ class TaskDocument extends $pb.GeneratedMessage {
   static TaskDocument getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TaskDocument>(create);
   static TaskDocument? _defaultInstance;
 
-  /// Next ID: 11
+  /// Next ID: 13
   @$pb.TagNumber(1)
   $core.String get documentName => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -220,6 +230,30 @@ class TaskDocument extends $pb.GeneratedMessage {
   $core.bool hasStatus() => $_has(9);
   @$pb.TagNumber(10)
   void clearStatus() => clearField(10);
+
+  @$pb.TagNumber(11)
+  $core.String get buildList => $_getSZ(10);
+  @$pb.TagNumber(11)
+  set buildList($core.String v) {
+    $_setString(10, v);
+  }
+
+  @$pb.TagNumber(11)
+  $core.bool hasBuildList() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearBuildList() => clearField(11);
+
+  @$pb.TagNumber(12)
+  $core.String get commitSha => $_getSZ(11);
+  @$pb.TagNumber(12)
+  set commitSha($core.String v) {
+    $_setString(11, v);
+  }
+
+  @$pb.TagNumber(12)
+  $core.bool hasCommitSha() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearCommitSha() => clearField(12);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
