@@ -41,7 +41,7 @@ void main() {
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
 
-            final List<firestore.Task> originalFirestoreTasks = <firestore.Task>[
+      final List<firestore.Task> originalFirestoreTasks = <firestore.Task>[
         generateFirestoreTask(
           1,
           status: firestore.Task.statusInProgress,
@@ -62,16 +62,21 @@ void main() {
 
       final List<firestore.FullTask> originalFullTasks = originalFirestoreTasks.map((firestore.Task task) => firestore.FullTask(task, firestoreCommit)).toList();
 
-      when(
-        mockFirestoreService.queryRecentTasks(
-          taskName: null,
-          commitLimit: 20,
-          branch: null,
-          slug: anyNamed('slug'),
-        ),
-      ).thenAnswer((Invocation invocation) {
-        return Future<List<firestore.FullTask>>.value(originalFullTasks);
-      });
+      final List<String> repositories = ['cocoon', 'engine', 'packages', 'flutter'];
+
+      // Loop through repos to cover all mocking scenarios
+      for (String repository in repositories) {
+        when(
+          mockFirestoreService.queryRecentTasks(
+            taskName: anyNamed('taskName'),
+            commitLimit: 20,
+            branch: anyNamed('branch'),
+            slug: RepositorySlug('flutter', repository),
+          ),
+        ).thenAnswer((Invocation invocation) {
+          return Future<List<firestore.FullTask>>.value(originalFullTasks);
+        });
+      }
 
       when(
         mockFirestoreService.writeViaTransaction(
@@ -100,13 +105,6 @@ void main() {
     });
 
     test('resets stale task', () async {
-      when(
-        mockFirestoreService.writeViaTransaction(
-          captureAny,
-        ),
-      ).thenAnswer((Invocation invocation) {
-        return Future<CommitResponse>.value(CommitResponse());
-      });
       final List<Task> originalTasks = <Task>[
         generateTask(
           1,
