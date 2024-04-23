@@ -82,53 +82,53 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
 
     log.fine('Setting status (${build.status.toString()}) for $builderName');
 
-    if (pubSubCallBack.hasUserData()) {
-      Map<String, dynamic> userDataMap = <String, dynamic>{};
-      try {
-        log.info('User data was not base64 encoded.');
-        userDataMap = json.decode(String.fromCharCodes(pubSubCallBack.userData));
-      } on FormatException {
-        log.info('Decoding base64 encoded user data.');
-        userDataMap = UserData.decodeUserDataBytes(pubSubCallBack.userData);
-      }
-
-      if (userDataMap.containsKey('repo_owner') && userDataMap.containsKey('repo_name')) {
-        final RepositorySlug slug =
-            RepositorySlug(userDataMap['repo_owner'] as String, userDataMap['repo_name'] as String);
-
-        bool rescheduled = false;
-        if (githubChecksService.taskFailed(build.status)) {
-          final int currentAttempt = githubChecksService.currentAttempt(tags);
-          final int maxAttempt = await _getMaxAttemptV2(
-            userDataMap,
-            slug,
-            builderName,
-          );
-          if (currentAttempt < maxAttempt) {
-            rescheduled = true;
-            log.fine('Rerunning failed task: $builderName');
-            await luciBuildService.rescheduleBuild(
-              builderName: builderName,
-              build: build,
-              rescheduleAttempt: currentAttempt + 1,
-              userDataMap: userDataMap,
-            );
-          }
-        }
-        await githubChecksService.updateCheckStatus(
-          build: build,
-          userDataMap: userDataMap,
-          luciBuildService: luciBuildService,
-          slug: slug,
-          rescheduled: rescheduled,
-        );
-      } else {
-        log.info('This repo does not support checks API');
-      }
-    } else {
+    if (!pubSubCallBack.hasUserData()) {
       log.info('No user data was found in this request');
+      return Body.empty;
     }
 
+    Map<String, dynamic> userDataMap = <String, dynamic>{};
+    try {
+      userDataMap = json.decode(String.fromCharCodes(pubSubCallBack.userData));
+      log.info('User data was not base64 encoded.');
+    } on FormatException {
+      userDataMap = UserData.decodeUserDataBytes(pubSubCallBack.userData);
+      log.info('Decoding base64 encoded user data.');
+    }
+
+    if (userDataMap.containsKey('repo_owner') && userDataMap.containsKey('repo_name')) {
+      final RepositorySlug slug =
+          RepositorySlug(userDataMap['repo_owner'] as String, userDataMap['repo_name'] as String);
+
+      bool rescheduled = false;
+      if (githubChecksService.taskFailed(build.status)) {
+        final int currentAttempt = githubChecksService.currentAttempt(tags);
+        final int maxAttempt = await _getMaxAttemptV2(
+          userDataMap,
+          slug,
+          builderName,
+        );
+        if (currentAttempt < maxAttempt) {
+          rescheduled = true;
+          log.fine('Rerunning failed task: $builderName');
+          await luciBuildService.rescheduleBuild(
+            builderName: builderName,
+            build: build,
+            rescheduleAttempt: currentAttempt + 1,
+            userDataMap: userDataMap,
+          );
+        }
+      }
+      await githubChecksService.updateCheckStatus(
+        build: build,
+        userDataMap: userDataMap,
+        luciBuildService: luciBuildService,
+        slug: slug,
+        rescheduled: rescheduled,
+      );
+    } else {
+      log.info('This repo does not support checks API');
+    }
     return Body.empty;
   }
 

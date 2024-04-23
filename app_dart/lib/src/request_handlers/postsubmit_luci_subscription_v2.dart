@@ -61,11 +61,11 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
 
     Map<String, dynamic> userDataMap = <String, dynamic>{};
     try {
-      log.info('User data was not base64 encoded.');
       userDataMap = json.decode(String.fromCharCodes(pubSubCallBack.userData));
+      log.info('User data was not base64 encoded.');
     } on FormatException {
-      log.info('Decoding base64 encoded user data.');
       userDataMap = UserData.decodeUserDataBytes(pubSubCallBack.userData);
+      log.info('Decoding base64 encoded user data.');
     }
 
     // collect userData
@@ -169,6 +169,6 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
   // 2) the task is already completed.
   //    The task may have been marked as completed from test framework via update-task-status API.
   bool _shouldUpdateTask(bbv2.Build build, firestore.Task task) {
-    return build.status != bbv2.Status.SCHEDULED && !Task.finishedStatusValues.contains(task.status);
+    return build.status != bbv2.Status.SCHEDULED && !firestore.Task.finishedStatusValues.contains(task.status);
   }
 }
