@@ -12,7 +12,6 @@ import '../model/luci/push_message.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/subscription_handler.dart';
-import '../service/buildbucket.dart';
 import '../service/config.dart';
 import '../service/github_checks_service.dart';
 import '../service/logging.dart';
@@ -37,14 +36,12 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   const PresubmitLuciSubscription({
     required super.cache,
     required super.config,
-    required this.buildBucketClient,
     required this.scheduler,
     required this.luciBuildService,
     required this.githubChecksService,
     AuthenticationProvider? authProvider,
   }) : super(subscriptionName: 'github-updater');
 
-  final BuildBucketClient buildBucketClient;
   final LuciBuildService luciBuildService;
   final GithubChecksService githubChecksService;
   final Scheduler scheduler;
@@ -96,13 +93,6 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     return Body.empty;
   }
 
-  /// Gets target's allowed reschedule attempt.
-  ///
-  /// Each target can define their own allowed max number of reschedule attemp, and it
-  /// is defined as a property `presubmit_max_attempts`.
-  ///
-  /// If not property is defined, the target doesn't allow a reschedule after failures.
-  /// Typically the property will be used for targets that are likely flaky.
   Future<int> _getMaxAttempt(
     BuildPushMessage buildPushMessage,
     RepositorySlug slug,
