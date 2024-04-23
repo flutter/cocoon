@@ -138,7 +138,7 @@ class BuildStatusService {
       slug: slug,
     );
     for (Commit commit in commits) {
-      final List<Task> tasks = await firestoreService.queryCommitTasks(commit.sha!);
+      final List<Task> tasks = await firestoreService.queryCommitTasks(commit.sha);
       yield CommitTasksStatus(commit, tasks);
     }
   }
