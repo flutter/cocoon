@@ -107,7 +107,7 @@ class TaskIcon extends StatelessWidget {
     final Brightness brightness = Theme.of(context).brightness;
     final Widget icon = stageIconForBrightness(brightness);
     final String tooltipMessage =
-        qualifiedTask.isDartInternal ? '${qualifiedTask.task} (dart-internal)' : qualifiedTask.task!;
+        qualifiedTask.isDartInternal ? '${qualifiedTask.task} (${StageName.dartInternal})' : qualifiedTask.task!;
 
     return IconTheme.merge(
       data: IconThemeData(size: TaskBox.of(context) - 5),
