@@ -8,8 +8,11 @@ part of 'pubsub_message_v2.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-PubSubPushMessageV2 _$PubSubPushMessageV2FromJson(Map<String, dynamic> json) => PubSubPushMessageV2(
-      message: json['message'] == null ? null : PushMessageV2.fromJson(json['message'] as Map<String, dynamic>),
+PubSubPushMessageV2 _$PubSubPushMessageV2FromJson(Map<String, dynamic> json) =>
+    PubSubPushMessageV2(
+      message: json['message'] == null
+          ? null
+          : PushMessageV2.fromJson(json['message'] as Map<String, dynamic>),
       subscription: json['subscription'] as String?,
     );
 
@@ -27,11 +30,13 @@ Map<String, dynamic> _$PubSubPushMessageV2ToJson(PubSubPushMessageV2 instance) {
   return val;
 }
 
-PushMessageV2 _$PushMessageV2FromJson(Map<String, dynamic> json) => PushMessageV2(
+PushMessageV2 _$PushMessageV2FromJson(Map<String, dynamic> json) =>
+    PushMessageV2(
       attributes: (json['attributes'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, e as String),
       ),
-      data: _$JsonConverterFromJson<String, String>(json['data'], const Base64Converter().fromJson),
+      data: _$JsonConverterFromJson<String, String>(
+          json['data'], const Base64Converter().fromJson),
       messageId: json['messageId'] as String?,
       publishTime: json['publishTime'] as String?,
     );
@@ -46,7 +51,10 @@ Map<String, dynamic> _$PushMessageV2ToJson(PushMessageV2 instance) {
   }
 
   writeNotNull('attributes', instance.attributes);
-  writeNotNull('data', _$JsonConverterToJson<String, String>(instance.data, const Base64Converter().toJson));
+  writeNotNull(
+      'data',
+      _$JsonConverterToJson<String, String>(
+          instance.data, const Base64Converter().toJson));
   writeNotNull('messageId', instance.messageId);
   writeNotNull('publishTime', instance.publishTime);
   return val;
