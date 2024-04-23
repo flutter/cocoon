@@ -139,7 +139,9 @@ void main() {
             ..bringup = false
             ..status = 'Succeeded'
             ..testFlaky = false
-            ..buildNumber = 123,
+            ..buildNumber = 123
+            ..buildList = '123'
+            ..commitSha = 'testSha',
         );
 
       expect(statuses.data!.length, 1);
