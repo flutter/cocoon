@@ -10,6 +10,7 @@ import 'package:cocoon_service/src/request_handlers/postsubmit_luci_subscription
 import 'package:cocoon_service/src/request_handlers/presubmit_luci_subscription_v2.dart';
 import 'package:cocoon_service/src/request_handlers/reset_prod_task_v2.dart';
 import 'package:cocoon_service/src/request_handlers/reset_try_task_v2.dart';
+import 'package:cocoon_service/src/request_handlers/scheduler/batch_backfiller_v2.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/scheduler_request_subscription.dart';
 import 'package:cocoon_service/src/request_handlers/vacuum_github_commits_v2.dart';
 import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
@@ -145,6 +146,10 @@ Server createServer({
     '/api/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
       scheduler: scheduler,
+    ),
+    '/api/v2/scheduler/batch-backfiller': BatchBackfillerV2(
+      config: config,
+      scheduler: schedulerV2,
     ),
     '/api/scheduler/batch-request-subscription': SchedulerRequestSubscription(
       cache: cache,
