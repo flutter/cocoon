@@ -5,7 +5,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
@@ -34,9 +34,9 @@ import 'cache_service.dart';
 import 'config.dart';
 import 'datastore.dart';
 import 'firestore.dart';
-import 'github_checks_service.dart';
+import 'github_checks_service_v2.dart';
 import 'github_service.dart';
-import 'luci_build_service.dart';
+import 'luci_build_service_v2.dart';
 
 /// Scheduler service to validate all commits to supported Flutter repositories.
 ///
@@ -44,8 +44,8 @@ import 'luci_build_service.dart';
 ///   1. Tracking commits in Cocoon
 ///   2. Ensuring commits are validated (via scheduling tasks against commits)
 ///   3. Retry mechanisms for tasks
-class Scheduler {
-  Scheduler({
+class SchedulerV2 {
+  SchedulerV2({
     required this.cache,
     required this.config,
     required this.githubChecksService,
@@ -59,12 +59,12 @@ class Scheduler {
   final CacheService cache;
   final Config config;
   final DatastoreServiceProvider datastoreProvider;
-  final GithubChecksService githubChecksService;
+  final GithubChecksServiceV2 githubChecksService;
   final HttpClientProvider httpClientProvider;
 
   late DatastoreService datastore;
   late FirestoreService firestoreService;
-  LuciBuildService luciBuildService;
+  LuciBuildServiceV2 luciBuildService;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
@@ -294,15 +294,11 @@ class Scheduler {
     required PullRequest pullRequest,
     String reason = 'Newer commit available',
   }) async {
-    await luciBuildService.cancelBuilds(pullRequest, reason);
-  }
-
-  Future<void> cancelPreSubmitTargetsV2({
-    required PullRequest pullRequest,
-    String reason = 'Newer commit available',
-  }) async {
     log.info('Cancelling presubmit targets with buildbucket v2.');
-    await luciBuildService.cancelBuildsV2(pullRequest, reason);
+    await luciBuildService.cancelBuilds(
+      pullRequest: pullRequest,
+      reason: reason,
+    );
   }
 
   /// Schedule presubmit targets against a pull request.
@@ -318,7 +314,7 @@ class Scheduler {
   }) async {
     // Always cancel running builds so we don't ever schedule duplicates.
     log.info('Attempting to cancel existing presubmit targets for ${pullRequest.number}');
-    await cancelPreSubmitTargetsV2(
+    await cancelPreSubmitTargets(
       pullRequest: pullRequest,
       reason: reason,
     );
@@ -398,7 +394,10 @@ class Scheduler {
 
   /// If [builderTriggerList] is specificed, return only builders that are contained in [presubmitTarget].
   /// Otherwise, return [presubmitTarget].
-  List<Target> getTriggerList(List<Target> presubmitTarget, List<String>? builderTriggerList) {
+  List<Target> getTriggerList(
+    List<Target> presubmitTarget,
+    List<String>? builderTriggerList,
+  ) {
     if (builderTriggerList != null && builderTriggerList.isNotEmpty) {
       return presubmitTarget.where((Target target) => builderTriggerList.contains(target.value.name)).toList();
     }
@@ -420,9 +419,10 @@ class Scheduler {
       checkSuiteEvent,
     );
     final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
-    final List<Build?> failedBuilds = await luciBuildService.failedBuilds(pullRequest, presubmitTargets);
-    for (Build? build in failedBuilds) {
-      final CheckRun checkRun = checkRuns[build!.builderId.builder!]!;
+    final List<bbv2.Build?> failedBuilds =
+        await luciBuildService.failedBuilds(pullRequest: pullRequest, targets: presubmitTargets);
+    for (bbv2.Build? build in failedBuilds) {
+      final CheckRun checkRun = checkRuns[build!.builder.builder]!;
 
       if (checkRun.status != CheckRunStatus.completed) {
         // Check run is still in progress, do not retry.
@@ -430,7 +430,7 @@ class Scheduler {
       }
 
       await luciBuildService.scheduleTryBuilds(
-        targets: presubmitTargets.where((Target target) => build.builderId.builder == target.value.name).toList(),
+        targets: presubmitTargets.where((Target target) => build.builder.builder == target.value.name).toList(),
         pullRequest: pullRequest,
         checkSuiteEvent: checkSuiteEvent,
       );
@@ -569,7 +569,7 @@ class Scheduler {
             if (commit == null) {
               log.fine('Rescheduling presubmit build.');
               // Does not do anything with the returned build oddly.
-              await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent);
+              await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent: checkRunEvent);
             } else {
               log.fine('Rescheduling postsubmit build.');
               final String checkName = checkRunEvent.checkRun!.name!;
