@@ -60,8 +60,8 @@ void main() {
         ),
       ];
 
-      final List<firestore.FullTask> originalFullTasks =
-          originalFirestoreTasks.map((firestore.Task task) => firestore.FullTask(task, firestoreCommit)).toList();
+      final List<(firestore.Task, firestore_commit.Commit)> originalFullTasks =
+          originalFirestoreTasks.map((firestore.Task task) => (task, firestoreCommit)).toList();
 
       final List<String> repositories = ['cocoon', 'engine', 'packages', 'flutter'];
 
@@ -75,7 +75,7 @@ void main() {
             slug: RepositorySlug('flutter', repository),
           ),
         ).thenAnswer((Invocation invocation) {
-          return Future<List<firestore.FullTask>>.value(originalFullTasks);
+          return Future<List<(firestore.Task, firestore_commit.Commit)>>.value(originalFullTasks);
         });
       }
 

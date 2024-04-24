@@ -11,6 +11,7 @@ import 'package:meta/meta.dart';
 
 import '../../model/appengine/task.dart';
 import '../../model/firestore/task.dart' as firestore;
+import '../../model/firestore/commit.dart' as firestore_commit;
 import '../../service/datastore.dart';
 import '../../service/logging.dart';
 
@@ -70,11 +71,11 @@ class VacuumStaleTasks extends RequestHandler<Body> {
     }
 
     // Firestore logic to query for recent tasks and assign to commits
-    final List<firestore.FullTask> firestoreTasks =
+    final List<(firestore.Task, firestore_commit.Commit)> firestoreTasks =
         await firestoreService.queryRecentTasks(slug: slug, commitLimit: config.backfillerTargetLimit);
     final List<firestore.Task> firestoreTasksToBeReset = <firestore.Task>[];
-    for (firestore.FullTask fullTask in firestoreTasks) {
-      final firestore.Task task = fullTask.task;
+    for (var taskRecord in firestoreTasks) {
+      final firestore.Task task = taskRecord.$1; // extract Task
       if (task.status == Task.statusInProgress && task.buildNumber == null) {
         task.setStatus(Task.statusNew);
         task.setCreateTimestamp(0);

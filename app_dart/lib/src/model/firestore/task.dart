@@ -382,21 +382,3 @@ Task taskToDocument(datastore.Task task) {
     ),
   );
 }
-
-/// A [Task], paired with its associated parent [Commit].
-///
-/// The [Task] model object references its parent [Commit] through the
-/// [Task.commitSha] field, but it does not hold a reference to the associated
-/// [Commit] object (just the relational mapping). This class exists for those
-/// times when the caller has loaded the associated commit from firestore
-/// and would like to pass both the task its commit around.
-class FullTask {
-  /// Creates a new [FullTask].
-  const FullTask(this.task, this.commit);
-
-  /// The [Task] object.
-  final Task task;
-
-  ///  The [Commit] object referenced by this [task]'s [Task.commitSha].
-  final Commit commit;
-}

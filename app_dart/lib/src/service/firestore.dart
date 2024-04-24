@@ -120,19 +120,20 @@ class FirestoreService {
   /// specified value will be returned. By default, tasks will be returned
   /// regardless of their name.
   ///
-  /// The returned tasks will be ordered by most recent [Commit.timestamp]
-  /// first, then by most recent [Task.createTimestamp].
-  Future<List<FullTask>> queryRecentTasks({
+  /// The returned tasks will be ordered as records of (Task, Commit)
+  /// by most recent [Commit.timestamp] first,
+  /// then by most recent [Task.createTimestamp].
+  Future<List<(Task, Commit)>> queryRecentTasks({
     String? taskName,
     int commitLimit = 20,
     String? branch,
     required RepositorySlug slug,
   }) async {
     final List<Commit> commits = await queryRecentCommits(limit: commitLimit, branch: branch, slug: slug);
-    final List<FullTask> allTasks = [];
+    final List<(Task, Commit)> allTasks = [];
     for (Commit commit in commits) {
       final List<Task> tasks = await queryCommitTasks(commit.sha);
-      final List<FullTask> commitTasks = tasks.map((Task task) => FullTask(task, commit)).toList();
+      final List<(Task, Commit)> commitTasks = tasks.map((Task task) => (task, commit)).toList();
 
       allTasks.addAll(commitTasks);
     }
