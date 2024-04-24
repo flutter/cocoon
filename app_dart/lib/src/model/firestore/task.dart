@@ -13,7 +13,6 @@ import '../appengine/commit.dart' as datastore;
 import '../appengine/task.dart' as datastore;
 import '../ci_yaml/target.dart';
 import '../luci/push_message.dart';
-import 'commit.dart';
 
 const String kTaskCollectionId = 'tasks';
 const int kTaskDefaultTimestampValue = 0;
