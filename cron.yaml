@@ -7,6 +7,10 @@ cron:
   url: /api/vacuum-github-commits
   schedule: every 6 hours
 
+- description: retrieve missing commits v2
+  url: /api/v2/vacuum-github-commits
+  schedule: every 6 hours
+
 # TODO(keyonghan): will delete if `In Progress` hanging issue is resolved:
 # https://github.com/flutter/flutter/issues/120395#issuecomment-1444810718
 - description: vacuum stale tasks
@@ -15,6 +19,10 @@ cron:
 
 - description: backfills builds
   url: /api/scheduler/batch-backfiller
+  schedule: every 5 minutes
+
+- description: backfills builds via the build bucket v2 api
+  url: /api/v2/scheduler/batch-backfiller
   schedule: every 5 minutes
 
 - description: sends build status to GitHub to annotate flutter PRs and commits

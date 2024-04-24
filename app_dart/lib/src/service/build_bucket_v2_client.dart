@@ -70,7 +70,6 @@ class BuildBucketV2Client {
 
     log.info('Making bbv2 request with path: $url and body: $request');
 
-    //TODO most likely have issues here:
     final http.Response response = await httpClient.post(
       url,
       body: request,
