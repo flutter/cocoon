@@ -70,7 +70,7 @@ void main() {
         when(
           mockFirestoreService.queryRecentTasks(
             taskName: anyNamed('taskName'),
-            commitLimit: 20,
+            commitLimit: anyNamed('commitLimit'),
             branch: anyNamed('branch'),
             slug: RepositorySlug('flutter', repository),
           ),
