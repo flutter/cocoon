@@ -8,11 +8,8 @@ part of 'push_message.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-PushMessageEnvelope _$PushMessageEnvelopeFromJson(Map<String, dynamic> json) =>
-    PushMessageEnvelope(
-      message: json['message'] == null
-          ? null
-          : PushMessage.fromJson(json['message'] as Map<String, dynamic>),
+PushMessageEnvelope _$PushMessageEnvelopeFromJson(Map<String, dynamic> json) => PushMessageEnvelope(
+      message: json['message'] == null ? null : PushMessage.fromJson(json['message'] as Map<String, dynamic>),
       subscription: json['subscription'] as String?,
     );
 
@@ -34,8 +31,7 @@ PushMessage _$PushMessageFromJson(Map<String, dynamic> json) => PushMessage(
       attributes: (json['attributes'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, e as String),
       ),
-      data: _$JsonConverterFromJson<String, String>(
-          json['data'], const Base64Converter().fromJson),
+      data: _$JsonConverterFromJson<String, String>(json['data'], const Base64Converter().fromJson),
       messageId: json['messageId'] as String?,
       publishTime: json['publishTime'] as String?,
     );
@@ -50,10 +46,7 @@ Map<String, dynamic> _$PushMessageToJson(PushMessage instance) {
   }
 
   writeNotNull('attributes', instance.attributes);
-  writeNotNull(
-      'data',
-      _$JsonConverterToJson<String, String>(
-          instance.data, const Base64Converter().toJson));
+  writeNotNull('data', _$JsonConverterToJson<String, String>(instance.data, const Base64Converter().toJson));
   writeNotNull('messageId', instance.messageId);
   writeNotNull('publishTime', instance.publishTime);
   return val;
@@ -71,11 +64,8 @@ Json? _$JsonConverterToJson<Json, Value>(
 ) =>
     value == null ? null : toJson(value);
 
-BuildPushMessage _$BuildPushMessageFromJson(Map<String, dynamic> json) =>
-    BuildPushMessage(
-      build: json['build'] == null
-          ? null
-          : Build.fromJson(json['build'] as Map<String, dynamic>),
+BuildPushMessage _$BuildPushMessageFromJson(Map<String, dynamic> json) => BuildPushMessage(
+      build: json['build'] == null ? null : Build.fromJson(json['build'] as Map<String, dynamic>),
       hostname: json['hostname'] as String?,
       userData: json['user_data'] as String?,
     );
@@ -98,34 +88,24 @@ Map<String, dynamic> _$BuildPushMessageToJson(BuildPushMessage instance) {
 Build _$BuildFromJson(Map<String, dynamic> json) => Build(
       bucket: json['bucket'] as String?,
       canary: json['canary'] as bool?,
-      canaryPreference: $enumDecodeNullable(
-          _$CanaryPreferenceEnumMap, json['canary_preference']),
-      cancelationReason: $enumDecodeNullable(
-          _$CancelationReasonEnumMap, json['cancelation_reason']),
-      completedTimestamp: const MicrosecondsSinceEpochConverter()
-          .fromJson(json['completed_ts'] as String?),
+      canaryPreference: $enumDecodeNullable(_$CanaryPreferenceEnumMap, json['canary_preference']),
+      cancelationReason: $enumDecodeNullable(_$CancelationReasonEnumMap, json['cancelation_reason']),
+      completedTimestamp: const MicrosecondsSinceEpochConverter().fromJson(json['completed_ts'] as String?),
       createdBy: json['created_by'] as String?,
-      createdTimestamp: const MicrosecondsSinceEpochConverter()
-          .fromJson(json['created_ts'] as String?),
-      failureReason:
-          $enumDecodeNullable(_$FailureReasonEnumMap, json['failure_reason']),
+      createdTimestamp: const MicrosecondsSinceEpochConverter().fromJson(json['created_ts'] as String?),
+      failureReason: $enumDecodeNullable(_$FailureReasonEnumMap, json['failure_reason']),
       experimental: json['experimental'] as bool?,
       id: json['id'] as String?,
-      buildParameters: const NestedJsonConverter()
-          .fromJson(json['parameters_json'] as String?),
+      buildParameters: const NestedJsonConverter().fromJson(json['parameters_json'] as String?),
       project: json['project'] as String?,
       result: $enumDecodeNullable(_$ResultEnumMap, json['result']),
-      resultDetails: const NestedJsonConverter()
-          .fromJson(json['result_details_json'] as String?),
+      resultDetails: const NestedJsonConverter().fromJson(json['result_details_json'] as String?),
       serviceAccount: json['service_account'] as String?,
-      startedTimestamp: const MicrosecondsSinceEpochConverter()
-          .fromJson(json['started_ts'] as String?),
+      startedTimestamp: const MicrosecondsSinceEpochConverter().fromJson(json['started_ts'] as String?),
       status: $enumDecodeNullable(_$StatusEnumMap, json['status']),
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      updatedTimestamp: const MicrosecondsSinceEpochConverter()
-          .fromJson(json['updated_ts'] as String?),
-      utcNowTimestamp: const MicrosecondsSinceEpochConverter()
-          .fromJson(json['utcnow_ts'] as String?),
+      updatedTimestamp: const MicrosecondsSinceEpochConverter().fromJson(json['updated_ts'] as String?),
+      utcNowTimestamp: const MicrosecondsSinceEpochConverter().fromJson(json['utcnow_ts'] as String?),
       url: json['url'] as String?,
     );
 
@@ -140,43 +120,25 @@ Map<String, dynamic> _$BuildToJson(Build instance) {
 
   writeNotNull('bucket', instance.bucket);
   writeNotNull('canary', instance.canary);
-  writeNotNull('canary_preference',
-      _$CanaryPreferenceEnumMap[instance.canaryPreference]);
-  writeNotNull('cancelation_reason',
-      _$CancelationReasonEnumMap[instance.cancelationReason]);
-  writeNotNull(
-      'completed_ts',
-      const MicrosecondsSinceEpochConverter()
-          .toJson(instance.completedTimestamp));
+  writeNotNull('canary_preference', _$CanaryPreferenceEnumMap[instance.canaryPreference]);
+  writeNotNull('cancelation_reason', _$CancelationReasonEnumMap[instance.cancelationReason]);
+  writeNotNull('completed_ts', const MicrosecondsSinceEpochConverter().toJson(instance.completedTimestamp));
   writeNotNull('created_by', instance.createdBy);
-  writeNotNull(
-      'created_ts',
-      const MicrosecondsSinceEpochConverter()
-          .toJson(instance.createdTimestamp));
+  writeNotNull('created_ts', const MicrosecondsSinceEpochConverter().toJson(instance.createdTimestamp));
   writeNotNull('experimental', instance.experimental);
-  writeNotNull(
-      'failure_reason', _$FailureReasonEnumMap[instance.failureReason]);
+  writeNotNull('failure_reason', _$FailureReasonEnumMap[instance.failureReason]);
   writeNotNull('id', instance.id);
-  writeNotNull('parameters_json',
-      const NestedJsonConverter().toJson(instance.buildParameters));
+  writeNotNull('parameters_json', const NestedJsonConverter().toJson(instance.buildParameters));
   writeNotNull('project', instance.project);
   writeNotNull('result', _$ResultEnumMap[instance.result]);
-  writeNotNull('result_details_json',
-      const NestedJsonConverter().toJson(instance.resultDetails));
+  writeNotNull('result_details_json', const NestedJsonConverter().toJson(instance.resultDetails));
   writeNotNull('service_account', instance.serviceAccount);
-  writeNotNull(
-      'started_ts',
-      const MicrosecondsSinceEpochConverter()
-          .toJson(instance.startedTimestamp));
+  writeNotNull('started_ts', const MicrosecondsSinceEpochConverter().toJson(instance.startedTimestamp));
   writeNotNull('status', _$StatusEnumMap[instance.status]);
   writeNotNull('tags', instance.tags);
-  writeNotNull(
-      'updated_ts',
-      const MicrosecondsSinceEpochConverter()
-          .toJson(instance.updatedTimestamp));
+  writeNotNull('updated_ts', const MicrosecondsSinceEpochConverter().toJson(instance.updatedTimestamp));
   writeNotNull('url', instance.url);
-  writeNotNull('utcnow_ts',
-      const MicrosecondsSinceEpochConverter().toJson(instance.utcNowTimestamp));
+  writeNotNull('utcnow_ts', const MicrosecondsSinceEpochConverter().toJson(instance.utcNowTimestamp));
   return val;
 }
 
