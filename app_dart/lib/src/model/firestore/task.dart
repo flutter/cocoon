@@ -187,7 +187,6 @@ class Task extends Document {
     fields![kTaskEndTimestampField] = Value(integerValue: endTimestamp.toString());
   }
 
-
   void setCreateTimestamp(int createTimestamp) {
     fields![kTaskCreateTimestampField] = Value(integerValue: createTimestamp.toString());
   }

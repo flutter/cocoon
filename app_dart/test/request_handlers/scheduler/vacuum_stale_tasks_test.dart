@@ -60,7 +60,8 @@ void main() {
         ),
       ];
 
-      final List<firestore.FullTask> originalFullTasks = originalFirestoreTasks.map((firestore.Task task) => firestore.FullTask(task, firestoreCommit)).toList();
+      final List<firestore.FullTask> originalFullTasks =
+          originalFirestoreTasks.map((firestore.Task task) => firestore.FullTask(task, firestoreCommit)).toList();
 
       final List<String> repositories = ['cocoon', 'engine', 'packages', 'flutter'];
 
