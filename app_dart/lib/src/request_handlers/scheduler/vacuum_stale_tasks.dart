@@ -57,7 +57,8 @@ class VacuumStaleTasks extends RequestHandler<Body> {
     final FirestoreService firestoreService = await config.createFirestoreService();
 
     // Datastore logic to query for recent tasks and assign to commits
-    final List<FullTask> tasks = await datastore.queryRecentTasks(slug: slug, commitLimit: config.backfillerTargetLimit).toList();
+    final List<FullTask> tasks =
+        await datastore.queryRecentTasks(slug: slug, commitLimit: config.backfillerTargetLimit).toList();
     final List<Task> tasksToBeReset = <Task>[];
     for (FullTask fullTask in tasks) {
       final Task task = fullTask.task;
@@ -69,7 +70,8 @@ class VacuumStaleTasks extends RequestHandler<Body> {
     }
 
     // Firestore logic to query for recent tasks and assign to commits
-    final List<firestore.FullTask> firestoreTasks = await firestoreService.queryRecentTasks(slug: slug, commitLimit: config.backfillerTargetLimit);
+    final List<firestore.FullTask> firestoreTasks =
+        await firestoreService.queryRecentTasks(slug: slug, commitLimit: config.backfillerTargetLimit);
     final List<firestore.Task> firestoreTasksToBeReset = <firestore.Task>[];
     for (firestore.FullTask fullTask in firestoreTasks) {
       final firestore.Task task = fullTask.task;
