@@ -36,7 +36,6 @@ void main() {
   late FakeConfig config;
   FakeGithubService githubService;
   late MockBuildBucketClient mockBuildBucketClient;
-  late MockBuildBucketV2Client mockBuildBucketV2Client;
   late LuciBuildService service;
   late RepositorySlug slug;
   late MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
@@ -56,13 +55,11 @@ void main() {
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
-        buildBucketV2Client: mockBuildBucketV2Client,
         gerritService: FakeGerritService(),
         pubsub: pubsub,
       );
@@ -154,13 +151,11 @@ void main() {
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
-        buildBucketV2Client: mockBuildBucketV2Client,
         gerritService: FakeGerritService(),
         pubsub: pubsub,
       );
@@ -219,13 +214,11 @@ void main() {
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
-        buildBucketV2Client: mockBuildBucketV2Client,
         pubsub: pubsub,
       );
       slug = RepositorySlug('flutter', 'cocoon');
@@ -283,14 +276,12 @@ void main() {
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
       mockGithubChecksUtil = MockGithubChecksUtil();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
-        buildBucketV2Client: mockBuildBucketV2Client,
         githubChecksUtil: mockGithubChecksUtil,
         gerritService: FakeGerritService(branchesValue: <String>['master']),
         pubsub: pubsub,
@@ -421,13 +412,11 @@ void main() {
     setUp(() {
       cache = CacheService(inMemory: true);
       mockBuildBucketClient = MockBuildBucketClient();
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: FakeConfig(),
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
-        buildBucketV2Client: mockBuildBucketV2Client,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
       );
@@ -717,13 +706,11 @@ void main() {
     setUp(() {
       cache = CacheService(inMemory: true);
       mockBuildBucketClient = MockBuildBucketClient();
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: FakeConfig(),
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
-        buildBucketV2Client: mockBuildBucketV2Client,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
       );
@@ -793,13 +780,11 @@ void main() {
       cache = CacheService(inMemory: true);
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
-        buildBucketV2Client: mockBuildBucketV2Client,
         pubsub: pubsub,
       );
       slug = RepositorySlug('flutter', 'cocoon');
@@ -847,13 +832,11 @@ void main() {
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
-        buildBucketV2Client: mockBuildBucketV2Client,
         pubsub: pubsub,
       );
       slug = RepositorySlug('flutter', 'flutter');
@@ -895,13 +878,11 @@ void main() {
       cache = CacheService(inMemory: true);
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
-        buildBucketV2Client: mockBuildBucketV2Client,
         pubsub: pubsub,
       );
       final Map<String, dynamic> json = jsonDecode(
@@ -949,7 +930,6 @@ void main() {
       firestoreTask = null;
       firestoreCommit = null;
       mockBuildBucketClient = MockBuildBucketClient();
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
       mockGithubChecksUtil = MockGithubChecksUtil();
       mockFirestoreService = MockFirestoreService();
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
@@ -987,7 +967,6 @@ void main() {
         config: config,
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
-        buildBucketV2Client: mockBuildBucketV2Client,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
       );

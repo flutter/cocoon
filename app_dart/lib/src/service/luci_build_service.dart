@@ -8,11 +8,10 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:googleapis/pubsub/v1.dart';
 
 import '../foundation/github_checks_util.dart';
 import '../model/appengine/commit.dart';
@@ -21,11 +20,10 @@ import '../model/firestore/commit.dart' as firestore_commit;
 import '../model/firestore/task.dart' as firestore;
 import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
-import '../model/luci/push_message.dart' as push_message;
 import '../model/luci/buildbucket.dart';
+import '../model/luci/push_message.dart' as push_message;
 import '../service/datastore.dart';
 import '../service/logging.dart';
-import 'build_bucket_v2_client.dart';
 import 'exceptions.dart';
 import 'github_service.dart';
 
@@ -37,7 +35,6 @@ class LuciBuildService {
     required this.config,
     required this.cache,
     required this.buildBucketClient,
-    required this.buildBucketV2Client,
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
     this.pubsub = const PubSub(),
@@ -45,7 +42,6 @@ class LuciBuildService {
         gerritService = gerritService ?? GerritService(config: config);
 
   BuildBucketClient buildBucketClient;
-  BuildBucketV2Client buildBucketV2Client;
   final CacheService cache;
   Config config;
   GithubChecksUtil githubChecksUtil;
@@ -53,11 +49,7 @@ class LuciBuildService {
 
   final PubSub pubsub;
 
-  static const Set<Status> failStatusSet = <Status>{
-    Status.canceled,
-    Status.failure,
-    Status.infraFailure,
-  };
+  static const Set<Status> failStatusSet = <Status>{Status.canceled, Status.failure, Status.infraFailure};
 
   static const int kBackfillPriority = 35;
   static const int kDefaultPriority = 30;
@@ -72,7 +64,6 @@ class LuciBuildService {
   /// Name of the subcache to store luci build related values in redis.
   static const String subCacheName = 'luci';
 
-  // the Request objects here are the BatchRequest object in bbv2.
   /// Shards [rows] into several sublists of size [maxEntityGroups].
   Future<List<List<Request>>> shard(List<Request> requests, int max) async {
     final List<List<Request>> shards = <List<Request>>[];
@@ -82,10 +73,7 @@ class LuciBuildService {
     return shards;
   }
 
-  /// Fetches an Iterable of try BuildBucket [Build]s.
-  ///
-  /// Returns a list of BuildBucket [Build]s for a given Github [slug], [sha],
-  /// and [builderName].
+  /// Returns an Iterable of try BuildBucket build for a given Github [slug], [sha], [builderName].
   Future<Iterable<Build>> getTryBuilds(
     github.RepositorySlug slug,
     String sha,
@@ -98,31 +86,7 @@ class LuciBuildService {
     return getBuilds(slug, sha, builderName, 'try', tags);
   }
 
-  /// Fetches an Iterable of try BuildBucket V2 [Build]s.
-  ///
-  /// Returns a list of BuildBucket [Build]s for a given Github [slug], [sha],
-  /// and [builderName].
-  Future<Iterable<bbv2.Build>> getTryBuildsV2(
-    github.RepositorySlug slug,
-    String sha,
-    String? builderName,
-  ) async {
-    final List<bbv2.StringPair> tags = [
-      bbv2.StringPair(key: 'buildset', value: 'sha/git/$sha'),
-      bbv2.StringPair(key: 'user_agent', value: 'flutter-cocoon'),
-    ];
-    return getBuildsV2(
-      slug,
-      sha,
-      builderName,
-      'try',
-      tags,
-    );
-  }
-
-  /// Fetches an Iterable of try BuildBucket [Build]s.
-  ///
-  /// Returns a list of BuildBucket [Build]s for a given Github [PullRequest].
+  /// Returns an Iterable of try Buildbucket [Build]s for a given [PullRequest].
   Future<Iterable<Build>> getTryBuildsByPullRequest(
     github.PullRequest pullRequest,
   ) async {
@@ -135,32 +99,8 @@ class LuciBuildService {
     return getBuilds(slug, null, null, 'try', tags);
   }
 
-  /// Fetches an Iterable of try BuildBucket V2 [Build]s.
-  ///
-  /// Returns a list of BuildBucket V2 [Build]s for a given Github
-  /// [PullRequest].
-  Future<Iterable<bbv2.Build>> getTryBuildsByPullRequestV2(
-    github.PullRequest pullRequest,
-  ) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final List<bbv2.StringPair> tags = [
-      bbv2.StringPair(key: 'buildset', value: 'pr/git/${pullRequest.number}'),
-      bbv2.StringPair(key: 'github_link', value: 'https://github.com/${slug.fullName}/pull/${pullRequest.number}'),
-      bbv2.StringPair(key: 'user_agent', value: 'flutter-cocoon'),
-    ];
-    return getBuildsV2(
-      slug,
-      null,
-      null,
-      'try',
-      tags,
-    );
-  }
-
-  /// Fetches an Iterable of prod BuildBucket [Build]s.
-  ///
-  /// Returns an Iterable of prod BuildBucket [Build]s for a given Github
-  /// [slug], [sha], and [builderName].
+  /// Returns an Iterable of prod BuildBucket build for a given Github [slug], [commitSha],
+  /// [builderName] and [repo].
   Future<Iterable<Build>> getProdBuilds(
     github.RepositorySlug slug,
     String commitSha,
@@ -170,10 +110,8 @@ class LuciBuildService {
     return getBuilds(slug, commitSha, builderName, 'prod', tags);
   }
 
-  /// Fetches an Iterable of try BuildBucket [Build]s.
-  ///
-  /// Returns an iterable of try BuildBucket [Build]s for a given Github [slug],
-  /// [sha], [builderName], [bucket], and [tags].
+  /// Returns an iterable of BuildBucket builds for a given Github [slug], [commitSha],
+  /// [builderName], [bucket] and [tags].
   Future<Iterable<Build>> getBuilds(
     github.RepositorySlug? slug,
     String? commitSha,
@@ -209,62 +147,6 @@ class LuciBuildService {
     final Iterable<Build> builds = batch.responses!
         .map((Response response) => response.searchBuilds)
         .expand((SearchBuildsResponse? response) => response!.builds ?? <Build>[]);
-    return builds;
-  }
-
-  Future<Iterable<bbv2.Build>> getBuildsV2(
-    github.RepositorySlug? slug,
-    String? commitSha,
-    String? builderName,
-    String bucket,
-    List<bbv2.StringPair> tags,
-  ) async {
-    // These paths are fields in the Build message.
-    final bbv2.FieldMask fieldMask = bbv2.FieldMask(
-      paths: {
-        'id',
-        'builder',
-        'tags',
-        'status',
-        'input.properties',
-      },
-    );
-
-    final bbv2.BuildMask buildMask = bbv2.BuildMask(fields: fieldMask);
-
-    final bbv2.BuildPredicate buildPredicate = bbv2.BuildPredicate(
-      builder: bbv2.BuilderID(
-        project: 'flutter',
-        bucket: bucket,
-        builder: builderName,
-      ),
-      tags: tags,
-    );
-
-    final bbv2.SearchBuildsRequest searchBuildsRequest = bbv2.SearchBuildsRequest(
-      predicate: buildPredicate,
-      mask: buildMask,
-    );
-
-    // Need to create one of these for each request in the batch.
-    final bbv2.BatchRequest_Request batchRequestRequest = bbv2.BatchRequest_Request(
-      searchBuilds: searchBuildsRequest,
-    );
-
-    final bbv2.BatchResponse batchResponse = await buildBucketV2Client.batch(
-      bbv2.BatchRequest(
-        requests: {batchRequestRequest},
-      ),
-    );
-
-    log.info('Reponses from get builds batch request = ${batchResponse.responses.length}');
-    for (bbv2.BatchResponse_Response response in batchResponse.responses) {
-      log.info('Found a response: ${response.toString()}');
-    }
-
-    final Iterable<bbv2.Build> builds = batchResponse.responses
-        .map((bbv2.BatchResponse_Response response) => response.searchBuilds)
-        .expand((bbv2.SearchBuildsResponse? response) => response!.builds);
     return builds;
   }
 
@@ -350,7 +232,6 @@ class LuciBuildService {
   /// Cancels all the current builds on [pullRequest] with [reason].
   ///
   /// Builds are queried based on the [RepositorySlug] and pull request number.
-  //
   Future<void> cancelBuilds(github.PullRequest pullRequest, String reason) async {
     log.info(
       'Attempting to cancel builds for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}',
@@ -382,40 +263,6 @@ class LuciBuildService {
 
     if (requests.isNotEmpty) {
       await buildBucketClient.batch(BatchRequest(requests: requests));
-    }
-  }
-
-  Future<void> cancelBuildsV2(github.PullRequest pullRequest, String reason) async {
-    log.info(
-      'Attempting to cancel builds (v2) for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}',
-    );
-
-    final Iterable<bbv2.Build> builds = await getTryBuildsByPullRequestV2(pullRequest);
-    log.info('Found ${builds.length} builds.');
-
-    if (builds.isEmpty) {
-      log.warning('No builds were found for pull request ${pullRequest.base!.repo!.fullName}.');
-      return;
-    }
-
-    final List<bbv2.BatchRequest_Request> requests = <bbv2.BatchRequest_Request>[];
-    for (bbv2.Build build in builds) {
-      if (build.status == bbv2.Status.SCHEDULED || build.status == bbv2.Status.STARTED) {
-        // Scheduled status includes scheduled and pending tasks.
-        log.info('Cancelling build with build id ${build.id}.');
-        requests.add(
-          bbv2.BatchRequest_Request(
-            cancelBuild: bbv2.CancelBuildRequest(
-              id: build.id,
-              summaryMarkdown: reason,
-            ),
-          ),
-        );
-      }
-    }
-
-    if (requests.isNotEmpty) {
-      await buildBucketV2Client.batch(bbv2.BatchRequest(requests: requests));
     }
   }
 
@@ -573,12 +420,6 @@ class LuciBuildService {
   Future<Build> getBuildById(String? id, {String? fields}) async {
     final GetBuildRequest request = GetBuildRequest(id: id, fields: fields);
     return buildBucketClient.getBuild(request);
-  }
-
-  // TODO
-  Future<bbv2.Build> getBuildByIdV2(Int64 id, {bbv2.BuildMask? buildMask}) async {
-    final bbv2.GetBuildRequest request = bbv2.GetBuildRequest(id: id, mask: buildMask);
-    return buildBucketV2Client.getBuild(request);
   }
 
   /// Gets builder list whose config is pre-defined in LUCI.

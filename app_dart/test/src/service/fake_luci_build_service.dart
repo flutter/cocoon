@@ -4,7 +4,6 @@
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/request_handling/pubsub.dart';
-import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/gerrit_service.dart';
@@ -12,7 +11,6 @@ import 'package:cocoon_service/src/service/luci_build_service.dart';
 
 import '../request_handling/fake_pubsub.dart';
 import '../utilities/mocks.dart';
-import 'fake_build_bucket_v2_client.dart';
 import 'fake_buildbucket.dart';
 import 'fake_gerrit_service.dart';
 
@@ -21,14 +19,12 @@ class FakeLuciBuildService extends LuciBuildService {
   FakeLuciBuildService({
     required super.config,
     BuildBucketClient? buildbucket,
-    BuildBucketV2Client? buildBucketV2Client,
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
     PubSub? pubsub,
   }) : super(
           cache: CacheService(inMemory: true),
           buildBucketClient: buildbucket ?? FakeBuildBucketClient(),
-          buildBucketV2Client: buildBucketV2Client ?? FakeBuildBucketV2Client(),
           githubChecksUtil: githubChecksUtil ?? MockGithubChecksUtil(),
           gerritService: gerritService ?? FakeGerritService(),
           pubsub: pubsub ?? FakePubSub(),

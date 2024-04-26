@@ -5,7 +5,6 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
@@ -28,6 +27,7 @@ import '../model/firestore/task.dart' as firestore;
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
+import '../model/luci/buildbucket.dart';
 import '../model/proto/internal/scheduler.pb.dart' as pb;
 import '../service/logging.dart';
 import 'cache_service.dart';
@@ -297,14 +297,6 @@ class Scheduler {
     await luciBuildService.cancelBuilds(pullRequest, reason);
   }
 
-  Future<void> cancelPreSubmitTargetsV2({
-    required PullRequest pullRequest,
-    String reason = 'Newer commit available',
-  }) async {
-    log.info('Cancelling presubmit targets with buildbucket v2.');
-    await luciBuildService.cancelBuildsV2(pullRequest, reason);
-  }
-
   /// Schedule presubmit targets against a pull request.
   ///
   /// Cancels all existing targets then schedules the targets.
@@ -318,7 +310,7 @@ class Scheduler {
   }) async {
     // Always cancel running builds so we don't ever schedule duplicates.
     log.info('Attempting to cancel existing presubmit targets for ${pullRequest.number}');
-    await cancelPreSubmitTargetsV2(
+    await cancelPreSubmitTargets(
       pullRequest: pullRequest,
       reason: reason,
     );
@@ -568,7 +560,6 @@ class Scheduler {
 
             if (commit == null) {
               log.fine('Rescheduling presubmit build.');
-              // Does not do anything with the returned build oddly.
               await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent);
             } else {
               log.fine('Rescheduling postsubmit build.');

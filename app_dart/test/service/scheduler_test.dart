@@ -1195,7 +1195,6 @@ targets:
 
       test('retries only triggers failed builds only', () async {
         final MockBuildBucketClient mockBuildbucket = MockBuildBucketClient();
-        final MockBuildBucketV2Client mockBuildBucketV2Client = MockBuildBucketV2Client();
         buildStatusService =
             FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
         final FakePubSub pubsub = FakePubSub();
@@ -1210,7 +1209,6 @@ targets:
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
             buildbucket: mockBuildbucket,
-            buildBucketV2Client: mockBuildBucketV2Client,
             gerritService: FakeGerritService(branchesValue: <String>['master']),
             pubsub: pubsub,
           ),
