@@ -2,18 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'dart:convert';
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:fixnum/fixnum.dart';
+
+import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../model/appengine/task.dart';
 import '../model/firestore/task.dart' as firestore;
-import '../request_handling/subscription_handler_v2.dart';
-import '../service/build_bucket_v2_client.dart';
+import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
 
@@ -26,18 +24,18 @@ import '../service/logging.dart';
 /// The PubSub subscription is set up here:
 /// https://console.cloud.google.com/cloudpubsub/subscription/detail/dart-internal-build-results-sub?project=flutter-dashboard
 @immutable
-class DartInternalSubscription extends SubscriptionHandlerV2 {
+class DartInternalSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening for dart-internal build results.
   /// The message should contain a single buildbucket id
   const DartInternalSubscription({
     required super.cache,
     required super.config,
     super.authProvider,
-    required this.buildBucketV2Client,
+    required this.buildBucketClient,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
   }) : super(subscriptionName: 'dart-internal-build-results-sub');
 
-  final BuildBucketV2Client buildBucketV2Client;
+  final BuildBucketClient buildBucketClient;
   final DatastoreServiceProvider datastoreProvider;
 
   @override
@@ -49,19 +47,17 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
       return Body.empty;
     }
 
-    // This looks to be like we are simply getting the build and not the top level
-    // buildsPubSub message.
-    final Map<String, dynamic> jsonBuildMap = json.decode(message.data!);
+    final dynamic buildData = json.decode(message.data!);
+    log.info('Build data json: $buildData');
 
-    if (jsonBuildMap['build'] == null) {
+    if (buildData['build'] == null) {
       log.info('no build information in message');
       return Body.empty;
     }
 
-    final String project = jsonBuildMap['build']['builder']['project'];
-    final String bucket = jsonBuildMap['build']['builder']['bucket'];
-    final String builder = jsonBuildMap['build']['builder']['builder'];
-    final Int64 buildId = Int64.parseInt(jsonBuildMap['build']['id']);
+    final String project = buildData['build']['builder']['project'];
+    final String bucket = buildData['build']['builder']['bucket'];
+    final String builder = buildData['build']['builder']['builder'];
 
     // This should already be covered by the pubsub filter, but adding an additional check
     // to ensure we don't process builds that aren't from dart-internal/flutter.
@@ -80,31 +76,28 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
       return Body.empty;
     }
 
-    log.info('Creating build request object with build id $buildId');
-
-    final bbv2.GetBuildRequest getBuildRequest = bbv2.GetBuildRequest(
-      id: buildId,
+    final String buildbucketId = buildData['build']['id'];
+    log.info('Creating build request object with build id $buildbucketId');
+    final GetBuildRequest request = GetBuildRequest(
+      id: buildbucketId,
     );
 
     log.info(
-      'Calling buildbucket api to get build data for build $buildId',
+      'Calling buildbucket api to get build data for build $buildbucketId',
     );
-
-    final bbv2.Build existingBuild = await buildBucketV2Client.getBuild(getBuildRequest);
-
-    log.info('Got back existing builder with name: ${existingBuild.builder.builder}');
+    final Build build = await buildBucketClient.getBuild(request);
 
     log.info('Checking for existing task in datastore');
-    final Task? existingTask = await datastore.getTaskFromBuildbucketV2Build(existingBuild);
+    final Task? existingTask = await datastore.getTaskFromBuildbucketBuild(build);
 
     late Task taskToInsert;
     if (existingTask != null) {
-      log.info('Updating Task from existing Build');
-      existingTask.updateFromBuildbucketV2Build(existingBuild);
+      log.info('Updating Task from existing Task');
+      existingTask.updateFromBuildbucketBuild(build);
       taskToInsert = existingTask;
     } else {
       log.info('Creating Task from Buildbucket result');
-      taskToInsert = await Task.fromBuildbucketV2Build(existingBuild, datastore);
+      taskToInsert = await Task.fromBuildbucketBuild(build, datastore);
     }
 
     log.info('Inserting Task into the datastore: ${taskToInsert.toString()}');

@@ -12,6 +12,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/subscription_tester.dart';
+import '../src/service/fake_buildbucket.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/mocks.dart';
@@ -21,6 +22,7 @@ const String ref = 'deadbeef';
 
 void main() {
   late PresubmitLuciSubscription handler;
+  late FakeBuildBucketClient buildbucket;
   late FakeConfig config;
   late MockGitHub mockGitHubClient;
   late FakeHttpRequest request;
@@ -32,6 +34,7 @@ void main() {
 
   setUp(() async {
     config = FakeConfig();
+    buildbucket = FakeBuildBucketClient();
     mockLuciBuildService = MockLuciBuildService();
 
     mockGithubChecksService = MockGithubChecksService();
@@ -43,6 +46,7 @@ void main() {
     handler = PresubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,
+      buildBucketClient: buildbucket,
       luciBuildService: FakeLuciBuildService(config: config),
       githubChecksService: mockGithubChecksService,
       authProvider: FakeAuthenticationProvider(),

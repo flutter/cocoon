@@ -6,18 +6,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/request_handlers/postsubmit_luci_subscription_v2.dart';
-import 'package:cocoon_service/src/request_handlers/presubmit_luci_subscription_v2.dart';
-import 'package:cocoon_service/src/request_handlers/reset_prod_task_v2.dart';
-import 'package:cocoon_service/src/request_handlers/reset_try_task_v2.dart';
-import 'package:cocoon_service/src/request_handlers/scheduler/batch_backfiller_v2.dart';
-import 'package:cocoon_service/src/request_handlers/scheduler/scheduler_request_subscription.dart';
-import 'package:cocoon_service/src/request_handlers/vacuum_github_commits_v2.dart';
-import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
-import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
-import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
-import 'package:cocoon_service/src/service/scheduler_v2.dart';
 
 typedef Server = Future<void> Function(HttpRequest);
 
@@ -29,15 +18,11 @@ Server createServer({
   required AuthenticationProvider swarmingAuthProvider,
   required BranchService branchService,
   required BuildBucketClient buildBucketClient,
-  required BuildBucketV2Client buildBucketV2Client,
   required LuciBuildService luciBuildService,
-  required LuciBuildServiceV2 luciBuildServiceV2,
   required GithubChecksService githubChecksService,
-  required GithubChecksServiceV2 githubChecksServiceV2,
   required CommitService commitService,
   required GerritService gerritService,
   required Scheduler scheduler,
-  required SchedulerV2 schedulerV2,
 }) {
   final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
     '/api/check_flaky_builders': CheckFlakyBuilders(
@@ -52,7 +37,7 @@ Server createServer({
     '/api/dart-internal-subscription': DartInternalSubscription(
       cache: cache,
       config: config,
-      buildBucketV2Client: buildBucketV2Client,
+      buildBucketClient: buildBucketClient,
     ),
     '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
       config: config,
@@ -80,35 +65,23 @@ Server createServer({
       config: config,
       cache: cache,
       gerritService: gerritService,
+      githubChecksService: githubChecksService,
       scheduler: scheduler,
-      schedulerV2: schedulerV2,
       commitService: commitService,
     ),
     '/api/presubmit-luci-subscription': PresubmitLuciSubscription(
       cache: cache,
       config: config,
+      buildBucketClient: buildBucketClient,
       luciBuildService: luciBuildService,
       githubChecksService: githubChecksService,
       scheduler: scheduler,
-    ),
-    '/api/v2/presubmit-luci-subscription': PresubmitLuciSubscriptionV2(
-      cache: cache,
-      config: config,
-      luciBuildService: luciBuildServiceV2,
-      githubChecksService: githubChecksServiceV2,
-      scheduler: schedulerV2,
     ),
     '/api/postsubmit-luci-subscription': PostsubmitLuciSubscription(
       cache: cache,
       config: config,
       scheduler: scheduler,
       githubChecksService: githubChecksService,
-    ),
-    '/api/v2/postsubmit-luci-subscription': PostsubmitLuciSubscriptionV2(
-      cache: cache,
-      config: config,
-      scheduler: schedulerV2,
-      githubChecksService: githubChecksServiceV2,
     ),
     '/api/push-build-status-to-github': PushBuildStatusToGithub(
       config: config,
@@ -118,46 +91,25 @@ Server createServer({
       config: config,
       authenticationProvider: authProvider,
     ),
-    // I do not believe these recieve a build message.
     '/api/reset-prod-task': ResetProdTask(
       config: config,
       authenticationProvider: authProvider,
       luciBuildService: luciBuildService,
       scheduler: scheduler,
     ),
-    '/api/v2/reset-prod-task': ResetProdTaskV2(
-      config: config,
-      authenticationProvider: authProvider,
-      luciBuildService: luciBuildServiceV2,
-      scheduler: schedulerV2,
-    ),
     '/api/reset-try-task': ResetTryTask(
       config: config,
       authenticationProvider: authProvider,
       scheduler: scheduler,
     ),
-    '/api/v2/reset-try-task': ResetTryTaskV2(
-      config: config,
-      authenticationProvider: authProvider,
-      scheduler: schedulerV2,
-    ),
     '/api/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
       scheduler: scheduler,
-    ),
-    '/api/v2/scheduler/batch-backfiller': BatchBackfillerV2(
-      config: config,
-      scheduler: schedulerV2,
     ),
     '/api/scheduler/batch-request-subscription': SchedulerRequestSubscription(
       cache: cache,
       config: config,
       buildBucketClient: buildBucketClient,
-    ),
-    '/api/v2/scheduler/batch-request-subscription': SchedulerRequestSubscriptionV2(
-      cache: cache,
-      config: config,
-      buildBucketClient: buildBucketV2Client,
     ),
     '/api/scheduler/vacuum-stale-tasks': VacuumStaleTasks(
       config: config,
@@ -191,11 +143,6 @@ Server createServer({
       config: config,
       authenticationProvider: authProvider,
       scheduler: scheduler,
-    ),
-    '/api/v2/vacuum-github-commits': VacuumGithubCommitsV2(
-      config: config,
-      authenticationProvider: authProvider,
-      scheduler: schedulerV2,
     ),
 
     /// Returns status of the framework tree.

@@ -2,16 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
-import 'package:cocoon_service/src/model/luci/pubsub_message_v2.dart';
+import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/model/luci/push_message.dart' as push;
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:mockito/mockito.dart';
@@ -20,86 +17,53 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
-import '../src/request_handling/subscription_v2_tester.dart';
+import '../src/request_handling/subscription_tester.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
-  // Omit the timestamps for expect purposes.
-  const String buildJson = '''
-{
-  "id": "8766855135863637953",
-  "builder": {
-    "project": "dart-internal",
-    "bucket": "flutter",
-    "builder": "Linux packaging_release_builder"
-  },
-  "number": 123456,
-  "status": "SUCCESS",
-  "input": {
-    "gitilesCommit": {
-      "project": "flutter/flutter",
-      "id": "HASH12345",
-      "ref": "refs/heads/test-branch"
-    }
-  }
-}
-''';
-
-  const String buildMessageJson = '''
-{
-  "build": {
-    "id": "8766855135863637953",
-    "builder": {
-      "project": "dart-internal",
-      "bucket": "flutter",
-      "builder": "Linux packaging_release_builder"
-    },
-    "number": 123456,
-    "status": "SUCCESS",
-    "input": {
-      "gitilesCommit": {
-        "project": "flutter/flutter",
-        "id": "HASH12345",
-        "ref": "refs/heads/test-branch"
-      }
-    }
-  }
-}
-''';
-
   late DartInternalSubscription handler;
   late FakeConfig config;
   late FakeHttpRequest request;
-  late MockBuildBucketV2Client buildBucketV2Client;
-  late SubscriptionV2Tester tester;
+  late MockBuildBucketClient buildBucketClient;
+  late SubscriptionTester tester;
   late MockFirestoreService mockFirestoreService;
   late Commit commit;
-
-  // ignore: unused_local_variable
+  final DateTime startTime = DateTime(2023, 1, 1, 0, 0, 0);
+  final DateTime endTime = DateTime(2023, 1, 1, 0, 14, 23);
   const String project = 'dart-internal';
   const String bucket = 'flutter';
   const String builder = 'Linux packaging_release_builder';
-  const int buildNumber = 123456;
-  // ignore: unused_local_variable
-  final Int64 buildId = Int64(8766855135863637953);
+  const int buildId = 123456;
   const String fakeHash = 'HASH12345';
   const String fakeBranch = 'test-branch';
+  const String fakePubsubMessage = '''
+    {
+      "build": {
+        "id": "$buildId",
+        "builder": {
+          "project": "$project",
+          "bucket": "$bucket",
+          "builder": "$builder"
+        }
+      }
+    }
+  ''';
 
   setUp(() async {
     mockFirestoreService = MockFirestoreService();
     config = FakeConfig(firestoreService: mockFirestoreService);
-    buildBucketV2Client = MockBuildBucketV2Client();
+    buildBucketClient = MockBuildBucketClient();
     handler = DartInternalSubscription(
       cache: CacheService(inMemory: true),
       config: config,
       authProvider: FakeAuthenticationProvider(),
-      buildBucketV2Client: buildBucketV2Client,
+      buildBucketClient: buildBucketClient,
       datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
     );
     request = FakeHttpRequest();
 
-    tester = SubscriptionV2Tester(
+    tester = SubscriptionTester(
       request: request,
     );
 
@@ -112,20 +76,27 @@ void main() {
       timestamp: 0,
     );
 
-    // final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
-    // pubSubCallBackTest.mergeFromProto3Json(jsonDecode(message));
-    final bbv2.Build build = bbv2.Build().createEmptyInstance();
-    build.mergeFromProto3Json(jsonDecode(buildJson) as Map<String, dynamic>);
-
-    const PushMessageV2 pushMessageV2 = PushMessageV2(data: buildJson, messageId: '798274983');
-    tester.message = pushMessageV2;
-
+    final Build fakeBuild = Build(
+      builderId: const BuilderId(project: project, bucket: bucket, builder: builder),
+      number: buildId,
+      id: 'fake-build-id',
+      status: Status.success,
+      startTime: startTime,
+      endTime: endTime,
+      input: const Input(
+        gitilesCommit: GitilesCommit(
+          project: 'flutter/flutter',
+          hash: fakeHash,
+          ref: 'refs/heads/$fakeBranch',
+        ),
+      ),
+    );
     when(
-      buildBucketV2Client.getBuild(
+      buildBucketClient.getBuild(
         any,
         buildBucketUri: 'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds',
       ),
-    ).thenAnswer((_) => Future<bbv2.Build>.value(build));
+    ).thenAnswer((_) => Future<Build>.value(fakeBuild));
 
     final List<Commit> datastoreCommit = <Commit>[commit];
     await config.db.commit(inserts: datastoreCommit);
@@ -140,12 +111,12 @@ void main() {
     ).thenAnswer((Invocation invocation) {
       return Future<BatchWriteResponse>.value(BatchWriteResponse());
     });
-    tester.message = const PushMessageV2(data: buildMessageJson);
+    tester.message = const push.PushMessage(data: fakePubsubMessage);
 
     await tester.post(handler);
 
     verify(
-      buildBucketV2Client.getBuild(any),
+      buildBucketClient.getBuild(any),
     ).called(1);
 
     // This is used for testing to pull the data out of the "datastore" so that
@@ -153,7 +124,7 @@ void main() {
     late Task taskInDb;
     late Commit commitInDb;
     config.db.values.forEach((k, v) {
-      if (v is Task && v.buildNumberList == buildNumber.toString()) {
+      if (v is Task && v.buildNumberList == buildId.toString()) {
         taskInDb = v;
       }
       if (v is Commit) {
@@ -175,13 +146,16 @@ void main() {
     // Ensure the task in the db is exactly what we expect
     final Task expectedTask = Task(
       attempts: 1,
-      buildNumber: buildNumber,
-      buildNumberList: buildNumber.toString(),
+      buildNumber: buildId,
+      buildNumberList: buildId.toString(),
       builderName: builder,
       commitKey: commitInDb.key,
+      createTimestamp: startTime.millisecondsSinceEpoch,
+      endTimestamp: endTime.millisecondsSinceEpoch,
       luciBucket: bucket,
       name: builder,
       stageName: 'dart-internal',
+      startTimestamp: startTime.millisecondsSinceEpoch,
       status: 'Succeeded',
       key: commit.key.append(Task),
       timeoutInMinutes: 0,
@@ -220,9 +194,12 @@ void main() {
       buildNumberList: existingTaskId.toString(),
       builderName: builder,
       commitKey: commit.key,
+      createTimestamp: startTime.millisecondsSinceEpoch,
+      endTimestamp: endTime.millisecondsSinceEpoch,
       luciBucket: bucket,
       name: builder,
       stageName: 'dart-internal',
+      startTimestamp: startTime.millisecondsSinceEpoch,
       status: 'Succeeded',
       key: commit.key.append(Task),
       timeoutInMinutes: 0,
@@ -233,18 +210,17 @@ void main() {
     final List<Task> datastoreCommit = <Task>[fakeTask];
     await config.db.commit(inserts: datastoreCommit);
 
-    const PushMessageV2 pushMessageV2 = PushMessageV2(data: buildMessageJson, messageId: '798274983');
-    tester.message = pushMessageV2;
+    tester.message = const push.PushMessage(data: fakePubsubMessage);
 
     await tester.post(handler);
 
     verify(
-      buildBucketV2Client.getBuild(any),
+      buildBucketClient.getBuild(any),
     ).called(1);
 
     // This is used for testing to pull the data out of the "datastore" so that
     // we can verify what was saved.
-    final String expectedBuilderList = '${existingTaskId.toString()},${buildNumber.toString()}';
+    final String expectedBuilderList = '${existingTaskId.toString()},${buildId.toString()}';
     late Task taskInDb;
     late Commit commitInDb;
     config.db.values.forEach((k, v) {
@@ -270,13 +246,16 @@ void main() {
     // Ensure the task in the db is exactly what we expect
     final Task expectedTask = Task(
       attempts: 2,
-      buildNumber: buildNumber,
+      buildNumber: buildId,
       buildNumberList: expectedBuilderList,
       builderName: builder,
       commitKey: commitInDb.key,
+      createTimestamp: startTime.millisecondsSinceEpoch,
+      endTimestamp: endTime.millisecondsSinceEpoch,
       luciBucket: bucket,
       name: builder,
       stageName: 'dart-internal',
+      startTimestamp: startTime.millisecondsSinceEpoch,
       status: 'Succeeded',
       key: commit.key.append(Task),
       timeoutInMinutes: 0,
@@ -299,93 +278,67 @@ void main() {
     expect(insertedTaskDocument.status, expectedTask.status);
   });
 
-  test('ignores message with empty build data', () async {
-    tester.message = const PushMessageV2();
+  test('ignores null message', () async {
+    tester.message = const push.PushMessage(data: null);
     expect(await tester.post(handler), equals(Body.empty));
   });
 
-  // // TODO create a construction method for this to simplify testing.
+  test('ignores message with empty build data', () async {
+    tester.message = const push.PushMessage(data: '{}');
+    expect(await tester.post(handler), equals(Body.empty));
+  });
+
   test('ignores message not from flutter bucket', () async {
-    const String dartMessage = '''
-{
-  "build": {
-    "id": "8766855135863637953",
-    "builder": {
-      "project": "dart-internal",
-      "bucket": "dart",
-      "builder": "Linux packaging_release_builder"
-    },
-    "number": 123456,
-    "status": "SUCCESS",
-    "input": {
-      "gitilesCommit": {
-        "project":"flutter/flutter",
-        "id":"HASH12345",
-        "ref":"refs/heads/test-branch"
+    tester.message = const push.PushMessage(
+      data: '''
+    {
+      "build": {
+        "id": "$buildId",
+        "builder": {
+          "project": "$project",
+          "bucket": "dart",
+          "builder": "$builder"
+        }
       }
     }
-  }
-}
-''';
-
-    const PushMessageV2 pushMessageV2 = PushMessageV2(data: dartMessage, messageId: '798274983');
-    tester.message = pushMessageV2;
+    ''',
+    );
     expect(await tester.post(handler), equals(Body.empty));
   });
 
   test('ignores message not from dart-internal project', () async {
-    const String unsupportedProjectMessage = '''
-{
-  "build": {
-    "id": "8766855135863637953",
-    "builder": {
-      "project": "unsupported-project",
-      "bucket": "dart",
-      "builder": "Linux packaging_release_builder"
-    },
-    "number": 123456,
-    "status": "SUCCESS",
-    "input": {
-      "gitilesCommit": {
-        "project": "flutter/flutter",
-        "id": "HASH12345",
-        "ref": "refs/heads/test-branch"
+    tester.message = const push.PushMessage(
+      data: '''
+    {
+      "build": {
+        "id": "$buildId",
+        "builder": {
+          "project": "different-project",
+          "bucket": "$bucket",
+          "builder": "$builder"
+        }
       }
     }
-  }
-}
-''';
-
-    const PushMessageV2 pushMessageV2 = PushMessageV2(data: unsupportedProjectMessage, messageId: '798274983');
-    tester.message = pushMessageV2;
+    ''',
+    );
     expect(await tester.post(handler), equals(Body.empty));
   });
 
   test('ignores message not from an accepted builder', () async {
-    const String unknownBuilderMessage = '''
-{
-  "build": {
-    "id": "8766855135863637953",
-    "builder": {
-      "project": "dart-internal",
-      "bucket": "dart",
-      "builder": "different builder"
-    },
-    "number": 123456,
-    "status": "SUCCESS",
-    "input": {
-      "gitilesCommit": {
-        "project": "flutter/flutter",
-        "id": "HASH12345",
-        "ref": "refs/heads/test-branch"
+    tester.message = const push.PushMessage(
+      data: '''
+    {
+      "build": {
+        "id": "$buildId",
+        "builder": {
+          "project": "different-project",
+          "bucket": "$bucket",
+          "builder": "different-builder"
+        }
       }
     }
-  }
-}
-''';
-
-    const PushMessageV2 pushMessageV2 = PushMessageV2(data: unknownBuilderMessage, messageId: '798274983');
-    tester.message = pushMessageV2;
+    ''',
+    );
     expect(await tester.post(handler), equals(Body.empty));
   });
 }
