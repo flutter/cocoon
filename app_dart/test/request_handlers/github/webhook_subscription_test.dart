@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as pm;
@@ -19,10 +21,12 @@ import '../../src/datastore/fake_config.dart';
 import '../../src/datastore/fake_datastore.dart';
 import '../../src/request_handling/fake_http.dart';
 import '../../src/request_handling/subscription_tester.dart';
+import '../../src/service/fake_build_bucket_v2_client.dart';
 import '../../src/service/fake_buildbucket.dart';
 import '../../src/service/fake_github_service.dart';
 import '../../src/service/fake_gerrit_service.dart';
 import '../../src/service/fake_scheduler.dart';
+import '../../src/service/fake_scheduler_v2.dart';
 import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.dart';
 import '../../src/utilities/webhook_generators.dart';
@@ -30,17 +34,18 @@ import '../../src/utilities/webhook_generators.dart';
 void main() {
   late GithubWebhookSubscription webhook;
   late FakeBuildBucketClient fakeBuildBucketClient;
+  late FakeBuildBucketV2Client fakeBuildBucketV2Client;
   late FakeConfig config;
   late FakeDatastoreDB db;
   late FakeGithubService githubService;
   late FakeHttpRequest request;
   late FakeScheduler scheduler;
+  late FakeSchedulerV2 schedulerV2;
   late FakeGerritService gerritService;
   late MockCommitService commitService;
   late MockGitHub gitHubClient;
   late MockFirestoreService mockFirestoreService;
   late MockGithubChecksUtil mockGithubChecksUtil;
-  late MockGithubChecksService mockGithubChecksService;
   late MockIssuesService issuesService;
   late MockPullRequestsService pullRequestsService;
   late SubscriptionTester tester;
@@ -89,15 +94,17 @@ void main() {
     when(pullRequestsService.edit(any, any, title: anyNamed('title'), state: anyNamed('state'), base: anyNamed('base')))
         .thenAnswer((_) async => PullRequest());
     fakeBuildBucketClient = FakeBuildBucketClient();
+    fakeBuildBucketV2Client = FakeBuildBucketV2Client();
     mockGithubChecksUtil = MockGithubChecksUtil();
     scheduler = FakeScheduler(
       config: config,
       buildbucket: fakeBuildBucketClient,
       githubChecksUtil: mockGithubChecksUtil,
     );
+    schedulerV2 =
+        FakeSchedulerV2(config: config, buildbucket: fakeBuildBucketV2Client, githubChecksUtil: mockGithubChecksUtil);
     tester = SubscriptionTester(request: request);
 
-    mockGithubChecksService = MockGithubChecksService();
     when(gitHubClient.issues).thenReturn(issuesService);
     when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
     when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output'))).thenAnswer((_) async {
@@ -114,8 +121,8 @@ void main() {
       cache: CacheService(inMemory: true),
       datastoreProvider: (_) => DatastoreService(config.db, 5),
       gerritService: gerritService,
-      githubChecksService: mockGithubChecksService,
       scheduler: scheduler,
+      schedulerV2: schedulerV2,
       commitService: commitService,
     );
   });
@@ -250,9 +257,9 @@ void main() {
       );
 
       await tester.post(webhook);
-
-      expect(scheduler.cancelPreSubmitTargetsCallCnt, 1);
-      expect(scheduler.addPullRequestCallCnt, 0);
+      // TODO this is v2 to route event temporarily from v1 to v2.
+      expect(schedulerV2.cancelPreSubmitTargetsCallCnt, 1);
+      expect(schedulerV2.addPullRequestCallCnt, 0);
     });
 
     test('Acts on closed, cancels presubmit targets, add pr for postsubmit target create', () async {
@@ -269,8 +276,8 @@ void main() {
 
       await tester.post(webhook);
 
-      expect(scheduler.cancelPreSubmitTargetsCallCnt, 1);
-      expect(scheduler.addPullRequestCallCnt, 1);
+      expect(schedulerV2.cancelPreSubmitTargetsCallCnt, 1);
+      expect(schedulerV2.addPullRequestCallCnt, 1);
     });
 
     test('Acts on opened against master when default is main', () async {
@@ -315,8 +322,8 @@ void main() {
         ),
       ).called(1);
 
-      expect(scheduler.triggerPresubmitTargetsCallCount, 1);
-      scheduler.resetTriggerPresubmitTargetsCallCount();
+      expect(schedulerV2.triggerPresubmitTargetsCallCount, 1);
+      schedulerV2.resetTriggerPresubmitTargetsCallCount();
     });
 
     test('Acts on edited against master when default is main', () async {
@@ -362,8 +369,8 @@ void main() {
         ),
       ).called(1);
 
-      expect(scheduler.triggerPresubmitTargetsCallCount, 1);
-      scheduler.resetTriggerPresubmitTargetsCallCount();
+      expect(schedulerV2.triggerPresubmitTargetsCallCount, 1);
+      schedulerV2.resetTriggerPresubmitTargetsCallCount();
     });
 
     // We already schedule checks when a draft is opened, don't need to re-test
@@ -397,23 +404,24 @@ void main() {
         number: issueNumber,
         isDraft: true,
       );
+
       bool batchRequestCalled = false;
 
-      Future<BatchResponse> getBatchResponse() async {
+      Future<bbv2.BatchResponse> getBatchResponse() async {
         batchRequestCalled = true;
-        return BatchResponse(
-          responses: <Response>[
-            Response(
-              searchBuilds: SearchBuildsResponse(
-                builds: <Build>[
-                  generateBuild(999, name: 'Linux', status: Status.ended),
+        return bbv2.BatchResponse(
+          responses: <bbv2.BatchResponse_Response>[
+            bbv2.BatchResponse_Response(
+              searchBuilds: bbv2.SearchBuildsResponse(
+                builds: <bbv2.Build>[
+                  bbv2.Build(number: 999, builder: bbv2.BuilderID(builder: 'Linux'), status: bbv2.Status.SUCCESS),
                 ],
               ),
             ),
-            Response(
-              searchBuilds: SearchBuildsResponse(
-                builds: <Build>[
-                  generateBuild(998, name: 'Linux', status: Status.ended),
+            bbv2.BatchResponse_Response(
+              searchBuilds: bbv2.SearchBuildsResponse(
+                builds: <bbv2.Build>[
+                  bbv2.Build(number: 998, builder: bbv2.BuilderID(builder: 'Linux'), status: bbv2.Status.SUCCESS),
                 ],
               ),
             ),
@@ -421,12 +429,12 @@ void main() {
         );
       }
 
-      fakeBuildBucketClient.batchResponse = getBatchResponse;
+      fakeBuildBucketV2Client.batchResponse = getBatchResponse;
 
       await tester.post(webhook);
 
       expect(batchRequestCalled, isTrue);
-      expect(scheduler.cancelPreSubmitTargetsCallCnt, 1);
+      expect(schedulerV2.cancelPreSubmitTargetsCallCnt, 1);
     });
 
     test('Does nothing against cherry pick PR', () async {
@@ -2188,21 +2196,22 @@ void foo() {
     test('When synchronized, cancels existing builds and schedules new ones', () async {
       const int issueNumber = 12345;
       bool batchRequestCalled = false;
-      Future<BatchResponse> getBatchResponse() async {
+
+      Future<bbv2.BatchResponse> getBatchResponse() async {
         batchRequestCalled = true;
-        return BatchResponse(
-          responses: <Response>[
-            Response(
-              searchBuilds: SearchBuildsResponse(
-                builds: <Build>[
-                  generateBuild(999, name: 'Linux', status: Status.ended),
+        return bbv2.BatchResponse(
+          responses: <bbv2.BatchResponse_Response>[
+            bbv2.BatchResponse_Response(
+              searchBuilds: bbv2.SearchBuildsResponse(
+                builds: <bbv2.Build>[
+                  bbv2.Build(number: 999, builder: bbv2.BuilderID(builder: 'Linux'), status: bbv2.Status.SUCCESS),
                 ],
               ),
             ),
-            Response(
-              searchBuilds: SearchBuildsResponse(
-                builds: <Build>[
-                  generateBuild(998, name: 'Linux', status: Status.ended),
+            bbv2.BatchResponse_Response(
+              searchBuilds: bbv2.SearchBuildsResponse(
+                builds: <bbv2.Build>[
+                  bbv2.Build(number: 998, builder: bbv2.BuilderID(builder: 'Linux'), status: bbv2.Status.SUCCESS),
                 ],
               ),
             ),
@@ -2210,7 +2219,7 @@ void foo() {
         );
       }
 
-      fakeBuildBucketClient.batchResponse = getBatchResponse;
+      fakeBuildBucketV2Client.batchResponse = getBatchResponse;
 
       tester.message = generateGithubWebhookMessage(
         action: 'synchronize',
