@@ -4,10 +4,6 @@
 #   gcloud app deploy --project flutter-dashboard cron.yaml
 cron:
 - description: retrieve missing commits
-  url: /api/vacuum-github-commits
-  schedule: every 6 hours
-
-- description: retrieve missing commits v2
   url: /api/v2/vacuum-github-commits
   schedule: every 6 hours
 
@@ -18,10 +14,6 @@ cron:
   schedule: every 12 hours
 
 - description: backfills builds
-  url: /api/scheduler/batch-backfiller
-  schedule: every 5 minutes
-
-- description: backfills builds via the build bucket v2 api
   url: /api/v2/scheduler/batch-backfiller
   schedule: every 5 minutes
 
