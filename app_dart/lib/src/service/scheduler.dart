@@ -292,20 +292,12 @@ class Scheduler {
     return schedulerConfig.writeToBuffer();
   }
 
-  /// Cancel all incomplete targets against a pull request.
-  Future<void> cancelPreSubmitTargets({
-    required PullRequest pullRequest,
-    String reason = 'Newer commit available',
-  }) async {
-    await luciBuildService.cancelBuildsV2(pullRequest, reason);
-  }
-
-  Future<void> cancelPreSubmitTargetsV2({
+  Future<void> _cancelPreSubmitTargetsV2({
     required PullRequest pullRequest,
     String reason = 'Newer commit available',
   }) async {
     log.info('Cancelling presubmit targets with buildbucket v2.');
-    await luciBuildService.cancelBuildsV2(pullRequest, reason);
+    await luciBuildServiceV2.cancelBuilds(pullRequest: pullRequest, reason: reason);
   }
 
   /// Schedule presubmit targets against a pull request.
@@ -321,7 +313,7 @@ class Scheduler {
   }) async {
     // Always cancel running builds so we don't ever schedule duplicates.
     log.info('Attempting to cancel existing presubmit targets for ${pullRequest.number}');
-    await cancelPreSubmitTargetsV2(
+    await _cancelPreSubmitTargetsV2(
       pullRequest: pullRequest,
       reason: reason,
     );
@@ -349,7 +341,7 @@ class Scheduler {
         log.info('Skipping generating the full set of checks for revert request.');
       } else {
         final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
-        final List<Target> presubmitTriggerTargets = getTriggerList(presubmitTargets, builderTriggerList);
+        final List<Target> presubmitTriggerTargets = _getTriggerList(presubmitTargets, builderTriggerList);
         await luciBuildServiceV2.scheduleTryBuilds(
           targets: presubmitTriggerTargets,
           pullRequest: pullRequest,
@@ -401,7 +393,7 @@ class Scheduler {
 
   /// If [builderTriggerList] is specificed, return only builders that are contained in [presubmitTarget].
   /// Otherwise, return [presubmitTarget].
-  List<Target> getTriggerList(List<Target> presubmitTarget, List<String>? builderTriggerList) {
+  List<Target> _getTriggerList(List<Target> presubmitTarget, List<String>? builderTriggerList) {
     if (builderTriggerList != null && builderTriggerList.isNotEmpty) {
       return presubmitTarget.where((Target target) => builderTriggerList.contains(target.value.name)).toList();
     }

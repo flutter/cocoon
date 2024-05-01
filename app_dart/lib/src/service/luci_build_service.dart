@@ -9,7 +9,6 @@ import 'dart:math';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart' as github;
 import 'package:googleapis/firestore/v1.dart' hide Status;
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 
 import '../foundation/github_checks_util.dart';
 import '../model/appengine/commit.dart';
@@ -94,28 +93,6 @@ class LuciBuildService {
     return _getBuilds(slug, sha, builderName, 'try', tags);
   }
 
-  /// Fetches an Iterable of try BuildBucket V2 [Build]s.
-  ///
-  /// Returns a list of BuildBucket V2 [Build]s for a given Github
-  /// [PullRequest].
-  Future<Iterable<bbv2.Build>> _getTryBuildsByPullRequestV2(
-    github.PullRequest pullRequest,
-  ) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final List<bbv2.StringPair> tags = [
-      bbv2.StringPair(key: 'buildset', value: 'pr/git/${pullRequest.number}'),
-      bbv2.StringPair(key: 'github_link', value: 'https://github.com/${slug.fullName}/pull/${pullRequest.number}'),
-      bbv2.StringPair(key: 'user_agent', value: 'flutter-cocoon'),
-    ];
-    return _getBuildsV2(
-      slug,
-      null,
-      null,
-      'try',
-      tags,
-    );
-  }
-
   /// Fetches an Iterable of prod BuildBucket [Build]s.
   ///
   /// Returns an Iterable of prod BuildBucket [Build]s for a given Github
@@ -169,96 +146,6 @@ class LuciBuildService {
         .map((Response response) => response.searchBuilds)
         .expand((SearchBuildsResponse? response) => response!.builds ?? <Build>[]);
     return builds;
-  }
-
-  Future<Iterable<bbv2.Build>> _getBuildsV2(
-    github.RepositorySlug? slug,
-    String? commitSha,
-    String? builderName,
-    String bucket,
-    List<bbv2.StringPair> tags,
-  ) async {
-    // These paths are fields in the Build message.
-    final bbv2.FieldMask fieldMask = bbv2.FieldMask(
-      paths: {
-        'id',
-        'builder',
-        'tags',
-        'status',
-        'input.properties',
-      },
-    );
-
-    final bbv2.BuildMask buildMask = bbv2.BuildMask(fields: fieldMask);
-
-    final bbv2.BuildPredicate buildPredicate = bbv2.BuildPredicate(
-      builder: bbv2.BuilderID(
-        project: 'flutter',
-        bucket: bucket,
-        builder: builderName,
-      ),
-      tags: tags,
-    );
-
-    final bbv2.SearchBuildsRequest searchBuildsRequest = bbv2.SearchBuildsRequest(
-      predicate: buildPredicate,
-      mask: buildMask,
-    );
-
-    // Need to create one of these for each request in the batch.
-    final bbv2.BatchRequest_Request batchRequestRequest = bbv2.BatchRequest_Request(
-      searchBuilds: searchBuildsRequest,
-    );
-
-    final bbv2.BatchResponse batchResponse = await buildBucketV2Client.batch(
-      bbv2.BatchRequest(
-        requests: {batchRequestRequest},
-      ),
-    );
-
-    log.info('Reponses from get builds batch request = ${batchResponse.responses.length}');
-    for (bbv2.BatchResponse_Response response in batchResponse.responses) {
-      log.info('Found a response: ${response.toString()}');
-    }
-
-    final Iterable<bbv2.Build> builds = batchResponse.responses
-        .map((bbv2.BatchResponse_Response response) => response.searchBuilds)
-        .expand((bbv2.SearchBuildsResponse? response) => response!.builds);
-    return builds;
-  }
-
-  Future<void> cancelBuildsV2(github.PullRequest pullRequest, String reason) async {
-    log.info(
-      'Attempting to cancel builds (v2) for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}',
-    );
-
-    final Iterable<bbv2.Build> builds = await _getTryBuildsByPullRequestV2(pullRequest);
-    log.info('Found ${builds.length} builds.');
-
-    if (builds.isEmpty) {
-      log.warning('No builds were found for pull request ${pullRequest.base!.repo!.fullName}.');
-      return;
-    }
-
-    final List<bbv2.BatchRequest_Request> requests = <bbv2.BatchRequest_Request>[];
-    for (bbv2.Build build in builds) {
-      if (build.status == bbv2.Status.SCHEDULED || build.status == bbv2.Status.STARTED) {
-        // Scheduled status includes scheduled and pending tasks.
-        log.info('Cancelling build with build id ${build.id}.');
-        requests.add(
-          bbv2.BatchRequest_Request(
-            cancelBuild: bbv2.CancelBuildRequest(
-              id: build.id,
-              summaryMarkdown: reason,
-            ),
-          ),
-        );
-      }
-    }
-
-    if (requests.isNotEmpty) {
-      await buildBucketV2Client.batch(bbv2.BatchRequest(requests: requests));
-    }
   }
 
   /// Filters [builders] to only those that failed on [pullRequest].
