@@ -17,6 +17,7 @@ import '../../model/ci_yaml/ci_yaml.dart';
 import '../../model/ci_yaml/target.dart';
 import '../../request_handling/exceptions.dart';
 import '../../service/logging.dart';
+import '../../service/luci_build_service_v2.dart';
 
 /// Cron request handler for scheduling targets when capacity becomes available.
 ///
@@ -137,9 +138,9 @@ class BatchBackfiller extends RequestHandler {
     }
     final List<Tuple<Target, FullTask, int>> filteredBackfill = <Tuple<Target, FullTask, int>>[];
     final List<Tuple<Target, FullTask, int>> highPriorityBackfill =
-        backfill.where((element) => element.third == LuciBuildService.kRerunPriority).toList();
+        backfill.where((element) => element.third == LuciBuildServiceV2.kRerunPriority).toList();
     final List<Tuple<Target, FullTask, int>> normalPriorityBackfill =
-        backfill.where((element) => element.third != LuciBuildService.kRerunPriority).toList();
+        backfill.where((element) => element.third != LuciBuildServiceV2.kRerunPriority).toList();
     if (highPriorityBackfill.length >= config.backfillerTargetLimit) {
       highPriorityBackfill.shuffle();
       filteredBackfill.addAll(highPriorityBackfill.sublist(0, config.backfillerTargetLimit));
@@ -225,9 +226,9 @@ class BatchBackfiller extends RequestHandler {
       return null;
     }
     if (shouldRerunPriority(tasks, BatchPolicy.kBatchSize)) {
-      return LuciBuildService.kRerunPriority;
+      return LuciBuildServiceV2.kRerunPriority;
     }
-    return LuciBuildService.kBackfillPriority;
+    return LuciBuildServiceV2.kBackfillPriority;
   }
 
   /// Returns the most recent [FullTask] to backfill.

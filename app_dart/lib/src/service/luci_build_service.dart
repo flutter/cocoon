@@ -42,10 +42,6 @@ class LuciBuildService {
     Status.infraFailure,
   };
 
-  static const int kBackfillPriority = 35;
-  static const int kDefaultPriority = 30;
-  static const int kRerunPriority = 29;
-
   /// Github labels have a max length of 100, so conserve chars here.
   /// This is currently used by packages repo only.
   /// See: https://github.com/flutter/flutter/issues/130076
