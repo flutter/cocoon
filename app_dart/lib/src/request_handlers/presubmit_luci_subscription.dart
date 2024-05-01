@@ -72,7 +72,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       );
       bool rescheduled = false;
       if (githubChecksService.taskFailed(buildPushMessage)) {
-        final int currentAttempt = githubChecksService.currentAttempt(build);
+        final int currentAttempt = _currentAttempt(build);
         final int maxAttempt = await _getMaxAttempt(buildPushMessage, slug, builderName);
         if (currentAttempt < maxAttempt) {
           rescheduled = true;
@@ -172,5 +172,17 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
         ),
       ),
     );
+  }
+}
+
+/// Returns current reschedule attempt.
+///
+/// It returns 1 if this is the first run, and +1 with each reschedule.
+int _currentAttempt(Build build) {
+  final List<String> currentAttemptTags = build.tagsByName('current_attempt');
+  if (currentAttemptTags.isEmpty) {
+    return 1;
+  } else {
+    return int.parse(currentAttemptTags.single);
   }
 }
