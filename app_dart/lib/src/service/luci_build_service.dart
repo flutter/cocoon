@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart' as github;
@@ -63,32 +62,6 @@ class LuciBuildService {
   /// Name of the subcache to store luci build related values in redis.
   static const String subCacheName = 'luci';
 
-  // the Request objects here are the BatchRequest object in bbv2.
-  /// Shards [rows] into several sublists of size [maxEntityGroups].
-  Future<List<List<Request>>> shard(List<Request> requests, int max) async {
-    final List<List<Request>> shards = <List<Request>>[];
-    for (int i = 0; i < requests.length; i += max) {
-      shards.add(requests.sublist(i, i + min<int>(requests.length - i, max)));
-    }
-    return shards;
-  }
-
-  /// Fetches an Iterable of try BuildBucket [Build]s.
-  ///
-  /// Returns a list of BuildBucket [Build]s for a given Github [slug], [sha],
-  /// and [builderName].
-  Future<Iterable<Build>> _getTryBuilds(
-    github.RepositorySlug slug,
-    String sha,
-    String? builderName,
-  ) async {
-    final Map<String, List<String>> tags = <String, List<String>>{
-      'buildset': <String>['sha/git/$sha'],
-      'user_agent': const <String>['flutter-cocoon'],
-    };
-    return _getBuilds(slug, sha, builderName, 'try', tags);
-  }
-
   /// Fetches an Iterable of prod BuildBucket [Build]s.
   ///
   /// Returns an Iterable of prod BuildBucket [Build]s for a given Github
@@ -142,20 +115,6 @@ class LuciBuildService {
         .map((Response response) => response.searchBuilds)
         .expand((SearchBuildsResponse? response) => response!.builds ?? <Build>[]);
     return builds;
-  }
-
-  /// Filters [builders] to only those that failed on [pullRequest].
-  Future<List<Build?>> failedBuilds(
-    github.PullRequest pullRequest,
-    List<Target> targets,
-  ) async {
-    final Iterable<Build> builds = await _getTryBuilds(pullRequest.base!.repo!.slug(), pullRequest.head!.sha!, null);
-    final Iterable<String> builderNames = targets.map((Target target) => target.value.name);
-    // Return only builds that exist in the configuration file.
-    final Iterable<Build?> failedBuilds = builds.where((Build? build) => failStatusSet.contains(build!.status));
-    final Iterable<Build?> expectedFailedBuilds =
-        failedBuilds.where((Build? build) => builderNames.contains(build!.builderId.builder));
-    return expectedFailedBuilds.toList();
   }
 
   /// Sends [ScheduleBuildRequest] using information from a given build's

@@ -5,10 +5,9 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
-import 'package:cocoon_service/src/service/luci_build_service_v2.dart' as bsv2;
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
@@ -31,6 +30,7 @@ import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/proto/internal/scheduler.pb.dart' as pb;
 import '../service/logging.dart';
+import '../service/luci_build_service_v2.dart' as bsv2;
 import 'cache_service.dart';
 import 'config.dart';
 import 'datastore.dart';
@@ -415,9 +415,10 @@ class Scheduler {
       checkSuiteEvent,
     );
     final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
-    final List<Build?> failedBuilds = await luciBuildService.failedBuilds(pullRequest, presubmitTargets);
-    for (Build? build in failedBuilds) {
-      final CheckRun checkRun = checkRuns[build!.builderId.builder!]!;
+    final List<bbv2.Build?> failedBuilds =
+        await luciBuildServiceV2.failedBuilds(pullRequest: pullRequest, targets: presubmitTargets);
+    for (bbv2.Build? build in failedBuilds) {
+      final CheckRun checkRun = checkRuns[build!.builder.builder]!;
 
       if (checkRun.status != CheckRunStatus.completed) {
         // Check run is still in progress, do not retry.
@@ -425,7 +426,7 @@ class Scheduler {
       }
 
       await luciBuildServiceV2.scheduleTryBuilds(
-        targets: presubmitTargets.where((Target target) => build.builderId.builder == target.value.name).toList(),
+        targets: presubmitTargets.where((Target target) => build.builder.builder == target.value.name).toList(),
         pullRequest: pullRequest,
         checkSuiteEvent: checkSuiteEvent,
       );
