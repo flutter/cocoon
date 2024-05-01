@@ -94,6 +94,7 @@ class BuildBucketClient {
     ScheduleBuildRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) {
+    log.warning('Scheduling a build using Buildbucket v1');
     return _postRequest<ScheduleBuildRequest, Build>(
       '/ScheduleBuild',
       request,
@@ -111,6 +112,7 @@ class BuildBucketClient {
     BatchRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) async {
+    log.warning('Batching requests using Buildbucket v1');
     final BatchResponse response = await _postRequest<BatchRequest, BatchResponse>(
       '/Batch',
       request,
@@ -128,6 +130,7 @@ class BuildBucketClient {
     GetBuildRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) {
+    log.warning('Getting build details using Buildbucket v1');
     return _postRequest<GetBuildRequest, Build>(
       '/GetBuild',
       request,
