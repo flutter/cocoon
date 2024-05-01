@@ -573,7 +573,7 @@ class Scheduler {
               final CiYaml ciYaml = await getCiYaml(commit);
               final Target target =
                   ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
-              await luciBuildService.reschedulePostsubmitBuildUsingCheckRunEvent(
+              await luciBuildServiceV2.reschedulePostsubmitBuildUsingCheckRunEvent(
                 checkRunEvent,
                 commit: commit,
                 task: task,

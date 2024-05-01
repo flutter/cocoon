@@ -6,18 +6,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:github/github.dart' as github;
 
 import '../foundation/github_checks_util.dart';
-import '../model/appengine/commit.dart';
-import '../model/appengine/task.dart';
-import '../model/ci_yaml/target.dart';
-import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/push_message.dart' as push_message;
 import '../model/luci/buildbucket.dart';
-import '../service/logging.dart';
 import 'build_bucket_v2_client.dart';
-import 'exceptions.dart';
 
 /// Class to interact with LUCI buildbucket to get, trigger
 /// and cancel builds for github repos. It uses [config.luciTryBuilders] to
@@ -61,61 +54,6 @@ class LuciBuildService {
 
   /// Name of the subcache to store luci build related values in redis.
   static const String subCacheName = 'luci';
-
-  /// Fetches an Iterable of prod BuildBucket [Build]s.
-  ///
-  /// Returns an Iterable of prod BuildBucket [Build]s for a given Github
-  /// [slug], [sha], and [builderName].
-  Future<Iterable<Build>> _getProdBuilds(
-    github.RepositorySlug slug,
-    String commitSha,
-    String? builderName,
-  ) async {
-    final Map<String, List<String>> tags = <String, List<String>>{};
-    return _getBuilds(slug, commitSha, builderName, 'prod', tags);
-  }
-
-  /// Fetches an Iterable of try BuildBucket [Build]s.
-  ///
-  /// Returns an iterable of try BuildBucket [Build]s for a given Github [slug],
-  /// [sha], [builderName], [bucket], and [tags].
-  Future<Iterable<Build>> _getBuilds(
-    github.RepositorySlug? slug,
-    String? commitSha,
-    String? builderName,
-    String bucket,
-    Map<String, List<String>> tags,
-  ) async {
-    final BatchResponse batch = await buildBucketClient.batch(
-      BatchRequest(
-        requests: <Request>[
-          Request(
-            searchBuilds: SearchBuildsRequest(
-              predicate: BuildPredicate(
-                builderId: BuilderId(
-                  project: 'flutter',
-                  bucket: bucket,
-                  builder: builderName,
-                ),
-                tags: tags,
-              ),
-              fields: 'builds.*.id,builds.*.builder,builds.*.tags,builds.*.status,builds.*.input.properties',
-            ),
-          ),
-        ],
-      ),
-    );
-
-    log.info('Reponses from get builds batch request = ${batch.responses!.length}');
-    for (Response response in batch.responses!) {
-      log.info('Found a response: ${response.toString()}');
-    }
-
-    final Iterable<Build> builds = batch.responses!
-        .map((Response response) => response.searchBuilds)
-        .expand((SearchBuildsResponse? response) => response!.builds ?? <Build>[]);
-    return builds;
-  }
 
   /// Sends [ScheduleBuildRequest] using information from a given build's
   /// [BuildPushMessage].
@@ -161,133 +99,10 @@ class LuciBuildService {
     );
   }
 
-  /// Sends postsubmit [ScheduleBuildRequest] for a commit using [checkRunEvent], [Commit], [Task], and [Target].
-  ///
-  /// Returns the [Build] returned by scheduleBuildRequest.
-  Future<Build> reschedulePostsubmitBuildUsingCheckRunEvent(
-    cocoon_checks.CheckRunEvent checkRunEvent, {
-    required Commit commit,
-    required Task task,
-    required Target target,
-  }) async {
-    final github.RepositorySlug slug = checkRunEvent.repository!.slug();
-    final String sha = checkRunEvent.checkRun!.headSha!;
-    final String checkName = checkRunEvent.checkRun!.name!;
-
-    final Iterable<Build> builds = await _getProdBuilds(slug, sha, checkName);
-    if (builds.isEmpty) {
-      throw NoBuildFoundException('Unable to find prod build.');
-    }
-
-    final Build build = builds.first;
-    final Map<String, Object>? properties = build.input!.properties;
-    log.info('input ${build.input!} properties $properties');
-
-    final ScheduleBuildRequest scheduleBuildRequest =
-        await _createPostsubmitScheduleBuild(commit: commit, target: target, task: task, properties: properties);
-    final Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
-    return scheduleBuild;
-  }
-
   /// Gets [Build] using its [id] and passing the additional
   /// fields to be populated in the response.
   Future<Build> getBuildById(String? id, {String? fields}) async {
     final GetBuildRequest request = GetBuildRequest(id: id, fields: fields);
     return buildBucketClient.getBuild(request);
-  }
-
-  /// Creates a [ScheduleBuildRequest] for [target] and [task] against [commit].
-  ///
-  /// By default, build [priority] is increased for release branches.
-  Future<ScheduleBuildRequest> _createPostsubmitScheduleBuild({
-    required Commit commit,
-    required Target target,
-    required Task task,
-    Map<String, Object>? properties,
-    Map<String, List<String>>? tags,
-    int priority = kDefaultPriority,
-  }) async {
-    tags ??= <String, List<String>>{};
-    tags.addAll(<String, List<String>>{
-      'buildset': <String>[
-        'commit/git/${commit.sha}',
-        'commit/gitiles/flutter.googlesource.com/mirrors/${commit.slug.name}/+/${commit.sha}',
-      ],
-    });
-
-    final String commitKey = task.parentKey!.id.toString();
-    final String taskKey = task.key.id.toString();
-    log.info('Scheduling builder: ${target.value.name} for commit ${commit.sha}');
-    log.info('Task commit_key: $commitKey for task name: ${task.name}');
-    log.info('Task task_key: $taskKey for task name: ${task.name}');
-
-    final Map<String, dynamic> rawUserData = <String, dynamic>{
-      'commit_key': commitKey,
-      'task_key': taskKey,
-      'firestore_commit_document_name': commit.sha,
-    };
-
-    // Creates post submit checkrun only for unflaky targets from [config.postsubmitSupportedRepos].
-    if (!target.value.bringup && config.postsubmitSupportedRepos.contains(target.slug)) {
-      await _createPostsubmitCheckRun(commit, target, rawUserData);
-    }
-
-    tags['user_agent'] = <String>['flutter-cocoon'];
-    // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
-    tags['scheduler_job_id'] = <String>['flutter/${target.value.name}'];
-    // Default attempt is the initial attempt, which is 1.
-    tags['current_attempt'] = tags['current_attempt'] ?? <String>['1'];
-    final String currentAttempt = tags['current_attempt']!.single;
-    rawUserData['firestore_task_document_name'] = '${commit.sha}_${task.name}_$currentAttempt';
-
-    final Map<String, Object> processedProperties = target.getProperties();
-    processedProperties.addAll(properties ?? <String, Object>{});
-    processedProperties['git_branch'] = commit.branch!;
-    final String cipdVersion = 'refs/heads/${commit.branch}';
-    processedProperties['exe_cipd_version'] = cipdVersion;
-    return ScheduleBuildRequest(
-      builderId: BuilderId(
-        project: 'flutter',
-        bucket: target.getBucket(),
-        builder: target.value.name,
-      ),
-      dimensions: target.getDimensions(),
-      exe: <String, dynamic>{
-        'cipdVersion': cipdVersion,
-      },
-      gitilesCommit: GitilesCommit(
-        project: 'mirrors/${commit.slug.name}',
-        host: 'flutter.googlesource.com',
-        ref: 'refs/heads/${commit.branch}',
-        hash: commit.sha,
-      ),
-      notify: NotificationConfig(
-        pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds-prod',
-        userData: base64Encode(json.encode(rawUserData).codeUnits),
-      ),
-      tags: tags,
-      properties: processedProperties,
-      priority: priority,
-    );
-  }
-
-  /// Creates postsubmit check runs for prod targets in supported repositories.
-  Future<void> _createPostsubmitCheckRun(
-    Commit commit,
-    Target target,
-    Map<String, dynamic> rawUserData,
-  ) async {
-    final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
-      config,
-      target.slug,
-      commit.sha!,
-      target.value.name,
-    );
-    rawUserData['check_run_id'] = checkRun.id;
-    rawUserData['commit_sha'] = commit.sha;
-    rawUserData['commit_branch'] = commit.branch;
-    rawUserData['builder_name'] = target.value.name;
-    rawUserData['repo_owner'] = target.slug.owner;
-    rawUserData['repo_name'] = target.slug.name;
   }
 }
