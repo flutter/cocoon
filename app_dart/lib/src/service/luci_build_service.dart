@@ -8,7 +8,6 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
@@ -86,7 +85,7 @@ class LuciBuildService {
   ///
   /// Returns a list of BuildBucket [Build]s for a given Github [slug], [sha],
   /// and [builderName].
-  Future<Iterable<Build>> getTryBuilds(
+  Future<Iterable<Build>> _getTryBuilds(
     github.RepositorySlug slug,
     String sha,
     String? builderName,
@@ -95,35 +94,13 @@ class LuciBuildService {
       'buildset': <String>['sha/git/$sha'],
       'user_agent': const <String>['flutter-cocoon'],
     };
-    return getBuilds(slug, sha, builderName, 'try', tags);
-  }
-
-  /// Fetches an Iterable of try BuildBucket V2 [Build]s.
-  ///
-  /// Returns a list of BuildBucket [Build]s for a given Github [slug], [sha],
-  /// and [builderName].
-  Future<Iterable<bbv2.Build>> getTryBuildsV2(
-    github.RepositorySlug slug,
-    String sha,
-    String? builderName,
-  ) async {
-    final List<bbv2.StringPair> tags = [
-      bbv2.StringPair(key: 'buildset', value: 'sha/git/$sha'),
-      bbv2.StringPair(key: 'user_agent', value: 'flutter-cocoon'),
-    ];
-    return getBuildsV2(
-      slug,
-      sha,
-      builderName,
-      'try',
-      tags,
-    );
+    return _getBuilds(slug, sha, builderName, 'try', tags);
   }
 
   /// Fetches an Iterable of try BuildBucket [Build]s.
   ///
   /// Returns a list of BuildBucket [Build]s for a given Github [PullRequest].
-  Future<Iterable<Build>> getTryBuildsByPullRequest(
+  Future<Iterable<Build>> _getTryBuildsByPullRequest(
     github.PullRequest pullRequest,
   ) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
@@ -132,14 +109,14 @@ class LuciBuildService {
       'github_link': <String>['https://github.com/${slug.fullName}/pull/${pullRequest.number}'],
       'user_agent': const <String>['flutter-cocoon'],
     };
-    return getBuilds(slug, null, null, 'try', tags);
+    return _getBuilds(slug, null, null, 'try', tags);
   }
 
   /// Fetches an Iterable of try BuildBucket V2 [Build]s.
   ///
   /// Returns a list of BuildBucket V2 [Build]s for a given Github
   /// [PullRequest].
-  Future<Iterable<bbv2.Build>> getTryBuildsByPullRequestV2(
+  Future<Iterable<bbv2.Build>> _getTryBuildsByPullRequestV2(
     github.PullRequest pullRequest,
   ) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
@@ -148,7 +125,7 @@ class LuciBuildService {
       bbv2.StringPair(key: 'github_link', value: 'https://github.com/${slug.fullName}/pull/${pullRequest.number}'),
       bbv2.StringPair(key: 'user_agent', value: 'flutter-cocoon'),
     ];
-    return getBuildsV2(
+    return _getBuildsV2(
       slug,
       null,
       null,
@@ -161,20 +138,20 @@ class LuciBuildService {
   ///
   /// Returns an Iterable of prod BuildBucket [Build]s for a given Github
   /// [slug], [sha], and [builderName].
-  Future<Iterable<Build>> getProdBuilds(
+  Future<Iterable<Build>> _getProdBuilds(
     github.RepositorySlug slug,
     String commitSha,
     String? builderName,
   ) async {
     final Map<String, List<String>> tags = <String, List<String>>{};
-    return getBuilds(slug, commitSha, builderName, 'prod', tags);
+    return _getBuilds(slug, commitSha, builderName, 'prod', tags);
   }
 
   /// Fetches an Iterable of try BuildBucket [Build]s.
   ///
   /// Returns an iterable of try BuildBucket [Build]s for a given Github [slug],
   /// [sha], [builderName], [bucket], and [tags].
-  Future<Iterable<Build>> getBuilds(
+  Future<Iterable<Build>> _getBuilds(
     github.RepositorySlug? slug,
     String? commitSha,
     String? builderName,
@@ -212,7 +189,7 @@ class LuciBuildService {
     return builds;
   }
 
-  Future<Iterable<bbv2.Build>> getBuildsV2(
+  Future<Iterable<bbv2.Build>> _getBuildsV2(
     github.RepositorySlug? slug,
     String? commitSha,
     String? builderName,
@@ -356,7 +333,7 @@ class LuciBuildService {
       'Attempting to cancel builds for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}',
     );
 
-    final Iterable<Build> builds = await getTryBuildsByPullRequest(pullRequest);
+    final Iterable<Build> builds = await _getTryBuildsByPullRequest(pullRequest);
     log.info('Found ${builds.length} builds.');
 
     if (builds.isEmpty) {
@@ -390,7 +367,7 @@ class LuciBuildService {
       'Attempting to cancel builds (v2) for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}',
     );
 
-    final Iterable<bbv2.Build> builds = await getTryBuildsByPullRequestV2(pullRequest);
+    final Iterable<bbv2.Build> builds = await _getTryBuildsByPullRequestV2(pullRequest);
     log.info('Found ${builds.length} builds.');
 
     if (builds.isEmpty) {
@@ -424,7 +401,7 @@ class LuciBuildService {
     github.PullRequest pullRequest,
     List<Target> targets,
   ) async {
-    final Iterable<Build> builds = await getTryBuilds(pullRequest.base!.repo!.slug(), pullRequest.head!.sha!, null);
+    final Iterable<Build> builds = await _getTryBuilds(pullRequest.base!.repo!.slug(), pullRequest.head!.sha!, null);
     final Iterable<String> builderNames = targets.map((Target target) => target.value.name);
     // Return only builds that exist in the configuration file.
     final Iterable<Build?> failedBuilds = builds.where((Build? build) => failStatusSet.contains(build!.status));
@@ -488,7 +465,7 @@ class LuciBuildService {
 
     final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(config, slug, sha, checkName);
 
-    final Iterable<Build> builds = await getTryBuilds(slug, sha, checkName);
+    final Iterable<Build> builds = await _getTryBuilds(slug, sha, checkName);
     if (builds.isEmpty) {
       throw NoBuildFoundException('Unable to find try build.');
     }
@@ -553,7 +530,7 @@ class LuciBuildService {
     final String sha = checkRunEvent.checkRun!.headSha!;
     final String checkName = checkRunEvent.checkRun!.name!;
 
-    final Iterable<Build> builds = await getProdBuilds(slug, sha, checkName);
+    final Iterable<Build> builds = await _getProdBuilds(slug, sha, checkName);
     if (builds.isEmpty) {
       throw NoBuildFoundException('Unable to find prod build.');
     }
@@ -573,12 +550,6 @@ class LuciBuildService {
   Future<Build> getBuildById(String? id, {String? fields}) async {
     final GetBuildRequest request = GetBuildRequest(id: id, fields: fields);
     return buildBucketClient.getBuild(request);
-  }
-
-  // TODO
-  Future<bbv2.Build> getBuildByIdV2(Int64 id, {bbv2.BuildMask? buildMask}) async {
-    final bbv2.GetBuildRequest request = bbv2.GetBuildRequest(id: id, mask: buildMask);
-    return buildBucketV2Client.getBuild(request);
   }
 
   /// Gets builder list whose config is pre-defined in LUCI.
