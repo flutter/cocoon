@@ -350,7 +350,7 @@ class Scheduler {
       } else {
         final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
         final List<Target> presubmitTriggerTargets = getTriggerList(presubmitTargets, builderTriggerList);
-        await luciBuildService.scheduleTryBuilds(
+        await luciBuildServiceV2.scheduleTryBuilds(
           targets: presubmitTriggerTargets,
           pullRequest: pullRequest,
         );
@@ -432,7 +432,7 @@ class Scheduler {
         continue;
       }
 
-      await luciBuildService.scheduleTryBuilds(
+      await luciBuildServiceV2.scheduleTryBuilds(
         targets: presubmitTargets.where((Target target) => build.builderId.builder == target.value.name).toList(),
         pullRequest: pullRequest,
         checkSuiteEvent: checkSuiteEvent,

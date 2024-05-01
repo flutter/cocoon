@@ -9,7 +9,6 @@ import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart' as github;
-import 'package:github/hooks.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 
@@ -228,85 +227,6 @@ class LuciBuildService {
         .map((bbv2.BatchResponse_Response response) => response.searchBuilds)
         .expand((bbv2.SearchBuildsResponse? response) => response!.builds);
     return builds;
-  }
-
-  /// Schedules presubmit [targets] on BuildBucket for [pullRequest].
-  Future<List<Target>> scheduleTryBuilds({
-    required List<Target> targets,
-    required github.PullRequest pullRequest,
-    CheckSuiteEvent? checkSuiteEvent,
-  }) async {
-    if (targets.isEmpty) {
-      return targets;
-    }
-
-    final List<Request> requests = <Request>[];
-    final List<String> branches = await gerritService.branches(
-      'flutter-review.googlesource.com',
-      'recipes',
-      filterRegex: 'flutter-.*|fuchsia.*',
-    );
-    log.info('Available release branches: $branches');
-
-    final String sha = pullRequest.head!.sha!;
-    String cipdVersion = 'refs/heads/${pullRequest.base!.ref!}';
-    cipdVersion = branches.contains(cipdVersion) ? cipdVersion : config.defaultRecipeBundleRef;
-
-    for (Target target in targets) {
-      final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
-        config,
-        target.slug,
-        sha,
-        target.value.name,
-      );
-
-      final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-
-      final Map<String, dynamic> userData = <String, dynamic>{
-        'builder_name': target.value.name,
-        'check_run_id': checkRun.id,
-        'commit_sha': sha,
-        'commit_branch': pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
-      };
-
-      final Map<String, List<String>> tags = <String, List<String>>{
-        'github_checkrun': <String>[checkRun.id.toString()],
-      };
-
-      final Map<String, Object> properties = target.getProperties();
-      properties.putIfAbsent('git_branch', () => pullRequest.base!.ref!.replaceAll('refs/heads/', ''));
-
-      final List<String>? labels = extractPrefixedLabels(pullRequest.labels, githubBuildLabelPrefix);
-
-      if (labels != null && labels.isNotEmpty) {
-        properties[propertiesGithubBuildLabelName] = labels;
-      }
-
-      requests.add(
-        Request(
-          scheduleBuild: _createPresubmitScheduleBuild(
-            slug: slug,
-            sha: pullRequest.head!.sha!,
-            //Use target.value.name here otherwise tests will die due to null checkRun.name.
-            checkName: target.value.name,
-            pullRequestNumber: pullRequest.number!,
-            cipdVersion: cipdVersion,
-            userData: userData,
-            properties: properties,
-            tags: tags,
-            dimensions: target.getDimensions(),
-          ),
-        ),
-      );
-    }
-
-    final Iterable<List<Request>> requestPartitions = await shard(requests, config.schedulingShardSize);
-    for (List<Request> requestPartition in requestPartitions) {
-      final BatchRequest batchRequest = BatchRequest(requests: requestPartition);
-      await pubsub.publish('scheduler-requests', batchRequest);
-    }
-
-    return targets;
   }
 
   Future<void> cancelBuildsV2(github.PullRequest pullRequest, String reason) async {
