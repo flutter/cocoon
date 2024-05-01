@@ -72,6 +72,7 @@ Future<void> main() async {
     config: config,
     githubChecksService: githubChecksService,
     luciBuildService: luciBuildService,
+    luciBuildServiceV2: luciBuildServiceV2,
   );
 
   final SchedulerV2 schedulerV2 = SchedulerV2(

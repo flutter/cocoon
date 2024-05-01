@@ -545,57 +545,6 @@ class LuciBuildService {
     return Uint8List.fromList(joinedBuilderSet.codeUnits);
   }
 
-  /// Schedules list of post-submit builds deferring work to [schedulePostsubmitBuild].
-  ///
-  /// Returns empty list if all targets are successfully published to pub/sub. Otherwise,
-  /// returns the original list.
-  Future<List<Tuple<Target, Task, int>>> schedulePostsubmitBuilds({
-    required Commit commit,
-    required List<Tuple<Target, Task, int>> toBeScheduled,
-  }) async {
-    if (toBeScheduled.isEmpty) {
-      log.fine('Skipping schedulePostsubmitBuilds as there are no targets to be scheduled by Cocoon');
-      return toBeScheduled;
-    }
-    final List<Request> buildRequests = <Request>[];
-    Set<String> availableBuilderSet;
-    try {
-      availableBuilderSet = await getAvailableBuilderSet(project: 'flutter', bucket: 'prod');
-    } catch (error) {
-      log.severe('Failed to get buildbucket builder list due to $error');
-      return toBeScheduled;
-    }
-    log.info('Available builder list: $availableBuilderSet');
-    for (Tuple<Target, Task, int> tuple in toBeScheduled) {
-      // Non-existing builder target will be skipped from scheduling.
-      if (!availableBuilderSet.contains(tuple.first.value.name)) {
-        log.warning('Found no available builder for ${tuple.first.value.name}, commit ${commit.sha}');
-        continue;
-      }
-      log.info('create postsubmit schedule request for target: ${tuple.first.value} in commit ${commit.sha}');
-      final ScheduleBuildRequest scheduleBuildRequest = await _createPostsubmitScheduleBuild(
-        commit: commit,
-        target: tuple.first,
-        task: tuple.second,
-        priority: tuple.third,
-      );
-      buildRequests.add(Request(scheduleBuild: scheduleBuildRequest));
-      log.info('created postsubmit schedule request for target: ${tuple.first.value} in commit ${commit.sha}');
-    }
-    final BatchRequest batchRequest = BatchRequest(requests: buildRequests);
-    log.fine(batchRequest);
-    List<String> messageIds;
-    try {
-      messageIds = await pubsub.publish('scheduler-requests', batchRequest);
-      log.info('Published $messageIds for commit ${commit.sha}');
-    } catch (error) {
-      log.severe('Failed to publish message to pub/sub due to $error');
-      return toBeScheduled;
-    }
-    log.info('Published a request with ${buildRequests.length} builds');
-    return <Tuple<Target, Task, int>>[];
-  }
-
   /// Create a Presubmit ScheduleBuildRequest using the [slug], [sha], and
   /// [checkName] for the provided [build] with the provided [checkRunId].
   ScheduleBuildRequest _createPresubmitScheduleBuild({

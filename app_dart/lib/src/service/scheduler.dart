@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
+import 'package:cocoon_service/src/service/luci_build_service_v2.dart' as bsv2;
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
@@ -50,6 +51,7 @@ class Scheduler {
     required this.config,
     required this.githubChecksService,
     required this.luciBuildService,
+    required this.luciBuildServiceV2,
     this.datastoreProvider = DatastoreService.defaultProvider,
     this.httpClientProvider = Providers.freshHttpClient,
     this.buildStatusProvider = BuildStatusService.defaultProvider,
@@ -65,6 +67,7 @@ class Scheduler {
   late DatastoreService datastore;
   late FirestoreService firestoreService;
   LuciBuildService luciBuildService;
+  bsv2.LuciBuildServiceV2 luciBuildServiceV2;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
@@ -188,7 +191,7 @@ class Scheduler {
     final List<Future<void>> futures = <Future<void>>[];
     for (int i = 0; i < toBeScheduled.length; i += config.batchSize) {
       futures.add(
-        luciBuildService.schedulePostsubmitBuilds(
+        luciBuildServiceV2.schedulePostsubmitBuilds(
           commit: commit,
           toBeScheduled: toBeScheduled.sublist(i, min(i + config.batchSize, toBeScheduled.length)),
         ),
