@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
@@ -20,6 +21,7 @@ import '../request_handling/api_request_handler.dart';
 import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
+import '../service/luci_build_service_v2.dart' as bsv2;
 
 /// Reruns a postsubmit LUCI build.
 ///
@@ -30,12 +32,14 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     required super.config,
     required super.authenticationProvider,
     required this.luciBuildService,
+    required this.luciBuildServiceV2,
     required this.scheduler,
     @visibleForTesting DatastoreServiceProvider? datastoreProvider,
   }) : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider;
 
   final DatastoreServiceProvider datastoreProvider;
   final LuciBuildService luciBuildService;
+  final bsv2.LuciBuildServiceV2 luciBuildServiceV2;
   final Scheduler scheduler;
 
   static const String branchParam = 'Branch';
@@ -162,12 +166,18 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       documentName: taskDocumentName,
     );
 
-    final Map<String, List<String>> tags = <String, List<String>>{
-      'triggered_by': <String>[email],
-      'trigger_type': <String>['manual_retry'],
-    };
+    final List<bbv2.StringPair> tags = <bbv2.StringPair>[
+      bbv2.StringPair(
+        key: 'triggered_by',
+        value: email,
+      ),
+      bbv2.StringPair(
+        key: 'trigger_type',
+        value: 'manual_retry',
+      ),
+    ];
 
-    final bool isRerunning = await luciBuildService.checkRerunBuilder(
+    final bool isRerunning = await luciBuildServiceV2.checkRerunBuilder(
       commit: commit,
       task: task,
       target: target,

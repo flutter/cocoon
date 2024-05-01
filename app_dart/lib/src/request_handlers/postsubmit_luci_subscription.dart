@@ -104,7 +104,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
         firestoreTask.status == firestore.Task.statusInfraFailure ||
         firestoreTask.status == firestore.Task.statusCancelled) {
       log.fine('Trying to auto-retry...');
-      final bool retried = await scheduler.luciBuildService.checkRerunBuilder(
+      final bool retried = await scheduler.luciBuildServiceV2.checkRerunBuilder(
         commit: commit,
         target: target,
         task: task,

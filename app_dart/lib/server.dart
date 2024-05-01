@@ -123,6 +123,7 @@ Server createServer({
       config: config,
       authenticationProvider: authProvider,
       luciBuildService: luciBuildService,
+      luciBuildServiceV2: luciBuildServiceV2,
       scheduler: scheduler,
     ),
     '/api/v2/reset-prod-task': ResetProdTaskV2(

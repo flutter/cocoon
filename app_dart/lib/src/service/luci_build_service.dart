@@ -8,18 +8,14 @@ import 'dart:math';
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart' as github;
-import 'package:googleapis/firestore/v1.dart' hide Status;
 
 import '../foundation/github_checks_util.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
-import '../model/firestore/commit.dart' as firestore_commit;
-import '../model/firestore/task.dart' as firestore;
 import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/push_message.dart' as push_message;
 import '../model/luci/buildbucket.dart';
-import '../service/datastore.dart';
 import '../service/logging.dart';
 import 'build_bucket_v2_client.dart';
 import 'exceptions.dart';
@@ -206,13 +202,6 @@ class LuciBuildService {
     );
   }
 
-  /// Collect any label whose name is prefixed by the prefix [String].
-  ///
-  /// Returns a [List] of prefixed label names as [String]s.
-  List<String>? extractPrefixedLabels(List<github.IssueLabel>? issueLabels, String prefix) {
-    return issueLabels?.where((label) => label.name.startsWith(prefix)).map((obj) => obj.name).toList();
-  }
-
   /// Sends postsubmit [ScheduleBuildRequest] for a commit using [checkRunEvent], [Commit], [Task], and [Target].
   ///
   /// Returns the [Build] returned by scheduleBuildRequest.
@@ -341,96 +330,5 @@ class LuciBuildService {
     rawUserData['builder_name'] = target.value.name;
     rawUserData['repo_owner'] = target.slug.owner;
     rawUserData['repo_name'] = target.slug.name;
-  }
-
-  /// Check to auto-rerun TOT test failures.
-  ///
-  /// A builder will be retried if:
-  ///   1. It has been tried below the max retry limit
-  ///   2. It is for the tip of tree
-  ///   3. The last known status is not green
-  ///   4. [ignoreChecks] is false. This allows manual reruns to bypass the Cocoon state.
-  Future<bool> checkRerunBuilder({
-    required Commit commit,
-    required Target target,
-    required Task task,
-    required DatastoreService datastore,
-    required firestore.Task taskDocument,
-    required FirestoreService firestoreService,
-    Map<String, List<String>>? tags,
-    bool ignoreChecks = false,
-  }) async {
-    if (ignoreChecks == false && await _shouldRerunBuilderFirestore(taskDocument, firestoreService) == false) {
-      return false;
-    }
-    log.info('Rerun builder: ${target.value.name} for commit ${commit.sha}');
-    tags ??= <String, List<String>>{};
-    tags['trigger_type'] ??= <String>['auto_retry'];
-
-    // Updating task status first to avoid endless rerun when datastore transaction aborts.
-    try {
-      // Updates task status in Datastore.
-      task.attempts = (task.attempts ?? 0) + 1;
-      // Mark task as in progress to ensure it isn't scheduled over
-      task.status = Task.statusInProgress;
-      await datastore.insert(<Task>[task]);
-
-      // Updates task status in Firestore.
-      final int newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
-      tags['current_attempt'] = <String>[newAttempt.toString()];
-      taskDocument.resetAsRetry(attempt: newAttempt);
-      taskDocument.setStatus(firestore.Task.statusInProgress);
-      final List<Write> writes = documentsToWrites([taskDocument], exists: false);
-      await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
-    } catch (error) {
-      log.severe(
-        'updating task ${taskDocument.taskName} of commit ${taskDocument.commitSha} failure: $error. Skipping rescheduling.',
-      );
-      return false;
-    }
-    final BatchRequest request = BatchRequest(
-      requests: <Request>[
-        Request(
-          scheduleBuild: await _createPostsubmitScheduleBuild(
-            commit: commit,
-            target: target,
-            task: task,
-            priority: kRerunPriority,
-            properties: Config.defaultProperties,
-            tags: tags,
-          ),
-        ),
-      ],
-    );
-    await pubsub.publish('scheduler-requests', request);
-
-    return true;
-  }
-
-  /// Check if a builder should be rerun.
-  ///
-  /// A rerun happens when a build fails, the retry number hasn't reached the limit, and the build is on TOT.
-  Future<bool> _shouldRerunBuilderFirestore(firestore.Task task, FirestoreService firestoreService) async {
-    if (!firestore.Task.taskFailStatusSet.contains(task.status)) {
-      return false;
-    }
-    final int retries = task.attempts ?? 1;
-    if (retries > config.maxLuciTaskRetries) {
-      log.warning('Max retries reached');
-      return false;
-    }
-
-    final String commitDocumentName = '$kDatabase/documents/${firestore_commit.kCommitCollectionId}/${task.commitSha}';
-    final firestore_commit.Commit currentCommit = await firestore_commit.Commit.fromFirestore(
-      firestoreService: firestoreService,
-      documentName: commitDocumentName,
-    );
-    final List<firestore_commit.Commit> commitList = await firestoreService.queryRecentCommits(
-      limit: 1,
-      slug: currentCommit.slug,
-      branch: currentCommit.branch,
-    );
-    final firestore_commit.Commit latestCommit = commitList.single;
-    return latestCommit.sha == currentCommit.sha;
   }
 }

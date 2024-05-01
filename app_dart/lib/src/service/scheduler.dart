@@ -341,7 +341,7 @@ class Scheduler {
         log.info('Skipping generating the full set of checks for revert request.');
       } else {
         final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
-        final List<Target> presubmitTriggerTargets = _getTriggerList(presubmitTargets, builderTriggerList);
+        final List<Target> presubmitTriggerTargets = getTriggerList(presubmitTargets, builderTriggerList);
         await luciBuildServiceV2.scheduleTryBuilds(
           targets: presubmitTriggerTargets,
           pullRequest: pullRequest,
@@ -393,7 +393,7 @@ class Scheduler {
 
   /// If [builderTriggerList] is specificed, return only builders that are contained in [presubmitTarget].
   /// Otherwise, return [presubmitTarget].
-  List<Target> _getTriggerList(List<Target> presubmitTarget, List<String>? builderTriggerList) {
+  List<Target> getTriggerList(List<Target> presubmitTarget, List<String>? builderTriggerList) {
     if (builderTriggerList != null && builderTriggerList.isNotEmpty) {
       return presubmitTarget.where((Target target) => builderTriggerList.contains(target.value.name)).toList();
     }
