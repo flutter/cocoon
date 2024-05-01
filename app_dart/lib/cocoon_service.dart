@@ -41,7 +41,7 @@ export 'src/request_handling/request_handler.dart';
 export 'src/request_handling/static_file_handler.dart';
 export 'src/request_handling/swarming_authentication.dart';
 export 'src/service/access_token_provider.dart';
-export 'src/service/buildbucket.dart';
+export 'src/service/build_bucket_v2_client.dart';
 export 'src/service/branch_service.dart';
 export 'src/service/cache_service.dart';
 export 'src/service/config.dart';

@@ -13,7 +13,7 @@ import 'package:cocoon_service/src/request_handlers/reset_try_task_v2.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/batch_backfiller_v2.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/scheduler_request_subscription.dart';
 import 'package:cocoon_service/src/request_handlers/vacuum_github_commits_v2.dart';
-import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
+import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 

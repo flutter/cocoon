@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
-import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
+import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:gcloud/db.dart';
