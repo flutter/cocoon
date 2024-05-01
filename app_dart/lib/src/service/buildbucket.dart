@@ -102,19 +102,6 @@ class BuildBucketClient {
     );
   }
 
-  /// The RPC request to search for builds.
-  Future<SearchBuildsResponse> searchBuilds(
-    SearchBuildsRequest request, {
-    String buildBucketUri = kDefaultBuildBucketBuildUri,
-  }) {
-    return _postRequest<SearchBuildsRequest, SearchBuildsResponse>(
-      '/SearchBuilds',
-      request,
-      SearchBuildsResponse.fromJson,
-      buildBucketUri: buildBucketUri,
-    );
-  }
-
   /// The RPC method to batch multiple RPC methods in a single HTTP request.
   ///
   /// The response is guaranteed to contain line-item responses for all
@@ -136,19 +123,6 @@ class BuildBucketClient {
     return response;
   }
 
-  /// The RPC request to cancel a build.
-  Future<Build> cancelBuild(
-    CancelBuildRequest request, {
-    String buildBucketUri = kDefaultBuildBucketBuildUri,
-  }) {
-    return _postRequest<CancelBuildRequest, Build>(
-      '/CancelBuild',
-      request,
-      Build.fromJson,
-      buildBucketUri: buildBucketUri,
-    );
-  }
-
   /// The RPC request to get details about a build.
   Future<Build> getBuild(
     GetBuildRequest request, {
@@ -158,19 +132,6 @@ class BuildBucketClient {
       '/GetBuild',
       request,
       Build.fromJson,
-      buildBucketUri: buildBucketUri,
-    );
-  }
-
-  /// The RPC request to get a list of builders.
-  Future<ListBuildersResponse> listBuilders(
-    ListBuildersRequest request, {
-    String buildBucketUri = kDefaultBuildBucketBuilderUri,
-  }) {
-    return _postRequest<ListBuildersRequest, ListBuildersResponse>(
-      '/ListBuilders',
-      request,
-      ListBuildersResponse.fromJson,
       buildBucketUri: buildBucketUri,
     );
   }
