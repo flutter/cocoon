@@ -294,7 +294,7 @@ class Scheduler {
     required PullRequest pullRequest,
     String reason = 'Newer commit available',
   }) async {
-    await luciBuildService.cancelBuilds(pullRequest, reason);
+    await luciBuildService.cancelBuildsV2(pullRequest, reason);
   }
 
   Future<void> cancelPreSubmitTargetsV2({

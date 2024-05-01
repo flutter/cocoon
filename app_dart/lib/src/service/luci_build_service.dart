@@ -97,21 +97,6 @@ class LuciBuildService {
     return _getBuilds(slug, sha, builderName, 'try', tags);
   }
 
-  /// Fetches an Iterable of try BuildBucket [Build]s.
-  ///
-  /// Returns a list of BuildBucket [Build]s for a given Github [PullRequest].
-  Future<Iterable<Build>> _getTryBuildsByPullRequest(
-    github.PullRequest pullRequest,
-  ) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final Map<String, List<String>> tags = <String, List<String>>{
-      'buildset': <String>['pr/git/${pullRequest.number}'],
-      'github_link': <String>['https://github.com/${slug.fullName}/pull/${pullRequest.number}'],
-      'user_agent': const <String>['flutter-cocoon'],
-    };
-    return _getBuilds(slug, null, null, 'try', tags);
-  }
-
   /// Fetches an Iterable of try BuildBucket V2 [Build]s.
   ///
   /// Returns a list of BuildBucket V2 [Build]s for a given Github
@@ -322,44 +307,6 @@ class LuciBuildService {
     }
 
     return targets;
-  }
-
-  /// Cancels all the current builds on [pullRequest] with [reason].
-  ///
-  /// Builds are queried based on the [RepositorySlug] and pull request number.
-  //
-  Future<void> cancelBuilds(github.PullRequest pullRequest, String reason) async {
-    log.info(
-      'Attempting to cancel builds for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}',
-    );
-
-    final Iterable<Build> builds = await _getTryBuildsByPullRequest(pullRequest);
-    log.info('Found ${builds.length} builds.');
-
-    if (builds.isEmpty) {
-      log.warning('No builds were found for pull request ${pullRequest.base!.repo!.fullName}.');
-      return;
-    }
-
-    final List<Request> requests = <Request>[];
-    for (Build build in builds) {
-      if (build.status == Status.scheduled || build.status == Status.started) {
-        // Scheduled status includes scheduled and pending tasks.
-        log.info('Cancelling build with build id ${build.id}.');
-        requests.add(
-          Request(
-            cancelBuild: CancelBuildRequest(
-              id: build.id,
-              summaryMarkdown: reason,
-            ),
-          ),
-        );
-      }
-    }
-
-    if (requests.isNotEmpty) {
-      await buildBucketClient.batch(BatchRequest(requests: requests));
-    }
   }
 
   Future<void> cancelBuildsV2(github.PullRequest pullRequest, String reason) async {
