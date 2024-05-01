@@ -36,21 +36,6 @@ class LuciBuildService {
 
   final PubSub pubsub;
 
-  static const Set<Status> failStatusSet = <Status>{
-    Status.canceled,
-    Status.failure,
-    Status.infraFailure,
-  };
-
-  /// Github labels have a max length of 100, so conserve chars here.
-  /// This is currently used by packages repo only.
-  /// See: https://github.com/flutter/flutter/issues/130076
-  static const String githubBuildLabelPrefix = 'override:';
-  static const String propertiesGithubBuildLabelName = 'overrides';
-
-  /// Name of the subcache to store luci build related values in redis.
-  static const String subCacheName = 'luci';
-
   /// Sends [ScheduleBuildRequest] using information from a given build's
   /// [BuildPushMessage].
   ///
