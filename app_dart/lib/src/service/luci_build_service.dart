@@ -7,7 +7,6 @@ import 'dart:convert';
 
 import 'package:cocoon_service/cocoon_service.dart';
 
-import '../foundation/github_checks_util.dart';
 import '../model/luci/push_message.dart' as push_message;
 import '../model/luci/buildbucket.dart';
 import 'build_bucket_v2_client.dart';
@@ -17,24 +16,12 @@ import 'build_bucket_v2_client.dart';
 /// get the list of available builders.
 class LuciBuildService {
   LuciBuildService({
-    required this.config,
-    required this.cache,
     required this.buildBucketClient,
     required this.buildBucketV2Client,
-    GithubChecksUtil? githubChecksUtil,
-    GerritService? gerritService,
-    this.pubsub = const PubSub(),
-  })  : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
-        gerritService = gerritService ?? GerritService(config: config);
+  });
 
   BuildBucketClient buildBucketClient;
   BuildBucketV2Client buildBucketV2Client;
-  final CacheService cache;
-  Config config;
-  GithubChecksUtil githubChecksUtil;
-  GerritService gerritService;
-
-  final PubSub pubsub;
 
   /// Sends [ScheduleBuildRequest] using information from a given build's
   /// [BuildPushMessage].
