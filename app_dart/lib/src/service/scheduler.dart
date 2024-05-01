@@ -37,7 +37,6 @@ import 'datastore.dart';
 import 'firestore.dart';
 import 'github_checks_service.dart';
 import 'github_service.dart';
-import 'luci_build_service.dart';
 
 /// Scheduler service to validate all commits to supported Flutter repositories.
 ///
@@ -51,7 +50,6 @@ class Scheduler {
     required this.config,
     required this.githubChecksService,
     required this.luciBuildService,
-    required this.luciBuildServiceV2,
     this.datastoreProvider = DatastoreService.defaultProvider,
     this.httpClientProvider = Providers.freshHttpClient,
     this.buildStatusProvider = BuildStatusService.defaultProvider,
@@ -66,8 +64,7 @@ class Scheduler {
 
   late DatastoreService datastore;
   late FirestoreService firestoreService;
-  LuciBuildService luciBuildService;
-  bsv2.LuciBuildServiceV2 luciBuildServiceV2;
+  bsv2.LuciBuildServiceV2 luciBuildService;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
@@ -191,7 +188,7 @@ class Scheduler {
     final List<Future<void>> futures = <Future<void>>[];
     for (int i = 0; i < toBeScheduled.length; i += config.batchSize) {
       futures.add(
-        luciBuildServiceV2.schedulePostsubmitBuilds(
+        luciBuildService.schedulePostsubmitBuilds(
           commit: commit,
           toBeScheduled: toBeScheduled.sublist(i, min(i + config.batchSize, toBeScheduled.length)),
         ),
@@ -297,7 +294,7 @@ class Scheduler {
     String reason = 'Newer commit available',
   }) async {
     log.info('Cancelling presubmit targets with buildbucket v2.');
-    await luciBuildServiceV2.cancelBuilds(pullRequest: pullRequest, reason: reason);
+    await luciBuildService.cancelBuilds(pullRequest: pullRequest, reason: reason);
   }
 
   /// Schedule presubmit targets against a pull request.
@@ -342,7 +339,7 @@ class Scheduler {
       } else {
         final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
         final List<Target> presubmitTriggerTargets = getTriggerList(presubmitTargets, builderTriggerList);
-        await luciBuildServiceV2.scheduleTryBuilds(
+        await luciBuildService.scheduleTryBuilds(
           targets: presubmitTriggerTargets,
           pullRequest: pullRequest,
         );
@@ -416,7 +413,7 @@ class Scheduler {
     );
     final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
     final List<bbv2.Build?> failedBuilds =
-        await luciBuildServiceV2.failedBuilds(pullRequest: pullRequest, targets: presubmitTargets);
+        await luciBuildService.failedBuilds(pullRequest: pullRequest, targets: presubmitTargets);
     for (bbv2.Build? build in failedBuilds) {
       final CheckRun checkRun = checkRuns[build!.builder.builder]!;
 
@@ -425,7 +422,7 @@ class Scheduler {
         continue;
       }
 
-      await luciBuildServiceV2.scheduleTryBuilds(
+      await luciBuildService.scheduleTryBuilds(
         targets: presubmitTargets.where((Target target) => build.builder.builder == target.value.name).toList(),
         pullRequest: pullRequest,
         checkSuiteEvent: checkSuiteEvent,
@@ -565,7 +562,7 @@ class Scheduler {
             if (commit == null) {
               log.fine('Rescheduling presubmit build.');
               // Does not do anything with the returned build oddly.
-              await luciBuildServiceV2.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent: checkRunEvent);
+              await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent: checkRunEvent);
             } else {
               log.fine('Rescheduling postsubmit build.');
               final String checkName = checkRunEvent.checkRun!.name!;
@@ -573,7 +570,7 @@ class Scheduler {
               final CiYaml ciYaml = await getCiYaml(commit);
               final Target target =
                   ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
-              await luciBuildServiceV2.reschedulePostsubmitBuildUsingCheckRunEvent(
+              await luciBuildService.reschedulePostsubmitBuildUsingCheckRunEvent(
                 checkRunEvent,
                 commit: commit,
                 task: task,

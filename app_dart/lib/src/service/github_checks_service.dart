@@ -12,7 +12,6 @@ import 'buildbucket.dart';
 import 'config.dart';
 import 'github_service.dart';
 import 'logging.dart';
-import 'luci_build_service.dart';
 import 'scheduler.dart';
 
 const String kGithubSummary = '''
@@ -68,7 +67,7 @@ class GithubChecksService {
   ///   https://docs.github.com/en/rest/reference/checks#update-a-check-run
   Future<bool> updateCheckStatus(
     push_message.BuildPushMessage buildPushMessage,
-    LuciBuildService luciBuildService,
+    BuildBucketClient buildBucketClient,
     github.RepositorySlug slug, {
     bool rescheduled = false,
   }) async {
@@ -113,7 +112,7 @@ class GithubChecksService {
         );
       } else {
         final Build buildbucketBuild = await _getBuildById(
-          luciBuildService.buildBucketClient,
+          buildBucketClient,
           buildPushMessage.build!.id,
           fields: 'id,builder,summaryMarkdown',
         );

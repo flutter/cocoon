@@ -14,6 +14,7 @@ import '../model/luci/push_message.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
+import '../service/buildbucket.dart';
 import '../service/datastore.dart';
 import '../service/firestore.dart';
 import '../service/logging.dart';
@@ -36,11 +37,13 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
     required this.scheduler,
     required this.githubChecksService,
+    required this.buildBucketClient,
   }) : super(subscriptionName: 'luci-postsubmit');
 
   final DatastoreServiceProvider datastoreProvider;
   final Scheduler scheduler;
   final GithubChecksService githubChecksService;
+  final BuildBucketClient buildBucketClient;
 
   @override
   Future<Body> post() async {
@@ -104,7 +107,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
         firestoreTask.status == firestore.Task.statusInfraFailure ||
         firestoreTask.status == firestore.Task.statusCancelled) {
       log.fine('Trying to auto-retry...');
-      final bool retried = await scheduler.luciBuildServiceV2.checkRerunBuilder(
+      final bool retried = await scheduler.luciBuildService.checkRerunBuilder(
         commit: commit,
         target: target,
         task: task,
@@ -120,7 +123,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       log.info('Updating check status for ${target.getTestName}');
       await githubChecksService.updateCheckStatus(
         buildPushMessage,
-        scheduler.luciBuildService,
+        buildBucketClient,
         commit.slug,
       );
     }

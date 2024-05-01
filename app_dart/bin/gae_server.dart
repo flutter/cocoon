@@ -32,12 +32,7 @@ Future<void> main() async {
     );
 
     /// LUCI service class to communicate with buildBucket service.
-    final LuciBuildService luciBuildService = LuciBuildService(
-      buildBucketClient: buildBucketClient,
-      buildBucketV2Client: buildBucketV2Client,
-    );
-
-    final LuciBuildServiceV2 luciBuildServiceV2 = LuciBuildServiceV2(
+    final LuciBuildServiceV2 luciBuildService = LuciBuildServiceV2(
       config: config,
       cache: cache,
       buildBucketV2Client: buildBucketV2Client,
@@ -62,14 +57,13 @@ Future<void> main() async {
       config: config,
       githubChecksService: githubChecksService,
       luciBuildService: luciBuildService,
-      luciBuildServiceV2: luciBuildServiceV2,
     );
 
     final SchedulerV2 schedulerV2 = SchedulerV2(
       cache: cache,
       config: config,
       githubChecksService: githubChecksServiceV2,
-      luciBuildService: luciBuildServiceV2,
+      luciBuildService: luciBuildService,
     );
 
     final BranchService branchService = BranchService(
@@ -90,7 +84,6 @@ Future<void> main() async {
       scheduler: scheduler,
       schedulerV2: schedulerV2,
       luciBuildService: luciBuildService,
-      luciBuildServiceV2: luciBuildServiceV2,
       githubChecksService: githubChecksService,
       githubChecksServiceV2: githubChecksServiceV2,
       commitService: commitService,

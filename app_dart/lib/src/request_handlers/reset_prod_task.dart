@@ -32,14 +32,12 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     required super.config,
     required super.authenticationProvider,
     required this.luciBuildService,
-    required this.luciBuildServiceV2,
     required this.scheduler,
     @visibleForTesting DatastoreServiceProvider? datastoreProvider,
   }) : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider;
 
   final DatastoreServiceProvider datastoreProvider;
-  final LuciBuildService luciBuildService;
-  final bsv2.LuciBuildServiceV2 luciBuildServiceV2;
+  final bsv2.LuciBuildServiceV2 luciBuildService;
   final Scheduler scheduler;
 
   static const String branchParam = 'Branch';
@@ -177,7 +175,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       ),
     ];
 
-    final bool isRerunning = await luciBuildServiceV2.checkRerunBuilder(
+    final bool isRerunning = await luciBuildService.checkRerunBuilder(
       commit: commit,
       task: task,
       target: target,

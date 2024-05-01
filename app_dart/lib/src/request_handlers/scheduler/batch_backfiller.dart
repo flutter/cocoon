@@ -204,7 +204,7 @@ class BatchBackfiller extends RequestHandler {
         tuple.third,
       );
       futures.add(
-        scheduler.luciBuildServiceV2.schedulePostsubmitBuilds(
+        scheduler.luciBuildService.schedulePostsubmitBuilds(
           commit: tuple.second.commit,
           toBeScheduled: [toBeScheduled],
         ),
