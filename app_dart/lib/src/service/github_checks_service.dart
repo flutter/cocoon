@@ -8,6 +8,7 @@ import 'package:github/hooks.dart';
 import '../foundation/github_checks_util.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
+import 'buildbucket.dart';
 import 'config.dart';
 import 'github_service.dart';
 import 'logging.dart';
@@ -111,8 +112,11 @@ class GithubChecksService {
           summary: 'Note: this is an auto rerun. The timestamp above is based on the first attempt of this check run.',
         );
       } else {
-        final Build buildbucketBuild =
-            await luciBuildService.getBuildById(buildPushMessage.build!.id, fields: 'id,builder,summaryMarkdown');
+        final Build buildbucketBuild = await _getBuildById(
+          luciBuildService.buildBucketClient,
+          buildPushMessage.build!.id,
+          fields: 'id,builder,summaryMarkdown',
+        );
         final String summary = getGithubSummary(buildbucketBuild.summaryMarkdown);
         log.fine('From LUCI: ${buildbucketBuild.summaryMarkdown} after summary: $summary');
         output = github.CheckRunOutput(
@@ -132,6 +136,13 @@ class GithubChecksService {
       output: output,
     );
     return true;
+  }
+
+  /// Gets [Build] using its [id] and passing the additional
+  /// fields to be populated in the response.
+  Future<Build> _getBuildById(BuildBucketClient buildBucketClient, String? id, {String? fields}) async {
+    final GetBuildRequest request = GetBuildRequest(id: id, fields: fields);
+    return buildBucketClient.getBuild(request);
   }
 
   /// Check if task has completed with failure.

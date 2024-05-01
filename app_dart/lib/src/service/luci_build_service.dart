@@ -66,11 +66,4 @@ class LuciBuildService {
       ),
     );
   }
-
-  /// Gets [Build] using its [id] and passing the additional
-  /// fields to be populated in the response.
-  Future<Build> getBuildById(String? id, {String? fields}) async {
-    final GetBuildRequest request = GetBuildRequest(id: id, fields: fields);
-    return buildBucketClient.getBuild(request);
-  }
 }
