@@ -11,7 +11,7 @@ import 'package:cocoon_service/src/model/appengine/cocoon_config.dart';
 import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
+import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:gcloud/db.dart';
 
 import '../test/src/datastore/fake_datastore.dart';

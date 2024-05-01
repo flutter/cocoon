@@ -47,6 +47,6 @@ export 'src/service/cache_service.dart';
 export 'src/service/config.dart';
 export 'src/service/firestore.dart';
 export 'src/service/gerrit_service.dart';
-export 'src/service/github_checks_service.dart';
+export 'src/service/github_checks_service_v2.dart';
 export 'src/service/luci_build_service_v2.dart';
 export 'src/service/scheduler_v2.dart';
