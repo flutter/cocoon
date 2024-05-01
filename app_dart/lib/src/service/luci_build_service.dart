@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart' as github;
@@ -362,52 +361,6 @@ class LuciBuildService {
     return buildBucketClient.getBuild(request);
   }
 
-  /// Gets builder list whose config is pre-defined in LUCI.
-  ///
-  /// Returns cache if existing. Otherwise make the RPC call to fetch list.
-  Future<Set<String>> getAvailableBuilderSet({
-    String project = 'flutter',
-    String bucket = 'prod',
-  }) async {
-    final Uint8List? cacheValue = await cache.getOrCreate(
-      subCacheName,
-      'builderlist',
-      createFn: () => _getAvailableBuilderSet(project: project, bucket: bucket),
-      // New commit triggering tasks should be finished within 5 mins.
-      // The batch backfiller's execution frequency is also 5 mins.
-      ttl: const Duration(minutes: 5),
-    );
-
-    return Set.from(String.fromCharCodes(cacheValue!).split(','));
-  }
-
-  /// Returns cache if existing, otherwise makes the RPC call to fetch list.
-  ///
-  /// Use [token] to make sure obtain all the list by calling RPC multiple times.
-  Future<Uint8List> _getAvailableBuilderSet({
-    String project = 'flutter',
-    String bucket = 'prod',
-  }) async {
-    log.info('No cached value for builderList, start fetching via the rpc call.');
-    final Set<String> availableBuilderSet = <String>{};
-    String? token;
-    do {
-      final ListBuildersResponse listBuildersResponse = await buildBucketClient.listBuilders(
-        ListBuildersRequest(
-          project: project,
-          bucket: bucket,
-          pageToken: token,
-        ),
-      );
-      final List<String> availableBuilderList = listBuildersResponse.builders!.map((e) => e.id!.builder!).toList();
-      availableBuilderSet.addAll(<String>{...availableBuilderList});
-      token = listBuildersResponse.nextPageToken;
-    } while (token != null);
-    final String joinedBuilderSet = availableBuilderSet.toList().join(',');
-    log.info('successfully fetched the builderSet: $joinedBuilderSet');
-    return Uint8List.fromList(joinedBuilderSet.codeUnits);
-  }
-
   /// Creates a [ScheduleBuildRequest] for [target] and [task] against [commit].
   ///
   /// By default, build [priority] is increased for release branches.
@@ -441,7 +394,7 @@ class LuciBuildService {
 
     // Creates post submit checkrun only for unflaky targets from [config.postsubmitSupportedRepos].
     if (!target.value.bringup && config.postsubmitSupportedRepos.contains(target.slug)) {
-      await createPostsubmitCheckRun(commit, target, rawUserData);
+      await _createPostsubmitCheckRun(commit, target, rawUserData);
     }
 
     tags['user_agent'] = <String>['flutter-cocoon'];
@@ -484,7 +437,7 @@ class LuciBuildService {
   }
 
   /// Creates postsubmit check runs for prod targets in supported repositories.
-  Future<void> createPostsubmitCheckRun(
+  Future<void> _createPostsubmitCheckRun(
     Commit commit,
     Target target,
     Map<String, dynamic> rawUserData,
