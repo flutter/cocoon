@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/src/service/scheduler_v2.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 

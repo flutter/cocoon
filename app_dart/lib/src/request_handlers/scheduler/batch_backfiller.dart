@@ -17,7 +17,6 @@ import '../../model/ci_yaml/ci_yaml.dart';
 import '../../model/ci_yaml/target.dart';
 import '../../request_handling/exceptions.dart';
 import '../../service/logging.dart';
-import '../../service/luci_build_service_v2.dart';
 
 /// Cron request handler for scheduling targets when capacity becomes available.
 ///
@@ -32,7 +31,7 @@ class BatchBackfiller extends RequestHandler {
   });
 
   final DatastoreServiceProvider datastoreProvider;
-  final Scheduler scheduler;
+  final SchedulerV2 scheduler;
 
   @override
   Future<Body> get() async {

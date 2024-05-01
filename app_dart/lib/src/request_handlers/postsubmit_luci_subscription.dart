@@ -19,7 +19,7 @@ import '../service/datastore.dart';
 import '../service/firestore.dart';
 import '../service/logging.dart';
 import '../service/github_checks_service.dart';
-import '../service/scheduler.dart';
+import '../service/scheduler_v2.dart';
 
 /// An endpoint for listening to build updates for postsubmit builds.
 ///
@@ -41,7 +41,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
   }) : super(subscriptionName: 'luci-postsubmit');
 
   final DatastoreServiceProvider datastoreProvider;
-  final Scheduler scheduler;
+  final SchedulerV2 scheduler;
   final GithubChecksService githubChecksService;
   final BuildBucketClient buildBucketClient;
 

@@ -21,7 +21,6 @@ import '../request_handling/api_request_handler.dart';
 import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
-import '../service/luci_build_service_v2.dart' as bsv2;
 
 /// Reruns a postsubmit LUCI build.
 ///
@@ -37,8 +36,8 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   }) : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider;
 
   final DatastoreServiceProvider datastoreProvider;
-  final bsv2.LuciBuildServiceV2 luciBuildService;
-  final Scheduler scheduler;
+  final LuciBuildServiceV2 luciBuildService;
+  final SchedulerV2 scheduler;
 
   static const String branchParam = 'Branch';
   static const String taskKeyParam = 'Key';

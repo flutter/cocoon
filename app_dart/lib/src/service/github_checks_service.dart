@@ -12,7 +12,7 @@ import 'buildbucket.dart';
 import 'config.dart';
 import 'github_service.dart';
 import 'logging.dart';
-import 'scheduler.dart';
+import 'scheduler_v2.dart';
 
 const String kGithubSummary = '''
 **[Understanding a LUCI build failure](https://github.com/flutter/flutter/wiki/Understanding-a-LUCI-build-failure)**
@@ -41,7 +41,7 @@ class GithubChecksService {
   Future<void> handleCheckSuite(
     github.PullRequest pullRequest,
     CheckSuiteEvent checkSuiteEvent,
-    Scheduler scheduler,
+    SchedulerV2 scheduler,
   ) async {
     switch (checkSuiteEvent.action) {
       case 'requested':

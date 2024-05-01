@@ -12,8 +12,6 @@ import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
-import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
-import 'package:cocoon_service/src/service/scheduler_v2.dart';
 import 'package:gcloud/db.dart';
 
 import '../test/src/datastore/fake_datastore.dart';
@@ -39,12 +37,7 @@ Future<void> main() async {
   );
 
   /// LUCI service class to communicate with buildBucket service.
-  final LuciBuildService luciBuildService = LuciBuildService(
-    buildBucketClient: buildBucketClient,
-    buildBucketV2Client: buildBucketV2Client,
-  );
-
-  final LuciBuildServiceV2 luciBuildServiceV2 = LuciBuildServiceV2(
+  final LuciBuildServiceV2 luciBuildService = LuciBuildServiceV2(
     config: config,
     cache: cache,
     buildBucketV2Client: buildBucketV2Client,
@@ -64,19 +57,11 @@ Future<void> main() async {
   final GerritService gerritService = GerritService(config: config);
 
   /// Cocoon scheduler service to manage validating commits in presubmit and postsubmit.
-  final Scheduler scheduler = Scheduler(
-    cache: cache,
-    config: config,
-    githubChecksService: githubChecksService,
-    luciBuildService: luciBuildService,
-    luciBuildServiceV2: luciBuildServiceV2,
-  );
-
-  final SchedulerV2 schedulerV2 = SchedulerV2(
+  final SchedulerV2 scheduler = SchedulerV2(
     cache: cache,
     config: config,
     githubChecksService: githubChecksServiceV2,
-    luciBuildService: luciBuildServiceV2,
+    luciBuildService: luciBuildService,
   );
 
   final BranchService branchService = BranchService(
@@ -95,9 +80,7 @@ Future<void> main() async {
     buildBucketV2Client: buildBucketV2Client,
     gerritService: gerritService,
     scheduler: scheduler,
-    schedulerV2: schedulerV2,
     luciBuildService: luciBuildService,
-    luciBuildServiceV2: luciBuildServiceV2,
     githubChecksService: githubChecksService,
     githubChecksServiceV2: githubChecksServiceV2,
     commitService: commitService,

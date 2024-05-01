@@ -19,7 +19,7 @@ import '../service/buildbucket.dart';
 import '../service/config.dart';
 import '../service/github_checks_service.dart';
 import '../service/logging.dart';
-import '../service/scheduler.dart';
+import '../service/scheduler_v2.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
 ///
@@ -47,7 +47,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
 
   final BuildBucketClient buildBucketClient;
   final GithubChecksService githubChecksService;
-  final Scheduler scheduler;
+  final SchedulerV2 scheduler;
 
   @override
   Future<Body> post() async {

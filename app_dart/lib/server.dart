@@ -16,8 +16,6 @@ import 'package:cocoon_service/src/request_handlers/vacuum_github_commits_v2.dar
 import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
-import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
-import 'package:cocoon_service/src/service/scheduler_v2.dart';
 
 typedef Server = Future<void> Function(HttpRequest);
 
@@ -35,8 +33,7 @@ Server createServer({
   required GithubChecksServiceV2 githubChecksServiceV2,
   required CommitService commitService,
   required GerritService gerritService,
-  required Scheduler scheduler,
-  required SchedulerV2 schedulerV2,
+  required SchedulerV2 scheduler,
 }) {
   final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
     '/api/check_flaky_builders': CheckFlakyBuilders(
@@ -80,7 +77,6 @@ Server createServer({
       cache: cache,
       gerritService: gerritService,
       scheduler: scheduler,
-      schedulerV2: schedulerV2,
       commitService: commitService,
     ),
     '/api/presubmit-luci-subscription': PresubmitLuciSubscription(
@@ -95,7 +91,7 @@ Server createServer({
       config: config,
       luciBuildService: luciBuildService,
       githubChecksService: githubChecksServiceV2,
-      scheduler: schedulerV2,
+      scheduler: scheduler,
     ),
     '/api/postsubmit-luci-subscription': PostsubmitLuciSubscription(
       cache: cache,
@@ -107,7 +103,7 @@ Server createServer({
     '/api/v2/postsubmit-luci-subscription': PostsubmitLuciSubscriptionV2(
       cache: cache,
       config: config,
-      scheduler: schedulerV2,
+      scheduler: scheduler,
       githubChecksService: githubChecksServiceV2,
     ),
     '/api/push-build-status-to-github': PushBuildStatusToGithub(
@@ -129,7 +125,7 @@ Server createServer({
       config: config,
       authenticationProvider: authProvider,
       luciBuildService: luciBuildService,
-      scheduler: schedulerV2,
+      scheduler: scheduler,
     ),
     '/api/reset-try-task': ResetTryTask(
       config: config,
@@ -139,7 +135,7 @@ Server createServer({
     '/api/v2/reset-try-task': ResetTryTaskV2(
       config: config,
       authenticationProvider: authProvider,
-      scheduler: schedulerV2,
+      scheduler: scheduler,
     ),
     '/api/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
@@ -147,7 +143,7 @@ Server createServer({
     ),
     '/api/v2/scheduler/batch-backfiller': BatchBackfillerV2(
       config: config,
-      scheduler: schedulerV2,
+      scheduler: scheduler,
     ),
     '/api/scheduler/batch-request-subscription': SchedulerRequestSubscription(
       cache: cache,
@@ -195,7 +191,7 @@ Server createServer({
     '/api/v2/vacuum-github-commits': VacuumGithubCommitsV2(
       config: config,
       authenticationProvider: authProvider,
-      scheduler: schedulerV2,
+      scheduler: scheduler,
     ),
 
     /// Returns status of the framework tree.

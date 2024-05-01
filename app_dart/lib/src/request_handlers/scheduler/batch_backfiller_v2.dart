@@ -7,7 +7,6 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
-import 'package:cocoon_service/src/service/scheduler_v2.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
@@ -18,7 +17,6 @@ import '../../model/ci_yaml/ci_yaml.dart';
 import '../../model/ci_yaml/target.dart';
 import '../../request_handling/exceptions.dart';
 import '../../service/logging.dart';
-import '../../service/luci_build_service_v2.dart';
 
 /// Cron request handler for scheduling targets when capacity becomes available.
 ///

@@ -10,8 +10,6 @@ import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
-import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
-import 'package:cocoon_service/src/service/scheduler_v2.dart';
 import 'package:gcloud/db.dart';
 
 Future<void> main() async {
@@ -52,14 +50,7 @@ Future<void> main() async {
     final GerritService gerritService = GerritService(config: config);
 
     /// Cocoon scheduler service to manage validating commits in presubmit and postsubmit.
-    final Scheduler scheduler = Scheduler(
-      cache: cache,
-      config: config,
-      githubChecksService: githubChecksService,
-      luciBuildService: luciBuildService,
-    );
-
-    final SchedulerV2 schedulerV2 = SchedulerV2(
+    final SchedulerV2 scheduler = SchedulerV2(
       cache: cache,
       config: config,
       githubChecksService: githubChecksServiceV2,
@@ -82,7 +73,6 @@ Future<void> main() async {
       buildBucketV2Client: buildBucketV2Client,
       gerritService: gerritService,
       scheduler: scheduler,
-      schedulerV2: schedulerV2,
       luciBuildService: luciBuildService,
       githubChecksService: githubChecksService,
       githubChecksServiceV2: githubChecksServiceV2,

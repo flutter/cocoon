@@ -21,7 +21,7 @@ class ResetTryTask extends ApiRequestHandler<Body> {
     required this.scheduler,
   });
 
-  final Scheduler scheduler;
+  final SchedulerV2 scheduler;
 
   static const String kOwnerParam = 'owner';
   static const String kRepoParam = 'repo';
