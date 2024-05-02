@@ -9,7 +9,6 @@ import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../../../cocoon_service.dart';
-import '../../service/build_bucket_v2_client.dart';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import '../../request_handling/exceptions.dart';
 import '../../service/logging.dart';
