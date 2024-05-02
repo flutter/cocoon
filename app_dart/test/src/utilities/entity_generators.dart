@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
@@ -14,6 +15,7 @@ import 'package:cocoon_service/src/model/gerrit/commit.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
+import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:github/github.dart' as github;
@@ -259,6 +261,28 @@ Build generateBuild(
     Build(
       id: i.toString(),
       builderId: BuilderId(
+        project: 'flutter',
+        bucket: bucket,
+        builder: name,
+      ),
+      status: status,
+      tags: tags,
+      number: buildNumber,
+      input: input,
+    );
+
+bbv2.Build generateBbv2Build(
+  Int64 i, {
+  String bucket = 'prod',
+  String name = 'Linux test_builder',
+  bbv2.Status status = bbv2.Status.SUCCESS,
+  Iterable<bbv2.StringPair>? tags,
+  bbv2.Build_Input? input,
+  int buildNumber = 1,
+}) =>
+    bbv2.Build(
+      id: i,
+      builder: bbv2.BuilderID(
         project: 'flutter',
         bucket: bucket,
         builder: name,

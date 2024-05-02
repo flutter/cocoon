@@ -4,7 +4,9 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/cocoon_service.dart';
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
+import 'package:cocoon_service/src/service/scheduler_v2.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -17,16 +19,18 @@ import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/google/token_info.dart';
 import '../request_handling/api_request_handler.dart';
+import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
+import '../service/config.dart';
 import '../service/datastore.dart';
-import '../service/logging.dart';
+import '../service/firestore.dart';
 
 /// Reruns a postsubmit LUCI build.
 ///
 /// Expects either [taskKeyParam] or a set of params that give enough detail to lookup a task in datastore.
 @immutable
-class ResetProdTask extends ApiRequestHandler<Body> {
-  const ResetProdTask({
+class ResetProdTaskV2 extends ApiRequestHandler<Body> {
+  const ResetProdTaskV2({
     required super.config,
     required super.authenticationProvider,
     required this.luciBuildService,
@@ -35,8 +39,8 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   }) : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider;
 
   final DatastoreServiceProvider datastoreProvider;
-  final LuciBuildService luciBuildService;
-  final Scheduler scheduler;
+  final LuciBuildServiceV2 luciBuildService;
+  final SchedulerV2 scheduler;
 
   static const String branchParam = 'Branch';
   static const String taskKeyParam = 'Key';
@@ -77,7 +81,6 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     }
 
     if (taskName == 'all') {
-      log.info('Attempting to reset all failed prod tasks for $sha in $repo...');
       final Key<String> commitKey = Commit.createKey(
         db: datastore.db,
         slug: slug!,
@@ -88,7 +91,6 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       final List<Future<void>> futures = <Future<void>>[];
       for (final Task task in tasks) {
         if (!Task.taskFailStatusSet.contains(task.status)) continue;
-        log.info('Resetting failed task ${task.name}');
         futures.add(
           rerun(
             datastore: datastore,
@@ -103,7 +105,6 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       }
       await Future.wait(futures);
     } else {
-      log.info('Attempting to reset prod task "$taskName" for $sha in $repo...');
       await rerun(
         datastore: datastore,
         firestoreService: firestoreService,
@@ -117,8 +118,6 @@ class ResetProdTask extends ApiRequestHandler<Body> {
         ignoreChecks: true,
       );
     }
-
-    log.info('$taskName reset initiated successfully.');
 
     return Body.empty;
   }
@@ -162,10 +161,16 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       documentName: taskDocumentName,
     );
 
-    final Map<String, List<String>> tags = <String, List<String>>{
-      'triggered_by': <String>[email],
-      'trigger_type': <String>['manual_retry'],
-    };
+    final List<bbv2.StringPair> tags = <bbv2.StringPair>[
+      bbv2.StringPair(
+        key: 'triggered_by',
+        value: email,
+      ),
+      bbv2.StringPair(
+        key: 'trigger_type',
+        value: 'manual_retry',
+      ),
+    ];
 
     final bool isRerunning = await luciBuildService.checkRerunBuilder(
       commit: commit,
