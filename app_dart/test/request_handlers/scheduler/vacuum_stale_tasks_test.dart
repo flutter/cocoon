@@ -38,13 +38,37 @@ void main() {
       );
     });
 
-    test('skips when no tasks are stale', () async {
+    test('skips when tasks have a build number', () async {
       final List<Task> originalTasks = <Task>[
         generateTask(
           1,
           status: Task.statusInProgress,
           parent: commit,
           buildNumber: 123,
+        ),
+      ];
+      await config.db.commit(inserts: originalTasks);
+
+      await tester.get(handler);
+
+      final List<Task> tasks = config.db.values.values.whereType<Task>().toList();
+      expect(tasks[0].status, Task.statusInProgress);
+    });
+
+    test('skips when tasks are not yet old enough to be considered stale', () async {
+      when(
+        mockFirestoreService.writeViaTransaction(
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<CommitResponse>.value(CommitResponse());
+      });
+      final List<Task> originalTasks = <Task>[
+        generateTask(
+          1,
+          status: Task.statusInProgress,
+          parent: commit,
+          created: DateTime.now().subtract(const Duration(minutes: 5)),
         ),
       ];
       await config.db.commit(inserts: originalTasks);
@@ -79,6 +103,7 @@ void main() {
           3,
           status: Task.statusInProgress,
           parent: commit,
+          created: DateTime.now().subtract(const Duration(hours: 1)),
         ),
       ];
       final DatastoreService datastore = DatastoreService(config.db, 5);
@@ -87,9 +112,7 @@ void main() {
       await tester.get(handler);
 
       final List<Task> tasks = config.db.values.values.whereType<Task>().toList();
-      expect(tasks[0].createTimestamp, 0);
       expect(tasks[0].status, Task.statusNew);
-      expect(tasks[2].createTimestamp, 0);
       expect(tasks[2].status, Task.statusNew);
 
       final List<dynamic> captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
