@@ -129,6 +129,7 @@ String buildPushMessageString(
       "builder:$builderName",
       "buildset:pr/git/37647",
       "buildset:sha/git/$ref",
+      "current_attempt:${retries + 1}",
       "github_link:https://github.com/flutter/flutter/pull/37647",
       "swarming_hostname:chromium-swarm.appspot.com",
       "swarming_tag:log_location:logdog://logs.chromium.org/flutter/buildbucket/cr-buildbucket.appspot.com/8905920700440101120/+/annotations",

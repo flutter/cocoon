@@ -15,7 +15,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
-import '../src/service/fake_scheduler.dart';
+import '../src/service/fake_scheduler_v2.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
@@ -25,7 +25,7 @@ void main() {
     late ResetProdTask handler;
     late FakeConfig config;
     FakeKeyHelper keyHelper;
-    late MockLuciBuildService mockLuciBuildService;
+    late MockLuciBuildServiceV2 mockLuciBuildService;
     late MockFirestoreService mockFirestoreService;
     late ApiRequestHandlerTester tester;
     late Commit commit;
@@ -48,12 +48,12 @@ void main() {
       );
       final FakeAuthenticatedContext authContext = FakeAuthenticatedContext(clientContext: clientContext);
       tester = ApiRequestHandlerTester(context: authContext);
-      mockLuciBuildService = MockLuciBuildService();
+      mockLuciBuildService = MockLuciBuildServiceV2();
       handler = ResetProdTask(
         config: config,
         authenticationProvider: FakeAuthenticationProvider(clientContext: clientContext),
         luciBuildService: mockLuciBuildService,
-        scheduler: FakeScheduler(
+        scheduler: FakeSchedulerV2(
           config: config,
           ciYaml: exampleConfig,
         ),

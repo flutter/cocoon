@@ -17,7 +17,6 @@ import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
-import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:cocoon_service/src/service/scheduler_v2.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
@@ -583,12 +582,12 @@ targets:
           return CheckRun.fromJson(const <String, dynamic>{
             'id': 1,
             'started_at': '2020-05-10T02:49:31Z',
-            'name': Scheduler.kCiYamlCheckName,
+            'name': SchedulerV2.kCiYamlCheckName,
             'check_suite': <String, dynamic>{'id': 2},
           });
         });
         final Map<String, dynamic> checkRunEventJson = jsonDecode(checkRunString) as Map<String, dynamic>;
-        checkRunEventJson['check_run']['name'] = Scheduler.kCiYamlCheckName;
+        checkRunEventJson['check_run']['name'] = SchedulerV2.kCiYamlCheckName;
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(checkRunEventJson);
         expect(await scheduler.processCheckRun(checkRunEvent), true);
         verify(
@@ -596,7 +595,7 @@ targets:
             any,
             any,
             any,
-            Scheduler.kCiYamlCheckName,
+            SchedulerV2.kCiYamlCheckName,
             output: anyNamed('output'),
           ),
         );
@@ -938,9 +937,9 @@ targets:
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
           <dynamic>[
-            Scheduler.kCiYamlCheckName,
+            SchedulerV2.kCiYamlCheckName,
             const CheckRunOutput(
-              title: Scheduler.kCiYamlCheckName,
+              title: SchedulerV2.kCiYamlCheckName,
               summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
             ),
             'Linux A',
@@ -962,10 +961,10 @@ targets:
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
           <dynamic>[
-            Scheduler.kCiYamlCheckName,
+            SchedulerV2.kCiYamlCheckName,
             // No other targets should be created.
             const CheckRunOutput(
-              title: Scheduler.kCiYamlCheckName,
+              title: SchedulerV2.kCiYamlCheckName,
               summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
             ),
           ],
@@ -1068,9 +1067,9 @@ targets:
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
           <dynamic>[
-            Scheduler.kCiYamlCheckName,
+            SchedulerV2.kCiYamlCheckName,
             const CheckRunOutput(
-              title: Scheduler.kCiYamlCheckName,
+              title: SchedulerV2.kCiYamlCheckName,
               summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
             ),
             'Linux A',
@@ -1091,9 +1090,9 @@ targets:
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
           <dynamic>[
-            Scheduler.kCiYamlCheckName,
+            SchedulerV2.kCiYamlCheckName,
             const CheckRunOutput(
-              title: Scheduler.kCiYamlCheckName,
+              title: SchedulerV2.kCiYamlCheckName,
               summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
             ),
             'Linux A',

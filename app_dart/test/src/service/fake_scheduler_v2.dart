@@ -11,7 +11,6 @@ import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
 import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
-import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:cocoon_service/src/service/scheduler_v2.dart';
 import 'package:github/github.dart';
 import 'package:retry/retry.dart';

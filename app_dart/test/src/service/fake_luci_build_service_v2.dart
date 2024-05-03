@@ -14,7 +14,7 @@ import '../utilities/mocks.dart';
 import 'fake_build_bucket_v2_client.dart';
 import 'fake_gerrit_service.dart';
 
-/// Fake [LuciBuildService] for use in tests.
+/// Fake [LuciBuildServiceV2] for use in tests.
 class FakeLuciBuildServiceV2 extends LuciBuildServiceV2 {
   FakeLuciBuildServiceV2({
     required super.config,

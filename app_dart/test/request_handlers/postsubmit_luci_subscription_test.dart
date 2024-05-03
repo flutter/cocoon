@@ -17,8 +17,9 @@ import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/subscription_tester.dart';
-import '../src/service/fake_luci_build_service.dart';
-import '../src/service/fake_scheduler.dart';
+import '../src/service/fake_buildbucket.dart';
+import '../src/service/fake_luci_build_service_v2.dart';
+import '../src/service/fake_scheduler_v2.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 import '../src/utilities/push_message.dart';
@@ -31,7 +32,8 @@ void main() {
   late SubscriptionTester tester;
   late MockGithubChecksService mockGithubChecksService;
   late MockGithubChecksUtil mockGithubChecksUtil;
-  late FakeScheduler scheduler;
+  late FakeSchedulerV2 scheduler;
+  late FakeBuildBucketClient buildBucketClient;
   firestore.Task? firestoreTask;
   firestore_commit.Commit? firestoreCommit;
   late int attempt;
@@ -41,6 +43,7 @@ void main() {
     attempt = 0;
     mockGithubChecksUtil = MockGithubChecksUtil();
     mockFirestoreService = MockFirestoreService();
+    buildBucketClient = FakeBuildBucketClient();
     config = FakeConfig(
       maxLuciTaskRetriesValue: 3,
       firestoreService: mockFirestoreService,
@@ -94,11 +97,11 @@ void main() {
     ).thenAnswer((Invocation invocation) {
       return Future<BatchWriteResponse>.value(BatchWriteResponse());
     });
-    final FakeLuciBuildService luciBuildService = FakeLuciBuildService(
+    final FakeLuciBuildServiceV2 luciBuildService = FakeLuciBuildServiceV2(
       config: config,
       githubChecksUtil: mockGithubChecksUtil,
     );
-    scheduler = FakeScheduler(
+    scheduler = FakeSchedulerV2(
       ciYaml: exampleConfig,
       config: config,
       luciBuildService: luciBuildService,
@@ -110,6 +113,7 @@ void main() {
       githubChecksService: mockGithubChecksService,
       datastoreProvider: (_) => DatastoreService(config.db, 5),
       scheduler: scheduler,
+      buildBucketClient: buildBucketClient,
     );
     request = FakeHttpRequest();
 
@@ -131,7 +135,6 @@ void main() {
 
   test('updates task based on message', () async {
     firestoreTask = generateFirestoreTask(1, attempts: 2, name: 'Linux A');
-    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
       4507531199512576,
@@ -382,7 +385,6 @@ void main() {
     firestoreTask = generateFirestoreTask(1, name: 'Linux nonbringup');
     scheduler.ciYaml = nonBringupPackagesConfig;
     when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
-    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822', repo: 'packages');
     final Task task = generateTask(
       4507531199512576,
@@ -409,7 +411,6 @@ void main() {
     firestoreTask = generateFirestoreTask(1, name: 'Linux bringup');
     scheduler.ciYaml = bringupPackagesConfig;
     when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
-    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
       4507531199512576,
@@ -435,7 +436,6 @@ void main() {
   test('unsupported repo target does not update check run', () async {
     scheduler.ciYaml = unsupportedPostsubmitCheckrunConfig;
     when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
-    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
     firestoreTask = generateFirestoreTask(1, attempts: 2, name: 'Linux flutter');
 
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');

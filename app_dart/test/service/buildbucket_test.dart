@@ -128,24 +128,6 @@ void main() {
       });
     });
 
-    test('CancelBuild', () async {
-      const CancelBuildRequest request = CancelBuildRequest(
-        id: '1234',
-        summaryMarkdown: 'Because I felt like it.',
-      );
-
-      final Build build = await httpTest<CancelBuildRequest, Build>(
-        request,
-        buildJson,
-        'builds',
-        'CancelBuild',
-        (BuildBucketClient client) => client.cancelBuild(request, buildBucketUri: 'https://localhost/builds'),
-      );
-
-      expect(build.id, '123');
-      expect(build.tags!.length, 3);
-    });
-
     test('BatchBuildRequest', () async {
       const BatchRequest request = BatchRequest(
         requests: <Request>[
@@ -223,42 +205,6 @@ void main() {
       expect(build.id, '123');
       expect(build.tags!.length, 3);
       expect(build.summaryMarkdown, '```╔═╡ERROR #1╞```');
-    });
-
-    test('SearchBuilds', () async {
-      const SearchBuildsRequest request = SearchBuildsRequest(
-        predicate: BuildPredicate(
-          tags: <String, List<String>>{
-            'flutter_pr': <String>['1'],
-          },
-        ),
-      );
-
-      final SearchBuildsResponse response = await httpTest<SearchBuildsRequest, SearchBuildsResponse>(
-        request,
-        searchJson,
-        'builds',
-        'SearchBuilds',
-        (BuildBucketClient client) => client.searchBuilds(request, buildBucketUri: 'https://localhost/builds'),
-      );
-
-      expect(response.builds!.length, 1);
-      expect(response.builds!.first.number, 9151);
-    });
-
-    test('ListBuilders', () async {
-      const ListBuildersRequest request = ListBuildersRequest(project: 'test');
-
-      final ListBuildersResponse listBuildersResponse = await httpTest<ListBuildersRequest, ListBuildersResponse>(
-        request,
-        builderJson,
-        'builders',
-        'ListBuilders',
-        (BuildBucketClient client) => client.listBuilders(request, buildBucketUri: 'https://localhost/builders'),
-      );
-
-      expect(listBuildersResponse.builders!.length, 2);
-      expect(listBuildersResponse.builders!.map((e) => e.id!.builder!).toList(), <String>['Linux test', 'Mac test']);
     });
   });
 }
