@@ -103,7 +103,7 @@ void main() {
           3,
           status: Task.statusInProgress,
           parent: commit,
-          created: DateTime.now().subtract(const Duration(hours: 1)),
+          created: DateTime.now().subtract(const Duration(hours: 4)),
         ),
       ];
       final DatastoreService datastore = DatastoreService(config.db, 5);
