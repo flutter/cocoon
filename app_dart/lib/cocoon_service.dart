@@ -24,7 +24,7 @@ export 'src/request_handlers/presubmit_luci_subscription.dart';
 export 'src/request_handlers/push_build_status_to_github.dart';
 export 'src/request_handlers/push_gold_status_to_github.dart';
 export 'src/request_handlers/readiness_check.dart';
-export 'src/request_handlers/reset_prod_task.dart';
+export 'src/request_handlers/reset_prod_task_v2.dart';
 export 'src/request_handlers/reset_try_task.dart';
 export 'src/request_handlers/scheduler/batch_backfiller_v2.dart';
 export 'src/request_handlers/scheduler/request_subscription.dart';

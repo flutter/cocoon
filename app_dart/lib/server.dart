@@ -8,7 +8,6 @@ import 'dart:math';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/postsubmit_luci_subscription_v2.dart';
 import 'package:cocoon_service/src/request_handlers/presubmit_luci_subscription_v2.dart';
-import 'package:cocoon_service/src/request_handlers/reset_prod_task_v2.dart';
 import 'package:cocoon_service/src/request_handlers/reset_try_task_v2.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/scheduler_request_subscription.dart';
 import 'package:cocoon_service/src/request_handlers/vacuum_github_commits_v2.dart';
@@ -114,7 +113,7 @@ Server createServer({
       authenticationProvider: authProvider,
     ),
     // I do not believe these recieve a build message.
-    '/api/reset-prod-task': ResetProdTask(
+    '/api/reset-prod-task': ResetProdTaskV2(
       config: config,
       authenticationProvider: authProvider,
       luciBuildService: luciBuildService,
