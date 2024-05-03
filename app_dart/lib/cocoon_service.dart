@@ -26,7 +26,7 @@ export 'src/request_handlers/push_gold_status_to_github.dart';
 export 'src/request_handlers/readiness_check.dart';
 export 'src/request_handlers/reset_prod_task.dart';
 export 'src/request_handlers/reset_try_task.dart';
-export 'src/request_handlers/scheduler/batch_backfiller.dart';
+export 'src/request_handlers/scheduler/batch_backfiller_v2.dart';
 export 'src/request_handlers/scheduler/request_subscription.dart';
 export 'src/request_handlers/scheduler/vacuum_stale_tasks.dart';
 export 'src/request_handlers/update_existing_flaky_issues.dart';
