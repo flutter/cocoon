@@ -125,7 +125,7 @@ Server createServer({
       luciBuildService: luciBuildService,
       scheduler: scheduler,
     ),
-    '/api/reset-try-task': ResetTryTask(
+    '/api/reset-try-task': ResetTryTaskV2(
       config: config,
       authenticationProvider: authProvider,
       scheduler: scheduler,
