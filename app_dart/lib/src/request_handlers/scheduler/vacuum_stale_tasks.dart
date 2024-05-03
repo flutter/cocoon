@@ -34,7 +34,7 @@ class VacuumStaleTasks extends RequestHandler<Body> {
 
   /// Tasks that are in progress without a build for this duration will be
   /// reset.
-  static const Duration kTimeoutLimit = Duration(minutes: 30);
+  static const Duration kTimeoutLimit = Duration(hours: 3);
 
   @override
   Future<Body> get() async {
