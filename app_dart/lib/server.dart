@@ -137,7 +137,7 @@ Server createServer({
       authenticationProvider: authProvider,
       scheduler: scheduler,
     ),
-    '/api/scheduler/batch-backfiller': BatchBackfiller(
+    '/api/scheduler/batch-backfiller': BatchBackfillerV2(
       config: config,
       scheduler: scheduler,
     ),
