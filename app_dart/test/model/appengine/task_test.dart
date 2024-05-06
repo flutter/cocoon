@@ -4,7 +4,6 @@
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as pm;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
@@ -12,7 +11,6 @@ import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
-import 'package:cocoon_service/src/model/luci/buildbucket.dart' as bb;
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 
 import '../../src/datastore/fake_config.dart';
@@ -200,72 +198,6 @@ void main() {
         task.updateFromBuild(build);
         expect(task.status, Task.statusInfraFailure);
       });
-    });
-  });
-
-  group('updateFromBuildbucketBuild', () {
-    final DateTime startTime = DateTime(2023, 1, 1, 0, 0, 0);
-    final DateTime endTime = DateTime(2023, 1, 1, 0, 14, 23);
-    test('updates successfully', () {
-      final bb.Build fakeBuild = bb.Build(
-        builderId: const BuilderId(project: 'okay-project', bucket: 'good-bucket', builder: 'great-builder'),
-        number: 12345,
-        id: 'fake-build-id',
-        status: bb.Status.success,
-        startTime: startTime,
-        endTime: endTime,
-        input: const Input(
-          gitilesCommit: GitilesCommit(
-            project: 'flutter/flutter',
-            hash: '12341234',
-            ref: 'refs/heads/main',
-          ),
-        ),
-      );
-
-      final Task task = Task(
-        attempts: 1,
-        buildNumber: 1234,
-        buildNumberList: '1234',
-        builderName: 'great-builder',
-        commitKey: null,
-        createTimestamp: 10,
-        endTimestamp: 50,
-        luciBucket: 'good-bucket',
-        name: 'test123',
-        stageName: 'dart-internal',
-        startTimestamp: 10,
-        status: 'Failed',
-        key: null,
-        timeoutInMinutes: 0,
-        reason: '',
-        requiredCapabilities: [],
-        reservedForAgentId: '',
-      );
-
-      task.updateFromBuildbucketBuild(fakeBuild);
-
-      final Task expectedUpdatedTask = Task(
-        attempts: 2,
-        buildNumber: 12345,
-        buildNumberList: '1234,12345',
-        builderName: 'great-builder',
-        commitKey: null,
-        createTimestamp: startTime.millisecondsSinceEpoch,
-        endTimestamp: endTime.millisecondsSinceEpoch,
-        luciBucket: 'good-bucket',
-        name: 'test123',
-        stageName: 'dart-internal',
-        startTimestamp: startTime.millisecondsSinceEpoch,
-        status: 'Succeeded',
-        key: null,
-        timeoutInMinutes: 0,
-        reason: '',
-        requiredCapabilities: [],
-        reservedForAgentId: '',
-      );
-
-      expect(task.toString(), equals(expectedUpdatedTask.toString()));
     });
   });
 

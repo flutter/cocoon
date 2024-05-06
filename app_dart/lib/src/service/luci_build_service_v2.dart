@@ -21,7 +21,6 @@ import '../model/firestore/commit.dart' as firestore_commit;
 import '../model/firestore/task.dart' as firestore;
 import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
-import '../model/luci/buildbucket.dart'; // targets use their own RequestedDimension which is defined here for some reason.
 import '../model/luci/user_data.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
@@ -284,12 +283,7 @@ class LuciBuildServiceV2 {
         properties[propertiesGithubBuildLabelName] = labels;
       }
 
-      // Convert from target RequestedDimensions to bbv2.RequestedDimensions.
-      final List<RequestedDimension> targetDimensions = target.getDimensions();
-      final List<bbv2.RequestedDimension> requestedDimensions = <bbv2.RequestedDimension>[];
-      for (RequestedDimension requestedDimension in targetDimensions) {
-        requestedDimensions.add(bbv2.RequestedDimension(key: requestedDimension.key, value: requestedDimension.value));
-      }
+      final List<bbv2.RequestedDimension> requestedDimensions = target.getDimensions();
 
       batchRequestList.add(
         bbv2.BatchRequest_Request(
@@ -860,12 +854,7 @@ class LuciBuildServiceV2 {
     final bbv2.Struct propertiesStruct = bbv2.Struct.create();
     propertiesStruct.mergeFromProto3Json(processedProperties);
 
-    // Convert from target RequestedDimensions to bbv2.RequestedDimensions.
-    final List<RequestedDimension> targetDimensions = target.getDimensions();
-    final List<bbv2.RequestedDimension> requestedDimensions = <bbv2.RequestedDimension>[];
-    for (RequestedDimension requestedDimension in targetDimensions) {
-      requestedDimensions.add(bbv2.RequestedDimension(key: requestedDimension.key, value: requestedDimension.value));
-    }
+    final List<bbv2.RequestedDimension> requestedDimensions = target.getDimensions();
 
     final bbv2.Executable executable = bbv2.Executable(cipdVersion: cipdExe);
 

@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'dart:convert';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:fixnum/fixnum.dart';
