@@ -6,12 +6,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/request_handlers/postsubmit_luci_subscription_v2.dart';
-import 'package:cocoon_service/src/request_handlers/presubmit_luci_subscription_v2.dart';
-import 'package:cocoon_service/src/request_handlers/scheduler/scheduler_request_subscription.dart';
-import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
-import 'package:cocoon_service/src/service/github_checks_service.dart';
 
 typedef Server = Future<void> Function(HttpRequest);
 
@@ -22,11 +17,9 @@ Server createServer({
   required AuthenticationProvider authProvider,
   required AuthenticationProvider swarmingAuthProvider,
   required BranchService branchService,
-  required BuildBucketClient buildBucketClient,
-  required BuildBucketV2Client buildBucketV2Client,
+  required BuildBucketV2Client buildBucketClient,
   required LuciBuildServiceV2 luciBuildService,
-  required GithubChecksService githubChecksService,
-  required GithubChecksServiceV2 githubChecksServiceV2,
+  required GithubChecksServiceV2 githubChecksService,
   required CommitService commitService,
   required GerritService gerritService,
   required SchedulerV2 scheduler,
@@ -44,7 +37,7 @@ Server createServer({
     '/api/dart-internal-subscription': DartInternalSubscription(
       cache: cache,
       config: config,
-      buildBucketV2Client: buildBucketV2Client,
+      buildBucketClient: buildBucketClient,
     ),
     '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
       config: config,
@@ -75,32 +68,18 @@ Server createServer({
       scheduler: scheduler,
       commitService: commitService,
     ),
-    '/api/presubmit-luci-subscription': PresubmitLuciSubscription(
-      cache: cache,
-      config: config,
-      buildBucketClient: buildBucketClient,
-      githubChecksService: githubChecksService,
-      scheduler: scheduler,
-    ),
     '/api/v2/presubmit-luci-subscription': PresubmitLuciSubscriptionV2(
       cache: cache,
       config: config,
       luciBuildService: luciBuildService,
-      githubChecksService: githubChecksServiceV2,
-      scheduler: scheduler,
-    ),
-    '/api/postsubmit-luci-subscription': PostsubmitLuciSubscription(
-      cache: cache,
-      config: config,
-      scheduler: scheduler,
       githubChecksService: githubChecksService,
-      buildBucketClient: buildBucketClient,
+      scheduler: scheduler,
     ),
     '/api/v2/postsubmit-luci-subscription': PostsubmitLuciSubscriptionV2(
       cache: cache,
       config: config,
       scheduler: scheduler,
-      githubChecksService: githubChecksServiceV2,
+      githubChecksService: githubChecksService,
     ),
     '/api/push-build-status-to-github': PushBuildStatusToGithub(
       config: config,
@@ -141,15 +120,10 @@ Server createServer({
       config: config,
       scheduler: scheduler,
     ),
-    '/api/scheduler/batch-request-subscription': SchedulerRequestSubscription(
-      cache: cache,
-      config: config,
-      buildBucketClient: buildBucketClient,
-    ),
     '/api/v2/scheduler/batch-request-subscription': SchedulerRequestSubscriptionV2(
       cache: cache,
       config: config,
-      buildBucketClient: buildBucketV2Client,
+      buildBucketClient: buildBucketClient,
     ),
     '/api/scheduler/vacuum-stale-tasks': VacuumStaleTasks(
       config: config,

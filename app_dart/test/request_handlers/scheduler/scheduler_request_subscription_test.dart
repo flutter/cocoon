@@ -4,7 +4,6 @@
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/luci/pubsub_message_v2.dart';
-import 'package:cocoon_service/src/request_handlers/scheduler/scheduler_request_subscription.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:mockito/mockito.dart';
@@ -22,15 +21,15 @@ void main() {
   late SchedulerRequestSubscriptionV2 handler;
   late SubscriptionV2Tester tester;
 
-  late MockBuildBucketV2Client buildBucketV2Client;
+  late MockBuildBucketV2Client buildBucketClient;
 
   setUp(() async {
-    buildBucketV2Client = MockBuildBucketV2Client();
+    buildBucketClient = MockBuildBucketV2Client();
     handler = SchedulerRequestSubscriptionV2(
       cache: CacheService(inMemory: true),
       config: FakeConfig(),
       authProvider: FakeAuthenticationProvider(),
-      buildBucketClient: buildBucketV2Client,
+      buildBucketClient: buildBucketClient,
       retryOptions: const RetryOptions(
         maxAttempts: 3,
         maxDelay: Duration.zero,
@@ -61,7 +60,7 @@ void main() {
     batchResponseResponse.scheduleBuild = responseBuild;
     batchResponse.responses.add(batchResponseResponse);
 
-    when(buildBucketV2Client.batch(any)).thenAnswer((_) async => batchResponse);
+    when(buildBucketClient.batch(any)).thenAnswer((_) async => batchResponse);
 
     // We cannot construct the object manually with the protos as we cannot write out
     // the json with all the required double quotes and testing fails.
@@ -103,7 +102,7 @@ void main() {
 
     int attempt = 0;
 
-    when(buildBucketV2Client.batch(any)).thenAnswer((_) async {
+    when(buildBucketClient.batch(any)).thenAnswer((_) async {
       attempt += 1;
       if (attempt == 2) {
         return batchResponse;
@@ -131,11 +130,11 @@ void main() {
     final Body body = await tester.post(handler);
 
     expect(body, Body.empty);
-    expect(verify(buildBucketV2Client.batch(any)).callCount, 2);
+    expect(verify(buildBucketClient.batch(any)).callCount, 2);
   });
 
   test('acking message and logging error when no response comes back after retry limit', () async {
-    when(buildBucketV2Client.batch(any)).thenAnswer((_) async {
+    when(buildBucketClient.batch(any)).thenAnswer((_) async {
       return bbv2.BatchResponse().createEmptyInstance();
     });
 
@@ -158,6 +157,6 @@ void main() {
     final Body body = await tester.post(handler);
 
     expect(body, isNotNull);
-    expect(verify(buildBucketV2Client.batch(any)).callCount, 3);
+    expect(verify(buildBucketClient.batch(any)).callCount, 3);
   });
 }

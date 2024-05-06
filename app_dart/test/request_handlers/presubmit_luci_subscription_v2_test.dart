@@ -4,7 +4,6 @@
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/request_handlers/presubmit_luci_subscription_v2.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';

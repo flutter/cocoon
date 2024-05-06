@@ -35,14 +35,14 @@ class LuciBuildServiceV2 {
   LuciBuildServiceV2({
     required this.config,
     required this.cache,
-    required this.buildBucketV2Client,
+    required this.buildBucketClient,
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
     this.pubsub = const PubSub(),
   })  : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
         gerritService = gerritService ?? GerritService(config: config);
 
-  BuildBucketV2Client buildBucketV2Client;
+  BuildBucketV2Client buildBucketClient;
   final CacheService cache;
   Config config;
   GithubChecksUtil githubChecksUtil;
@@ -201,7 +201,7 @@ class LuciBuildServiceV2 {
       searchBuilds: searchBuildsRequest,
     );
 
-    final bbv2.BatchResponse batchResponse = await buildBucketV2Client.batch(
+    final bbv2.BatchResponse batchResponse = await buildBucketClient.batch(
       bbv2.BatchRequest(
         requests: {batchRequestRequest},
       ),
@@ -358,7 +358,7 @@ class LuciBuildServiceV2 {
     }
 
     if (requests.isNotEmpty) {
-      await buildBucketV2Client.batch(bbv2.BatchRequest(requests: requests));
+      await buildBucketClient.batch(bbv2.BatchRequest(requests: requests));
     }
   }
 
@@ -411,7 +411,7 @@ class LuciBuildServiceV2 {
     }
     tags.add(attempt);
 
-    return buildBucketV2Client.scheduleBuild(
+    return buildBucketClient.scheduleBuild(
       bbv2.ScheduleBuildRequest(
         builder: build.builder,
         tags: tags,
@@ -498,7 +498,7 @@ class LuciBuildServiceV2 {
       userData: userData,
     );
 
-    final bbv2.Build scheduleBuild = await buildBucketV2Client.scheduleBuild(scheduleBuildRequest);
+    final bbv2.Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
     final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
     await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);
     return scheduleBuild;
@@ -551,7 +551,7 @@ class LuciBuildServiceV2 {
       task: task,
       properties: properties,
     );
-    final bbv2.Build scheduleBuild = await buildBucketV2Client.scheduleBuild(scheduleBuildRequest);
+    final bbv2.Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
     return scheduleBuild;
   }
 
@@ -565,7 +565,7 @@ class LuciBuildServiceV2 {
       id: id,
       mask: buildMask,
     );
-    return buildBucketV2Client.getBuild(request);
+    return buildBucketClient.getBuild(request);
   }
 
   /// Gets builder list whose config is pre-defined in LUCI.
@@ -602,7 +602,7 @@ class LuciBuildServiceV2 {
     bool hasToken = true;
     String? token;
     do {
-      final bbv2.ListBuildersResponse listBuildersResponse = await buildBucketV2Client.listBuilders(
+      final bbv2.ListBuildersResponse listBuildersResponse = await buildBucketClient.listBuilders(
         bbv2.ListBuildersRequest(
           project: project,
           bucket: bucket,

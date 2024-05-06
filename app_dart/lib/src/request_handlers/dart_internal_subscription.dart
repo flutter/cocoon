@@ -32,11 +32,11 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
     required super.cache,
     required super.config,
     super.authProvider,
-    required this.buildBucketV2Client,
+    required this.buildBucketClient,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
   }) : super(subscriptionName: 'dart-internal-build-results-sub');
 
-  final BuildBucketV2Client buildBucketV2Client;
+  final BuildBucketV2Client buildBucketClient;
   final DatastoreServiceProvider datastoreProvider;
 
   @override
@@ -89,7 +89,7 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
       'Calling buildbucket api to get build data for build $buildId',
     );
 
-    final bbv2.Build existingBuild = await buildBucketV2Client.getBuild(getBuildRequest);
+    final bbv2.Build existingBuild = await buildBucketClient.getBuild(getBuildRequest);
 
     log.info('Got back existing builder with name: ${existingBuild.builder.builder}');
 

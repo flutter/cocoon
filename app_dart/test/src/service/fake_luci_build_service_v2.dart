@@ -18,13 +18,13 @@ import 'fake_gerrit_service.dart';
 class FakeLuciBuildServiceV2 extends LuciBuildServiceV2 {
   FakeLuciBuildServiceV2({
     required super.config,
-    BuildBucketV2Client? buildBucketV2Client,
+    BuildBucketV2Client? buildBucketClient,
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
     PubSub? pubsub,
   }) : super(
           cache: CacheService(inMemory: true),
-          buildBucketV2Client: buildBucketV2Client ?? FakeBuildBucketV2Client(),
+          buildBucketClient: buildBucketClient ?? FakeBuildBucketV2Client(),
           githubChecksUtil: githubChecksUtil ?? MockGithubChecksUtil(),
           gerritService: gerritService ?? FakeGerritService(),
           pubsub: pubsub ?? FakePubSub(),

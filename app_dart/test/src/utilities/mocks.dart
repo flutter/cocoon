@@ -11,13 +11,11 @@ import 'package:cocoon_service/src/service/access_client_provider.dart';
 import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/branch_service.dart';
-import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
-import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
@@ -67,7 +65,6 @@ Future<AutoRefreshingAuthClient> authClientProviderShim({
     AccessTokenService,
     BigqueryService,
     BranchService,
-    BuildBucketClient,
     BuildBucketV2Client,
     CommitService,
     Config,
@@ -75,7 +72,6 @@ Future<AutoRefreshingAuthClient> authClientProviderShim({
     FakeEntry,
     FirestoreService,
     IssuesService,
-    GithubChecksService,
     GithubChecksServiceV2,
     GithubChecksUtil,
     GithubService,
