@@ -5,12 +5,12 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/protos.dart' as pb;
-import 'package:cocoon_service/src/model/luci/push_message.dart';
+import 'package:cocoon_service/src/model/luci/pubsub_message_v2.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 
-PushMessage generateGithubWebhookMessage({
+PushMessageV2 generateGithubWebhookMessage({
   String event = 'pull_request',
   String action = 'merged',
   int number = 123,
@@ -42,7 +42,7 @@ PushMessage generateGithubWebhookMessage({
           includeChanges: includeChanges,
         ))
       .writeToJson();
-  return PushMessage(data: data, messageId: 'abc123');
+  return PushMessageV2(data: data, messageId: 'abc123');
 }
 
 String _generatePullRequestEvent(
@@ -568,7 +568,7 @@ String _generatePullRequestEvent(
 }''';
 }
 
-PushMessage generateCheckRunEvent({
+PushMessageV2 generateCheckRunEvent({
   String action = 'created',
   int numberOfPullRequests = 1,
 }) {
@@ -900,19 +900,19 @@ PushMessage generateCheckRunEvent({
     event: 'check_run',
     payload: data,
   );
-  return PushMessage(
+  return PushMessageV2(
     data: message.writeToJson(),
     messageId: 'abc123',
   );
 }
 
-PushMessage generateCreateBranchMessage(String branchName, String repository, {bool forked = false}) {
+PushMessageV2 generateCreateBranchMessage(String branchName, String repository, {bool forked = false}) {
   final CreateEvent createEvent = generateCreateBranchEvent(branchName, repository, forked: forked);
   final pb.GithubWebhookMessage message = pb.GithubWebhookMessage(
     event: 'create',
     payload: jsonEncode(createEvent),
   );
-  return PushMessage(data: message.writeToJson(), messageId: 'abc123');
+  return PushMessageV2(data: message.writeToJson(), messageId: 'abc123');
 }
 
 CreateEvent generateCreateBranchEvent(String branchName, String repository, {bool forked = false}) =>
@@ -1041,10 +1041,10 @@ CreateEvent generateCreateBranchEvent(String branchName, String repository, {boo
 }''') as Map<String, dynamic>,
     );
 
-PushMessage generatePushMessage(String branch, String organization, String repository) {
+PushMessageV2 generatePushMessage(String branch, String organization, String repository) {
   final Map<String, dynamic> event = generatePushEvent(branch, organization, repository);
   final pb.GithubWebhookMessage message = pb.GithubWebhookMessage(event: 'push', payload: jsonEncode(event));
-  return PushMessage(data: message.writeToJson(), messageId: 'abc123');
+  return PushMessageV2(data: message.writeToJson(), messageId: 'abc123');
 }
 
 Map<String, dynamic> generatePushEvent(

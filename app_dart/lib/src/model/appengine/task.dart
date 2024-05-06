@@ -10,7 +10,6 @@ import '../../request_handling/exceptions.dart';
 import '../../service/datastore.dart';
 import '../../service/logging.dart';
 import '../ci_yaml/target.dart';
-import '../luci/push_message.dart';
 import 'commit.dart';
 import 'key_converter.dart';
 
@@ -385,39 +384,6 @@ class Task extends Model<int> {
     _status = value;
   }
 
-  /// Update [Task] fields based on a LUCI [Build].
-  void updateFromBuild(Build build) {
-    final List<String>? tags = build.tags;
-    // Example tag: build_address:luci.flutter.prod/Linux Cocoon/271
-    final String? buildAddress = tags?.firstWhere((String tag) => tag.contains('build_address'));
-    if (buildAddress == null) {
-      log.warning('Tags: $tags');
-      throw const BadRequestException('build_address does not contain build number');
-    }
-
-    final int currentBuildNumber = int.parse(buildAddress.split('/').last);
-    if (buildNumber == null || buildNumber! < currentBuildNumber) {
-      buildNumber = currentBuildNumber;
-    } else if (currentBuildNumber < buildNumber!) {
-      log.fine('Skipping message as build number is before the current task');
-      return;
-    }
-
-    if (buildNumberList == null) {
-      buildNumberList = '$buildNumber';
-    } else {
-      final Set<String> buildNumberSet = buildNumberList!.split(',').toSet();
-      buildNumberSet.add(buildNumber.toString());
-      buildNumberList = buildNumberSet.join(',');
-    }
-
-    createTimestamp = build.createdTimestamp?.millisecondsSinceEpoch ?? 0;
-    startTimestamp = build.startedTimestamp?.millisecondsSinceEpoch ?? 0;
-    endTimestamp = build.completedTimestamp?.millisecondsSinceEpoch ?? 0;
-
-    _setStatusFromLuciStatus(build);
-  }
-
   void updateFromBuildbucketV2Build(bbv2.Build build) {
     buildNumber = build.number;
 
@@ -436,45 +402,6 @@ class Task extends Model<int> {
     attempts = buildNumberList!.split(',').length;
 
     status = convertBuildbucketV2StatusToString(build.status);
-  }
-
-  /// Get a [Task] status from a LUCI [Build] status/result.
-  String _setStatusFromLuciStatus(Build build) {
-    // Updates can come out of order. Ensure completed statuses are kept.
-    if (_isStatusCompleted()) {
-      return status;
-    }
-
-    if (build.status == Status.started) {
-      return status = statusInProgress;
-    }
-    switch (build.result) {
-      case Result.success:
-        return status = statusSucceeded;
-      case Result.canceled:
-        return status = statusCancelled;
-      case Result.failure:
-        // Note that `Result` does not support `infraFailure`:
-        // https://github.com/luci/luci-go/blob/main/common/api/buildbucket/buildbucket/v1/buildbucket-gen.go#L247-L251
-        // To determine an infra failure status, we need to combine `Result.failure` and `FailureReason.infraFailure`.
-        if (build.failureReason == FailureReason.infraFailure) {
-          return status = statusInfraFailure;
-        } else {
-          return status = statusFailed;
-        }
-      default:
-        throw BadRequestException('${build.result} is unknown');
-    }
-  }
-
-  bool _isStatusCompleted() {
-    const List<String> completedStatuses = <String>[
-      statusCancelled,
-      statusFailed,
-      statusInfraFailure,
-      statusSucceeded,
-    ];
-    return completedStatuses.contains(status);
   }
 
   /// Comparator that sorts tasks by fewest attempts first.

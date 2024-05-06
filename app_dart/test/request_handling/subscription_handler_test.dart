@@ -7,10 +7,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:cocoon_service/src/model/luci/push_message.dart';
+import 'package:cocoon_service/src/model/luci/pubsub_message_v2.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
+import 'package:cocoon_service/src/request_handling/subscription_handler_v2.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:test/test.dart';
@@ -21,10 +21,10 @@ import '../src/request_handling/fake_authentication.dart';
 void main() {
   group('Subscription', () {
     late HttpServer server;
-    late SubscriptionHandler subscription;
+    late SubscriptionHandlerV2 subscription;
 
-    const PushMessageEnvelope testEnvelope = PushMessageEnvelope(
-      message: PushMessage(
+    const PubSubPushMessageV2 testEnvelope = PubSubPushMessageV2(
+      message: PushMessageV2(
         data: 'test',
         messageId: '123',
       ),
@@ -114,8 +114,8 @@ void main() {
   });
 }
 
-/// Test stub of [SubscriptionHandler] to validate unauthenticated requests.
-class UnauthTest extends SubscriptionHandler {
+/// Test stub of [SubscriptionHandlerV2] to validate unauthenticated requests.
+class UnauthTest extends SubscriptionHandlerV2 {
   UnauthTest()
       : super(
           cache: CacheService(inMemory: true),
@@ -128,8 +128,8 @@ class UnauthTest extends SubscriptionHandler {
   Future<Body> get() async => throw StateError('Unreachable');
 }
 
-/// Test stub of [SubscriptionHandler] to validate authenticated requests.
-class AuthTest extends SubscriptionHandler {
+/// Test stub of [SubscriptionHandlerV2] to validate authenticated requests.
+class AuthTest extends SubscriptionHandlerV2 {
   AuthTest()
       : super(
           cache: CacheService(inMemory: true),
@@ -142,8 +142,8 @@ class AuthTest extends SubscriptionHandler {
   Future<Body> get() async => Body.empty;
 }
 
-/// Test stub of [SubscriptionHandler] to validate push messages can be read.
-class ErrorTest extends SubscriptionHandler {
+/// Test stub of [SubscriptionHandlerV2] to validate push messages can be read.
+class ErrorTest extends SubscriptionHandlerV2 {
   ErrorTest([CacheService? cache])
       : super(
           cache: cache ?? CacheService(inMemory: true),
@@ -156,8 +156,8 @@ class ErrorTest extends SubscriptionHandler {
   Future<Body> get() async => throw const InternalServerError('Test error!');
 }
 
-/// Test stub of [SubscriptionHandler] to validate push messages can be read.
-class ReadMessageTest extends SubscriptionHandler {
+/// Test stub of [SubscriptionHandlerV2] to validate push messages can be read.
+class ReadMessageTest extends SubscriptionHandlerV2 {
   ReadMessageTest([CacheService? cache])
       : super(
           cache: cache ?? CacheService(inMemory: true),
