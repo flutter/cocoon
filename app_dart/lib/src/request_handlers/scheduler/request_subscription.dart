@@ -11,6 +11,7 @@ import '../../../cocoon_service.dart';
 import '../../model/luci/buildbucket.dart';
 import '../../request_handling/exceptions.dart';
 import '../../request_handling/subscription_handler.dart';
+import '../../service/buildbucket.dart';
 import '../../service/logging.dart';
 
 /// Subscription for making requests to BuildBucket.

@@ -25,7 +25,6 @@ import '../model/luci/buildbucket.dart'; // targets use their own RequestedDimen
 import '../model/luci/user_data.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
-import 'build_bucket_v2_client.dart';
 import 'exceptions.dart';
 import 'github_service.dart';
 

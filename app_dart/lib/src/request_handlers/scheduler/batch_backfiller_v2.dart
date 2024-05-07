@@ -7,7 +7,6 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
-import 'package:cocoon_service/src/service/scheduler_v2.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
@@ -138,9 +137,9 @@ class BatchBackfillerV2 extends RequestHandler {
     }
     final List<Tuple<Target, FullTask, int>> filteredBackfill = <Tuple<Target, FullTask, int>>[];
     final List<Tuple<Target, FullTask, int>> highPriorityBackfill =
-        backfill.where((element) => element.third == LuciBuildService.kRerunPriority).toList();
+        backfill.where((element) => element.third == LuciBuildServiceV2.kRerunPriority).toList();
     final List<Tuple<Target, FullTask, int>> normalPriorityBackfill =
-        backfill.where((element) => element.third != LuciBuildService.kRerunPriority).toList();
+        backfill.where((element) => element.third != LuciBuildServiceV2.kRerunPriority).toList();
     if (highPriorityBackfill.length >= config.backfillerTargetLimit) {
       highPriorityBackfill.shuffle();
       filteredBackfill.addAll(highPriorityBackfill.sublist(0, config.backfillerTargetLimit));
@@ -220,15 +219,15 @@ class BatchBackfillerV2 extends RequestHandler {
   /// less than `BatchPolicy.kBatchSize`.
   ///
   /// Uses a higher priority if there is an earlier failed build. Otherwise,
-  /// uses default `LuciBuildService.kBackfillPriority`
+  /// uses default `LuciBuildServiceV2.kBackfillPriority`
   int? backfillPriority(List<Task> tasks) {
     if (tasks.length < BatchPolicy.kBatchSize) {
       return null;
     }
     if (shouldRerunPriority(tasks, BatchPolicy.kBatchSize)) {
-      return LuciBuildService.kRerunPriority;
+      return LuciBuildServiceV2.kRerunPriority;
     }
-    return LuciBuildService.kBackfillPriority;
+    return LuciBuildServiceV2.kBackfillPriority;
   }
 
   /// Returns the most recent [FullTask] to backfill.

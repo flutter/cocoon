@@ -13,7 +13,6 @@ import '../../cocoon_service.dart';
 import '../model/appengine/task.dart';
 import '../model/firestore/task.dart' as firestore;
 import '../request_handling/subscription_handler_v2.dart';
-import '../service/build_bucket_v2_client.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
 

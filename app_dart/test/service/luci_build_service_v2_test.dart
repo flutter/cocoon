@@ -16,7 +16,6 @@ import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/datastore.dart';
 import 'package:github/github.dart';
@@ -695,7 +694,7 @@ void main() {
           },
         ),
         generateTask(1),
-        LuciBuildService.kDefaultPriority,
+        LuciBuildServiceV2.kDefaultPriority,
       );
       final Tuple<Target, Task, int> toBeScheduled2 = Tuple<Target, Task, int>(
         generateTarget(
@@ -705,7 +704,7 @@ void main() {
           },
         ),
         generateTask(1),
-        LuciBuildService.kDefaultPriority,
+        LuciBuildServiceV2.kDefaultPriority,
       );
       await service.schedulePostsubmitBuilds(
         commit: commit,
@@ -1051,7 +1050,7 @@ void main() {
       for (String key in Config.defaultProperties.keys) {
         expect(properties.containsKey(key), true);
       }
-      expect(scheduleBuildRequest.priority, LuciBuildService.kRerunPriority);
+      expect(scheduleBuildRequest.priority, LuciBuildServiceV2.kRerunPriority);
       expect(scheduleBuildRequest.gitilesCommit.project, 'mirrors/engine');
       expect(scheduleBuildRequest.tags.firstWhere((tag) => tag.key == 'trigger_type').value, 'auto_retry');
       expect(rerunFlag, isTrue);

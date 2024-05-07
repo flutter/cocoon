@@ -14,11 +14,12 @@ import '../model/luci/push_message.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
+import '../service/buildbucket.dart';
 import '../service/datastore.dart';
 import '../service/firestore.dart';
 import '../service/logging.dart';
 import '../service/github_checks_service.dart';
-import '../service/scheduler.dart';
+import '../service/scheduler_v2.dart';
 
 /// An endpoint for listening to build updates for postsubmit builds.
 ///
@@ -36,11 +37,13 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
     required this.scheduler,
     required this.githubChecksService,
+    required this.buildBucketClient,
   }) : super(subscriptionName: 'luci-postsubmit');
 
   final DatastoreServiceProvider datastoreProvider;
-  final Scheduler scheduler;
+  final SchedulerV2 scheduler;
   final GithubChecksService githubChecksService;
+  final BuildBucketClient buildBucketClient;
 
   @override
   Future<Body> post() async {
@@ -120,7 +123,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       log.info('Updating check status for ${target.getTestName}');
       await githubChecksService.updateCheckStatus(
         buildPushMessage,
-        scheduler.luciBuildService,
+        buildBucketClient,
         commit.slug,
       );
     }

@@ -20,7 +20,6 @@ import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
-import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -86,7 +85,6 @@ Future<AutoRefreshingAuthClient> authClientProviderShim({
     HttpClientRequest,
     HttpClientResponse,
     JobsResource,
-    LuciBuildService,
     LuciBuildServiceV2,
     ProcessManager,
     PullRequestsService,

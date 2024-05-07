@@ -94,23 +94,11 @@ class BuildBucketClient {
     ScheduleBuildRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) {
+    log.warning('Scheduling a build using Buildbucket v1');
     return _postRequest<ScheduleBuildRequest, Build>(
       '/ScheduleBuild',
       request,
       Build.fromJson,
-      buildBucketUri: buildBucketUri,
-    );
-  }
-
-  /// The RPC request to search for builds.
-  Future<SearchBuildsResponse> searchBuilds(
-    SearchBuildsRequest request, {
-    String buildBucketUri = kDefaultBuildBucketBuildUri,
-  }) {
-    return _postRequest<SearchBuildsRequest, SearchBuildsResponse>(
-      '/SearchBuilds',
-      request,
-      SearchBuildsResponse.fromJson,
       buildBucketUri: buildBucketUri,
     );
   }
@@ -124,6 +112,7 @@ class BuildBucketClient {
     BatchRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) async {
+    log.warning('Batching requests using Buildbucket v1');
     final BatchResponse response = await _postRequest<BatchRequest, BatchResponse>(
       '/Batch',
       request,
@@ -136,41 +125,16 @@ class BuildBucketClient {
     return response;
   }
 
-  /// The RPC request to cancel a build.
-  Future<Build> cancelBuild(
-    CancelBuildRequest request, {
-    String buildBucketUri = kDefaultBuildBucketBuildUri,
-  }) {
-    return _postRequest<CancelBuildRequest, Build>(
-      '/CancelBuild',
-      request,
-      Build.fromJson,
-      buildBucketUri: buildBucketUri,
-    );
-  }
-
   /// The RPC request to get details about a build.
   Future<Build> getBuild(
     GetBuildRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) {
+    log.warning('Getting build details using Buildbucket v1');
     return _postRequest<GetBuildRequest, Build>(
       '/GetBuild',
       request,
       Build.fromJson,
-      buildBucketUri: buildBucketUri,
-    );
-  }
-
-  /// The RPC request to get a list of builders.
-  Future<ListBuildersResponse> listBuilders(
-    ListBuildersRequest request, {
-    String buildBucketUri = kDefaultBuildBucketBuilderUri,
-  }) {
-    return _postRequest<ListBuildersRequest, ListBuildersResponse>(
-      '/ListBuilders',
-      request,
-      ListBuildersResponse.fromJson,
       buildBucketUri: buildBucketUri,
     );
   }

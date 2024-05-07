@@ -20,7 +20,7 @@ import 'package:gcloud/db.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:github/github.dart' as github;
 
-import '../service/fake_scheduler.dart';
+import '../service/fake_scheduler_v2.dart';
 
 Key<T> generateKey<T>(Type type, T id) => Key<T>.emptyKey(Partition(null)).append<T>(type, id: id);
 
