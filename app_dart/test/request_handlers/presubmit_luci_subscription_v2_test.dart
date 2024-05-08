@@ -300,4 +300,58 @@ void main() {
       ),
     ).called(1);
   });
+
+  test('Build not rescheduled if ci.yaml fails validation.', () async {
+    scheduler.failCiYamlValidation = true;
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        rescheduled: false,
+      ),
+    ).thenAnswer((_) async => true);
+    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
+    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 1);
+
+    final Map<String, dynamic> userDataMap = {
+      'repo_owner': 'flutter',
+      'commit_branch': Config.defaultBranch(Config.flutterSlug),
+      'commit_sha': 'abc',
+      'repo_name': 'flutter',
+    };
+
+    tester.message = createPushMessageV2(
+      Int64(1),
+      status: bbv2.Status.SUCCESS,
+      builder: 'Linux C',
+      userData: userDataMap,
+    );
+
+    final bbv2.BuildsV2PubSub buildsV2PubSub = createBuild(
+      Int64(1),
+      status: bbv2.Status.SUCCESS,
+      builder: 'Linux C',
+    );
+
+    await tester.post(handler);
+    verifyNever(
+      mockLuciBuildService.rescheduleBuild(
+        build: buildsV2PubSub.build,
+        builderName: 'Linux C',
+        userDataMap: userDataMap,
+        rescheduleAttempt: 1,
+      ),
+    );
+    verify(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        rescheduled: false,
+      ),
+    ).called(1);
+  });
 }

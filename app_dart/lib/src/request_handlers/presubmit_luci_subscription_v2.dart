@@ -143,10 +143,16 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
       sha: userData['commit_sha'] as String,
     );
     late CiYaml ciYaml;
-    if (commit.branch == Config.defaultBranch(commit.slug)) {
-      ciYaml = await scheduler.getCiYaml(commit, validate: true);
-    } else {
-      ciYaml = await scheduler.getCiYaml(commit);
+    try {
+      if (commit.branch == Config.defaultBranch(commit.slug)) {
+        ciYaml = await scheduler.getCiYaml(commit, validate: true);
+      } else {
+        ciYaml = await scheduler.getCiYaml(commit);
+      }
+    } on FormatException {
+      // If ci.yaml no longer passes validation (for example, because a builder
+      // has been removed), ensure no retries.
+      return 0;
     }
 
     // Do not block on the target not found.
