@@ -193,20 +193,15 @@ class Config {
       'Accept': 'application/vnd.github.machine-man-preview+json',
     };
     // TODO(KristinBi): Upstream the github package.https://github.com/flutter/flutter/issues/100920
-    final Uri githubInstallationUri = Uri.https('api.github.com', 'app/installations');
+    final Uri githubInstallationUri = Uri.https('api.github.com', 'users/${slug.owner}/installation');
     final http.Client client = httpProvider();
     // TODO(KristinBi): Track the installation id by repo. https://github.com/flutter/flutter/issues/100808
     final http.Response response = await client.get(
       githubInstallationUri,
       headers: headers,
     );
-    final List<Map<String, dynamic>> list = (json.decode(response.body) as List<dynamic>).cast<Map<String, dynamic>>();
-    String? installationId;
-    for (Map<String, dynamic> installData in list) {
-      if (installData['account']!['login']!.toString() == slug.owner) {
-        installationId = installData['id']!.toString();
-      }
-    }
+    final Map<String, dynamic> installData = json.decode(response.body) as Map<String, dynamic>;
+    final String? installationId = installData['id']?.toString();
     if (installationId == null) {
       log.warning('Failed to get ID from Github '
           '(response code ${response.statusCode}):\n${response.body}');
