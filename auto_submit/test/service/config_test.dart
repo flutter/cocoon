@@ -32,7 +32,7 @@ void main() {
 
     setUp(() {
       cacheProvider = Cache.inMemoryCacheProvider(kCacheSize);
-      mockClient = MockClient((_) async => http.Response(installations, HttpStatus.ok));
+      mockClient = MockClient((_) async => http.Response(userInstallation, HttpStatus.ok));
       config = Config(
         cacheProvider: cacheProvider,
         httpProvider: () => mockClient,
@@ -42,7 +42,7 @@ void main() {
 
     test('verify throws if installations response is unexpected', () async {
       cacheProvider = Cache.inMemoryCacheProvider(kCacheSize);
-      mockClient = MockClient((_) async => http.Response('[]', HttpStatus.internalServerError));
+      mockClient = MockClient((_) async => http.Response('{}', HttpStatus.internalServerError));
       secretManager.put(Config.kGithubKey, _fakeKey);
       secretManager.put(Config.kGithubAppId, '1');
       config = Config(
@@ -64,12 +64,10 @@ void main() {
     });
 
     test('verify github App Installation Id ', () async {
-      final Uri githubInstallationUri = Uri.https('api.github.com', 'app/installations');
+      final Uri githubInstallationUri = Uri.https('api.github.com', 'users/flutter/installation');
       final http.Response response = await mockClient.get(githubInstallationUri);
-      final List<dynamic> list =
-          (json.decode(response.body).map((dynamic data) => (data) as Map<String, dynamic>)).toList() as List<dynamic>;
-      expect(list[0]['id'].toString(), '24369313');
-      expect(list[1]['id'].toString(), '23587612');
+      final Map<String, dynamic> map = json.decode(response.body) as Map<String, dynamic>;
+      expect(map['id'].toString(), '24369313');
     });
 
     test('generateGithubToken pulls from cache', () async {
