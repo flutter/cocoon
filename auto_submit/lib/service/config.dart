@@ -23,6 +23,19 @@ import 'bigquery.dart';
 import 'github_service.dart';
 import 'log.dart';
 
+class CocoonGitHubRequestException implements Exception {
+  const CocoonGitHubRequestException(this.message, {required this.code, required this.uri});
+
+  final String message;
+  final int code;
+  final Uri uri;
+
+  @override
+  String toString() {
+    return 'CocoonGitHubRequestException: Request to "$uri" (response code $code):\n$message';
+  }
+}
+
 /// Configuration for the autosubmit engine.
 class Config {
   Config({
@@ -188,11 +201,20 @@ class Config {
       headers: headers,
     );
     final List<Map<String, dynamic>> list = (json.decode(response.body) as List<dynamic>).cast<Map<String, dynamic>>();
-    late String installationId;
+    String? installationId;
     for (Map<String, dynamic> installData in list) {
       if (installData['account']!['login']!.toString() == slug.owner) {
         installationId = installData['id']!.toString();
       }
+    }
+    if (installationId == null) {
+      log.warning('Failed to get ID from Github '
+          '(response code ${response.statusCode}):\n${response.body}');
+      throw CocoonGitHubRequestException(
+        'getInstallationId failed to get ID from Github',
+        code: response.statusCode,
+        uri: githubInstallationUri,
+      );
     }
     return installationId;
   }
@@ -227,6 +249,7 @@ class Config {
   }
 
   Future<Uint8List> _generateGithubToken(RepositorySlug slug) async {
+    log.info('Generating new GitHub token');
     final String jwt = await _generateGithubJwt();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jwt',
@@ -240,11 +263,17 @@ class Config {
       headers: headers,
     );
     final Map<String, dynamic> jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
-    if (jsonBody.containsKey('token') == false) {
-      log.warning(response.body);
-      throw Exception('generateGithubToken failed to get token from Github');
+    final String? token = jsonBody['token'] as String?;
+    if (token == null) {
+      log.warning('Failed to get token from Github '
+          '(response code ${response.statusCode}):\n${response.body}');
+      throw CocoonGitHubRequestException(
+        'generateGithubToken failed to get token from Github',
+        code: response.statusCode,
+        uri: githubAccessTokensUri,
+      );
     }
-    final String token = jsonBody['token'] as String;
+    log.info('Successfully generated new GitHub token');
     return Uint8List.fromList(token.codeUnits);
   }
 
