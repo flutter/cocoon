@@ -45,14 +45,22 @@ class FakeSchedulerV2 extends SchedulerV2 {
   /// [CiYaml] value to be injected on [getCiYaml].
   CiYaml? ciYaml;
 
+  /// If true, getCiYaml will throw a [FormatException] when validation is
+  /// enforced, simulating failing validation.
+  bool failCiYamlValidation = false;
+
   @override
   Future<CiYaml> getCiYaml(
     Commit commit, {
     CiYaml? totCiYaml,
     RetryOptions? retryOptions,
     bool validate = false,
-  }) async =>
-      ciYaml ?? _defaultConfig;
+  }) async {
+    if (validate && failCiYamlValidation) {
+      throw const FormatException('Failed validation!');
+    }
+    return ciYaml ?? _defaultConfig;
+  }
 
   @override
   Future<Commit> generateTotCommit({required String branch, required RepositorySlug slug}) async {
