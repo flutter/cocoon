@@ -7,9 +7,7 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
-import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
-import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:gcloud/db.dart';
 
 Future<void> main() async {
@@ -21,11 +19,7 @@ Future<void> main() async {
     final AuthenticationProvider authProvider = AuthenticationProvider(config: config);
     final AuthenticationProvider swarmingAuthProvider = SwarmingAuthenticationProvider(config: config);
 
-    final BuildBucketClient buildBucketClient = BuildBucketClient(
-      accessTokenService: AccessTokenService.defaultProvider(config),
-    );
-
-    final BuildBucketV2Client buildBucketV2Client = BuildBucketV2Client(
+    final BuildBucketV2Client buildBucketClient = BuildBucketV2Client(
       accessTokenService: AccessTokenService.defaultProvider(config),
     );
 
@@ -33,16 +27,12 @@ Future<void> main() async {
     final LuciBuildServiceV2 luciBuildService = LuciBuildServiceV2(
       config: config,
       cache: cache,
-      buildBucketV2Client: buildBucketV2Client,
+      buildBucketClient: buildBucketClient,
       pubsub: const PubSub(),
     );
 
     /// Github checks api service used to provide luci test execution status on the Github UI.
-    final GithubChecksService githubChecksService = GithubChecksService(
-      config,
-    );
-
-    final GithubChecksServiceV2 githubChecksServiceV2 = GithubChecksServiceV2(
+    final GithubChecksServiceV2 githubChecksService = GithubChecksServiceV2(
       config,
     );
 
@@ -53,7 +43,7 @@ Future<void> main() async {
     final SchedulerV2 scheduler = SchedulerV2(
       cache: cache,
       config: config,
-      githubChecksService: githubChecksServiceV2,
+      githubChecksService: githubChecksService,
       luciBuildService: luciBuildService,
     );
 
@@ -70,12 +60,10 @@ Future<void> main() async {
       authProvider: authProvider,
       branchService: branchService,
       buildBucketClient: buildBucketClient,
-      buildBucketV2Client: buildBucketV2Client,
       gerritService: gerritService,
       scheduler: scheduler,
       luciBuildService: luciBuildService,
       githubChecksService: githubChecksService,
-      githubChecksServiceV2: githubChecksServiceV2,
       commitService: commitService,
       swarmingAuthProvider: swarmingAuthProvider,
     );

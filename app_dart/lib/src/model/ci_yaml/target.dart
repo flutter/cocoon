@@ -4,11 +4,11 @@
 
 import 'dart:convert';
 
+import 'package:buildbucket/buildbucket_pb.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:github/github.dart';
 
 import '../../service/config.dart';
-import '../luci/buildbucket.dart';
 import '../proto/internal/scheduler.pb.dart' as pb;
 
 /// Wrapper class around [pb.Target] to support aggregate properties.

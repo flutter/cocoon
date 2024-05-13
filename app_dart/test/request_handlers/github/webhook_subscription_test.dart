@@ -5,8 +5,7 @@
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
-import 'package:cocoon_service/src/model/luci/push_message.dart' as pm;
+import 'package:cocoon_service/src/model/luci/pubsub_message_v2.dart';
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
@@ -20,20 +19,17 @@ import 'package:test/test.dart';
 import '../../src/datastore/fake_config.dart';
 import '../../src/datastore/fake_datastore.dart';
 import '../../src/request_handling/fake_http.dart';
-import '../../src/request_handling/subscription_tester.dart';
+import '../../src/request_handling/subscription_v2_tester.dart';
 import '../../src/service/fake_build_bucket_v2_client.dart';
-import '../../src/service/fake_buildbucket.dart';
 import '../../src/service/fake_github_service.dart';
 import '../../src/service/fake_gerrit_service.dart';
 import '../../src/service/fake_scheduler_v2.dart';
-import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.dart';
 import '../../src/utilities/webhook_generators.dart';
 
 void main() {
   late GithubWebhookSubscription webhook;
-  late FakeBuildBucketClient fakeBuildBucketClient;
-  late FakeBuildBucketV2Client fakeBuildBucketV2Client;
+  late FakeBuildBucketV2Client fakeBuildBucketClient;
   late FakeConfig config;
   late FakeDatastoreDB db;
   late FakeGithubService githubService;
@@ -46,7 +42,7 @@ void main() {
   late MockGithubChecksUtil mockGithubChecksUtil;
   late MockIssuesService issuesService;
   late MockPullRequestsService pullRequestsService;
-  late SubscriptionTester tester;
+  late SubscriptionV2Tester tester;
 
   /// Name of an example release base branch name.
   const String kReleaseBaseRef = 'flutter-2.12-candidate.4';
@@ -91,12 +87,11 @@ void main() {
         .thenAnswer((_) => const Stream<PullRequestFile>.empty());
     when(pullRequestsService.edit(any, any, title: anyNamed('title'), state: anyNamed('state'), base: anyNamed('base')))
         .thenAnswer((_) async => PullRequest());
-    fakeBuildBucketClient = FakeBuildBucketClient();
-    fakeBuildBucketV2Client = FakeBuildBucketV2Client();
+    fakeBuildBucketClient = FakeBuildBucketV2Client();
     mockGithubChecksUtil = MockGithubChecksUtil();
     scheduler =
-        FakeSchedulerV2(config: config, buildbucket: fakeBuildBucketV2Client, githubChecksUtil: mockGithubChecksUtil);
-    tester = SubscriptionTester(request: request);
+        FakeSchedulerV2(config: config, buildbucket: fakeBuildBucketClient, githubChecksUtil: mockGithubChecksUtil);
+    tester = SubscriptionV2Tester(request: request);
 
     when(gitHubClient.issues).thenReturn(issuesService);
     when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
@@ -274,7 +269,7 @@ void main() {
     test('Acts on opened against master when default is main', () async {
       const int issueNumber = 123;
 
-      final pm.PushMessage pushMessage = generateGithubWebhookMessage(
+      final PushMessageV2 pushMessage = generateGithubWebhookMessage(
         action: 'opened',
         number: issueNumber,
         baseRef: 'master',
@@ -320,7 +315,7 @@ void main() {
     test('Acts on edited against master when default is main', () async {
       const int issueNumber = 123;
 
-      final pm.PushMessage pushMessage = generateGithubWebhookMessage(
+      final PushMessageV2 pushMessage = generateGithubWebhookMessage(
         action: 'edited',
         number: issueNumber,
         baseRef: 'master',
@@ -375,7 +370,7 @@ void main() {
       );
       bool batchRequestCalled = false;
 
-      Future<BatchResponse> getBatchResponse() async {
+      Future<bbv2.BatchResponse> getBatchResponse() async {
         batchRequestCalled = true;
         fail('Marking a draft ready for review should not trigger new builds');
       }
@@ -420,7 +415,7 @@ void main() {
         );
       }
 
-      fakeBuildBucketV2Client.batchResponse = getBatchResponse;
+      fakeBuildBucketClient.batchResponse = getBatchResponse;
 
       await tester.post(webhook);
 
@@ -2210,7 +2205,7 @@ void foo() {
         );
       }
 
-      fakeBuildBucketV2Client.batchResponse = getBatchResponse;
+      fakeBuildBucketClient.batchResponse = getBatchResponse;
 
       tester.message = generateGithubWebhookMessage(
         action: 'synchronize',
@@ -2234,17 +2229,17 @@ void foo() {
           ]);
         });
 
-        fakeBuildBucketClient.batchResponse = () => Future<BatchResponse>.value(
-              const BatchResponse(
-                responses: <Response>[
-                  Response(
-                    searchBuilds: SearchBuildsResponse(
-                      builds: <Build>[],
+        fakeBuildBucketClient.batchResponse = () => Future<bbv2.BatchResponse>.value(
+              bbv2.BatchResponse(
+                responses: <bbv2.BatchResponse_Response>[
+                  bbv2.BatchResponse_Response(
+                    searchBuilds: bbv2.SearchBuildsResponse(
+                      builds: <bbv2.Build>[],
                     ),
                   ),
-                  Response(
-                    searchBuilds: SearchBuildsResponse(
-                      builds: <Build>[],
+                  bbv2.BatchResponse_Response(
+                    searchBuilds: bbv2.SearchBuildsResponse(
+                      builds: <bbv2.Build>[],
                     ),
                   ),
                 ],
@@ -2302,20 +2297,28 @@ void foo() {
       });
 
       test('When synchronized, cancels existing builds and schedules new ones', () async {
-        fakeBuildBucketClient.batchResponse = () => Future<BatchResponse>.value(
-              BatchResponse(
-                responses: <Response>[
-                  Response(
-                    searchBuilds: SearchBuildsResponse(
-                      builds: <Build>[
-                        generateBuild(999, name: 'Linux', status: Status.ended),
+        fakeBuildBucketClient.batchResponse = () => Future<bbv2.BatchResponse>.value(
+              bbv2.BatchResponse(
+                responses: <bbv2.BatchResponse_Response>[
+                  bbv2.BatchResponse_Response(
+                    searchBuilds: bbv2.SearchBuildsResponse(
+                      builds: <bbv2.Build>[
+                        bbv2.Build(
+                          number: 999,
+                          builder: bbv2.BuilderID(builder: 'Linux'),
+                          status: bbv2.Status.ENDED_MASK,
+                        ),
                       ],
                     ),
                   ),
-                  Response(
-                    searchBuilds: SearchBuildsResponse(
-                      builds: <Build>[
-                        generateBuild(998, name: 'Linux', status: Status.ended),
+                  bbv2.BatchResponse_Response(
+                    searchBuilds: bbv2.SearchBuildsResponse(
+                      builds: <bbv2.Build>[
+                        bbv2.Build(
+                          number: 998,
+                          builder: bbv2.BuilderID(builder: 'Linux'),
+                          status: bbv2.Status.ENDED_MASK,
+                        ),
                       ],
                     ),
                   ),

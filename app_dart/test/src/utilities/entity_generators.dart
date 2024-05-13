@@ -12,8 +12,6 @@ import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/gerrit/commit.dart';
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
-import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart';
@@ -249,28 +247,6 @@ Target generateTarget(
   );
 }
 
-Build generateBuild(
-  int i, {
-  String bucket = 'prod',
-  String name = 'Linux test_builder',
-  Status status = Status.success,
-  Map<String?, List<String?>>? tags,
-  Input? input,
-  int buildNumber = 1,
-}) =>
-    Build(
-      id: i.toString(),
-      builderId: BuilderId(
-        project: 'flutter',
-        bucket: bucket,
-        builder: name,
-      ),
-      status: status,
-      tags: tags,
-      number: buildNumber,
-      input: input,
-    );
-
 bbv2.Build generateBbv2Build(
   Int64 i, {
   String bucket = 'prod',
@@ -292,36 +268,6 @@ bbv2.Build generateBbv2Build(
       number: buildNumber,
       input: input,
     );
-
-push_message.Build generatePushMessageBuild(
-  int i, {
-  String bucket = 'prod',
-  String name = 'Linux test_builder',
-  push_message.Status? status = push_message.Status.completed,
-  push_message.Result result = push_message.Result.success,
-  List<String>? tags,
-  int buildNumber = 1,
-  DateTime? completedTimestamp,
-  DateTime? createdTimestamp,
-  DateTime? startedTimestamp,
-  push_message.FailureReason? failureReason,
-}) {
-  tags ??= <String>[];
-  tags.add('build_address:luci.flutter.prod/$name/$buildNumber');
-
-  return push_message.Build(
-    bucket: bucket,
-    id: i.toString(),
-    project: 'flutter',
-    status: status,
-    result: result,
-    createdTimestamp: createdTimestamp,
-    completedTimestamp: completedTimestamp,
-    startedTimestamp: startedTimestamp,
-    tags: tags,
-    failureReason: failureReason,
-  );
-}
 
 github.CheckRun generateCheckRun(
   int i, {

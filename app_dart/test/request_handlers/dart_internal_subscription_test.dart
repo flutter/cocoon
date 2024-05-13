@@ -71,7 +71,7 @@ void main() {
   late DartInternalSubscription handler;
   late FakeConfig config;
   late FakeHttpRequest request;
-  late MockBuildBucketV2Client buildBucketV2Client;
+  late MockBuildBucketV2Client buildBucketClient;
   late SubscriptionV2Tester tester;
   late MockFirestoreService mockFirestoreService;
   late Commit commit;
@@ -89,12 +89,12 @@ void main() {
   setUp(() async {
     mockFirestoreService = MockFirestoreService();
     config = FakeConfig(firestoreService: mockFirestoreService);
-    buildBucketV2Client = MockBuildBucketV2Client();
+    buildBucketClient = MockBuildBucketV2Client();
     handler = DartInternalSubscription(
       cache: CacheService(inMemory: true),
       config: config,
       authProvider: FakeAuthenticationProvider(),
-      buildBucketV2Client: buildBucketV2Client,
+      buildBucketClient: buildBucketClient,
       datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
     );
     request = FakeHttpRequest();
@@ -121,7 +121,7 @@ void main() {
     tester.message = pushMessageV2;
 
     when(
-      buildBucketV2Client.getBuild(
+      buildBucketClient.getBuild(
         any,
         buildBucketUri: 'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds',
       ),
@@ -145,7 +145,7 @@ void main() {
     await tester.post(handler);
 
     verify(
-      buildBucketV2Client.getBuild(any),
+      buildBucketClient.getBuild(any),
     ).called(1);
 
     // This is used for testing to pull the data out of the "datastore" so that
@@ -239,7 +239,7 @@ void main() {
     await tester.post(handler);
 
     verify(
-      buildBucketV2Client.getBuild(any),
+      buildBucketClient.getBuild(any),
     ).called(1);
 
     // This is used for testing to pull the data out of the "datastore" so that

@@ -15,7 +15,7 @@ import '../../model/gerrit/commit.dart';
 import '../../model/github/checks.dart' as cocoon_checks;
 import '../../request_handling/body.dart';
 import '../../request_handling/exceptions.dart';
-import '../../request_handling/subscription_handler.dart';
+import '../../request_handling/subscription_handler_v2.dart';
 import '../../service/config.dart';
 import '../../service/datastore.dart';
 import '../../service/gerrit_service.dart';
@@ -61,7 +61,7 @@ const Set<String> knownCommentCodeExtensions = <String>{
 // for various activities (such as infra vs releases). This would mitigate
 // breakages across Cocoon.
 @immutable
-class GithubWebhookSubscription extends SubscriptionHandler {
+class GithubWebhookSubscription extends SubscriptionHandlerV2 {
   /// Creates a subscription for processing GitHub webhooks.
   const GithubWebhookSubscription({
     required super.cache,

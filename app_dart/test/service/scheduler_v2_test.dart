@@ -320,7 +320,7 @@ void main() {
         final MockBuildBucketV2Client mockBuildBucketV2Client = MockBuildBucketV2Client();
         final FakeLuciBuildServiceV2 luciBuildServiceV2 = FakeLuciBuildServiceV2(
           config: config,
-          buildBucketV2Client: mockBuildBucketV2Client,
+          buildBucketClient: mockBuildBucketV2Client,
           gerritService: FakeGerritService(),
           githubChecksUtil: mockGithubChecksUtil,
           pubsub: pubsub,

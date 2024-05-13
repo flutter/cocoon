@@ -61,7 +61,7 @@ void main() {
       service = LuciBuildServiceV2(
         config: config,
         cache: cache,
-        buildBucketV2Client: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketV2Client,
         gerritService: FakeGerritService(),
         pubsub: pubsub,
       );
@@ -160,7 +160,7 @@ void main() {
       service = LuciBuildServiceV2(
         config: config,
         cache: cache,
-        buildBucketV2Client: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketV2Client,
         gerritService: FakeGerritService(),
         pubsub: pubsub,
       );
@@ -223,7 +223,7 @@ void main() {
       service = LuciBuildServiceV2(
         config: config,
         cache: cache,
-        buildBucketV2Client: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketV2Client,
         pubsub: pubsub,
       );
       slug = RepositorySlug('flutter', 'cocoon');
@@ -286,7 +286,7 @@ void main() {
       service = LuciBuildServiceV2(
         config: config,
         cache: cache,
-        buildBucketV2Client: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketV2Client,
         githubChecksUtil: mockGithubChecksUtil,
         gerritService: FakeGerritService(branchesValue: <String>['master']),
         pubsub: pubsub,
@@ -428,7 +428,7 @@ void main() {
       service = LuciBuildServiceV2(
         config: FakeConfig(),
         cache: cache,
-        buildBucketV2Client: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketV2Client,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
       );
@@ -733,7 +733,7 @@ void main() {
       service = LuciBuildServiceV2(
         config: FakeConfig(),
         cache: cache,
-        buildBucketV2Client: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketV2Client,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
       );
@@ -816,7 +816,7 @@ void main() {
       service = LuciBuildServiceV2(
         config: config,
         cache: cache,
-        buildBucketV2Client: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketV2Client,
         pubsub: pubsub,
       );
       slug = RepositorySlug('flutter', 'cocoon');
@@ -885,7 +885,7 @@ void main() {
       service = LuciBuildServiceV2(
         config: config,
         cache: cache,
-        buildBucketV2Client: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketV2Client,
         pubsub: pubsub,
       );
       slug = RepositorySlug('flutter', 'flutter');
@@ -932,7 +932,7 @@ void main() {
       service = LuciBuildServiceV2(
         config: config,
         cache: cache,
-        buildBucketV2Client: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketV2Client,
         pubsub: pubsub,
       );
       rescheduleBuild = createBuild(Int64(1), status: bbv2.Status.FAILURE, builder: 'Linux Host Engine');
@@ -1009,7 +1009,7 @@ void main() {
       service = LuciBuildServiceV2(
         config: config,
         cache: cache,
-        buildBucketV2Client: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketV2Client,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
       );

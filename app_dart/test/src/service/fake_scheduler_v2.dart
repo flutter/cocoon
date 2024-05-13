@@ -35,7 +35,7 @@ class FakeSchedulerV2 extends SchedulerV2 {
           luciBuildService: luciBuildService ??
               FakeLuciBuildServiceV2(
                 config: config,
-                buildBucketV2Client: buildbucket,
+                buildBucketClient: buildbucket,
                 githubChecksUtil: githubChecksUtil,
               ),
         );
