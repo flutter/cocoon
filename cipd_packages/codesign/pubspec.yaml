@@ -17,7 +17,7 @@ dependencies:
   file: 7.0.0
   flutter_lints: 3.0.2
   logging: 1.2.0
-  meta: 1.14.0
+  meta: 1.15.0
   platform: 3.1.4
   process: 5.0.2
   retry: 3.1.2
