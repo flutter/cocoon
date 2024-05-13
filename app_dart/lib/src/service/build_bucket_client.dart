@@ -15,7 +15,9 @@ import 'access_token_provider.dart';
 import '../service/logging.dart';
 
 // TODO generalize the two clients to remove this.
-/// A client interface to LUCI BuildBucket
+/// A client interface to LUCI BuildBucket.
+///
+/// Uses the v2 Buildbucket interface.
 @immutable
 class BuildBucketV2Client {
   /// Creates a new build bucket Client.

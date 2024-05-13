@@ -2,7 +2,7 @@
 
 // ignore_for_file: always_specify_types, implicit_dynamic_parameter
 
-part of 'pubsub_message_v2.dart';
+part of 'pubsub_message.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
