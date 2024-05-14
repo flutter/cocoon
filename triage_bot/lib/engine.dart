@@ -58,7 +58,6 @@ sealed class GitHubSettings {
     'framework',
     'games',
     'go_router',
-    'google-testing',
     'infra',
     'ios',
     'news',
