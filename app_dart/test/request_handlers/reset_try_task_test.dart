@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/request_handlers/reset_try_task_v2.dart';
+import 'package:cocoon_service/src/request_handlers/reset_try_task.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:github/github.dart';
@@ -14,7 +14,7 @@ import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/service/fake_github_service.dart';
-import '../src/service/fake_scheduler_v2.dart';
+import '../src/service/fake_scheduler.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
@@ -22,9 +22,9 @@ void main() {
   group('ResetTryTask', () {
     late ApiRequestHandlerTester tester;
     FakeClientContext clientContext;
-    late ResetTryTaskV2 handler;
+    late ResetTryTask handler;
     late FakeConfig config;
-    FakeSchedulerV2 fakeScheduler;
+    FakeScheduler fakeScheduler;
     FakeAuthenticatedContext authContext;
     MockGitHub mockGithub;
     MockPullRequestsService mockPullRequestsService;
@@ -39,11 +39,11 @@ void main() {
       config = FakeConfig(githubClient: mockGithub, githubService: FakeGithubService());
       mockGithubChecksUtil = MockGithubChecksUtil();
       tester = ApiRequestHandlerTester(context: authContext);
-      fakeScheduler = FakeSchedulerV2(
+      fakeScheduler = FakeScheduler(
         config: config,
         githubChecksUtil: mockGithubChecksUtil,
       );
-      handler = ResetTryTaskV2(
+      handler = ResetTryTask(
         config: config,
         authenticationProvider: FakeAuthenticationProvider(clientContext: clientContext),
         scheduler: fakeScheduler,
@@ -80,8 +80,8 @@ void main() {
       });
       tester.request = FakeHttpRequest(
         queryParametersValue: <String, String>{
-          ResetTryTaskV2.kRepoParam: 'flutter',
-          ResetTryTaskV2.kPullRequestNumberParam: '123',
+          ResetTryTask.kRepoParam: 'flutter',
+          ResetTryTask.kPullRequestNumberParam: '123',
         },
       );
       expect(await tester.get(handler), Body.empty);

@@ -12,28 +12,28 @@ part 'pubsub_message.g.dart';
 // the initial finding is that it may be an issue with how gcloud packages the
 // message.
 @JsonSerializable(includeIfNull: false)
-class PubSubPushMessageV2 extends JsonBody {
-  const PubSubPushMessageV2({
+class PubSubPushMessage extends JsonBody {
+  const PubSubPushMessage({
     this.message,
     this.subscription,
   });
 
-  static PubSubPushMessageV2 fromJson(Map<String, dynamic> json) => _$PubSubPushMessageV2FromJson(json);
+  static PubSubPushMessage fromJson(Map<String, dynamic> json) => _$PubSubPushMessageFromJson(json);
 
   /// The message contents.
-  final PushMessageV2? message;
+  final PushMessage? message;
 
   /// The name of the subscription associated with the delivery.
   final String? subscription;
 
   @override
-  Map<String, dynamic> toJson() => _$PubSubPushMessageV2ToJson(this);
+  Map<String, dynamic> toJson() => _$PubSubPushMessageToJson(this);
 }
 
 // Rename this to PushMessage as it is basically that class.
 @JsonSerializable(includeIfNull: false)
-class PushMessageV2 extends JsonBody {
-  const PushMessageV2({
+class PushMessage extends JsonBody {
+  const PushMessage({
     this.attributes,
     this.data,
     this.messageId,
@@ -58,8 +58,8 @@ class PushMessageV2 extends JsonBody {
   /// "2014-10-02T15:01:23.045123456Z".
   final String? publishTime;
 
-  static PushMessageV2 fromJson(Map<String, dynamic> json) => _$PushMessageV2FromJson(json);
+  static PushMessage fromJson(Map<String, dynamic> json) => _$PushMessageFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$PushMessageV2ToJson(this);
+  Map<String, dynamic> toJson() => _$PushMessageToJson(this);
 }

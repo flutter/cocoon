@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
-import 'package:cocoon_service/src/service/scheduler_v2.dart';
+import 'package:cocoon_service/src/service/luci_build_service.dart';
+import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -30,8 +30,8 @@ import '../service/logging.dart';
 ///
 /// Expects either [taskKeyParam] or a set of params that give enough detail to lookup a task in datastore.
 @immutable
-class ResetProdTaskV2 extends ApiRequestHandler<Body> {
-  const ResetProdTaskV2({
+class ResetProdTask extends ApiRequestHandler<Body> {
+  const ResetProdTask({
     required super.config,
     required super.authenticationProvider,
     required this.luciBuildService,
@@ -40,8 +40,8 @@ class ResetProdTaskV2 extends ApiRequestHandler<Body> {
   }) : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider;
 
   final DatastoreServiceProvider datastoreProvider;
-  final LuciBuildServiceV2 luciBuildService;
-  final SchedulerV2 scheduler;
+  final LuciBuildService luciBuildService;
+  final Scheduler scheduler;
 
   static const String branchParam = 'Branch';
   static const String taskKeyParam = 'Key';

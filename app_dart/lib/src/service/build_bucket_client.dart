@@ -19,7 +19,7 @@ import '../service/logging.dart';
 ///
 /// Uses the v2 Buildbucket interface.
 @immutable
-class BuildBucketV2Client {
+class BuildBucketClient {
   /// Creates a new build bucket Client.
   ///
   /// The [buildBucketUri] parameter must not be null, and will be defaulted to
@@ -27,7 +27,7 @@ class BuildBucketV2Client {
   ///
   /// The [httpClient] parameter will be defaulted to `HttpClient()` if not
   /// specified or null.
-  BuildBucketV2Client({
+  BuildBucketClient({
     this.buildBucketBuilderUri = kDefaultBuildBucketBuilderUri,
     this.buildBucketBuildUri = kDefaultBuildBucketBuildUri,
     this.accessTokenService,

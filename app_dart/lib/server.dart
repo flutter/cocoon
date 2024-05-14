@@ -17,12 +17,12 @@ Server createServer({
   required AuthenticationProvider authProvider,
   required AuthenticationProvider swarmingAuthProvider,
   required BranchService branchService,
-  required BuildBucketV2Client buildBucketClient,
-  required LuciBuildServiceV2 luciBuildService,
-  required GithubChecksServiceV2 githubChecksService,
+  required BuildBucketClient buildBucketClient,
+  required LuciBuildService luciBuildService,
+  required GithubChecksService githubChecksService,
   required CommitService commitService,
   required GerritService gerritService,
-  required SchedulerV2 scheduler,
+  required Scheduler scheduler,
 }) {
   final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
     '/api/check_flaky_builders': CheckFlakyBuilders(
@@ -68,14 +68,14 @@ Server createServer({
       scheduler: scheduler,
       commitService: commitService,
     ),
-    '/api/v2/presubmit-luci-subscription': PresubmitLuciSubscriptionV2(
+    '/api/v2/presubmit-luci-subscription': PresubmitLuciSubscription(
       cache: cache,
       config: config,
       luciBuildService: luciBuildService,
       githubChecksService: githubChecksService,
       scheduler: scheduler,
     ),
-    '/api/v2/postsubmit-luci-subscription': PostsubmitLuciSubscriptionV2(
+    '/api/v2/postsubmit-luci-subscription': PostsubmitLuciSubscription(
       cache: cache,
       config: config,
       scheduler: scheduler,
@@ -90,37 +90,37 @@ Server createServer({
       authenticationProvider: authProvider,
     ),
     // I do not believe these recieve a build message.
-    '/api/reset-prod-task': ResetProdTaskV2(
+    '/api/reset-prod-task': ResetProdTask(
       config: config,
       authenticationProvider: authProvider,
       luciBuildService: luciBuildService,
       scheduler: scheduler,
     ),
-    '/api/v2/reset-prod-task': ResetProdTaskV2(
+    '/api/v2/reset-prod-task': ResetProdTask(
       config: config,
       authenticationProvider: authProvider,
       luciBuildService: luciBuildService,
       scheduler: scheduler,
     ),
-    '/api/reset-try-task': ResetTryTaskV2(
+    '/api/reset-try-task': ResetTryTask(
       config: config,
       authenticationProvider: authProvider,
       scheduler: scheduler,
     ),
-    '/api/v2/reset-try-task': ResetTryTaskV2(
+    '/api/v2/reset-try-task': ResetTryTask(
       config: config,
       authenticationProvider: authProvider,
       scheduler: scheduler,
     ),
-    '/api/scheduler/batch-backfiller': BatchBackfillerV2(
+    '/api/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
       scheduler: scheduler,
     ),
-    '/api/v2/scheduler/batch-backfiller': BatchBackfillerV2(
+    '/api/v2/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
       scheduler: scheduler,
     ),
-    '/api/v2/scheduler/batch-request-subscription': SchedulerRequestSubscriptionV2(
+    '/api/v2/scheduler/batch-request-subscription': SchedulerRequestSubscription(
       cache: cache,
       config: config,
       buildBucketClient: buildBucketClient,
@@ -153,12 +153,12 @@ Server createServer({
       config: config,
       authenticationProvider: swarmingAuthProvider,
     ),
-    '/api/vacuum-github-commits': VacuumGithubCommitsV2(
+    '/api/vacuum-github-commits': VacuumGithubCommits(
       config: config,
       authenticationProvider: authProvider,
       scheduler: scheduler,
     ),
-    '/api/v2/vacuum-github-commits': VacuumGithubCommitsV2(
+    '/api/v2/vacuum-github-commits': VacuumGithubCommits(
       config: config,
       authenticationProvider: authProvider,
       scheduler: scheduler,

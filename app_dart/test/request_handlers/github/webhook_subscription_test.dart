@@ -5,7 +5,7 @@
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/luci/pubsub_message_v2.dart';
+import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
@@ -19,22 +19,22 @@ import 'package:test/test.dart';
 import '../../src/datastore/fake_config.dart';
 import '../../src/datastore/fake_datastore.dart';
 import '../../src/request_handling/fake_http.dart';
-import '../../src/request_handling/subscription_v2_tester.dart';
-import '../../src/service/fake_build_bucket_v2_client.dart';
+import '../../src/request_handling/subscription_tester.dart';
+import '../../src/service/fake_build_bucket_client.dart';
 import '../../src/service/fake_github_service.dart';
 import '../../src/service/fake_gerrit_service.dart';
-import '../../src/service/fake_scheduler_v2.dart';
+import '../../src/service/fake_scheduler.dart';
 import '../../src/utilities/mocks.dart';
 import '../../src/utilities/webhook_generators.dart';
 
 void main() {
   late GithubWebhookSubscription webhook;
-  late FakeBuildBucketV2Client fakeBuildBucketClient;
+  late FakeBuildBucketClient fakeBuildBucketClient;
   late FakeConfig config;
   late FakeDatastoreDB db;
   late FakeGithubService githubService;
   late FakeHttpRequest request;
-  late FakeSchedulerV2 scheduler;
+  late FakeScheduler scheduler;
   late FakeGerritService gerritService;
   late MockCommitService commitService;
   late MockGitHub gitHubClient;
@@ -42,7 +42,7 @@ void main() {
   late MockGithubChecksUtil mockGithubChecksUtil;
   late MockIssuesService issuesService;
   late MockPullRequestsService pullRequestsService;
-  late SubscriptionV2Tester tester;
+  late SubscriptionTester tester;
 
   /// Name of an example release base branch name.
   const String kReleaseBaseRef = 'flutter-2.12-candidate.4';
@@ -87,11 +87,11 @@ void main() {
         .thenAnswer((_) => const Stream<PullRequestFile>.empty());
     when(pullRequestsService.edit(any, any, title: anyNamed('title'), state: anyNamed('state'), base: anyNamed('base')))
         .thenAnswer((_) async => PullRequest());
-    fakeBuildBucketClient = FakeBuildBucketV2Client();
+    fakeBuildBucketClient = FakeBuildBucketClient();
     mockGithubChecksUtil = MockGithubChecksUtil();
     scheduler =
-        FakeSchedulerV2(config: config, buildbucket: fakeBuildBucketClient, githubChecksUtil: mockGithubChecksUtil);
-    tester = SubscriptionV2Tester(request: request);
+        FakeScheduler(config: config, buildbucket: fakeBuildBucketClient, githubChecksUtil: mockGithubChecksUtil);
+    tester = SubscriptionTester(request: request);
 
     when(gitHubClient.issues).thenReturn(issuesService);
     when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
@@ -269,7 +269,7 @@ void main() {
     test('Acts on opened against master when default is main', () async {
       const int issueNumber = 123;
 
-      final PushMessageV2 pushMessage = generateGithubWebhookMessage(
+      final PushMessage pushMessage = generateGithubWebhookMessage(
         action: 'opened',
         number: issueNumber,
         baseRef: 'master',
@@ -315,7 +315,7 @@ void main() {
     test('Acts on edited against master when default is main', () async {
       const int issueNumber = 123;
 
-      final PushMessageV2 pushMessage = generateGithubWebhookMessage(
+      final PushMessage pushMessage = generateGithubWebhookMessage(
         action: 'edited',
         number: issueNumber,
         baseRef: 'master',

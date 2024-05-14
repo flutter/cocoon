@@ -30,8 +30,8 @@ import 'github_service.dart';
 /// Class to interact with LUCI buildbucket to get, trigger
 /// and cancel builds for github repos. It uses [config.luciTryBuilders] to
 /// get the list of available builders.
-class LuciBuildServiceV2 {
-  LuciBuildServiceV2({
+class LuciBuildService {
+  LuciBuildService({
     required this.config,
     required this.cache,
     required this.buildBucketClient,
@@ -41,7 +41,7 @@ class LuciBuildServiceV2 {
   })  : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
         gerritService = gerritService ?? GerritService(config: config);
 
-  BuildBucketV2Client buildBucketClient;
+  BuildBucketClient buildBucketClient;
   final CacheService cache;
   Config config;
   GithubChecksUtil githubChecksUtil;

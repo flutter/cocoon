@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/src/service/scheduler_v2.dart';
+import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as gh;
 import 'package:meta/meta.dart';
@@ -20,8 +20,8 @@ import '../service/logging.dart';
 
 /// Query GitHub for commits from the past day and ensure they exist in datastore.
 @immutable
-class VacuumGithubCommitsV2 extends ApiRequestHandler<Body> {
-  const VacuumGithubCommitsV2({
+class VacuumGithubCommits extends ApiRequestHandler<Body> {
+  const VacuumGithubCommits({
     required super.config,
     required super.authenticationProvider,
     required this.scheduler,
@@ -30,7 +30,7 @@ class VacuumGithubCommitsV2 extends ApiRequestHandler<Body> {
 
   final DatastoreServiceProvider datastoreProvider;
 
-  final SchedulerV2 scheduler;
+  final Scheduler scheduler;
 
   static const String branchParam = 'branch';
 

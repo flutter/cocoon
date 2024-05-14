@@ -16,8 +16,8 @@ import '../../src/datastore/fake_config.dart';
 import '../../src/datastore/fake_datastore.dart';
 import '../../src/request_handling/fake_pubsub.dart';
 import '../../src/request_handling/request_handler_tester.dart';
-import '../../src/service/fake_luci_build_service_v2.dart';
-import '../../src/service/fake_scheduler_v2.dart';
+import '../../src/service/fake_luci_build_service.dart';
+import '../../src/service/fake_scheduler.dart';
 import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.dart';
 
@@ -28,11 +28,11 @@ final List<Commit> commits = <Commit>[
 ];
 
 void main() {
-  late BatchBackfillerV2 handler;
+  late BatchBackfiller handler;
   late RequestHandlerTester tester;
   late FakeDatastoreDB db;
   late FakePubSub pubsub;
-  late FakeSchedulerV2 scheduler;
+  late FakeScheduler scheduler;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Config config;
   late MockFirestoreService mockFirestoreService;
@@ -71,18 +71,18 @@ void main() {
         return Future<CommitResponse>.value(CommitResponse());
       });
 
-      scheduler = FakeSchedulerV2(
+      scheduler = FakeScheduler(
         config: config,
         ciYaml: batchPolicyConfig,
         githubChecksUtil: mockGithubChecksUtil,
-        luciBuildService: FakeLuciBuildServiceV2(
+        luciBuildService: FakeLuciBuildService(
           config: config,
           pubsub: pubsub,
           githubChecksUtil: mockGithubChecksUtil,
         ),
       );
 
-      handler = BatchBackfillerV2(
+      handler = BatchBackfiller(
         config: config,
         scheduler: scheduler,
       );
@@ -113,17 +113,17 @@ void main() {
     });
 
     test('does not backfill when task does not exist in TOT', () async {
-      scheduler = FakeSchedulerV2(
+      scheduler = FakeScheduler(
         config: config,
         ciYaml: notInToTConfig,
         githubChecksUtil: mockGithubChecksUtil,
-        luciBuildService: FakeLuciBuildServiceV2(
+        luciBuildService: FakeLuciBuildService(
           config: config,
           pubsub: pubsub,
           githubChecksUtil: mockGithubChecksUtil,
         ),
       );
-      handler = BatchBackfillerV2(
+      handler = BatchBackfiller(
         config: config,
         scheduler: scheduler,
       );
@@ -150,7 +150,7 @@ void main() {
 
       final bbv2.ScheduleBuildRequest scheduleBuildRequest = batchRequest.requests.first.scheduleBuild;
 
-      expect(scheduleBuildRequest.priority, LuciBuildServiceV2.kBackfillPriority);
+      expect(scheduleBuildRequest.priority, LuciBuildService.kBackfillPriority);
     });
 
     test('does not backfill targets when number of available tasks is less than BatchPolicy.kBatchSize', () async {
@@ -177,7 +177,7 @@ void main() {
 
       final bbv2.ScheduleBuildRequest scheduleBuildRequest = batchRequest.requests.first.scheduleBuild;
 
-      expect(scheduleBuildRequest.priority, LuciBuildServiceV2.kRerunPriority);
+      expect(scheduleBuildRequest.priority, LuciBuildService.kRerunPriority);
     });
 
     test('backfills task successfully with retry', () async {
@@ -197,7 +197,7 @@ void main() {
 
       final bbv2.ScheduleBuildRequest scheduleBuildRequest = batchRequest.requests.first.scheduleBuild;
 
-      expect(scheduleBuildRequest.priority, LuciBuildServiceV2.kRerunPriority);
+      expect(scheduleBuildRequest.priority, LuciBuildService.kRerunPriority);
     });
 
     test('fails to backfill tasks when retry limit is hit', () async {
@@ -312,14 +312,14 @@ void main() {
     group('getFilteredBackfill', () {
       test('backfills high priorty targets first', () async {
         final List<Tuple<Target, FullTask, int>> backfill = <Tuple<Target, FullTask, int>>[
-          Tuple(generateTarget(1), FullTask(generateTask(1), generateCommit(1)), LuciBuildServiceV2.kRerunPriority),
-          Tuple(generateTarget(2), FullTask(generateTask(2), generateCommit(2)), LuciBuildServiceV2.kBackfillPriority),
-          Tuple(generateTarget(3), FullTask(generateTask(3), generateCommit(3)), LuciBuildServiceV2.kRerunPriority),
+          Tuple(generateTarget(1), FullTask(generateTask(1), generateCommit(1)), LuciBuildService.kRerunPriority),
+          Tuple(generateTarget(2), FullTask(generateTask(2), generateCommit(2)), LuciBuildService.kBackfillPriority),
+          Tuple(generateTarget(3), FullTask(generateTask(3), generateCommit(3)), LuciBuildService.kRerunPriority),
         ];
         final List<Tuple<Target, FullTask, int>> filteredBackfill = handler.getFilteredBackfill(backfill);
         expect(filteredBackfill.length, 2);
-        expect(filteredBackfill[0].third, LuciBuildServiceV2.kRerunPriority);
-        expect(filteredBackfill[1].third, LuciBuildServiceV2.kRerunPriority);
+        expect(filteredBackfill[0].third, LuciBuildService.kRerunPriority);
+        expect(filteredBackfill[1].third, LuciBuildService.kRerunPriority);
       });
     });
   });

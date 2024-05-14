@@ -6,7 +6,7 @@ import 'package:cocoon_service/src/service/datastore.dart';
 
 import '../../model/appengine/task.dart';
 import '../logging.dart';
-import '../luci_build_service_v2.dart';
+import '../luci_build_service.dart';
 
 /// Interface for implementing various scheduling policies in the Cocoon scheduler.
 abstract class SchedulerPolicy {
@@ -31,13 +31,13 @@ class GuaranteedPolicy implements SchedulerPolicy {
     recentTasks.removeWhere((Task t) => t.commitKey == task.commitKey);
     if (recentTasks.isEmpty) {
       log.warning('${task.name} is newly added, triggerring builds regardless of policy');
-      return LuciBuildServiceV2.kDefaultPriority;
+      return LuciBuildService.kDefaultPriority;
     }
     // Prioritize tasks that recently failed.
     if (shouldRerunPriority(recentTasks, 1)) {
-      return LuciBuildServiceV2.kRerunPriority;
+      return LuciBuildService.kRerunPriority;
     }
-    return LuciBuildServiceV2.kDefaultPriority;
+    return LuciBuildService.kDefaultPriority;
   }
 }
 
@@ -70,11 +70,11 @@ class BatchPolicy implements SchedulerPolicy {
 
     // Prioritize tasks that recently failed.
     if (shouldRerunPriority(recentTasks, kBatchSize)) {
-      return LuciBuildServiceV2.kRerunPriority;
+      return LuciBuildService.kRerunPriority;
     }
 
     if (allNew(recentTasks.sublist(0, kBatchSize - 1))) {
-      return LuciBuildServiceV2.kDefaultPriority;
+      return LuciBuildService.kDefaultPriority;
     }
 
     return null;

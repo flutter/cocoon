@@ -6,34 +6,34 @@ import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
-import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
+import 'package:cocoon_service/src/service/build_bucket_client.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
-import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
-import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
-import 'package:cocoon_service/src/service/scheduler_v2.dart';
+import 'package:cocoon_service/src/service/github_checks_service.dart';
+import 'package:cocoon_service/src/service/luci_build_service.dart';
+import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:github/github.dart';
 import 'package:retry/retry.dart';
 
 import '../utilities/entity_generators.dart';
-import 'fake_luci_build_service_v2.dart';
+import 'fake_luci_build_service.dart';
 
 /// Fake for [Scheduler] to use for tests that rely on it.
-class FakeSchedulerV2 extends SchedulerV2 {
-  FakeSchedulerV2({
+class FakeScheduler extends Scheduler {
+  FakeScheduler({
     this.ciYaml,
-    LuciBuildServiceV2? luciBuildService,
-    BuildBucketV2Client? buildbucket,
+    LuciBuildService? luciBuildService,
+    BuildBucketClient? buildbucket,
     required super.config,
     GithubChecksUtil? githubChecksUtil,
   }) : super(
           cache: CacheService(inMemory: true),
-          githubChecksService: GithubChecksServiceV2(
+          githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: githubChecksUtil,
           ),
           luciBuildService: luciBuildService ??
-              FakeLuciBuildServiceV2(
+              FakeLuciBuildService(
                 config: config,
                 buildBucketClient: buildbucket,
                 githubChecksUtil: githubChecksUtil,

@@ -5,7 +5,7 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/src/service/commit_service.dart';
-import 'package:cocoon_service/src/service/scheduler_v2.dart';
+import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
@@ -15,7 +15,7 @@ import '../../model/gerrit/commit.dart';
 import '../../model/github/checks.dart' as cocoon_checks;
 import '../../request_handling/body.dart';
 import '../../request_handling/exceptions.dart';
-import '../../request_handling/subscription_handler_v2.dart';
+import '../../request_handling/subscription_handler.dart';
 import '../../service/config.dart';
 import '../../service/datastore.dart';
 import '../../service/gerrit_service.dart';
@@ -61,7 +61,7 @@ const Set<String> knownCommentCodeExtensions = <String>{
 // for various activities (such as infra vs releases). This would mitigate
 // breakages across Cocoon.
 @immutable
-class GithubWebhookSubscription extends SubscriptionHandlerV2 {
+class GithubWebhookSubscription extends SubscriptionHandler {
   /// Creates a subscription for processing GitHub webhooks.
   const GithubWebhookSubscription({
     required super.cache,
@@ -75,7 +75,7 @@ class GithubWebhookSubscription extends SubscriptionHandlerV2 {
   }) : super(subscriptionName: 'github-webhooks-sub');
 
   /// Cocoon scheduler to trigger tasks against changes from GitHub.
-  final SchedulerV2 scheduler;
+  final Scheduler scheduler;
 
   /// To verify whether a commit was mirrored to GoB.
   final GerritService gerritService;

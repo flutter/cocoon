@@ -16,12 +16,12 @@ import '../model/appengine/task.dart';
 import '../model/firestore/task.dart' as firestore;
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
-import '../request_handling/subscription_handler_v2.dart';
+import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
 import '../service/firestore.dart';
 import '../service/logging.dart';
-import '../service/github_checks_service_v2.dart';
-import '../service/scheduler_v2.dart';
+import '../service/github_checks_service.dart';
+import '../service/scheduler.dart';
 
 /// An endpoint for listening to build updates for postsubmit builds.
 ///
@@ -30,9 +30,9 @@ import '../service/scheduler_v2.dart';
 ///
 /// This endpoint is responsible for updating Datastore with the result of builds from LUCI.
 @immutable
-class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
+class PostsubmitLuciSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening to LUCI status updates.
-  const PostsubmitLuciSubscriptionV2({
+  const PostsubmitLuciSubscription({
     required super.cache,
     required super.config,
     super.authProvider,
@@ -42,8 +42,8 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
   }) : super(subscriptionName: 'build-bucket-postsubmit-sub');
 
   final DatastoreServiceProvider datastoreProvider;
-  final SchedulerV2 scheduler;
-  final GithubChecksServiceV2 githubChecksService;
+  final Scheduler scheduler;
+  final GithubChecksService githubChecksService;
 
   @override
   Future<Body> post() async {
@@ -57,7 +57,7 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
 
     final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack();
     pubSubCallBack.mergeFromProto3Json(jsonDecode(message.data!) as Map<String, dynamic>);
-    final bbv2.BuildsV2PubSub buildsV2PubSub = pubSubCallBack.buildPubsub;
+    final bbv2.BuildsV2PubSub buildsPubSub = pubSubCallBack.buildPubsub;
 
     Map<String, dynamic> userDataMap = <String, dynamic>{};
     try {
@@ -76,12 +76,12 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
 
     log.fine('userData=$userDataMap');
 
-    if (!buildsV2PubSub.hasBuild()) {
+    if (!buildsPubSub.hasBuild()) {
       log.warning('No build was found in message.');
       return Body.empty;
     }
 
-    final bbv2.Build build = buildsV2PubSub.build;
+    final bbv2.Build build = buildsPubSub.build;
     // Note that result is no longer present in the output.
     log.fine('Updating buildId=${build.id} for result=${build.status}');
 
@@ -109,11 +109,11 @@ class PostsubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
 
     if (_shouldUpdateTask(build, firestoreTask)) {
       final String oldTaskStatus = firestoreTask.status;
-      firestoreTask.updateFromBuildV2(build);
+      firestoreTask.updateFromBuild(build);
 
       log.info('Updated firestore task $firestoreTask');
 
-      task.updateFromBuildbucketV2Build(build);
+      task.updateFromBuildbucketBuild(build);
       await datastore.insert(<Task>[task]);
       final List<Write> writes = documentsToWrites([firestoreTask], exists: true);
       await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);

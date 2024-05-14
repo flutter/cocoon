@@ -27,7 +27,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_github_service.dart';
-import '../src/utilities/build_bucket_v2_messages.dart';
+import '../src/utilities/build_bucket_messages.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 import '../src/utilities/webhook_generators.dart';
@@ -36,8 +36,8 @@ void main() {
   late CacheService cache;
   late FakeConfig config;
   FakeGithubService githubService;
-  late MockBuildBucketV2Client mockBuildBucketV2Client;
-  late LuciBuildServiceV2 service;
+  late MockBuildBucketClient mockBuildBucketClient;
+  late LuciBuildService service;
   late RepositorySlug slug;
   late MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
   late FakePubSub pubsub;
@@ -56,12 +56,12 @@ void main() {
       cache = CacheService(inMemory: true);
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
+      mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
-      service = LuciBuildServiceV2(
+      service = LuciBuildService(
         config: config,
         cache: cache,
-        buildBucketClient: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketClient,
         gerritService: FakeGerritService(),
         pubsub: pubsub,
       );
@@ -69,7 +69,7 @@ void main() {
     });
 
     test('Null build', () async {
-      when(mockBuildBucketV2Client.batch(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return bbv2.BatchResponse(
           responses: <bbv2.BatchResponse_Response>[
             bbv2.BatchResponse_Response(
@@ -89,7 +89,7 @@ void main() {
     });
 
     test('Existing prod build', () async {
-      when(mockBuildBucketV2Client.batch(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return bbv2.BatchResponse(
           responses: <bbv2.BatchResponse_Response>[
             bbv2.BatchResponse_Response(
@@ -109,7 +109,7 @@ void main() {
     });
 
     test('Existing try build', () async {
-      when(mockBuildBucketV2Client.batch(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return bbv2.BatchResponse(
           responses: <bbv2.BatchResponse_Response>[
             bbv2.BatchResponse_Response(
@@ -129,7 +129,7 @@ void main() {
     });
 
     test('Existing try build by pull request', () async {
-      when(mockBuildBucketV2Client.batch(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return bbv2.BatchResponse(
           responses: <bbv2.BatchResponse_Response>[
             bbv2.BatchResponse_Response(
@@ -155,12 +155,12 @@ void main() {
       cache = CacheService(inMemory: true);
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
+      mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
-      service = LuciBuildServiceV2(
+      service = LuciBuildService(
         config: config,
         cache: cache,
-        buildBucketClient: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketClient,
         gerritService: FakeGerritService(),
         pubsub: pubsub,
       );
@@ -168,7 +168,7 @@ void main() {
     });
 
     test('with one rpc call', () async {
-      when(mockBuildBucketV2Client.listBuilders(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         return bbv2.ListBuildersResponse(
           builders: [
             bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'test1')),
@@ -183,7 +183,7 @@ void main() {
 
     test('with more than one rpc calls', () async {
       int retries = -1;
-      when(mockBuildBucketV2Client.listBuilders(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         retries++;
         if (retries == 0) {
           return bbv2.ListBuildersResponse(
@@ -218,19 +218,19 @@ void main() {
       cache = CacheService(inMemory: true);
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
+      mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
-      service = LuciBuildServiceV2(
+      service = LuciBuildService(
         config: config,
         cache: cache,
-        buildBucketClient: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
       slug = RepositorySlug('flutter', 'cocoon');
     });
 
     test('Empty responses are handled correctly', () async {
-      when(mockBuildBucketV2Client.batch(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return bbv2.BatchResponse(
           responses: <bbv2.BatchResponse_Response>[
             bbv2.BatchResponse_Response(
@@ -250,7 +250,7 @@ void main() {
     });
 
     test('Response returning a couple of builds', () async {
-      when(mockBuildBucketV2Client.batch(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return bbv2.BatchResponse(
           responses: <bbv2.BatchResponse_Response>[
             bbv2.BatchResponse_Response(
@@ -280,13 +280,13 @@ void main() {
       cache = CacheService(inMemory: true);
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
+      mockBuildBucketClient = MockBuildBucketClient();
       mockGithubChecksUtil = MockGithubChecksUtil();
       pubsub = FakePubSub();
-      service = LuciBuildServiceV2(
+      service = LuciBuildService(
         config: config,
         cache: cache,
-        buildBucketClient: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         gerritService: FakeGerritService(branchesValue: <String>['master']),
         pubsub: pubsub,
@@ -296,7 +296,7 @@ void main() {
 
     test('schedule try builds successfully', () async {
       final PullRequest pullRequest = generatePullRequest();
-      when(mockBuildBucketV2Client.batch(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return bbv2.BatchResponse(
           responses: <bbv2.BatchResponse_Response>[
             bbv2.BatchResponse_Response(
@@ -355,7 +355,7 @@ void main() {
 
     test('schedule try builds with github build labels successfully', () async {
       final PullRequest pullRequest = generatePullRequest();
-      when(mockBuildBucketV2Client.batch(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return bbv2.BatchResponse(
           responses: <bbv2.BatchResponse_Response>[
             bbv2.BatchResponse_Response(
@@ -423,12 +423,12 @@ void main() {
   group('schedulePostsubmitBuilds', () {
     setUp(() {
       cache = CacheService(inMemory: true);
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
+      mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
-      service = LuciBuildServiceV2(
+      service = LuciBuildService(
         config: FakeConfig(),
         cache: cache,
-        buildBucketClient: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
       );
@@ -438,7 +438,7 @@ void main() {
       final Commit commit = generateCommit(0);
       when(mockGithubChecksUtil.createCheckRun(any, Config.packagesSlug, any, 'Linux 1'))
           .thenAnswer((_) async => generateCheckRun(1));
-      when(mockBuildBucketV2Client.listBuilders(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         return bbv2.ListBuildersResponse(
           builders: [
             bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'Linux 1')),
@@ -455,7 +455,7 @@ void main() {
           slug: Config.packagesSlug,
         ),
         generateTask(1),
-        LuciBuildServiceV2.kDefaultPriority,
+        LuciBuildService.kDefaultPriority,
       );
       await service.schedulePostsubmitBuilds(
         commit: commit,
@@ -512,7 +512,7 @@ void main() {
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
           .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
       final Commit commit = generateCommit(0, repo: 'packages');
-      when(mockBuildBucketV2Client.listBuilders(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         return bbv2.ListBuildersResponse(
           builders: [
             bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'Linux 1')),
@@ -528,7 +528,7 @@ void main() {
           slug: RepositorySlug('flutter', 'packages'),
         ),
         generateTask(1),
-        LuciBuildServiceV2.kDefaultPriority,
+        LuciBuildService.kDefaultPriority,
       );
       await service.schedulePostsubmitBuilds(
         commit: commit,
@@ -566,7 +566,7 @@ void main() {
 
     test('return the orignal list when hitting buildbucket exception', () async {
       final Commit commit = generateCommit(0, repo: 'packages');
-      when(mockBuildBucketV2Client.listBuilders(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         throw const BuildBucketException(1, 'error');
       });
       final Tuple<Target, Task, int> toBeScheduled = Tuple<Target, Task, int>(
@@ -578,7 +578,7 @@ void main() {
           slug: RepositorySlug('flutter', 'packages'),
         ),
         generateTask(1),
-        LuciBuildServiceV2.kDefaultPriority,
+        LuciBuildService.kDefaultPriority,
       );
       final List<Tuple<Target, Task, int>> results = await service.schedulePostsubmitBuilds(
         commit: commit,
@@ -595,7 +595,7 @@ void main() {
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
           .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
 
-      when(mockBuildBucketV2Client.batch(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return bbv2.BatchResponse(
           responses: <bbv2.BatchResponse_Response>[
             bbv2.BatchResponse_Response(
@@ -627,7 +627,7 @@ void main() {
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
           .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
       final Commit commit = generateCommit(0, repo: Config.packagesSlug.name);
-      when(mockBuildBucketV2Client.listBuilders(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         return bbv2.ListBuildersResponse(
           builders: [
             bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'Linux 1')),
@@ -644,7 +644,7 @@ void main() {
           slug: Config.packagesSlug,
         ),
         generateTask(1, parent: commit),
-        LuciBuildServiceV2.kDefaultPriority,
+        LuciBuildService.kDefaultPriority,
       );
       await service.schedulePostsubmitBuilds(
         commit: commit,
@@ -679,7 +679,7 @@ void main() {
       final Commit commit = generateCommit(0);
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
           .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 2'));
-      when(mockBuildBucketV2Client.listBuilders(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         return bbv2.ListBuildersResponse(
           builders: [
             bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'Linux 2')),
@@ -694,7 +694,7 @@ void main() {
           },
         ),
         generateTask(1),
-        LuciBuildServiceV2.kDefaultPriority,
+        LuciBuildService.kDefaultPriority,
       );
       final Tuple<Target, Task, int> toBeScheduled2 = Tuple<Target, Task, int>(
         generateTarget(
@@ -704,7 +704,7 @@ void main() {
           },
         ),
         generateTask(1),
-        LuciBuildServiceV2.kDefaultPriority,
+        LuciBuildService.kDefaultPriority,
       );
       await service.schedulePostsubmitBuilds(
         commit: commit,
@@ -728,12 +728,12 @@ void main() {
   group('schedulePresubmitBuilds', () {
     setUp(() {
       cache = CacheService(inMemory: true);
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
+      mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
-      service = LuciBuildServiceV2(
+      service = LuciBuildService(
         config: FakeConfig(),
         cache: cache,
-        buildBucketClient: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
       );
@@ -743,7 +743,7 @@ void main() {
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
           .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
 
-      when(mockBuildBucketV2Client.batch(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return bbv2.BatchResponse(
           responses: <bbv2.BatchResponse_Response>[
             bbv2.BatchResponse_Response(
@@ -766,7 +766,7 @@ void main() {
           ],
         );
       });
-      when(mockBuildBucketV2Client.scheduleBuild(any)).thenAnswer((_) async => generateBbv2Build(Int64(1)));
+      when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBbv2Build(Int64(1)));
 
       final pushMessage = generateCheckRunEvent(action: 'created', numberOfPullRequests: 1);
       final Map<String, dynamic> jsonMap = json.decode(pushMessage.data!);
@@ -778,7 +778,7 @@ void main() {
       );
 
       final List<dynamic> captured = verify(
-        mockBuildBucketV2Client.scheduleBuild(
+        mockBuildBucketClient.scheduleBuild(
           captureAny,
         ),
       ).captured;
@@ -811,19 +811,19 @@ void main() {
     setUp(() {
       cache = CacheService(inMemory: true);
       config = FakeConfig();
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
+      mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
-      service = LuciBuildServiceV2(
+      service = LuciBuildService(
         config: config,
         cache: cache,
-        buildBucketClient: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
       slug = RepositorySlug('flutter', 'cocoon');
     });
 
     test('Cancel builds when build list is empty', () async {
-      when(mockBuildBucketV2Client.batch(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return bbv2.BatchResponse(
           responses: <bbv2.BatchResponse_Response>[],
         );
@@ -833,11 +833,11 @@ void main() {
       // because the call is no longer being short-circuited. It calls batch in
       // tryBuildsForPullRequest and it calls in the top level cancelBuilds
       // function.
-      verify(mockBuildBucketV2Client.batch(any)).called(1);
+      verify(mockBuildBucketClient.batch(any)).called(1);
     });
 
     test('Cancel builds that are scheduled', () async {
-      when(mockBuildBucketV2Client.batch(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return bbv2.BatchResponse(
           responses: <bbv2.BatchResponse_Response>[
             bbv2.BatchResponse_Response(
@@ -853,7 +853,7 @@ void main() {
       await service.cancelBuilds(pullRequest: pullRequest, reason: 'new builds');
 
       final List<dynamic> captured = verify(
-        mockBuildBucketV2Client.batch(
+        mockBuildBucketClient.batch(
           captureAny,
         ),
       ).captured;
@@ -880,19 +880,19 @@ void main() {
       cache = CacheService(inMemory: true);
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
+      mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
-      service = LuciBuildServiceV2(
+      service = LuciBuildService(
         config: config,
         cache: cache,
-        buildBucketClient: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
       slug = RepositorySlug('flutter', 'flutter');
     });
 
     test('Failed builds from an empty list', () async {
-      when(mockBuildBucketV2Client.batch(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return bbv2.BatchResponse(
           responses: <bbv2.BatchResponse_Response>[],
         );
@@ -902,7 +902,7 @@ void main() {
     });
 
     test('Failed builds from a list of builds with failures', () async {
-      when(mockBuildBucketV2Client.batch(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return bbv2.BatchResponse(
           responses: <bbv2.BatchResponse_Response>[
             bbv2.BatchResponse_Response(
@@ -927,19 +927,19 @@ void main() {
     setUp(() {
       cache = CacheService(inMemory: true);
       config = FakeConfig();
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
+      mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
-      service = LuciBuildServiceV2(
+      service = LuciBuildService(
         config: config,
         cache: cache,
-        buildBucketClient: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
       rescheduleBuild = createBuild(Int64(1), status: bbv2.Status.FAILURE, builder: 'Linux Host Engine');
     });
 
     test('Reschedule an existing build', () async {
-      when(mockBuildBucketV2Client.scheduleBuild(any)).thenAnswer((_) async => generateBbv2Build(Int64(1)));
+      when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBbv2Build(Int64(1)));
       final build = await service.rescheduleBuild(
         builderName: 'mybuild',
         build: rescheduleBuild.build,
@@ -948,7 +948,7 @@ void main() {
       );
       expect(build.id, Int64(1));
       expect(build.status, bbv2.Status.SUCCESS);
-      final List<dynamic> captured = verify(mockBuildBucketV2Client.scheduleBuild(captureAny)).captured;
+      final List<dynamic> captured = verify(mockBuildBucketClient.scheduleBuild(captureAny)).captured;
       expect(captured.length, 1);
 
       final bbv2.ScheduleBuildRequest scheduleBuildRequest = captured[0];
@@ -974,7 +974,7 @@ void main() {
       firestoreCommit = null;
       mockGithubChecksUtil = MockGithubChecksUtil();
       mockFirestoreService = MockFirestoreService();
-      mockBuildBucketV2Client = MockBuildBucketV2Client();
+      mockBuildBucketClient = MockBuildBucketClient();
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
           .thenAnswer((realInvocation) async => generateCheckRun(1));
       when(
@@ -1006,10 +1006,10 @@ void main() {
         );
       });
       pubsub = FakePubSub();
-      service = LuciBuildServiceV2(
+      service = LuciBuildService(
         config: config,
         cache: cache,
-        buildBucketClient: mockBuildBucketV2Client,
+        buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
       );
@@ -1050,7 +1050,7 @@ void main() {
       for (String key in Config.defaultProperties.keys) {
         expect(properties.containsKey(key), true);
       }
-      expect(scheduleBuildRequest.priority, LuciBuildServiceV2.kRerunPriority);
+      expect(scheduleBuildRequest.priority, LuciBuildService.kRerunPriority);
       expect(scheduleBuildRequest.gitilesCommit.project, 'mirrors/engine');
       expect(scheduleBuildRequest.tags.firstWhere((tag) => tag.key == 'trigger_type').value, 'auto_retry');
       expect(rerunFlag, isTrue);

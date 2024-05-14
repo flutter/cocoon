@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:cocoon_service/src/request_handling/subscription_handler_v2.dart';
+import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
@@ -24,9 +24,9 @@ import '../../service/logging.dart';
 /// This endpoint takes in a POST request with the JSON of a [bbv2.BatchRequest]. In practice, the
 /// [bbv2.BatchRequest] should contain a single request.
 @immutable
-class SchedulerRequestSubscriptionV2 extends SubscriptionHandlerV2 {
+class SchedulerRequestSubscription extends SubscriptionHandler {
   /// Creates a subscription for sending BuildBucket requests.
-  const SchedulerRequestSubscriptionV2({
+  const SchedulerRequestSubscription({
     required super.cache,
     required super.config,
     required this.buildBucketClient,
@@ -34,7 +34,7 @@ class SchedulerRequestSubscriptionV2 extends SubscriptionHandlerV2 {
     this.retryOptions = Config.schedulerRetry,
   }) : super(subscriptionName: 'cocoon-scheduler-requests-sub');
 
-  final BuildBucketV2Client buildBucketClient;
+  final BuildBucketClient buildBucketClient;
 
   final RetryOptions retryOptions;
 

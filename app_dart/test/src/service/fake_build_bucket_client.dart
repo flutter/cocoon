@@ -3,17 +3,17 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
+import 'package:cocoon_service/src/service/build_bucket_client.dart';
 import 'package:fixnum/src/int64.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
-/// Fake [BuildBucketV2Client] for handling requests to BuildBucket.
+/// Fake [BuildBucketClient] for handling requests to BuildBucket.
 ///
 /// By default, returns good responses but can be updated to throw exceptions.
 // ignore: must_be_immutable
-class FakeBuildBucketV2Client extends BuildBucketV2Client {
-  FakeBuildBucketV2Client({
+class FakeBuildBucketClient extends BuildBucketClient {
+  FakeBuildBucketClient({
     this.scheduleBuildResponse,
     this.searchBuildsResponse,
     this.batchResponse,

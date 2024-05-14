@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/luci/pubsub_message_v2.dart';
+import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:mockito/mockito.dart';
@@ -14,18 +14,18 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import '../../src/datastore/fake_config.dart';
 import '../../src/request_handling/fake_authentication.dart';
 import '../../src/request_handling/fake_http.dart';
-import '../../src/request_handling/subscription_v2_tester.dart';
+import '../../src/request_handling/subscription_tester.dart';
 import '../../src/utilities/mocks.dart';
 
 void main() {
-  late SchedulerRequestSubscriptionV2 handler;
-  late SubscriptionV2Tester tester;
+  late SchedulerRequestSubscription handler;
+  late SubscriptionTester tester;
 
-  late MockBuildBucketV2Client buildBucketClient;
+  late MockBuildBucketClient buildBucketClient;
 
   setUp(() async {
-    buildBucketClient = MockBuildBucketV2Client();
-    handler = SchedulerRequestSubscriptionV2(
+    buildBucketClient = MockBuildBucketClient();
+    handler = SchedulerRequestSubscription(
       cache: CacheService(inMemory: true),
       config: FakeConfig(),
       authProvider: FakeAuthenticationProvider(),
@@ -36,13 +36,13 @@ void main() {
       ),
     );
 
-    tester = SubscriptionV2Tester(
+    tester = SubscriptionTester(
       request: FakeHttpRequest(),
     );
   });
 
   test('throws exception when BatchRequest cannot be decoded', () async {
-    tester.message = const PushMessageV2();
+    tester.message = const PushMessage();
     expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
   });
 
@@ -78,8 +78,8 @@ void main() {
 }
 ''';
 
-    const PushMessageV2 pushMessageV2 = PushMessageV2(data: messageData, messageId: '798274983');
-    tester.message = pushMessageV2;
+    const PushMessage pushMessage = PushMessage(data: messageData, messageId: '798274983');
+    tester.message = pushMessage;
     final Body body = await tester.post(handler);
     expect(body, Body.empty);
   });
@@ -125,8 +125,8 @@ void main() {
 }
 ''';
 
-    const PushMessageV2 pushMessageV2 = PushMessageV2(data: messageData, messageId: '798274983');
-    tester.message = pushMessageV2;
+    const PushMessage pushMessage = PushMessage(data: messageData, messageId: '798274983');
+    tester.message = pushMessage;
     final Body body = await tester.post(handler);
 
     expect(body, Body.empty);
@@ -152,8 +152,8 @@ void main() {
 }
 ''';
 
-    const PushMessageV2 pushMessageV2 = PushMessageV2(data: messageData, messageId: '798274983');
-    tester.message = pushMessageV2;
+    const PushMessage pushMessage = PushMessage(data: messageData, messageId: '798274983');
+    tester.message = pushMessage;
     final Body body = await tester.post(handler);
 
     expect(body, isNotNull);

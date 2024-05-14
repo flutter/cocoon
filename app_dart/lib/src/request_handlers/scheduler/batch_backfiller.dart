@@ -22,16 +22,16 @@ import '../../service/logging.dart';
 ///
 /// Targets that have a [BatchPolicy] need to have backfilling enabled to ensure that ToT is always being tested.
 @immutable
-class BatchBackfillerV2 extends RequestHandler {
+class BatchBackfiller extends RequestHandler {
   /// Creates a subscription for sending BuildBucket requests.
-  const BatchBackfillerV2({
+  const BatchBackfiller({
     required super.config,
     required this.scheduler,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
   });
 
   final DatastoreServiceProvider datastoreProvider;
-  final SchedulerV2 scheduler;
+  final Scheduler scheduler;
 
   @override
   Future<Body> get() async {
@@ -137,9 +137,9 @@ class BatchBackfillerV2 extends RequestHandler {
     }
     final List<Tuple<Target, FullTask, int>> filteredBackfill = <Tuple<Target, FullTask, int>>[];
     final List<Tuple<Target, FullTask, int>> highPriorityBackfill =
-        backfill.where((element) => element.third == LuciBuildServiceV2.kRerunPriority).toList();
+        backfill.where((element) => element.third == LuciBuildService.kRerunPriority).toList();
     final List<Tuple<Target, FullTask, int>> normalPriorityBackfill =
-        backfill.where((element) => element.third != LuciBuildServiceV2.kRerunPriority).toList();
+        backfill.where((element) => element.third != LuciBuildService.kRerunPriority).toList();
     if (highPriorityBackfill.length >= config.backfillerTargetLimit) {
       highPriorityBackfill.shuffle();
       filteredBackfill.addAll(highPriorityBackfill.sublist(0, config.backfillerTargetLimit));
@@ -219,15 +219,15 @@ class BatchBackfillerV2 extends RequestHandler {
   /// less than `BatchPolicy.kBatchSize`.
   ///
   /// Uses a higher priority if there is an earlier failed build. Otherwise,
-  /// uses default `LuciBuildServiceV2.kBackfillPriority`
+  /// uses default `LuciBuildService.kBackfillPriority`
   int? backfillPriority(List<Task> tasks) {
     if (tasks.length < BatchPolicy.kBatchSize) {
       return null;
     }
     if (shouldRerunPriority(tasks, BatchPolicy.kBatchSize)) {
-      return LuciBuildServiceV2.kRerunPriority;
+      return LuciBuildService.kRerunPriority;
     }
-    return LuciBuildServiceV2.kBackfillPriority;
+    return LuciBuildService.kBackfillPriority;
   }
 
   /// Returns the most recent [FullTask] to backfill.

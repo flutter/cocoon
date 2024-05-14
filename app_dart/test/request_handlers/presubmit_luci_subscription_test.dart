@@ -11,47 +11,47 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
-import '../src/request_handling/subscription_v2_tester.dart';
-import '../src/service/fake_luci_build_service_v2.dart';
-import '../src/service/fake_scheduler_v2.dart';
-import '../src/utilities/build_bucket_v2_messages.dart';
+import '../src/request_handling/subscription_tester.dart';
+import '../src/service/fake_luci_build_service.dart';
+import '../src/service/fake_scheduler.dart';
+import '../src/utilities/build_bucket_messages.dart';
 import '../src/utilities/mocks.dart';
 
 const String ref = 'deadbeef';
 
 void main() {
-  late PresubmitLuciSubscriptionV2 handler;
+  late PresubmitLuciSubscription handler;
   late FakeConfig config;
   late MockGitHub mockGitHubClient;
   late FakeHttpRequest request;
-  late SubscriptionV2Tester tester;
+  late SubscriptionTester tester;
   late MockRepositoriesService mockRepositoriesService;
-  late MockGithubChecksServiceV2 mockGithubChecksService;
-  late MockLuciBuildServiceV2 mockLuciBuildService;
-  late FakeSchedulerV2 scheduler;
+  late MockGithubChecksService mockGithubChecksService;
+  late MockLuciBuildService mockLuciBuildService;
+  late FakeScheduler scheduler;
 
   setUp(() async {
     config = FakeConfig();
-    mockLuciBuildService = MockLuciBuildServiceV2();
+    mockLuciBuildService = MockLuciBuildService();
 
-    mockGithubChecksService = MockGithubChecksServiceV2();
-    scheduler = FakeSchedulerV2(
+    mockGithubChecksService = MockGithubChecksService();
+    scheduler = FakeScheduler(
       ciYaml: examplePresubmitRescheduleConfig,
       config: config,
       luciBuildService: mockLuciBuildService,
     );
 
-    handler = PresubmitLuciSubscriptionV2(
+    handler = PresubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,
-      luciBuildService: FakeLuciBuildServiceV2(config: config),
+      luciBuildService: FakeLuciBuildService(config: config),
       githubChecksService: mockGithubChecksService,
       authProvider: FakeAuthenticationProvider(),
       scheduler: scheduler,
     );
     request = FakeHttpRequest();
 
-    tester = SubscriptionV2Tester(
+    tester = SubscriptionTester(
       request: request,
     );
 
@@ -62,7 +62,7 @@ void main() {
   });
 
   test('Requests without repo_owner and repo_name do not update checks', () async {
-    tester.message = createPushMessageV2(
+    tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux Host Engine',
@@ -98,7 +98,7 @@ void main() {
       'repo_name': 'cocoon',
     };
 
-    tester.message = createPushMessageV2(
+    tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux Host Engine',
@@ -135,14 +135,14 @@ void main() {
       'repo_name': 'flutter',
     };
 
-    tester.message = createPushMessageV2(
+    tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux A',
       userData: userDataMap,
     );
 
-    final bbv2.BuildsV2PubSub buildsV2PubSub = createBuild(
+    final bbv2.BuildsV2PubSub buildsPubSub = createBuild(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux A',
@@ -150,7 +150,7 @@ void main() {
 
     when(
       mockLuciBuildService.rescheduleBuild(
-        build: buildsV2PubSub.build,
+        build: buildsPubSub.build,
         builderName: 'Linux Coverage',
         rescheduleAttempt: 0,
         userDataMap: userDataMap,
@@ -165,7 +165,7 @@ void main() {
     await tester.post(handler);
     verifyNever(
       mockLuciBuildService.rescheduleBuild(
-        build: buildsV2PubSub.build,
+        build: buildsPubSub.build,
         builderName: 'Linux Coverage',
         rescheduleAttempt: 0,
         userDataMap: userDataMap,
@@ -201,14 +201,14 @@ void main() {
       'repo_name': 'flutter',
     };
 
-    tester.message = createPushMessageV2(
+    tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux B',
       userData: userDataMap,
     );
 
-    final bbv2.BuildsV2PubSub buildsV2PubSub = createBuild(
+    final bbv2.BuildsV2PubSub buildsPubSub = createBuild(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux A',
@@ -216,7 +216,7 @@ void main() {
 
     when(
       mockLuciBuildService.rescheduleBuild(
-        build: buildsV2PubSub.build,
+        build: buildsPubSub.build,
         builderName: 'Linux Coverage',
         rescheduleAttempt: 1,
         userDataMap: userDataMap,
@@ -230,7 +230,7 @@ void main() {
     await tester.post(handler);
     verifyNever(
       mockLuciBuildService.rescheduleBuild(
-        build: buildsV2PubSub.build,
+        build: buildsPubSub.build,
         builderName: 'Linux Coverage',
         rescheduleAttempt: 1,
         userDataMap: userDataMap,
@@ -267,14 +267,14 @@ void main() {
       'repo_name': 'flutter',
     };
 
-    tester.message = createPushMessageV2(
+    tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux C',
       userData: userDataMap,
     );
 
-    final bbv2.BuildsV2PubSub buildsV2PubSub = createBuild(
+    final bbv2.BuildsV2PubSub buildsPubSub = createBuild(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux C',
@@ -283,7 +283,7 @@ void main() {
     await tester.post(handler);
     verifyNever(
       mockLuciBuildService.rescheduleBuild(
-        build: buildsV2PubSub.build,
+        build: buildsPubSub.build,
         builderName: 'Linux C',
         userDataMap: userDataMap,
         rescheduleAttempt: 1,
@@ -321,14 +321,14 @@ void main() {
       'repo_name': 'flutter',
     };
 
-    tester.message = createPushMessageV2(
+    tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux C',
       userData: userDataMap,
     );
 
-    final bbv2.BuildsV2PubSub buildsV2PubSub = createBuild(
+    final bbv2.BuildsV2PubSub buildsPubSub = createBuild(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux C',
@@ -337,7 +337,7 @@ void main() {
     await tester.post(handler);
     verifyNever(
       mockLuciBuildService.rescheduleBuild(
-        build: buildsV2PubSub.build,
+        build: buildsPubSub.build,
         builderName: 'Linux C',
         userDataMap: userDataMap,
         rescheduleAttempt: 1,

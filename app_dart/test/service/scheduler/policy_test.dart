@@ -4,7 +4,7 @@
 
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
+import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:test/test.dart';
 
@@ -86,7 +86,7 @@ void main() {
       db.addOnQuery<Task>((Iterable<Task> results) => latestAllPending);
       expect(
         await policy.triggerPriority(task: generateTask(7), datastore: datastore),
-        LuciBuildServiceV2.kDefaultPriority,
+        LuciBuildService.kDefaultPriority,
       );
     });
 
@@ -94,7 +94,7 @@ void main() {
       db.addOnQuery<Task>((Iterable<Task> results) => latestFailed);
       expect(
         await policy.triggerPriority(task: generateTask(7), datastore: datastore),
-        LuciBuildServiceV2.kRerunPriority,
+        LuciBuildService.kRerunPriority,
       );
     });
 
@@ -142,7 +142,7 @@ void main() {
       db.addOnQuery<Task>((Iterable<Task> results) => pending);
       expect(
         await policy.triggerPriority(task: generateTask(2), datastore: datastore),
-        LuciBuildServiceV2.kDefaultPriority,
+        LuciBuildService.kDefaultPriority,
       );
     });
 
@@ -150,7 +150,7 @@ void main() {
       db.addOnQuery<Task>((Iterable<Task> results) => latestFailed);
       expect(
         await policy.triggerPriority(task: generateTask(2), datastore: datastore),
-        LuciBuildServiceV2.kRerunPriority,
+        LuciBuildService.kRerunPriority,
       );
     });
   });

@@ -5,11 +5,11 @@
 import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_service/src/model/luci/pubsub_message_v2.dart';
+import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:fixnum/fixnum.dart';
 
-PushMessageV2 createPushMessageV2(
+PushMessage createPushMessage(
   Int64 id, {
   String? project = 'flutter',
   String? bucket = 'try',
@@ -34,7 +34,7 @@ PushMessageV2 createPushMessageV2(
 
   final String pubSubCallBackString = jsonEncode(pubSubCallBackMap);
 
-  return PushMessageV2(data: pubSubCallBackString);
+  return PushMessage(data: pubSubCallBackString);
 }
 
 bbv2.PubSubCallBack createPubSubCallBack(
@@ -48,7 +48,7 @@ bbv2.PubSubCallBack createPubSubCallBack(
   bool? addBuildSet = true,
 }) {
   // this contains BuildsV2PubSub and UserData (List<int>).
-  final bbv2.BuildsV2PubSub buildsV2PubSub = createBuild(
+  final bbv2.BuildsV2PubSub buildsPubSub = createBuild(
     id,
     project: project,
     bucket: bucket,
@@ -58,7 +58,7 @@ bbv2.PubSubCallBack createPubSubCallBack(
     addBuildSet: addBuildSet,
   );
   final List<int>? userDataBytes = UserData.encodeUserDataToBytes(userData!);
-  return bbv2.PubSubCallBack(buildPubsub: buildsV2PubSub, userData: userDataBytes);
+  return bbv2.PubSubCallBack(buildPubsub: buildsPubSub, userData: userDataBytes);
 }
 
 bbv2.BuildsV2PubSub createBuild(

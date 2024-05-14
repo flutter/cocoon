@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
+import 'package:cocoon_service/src/service/build_bucket_client.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
@@ -49,7 +49,7 @@ void main() {
       String response,
       String urlPrefix,
       String expectedPath,
-      Future<T> Function(BuildBucketV2Client) requestCallback,
+      Future<T> Function(BuildBucketClient) requestCallback,
     ) async {
       when(mockAccessTokenProvider.createAccessToken()).thenAnswer((_) async {
         return AccessToken('Bearer', 'data', DateTime.utc(2119));
@@ -63,7 +63,7 @@ void main() {
         }
         return http.Response('Test exception: A mock response was not returned', HttpStatus.internalServerError);
       });
-      final BuildBucketV2Client client = BuildBucketV2Client(
+      final BuildBucketClient client = BuildBucketClient(
         httpClient: httpClient,
         accessTokenService: mockAccessTokenProvider,
       );
@@ -76,7 +76,7 @@ void main() {
         return AccessToken('Bearer', 'data', DateTime.utc(2119));
       });
       httpClient = MockClient((_) async => http.Response('Error', HttpStatus.forbidden));
-      final BuildBucketV2Client client = BuildBucketV2Client(
+      final BuildBucketClient client = BuildBucketClient(
         buildBucketBuildUri: 'https://localhost',
         httpClient: httpClient,
         accessTokenService: mockAccessTokenProvider,
@@ -114,7 +114,7 @@ void main() {
         buildJson,
         'builds',
         'ScheduleBuild',
-        (BuildBucketV2Client client) => client.scheduleBuild(request, buildBucketUri: 'https://localhost/builds'),
+        (BuildBucketClient client) => client.scheduleBuild(request, buildBucketUri: 'https://localhost/builds'),
       );
 
       expect(build.id, Int64(123));
@@ -137,7 +137,7 @@ void main() {
         buildJson,
         'builds',
         'CancelBuild',
-        (BuildBucketV2Client client) => client.cancelBuild(request, buildBucketUri: 'https://localhost/builds'),
+        (BuildBucketClient client) => client.cancelBuild(request, buildBucketUri: 'https://localhost/builds'),
       );
 
       expect(build.id, Int64(123));
@@ -173,7 +173,7 @@ void main() {
         batchJson,
         'builds',
         'Batch',
-        (BuildBucketV2Client client) => client.batch(request, buildBucketUri: 'https://localhost/builds'),
+        (BuildBucketClient client) => client.batch(request, buildBucketUri: 'https://localhost/builds'),
       );
       expect(response.responses.length, 1);
       expect(response.responses.first.getBuild.status, bbv2.Status.SUCCESS);
@@ -201,7 +201,7 @@ void main() {
         batchJson,
         'builds',
         'Batch',
-        (BuildBucketV2Client client) => client.batch(request, buildBucketUri: 'https://localhost/builds'),
+        (BuildBucketClient client) => client.batch(request, buildBucketUri: 'https://localhost/builds'),
       );
 
       expect(response.responses.length, 1);
@@ -218,7 +218,7 @@ void main() {
         buildJson,
         'builds',
         'GetBuild',
-        (BuildBucketV2Client client) => client.getBuild(request, buildBucketUri: 'https://localhost/builds'),
+        (BuildBucketClient client) => client.getBuild(request, buildBucketUri: 'https://localhost/builds'),
       );
 
       expect(build.id, Int64(123));
@@ -239,7 +239,7 @@ void main() {
         searchJson,
         'builds',
         'SearchBuilds',
-        (BuildBucketV2Client client) => client.searchBuilds(request, buildBucketUri: 'https://localhost/builds'),
+        (BuildBucketClient client) => client.searchBuilds(request, buildBucketUri: 'https://localhost/builds'),
       );
 
       expect(response.builds.length, 1);
@@ -255,7 +255,7 @@ void main() {
         builderJson,
         'builders',
         'ListBuilders',
-        (BuildBucketV2Client client) => client.listBuilders(request, buildBucketUri: 'https://localhost/builders'),
+        (BuildBucketClient client) => client.listBuilders(request, buildBucketUri: 'https://localhost/builders'),
       );
 
       expect(listBuildersResponse.builders.length, 2);
@@ -264,7 +264,7 @@ void main() {
   });
 }
 
-const String builderJson = '''${BuildBucketV2Client.kRpcResponseGarbage}
+const String builderJson = '''${BuildBucketClient.kRpcResponseGarbage}
 {
   "builders": [{
     "id": {
@@ -281,7 +281,7 @@ const String builderJson = '''${BuildBucketV2Client.kRpcResponseGarbage}
   }]
 }''';
 
-const String searchJson = '''${BuildBucketV2Client.kRpcResponseGarbage}
+const String searchJson = '''${BuildBucketClient.kRpcResponseGarbage}
 {
   "builds": [
     {
@@ -310,7 +310,7 @@ const String searchJson = '''${BuildBucketV2Client.kRpcResponseGarbage}
   ]
 }''';
 
-const String batchJson = '''${BuildBucketV2Client.kRpcResponseGarbage}
+const String batchJson = '''${BuildBucketClient.kRpcResponseGarbage}
 {
   "responses": [
     {
@@ -355,7 +355,7 @@ const String batchJson = '''${BuildBucketV2Client.kRpcResponseGarbage}
   ]
 }''';
 
-const String buildJson = '''${BuildBucketV2Client.kRpcResponseGarbage}
+const String buildJson = '''${BuildBucketClient.kRpcResponseGarbage}
 {
   "id": "123",
   "builder": {

@@ -6,7 +6,7 @@ import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
-import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
+import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:fixnum/fixnum.dart';
 
 import 'package:github/github.dart' as github;
@@ -17,32 +17,32 @@ import 'package:test/test.dart';
 
 import '../model/github/checks_test_data.dart';
 import '../src/datastore/fake_config.dart';
-import '../src/service/fake_scheduler_v2.dart';
+import '../src/service/fake_scheduler.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
   FakeConfig config;
-  late FakeSchedulerV2 scheduler;
+  late FakeScheduler scheduler;
   MockGithubService mockGithubService;
   late MockGithubChecksUtil mockGithubChecksUtil;
-  late MockLuciBuildServiceV2 mockLuciBuildService;
-  late GithubChecksServiceV2 githubChecksService;
+  late MockLuciBuildService mockLuciBuildService;
+  late GithubChecksService githubChecksService;
   late github.CheckRun checkRun;
   late RepositorySlug slug;
 
   setUp(() {
     mockGithubService = MockGithubService();
-    mockLuciBuildService = MockLuciBuildServiceV2();
+    mockLuciBuildService = MockLuciBuildService();
     when(mockGithubService.listFiles(any)).thenAnswer((_) async => <String>[]);
     mockGithubChecksUtil = MockGithubChecksUtil();
     config = FakeConfig(githubService: mockGithubService, rollerAccountsValue: {'engine-flutter-autoroll'});
-    githubChecksService = GithubChecksServiceV2(
+    githubChecksService = GithubChecksService(
       config,
       githubChecksUtil: mockGithubChecksUtil,
     );
     slug = RepositorySlug('flutter', 'cocoon');
-    scheduler = FakeSchedulerV2(
+    scheduler = FakeScheduler(
       config: config,
       luciBuildService: mockLuciBuildService,
       githubChecksUtil: mockGithubChecksUtil,
