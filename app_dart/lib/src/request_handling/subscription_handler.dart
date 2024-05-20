@@ -8,7 +8,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:meta/meta.dart';
 
-import '../model/luci/pubsub_message_v2.dart';
+import '../model/luci/pubsub_message.dart';
 import '../service/cache_service.dart';
 import '../service/logging.dart';
 import 'api_request_handler.dart';
@@ -23,11 +23,11 @@ import 'request_handler.dart';
 /// Messages adhere to a specific contract, as follows:
 ///
 ///  * All requests must be authenticated per [AuthenticationProvider].
-///  * Request body is passed following the format of [PubSubPushMessageV2].
+///  * Request body is passed following the format of [PubSubPushMessage].
 @immutable
-abstract class SubscriptionHandlerV2 extends RequestHandler<Body> {
-  /// Creates a new [SubscriptionHandlerV2].
-  const SubscriptionHandlerV2({
+abstract class SubscriptionHandler extends RequestHandler<Body> {
+  /// Creates a new [SubscriptionHandler].
+  const SubscriptionHandler({
     required this.cache,
     required super.config,
     this.authProvider,
@@ -49,9 +49,9 @@ abstract class SubscriptionHandlerV2 extends RequestHandler<Body> {
   @protected
   AuthenticatedContext get authContext => getValue<AuthenticatedContext>(ApiKey.authContext)!;
 
-  /// The [PushMessageV2] from this [HttpRequest].
+  /// The [PushMessage] from this [HttpRequest].
   @protected
-  PushMessageV2 get message => getValue<PushMessageV2>(PubSubKey.message)!;
+  PushMessage get message => getValue<PushMessage>(PubSubKey.message)!;
 
   @override
   Future<void> service(
@@ -86,11 +86,11 @@ abstract class SubscriptionHandlerV2 extends RequestHandler<Body> {
     }
 
     log.info('Request body: ${utf8.decode(body)}');
-    PubSubPushMessageV2? pubSubPushMessage;
+    PubSubPushMessage? pubSubPushMessage;
     if (body.isNotEmpty) {
       try {
         final Map<String, dynamic> json = jsonDecode(utf8.decode(body)) as Map<String, dynamic>;
-        pubSubPushMessage = PubSubPushMessageV2.fromJson(json);
+        pubSubPushMessage = PubSubPushMessage.fromJson(json);
       } catch (error) {
         final HttpResponse response = request.response;
         response
@@ -156,5 +156,5 @@ abstract class SubscriptionHandlerV2 extends RequestHandler<Body> {
 class PubSubKey<T> extends RequestKey<T> {
   const PubSubKey._(super.name);
 
-  static const PubSubKey<PushMessageV2> message = PubSubKey<PushMessageV2>._('message');
+  static const PubSubKey<PushMessage> message = PubSubKey<PushMessage>._('message');
 }

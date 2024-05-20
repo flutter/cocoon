@@ -26,12 +26,12 @@ Future<void> main() async {
   final AuthenticationProvider authProvider = AuthenticationProvider(config: config);
   final AuthenticationProvider swarmingAuthProvider = SwarmingAuthenticationProvider(config: config);
 
-  final BuildBucketV2Client buildBucketClient = BuildBucketV2Client(
+  final BuildBucketClient buildBucketClient = BuildBucketClient(
     accessTokenService: AccessTokenService.defaultProvider(config),
   );
 
   /// LUCI service class to communicate with buildBucket service.
-  final LuciBuildServiceV2 luciBuildService = LuciBuildServiceV2(
+  final LuciBuildService luciBuildService = LuciBuildService(
     config: config,
     cache: cache,
     buildBucketClient: buildBucketClient,
@@ -39,7 +39,7 @@ Future<void> main() async {
   );
 
   /// Github checks api service used to provide luci test execution status on the Github UI.
-  final GithubChecksServiceV2 githubChecksService = GithubChecksServiceV2(
+  final GithubChecksService githubChecksService = GithubChecksService(
     config,
   );
 
@@ -47,7 +47,7 @@ Future<void> main() async {
   final GerritService gerritService = GerritService(config: config);
 
   /// Cocoon scheduler service to manage validating commits in presubmit and postsubmit.
-  final SchedulerV2 scheduler = SchedulerV2(
+  final Scheduler scheduler = Scheduler(
     cache: cache,
     config: config,
     githubChecksService: githubChecksService,

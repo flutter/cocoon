@@ -188,7 +188,7 @@ class Task extends Document {
     fields![kTaskTestFlakyField] = Value(booleanValue: testFlaky);
   }
 
-  void updateFromBuildV2(bbv2.Build build) {
+  void updateFromBuild(bbv2.Build build) {
     fields![kTaskBuildNumberField] = Value(integerValue: build.number.toString());
 
     fields![kTaskCreateTimestampField] = Value(
@@ -201,7 +201,7 @@ class Task extends Document {
       integerValue: (build.endTime.toDateTime().millisecondsSinceEpoch).toString(),
     );
 
-    _setStatusFromLuciStatusV2(build);
+    _setStatusFromLuciStatus(build);
   }
 
   void resetAsRetry({int attempt = 1}) {
@@ -218,7 +218,7 @@ class Task extends Document {
     };
   }
 
-  String _setStatusFromLuciStatusV2(bbv2.Build build) {
+  String _setStatusFromLuciStatus(bbv2.Build build) {
     // Updates can come out of order. Ensure completed statuses are kept.
     if (_isStatusCompleted()) {
       return status;

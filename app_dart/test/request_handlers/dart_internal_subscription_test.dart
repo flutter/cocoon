@@ -9,7 +9,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
-import 'package:cocoon_service/src/model/luci/pubsub_message_v2.dart';
+import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart';
@@ -20,7 +20,7 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
-import '../src/request_handling/subscription_v2_tester.dart';
+import '../src/request_handling/subscription_tester.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
@@ -71,8 +71,8 @@ void main() {
   late DartInternalSubscription handler;
   late FakeConfig config;
   late FakeHttpRequest request;
-  late MockBuildBucketV2Client buildBucketClient;
-  late SubscriptionV2Tester tester;
+  late MockBuildBucketClient buildBucketClient;
+  late SubscriptionTester tester;
   late MockFirestoreService mockFirestoreService;
   late Commit commit;
 
@@ -89,7 +89,7 @@ void main() {
   setUp(() async {
     mockFirestoreService = MockFirestoreService();
     config = FakeConfig(firestoreService: mockFirestoreService);
-    buildBucketClient = MockBuildBucketV2Client();
+    buildBucketClient = MockBuildBucketClient();
     handler = DartInternalSubscription(
       cache: CacheService(inMemory: true),
       config: config,
@@ -99,7 +99,7 @@ void main() {
     );
     request = FakeHttpRequest();
 
-    tester = SubscriptionV2Tester(
+    tester = SubscriptionTester(
       request: request,
     );
 
@@ -117,8 +117,8 @@ void main() {
     final bbv2.Build build = bbv2.Build().createEmptyInstance();
     build.mergeFromProto3Json(jsonDecode(buildJson) as Map<String, dynamic>);
 
-    const PushMessageV2 pushMessageV2 = PushMessageV2(data: buildJson, messageId: '798274983');
-    tester.message = pushMessageV2;
+    const PushMessage pushMessage = PushMessage(data: buildJson, messageId: '798274983');
+    tester.message = pushMessage;
 
     when(
       buildBucketClient.getBuild(
@@ -140,7 +140,7 @@ void main() {
     ).thenAnswer((Invocation invocation) {
       return Future<BatchWriteResponse>.value(BatchWriteResponse());
     });
-    tester.message = const PushMessageV2(data: buildMessageJson);
+    tester.message = const PushMessage(data: buildMessageJson);
 
     await tester.post(handler);
 
@@ -233,8 +233,8 @@ void main() {
     final List<Task> datastoreCommit = <Task>[fakeTask];
     await config.db.commit(inserts: datastoreCommit);
 
-    const PushMessageV2 pushMessageV2 = PushMessageV2(data: buildMessageJson, messageId: '798274983');
-    tester.message = pushMessageV2;
+    const PushMessage pushMessage = PushMessage(data: buildMessageJson, messageId: '798274983');
+    tester.message = pushMessage;
 
     await tester.post(handler);
 
@@ -300,7 +300,7 @@ void main() {
   });
 
   test('ignores message with empty build data', () async {
-    tester.message = const PushMessageV2();
+    tester.message = const PushMessage();
     expect(await tester.post(handler), equals(Body.empty));
   });
 
@@ -328,8 +328,8 @@ void main() {
 }
 ''';
 
-    const PushMessageV2 pushMessageV2 = PushMessageV2(data: dartMessage, messageId: '798274983');
-    tester.message = pushMessageV2;
+    const PushMessage pushMessage = PushMessage(data: dartMessage, messageId: '798274983');
+    tester.message = pushMessage;
     expect(await tester.post(handler), equals(Body.empty));
   });
 
@@ -356,8 +356,8 @@ void main() {
 }
 ''';
 
-    const PushMessageV2 pushMessageV2 = PushMessageV2(data: unsupportedProjectMessage, messageId: '798274983');
-    tester.message = pushMessageV2;
+    const PushMessage pushMessage = PushMessage(data: unsupportedProjectMessage, messageId: '798274983');
+    tester.message = pushMessage;
     expect(await tester.post(handler), equals(Body.empty));
   });
 
@@ -384,8 +384,8 @@ void main() {
 }
 ''';
 
-    const PushMessageV2 pushMessageV2 = PushMessageV2(data: unknownBuilderMessage, messageId: '798274983');
-    tester.message = pushMessageV2;
+    const PushMessage pushMessage = PushMessage(data: unknownBuilderMessage, messageId: '798274983');
+    tester.message = pushMessage;
     expect(await tester.post(handler), equals(Body.empty));
   });
 }

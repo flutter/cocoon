@@ -725,8 +725,8 @@ class _FakeQueryResponse_65 extends _i1.SmartFake implements _i6.QueryResponse {
         );
 }
 
-class _FakeBuildBucketV2Client_66 extends _i1.SmartFake implements _i15.BuildBucketV2Client {
-  _FakeBuildBucketV2Client_66(
+class _FakeBuildBucketClient_66 extends _i1.SmartFake implements _i15.BuildBucketClient {
+  _FakeBuildBucketClient_66(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -1428,12 +1428,12 @@ class MockBranchService extends _i1.Mock implements _i15.BranchService {
       ) as _i20.Future<List<Map<String, String>>>);
 }
 
-/// A class which mocks [BuildBucketV2Client].
+/// A class which mocks [BuildBucketClient].
 ///
 /// See the documentation for Mockito's code generation for more information.
 // ignore: must_be_immutable
-class MockBuildBucketV2Client extends _i1.Mock implements _i15.BuildBucketV2Client {
-  MockBuildBucketV2Client() {
+class MockBuildBucketClient extends _i1.Mock implements _i15.BuildBucketClient {
+  MockBuildBucketClient() {
     _i1.throwOnMissingStub(this);
   }
 
@@ -2460,13 +2460,13 @@ class MockDatastoreService extends _i1.Mock implements _i9.DatastoreService {
       ) as _i20.Future<T?>);
 
   @override
-  _i20.Future<_i35.Task?> getTaskFromBuildbucketV2Build(
+  _i20.Future<_i35.Task?> getTaskFromBuildbucketBuild(
     _i8.Build? build, {
     String? customName,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #getTaskFromBuildbucketV2Build,
+          #getTaskFromBuildbucketBuild,
           [build],
           {#customName: customName},
         ),
@@ -3497,11 +3497,11 @@ class MockIssuesService extends _i1.Mock implements _i13.IssuesService {
       ) as _i20.Future<void>);
 }
 
-/// A class which mocks [GithubChecksServiceV2].
+/// A class which mocks [GithubChecksService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockGithubChecksServiceV2 extends _i1.Mock implements _i15.GithubChecksServiceV2 {
-  MockGithubChecksServiceV2() {
+class MockGithubChecksService extends _i1.Mock implements _i15.GithubChecksService {
+  MockGithubChecksService() {
     _i1.throwOnMissingStub(this);
   }
 
@@ -3545,7 +3545,7 @@ class MockGithubChecksServiceV2 extends _i1.Mock implements _i15.GithubChecksSer
   _i20.Future<void> handleCheckSuite(
     _i13.PullRequest? pullRequest,
     _i32.CheckSuiteEvent? checkSuiteEvent,
-    _i15.SchedulerV2? scheduler,
+    _i15.Scheduler? scheduler,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -3564,7 +3564,7 @@ class MockGithubChecksServiceV2 extends _i1.Mock implements _i15.GithubChecksSer
   _i20.Future<bool> updateCheckStatus({
     required _i8.Build? build,
     required Map<String, dynamic>? userDataMap,
-    required _i15.LuciBuildServiceV2? luciBuildService,
+    required _i15.LuciBuildService? luciBuildService,
     required _i13.RepositorySlug? slug,
     bool? rescheduled = false,
   }) =>
@@ -6394,25 +6394,25 @@ class MockJobsResource extends _i1.Mock implements _i6.JobsResource {
       ) as _i20.Future<_i6.QueryResponse>);
 }
 
-/// A class which mocks [LuciBuildServiceV2].
+/// A class which mocks [LuciBuildService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLuciBuildServiceV2 extends _i1.Mock implements _i15.LuciBuildServiceV2 {
-  MockLuciBuildServiceV2() {
+class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
+  MockLuciBuildService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i15.BuildBucketV2Client get buildBucketClient => (super.noSuchMethod(
+  _i15.BuildBucketClient get buildBucketClient => (super.noSuchMethod(
         Invocation.getter(#buildBucketClient),
-        returnValue: _FakeBuildBucketV2Client_66(
+        returnValue: _FakeBuildBucketClient_66(
           this,
           Invocation.getter(#buildBucketClient),
         ),
-      ) as _i15.BuildBucketV2Client);
+      ) as _i15.BuildBucketClient);
 
   @override
-  set buildBucketClient(_i15.BuildBucketV2Client? _buildBucketClient) => super.noSuchMethod(
+  set buildBucketClient(_i15.BuildBucketClient? _buildBucketClient) => super.noSuchMethod(
         Invocation.setter(
           #buildBucketClient,
           _buildBucketClient,

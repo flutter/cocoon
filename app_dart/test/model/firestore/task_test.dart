@@ -61,10 +61,10 @@ void main() {
       expect(taskDocuments[0].fields![kTaskCommitShaField]!.stringValue, commit.sha);
     });
 
-    group('updateFromBuildV2', () {
+    group('updateFromBuild', () {
       test('update succeeds from buildbucket v2', () async {
         final bbv2.BuildsV2PubSub pubSubCallBack = bbv2.BuildsV2PubSub().createEmptyInstance();
-        pubSubCallBack.mergeFromProto3Json(jsonDecode(buildBucketV2Message) as Map<String, dynamic>);
+        pubSubCallBack.mergeFromProto3Json(jsonDecode(buildBucketMessage) as Map<String, dynamic>);
         final bbv2.Build build = pubSubCallBack.build;
 
         final Task task = generateFirestoreTask(
@@ -83,7 +83,7 @@ void main() {
         expect(task.createTimestamp, 0);
         expect(task.startTimestamp, 0);
 
-        task.updateFromBuildV2(build);
+        task.updateFromBuild(build);
         expect(task.status, 'Succeeded');
 
         expect(task.buildNumber, 561);
@@ -157,7 +157,7 @@ void main() {
   });
 }
 
-String buildBucketV2Message = '''
+String buildBucketMessage = '''
 {
 	"build":  {
 		"id":  "8752269309051025889",

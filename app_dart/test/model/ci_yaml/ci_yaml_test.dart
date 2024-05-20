@@ -8,7 +8,7 @@ import 'package:cocoon_service/protos.dart' as pb;
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:test/test.dart';
 
-import '../../src/service/fake_scheduler_v2.dart';
+import '../../src/service/fake_scheduler.dart';
 
 void main() {
   group('enabledBranchesMatchesCurrentBranch', () {

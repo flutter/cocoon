@@ -16,8 +16,8 @@ import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
-import 'package:cocoon_service/src/service/scheduler_v2.dart';
+import 'package:cocoon_service/src/service/github_checks_service.dart';
+import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
@@ -35,7 +35,7 @@ import '../src/service/fake_build_status_provider.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_github_service.dart';
-import '../src/service/fake_luci_build_service_v2.dart';
+import '../src/service/fake_luci_build_service.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
@@ -70,7 +70,7 @@ void main() {
   late MockClient httpClient;
   late MockFirestoreService mockFirestoreService;
   late MockGithubChecksUtil mockGithubChecksUtil;
-  late SchedulerV2 scheduler;
+  late Scheduler scheduler;
 
   final PullRequest pullRequest = generatePullRequest(id: 42);
 
@@ -122,14 +122,14 @@ void main() {
       // Generate check runs based on the name hash code
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
           .thenAnswer((Invocation invocation) async => generateCheckRun(invocation.positionalArguments[2].hashCode));
-      scheduler = SchedulerV2(
+      scheduler = Scheduler(
         cache: cache,
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
         buildStatusProvider: (_, __) => buildStatusService,
-        githubChecksService: GithubChecksServiceV2(config, githubChecksUtil: mockGithubChecksUtil),
+        githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
         httpClientProvider: () => httpClient,
-        luciBuildService: FakeLuciBuildServiceV2(
+        luciBuildService: FakeLuciBuildService(
           config: config,
           githubChecksUtil: mockGithubChecksUtil,
           gerritService: FakeGerritService(
@@ -268,7 +268,7 @@ void main() {
         ).thenAnswer((Invocation invocation) {
           return Future<CommitResponse>.value(CommitResponse());
         });
-        final MockLuciBuildServiceV2 luciBuildService = MockLuciBuildServiceV2();
+        final MockLuciBuildService luciBuildService = MockLuciBuildService();
         when(
           luciBuildService.schedulePostsubmitBuilds(
             commit: anyNamed('commit'),
@@ -280,12 +280,12 @@ void main() {
             CommitStatus(generateCommit(1, repo: 'engine', branch: 'main'), const <Stage>[]),
           ],
         );
-        scheduler = SchedulerV2(
+        scheduler = Scheduler(
           cache: cache,
           config: config,
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksServiceV2(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
           luciBuildService: luciBuildService,
         );
@@ -317,10 +317,10 @@ void main() {
         ).thenAnswer((Invocation invocation) {
           return Future<CommitResponse>.value(CommitResponse());
         });
-        final MockBuildBucketV2Client mockBuildBucketV2Client = MockBuildBucketV2Client();
-        final FakeLuciBuildServiceV2 luciBuildServiceV2 = FakeLuciBuildServiceV2(
+        final MockBuildBucketClient mockBuildBucketClient = MockBuildBucketClient();
+        final FakeLuciBuildService luciBuildService = FakeLuciBuildService(
           config: config,
-          buildBucketClient: mockBuildBucketV2Client,
+          buildBucketClient: mockBuildBucketClient,
           gerritService: FakeGerritService(),
           githubChecksUtil: mockGithubChecksUtil,
           pubsub: pubsub,
@@ -328,7 +328,7 @@ void main() {
         when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
             .thenAnswer((_) async => generateCheckRun(1, name: 'Linux A'));
 
-        when(mockBuildBucketV2Client.listBuilders(any)).thenAnswer((_) async {
+        when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
           return bbv2.ListBuildersResponse(
             builders: [
               bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'Linux A')),
@@ -342,14 +342,14 @@ void main() {
           ],
         );
         config.batchSizeValue = 1;
-        scheduler = SchedulerV2(
+        scheduler = Scheduler(
           cache: cache,
           config: config,
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksServiceV2(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
-          luciBuildService: luciBuildServiceV2,
+          luciBuildService: luciBuildService,
         );
 
         await scheduler.addCommits(createCommitList(<String>['1'], repo: 'engine', branch: 'main'));
@@ -464,14 +464,14 @@ targets:
           print(request.url.path);
           throw Exception('Failed to find ${request.url.path}');
         });
-        scheduler = SchedulerV2(
+        scheduler = Scheduler(
           cache: cache,
           config: config,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           buildStatusProvider: (_, __) => buildStatusService,
-          githubChecksService: GithubChecksServiceV2(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
-          luciBuildService: FakeLuciBuildServiceV2(
+          luciBuildService: FakeLuciBuildService(
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
             gerritService: FakeGerritService(
@@ -548,13 +548,13 @@ targets:
           githubService: mockGithubService,
           firestoreService: mockFirestoreService,
         );
-        scheduler = SchedulerV2(
+        scheduler = Scheduler(
           cache: cache,
           config: config,
           buildStatusProvider: (_, __) => buildStatusService,
-          githubChecksService: GithubChecksServiceV2(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
-          luciBuildService: FakeLuciBuildServiceV2(
+          luciBuildService: FakeLuciBuildService(
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
           ),
@@ -582,12 +582,12 @@ targets:
           return CheckRun.fromJson(const <String, dynamic>{
             'id': 1,
             'started_at': '2020-05-10T02:49:31Z',
-            'name': SchedulerV2.kCiYamlCheckName,
+            'name': Scheduler.kCiYamlCheckName,
             'check_suite': <String, dynamic>{'id': 2},
           });
         });
         final Map<String, dynamic> checkRunEventJson = jsonDecode(checkRunString) as Map<String, dynamic>;
-        checkRunEventJson['check_run']['name'] = SchedulerV2.kCiYamlCheckName;
+        checkRunEventJson['check_run']['name'] = Scheduler.kCiYamlCheckName;
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(checkRunEventJson);
         expect(await scheduler.processCheckRun(checkRunEvent), true);
         verify(
@@ -595,7 +595,7 @@ targets:
             any,
             any,
             any,
-            SchedulerV2.kCiYamlCheckName,
+            Scheduler.kCiYamlCheckName,
             output: anyNamed('output'),
           ),
         );
@@ -610,10 +610,10 @@ targets:
       //   db = FakeDatastoreDB();
 
       //   // Set up mock buildbucket to validate which bucket is requested.
-      //   final MockBuildBucketV2Client mockBuildbucket = MockBuildBucketV2Client();
+      //   final MockBuildBucketClient mockBuildbucket = MockBuildBucketClient();
 
       //   when(mockBuildbucket.batch(any)).thenAnswer((i) async {
-      //     return FakeBuildBucketV2Client().batch(i.positionalArguments[0]);
+      //     return FakeBuildBucketClient().batch(i.positionalArguments[0]);
       //   });
 
       //   when(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri')))
@@ -625,14 +625,14 @@ targets:
       //     return bbv2.Build(builder: bbv2.BuilderID(), id: Int64());
       //   });
 
-      //   scheduler = SchedulerV2(
+      //   scheduler = Scheduler(
       //     cache: cache,
       //     config: config,
-      //     githubChecksService: GithubChecksServiceV2(config, githubChecksUtil: mockGithubChecksUtil),
-      //     luciBuildService: FakeLuciBuildServiceV2(
+      //     githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+      //     luciBuildService: FakeLuciBuildService(
       //       config: config,
       //       githubChecksUtil: mockGithubChecksUtil,
-      //       buildBucketV2Client: mockBuildbucket,
+      //       buildBucketClient: mockBuildbucket,
       //     ),
       //   );
 
@@ -691,9 +691,9 @@ targets:
 //         });
 
 //         // Set up mock buildbucket to validate which bucket is requested.
-//         final MockBuildBucketV2Client mockBuildbucket = MockBuildBucketV2Client();
+//         final MockBuildBucketClient mockBuildbucket = MockBuildBucketClient();
 //         when(mockBuildbucket.batch(any)).thenAnswer((i) async {
-//           return FakeBuildBucketV2Client().batch(i.positionalArguments[0]);
+//           return FakeBuildBucketClient().batch(i.positionalArguments[0]);
 //         });
 //         when(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri')))
 //             .thenAnswer((realInvocation) async {
@@ -704,15 +704,15 @@ targets:
 //           return bbv2.Build(builder: bbv2.BuilderID(), id: Int64());
 //         });
 
-//         scheduler = SchedulerV2(
+//         scheduler = Scheduler(
 //           cache: cache,
 //           config: config,
-//           githubChecksService: GithubChecksServiceV2(config, githubChecksUtil: mockGithubChecksUtil),
+//           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
 //           httpClientProvider: () => httpClient,
-//           luciBuildService: FakeLuciBuildServiceV2(
+//           luciBuildService: FakeLuciBuildService(
 //             config: config,
 //             githubChecksUtil: mockGithubChecksUtil,
-//             buildBucketV2Client: mockBuildbucket,
+//             buildBucketClient: mockBuildbucket,
 //             gerritService: FakeGerritService(
 //               branchesValue: <String>['master', 'main'],
 //             ),
@@ -937,9 +937,9 @@ targets:
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
           <dynamic>[
-            SchedulerV2.kCiYamlCheckName,
+            Scheduler.kCiYamlCheckName,
             const CheckRunOutput(
-              title: SchedulerV2.kCiYamlCheckName,
+              title: Scheduler.kCiYamlCheckName,
               summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
             ),
             'Linux A',
@@ -961,10 +961,10 @@ targets:
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
           <dynamic>[
-            SchedulerV2.kCiYamlCheckName,
+            Scheduler.kCiYamlCheckName,
             // No other targets should be created.
             const CheckRunOutput(
-              title: SchedulerV2.kCiYamlCheckName,
+              title: Scheduler.kCiYamlCheckName,
               summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
             ),
           ],
@@ -1011,14 +1011,14 @@ targets:
           print(request.url.path);
           throw Exception('Failed to find ${request.url.path}');
         });
-        scheduler = SchedulerV2(
+        scheduler = Scheduler(
           cache: cache,
           config: config,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           buildStatusProvider: (_, __) => buildStatusService,
-          githubChecksService: GithubChecksServiceV2(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
-          luciBuildService: FakeLuciBuildServiceV2(
+          luciBuildService: FakeLuciBuildService(
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
             gerritService: FakeGerritService(
@@ -1043,7 +1043,7 @@ targets:
             .thenThrow(GitHubError(GitHub(), 'Requested Resource was Not Found'));
         buildStatusService =
             FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
-        scheduler = SchedulerV2(
+        scheduler = Scheduler(
           cache: cache,
           config: FakeConfig(
             // tabledataResource: tabledataResource,
@@ -1054,9 +1054,9 @@ targets:
           ),
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksServiceV2(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
-          luciBuildService: FakeLuciBuildServiceV2(
+          luciBuildService: FakeLuciBuildService(
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
             gerritService: FakeGerritService(branchesValue: <String>['master']),
@@ -1067,9 +1067,9 @@ targets:
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
           <dynamic>[
-            SchedulerV2.kCiYamlCheckName,
+            Scheduler.kCiYamlCheckName,
             const CheckRunOutput(
-              title: SchedulerV2.kCiYamlCheckName,
+              title: Scheduler.kCiYamlCheckName,
               summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
             ),
             'Linux A',
@@ -1090,9 +1090,9 @@ targets:
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
           <dynamic>[
-            SchedulerV2.kCiYamlCheckName,
+            Scheduler.kCiYamlCheckName,
             const CheckRunOutput(
-              title: SchedulerV2.kCiYamlCheckName,
+              title: Scheduler.kCiYamlCheckName,
               summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
             ),
             'Linux A',
@@ -1198,21 +1198,21 @@ targets:
       });
 
       // test('retries only triggers failed builds only', () async {
-      //   final MockBuildBucketV2Client mockBuildbucket = MockBuildBucketV2Client();
+      //   final MockBuildBucketClient mockBuildbucket = MockBuildBucketClient();
       //   buildStatusService =
       //       FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
       //   final FakePubSub pubsub = FakePubSub();
-      //   scheduler = SchedulerV2(
+      //   scheduler = Scheduler(
       //     cache: cache,
       //     config: config,
       //     datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-      //     githubChecksService: GithubChecksServiceV2(config, githubChecksUtil: mockGithubChecksUtil),
+      //     githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
       //     buildStatusProvider: (_, __) => buildStatusService,
       //     httpClientProvider: () => httpClient,
-      //     luciBuildService: FakeLuciBuildServiceV2(
+      //     luciBuildService: FakeLuciBuildService(
       //       config: config,
       //       githubChecksUtil: mockGithubChecksUtil,
-      //       buildBucketV2Client: mockBuildbucket,
+      //       buildBucketClient: mockBuildbucket,
       //       gerritService: FakeGerritService(branchesValue: <String>['master']),
       //       pubsub: pubsub,
       //     ),

@@ -33,7 +33,7 @@ void main() {
     });
   });
 
-  group('buildBucketV2Build', () {
+  group('buildBucketBuild', () {
     final DateTime startTimeDateTime = DateTime(2023, 1, 1, 0, 0, 0);
     final bbv2.Timestamp startTimestamp = bbv2.Timestamp.fromDateTime(startTimeDateTime);
 
@@ -52,7 +52,7 @@ void main() {
       config.db.values[expectedTask.key] = expectedTask;
     });
 
-    test('fromBuildBucketV2Build', () async {
+    test('fromBuildBucketBuild', () async {
       final bbv2.Build fakeBuild = bbv2.Build(
         builder: bbv2.BuilderID(project: 'flutter', bucket: 'good-bucket', builder: 'great-builder'),
         number: 12345,
@@ -70,7 +70,7 @@ void main() {
         ),
       );
 
-      final Task t = await Task.fromBuildbucketV2Build(fakeBuild, DatastoreService(config.db, 5));
+      final Task t = await Task.fromBuildbucketBuild(fakeBuild, DatastoreService(config.db, 5));
       expect(t.buildNumber, 12345);
       expect(t.builderName, 'great-builder');
       expect(t.startTimestamp, startTimeDateTime.millisecondsSinceEpoch);
@@ -83,7 +83,7 @@ void main() {
       expect(t.status, 'Succeeded');
     });
 
-    test('updateFromBuildBucketV2Build', () {
+    test('updateFromBuildBucketBuild', () {
       final bbv2.Build fakeBuild = bbv2.Build(
         builder: bbv2.BuilderID(project: 'okay-project', bucket: 'good-bucket', builder: 'great-builder'),
         number: 12345,
@@ -121,7 +121,7 @@ void main() {
         reservedForAgentId: '',
       );
 
-      task.updateFromBuildbucketV2Build(fakeBuild);
+      task.updateFromBuildbucketBuild(fakeBuild);
 
       final Task expectedUpdatedTask = Task(
         attempts: 2,

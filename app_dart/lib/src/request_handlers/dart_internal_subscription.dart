@@ -11,7 +11,7 @@ import 'package:meta/meta.dart';
 import '../../cocoon_service.dart';
 import '../model/appengine/task.dart';
 import '../model/firestore/task.dart' as firestore;
-import '../request_handling/subscription_handler_v2.dart';
+import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
 
@@ -24,7 +24,7 @@ import '../service/logging.dart';
 /// The PubSub subscription is set up here:
 /// https://console.cloud.google.com/cloudpubsub/subscription/detail/dart-internal-build-results-sub?project=flutter-dashboard
 @immutable
-class DartInternalSubscription extends SubscriptionHandlerV2 {
+class DartInternalSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening for dart-internal build results.
   /// The message should contain a single buildbucket id
   const DartInternalSubscription({
@@ -35,7 +35,7 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
   }) : super(subscriptionName: 'dart-internal-build-results-sub');
 
-  final BuildBucketV2Client buildBucketClient;
+  final BuildBucketClient buildBucketClient;
   final DatastoreServiceProvider datastoreProvider;
 
   @override
@@ -93,16 +93,16 @@ class DartInternalSubscription extends SubscriptionHandlerV2 {
     log.info('Got back existing builder with name: ${existingBuild.builder.builder}');
 
     log.info('Checking for existing task in datastore');
-    final Task? existingTask = await datastore.getTaskFromBuildbucketV2Build(existingBuild);
+    final Task? existingTask = await datastore.getTaskFromBuildbucketBuild(existingBuild);
 
     late Task taskToInsert;
     if (existingTask != null) {
       log.info('Updating Task from existing Build');
-      existingTask.updateFromBuildbucketV2Build(existingBuild);
+      existingTask.updateFromBuildbucketBuild(existingBuild);
       taskToInsert = existingTask;
     } else {
       log.info('Creating Task from Buildbucket result');
-      taskToInsert = await Task.fromBuildbucketV2Build(existingBuild, datastore);
+      taskToInsert = await Task.fromBuildbucketBuild(existingBuild, datastore);
     }
 
     log.info('Inserting Task into the datastore: ${taskToInsert.toString()}');

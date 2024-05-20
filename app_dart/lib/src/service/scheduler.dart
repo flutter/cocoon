@@ -34,9 +34,9 @@ import 'cache_service.dart';
 import 'config.dart';
 import 'datastore.dart';
 import 'firestore.dart';
-import 'github_checks_service_v2.dart';
+import 'github_checks_service.dart';
 import 'github_service.dart';
-import 'luci_build_service_v2.dart';
+import 'luci_build_service.dart';
 
 /// Scheduler service to validate all commits to supported Flutter repositories.
 ///
@@ -44,8 +44,8 @@ import 'luci_build_service_v2.dart';
 ///   1. Tracking commits in Cocoon
 ///   2. Ensuring commits are validated (via scheduling tasks against commits)
 ///   3. Retry mechanisms for tasks
-class SchedulerV2 {
-  SchedulerV2({
+class Scheduler {
+  Scheduler({
     required this.cache,
     required this.config,
     required this.githubChecksService,
@@ -59,12 +59,12 @@ class SchedulerV2 {
   final CacheService cache;
   final Config config;
   final DatastoreServiceProvider datastoreProvider;
-  final GithubChecksServiceV2 githubChecksService;
+  final GithubChecksService githubChecksService;
   final HttpClientProvider httpClientProvider;
 
   late DatastoreService datastore;
   late FirestoreService firestoreService;
-  LuciBuildServiceV2 luciBuildService;
+  LuciBuildService luciBuildService;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';

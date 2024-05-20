@@ -131,7 +131,7 @@ class Task extends Model<int> {
   }
 
   /// Creates a [Task] based on a buildbucket [bb.Build].
-  static Future<Task> fromBuildbucketV2Build(
+  static Future<Task> fromBuildbucketBuild(
     bbv2.Build build,
     DatastoreService datastore, {
     String? customName,
@@ -170,7 +170,7 @@ class Task extends Model<int> {
       name: customName ?? build.builder.builder,
       stageName: build.builder.project,
       startTimestamp: startTime,
-      status: convertBuildbucketV2StatusToString(build.status),
+      status: convertBuildbucketStatusToString(build.status),
       key: commit.key.append(Task),
       timeoutInMinutes: 0,
       reason: '',
@@ -180,7 +180,7 @@ class Task extends Model<int> {
     return task;
   }
 
-  static String convertBuildbucketV2StatusToString(bbv2.Status status) {
+  static String convertBuildbucketStatusToString(bbv2.Status status) {
     switch (status) {
       case bbv2.Status.SUCCESS:
         return statusSucceeded;
@@ -384,7 +384,7 @@ class Task extends Model<int> {
     _status = value;
   }
 
-  void updateFromBuildbucketV2Build(bbv2.Build build) {
+  void updateFromBuildbucketBuild(bbv2.Build build) {
     buildNumber = build.number;
 
     if (buildNumberList == null) {
@@ -401,7 +401,7 @@ class Task extends Model<int> {
 
     attempts = buildNumberList!.split(',').length;
 
-    status = convertBuildbucketV2StatusToString(build.status);
+    status = convertBuildbucketStatusToString(build.status);
   }
 
   /// Comparator that sorts tasks by fewest attempts first.

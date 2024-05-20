@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/service/scheduler_v2.dart';
+import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 
@@ -11,7 +11,7 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'config.dart';
 import 'github_service.dart';
 import 'logging.dart';
-import 'luci_build_service_v2.dart';
+import 'luci_build_service.dart';
 
 const String kGithubSummary = '''
 **[Understanding a LUCI build failure](https://github.com/flutter/flutter/wiki/Understanding-a-LUCI-build-failure)**
@@ -26,8 +26,8 @@ final List<bbv2.Status> terminalStatuses = [
 ];
 
 /// Controls triggering builds and updating their status in the Github UI.
-class GithubChecksServiceV2 {
-  GithubChecksServiceV2(
+class GithubChecksService {
+  GithubChecksService(
     this.config, {
     GithubChecksUtil? githubChecksUtil,
   }) : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil();
@@ -49,7 +49,7 @@ class GithubChecksServiceV2 {
   Future<void> handleCheckSuite(
     github.PullRequest pullRequest,
     CheckSuiteEvent checkSuiteEvent,
-    SchedulerV2 scheduler,
+    Scheduler scheduler,
   ) async {
     switch (checkSuiteEvent.action) {
       case 'requested':
@@ -76,7 +76,7 @@ class GithubChecksServiceV2 {
   Future<bool> updateCheckStatus({
     required bbv2.Build build,
     required Map<String, dynamic> userDataMap,
-    required LuciBuildServiceV2 luciBuildService,
+    required LuciBuildService luciBuildService,
     required github.RepositorySlug slug,
     bool rescheduled = false,
   }) async {

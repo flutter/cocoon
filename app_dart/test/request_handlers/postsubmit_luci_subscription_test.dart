@@ -17,23 +17,23 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
-import '../src/request_handling/subscription_v2_tester.dart';
-import '../src/service/fake_luci_build_service_v2.dart';
-import '../src/service/fake_scheduler_v2.dart';
-import '../src/utilities/build_bucket_v2_messages.dart';
+import '../src/request_handling/subscription_tester.dart';
+import '../src/service/fake_luci_build_service.dart';
+import '../src/service/fake_scheduler.dart';
+import '../src/utilities/build_bucket_messages.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 import 'package:fixnum/fixnum.dart';
 
 void main() {
-  late PostsubmitLuciSubscriptionV2 handler;
+  late PostsubmitLuciSubscription handler;
   late FakeConfig config;
   late FakeHttpRequest request;
   late MockFirestoreService mockFirestoreService;
-  late SubscriptionV2Tester tester;
-  late MockGithubChecksServiceV2 mockGithubChecksService;
+  late SubscriptionTester tester;
+  late MockGithubChecksService mockGithubChecksService;
   late MockGithubChecksUtil mockGithubChecksUtil;
-  late FakeSchedulerV2 scheduler;
+  late FakeScheduler scheduler;
   firestore.Task? firestoreTask;
   firestore_commit.Commit? firestoreCommit;
   late int attempt;
@@ -47,7 +47,7 @@ void main() {
       maxLuciTaskRetriesValue: 3,
       firestoreService: mockFirestoreService,
     );
-    mockGithubChecksService = MockGithubChecksServiceV2();
+    mockGithubChecksService = MockGithubChecksService();
     when(mockGithubChecksService.githubChecksUtil).thenReturn(mockGithubChecksUtil);
     when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
         .thenAnswer((_) async => generateCheckRun(1, name: 'Linux A'));
@@ -103,16 +103,16 @@ void main() {
     ).thenAnswer((Invocation invocation) {
       return Future<BatchWriteResponse>.value(BatchWriteResponse());
     });
-    final FakeLuciBuildServiceV2 luciBuildService = FakeLuciBuildServiceV2(
+    final FakeLuciBuildService luciBuildService = FakeLuciBuildService(
       config: config,
       githubChecksUtil: mockGithubChecksUtil,
     );
-    scheduler = FakeSchedulerV2(
+    scheduler = FakeScheduler(
       ciYaml: exampleConfig,
       config: config,
       luciBuildService: luciBuildService,
     );
-    handler = PostsubmitLuciSubscriptionV2(
+    handler = PostsubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,
       authProvider: FakeAuthenticationProvider(),
@@ -122,7 +122,7 @@ void main() {
     );
     request = FakeHttpRequest();
 
-    tester = SubscriptionV2Tester(
+    tester = SubscriptionTester(
       request: request,
     );
   });
@@ -132,7 +132,7 @@ void main() {
       'commit_key': 'flutter/main/abc123',
     };
 
-    tester.message = createPushMessageV2(
+    tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: '',
@@ -160,7 +160,7 @@ void main() {
       'firestore_task_document_name': taskDocumentName,
     };
 
-    tester.message = createPushMessageV2(
+    tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       userData: userDataMap,
@@ -212,7 +212,7 @@ void main() {
       'firestore_task_document_name': taskDocumentName,
     };
 
-    tester.message = createPushMessageV2(
+    tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SCHEDULED,
       builder: 'Linux A',
@@ -245,7 +245,7 @@ void main() {
       'firestore_task_document_name': taskDocumentName,
     };
 
-    tester.message = createPushMessageV2(
+    tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.STARTED,
       builder: 'Linux A',
@@ -278,7 +278,7 @@ void main() {
       'firestore_task_document_name': taskDocumentName,
     };
 
-    tester.message = createPushMessageV2(
+    tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.STARTED,
       builder: 'Linux B',
@@ -291,7 +291,7 @@ void main() {
   });
 
   test('does not fail on empty user data', () async {
-    tester.message = createPushMessageV2(
+    tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux A',
@@ -325,7 +325,7 @@ void main() {
       'firestore_task_document_name': taskDocumentName,
     };
 
-    tester.message = createPushMessageV2(
+    tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.FAILURE,
       builder: 'Linux A',
@@ -371,7 +371,7 @@ void main() {
       'firestore_task_document_name': taskDocumentName,
     };
 
-    tester.message = createPushMessageV2(
+    tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.CANCELED,
       builder: 'Linux A',
@@ -417,7 +417,7 @@ void main() {
       'firestore_task_document_name': taskDocumentName,
     };
 
-    tester.message = createPushMessageV2(
+    tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.INFRA_FAILURE,
       builder: 'Linux A',
@@ -466,7 +466,7 @@ void main() {
       'firestore_task_document_name': taskDocumentName,
     };
 
-    tester.message = createPushMessageV2(
+    tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux A',
@@ -513,7 +513,7 @@ void main() {
       'firestore_task_document_name': taskDocumentName,
     };
 
-    tester.message = createPushMessageV2(
+    tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux bringup',
@@ -561,7 +561,7 @@ void main() {
       'firestore_task_document_name': taskDocumentName,
     };
 
-    tester.message = createPushMessageV2(
+    tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux bringup',

@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/request_handlers/vacuum_github_commits_v2.dart';
+import 'package:cocoon_service/src/request_handlers/vacuum_github_commits.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
@@ -19,7 +19,7 @@ import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/service/fake_github_service.dart';
-import '../src/service/fake_scheduler_v2.dart';
+import '../src/service/fake_scheduler.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
@@ -27,10 +27,10 @@ void main() {
     late FakeConfig config;
     FakeAuthenticationProvider auth;
     late FakeDatastoreDB db;
-    FakeSchedulerV2 scheduler;
+    FakeScheduler scheduler;
     late ApiRequestHandlerTester tester;
     late MockFirestoreService mockFirestoreService;
-    late VacuumGithubCommitsV2 handler;
+    late VacuumGithubCommits handler;
 
     late List<String> githubCommits;
     late int yieldedCommitCount;
@@ -95,12 +95,12 @@ void main() {
       );
 
       auth = FakeAuthenticationProvider();
-      scheduler = FakeSchedulerV2(
+      scheduler = FakeScheduler(
         config: config,
         ciYaml: exampleConfig,
       );
       tester = ApiRequestHandlerTester();
-      handler = VacuumGithubCommitsV2(
+      handler = VacuumGithubCommits(
         config: config,
         authenticationProvider: auth,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),

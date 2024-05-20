@@ -303,7 +303,7 @@ class DatastoreService {
     return result;
   }
 
-  Future<Task?> getTaskFromBuildbucketV2Build(
+  Future<Task?> getTaskFromBuildbucketBuild(
     bbv2.Build build, {
     String? customName,
   }) async {

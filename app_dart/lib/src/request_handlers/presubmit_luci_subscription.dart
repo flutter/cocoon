@@ -6,10 +6,10 @@ import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/src/model/luci/user_data.dart';
-import 'package:cocoon_service/src/request_handling/subscription_handler_v2.dart';
-import 'package:cocoon_service/src/service/github_checks_service_v2.dart';
-import 'package:cocoon_service/src/service/luci_build_service_v2.dart';
-import 'package:cocoon_service/src/service/scheduler_v2.dart';
+import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
+import 'package:cocoon_service/src/service/github_checks_service.dart';
+import 'package:cocoon_service/src/service/luci_build_service.dart';
+import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -34,9 +34,9 @@ import '../service/logging.dart';
 /// This endpoint is responsible for updating GitHub with the status of
 /// completed builds from LUCI.
 @immutable
-class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
+class PresubmitLuciSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening to LUCI status updates.
-  const PresubmitLuciSubscriptionV2({
+  const PresubmitLuciSubscription({
     required super.cache,
     required super.config,
     required this.scheduler,
@@ -45,9 +45,9 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     AuthenticationProvider? authProvider,
   }) : super(subscriptionName: 'build-bucket-presubmit-sub');
 
-  final LuciBuildServiceV2 luciBuildService;
-  final GithubChecksServiceV2 githubChecksService;
-  final SchedulerV2 scheduler;
+  final LuciBuildService luciBuildService;
+  final GithubChecksService githubChecksService;
+  final Scheduler scheduler;
 
   @override
   Future<Body> post() async {
@@ -59,14 +59,14 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack();
     pubSubCallBack.mergeFromProto3Json(jsonDecode(message.data!) as Map<String, dynamic>);
 
-    final bbv2.BuildsV2PubSub buildsV2PubSub = pubSubCallBack.buildPubsub;
+    final bbv2.BuildsV2PubSub buildsPubSub = pubSubCallBack.buildPubsub;
 
-    if (!buildsV2PubSub.hasBuild()) {
+    if (!buildsPubSub.hasBuild()) {
       log.info('no build information in message');
       return Body.empty;
     }
 
-    final bbv2.Build build = buildsV2PubSub.build;
+    final bbv2.Build build = buildsPubSub.build;
 
     final String builderName = build.builder.builder;
 
@@ -103,7 +103,7 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
       bool rescheduled = false;
       if (githubChecksService.taskFailed(build.status)) {
         final int currentAttempt = githubChecksService.currentAttempt(tags);
-        final int maxAttempt = await _getMaxAttemptV2(
+        final int maxAttempt = await _getMaxAttempt(
           userDataMap,
           slug,
           builderName,
@@ -132,7 +132,7 @@ class PresubmitLuciSubscriptionV2 extends SubscriptionHandlerV2 {
     return Body.empty;
   }
 
-  Future<int> _getMaxAttemptV2(
+  Future<int> _getMaxAttempt(
     Map<String, dynamic> userData,
     RepositorySlug slug,
     String builderName,

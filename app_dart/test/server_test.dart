@@ -9,10 +9,10 @@ import 'package:test/test.dart';
 
 import 'src/datastore/fake_config.dart';
 import 'src/request_handling/fake_authentication.dart';
-import 'src/service/fake_build_bucket_v2_client.dart';
+import 'src/service/fake_build_bucket_client.dart';
 import 'src/service/fake_gerrit_service.dart';
-import 'src/service/fake_luci_build_service_v2.dart';
-import 'src/service/fake_scheduler_v2.dart';
+import 'src/service/fake_luci_build_service.dart';
+import 'src/service/fake_scheduler.dart';
 
 void main() {
   test('verify server can be created', () {
@@ -24,12 +24,12 @@ void main() {
       authProvider: FakeAuthenticationProvider(),
       swarmingAuthProvider: FakeAuthenticationProvider(),
       branchService: BranchService(config: FakeConfig(), gerritService: FakeGerritService()),
-      buildBucketClient: FakeBuildBucketV2Client(),
-      luciBuildService: FakeLuciBuildServiceV2(config: FakeConfig()),
-      githubChecksService: GithubChecksServiceV2(FakeConfig()),
+      buildBucketClient: FakeBuildBucketClient(),
+      luciBuildService: FakeLuciBuildService(config: FakeConfig()),
+      githubChecksService: GithubChecksService(FakeConfig()),
       commitService: CommitService(config: FakeConfig()),
       gerritService: FakeGerritService(),
-      scheduler: FakeSchedulerV2(config: FakeConfig()),
+      scheduler: FakeScheduler(config: FakeConfig()),
     );
   });
 }
