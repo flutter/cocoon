@@ -6,9 +6,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
-import 'package:cocoon_service/src/service/buildbucket.dart';
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_service/src/service/build_bucket_client.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -22,9 +22,10 @@ void main() {
     test('fromJson returns an empty list', () {
       const String jsonString = '{"responses":[{"searchBuilds":{}},{"searchBuilds":{}}]}';
       final Map<String, dynamic> map = json.decode(jsonString) as Map<String, dynamic>;
-      final BatchResponse response = BatchResponse.fromJson(map);
-      expect(response, isNotNull);
-      expect(response.responses, isNotNull);
+      final bbv2.BatchResponse batchResponse = bbv2.BatchResponse().createEmptyInstance();
+      batchResponse.mergeFromProto3Json(map);
+      expect(batchResponse, isNotNull);
+      expect(batchResponse.responses, isNotNull);
     });
   });
 
@@ -32,7 +33,7 @@ void main() {
     late MockClient httpClient;
     late MockAccessTokenService mockAccessTokenProvider;
 
-    const BuilderId builderId = BuilderId(
+    final bbv2.BuilderID builderId = bbv2.BuilderID(
       bucket: 'prod',
       builder: 'Linux',
       project: 'flutter',
@@ -43,7 +44,7 @@ void main() {
       mockAccessTokenProvider = MockAccessTokenService();
     });
 
-    Future<T> httpTest<R extends JsonBody, T>(
+    Future<T> httpTest<R, T>(
       R request,
       String response,
       String urlPrefix,
@@ -58,13 +59,7 @@ void main() {
         expect(request.headers['accept'], 'application/json');
         expect(request.headers['authorization'], 'Bearer data');
         if (request.method == 'POST' && request.url.toString() == 'https://localhost/$urlPrefix/$expectedPath') {
-          return http.Response(
-            response,
-            HttpStatus.accepted,
-            headers: {
-              HttpHeaders.contentTypeHeader: 'application/json; charset=utf-8',
-            },
-          );
+          return http.Response(response, HttpStatus.accepted);
         }
         return http.Response('Test exception: A mock response was not returned', HttpStatus.internalServerError);
       });
@@ -87,7 +82,7 @@ void main() {
         accessTokenService: mockAccessTokenProvider,
       );
       try {
-        await client.batch(const BatchRequest());
+        await client.batch(bbv2.BatchRequest());
       } on BuildBucketException catch (ex) {
         expect(ex.statusCode, HttpStatus.forbidden);
         expect(ex.message, 'Error');
@@ -97,21 +92,24 @@ void main() {
     });
 
     test('ScheduleBuild', () async {
-      const ScheduleBuildRequest request = ScheduleBuildRequest(
-        builderId: builderId,
-        experimental: Trinary.yes,
-        tags: <String, List<String>>{
-          'user_agent': <String>['flutter_cocoon'],
-          'flutter_pr': <String>['true', '1'],
-          'cipd_version': <String>['/refs/heads/main'],
+      final Map<String, bbv2.Value> propertiesMap = {
+        'git_url': bbv2.Value(stringValue: 'https://github.com/flutter/flutter'),
+        'git_ref': bbv2.Value(stringValue: 'refs/pull/1/head'),
+      };
+
+      final bbv2.ScheduleBuildRequest request = bbv2.ScheduleBuildRequest(
+        builder: builderId,
+        experimental: bbv2.Trinary.YES,
+        tags: <bbv2.StringPair>{
+          bbv2.StringPair(key: 'user_agent', value: 'flutter_cocoon'),
+          bbv2.StringPair(key: 'flutter_pr', value: 'true'),
+          bbv2.StringPair(key: 'flutter_pr', value: '1'),
+          bbv2.StringPair(key: 'cipd_version', value: '/refs/heads/main'),
         },
-        properties: <String, String>{
-          'git_url': 'https://github.com/flutter/flutter',
-          'git_ref': 'refs/pull/1/head',
-        },
+        properties: bbv2.Struct(fields: propertiesMap),
       );
 
-      final Build build = await httpTest<ScheduleBuildRequest, Build>(
+      final bbv2.Build build = await httpTest<bbv2.ScheduleBuildRequest, bbv2.Build>(
         request,
         buildJson,
         'builds',
@@ -119,22 +117,22 @@ void main() {
         (BuildBucketClient client) => client.scheduleBuild(request, buildBucketUri: 'https://localhost/builds'),
       );
 
-      expect(build.id, '123');
-      expect(build.tags!.length, 3);
-      expect(build.tags, <String?, List<String?>>{
-        'user_agent': <String>['flutter_cocoon'],
-        'flutter_pr': <String>['1'],
-        'cipd_version': <String>['/refs/heads/main'],
+      expect(build.id, Int64(123));
+      expect(build.tags.length, 3);
+      expect(build.tags, <bbv2.StringPair>{
+        bbv2.StringPair(key: 'user_agent', value: 'flutter_cocoon'),
+        bbv2.StringPair(key: 'flutter_pr', value: '1'),
+        bbv2.StringPair(key: 'cipd_version', value: '/refs/heads/main'),
       });
     });
 
     test('CancelBuild', () async {
-      const CancelBuildRequest request = CancelBuildRequest(
-        id: '1234',
+      final bbv2.CancelBuildRequest request = bbv2.CancelBuildRequest(
+        id: Int64(1234),
         summaryMarkdown: 'Because I felt like it.',
       );
 
-      final Build build = await httpTest<CancelBuildRequest, Build>(
+      final bbv2.Build build = await httpTest<bbv2.CancelBuildRequest, bbv2.Build>(
         request,
         buildJson,
         'builds',
@@ -142,60 +140,63 @@ void main() {
         (BuildBucketClient client) => client.cancelBuild(request, buildBucketUri: 'https://localhost/builds'),
       );
 
-      expect(build.id, '123');
-      expect(build.tags!.length, 3);
+      expect(build.id, Int64(123));
+      expect(build.tags.length, 3);
     });
 
     test('BatchBuildRequest', () async {
-      const BatchRequest request = BatchRequest(
-        requests: <Request>[
-          Request(
-            scheduleBuild: ScheduleBuildRequest(
-              builderId: builderId,
-              experimental: Trinary.yes,
-              tags: <String, List<String>>{
-                'user_agent': <String>['flutter_cocoon'],
-                'flutter_pr': <String>['true', '1'],
-                'cipd_version': <String>['/refs/heads/main'],
+      final Map<String, bbv2.Value> propertiesMap = {
+        'git_url': bbv2.Value(stringValue: 'https://github.com/flutter/flutter'),
+        'git_ref': bbv2.Value(stringValue: 'refs/pull/1/head'),
+      };
+
+      final bbv2.BatchRequest request = bbv2.BatchRequest(
+        requests: <bbv2.BatchRequest_Request>[
+          bbv2.BatchRequest_Request(
+            scheduleBuild: bbv2.ScheduleBuildRequest(
+              builder: builderId,
+              experimental: bbv2.Trinary.YES,
+              tags: <bbv2.StringPair>{
+                bbv2.StringPair(key: 'user_agent', value: 'flutter_cocoon'),
+                bbv2.StringPair(key: 'flutter_pr', value: 'true'),
+                bbv2.StringPair(key: 'flutter_pr', value: '1'),
+                bbv2.StringPair(key: 'cipd_version', value: '/refs/heads/main'),
               },
-              properties: <String, String>{
-                'git_url': 'https://github.com/flutter/flutter',
-                'git_ref': 'refs/pull/1/head',
-              },
+              properties: bbv2.Struct(fields: propertiesMap),
             ),
           ),
         ],
       );
 
-      final BatchResponse response = await httpTest<BatchRequest, BatchResponse>(
+      final bbv2.BatchResponse response = await httpTest<bbv2.BatchRequest, bbv2.BatchResponse>(
         request,
         batchJson,
         'builds',
         'Batch',
         (BuildBucketClient client) => client.batch(request, buildBucketUri: 'https://localhost/builds'),
       );
-      expect(response.responses!.length, 1);
-      expect(response.responses!.first.getBuild!.status, Status.success);
-      expect(response.responses!.first.getBuild!.tags, <String?, List<String?>>{
-        'user_agent': <String>['flutter_cocoon'],
-        'flutter_pr': <String>['1'],
-        'cipd_version': <String>['/refs/heads/main'],
+      expect(response.responses.length, 1);
+      expect(response.responses.first.getBuild.status, bbv2.Status.SUCCESS);
+      expect(response.responses.first.getBuild.tags, <bbv2.StringPair>{
+        bbv2.StringPair(key: 'user_agent', value: 'flutter_cocoon'),
+        bbv2.StringPair(key: 'flutter_pr', value: '1'),
+        bbv2.StringPair(key: 'cipd_version', value: '/refs/heads/main'),
       });
     });
 
     test('Batch', () async {
-      const BatchRequest request = BatchRequest(
-        requests: <Request>[
-          Request(
-            getBuild: GetBuildRequest(
-              builderId: builderId,
+      final bbv2.BatchRequest request = bbv2.BatchRequest(
+        requests: <bbv2.BatchRequest_Request>[
+          bbv2.BatchRequest_Request(
+            getBuild: bbv2.GetBuildRequest(
+              builder: builderId,
               buildNumber: 123,
             ),
           ),
         ],
       );
 
-      final BatchResponse response = await httpTest<BatchRequest, BatchResponse>(
+      final bbv2.BatchResponse response = await httpTest<bbv2.BatchRequest, bbv2.BatchResponse>(
         request,
         batchJson,
         'builds',
@@ -203,16 +204,16 @@ void main() {
         (BuildBucketClient client) => client.batch(request, buildBucketUri: 'https://localhost/builds'),
       );
 
-      expect(response.responses!.length, 1);
-      expect(response.responses!.first.getBuild!.status, Status.success);
+      expect(response.responses.length, 1);
+      expect(response.responses.first.getBuild.status, bbv2.Status.SUCCESS);
     });
 
     test('GetBuild', () async {
-      const GetBuildRequest request = GetBuildRequest(
-        id: '1234',
+      final bbv2.GetBuildRequest request = bbv2.GetBuildRequest(
+        id: Int64(1234),
       );
 
-      final Build build = await httpTest<GetBuildRequest, Build>(
+      final bbv2.Build build = await httpTest<bbv2.GetBuildRequest, bbv2.Build>(
         request,
         buildJson,
         'builds',
@@ -220,21 +221,20 @@ void main() {
         (BuildBucketClient client) => client.getBuild(request, buildBucketUri: 'https://localhost/builds'),
       );
 
-      expect(build.id, '123');
-      expect(build.tags!.length, 3);
-      expect(build.summaryMarkdown, '```╔═╡ERROR #1╞```');
+      expect(build.id, Int64(123));
+      expect(build.tags.length, 3);
     });
 
     test('SearchBuilds', () async {
-      const SearchBuildsRequest request = SearchBuildsRequest(
-        predicate: BuildPredicate(
-          tags: <String, List<String>>{
-            'flutter_pr': <String>['1'],
+      final bbv2.SearchBuildsRequest request = bbv2.SearchBuildsRequest(
+        predicate: bbv2.BuildPredicate(
+          tags: <bbv2.StringPair>{
+            bbv2.StringPair(key: 'flutter_pr', value: '1'),
           },
         ),
       );
 
-      final SearchBuildsResponse response = await httpTest<SearchBuildsRequest, SearchBuildsResponse>(
+      final bbv2.SearchBuildsResponse response = await httpTest<bbv2.SearchBuildsRequest, bbv2.SearchBuildsResponse>(
         request,
         searchJson,
         'builds',
@@ -242,14 +242,15 @@ void main() {
         (BuildBucketClient client) => client.searchBuilds(request, buildBucketUri: 'https://localhost/builds'),
       );
 
-      expect(response.builds!.length, 1);
-      expect(response.builds!.first.number, 9151);
+      expect(response.builds.length, 1);
+      expect(response.builds.first.number, 9151);
     });
 
     test('ListBuilders', () async {
-      const ListBuildersRequest request = ListBuildersRequest(project: 'test');
+      final bbv2.ListBuildersRequest request = bbv2.ListBuildersRequest(project: 'test');
 
-      final ListBuildersResponse listBuildersResponse = await httpTest<ListBuildersRequest, ListBuildersResponse>(
+      final bbv2.ListBuildersResponse listBuildersResponse =
+          await httpTest<bbv2.ListBuildersRequest, bbv2.ListBuildersResponse>(
         request,
         builderJson,
         'builders',
@@ -257,8 +258,8 @@ void main() {
         (BuildBucketClient client) => client.listBuilders(request, buildBucketUri: 'https://localhost/builders'),
       );
 
-      expect(listBuildersResponse.builders!.length, 2);
-      expect(listBuildersResponse.builders!.map((e) => e.id!.builder!).toList(), <String>['Linux test', 'Mac test']);
+      expect(listBuildersResponse.builders.length, 2);
+      expect(listBuildersResponse.builders.map((e) => e.id.builder).toList(), <String>['Linux test', 'Mac test']);
     });
   });
 }
@@ -308,6 +309,7 @@ const String searchJson = '''${BuildBucketClient.kRpcResponseGarbage}
     }
   ]
 }''';
+
 const String batchJson = '''${BuildBucketClient.kRpcResponseGarbage}
 {
   "responses": [
@@ -366,9 +368,7 @@ const String buildJson = '''${BuildBucketClient.kRpcResponseGarbage}
   "canceledBy": null,
   "startTime": "2019-08-01T11:00:00",
   "endTime": null,
-  "status": "SUCCESS",
-  "status": "FAILURE",
-  "summaryMarkdown": "```╔═╡ERROR #1╞```",
+  "status": "SCHEDULED",
   "input": {
     "experimental": true
   },

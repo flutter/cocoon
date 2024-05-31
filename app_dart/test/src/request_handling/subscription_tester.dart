@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/src/model/luci/push_message.dart';
+import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/request_handling/api_request_handler.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
@@ -18,8 +18,9 @@ class SubscriptionTester extends RequestHandlerTester {
   SubscriptionTester({
     super.request,
     FakeAuthenticatedContext? context,
-    this.message = const PushMessage(),
-  }) : context = context ?? FakeAuthenticatedContext();
+    PushMessage? message,
+  })  : context = context ?? FakeAuthenticatedContext(),
+        message = message ?? const PushMessage();
 
   FakeAuthenticatedContext context;
   PushMessage message;

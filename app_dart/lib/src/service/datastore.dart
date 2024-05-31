@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
@@ -304,18 +304,18 @@ class DatastoreService {
   }
 
   Future<Task?> getTaskFromBuildbucketBuild(
-    Build build, {
+    bbv2.Build build, {
     String? customName,
   }) async {
     log.fine('Generating commit key from buildbucket build: ${build.toString()}');
 
-    final String repository = build.input!.gitilesCommit!.project!.split('/')[1];
+    final String repository = build.input.gitilesCommit.project.split('/')[1];
     log.fine('Repository: $repository');
 
-    final String branch = build.input!.gitilesCommit!.ref!.split('/')[2];
+    final String branch = build.input.gitilesCommit.ref.split('/')[2];
     log.fine('Branch: $branch');
 
-    final String hash = build.input!.gitilesCommit!.hash!;
+    final String hash = build.input.gitilesCommit.id;
     log.fine('Hash: $hash');
 
     final RepositorySlug slug = RepositorySlug('flutter', repository);
@@ -328,7 +328,7 @@ class DatastoreService {
       return await Task.fromDatastore(
         datastore: this,
         commitKey: commitKey,
-        name: customName ?? build.builderId.builder,
+        name: customName ?? build.builder.builder,
       );
     } on InternalServerError catch (e) {
       log.warning('Failed to find an existing task for the buildbucket build: ${e.toString()}');

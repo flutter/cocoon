@@ -10,11 +10,10 @@ import '../../request_handling/exceptions.dart';
 import '../../service/datastore.dart';
 import '../../service/logging.dart';
 import '../ci_yaml/target.dart';
-import '../luci/push_message.dart';
 import 'commit.dart';
 import 'key_converter.dart';
 
-import 'package:cocoon_service/src/model/luci/buildbucket.dart' as bb;
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 part 'task.g.dart';
 
 /// Class that represents the intersection of a test at a particular [Commit].
@@ -133,27 +132,27 @@ class Task extends Model<int> {
 
   /// Creates a [Task] based on a buildbucket [bb.Build].
   static Future<Task> fromBuildbucketBuild(
-    bb.Build build,
+    bbv2.Build build,
     DatastoreService datastore, {
     String? customName,
   }) async {
     log.fine('Creating task from buildbucket result: ${build.toString()}');
     // Example: Getting "flutter" from "mirrors/flutter".
-    final String repository = build.input!.gitilesCommit!.project!.split('/')[1];
+    final String repository = build.input.gitilesCommit.project.split('/')[1];
     log.fine('Repository: $repository');
 
     // Example: Getting "stable" from "refs/heads/stable".
-    final String branch = build.input!.gitilesCommit!.ref!.split('/')[2];
+    final String branch = build.input.gitilesCommit.ref.split('/')[2];
     log.fine('Branch: $branch');
 
-    final String hash = build.input!.gitilesCommit!.hash!;
+    final String hash = build.input.gitilesCommit.id;
     log.fine('Hash: $hash');
 
     final RepositorySlug slug = RepositorySlug('flutter', repository);
     log.fine('Slug: ${slug.toString()}');
 
-    final int startTime = build.startTime?.millisecondsSinceEpoch ?? 0;
-    final int endTime = build.endTime?.millisecondsSinceEpoch ?? 0;
+    final int startTime = build.startTime.toDateTime().millisecondsSinceEpoch;
+    final int endTime = build.endTime.toDateTime().millisecondsSinceEpoch;
     log.fine('Start/end time (ms): $startTime, $endTime');
 
     final String id = '${slug.fullName}/$branch/$hash';
@@ -163,15 +162,15 @@ class Task extends Model<int> {
       attempts: 1,
       buildNumber: build.number,
       buildNumberList: build.number.toString(),
-      builderName: build.builderId.builder,
+      builderName: build.builder.builder,
       commitKey: commitKey,
       createTimestamp: startTime,
       endTimestamp: endTime,
-      luciBucket: build.builderId.bucket,
-      name: customName ?? build.builderId.builder,
-      stageName: build.builderId.project,
+      luciBucket: build.builder.bucket,
+      name: customName ?? build.builder.builder,
+      stageName: build.builder.project,
       startTimestamp: startTime,
-      status: convertBuildbucketStatusToString(build.status!),
+      status: convertBuildbucketStatusToString(build.status),
       key: commit.key.append(Task),
       timeoutInMinutes: 0,
       reason: '',
@@ -181,18 +180,17 @@ class Task extends Model<int> {
     return task;
   }
 
-  /// Converts a buildbucket status to a task status.
-  static String convertBuildbucketStatusToString(bb.Status status) {
+  static String convertBuildbucketStatusToString(bbv2.Status status) {
     switch (status) {
-      case bb.Status.success:
+      case bbv2.Status.SUCCESS:
         return statusSucceeded;
-      case bb.Status.canceled:
+      case bbv2.Status.CANCELED:
         return statusCancelled;
-      case bb.Status.infraFailure:
+      case bbv2.Status.INFRA_FAILURE:
         return statusInfraFailure;
-      case bb.Status.started:
+      case bbv2.Status.STARTED:
         return statusInProgress;
-      case bb.Status.scheduled:
+      case bbv2.Status.SCHEDULED:
         return statusNew;
       default:
         return statusFailed;
@@ -386,23 +384,8 @@ class Task extends Model<int> {
     _status = value;
   }
 
-  /// Update [Task] fields based on a LUCI [Build].
-  void updateFromBuild(Build build) {
-    final List<String>? tags = build.tags;
-    // Example tag: build_address:luci.flutter.prod/Linux Cocoon/271
-    final String? buildAddress = tags?.firstWhere((String tag) => tag.contains('build_address'));
-    if (buildAddress == null) {
-      log.warning('Tags: $tags');
-      throw const BadRequestException('build_address does not contain build number');
-    }
-
-    final int currentBuildNumber = int.parse(buildAddress.split('/').last);
-    if (buildNumber == null || buildNumber! < currentBuildNumber) {
-      buildNumber = currentBuildNumber;
-    } else if (currentBuildNumber < buildNumber!) {
-      log.fine('Skipping message as build number is before the current task');
-      return;
-    }
+  void updateFromBuildbucketBuild(bbv2.Build build) {
+    buildNumber = build.number;
 
     if (buildNumberList == null) {
       buildNumberList = '$buildNumber';
@@ -412,71 +395,13 @@ class Task extends Model<int> {
       buildNumberList = buildNumberSet.join(',');
     }
 
-    createTimestamp = build.createdTimestamp?.millisecondsSinceEpoch ?? 0;
-    startTimestamp = build.startedTimestamp?.millisecondsSinceEpoch ?? 0;
-    endTimestamp = build.completedTimestamp?.millisecondsSinceEpoch ?? 0;
-
-    _setStatusFromLuciStatus(build);
-  }
-
-  /// Updates [Task] based on a Buildbucket [Build].
-  void updateFromBuildbucketBuild(bb.Build build) {
-    buildNumber = build.number!;
-
-    if (buildNumberList == null) {
-      buildNumberList = '$buildNumber';
-    } else {
-      final Set<String> buildNumberSet = buildNumberList!.split(',').toSet();
-      buildNumberSet.add(buildNumber.toString());
-      buildNumberList = buildNumberSet.join(',');
-    }
-
-    createTimestamp = build.startTime?.millisecondsSinceEpoch ?? 0;
-    startTimestamp = build.startTime?.millisecondsSinceEpoch ?? 0;
-    endTimestamp = build.endTime?.millisecondsSinceEpoch ?? 0;
+    createTimestamp = build.createTime.toDateTime().millisecondsSinceEpoch;
+    startTimestamp = build.startTime.toDateTime().millisecondsSinceEpoch;
+    endTimestamp = build.endTime.toDateTime().millisecondsSinceEpoch;
 
     attempts = buildNumberList!.split(',').length;
 
-    status = convertBuildbucketStatusToString(build.status!);
-  }
-
-  /// Get a [Task] status from a LUCI [Build] status/result.
-  String _setStatusFromLuciStatus(Build build) {
-    // Updates can come out of order. Ensure completed statuses are kept.
-    if (_isStatusCompleted()) {
-      return status;
-    }
-
-    if (build.status == Status.started) {
-      return status = statusInProgress;
-    }
-    switch (build.result) {
-      case Result.success:
-        return status = statusSucceeded;
-      case Result.canceled:
-        return status = statusCancelled;
-      case Result.failure:
-        // Note that `Result` does not support `infraFailure`:
-        // https://github.com/luci/luci-go/blob/main/common/api/buildbucket/buildbucket/v1/buildbucket-gen.go#L247-L251
-        // To determine an infra failure status, we need to combine `Result.failure` and `FailureReason.infraFailure`.
-        if (build.failureReason == FailureReason.infraFailure) {
-          return status = statusInfraFailure;
-        } else {
-          return status = statusFailed;
-        }
-      default:
-        throw BadRequestException('${build.result} is unknown');
-    }
-  }
-
-  bool _isStatusCompleted() {
-    const List<String> completedStatuses = <String>[
-      statusCancelled,
-      statusFailed,
-      statusInfraFailure,
-      statusSucceeded,
-    ];
-    return completedStatuses.contains(status);
+    status = convertBuildbucketStatusToString(build.status);
   }
 
   /// Comparator that sorts tasks by fewest attempts first.

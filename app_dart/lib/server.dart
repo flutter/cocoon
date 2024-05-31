@@ -65,19 +65,17 @@ Server createServer({
       config: config,
       cache: cache,
       gerritService: gerritService,
-      githubChecksService: githubChecksService,
       scheduler: scheduler,
       commitService: commitService,
     ),
-    '/api/presubmit-luci-subscription': PresubmitLuciSubscription(
+    '/api/v2/presubmit-luci-subscription': PresubmitLuciSubscription(
       cache: cache,
       config: config,
-      buildBucketClient: buildBucketClient,
       luciBuildService: luciBuildService,
       githubChecksService: githubChecksService,
       scheduler: scheduler,
     ),
-    '/api/postsubmit-luci-subscription': PostsubmitLuciSubscription(
+    '/api/v2/postsubmit-luci-subscription': PostsubmitLuciSubscription(
       cache: cache,
       config: config,
       scheduler: scheduler,
@@ -91,7 +89,14 @@ Server createServer({
       config: config,
       authenticationProvider: authProvider,
     ),
+    // I do not believe these recieve a build message.
     '/api/reset-prod-task': ResetProdTask(
+      config: config,
+      authenticationProvider: authProvider,
+      luciBuildService: luciBuildService,
+      scheduler: scheduler,
+    ),
+    '/api/v2/reset-prod-task': ResetProdTask(
       config: config,
       authenticationProvider: authProvider,
       luciBuildService: luciBuildService,
@@ -102,11 +107,20 @@ Server createServer({
       authenticationProvider: authProvider,
       scheduler: scheduler,
     ),
+    '/api/v2/reset-try-task': ResetTryTask(
+      config: config,
+      authenticationProvider: authProvider,
+      scheduler: scheduler,
+    ),
     '/api/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
       scheduler: scheduler,
     ),
-    '/api/scheduler/batch-request-subscription': SchedulerRequestSubscription(
+    '/api/v2/scheduler/batch-backfiller': BatchBackfiller(
+      config: config,
+      scheduler: scheduler,
+    ),
+    '/api/v2/scheduler/batch-request-subscription': SchedulerRequestSubscription(
       cache: cache,
       config: config,
       buildBucketClient: buildBucketClient,
@@ -140,6 +154,11 @@ Server createServer({
       authenticationProvider: swarmingAuthProvider,
     ),
     '/api/vacuum-github-commits': VacuumGithubCommits(
+      config: config,
+      authenticationProvider: authProvider,
+      scheduler: scheduler,
+    ),
+    '/api/v2/vacuum-github-commits': VacuumGithubCommits(
       config: config,
       authenticationProvider: authProvider,
       scheduler: scheduler,

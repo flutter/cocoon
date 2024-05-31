@@ -2,16 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 
 import '../../request_handling/exceptions.dart';
 import '../../service/firestore.dart';
-import '../../service/logging.dart';
 import '../appengine/commit.dart';
 import '../appengine/task.dart' as datastore;
 import '../ci_yaml/target.dart';
-import '../luci/push_message.dart';
 
 const String kTaskCollectionId = 'tasks';
 const int kTaskDefaultTimestampValue = 0;
@@ -30,6 +29,7 @@ const String kTaskTestFlakyField = 'testFlaky';
 const String kTaskAttempts = 'Attempts';
 const String kTaskBringup = 'Bringup';
 const String kTaskBuildNumber = 'BuildNumber';
+const String kTaskCommitSha = 'CommitSha';
 const String kTaskCreateTimestamp = 'CreateTimestamp';
 const String kTaskDocumentName = 'DocumentName';
 const String kTaskEndTimestamp = 'EndTimestamp';
@@ -188,24 +188,17 @@ class Task extends Document {
     fields![kTaskTestFlakyField] = Value(booleanValue: testFlaky);
   }
 
-  /// Update [Task] fields based on a LUCI [Build].
-  void updateFromBuild(Build build) {
-    final List<String>? tags = build.tags;
-    // Example tag: build_address:luci.flutter.prod/Linux Cocoon/271
-    final String? buildAddress = tags?.firstWhere((String tag) => tag.contains('build_address'));
-    if (buildAddress == null) {
-      log.warning('Tags: $tags');
-      throw const BadRequestException('build_address does not contain build number');
-    }
-    fields![kTaskBuildNumberField] = Value(integerValue: buildAddress.split('/').last);
+  void updateFromBuild(bbv2.Build build) {
+    fields![kTaskBuildNumberField] = Value(integerValue: build.number.toString());
+
     fields![kTaskCreateTimestampField] = Value(
-      integerValue: (build.createdTimestamp?.millisecondsSinceEpoch ?? kTaskDefaultTimestampValue).toString(),
+      integerValue: (build.createTime.toDateTime().millisecondsSinceEpoch).toString(),
     );
     fields![kTaskStartTimestampField] = Value(
-      integerValue: (build.startedTimestamp?.millisecondsSinceEpoch ?? kTaskDefaultTimestampValue).toString(),
+      integerValue: (build.startTime.toDateTime().millisecondsSinceEpoch).toString(),
     );
     fields![kTaskEndTimestampField] = Value(
-      integerValue: (build.completedTimestamp?.millisecondsSinceEpoch ?? kTaskDefaultTimestampValue).toString(),
+      integerValue: (build.endTime.toDateTime().millisecondsSinceEpoch).toString(),
     );
 
     _setStatusFromLuciStatus(build);
@@ -225,32 +218,24 @@ class Task extends Document {
     };
   }
 
-  /// Get a [Task] status from a LUCI [Build] status/result.
-  String _setStatusFromLuciStatus(Build build) {
+  String _setStatusFromLuciStatus(bbv2.Build build) {
     // Updates can come out of order. Ensure completed statuses are kept.
     if (_isStatusCompleted()) {
       return status;
     }
 
-    if (build.status == Status.started) {
+    if (build.status == bbv2.Status.STARTED) {
       return setStatus(statusInProgress);
-    }
-    switch (build.result) {
-      case Result.success:
-        return setStatus(statusSucceeded);
-      case Result.canceled:
-        return setStatus(statusCancelled);
-      case Result.failure:
-        // Note that `Result` does not support `infraFailure`:
-        // https://github.com/luci/luci-go/blob/main/common/api/buildbucket/buildbucket/v1/buildbucket-gen.go#L247-L251
-        // To determine an infra failure status, we need to combine `Result.failure` and `FailureReason.infraFailure`.
-        if (build.failureReason == FailureReason.infraFailure) {
-          return setStatus(statusInfraFailure);
-        } else {
-          return setStatus(statusFailed);
-        }
-      default:
-        throw BadRequestException('${build.result} is unknown');
+    } else if (build.status == bbv2.Status.SUCCESS) {
+      return setStatus(statusSucceeded);
+    } else if (build.status == bbv2.Status.CANCELED) {
+      return setStatus(statusCancelled);
+    } else if (build.status == bbv2.Status.FAILURE) {
+      return setStatus(statusFailed);
+    } else if (build.status == bbv2.Status.INFRA_FAILURE) {
+      return setStatus(statusInfraFailure);
+    } else {
+      throw BadRequestException('${build.status} is unknown');
     }
   }
 
@@ -267,6 +252,7 @@ class Task extends Document {
   Map<String, dynamic> get facade {
     return <String, dynamic>{
       kTaskDocumentName: name,
+      kTaskCommitSha: commitSha,
       kTaskCreateTimestamp: createTimestamp,
       kTaskStartTimestamp: startTimestamp,
       kTaskEndTimestamp: endTimestamp,
@@ -283,6 +269,7 @@ class Task extends Document {
   String toString() {
     final StringBuffer buf = StringBuffer()
       ..write('$runtimeType(')
+      ..write('$kTaskBuildNumberField: $buildNumber')
       ..write(', $kTaskCreateTimestampField: $createTimestamp')
       ..write(', $kTaskStartTimestampField: $startTimestamp')
       ..write(', $kTaskEndTimestampField: $endTimestamp')

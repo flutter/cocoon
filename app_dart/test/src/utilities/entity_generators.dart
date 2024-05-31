@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
@@ -11,9 +12,8 @@ import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/gerrit/commit.dart';
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
-import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
+import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:github/github.dart' as github;
@@ -247,18 +247,18 @@ Target generateTarget(
   );
 }
 
-Build generateBuild(
-  int i, {
+bbv2.Build generateBbv2Build(
+  Int64 i, {
   String bucket = 'prod',
   String name = 'Linux test_builder',
-  Status status = Status.success,
-  Map<String?, List<String?>>? tags,
-  Input? input,
+  bbv2.Status status = bbv2.Status.SUCCESS,
+  Iterable<bbv2.StringPair>? tags,
+  bbv2.Build_Input? input,
   int buildNumber = 1,
 }) =>
-    Build(
-      id: i.toString(),
-      builderId: BuilderId(
+    bbv2.Build(
+      id: i,
+      builder: bbv2.BuilderID(
         project: 'flutter',
         bucket: bucket,
         builder: name,
@@ -268,36 +268,6 @@ Build generateBuild(
       number: buildNumber,
       input: input,
     );
-
-push_message.Build generatePushMessageBuild(
-  int i, {
-  String bucket = 'prod',
-  String name = 'Linux test_builder',
-  push_message.Status? status = push_message.Status.completed,
-  push_message.Result result = push_message.Result.success,
-  List<String>? tags,
-  int buildNumber = 1,
-  DateTime? completedTimestamp,
-  DateTime? createdTimestamp,
-  DateTime? startedTimestamp,
-  push_message.FailureReason? failureReason,
-}) {
-  tags ??= <String>[];
-  tags.add('build_address:luci.flutter.prod/$name/$buildNumber');
-
-  return push_message.Build(
-    bucket: bucket,
-    id: i.toString(),
-    project: 'flutter',
-    status: status,
-    result: result,
-    createdTimestamp: createdTimestamp,
-    completedTimestamp: completedTimestamp,
-    startedTimestamp: startedTimestamp,
-    tags: tags,
-    failureReason: failureReason,
-  );
-}
 
 github.CheckRun generateCheckRun(
   int i, {

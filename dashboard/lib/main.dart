@@ -67,8 +67,6 @@ void main([List<String> args = const <String>[]]) async {
       child: Now(child: const MyApp()),
     ),
   );
-  // Enable extensions like Vimium to traverse the dashboard
-  SemanticsBinding.instance.ensureSemantics();
 }
 
 class MyApp extends StatelessWidget {

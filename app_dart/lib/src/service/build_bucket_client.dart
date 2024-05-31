@@ -9,13 +9,15 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
-import '../model/luci/buildbucket.dart';
-import '../request_handling/body.dart';
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'access_token_provider.dart';
 
 import '../service/logging.dart';
 
-/// A client interface to LUCI BuildBucket
+// TODO generalize the two clients to remove this.
+/// A client interface to LUCI BuildBucket.
+///
+/// Uses the v2 Buildbucket interface.
 @immutable
 class BuildBucketClient {
   /// Creates a new build bucket Client.
@@ -60,59 +62,67 @@ class BuildBucketClient {
   /// The [http.Client] to use for requests.
   final http.Client httpClient;
 
-  Future<T> _postRequest<S extends JsonBody, T>(
+  Future<String> _postRequest(
     String path,
-    S request,
-    T Function(Map<String, dynamic>? rawResponse) responseFromJson, {
+    String request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) async {
     final Uri url = Uri.parse('$buildBucketUri$path');
     final AccessToken? token = await accessTokenService?.createAccessToken();
 
-    log.fine('Making request with path: $url and body: ${json.encode(request)}');
+    log.info('Making bbv2 request with path: $url and body: $request');
 
     final http.Response response = await httpClient.post(
       url,
-      body: json.encode(request),
+      body: request,
       headers: <String, String>{
-        HttpHeaders.contentTypeHeader: 'application/json; charset=utf-8',
+        HttpHeaders.contentTypeHeader: 'application/json',
         HttpHeaders.acceptHeader: 'application/json',
         if (token != null) HttpHeaders.authorizationHeader: '${token.type} ${token.data}',
       },
     );
 
+    log.info('bbv2 request returned response code ${response.statusCode}');
+    log.info('bbv2 request response body: ${response.body}');
+
     if (response.statusCode < 300) {
-      return responseFromJson(
-        json.decode(utf8.decode(response.bodyBytes).substring(kRpcResponseGarbage.length)) as Map<String, dynamic>?,
-      );
+      return response.body.substring(kRpcResponseGarbage.length);
     }
     throw BuildBucketException(response.statusCode, response.body);
   }
 
   /// The RPC request to schedule a build.
-  Future<Build> scheduleBuild(
-    ScheduleBuildRequest request, {
+  Future<bbv2.Build> scheduleBuild(
+    bbv2.ScheduleBuildRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
-  }) {
-    return _postRequest<ScheduleBuildRequest, Build>(
+  }) async {
+    final bbv2.Build build = bbv2.Build.create();
+
+    final String responseBody = await _postRequest(
       '/ScheduleBuild',
-      request,
-      Build.fromJson,
+      jsonEncode(request.toProto3Json()),
       buildBucketUri: buildBucketUri,
     );
+
+    build.mergeFromProto3Json(jsonDecode(responseBody));
+    return build;
   }
 
   /// The RPC request to search for builds.
-  Future<SearchBuildsResponse> searchBuilds(
-    SearchBuildsRequest request, {
+  Future<bbv2.SearchBuildsResponse> searchBuilds(
+    bbv2.SearchBuildsRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
-  }) {
-    return _postRequest<SearchBuildsRequest, SearchBuildsResponse>(
+  }) async {
+    final bbv2.SearchBuildsResponse searchBuildsResponse = bbv2.SearchBuildsResponse.create();
+
+    final String responseBody = await _postRequest(
       '/SearchBuilds',
-      request,
-      SearchBuildsResponse.fromJson,
+      jsonEncode(request.toProto3Json()),
       buildBucketUri: buildBucketUri,
     );
+
+    searchBuildsResponse.mergeFromProto3Json(jsonDecode(responseBody));
+    return searchBuildsResponse;
   }
 
   /// The RPC method to batch multiple RPC methods in a single HTTP request.
@@ -120,66 +130,78 @@ class BuildBucketClient {
   /// The response is guaranteed to contain line-item responses for all
   /// line-item requests that were issued in [request]. If only a subset of
   /// responses were retrieved, a [BatchRequestException] will be thrown.
-  Future<BatchResponse> batch(
-    BatchRequest request, {
+  Future<bbv2.BatchResponse> batch(
+    bbv2.BatchRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) async {
-    final BatchResponse response = await _postRequest<BatchRequest, BatchResponse>(
+    final bbv2.BatchResponse response = bbv2.BatchResponse.create();
+    final String responseBody = await _postRequest(
       '/Batch',
-      request,
-      BatchResponse.fromJson,
+      //For some reason this needs to be stringified as the proto message is not quoted for some reason.
+      jsonEncode(request.toProto3Json()),
+      // this needs to use an object with mergeFromProto3Json, cannot use fromJson here.
       buildBucketUri: buildBucketUri,
     );
-    if (response.responses!.length != request.requests!.length) {
+    response.mergeFromProto3Json(jsonDecode(responseBody));
+    if (response.responses.length != request.requests.length) {
       throw BatchRequestException('Failed to execute all requests');
     }
+    log.info('Batch response matches request size.');
     return response;
   }
 
   /// The RPC request to cancel a build.
-  Future<Build> cancelBuild(
-    CancelBuildRequest request, {
+  Future<bbv2.Build> cancelBuild(
+    bbv2.CancelBuildRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
-  }) {
-    return _postRequest<CancelBuildRequest, Build>(
+  }) async {
+    final bbv2.Build build = bbv2.Build.create();
+
+    final String responseBody = await _postRequest(
       '/CancelBuild',
-      request,
-      Build.fromJson,
+      jsonEncode(request.toProto3Json()),
       buildBucketUri: buildBucketUri,
     );
+
+    build.mergeFromProto3Json(jsonDecode(responseBody));
+    return build;
   }
 
   /// The RPC request to get details about a build.
-  Future<Build> getBuild(
-    GetBuildRequest request, {
+  Future<bbv2.Build> getBuild(
+    bbv2.GetBuildRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
-  }) {
-    return _postRequest<GetBuildRequest, Build>(
+  }) async {
+    final bbv2.Build build = bbv2.Build.create();
+
+    final String responseBody = await _postRequest(
       '/GetBuild',
-      request,
-      Build.fromJson,
+      jsonEncode(request.toProto3Json()),
       buildBucketUri: buildBucketUri,
     );
+
+    build.mergeFromProto3Json(jsonDecode(responseBody));
+    return build;
   }
 
   /// The RPC request to get a list of builders.
-  Future<ListBuildersResponse> listBuilders(
-    ListBuildersRequest request, {
+  Future<bbv2.ListBuildersResponse> listBuilders(
+    bbv2.ListBuildersRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuilderUri,
-  }) {
-    return _postRequest<ListBuildersRequest, ListBuildersResponse>(
+  }) async {
+    final bbv2.ListBuildersResponse listBuildersResponse = bbv2.ListBuildersResponse.create();
+
+    final String responseBody = await _postRequest(
       '/ListBuilders',
-      request,
-      ListBuildersResponse.fromJson,
+      jsonEncode(request.toProto3Json()),
       buildBucketUri: buildBucketUri,
     );
+
+    listBuildersResponse.mergeFromProto3Json(jsonDecode(responseBody));
+    return listBuildersResponse;
   }
 
   /// Closes the underlying [HttpClient].
-  ///
-  /// If `force` is true, it will close immediately and cause outstanding
-  /// requests to end with an error. Otherwise, it will wait for outstanding
-  /// requests to finish before closing.
   ///
   /// Once this call completes, additional RPC requests will throw an exception.
   void close() {

@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:cocoon_service/src/model/luci/push_message.dart';
+import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
@@ -23,7 +23,7 @@ void main() {
     late HttpServer server;
     late SubscriptionHandler subscription;
 
-    const PushMessageEnvelope testEnvelope = PushMessageEnvelope(
+    const PubSubPushMessage testEnvelope = PubSubPushMessage(
       message: PushMessage(
         data: 'test',
         messageId: '123',
