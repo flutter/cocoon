@@ -197,7 +197,7 @@ https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semanti
 Recent test runs:
 https://flutter-dashboard.appspot.com/#/build?taskFilter=Mac_android%20android_semantics_integration_test
 
-Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
+Please follow https://github.com/flutter/flutter/blob/master/docs/infra/Reducing-Test-Flakiness.md#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
 
 const String expectedStagingSemanticsIntegrationTestResponseTitle = 'Linux ci_yaml flutter roller is 50.00% flaky';
@@ -220,7 +220,7 @@ https://ci.chromium.org/ui/p/flutter/builders/prod/Linux%20ci_yaml%20flutter%20r
 Recent test runs:
 https://flutter-dashboard.appspot.com/#/build?taskFilter=Linux%20ci_yaml_flutter%20roller
 
-Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
+Please follow https://github.com/flutter/flutter/blob/master/docs/infra/Reducing-Test-Flakiness.md#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
 
 final CiYaml testCiYaml = CiYaml(

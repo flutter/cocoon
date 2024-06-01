@@ -104,7 +104,7 @@ Targets first need to be mirrored to flutter/infra before they will be run.
 This propagation takes about 30 minutes, and will only run as non-blocking in postsubmit.
 
 The target will show runs in https://ci.chromium.org/p/flutter (under the repo). See
-https://github.com/flutter/flutter/wiki/Adding-a-new-Test-Shard for up to date information
+https://github.com/flutter/flutter/blob/master/docs/infra/Adding-a-new-Test-Shard.md for up to date information
 on the steps to promote your target to blocking.
 
 For flutter/flutter, there's a GitHub bot that will

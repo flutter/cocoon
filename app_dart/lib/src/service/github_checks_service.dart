@@ -14,7 +14,7 @@ import 'logging.dart';
 import 'luci_build_service.dart';
 
 const String kGithubSummary = '''
-**[Understanding a LUCI build failure](https://github.com/flutter/flutter/wiki/Understanding-a-LUCI-build-failure)**
+**[Understanding a LUCI build failure](https://github.com/flutter/flutter/blob/master/docs/infra/Understanding-a-LUCI-build-failure.md)**
 
 ''';
 

@@ -1306,7 +1306,7 @@ class Engine {
                 '\n'
                 'Please handle this issue the same way you would a normal valid but low-priority issue.\n'
                 '\n'
-                'For more details see https://github.com/flutter/flutter/wiki/Triage',
+                'For more details see https://github.com/flutter/flutter/blob/master/docs/triage/README.md',
               labels: <String>[
                 ...GitHubSettings.teams.map((String team) => '${GitHubSettings.teamPrefix}$team'),
                 'P2',
