@@ -12,4 +12,4 @@ dependencies:
 
 dev_dependencies:
   mockito: 5.4.4
-  test_api: 0.7.1
+  test_api: 0.7.2
