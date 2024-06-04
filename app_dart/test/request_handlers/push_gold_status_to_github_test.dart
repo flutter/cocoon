@@ -548,7 +548,7 @@ void main() {
 
         test('runs on engine release branches', () async {
           // New commit
-          final PullRequest pr = newPullRequest(123, 'abc', 'flutter-3.8-candidate.8');
+          final PullRequest pr = newPullRequest(123, 'abc', 'flutter-3.28-candidate.8');
           enginePrsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(engineSlug, pr, '', '', '');
           db.values[status.key] = status;
