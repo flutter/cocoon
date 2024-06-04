@@ -69,7 +69,7 @@ class Config {
 
   static bool doesSkiaGoldRunOnBranch(gh.RepositorySlug slug, String? branch) {
     if (slug == engineSlug) {
-      final RegExp releaseRegex = RegExp(r'flutter-\d?\.\d?-candidate\.\d?');
+      final RegExp releaseRegex = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
       return defaultBranch(slug) == branch || (branch != null && releaseRegex.hasMatch(branch));
     } else {
       return defaultBranch(slug) == branch;
