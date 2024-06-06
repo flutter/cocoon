@@ -106,7 +106,7 @@ ${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds!, buck
 Recent test runs:
 ${_issueBuilderLink(statistic.name)}
 
-Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
+Please follow https://github.com/flutter/flutter/blob/master/docs/infra/Reducing-Test-Flakiness.md#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
   }
 

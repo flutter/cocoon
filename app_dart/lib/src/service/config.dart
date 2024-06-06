@@ -202,7 +202,7 @@ class Config {
       'normally be opened against branches other than {{default_branch}}, I '
       'have changed the base to {{default_branch}}. If this was intended, you '
       'may modify the base back to {{target_branch}}. See the [Release Process]'
-      '(https://github.com/flutter/flutter/wiki/Release-process) for information '
+      '(https://github.com/flutter/flutter/blob/master/docs/releases/Release-process.md) for information '
       'about how other branches get updated.\n\n'
       '__Reviewers__: Use caution before merging pull requests to branches other '
       'than {{default_branch}}, unless this is an intentional hotfix/cherrypick.';
@@ -210,7 +210,7 @@ class Config {
   String wrongHeadBranchPullRequestMessage(String branch) =>
       'This pull request is trying merge the branch $branch, which is the name '
       'of a release branch. This is usually a mistake. See '
-      '[Tree Hygiene](https://github.com/flutter/flutter/wiki/Tree-hygiene) '
+      '[Tree Hygiene](https://github.com/flutter/flutter/blob/master/docs/contributing/Tree-hygiene.md) '
       'for detailed instructions on how to contribute to the Flutter project. '
       'In particular, ensure that before you start coding, you create your '
       'feature branch off of _${kDefaultBranchName}_.\n\n'
@@ -220,10 +220,10 @@ class Config {
   String get releaseBranchPullRequestMessage => 'This pull request was opened '
       'from and to a release candidate branch. This should only be done as part '
       'of the official [Flutter release process]'
-      '(https://github.com/flutter/flutter/wiki/Release-process). If you are '
+      '(https://github.com/flutter/flutter/blob/master/docs/releases/Release-process.md). If you are '
       'attempting to make a regular contribution to the Flutter project, please '
       'close this PR and follow the instructions at [Tree Hygiene]'
-      '(https://github.com/flutter/flutter/wiki/Tree-hygiene) for detailed '
+      '(https://github.com/flutter/flutter/blob/master/docs/contributing/Tree-hygiene.md) for detailed '
       'instructions on contributing to Flutter.\n\n'
       '__Reviewers__: Use caution before merging pull requests to release '
       'branches. Ensure the proper procedure has been followed.';
@@ -239,9 +239,9 @@ class Config {
   String get missingTestsPullRequestMessage => 'It looks like this pull '
       'request may not have tests. Please make sure to add tests before merging. '
       'If you need '
-      '[an exemption](https://github.com/flutter/flutter/wiki/Tree-hygiene#tests) '
+      '[an exemption](https://github.com/flutter/flutter/blob/master/docs/contributing/Tree-hygiene.md#tests) '
       'to this rule, contact "@test-exemption-reviewer" in the #hackers '
-      'channel in [Chat](https://github.com/flutter/flutter/wiki/Chat) '
+      'channel in [Chat](https://github.com/flutter/flutter/blob/master/docs/contributing/Chat.md) '
       '(don\'t just cc them here, they won\'t see it! Use Discord!).'
       '\n\n'
       'If you are not sure if you need tests, consider this rule of thumb: '
@@ -251,7 +251,7 @@ class Config {
       'before your fix?**'
       '\n\n'
       '__Reviewers__: Read the [Tree Hygiene page]'
-      '(https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
+      '(https://github.com/flutter/flutter/blob/master/docs/contributing/Tree-hygiene.md#how-to-review-code) '
       'and make sure this patch meets those guidelines before LGTMing.';
 
   String get flutterGoldPending => 'Waiting for all other checks to be successful before querying Gold.';
@@ -286,8 +286,8 @@ class Config {
   String flutterGoldAlertConstant(gh.RepositorySlug slug) {
     if (slug == Config.flutterSlug) {
       return '\n\nFor more guidance, visit '
-          '[Writing a golden file test for `package:flutter`](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).\n\n'
-          '__Reviewers__: Read the [Tree Hygiene page](https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
+          '[Writing a golden file test for `package:flutter`](https://github.com/flutter/flutter/blob/master/docs/contributing/testing/Writing-a-golden-file-test-for-package-flutter.md).\n\n'
+          '__Reviewers__: Read the [Tree Hygiene page](https://github.com/flutter/flutter/blob/master/docs/contributing/Tree-hygiene.md#how-to-review-code) '
           'and make sure this patch meets those guidelines before LGTMing.\n\n';
     }
     return '';
@@ -342,7 +342,7 @@ class Config {
   /// The names of autoroller accounts for the repositories.
   ///
   /// These accounts should not need reviews before merging. See
-  /// https://github.com/flutter/flutter/wiki/Autorollers
+  /// https://github.com/flutter/flutter/blob/master/docs/infra/Autorollers.md
   Set<String> get rollerAccounts => const <String>{
         'skia-flutter-autoroll',
         'engine-flutter-autoroll',
