@@ -52,7 +52,6 @@ sealed class GitHubSettings {
     'android',
     'codelabs',
     'design',
-    'desktop',
     'ecosystem',
     'engine',
     'framework',
