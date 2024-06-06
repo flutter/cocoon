@@ -52,7 +52,6 @@ sealed class GitHubSettings {
     'android',
     'codelabs',
     'design',
-    'desktop',
     'ecosystem',
     'engine',
     'framework',
@@ -60,11 +59,14 @@ sealed class GitHubSettings {
     'go_router',
     'infra',
     'ios',
+    'linux',
+    'macos',
     'news',
     'release',
     'text-input',
     'tool',
     'web',
+    'windows',
   };
   static const int thumbsMinimum = 100; // an issue needs at least this many thumbs up to trigger retriage
   static const double thumbsThreshold = 2.0; // and the count must have increased by this factor since last triage
