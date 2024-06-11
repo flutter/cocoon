@@ -396,7 +396,7 @@ void main() {
     });
 
     /// Create a handler using the mock LuciBuildService instead of the fake.
-    PresubmitLuciSubscription luci_handler = PresubmitLuciSubscription(
+    final PresubmitLuciSubscription luciHandler = PresubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,
       luciBuildService: mockLuciBuildService,
@@ -405,14 +405,16 @@ void main() {
       scheduler: scheduler,
     );
 
-    await tester.post(luci_handler);
+    await tester.post(luciHandler);
 
-    bbv2.Build build = verify(mockLuciBuildService.rescheduleBuild(
-      build: captureAnyNamed('build'),
-      builderName: anyNamed('builderName'),
-      rescheduleAttempt: anyNamed('rescheduleAttempt'),
-      userDataMap: anyNamed('userDataMap'),
-    )).captured[0];
+    final bbv2.Build build = verify(
+      mockLuciBuildService.rescheduleBuild(
+        build: captureAnyNamed('build'),
+        builderName: anyNamed('builderName'),
+        rescheduleAttempt: anyNamed('rescheduleAttempt'),
+        userDataMap: anyNamed('userDataMap'),
+      ),
+    ).captured[0];
 
     // Check that the build.input.properties extracted from build_large_fields
     // contains the git_ref property encoded in the test data.
