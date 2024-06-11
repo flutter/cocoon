@@ -229,7 +229,7 @@ class CiYaml {
         exceptions.add('ERROR: ${target.name} already exists in graph');
       } else {
         // a new build without "bringup: true"
-        // link to wiki - https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#adding-a-new-devicelab-test
+        // link to wiki - https://github.com/flutter/flutter/blob/master/docs/infra/Reducing-Test-Flakiness.md#adding-a-new-devicelab-test
         if (totTargets.isNotEmpty && !totTargets.contains(target.name) && target.bringup != true) {
           exceptions.add(
             'ERROR: ${target.name} is a new builder added. it needs to be marked bringup: true\nIf ci.yaml wasn\'t changed, try `git fetch upstream && git merge upstream/master`',

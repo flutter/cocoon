@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/src/service/commit_service.dart';
+import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
@@ -18,9 +19,7 @@ import '../../request_handling/subscription_handler.dart';
 import '../../service/config.dart';
 import '../../service/datastore.dart';
 import '../../service/gerrit_service.dart';
-import '../../service/github_checks_service.dart';
 import '../../service/logging.dart';
-import '../../service/scheduler.dart';
 
 // Filenames which are not actually tests.
 const List<String> kNotActuallyATest = <String>[
@@ -70,9 +69,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     required this.scheduler,
     required this.gerritService,
     required this.commitService,
-    this.githubChecksService,
     this.datastoreProvider = DatastoreService.defaultProvider,
     super.authProvider,
+    // Gets the initial github events from this sub after the webhook uploads them.
   }) : super(subscriptionName: 'github-webhooks-sub');
 
   /// Cocoon scheduler to trigger tasks against changes from GitHub.
@@ -83,9 +82,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
   /// Used to handle push events and create commits based on those events.
   final CommitService commitService;
-
-  /// To provide build status updates to GitHub pull requests.
-  final GithubChecksService? githubChecksService;
 
   final DatastoreServiceProvider datastoreProvider;
 
@@ -380,6 +376,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         // Exempt paths.
         filename.startsWith('dev/devicelab/lib/versions/gallery.dart') ||
         filename.startsWith('dev/integration_tests') ||
+        filename.startsWith('docs/') ||
         filename.startsWith('impeller/fixtures') ||
         filename.startsWith('impeller/golden_tests') ||
         filename.startsWith('impeller/playground') ||
@@ -467,7 +464,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           !filename.endsWith('run_tests.sh')) {
         needsTests = !_allChangesAreCodeComments(file);
       }
-      // See https://github.com/flutter/flutter/wiki/Plugin-Tests for discussion
+      // See https://github.com/flutter/flutter/blob/master/docs/ecosystem/testing/Plugin-Tests.md for discussion
       // of various plugin test types and locations.
       if (filename.endsWith('_test.dart') ||
           // Native iOS/macOS tests.

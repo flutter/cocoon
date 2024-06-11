@@ -2,18 +2,18 @@
 
 // ignore_for_file: always_specify_types, implicit_dynamic_parameter
 
-part of 'pubsub_message_v2.dart';
+part of 'pubsub_message.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-PubSubPushMessageV2 _$PubSubPushMessageV2FromJson(Map<String, dynamic> json) => PubSubPushMessageV2(
-      message: json['message'] == null ? null : PushMessageV2.fromJson(json['message'] as Map<String, dynamic>),
+PubSubPushMessage _$PubSubPushMessageFromJson(Map<String, dynamic> json) => PubSubPushMessage(
+      message: json['message'] == null ? null : PushMessage.fromJson(json['message'] as Map<String, dynamic>),
       subscription: json['subscription'] as String?,
     );
 
-Map<String, dynamic> _$PubSubPushMessageV2ToJson(PubSubPushMessageV2 instance) {
+Map<String, dynamic> _$PubSubPushMessageToJson(PubSubPushMessage instance) {
   final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
@@ -27,7 +27,7 @@ Map<String, dynamic> _$PubSubPushMessageV2ToJson(PubSubPushMessageV2 instance) {
   return val;
 }
 
-PushMessageV2 _$PushMessageV2FromJson(Map<String, dynamic> json) => PushMessageV2(
+PushMessage _$PushMessageFromJson(Map<String, dynamic> json) => PushMessage(
       attributes: (json['attributes'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, e as String),
       ),
@@ -36,7 +36,7 @@ PushMessageV2 _$PushMessageV2FromJson(Map<String, dynamic> json) => PushMessageV
       publishTime: json['publishTime'] as String?,
     );
 
-Map<String, dynamic> _$PushMessageV2ToJson(PushMessageV2 instance) {
+Map<String, dynamic> _$PushMessageToJson(PushMessage instance) {
   final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {

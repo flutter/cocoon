@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -40,14 +40,19 @@ void main() {
   group('BatchBackfiller', () {
     setUp(() async {
       mockFirestoreService = MockFirestoreService();
+
       db = FakeDatastoreDB()..addOnQuery<Commit>((Iterable<Commit> results) => commits);
+
       config = FakeConfig(
         dbValue: db,
         backfillerTargetLimitValue: 2,
         firestoreService: mockFirestoreService,
       );
+
       pubsub = FakePubSub();
+
       mockGithubChecksUtil = MockGithubChecksUtil();
+
       when(
         mockGithubChecksUtil.createCheckRun(
           any,
@@ -57,6 +62,7 @@ void main() {
           output: anyNamed('output'),
         ),
       ).thenAnswer((_) async => generateCheckRun(1));
+
       when(
         mockFirestoreService.writeViaTransaction(
           captureAny,
@@ -64,6 +70,7 @@ void main() {
       ).thenAnswer((Invocation invocation) {
         return Future<CommitResponse>.value(CommitResponse());
       });
+
       scheduler = FakeScheduler(
         config: config,
         ciYaml: batchPolicyConfig,
@@ -74,10 +81,12 @@ void main() {
           githubChecksUtil: mockGithubChecksUtil,
         ),
       );
+
       handler = BatchBackfiller(
         config: config,
         scheduler: scheduler,
       );
+
       tester = RequestHandlerTester();
     });
 
@@ -135,14 +144,17 @@ void main() {
       db.addOnQuery<Task>((Iterable<Task> results) => allGray);
       await tester.get(handler);
       expect(pubsub.messages.length, 1);
-      final ScheduleBuildRequest scheduleBuildRequest =
-          (pubsub.messages.single as BatchRequest).requests!.single.scheduleBuild!;
+
+      final bbv2.BatchRequest batchRequest = bbv2.BatchRequest.create();
+      batchRequest.mergeFromProto3Json(pubsub.messages.first);
+
+      final bbv2.ScheduleBuildRequest scheduleBuildRequest = batchRequest.requests.first.scheduleBuild;
+
       expect(scheduleBuildRequest.priority, LuciBuildService.kBackfillPriority);
     });
 
     test('does not backfill targets when number of available tasks is less than BatchPolicy.kBatchSize', () async {
       final List<Task> scheduleA = <Task>[
-        // Linux_android A
         generateTask(1, name: 'Linux_android A', status: Task.statusNew),
       ];
       db.addOnQuery<Task>((Iterable<Task> results) => scheduleA);
@@ -159,8 +171,12 @@ void main() {
       db.addOnQuery<Task>((Iterable<Task> results) => allGray);
       await tester.get(handler);
       expect(pubsub.messages.length, 1);
-      final ScheduleBuildRequest scheduleBuildRequest =
-          (pubsub.messages.single as BatchRequest).requests!.single.scheduleBuild!;
+
+      final bbv2.BatchRequest batchRequest = bbv2.BatchRequest.create();
+      batchRequest.mergeFromProto3Json(pubsub.messages.first);
+
+      final bbv2.ScheduleBuildRequest scheduleBuildRequest = batchRequest.requests.first.scheduleBuild;
+
       expect(scheduleBuildRequest.priority, LuciBuildService.kRerunPriority);
     });
 
@@ -175,8 +191,12 @@ void main() {
       db.addOnQuery<Task>((Iterable<Task> results) => allGray);
       await tester.get(handler);
       expect(pubsub.messages.length, 1);
-      final ScheduleBuildRequest scheduleBuildRequest =
-          (pubsub.messages.single as BatchRequest).requests!.single.scheduleBuild!;
+
+      final bbv2.BatchRequest batchRequest = bbv2.BatchRequest.create();
+      batchRequest.mergeFromProto3Json(pubsub.messages.first);
+
+      final bbv2.ScheduleBuildRequest scheduleBuildRequest = batchRequest.requests.first.scheduleBuild;
+
       expect(scheduleBuildRequest.priority, LuciBuildService.kRerunPriority);
     });
 

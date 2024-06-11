@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/stage.dart';
@@ -12,9 +13,9 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
@@ -29,9 +30,9 @@ import 'package:test/test.dart';
 import '../model/github/checks_test_data.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
+import '../src/service/fake_build_bucket_client.dart';
 import '../src/service/fake_build_status_provider.dart';
 import '../src/request_handling/fake_pubsub.dart';
-import '../src/service/fake_buildbucket.dart';
 import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_luci_build_service.dart';
@@ -319,18 +320,19 @@ void main() {
         final MockBuildBucketClient mockBuildBucketClient = MockBuildBucketClient();
         final FakeLuciBuildService luciBuildService = FakeLuciBuildService(
           config: config,
-          buildbucket: mockBuildBucketClient,
+          buildBucketClient: mockBuildBucketClient,
           gerritService: FakeGerritService(),
           githubChecksUtil: mockGithubChecksUtil,
           pubsub: pubsub,
         );
         when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
             .thenAnswer((_) async => generateCheckRun(1, name: 'Linux A'));
+
         when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
-          return const ListBuildersResponse(
+          return bbv2.ListBuildersResponse(
             builders: [
-              BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux A')),
-              BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux runIf')),
+              bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'Linux A')),
+              bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'Linux runIf')),
             ],
           );
         });
@@ -609,16 +611,18 @@ targets:
 
         // Set up mock buildbucket to validate which bucket is requested.
         final MockBuildBucketClient mockBuildbucket = MockBuildBucketClient();
+
         when(mockBuildbucket.batch(any)).thenAnswer((i) async {
           return FakeBuildBucketClient().batch(i.positionalArguments[0]);
         });
+
         when(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri')))
             .thenAnswer((realInvocation) async {
-          final ScheduleBuildRequest scheduleBuildRequest = realInvocation.positionalArguments[0];
+          final bbv2.ScheduleBuildRequest scheduleBuildRequest = realInvocation.positionalArguments[0];
           // Ensure this is an attempt to schedule a presubmit build by
           // verifying that bucket == 'try'.
-          expect(scheduleBuildRequest.builderId.bucket, equals('try'));
-          return const Build(builderId: BuilderId(), id: '');
+          expect(scheduleBuildRequest.builder.bucket, equals('try'));
+          return bbv2.Build(builder: bbv2.BuilderID(), id: Int64());
         });
 
         scheduler = Scheduler(
@@ -628,13 +632,16 @@ targets:
           luciBuildService: FakeLuciBuildService(
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
-            buildbucket: mockBuildbucket,
+            buildBucketClient: mockBuildbucket,
           ),
         );
+
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           jsonDecode(checkRunString) as Map<String, dynamic>,
         );
+
         expect(await scheduler.processCheckRun(checkRunEvent), true);
+
         verify(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri'))).called(1);
         verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
       });
@@ -707,17 +714,17 @@ targets:
         });
         when(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri')))
             .thenAnswer((realInvocation) async {
-          final ScheduleBuildRequest scheduleBuildRequest = realInvocation.positionalArguments[0];
+          final bbv2.ScheduleBuildRequest scheduleBuildRequest = realInvocation.positionalArguments[0];
           // Ensure this is an attempt to schedule a postsubmit build by
           // verifying that bucket == 'prod'.
-          expect(scheduleBuildRequest.builderId.bucket, equals('prod'));
-          return const Build(builderId: BuilderId(), id: '');
+          expect(scheduleBuildRequest.builder.bucket, equals('prod'));
+          return bbv2.Build(builder: bbv2.BuilderID(), id: Int64());
         });
         final FakePubSub pubsub = FakePubSub();
         final FakeLuciBuildService luciBuildService = FakeLuciBuildService(
           config: config,
           githubChecksUtil: mockGithubChecksUtil,
-          buildbucket: mockBuildbucket,
+          buildBucketClient: mockBuildbucket,
           gerritService: FakeGerritService(
             branchesValue: <String>['master', 'main'],
           ),
@@ -1224,30 +1231,31 @@ targets:
           luciBuildService: FakeLuciBuildService(
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
-            buildbucket: mockBuildbucket,
+            buildBucketClient: mockBuildbucket,
             gerritService: FakeGerritService(branchesValue: <String>['master']),
             pubsub: pubsub,
           ),
         );
         when(mockBuildbucket.batch(any)).thenAnswer(
-          (_) async => BatchResponse(
-            responses: <Response>[
-              Response(
-                searchBuilds: SearchBuildsResponse(
-                  builds: <Build>[
-                    generateBuild(1000, name: 'Linux', bucket: 'try'),
-                    generateBuild(2000, name: 'Linux Coverage', bucket: 'try'),
-                    generateBuild(3000, name: 'Mac', bucket: 'try', status: Status.scheduled),
-                    generateBuild(4000, name: 'Windows', bucket: 'try', status: Status.started),
-                    generateBuild(5000, name: 'Linux A', bucket: 'try', status: Status.failure),
+          (_) async => bbv2.BatchResponse(
+            responses: <bbv2.BatchResponse_Response>[
+              bbv2.BatchResponse_Response(
+                searchBuilds: bbv2.SearchBuildsResponse(
+                  builds: <bbv2.Build>[
+                    generateBbv2Build(Int64(1000), name: 'Linux', bucket: 'try'),
+                    generateBbv2Build(Int64(2000), name: 'Linux Coverage', bucket: 'try'),
+                    generateBbv2Build(Int64(3000), name: 'Mac', bucket: 'try', status: bbv2.Status.SCHEDULED),
+                    generateBbv2Build(Int64(4000), name: 'Windows', bucket: 'try', status: bbv2.Status.STARTED),
+                    generateBbv2Build(Int64(5000), name: 'Linux A', bucket: 'try', status: bbv2.Status.FAILURE),
                   ],
                 ),
               ),
             ],
           ),
         );
-        when(mockBuildbucket.scheduleBuild(any))
-            .thenAnswer((_) async => generateBuild(5001, name: 'Linux A', bucket: 'try', status: Status.scheduled));
+        when(mockBuildbucket.scheduleBuild(any)).thenAnswer(
+          (_) async => generateBbv2Build(Int64(5001), name: 'Linux A', bucket: 'try', status: bbv2.Status.SCHEDULED),
+        );
         // Only Linux A should be retried
         final Map<String, CheckRun> checkRuns = <String, CheckRun>{
           'Linux': createCheckRun(name: 'Linux', id: 100),
@@ -1268,14 +1276,15 @@ targets:
         );
 
         expect(pubsub.messages.length, 1);
-        final BatchRequest batchRequest = pubsub.messages.single as BatchRequest;
-        expect(batchRequest.requests!.length, 1);
+        final bbv2.BatchRequest batchRequest = bbv2.BatchRequest().createEmptyInstance();
+        batchRequest.mergeFromProto3Json(pubsub.messages.single);
+        expect(batchRequest.requests.length, 1);
         // Schedule build should have been sent
-        expect(batchRequest.requests!.single.scheduleBuild, isNotNull);
-        final ScheduleBuildRequest scheduleBuildRequest = batchRequest.requests!.single.scheduleBuild!;
+        expect(batchRequest.requests.single.scheduleBuild, isNotNull);
+        final bbv2.ScheduleBuildRequest scheduleBuildRequest = batchRequest.requests.single.scheduleBuild;
         // Verify expected parameters to schedule build
-        expect(scheduleBuildRequest.builderId.builder, 'Linux A');
-        expect(scheduleBuildRequest.properties!['custom'], 'abc');
+        expect(scheduleBuildRequest.builder.builder, 'Linux A');
+        expect(scheduleBuildRequest.properties.fields['custom']?.stringValue, 'abc');
       });
 
       test('pass github_build_label to properties', () async {
@@ -1293,30 +1302,31 @@ targets:
           luciBuildService: FakeLuciBuildService(
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
-            buildbucket: mockBuildbucket,
+            buildBucketClient: mockBuildbucket,
             gerritService: FakeGerritService(branchesValue: <String>['master']),
             pubsub: pubsub,
           ),
         );
         when(mockBuildbucket.batch(any)).thenAnswer(
-          (_) async => BatchResponse(
-            responses: <Response>[
-              Response(
-                searchBuilds: SearchBuildsResponse(
-                  builds: <Build>[
-                    generateBuild(1000, name: 'Linux', bucket: 'try'),
-                    generateBuild(2000, name: 'Linux Coverage', bucket: 'try'),
-                    generateBuild(3000, name: 'Mac', bucket: 'try', status: Status.scheduled),
-                    generateBuild(4000, name: 'Windows', bucket: 'try', status: Status.started),
-                    generateBuild(5000, name: 'Linux A', bucket: 'try', status: Status.failure),
+          (_) async => bbv2.BatchResponse(
+            responses: <bbv2.BatchResponse_Response>[
+              bbv2.BatchResponse_Response(
+                searchBuilds: bbv2.SearchBuildsResponse(
+                  builds: <bbv2.Build>[
+                    generateBbv2Build(Int64(1000), name: 'Linux', bucket: 'try'),
+                    generateBbv2Build(Int64(2000), name: 'Linux Coverage', bucket: 'try'),
+                    generateBbv2Build(Int64(3000), name: 'Mac', bucket: 'try', status: bbv2.Status.SCHEDULED),
+                    generateBbv2Build(Int64(4000), name: 'Windows', bucket: 'try', status: bbv2.Status.STARTED),
+                    generateBbv2Build(Int64(5000), name: 'Linux A', bucket: 'try', status: bbv2.Status.FAILURE),
                   ],
                 ),
               ),
             ],
           ),
         );
-        when(mockBuildbucket.scheduleBuild(any))
-            .thenAnswer((_) async => generateBuild(5001, name: 'Linux A', bucket: 'try', status: Status.scheduled));
+        when(mockBuildbucket.scheduleBuild(any)).thenAnswer(
+          (_) async => generateBbv2Build(Int64(5001), name: 'Linux A', bucket: 'try', status: bbv2.Status.SCHEDULED),
+        );
         // Only Linux A should be retried
         final Map<String, CheckRun> checkRuns = <String, CheckRun>{
           'Linux': createCheckRun(name: 'Linux', id: 100),
@@ -1337,14 +1347,15 @@ targets:
         );
 
         expect(pubsub.messages.length, 1);
-        final BatchRequest batchRequest = pubsub.messages.single as BatchRequest;
-        expect(batchRequest.requests!.length, 1);
+        final bbv2.BatchRequest batchRequest = bbv2.BatchRequest().createEmptyInstance();
+        batchRequest.mergeFromProto3Json(pubsub.messages.single);
+        expect(batchRequest.requests.length, 1);
         // Schedule build should have been sent
-        expect(batchRequest.requests!.single.scheduleBuild, isNotNull);
-        final ScheduleBuildRequest scheduleBuildRequest = batchRequest.requests!.single.scheduleBuild!;
+        expect(batchRequest.requests.single.scheduleBuild, isNotNull);
+        final bbv2.ScheduleBuildRequest scheduleBuildRequest = batchRequest.requests.single.scheduleBuild;
         // Verify expected parameters to schedule build
-        expect(scheduleBuildRequest.builderId.builder, 'Linux A');
-        expect(scheduleBuildRequest.properties!['custom'], 'abc');
+        expect(scheduleBuildRequest.builder.builder, 'Linux A');
+        expect(scheduleBuildRequest.properties.fields['custom']?.stringValue, 'abc');
       });
 
       test('triggers only specificed targets', () async {

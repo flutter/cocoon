@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as gh;
 import 'package:meta/meta.dart';
@@ -16,7 +17,6 @@ import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/github_service.dart';
 import '../service/logging.dart';
-import '../service/scheduler.dart';
 
 /// Query GitHub for commits from the past day and ensure they exist in datastore.
 @immutable

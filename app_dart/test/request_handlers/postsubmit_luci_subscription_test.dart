@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
@@ -19,9 +20,10 @@ import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/subscription_tester.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/service/fake_scheduler.dart';
+import '../src/utilities/build_bucket_messages.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
-import '../src/utilities/push_message.dart';
+import 'package:fixnum/fixnum.dart';
 
 void main() {
   late PostsubmitLuciSubscription handler;
@@ -49,7 +51,14 @@ void main() {
     when(mockGithubChecksService.githubChecksUtil).thenReturn(mockGithubChecksUtil);
     when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
         .thenAnswer((_) async => generateCheckRun(1, name: 'Linux A'));
-    when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+      ),
+    ).thenAnswer((_) async => true);
     when(
       mockFirestoreService.getDocument(
         captureAny,
@@ -119,11 +128,15 @@ void main() {
   });
 
   test('throws exception when task document name is not in message', () async {
-    tester.message = createBuildbucketPushMessage(
-      'COMPLETED',
-      result: 'SUCCESS',
-      builderName: '',
-      userData: '{\\"commit_key\\":\\"flutter/main/abc123\\"}',
+    const Map<String, dynamic> userDataMap = {
+      'commit_key': 'flutter/main/abc123',
+    };
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.SUCCESS,
+      builder: '',
+      userData: userDataMap,
     );
 
     expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
@@ -135,16 +148,22 @@ void main() {
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
       4507531199512576,
-      parent: commit,
       name: 'Linux A',
+      parent: commit,
     );
     final String taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
 
-    tester.message = createBuildbucketPushMessage(
-      'COMPLETED',
-      result: 'SUCCESS',
-      userData:
-          '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\", \\"firestore_commit_document_name\\":\\"${commit.sha}\\", \\"firestore_task_document_name\\":\\"$taskDocumentName\\"}',
+    final Map<String, dynamic> userDataMap = {
+      'task_key': '${task.key.id}',
+      'commit_key': '${task.key.parent?.id}',
+      'firestore_commit_document_name': commit.sha,
+      'firestore_task_document_name': taskDocumentName,
+    };
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.SUCCESS,
+      userData: userDataMap,
     );
 
     config.db.values[commit.key] = commit;
@@ -160,7 +179,7 @@ void main() {
     await tester.post(handler);
 
     expect(task.status, Task.statusSucceeded);
-    expect(task.endTimestamp, 1565049193786);
+    expect(task.endTimestamp, 1697672824674);
 
     // Firestore checks after API call.
     final List<dynamic> captured = verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
@@ -170,7 +189,7 @@ void main() {
     final Document updatedDocument = batchWriteRequest.writes![0].update!;
     expect(updatedDocument.name, firestoreTask!.name);
     expect(firestoreTask!.status, Task.statusSucceeded);
-    expect(firestoreTask!.buildNumber, 1698);
+    expect(firestoreTask!.buildNumber, 259942);
   });
 
   test('skips task processing when build is with scheduled status', () async {
@@ -185,12 +204,19 @@ void main() {
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
     final String taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
-    tester.message = createBuildbucketPushMessage(
-      'SCHEDULED',
-      builderName: 'Linux A',
-      result: null,
-      userData:
-          '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\", \\"firestore_commit_document_name\\":\\"${commit.sha}\\", \\"firestore_task_document_name\\":\\"$taskDocumentName\\"}',
+
+    final Map<String, dynamic> userDataMap = {
+      'task_key': '${task.key.id}',
+      'commit_key': '${task.key.parent?.id}',
+      'firestore_commit_document_name': commit.sha,
+      'firestore_task_document_name': taskDocumentName,
+    };
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.SCHEDULED,
+      builder: 'Linux A',
+      userData: userDataMap,
     );
 
     expect(firestoreTask!.status, firestore.Task.statusInProgress);
@@ -211,12 +237,19 @@ void main() {
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
     final String taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
-    tester.message = createBuildbucketPushMessage(
-      'STARTED',
-      builderName: 'Linux A',
-      result: null,
-      userData:
-          '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\", \\"firestore_commit_document_name\\":\\"${commit.sha}\\", \\"firestore_task_document_name\\":\\"$taskDocumentName\\"}',
+
+    final Map<String, dynamic> userDataMap = {
+      'task_key': '${task.key.id}',
+      'commit_key': '${task.key.parent?.id}',
+      'firestore_commit_document_name': commit.sha,
+      'firestore_task_document_name': taskDocumentName,
+    };
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.STARTED,
+      builder: 'Linux A',
+      userData: userDataMap,
     );
 
     expect(task.status, Task.statusSucceeded);
@@ -237,12 +270,19 @@ void main() {
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
     final String taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
-    tester.message = createBuildbucketPushMessage(
-      'STARTED',
-      builderName: 'Linux B',
-      result: null,
-      userData:
-          '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\", \\"firestore_commit_document_name\\":\\"${commit.sha}\\", \\"firestore_task_document_name\\":\\"$taskDocumentName\\"}',
+
+    final Map<String, dynamic> userDataMap = {
+      'task_key': '${task.key.id}',
+      'commit_key': '${task.key.parent?.id}',
+      'firestore_commit_document_name': commit.sha,
+      'firestore_task_document_name': taskDocumentName,
+    };
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.STARTED,
+      builder: 'Linux B',
+      userData: userDataMap,
     );
 
     expect(task.status, Task.statusSucceeded);
@@ -251,12 +291,11 @@ void main() {
   });
 
   test('does not fail on empty user data', () async {
-    tester.message = createBuildbucketPushMessage(
-      'COMPLETED',
-      result: 'SUCCESS',
-      userData: null,
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.SUCCESS,
+      builder: 'Linux A',
     );
-
     expect(await tester.post(handler), Body.empty);
   });
 
@@ -278,12 +317,19 @@ void main() {
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
     final String taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
-    tester.message = createBuildbucketPushMessage(
-      'COMPLETED',
-      builderName: 'Linux A',
-      result: 'FAILURE',
-      userData:
-          '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\", \\"firestore_commit_document_name\\":\\"${commit.sha}\\", \\"firestore_task_document_name\\":\\"$taskDocumentName\\"}',
+
+    final Map<String, dynamic> userDataMap = {
+      'task_key': '${task.key.id}',
+      'commit_key': '${task.key.parent?.id}',
+      'firestore_commit_document_name': commit.sha,
+      'firestore_task_document_name': taskDocumentName,
+    };
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.FAILURE,
+      builder: 'Linux A',
+      userData: userDataMap,
     );
 
     expect(firestoreTask!.status, firestore.Task.statusFailed);
@@ -317,12 +363,19 @@ void main() {
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
     final String taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
-    tester.message = createBuildbucketPushMessage(
-      'COMPLETED',
-      builderName: 'Linux A',
-      result: 'CANCELED',
-      userData:
-          '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\", \\"firestore_commit_document_name\\":\\"${commit.sha}\\", \\"firestore_task_document_name\\":\\"$taskDocumentName\\"}',
+
+    final Map<String, dynamic> userDataMap = {
+      'task_key': '${task.key.id}',
+      'commit_key': '${task.key.parent?.id}',
+      'firestore_commit_document_name': commit.sha,
+      'firestore_task_document_name': taskDocumentName,
+    };
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.CANCELED,
+      builder: 'Linux A',
+      userData: userDataMap,
     );
 
     expect(firestoreTask!.status, firestore.Task.statusInfraFailure);
@@ -356,13 +409,19 @@ void main() {
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
     final String taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
-    tester.message = createBuildbucketPushMessage(
-      'COMPLETED',
-      builderName: 'Linux A',
-      result: 'FAILURE',
-      failureReason: 'INFRA_FAILURE',
-      userData:
-          '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\", \\"firestore_commit_document_name\\":\\"${commit.sha}\\", \\"firestore_task_document_name\\":\\"$taskDocumentName\\"}',
+
+    final Map<String, dynamic> userDataMap = {
+      'task_key': '${task.key.id}',
+      'commit_key': '${task.key.parent?.id}',
+      'firestore_commit_document_name': commit.sha,
+      'firestore_task_document_name': taskDocumentName,
+    };
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.INFRA_FAILURE,
+      builder: 'Linux A',
+      userData: userDataMap,
     );
 
     expect(task.status, Task.statusInfraFailure);
@@ -381,7 +440,14 @@ void main() {
   test('non-bringup target updates check run', () async {
     firestoreTask = generateFirestoreTask(1, name: 'Linux nonbringup');
     scheduler.ciYaml = nonBringupPackagesConfig;
-    when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+      ),
+    ).thenAnswer((_) async => true);
     when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822', repo: 'packages');
     final Task task = generateTask(
@@ -393,22 +459,42 @@ void main() {
     config.db.values[task.key] = task;
     final String taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
 
-    tester.message = createBuildbucketPushMessage(
-      'COMPLETED',
-      result: 'SUCCESS',
-      builderName: 'Linux A',
-      // Use escaped string to mock json decoded ones.
-      userData:
-          '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\", \\"firestore_commit_document_name\\":\\"${commit.sha}\\", \\"firestore_task_document_name\\":\\"$taskDocumentName\\"}',
+    final Map<String, dynamic> userDataMap = {
+      'task_key': '${task.key.id}',
+      'commit_key': '${task.key.parent?.id}',
+      'firestore_commit_document_name': commit.sha,
+      'firestore_task_document_name': taskDocumentName,
+    };
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.SUCCESS,
+      builder: 'Linux A',
+      userData: userDataMap,
     );
+
     await tester.post(handler);
-    verify(mockGithubChecksService.updateCheckStatus(any, any, any)).called(1);
+    verify(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+      ),
+    ).called(1);
   });
 
   test('bringup target does not update check run', () async {
     firestoreTask = generateFirestoreTask(1, name: 'Linux bringup');
     scheduler.ciYaml = bringupPackagesConfig;
-    when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+      ),
+    ).thenAnswer((_) async => true);
     when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
@@ -420,21 +506,41 @@ void main() {
     config.db.values[task.key] = task;
     final String taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
 
-    tester.message = createBuildbucketPushMessage(
-      'COMPLETED',
-      result: 'SUCCESS',
-      builderName: 'Linux bringup',
-      // Use escaped string to mock json decoded ones.
-      userData:
-          '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\", \\"firestore_commit_document_name\\":\\"${commit.sha}\\", \\"firestore_task_document_name\\":\\"$taskDocumentName\\"}',
+    final Map<String, dynamic> userDataMap = {
+      'task_key': '${task.key.id}',
+      'commit_key': '${task.key.parent?.id}',
+      'firestore_commit_document_name': commit.sha,
+      'firestore_task_document_name': taskDocumentName,
+    };
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.SUCCESS,
+      builder: 'Linux bringup',
+      userData: userDataMap,
     );
+
     await tester.post(handler);
-    verifyNever(mockGithubChecksService.updateCheckStatus(any, any, any));
+    verifyNever(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+      ),
+    );
   });
 
   test('unsupported repo target does not update check run', () async {
     scheduler.ciYaml = unsupportedPostsubmitCheckrunConfig;
-    when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+      ),
+    ).thenAnswer((_) async => true);
     when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
     firestoreTask = generateFirestoreTask(1, attempts: 2, name: 'Linux flutter');
 
@@ -448,15 +554,28 @@ void main() {
     config.db.values[task.key] = task;
     final String taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
 
-    tester.message = createBuildbucketPushMessage(
-      'COMPLETED',
-      result: 'SUCCESS',
-      builderName: 'Linux bringup',
-      // Use escaped string to mock json decoded ones.
-      userData:
-          '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\", \\"firestore_commit_document_name\\":\\"${commit.sha}\\", \\"firestore_task_document_name\\":\\"$taskDocumentName\\"}',
+    final Map<String, dynamic> userDataMap = {
+      'task_key': '${task.key.id}',
+      'commit_key': '${task.key.parent?.id}',
+      'firestore_commit_document_name': commit.sha,
+      'firestore_task_document_name': taskDocumentName,
+    };
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.SUCCESS,
+      builder: 'Linux bringup',
+      userData: userDataMap,
     );
+
     await tester.post(handler);
-    verifyNever(mockGithubChecksService.updateCheckStatus(any, any, any));
+    verifyNever(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+      ),
+    );
   });
 }

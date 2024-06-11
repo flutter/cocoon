@@ -32,7 +32,8 @@ class VacuumStaleTasks extends RequestHandler<Body> {
   /// For testing, can be used to inject a deterministic time.
   final DateTime? nowValue;
 
-  /// Tasks that are in progress for this duration will be reset.
+  /// Tasks that are in progress without a build for this duration will be
+  /// reset.
   static const Duration kTimeoutLimit = Duration(hours: 3);
 
   @override
@@ -54,14 +55,25 @@ class VacuumStaleTasks extends RequestHandler<Body> {
   Future<void> _vacuumRepository(gh.RepositorySlug slug) async {
     final DatastoreService datastore = datastoreProvider(config.db);
 
-    final List<FullTask> tasks = await datastore.queryRecentTasks(slug: slug).toList();
+    // Use the same commit limit as the backfill scheduler, since the primary
+    // purpose of fixing stuck tasks is to prevent the backfiller from being
+    // stuck on one of these tasks.
+    final List<FullTask> tasks =
+        await datastore.queryRecentTasks(slug: slug, commitLimit: config.backfillerCommitLimit).toList();
     final List<Task> tasksToBeReset = <Task>[];
+    final DateTime now = DateTime.now();
     for (FullTask fullTask in tasks) {
       final Task task = fullTask.task;
       if (task.status == Task.statusInProgress && task.buildNumber == null) {
-        task.status = Task.statusNew;
-        task.createTimestamp = 0;
-        tasksToBeReset.add(task);
+        // If the task hasn't been assigned a build, see if it's been waiting
+        // longer than the timeout, and if so reset it back to New as a
+        // mitigation for https://github.com/flutter/flutter/issues/122117 until
+        // the root cause is determined and fixed.
+        final DateTime creationTime = DateTime.fromMillisecondsSinceEpoch(task.createTimestamp ?? 0);
+        if (now.difference(creationTime) > kTimeoutLimit) {
+          task.status = Task.statusNew;
+          tasksToBeReset.add(task);
+        }
       }
     }
     log.info('Vacuuming stale tasks: $tasksToBeReset');

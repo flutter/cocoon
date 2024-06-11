@@ -8,7 +8,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:meta/meta.dart';
 
-import '../model/luci/push_message.dart';
+import '../model/luci/pubsub_message.dart';
 import '../service/cache_service.dart';
 import '../service/logging.dart';
 import 'api_request_handler.dart';
@@ -23,7 +23,7 @@ import 'request_handler.dart';
 /// Messages adhere to a specific contract, as follows:
 ///
 ///  * All requests must be authenticated per [AuthenticationProvider].
-///  * Request body is passed following the format of [PushMessageEnvelope].
+///  * Request body is passed following the format of [PubSubPushMessage].
 @immutable
 abstract class SubscriptionHandler extends RequestHandler<Body> {
   /// Creates a new [SubscriptionHandler].
@@ -85,12 +85,12 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
       return;
     }
 
-    log.fine('Request body: ${utf8.decode(body)}');
-    PushMessageEnvelope? envelope;
+    log.info('Request body: ${utf8.decode(body)}');
+    PubSubPushMessage? pubSubPushMessage;
     if (body.isNotEmpty) {
       try {
         final Map<String, dynamic> json = jsonDecode(utf8.decode(body)) as Map<String, dynamic>;
-        envelope = PushMessageEnvelope.fromJson(json);
+        pubSubPushMessage = PubSubPushMessage.fromJson(json);
       } catch (error) {
         final HttpResponse response = request.response;
         response
@@ -102,13 +102,13 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
       }
     }
 
-    if (envelope == null) {
+    if (pubSubPushMessage == null) {
       throw const BadRequestException('Failed to get message');
     }
-    log.finer(envelope.toJson());
-    log.fine('PubsubMessage publishTime: ${envelope.message!.publishTime}');
 
-    final String messageId = envelope.message!.messageId!;
+    log.finer(pubSubPushMessage.toString());
+
+    final String messageId = pubSubPushMessage.message!.messageId!;
 
     final Uint8List? messageLock = await cache.getOrCreate(
       subscriptionName,
@@ -145,7 +145,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
         },
       ),
       zoneValues: <RequestKey<dynamic>, Object?>{
-        PubSubKey.message: envelope.message,
+        PubSubKey.message: pubSubPushMessage.message!,
         ApiKey.authContext: authContext,
       },
     );

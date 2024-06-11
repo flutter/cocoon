@@ -5,7 +5,7 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/protos.dart' as pb;
-import 'package:cocoon_service/src/model/luci/push_message.dart';
+import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';

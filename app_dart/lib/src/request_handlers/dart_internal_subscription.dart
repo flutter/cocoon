@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:fixnum/fixnum.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
@@ -47,17 +47,19 @@ class DartInternalSubscription extends SubscriptionHandler {
       return Body.empty;
     }
 
-    final dynamic buildData = json.decode(message.data!);
-    log.info('Build data json: $buildData');
+    // This looks to be like we are simply getting the build and not the top level
+    // buildsPubSub message.
+    final Map<String, dynamic> jsonBuildMap = json.decode(message.data!);
 
-    if (buildData['build'] == null) {
+    if (jsonBuildMap['build'] == null) {
       log.info('no build information in message');
       return Body.empty;
     }
 
-    final String project = buildData['build']['builder']['project'];
-    final String bucket = buildData['build']['builder']['bucket'];
-    final String builder = buildData['build']['builder']['builder'];
+    final String project = jsonBuildMap['build']['builder']['project'];
+    final String bucket = jsonBuildMap['build']['builder']['bucket'];
+    final String builder = jsonBuildMap['build']['builder']['builder'];
+    final Int64 buildId = Int64.parseInt(jsonBuildMap['build']['id']);
 
     // This should already be covered by the pubsub filter, but adding an additional check
     // to ensure we don't process builds that aren't from dart-internal/flutter.
@@ -76,28 +78,31 @@ class DartInternalSubscription extends SubscriptionHandler {
       return Body.empty;
     }
 
-    final String buildbucketId = buildData['build']['id'];
-    log.info('Creating build request object with build id $buildbucketId');
-    final GetBuildRequest request = GetBuildRequest(
-      id: buildbucketId,
+    log.info('Creating build request object with build id $buildId');
+
+    final bbv2.GetBuildRequest getBuildRequest = bbv2.GetBuildRequest(
+      id: buildId,
     );
 
     log.info(
-      'Calling buildbucket api to get build data for build $buildbucketId',
+      'Calling buildbucket api to get build data for build $buildId',
     );
-    final Build build = await buildBucketClient.getBuild(request);
+
+    final bbv2.Build existingBuild = await buildBucketClient.getBuild(getBuildRequest);
+
+    log.info('Got back existing builder with name: ${existingBuild.builder.builder}');
 
     log.info('Checking for existing task in datastore');
-    final Task? existingTask = await datastore.getTaskFromBuildbucketBuild(build);
+    final Task? existingTask = await datastore.getTaskFromBuildbucketBuild(existingBuild);
 
     late Task taskToInsert;
     if (existingTask != null) {
-      log.info('Updating Task from existing Task');
-      existingTask.updateFromBuildbucketBuild(build);
+      log.info('Updating Task from existing Build');
+      existingTask.updateFromBuildbucketBuild(existingBuild);
       taskToInsert = existingTask;
     } else {
       log.info('Creating Task from Buildbucket result');
-      taskToInsert = await Task.fromBuildbucketBuild(build, datastore);
+      taskToInsert = await Task.fromBuildbucketBuild(existingBuild, datastore);
     }
 
     log.info('Inserting Task into the datastore: ${taskToInsert.toString()}');

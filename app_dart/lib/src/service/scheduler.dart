@@ -5,6 +5,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
@@ -27,7 +28,6 @@ import '../model/firestore/task.dart' as firestore;
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
-import '../model/luci/buildbucket.dart';
 import '../model/proto/internal/scheduler.pb.dart' as pb;
 import '../service/logging.dart';
 import 'cache_service.dart';
@@ -294,7 +294,11 @@ class Scheduler {
     required PullRequest pullRequest,
     String reason = 'Newer commit available',
   }) async {
-    await luciBuildService.cancelBuilds(pullRequest, reason);
+    log.info('Cancelling presubmit targets with buildbucket v2.');
+    await luciBuildService.cancelBuilds(
+      pullRequest: pullRequest,
+      reason: reason,
+    );
   }
 
   /// Schedule presubmit targets against a pull request.
@@ -390,7 +394,10 @@ class Scheduler {
 
   /// If [builderTriggerList] is specificed, return only builders that are contained in [presubmitTarget].
   /// Otherwise, return [presubmitTarget].
-  List<Target> getTriggerList(List<Target> presubmitTarget, List<String>? builderTriggerList) {
+  List<Target> getTriggerList(
+    List<Target> presubmitTarget,
+    List<String>? builderTriggerList,
+  ) {
     if (builderTriggerList != null && builderTriggerList.isNotEmpty) {
       return presubmitTarget.where((Target target) => builderTriggerList.contains(target.value.name)).toList();
     }
@@ -412,9 +419,10 @@ class Scheduler {
       checkSuiteEvent,
     );
     final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
-    final List<Build?> failedBuilds = await luciBuildService.failedBuilds(pullRequest, presubmitTargets);
-    for (Build? build in failedBuilds) {
-      final CheckRun checkRun = checkRuns[build!.builderId.builder!]!;
+    final List<bbv2.Build?> failedBuilds =
+        await luciBuildService.failedBuilds(pullRequest: pullRequest, targets: presubmitTargets);
+    for (bbv2.Build? build in failedBuilds) {
+      final CheckRun checkRun = checkRuns[build!.builder.builder]!;
 
       if (checkRun.status != CheckRunStatus.completed) {
         // Check run is still in progress, do not retry.
@@ -422,7 +430,7 @@ class Scheduler {
       }
 
       await luciBuildService.scheduleTryBuilds(
-        targets: presubmitTargets.where((Target target) => build.builderId.builder == target.value.name).toList(),
+        targets: presubmitTargets.where((Target target) => build.builder.builder == target.value.name).toList(),
         pullRequest: pullRequest,
         checkSuiteEvent: checkSuiteEvent,
       );
@@ -560,7 +568,8 @@ class Scheduler {
 
             if (commit == null) {
               log.fine('Rescheduling presubmit build.');
-              await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent);
+              // Does not do anything with the returned build oddly.
+              await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent: checkRunEvent);
             } else {
               log.fine('Rescheduling postsubmit build.');
               firestoreService = await config.createFirestoreService();

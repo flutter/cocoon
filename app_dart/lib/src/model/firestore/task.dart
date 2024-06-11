@@ -8,11 +8,9 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 
 import '../../request_handling/exceptions.dart';
 import '../../service/firestore.dart';
-import '../../service/logging.dart';
 import '../appengine/commit.dart';
 import '../appengine/task.dart' as datastore;
 import '../ci_yaml/target.dart';
-import '../luci/push_message.dart';
 
 const String kTaskCollectionId = 'tasks';
 const int kTaskDefaultTimestampValue = 0;
@@ -190,30 +188,7 @@ class Task extends Document {
     fields![kTaskTestFlakyField] = Value(booleanValue: testFlaky);
   }
 
-  /// Update [Task] fields based on a LUCI [Build].
-  void updateFromBuild(Build build) {
-    final List<String>? tags = build.tags;
-    // Example tag: build_address:luci.flutter.prod/Linux Cocoon/271
-    final String? buildAddress = tags?.firstWhere((String tag) => tag.contains('build_address'));
-    if (buildAddress == null) {
-      log.warning('Tags: $tags');
-      throw const BadRequestException('build_address does not contain build number');
-    }
-    fields![kTaskBuildNumberField] = Value(integerValue: buildAddress.split('/').last);
-    fields![kTaskCreateTimestampField] = Value(
-      integerValue: (build.createdTimestamp?.millisecondsSinceEpoch ?? kTaskDefaultTimestampValue).toString(),
-    );
-    fields![kTaskStartTimestampField] = Value(
-      integerValue: (build.startedTimestamp?.millisecondsSinceEpoch ?? kTaskDefaultTimestampValue).toString(),
-    );
-    fields![kTaskEndTimestampField] = Value(
-      integerValue: (build.completedTimestamp?.millisecondsSinceEpoch ?? kTaskDefaultTimestampValue).toString(),
-    );
-
-    _setStatusFromLuciStatus(build);
-  }
-
-  void updateFromBuildV2(bbv2.Build build) {
+  void updateFromBuild(bbv2.Build build) {
     fields![kTaskBuildNumberField] = Value(integerValue: build.number.toString());
 
     fields![kTaskCreateTimestampField] = Value(
@@ -226,7 +201,7 @@ class Task extends Document {
       integerValue: (build.endTime.toDateTime().millisecondsSinceEpoch).toString(),
     );
 
-    _setStatusFromLuciStatusV2(build);
+    _setStatusFromLuciStatus(build);
   }
 
   void resetAsRetry({int attempt = 1}) {
@@ -243,36 +218,7 @@ class Task extends Document {
     };
   }
 
-  /// Get a [Task] status from a LUCI [Build] status/result.
-  String _setStatusFromLuciStatus(Build build) {
-    // Updates can come out of order. Ensure completed statuses are kept.
-    if (_isStatusCompleted()) {
-      return status;
-    }
-
-    if (build.status == Status.started) {
-      return setStatus(statusInProgress);
-    }
-    switch (build.result) {
-      case Result.success:
-        return setStatus(statusSucceeded);
-      case Result.canceled:
-        return setStatus(statusCancelled);
-      case Result.failure:
-        // Note that `Result` does not support `infraFailure`:
-        // https://github.com/luci/luci-go/blob/main/common/api/buildbucket/buildbucket/v1/buildbucket-gen.go#L247-L251
-        // To determine an infra failure status, we need to combine `Result.failure` and `FailureReason.infraFailure`.
-        if (build.failureReason == FailureReason.infraFailure) {
-          return setStatus(statusInfraFailure);
-        } else {
-          return setStatus(statusFailed);
-        }
-      default:
-        throw BadRequestException('${build.result} is unknown');
-    }
-  }
-
-  String _setStatusFromLuciStatusV2(bbv2.Build build) {
+  String _setStatusFromLuciStatus(bbv2.Build build) {
     // Updates can come out of order. Ensure completed statuses are kept.
     if (_isStatusCompleted()) {
       return status;

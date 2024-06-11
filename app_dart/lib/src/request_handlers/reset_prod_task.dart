@@ -4,6 +4,9 @@
 
 import 'dart:async';
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_service/src/service/luci_build_service.dart';
+import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -21,8 +24,6 @@ import '../request_handling/exceptions.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/firestore.dart';
-import '../service/luci_build_service.dart';
-import '../service/scheduler.dart';
 import '../service/logging.dart';
 
 /// Reruns a postsubmit LUCI build.
@@ -88,7 +89,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
         gitBranch: branch!,
         sha: sha!,
       );
-      final tasks = await datastore.db.query<Task>(ancestorKey: commitKey).run().toList();
+      final List<Task> tasks = await datastore.db.query<Task>(ancestorKey: commitKey).run().toList();
       final List<Future<void>> futures = <Future<void>>[];
       for (final Task task in tasks) {
         if (!Task.taskFailStatusSet.contains(task.status)) continue;
@@ -161,12 +162,22 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       final int currentAttempt = task.attempts!;
       taskDocumentName = '$kDatabase/documents/${firestore.kTaskCollectionId}/${sha}_${taskName}_$currentAttempt';
     }
-    taskDocument =
-        await firestore.Task.fromFirestore(firestoreService: firestoreService, documentName: taskDocumentName);
-    final Map<String, List<String>> tags = <String, List<String>>{
-      'triggered_by': <String>[email],
-      'trigger_type': <String>['manual_retry'],
-    };
+    taskDocument = await firestore.Task.fromFirestore(
+      firestoreService: firestoreService,
+      documentName: taskDocumentName,
+    );
+
+    final List<bbv2.StringPair> tags = <bbv2.StringPair>[
+      bbv2.StringPair(
+        key: 'triggered_by',
+        value: email,
+      ),
+      bbv2.StringPair(
+        key: 'trigger_type',
+        value: 'manual_retry',
+      ),
+    ];
+
     final bool isRerunning = await luciBuildService.checkRerunBuilder(
       commit: commit,
       task: task,

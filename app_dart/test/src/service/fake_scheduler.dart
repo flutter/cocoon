@@ -6,7 +6,7 @@ import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
-import 'package:cocoon_service/src/service/buildbucket.dart';
+import 'package:cocoon_service/src/service/build_bucket_client.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
@@ -35,7 +35,7 @@ class FakeScheduler extends Scheduler {
           luciBuildService: luciBuildService ??
               FakeLuciBuildService(
                 config: config,
-                buildbucket: buildbucket,
+                buildBucketClient: buildbucket,
                 githubChecksUtil: githubChecksUtil,
               ),
         );
@@ -45,14 +45,22 @@ class FakeScheduler extends Scheduler {
   /// [CiYaml] value to be injected on [getCiYaml].
   CiYaml? ciYaml;
 
+  /// If true, getCiYaml will throw a [FormatException] when validation is
+  /// enforced, simulating failing validation.
+  bool failCiYamlValidation = false;
+
   @override
   Future<CiYaml> getCiYaml(
     Commit commit, {
     CiYaml? totCiYaml,
     RetryOptions? retryOptions,
     bool validate = false,
-  }) async =>
-      ciYaml ?? _defaultConfig;
+  }) async {
+    if (validate && failCiYamlValidation) {
+      throw const FormatException('Failed validation!');
+    }
+    return ciYaml ?? _defaultConfig;
+  }
 
   @override
   Future<Commit> generateTotCommit({required String branch, required RepositorySlug slug}) async {

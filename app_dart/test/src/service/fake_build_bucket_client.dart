@@ -3,17 +3,17 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_service/src/service/build_bucket_v2_client.dart';
+import 'package:cocoon_service/src/service/build_bucket_client.dart';
 import 'package:fixnum/src/int64.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
-/// Fake [BuildBucketV2Client] for handling requests to BuildBucket.
+/// Fake [BuildBucketClient] for handling requests to BuildBucket.
 ///
 /// By default, returns good responses but can be updated to throw exceptions.
 // ignore: must_be_immutable
-class FakeBuildBucketV2Client extends BuildBucketV2Client {
-  FakeBuildBucketV2Client({
+class FakeBuildBucketClient extends BuildBucketClient {
+  FakeBuildBucketClient({
     this.scheduleBuildResponse,
     this.searchBuildsResponse,
     this.batchResponse,
@@ -140,12 +140,31 @@ class FakeBuildBucketV2Client extends BuildBucketV2Client {
           ),
         );
       } else if (request.hasSearchBuilds()) {
-        // // Note that you cannot get builds from the searchBuildResponse.
-        // batchResponseResponses.add(
-        //   bbv2.BatchResponse_Response(
-        //     searchBuilds: bbv2.SearchBuildsResponse(builds: searchBuildsResponseBuildList),
-        //   ),
-        // );
+        // Note that you cannot get builds from the searchBuildResponse.
+        batchResponseResponses.add(
+          bbv2.BatchResponse_Response(
+            searchBuilds: bbv2.SearchBuildsResponse(
+              builds: <bbv2.Build>[
+                bbv2.Build(
+                  id: Int64(123),
+                  builder: bbv2.BuilderID(
+                    builder: 'builder_abc',
+                    bucket: 'try',
+                    project: 'flutter',
+                  ),
+                  tags: <bbv2.StringPair>[
+                    bbv2.StringPair(key: 'buildset', value: 'pr/git/12345'),
+                    bbv2.StringPair(key: 'cipd_version', value: 'refs/heads/main'),
+                    bbv2.StringPair(key: 'github_link', value: 'https://github/flutter/flutter/pull/1'),
+                  ],
+                  input: bbv2.Build_Input(
+                    properties: bbv2.Struct(fields: {'bringup': bbv2.Value(stringValue: 'true')}),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       }
     }
 

@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+
 import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
-import 'package:cocoon_service/src/model/luci/push_message.dart' as pm;
+import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
@@ -19,11 +20,10 @@ import '../../src/datastore/fake_config.dart';
 import '../../src/datastore/fake_datastore.dart';
 import '../../src/request_handling/fake_http.dart';
 import '../../src/request_handling/subscription_tester.dart';
-import '../../src/service/fake_buildbucket.dart';
+import '../../src/service/fake_build_bucket_client.dart';
 import '../../src/service/fake_github_service.dart';
 import '../../src/service/fake_gerrit_service.dart';
 import '../../src/service/fake_scheduler.dart';
-import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.dart';
 import '../../src/utilities/webhook_generators.dart';
 
@@ -40,7 +40,6 @@ void main() {
   late MockGitHub gitHubClient;
   late MockFirestoreService mockFirestoreService;
   late MockGithubChecksUtil mockGithubChecksUtil;
-  late MockGithubChecksService mockGithubChecksService;
   late MockIssuesService issuesService;
   late MockPullRequestsService pullRequestsService;
   late SubscriptionTester tester;
@@ -90,14 +89,10 @@ void main() {
         .thenAnswer((_) async => PullRequest());
     fakeBuildBucketClient = FakeBuildBucketClient();
     mockGithubChecksUtil = MockGithubChecksUtil();
-    scheduler = FakeScheduler(
-      config: config,
-      buildbucket: fakeBuildBucketClient,
-      githubChecksUtil: mockGithubChecksUtil,
-    );
+    scheduler =
+        FakeScheduler(config: config, buildbucket: fakeBuildBucketClient, githubChecksUtil: mockGithubChecksUtil);
     tester = SubscriptionTester(request: request);
 
-    mockGithubChecksService = MockGithubChecksService();
     when(gitHubClient.issues).thenReturn(issuesService);
     when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
     when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output'))).thenAnswer((_) async {
@@ -114,7 +109,6 @@ void main() {
       cache: CacheService(inMemory: true),
       datastoreProvider: (_) => DatastoreService(config.db, 5),
       gerritService: gerritService,
-      githubChecksService: mockGithubChecksService,
       scheduler: scheduler,
       commitService: commitService,
     );
@@ -250,7 +244,6 @@ void main() {
       );
 
       await tester.post(webhook);
-
       expect(scheduler.cancelPreSubmitTargetsCallCnt, 1);
       expect(scheduler.addPullRequestCallCnt, 0);
     });
@@ -276,7 +269,7 @@ void main() {
     test('Acts on opened against master when default is main', () async {
       const int issueNumber = 123;
 
-      final pm.PushMessage pushMessage = generateGithubWebhookMessage(
+      final PushMessage pushMessage = generateGithubWebhookMessage(
         action: 'opened',
         number: issueNumber,
         baseRef: 'master',
@@ -322,7 +315,7 @@ void main() {
     test('Acts on edited against master when default is main', () async {
       const int issueNumber = 123;
 
-      final pm.PushMessage pushMessage = generateGithubWebhookMessage(
+      final PushMessage pushMessage = generateGithubWebhookMessage(
         action: 'edited',
         number: issueNumber,
         baseRef: 'master',
@@ -377,7 +370,7 @@ void main() {
       );
       bool batchRequestCalled = false;
 
-      Future<BatchResponse> getBatchResponse() async {
+      Future<bbv2.BatchResponse> getBatchResponse() async {
         batchRequestCalled = true;
         fail('Marking a draft ready for review should not trigger new builds');
       }
@@ -397,23 +390,24 @@ void main() {
         number: issueNumber,
         isDraft: true,
       );
+
       bool batchRequestCalled = false;
 
-      Future<BatchResponse> getBatchResponse() async {
+      Future<bbv2.BatchResponse> getBatchResponse() async {
         batchRequestCalled = true;
-        return BatchResponse(
-          responses: <Response>[
-            Response(
-              searchBuilds: SearchBuildsResponse(
-                builds: <Build>[
-                  generateBuild(999, name: 'Linux', status: Status.ended),
+        return bbv2.BatchResponse(
+          responses: <bbv2.BatchResponse_Response>[
+            bbv2.BatchResponse_Response(
+              searchBuilds: bbv2.SearchBuildsResponse(
+                builds: <bbv2.Build>[
+                  bbv2.Build(number: 999, builder: bbv2.BuilderID(builder: 'Linux'), status: bbv2.Status.SUCCESS),
                 ],
               ),
             ),
-            Response(
-              searchBuilds: SearchBuildsResponse(
-                builds: <Build>[
-                  generateBuild(998, name: 'Linux', status: Status.ended),
+            bbv2.BatchResponse_Response(
+              searchBuilds: bbv2.SearchBuildsResponse(
+                builds: <bbv2.Build>[
+                  bbv2.Build(number: 998, builder: bbv2.BuilderID(builder: 'Linux'), status: bbv2.Status.SUCCESS),
                 ],
               ),
             ),
@@ -665,6 +659,7 @@ void main() {
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'dev/devicelab/lib/versions/gallery.dart',
           PullRequestFile()..filename = 'dev/integration_tests/some_package/android/build.gradle',
+          PullRequestFile()..filename = 'docs/app_anatomy.svg',
           PullRequestFile()..filename = 'impeller/fixtures/dart_tests.dart',
           PullRequestFile()..filename = 'impeller/golden_tests/golden_tests.cc',
           PullRequestFile()..filename = 'impeller/playground/playground.cc',
@@ -2188,21 +2183,22 @@ void foo() {
     test('When synchronized, cancels existing builds and schedules new ones', () async {
       const int issueNumber = 12345;
       bool batchRequestCalled = false;
-      Future<BatchResponse> getBatchResponse() async {
+
+      Future<bbv2.BatchResponse> getBatchResponse() async {
         batchRequestCalled = true;
-        return BatchResponse(
-          responses: <Response>[
-            Response(
-              searchBuilds: SearchBuildsResponse(
-                builds: <Build>[
-                  generateBuild(999, name: 'Linux', status: Status.ended),
+        return bbv2.BatchResponse(
+          responses: <bbv2.BatchResponse_Response>[
+            bbv2.BatchResponse_Response(
+              searchBuilds: bbv2.SearchBuildsResponse(
+                builds: <bbv2.Build>[
+                  bbv2.Build(number: 999, builder: bbv2.BuilderID(builder: 'Linux'), status: bbv2.Status.SUCCESS),
                 ],
               ),
             ),
-            Response(
-              searchBuilds: SearchBuildsResponse(
-                builds: <Build>[
-                  generateBuild(998, name: 'Linux', status: Status.ended),
+            bbv2.BatchResponse_Response(
+              searchBuilds: bbv2.SearchBuildsResponse(
+                builds: <bbv2.Build>[
+                  bbv2.Build(number: 998, builder: bbv2.BuilderID(builder: 'Linux'), status: bbv2.Status.SUCCESS),
                 ],
               ),
             ),
@@ -2234,17 +2230,17 @@ void foo() {
           ]);
         });
 
-        fakeBuildBucketClient.batchResponse = () => Future<BatchResponse>.value(
-              const BatchResponse(
-                responses: <Response>[
-                  Response(
-                    searchBuilds: SearchBuildsResponse(
-                      builds: <Build>[],
+        fakeBuildBucketClient.batchResponse = () => Future<bbv2.BatchResponse>.value(
+              bbv2.BatchResponse(
+                responses: <bbv2.BatchResponse_Response>[
+                  bbv2.BatchResponse_Response(
+                    searchBuilds: bbv2.SearchBuildsResponse(
+                      builds: <bbv2.Build>[],
                     ),
                   ),
-                  Response(
-                    searchBuilds: SearchBuildsResponse(
-                      builds: <Build>[],
+                  bbv2.BatchResponse_Response(
+                    searchBuilds: bbv2.SearchBuildsResponse(
+                      builds: <bbv2.Build>[],
                     ),
                   ),
                 ],
@@ -2302,20 +2298,28 @@ void foo() {
       });
 
       test('When synchronized, cancels existing builds and schedules new ones', () async {
-        fakeBuildBucketClient.batchResponse = () => Future<BatchResponse>.value(
-              BatchResponse(
-                responses: <Response>[
-                  Response(
-                    searchBuilds: SearchBuildsResponse(
-                      builds: <Build>[
-                        generateBuild(999, name: 'Linux', status: Status.ended),
+        fakeBuildBucketClient.batchResponse = () => Future<bbv2.BatchResponse>.value(
+              bbv2.BatchResponse(
+                responses: <bbv2.BatchResponse_Response>[
+                  bbv2.BatchResponse_Response(
+                    searchBuilds: bbv2.SearchBuildsResponse(
+                      builds: <bbv2.Build>[
+                        bbv2.Build(
+                          number: 999,
+                          builder: bbv2.BuilderID(builder: 'Linux'),
+                          status: bbv2.Status.ENDED_MASK,
+                        ),
                       ],
                     ),
                   ),
-                  Response(
-                    searchBuilds: SearchBuildsResponse(
-                      builds: <Build>[
-                        generateBuild(998, name: 'Linux', status: Status.ended),
+                  bbv2.BatchResponse_Response(
+                    searchBuilds: bbv2.SearchBuildsResponse(
+                      builds: <bbv2.Build>[
+                        bbv2.Build(
+                          number: 998,
+                          builder: bbv2.BuilderID(builder: 'Linux'),
+                          status: bbv2.Status.ENDED_MASK,
+                        ),
                       ],
                     ),
                   ),
