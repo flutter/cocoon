@@ -145,7 +145,8 @@ class FileWriter {
     }
   }
 
-  void writeBool(bool value) { // ignore: avoid_positional_boolean_parameters
+  void writeBool(bool value) {
+    // ignore: avoid_positional_boolean_parameters
     _writeType(_typeBool);
     _buffer.addByte(value ? 0x01 : 0x00);
   }

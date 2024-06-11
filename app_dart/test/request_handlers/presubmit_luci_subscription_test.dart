@@ -353,4 +353,71 @@ void main() {
       ),
     ).called(1);
   });
+
+  test('Build contains data from build_large_fields', () async {
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        rescheduled: anyNamed('rescheduled'),
+      ),
+    ).thenAnswer((_) async => true);
+    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
+    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 0);
+
+    const Map<String, dynamic> userDataMap = {
+      'repo_owner': 'flutter',
+      'commit_branch': 'main',
+      'commit_sha': 'abc',
+      'repo_name': 'flutter',
+    };
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.SUCCESS,
+      builder: 'Linux A',
+      userData: userDataMap,
+    );
+
+    when(
+      mockLuciBuildService.rescheduleBuild(
+        build: captureAnyNamed('build'),
+        builderName: anyNamed('builderName'),
+        rescheduleAttempt: anyNamed('rescheduleAttempt'),
+        userDataMap: anyNamed('userDataMap'),
+      ),
+    ).thenAnswer((_) async {
+      return bbv2.Build(
+        id: Int64(8905920700440101120),
+        builder: bbv2.BuilderID(bucket: 'luci.flutter.prod', project: 'flutter', builder: 'Linux Coverage'),
+      );
+    });
+
+    /// Create a handler using the mock LuciBuildService instead of the fake.
+    final PresubmitLuciSubscription luciHandler = PresubmitLuciSubscription(
+      cache: CacheService(inMemory: true),
+      config: config,
+      luciBuildService: mockLuciBuildService,
+      githubChecksService: mockGithubChecksService,
+      authProvider: FakeAuthenticationProvider(),
+      scheduler: scheduler,
+    );
+
+    await tester.post(luciHandler);
+
+    final bbv2.Build build = verify(
+      mockLuciBuildService.rescheduleBuild(
+        build: captureAnyNamed('build'),
+        builderName: anyNamed('builderName'),
+        rescheduleAttempt: anyNamed('rescheduleAttempt'),
+        userDataMap: anyNamed('userDataMap'),
+      ),
+    ).captured[0];
+
+    // Check that the build.input.properties extracted from build_large_fields
+    // contains the git_ref property encoded in the test data.
+    expect(build.input.properties.fields, contains('git_ref'));
+  });
 }

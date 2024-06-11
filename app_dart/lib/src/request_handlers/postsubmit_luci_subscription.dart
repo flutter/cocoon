@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/ci_yaml.dart';
@@ -82,8 +83,12 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     }
 
     final bbv2.Build build = buildsPubSub.build;
+
     // Note that result is no longer present in the output.
     log.fine('Updating buildId=${build.id} for result=${build.status}');
+
+    // Add build fields that are stored in a separate compressed buffer.
+    build.mergeFromBuffer(ZLibCodec().decode(buildsPubSub.buildLargeFields));
 
     log.info('build ${build.toProto3Json()}');
 
