@@ -140,12 +140,31 @@ class FakeBuildBucketClient extends BuildBucketClient {
           ),
         );
       } else if (request.hasSearchBuilds()) {
-        // // Note that you cannot get builds from the searchBuildResponse.
-        // batchResponseResponses.add(
-        //   bbv2.BatchResponse_Response(
-        //     searchBuilds: bbv2.SearchBuildsResponse(builds: searchBuildsResponseBuildList),
-        //   ),
-        // );
+        // Note that you cannot get builds from the searchBuildResponse.
+        batchResponseResponses.add(
+          bbv2.BatchResponse_Response(
+            searchBuilds: bbv2.SearchBuildsResponse(
+              builds: <bbv2.Build>[
+                bbv2.Build(
+                  id: Int64(123),
+                  builder: bbv2.BuilderID(
+                    builder: 'builder_abc',
+                    bucket: 'try',
+                    project: 'flutter',
+                  ),
+                  tags: <bbv2.StringPair>[
+                    bbv2.StringPair(key: 'buildset', value: 'pr/git/12345'),
+                    bbv2.StringPair(key: 'cipd_version', value: 'refs/heads/main'),
+                    bbv2.StringPair(key: 'github_link', value: 'https://github/flutter/flutter/pull/1'),
+                  ],
+                  input: bbv2.Build_Input(
+                    properties: bbv2.Struct(fields: {'bringup': bbv2.Value(stringValue: 'true')}),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       }
     }
 

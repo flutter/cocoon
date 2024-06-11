@@ -534,7 +534,7 @@ class LuciBuildService {
 
     // get it as a struct first and convert it.
     final bbv2.Struct propertiesStruct = build.input.properties;
-    final Map<String, Object> properties = propertiesStruct.toProto3Json() as Map<String, Object>;
+    final Map<String, Object?> properties = propertiesStruct.toProto3Json() as Map<String, Object?>;
 
     // final Map<String, Object>? properties = build.input.properties;
     log.info('input ${build.input} properties $properties');
@@ -780,7 +780,7 @@ class LuciBuildService {
     required Commit commit,
     required Target target,
     required Task task,
-    Map<String, Object>? properties,
+    Map<String, Object?>? properties,
     List<bbv2.StringPair>? tags,
     int priority = kDefaultPriority,
   }) async {
@@ -845,8 +845,8 @@ class LuciBuildService {
     final String currentAttemptStr = tags.firstWhere((tag) => tag.key == 'current_attempt').value;
     rawUserData['firestore_task_document_name'] = '${commit.sha}_${task.name}_$currentAttemptStr';
 
-    final Map<String, Object> processedProperties = target.getProperties();
-    processedProperties.addAll(properties ?? <String, Object>{});
+    final Map<String, Object?> processedProperties = target.getProperties().cast<String, Object?>();
+    processedProperties.addAll(properties ?? <String, Object?>{});
     processedProperties['git_branch'] = commit.branch!;
     final String cipdExe = 'refs/heads/${commit.branch}';
     processedProperties['exe_cipd_version'] = cipdExe;
