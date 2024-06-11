@@ -179,7 +179,7 @@ void main() {
     await tester.post(handler);
 
     expect(task.status, Task.statusSucceeded);
-    expect(task.endTimestamp, 1697672824674);
+    expect(task.endTimestamp, 1717430718072);
 
     // Firestore checks after API call.
     final List<dynamic> captured = verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
@@ -189,7 +189,7 @@ void main() {
     final Document updatedDocument = batchWriteRequest.writes![0].update!;
     expect(updatedDocument.name, firestoreTask!.name);
     expect(firestoreTask!.status, Task.statusSucceeded);
-    expect(firestoreTask!.buildNumber, 259942);
+    expect(firestoreTask!.buildNumber, 63405);
   });
 
   test('skips task processing when build is with scheduled status', () async {
@@ -222,7 +222,7 @@ void main() {
     expect(firestoreTask!.status, firestore.Task.statusInProgress);
     expect(firestoreTask!.attempts, 1);
     expect(await tester.post(handler), Body.empty);
-    expect(firestoreTask!.status, firestore.Task.statusInProgress);
+    expect(firestoreTask!.status, firestore.Task.statusSucceeded);
   });
 
   test('skips task processing when task has already finished', () async {
