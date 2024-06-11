@@ -52,7 +52,6 @@ sealed class GitHubSettings {
     'android',
     'codelabs',
     'design',
-    'desktop',
     'ecosystem',
     'engine',
     'framework',
@@ -60,11 +59,14 @@ sealed class GitHubSettings {
     'go_router',
     'infra',
     'ios',
+    'linux',
+    'macos',
     'news',
     'release',
     'text-input',
     'tool',
     'web',
+    'windows',
   };
   static const int thumbsMinimum = 100; // an issue needs at least this many thumbs up to trigger retriage
   static const double thumbsThreshold = 2.0; // and the count must have increased by this factor since last triage
@@ -1306,7 +1308,7 @@ class Engine {
                 '\n'
                 'Please handle this issue the same way you would a normal valid but low-priority issue.\n'
                 '\n'
-                'For more details see https://github.com/flutter/flutter/wiki/Triage',
+                'For more details see https://github.com/flutter/flutter/blob/master/docs/triage/README.md',
               labels: <String>[
                 ...GitHubSettings.teams.map((String team) => '${GitHubSettings.teamPrefix}$team'),
                 'P2',

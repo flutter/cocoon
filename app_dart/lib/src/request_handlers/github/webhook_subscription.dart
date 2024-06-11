@@ -464,7 +464,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           !filename.endsWith('run_tests.sh')) {
         needsTests = !_allChangesAreCodeComments(file);
       }
-      // See https://github.com/flutter/flutter/wiki/Plugin-Tests for discussion
+      // See https://github.com/flutter/flutter/blob/master/docs/ecosystem/testing/Plugin-Tests.md for discussion
       // of various plugin test types and locations.
       if (filename.endsWith('_test.dart') ||
           // Native iOS/macOS tests.

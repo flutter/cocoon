@@ -24,14 +24,14 @@ dependencies:
   protobuf: 3.1.0 # Rolled by dependabot
   provider: 6.1.2 # Rolled by dependabot
   truncate: 3.0.1 # Rolled by dependabot
-  url_launcher: 6.2.6 # Rolled by dependabot
+  url_launcher: 6.3.0 # Rolled by dependabot
   url_launcher_platform_interface: 2.3.2 # Rolled by dependabot
   url_launcher_web: 2.2.3 # Rolled by dependabot
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  build_runner: 2.4.10 # Rolled by dependabot
+  build_runner: 2.4.11 # Rolled by dependabot
   flutter_lints: 4.0.0 # Rolled by dependabot
   mockito: 5.4.4 # Remember to run ./regen_mocks.sh!
   path: any # Match Flutter SDK
