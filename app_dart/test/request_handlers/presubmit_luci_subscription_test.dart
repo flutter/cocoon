@@ -388,14 +388,12 @@ void main() {
         rescheduleAttempt: anyNamed('rescheduleAttempt'),
         userDataMap: anyNamed('userDataMap'),
       ),
-    ).thenAnswer(
-      (_) async {
-        return bbv2.Build(
-          id: Int64(8905920700440101120),
-          builder: bbv2.BuilderID(bucket: 'luci.flutter.prod', project: 'flutter', builder: 'Linux Coverage'),
-        );
-      }
-    );
+    ).thenAnswer((_) async {
+      return bbv2.Build(
+        id: Int64(8905920700440101120),
+        builder: bbv2.BuilderID(bucket: 'luci.flutter.prod', project: 'flutter', builder: 'Linux Coverage'),
+      );
+    });
 
     /// Create a handler using the mock LuciBuildService instead of the fake.
     PresubmitLuciSubscription luci_handler = PresubmitLuciSubscription(
@@ -410,10 +408,10 @@ void main() {
     await tester.post(luci_handler);
 
     bbv2.Build build = verify(mockLuciBuildService.rescheduleBuild(
-        build: captureAnyNamed('build'),
-        builderName: anyNamed('builderName'),
-        rescheduleAttempt: anyNamed('rescheduleAttempt'),
-        userDataMap: anyNamed('userDataMap'),
+      build: captureAnyNamed('build'),
+      builderName: anyNamed('builderName'),
+      rescheduleAttempt: anyNamed('rescheduleAttempt'),
+      userDataMap: anyNamed('userDataMap'),
     )).captured[0];
 
     // Check that the build.input.properties extracted from build_large_fields

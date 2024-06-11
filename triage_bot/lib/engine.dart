@@ -34,18 +34,18 @@ sealed class GitHubSettings {
   static const String permanentlyLocked = 'permanently locked';
   static const String thumbsUpLabel = ':+1:';
   static const String staleIssueLabel = ':hourglass_flowing_sand:';
-  static const Set<String> priorities = <String>{ 'P0', 'P1', 'P2', 'P3' };
+  static const Set<String> priorities = <String>{'P0', 'P1', 'P2', 'P3'};
   static const String staleP1Message = 'This issue is marked P1 but has had no recent status updates.\n'
-     '\n'
-     'The P1 label indicates high-priority issues that are at the top of the work list. '
-     'This is the highest priority level a bug can have '
-     'if it isn\'t affecting a top-tier customer or breaking the build. '
-     'Bugs marked P1 are generally actively being worked on '
-     'unless the assignee is dealing with a P0 bug (or another P1 bug). '
-     'Issues at this level should be resolved in a matter of months and should have monthly updates on GitHub.\n'
-     '\n'
-     'Please consider where this bug really falls in our current priorities, and label it or assign it accordingly. '
-     'This allows people to have a clearer picture of what work is actually planned. Thanks!';
+      '\n'
+      'The P1 label indicates high-priority issues that are at the top of the work list. '
+      'This is the highest priority level a bug can have '
+      'if it isn\'t affecting a top-tier customer or breaking the build. '
+      'Bugs marked P1 are generally actively being worked on '
+      'unless the assignee is dealing with a P0 bug (or another P1 bug). '
+      'Issues at this level should be resolved in a matter of months and should have monthly updates on GitHub.\n'
+      '\n'
+      'Please consider where this bug really falls in our current priorities, and label it or assign it accordingly. '
+      'This allows people to have a clearer picture of what work is actually planned. Thanks!';
   static const String willNeedAdditionalTriage = 'will need additional triage';
   static const Set<String> teams = <String>{
     // these are the teams that the self-test issue is assigned to
@@ -70,7 +70,8 @@ sealed class GitHubSettings {
   };
   static const int thumbsMinimum = 100; // an issue needs at least this many thumbs up to trigger retriage
   static const double thumbsThreshold = 2.0; // and the count must have increased by this factor since last triage
-  static const Set<String> knownBots = <String>{ // we don't report events from bots to Discord
+  static const Set<String> knownBots = <String>{
+    // we don't report events from bots to Discord
     'auto-submit[bot]',
     'DartDevtoolWorkflowBot',
     'dependabot[bot]',
@@ -84,37 +85,46 @@ sealed class GitHubSettings {
     'skia-flutter-autoroll',
   };
 
-  static bool isRelevantLabel(String label, { bool ignorePriorities = false }) {
-    return label.startsWith(GitHubSettings.teamPrefix)
-        || label.startsWith(GitHubSettings.triagedPrefix)
-        || label.startsWith(GitHubSettings.fyiPrefix)
-        || label == GitHubSettings.designDoc
-        || label == GitHubSettings.permanentlyLocked
-        || label == GitHubSettings.thumbsUpLabel
-        || label == GitHubSettings.staleIssueLabel
-        || (!ignorePriorities && GitHubSettings.priorities.contains(label));
+  static bool isRelevantLabel(String label, {bool ignorePriorities = false}) {
+    return label.startsWith(GitHubSettings.teamPrefix) ||
+        label.startsWith(GitHubSettings.triagedPrefix) ||
+        label.startsWith(GitHubSettings.fyiPrefix) ||
+        label == GitHubSettings.designDoc ||
+        label == GitHubSettings.permanentlyLocked ||
+        label == GitHubSettings.thumbsUpLabel ||
+        label == GitHubSettings.staleIssueLabel ||
+        (!ignorePriorities && GitHubSettings.priorities.contains(label));
   }
 }
 
 sealed class Timings {
-  static const Duration backgroundUpdatePeriod = Duration(seconds: 1); // how long to wait between issues when scanning in the background
-  static const Duration cleanupUpdateDelay = Duration(minutes: 45); // how long to wait for an issue to be idle before cleaning it up
-  static const Duration cleanupUpdatePeriod = Duration(seconds: 60); // time between attempting to clean up the pending cleanup issues
-  static const Duration longTermTidyingPeriod = Duration(hours: 5); // time between attempting to run long-term tidying of all issues
+  static const Duration backgroundUpdatePeriod =
+      Duration(seconds: 1); // how long to wait between issues when scanning in the background
+  static const Duration cleanupUpdateDelay =
+      Duration(minutes: 45); // how long to wait for an issue to be idle before cleaning it up
+  static const Duration cleanupUpdatePeriod =
+      Duration(seconds: 60); // time between attempting to clean up the pending cleanup issues
+  static const Duration longTermTidyingPeriod =
+      Duration(hours: 5); // time between attempting to run long-term tidying of all issues
   static const Duration credentialsUpdatePeriod = Duration(minutes: 45); // how often to update GitHub credentials
-  static const Duration timeUntilStale = Duration(days: 18 * 7); // how long since the last team interaction before considering an issue stale
-  static const Duration timeUntilReallyStale = Duration(days: 29 * 7); // how long since the last team interaction before unassigning an issue
+  static const Duration timeUntilStale =
+      Duration(days: 18 * 7); // how long since the last team interaction before considering an issue stale
+  static const Duration timeUntilReallyStale =
+      Duration(days: 29 * 7); // how long since the last team interaction before unassigning an issue
   static const Duration timeUntilUnlock = Duration(days: 28); // how long to leave open issues locked
   static const Duration selfTestPeriod = Duration(days: 6 * 7); // how often to file an issue to test the triage process
-  static const Duration selfTestWindow = Duration(days: 18); // how long to leave the self-test issue open before assigning it to critical triage
-  static const Duration refeedDelay = Duration(hours: 24); // how long between times we mark an issue as needing retriage (max 7 a week per team)
+  static const Duration selfTestWindow =
+      Duration(days: 18); // how long to leave the self-test issue open before assigning it to critical triage
+  static const Duration refeedDelay =
+      Duration(hours: 24); // how long between times we mark an issue as needing retriage (max 7 a week per team)
 }
 
 final class Secrets {
   Future<List<int>> get serverCertificate => _getSecret('server.cert.pem');
   Future<DateTime> get serverCertificateModificationDate => _getSecretModificationDate('server.cert.pem');
   Future<List<int>> get serverIntermediateCertificates => _getSecret('server.intermediates.pem');
-  Future<DateTime> get serverIntermediateCertificatesModificationDate => _getSecretModificationDate('server.intermediates.pem');
+  Future<DateTime> get serverIntermediateCertificatesModificationDate =>
+      _getSecretModificationDate('server.intermediates.pem');
   Future<List<int>> get serverKey => _getSecret('server.key.pem');
   Future<DateTime> get serverKeyModificationDate => _getSecretModificationDate('server.key.pem');
   Future<String> get discordToken async => utf8.decode(await _getSecret('discord.token'));
@@ -278,18 +288,18 @@ class Engine {
     required this.secrets,
     required Set<String> contributors,
     required StoreFields? store,
-  }) : _contributors = contributors,
-       _issues = store?.issues ?? <int, IssueStats>{},
-       _pendingCleanupIssues = store?.pendingCleanupIssues ?? <int, DateTime>{},
-       _selfTestIssue = store?.selfTestIssue,
-       _selfTestClosedDate = store?.selfTestClosedDate,
-       _currentBackgroundIssue = store?.currentBackgroundIssue ?? 1,
-       _highestKnownIssue = store?.highestKnownIssue ?? 1,
-       _lastRefeedByTime = store?.lastRefeedByTime ?? <String, DateTime>{},
-       _lastCleanupStart = store?.lastCleanupStart,
-       _lastCleanupEnd = store?.lastCleanupEnd,
-       _lastTidyStart = store?.lastTidyStart,
-       _lastTidyEnd = store?.lastTidyEnd {
+  })  : _contributors = contributors,
+        _issues = store?.issues ?? <int, IssueStats>{},
+        _pendingCleanupIssues = store?.pendingCleanupIssues ?? <int, DateTime>{},
+        _selfTestIssue = store?.selfTestIssue,
+        _selfTestClosedDate = store?.selfTestClosedDate,
+        _currentBackgroundIssue = store?.currentBackgroundIssue ?? 1,
+        _highestKnownIssue = store?.highestKnownIssue ?? 1,
+        _lastRefeedByTime = store?.lastRefeedByTime ?? <String, DateTime>{},
+        _lastCleanupStart = store?.lastCleanupStart,
+        _lastCleanupEnd = store?.lastCleanupEnd,
+        _lastTidyStart = store?.lastTidyStart,
+        _lastTidyEnd = store?.lastTidyEnd {
     _startup = DateTime.timestamp();
     scheduleMicrotask(_updateStoreInBackground);
     _nextCleanup = (_lastCleanupEnd ?? _startup).add(Timings.cleanupUpdatePeriod);
@@ -329,7 +339,8 @@ class Engine {
   DateTime? _selfTestClosedDate;
   int _currentBackgroundIssue;
   int _highestKnownIssue;
-  final Map<String, DateTime> _lastRefeedByTime; // last time we forced an otherwise normal issue to get retriaged by each team
+  final Map<String, DateTime>
+      _lastRefeedByTime; // last time we forced an otherwise normal issue to get retriaged by each team
 
   final Set<String> _recentIds = <String>{}; // used to detect duplicate messages and discard them
   final List<String> _log = <String>[];
@@ -364,7 +375,8 @@ class Engine {
   }
 
   static Future<Set<String>> _loadContributors(GitHub github) async {
-    final int teamId = (await github.organizations.getTeamByName(GitHubSettings.organization, GitHubSettings.teamName)).id!;
+    final int teamId =
+        (await github.organizations.getTeamByName(GitHubSettings.organization, GitHubSettings.teamName)).id!;
     return github.organizations.listTeamMembers(teamId).map((TeamMember member) => member.login!).toSet();
   }
 
@@ -430,7 +442,8 @@ class Engine {
   // the background update code sets it to 0.5 so that there is still a buffer for the other calls,
   // otherwise the background update code could just use it all up and then stall everything else.
   Future<void> _githubReady([double maxFraction = 0.95]) async {
-    if (github.rateLimitRemaining != null && github.rateLimitRemaining! < (github.rateLimitLimit! * (1.0 - maxFraction)).round()) {
+    if (github.rateLimitRemaining != null &&
+        github.rateLimitRemaining! < (github.rateLimitLimit! * (1.0 - maxFraction)).round()) {
       assert(github.rateLimitReset != null);
       await _until(github.rateLimitReset!);
     }
@@ -457,8 +470,10 @@ class Engine {
         final List<String> actualSignatures = request.headers['X-Hub-Signature-256'] ?? const <String>[];
         final List<String> eventKind = request.headers['X-GitHub-Event'] ?? const <String>[];
         final List<String> eventId = request.headers['X-GitHub-Delivery'] ?? const <String>[];
-        if (actualSignatures.length != 1 || expectedSignature != actualSignatures.single ||
-            eventKind.length != 1 || eventId.length != 1) {
+        if (actualSignatures.length != 1 ||
+            expectedSignature != actualSignatures.single ||
+            eventKind.length != 1 ||
+            eventId.length != 1) {
           request.response.writeln('Invalid metadata.');
           return;
         }
@@ -496,24 +511,28 @@ class Engine {
       request.response.writeln();
       request.response.writeln('Current time: $now');
       request.response.writeln('Uptime: ${now.difference(_startup)} (startup at $_startup).');
-      request.response.writeln('Cleaning: ${_cleaning ? "active" : "pending"} (${_pendingCleanupIssues.length} issue${s(_pendingCleanupIssues.length)}); last started $_lastCleanupStart, last ended $_lastCleanupEnd, next in ${_nextCleanup.difference(now)}.');
-      request.response.writeln('Tidying: ${_tidying ? "active" : "pending"}; last started $_lastTidyStart, last ended $_lastTidyEnd, next in ${_nextTidy.difference(now)}.');
-      request.response.writeln('Background scan: currently fetching issue #$_currentBackgroundIssue, highest known issue #$_highestKnownIssue.');
+      request.response.writeln(
+          'Cleaning: ${_cleaning ? "active" : "pending"} (${_pendingCleanupIssues.length} issue${s(_pendingCleanupIssues.length)}); last started $_lastCleanupStart, last ended $_lastCleanupEnd, next in ${_nextCleanup.difference(now)}.');
+      request.response.writeln(
+          'Tidying: ${_tidying ? "active" : "pending"}; last started $_lastTidyStart, last ended $_lastTidyEnd, next in ${_nextTidy.difference(now)}.');
+      request.response.writeln(
+          'Background scan: currently fetching issue #$_currentBackgroundIssue, highest known issue #$_highestKnownIssue.');
       request.response.writeln('${_contributors.length} known contributor${s(_contributors.length)}.');
-      request.response.writeln('GitHub Rate limit status: ${github.rateLimitRemaining}/${github.rateLimitLimit} (reset at ${github.rateLimitReset})');
+      request.response.writeln(
+          'GitHub Rate limit status: ${github.rateLimitRemaining}/${github.rateLimitLimit} (reset at ${github.rateLimitReset})');
       if (_selfTestIssue != null) {
         request.response.writeln('Current self test issue: #$_selfTestIssue');
       }
       if (_selfTestClosedDate != null) {
-        request.response.writeln('Self test last closed on: $_selfTestClosedDate (${now.difference(_selfTestClosedDate!)} ago, next in ${_selfTestClosedDate!.add(Timings.selfTestPeriod).difference(now)})');
+        request.response.writeln(
+            'Self test last closed on: $_selfTestClosedDate (${now.difference(_selfTestClosedDate!)} ago, next in ${_selfTestClosedDate!.add(Timings.selfTestPeriod).difference(now)})');
       }
       request.response.writeln();
       request.response.writeln('Last refeeds (refeed delay: ${Timings.refeedDelay}):');
-      for (final String team in _lastRefeedByTime.keys.toList()..sort((String a, String b) => _lastRefeedByTime[a]!.compareTo(_lastRefeedByTime[b]!))) {
+      for (final String team in _lastRefeedByTime.keys.toList()
+        ..sort((String a, String b) => _lastRefeedByTime[a]!.compareTo(_lastRefeedByTime[b]!))) {
         final Duration delta = now.difference(_lastRefeedByTime[team]!);
-        final String annotation = delta > Timings.refeedDelay
-                                ? ''
-                                : '; blocking immediate refeeds';
+        final String annotation = delta > Timings.refeedDelay ? '' : '; blocking immediate refeeds';
         request.response.writeln('${team.padRight(30, '.')}.${_lastRefeedByTime[team]} ($delta ago$annotation)');
       }
       request.response.writeln();
@@ -563,7 +582,8 @@ class Engine {
     final DateTime now = DateTime.timestamp();
     switch (event) {
       case 'issue_comment':
-        if (!payload.issue.hasKey('pull_request') && payload.repository.full_name.toString() == GitHubSettings.primaryRepository.fullName) {
+        if (!payload.issue.hasKey('pull_request') &&
+            payload.repository.full_name.toString() == GitHubSettings.primaryRepository.fullName) {
           _updateIssueFromWebhook(payload.sender.login.toString(), payload.issue, now);
         }
       case 'issues':
@@ -695,9 +715,11 @@ class Engine {
           case 'created':
             String message;
             if (payload.label.description.toString().isEmpty) {
-              message = '**@${payload.sender.login}** created a new label in ${payload.repository.full_name}, `${payload.label.name}`, but did not give it a description!';
+              message =
+                  '**@${payload.sender.login}** created a new label in ${payload.repository.full_name}, `${payload.label.name}`, but did not give it a description!';
             } else {
-              message = '**@${payload.sender.login}** created a new label in ${payload.repository.full_name}, `${payload.label.name}`, with the description "${payload.label.description}".';
+              message =
+                  '**@${payload.sender.login}** created a new label in ${payload.repository.full_name}, `${payload.label.name}`, with the description "${payload.label.description}".';
             }
             await sendDiscordMessage(
               discord: discord,
@@ -715,14 +737,16 @@ class Engine {
             final bool merged = payload.pull_request.merged_at.toScalar() != null;
             await sendDiscordMessage(
               discord: discord,
-              body: '**@${payload.sender.login}** ${ merged ? "merged" : "closed" } *${payload.pull_request.title}* (${payload.pull_request.html_url})',
+              body:
+                  '**@${payload.sender.login}** ${merged ? "merged" : "closed"} *${payload.pull_request.title}* (${payload.pull_request.html_url})',
               channel: DiscordChannels.github2,
               log: log,
             );
           case 'opened':
             await sendDiscordMessage(
               discord: discord,
-              body: '**@${payload.sender.login}** submitted a new pull request: **${payload.pull_request.title}** (${payload.repository.full_name} #${payload.pull_request.number.toInt()})\n${stripBoilerplate(payload.pull_request.body.toString())}',
+              body:
+                  '**@${payload.sender.login}** submitted a new pull request: **${payload.pull_request.title}** (${payload.repository.full_name} #${payload.pull_request.number.toInt()})\n${stripBoilerplate(payload.pull_request.body.toString())}',
               suffix: '*${payload.pull_request.html_url}*',
               channel: DiscordChannels.github2,
               log: log,
@@ -735,9 +759,9 @@ class Engine {
               case 'approved':
                 await sendDiscordMessage(
                   discord: discord,
-                  body: payload.review.body.toString().isEmpty ?
-                    '**@${payload.sender.login}** gave **LGTM** for *${payload.pull_request.title}* (${payload.pull_request.html_url})' :
-                    '**@${payload.sender.login}** gave **LGTM** for *${payload.pull_request.title}* (${payload.pull_request.html_url}): ${stripBoilerplate(payload.review.body.toString(), inline: true)}',
+                  body: payload.review.body.toString().isEmpty
+                      ? '**@${payload.sender.login}** gave **LGTM** for *${payload.pull_request.title}* (${payload.pull_request.html_url})'
+                      : '**@${payload.sender.login}** gave **LGTM** for *${payload.pull_request.title}* (${payload.pull_request.html_url}): ${stripBoilerplate(payload.review.body.toString(), inline: true)}',
                   channel: DiscordChannels.github2,
                   log: log,
                 );
@@ -746,7 +770,8 @@ class Engine {
       case 'pull_request_review_comment':
         await sendDiscordMessage(
           discord: discord,
-          body: '**@${payload.sender.login}** wrote: ${stripBoilerplate(payload.comment.body.toString(), inline: true)}',
+          body:
+              '**@${payload.sender.login}** wrote: ${stripBoilerplate(payload.comment.body.toString(), inline: true)}',
           suffix: '*${payload.comment.html_url} ${payload.pull_request.title}*',
           channel: DiscordChannels.github2,
           log: log,
@@ -756,7 +781,8 @@ class Engine {
           case 'created':
             await sendDiscordMessage(
               discord: discord,
-              body: '**@${payload.sender.login}** wrote: ${stripBoilerplate(payload.comment.body.toString(), inline: true)}',
+              body:
+                  '**@${payload.sender.login}** wrote: ${stripBoilerplate(payload.comment.body.toString(), inline: true)}',
               suffix: '*${payload.comment.html_url} ${payload.issue.title}*',
               channel: DiscordChannels.github2,
               log: log,
@@ -781,7 +807,8 @@ class Engine {
           case 'opened':
             await sendDiscordMessage(
               discord: discord,
-              body: '**@${payload.sender.login}** filed a new issue: **${payload.issue.title}** (${payload.repository.full_name} #${payload.issue.number.toInt()})\n${stripBoilerplate(payload.issue.body.toString())}',
+              body:
+                  '**@${payload.sender.login}** filed a new issue: **${payload.issue.title}** (${payload.repository.full_name} #${payload.issue.number.toInt()})\n${stripBoilerplate(payload.issue.body.toString())}',
               suffix: '*${payload.issue.html_url}*',
               channel: DiscordChannels.github2,
               log: log,
@@ -797,7 +824,8 @@ class Engine {
             if (isDesignDoc) {
               await sendDiscordMessage(
                 discord: discord,
-                body: '**@${payload.sender.login}** wrote a new design doc: **${payload.issue.title}**\n${stripBoilerplate(payload.issue.body.toString())}',
+                body:
+                    '**@${payload.sender.login}** wrote a new design doc: **${payload.issue.title}**\n${stripBoilerplate(payload.issue.body.toString())}',
                 suffix: '*${payload.issue.html_url}*',
                 channel: DiscordChannels.hiddenChat,
                 log: log,
@@ -815,7 +843,8 @@ class Engine {
       case 'membership':
         await sendDiscordMessage(
           discord: discord,
-          body: '**@${payload.sender.login}** ${payload.action} user **@${payload.member.login}** (${payload.team.name})',
+          body:
+              '**@${payload.sender.login}** ${payload.action} user **@${payload.member.login}** (${payload.team.name})',
           channel: DiscordChannels.github2,
           log: log,
         );
@@ -960,9 +989,9 @@ class Engine {
           // Also, there might be missing labels because the timeline doesn't
           // include the issue's original labels from when the issue was filed.
           final Set<String> actualLabels = githubIssue.labels
-            .map<String>((IssueLabel label) => label.name)
-            .where(GitHubSettings.isRelevantLabel)
-            .toSet();
+              .map<String>((IssueLabel label) => label.name)
+              .where(GitHubSettings.isRelevantLabel)
+              .toSet();
           for (final String label in actualLabels.difference(labels)) {
             // could have been renamed, but let's assume it was added when the issue was created (and never removed).
             final String? triagedTeam = getTeamFor(GitHubSettings.triagedPrefix, label);
@@ -981,14 +1010,16 @@ class Engine {
           issue.lockedAt = lockedAt;
           assert((assignedAt != null) == (assignees.isNotEmpty));
           issue.assignedAt = assignedAt;
-          issue.assignedToTeamMemberReporter = reporter != null && assignees.contains(reporter) && _contributors.contains(reporter);
+          issue.assignedToTeamMemberReporter =
+              reporter != null && assignees.contains(reporter) && _contributors.contains(reporter);
           issue.thumbs = githubIssue.reactions?.plusOne ?? 0;
           issue.triagedAt = triagedAt;
           if (triagedAt != null) {
             if (issue.thumbsAtTriageTime == null) {
               int thumbsAtTriageTime = 0;
               await _githubReady();
-              await for (final Reaction reaction in github.issues.listReactions(GitHubSettings.primaryRepository, number)) {
+              await for (final Reaction reaction
+                  in github.issues.listReactions(GitHubSettings.primaryRepository, number)) {
                 if (reaction.createdAt != null && reaction.createdAt!.isAfter(triagedAt)) {
                   break;
                 }
@@ -1070,11 +1101,9 @@ class Engine {
             if (teams.length > 1 && number != _selfTestIssue) {
               // Issues should only have a single "team-foo" label.
               // When this is violated, we remove all of them to send the issue back to front-line triage.
-              messages.add(
-                'Issue is assigned to multiple teams (${teams.join(", ")}). '
-                'Please ensure the issue has only one `${GitHubSettings.teamPrefix}*` label at a time. '
-                'Use `${GitHubSettings.fyiPrefix}*` labels to have another team look at the issue without reassigning it.'
-              );
+              messages.add('Issue is assigned to multiple teams (${teams.join(", ")}). '
+                  'Please ensure the issue has only one `${GitHubSettings.teamPrefix}*` label at a time. '
+                  'Use `${GitHubSettings.fyiPrefix}*` labels to have another team look at the issue without reassigning it.');
               for (final String team in teams) {
                 labelsToRemove.add('${GitHubSettings.teamPrefix}$team');
                 // Also remove the labels we'd end up removing below, to avoid having confusing messages.
@@ -1092,7 +1121,8 @@ class Engine {
             for (final String team in fyi.toList()) {
               if (teams.contains(team)) {
                 // Remove redundant fyi-* labels.
-                messages.add('The `${GitHubSettings.fyiPrefix}$team` label is redundant with the `${GitHubSettings.teamPrefix}$team` label.');
+                messages.add(
+                    'The `${GitHubSettings.fyiPrefix}$team` label is redundant with the `${GitHubSettings.teamPrefix}$team` label.');
                 labelsToRemove.add('${GitHubSettings.fyiPrefix}$team');
                 fyi.remove(team);
               } else if (triaged.contains(team)) {
@@ -1106,10 +1136,8 @@ class Engine {
             for (final String team in triaged.toList()) {
               // Remove redundant triaged-* labels.
               if (!teams.contains(team)) {
-                messages.add(
-                  'The `${GitHubSettings.triagedPrefix}$team` label is irrelevant if '
-                  'there is no `${GitHubSettings.teamPrefix}$team` label or `${GitHubSettings.fyiPrefix}$team` label.'
-                );
+                messages.add('The `${GitHubSettings.triagedPrefix}$team` label is irrelevant if '
+                    'there is no `${GitHubSettings.teamPrefix}$team` label or `${GitHubSettings.fyiPrefix}$team` label.');
                 labelsToRemove.add('${GitHubSettings.triagedPrefix}$team');
                 triaged.remove(team);
               }
@@ -1120,10 +1148,8 @@ class Engine {
               assert(triaged.length == 1);
               final String team = triaged.single;
               if (!_lastRefeedByTime.containsKey(team) || _lastRefeedByTime[team]!.isBefore(refeedThreshold)) {
-                messages.add(
-                  'This issue is missing a priority label. '
-                  'Please set a priority label when adding the `${GitHubSettings.triagedPrefix}$team` label.'
-                );
+                messages.add('This issue is missing a priority label. '
+                    'Please set a priority label when adding the `${GitHubSettings.triagedPrefix}$team` label.');
                 _lastRefeedByTime[team] = now;
                 labelsToRemove.add('${GitHubSettings.triagedPrefix}$team');
                 triaged.remove(team);
@@ -1137,11 +1163,12 @@ class Engine {
             // STALE STALE ISSUE LABEL
             if (issue.labels.contains(GitHubSettings.staleIssueLabel) &&
                 ((issue.lastContributorTouch != null && issue.lastContributorTouch!.isAfter(staleThreshold)) ||
-                 (issue.assignedAt == null))) {
+                    (issue.assignedAt == null))) {
               labelsToRemove.add(GitHubSettings.staleIssueLabel);
             }
             // LOCKED STATUS
-            final bool shouldUnlock = issue.openedAt != null && issue.lockedAt != null && issue.lockedAt!.isBefore(issue.openedAt!);
+            final bool shouldUnlock =
+                issue.openedAt != null && issue.lockedAt != null && issue.lockedAt!.isBefore(issue.openedAt!);
             // APPLY PENDING CHANGES
             if ((labelsToRemove.isNotEmpty || messages.isNotEmpty || shouldUnlock) && await isActuallyOpen(number)) {
               for (final String label in labelsToRemove) {
@@ -1206,15 +1233,20 @@ class Engine {
                 (!issue.assignedToTeamMemberReporter || issue.labels.contains(GitHubSettings.designDoc))) {
               await _githubReady();
               final Issue actualIssue = await github.issues.get(GitHubSettings.primaryRepository, number);
-              if (actualIssue.assignees != null && actualIssue.assignees!.isNotEmpty && isActuallyOpenFromRawIssue(actualIssue)) {
+              if (actualIssue.assignees != null &&
+                  actualIssue.assignees!.isNotEmpty &&
+                  isActuallyOpenFromRawIssue(actualIssue)) {
                 final String assignee = actualIssue.assignees!.map((User user) => '@${user.login}').join(' and ');
                 if (!issue.labels.contains(GitHubSettings.staleIssueLabel)) {
                   log('Issue #$number is assigned to $assignee but not making progress; adding comment.');
                   await _githubReady();
-                  await github.issues.addLabelsToIssue(GitHubSettings.primaryRepository, number, <String>[GitHubSettings.staleIssueLabel]);
+                  await github.issues.addLabelsToIssue(
+                      GitHubSettings.primaryRepository, number, <String>[GitHubSettings.staleIssueLabel]);
                   issue.labels.add(GitHubSettings.staleIssueLabel);
                   await _githubReady();
-                  await github.issues.createComment(GitHubSettings.primaryRepository, number,
+                  await github.issues.createComment(
+                    GitHubSettings.primaryRepository,
+                    number,
                     'This issue is assigned to $assignee but has had no recent status updates. '
                     'Please consider unassigning this issue if it is not going to be addressed in the near future. '
                     'This allows people to have a clearer picture of what work is actually planned. Thanks!',
@@ -1222,7 +1254,8 @@ class Engine {
                 } else if (issue.lastContributorTouch!.isBefore(reallyStaleThreshold)) {
                   bool skip = false;
                   String team = 'primary triage';
-                  if (assignedTeams.length == 1) { // if it's more, then cleanup will take care of it
+                  if (assignedTeams.length == 1) {
+                    // if it's more, then cleanup will take care of it
                     team = assignedTeams.single;
                     if (!_lastRefeedByTime.containsKey(team) || _lastRefeedByTime[team]!.isBefore(refeedThreshold)) {
                       _lastRefeedByTime[team] = now;
@@ -1234,18 +1267,23 @@ class Engine {
                     log('Issue #$number is assigned to $assignee but still not making progress (for ${now.difference(issue.lastContributorTouch!)}); sending back to triage (for $team team).');
                     for (final String triagedTeam in triagedTeams) {
                       await _githubReady();
-                      await github.issues.removeLabelForIssue(GitHubSettings.primaryRepository, number, '${GitHubSettings.triagedPrefix}$triagedTeam');
+                      await github.issues.removeLabelForIssue(
+                          GitHubSettings.primaryRepository, number, '${GitHubSettings.triagedPrefix}$triagedTeam');
                       issue.labels.remove('${GitHubSettings.triagedPrefix}$triagedTeam');
                     }
                     await _githubReady();
-                    await github.issues.edit(GitHubSettings.primaryRepository, number, IssueRequest(assignees: const <String>[]));
+                    await github.issues
+                        .edit(GitHubSettings.primaryRepository, number, IssueRequest(assignees: const <String>[]));
                     await _githubReady();
-                    await github.issues.createComment(GitHubSettings.primaryRepository, number,
+                    await github.issues.createComment(
+                      GitHubSettings.primaryRepository,
+                      number,
                       'This issue was assigned to $assignee but has had no status updates in a long time. '
                       'To remove any ambiguity about whether the issue is being worked on, the assignee was removed.',
                     );
                     await _githubReady();
-                    await github.issues.removeLabelForIssue(GitHubSettings.primaryRepository, number, GitHubSettings.staleIssueLabel);
+                    await github.issues
+                        .removeLabelForIssue(GitHubSettings.primaryRepository, number, GitHubSettings.staleIssueLabel);
                     issue.labels.remove(GitHubSettings.staleIssueLabel);
                   }
                 }
@@ -1259,18 +1297,22 @@ class Engine {
                 issue.lastContributorTouch!.isBefore(staleThreshold) &&
                 triagedTeams.length == 1) {
               final String team = triagedTeams.single;
-              if ((!_lastRefeedByTime.containsKey(team) || _lastRefeedByTime[team]!.isBefore(refeedThreshold)) && await isActuallyOpen(number)) {
+              if ((!_lastRefeedByTime.containsKey(team) || _lastRefeedByTime[team]!.isBefore(refeedThreshold)) &&
+                  await isActuallyOpen(number)) {
                 log('Issue #$number is P1 but not assigned and not making progress; removing triage label and adding comment.');
                 await _githubReady();
-                await github.issues.removeLabelForIssue(GitHubSettings.primaryRepository, number, '${GitHubSettings.triagedPrefix}${triagedTeams.single}');
+                await github.issues.removeLabelForIssue(
+                    GitHubSettings.primaryRepository, number, '${GitHubSettings.triagedPrefix}${triagedTeams.single}');
                 issue.labels.remove('${GitHubSettings.triagedPrefix}${triagedTeams.single}');
                 await _githubReady();
-                await github.issues.createComment(GitHubSettings.primaryRepository, number, GitHubSettings.staleP1Message);
+                await github.issues
+                    .createComment(GitHubSettings.primaryRepository, number, GitHubSettings.staleP1Message);
                 _lastRefeedByTime[team] = now;
               }
             }
             // Unlock issues after a timeout.
-            if (issue.lockedAt != null && issue.lockedAt!.isBefore(unlockThreshold) &&
+            if (issue.lockedAt != null &&
+                issue.lockedAt!.isBefore(unlockThreshold) &&
                 !issue.labels.contains(GitHubSettings.permanentlyLocked) &&
                 await isActuallyOpen(number)) {
               log('Issue #$number has been locked for too long, unlocking.');
@@ -1280,16 +1322,19 @@ class Engine {
             // Flag issues that have gained a lot of thumbs-up.
             // We don't consider refeedThreshold for this because it should be relatively rare and
             // is always noteworthy when it happens.
-            if (issue.thumbsAtTriageTime != null && triagedTeams.length == 1 &&
+            if (issue.thumbsAtTriageTime != null &&
+                triagedTeams.length == 1 &&
                 issue.thumbs >= issue.thumbsAtTriageTime! * GitHubSettings.thumbsThreshold &&
                 issue.thumbs >= GitHubSettings.thumbsMinimum &&
                 await isActuallyOpen(number)) {
               log('Issue #$number has gained a lot of thumbs-up, flagging for retriage.');
               await _githubReady();
-              await github.issues.removeLabelForIssue(GitHubSettings.primaryRepository, number, '${GitHubSettings.triagedPrefix}${triagedTeams.single}');
+              await github.issues.removeLabelForIssue(
+                  GitHubSettings.primaryRepository, number, '${GitHubSettings.triagedPrefix}${triagedTeams.single}');
               issue.labels.remove('${GitHubSettings.triagedPrefix}${triagedTeams.single}');
               await _githubReady();
-              await github.issues.addLabelsToIssue(GitHubSettings.primaryRepository, number, <String>[GitHubSettings.thumbsUpLabel]);
+              await github.issues
+                  .addLabelsToIssue(GitHubSettings.primaryRepository, number, <String>[GitHubSettings.thumbsUpLabel]);
               issue.labels.add(GitHubSettings.thumbsUpLabel);
             }
           }
@@ -1302,18 +1347,20 @@ class Engine {
         if (_selfTestIssue == null) {
           if (_selfTestClosedDate == null || _selfTestClosedDate!.isBefore(now.subtract(Timings.selfTestPeriod))) {
             await _githubReady();
-            final Issue issue = await github.issues.create(GitHubSettings.primaryRepository, IssueRequest(
-              title: 'Triage process self-test',
-              body: 'This is a test of our triage processes.\n'
-                '\n'
-                'Please handle this issue the same way you would a normal valid but low-priority issue.\n'
-                '\n'
-                'For more details see https://github.com/flutter/flutter/blob/master/docs/triage/README.md',
-              labels: <String>[
-                ...GitHubSettings.teams.map((String team) => '${GitHubSettings.teamPrefix}$team'),
-                'P2',
-              ],
-            ));
+            final Issue issue = await github.issues.create(
+                GitHubSettings.primaryRepository,
+                IssueRequest(
+                  title: 'Triage process self-test',
+                  body: 'This is a test of our triage processes.\n'
+                      '\n'
+                      'Please handle this issue the same way you would a normal valid but low-priority issue.\n'
+                      '\n'
+                      'For more details see https://github.com/flutter/flutter/blob/master/docs/triage/README.md',
+                  labels: <String>[
+                    ...GitHubSettings.teams.map((String team) => '${GitHubSettings.teamPrefix}$team'),
+                    'P2',
+                  ],
+                ));
             _selfTestIssue = issue.number;
             _selfTestClosedDate = null;
             log('Filed self-test issue #$_selfTestIssue.');
@@ -1326,14 +1373,17 @@ class Engine {
             log('Flagging self-test issue #$_selfTestIssue for critical triage.');
             for (final String team in getTeamsFor(GitHubSettings.triagedPrefix, issue.labels)) {
               await _githubReady();
-              await github.issues.removeLabelForIssue(GitHubSettings.primaryRepository, _selfTestIssue!, '${GitHubSettings.teamPrefix}$team');
+              await github.issues.removeLabelForIssue(
+                  GitHubSettings.primaryRepository, _selfTestIssue!, '${GitHubSettings.teamPrefix}$team');
               issue.labels.remove('${GitHubSettings.teamPrefix}$team');
               await _githubReady();
-              await github.issues.removeLabelForIssue(GitHubSettings.primaryRepository, _selfTestIssue!, '${GitHubSettings.triagedPrefix}$team');
+              await github.issues.removeLabelForIssue(
+                  GitHubSettings.primaryRepository, _selfTestIssue!, '${GitHubSettings.triagedPrefix}$team');
               issue.labels.remove('${GitHubSettings.triagedPrefix}$team');
             }
             await _githubReady();
-            await github.issues.addLabelsToIssue(GitHubSettings.primaryRepository, _selfTestIssue!, <String>[GitHubSettings.willNeedAdditionalTriage]);
+            await github.issues.addLabelsToIssue(
+                GitHubSettings.primaryRepository, _selfTestIssue!, <String>[GitHubSettings.willNeedAdditionalTriage]);
             issue.labels.add(GitHubSettings.willNeedAdditionalTriage);
           }
         }
@@ -1414,7 +1464,8 @@ Future<String> obtainGitHubCredentials(Secrets secrets, http.Client client) asyn
       'Authorization': 'Bearer $jwt', // should not need escaping, base64 is safe in a header value
       'X-GitHub-Api-Version': '2022-11-28',
     },
-  )).body);
+  ))
+      .body);
   return response.token.toString();
 }
 
@@ -1447,8 +1498,7 @@ Future<DateTime> getCertificateTimestamp(Secrets secrets) async {
 Future<SecurityContext> loadCertificates(Secrets secrets) async {
   return SecurityContext()
     ..useCertificateChainBytes(
-      await secrets.serverCertificate +
-      await secrets.serverIntermediateCertificates,
+      await secrets.serverCertificate + await secrets.serverIntermediateCertificates,
     )
     ..usePrivateKeyBytes(await secrets.serverKey);
 }
