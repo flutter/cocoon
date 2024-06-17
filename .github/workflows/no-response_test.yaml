@@ -15,7 +15,7 @@ jobs:
     if: ${{ github.repository == 'flutter/cocoon' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ github.event.release.tag_name }}
           sparse-checkout: 'gh_actions/third_party/no-response'
