@@ -421,12 +421,17 @@ void main() {
   });
 
   group('schedulePostsubmitBuilds', () {
+    late DatastoreService datastore;
+    late MockFirestoreService mockFirestoreService;
     setUp(() {
+      config = FakeConfig();
+      datastore = DatastoreService(config.db, 5);
+      mockFirestoreService = MockFirestoreService();
       cache = CacheService(inMemory: true);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
-        config: FakeConfig(),
+        config: config,
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
@@ -618,9 +623,67 @@ void main() {
           commit: generateCommit(0),
           task: generateTask(0),
           target: generateTarget(0),
+          taskDocument: generateFirestoreTask(0),
+          datastore: datastore,
+          firestoreService: mockFirestoreService,
         ),
         throwsA(const TypeMatcher<NoBuildFoundException>()),
       );
+    });
+
+    test('reschedule using checkrun event successfully', () async {
+      when(
+        mockFirestoreService.batchWriteDocuments(
+          captureAny,
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<BatchWriteResponse>.value(BatchWriteResponse());
+      });
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return bbv2.BatchResponse(
+          responses: <bbv2.BatchResponse_Response>[
+            bbv2.BatchResponse_Response(
+              searchBuilds: bbv2.SearchBuildsResponse(
+                builds: <bbv2.Build>[
+                  generateBbv2Build(
+                    Int64(999),
+                    name: 'Linux 1',
+                    status: bbv2.Status.ENDED_MASK,
+                    input: bbv2.Build_Input(properties: bbv2.Struct(fields: {})),
+                    tags: <bbv2.StringPair>[],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      });
+
+      final pushMessage = generateCheckRunEvent(action: 'created', numberOfPullRequests: 1);
+      final Map<String, dynamic> jsonMap = json.decode(pushMessage.data!);
+      final Map<String, dynamic> jsonSubMap = json.decode(jsonMap['2']);
+      final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
+
+      final firestore.Task taskDocument = generateFirestoreTask(0);
+      final Task task = generateTask(0);
+      expect(taskDocument.attempts, 1);
+      expect(task.attempts, 1);
+      await service.reschedulePostsubmitBuildUsingCheckRunEvent(
+        checkRunEvent,
+        commit: generateCommit(0),
+        task: task,
+        target: generateTarget(0),
+        taskDocument: taskDocument,
+        datastore: datastore,
+        firestoreService: mockFirestoreService,
+      );
+      expect(taskDocument.attempts, 2);
+      expect(task.attempts, 2);
+      expect(pubsub.messages.length, 1);
     });
 
     test('do not create postsubmit checkrun for bringup: true target', () async {

@@ -6701,11 +6701,14 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
       )) as List<String>?);
 
   @override
-  _i20.Future<_i8.Build> reschedulePostsubmitBuildUsingCheckRunEvent(
+  _i20.Future<void> reschedulePostsubmitBuildUsingCheckRunEvent(
     _i42.CheckRunEvent? checkRunEvent, {
     required _i34.Commit? commit,
     required _i35.Task? task,
     required _i41.Target? target,
+    required _i40.Task? taskDocument,
+    required _i9.DatastoreService? datastore,
+    required _i15.FirestoreService? firestoreService,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -6715,21 +6718,14 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
             #commit: commit,
             #task: task,
             #target: target,
+            #taskDocument: taskDocument,
+            #datastore: datastore,
+            #firestoreService: firestoreService,
           },
         ),
-        returnValue: _i20.Future<_i8.Build>.value(_FakeBuild_7(
-          this,
-          Invocation.method(
-            #reschedulePostsubmitBuildUsingCheckRunEvent,
-            [checkRunEvent],
-            {
-              #commit: commit,
-              #task: task,
-              #target: target,
-            },
-          ),
-        )),
-      ) as _i20.Future<_i8.Build>);
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
 
   @override
   _i20.Future<_i8.Build> getBuildById(

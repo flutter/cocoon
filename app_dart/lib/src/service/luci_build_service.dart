@@ -391,19 +391,7 @@ class LuciBuildService {
   }) async {
     final List<bbv2.StringPair> tags = build.tags;
     // need to replace the current_attempt
-    bbv2.StringPair attempt;
-    final (int, bbv2.StringPair)? record =
-        tags.indexed.firstWhereOrNull((element) => element.$2.key == 'current_attempt');
-    if (record == null) {
-      attempt = bbv2.StringPair(
-        key: 'current_attempt',
-        value: rescheduleAttempt.toString(),
-      );
-    } else {
-      attempt = tags.removeAt(record.$1);
-      attempt.value = rescheduleAttempt.toString();
-    }
-    tags.add(attempt);
+    _setTagValue(tags, key: 'current_attempt', value: rescheduleAttempt.toString());
 
     return buildBucketClient.scheduleBuild(
       bbv2.ScheduleBuildRequest(
@@ -509,13 +497,14 @@ class LuciBuildService {
   }
 
   /// Sends postsubmit [ScheduleBuildRequest] for a commit using [checkRunEvent], [Commit], [Task], and [Target].
-  ///
-  /// Returns the [bbv2.Build] returned by scheduleBuildRequest.
-  Future<bbv2.Build> reschedulePostsubmitBuildUsingCheckRunEvent(
+  Future<void> reschedulePostsubmitBuildUsingCheckRunEvent(
     cocoon_checks.CheckRunEvent checkRunEvent, {
     required Commit commit,
     required Task task,
     required Target target,
+    required firestore.Task taskDocument,
+    required DatastoreService datastore,
+    required FirestoreService firestoreService,
   }) async {
     final github.RepositorySlug slug = checkRunEvent.repository!.slug();
     final String sha = checkRunEvent.checkRun!.headSha!;
@@ -535,18 +524,43 @@ class LuciBuildService {
     // get it as a struct first and convert it.
     final bbv2.Struct propertiesStruct = build.input.properties;
     final Map<String, Object?> properties = propertiesStruct.toProto3Json() as Map<String, Object?>;
+    final List<bbv2.StringPair> tags = build.tags;
 
-    // final Map<String, Object>? properties = build.input.properties;
     log.info('input ${build.input} properties $properties');
+    log.info('input ${build.input} tags $tags');
 
-    final bbv2.ScheduleBuildRequest scheduleBuildRequest = await _createPostsubmitScheduleBuild(
-      commit: commit,
-      target: target,
-      task: task,
-      properties: properties,
+    _setTagValue(tags, key: 'trigger_type', value: 'check_run_manual_retry');
+
+    try {
+      final int newAttempt = await _updateTaskStatusInDatabaseForRetry(
+        task = task,
+        taskDocument = taskDocument,
+        firestoreService = firestoreService,
+        datastore = datastore,
+      );
+      _setTagValue(tags, key: 'current_attempt', value: newAttempt.toString());
+    } catch (error) {
+      log.severe(
+        'updating task ${taskDocument.taskName} of commit ${taskDocument.commitSha} failure: $error. Skipping rescheduling.',
+      );
+      return;
+    }
+    log.info('Updated input ${build.input} tags $tags');
+    final bbv2.BatchRequest request = bbv2.BatchRequest(
+      requests: <bbv2.BatchRequest_Request>[
+        bbv2.BatchRequest_Request(
+          scheduleBuild: await _createPostsubmitScheduleBuild(
+            commit: commit,
+            target: target,
+            task: task,
+            properties: properties,
+            priority: kRerunPriority,
+            tags: tags,
+          ),
+        ),
+      ],
     );
-    final bbv2.Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
-    return scheduleBuild;
+    await pubsub.publish('cocoon-scheduler-requests', request.toProto3Json());
   }
 
   /// Gets [bbv2.Build] using its [id] and passing the additional
@@ -939,25 +953,21 @@ class LuciBuildService {
     }
 
     try {
-      // Updates task status in Datastore.
-      task.attempts = (task.attempts ?? 0) + 1;
-      // Mark task as in progress to ensure it isn't scheduled over
-      task.status = Task.statusInProgress;
-      await datastore.insert(<Task>[task]);
-
-      // Updates task status in Firestore.
-      final int newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
+      final int newAttempt = await _updateTaskStatusInDatabaseForRetry(
+        task = task,
+        taskDocument = taskDocument,
+        firestoreService = firestoreService,
+        datastore = datastore,
+      );
       tags.add(bbv2.StringPair(key: 'current_attempt', value: newAttempt.toString()));
-      taskDocument.resetAsRetry(attempt: newAttempt);
-      taskDocument.setStatus(firestore.Task.statusInProgress);
-      final List<Write> writes = documentsToWrites([taskDocument], exists: false);
-      await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
     } catch (error) {
       log.severe(
         'updating task ${taskDocument.taskName} of commit ${taskDocument.commitSha} failure: $error. Skipping rescheduling.',
       );
       return false;
     }
+
+    log.info('Tags from rerun after update: $tags');
 
     final bbv2.BatchRequest request = bbv2.BatchRequest(
       requests: <bbv2.BatchRequest_Request>[
@@ -980,6 +990,30 @@ class LuciBuildService {
     );
 
     return true;
+  }
+
+  /// Updates the status of [task] in the database to reflect that it is being
+  /// re-run, and returns the new attempt number.
+  Future<int> _updateTaskStatusInDatabaseForRetry(
+    Task task,
+    firestore.Task taskDocument,
+    FirestoreService firestoreService,
+    DatastoreService datastore,
+  ) async {
+    // Updates task status in Datastore.
+    task.attempts = (task.attempts ?? 0) + 1;
+    // Mark task as in progress to ensure it isn't scheduled over.
+    task.status = Task.statusInProgress;
+    await datastore.insert(<Task>[task]);
+
+    // Updates task status in Firestore.
+    final int newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
+    taskDocument.resetAsRetry(attempt: newAttempt);
+    taskDocument.setStatus(firestore.Task.statusInProgress);
+    final List<Write> writes = documentsToWrites([taskDocument], exists: false);
+    await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
+
+    return newAttempt;
   }
 
   /// Check if a builder should be rerun.
@@ -1007,5 +1041,26 @@ class LuciBuildService {
     );
     final firestore_commit.Commit latestCommit = commitList.single;
     return latestCommit.sha == currentCommit.sha;
+  }
+
+  /// Sets the given key-value pair in [tags], replacing any existing entry with
+  /// the same key.
+  void _setTagValue(
+    List<bbv2.StringPair> tags, {
+    required String key,
+    required String value,
+  }) {
+    bbv2.StringPair entry;
+    final (int, bbv2.StringPair)? record = tags.indexed.firstWhereOrNull((element) => element.$2.key == key);
+    if (record == null) {
+      entry = bbv2.StringPair(
+        key: key,
+        value: value,
+      );
+    } else {
+      entry = tags.removeAt(record.$1);
+      entry.value = value;
+    }
+    tags.add(entry);
   }
 }
