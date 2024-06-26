@@ -146,7 +146,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   /// Gets android device properties based on swarming bot configuration.
   ///
   /// Refer function `get_dimensions` from
-  /// https://source.chromium.org/chromium/infra/infra/+/master:luci/appengine/swarming/swarming_bot/api/platforms/android.py
+  /// https://source.chromium.org/chromium/infra/infra/+/main:luci/appengine/swarming/swarming_bot/api/platforms/android.py
   Future<Map<String, String>> getDeviceProperties(AndroidDevice device, {ProcessManager? processManager}) async {
     processManager ??= LocalProcessManager();
     final Map<String, String> deviceProperties = <String, String>{};
