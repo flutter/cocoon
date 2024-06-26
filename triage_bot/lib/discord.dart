@@ -53,7 +53,7 @@ List<Pattern> get boilerplates => <Pattern>[
       r'[Features we expect every widget to implement]: https://github.com/flutter/flutter/blob/master/docs/contributing/Style-guide-for-Flutter-repo.md#features-we-expect-every-widget-to-implement',
       r'[C++, Objective-C, Java style guides]: https://github.com/flutter/engine/blob/main/CONTRIBUTING.md#style',
       r'[relevant style guides]: https://github.com/flutter/packages/blob/main/CONTRIBUTING.md#style',
-      r'[testing the engine]: https://github.com/flutter/flutter/blob/master/docs/engine/testing/Testing-the-engine.md',
+      r'[testing the engine]: https://github.com/flutter/engine/blob/main/docs/testing/Testing-the-engine.md',
       r'[CLA]: https://cla.developers.google.com/',
       r'[flutter/tests]: https://github.com/flutter/tests',
       r'[breaking change policy]: https://github.com/flutter/flutter/blob/master/docs/contributing/Tree-hygiene.md#handling-breaking-changes',
