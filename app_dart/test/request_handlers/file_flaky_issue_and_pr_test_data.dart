@@ -36,6 +36,14 @@ targets:
       tags: >
         ["devicelab"]
       task_name: ignore_myflakiness
+  - name: Mac_android higher_myflakiness
+    builder: Mac_android higher_myflakiness
+    scheduler: luci
+    properties:
+      flakiness_threshold: "0.10"
+      tags: >
+        ["devicelab"]
+      task_name: higher_myflakiness
   - name: Linux analyze
     builder: Linux analyze
     scheduler: luci
@@ -265,6 +273,14 @@ targets:
       tags: >
         ["devicelab"]
       task_name: ignore_myflakiness
+  - name: Mac_android higher_myflakiness
+    builder: Mac_android higher_myflakiness
+    scheduler: luci
+    properties:
+      flakiness_threshold: "0.10"
+      tags: >
+        ["devicelab"]
+      task_name: higher_myflakiness
   - name: Linux analyze
     builder: Linux analyze
     scheduler: luci

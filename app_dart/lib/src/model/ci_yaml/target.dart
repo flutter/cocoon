@@ -41,6 +41,8 @@ class Target {
 
   static String kIgnoreFlakiness = 'ignore_flakiness';
 
+  static const String kFalkinessThreshold = 'flakiness_threshold';
+
   /// Gets assembled dimensions for this [pb.Target].
   ///
   /// Swarming dimension doc: https://chromium.googlesource.com/infra/luci/luci-go/+/HEAD/lucicfg/doc/README.md#swarming.dimension
@@ -208,6 +210,9 @@ class Target {
       return value.replaceAll('\\n', '\n');
     } else if (int.tryParse(value) != null) {
       return int.parse(value);
+    } else if (double.tryParse(value) != null) {
+      // double parsing must come after int
+      return double.parse(value);
     }
 
     return value;
@@ -250,6 +255,15 @@ class Target {
       return properties[kIgnoreFlakiness] as bool;
     }
     return false;
+  }
+
+  /// Returns the value of flakiness_threshold property or the [global].
+  double? get flakinessThreshold {
+    final Map<String, Object> properties = getProperties();
+    if (properties.containsKey(kFalkinessThreshold)) {
+      return properties[kFalkinessThreshold] as double;
+    }
+    return null;
   }
 }
 
