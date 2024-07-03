@@ -44,28 +44,22 @@ Any updates should be checked into source control.
 
 To update the Protocol Buffer generated code:
 
-1. [Download](https://github.com/protocolbuffers/protobuf/releases) and install
-   the protocol buffer compiler (`protoc`). Once installed, update your `PATH`
-   to include the path to the `protoc` binary.
-
-   On Linux, use `sudo apt-get install protocol-compiler` to install.
-   On macOS, use `brew install protobuf`
-
-2. Install the [`protoc_plugin`](https://pub.dev/packages/protoc_plugin) Dart
-   package. Once installed, update your `PATH` to include the path to the
-   `protoc_plugin/bin` directory (or `$HOME/.pub-cache/bin` if you used
-   `pub global activate protoc_plugin`).
-
-3. Run the following command:
-
-   ```sh
-   $ protoc --dart_out=. lib/src/model/proto/**/*.proto
+1. Activate and run protofu
+   ```shell
+   dart pub global activate protofu
+   protofu
    ```
-
-4. Remove the unused generated files:
-
-   ```sh
-   $ find . -regex '.*\.\(pbjson\|pbserver\)\.dart' -delete
+2. Format
+   ```shell
+   dart format --set-exit-if-changed --line-length=120 .
+   ```
+3. Remove the unused generated files:
+   ```shell
+   find . -regex '.*\.\(pbjson\|pbserver\)\.dart' -delete
+   ```
+   or 
+   ```shell
+   find -E . -regex '.*(pbserver|pbjson)\.dart'  -delete
    ```
    (you can remove the `*.pbenum.dart` files too, except for protobuffers that actually define enums,
    like `build_status_response.proto`)
