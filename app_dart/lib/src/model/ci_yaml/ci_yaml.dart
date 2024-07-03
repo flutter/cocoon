@@ -86,8 +86,7 @@ class CiYaml {
 
   /// Gets the first [Target] matching [builderName] or null.
   Target? getFirstTarget(String builderName) {
-    return _targets
-        .singleWhereOrNull((Target target) => target.value.name == builderName);
+    return _targets.singleWhereOrNull((Target target) => target.value.name == builderName);
   }
 
   /// Filters post submit targets to remove targets we do not want backfilled.

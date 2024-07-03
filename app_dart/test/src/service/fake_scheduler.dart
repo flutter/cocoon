@@ -189,7 +189,6 @@ CiYaml exampleFlakyConfig = CiYaml(
   ),
 );
 
-
 CiYaml exampleBackfillConfig = CiYaml(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),

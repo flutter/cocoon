@@ -697,8 +697,7 @@ void main() {
 
     test('skips if the flakiness_threshold is not met', () {
       final YamlMap? ci = loadYaml(ciYamlContent) as YamlMap?;
-      final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()
-        ..mergeFromProto3Json(ci);
+      final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
       final CiYaml ciYaml = CiYaml(
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
@@ -715,15 +714,16 @@ void main() {
         totalNumber: 6,
       );
       final List<pb.Target> targets = unCheckedSchedulerConfig.targets;
-      expect(handler.shouldSkip(builderStatistic, ciYaml, targets), true,
-          reason:
-              'test specific flakiness_threshold overrides global threshold');
+      expect(
+        handler.shouldSkip(builderStatistic, ciYaml, targets),
+        true,
+        reason: 'test specific flakiness_threshold overrides global threshold',
+      );
     });
 
     test('honors the flakiness_threshold', () {
       final YamlMap? ci = loadYaml(ciYamlContent) as YamlMap?;
-      final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()
-        ..mergeFromProto3Json(ci);
+      final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
       final CiYaml ciYaml = CiYaml(
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
@@ -740,8 +740,11 @@ void main() {
         totalNumber: 6,
       );
       final List<pb.Target> targets = unCheckedSchedulerConfig.targets;
-      expect(handler.shouldSkip(builderStatistic, ciYaml, targets), false,
-          reason: 'falkiness greater than test specified should trigger');
+      expect(
+        handler.shouldSkip(builderStatistic, ciYaml, targets),
+        false,
+        reason: 'falkiness greater than test specified should trigger',
+      );
     });
   });
 
