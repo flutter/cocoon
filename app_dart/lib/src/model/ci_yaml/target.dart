@@ -41,7 +41,7 @@ class Target {
 
   static String kIgnoreFlakiness = 'ignore_flakiness';
 
-  static const String kFalkinessThreshold = 'flakiness_threshold';
+  static const String kFlakinessThreshold = 'flakiness_threshold';
 
   /// Gets assembled dimensions for this [pb.Target].
   ///
