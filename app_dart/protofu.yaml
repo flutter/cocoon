@@ -2,7 +2,7 @@ compiler:
   version: 27.2
 
 plugin:
-  vresion: 21.1.2
+  version: 21.1.2
 
 sources:
   - lib/src/model/proto
