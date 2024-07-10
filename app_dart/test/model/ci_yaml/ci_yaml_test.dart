@@ -337,14 +337,14 @@ void main() {
   group('flakiness_threshold', () {
     test('is set', () {
       final CiYaml ciYaml = exampleFlakyConfig;
-      final flaky1 = ciYaml.getFirstTarget('Flaky 1');
+      final flaky1 = ciYaml.getFirstPostsubmitTarget('Flaky 1');
       expect(flaky1, isNotNull);
       expect(flaky1?.flakinessThreshold, 0.04);
     });
 
     test('is missing', () {
       final CiYaml ciYaml = exampleFlakyConfig;
-      final flaky1 = ciYaml.getFirstTarget('Flaky Skip');
+      final flaky1 = ciYaml.getFirstPostsubmitTarget('Flaky Skip');
       expect(flaky1, isNotNull);
       expect(flaky1?.flakinessThreshold, isNull);
     });

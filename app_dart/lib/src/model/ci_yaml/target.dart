@@ -260,8 +260,8 @@ class Target {
   /// Returns the value of flakiness_threshold property or the [global].
   double? get flakinessThreshold {
     final Map<String, Object> properties = getProperties();
-    if (properties.containsKey(kFalkinessThreshold)) {
-      return properties[kFalkinessThreshold] as double;
+    if (properties.containsKey(kFlakinessThreshold)) {
+      return properties[kFlakinessThreshold] as double;
     }
     return null;
   }

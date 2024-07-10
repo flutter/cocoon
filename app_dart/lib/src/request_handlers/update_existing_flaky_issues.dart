@@ -95,7 +95,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     if (DateTime.now().difference(existingIssue.createdAt!) < const Duration(days: kFreshPeriodForOpenFlake)) {
       return;
     }
-    final threshold = ciYaml.getFirstTarget(statistic.name)?.flakinessThreshold ?? _threshold;
+    final threshold = ciYaml.getFirstPostsubmitTarget(statistic.name)?.flakinessThreshold ?? _threshold;
     final IssueUpdateBuilder updateBuilder =
         IssueUpdateBuilder(statistic: statistic, threshold: threshold, existingIssue: existingIssue, bucket: bucket);
     await gitHub.createComment(slug, issueNumber: existingIssue.number, body: updateBuilder.issueUpdateComment);
