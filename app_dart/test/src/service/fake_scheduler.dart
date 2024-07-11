@@ -163,6 +163,32 @@ CiYaml exampleConfig = CiYaml(
   ),
 );
 
+CiYaml exampleFlakyConfig = CiYaml(
+  slug: Config.flutterSlug,
+  branch: Config.defaultBranch(Config.flutterSlug),
+  config: pb.SchedulerConfig(
+    enabledBranches: <String>[
+      Config.defaultBranch(Config.flutterSlug),
+    ],
+    targets: <pb.Target>[
+      pb.Target(
+        name: 'Flaky 1',
+        scheduler: pb.SchedulerSystem.luci,
+        properties: {
+          'flakiness_threshold': '0.04',
+        },
+      ),
+      pb.Target(
+        name: 'Flaky Skip',
+        scheduler: pb.SchedulerSystem.luci,
+        properties: {
+          'ignore_flakiness': 'true',
+        },
+      ),
+    ],
+  ),
+);
+
 CiYaml exampleBackfillConfig = CiYaml(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),

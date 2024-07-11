@@ -694,6 +694,58 @@ void main() {
       final List<pb.Target> targets = unCheckedSchedulerConfig.targets;
       expect(handler.shouldSkip(builderStatistic, ciYaml, targets), true);
     });
+
+    test('skips if the flakiness_threshold is not met', () {
+      final YamlMap? ci = loadYaml(ciYamlContent) as YamlMap?;
+      final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
+      final CiYaml ciYaml = CiYaml(
+        slug: Config.flutterSlug,
+        branch: Config.defaultBranch(Config.flutterSlug),
+        config: unCheckedSchedulerConfig,
+      );
+      final BuilderStatistic builderStatistic = BuilderStatistic(
+        name: 'Mac_android higher_myflakiness',
+        flakyRate: 0.05,
+        flakyBuilds: <String>['103', '102', '101'],
+        succeededBuilds: <String>['203', '202', '201'],
+        recentCommit: 'abc',
+        flakyBuildOfRecentCommit: '103',
+        flakyNumber: 3,
+        totalNumber: 6,
+      );
+      final List<pb.Target> targets = unCheckedSchedulerConfig.targets;
+      expect(
+        handler.shouldSkip(builderStatistic, ciYaml, targets),
+        true,
+        reason: 'test specific flakiness_threshold overrides global threshold',
+      );
+    });
+
+    test('honors the flakiness_threshold', () {
+      final YamlMap? ci = loadYaml(ciYamlContent) as YamlMap?;
+      final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
+      final CiYaml ciYaml = CiYaml(
+        slug: Config.flutterSlug,
+        branch: Config.defaultBranch(Config.flutterSlug),
+        config: unCheckedSchedulerConfig,
+      );
+      final BuilderStatistic builderStatistic = BuilderStatistic(
+        name: 'Mac_android higher_myflakiness',
+        flakyRate: 0.11,
+        flakyBuilds: <String>['103', '102', '101'],
+        succeededBuilds: <String>['203', '202', '201'],
+        recentCommit: 'abc',
+        flakyBuildOfRecentCommit: '103',
+        flakyNumber: 3,
+        totalNumber: 6,
+      );
+      final List<pb.Target> targets = unCheckedSchedulerConfig.targets;
+      expect(
+        handler.shouldSkip(builderStatistic, ciYaml, targets),
+        false,
+        reason: 'falkiness greater than test specified should trigger',
+      );
+    });
   });
 
   test('retrieveMetaTagsFromContent can work with different newlines', () async {

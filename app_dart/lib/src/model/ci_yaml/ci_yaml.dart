@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 
 import '../proto/internal/scheduler.pb.dart' as pb;
@@ -81,6 +82,11 @@ class CiYaml {
     // filter if release_build true if current branch is a release candidate branch.
     enabledTargets = _filterReleaseBuildTargets(enabledTargets);
     return enabledTargets;
+  }
+
+  /// Gets the first [Target] matching [builderName] or null.
+  Target? getFirstPostsubmitTarget(String builderName) {
+    return postsubmitTargets.singleWhereOrNull((Target target) => target.value.name == builderName);
   }
 
   /// Filters post submit targets to remove targets we do not want backfilled.

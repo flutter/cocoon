@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:cocoon_service/ci_yaml.dart';
-import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
@@ -166,8 +165,10 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
 
   @visibleForTesting
   static bool getIgnoreFlakiness(String? builderName, CiYaml ciYaml) {
-    final Target? target =
-        ciYaml.postsubmitTargets.singleWhereOrNull((Target target) => target.value.name == builderName);
+    if (builderName == null) {
+      return false;
+    }
+    final Target? target = ciYaml.getFirstPostsubmitTarget(builderName);
     return target == null ? false : target.getIgnoreFlakiness();
   }
 

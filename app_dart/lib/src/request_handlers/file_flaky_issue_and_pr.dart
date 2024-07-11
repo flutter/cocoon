@@ -99,7 +99,8 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       return true;
     }
     // Skips if the flaky percentage is below the threshold.
-    if (statistic.flakyRate < _threshold) {
+    final threshold = ciYaml.getFirstPostsubmitTarget(statistic.name)?.flakinessThreshold ?? _threshold;
+    if (statistic.flakyRate < threshold) {
       return true;
     }
     return false;

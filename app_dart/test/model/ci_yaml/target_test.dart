@@ -73,6 +73,29 @@ void main() {
         expect(target.getIgnoreFlakiness(), false);
       });
 
+      test('properties with flakiness_threshold 0.4', () {
+        final Target target = generateTarget(
+          1,
+          platform: 'Mac_ios',
+          properties: <String, String>{
+            'flakiness_threshold': '0.4',
+          },
+        );
+        expect(target.flakinessThreshold, 0.4);
+      });
+
+      test('properties with flakiness_threshold not present', () {
+        final Target target = generateTarget(
+          1,
+          platform: 'Mac_ios',
+          platformProperties: <String, String>{
+            // This should be overrided by the target specific property
+            'xcode': 'abc',
+          },
+        );
+        expect(target.flakinessThreshold, isNull);
+      });
+
       test('properties with \$flutter/osx_sdk overrides platform properties', () {
         final Target target = generateTarget(
           1,
