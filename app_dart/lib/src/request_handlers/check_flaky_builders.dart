@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:cocoon_service/ci_yaml.dart';
-import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
