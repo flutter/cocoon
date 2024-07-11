@@ -166,8 +166,10 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
 
   @visibleForTesting
   static bool getIgnoreFlakiness(String? builderName, CiYaml ciYaml) {
-    final Target? target =
-        ciYaml.postsubmitTargets.singleWhereOrNull((Target target) => target.value.name == builderName);
+    if (builderName == null) {
+      return false;
+    }
+    final Target? target = ciYaml.getFirstPostsubmitTarget(builderName);
     return target == null ? false : target.getIgnoreFlakiness();
   }
 

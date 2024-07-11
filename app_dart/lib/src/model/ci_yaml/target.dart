@@ -211,7 +211,8 @@ class Target {
     } else if (int.tryParse(value) != null) {
       return int.parse(value);
     } else if (double.tryParse(value) != null) {
-      // double parsing must come after int
+      // double parsing must come after int because it parses ints as well.
+      // note: Luci (starlark) does not support float/double parsing.
       return double.parse(value);
     }
 
