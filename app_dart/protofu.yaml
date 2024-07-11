@@ -1,0 +1,10 @@
+compiler:
+  version: 27.2
+
+plugin:
+  version: 21.1.2
+
+sources:
+  - lib/src/model/proto
+
+output: lib/src/model/proto
