@@ -1499,6 +1499,8 @@ void foo() {
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'shell/config.gni',
           PullRequestFile()..filename = 'shell/BUILD.gn',
+          PullRequestFile()..filename = 'sky/tools/create_ios_framework.py',
+          PullRequestFile()..filename = 'ci/builders/mac_host_engine.json',
         ]),
       );
 

@@ -363,17 +363,19 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   /// Returns true if changes to [filename] are exempt from the testing
   /// requirement, across repositories.
   bool _isTestExempt(String filename) {
+    final bool isBuildPythonScript = (filename.startsWith('sky/tools') && filename.endsWith('.py'));
     return filename.contains('.ci.yaml') ||
-        filename.contains('analysis_options.yaml') ||
-        filename.contains('AUTHORS') ||
-        filename.contains('CODEOWNERS') ||
+        filename.endsWith('analysis_options.yaml') ||
+        filename.endsWith('AUTHORS') ||
+        filename.endsWith('CODEOWNERS') ||
         filename == 'DEPS' ||
-        filename.contains('TESTOWNERS') ||
-        filename.contains('pubspec.yaml') ||
+        filename.endsWith('TESTOWNERS') ||
+        filename.endsWith('pubspec.yaml') ||
         // Exempt categories.
         filename.contains('.github/') ||
         filename.endsWith('.md') ||
         // Exempt paths.
+        isBuildPythonScript ||
         filename.startsWith('dev/devicelab/lib/versions/gallery.dart') ||
         filename.startsWith('dev/integration_tests') ||
         filename.startsWith('docs/') ||
