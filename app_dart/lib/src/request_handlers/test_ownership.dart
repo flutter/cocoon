@@ -57,10 +57,23 @@ class DeviceLabTestOwner implements TestOwner {
   ) {
     String? owner;
     Team? team;
-    final String testName = target.properties['task_name']!;
+    final String? testName = target.properties['task_name'];
+    if (testName == null) {
+      throw FormatException(
+        'The field "task_name" is required in the target properties for any '
+        'test that runs in the device lab. If you are seeing this error, your '
+        '.ci.yaml target is missing this field *OR* the target was not '
+        'intended to run in the device lab, and "devicelab" should be removed '
+        'from the "tags" field.\n\n'
+        'See <https://github.com/flutter/cocoon/blob/637bca4ded99ca704376fbf2c8558cf15140e8ca/CI_YAML.md> '
+        'for more information on how to configure your .ci.yaml file.',
+        target.properties,
+      );
+    }
     // The format looks like this:
     //   /dev/devicelab/bin/tasks/dart_plugin_registry_test.dart @stuartmorgan @flutter/plugin
-    final RegExpMatch? match = devicelabTestOwners.firstMatch(testOwnersContent);
+    final RegExpMatch? match =
+        devicelabTestOwners.firstMatch(testOwnersContent);
     if (match != null && match.namedGroup(kOwnerGroupName) != null) {
       final List<String> lines = match
           .namedGroup(kOwnerGroupName)!
@@ -73,7 +86,9 @@ class DeviceLabTestOwner implements TestOwner {
         // e.g. words = ['/xxx/xxx/xxx_test.dart', '@stuartmorgan' '@flutter/tool']
         if (words[0].endsWith('$testName.dart')) {
           owner = words[1].substring(1); // Strip out the lead '@'
-          team = words.length < 3 ? Team.unknown : teamFromString(words[2].substring(1)); // Strip out the lead '@'
+          team = words.length < 3
+              ? Team.unknown
+              : teamFromString(words[2].substring(1)); // Strip out the lead '@'
           break;
         }
       }
@@ -96,15 +111,20 @@ class ShardTestOwner implements TestOwner {
     Team? team;
     final RegExpMatch? match = shardTestOwners.firstMatch(testOwnersContent);
     if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-      final List<String> lines =
-          match.namedGroup(kOwnerGroupName)!.split('\n').where((String line) => line.contains('@')).toList();
+      final List<String> lines = match
+          .namedGroup(kOwnerGroupName)!
+          .split('\n')
+          .where((String line) => line.contains('@'))
+          .toList();
 
       for (final String line in lines) {
         final List<String> words = line.trim().split(' ');
         // e.g. words = ['#', 'build_test', '@zanderso' '@flutter/tool']
         if (testName.contains(words[1])) {
           owner = words[2].substring(1); // Strip out the lead '@'
-          team = words.length < 4 ? Team.unknown : teamFromString(words[3].substring(1)); // Strip out the lead '@'
+          team = words.length < 4
+              ? Team.unknown
+              : teamFromString(words[3].substring(1)); // Strip out the lead '@'
           break;
         }
       }
@@ -126,10 +146,14 @@ class FrameworkHostOnlyTestOwner implements TestOwner {
     // The format looks like this:
     //   # Linux analyze
     //   /dev/bots/analyze.dart @HansMuller @flutter/framework
-    final RegExpMatch? match = frameworkHostOnlyTestOwners.firstMatch(testOwnersContent);
+    final RegExpMatch? match =
+        frameworkHostOnlyTestOwners.firstMatch(testOwnersContent);
     if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-      final List<String> lines =
-          match.namedGroup(kOwnerGroupName)!.split('\n').where((String line) => line.isNotEmpty).toList();
+      final List<String> lines = match
+          .namedGroup(kOwnerGroupName)!
+          .split('\n')
+          .where((String line) => line.isNotEmpty)
+          .toList();
       int index = 0;
       while (index < lines.length) {
         if (lines[index].startsWith('#')) {
@@ -152,7 +176,8 @@ class FrameworkHostOnlyTestOwner implements TestOwner {
             owner = ownerWords[1].substring(1); // Strip out the lead '@'
             team = ownerWords.length < 3
                 ? Team.unknown
-                : teamFromString(ownerWords[2].substring(1)); // Strip out the lead '@'
+                : teamFromString(
+                    ownerWords[2].substring(1)); // Strip out the lead '@'
             break;
           }
         }
@@ -176,7 +201,8 @@ class FirebaseLabTestOwner implements TestOwner {
 
     // The format looks like this for builder `Linux firebase_abstrac_method_smoke_test`:
     //   /dev/integration_tests/abstrac_method_smoke_test @blasten @flutter/android
-    final RegExpMatch? match = firebaselabTestOwners.firstMatch(testOwnersContent);
+    final RegExpMatch? match =
+        firebaselabTestOwners.firstMatch(testOwnersContent);
     if (match != null && match.namedGroup(kOwnerGroupName) != null) {
       final List<String> lines = match
           .namedGroup(kOwnerGroupName)!
@@ -189,7 +215,9 @@ class FirebaseLabTestOwner implements TestOwner {
         final List<String> dirs = words[0].split('/').toList();
         if (testName.contains(dirs.last)) {
           owner = words[1].substring(1); // Strip out the lead '@'
-          team = words.length < 3 ? Team.unknown : teamFromString(words[2].substring(1)); // Strip out the lead '@'
+          team = words.length < 3
+              ? Team.unknown
+              : teamFromString(words[2].substring(1)); // Strip out the lead '@'
           break;
         }
       }
