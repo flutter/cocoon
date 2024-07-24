@@ -57,7 +57,19 @@ class DeviceLabTestOwner implements TestOwner {
   ) {
     String? owner;
     Team? team;
-    final String testName = target.properties['task_name']!;
+    final String? testName = target.properties['task_name'];
+    if (testName == null) {
+      throw FormatException(
+        'The field "task_name" is required in the target properties for any '
+        'test that runs in the device lab. If you are seeing this error, your '
+        '.ci.yaml target is missing this field *OR* the target was not '
+        'intended to run in the device lab, and "devicelab" should be removed '
+        'from the "tags" field.\n\n'
+        'See <https://github.com/flutter/cocoon/blob/main/CI_YAML.md> for more '
+        'information on how to configure your .ci.yaml file.',
+        target.properties,
+      );
+    }
     // The format looks like this:
     //   /dev/devicelab/bin/tasks/dart_plugin_registry_test.dart @stuartmorgan @flutter/plugin
     final RegExpMatch? match = devicelabTestOwners.firstMatch(testOwnersContent);
