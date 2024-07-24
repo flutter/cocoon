@@ -65,8 +65,8 @@ class DeviceLabTestOwner implements TestOwner {
         '.ci.yaml target is missing this field *OR* the target was not '
         'intended to run in the device lab, and "devicelab" should be removed '
         'from the "tags" field.\n\n'
-        'See <https://github.com/flutter/cocoon/blob/637bca4ded99ca704376fbf2c8558cf15140e8ca/CI_YAML.md> '
-        'for more information on how to configure your .ci.yaml file.',
+        'See <https://github.com/flutter/cocoon/blob/main/CI_YAML.md> for more '
+        'information on how to configure your .ci.yaml file.',
         target.properties,
       );
     }
