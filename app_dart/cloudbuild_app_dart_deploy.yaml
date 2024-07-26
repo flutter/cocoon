@@ -18,7 +18,7 @@ steps:
 
   # Verify provenance is valid before proceeding with deployment.
   # This name is a dockerhub tag
-  - name: 'golang:1.22.5-bookworm'
+  - name: 'golang:1.21.12-bookworm'
     entrypoint: '/bin/bash'
     args:
       - '-c'
