@@ -507,11 +507,6 @@ class Scheduler {
 
   /// Returns `true` if [ciYaml.postsubmitTargets] should be ran during presubmit.
   static bool _includePostsubmitAsPresubmit(CiYaml ciYaml, PullRequest pullRequest) {
-    // Only allow this for flutter/engine.
-    // See https://github.com/flutter/cocoon/pull/3256#issuecomment-1811624351.
-    if (ciYaml.slug != Config.engineSlug) {
-      return false;
-    }
     if (pullRequest.labels?.any((label) => label.name.contains('test: all')) ?? false) {
       return true;
     }
