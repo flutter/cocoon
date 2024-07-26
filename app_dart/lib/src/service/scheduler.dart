@@ -505,8 +505,16 @@ class Scheduler {
     return getTargetsToRun(presubmitTargets, files);
   }
 
+  static final _allowTestAll = {
+    Config.engineSlug,
+    Config.flutterSlug,
+  };
+
   /// Returns `true` if [ciYaml.postsubmitTargets] should be ran during presubmit.
   static bool _includePostsubmitAsPresubmit(CiYaml ciYaml, PullRequest pullRequest) {
+    if (!_allowTestAll.contains(ciYaml.slug)) {
+      return false;
+    }
     if (pullRequest.labels?.any((label) => label.name.contains('test: all')) ?? false) {
       return true;
     }
