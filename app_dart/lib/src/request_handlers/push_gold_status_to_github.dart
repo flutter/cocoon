@@ -127,8 +127,9 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           if (const <String>[
             'linux_android_emulator',
             'linux_host_engine',
-            'mac_host_engine',
             'linux_web_engine',
+            'mac_host_engine',
+            'mac_unopt',
           ].any((String shardSubString) => name.contains(shardSubString))) {
             runsGoldenFileTests = true;
           }
