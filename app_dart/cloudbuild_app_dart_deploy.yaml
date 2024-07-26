@@ -17,7 +17,8 @@ steps:
           unverified_provenance.json
 
   # Verify provenance is valid before proceeding with deployment.
-  - name: 'golang:1.20'
+  # This name is a dockerhub tag
+  - name: 'golang:1.22.5-bookworm'
     entrypoint: '/bin/bash'
     args:
       - '-c'
