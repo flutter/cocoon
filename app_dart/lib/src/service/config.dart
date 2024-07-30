@@ -236,7 +236,7 @@ class Config {
       'branch that resolves the issue will result in pre-submit jobs being '
       'scheduled.';
 
-  String get missingTestsPullRequestMessage => 
+  String get missingTestsPullRequestMessage =>
     'It looks like this pull request may not have tests. Please make sure to '
     'add tests before merging. If you need an exemption, contact '
     '"@test-exemption-reviewer" in the #hackers channel in [Discord](https://github.com/flutter/flutter/blob/master/docs/contributing/Chat.md) '
