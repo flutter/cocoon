@@ -13,7 +13,7 @@ flutter upgrade
 flutter doctor
 flutter pub get
 flutter config --enable-web
-flutter build web --web-renderer=canvaskit --release
+flutter build web --wasm --no-strip-wasm
 rm -rf ../app_dart/build
 cp -r build ../app_dart/build
 flutter clean
