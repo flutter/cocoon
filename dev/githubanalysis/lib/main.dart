@@ -61,6 +61,11 @@ bool issueIsClosed(final FullIssue issue) {
   return issue.metadata.isClosed || issue.metadata.state.toUpperCase() == 'CLOSED';
 }
 
+// Turns a username into an internal canonicalized form.
+// We add a "👤" emoji here so that if we accidentally use the canonicalized form
+// in the output, we will catch it.
+String canon(final String? s) => '👤${(s ?? "").toLowerCase()}';
+
 Future<int> full(final Directory cache, final GitHub github) async {
   try {
     // FETCH USER AND TEAM DATA
@@ -72,18 +77,19 @@ Future<int> full(final Directory cache, final GitHub github) async {
       cacheEpoch: maxAge(rosterMaxAge),
     );
     final Set<String> allMembers = <String>{};
-    final Set<String> currentMembers = roster.teams[primaryTeam]!.keys.toSet();
+    final Set<String> currentMembers = roster.teams[primaryTeam]!.keys.map(canon).toSet();
     final Set<String> expectedMembers = (await membersFile.readAsString())
         .trimRight()
         .split('\n')
         .where((final String name) => !name.endsWith(' (DO NOT ADD)'))
+        .map(canon)
         .toSet();
-    final Set<String> expectedExmembers = (await exmembersFile.readAsString()).trimRight().split('\n').toSet();
+    final Set<String> expectedExmembers =
+        (await exmembersFile.readAsString()).trimRight().split('\n').map(canon).toSet();
     try {
-      Set<String> canon(final Set<String> set) => set.map<String>((final String s) => s.toLowerCase()).toSet();
-      final Set<String> unexpectedMembers = canon(currentMembers).difference(canon(expectedMembers));
-      final Set<String> memberExmembers = canon(expectedExmembers).intersection(canon(currentMembers));
-      final Set<String> missingMembers = canon(expectedMembers).difference(canon(currentMembers));
+      final Set<String> unexpectedMembers = currentMembers.difference(expectedMembers);
+      final Set<String> memberExmembers = expectedExmembers.intersection(currentMembers);
+      final Set<String> missingMembers = expectedMembers.difference(currentMembers);
       if (unexpectedMembers.isNotEmpty) {
         print(
           'WARNING: The following users are currently members of $primaryTeam but not expected: ${unexpectedMembers.join(', ')}',
@@ -144,11 +150,11 @@ Future<int> full(final Directory cache, final GitHub github) async {
     UserActivity forUser(final User? user) {
       return activityMetrics.putIfAbsent(user!.login!, () {
         final UserActivity result = UserActivity();
-        if (expectedMembers.contains(user.login)) {
+        if (expectedMembers.contains(canon(user.login))) {
           result
             ..isMember = true
             ..isActiveMember = true;
-        } else if (expectedExmembers.contains(user.login)) {
+        } else if (expectedExmembers.contains(canon(user.login))) {
           result.isMember = true;
         }
         return result;
@@ -170,9 +176,7 @@ Future<int> full(final Directory cache, final GitHub github) async {
       activity.characters += body.length;
     }
 
-    for (final String user in currentMembers) {
-      forUser(User(login: user));
-    }
+    roster.teams[primaryTeam]!.values.forEach(forUser);
     final List<FullIssue> allIssues = issues.values
         .expand((final Map<int, FullIssue> issues) => issues.values)
         .where((final FullIssue issue) => issue.isValid)
@@ -276,7 +280,7 @@ Future<int> full(final Directory cache, final GitHub github) async {
         .toList();
     for (final FullIssue issue in primaryIssues.where((final FullIssue issue) => issue.priority != null)) {
       final PriorityResults priorityResults = priorityAnalysis[issue.priority!]!;
-      final bool teamIssue = allMembers.contains(issue.metadata.user!.login);
+      final bool teamIssue = allMembers.contains(canon(issue.metadata.user!.login));
       priorityResults.total += 1;
       if (teamIssue) {
         priorityResults.openedByTeam += 1;
@@ -387,8 +391,8 @@ Future<int> full(final Directory cache, final GitHub github) async {
         ..write(',${issue.labels.contains('new feature')}')
         ..write(',${issue.labels.contains('proposal')}')
         ..write(',${issue.labels.contains('waiting for customer response')}')
-        ..write(',${allMembers.contains(issue.metadata.user!.login)}')
-        ..write(',${expectedExmembers.contains(issue.metadata.user!.login)}')
+        ..write(',${allMembers.contains(canon(issue.metadata.user!.login))}')
+        ..write(',${expectedExmembers.contains(canon(issue.metadata.user!.login))}')
         ..writeln();
       if ((daysToTwentyVotes == null || daysToTwentyVotes > 60) &&
           issue.labels.contains('new feature') &&
