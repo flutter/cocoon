@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file/file.dart';
 import 'package:file/local.dart';
@@ -34,6 +35,9 @@ Future<void> run(List<String> arguments) async {
 
   print('Trailing spaces...');
   await verifyNoTrailingSpaces(cocoonRoot.path);
+
+  print('Links to repositories...');
+  await verifyRepositoryLinks(cocoonRoot.path);
 
   print('Executable allowlist...');
   await _checkForNewExecutables();
@@ -94,6 +98,54 @@ Future<void> verifyProtos(Directory workingDirectory) async {
     ]);
   }
 }
+
+Future<void> verifyRepositoryLinks(String workingDirectory) async {
+  const Set<String> stops = <String>{ '\n', ' ', "'", '"', r'\', ')', '>' };
+  assert(!stops.contains('.')); // instead of "visit https://foo." say "visit: https://foo", it copy-pastes better
+
+  // Repos whose default branch is still 'master'
+  const Set<String> repoExceptions = <String>{};
+
+  // See flutter/flutter/.../bad_repository_links.dart for examples of repository links that are not allowed.
+  final RegExp pattern = RegExp(r'^(https:\/\/(?:cs\.opensource\.google|github|raw\.githubusercontent|source\.chromium|([a-z0-9\-]+)\.googlesource)\.)');
+
+  final List<String> problems = <String>[];
+  final Set<String> suggestions = <String>{};
+  final List<File> files = await _gitFiles(workingDirectory);
+  for (final File file in files) {
+    final Uint8List bytes = file.readAsBytesSync();
+    // We allow invalid UTF-8 here so that binaries don't trip us up.
+    // There's a separate test in this file that verifies that all text
+    // files are actually valid UTF-8 (see verifyNoBinaries below).
+    final String contents = utf8.decode(bytes, allowMalformed: true);
+    int start = 0;
+    while ((start = contents.indexOf('https://', start)) >= 0) { // Find all 'https://' links
+      int end = start + 8; // Length of 'https://'
+      while (end < contents.length && !stops.contains(contents[end])) {
+        end += 1;
+      }
+      final String url = contents.substring(start, end);
+
+      if (pattern.hasMatch(url) && !repoExceptions.any(url.contains)) {
+        if (url.contains('master')) {
+          problems.add('${file.path} contains $url, which uses the banned "master" branch.');
+          suggestions.add('Change the URLs above to the expected pattern by '
+              'using the "main" branch if it exists, otherwise adding the '
+              'repository to the list of exceptions in analyze.dart.');
+        }
+      }
+      start = end;
+    }
+  }
+  assert(problems.isEmpty == suggestions.isEmpty);
+  if (problems.isNotEmpty) {
+    exitWithError(<String>[
+      ...problems,
+      ...suggestions,
+    ]);
+  }
+}
+
 
 // UTILITY FUNCTIONS
 

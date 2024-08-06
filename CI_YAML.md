@@ -80,7 +80,7 @@ targets:
 
 #
 # Devicelab example:
-# For tests that are located https://github.com/flutter/flutter/tree/master/dev/devicelab/bin/tasks:
+# For tests that are located https://github.com/flutter/flutter/tree/main/dev/devicelab/bin/tasks:
 # 1) target name follows format of `<platform> <taskname>`
 # 2) properties
 #    2.1) update `tags` based on hosts, devices, and tests type. These tags will be used for statistic analysis.
@@ -115,7 +115,7 @@ promote a test that has been passing for the past 50 runs.
 **This only applies to flutter/flutter**
 
 To prevent tests from rotting, all targets are required to have a clear owner. Add an
-owner in [TESTOWNERS](https://github.com/flutter/flutter/blob/master/TESTOWNERS)
+owner in [TESTOWNERS](https://github.com/flutter/flutter/blob/main/TESTOWNERS)
 
 ### Properties
 
@@ -253,7 +253,7 @@ cores: "8"
   <tr>
     <td>dependencies</td>
     <td>JSON list of objects with "dependency" and optionally "version".
-The list of supported deps is in <a href="https://cs.opensource.google/flutter/recipes/+/master:recipe_modules/flutter_deps/api.py">flutter_deps recipe_module</a>.
+The list of supported deps is in <a href="https://cs.opensource.google/flutter/recipes/+/main:recipe_modules/flutter_deps/api.py">flutter_deps recipe_module</a>.
 Dependencies generate a corresponding swarming cache that can be used in the
 recipe code. The path of the cache will be the name of the dependency.
 <br>
@@ -419,7 +419,7 @@ release_build: "true"
   </tr>
   <tr>
     <td>shard</td>
-    <td>The shard name of the sharding target, used in the <a href="https://github.com/flutter/flutter/blob/master/dev/bots/test.dart">test.dart</a> test runner.
+    <td>The shard name of the sharding target, used in the <a href="https://github.com/flutter/flutter/blob/main/dev/bots/test.dart">test.dart</a> test runner.
     </td>
     <td>N/A</td>
     <td>string</td>
@@ -432,7 +432,7 @@ shard: web_tests
   </tr>
   <tr>
     <td>subshards</td>
-    <td>The sub shards of the sharding target, used in the <a href="https://github.com/flutter/flutter/blob/master/dev/bots/test.dart">test.dart</a> test runner.
+    <td>The sub shards of the sharding target, used in the <a href="https://github.com/flutter/flutter/blob/main/dev/bots/test.dart">test.dart</a> test runner.
 If omitted with `shard` defined, it will run all unit tests in a single shard.
     </td>
     <td>N/A</td>
@@ -556,10 +556,10 @@ Note: this change may affect benchmark metrics. Notify the metrics sherrif to mo
 Cocoon supports tests that are not owned by Flutter infrastructure. By default, these should not block the tree but act as FYI to the gardeners.
 
 1. Contact flutter-infra@ with your request (go/flutter-infra-office-hours)
-2. Add your system to SchedulerSystem (https://github.com/flutter/cocoon/blob/master/app_dart/lib/src/model/proto/internal/scheduler.proto)
-3. Add your service account to https://github.com/flutter/cocoon/blob/master/app_dart/lib/src/request_handling/swarming_authentication.dart
-4. Add a custom frontend icon - https://github.com/flutter/cocoon/blob/master/dashboard/lib/widgets/task_icon.dart
-5. Add a custom log link - https://github.com/flutter/cocoon/blob/master/dashboard/lib/logic/qualified_task.dart
+2. Add your system to SchedulerSystem (https://github.com/flutter/cocoon/blob/main/app_dart/lib/src/model/proto/internal/scheduler.proto)
+3. Add your service account to https://github.com/flutter/cocoon/blob/main/app_dart/lib/src/request_handling/swarming_authentication.dart
+4. Add a custom frontend icon - https://github.com/flutter/cocoon/blob/main/dashboard/lib/widgets/task_icon.dart
+5. Add a custom log link - https://github.com/flutter/cocoon/blob/main/dashboard/lib/logic/qualified_task.dart
 6. Wait for the next prod roll (every weekday)
 7. Add a target to `.ci.yaml`
    ```yaml
@@ -572,7 +572,7 @@ Cocoon supports tests that are not owned by Flutter infrastructure. By default, 
      # Scheduler must match what was added to scheduler.proto (any unique name works)
      scheduler: my_external_location
    ```
-8. Send updates to `https://flutter-dashboard.appspot.com/api/update-task-status` - https://github.com/flutter/cocoon/blob/master/app_dart/lib/src/request_handlers/update_task_status.dart
+8. Send updates to `https://flutter-dashboard.appspot.com/api/update-task-status` - https://github.com/flutter/cocoon/blob/main/app_dart/lib/src/request_handlers/update_task_status.dart
 
 
 ## Scheduling Targets

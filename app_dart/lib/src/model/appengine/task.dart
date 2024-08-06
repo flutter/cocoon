@@ -295,7 +295,7 @@ class Task extends Model<int> {
   ///
   /// See also:
   ///
-  ///  * <https://github.com/flutter/flutter/blob/master/.ci.yaml>
+  ///  * <https://github.com/flutter/flutter/blob/main/.ci.yaml>
   ///
   /// A flaky (`bringup: true`) task will not block the tree.
   @BoolProperty(propertyName: 'Flaky')
@@ -307,7 +307,7 @@ class Task extends Model<int> {
   /// Test runner supports rerun, and this flag tracks if a flake happens.
   ///
   /// See also:
-  ///  * <https://github.com/flutter/flutter/blob/master/dev/devicelab/lib/framework/runner.dart>
+  ///  * <https://github.com/flutter/flutter/blob/main/dev/devicelab/lib/framework/runner.dart>
   @BoolProperty(propertyName: 'TestFlaky')
   @JsonKey(name: 'TestFlaky')
   bool? isTestFlaky;
@@ -322,7 +322,7 @@ class Task extends Model<int> {
   @JsonKey(name: 'Reason')
   String? reason;
 
-  /// The build number of luci build: https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/build.proto#146
+  /// The build number of luci build: https://chromium.googlesource.com/infra/luci/luci-go/+/main/buildbucket/proto/build.proto#146
   @IntProperty(propertyName: 'BuildNumber')
   @JsonKey(name: 'BuildNumber')
   int? buildNumber;
