@@ -49,6 +49,7 @@ sealed class GitHubSettings {
   static const String willNeedAdditionalTriage = 'will need additional triage';
   static const Set<String> teams = <String>{
     // these are the teams that the self-test issue is assigned to
+    'accessibility',
     'android',
     'codelabs',
     'design',
