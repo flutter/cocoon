@@ -383,7 +383,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.startsWith('impeller/golden_tests') ||
         filename.startsWith('impeller/playground') ||
         filename.startsWith('shell/platform/embedder/tests') ||
-        filename.startsWith('shell/platform/embedder/fixtures');
+        filename.startsWith('shell/platform/embedder/fixtures') ||
+        filename.startsWith('tools/clangd_check');
   }
 
   Future<void> _applyEngineRepoLabels(GitHub gitHubClient, String? eventAction, PullRequest pr) async {

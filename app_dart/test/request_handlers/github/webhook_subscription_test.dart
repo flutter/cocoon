@@ -665,6 +665,7 @@ void main() {
           PullRequestFile()..filename = 'impeller/playground/playground.cc',
           PullRequestFile()..filename = 'shell/platform/embedder/tests/embedder_test_context.cc',
           PullRequestFile()..filename = 'shell/platform/embedder/fixtures/main.dart',
+          PullRequestFile()..filename = 'tools/clangd_check/bin/main.dart',
         ]),
       );
 
