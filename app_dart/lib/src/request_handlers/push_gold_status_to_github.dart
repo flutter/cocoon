@@ -135,6 +135,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           }
         } else if (slug == Config.flutterSlug) {
           if (const <String>[
+            'flutter_driver_android_test',
             'framework',
             'misc',
           ].any((String shardSubString) => name.contains(shardSubString))) {
