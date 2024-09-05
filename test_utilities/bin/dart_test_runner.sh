@@ -6,7 +6,7 @@
 # Runner for dart tests. It expects a single parameter with the full
 # path to the start folder where tests will be run.
 
-set -e
+set -euo pipefail
 
 echo "###### dart_test_runner #######"
 echo "Directory: $1"
