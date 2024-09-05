@@ -23,6 +23,19 @@ enum NotaryStatus {
   succeeded,
 }
 
+/// Types of codesigning configuration file.
+enum CodesignType {
+  /// Binaries requiring codesigning that do not use APIs requiring entitlements.
+  withEntitlements(filename: 'entitlements.txt'),
+
+  /// Binaries requiring codesigning that DO NOT use APIs requiring entitlements.
+  withoutEntitlements(filename: 'without_entitlements.txt');
+
+  const CodesignType({required this.filename});
+
+  final String filename;
+}
+
 /// Codesign and notarize all files within a [RemoteArchive].
 class FileCodesignVisitor {
   FileCodesignVisitor({
@@ -69,8 +82,11 @@ class FileCodesignVisitor {
   // Team-id is used by notary service for xcode version 13+.
   late String codesignTeamId;
 
-  Set<String> fileWithEntitlements = <String>{};
-  Set<String> fileWithoutEntitlements = <String>{};
+  /// Files that require codesigning that use APIs requiring entitlements.
+  Set<String> withEntitlementsFiles = <String>{};
+
+  /// Files that require codesigning that DO NOT use APIs requiring entitlements.
+  Set<String> withoutEntitlementsFiles = <String>{};
   Set<String> fileConsumed = <String>{};
   Set<String> directoriesVisited = <String>{};
   Map<String, String> availablePasswords = {
@@ -183,11 +199,11 @@ update these file paths accordingly.
       processManager: processManager,
     );
 
-    //extract entitlements file.
-    fileWithEntitlements = await parseEntitlements(parentDirectory, true);
-    fileWithoutEntitlements = await parseEntitlements(parentDirectory, false);
-    log.info('parsed binaries with entitlements are $fileWithEntitlements');
-    log.info('parsed binaries without entitlements are $fileWithEntitlements');
+    // Read codesigning configuration files.
+    withEntitlementsFiles = await parseCodesignConfig(parentDirectory, CodesignType.withEntitlements);
+    withoutEntitlementsFiles = await parseCodesignConfig(parentDirectory, CodesignType.withoutEntitlements);
+    log.info('parsed binaries with entitlements are $withEntitlementsFiles');
+    log.info('parsed binaries without entitlements are $withoutEntitlementsFiles');
 
     // recursively visit extracted files
     await visitDirectory(directory: parentDirectory, parentVirtualPath: '');
@@ -222,7 +238,7 @@ update these file paths accordingly.
     }
     directoriesVisited.add(directory.absolute.path);
 
-    await cleanupEntitlements(directory);
+    await cleanupCodesignConfig(directory);
 
     final List<FileSystemEntity> entities = await directory.list(followLinks: false).toList();
     for (FileSystemEntity entity in entities) {
@@ -293,7 +309,7 @@ update these file paths accordingly.
   /// Visit and codesign a binary with / without entitlement.
   ///
   /// At this stage, the virtual [entitlementCurrentPath] accumulated through the recursive visit, is compared
-  /// against the paths extracted from [fileWithEntitlements], to help determine if this file should be signed
+  /// against the paths extracted from [withEntitlementsFiles], to help determine if this file should be signed
   /// with entitlements.
   Future<void> visitBinaryFile({
     required File binaryFile,
@@ -302,8 +318,8 @@ update these file paths accordingly.
     final String currentFileName = binaryFile.basename;
     final String entitlementCurrentPath = joinEntitlementPaths(parentVirtualPath, currentFileName);
 
-    if (!fileWithEntitlements.contains(entitlementCurrentPath) &&
-        !fileWithoutEntitlements.contains(entitlementCurrentPath)) {
+    if (!withEntitlementsFiles.contains(entitlementCurrentPath) &&
+        !withoutEntitlementsFiles.contains(entitlementCurrentPath)) {
       log.severe('the binary file $currentFileName is causing an issue. \n'
           'This file is located at $entitlementCurrentPath in the flutter engine artifact.');
       log.severe('The system has detected a binary file at $entitlementCurrentPath. '
@@ -313,7 +329,7 @@ update these file paths accordingly.
     }
     log.info('signing file at path ${binaryFile.absolute.path}');
     log.info('the virtual entitlement path associated with file is $entitlementCurrentPath');
-    log.info('the decision to sign with entitlement is ${fileWithEntitlements.contains(entitlementCurrentPath)}');
+    log.info('the decision to sign with entitlement is ${withEntitlementsFiles.contains(entitlementCurrentPath)}');
     fileConsumed.add(entitlementCurrentPath);
     if (dryrun) {
       return;
@@ -335,7 +351,7 @@ update these file paths accordingly.
       binaryOrBundlePath,
       '--timestamp', // add a secure timestamp
       '--options=runtime', // hardened runtime
-      if (entitlementCurrentPath != '' && fileWithEntitlements.contains(entitlementCurrentPath)) ...<String>[
+      if (entitlementCurrentPath != '' && withEntitlementsFiles.contains(entitlementCurrentPath)) ...<String>[
         '--entitlements',
         entitlementsFile.absolute.path,
       ],
@@ -360,7 +376,7 @@ update these file paths accordingly.
   ///
   /// Context: https://github.com/flutter/flutter/issues/126705. This is a temporary workaround.
   /// Once flutter tools is ready we can remove this logic.
-  Future<void> cleanupEntitlements(Directory parent) async {
+  Future<void> cleanupCodesignConfig(Directory parent) async {
     final String metadataEntitlements = fileSystem.path.join(parent.path, 'entitlements.txt');
     final String metadataWithoutEntitlements = fileSystem.path.join(parent.path, 'without_entitlements.txt');
     for (String metadataPath in [metadataEntitlements, metadataWithoutEntitlements]) {
@@ -374,14 +390,12 @@ update these file paths accordingly.
   /// Extract entitlements configurations from downloaded zip files.
   ///
   /// Parse and store codesign configurations detailed in configuration files.
-  /// File paths of entilement files and non entitlement files will be parsed and stored in [fileWithEntitlements].
-  Future<Set<String>> parseEntitlements(Directory parent, bool entitlements) async {
-    final String entitlementFilePath = entitlements
-        ? fileSystem.path.join(parent.path, 'entitlements.txt')
-        : fileSystem.path.join(parent.path, 'without_entitlements.txt');
-    if (!(await fileSystem.file(entitlementFilePath).exists())) {
-      log.warning('$entitlementFilePath not found. '
-          'by default, system will assume there is no ${entitlements ? '' : 'without_'}entitlements file. '
+  /// File paths of entitlement files and non entitlement files will be parsed and stored in [withEntitlementsFiles].
+  Future<Set<String>> parseCodesignConfig(Directory parent, CodesignType codesignType) async {
+    final String codesignConfigPath = fileSystem.path.join(parent.path, codesignType.filename);
+    if (!(await fileSystem.file(codesignConfigPath).exists())) {
+      log.warning('$codesignConfigPath not found. '
+          'by default, system will assume there is no ${codesignType.filename} file. '
           'As a result, no binary will be codesigned.'
           'if this is not intended, please provide them along with the engine artifacts.');
       return <String>{};
@@ -389,10 +403,10 @@ update these file paths accordingly.
 
     final Set<String> fileWithEntitlements = <String>{};
 
-    fileWithEntitlements.addAll(await fileSystem.file(entitlementFilePath).readAsLines());
+    fileWithEntitlements.addAll(await fileSystem.file(codesignConfigPath).readAsLines());
     // TODO(xilaizhang) : add back metadata information after https://github.com/flutter/flutter/issues/126705
     // is resolved.
-    await fileSystem.file(entitlementFilePath).delete();
+    await fileSystem.file(codesignConfigPath).delete();
 
     return fileWithEntitlements;
   }

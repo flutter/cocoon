@@ -660,8 +660,8 @@ void main() {
       codesignVisitor.appSpecificPassword = randomString;
       codesignVisitor.codesignAppstoreId = randomString;
       codesignVisitor.codesignTeamId = randomString;
-      codesignVisitor.fileWithEntitlements = <String>{'root/folder_a/file_a'};
-      codesignVisitor.fileWithoutEntitlements = <String>{'root/folder_b/file_b'};
+      codesignVisitor.withEntitlementsFiles = <String>{'root/folder_a/file_a'};
+      codesignVisitor.withoutEntitlementsFiles = <String>{'root/folder_b/file_b'};
       fileSystem
         ..file('${rootDirectory.path}/remote_zip_6/folder_a/file_a').createSync(recursive: true)
         ..file('${rootDirectory.path}/remote_zip_6/folder_b/file_b').createSync(recursive: true);
@@ -771,13 +771,13 @@ file_e''',
           mode: FileMode.append,
           encoding: utf8,
         );
-      final Set<String> fileWithEntitlements = await codesignVisitor.parseEntitlements(
+      final Set<String> fileWithEntitlements = await codesignVisitor.parseCodesignConfig(
         fileSystem.directory('${rootDirectory.absolute.path}/test_entitlement'),
-        true,
+        cs.CodesignType.withEntitlements,
       );
-      final Set<String> fileWithoutEntitlements = await codesignVisitor.parseEntitlements(
+      final Set<String> fileWithoutEntitlements = await codesignVisitor.parseCodesignConfig(
         fileSystem.directory('${rootDirectory.absolute.path}/test_entitlement'),
-        false,
+        cs.CodesignType.withoutEntitlements,
       );
       expect(fileWithEntitlements.length, 3);
       expect(
@@ -809,9 +809,9 @@ file_c''',
           encoding: utf8,
         );
 
-      final Set<String> fileWithEntitlements = await codesignVisitor.parseEntitlements(
+      final Set<String> fileWithEntitlements = await codesignVisitor.parseCodesignConfig(
         fileSystem.directory('${rootDirectory.absolute.path}/test_entitlement_2'),
-        true,
+        cs.CodesignType.withEntitlements,
       );
       expect(fileWithEntitlements.length, 3);
       expect(
@@ -822,9 +822,9 @@ file_c''',
           'file_c',
         ]),
       );
-      await codesignVisitor.parseEntitlements(
+      await codesignVisitor.parseCodesignConfig(
         fileSystem.directory('${rootDirectory.absolute.path}/test_entitlement_2'),
-        false,
+        cs.CodesignType.withoutEntitlements,
       );
       final List<String> messages = records
           .where((LogRecord record) => record.level == Level.WARNING)
@@ -833,7 +833,7 @@ file_c''',
       expect(
         messages,
         contains('${rootDirectory.absolute.path}/test_entitlement_2/without_entitlements.txt not found. '
-            'by default, system will assume there is no without_entitlements file. '
+            'by default, system will assume there is no without_entitlements.txt file. '
             'As a result, no binary will be codesigned.'
             'if this is not intended, please provide them along with the engine artifacts.'),
       );
