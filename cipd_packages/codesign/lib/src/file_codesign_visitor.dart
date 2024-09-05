@@ -29,7 +29,10 @@ enum CodesignType {
   withEntitlements(filename: 'entitlements.txt'),
 
   /// Binaries requiring codesigning that DO NOT use APIs requiring entitlements.
-  withoutEntitlements(filename: 'without_entitlements.txt');
+  withoutEntitlements(filename: 'without_entitlements.txt'),
+
+  /// Binaries that do not require codesigning.
+  unsigned(filename: 'unsigned_binaries.txt');
 
   const CodesignType({required this.filename});
 
@@ -87,6 +90,9 @@ class FileCodesignVisitor {
 
   /// Files that require codesigning that DO NOT use APIs requiring entitlements.
   Set<String> withoutEntitlementsFiles = <String>{};
+
+  /// Files that do not require codesigning.
+  Set<String> unsignedBinaryFiles = <String>{};
   Set<String> fileConsumed = <String>{};
   Set<String> directoriesVisited = <String>{};
   Map<String, String> availablePasswords = {
@@ -124,26 +130,30 @@ class FileCodesignVisitor {
   static final RegExp _notarytoolStatusCheckPattern = RegExp(r'[ ]*status: ([a-zA-z ]+)');
   static final RegExp _notarytoolRequestPattern = RegExp(r'id: ([a-z0-9-]+)');
 
-  static const String fixItInstructions = '''
+  static final String fixItInstructions = '''
 Codesign test failed.
 
 We compared binary files in engine artifacts with those listed in
-entitlement.txt and withoutEntitlements.txt, and the binary files do not match.
-*entitlements.txt is the configuration file encoded in engine artifact zip,
-built by BUILD.gn and Ninja, to detail the list of entitlement files.
-Either an expected file was not found in *entitlements.txt, or an unexpected
-file was found in entitlements.txt.
+* ${CodesignType.withEntitlements.filename}
+* ${CodesignType.withoutEntitlements.filename}
+* ${CodesignType.unsigned.filename}
+and the binary files do not match.
+
+These are the configuration files encoded in engine artifact zip that detail
+the code-signing requirements of each of the binaries in the archive.
+Either an unexpected binary was listed in these files, or one of the expected
+binaries listed in these files was not found in the archive.
 
 This usually happens during an engine roll.
-If this is a valid change, then BUILD.gn needs to be changed.
-Binaries that will run on a macOS host require entitlements, and
-binaries that run on an iOS device must NOT have entitlements.
+
+If this is a valid change, then the BUILD.gn or the codesigning configuration
+files need to be changed. Binaries that will run on a macOS host require
+entitlements, and binaries that run on an iOS device must NOT have entitlements.
 For example, if this is a new binary that runs on macOS host, add it
-to [entitlements.txt] file inside the zip artifact produced by BUILD.gn.
-If this is a new binary that needs to be run on iOS device, add it
-to [withoutEntitlements.txt].
-If there are obsolete binaries in entitlements configuration files, please delete or
-update these file paths accordingly.
+to ${CodesignType.withEntitlements.filename} file inside the zip artifact produced by BUILD.gn.
+If this is a new binary that needs to be run on iOS device, add it to
+${CodesignType.withoutEntitlements.filename}. If there are obsolete binaries in entitlements
+configuration files, please delete or update these file paths accordingly.
 ''';
 
   /// Read a single line of password stored at [passwordFilePath].
@@ -202,8 +212,10 @@ update these file paths accordingly.
     // Read codesigning configuration files.
     withEntitlementsFiles = await parseCodesignConfig(parentDirectory, CodesignType.withEntitlements);
     withoutEntitlementsFiles = await parseCodesignConfig(parentDirectory, CodesignType.withoutEntitlements);
+    unsignedBinaryFiles = await parseCodesignConfig(parentDirectory, CodesignType.unsigned);
     log.info('parsed binaries with entitlements are $withEntitlementsFiles');
     log.info('parsed binaries without entitlements are $withoutEntitlementsFiles');
+    log.info('parsed binaries without codesigning $unsignedBinaryFiles');
 
     // recursively visit extracted files
     await visitDirectory(directory: parentDirectory, parentVirtualPath: '');
@@ -240,6 +252,7 @@ update these file paths accordingly.
 
     await cleanupCodesignConfig(directory);
 
+    final Set<String> ignoredFiles = Set.from(CodesignType.values.map((CodesignType type) => type.filename));
     final List<FileSystemEntity> entities = await directory.list(followLinks: false).toList();
     for (FileSystemEntity entity in entities) {
       if (entity is io.Link) {
@@ -254,7 +267,7 @@ update these file paths accordingly.
         );
         continue;
       }
-      if (entity.basename == 'entitlements.txt' || entity.basename == 'without_entitlements.txt') {
+      if (ignoredFiles.contains(entity.basename)) {
         continue;
       }
       final FileType childType = getFileType(
@@ -306,40 +319,47 @@ update these file paths accordingly.
     await newDir.delete(recursive: true);
   }
 
-  /// Visit and codesign a binary with / without entitlement.
+  /// Visit and handle code-signing for a binary.
   ///
-  /// At this stage, the virtual [entitlementCurrentPath] accumulated through the recursive visit, is compared
-  /// against the paths extracted from [withEntitlementsFiles], to help determine if this file should be signed
-  /// with entitlements.
+  /// At this stage, the virtual [currentFilePath] accumulated through the recursive
+  /// visit is compared against the paths extracted from the contents of the codesigning
+  /// config files, to help determine whether or not this file should be codesigned
+  /// and if so, whether or not it should be signed with entitlements.
   Future<void> visitBinaryFile({
     required File binaryFile,
     required String parentVirtualPath,
   }) async {
     final String currentFileName = binaryFile.basename;
-    final String entitlementCurrentPath = joinEntitlementPaths(parentVirtualPath, currentFileName);
+    final String currentFilePath = joinEntitlementPaths(parentVirtualPath, currentFileName);
 
-    if (!withEntitlementsFiles.contains(entitlementCurrentPath) &&
-        !withoutEntitlementsFiles.contains(entitlementCurrentPath)) {
-      log.severe('the binary file $currentFileName is causing an issue. \n'
-          'This file is located at $entitlementCurrentPath in the flutter engine artifact.');
-      log.severe('The system has detected a binary file at $entitlementCurrentPath. '
-          'But it is not in the entitlements configuration files you provided. '
+    if (!withEntitlementsFiles.contains(currentFilePath) &&
+        !withoutEntitlementsFiles.contains(currentFilePath) &&
+        !unsignedBinaryFiles.contains(currentFilePath)) {
+      log.severe('The binary file $currentFileName is causing an issue. \n'
+          'This file is located at $currentFilePath in the flutter engine artifact.');
+      log.severe('The system has detected a binary file at $currentFilePath. '
+          'But it is not in the codesigning configuration files you provided. '
           'If this is a new engine artifact, please add it to one of the entitlements.txt files.');
       throw CodesignException(fixItInstructions);
     }
-    log.info('signing file at path ${binaryFile.absolute.path}');
-    log.info('the virtual entitlement path associated with file is $entitlementCurrentPath');
-    log.info('the decision to sign with entitlement is ${withEntitlementsFiles.contains(entitlementCurrentPath)}');
-    fileConsumed.add(entitlementCurrentPath);
+    if (unsignedBinaryFiles.contains(currentFilePath)) {
+      // No codesigning necessary.
+      log.info('Not signing file at path ${binaryFile.absolute.path}');
+      return;
+    }
+    log.info('Signing file at path ${binaryFile.absolute.path}');
+    log.info('The virtual entitlement path associated with file is $currentFilePath');
+    log.info('The decision to sign with entitlement is ${withEntitlementsFiles.contains(currentFilePath)}');
+    fileConsumed.add(currentFilePath);
     if (dryrun) {
       return;
     }
-    await codesignAtPath(binaryOrBundlePath: binaryFile.absolute.path, entitlementCurrentPath: entitlementCurrentPath);
+    await codesignAtPath(binaryOrBundlePath: binaryFile.absolute.path, currentFilePath: currentFilePath);
   }
 
   Future<void> codesignAtPath({
     required String binaryOrBundlePath,
-    String? entitlementCurrentPath,
+    String? currentFilePath,
   }) async {
     final List<String> args = <String>[
       '/usr/bin/codesign',
@@ -351,7 +371,7 @@ update these file paths accordingly.
       binaryOrBundlePath,
       '--timestamp', // add a secure timestamp
       '--options=runtime', // hardened runtime
-      if (entitlementCurrentPath != '' && withEntitlementsFiles.contains(entitlementCurrentPath)) ...<String>[
+      if (currentFilePath != '' && withEntitlementsFiles.contains(currentFilePath)) ...<String>[
         '--entitlements',
         entitlementsFile.absolute.path,
       ],

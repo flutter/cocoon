@@ -662,9 +662,11 @@ void main() {
       codesignVisitor.codesignTeamId = randomString;
       codesignVisitor.withEntitlementsFiles = <String>{'root/folder_a/file_a'};
       codesignVisitor.withoutEntitlementsFiles = <String>{'root/folder_b/file_b'};
+      codesignVisitor.unsignedBinaryFiles = <String>{'root/folder_c/file_c'};
       fileSystem
         ..file('${rootDirectory.path}/remote_zip_6/folder_a/file_a').createSync(recursive: true)
-        ..file('${rootDirectory.path}/remote_zip_6/folder_b/file_b').createSync(recursive: true);
+        ..file('${rootDirectory.path}/remote_zip_6/folder_b/file_b').createSync(recursive: true)
+        ..file('${rootDirectory.path}/remote_zip_6/folder_c/file_c').createSync(recursive: true);
       final Directory testDirectory = fileSystem.directory('${rootDirectory.path}/remote_zip_6');
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
@@ -713,6 +715,15 @@ void main() {
             '--options=runtime',
           ],
         ),
+        FakeCommand(
+          command: <String>[
+            'file',
+            '--mime-type',
+            '-b',
+            '${rootDirectory.absolute.path}/remote_zip_6/folder_c/file_c',
+          ],
+          stdout: 'application/x-mach-binary',
+        ),
       ]);
       await codesignVisitor.visitDirectory(
         directory: testDirectory,
@@ -722,13 +733,18 @@ void main() {
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
           .toList();
-      expect(messages, contains('signing file at path ${rootDirectory.absolute.path}/remote_zip_6/folder_a/file_a'));
-      expect(messages, contains('the virtual entitlement path associated with file is root/folder_a/file_a'));
-      expect(messages, contains('the decision to sign with entitlement is true'));
+      expect(messages, contains('Signing file at path ${rootDirectory.absolute.path}/remote_zip_6/folder_a/file_a'));
+      expect(messages, contains('The virtual entitlement path associated with file is root/folder_a/file_a'));
+      expect(messages, contains('The decision to sign with entitlement is true'));
 
-      expect(messages, contains('signing file at path ${rootDirectory.absolute.path}/remote_zip_6/folder_b/file_b'));
-      expect(messages, contains('the virtual entitlement path associated with file is root/folder_b/file_b'));
-      expect(messages, contains('the decision to sign with entitlement is false'));
+      expect(messages, contains('Signing file at path ${rootDirectory.absolute.path}/remote_zip_6/folder_b/file_b'));
+      expect(messages, contains('The virtual entitlement path associated with file is root/folder_b/file_b'));
+      expect(messages, contains('The decision to sign with entitlement is false'));
+
+      expect(
+        messages,
+        contains('Not signing file at path ${rootDirectory.absolute.path}/remote_zip_6/folder_c/file_c'),
+      );
     });
   });
 
