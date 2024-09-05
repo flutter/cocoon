@@ -58,7 +58,7 @@ class FileCodesignVisitor {
     ),
     this.notarizationTimerDuration = const Duration(seconds: 5),
   }) {
-    entitlementsFile = rootDirectory.childFile('Entitlements.plist')..writeAsStringSync(_entitlementsFileContents);
+    entitlementsPlist = rootDirectory.childFile('Entitlements.plist')..writeAsStringSync(_entitlementsFileContents);
   }
 
   /// Temp [Directory] to download/extract files to.
@@ -102,7 +102,7 @@ class FileCodesignVisitor {
   };
   Map<String, String> redactedCredentials = {};
 
-  late final File entitlementsFile;
+  late final File entitlementsPlist;
 
   int _remoteDownloadIndex = 0;
   int get remoteDownloadIndex => _remoteDownloadIndex++;
@@ -339,7 +339,8 @@ configuration files, please delete or update these file paths accordingly.
           'This file is located at $currentFilePath in the flutter engine artifact.');
       log.severe('The system has detected a binary file at $currentFilePath. '
           'But it is not in the codesigning configuration files you provided. '
-          'If this is a new engine artifact, please add it to one of the entitlements.txt files.');
+          'If this is a new engine artifact, please add it to one of the codesigning '
+          'config files.');
       throw CodesignException(fixItInstructions);
     }
     if (unsignedBinaryFiles.contains(currentFilePath)) {
@@ -373,7 +374,7 @@ configuration files, please delete or update these file paths accordingly.
       '--options=runtime', // hardened runtime
       if (currentFilePath != '' && withEntitlementsFiles.contains(currentFilePath)) ...<String>[
         '--entitlements',
-        entitlementsFile.absolute.path,
+        entitlementsPlist.absolute.path,
       ],
     ];
 
@@ -397,9 +398,9 @@ configuration files, please delete or update these file paths accordingly.
   /// Context: https://github.com/flutter/flutter/issues/126705. This is a temporary workaround.
   /// Once flutter tools is ready we can remove this logic.
   Future<void> cleanupCodesignConfig(Directory parent) async {
-    final String metadataEntitlements = fileSystem.path.join(parent.path, 'entitlements.txt');
-    final String metadataWithoutEntitlements = fileSystem.path.join(parent.path, 'without_entitlements.txt');
-    for (String metadataPath in [metadataEntitlements, metadataWithoutEntitlements]) {
+    final Iterable<String> pathsToDelete =
+        CodesignType.values.map((CodesignType type) => fileSystem.path.join(parent.path, type.filename));
+    for (String metadataPath in pathsToDelete) {
       if (await fileSystem.file(metadataPath).exists()) {
         log.warning('cleaning up codesign metadata at $metadataPath.');
         await fileSystem.file(metadataPath).delete();

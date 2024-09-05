@@ -136,7 +136,8 @@ void main() {
           ],
           onRun: () => fileSystem
             ..file('${rootDirectory.path}/single_artifact/entitlements.txt').createSync(recursive: true)
-            ..file('${rootDirectory.path}/single_artifact/without_entitlements.txt').createSync(recursive: true),
+            ..file('${rootDirectory.path}/single_artifact/without_entitlements.txt').createSync(recursive: true)
+            ..file('${rootDirectory.path}/single_artifact/unsigned_binaries.txt').createSync(recursive: true),
         ),
         FakeCommand(
           command: <String>[
@@ -787,6 +788,15 @@ file_e''',
           mode: FileMode.append,
           encoding: utf8,
         );
+
+      fileSystem.file('${rootDirectory.absolute.path}/test_entitlement/unsigned_binaries.txt')
+        ..createSync(recursive: true)
+        ..writeAsStringSync(
+          '''file_f
+file_g''',
+          mode: FileMode.append,
+          encoding: utf8,
+        );
       final Set<String> fileWithEntitlements = await codesignVisitor.parseCodesignConfig(
         fileSystem.directory('${rootDirectory.absolute.path}/test_entitlement'),
         cs.CodesignType.withEntitlements,
@@ -794,6 +804,10 @@ file_e''',
       final Set<String> fileWithoutEntitlements = await codesignVisitor.parseCodesignConfig(
         fileSystem.directory('${rootDirectory.absolute.path}/test_entitlement'),
         cs.CodesignType.withoutEntitlements,
+      );
+      final Set<String> fileUnsigned = await codesignVisitor.parseCodesignConfig(
+        fileSystem.directory('${rootDirectory.absolute.path}/test_entitlement'),
+        cs.CodesignType.unsigned,
       );
       expect(fileWithEntitlements.length, 3);
       expect(
@@ -810,6 +824,15 @@ file_e''',
         containsAll(<String>[
           'file_d',
           'file_e',
+        ]),
+      );
+
+      expect(fileUnsigned.length, 2);
+      expect(
+        fileUnsigned,
+        containsAll(<String>[
+          'file_f',
+          'file_g',
         ]),
       );
     });
