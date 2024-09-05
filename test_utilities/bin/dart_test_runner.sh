@@ -8,17 +8,25 @@
 
 set -e
 
-# Build and analyze
 echo "###### dart_test_runner #######"
 echo "Directory: $1"
+
+if [ -z "$1" ]; then
+  echo "ERROR: no package directory supplied."
+  echo "usage: $0 PACKAGE_DIR_TO_TEST"
+  exit 1
+fi
+
+# Setup.
 pushd "$1" > /dev/null
 flutter clean
 dart pub get
 
 # TODO(drewroengoogle): Validate proto code has been generated. https://github.com/flutter/flutter/issues/115473
 
-echo "######### dart format #########"
-dart format --set-exit-if-changed --line-length=120 .
+FORMAT_ARGS=--line-length=120
+echo "######### dart format $FORMAT_ARGS #########"
+dart format --set-exit-if-changed $FORMAT_ARGS .
 
 echo "########### analyze ###########"
 dart analyze --fatal-infos
