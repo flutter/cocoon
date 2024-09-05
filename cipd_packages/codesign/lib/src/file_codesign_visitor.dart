@@ -81,8 +81,10 @@ class FileCodesignVisitor {
   late String appSpecificPassword;
   // Team-id is used by notary service for xcode version 13+.
   late String codesignTeamId;
+
   /// Files that require codesigning that use APIs requiring entitlements.
   Set<String> withEntitlementsFiles = <String>{};
+
   /// Files that require codesigning that DO NOT use APIs requiring entitlements.
   Set<String> withoutEntitlementsFiles = <String>{};
   Set<String> fileConsumed = <String>{};
