@@ -2,17 +2,21 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:core';
 
 import 'ci_successful_test_data.dart';
 
 import 'package:github/github.dart' as github;
+import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
+import 'package:auto_submit/model/pull_request_data_types.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:auto_submit/configuration/repository_configuration.dart';
+import 'package:auto_submit/service/log.dart';
 
 import '../utilities/utils.dart';
 import '../utilities/mocks.dart';
@@ -72,6 +76,7 @@ void main() {
           ciSuccessful.validateCheckRuns(
             slug,
             prNumber,
+            PullRequestState.open,
             checkRuns,
             failures,
             allSuccess,
@@ -93,6 +98,7 @@ void main() {
           ciSuccessful.validateCheckRuns(
             slug,
             prNumber,
+            PullRequestState.open,
             checkRuns,
             failures,
             allSuccess,
@@ -114,6 +120,7 @@ void main() {
           ciSuccessful.validateCheckRuns(
             slug,
             prNumber,
+            PullRequestState.open,
             checkRuns,
             failures,
             allSuccess,
@@ -135,6 +142,7 @@ void main() {
           ciSuccessful.validateCheckRuns(
             slug,
             prNumber,
+            PullRequestState.open,
             checkRuns,
             failures,
             allSuccess,
@@ -157,6 +165,7 @@ void main() {
           ciSuccessful.validateCheckRuns(
             slug,
             prNumber,
+            PullRequestState.open,
             checkRuns,
             failures,
             allSuccess,
@@ -178,6 +187,7 @@ void main() {
           ciSuccessful.validateCheckRuns(
             slug,
             prNumber,
+            PullRequestState.open,
             checkRuns,
             failures,
             allSuccess,
@@ -202,6 +212,7 @@ void main() {
           ciSuccessful.validateCheckRuns(
             slug,
             prNumber,
+            PullRequestState.open,
             checkRuns,
             failures,
             allSuccess,
@@ -223,6 +234,7 @@ void main() {
           ciSuccessful.validateCheckRuns(
             slug,
             prNumber,
+            PullRequestState.open,
             checkRuns,
             failures,
             allSuccess,
@@ -244,7 +256,7 @@ void main() {
 
       /// The status must be uppercase as the original code is expecting this.
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, prNumber, author, [], contextNodeList, failures, allSuccess), isTrue);
+      expect(ciSuccessful.validateStatuses(slug, prNumber, PullRequestState.open, author, [], contextNodeList, failures, allSuccess), isTrue);
       expect(failures, isEmpty);
     });
 
@@ -259,7 +271,7 @@ void main() {
 
       convertContextNodeStatuses(contextNodeList);
       expect(
-        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        ciSuccessful.validateStatuses(slug, prNumber, PullRequestState.open, author, labelNames, contextNodeList, failures, allSuccess),
         isTrue,
       );
       expect(failures, isEmpty);
@@ -276,7 +288,7 @@ void main() {
 
       convertContextNodeStatuses(contextNodeList);
       expect(
-        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        ciSuccessful.validateStatuses(slug, prNumber, PullRequestState.open, author, labelNames, contextNodeList, failures, allSuccess),
         isFalse,
       );
       expect(failures, isEmpty);
@@ -293,7 +305,7 @@ void main() {
 
       convertContextNodeStatuses(contextNodeList);
       expect(
-        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        ciSuccessful.validateStatuses(slug, prNumber, PullRequestState.open, author, labelNames, contextNodeList, failures, allSuccess),
         isFalse,
       );
       expect(failures, isNotEmpty);
@@ -311,7 +323,7 @@ void main() {
 
       convertContextNodeStatuses(contextNodeList);
       expect(
-        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        ciSuccessful.validateStatuses(slug, prNumber, PullRequestState.open, author, labelNames, contextNodeList, failures, allSuccess),
         isFalse,
       );
       expect(failures, isNotEmpty);
@@ -330,7 +342,7 @@ void main() {
 
       convertContextNodeStatuses(contextNodeList);
       expect(
-        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        ciSuccessful.validateStatuses(slug, prNumber, PullRequestState.open, author, labelNames, contextNodeList, failures, allSuccess),
         isFalse,
       );
       expect(failures, isEmpty);
@@ -349,7 +361,7 @@ void main() {
 
       convertContextNodeStatuses(contextNodeList);
       expect(
-        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        ciSuccessful.validateStatuses(slug, prNumber, PullRequestState.open, author, labelNames, contextNodeList, failures, allSuccess),
         isFalse,
       );
       expect(failures, isNotEmpty);
@@ -368,11 +380,42 @@ void main() {
 
       convertContextNodeStatuses(contextNodeList);
       expect(
-        ciSuccessful.validateStatuses(slug, prNumber, author, labelNames, contextNodeList, failures, allSuccess),
+        ciSuccessful.validateStatuses(slug, prNumber, PullRequestState.open, author, labelNames, contextNodeList, failures, allSuccess),
         isFalse,
       );
       expect(failures, isNotEmpty);
       expect(failures.length, 1);
+    });
+
+    test('Validate that stale PR warnings are only generated for open PRs.', () async {
+      final List<ContextNode> contextNodeList = getContextNodeListFromJson(repositoryStatusesWithStaleGoldMock);
+      const bool allSuccess = true;
+      final Author author = Author(login: 'skia-flutter-autoroll');
+      slug = github.RepositorySlug('flutter', 'engine');
+
+      final List<String> labelNames = [];
+      labelNames.add('Compelling label');
+      labelNames.add('Another Compelling label');
+
+      convertContextNodeStatuses(contextNodeList);
+
+      final List<LogRecord> logWarnings = <LogRecord>[];
+      final StreamSubscription<LogRecord> subscription = log.onRecord.listen((record) {
+        if (record.level == Level.WARNING) {
+          logWarnings.add(record);
+        }
+      });
+
+      try {
+        ciSuccessful.validateStatuses(slug, prNumber, PullRequestState.open, author, labelNames, contextNodeList, failures, allSuccess);
+        expect(logWarnings.length, 1);
+
+        logWarnings.clear();
+        ciSuccessful.validateStatuses(slug, prNumber, PullRequestState.closed, author, labelNames, contextNodeList, failures, allSuccess);
+        expect(logWarnings.length, 0);
+      } finally {
+        await subscription.cancel();
+      }
     });
   });
 
