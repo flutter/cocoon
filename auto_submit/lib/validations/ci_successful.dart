@@ -34,7 +34,8 @@ class CiSuccessful extends Validation {
     bool allSuccess = true;
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int prNumber = messagePullRequest.number!;
-    final PullRequestState prState = (messagePullRequest.state == 'closed') ? PullRequestState.closed : PullRequestState.open;
+    final PullRequestState prState =
+        (messagePullRequest.state == 'closed') ? PullRequestState.closed : PullRequestState.open;
     final PullRequest pullRequest = result.repository!.pullRequest!;
     final Set<FailureDetail> failures = <FailureDetail>{};
 
