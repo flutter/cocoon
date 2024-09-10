@@ -257,9 +257,18 @@ void main() {
       /// The status must be uppercase as the original code is expecting this.
       convertContextNodeStatuses(contextNodeList);
       expect(
-          ciSuccessful.validateStatuses(
-              slug, prNumber, PullRequestState.open, author, [], contextNodeList, failures, allSuccess),
-          isTrue);
+        ciSuccessful.validateStatuses(
+          slug,
+          prNumber,
+          PullRequestState.open,
+          author,
+          [],
+          contextNodeList,
+          failures,
+          allSuccess,
+        ),
+        isTrue,
+      );
       expect(failures, isEmpty);
     });
 
@@ -275,7 +284,15 @@ void main() {
       convertContextNodeStatuses(contextNodeList);
       expect(
         ciSuccessful.validateStatuses(
-            slug, prNumber, PullRequestState.open, author, labelNames, contextNodeList, failures, allSuccess),
+          slug,
+          prNumber,
+          PullRequestState.open,
+          author,
+          labelNames,
+          contextNodeList,
+          failures,
+          allSuccess,
+        ),
         isTrue,
       );
       expect(failures, isEmpty);
@@ -293,7 +310,15 @@ void main() {
       convertContextNodeStatuses(contextNodeList);
       expect(
         ciSuccessful.validateStatuses(
-            slug, prNumber, PullRequestState.open, author, labelNames, contextNodeList, failures, allSuccess),
+          slug,
+          prNumber,
+          PullRequestState.open,
+          author,
+          labelNames,
+          contextNodeList,
+          failures,
+          allSuccess,
+        ),
         isFalse,
       );
       expect(failures, isEmpty);
@@ -311,7 +336,15 @@ void main() {
       convertContextNodeStatuses(contextNodeList);
       expect(
         ciSuccessful.validateStatuses(
-            slug, prNumber, PullRequestState.open, author, labelNames, contextNodeList, failures, allSuccess),
+          slug,
+          prNumber,
+          PullRequestState.open,
+          author,
+          labelNames,
+          contextNodeList,
+          failures,
+          allSuccess,
+        ),
         isFalse,
       );
       expect(failures, isNotEmpty);
@@ -330,7 +363,15 @@ void main() {
       convertContextNodeStatuses(contextNodeList);
       expect(
         ciSuccessful.validateStatuses(
-            slug, prNumber, PullRequestState.open, author, labelNames, contextNodeList, failures, allSuccess),
+          slug,
+          prNumber,
+          PullRequestState.open,
+          author,
+          labelNames,
+          contextNodeList,
+          failures,
+          allSuccess,
+        ),
         isFalse,
       );
       expect(failures, isNotEmpty);
@@ -350,7 +391,15 @@ void main() {
       convertContextNodeStatuses(contextNodeList);
       expect(
         ciSuccessful.validateStatuses(
-            slug, prNumber, PullRequestState.open, author, labelNames, contextNodeList, failures, allSuccess),
+          slug,
+          prNumber,
+          PullRequestState.open,
+          author,
+          labelNames,
+          contextNodeList,
+          failures,
+          allSuccess,
+        ),
         isFalse,
       );
       expect(failures, isEmpty);
@@ -370,7 +419,15 @@ void main() {
       convertContextNodeStatuses(contextNodeList);
       expect(
         ciSuccessful.validateStatuses(
-            slug, prNumber, PullRequestState.open, author, labelNames, contextNodeList, failures, allSuccess),
+          slug,
+          prNumber,
+          PullRequestState.open,
+          author,
+          labelNames,
+          contextNodeList,
+          failures,
+          allSuccess,
+        ),
         isFalse,
       );
       expect(failures, isNotEmpty);
@@ -390,7 +447,15 @@ void main() {
       convertContextNodeStatuses(contextNodeList);
       expect(
         ciSuccessful.validateStatuses(
-            slug, prNumber, PullRequestState.open, author, labelNames, contextNodeList, failures, allSuccess),
+          slug,
+          prNumber,
+          PullRequestState.open,
+          author,
+          labelNames,
+          contextNodeList,
+          failures,
+          allSuccess,
+        ),
         isFalse,
       );
       expect(failures, isNotEmpty);
@@ -418,12 +483,28 @@ void main() {
 
       try {
         ciSuccessful.validateStatuses(
-            slug, prNumber, PullRequestState.open, author, labelNames, contextNodeList, failures, allSuccess);
+          slug,
+          prNumber,
+          PullRequestState.open,
+          author,
+          labelNames,
+          contextNodeList,
+          failures,
+          allSuccess,
+        );
         expect(logWarnings.length, 1);
 
         logWarnings.clear();
         ciSuccessful.validateStatuses(
-            slug, prNumber, PullRequestState.closed, author, labelNames, contextNodeList, failures, allSuccess);
+          slug,
+          prNumber,
+          PullRequestState.closed,
+          author,
+          labelNames,
+          contextNodeList,
+          failures,
+          allSuccess,
+        );
         expect(logWarnings.length, 0);
       } finally {
         await subscription.cancel();
