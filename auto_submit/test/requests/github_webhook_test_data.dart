@@ -436,6 +436,21 @@ const String repositoryStatusesWithFailedGoldMock = '''{
   ]
 }''';
 
+const String repositoryStatusesWithStaleGoldMock = '''{
+  "state": "success",
+  "statuses": [
+    {
+      "state": "success",
+      "context": "tree-status"
+    },
+    {
+      "state": "PENDING",
+      "context": "flutter-gold",
+      "createdAt": "1900-01-01T00:00:00Z"
+    }
+  ]
+}''';
+
 const String repositoryStatusesNonLuciFlutterMock = '''{
   "state": "success",
   "statuses": [

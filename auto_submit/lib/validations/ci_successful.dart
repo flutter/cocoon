@@ -4,6 +4,7 @@
 
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
+import 'package:auto_submit/model/pull_request_data_types.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
@@ -33,6 +34,8 @@ class CiSuccessful extends Validation {
     bool allSuccess = true;
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int prNumber = messagePullRequest.number!;
+    final PullRequestState prState =
+        (messagePullRequest.state == 'closed') ? PullRequestState.closed : PullRequestState.open;
     final PullRequest pullRequest = result.repository!.pullRequest!;
     final Set<FailureDetail> failures = <FailureDetail>{};
 
@@ -68,7 +71,7 @@ class CiSuccessful extends Validation {
         .toList();
 
     /// Validate if all statuses have been successful.
-    allSuccess = validateStatuses(slug, prNumber, author, labelNames, statuses, failures, allSuccess);
+    allSuccess = validateStatuses(slug, prNumber, prState, author, labelNames, statuses, failures, allSuccess);
 
     final GithubService gitHubService = await config.createGithubService(slug);
     final String? sha = commit.oid;
@@ -79,7 +82,7 @@ class CiSuccessful extends Validation {
     }
 
     /// Validate if all checkRuns have succeeded.
-    allSuccess = validateCheckRuns(slug, prNumber, checkRuns, failures, allSuccess, author);
+    allSuccess = validateCheckRuns(slug, prNumber, prState, checkRuns, failures, allSuccess, author);
 
     if (!allSuccess && failures.isEmpty) {
       return ValidationResult(allSuccess, Action.IGNORE_TEMPORARILY, '');
@@ -131,6 +134,7 @@ class CiSuccessful extends Validation {
   bool validateStatuses(
     github.RepositorySlug slug,
     int prNumber,
+    PullRequestState prState,
     Author author,
     List<String> labelNames,
     List<ContextNode> statuses,
@@ -154,6 +158,7 @@ class CiSuccessful extends Validation {
           failures.add(FailureDetail(name!, status.targetUrl!));
         }
         if (status.state == STATUS_PENDING &&
+            prState == PullRequestState.open &&
             status.createdAt != null &&
             isStale(status.createdAt!) &&
             supportStale(author, slug)) {
@@ -177,6 +182,7 @@ class CiSuccessful extends Validation {
   bool validateCheckRuns(
     github.RepositorySlug slug,
     int prNumber,
+    PullRequestState prState,
     List<github.CheckRun> checkRuns,
     Set<FailureDetail> failures,
     bool allSuccess,
@@ -199,7 +205,7 @@ class CiSuccessful extends Validation {
         log.info('${slug.name}/$prNumber: CheckRun $name failed.');
         failures.add(FailureDetail(name!, checkRun.detailsUrl as String));
       } else if (checkRun.status == github.CheckRunStatus.queued) {
-        if (isStale(checkRun.startedAt) && supportStale(author, slug)) {
+        if (prState == PullRequestState.open && isStale(checkRun.startedAt) && supportStale(author, slug)) {
           staleCheckRuns.add(checkRun);
         }
       }
