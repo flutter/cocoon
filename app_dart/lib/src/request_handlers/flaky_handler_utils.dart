@@ -145,11 +145,8 @@ class IssueUpdateBuilder {
   List<String> get issueLabels {
     final List<String> existingLabels = existingIssue.labels.map<String>((IssueLabel label) => label.name).toList();
     // Update the priority.
-    if (!existingLabels.contains(kP0Label) && !isBelow) {
+    if (!isBelow && !_containsPriorityLabel(existingLabels)) {
       existingLabels.add(kP0Label);
-      existingLabels.remove(kP1Label);
-      existingLabels.remove(kP2Label);
-      existingLabels.remove(kP3Label);
     }
     return existingLabels;
   }
@@ -169,6 +166,16 @@ ${_issueBuilderLink(statistic.name)}
 ''';
     }
     return result;
+  }
+
+  bool _containsPriorityLabel(List<String> labels) {
+    for (final String label in labels) {
+      if (label == kP0Label || label == kP1Label || label == kP2Label || label == kP3Label) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }
 
