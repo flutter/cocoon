@@ -177,6 +177,7 @@ class TaskGridFilter extends FilterPropertySource {
       'ios': _allProperties['showiOS']?.value ?? false,
       'android': showAndroid,
       'mokey': showAndroid,
+      'pixel_7pro': showAndroid,
       'mac': _allProperties['showMac']?.value ?? false,
       'windows': _allProperties['showWindows']?.value ?? false,
       'linux': _allProperties['showLinux']?.value ?? false,

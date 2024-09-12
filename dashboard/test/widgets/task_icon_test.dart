@@ -141,15 +141,23 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(
         home: Material(
-          child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Windows_android test', pool: 'luci.flutter.prod'),
+          child: Column(
+            children: <Widget>[
+              TaskIcon(
+                qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Windows_android test'),
+              ),
+              TaskIcon(
+                qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Windows_pixel_7pro test'),
+              ),
+              TaskIcon(
+                qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Windows_mokey test'),
+              ),
+            ],
           ),
         ),
       ),
     );
-
-    expect(tester.widget(find.byType(Icon)) as Icon, isInstanceOf<Icon>());
-    expect((tester.widget(find.byType(Icon)) as Icon).icon!.codePoint, const Icon(Icons.android).icon!.codePoint);
+    expect(find.byIcon(Icons.android), findsExactly(3));
   });
 
   testWidgets('TaskIcon shows the right icon for LUCI mac', (WidgetTester tester) async {

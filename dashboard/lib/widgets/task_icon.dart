@@ -51,7 +51,9 @@ class TaskIcon extends StatelessWidget {
     final String matchedName = qualifiedTask.task!.toLowerCase();
     final bool isWebTest = matchedName.contains('_web') || matchedName.contains('web_');
     final bool isToolTest = matchedName.contains('_tool') || matchedName.contains('tool_');
-    final bool isAndroidTest = matchedName.contains('_android') || matchedName.contains('_mokey');
+    final bool isAndroidTest = matchedName.contains('_android') ||
+        matchedName.contains('_mokey') ||
+        matchedName.contains('_pixel_7pro');
 
     if (matchedName.contains('_fuchsia')) {
       return Padding(
