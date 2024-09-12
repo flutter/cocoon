@@ -618,4 +618,54 @@ void main() {
 
     expect(find.byType(dropdownButtonType), findsNWidgets(2));
   });
+
+  testWidgets('Settings dialog default background color', (WidgetTester tester) async {
+    configureView(tester.view);
+    final BuildState fakeBuildState = FakeBuildState()
+      ..isTreeBuilding = true
+      ..authService = fakeAuthService;
+    const String dialogText = 'Refresh GitHub Commits';
+    ThemeData theme;
+    Widget buildDashboard({required Brightness brightness}) {
+      theme = ThemeData(useMaterial3: false, brightness: brightness);
+      return MaterialApp(
+        theme: theme,
+        home: ValueProvider<BuildState>(
+          value: fakeBuildState,
+          child: ValueProvider<GoogleSignInService>(
+            value: fakeBuildState.authService,
+            child: const BuildDashboardPage(),
+          ),
+        ),
+      );
+    }
+
+    // Test dashboard in light mode.
+    await tester.pumpWidget(buildDashboard(brightness: Brightness.light));
+    await tester.tap(find.byIcon(Icons.settings));
+    await tester.pump();
+
+    Finder dialogContainer = find.ancestor(
+      of: find.text(dialogText),
+      matching: find.byType(Container),
+    );
+    expect(
+      dialogContainer,
+      paints..rrect(color: Colors.white.withAlpha(0xe0)),
+    );
+
+    // Test dashboard in dark mode.
+    await tester.pumpWidget(buildDashboard(brightness: Brightness.dark));
+    await tester.tap(find.byIcon(Icons.settings));
+    await tester.pump(const Duration(seconds: 1)); // Finish changing theme.
+
+    dialogContainer = find.ancestor(
+      of: find.text(dialogText),
+      matching: find.byType(Container),
+    );
+    expect(
+      dialogContainer,
+      paints..rrect(color: Colors.grey[800]!.withAlpha(0xe0)),
+    );
+  });
 }
