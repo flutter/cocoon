@@ -879,9 +879,5 @@ Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, 
   const double padding = 4.0;
   final int rgba = pixels.getUint32((((cellPixelSize * (cellSize + padding)) + cellSize + padding).ceil()) * 4);
   final Color actualColor = Color((rgba >> 8) | (rgba << 24) & 0xFFFFFFFF);
-  if (expectedColor is MaterialColor) {
-    expect(actualColor, expectedColor.shade500);
-  } else {
-    expect(actualColor, expectedColor);
-  }
+  expect(actualColor, isSameColorAs(expectedColor));
 }
