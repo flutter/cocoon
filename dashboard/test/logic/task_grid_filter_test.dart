@@ -232,12 +232,21 @@ void main() {
     expect(macIosBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Mac_ios')), true);
     expect(macIosBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Mac')), true);
     expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android')), true);
+    expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_mokey')), true);
+    expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_pixel_7pro')), true);
+    expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux pixel_test')), false);
     expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux')), false);
     expect(linuxAndroidFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android')), false);
+    expect(linuxAndroidFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_mokey')), false);
+    expect(linuxAndroidFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_pixel_7pro')), false);
     expect(linuxAndroidFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux')), true);
     expect(linuxAndroidBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android')), true);
-    expect(linuxAndroidBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android')), true);
+    expect(linuxAndroidBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_mokey')), true);
+    expect(
+        linuxAndroidBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_pixel_7pro')), true);
     expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Windows_android')), true);
+    expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Windows_mokey')), true);
+    expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Windows_pixel_7pro')), true);
     expect(androidFalseFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Anything_android')), false);
   });
 
