@@ -12,7 +12,7 @@ environment:
 
 dependencies:
   appengine: 0.13.7
-  corsac_jwt: 1.0.0-nullsafety.1
+  corsac_jwt: 1.0.1
   github: 9.24.0
   googleapis: 13.2.0
   googleapis_auth: 1.6.0
