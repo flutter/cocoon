@@ -119,10 +119,11 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
 
   Widget _settingsDialog(BuildContext context, BuildState buildState) {
     final ThemeData theme = Theme.of(context);
+    final Color backgroundColor = theme.brightness == Brightness.dark ? Colors.grey[800]! : Colors.white;
     return Center(
       child: Container(
         decoration: BoxDecoration(
-          color: theme.dialogBackgroundColor.withAlpha(0xe0),
+          color: backgroundColor.withAlpha(0xe0),
           borderRadius: BorderRadius.circular(20.0),
         ),
         child: Material(
