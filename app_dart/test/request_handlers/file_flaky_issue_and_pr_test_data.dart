@@ -13,7 +13,7 @@ const String ciYamlContent = '''
 # for every commit.
 #
 # More information at:
-#  * https://github.com/flutter/cocoon/blob/master/scheduler/README.md
+#  * https://github.com/flutter/cocoon/blob/main/CI_YAML.md
 enabled_branches:
   - master
 
@@ -66,7 +66,7 @@ const String ciYamlContentTwoFlakyTargets = '''
 # for every commit.
 #
 # More information at:
-#  * https://github.com/flutter/cocoon/blob/master/scheduler/README.md
+#  * https://github.com/flutter/cocoon/blob/main/CI_YAML.md
 enabled_branches:
   - master
 
@@ -109,7 +109,7 @@ const String ciYamlContentAlreadyFlaky = '''
 # for every commit.
 #
 # More information at:
-#  * https://github.com/flutter/cocoon/blob/master/scheduler/README.md
+#  * https://github.com/flutter/cocoon/blob/main/CI_YAML.md
 enabled_branches:
   - master
 
@@ -249,7 +249,7 @@ const String expectedSemanticsIntegrationTestCiYamlContent = '''
 # for every commit.
 #
 # More information at:
-#  * https://github.com/flutter/cocoon/blob/master/scheduler/README.md
+#  * https://github.com/flutter/cocoon/blob/main/CI_YAML.md
 enabled_branches:
   - master
 

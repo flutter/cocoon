@@ -300,7 +300,7 @@ class Invocation extends $pb.GeneratedMessage {
   void clearProducerResource() => clearField(11);
 
   /// Realm that the invocation exists under.
-  /// See https://chromium.googlesource.com/infra/luci/luci-py/+/refs/heads/master/appengine/auth_service/proto/realms_config.proto
+  /// See https://chromium.googlesource.com/infra/luci/luci-py/+/refs/heads/main/appengine/auth_service/proto/realms_config.proto
   @$pb.TagNumber(12)
   $core.String get realm => $_getSZ(10);
   @$pb.TagNumber(12)
