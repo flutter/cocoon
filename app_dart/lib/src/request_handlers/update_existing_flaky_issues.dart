@@ -147,10 +147,8 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     // is newly identified as flaky, there is a gap between the builder is marked as `bringup: true` and the flaky bug is filed.
     // For this case, there will be builds still running in `prod` pool, and we need to append `prod` stats as well.
     for (final BuilderStatistic statistic in prodBuilderStatisticList) {
-      // ignore: iterable_contains_unrelated_type
       if (nameToExistingIssue.containsKey(statistic.name) &&
           builderFlakyMap.containsKey(statistic.name) &&
-          // ignore: iterable_contains_unrelated_type
           !ignoreFlakyMap.containsKey(statistic.name)) {
         await _addCommentToExistingIssue(
           gitHub,
@@ -167,7 +165,6 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     for (final BuilderStatistic statistic in stagingBuilderStatisticList) {
       if (nameToExistingIssue.containsKey(statistic.name) &&
           builderFlakyMap[statistic.name] == true &&
-          // ignore: iterable_contains_unrelated_type
           !ignoreFlakyMap.containsKey(statistic.name)) {
         await _addCommentToExistingIssue(
           gitHub,
