@@ -7,7 +7,7 @@ description: Flutter continuous integration agent (Cocoon agent)
 homepage: https://github.com/flutter/cocoon
 
 environment:
-  sdk: '>=2.18.0 < 4.0.0'
+  sdk: ^3.1.0
 
 dev_dependencies:
   args: 2.5.0
