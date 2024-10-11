@@ -9,7 +9,6 @@
 
 
 [![Flutter CI Status](https://flutter-dashboard.appspot.com/api/public/build-status-badge?repo=cocooon)](https://flutter-dashboard.appspot.com/#/build?repo=cocoon&branch=main)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/flutter/cocoon/badge)](https://api.securityscorecards.dev/projects/github.com/flutter/cocoon)
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
 
 **Cocoon** is a Dart App Engine custom runtime (backend) with a frontend
