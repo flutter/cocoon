@@ -371,6 +371,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename == 'DEPS' ||
         filename.endsWith('TESTOWNERS') ||
         filename.endsWith('pubspec.yaml') ||
+        filename.endsWith('pubspec.yaml.tmpl') ||
         // Exempt categories.
         filename.contains('.github/') ||
         filename.endsWith('.md') ||
