@@ -243,7 +243,9 @@ void main() {
     expect(linuxAndroidBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android')), true);
     expect(linuxAndroidBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_mokey')), true);
     expect(
-        linuxAndroidBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_pixel_7pro')), true);
+      linuxAndroidBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_pixel_7pro')),
+      true,
+    );
     expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Windows_android')), true);
     expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Windows_mokey')), true);
     expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Windows_pixel_7pro')), true);
