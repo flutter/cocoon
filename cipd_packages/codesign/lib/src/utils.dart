@@ -43,6 +43,17 @@ Future<void> unzip({
       outDir.absolute.path,
     ],
   );
+  outDir.listSync(recursive: true).forEach((entity) {
+    if (entity.basename.toLowerCase() == '.ds_store') {
+      try {
+        entity.deleteSync();
+        log.info('Deleted ${entity.path}.');
+      } catch (err) {
+        log.severe('Error while trying to delete ${entity.path}');
+        rethrow;
+      }
+    }
+  });
   log.info('The downloaded file is unzipped from ${inputZip.absolute.path} to ${outDir.absolute.path}');
 }
 
