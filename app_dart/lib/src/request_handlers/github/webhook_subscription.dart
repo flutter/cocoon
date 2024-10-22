@@ -233,7 +233,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
 
     final eventAction = request['action'] as String;
-    final headSha = request['head_sha'] as String;
+    final headSha = (request['merge_group'] as Map<String, Object?>)['head_sha'] as String;
 
     // See the API reference:
     // https://docs.github.com/en/webhooks/webhook-events-and-payloads#merge_group
