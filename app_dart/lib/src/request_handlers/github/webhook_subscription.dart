@@ -216,11 +216,12 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
   /// Handles a GitHub webhook with the event type "merge_group".
   ///
-  /// Unlike a pull request a merge group contains multiple commits created
-  /// from multiple squashed pull requests. A merge group is therefore not
-  /// associated with any one pull request. Instead, its `head_sha` (the SHA of
-  /// the top-most commit) is the one the CI will run all the checks against. If
-  /// the checks pass, the commits are pushed onto the main/master branch.
+  /// A merge group contains commits from multiple pull requests. Each pull
+  /// request is squashed into one commit, then that commit is stacked on top of
+  /// other commits in the queue. A merge group is therefore not associated with
+  /// any one pull request. Instead, its `head_sha` (the SHA of the top-most
+  /// commit) is the one the CI runs all the checks against. If the checks pass,
+  /// the group of commits is pushed onto the main/master branch.
   ///
   /// The commit SHAs in the merge group are not the same as the commit SHAs in
   /// the pull request. Merge group SHAs are rewritten while they are stacked on
