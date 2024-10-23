@@ -28,8 +28,9 @@ FORMAT_ARGS=--line-length=120
 echo "######### dart format $FORMAT_ARGS #########"
 dart format --set-exit-if-changed $FORMAT_ARGS .
 
-echo "########### analyze ###########"
-dart analyze --fatal-infos
+# TODO(yjbanov): reenable when https://github.com/dart-lang/sdk/issues/56940 rolls in
+# echo "########### analyze ###########"
+# dart analyze --fatal-infos
 
 # agent doesn't use build_runner as of this writing.
 if grep -lq "build_runner" pubspec.yaml; then
