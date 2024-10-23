@@ -10,9 +10,11 @@ import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:cocoon_service/src/service/logging.dart';
 
 import 'package:github/github.dart' hide Branch;
 import 'package:googleapis/bigquery/v2.dart';
+import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -2414,6 +2416,28 @@ void foo() {
       await tester.post(webhook);
 
       verify(commitService.handleCreateGithubRequest(any)).called(1);
+    });
+  });
+
+  group('github webhook merge_group event', () {
+    test('Logs the event', () async {
+      final records = <String>[];
+      log.onRecord.listen((record) {
+        if (record.level == Level.FINE) {
+          records.add(record.message);
+        }
+      });
+      tester.message = generateMergeGroupMessage('flutter/flutter');
+      await tester.post(webhook);
+
+      expect(
+        records,
+        <String>[
+          'Processing merge_group',
+          'Processing checks_requested for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Simulating checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+        ],
+      );
     });
   });
 }

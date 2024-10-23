@@ -100,6 +100,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'pull_request':
         await _handlePullRequest(webhook.payload);
         break;
+      case 'merge_group':
+        await _handleMergeGroup(webhook.payload);
+        break;
       case 'check_run':
         final Map<String, dynamic> event = jsonDecode(webhook.payload) as Map<String, dynamic>;
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
@@ -207,6 +210,50 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'review_requested':
       case 'unassigned':
       case 'unlocked':
+        break;
+    }
+  }
+
+  /// Handles a GitHub webhook with the event type "merge_group".
+  ///
+  /// A merge group contains commits from multiple pull requests. Each pull
+  /// request is squashed into one commit, then that commit is stacked on top of
+  /// other commits in the queue. A merge group is therefore not associated with
+  /// any one pull request. Instead, its `head_sha` (the SHA of the top-most
+  /// commit) is the one the CI runs all the checks against. If the checks pass,
+  /// the group of commits is pushed onto the main/master branch.
+  ///
+  /// The commit SHAs in the merge group are not the same as the commit SHAs in
+  /// the pull request. Merge group SHAs are rewritten while they are stacked on
+  /// top of each other.
+  Future<void> _handleMergeGroup(String rawRequest) async {
+    final request = json.decode(rawRequest);
+
+    if (request is! Map<String, Object?>) {
+      throw BadRequestException('Malformed merge_group request:\n$rawRequest');
+    }
+
+    final eventAction = request['action'] as String;
+    final headSha = (request['merge_group'] as Map<String, Object?>)['head_sha'] as String;
+
+    // See the API reference:
+    // https://docs.github.com/en/webhooks/webhook-events-and-payloads#merge_group
+    log.fine('Processing $eventAction for merge queue @ $headSha');
+    switch (eventAction) {
+      // A merge group (a group of PRs to be tested a merged together) was
+      // created and Github is requesting checks to be performed before merging
+      // into the main branch. Cocoon should kick off CI jobs needed to verify
+      // the PR group.
+      case 'checks_requested':
+        log.fine('Simulating checks requests for merge queue @ $headSha');
+        break;
+
+      // A merge group was deleted. This can happen when a PR is pulled from the
+      // merge queue. All CI jobs pertaining to this merge group should be
+      // stopped to save CI resources, as Github will no longer merge this group
+      // into the main branch.
+      case 'destroyed':
+        log.fine('Simulating destruction of a merge group @ $headSha');
         break;
     }
   }
