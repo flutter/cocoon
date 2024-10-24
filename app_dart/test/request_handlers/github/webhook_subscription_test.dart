@@ -2425,14 +2425,18 @@ void foo() {
       Scheduler.debugCheckPretendDelay = Duration.zero;
     });
 
-    test('checks_requested', () async {
+    test('checks_requested success', () async {
       final records = <String>[];
       final subscription = log.onRecord.listen((record) {
         if (record.level >= Level.FINE) {
           records.add(record.message);
         }
       });
-      tester.message = generateMergeGroupMessage('flutter/flutter', 'checks_requested');
+      tester.message = generateMergeGroupMessage(
+        repository: 'flutter/flutter',
+        action: 'checks_requested',
+        message: 'Implement an amazing feature',
+      );
       await tester.post(webhook);
       await subscription.cancel();
 
@@ -2468,6 +2472,55 @@ void foo() {
       );
     });
 
+    test('checks_requested failure', () async {
+      final records = <String>[];
+      final subscription = log.onRecord.listen((record) {
+        if (record.level >= Level.FINE) {
+          records.add(record.message);
+        }
+      });
+
+      tester.message = generateMergeGroupMessage(
+        repository: 'flutter/flutter',
+        action: 'checks_requested',
+        message: 'Implement a buggy feature (MQ_FAIL)',
+      );
+
+      await tester.post(webhook);
+      await subscription.cancel();
+
+      verify(
+        mockGithubChecksUtil.createCheckRun(
+          any,
+          any,
+          'c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Simulated merge queue check',
+          output: anyNamed('output'),
+        ),
+      ).called(1);
+
+      verify(
+        mockGithubChecksUtil.updateCheckRun(
+          any,
+          any,
+          any,
+          status: CheckRunStatus.completed,
+          conclusion: CheckRunConclusion.failure,
+        ),
+      ).called(1);
+
+      expect(
+        records,
+        <String>[
+          'Processing merge_group',
+          'Processing checks_requested for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Simulating checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Simulating merge group checks for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Finished Simulating merge group checks for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+        ],
+      );
+    });
+
     test('destroyed', () async {
       final records = <String>[];
       final subscription = log.onRecord.listen((record) {
@@ -2475,7 +2528,11 @@ void foo() {
           records.add(record.message);
         }
       });
-      tester.message = generateMergeGroupMessage('flutter/flutter', 'destroyed');
+      tester.message = generateMergeGroupMessage(
+        repository: 'flutter/flutter',
+        action: 'destroyed',
+        message: 'test message',
+      );
       await tester.post(webhook);
       await subscription.cancel();
 

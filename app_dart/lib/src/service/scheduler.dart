@@ -395,14 +395,16 @@ class Scheduler {
   static Duration debugCheckPretendDelay = const Duration(minutes: 1);
 
   Future<void> triggerMergeGroupTargets({
-    required String headSha,
+    required cocoon_checks.MergeGroup mergeGroup,
   }) async {
+    final headSha = mergeGroup.headSha;
+
     log.info('Simulating merge group checks for @ $headSha');
 
     // TODO(yjbanov): unhardcode this.
     final slug = RepositorySlug('flutter', 'flaux');
 
-    final CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
+    final ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
       config,
       slug,
       headSha,
@@ -416,12 +418,16 @@ class Scheduler {
     // Pretend the check took 1 minute to run
     await Future<void>.delayed(debugCheckPretendDelay);
 
+    final conclusion = mergeGroup.headCommit.message.contains('MQ_FAIL')
+      ? CheckRunConclusion.failure
+      : CheckRunConclusion.success;
+
     await githubChecksService.githubChecksUtil.updateCheckRun(
       config,
       slug,
       ciValidationCheckRun,
       status: CheckRunStatus.completed,
-      conclusion: CheckRunConclusion.success,
+      conclusion: conclusion,
     );
 
     log.info('Finished Simulating merge group checks for @ $headSha');

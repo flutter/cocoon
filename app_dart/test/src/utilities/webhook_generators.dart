@@ -1086,8 +1086,12 @@ Map<String, dynamic> generatePushEvent(
 }
 ''');
 
-PushMessage generateMergeGroupMessage(String repository, String action) {
-  final pb.GithubWebhookMessage message = pb.GithubWebhookMessage(
+PushMessage generateMergeGroupMessage({
+  required String repository,
+  required String action,
+  required String message,
+}) {
+  final pb.GithubWebhookMessage webhookMessage = pb.GithubWebhookMessage(
     event: 'merge_group',
     payload: '''
 {
@@ -1100,7 +1104,7 @@ PushMessage generateMergeGroupMessage(String repository, String action) {
     "head_commit": {
       "id": "c9affbbb12aa40cb3afbe94b9ea6b119a256bebf",
       "tree_id": "556b9a8db18c974738d9d5e15988ae9a67e96b91",
-      "message": "Implement an amazing feature",
+      "message": "$message",
       "timestamp": "2024-10-15T20:24:16Z",
       "author": {
         "name": "John Doe",
@@ -1259,5 +1263,5 @@ PushMessage generateMergeGroupMessage(String repository, String action) {
 }
 ''',
   );
-  return PushMessage(data: message.writeToJson(), messageId: 'abc123');
+  return PushMessage(data: webhookMessage.writeToJson(), messageId: 'abc123');
 }
