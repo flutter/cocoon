@@ -92,6 +92,7 @@ class MergeGroup {
     required this.headRef,
     required this.baseSha,
     required this.baseRef,
+    required this.headCommit,
   });
 
   factory MergeGroup.fromJson(Map<String, dynamic> input) => _$MergeGroupFromJson(input);
@@ -110,5 +111,37 @@ class MergeGroup {
   /// The full ref of the branch the merge group will be merged into.
   final String baseRef;
 
+  /// Commit details for the [headSha].
+  final HeadCommit headCommit;
+
   Map<String, dynamic> toJson() => _$MergeGroupToJson(this);
+}
+
+/// Data model for `merge_group.head_commit`.
+///
+/// Provides the details of the [MergeGroup.headSha] commit.
+///
+/// This object is supplied by [MergeGroup].
+@JsonSerializable(fieldRename: FieldRename.snake)
+class HeadCommit {
+  const HeadCommit({
+    required this.id,
+    required this.treeId,
+    required this.message,
+  });
+
+  factory HeadCommit.fromJson(Map<String, dynamic> input) => _$HeadCommitFromJson(input);
+
+  /// The commit SHA generated for the candidate PR to be merged.
+  ///
+  /// Same as [MergeGroup.headSha].
+  final String id;
+
+  /// SHA for the commit's tree.
+  final String treeId;
+
+  /// The commit message.
+  final String message;
+
+  Map<String, dynamic> toJson() => _$HeadCommitToJson(this);
 }

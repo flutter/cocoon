@@ -79,6 +79,8 @@ MergeGroup _$MergeGroupFromJson(Map<String, dynamic> json) => MergeGroup(
       headRef: json['head_ref'] as String,
       baseSha: json['base_sha'] as String,
       baseRef: json['base_ref'] as String,
+      headCommit:
+          HeadCommit.fromJson(json['head_commit'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$MergeGroupToJson(MergeGroup instance) =>
@@ -87,4 +89,18 @@ Map<String, dynamic> _$MergeGroupToJson(MergeGroup instance) =>
       'head_ref': instance.headRef,
       'base_sha': instance.baseSha,
       'base_ref': instance.baseRef,
+      'head_commit': instance.headCommit,
+    };
+
+HeadCommit _$HeadCommitFromJson(Map<String, dynamic> json) => HeadCommit(
+      id: json['id'] as String,
+      treeId: json['tree_id'] as String,
+      message: json['message'] as String,
+    );
+
+Map<String, dynamic> _$HeadCommitToJson(HeadCommit instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'tree_id': instance.treeId,
+      'message': instance.message,
     };
