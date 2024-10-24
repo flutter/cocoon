@@ -235,14 +235,13 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
 
     final mergeGroupEvent = MergeGroupEvent.fromJson(request);
-    final mergeGroup = mergeGroupEvent.mergeGroup;
-    final eventAction = mergeGroupEvent.action;
+    final MergeGroupEvent(:mergeGroup, :action) = mergeGroupEvent;
     final headSha = mergeGroup.headSha;
 
     // See the API reference:
     // https://docs.github.com/en/webhooks/webhook-events-and-payloads#merge_group
-    log.fine('Processing $eventAction for merge queue @ $headSha');
-    switch (eventAction) {
+    log.fine('Processing $action for merge queue @ $headSha');
+    switch (action) {
       // A merge group (a group of PRs to be tested a merged together) was
       // created and Github is requesting checks to be performed before merging
       // into the main branch. Cocoon should kick off CI jobs needed to verify
