@@ -11,6 +11,7 @@ import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/logging.dart';
+import 'package:cocoon_service/src/service/scheduler.dart';
 
 import 'package:github/github.dart' hide Branch;
 import 'package:googleapis/bigquery/v2.dart';
@@ -2420,15 +2421,40 @@ void foo() {
   });
 
   group('github webhook merge_group event', () {
-    test('Logs the event', () async {
+    setUpAll(() {
+      Scheduler.debugCheckPretendDelay = Duration.zero;
+    });
+
+    test('checks_requested', () async {
       final records = <String>[];
-      log.onRecord.listen((record) {
-        if (record.level == Level.FINE) {
+      final subscription = log.onRecord.listen((record) {
+        if (record.level >= Level.FINE) {
           records.add(record.message);
         }
       });
-      tester.message = generateMergeGroupMessage('flutter/flutter');
+      tester.message = generateMergeGroupMessage('flutter/flutter', 'checks_requested');
       await tester.post(webhook);
+      await subscription.cancel();
+
+      verify(
+        mockGithubChecksUtil.createCheckRun(
+          any,
+          any,
+          'c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Simulated merge queue check',
+          output: anyNamed('output'),
+        ),
+      ).called(1);
+
+      verify(
+        mockGithubChecksUtil.updateCheckRun(
+          any,
+          any,
+          any,
+          status: CheckRunStatus.completed,
+          conclusion: CheckRunConclusion.success,
+        ),
+      ).called(1);
 
       expect(
         records,
@@ -2436,6 +2462,30 @@ void foo() {
           'Processing merge_group',
           'Processing checks_requested for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Simulating checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Simulating merge group checks for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Finished Simulating merge group checks for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+        ],
+      );
+    });
+
+    test('destroyed', () async {
+      final records = <String>[];
+      final subscription = log.onRecord.listen((record) {
+        if (record.level >= Level.FINE) {
+          records.add(record.message);
+        }
+      });
+      tester.message = generateMergeGroupMessage('flutter/flutter', 'destroyed');
+      await tester.post(webhook);
+      await subscription.cancel();
+
+      expect(
+        records,
+        <String>[
+          'Processing merge_group',
+          'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Simulating destruction of a merge group @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Simulating cancellation of merge group CI targets for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
         ],
       );
     });

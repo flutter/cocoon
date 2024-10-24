@@ -1086,12 +1086,12 @@ Map<String, dynamic> generatePushEvent(
 }
 ''');
 
-PushMessage generateMergeGroupMessage(String repository) {
+PushMessage generateMergeGroupMessage(String repository, String action) {
   final pb.GithubWebhookMessage message = pb.GithubWebhookMessage(
     event: 'merge_group',
     payload: '''
 {
-  "action": "checks_requested",
+  "action": "$action",
   "merge_group": {
     "head_sha": "c9affbbb12aa40cb3afbe94b9ea6b119a256bebf",
     "head_ref": "refs/heads/gh-readonly-queue/main/pr-15-172355550dde5881b0269972ea4cbe5a6d0561bc",

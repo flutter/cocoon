@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/src/model/github/checks.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:github/github.dart';
@@ -233,8 +234,10 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       throw BadRequestException('Malformed merge_group request:\n$rawRequest');
     }
 
-    final eventAction = request['action'] as String;
-    final headSha = (request['merge_group'] as Map<String, Object?>)['head_sha'] as String;
+    final mergeGroupEvent = MergeGroupEvent.fromJson(request);
+    final mergeGroup = mergeGroupEvent.mergeGroup;
+    final eventAction = mergeGroupEvent.action;
+    final headSha = mergeGroup.headSha;
 
     // See the API reference:
     // https://docs.github.com/en/webhooks/webhook-events-and-payloads#merge_group
@@ -246,6 +249,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       // the PR group.
       case 'checks_requested':
         log.fine('Simulating checks requests for merge queue @ $headSha');
+        await scheduler.triggerMergeGroupTargets(headSha: headSha);
         break;
 
       // A merge group was deleted. This can happen when a PR is pulled from the
@@ -254,6 +258,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       // into the main branch.
       case 'destroyed':
         log.fine('Simulating destruction of a merge group @ $headSha');
+        await scheduler.cancelMergeGroupTargets(headSha: headSha);
         break;
     }
   }
