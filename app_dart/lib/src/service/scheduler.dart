@@ -392,6 +392,54 @@ class Scheduler {
     );
   }
 
+  static Duration debugCheckPretendDelay = const Duration(minutes: 1);
+
+  Future<void> triggerMergeGroupTargets({
+    required cocoon_checks.MergeGroupEvent mergeGroupEvent,
+  }) async {
+    final mergeGroup = mergeGroupEvent.mergeGroup;
+    final headSha = mergeGroup.headSha;
+
+    log.info('Simulating merge group checks for @ $headSha');
+
+    final slug = mergeGroupEvent.repository!.slug();
+
+    final ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
+      config,
+      slug,
+      headSha,
+      'Simulated merge queue check',
+      output: const CheckRunOutput(
+        title: 'Simulated merge queue check',
+        summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
+      ),
+    );
+
+    // Pretend the check took 1 minute to run
+    await Future<void>.delayed(debugCheckPretendDelay);
+
+    final conclusion =
+        mergeGroup.headCommit.message.contains('MQ_FAIL') ? CheckRunConclusion.failure : CheckRunConclusion.success;
+
+    await githubChecksService.githubChecksUtil.updateCheckRun(
+      config,
+      slug,
+      ciValidationCheckRun,
+      status: CheckRunStatus.completed,
+      conclusion: conclusion,
+    );
+
+    log.info('Finished Simulating merge group checks for @ $headSha');
+  }
+
+  Future<void> cancelMergeGroupTargets({
+    required String headSha,
+  }) async {
+    // TODO(yjbanov): there's no actual LUCI jobs to cancel, so for now just log
+    //                and move on.
+    log.info('Simulating cancellation of merge group CI targets for @ $headSha');
+  }
+
   /// If [builderTriggerList] is specificed, return only builders that are contained in [presubmitTarget].
   /// Otherwise, return [presubmitTarget].
   List<Target> getTriggerList(

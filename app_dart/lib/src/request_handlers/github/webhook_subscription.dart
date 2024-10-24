@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/src/model/github/checks.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:github/github.dart';
@@ -233,19 +234,21 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       throw BadRequestException('Malformed merge_group request:\n$rawRequest');
     }
 
-    final eventAction = request['action'] as String;
-    final headSha = (request['merge_group'] as Map<String, Object?>)['head_sha'] as String;
+    final mergeGroupEvent = MergeGroupEvent.fromJson(request);
+    final MergeGroupEvent(:mergeGroup, :action) = mergeGroupEvent;
+    final headSha = mergeGroup.headSha;
 
     // See the API reference:
     // https://docs.github.com/en/webhooks/webhook-events-and-payloads#merge_group
-    log.fine('Processing $eventAction for merge queue @ $headSha');
-    switch (eventAction) {
+    log.fine('Processing $action for merge queue @ $headSha');
+    switch (action) {
       // A merge group (a group of PRs to be tested a merged together) was
       // created and Github is requesting checks to be performed before merging
       // into the main branch. Cocoon should kick off CI jobs needed to verify
       // the PR group.
       case 'checks_requested':
         log.fine('Simulating checks requests for merge queue @ $headSha');
+        await scheduler.triggerMergeGroupTargets(mergeGroupEvent: mergeGroupEvent);
         break;
 
       // A merge group was deleted. This can happen when a PR is pulled from the
@@ -254,6 +257,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       // into the main branch.
       case 'destroyed':
         log.fine('Simulating destruction of a merge group @ $headSha');
+        await scheduler.cancelMergeGroupTargets(headSha: headSha);
         break;
     }
   }
