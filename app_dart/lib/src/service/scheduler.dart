@@ -395,14 +395,14 @@ class Scheduler {
   static Duration debugCheckPretendDelay = const Duration(minutes: 1);
 
   Future<void> triggerMergeGroupTargets({
-    required cocoon_checks.MergeGroup mergeGroup,
+    required cocoon_checks.MergeGroupEvent mergeGroupEvent,
   }) async {
+    final mergeGroup = mergeGroupEvent.mergeGroup;
     final headSha = mergeGroup.headSha;
 
     log.info('Simulating merge group checks for @ $headSha');
 
-    // TODO(yjbanov): unhardcode this.
-    final slug = RepositorySlug('flutter', 'flaux');
+    final slug = mergeGroupEvent.repository!.slug();
 
     final ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
       config,

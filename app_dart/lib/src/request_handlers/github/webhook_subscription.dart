@@ -249,7 +249,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       // the PR group.
       case 'checks_requested':
         log.fine('Simulating checks requests for merge queue @ $headSha');
-        await scheduler.triggerMergeGroupTargets(mergeGroup: mergeGroup);
+        await scheduler.triggerMergeGroupTargets(mergeGroupEvent: mergeGroupEvent);
         break;
 
       // A merge group was deleted. This can happen when a PR is pulled from the
