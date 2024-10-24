@@ -418,9 +418,8 @@ class Scheduler {
     // Pretend the check took 1 minute to run
     await Future<void>.delayed(debugCheckPretendDelay);
 
-    final conclusion = mergeGroup.headCommit.message.contains('MQ_FAIL')
-      ? CheckRunConclusion.failure
-      : CheckRunConclusion.success;
+    final conclusion =
+        mergeGroup.headCommit.message.contains('MQ_FAIL') ? CheckRunConclusion.failure : CheckRunConclusion.success;
 
     await githubChecksService.githubChecksUtil.updateCheckRun(
       config,
