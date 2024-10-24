@@ -401,7 +401,8 @@ class Config {
       configCacheName,
       'githubToken-${slug.fullName}',
       createFn: () => _generateGithubToken(slug),
-      // Tokens are minted for 10 minutes
+      // Tokens are minted for 10 minutes, so expire them earlier (in 8 min),
+      // before the token becomes unusable.
       ttl: const Duration(minutes: 8),
     );
 
