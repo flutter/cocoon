@@ -2458,7 +2458,7 @@ void foo() {
           status: CheckRunStatus.completed,
           conclusion: CheckRunConclusion.success,
         ),
-      ).called(1);
+      ).called(2);
 
       expect(
         records,
@@ -2467,6 +2467,7 @@ void foo() {
           'Processing checks_requested for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Simulating checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Simulating merge group checks for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'All required CI tasks passed for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Finished Simulating merge group checks for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
         ],
       );
@@ -2516,6 +2517,8 @@ void foo() {
           'Processing checks_requested for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Simulating checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Simulating merge group checks for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Some required CI tasks failed for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Some checks failed',
           'Finished Simulating merge group checks for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
         ],
       );
