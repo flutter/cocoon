@@ -463,9 +463,7 @@ class Scheduler {
       slug,
       headSha,
       lock,
-      conclusion == CheckRunConclusion.success
-        ? null
-        : 'Some checks failed',
+      conclusion == CheckRunConclusion.success ? null : 'Some checks failed',
     );
 
     log.info('Finished Simulating merge group checks for @ $headSha');
