@@ -69,7 +69,19 @@ class Scheduler {
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
 
+  /// Validates that CI tasks were successfully created from the .ci.yaml file.
+  ///
+  /// If this check fails, it means Cocoon failed to fully populate the list of
+  /// CI checks and the PR/commit should be treated as failing.
   static const String kCiYamlCheckName = 'ci.yaml validation';
+
+  /// A virtual check that stays in pending state until all other CI tasks are
+  /// completed.
+  ///
+  /// This check is "required", meaning that it must pass before Github will
+  /// allow a PR to land in the merge queue, or a merge group to land on the
+  /// target branch (main or master).
+  static const String kCiTasksName = 'CI tasks';
 
   /// Ensure [commits] exist in Cocoon.
   ///
@@ -319,10 +331,22 @@ class Scheduler {
       reason: reason,
     );
 
+    final slug = pullRequest.base!.repo!.slug();
+
+    // The MQ only waits for "required status checks" before deciding whether to
+    // merge the PR into the target branch. This required check added to both
+    // the PR and to the merge group, and so it must be completed in both cases.
+    // TODO(yjbanov): unhardcode the repo name when MQ is enabled in production
+    //                repositories, and not just in flutter/flaux.
+    CheckRun? lock;
+    if (slug.fullName == 'flutter/flaux') {
+      lock = await lockMergeGroupChecks(slug, pullRequest.head!.sha!);
+    }
+
     log.info('Creating ciYaml validation check run for ${pullRequest.number}');
     final CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
       config,
-      pullRequest.base!.repo!.slug(),
+      slug,
       pullRequest.head!.sha!,
       kCiYamlCheckName,
       output: const CheckRunOutput(
@@ -332,7 +356,6 @@ class Scheduler {
     );
 
     log.info('Creating presubmit targets for ${pullRequest.number}');
-    final RepositorySlug slug = pullRequest.base!.repo!.slug();
     dynamic exception;
     try {
       // Both the author and label should be checked to make sure that no one is
@@ -387,8 +410,13 @@ class Scheduler {
         ),
       );
     }
+
+    if (lock != null) {
+      await unlockMergeGroupChecks(slug, pullRequest.head!.sha!, lock, exception);
+    }
+
     log.info(
-      'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug ${pullRequest.base!.repo!.slug()}}',
+      'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug $slug}',
     );
   }
 
@@ -403,6 +431,8 @@ class Scheduler {
     log.info('Simulating merge group checks for @ $headSha');
 
     final slug = mergeGroupEvent.repository!.slug();
+
+    final lock = await lockMergeGroupChecks(slug, headSha);
 
     final ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
       config,
@@ -429,6 +459,15 @@ class Scheduler {
       conclusion: conclusion,
     );
 
+    await unlockMergeGroupChecks(
+      slug,
+      headSha,
+      lock,
+      conclusion == CheckRunConclusion.success
+        ? null
+        : 'Some checks failed',
+    );
+
     log.info('Finished Simulating merge group checks for @ $headSha');
   }
 
@@ -438,6 +477,64 @@ class Scheduler {
     // TODO(yjbanov): there's no actual LUCI jobs to cancel, so for now just log
     //                and move on.
     log.info('Simulating cancellation of merge group CI targets for @ $headSha');
+  }
+
+  /// Pushes a required "CI tasks" check to the merge queue, which serves as a
+  /// "lock".
+  ///
+  /// While this check is still in progress, the merge queue will not merge the
+  /// respective PR onto the target branch (e.g. main or master), because this
+  /// check is "required".
+  Future<CheckRun> lockMergeGroupChecks(RepositorySlug slug, String headSha) async {
+    return githubChecksService.githubChecksUtil.createCheckRun(
+      config,
+      slug,
+      headSha,
+      kCiTasksName,
+      output: const CheckRunOutput(
+        title: kCiTasksName,
+        summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
+      ),
+    );
+  }
+
+  /// Completes a "CI tasks" check that was scheduled using [lockMergeGroupChecks]
+  /// with either success or failure.
+  ///
+  /// If [exception] is null completed the check with success. Otherwise,
+  /// completes the check with failure.
+  ///
+  /// Calling this method unlocks the merge group, allowing Github to either
+  /// merge the respective PR into the target branch (if success), or remove the
+  /// PR from the merge queue (if failure).
+  Future<void> unlockMergeGroupChecks(RepositorySlug slug, String headSha, CheckRun lock, Object? exception) async {
+    if (exception == null) {
+      // All checks have passed. Unlocking Github with success.
+      log.info('All required CI tasks passed for $headSha');
+      await githubChecksService.githubChecksUtil.updateCheckRun(
+        config,
+        slug,
+        lock,
+        status: CheckRunStatus.completed,
+        conclusion: CheckRunConclusion.success,
+      );
+    } else {
+      // Some checks failed. Unlocking Github with failure.
+      log.info('Some required CI tasks failed for $headSha');
+      log.warning(exception.toString());
+      await githubChecksService.githubChecksUtil.updateCheckRun(
+        config,
+        slug,
+        lock,
+        status: CheckRunStatus.completed,
+        conclusion: CheckRunConclusion.failure,
+        output: CheckRunOutput(
+          title: kCiYamlCheckName,
+          summary: 'Some required CI tasks failed for ${lock.headSha}',
+          text: exception.toString(),
+        ),
+      );
+    }
   }
 
   /// If [builderTriggerList] is specificed, return only builders that are contained in [presubmitTarget].
