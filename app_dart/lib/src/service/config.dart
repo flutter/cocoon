@@ -45,6 +45,7 @@ class Config {
         cocoonSlug,
         engineSlug,
         flutterSlug,
+        flauxSlug,
         packagesSlug,
       };
 
@@ -65,6 +66,7 @@ class Config {
   static Set<gh.RepositorySlug> reposWithTreeStatus = <gh.RepositorySlug>{
     engineSlug,
     flutterSlug,
+    flauxSlug,
   };
 
   static bool doesSkiaGoldRunOnBranch(gh.RepositorySlug slug, String? branch) {
@@ -81,6 +83,7 @@ class Config {
     final Map<gh.RepositorySlug, String> defaultBranches = <gh.RepositorySlug, String>{
       cocoonSlug: 'main',
       flutterSlug: 'master',
+      flauxSlug: 'master',
       engineSlug: 'main',
       packagesSlug: 'main',
       recipesSlug: 'main',
@@ -333,6 +336,7 @@ class Config {
   static gh.RepositorySlug get cocoonSlug => gh.RepositorySlug('flutter', 'cocoon');
   static gh.RepositorySlug get engineSlug => gh.RepositorySlug('flutter', 'engine');
   static gh.RepositorySlug get flutterSlug => gh.RepositorySlug('flutter', 'flutter');
+  static gh.RepositorySlug get flauxSlug => gh.RepositorySlug('flutter', 'flaux');
   static gh.RepositorySlug get packagesSlug => gh.RepositorySlug('flutter', 'packages');
 
   /// Flutter recipes is hosted on Gerrit instead of GitHub.
