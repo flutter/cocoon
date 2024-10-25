@@ -258,6 +258,7 @@ class CiYaml {
             }
           }
         }
+        // TODO(flutter#157358) - Handle merged repository yaml files.
         // Verify runIf includes foundational files.
         if (target.runIf.isNotEmpty) {
           if (!target.runIf.contains('.ci.yaml')) {
