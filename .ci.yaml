@@ -16,12 +16,10 @@ platform_properties:
   mac:
     properties:
       os: "Mac-13|Mac-14"
-      device_type: "none"
       cpu: x86
   mac_arm64:
     properties:
       os: "Mac-13|Mac-14"
-      device_type: "none"
       cpu: arm64
   windows:
     properties:
