@@ -15,12 +15,12 @@ platform_properties:
       device_type: "none"
   mac:
     properties:
-      os: "Mac-12|Mac-13"
+      os: "Mac-13|Mac-14"
       device_type: "none"
       cpu: x86
   mac_arm64:
     properties:
-      os: "Mac-12|Mac-13"
+      os: "Mac-13|Mac-14"
       device_type: "none"
       cpu: arm64
   windows:
@@ -132,7 +132,7 @@ targets:
         ]
       $flutter/osx_sdk : >-
         {
-          "sdk_version": "14e300c"
+          "sdk_version": "15a240d"
         }
     runIf:
       - cipd_packages/ruby/**
@@ -151,7 +151,7 @@ targets:
         ]
       $flutter/osx_sdk : >-
         {
-          "sdk_version": "14e300c"
+          "sdk_version": "15a240d"
         }
     runIf:
       - cipd_packages/ruby/**
