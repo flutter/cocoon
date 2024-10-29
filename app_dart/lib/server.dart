@@ -67,6 +67,7 @@ Server createServer({
       gerritService: gerritService,
       scheduler: scheduler,
       commitService: commitService,
+      fusionTester: FusionTester(),
     ),
     '/api/v2/presubmit-luci-subscription': PresubmitLuciSubscription(
       cache: cache,

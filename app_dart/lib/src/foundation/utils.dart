@@ -37,65 +37,72 @@ Duration twoSecondLinearBackoff(int attempt) {
   return const Duration(seconds: 2) * (attempt + 1);
 }
 
-/// Tests if the [pr] is in flutter/flutter and engine assets are available.
-Future<bool> isFusionPR(
-  PullRequest pr, {
-  required HttpClientProvider httpClientProvider,
-  Duration timeout = _githubTimeout,
-  RetryOptions retryOptions = _githubRetryOptions,
-}) {
-  return isFusionRef(
-    pr.base!.repo!.slug(),
-    pr.base!.ref!,
-    httpClientProvider: httpClientProvider,
-    timeout: timeout,
-    retryOptions: retryOptions,
-  );
-}
+http.Client _defaultHttpClientProvider() => http.Client();
 
-/// Tests if the [ref] is in flutter/flutter and engine assets are available.
-Future<bool> isFusionRef(
-  RepositorySlug slug,
-  String ref, {
-  required HttpClientProvider httpClientProvider,
-  Duration timeout = _githubTimeout,
-  RetryOptions retryOptions = _githubRetryOptions,
-}) async {
-  if (slug != Config.flutterSlug) {
-    log.fine('isFusionRef: not a fusion ref - wrong slug($slug)');
-    return false;
+class FusionTester {
+  final HttpClientProvider _httpClientProvider;
+
+  FusionTester({
+    http.Client Function() httpClientProvider = _defaultHttpClientProvider,
+  }) : _httpClientProvider = httpClientProvider;
+
+  /// Tests if the [pr] is in flutter/flutter and engine assets are available.
+  Future<bool> isFusionBasedPR(
+    PullRequest pr, {
+    Duration timeout = _githubTimeout,
+    RetryOptions retryOptions = _githubRetryOptions,
+  }) {
+    return isFusionBasedRef(
+      pr.base!.repo!.slug(),
+      pr.base!.ref!,
+      timeout: timeout,
+      retryOptions: retryOptions,
+    );
   }
-  try {
-    final files = await Future.wait([
-      githubFileContent(
-        slug,
-        'DEPS',
-        httpClientProvider: httpClientProvider,
-        ref: ref,
-        timeout: timeout,
-        retryOptions: retryOptions,
-      ),
-      githubFileContent(
-        slug,
-        'engine/src/.gn',
-        httpClientProvider: httpClientProvider,
-        ref: ref,
-        timeout: timeout,
-        retryOptions: retryOptions,
-      ),
-    ]);
-    if (files.any((contents) => contents.isEmpty)) {
-      log.fine(
-        'isFusionRef: not a fusion ref - DEPS or engine/src/.gn is empty',
-      );
+
+  /// Tests if the [ref] is in flutter/flutter and engine assets are available.
+  Future<bool> isFusionBasedRef(
+    RepositorySlug slug,
+    String ref, {
+    Duration timeout = _githubTimeout,
+    RetryOptions retryOptions = _githubRetryOptions,
+  }) async {
+    if (slug != Config.flutterSlug) {
+      log.fine('isFusionRef: not a fusion ref - wrong slug($slug)');
       return false;
     }
+    try {
+      final files = await Future.wait([
+        githubFileContent(
+          slug,
+          'DEPS',
+          httpClientProvider: _httpClientProvider,
+          ref: ref,
+          timeout: timeout,
+          retryOptions: retryOptions,
+        ),
+        githubFileContent(
+          slug,
+          'engine/src/.gn',
+          httpClientProvider: _httpClientProvider,
+          ref: ref,
+          timeout: timeout,
+          retryOptions: retryOptions,
+        ),
+      ]);
+      if (files.any((contents) => contents.isEmpty)) {
+        log.fine(
+          'isFusionRef: not a fusion ref - DEPS or engine/src/.gn is empty',
+        );
+        return false;
+      }
 
-    log.fine('isFusionRef: fusion ref - ');
-    return true;
-  } catch (e) {
-    log.fine('isFusionRef: not a fusion ref - error: $e');
-    return false;
+      log.fine('isFusionRef: fusion ref - ');
+      return true;
+    } catch (e) {
+      log.fine('isFusionRef: not a fusion ref - error: $e');
+      return false;
+    }
   }
 }
 

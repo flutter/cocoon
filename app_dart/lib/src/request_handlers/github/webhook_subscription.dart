@@ -4,9 +4,9 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/github/checks.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
-import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
@@ -14,12 +14,9 @@ import 'package:meta/meta.dart';
 import '../../../protos.dart' as pb;
 import '../../model/gerrit/commit.dart';
 import '../../model/github/checks.dart' as cocoon_checks;
-import '../../request_handling/body.dart';
 import '../../request_handling/exceptions.dart';
 import '../../request_handling/subscription_handler.dart';
-import '../../service/config.dart';
 import '../../service/datastore.dart';
-import '../../service/gerrit_service.dart';
 import '../../service/logging.dart';
 
 // Filenames which are not actually tests.
@@ -71,6 +68,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     required this.gerritService,
     required this.commitService,
     this.datastoreProvider = DatastoreService.defaultProvider,
+    required this.fusionTester,
     super.authProvider,
     // Gets the initial github events from this sub after the webhook uploads them.
   }) : super(subscriptionName: 'github-webhooks-sub');
@@ -85,6 +83,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   final CommitService commitService;
 
   final DatastoreServiceProvider datastoreProvider;
+
+  final FusionTester fusionTester;
 
   @override
   Future<Body> post() async {
@@ -330,32 +330,53 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     await _validateRefs(gitHubClient, pr);
     if (kNeedsTests.contains(slug) && isTipOfTree) {
       switch (slug.name) {
+        case 'flaux':
         case 'flutter':
-          // CODEFU: "isMonoRepoEngineChange(gitHubClient, pr)"
-          return _applyFrameworkRepoLabels(gitHubClient, eventAction, pr);
+          final bool isFusion = await fusionTester.isFusionBasedPR(pr);
+          final files = await gitHubClient.pullRequests.listFiles(slug, pr.number!).toList();
+          await _applyFrameworkRepoLabels(gitHubClient, eventAction, pr, isFusion: isFusion, files: files);
+          if (isFusion) {
+            await _applyEngineRepoLabels(gitHubClient, eventAction, pr, files: files);
+          }
         case 'engine':
-          return _applyEngineRepoLabels(gitHubClient, eventAction, pr);
+          final files = await gitHubClient.pullRequests.listFiles(slug, pr.number!).toList();
+          return _applyEngineRepoLabels(gitHubClient, eventAction, pr, files: files);
         case 'packages':
           return _applyPackageTestChecks(gitHubClient, eventAction, pr);
       }
     }
   }
 
-  Future<void> _applyFrameworkRepoLabels(GitHub gitHubClient, String? eventAction, PullRequest pr) async {
+  Future<void> _applyFrameworkRepoLabels(
+    GitHub gitHubClient,
+    String? eventAction,
+    PullRequest pr, {
+    bool isFusion = false,
+    List<PullRequestFile>? files,
+  }) async {
     if (pr.user!.login == 'engine-flutter-autoroll') {
       return;
     }
 
     final RepositorySlug slug = pr.base!.repo!.slug();
-    log.info('Applying framework repo labels for: owner=${slug.owner} repo=${slug.name} and pr=${pr.number}');
-    final Stream<PullRequestFile> files = gitHubClient.pullRequests.listFiles(slug, pr.number!);
+    log.info(
+      'Applying framework repo labels for: owner=${slug.owner} repo=${slug.name} isFusion=$isFusion and pr=${pr.number}',
+    );
+
+    files ??= await gitHubClient.pullRequests.listFiles(slug, pr.number!).toList();
 
     final Set<String> labels = <String>{};
     bool hasTests = false;
     bool needsTests = false;
 
-    await for (PullRequestFile file in files) {
+    int frameworkFiles = 0;
+
+    for (var file in files) {
       final String filename = file.filename!;
+
+      if (!_isFusionEnginePath(filename)) {
+        frameworkFiles++;
+      }
 
       if (_fileContainsAddedCode(file) &&
           !_isTestExempt(filename) &&
@@ -368,6 +389,11 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       if (_isAFrameworkTest(filename)) {
         hasTests = true;
       }
+    }
+
+    if (frameworkFiles == 0) {
+      // a fusion / engine only change.
+      return;
     }
 
     if (pr.user!.login == 'fluttergithubbot') {
@@ -414,13 +440,12 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
   /// Returns true if changes to [filename] are exempt from the testing
   /// requirement, across repositories.
-  bool _isTestExempt(String filename) {
-    final bool isBuildPythonScript = (filename.startsWith('sky/tools') && filename.endsWith('.py'));
+  bool _isTestExempt(String filename, {String engineBasePath = ''}) {
+    final bool isBuildPythonScript = (filename.startsWith('${engineBasePath}sky/tools') && filename.endsWith('.py'));
     return filename.contains('.ci.yaml') ||
         filename.endsWith('analysis_options.yaml') ||
         filename.endsWith('AUTHORS') ||
         filename.endsWith('CODEOWNERS') ||
-        filename == 'DEPS' ||
         filename.endsWith('TESTOWNERS') ||
         filename.endsWith('pubspec.yaml') ||
         filename.endsWith('pubspec.yaml.tmpl') ||
@@ -428,46 +453,71 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.contains('.github/') ||
         filename.endsWith('.md') ||
         // Exempt paths.
-        isBuildPythonScript ||
         filename.startsWith('dev/devicelab/lib/versions/gallery.dart') ||
         filename.startsWith('dev/integration_tests') ||
         filename.startsWith('docs/') ||
-        filename.startsWith('impeller/fixtures') ||
-        filename.startsWith('impeller/golden_tests') ||
-        filename.startsWith('impeller/playground') ||
-        filename.startsWith('shell/platform/embedder/tests') ||
-        filename.startsWith('shell/platform/embedder/fixtures') ||
-        filename.startsWith('tools/clangd_check');
+        filename.startsWith('${engineBasePath}docs/') ||
+        // ↓↓↓ Begin engine specific paths ↓↓↓
+        filename == 'DEPS' || // note: in monorepo; DEPS is still at the root.
+        isBuildPythonScript ||
+        filename.startsWith('${engineBasePath}impeller/fixtures') ||
+        filename.startsWith('${engineBasePath}impeller/golden_tests') ||
+        filename.startsWith('${engineBasePath}impeller/playground') ||
+        filename.startsWith('${engineBasePath}shell/platform/embedder/tests') ||
+        filename.startsWith('${engineBasePath}shell/platform/embedder/fixtures') ||
+        filename.startsWith('${engineBasePath}tools/clangd_check');
   }
 
-  Future<void> _applyEngineRepoLabels(GitHub gitHubClient, String? eventAction, PullRequest pr) async {
+  bool _isFusionEnginePath(String path) => (path.startsWith('engine/') || path == 'DEPS');
+
+  Future<void> _applyEngineRepoLabels(
+    GitHub gitHubClient,
+    String? eventAction,
+    PullRequest pr, {
+    List<PullRequestFile>? files,
+  }) async {
     // Do not apply the test labels for the autoroller accounts.
     if (pr.user!.login == 'skia-flutter-autoroll') {
       return;
     }
 
     final RepositorySlug slug = pr.base!.repo!.slug();
-    final Stream<PullRequestFile> files = gitHubClient.pullRequests.listFiles(slug, pr.number!);
     bool hasTests = false;
     bool needsTests = false;
 
-    await for (PullRequestFile file in files) {
-      final String filename = file.filename!;
+    // If engine labels are being applied to the flutterSlug - we're in a fusion repo.
+    final bool isFusion = slug == Config.flutterSlug;
+    final engineBasePath = isFusion ? 'engine/src/flutter/' : '';
+
+    int engineFiles = 0;
+
+    files ??= await gitHubClient.pullRequests.listFiles(slug, pr.number!).toList();
+    for (var file in files) {
+      final String path = file.filename!;
+      if (isFusion && _isFusionEnginePath(path)) {
+        engineFiles++;
+      }
+
       if (_fileContainsAddedCode(file) &&
-          !_isTestExempt(filename) &&
+          !_isTestExempt(path, engineBasePath: engineBasePath) &&
           // License goldens are auto-generated.
-          !filename.startsWith('ci/licenses_golden/') &&
+          !path.startsWith('${engineBasePath}ci/licenses_golden/') &&
           // Build configuration files tell CI what to run.
-          !filename.startsWith('ci/builders/') &&
+          !path.startsWith('${engineBasePath}ci/builders/') &&
           // Build files don't need unit tests.
-          !filename.endsWith('.gn') &&
-          !filename.endsWith('.gni')) {
+          !path.endsWith('$engineBasePath.gn') &&
+          !path.endsWith('$engineBasePath.gni')) {
         needsTests = !_allChangesAreCodeComments(file);
       }
 
-      if (_isAnEngineTest(filename)) {
+      if (_isAnEngineTest(path)) {
         hasTests = true;
       }
+    }
+
+    if (isFusion && engineFiles == 0) {
+      // framework only change
+      return;
     }
 
     // We do not need to add test labels if this is an auto roller author.
