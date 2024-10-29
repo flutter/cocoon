@@ -37,17 +37,79 @@ Duration twoSecondLinearBackoff(int attempt) {
   return const Duration(seconds: 2) * (attempt + 1);
 }
 
+/// Tests if the [pr] is in flutter/flutter and engine assets are available.
+Future<bool> isFusionPR(
+  PullRequest pr, {
+  required HttpClientProvider httpClientProvider,
+  Duration timeout = _githubTimeout,
+  RetryOptions retryOptions = _githubRetryOptions,
+}) {
+  return isFusionRef(
+    pr.base!.repo!.slug(),
+    pr.base!.ref!,
+    httpClientProvider: httpClientProvider,
+    timeout: timeout,
+    retryOptions: retryOptions,
+  );
+}
+
+/// Tests if the [ref] is in flutter/flutter and engine assets are available.
+Future<bool> isFusionRef(
+  RepositorySlug slug,
+  String ref, {
+  required HttpClientProvider httpClientProvider,
+  Duration timeout = _githubTimeout,
+  RetryOptions retryOptions = _githubRetryOptions,
+}) async {
+  if (slug != Config.flutterSlug) {
+    log.fine('isFusionRef: not a fusion ref - wrong slug($slug)');
+    return false;
+  }
+  try {
+    final files = await Future.wait([
+      githubFileContent(
+        slug,
+        'DEPS',
+        httpClientProvider: httpClientProvider,
+        ref: ref,
+        timeout: timeout,
+        retryOptions: retryOptions,
+      ),
+      githubFileContent(
+        slug,
+        'engine/src/.gn',
+        httpClientProvider: httpClientProvider,
+        ref: ref,
+        timeout: timeout,
+        retryOptions: retryOptions,
+      ),
+    ]);
+    if (files.any((contents) => contents.isEmpty)) {
+      log.fine(
+        'isFusionRef: not a fusion ref - DEPS or engine/src/.gn is empty',
+      );
+      return false;
+    }
+
+    log.fine('isFusionRef: fusion ref - ');
+    return true;
+  } catch (e) {
+    log.fine('isFusionRef: not a fusion ref - error: $e');
+    return false;
+  }
+}
+
+const _githubTimeout = Duration(seconds: 5);
+const _githubRetryOptions = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 3));
+
 /// Get content of [filePath] from GitHub CDN.
 Future<String> githubFileContent(
   RepositorySlug slug,
   String filePath, {
   required HttpClientProvider httpClientProvider,
   String ref = 'master',
-  Duration timeout = const Duration(seconds: 5),
-  RetryOptions retryOptions = const RetryOptions(
-    maxAttempts: 3,
-    delayFactor: Duration(seconds: 3),
-  ),
+  Duration timeout = _githubTimeout,
+  RetryOptions retryOptions = _githubRetryOptions,
 }) async {
   final Uri githubUrl = Uri.https('raw.githubusercontent.com', '${slug.fullName}/$ref/$filePath');
   // git-on-borg has a different path for shas and refs to github
