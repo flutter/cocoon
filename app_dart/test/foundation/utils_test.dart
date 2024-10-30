@@ -389,4 +389,141 @@ void main() {
       });
     });
   });
+
+  group('Fusion Tests', () {
+    late MockClient branchHttpClient;
+    const RetryOptions noRetry = RetryOptions(
+      maxAttempts: 1,
+      delayFactor: Duration.zero,
+      maxDelay: Duration.zero,
+    );
+
+    test('isFusionPR returns false non-flutter repo', () async {
+      branchHttpClient = MockClient(
+        (req) async {
+          if (!'${req.url}'.contains('https://raw.githubusercontent.com/flutter/flutter/')) {
+            return http.Response('', HttpStatus.notFound);
+          }
+          return http.Response('test', HttpStatus.ok);
+        },
+      );
+
+      final fusion = await isFusionPR(
+        PullRequest.fromJson({
+          'base': {
+            'repo': {
+              'owner': {
+                'login': 'flutter',
+                'id': 1234,
+                'avatar_url': 'http://example.com/',
+                'html_url': 'http://example.com/',
+              },
+              'name': 'engine',
+            },
+            'ref': 'master',
+          },
+        }),
+        httpClientProvider: () => branchHttpClient,
+        retryOptions: noRetry,
+      );
+      expect(fusion, isFalse);
+    });
+
+    final goodPrRequest = PullRequest.fromJson({
+      'base': {
+        'repo': {
+          'owner': {
+            'login': 'flutter',
+            'id': 1234,
+            'avatar_url': 'http://example.com/',
+            'html_url': 'http://example.com/',
+          },
+          'name': 'flutter',
+        },
+        'ref': 'master',
+      },
+    });
+
+    test('isFusionPR returns false for missing DEPS file', () async {
+      branchHttpClient = MockClient(
+        (req) async {
+          if ('${req.url}'.contains('flutter.googlesource.com')) {
+            return http.Response('', HttpStatus.notFound);
+          } else if ('${req.url}'.contains('https://raw.githubusercontent.com/flutter/flutter/master/DEPS')) {
+            return http.Response('', HttpStatus.notFound);
+          }
+          return http.Response('test', HttpStatus.ok);
+        },
+      );
+
+      final fusion = await isFusionPR(
+        goodPrRequest,
+        httpClientProvider: () => branchHttpClient,
+        retryOptions: noRetry,
+      );
+      expect(fusion, isFalse);
+    });
+
+    test('isFusionPR returns false for missing engine/src/.gn file', () async {
+      branchHttpClient = MockClient(
+        (req) async {
+          if ('${req.url}'.contains('flutter.googlesource.com')) {
+            return http.Response('', HttpStatus.notFound);
+          } else if ('${req.url}'.contains('https://raw.githubusercontent.com/flutter/flutter/master/engine/src/.gn')) {
+            return http.Response('', HttpStatus.notFound);
+          }
+          return http.Response('test', HttpStatus.ok);
+        },
+      );
+
+      final fusion = await isFusionPR(
+        goodPrRequest,
+        httpClientProvider: () => branchHttpClient,
+        retryOptions: noRetry,
+      );
+      expect(fusion, isFalse);
+    });
+
+    test('isFusionPR returns false if required files are empty', () async {
+      branchHttpClient = MockClient(
+        (req) async {
+          if ('${req.url}'.contains('flutter.googlesource.com')) {
+            return http.Response('', HttpStatus.notFound);
+          } else if ('${req.url}'.contains('https://raw.githubusercontent.com/flutter/flutter/master/engine/src/.gn') ||
+              '${req.url}'.contains('https://raw.githubusercontent.com/flutter/flutter/master/DEPS')) {
+            return http.Response('', HttpStatus.ok);
+          }
+          return http.Response('test', HttpStatus.ok);
+        },
+      );
+
+      final fusion = await isFusionPR(
+        goodPrRequest,
+        httpClientProvider: () => branchHttpClient,
+        retryOptions: noRetry,
+      );
+      expect(fusion, isFalse);
+    });
+
+    test('isFusionPR returns true whe expected files are present', () async {
+      branchHttpClient = MockClient(
+        (req) async {
+          if ('${req.url}'.contains('flutter.googlesource.com')) {
+            return http.Response('', HttpStatus.notFound);
+          } else if ('${req.url}'.contains('https://raw.githubusercontent.com/flutter/flutter/master/engine/src/.gn') ||
+              '${req.url}'.contains('https://raw.githubusercontent.com/flutter/flutter/master/DEPS')) {
+            return http.Response('FUSION', HttpStatus.ok);
+          }
+          return http.Response('test', HttpStatus.ok);
+        },
+      );
+
+      final fusion = await isFusionPR(
+        goodPrRequest,
+        httpClientProvider: () => branchHttpClient,
+        retryOptions: noRetry,
+      );
+      expect(fusion, isTrue);
+    });
+  });
 }

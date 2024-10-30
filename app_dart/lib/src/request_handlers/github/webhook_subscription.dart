@@ -331,6 +331,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     if (kNeedsTests.contains(slug) && isTipOfTree) {
       switch (slug.name) {
         case 'flutter':
+          // CODEFU: "isMonoRepoEngineChange(gitHubClient, pr)"
           return _applyFrameworkRepoLabels(gitHubClient, eventAction, pr);
         case 'engine':
           return _applyEngineRepoLabels(gitHubClient, eventAction, pr);
