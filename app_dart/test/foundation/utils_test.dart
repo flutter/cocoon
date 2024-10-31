@@ -465,6 +465,21 @@ void main() {
       },
     });
 
+    final goodFlauxPrRequest = PullRequest.fromJson({
+      'base': {
+        'repo': {
+          'owner': {
+            'login': 'flutter',
+            'id': 1234,
+            'avatar_url': 'http://example.com/',
+            'html_url': 'http://example.com/',
+          },
+          'name': 'flutter',
+        },
+        'ref': 'master',
+      },
+    });
+
     test('isFusionPR returns false for missing DEPS file', () async {
       final branchHttpClient = MockClient(
         (req) async {
@@ -567,20 +582,29 @@ void main() {
                 'https://raw.githubusercontent.com/flutter/flutter/master/engine/src/.gn',
               ) ||
               '${req.url}'.contains(
+                'https://raw.githubusercontent.com/flutter/flaux/master/engine/src/.gn',
+              ) ||
+              '${req.url}'.contains(
                 'https://raw.githubusercontent.com/flutter/flutter/master/DEPS',
+              ) ||
+              '${req.url}'.contains(
+                'https://raw.githubusercontent.com/flutter/flaux/master/DEPS',
               )) {
             return http.Response('FUSION', HttpStatus.ok);
           }
           return http.Response('test', HttpStatus.ok);
         },
       );
-      final tester = FusionTester(httpClientProvider: () => branchHttpClient);
 
-      final fusion = await tester.isFusionBasedPR(
-        goodPrRequest,
-        retryOptions: noRetry,
-      );
-      expect(fusion, isTrue);
+      for (var request in [goodPrRequest, goodFlauxPrRequest]) {
+        final tester = FusionTester(httpClientProvider: () => branchHttpClient);
+
+        final fusion = await tester.isFusionBasedPR(
+          request,
+          retryOptions: noRetry,
+        );
+        expect(fusion, isTrue);
+      }
     });
   });
 }
