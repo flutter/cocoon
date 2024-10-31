@@ -81,6 +81,10 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
     final String prBody = _sanitizePrBody(messagePullRequest.body ?? '');
     final String commitMessage = '$messagePrefix$prBody';
 
+    return _mergePullRequest(number, commitMessage, slug);
+  }
+
+  Future<MergeResult> _mergePullRequest(int number, String commitMessage, github.RepositorySlug slug) async {
     try {
       github.PullRequestMerge? result;
 
