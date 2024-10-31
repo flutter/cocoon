@@ -242,10 +242,10 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     // https://docs.github.com/en/webhooks/webhook-events-and-payloads#merge_group
     log.fine('Processing $action for merge queue @ $headSha');
     switch (action) {
-      // A merge group (a group of PRs to be tested a merged together) was
+      // A merge group (a group of PRs to be tested and merged together) was
       // created and Github is requesting checks to be performed before merging
       // into the main branch. Cocoon should kick off CI jobs needed to verify
-      // the PR group.
+      // the PR group against the `head_sha` of the merge group.
       case 'checks_requested':
         log.fine('Simulating checks requests for merge queue @ $headSha');
         await scheduler.triggerMergeGroupTargets(mergeGroupEvent: mergeGroupEvent);

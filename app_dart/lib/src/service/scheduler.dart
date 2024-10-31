@@ -333,15 +333,14 @@ class Scheduler {
 
     final slug = pullRequest.base!.repo!.slug();
 
-    // The MQ only waits for "required status checks" before deciding whether to
-    // merge the PR into the target branch. This required check added to both
-    // the PR and to the merge group, and so it must be completed in both cases.
-    // TODO(yjbanov): unhardcode the repo name when MQ is enabled in production
-    //                repositories, and not just in flutter/flaux.
-    CheckRun? lock;
-    if (slug.fullName == 'flutter/flaux') {
-      lock = await lockMergeGroupChecks(slug, pullRequest.head!.sha!);
-    }
+    /// For a PR, it is only necessary to pass the "ci.yaml validation" check.
+    /// After that the PR can be merged, even if other checks are still pending
+    /// or are failing. This is done intentionally to allow landing emergency
+    /// fixes, such as reverts, on top of the broken tree or on top of other
+    /// failing checks.
+    ///
+    /// Compare with the usage of this lock in [triggerMergeGroupTargets].
+    final ciTasksLock = await lockMergeGroupChecks(slug, pullRequest.head!.sha!);
 
     log.info('Creating ciYaml validation check run for ${pullRequest.number}');
     final CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
@@ -411,9 +410,7 @@ class Scheduler {
       );
     }
 
-    if (lock != null) {
-      await unlockMergeGroupChecks(slug, pullRequest.head!.sha!, lock, exception);
-    }
+    await unlockMergeGroupChecks(slug, pullRequest.head!.sha!, ciTasksLock, exception);
 
     log.info(
       'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug $slug}',
@@ -432,7 +429,11 @@ class Scheduler {
 
     final slug = mergeGroupEvent.repository!.slug();
 
-    final lock = await lockMergeGroupChecks(slug, headSha);
+    /// A merge group must pass all the checks in order to land on the target
+    /// branch.
+    ///
+    /// Compare with the usage of this lock in [triggerPresubmitTargets].
+    final ciTasksLock = await lockMergeGroupChecks(slug, headSha);
 
     final ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
       config,
@@ -462,7 +463,7 @@ class Scheduler {
     await unlockMergeGroupChecks(
       slug,
       headSha,
-      lock,
+      ciTasksLock,
       conclusion == CheckRunConclusion.success ? null : 'Some checks failed',
     );
 
@@ -477,12 +478,28 @@ class Scheduler {
     log.info('Simulating cancellation of merge group CI targets for @ $headSha');
   }
 
-  /// Pushes a required "CI tasks" check to the merge queue, which serves as a
-  /// "lock".
+  /// Lock a PR or a merge group, preventing it from merging.
   ///
-  /// While this check is still in progress, the merge queue will not merge the
-  /// respective PR onto the target branch (e.g. main or master), because this
-  /// check is "required".
+  /// Until this lock is unlocked a PR cannot enter the merge queue, and a merge
+  /// group cannot be merged into the target branch (typically main or master).
+  ///
+  /// The locking mechanism works as follows:
+  ///
+  /// The lock is a required check called "CI tasks" preconfigured in the
+  /// repo's Settings under Rules > Rulesets > MERGE_QUEUE >
+  /// "Require status checks to pass" > "Status checks that are required". The
+  /// required status prevents the merge queue from starting the merge process,
+  /// effectively "locking" it, until it is "unlocked" by completing with a
+  /// success (see [unlockMergeGroupChecks]).
+  ///
+  /// The lock remains in the pending state until all the other necessary
+  /// checks are complete. If all are successful, the lock unlocks with a
+  /// success, granting the MQ the permission to proceed with merging the PR.
+  /// If some necessary checks fail, the lock unlocks with a failure, and the
+  /// PR author needs to take action to make the PR mergeable.
+  ///
+  /// This required check is added both to the PR and to the merge group, and
+  /// so it must be completed in both cases.
   Future<CheckRun> lockMergeGroupChecks(RepositorySlug slug, String headSha) async {
     return githubChecksService.githubChecksUtil.createCheckRun(
       config,

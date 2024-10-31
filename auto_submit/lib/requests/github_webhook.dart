@@ -53,8 +53,6 @@ class GithubWebhook extends RequestHandler {
       throw const Forbidden();
     }
 
-    bool hasAutosubmit = false;
-    bool hasRevertLabel = false;
     final String rawBody = utf8.decode(requestBytes);
     final Map<String, dynamic> body = json.decode(rawBody) as Map<String, dynamic>;
 
@@ -67,8 +65,8 @@ class GithubWebhook extends RequestHandler {
     final String action = body[GithubWebhook.action];
     final User sender = User.fromJson(body[GithubWebhook.sender] as Map<String, dynamic>);
 
-    hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
-    hasRevertLabel =
+    final bool hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
+    final bool hasRevertLabel =
         pullRequest.labels!.any((label) => label.name == Config.kRevertLabel || label.name == Config.kRevertOfLabel);
 
     // Check for revert label first.
