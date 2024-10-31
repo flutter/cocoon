@@ -34,7 +34,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
   static const String kThresholdKey = 'threshold';
   static const int kFreshPeriodForOpenFlake = 7; // days
 
-  final CiYaml? ciYaml;
+  final CiYamlInner? ciYaml;
 
   @override
   Future<Body> get() async {
@@ -42,7 +42,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
 
-    CiYaml? localCiYaml = ciYaml;
+    CiYamlInner? localCiYaml = ciYaml;
     if (localCiYaml == null) {
       final YamlMap? ci = loadYaml(
         await gitHub.getFileContent(
@@ -51,7 +51,8 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
         ),
       ) as YamlMap?;
       final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
-      localCiYaml = CiYaml(
+      localCiYaml = CiYamlInner(
+        type: CiType.any,
         slug: slug,
         branch: Config.defaultBranch(slug),
         config: unCheckedSchedulerConfig,
@@ -90,7 +91,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     required bool bringup,
     required BuilderStatistic statistic,
     required Issue existingIssue,
-    required CiYaml ciYaml,
+    required CiYamlInner ciYaml,
   }) async {
     if (DateTime.now().difference(existingIssue.createdAt!) < const Duration(days: kFreshPeriodForOpenFlake)) {
       return;
@@ -128,7 +129,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
   Future<void> _updateExistingFlakyIssue(
     GithubService gitHub,
     RepositorySlug slug,
-    CiYaml ciYaml, {
+    CiYamlInner ciYaml, {
     required List<BuilderStatistic> prodBuilderStatisticList,
     required List<BuilderStatistic> stagingBuilderStatisticList,
     required Map<String?, Issue> nameToExistingIssue,

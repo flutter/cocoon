@@ -26,7 +26,7 @@ void main() {
     for (EnabledBranchesRegexTest regexTest in tests) {
       test(regexTest.name, () {
         expect(
-          CiYaml.enabledBranchesMatchesCurrentBranch(regexTest.enabledBranches, regexTest.branch),
+          CiYamlInner.enabledBranchesMatchesCurrentBranch(regexTest.enabledBranches, regexTest.branch),
           regexTest.expectation,
         );
       });
@@ -62,8 +62,8 @@ void main() {
 
   group('initialTargets', () {
     test('targets without deps', () {
-      final CiYaml ciYaml = exampleConfig;
-      final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets);
+      final ciYaml = exampleConfig;
+      final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets(type: CiType.any));
       final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
       expect(
         initialTargetNames,
@@ -78,7 +78,8 @@ void main() {
     });
 
     test('filter bringup targets on release branches', () {
-      final CiYaml ciYaml = CiYaml(
+      final CiYamlInner ciYaml = CiYamlInner(
+        type: CiType.any,
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         config: pb.SchedulerConfig(
@@ -109,7 +110,8 @@ void main() {
     });
 
     group('validations and filters.', () {
-      final CiYaml totCIYaml = CiYaml(
+      final CiYamlInner totCIYaml = CiYamlInner(
+        type: CiType.any,
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         config: pb.SchedulerConfig(
@@ -127,7 +129,8 @@ void main() {
           ],
         ),
       );
-      final CiYaml ciYaml = CiYaml(
+      final CiYamlInner ciYaml = CiYamlInner(
+        type: CiType.any,
         slug: Config.flutterSlug,
         branch: 'flutter-2.4-candidate.3',
         config: pb.SchedulerConfig(
@@ -177,8 +180,8 @@ void main() {
       });
 
       test('Get backfill targets from postsubmit', () {
-        final CiYaml ciYaml = exampleBackfillConfig;
-        final List<Target> backfillTargets = ciYaml.backfillTargets;
+        final  ciYaml = exampleBackfillConfig;
+        final List<Target> backfillTargets = ciYaml.backfillTargets(type: CiType.any);
         final List<String> backfillTargetNames = backfillTargets.map((Target target) => target.value.name).toList();
         expect(
           backfillTargetNames,
@@ -192,7 +195,8 @@ void main() {
       });
 
       test('filter release_build targets from release candidate branches', () {
-        final CiYaml releaseYaml = CiYaml(
+        final CiYamlInner releaseYaml = CiYamlInner(
+          type: CiType.any,
           slug: Config.flutterSlug,
           branch: 'flutter-2.4-candidate.3',
           config: pb.SchedulerConfig(
@@ -221,7 +225,8 @@ void main() {
       });
 
       test('release_build targets for main are not filtered', () {
-        final CiYaml releaseYaml = CiYaml(
+        final CiYamlInner releaseYaml = CiYamlInner(
+          type: CiType.any,
           slug: Config.flutterSlug,
           branch: 'main',
           config: pb.SchedulerConfig(
@@ -255,7 +260,8 @@ void main() {
 
       test('validates yaml config', () {
         expect(
-          () => CiYaml(
+          () => CiYamlInner(
+            type: CiType.any,
             slug: Config.flutterSlug,
             branch: Config.defaultBranch(Config.flutterSlug),
             config: pb.SchedulerConfig(
@@ -279,7 +285,8 @@ void main() {
       });
     });
     group('Presubmit validation', () {
-      final CiYaml totCIYaml = CiYaml(
+      final CiYamlInner totCIYaml = CiYamlInner(
+        type: CiType.any,
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         config: pb.SchedulerConfig(
@@ -298,7 +305,8 @@ void main() {
           ],
         ),
       );
-      final CiYaml ciYaml = CiYaml(
+      final CiYamlInner ciYaml = CiYamlInner(
+        type: CiType.any,
         slug: Config.flutterSlug,
         branch: 'flutter-2.4-candidate.3',
         config: pb.SchedulerConfig(
@@ -336,14 +344,14 @@ void main() {
 
   group('flakiness_threshold', () {
     test('is set', () {
-      final CiYaml ciYaml = exampleFlakyConfig;
+      final  ciYaml = exampleFlakyConfig;
       final flaky1 = ciYaml.getFirstPostsubmitTarget('Flaky 1');
       expect(flaky1, isNotNull);
       expect(flaky1?.flakinessThreshold, 0.04);
     });
 
     test('is missing', () {
-      final CiYaml ciYaml = exampleFlakyConfig;
+      final  ciYaml = exampleFlakyConfig;
       final flaky1 = ciYaml.getFirstPostsubmitTarget('Flaky Skip');
       expect(flaky1, isNotNull);
       expect(flaky1?.flakinessThreshold, isNull);
@@ -351,7 +359,7 @@ void main() {
   });
 }
 
-/// Wrapper class for table driven design of [CiYaml.enabledBranchesMatchesCurrentBranch].
+/// Wrapper class for table driven design of [CiYamlInner.enabledBranchesMatchesCurrentBranch].
 class EnabledBranchesRegexTest {
   EnabledBranchesRegexTest(this.name, this.branch, this.enabledBranches, [this.expectation = true]);
 

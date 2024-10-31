@@ -24,7 +24,8 @@ targets:
       test: abc
       ''') as YamlMap?;
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(singleTargetConfig);
-      final SchedulerConfig schedulerConfig = CiYaml(
+      final SchedulerConfig schedulerConfig = CiYamlInner(
+        type: CiType.any,
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         config: unCheckedSchedulerConfig,
@@ -56,7 +57,8 @@ targets:
         () {
           final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()
             ..mergeFromProto3Json(targetWithNonexistentScheduler);
-          CiYaml(
+          CiYamlInner(
+            type: CiType.any,
             slug: Config.flutterSlug,
             branch: Config.defaultBranch(Config.flutterSlug),
             config: unCheckedSchedulerConfig,
@@ -89,7 +91,8 @@ targets:
       - B
       ''') as YamlMap?;
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(dependentTargetConfig);
-      final SchedulerConfig schedulerConfig = CiYaml(
+      final SchedulerConfig schedulerConfig = CiYamlInner(
+        type: CiType.any,
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         config: unCheckedSchedulerConfig,
@@ -120,7 +123,8 @@ targets:
       - A
       ''') as YamlMap?;
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(twoDependentTargetConfig);
-      final SchedulerConfig schedulerConfig = CiYaml(
+      final SchedulerConfig schedulerConfig = CiYamlInner(
+        type: CiType.any,
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         config: unCheckedSchedulerConfig,
@@ -151,7 +155,8 @@ targets:
       ''') as YamlMap?;
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(configWithCycle);
       expect(
-        () => CiYaml(
+        () => CiYamlInner(
+          type: CiType.any,
           slug: Config.flutterSlug,
           branch: Config.defaultBranch(Config.flutterSlug),
           config: unCheckedSchedulerConfig,
@@ -178,7 +183,8 @@ targets:
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()
         ..mergeFromProto3Json(configWithDuplicateTargets);
       expect(
-        () => CiYaml(
+        () => CiYamlInner(
+          type: CiType.any,
           slug: Config.flutterSlug,
           branch: Config.defaultBranch(Config.flutterSlug),
           config: unCheckedSchedulerConfig,
@@ -209,7 +215,8 @@ targets:
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()
         ..mergeFromProto3Json(configWithMultipleDependencies);
       expect(
-        () => CiYaml(
+        () => CiYamlInner(
+          type: CiType.any,
           slug: Config.flutterSlug,
           branch: Config.defaultBranch(Config.flutterSlug),
           config: unCheckedSchedulerConfig,
@@ -236,7 +243,8 @@ targets:
       ''') as YamlMap?;
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(configWithMissingTarget);
       expect(
-        () => CiYaml(
+        () => CiYamlInner(
+          type: CiType.any,
           slug: Config.flutterSlug,
           branch: Config.defaultBranch(Config.flutterSlug),
           config: unCheckedSchedulerConfig,
@@ -254,7 +262,7 @@ targets:
   });
 
   group('validate scheduler config and compared with tip of tree targets', () {
-    late CiYaml? totConfig;
+    late CiYamlInner? totConfig;
 
     setUp(() {
       final YamlMap? totYaml = loadYaml('''
@@ -264,7 +272,8 @@ targets:
   - name: A
       ''') as YamlMap?;
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(totYaml);
-      totConfig = CiYaml(
+      totConfig = CiYamlInner(
+        type: CiType.any,
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         config: unCheckedSchedulerConfig,
@@ -281,7 +290,8 @@ targets:
       ''') as YamlMap?;
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(currentYaml);
       expect(
-        () => CiYaml(
+        () => CiYamlInner(
+          type: CiType.any,
           slug: Config.flutterSlug,
           branch: Config.defaultBranch(Config.flutterSlug),
           config: unCheckedSchedulerConfig,
@@ -303,7 +313,8 @@ targets:
       ''') as YamlMap?;
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(currentYaml);
       expect(
-        () => CiYaml(
+        () => CiYamlInner(
+          type: CiType.any,
           slug: Config.flutterSlug,
           branch: Config.defaultBranch(Config.flutterSlug),
           config: unCheckedSchedulerConfig,
@@ -324,7 +335,8 @@ targets:
       ''') as YamlMap?;
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(currentYaml);
       expect(
-        () => CiYaml(
+        () => CiYamlInner(
+          type: CiType.any,
           slug: Config.flutterSlug,
           branch: Config.defaultBranch(Config.flutterSlug),
           config: unCheckedSchedulerConfig,
@@ -352,7 +364,8 @@ targets:
       ''') as YamlMap?;
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(currentYaml);
       expect(
-        () => CiYaml(
+        () => CiYamlInner(
+          type: CiType.any,
           slug: Config.flutterSlug,
           branch: Config.defaultBranch(Config.flutterSlug),
           config: unCheckedSchedulerConfig,

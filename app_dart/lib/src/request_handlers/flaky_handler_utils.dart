@@ -303,7 +303,7 @@ TestOwnership getTestOwnership(pb.Target target, BuilderType type, String testOw
 
 /// Gets the [BuilderType] of the builder by looking up the information in the
 /// ci.yaml.
-BuilderType getTypeForBuilder(String? targetName, CiYaml ciYaml, {bool unfilteredTargets = false}) {
+BuilderType getTypeForBuilder(String? targetName, CiYamlInner ciYaml, {bool unfilteredTargets = false}) {
   final List<String>? tags = _getTags(targetName, ciYaml, unfilteredTargets: unfilteredTargets);
   if (tags == null || tags.isEmpty) {
     return BuilderType.unknown;
@@ -332,7 +332,7 @@ BuilderType getTypeForBuilder(String? targetName, CiYaml ciYaml, {bool unfiltere
   return hasFrameworkTag && hasHostOnlyTag ? BuilderType.frameworkHostOnly : BuilderType.unknown;
 }
 
-List<String>? _getTags(String? targetName, CiYaml ciYaml, {bool unfilteredTargets = false}) {
+List<String>? _getTags(String? targetName, CiYamlInner ciYaml, {bool unfilteredTargets = false}) {
   final Set<Target> allUniqueTargets = {};
   if (!unfilteredTargets) {
     allUniqueTargets.addAll(ciYaml.presubmitTargets);

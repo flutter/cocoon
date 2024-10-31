@@ -10,7 +10,6 @@ import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_com
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
-import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/gerrit/commit.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:fixnum/fixnum.dart';
@@ -220,7 +219,7 @@ Target generateTarget(
   pb.SchedulerSystem? schedulerSystem,
   String recipe = 'devicelab/devicelab',
 }) {
-  final pb.SchedulerConfig config = schedulerConfig ?? exampleConfig.config;
+  final pb.SchedulerConfig config = schedulerConfig ?? exampleConfig.configInnerFor(CiType.any).config;
   if (platformProperties != null && platformDimensions != null) {
     config.platformProperties[platform.toLowerCase()] =
         pb.SchedulerConfig_PlatformProperties(properties: platformProperties, dimensions: platformDimensions);

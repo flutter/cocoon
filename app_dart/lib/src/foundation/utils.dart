@@ -22,6 +22,7 @@ import '../request_handling/exceptions.dart';
 import '../service/logging.dart';
 
 const String kCiYamlPath = '.ci.yaml';
+const String kCiYamlFusionPath = 'engine/src/flutter/$kCiYamlPath';
 const String kTestOwnerPath = 'TESTOWNERS';
 
 /// Signature for a function that calculates the backoff duration to wait in
@@ -293,7 +294,8 @@ List<String> validateOwnership(
   final YamlMap? ciYaml = loadYaml(ciYamlContent) as YamlMap?;
   final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ciYaml);
 
-  final CiYaml ciYamlFromProto = CiYaml(
+  final CiYamlInner ciYamlFromProto = CiYamlInner(
+    type: CiType.any,
     slug: Config.flutterSlug,
     branch: Config.defaultBranch(Config.flutterSlug),
     config: unCheckedSchedulerConfig,

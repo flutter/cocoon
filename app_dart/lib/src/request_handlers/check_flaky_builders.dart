@@ -60,7 +60,8 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     );
     final YamlMap? ci = loadYaml(ciContent) as YamlMap?;
     final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
-    final CiYaml ciYaml = CiYaml(
+    final CiYamlInner ciYaml = CiYamlInner(
+      type: CiType.any,
       slug: slug,
       branch: Config.defaultBranch(slug),
       config: unCheckedSchedulerConfig,
@@ -116,7 +117,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     GithubService gitHub,
     RepositorySlug slug, {
     required String content,
-    required CiYaml ciYaml,
+    required CiYamlInner ciYaml,
   }) async {
     final YamlMap ci = loadYaml(content) as YamlMap;
     final YamlList targets = ci[kCiYamlTargetsKey] as YamlList;
@@ -164,7 +165,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
   }
 
   @visibleForTesting
-  static bool getIgnoreFlakiness(String? builderName, CiYaml ciYaml) {
+  static bool getIgnoreFlakiness(String? builderName, CiYamlInner ciYaml) {
     if (builderName == null) {
       return false;
     }

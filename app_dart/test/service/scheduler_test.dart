@@ -10,6 +10,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/stage.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
@@ -33,6 +34,7 @@ import '../src/datastore/fake_datastore.dart';
 import '../src/service/fake_build_bucket_client.dart';
 import '../src/service/fake_build_status_provider.dart';
 import '../src/request_handling/fake_pubsub.dart';
+import '../src/service/fake_fusion_tester.dart';
 import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_luci_build_service.dart';
@@ -62,6 +64,26 @@ targets:
     scheduler: google_internal
 ''';
 
+const String fusionCiYaml = r'''
+enabled_branches:
+  - master
+  - main
+  - codefu
+  - flutter-\d+\.\d+-candidate\.\d+
+targets:
+  - name: Linux Z
+    properties:
+      custom: abc
+  - name: Linux Y
+    enabled_branches:
+      - stable
+    scheduler: luci
+  - name: Linux runIf engine
+    runIf:
+      - engine/src/flutter/.ci.yaml
+      - engine/src/flutter/dev/**
+''';
+
 void main() {
   late CacheService cache;
   late FakeConfig config;
@@ -71,6 +93,7 @@ void main() {
   late MockFirestoreService mockFirestoreService;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Scheduler scheduler;
+  late FakeFusionTester fakeFusion;
 
   final PullRequest pullRequest = generatePullRequest(id: 42);
 
@@ -122,6 +145,8 @@ void main() {
       // Generate check runs based on the name hash code
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
           .thenAnswer((Invocation invocation) async => generateCheckRun(invocation.positionalArguments[2].hashCode));
+
+      fakeFusion = FakeFusionTester();
       scheduler = Scheduler(
         cache: cache,
         config: config,
@@ -136,6 +161,7 @@ void main() {
             branchesValue: <String>['master', 'main'],
           ),
         ),
+        fusionTester: fakeFusion,
       );
 
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
@@ -145,6 +171,38 @@ void main() {
           'check_suite': <String, dynamic>{'id': 2},
         });
       });
+    });
+
+    test('fusion, getPresubmitTargets supports two ci.yamls', () async {
+      httpClient = MockClient((http.Request request) async {
+        if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
+          return http.Response(fusionCiYaml, 200);
+        } else if (request.url.path.endsWith('.ci.yaml')) {
+          return http.Response(singleCiYaml, 200);
+        }
+        throw Exception('Failed to find ${request.url.path}');
+      });
+
+      fakeFusion.isFusion = (_, __) => true;
+
+      final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(pullRequest);
+
+      expect(
+        [...presubmitTargets.map((Target target) => target.value.name)],
+        containsAll(<String>['Linux A']),
+      );
+      presubmitTargets
+        ..clear()
+        ..addAll(
+          await scheduler.getPresubmitTargets(
+            pullRequest,
+            type: CiType.fusionEngine,
+          ),
+        );
+      expect(
+        [...presubmitTargets.map((Target target) => target.value.name)],
+        containsAll(<String>['Linux Z']),
+      );
     });
 
     group('add commits', () {
@@ -288,6 +346,7 @@ void main() {
           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
           luciBuildService: luciBuildService,
+          fusionTester: fakeFusion,
         );
 
         await scheduler.addCommits(createCommitList(<String>['1'], repo: 'engine', branch: 'main'));
@@ -350,6 +409,7 @@ void main() {
           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
           luciBuildService: luciBuildService,
+          fusionTester: fakeFusion,
         );
 
         await scheduler.addCommits(createCommitList(<String>['1'], repo: 'engine', branch: 'main'));
@@ -478,6 +538,7 @@ targets:
               branchesValue: <String>['master', 'main'],
             ),
           ),
+          fusionTester: fakeFusion,
         );
 
         final PullRequest mergedPr = generatePullRequest(
@@ -558,6 +619,7 @@ targets:
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
           ),
+          fusionTester: fakeFusion,
         );
         when(mockGithubService.github).thenReturn(mockGithubClient);
         when(mockGithubService.searchIssuesAndPRs(any, any, sort: anyNamed('sort'), pages: anyNamed('pages')))
@@ -634,6 +696,7 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
             buildBucketClient: mockBuildbucket,
           ),
+          fusionTester: fakeFusion,
         );
 
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
@@ -736,6 +799,7 @@ targets:
           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
           luciBuildService: luciBuildService,
+          fusionTester: fakeFusion,
         );
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           jsonDecode(checkRunString) as Map<String, dynamic>,
@@ -1048,6 +1112,7 @@ targets:
               branchesValue: <String>['master', 'main'],
             ),
           ),
+          fusionTester: fakeFusion,
         );
         final PullRequest pr = generatePullRequest(
           repo: Config.engineSlug.name,
@@ -1084,6 +1149,7 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
             gerritService: FakeGerritService(branchesValue: <String>['master']),
           ),
+          fusionTester: fakeFusion,
         );
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
@@ -1239,6 +1305,7 @@ targets:
             gerritService: FakeGerritService(branchesValue: <String>['master']),
             pubsub: pubsub,
           ),
+          fusionTester: fakeFusion,
         );
         when(mockBuildbucket.batch(any)).thenAnswer(
           (_) async => bbv2.BatchResponse(
@@ -1310,6 +1377,7 @@ targets:
             gerritService: FakeGerritService(branchesValue: <String>['master']),
             pubsub: pubsub,
           ),
+          fusionTester: fakeFusion,
         );
         when(mockBuildbucket.batch(any)).thenAnswer(
           (_) async => bbv2.BatchResponse(

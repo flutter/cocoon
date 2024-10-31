@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
+import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
@@ -16,6 +17,7 @@ import 'package:github/github.dart';
 import 'package:retry/retry.dart';
 
 import '../utilities/entity_generators.dart';
+import 'fake_fusion_tester.dart';
 import 'fake_luci_build_service.dart';
 
 /// Fake for [Scheduler] to use for tests that rely on it.
@@ -26,6 +28,7 @@ class FakeScheduler extends Scheduler {
     BuildBucketClient? buildbucket,
     required super.config,
     GithubChecksUtil? githubChecksUtil,
+    FusionTester? fusionTester,
   }) : super(
           cache: CacheService(inMemory: true),
           githubChecksService: GithubChecksService(
@@ -38,11 +41,12 @@ class FakeScheduler extends Scheduler {
                 buildBucketClient: buildbucket,
                 githubChecksUtil: githubChecksUtil,
               ),
+          fusionTester: fusionTester ?? FakeFusionTester(),
         );
 
   final CiYaml _defaultConfig = emptyConfig;
 
-  /// [CiYaml] value to be injected on [getCiYaml].
+  /// [CiYamlInner] value to be injected on [getCiYaml].
   CiYaml? ciYaml;
 
   /// If true, getCiYaml will throw a [FormatException] when validation is
@@ -59,6 +63,7 @@ class FakeScheduler extends Scheduler {
     if (validate && failCiYamlValidation) {
       throw const FormatException('Failed validation!');
     }
+
     return ciYaml ?? _defaultConfig;
   }
 
@@ -117,224 +122,246 @@ class FakeScheduler extends Scheduler {
   }
 }
 
-final CiYaml emptyConfig = CiYaml(
+final emptyConfig = CiYaml(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
-  config: pb.SchedulerConfig(
-    enabledBranches: <String>[
-      Config.defaultBranch(Config.flutterSlug),
-    ],
-    targets: <pb.Target>[
-      pb.Target(
-        name: 'Linux A',
-        scheduler: pb.SchedulerSystem.luci,
-      ),
-    ],
-  ),
+  yamls: {
+    CiType.any: pb.SchedulerConfig(
+      enabledBranches: <String>[
+        Config.defaultBranch(Config.flutterSlug),
+      ],
+      targets: <pb.Target>[
+        pb.Target(
+          name: 'Linux A',
+          scheduler: pb.SchedulerSystem.luci,
+        ),
+      ],
+    ),
+  },
 );
 
-CiYaml exampleConfig = CiYaml(
+final exampleConfig = CiYaml(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
-  config: pb.SchedulerConfig(
-    enabledBranches: <String>[
-      Config.defaultBranch(Config.flutterSlug),
-    ],
-    targets: <pb.Target>[
-      pb.Target(
-        name: 'Linux A',
-        scheduler: pb.SchedulerSystem.luci,
-      ),
-      pb.Target(
-        name: 'Mac A',
-        scheduler: pb.SchedulerSystem.luci,
-      ),
-      pb.Target(
-        name: 'Windows A',
-        scheduler: pb.SchedulerSystem.luci,
-      ),
-      pb.Target(
-        name: 'Google Internal Roll',
-        presubmit: false,
-        postsubmit: true,
-        scheduler: pb.SchedulerSystem.google_internal,
-      ),
-    ],
-  ),
+  yamls: {
+    CiType.any: pb.SchedulerConfig(
+      enabledBranches: <String>[
+        Config.defaultBranch(Config.flutterSlug),
+      ],
+      targets: <pb.Target>[
+        pb.Target(
+          name: 'Linux A',
+          scheduler: pb.SchedulerSystem.luci,
+        ),
+        pb.Target(
+          name: 'Mac A',
+          scheduler: pb.SchedulerSystem.luci,
+        ),
+        pb.Target(
+          name: 'Windows A',
+          scheduler: pb.SchedulerSystem.luci,
+        ),
+        pb.Target(
+          name: 'Google Internal Roll',
+          presubmit: false,
+          postsubmit: true,
+          scheduler: pb.SchedulerSystem.google_internal,
+        ),
+      ],
+    ),
+  },
 );
 
-CiYaml exampleFlakyConfig = CiYaml(
+final exampleFlakyConfig = CiYaml(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
-  config: pb.SchedulerConfig(
-    enabledBranches: <String>[
-      Config.defaultBranch(Config.flutterSlug),
-    ],
-    targets: <pb.Target>[
-      pb.Target(
-        name: 'Flaky 1',
-        scheduler: pb.SchedulerSystem.luci,
-        properties: {
-          'flakiness_threshold': '0.04',
-        },
-      ),
-      pb.Target(
-        name: 'Flaky Skip',
-        scheduler: pb.SchedulerSystem.luci,
-        properties: {
-          'ignore_flakiness': 'true',
-        },
-      ),
-    ],
-  ),
+  yamls: {
+    CiType.any: pb.SchedulerConfig(
+      enabledBranches: <String>[
+        Config.defaultBranch(Config.flutterSlug),
+      ],
+      targets: <pb.Target>[
+        pb.Target(
+          name: 'Flaky 1',
+          scheduler: pb.SchedulerSystem.luci,
+          properties: {
+            'flakiness_threshold': '0.04',
+          },
+        ),
+        pb.Target(
+          name: 'Flaky Skip',
+          scheduler: pb.SchedulerSystem.luci,
+          properties: {
+            'ignore_flakiness': 'true',
+          },
+        ),
+      ],
+    ),
+  },
 );
 
-CiYaml exampleBackfillConfig = CiYaml(
+final exampleBackfillConfig = CiYaml(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
-  config: pb.SchedulerConfig(
-    enabledBranches: <String>[
-      Config.defaultBranch(Config.flutterSlug),
-    ],
-    targets: <pb.Target>[
-      pb.Target(
-        name: 'Linux A',
-        scheduler: pb.SchedulerSystem.luci,
-        postsubmit: true,
-        properties: {'backfill': 'true'},
-      ),
-      pb.Target(
-        name: 'Mac A',
-        scheduler: pb.SchedulerSystem.luci,
-        postsubmit: true,
-      ),
-      pb.Target(
-        name: 'Windows A',
-        scheduler: pb.SchedulerSystem.luci,
-        postsubmit: true,
-        properties: {'backfill': 'false'},
-      ),
-    ],
-  ),
+  yamls: {
+    CiType.any: pb.SchedulerConfig(
+      enabledBranches: <String>[
+        Config.defaultBranch(Config.flutterSlug),
+      ],
+      targets: <pb.Target>[
+        pb.Target(
+          name: 'Linux A',
+          scheduler: pb.SchedulerSystem.luci,
+          postsubmit: true,
+          properties: {'backfill': 'true'},
+        ),
+        pb.Target(
+          name: 'Mac A',
+          scheduler: pb.SchedulerSystem.luci,
+          postsubmit: true,
+        ),
+        pb.Target(
+          name: 'Windows A',
+          scheduler: pb.SchedulerSystem.luci,
+          postsubmit: true,
+          properties: {'backfill': 'false'},
+        ),
+      ],
+    ),
+  },
 );
 
-CiYaml examplePresubmitRescheduleConfig = CiYaml(
+final examplePresubmitRescheduleConfig = CiYaml(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
-  config: pb.SchedulerConfig(
-    enabledBranches: <String>[
-      Config.defaultBranch(Config.flutterSlug),
-    ],
-    targets: <pb.Target>[
-      pb.Target(
-        name: 'Linux A',
-      ),
-      pb.Target(
-        name: 'Linux B',
-        postsubmit: true,
-        properties: {'presubmit_retry': '1'},
-      ),
-    ],
-  ),
+  yamls: {
+    CiType.any: pb.SchedulerConfig(
+      enabledBranches: <String>[
+        Config.defaultBranch(Config.flutterSlug),
+      ],
+      targets: <pb.Target>[
+        pb.Target(
+          name: 'Linux A',
+        ),
+        pb.Target(
+          name: 'Linux B',
+          postsubmit: true,
+          properties: {'presubmit_retry': '1'},
+        ),
+      ],
+    ),
+  },
 );
 
-final CiYaml batchPolicyConfig = CiYaml(
+final batchPolicyConfig = CiYaml(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
-  config: pb.SchedulerConfig(
-    enabledBranches: <String>[
-      Config.defaultBranch(Config.flutterSlug),
-    ],
-    targets: <pb.Target>[
-      pb.Target(
-        name: 'Linux_android A',
-      ),
-      pb.Target(
-        name: 'Linux_android B',
-      ),
-      pb.Target(
-        name: 'Linux_android C',
-      ),
-    ],
-  ),
+  yamls: {
+    CiType.any: pb.SchedulerConfig(
+      enabledBranches: <String>[
+        Config.defaultBranch(Config.flutterSlug),
+      ],
+      targets: <pb.Target>[
+        pb.Target(
+          name: 'Linux_android A',
+        ),
+        pb.Target(
+          name: 'Linux_android B',
+        ),
+        pb.Target(
+          name: 'Linux_android C',
+        ),
+      ],
+    ),
+  },
 );
 
-final CiYaml unsupportedPostsubmitCheckrunConfig = CiYaml(
+final unsupportedPostsubmitCheckrunConfig = CiYaml(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
-  config: pb.SchedulerConfig(
-    enabledBranches: <String>[
-      Config.defaultBranch(Config.flutterSlug),
-    ],
-    targets: <pb.Target>[
-      pb.Target(
-        name: 'Linux flutter',
-      ),
-    ],
-  ),
+  yamls: {
+    CiType.any: pb.SchedulerConfig(
+      enabledBranches: <String>[
+        Config.defaultBranch(Config.flutterSlug),
+      ],
+      targets: <pb.Target>[
+        pb.Target(
+          name: 'Linux flutter',
+        ),
+      ],
+    ),
+  },
 );
 
-final CiYaml nonBringupPackagesConfig = CiYaml(
+final nonBringupPackagesConfig = CiYaml(
   slug: Config.packagesSlug,
   branch: Config.defaultBranch(Config.packagesSlug),
-  config: pb.SchedulerConfig(
-    enabledBranches: <String>[
-      Config.defaultBranch(Config.packagesSlug),
-    ],
-    targets: <pb.Target>[
-      pb.Target(
-        name: 'Linux nonbringup',
-      ),
-    ],
-  ),
+  yamls: {
+    CiType.any: pb.SchedulerConfig(
+      enabledBranches: <String>[
+        Config.defaultBranch(Config.packagesSlug),
+      ],
+      targets: <pb.Target>[
+        pb.Target(
+          name: 'Linux nonbringup',
+        ),
+      ],
+    ),
+  },
 );
 
-final CiYaml bringupPackagesConfig = CiYaml(
+final bringupPackagesConfig = CiYaml(
   slug: Config.packagesSlug,
   branch: Config.defaultBranch(Config.packagesSlug),
-  config: pb.SchedulerConfig(
-    enabledBranches: <String>[
-      Config.defaultBranch(Config.packagesSlug),
-    ],
-    targets: <pb.Target>[
-      pb.Target(
-        name: 'Linux bringup',
-        bringup: true,
-      ),
-    ],
-  ),
+  yamls: {
+    CiType.any: pb.SchedulerConfig(
+      enabledBranches: <String>[
+        Config.defaultBranch(Config.packagesSlug),
+      ],
+      targets: <pb.Target>[
+        pb.Target(
+          name: 'Linux bringup',
+          bringup: true,
+        ),
+      ],
+    ),
+  },
 );
 
-final CiYaml totCiYaml = CiYaml(
+final totCiYaml = CiYaml(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
-  config: pb.SchedulerConfig(
-    enabledBranches: <String>[
-      Config.defaultBranch(Config.flutterSlug),
-    ],
-    targets: <pb.Target>[
-      pb.Target(
-        name: 'Linux_android B',
-      ),
-      pb.Target(
-        name: 'Linux_android C',
-      ),
-    ],
-  ),
+  yamls: {
+    CiType.any: pb.SchedulerConfig(
+      enabledBranches: <String>[
+        Config.defaultBranch(Config.flutterSlug),
+      ],
+      targets: <pb.Target>[
+        pb.Target(
+          name: 'Linux_android B',
+        ),
+        pb.Target(
+          name: 'Linux_android C',
+        ),
+      ],
+    ),
+  },
 );
 
-final CiYaml notInToTConfig = CiYaml(
+final notInToTConfig = CiYaml(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
-  config: pb.SchedulerConfig(
-    enabledBranches: <String>[
-      Config.defaultBranch(Config.flutterSlug),
-    ],
-    targets: <pb.Target>[
-      pb.Target(
-        name: 'Linux_android A',
-      ),
-    ],
-  ),
+  yamls: {
+    CiType.any: pb.SchedulerConfig(
+      enabledBranches: <String>[
+        Config.defaultBranch(Config.flutterSlug),
+      ],
+      targets: <pb.Target>[
+        pb.Target(
+          name: 'Linux_android A',
+        ),
+      ],
+    ),
+  },
   totConfig: totCiYaml,
 );

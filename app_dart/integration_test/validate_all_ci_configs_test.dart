@@ -36,7 +36,8 @@ Future<void> main() async {
       final YamlMap configYaml = loadYaml(configContent) as YamlMap;
       final pb.SchedulerConfig currentSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
       try {
-        CiYaml(
+        CiYamlInner(
+          type: CiType.any,
           slug: config.slug,
           branch: Config.defaultBranch(config.slug),
           config: currentSchedulerConfig,
@@ -58,7 +59,8 @@ Future<void> main() async {
         final YamlMap configYaml = loadYaml(configContent) as YamlMap;
         final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
         // Validate using the existing CiYaml logic.
-        CiYaml(
+        CiYamlInner(
+          type: CiType.any,
           slug: config.slug,
           branch: config.branch,
           config: schedulerConfig,
@@ -82,7 +84,7 @@ Future<void> main() async {
         // N^2 scan to verify all enabled branch patterns match an exist branch on the repo.
         for (String enabledBranch in validEnabledBranches.keys) {
           for (String githubBranch in githubBranches) {
-            if (CiYaml.enabledBranchesMatchesCurrentBranch(<String>[enabledBranch], githubBranch)) {
+            if (CiYamlInner.enabledBranchesMatchesCurrentBranch(<String>[enabledBranch], githubBranch)) {
               validEnabledBranches[enabledBranch] = true;
             }
           }

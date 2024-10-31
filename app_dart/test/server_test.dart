@@ -10,6 +10,7 @@ import 'package:test/test.dart';
 import 'src/datastore/fake_config.dart';
 import 'src/request_handling/fake_authentication.dart';
 import 'src/service/fake_build_bucket_client.dart';
+import 'src/service/fake_fusion_tester.dart';
 import 'src/service/fake_gerrit_service.dart';
 import 'src/service/fake_luci_build_service.dart';
 import 'src/service/fake_scheduler.dart';
@@ -30,6 +31,7 @@ void main() {
       commitService: CommitService(config: FakeConfig()),
       gerritService: FakeGerritService(),
       scheduler: FakeScheduler(config: FakeConfig()),
+      fusionTester: FakeFusionTester(),
     );
   });
 }

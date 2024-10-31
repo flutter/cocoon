@@ -41,7 +41,8 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     final List<BuilderStatistic> builderStatisticList = await bigquery.listBuilderStatistic(kBigQueryProjectId);
     final YamlMap? ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
     final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
-    final CiYaml ciYaml = CiYaml(
+    final CiYamlInner ciYaml = CiYamlInner(
+      type: CiType.any,
       slug: slug,
       branch: Config.defaultBranch(slug),
       config: unCheckedSchedulerConfig,
@@ -89,7 +90,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     });
   }
 
-  bool shouldSkip(BuilderStatistic statistic, CiYaml ciYaml, List<pb.Target> targets) {
+  bool shouldSkip(BuilderStatistic statistic, CiYamlInner ciYaml, List<pb.Target> targets) {
     // Skips if the target has been removed from .ci.yaml.
     if (!targets.map((e) => e.name).toList().contains(statistic.name)) {
       return true;
@@ -191,7 +192,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   }
 
   @visibleForTesting
-  static bool getIgnoreFlakiness(String builderName, CiYaml ciYaml) {
+  static bool getIgnoreFlakiness(String builderName, CiYamlInner ciYaml) {
     final Target? target =
         ciYaml.postsubmitTargets.singleWhereOrNull((Target target) => target.value.name == builderName);
     return target == null ? false : target.getIgnoreFlakiness();
