@@ -94,11 +94,13 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
   Future<MergeResult> _enqueuePullRequest(github.RepositorySlug slug, github.PullRequest pullRequest) async {
     final graphQlService = GraphQlService();
     final graphQLClient = await config.createGitHubGraphQLClient(slug);
+
+    final isEmergencyPullRequest = pullRequest.labels?.where((label) => label.name == 'emergency').isNotEmpty ?? false;
+
     final enqueueMutation = EnqueuePullRequestMutation(
       id: pullRequest.id!.toString(),
       expectedHeadOid: pullRequest.head!.ref!,
-      // TODO(yjbanov): implement the `emergency` label that jumps the queue
-      jump: false,
+      jump: isEmergencyPullRequest,
     );
 
     try {

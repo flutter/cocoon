@@ -448,7 +448,9 @@ This is the second line in a paragraph.''');
       slug = RepositorySlug('flutter', 'flaux');
       final prTitle = 'This pull request should be enqueueueueueueueueueueued';
 
+      Map<String, Object?>? mutationOptions;
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) {
+        mutationOptions = options.variables;
         return QueryResult(
           options: options,
           source: QueryResultSource.network,
@@ -468,15 +470,26 @@ This is the second line in a paragraph.''');
         messagePullRequest: pullRequest,
       );
 
+      expect(
+        mutationOptions,
+        {
+          'clientMutationId': null,
+          'pullRequestId': '1',
+          'expectedHeadOid': 'new-topic',
+          'jump': false,
+        },
+      );
       expect(result.result, isTrue);
       expect(result.message, contains(prTitle));
     });
 
-    test('Fails to enque pull request when merge queue is used', () async {
+    test('Fails to enqueue pull request when merge queue is used', () async {
       slug = RepositorySlug('flutter', 'flaux');
       final prTitle = 'This pull request should fail to enqueueueueueueueueueu';
 
+      Map<String, Object?>? mutationOptions;
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) {
+        mutationOptions = options.variables;
         return QueryResult(
           options: options,
           source: QueryResultSource.network,
@@ -496,11 +509,60 @@ This is the second line in a paragraph.''');
         messagePullRequest: pullRequest,
       );
 
+      expect(
+        mutationOptions,
+        {
+          'clientMutationId': null,
+          'pullRequestId': '1',
+          'expectedHeadOid': 'new-topic',
+          'jump': false,
+        },
+      );
       expect(result.result, isFalse);
       expect(
         result.message,
         contains('Failed to enqueue flutter/flaux/42 with HTTP 400: GraphQL mutate failed'),
       );
+    });
+
+    test('Jumps the queue for emergency pull requests', () async {
+      slug = RepositorySlug('flutter', 'flaux');
+      final prTitle = 'This pull request should fail to enqueueueueueueueueueu';
+
+      Map<String, Object?>? mutationOptions;
+      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) {
+        mutationOptions = options.variables;
+        return QueryResult(
+          options: options,
+          source: QueryResultSource.network,
+          data: {},
+        );
+      };
+
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 42,
+        repoName: slug.name,
+        title: prTitle,
+        mergeable: true,
+        labelName: 'emergency',
+      );
+
+      final MergeResult result = await validationService.submitPullRequest(
+        config: config,
+        messagePullRequest: pullRequest,
+      );
+
+      expect(
+        mutationOptions,
+        {
+          'clientMutationId': null,
+          'pullRequestId': '1',
+          'expectedHeadOid': 'new-topic',
+          'jump': true,
+        },
+      );
+      expect(result.result, isTrue);
+      expect(result.message, contains(prTitle));
     });
   });
 }
