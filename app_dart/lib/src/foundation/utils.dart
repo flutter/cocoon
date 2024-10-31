@@ -99,8 +99,10 @@ class FusionTester {
 
       log.fine('isFusionRef: fusion ref - ');
       return true;
-    } catch (e) {
-      log.fine('isFusionRef: not a fusion ref - error: $e');
+    } on NotFoundException catch (e) {
+      log.fine(
+        "isFusionRef: 'DEPS' or 'engine/src/.gn' not found a fusion ref - error: $e",
+      );
       return false;
     }
   }
@@ -136,8 +138,11 @@ Future<String> githubFileContent(
     );
   } catch (e) {
     await retryOptions.retry(
-      () async =>
-          content = String.fromCharCodes(base64Decode(await getUrl(gobUrl, httpClientProvider, timeout: timeout))),
+      () async => content = String.fromCharCodes(
+        base64Decode(
+          await getUrl(gobUrl, httpClientProvider, timeout: timeout),
+        ),
+      ),
       retryIf: (Exception e) => e is HttpException,
     );
   }
@@ -203,7 +208,10 @@ Future<RegExp> parseGlob(String glob) async {
 /// [run_if] is evaluated.
 ///
 /// [file] is based on repo root: `a/b/c.dart`.
-Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> files) async {
+Future<List<Target>> getTargetsToRun(
+  Iterable<Target> targets,
+  List<String?> files,
+) async {
   log.info('Getting targets to run from diff.');
   final List<Target> targetsToRun = <Target>[];
   for (Target target in targets) {
@@ -248,7 +256,11 @@ Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> fil
   return targetsToRun;
 }
 
-Future<void> insertBigquery(String tableName, Map<String, dynamic> data, TabledataResource tabledataResourceApi) async {
+Future<void> insertBigquery(
+  String tableName,
+  Map<String, dynamic> data,
+  TabledataResource tabledataResourceApi,
+) async {
   // Define const variables for [BigQuery] operations.
   const String projectId = 'flutter-dashboard';
   const String dataset = 'cocoon';
@@ -260,7 +272,9 @@ Future<void> insertBigquery(String tableName, Map<String, dynamic> data, Tableda
   });
 
   // Obtain [rows] to be inserted to [BigQuery].
-  final TableDataInsertAllRequest request = TableDataInsertAllRequest.fromJson(<String, dynamic>{'rows': requestRows});
+  final TableDataInsertAllRequest request = TableDataInsertAllRequest.fromJson(
+    <String, dynamic>{'rows': requestRows},
+  );
 
   try {
     await tabledataResourceApi.insertAll(request, projectId, dataset, table);
@@ -270,7 +284,11 @@ Future<void> insertBigquery(String tableName, Map<String, dynamic> data, Tableda
 }
 
 /// Validate test ownership defined in [testOwnersContent] for tests configured in `ciYamlContent`.
-List<String> validateOwnership(String ciYamlContent, String testOwnersContent, {bool unfilteredTargets = false}) {
+List<String> validateOwnership(
+  String ciYamlContent,
+  String testOwnersContent, {
+  bool unfilteredTargets = false,
+}) {
   final List<String> noOwnerBuilders = <String>[];
   final YamlMap? ciYaml = loadYaml(ciYamlContent) as YamlMap?;
   final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ciYaml);
