@@ -67,7 +67,7 @@ class FusionTester {
     Duration timeout = _githubTimeout,
     RetryOptions retryOptions = _githubRetryOptions,
   }) async {
-    if (slug != Config.flutterSlug) {
+    if (!(slug == Config.flutterSlug || slug == Config.flauxSlug)) {
       log.fine('isFusionRef: not a fusion ref - wrong slug($slug)');
       return false;
     }
