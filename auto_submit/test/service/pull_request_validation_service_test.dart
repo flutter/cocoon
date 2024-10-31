@@ -216,7 +216,7 @@ void main() {
     });
   });
 
-  group('processMerge', () {
+  group('submitPullRequest', () {
     test('Correct PR titles when merging to use Reland', () async {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
@@ -230,7 +230,7 @@ void main() {
         sha: pullRequest.mergeCommitSha,
       );
 
-      final MergeResult result = await validationService.processMerge(
+      final MergeResult result = await validationService.submitPullRequest(
         config: config,
         messagePullRequest: pullRequest,
       );
@@ -371,7 +371,7 @@ void main() {
         merged: true,
         sha: pullRequest.mergeCommitSha,
       );
-      final MergeResult result = await validationService.processMerge(
+      final MergeResult result = await validationService.submitPullRequest(
         config: config,
         messagePullRequest: pullRequest,
       );
@@ -430,7 +430,7 @@ If you need help, consider asking for advice on the #hackers-new channel on [Dis
         sha: pullRequest.mergeCommitSha,
       );
 
-      final MergeResult result = await validationService.processMerge(
+      final MergeResult result = await validationService.submitPullRequest(
         config: config,
         messagePullRequest: pullRequest,
       );

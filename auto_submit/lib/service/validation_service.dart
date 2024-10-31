@@ -59,7 +59,7 @@ class ValidationService {
   }
 
   /// Merges the commit if the PullRequest passes all the validations.
-  Future<MergeResult> processMerge({
+  Future<MergeResult> submitPullRequest({
     required Config config,
     required github.PullRequest messagePullRequest,
   }) async {
