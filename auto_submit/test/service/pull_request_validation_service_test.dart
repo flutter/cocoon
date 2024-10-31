@@ -11,6 +11,7 @@ import 'package:auto_submit/service/pull_request_validation_service.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
+import 'package:graphql/client.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
@@ -441,6 +442,65 @@ Various bugfixes and performance improvements.
 
 Fixes #12345 and #3.
 This is the second line in a paragraph.''');
+    });
+
+    test('Enqueues pull request when merge queue is used', () async {
+      slug = RepositorySlug('flutter', 'flaux');
+      final prTitle = 'This pull request should be enqueueueueueueueueueueued';
+
+      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) {
+        return QueryResult(
+          options: options,
+          source: QueryResultSource.network,
+          data: {},
+        );
+      };
+
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        title: prTitle,
+        mergeable: true,
+      );
+
+      final MergeResult result = await validationService.submitPullRequest(
+        config: config,
+        messagePullRequest: pullRequest,
+      );
+
+      expect(result.result, isTrue);
+      expect(result.message, contains(prTitle));
+    });
+
+    test('Fails to enque pull request when merge queue is used', () async {
+      slug = RepositorySlug('flutter', 'flaux');
+      final prTitle = 'This pull request should fail to enqueueueueueueueueueu';
+
+      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) {
+        return QueryResult(
+          options: options,
+          source: QueryResultSource.network,
+          exception: OperationException(),
+        );
+      };
+
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 42,
+        repoName: slug.name,
+        title: prTitle,
+        mergeable: true,
+      );
+
+      final MergeResult result = await validationService.submitPullRequest(
+        config: config,
+        messagePullRequest: pullRequest,
+      );
+
+      expect(result.result, isFalse);
+      expect(
+        result.message,
+        contains('Failed to enqueue flutter/flaux/42 with HTTP 400: GraphQL mutate failed'),
+      );
     });
   });
 }

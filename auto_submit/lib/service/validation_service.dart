@@ -81,7 +81,44 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
     final String prBody = _sanitizePrBody(messagePullRequest.body ?? '');
     final String commitMessage = '$messagePrefix$prBody';
 
-    return _mergePullRequest(number, commitMessage, slug);
+    // TODO(yjbanov): figure out how to determine if the repo is MQ-enabled.
+    final bool isMergeQueueEnabled = slug.fullName == 'flutter/flaux';
+
+    if (isMergeQueueEnabled) {
+      return _enqueuePullRequest(slug, messagePullRequest);
+    } else {
+      return _mergePullRequest(number, commitMessage, slug);
+    }
+  }
+
+  Future<MergeResult> _enqueuePullRequest(github.RepositorySlug slug, github.PullRequest pullRequest) async {
+    final graphQlService = GraphQlService();
+    final graphQLClient = await config.createGitHubGraphQLClient(slug);
+    final enqueueMutation = EnqueuePullRequestMutation(
+      id: pullRequest.id!.toString(),
+      expectedHeadOid: pullRequest.head!.ref!,
+      // TODO(yjbanov): implement the `emergency` label that jumps the queue
+      jump: false,
+    );
+
+    try {
+      await retryOptions.retry(
+        () async {
+          await graphQlService.mutateGraphQL(
+            documentNode: enqueueMutation.documentNode,
+            variables: enqueueMutation.variables,
+            client: graphQLClient,
+          );
+        },
+        retryIf: (Exception e) => e is RetryableException,
+      );
+    } catch (e) {
+      final message = 'Failed to enqueue ${slug.fullName}/${pullRequest.number} with ${e.toString()}';
+      log.severe(message);
+      return (result: false, message: message);
+    }
+
+    return (result: true, message: pullRequest.title!);
   }
 
   Future<MergeResult> _mergePullRequest(int number, String commitMessage, github.RepositorySlug slug) async {
