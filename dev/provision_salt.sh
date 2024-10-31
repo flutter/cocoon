@@ -12,7 +12,7 @@ MINION_PLIST_PATH=/Library/LaunchDaemons/com.saltstack.salt.minion.plist
 # Pins the version to 2019.2.0 and Python 2 to be compatible with Fuchsia salt master.
 function install_salt() {
   if [[ "$(uname)" == 'Darwin' ]]; then
-    curl https://repo.saltproject.io/osx/salt-3002.9-py3-x86_64.pkg -o /tmp/salt.pkg
+    curl https://packages.broadcom.com/artifactory/saltproject-generic/macos/3006.9/salt-3006.9-py3-x86_64.pkg -o /tmp/salt.pkg
     sudo installer -pkg /tmp/salt.pkg -target /
   elif [[ "$(lsb_release -is)" == 'Debian' ]]; then
     wget -O - https://repo.saltproject.io/py3/debian/10/amd64/3002/SALTSTACK-GPG-KEY.pub | sudo apt-key add -
