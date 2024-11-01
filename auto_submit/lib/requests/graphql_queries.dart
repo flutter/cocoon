@@ -216,7 +216,7 @@ class EnqueuePullRequestMutation extends GraphQLOperation {
   @override
   DocumentNode get documentNode => lang.parseString(r'''
 mutation EnqueueFlutterPullRequest ($clientMutationId:String!, $pullRequestId:ID!, $expectedHeadOid:GitObjectID!, $jump:Boolean!) {
-  revertPullRequest (
+  enqueuePullRequest (
     input: {
       clientMutationId: $clientMutationId,
       expectedHeadOid: $expectedHeadOid,
