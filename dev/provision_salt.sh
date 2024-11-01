@@ -7,6 +7,7 @@
 set -e
 
 MINION_PLIST_PATH=/Library/LaunchDaemons/com.saltstack.salt.minion.plist
+LINUX_SALT_CLIENT_PATH="$HOME/salt-client"
 
 # Installs salt minion.
 # Pins the version to 2019.2.0 and Python 2 to be compatible with Fuchsia salt master.
@@ -18,10 +19,18 @@ function install_salt() {
   elif [[ "$OS" == 'Linux' ]]; then
     DISTRO="$(lsb_release -is)"
     if [[ "$DISTRO" == 'Ubuntu' ]]; then
-      sudo curl -fsSL -o /usr/share/keyrings/salt-archive-keyring.gpg https://repo.saltproject.io/py3/ubuntu/20.04/amd64/latest/salt-archive-keyring.gpg
-      echo 'deb [signed-by=/usr/share/keyrings/salt-archive-keyring.gpg arch=amd64] https://repo.saltproject.io/py3/ubuntu/20.04/amd64/3005/ focal main' | sudo tee /etc/apt/sources.list.d/salt.list
-      sudo apt update
-      sudo apt install salt-minion
+      # Download the SALT client tarball
+      SALT_TARBALL="/tmp/salt.tar.xz"
+      curl -L -o "$SALT_TARBALL" https://packages.broadcom.com/artifactory/saltproject-generic/onedir/3006.9/salt-3006.9-onedir-linux-x86_64.tar.xz
+
+      # extract it to $LINUX_SALT_CLIENT_PATH
+      mkdir -p "$LINUX_SALT_CLIENT_PATH"
+      tar xvf "$SALT_TARBALL" -C "$LINUX_SALT_CLIENT_PATH"
+
+      # if we haven't already done so, add it to the $PATH
+      if ! cat "$HOME/.bashrc" | tail -n 1 | fgrep "$LINUX_SALT_CLIENT_PATH"; then
+        echo "PATH=\"$LINUX_SALT_CLIENT_PATH/salt:$PATH\"" >> "$HOME/.bashrc"
+      fi
     else
       echo "Unsupported Linux distribution: $DISTRO" >&2
       exit 1
@@ -55,6 +64,7 @@ function set_deviceos_grains() {
 
 function reboot_salt() {
   if [[ "$(uname)" == 'Linux' ]]; then
+    # TODO hmm....
     sudo systemctl restart salt-minion
   elif [[ "$(uname)" == 'Darwin' ]]; then
     sudo launchctl unload "$MINION_PLIST_PATH"
