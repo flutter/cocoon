@@ -959,7 +959,12 @@ targets:
         expect(
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
-          <dynamic>[
+          <Object?>[
+            Scheduler.kCiTasksName,
+            const CheckRunOutput(
+              title: Scheduler.kCiTasksName,
+              summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
+            ),
             Scheduler.kCiYamlCheckName,
             const CheckRunOutput(
               title: Scheduler.kCiYamlCheckName,
@@ -983,7 +988,12 @@ targets:
         expect(
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
-          <dynamic>[
+          <Object>[
+            Scheduler.kCiTasksName,
+            const CheckRunOutput(
+              title: Scheduler.kCiTasksName,
+              summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
+            ),
             Scheduler.kCiYamlCheckName,
             // No other targets should be created.
             const CheckRunOutput(
@@ -1089,7 +1099,12 @@ targets:
         expect(
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
-          <dynamic>[
+          <Object?>[
+            Scheduler.kCiTasksName,
+            const CheckRunOutput(
+              title: Scheduler.kCiTasksName,
+              summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
+            ),
             Scheduler.kCiYamlCheckName,
             const CheckRunOutput(
               title: Scheduler.kCiYamlCheckName,
@@ -1112,7 +1127,12 @@ targets:
         expect(
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
-          <dynamic>[
+          <Object?>[
+            Scheduler.kCiTasksName,
+            const CheckRunOutput(
+              title: Scheduler.kCiTasksName,
+              summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
+            ),
             Scheduler.kCiYamlCheckName,
             const CheckRunOutput(
               title: Scheduler.kCiYamlCheckName,
@@ -1141,7 +1161,12 @@ targets:
               output: anyNamed('output'),
             ),
           ).captured,
-          <dynamic>[CheckRunStatus.completed, CheckRunConclusion.success],
+          <Object>[
+            CheckRunStatus.completed,
+            CheckRunConclusion.success,
+            CheckRunStatus.completed,
+            CheckRunConclusion.success,
+          ],
         );
       });
 
@@ -1164,7 +1189,12 @@ targets:
               output: anyNamed('output'),
             ),
           ).captured,
-          <dynamic>[CheckRunStatus.completed, CheckRunConclusion.failure],
+          <Object>[
+            CheckRunStatus.completed,
+            CheckRunConclusion.failure,
+            CheckRunStatus.completed,
+            CheckRunConclusion.failure,
+          ],
         );
       });
 
@@ -1182,7 +1212,12 @@ targets:
               output: anyNamed('output'),
             ),
           ).captured,
-          <dynamic>[CheckRunStatus.completed, CheckRunConclusion.failure],
+          <Object>[
+            CheckRunStatus.completed,
+            CheckRunConclusion.failure,
+            CheckRunStatus.completed,
+            CheckRunConclusion.failure,
+          ],
         );
       });
 
