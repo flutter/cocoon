@@ -8,29 +8,26 @@ set -e
 
 MINION_PLIST_PATH=/Library/LaunchDaemons/com.saltstack.salt.minion.plist
 LINUX_SALT_CLIENT_PATH="$HOME/salt-client"
+SALT_VERSION='3006.9'
 
 # Installs salt minion.
 # Pins the version to 2019.2.0 and Python 2 to be compatible with Fuchsia salt master.
 function install_salt() {
   OS="$(uname)"
   if [[ "$OS" == 'Darwin' ]]; then
-    curl https://packages.broadcom.com/artifactory/saltproject-generic/macos/3006.9/salt-3006.9-py3-x86_64.pkg -o /tmp/salt.pkg
+    curl "https://packages.broadcom.com/artifactory/saltproject-generic/macos/$SALT_VERSION/salt-3006.9-py3-x86_64.pkg" -o /tmp/salt.pkg
     sudo installer -pkg /tmp/salt.pkg -target /
   elif [[ "$OS" == 'Linux' ]]; then
     DISTRO="$(lsb_release -is)"
     if [[ "$DISTRO" == 'Ubuntu' ]]; then
       # Download the SALT client tarball
-      SALT_TARBALL="/tmp/salt.tar.xz"
-      curl -L -o "$SALT_TARBALL" https://packages.broadcom.com/artifactory/saltproject-generic/onedir/3006.9/salt-3006.9-onedir-linux-x86_64.tar.xz
+      SALT_DEB_PKG="/tmp/salt.deb"
+      curl -L -o "$SALT_DEB_PKG" https://packages.broadcom.com/artifactory/saltproject-deb/pool/salt-api_3006.9_amd64.deb
+      # Uninstall previous package, if any
+      sudo dpkg --remove salt-minion
 
-      # extract it to $LINUX_SALT_CLIENT_PATH
-      mkdir -p "$LINUX_SALT_CLIENT_PATH"
-      tar xvf "$SALT_TARBALL" -C "$LINUX_SALT_CLIENT_PATH"
-
-      # if we haven't already done so, add it to the $PATH
-      if ! cat "$HOME/.bashrc" | tail -n 1 | fgrep "$LINUX_SALT_CLIENT_PATH"; then
-        echo "PATH=\"$LINUX_SALT_CLIENT_PATH/salt:$PATH\"" >> "$HOME/.bashrc"
-      fi
+      # Install our downloaded .deb package
+      sudo dpkg --install "$SALT_DEB_PKG"
     else
       echo "Unsupported Linux distribution: $DISTRO" >&2
       exit 1
