@@ -115,7 +115,7 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
         retryIf: (Exception e) => e is RetryableException,
       );
     } catch (e) {
-      final message = 'Failed to enqueue ${slug.fullName}/${pullRequest.number} with ${e.toString()}';
+      final message = 'Failed to enqueue ${slug.fullName}/${pullRequest.number} with $e';
       log.severe(message);
       return (result: false, message: message);
     }
@@ -149,7 +149,7 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
       }
     } catch (e) {
       // Catch graphql client init exceptions.
-      final String message = 'Failed to merge ${slug.fullName}/$number with ${e.toString()}';
+      final String message = 'Failed to merge ${slug.fullName}/$number with $e';
       log.severe(message);
       return (result: false, message: message);
     }
