@@ -579,6 +579,7 @@ class MockJobsResource extends _i1.Mock implements _i3.JobsResource {
           ),
         )),
       ) as _i6.Future<_i3.JobCancelResponse>);
+
   @override
   _i6.Future<void> delete(
     String? projectId,
@@ -601,6 +602,7 @@ class MockJobsResource extends _i1.Mock implements _i3.JobsResource {
         returnValue: _i6.Future<void>.value(),
         returnValueForMissingStub: _i6.Future<void>.value(),
       ) as _i6.Future<void>);
+
   @override
   _i6.Future<_i3.Job> get(
     String? projectId,
@@ -635,10 +637,12 @@ class MockJobsResource extends _i1.Mock implements _i3.JobsResource {
           ),
         )),
       ) as _i6.Future<_i3.Job>);
+
   @override
   _i6.Future<_i3.GetQueryResultsResponse> getQueryResults(
     String? projectId,
     String? jobId, {
+    bool? formatOptions_useInt64Timestamp,
     String? location,
     int? maxResults,
     String? pageToken,
@@ -654,6 +658,7 @@ class MockJobsResource extends _i1.Mock implements _i3.JobsResource {
             jobId,
           ],
           {
+            #formatOptions_useInt64Timestamp: formatOptions_useInt64Timestamp,
             #location: location,
             #maxResults: maxResults,
             #pageToken: pageToken,
@@ -671,6 +676,7 @@ class MockJobsResource extends _i1.Mock implements _i3.JobsResource {
               jobId,
             ],
             {
+              #formatOptions_useInt64Timestamp: formatOptions_useInt64Timestamp,
               #location: location,
               #maxResults: maxResults,
               #pageToken: pageToken,
@@ -681,6 +687,7 @@ class MockJobsResource extends _i1.Mock implements _i3.JobsResource {
           ),
         )),
       ) as _i6.Future<_i3.GetQueryResultsResponse>);
+
   @override
   _i6.Future<_i3.Job> insert(
     _i3.Job? request,
@@ -718,6 +725,7 @@ class MockJobsResource extends _i1.Mock implements _i3.JobsResource {
           ),
         )),
       ) as _i6.Future<_i3.Job>);
+
   @override
   _i6.Future<_i3.JobList> list(
     String? projectId, {
@@ -766,6 +774,7 @@ class MockJobsResource extends _i1.Mock implements _i3.JobsResource {
           ),
         )),
       ) as _i6.Future<_i3.JobList>);
+
   @override
   _i6.Future<_i3.QueryResponse> query(
     _i3.QueryRequest? request,
@@ -811,6 +820,7 @@ class MockApproverService extends _i1.Mock implements _i9.ApproverService {
           Invocation.getter(#config),
         ),
       ) as _i4.Config);
+
   @override
   _i6.Future<Set<String>> getAutoApprovalAccounts(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -819,6 +829,7 @@ class MockApproverService extends _i1.Mock implements _i9.ApproverService {
         ),
         returnValue: _i6.Future<Set<String>>.value(<String>{}),
       ) as _i6.Future<Set<String>>);
+
   @override
   _i6.Future<void> autoApproval(_i5.PullRequest? pullRequest) => (super.noSuchMethod(
         Invocation.method(
@@ -846,6 +857,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
           Invocation.getter(#auth),
         ),
       ) as _i5.Authentication);
+
   @override
   set auth(_i5.Authentication? _auth) => super.noSuchMethod(
         Invocation.setter(
@@ -854,6 +866,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   String get endpoint => (super.noSuchMethod(
         Invocation.getter(#endpoint),
@@ -862,6 +875,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
           Invocation.getter(#endpoint),
         ),
       ) as String);
+
   @override
   String get version => (super.noSuchMethod(
         Invocation.getter(#version),
@@ -870,6 +884,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
           Invocation.getter(#version),
         ),
       ) as String);
+
   @override
   _i2.Client get client => (super.noSuchMethod(
         Invocation.getter(#client),
@@ -878,6 +893,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
           Invocation.getter(#client),
         ),
       ) as _i2.Client);
+
   @override
   _i5.ActivityService get activity => (super.noSuchMethod(
         Invocation.getter(#activity),
@@ -886,6 +902,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
           Invocation.getter(#activity),
         ),
       ) as _i5.ActivityService);
+
   @override
   _i5.AuthorizationsService get authorizations => (super.noSuchMethod(
         Invocation.getter(#authorizations),
@@ -894,6 +911,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
           Invocation.getter(#authorizations),
         ),
       ) as _i5.AuthorizationsService);
+
   @override
   _i5.GistsService get gists => (super.noSuchMethod(
         Invocation.getter(#gists),
@@ -902,6 +920,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
           Invocation.getter(#gists),
         ),
       ) as _i5.GistsService);
+
   @override
   _i5.GitService get git => (super.noSuchMethod(
         Invocation.getter(#git),
@@ -910,6 +929,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
           Invocation.getter(#git),
         ),
       ) as _i5.GitService);
+
   @override
   _i5.IssuesService get issues => (super.noSuchMethod(
         Invocation.getter(#issues),
@@ -918,6 +938,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
           Invocation.getter(#issues),
         ),
       ) as _i5.IssuesService);
+
   @override
   _i5.MiscService get misc => (super.noSuchMethod(
         Invocation.getter(#misc),
@@ -926,6 +947,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
           Invocation.getter(#misc),
         ),
       ) as _i5.MiscService);
+
   @override
   _i5.OrganizationsService get organizations => (super.noSuchMethod(
         Invocation.getter(#organizations),
@@ -934,6 +956,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
           Invocation.getter(#organizations),
         ),
       ) as _i5.OrganizationsService);
+
   @override
   _i5.PullRequestsService get pullRequests => (super.noSuchMethod(
         Invocation.getter(#pullRequests),
@@ -942,6 +965,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
           Invocation.getter(#pullRequests),
         ),
       ) as _i5.PullRequestsService);
+
   @override
   _i5.RepositoriesService get repositories => (super.noSuchMethod(
         Invocation.getter(#repositories),
@@ -950,6 +974,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
           Invocation.getter(#repositories),
         ),
       ) as _i5.RepositoriesService);
+
   @override
   _i5.SearchService get search => (super.noSuchMethod(
         Invocation.getter(#search),
@@ -958,6 +983,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
           Invocation.getter(#search),
         ),
       ) as _i5.SearchService);
+
   @override
   _i5.UrlShortenerService get urlShortener => (super.noSuchMethod(
         Invocation.getter(#urlShortener),
@@ -966,6 +992,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
           Invocation.getter(#urlShortener),
         ),
       ) as _i5.UrlShortenerService);
+
   @override
   _i5.UsersService get users => (super.noSuchMethod(
         Invocation.getter(#users),
@@ -974,6 +1001,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
           Invocation.getter(#users),
         ),
       ) as _i5.UsersService);
+
   @override
   _i5.ChecksService get checks => (super.noSuchMethod(
         Invocation.getter(#checks),
@@ -982,6 +1010,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
           Invocation.getter(#checks),
         ),
       ) as _i5.ChecksService);
+
   @override
   _i6.Future<T> getJSON<S, T>(
     String? path, {
@@ -1039,6 +1068,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
               ),
             ),
       ) as _i6.Future<T>);
+
   @override
   _i6.Future<T> postJSON<S, T>(
     String? path, {
@@ -1100,6 +1130,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
               ),
             ),
       ) as _i6.Future<T>);
+
   @override
   _i6.Future<T> putJSON<S, T>(
     String? path, {
@@ -1161,6 +1192,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
               ),
             ),
       ) as _i6.Future<T>);
+
   @override
   _i6.Future<T> patchJSON<S, T>(
     String? path, {
@@ -1222,6 +1254,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
               ),
             ),
       ) as _i6.Future<T>);
+
   @override
   _i6.Future<T> requestJson<S, T>(
     String? method,
@@ -1293,6 +1326,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
               ),
             ),
       ) as _i6.Future<T>);
+
   @override
   _i6.Future<_i2.Response> request(
     String? method,
@@ -1339,6 +1373,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
           ),
         )),
       ) as _i6.Future<_i2.Response>);
+
   @override
   Never handleStatusCode(_i2.Response? response) => (super.noSuchMethod(
         Invocation.method(
@@ -1347,6 +1382,7 @@ class MockGitHub extends _i1.Mock implements _i5.GitHub {
         ),
         returnValue: null,
       ) as Never);
+
   @override
   void dispose() => super.noSuchMethod(
         Invocation.method(
@@ -1373,6 +1409,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
           Invocation.getter(#github),
         ),
       ) as _i5.GitHub);
+
   @override
   _i6.Stream<_i5.PullRequest> list(
     _i5.RepositorySlug? slug, {
@@ -1398,6 +1435,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
         ),
         returnValue: _i6.Stream<_i5.PullRequest>.empty(),
       ) as _i6.Stream<_i5.PullRequest>);
+
   @override
   _i6.Future<_i5.PullRequest> get(
     _i5.RepositorySlug? slug,
@@ -1422,6 +1460,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
           ),
         )),
       ) as _i6.Future<_i5.PullRequest>);
+
   @override
   _i6.Future<_i5.PullRequest> create(
     _i5.RepositorySlug? slug,
@@ -1446,6 +1485,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
           ),
         )),
       ) as _i6.Future<_i5.PullRequest>);
+
   @override
   _i6.Future<_i5.PullRequest> edit(
     _i5.RepositorySlug? slug,
@@ -1486,6 +1526,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
           ),
         )),
       ) as _i6.Future<_i5.PullRequest>);
+
   @override
   _i6.Stream<_i5.RepositoryCommit> listCommits(
     _i5.RepositorySlug? slug,
@@ -1501,6 +1542,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
         ),
         returnValue: _i6.Stream<_i5.RepositoryCommit>.empty(),
       ) as _i6.Stream<_i5.RepositoryCommit>);
+
   @override
   _i6.Stream<_i5.PullRequestFile> listFiles(
     _i5.RepositorySlug? slug,
@@ -1516,6 +1558,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
         ),
         returnValue: _i6.Stream<_i5.PullRequestFile>.empty(),
       ) as _i6.Stream<_i5.PullRequestFile>);
+
   @override
   _i6.Stream<_i5.PullRequestReview> listReviews(
     _i5.RepositorySlug? slug,
@@ -1531,6 +1574,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
         ),
         returnValue: _i6.Stream<_i5.PullRequestReview>.empty(),
       ) as _i6.Stream<_i5.PullRequestReview>);
+
   @override
   _i6.Future<bool> isMerged(
     _i5.RepositorySlug? slug,
@@ -1546,6 +1590,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
         ),
         returnValue: _i6.Future<bool>.value(false),
       ) as _i6.Future<bool>);
+
   @override
   _i6.Future<_i5.PullRequestMerge> merge(
     _i5.RepositorySlug? slug,
@@ -1583,6 +1628,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
           ),
         )),
       ) as _i6.Future<_i5.PullRequestMerge>);
+
   @override
   _i6.Stream<_i5.PullRequestComment> listCommentsByPullRequest(
     _i5.RepositorySlug? slug,
@@ -1598,6 +1644,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
         ),
         returnValue: _i6.Stream<_i5.PullRequestComment>.empty(),
       ) as _i6.Stream<_i5.PullRequestComment>);
+
   @override
   _i6.Stream<_i5.PullRequestComment> listComments(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -1606,6 +1653,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
         ),
         returnValue: _i6.Stream<_i5.PullRequestComment>.empty(),
       ) as _i6.Stream<_i5.PullRequestComment>);
+
   @override
   _i6.Future<_i5.PullRequestComment> createComment(
     _i5.RepositorySlug? slug,
@@ -1633,6 +1681,7 @@ class MockPullRequestsService extends _i1.Mock implements _i5.PullRequestsServic
           ),
         )),
       ) as _i6.Future<_i5.PullRequestComment>);
+
   @override
   _i6.Future<_i5.PullRequestReview> createReview(
     _i5.RepositorySlug? slug,
@@ -1675,6 +1724,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           Invocation.getter(#github),
         ),
       ) as _i5.GitHub);
+
   @override
   _i6.Stream<_i5.Repository> listRepositories({
     String? type = r'owner',
@@ -1693,6 +1743,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.Repository>.empty(),
       ) as _i6.Stream<_i5.Repository>);
+
   @override
   _i6.Stream<_i5.Repository> listUserRepositories(
     String? user, {
@@ -1712,6 +1763,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.Repository>.empty(),
       ) as _i6.Stream<_i5.Repository>);
+
   @override
   _i6.Stream<_i5.Repository> listOrganizationRepositories(
     String? org, {
@@ -1725,6 +1777,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.Repository>.empty(),
       ) as _i6.Stream<_i5.Repository>);
+
   @override
   _i6.Stream<_i5.Repository> listPublicRepositories({
     int? limit = 50,
@@ -1741,6 +1794,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.Repository>.empty(),
       ) as _i6.Stream<_i5.Repository>);
+
   @override
   _i6.Future<_i5.Repository> createRepository(
     _i5.CreateRepository? repository, {
@@ -1761,6 +1815,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.Repository>);
+
   @override
   _i6.Future<_i5.LicenseDetails> getLicense(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -1775,6 +1830,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.LicenseDetails>);
+
   @override
   _i6.Future<_i5.Repository> getRepository(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -1789,6 +1845,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.Repository>);
+
   @override
   _i6.Stream<_i5.Repository> getRepositories(List<_i5.RepositorySlug>? slugs) => (super.noSuchMethod(
         Invocation.method(
@@ -1797,6 +1854,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.Repository>.empty(),
       ) as _i6.Stream<_i5.Repository>);
+
   @override
   _i6.Future<_i5.Repository> editRepository(
     _i5.RepositorySlug? slug, {
@@ -1839,6 +1897,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.Repository>);
+
   @override
   _i6.Future<bool> deleteRepository(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -1847,6 +1906,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Future<bool>.value(false),
       ) as _i6.Future<bool>);
+
   @override
   _i6.Stream<_i5.Contributor> listContributors(
     _i5.RepositorySlug? slug, {
@@ -1860,6 +1920,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.Contributor>.empty(),
       ) as _i6.Stream<_i5.Contributor>);
+
   @override
   _i6.Stream<_i5.Team> listTeams(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -1868,6 +1929,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.Team>.empty(),
       ) as _i6.Stream<_i5.Team>);
+
   @override
   _i6.Future<_i5.LanguageBreakdown> listLanguages(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -1882,6 +1944,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.LanguageBreakdown>);
+
   @override
   _i6.Stream<_i5.Tag> listTags(
     _i5.RepositorySlug? slug, {
@@ -1901,6 +1964,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.Tag>.empty(),
       ) as _i6.Stream<_i5.Tag>);
+
   @override
   _i6.Stream<_i5.Branch> listBranches(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -1909,6 +1973,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.Branch>.empty(),
       ) as _i6.Stream<_i5.Branch>);
+
   @override
   _i6.Future<_i5.Branch> getBranch(
     _i5.RepositorySlug? slug,
@@ -1933,6 +1998,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.Branch>);
+
   @override
   _i6.Stream<_i5.Collaborator> listCollaborators(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -1941,6 +2007,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.Collaborator>.empty(),
       ) as _i6.Stream<_i5.Collaborator>);
+
   @override
   _i6.Future<bool> isCollaborator(
     _i5.RepositorySlug? slug,
@@ -1956,6 +2023,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Future<bool>.value(false),
       ) as _i6.Future<bool>);
+
   @override
   _i6.Future<bool> addCollaborator(
     _i5.RepositorySlug? slug,
@@ -1971,6 +2039,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Future<bool>.value(false),
       ) as _i6.Future<bool>);
+
   @override
   _i6.Future<bool> removeCollaborator(
     _i5.RepositorySlug? slug,
@@ -1986,6 +2055,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Future<bool>.value(false),
       ) as _i6.Future<bool>);
+
   @override
   _i6.Stream<_i5.CommitComment> listSingleCommitComments(
     _i5.RepositorySlug? slug,
@@ -2001,6 +2071,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.CommitComment>.empty(),
       ) as _i6.Stream<_i5.CommitComment>);
+
   @override
   _i6.Stream<_i5.CommitComment> listCommitComments(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -2009,6 +2080,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.CommitComment>.empty(),
       ) as _i6.Stream<_i5.CommitComment>);
+
   @override
   _i6.Future<_i5.CommitComment> createCommitComment(
     _i5.RepositorySlug? slug,
@@ -2049,6 +2121,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.CommitComment>);
+
   @override
   _i6.Future<_i5.CommitComment> getCommitComment(
     _i5.RepositorySlug? slug, {
@@ -2069,6 +2142,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.CommitComment>);
+
   @override
   _i6.Future<_i5.CommitComment> updateCommitComment(
     _i5.RepositorySlug? slug, {
@@ -2096,6 +2170,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.CommitComment>);
+
   @override
   _i6.Future<bool> deleteCommitComment(
     _i5.RepositorySlug? slug, {
@@ -2109,6 +2184,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Future<bool>.value(false),
       ) as _i6.Future<bool>);
+
   @override
   _i6.Stream<_i5.RepositoryCommit> listCommits(
     _i5.RepositorySlug? slug, {
@@ -2134,6 +2210,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.RepositoryCommit>.empty(),
       ) as _i6.Stream<_i5.RepositoryCommit>);
+
   @override
   _i6.Future<_i5.RepositoryCommit> getCommit(
     _i5.RepositorySlug? slug,
@@ -2158,6 +2235,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.RepositoryCommit>);
+
   @override
   _i6.Future<String> getCommitDiff(
     _i5.RepositorySlug? slug,
@@ -2182,6 +2260,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<String>);
+
   @override
   _i6.Future<_i5.GitHubComparison> compareCommits(
     _i5.RepositorySlug? slug,
@@ -2209,6 +2288,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.GitHubComparison>);
+
   @override
   _i6.Future<_i5.GitHubFile> getReadme(
     _i5.RepositorySlug? slug, {
@@ -2229,6 +2309,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.GitHubFile>);
+
   @override
   _i6.Future<_i5.RepositoryContents> getContents(
     _i5.RepositorySlug? slug,
@@ -2256,6 +2337,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.RepositoryContents>);
+
   @override
   _i6.Future<_i5.ContentCreation> createFile(
     _i5.RepositorySlug? slug,
@@ -2280,6 +2362,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.ContentCreation>);
+
   @override
   _i6.Future<_i5.ContentCreation> updateFile(
     _i5.RepositorySlug? slug,
@@ -2316,6 +2399,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.ContentCreation>);
+
   @override
   _i6.Future<_i5.ContentCreation> deleteFile(
     _i5.RepositorySlug? slug,
@@ -2349,6 +2433,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.ContentCreation>);
+
   @override
   _i6.Future<String?> getArchiveLink(
     _i5.RepositorySlug? slug,
@@ -2366,6 +2451,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Future<String?>.value(),
       ) as _i6.Future<String?>);
+
   @override
   _i6.Stream<_i5.Repository> listForks(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -2374,6 +2460,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.Repository>.empty(),
       ) as _i6.Stream<_i5.Repository>);
+
   @override
   _i6.Future<_i5.Repository> createFork(
     _i5.RepositorySlug? slug, [
@@ -2398,6 +2485,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.Repository>);
+
   @override
   _i6.Stream<_i5.Hook> listHooks(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -2406,6 +2494,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.Hook>.empty(),
       ) as _i6.Stream<_i5.Hook>);
+
   @override
   _i6.Future<_i5.Hook> getHook(
     _i5.RepositorySlug? slug,
@@ -2430,6 +2519,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.Hook>);
+
   @override
   _i6.Future<_i5.Hook> createHook(
     _i5.RepositorySlug? slug,
@@ -2454,6 +2544,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.Hook>);
+
   @override
   _i6.Future<_i5.Hook> editHook(
     _i5.RepositorySlug? slug,
@@ -2506,6 +2597,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.Hook>);
+
   @override
   _i6.Future<bool> testPushHook(
     _i5.RepositorySlug? slug,
@@ -2521,6 +2613,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Future<bool>.value(false),
       ) as _i6.Future<bool>);
+
   @override
   _i6.Future<bool> pingHook(
     _i5.RepositorySlug? slug,
@@ -2536,6 +2629,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Future<bool>.value(false),
       ) as _i6.Future<bool>);
+
   @override
   _i6.Future<bool> deleteHook(
     _i5.RepositorySlug? slug,
@@ -2551,6 +2645,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Future<bool>.value(false),
       ) as _i6.Future<bool>);
+
   @override
   _i6.Stream<_i5.PublicKey> listDeployKeys(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -2559,6 +2654,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.PublicKey>.empty(),
       ) as _i6.Stream<_i5.PublicKey>);
+
   @override
   _i6.Future<_i5.PublicKey> getDeployKey(
     _i5.RepositorySlug? slug, {
@@ -2579,6 +2675,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.PublicKey>);
+
   @override
   _i6.Future<_i5.PublicKey> createDeployKey(
     _i5.RepositorySlug? slug,
@@ -2603,6 +2700,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.PublicKey>);
+
   @override
   _i6.Future<bool> deleteDeployKey({
     required _i5.RepositorySlug? slug,
@@ -2619,6 +2717,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Future<bool>.value(false),
       ) as _i6.Future<bool>);
+
   @override
   _i6.Future<_i5.RepositoryCommit> merge(
     _i5.RepositorySlug? slug,
@@ -2643,6 +2742,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.RepositoryCommit>);
+
   @override
   _i6.Future<_i5.RepositoryPages> getPagesInfo(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -2657,6 +2757,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.RepositoryPages>);
+
   @override
   _i6.Stream<_i5.PageBuild> listPagesBuilds(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -2665,6 +2766,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.PageBuild>.empty(),
       ) as _i6.Stream<_i5.PageBuild>);
+
   @override
   _i6.Future<_i5.PageBuild> getLatestPagesBuild(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -2679,6 +2781,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.PageBuild>);
+
   @override
   _i6.Stream<_i5.Release> listReleases(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -2687,6 +2790,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.Release>.empty(),
       ) as _i6.Stream<_i5.Release>);
+
   @override
   _i6.Future<_i5.Release> getLatestRelease(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -2701,6 +2805,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.Release>);
+
   @override
   _i6.Future<_i5.Release> getReleaseById(
     _i5.RepositorySlug? slug,
@@ -2725,6 +2830,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.Release>);
+
   @override
   _i6.Future<_i5.Release> getReleaseByTagName(
     _i5.RepositorySlug? slug,
@@ -2749,6 +2855,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.Release>);
+
   @override
   _i6.Future<_i5.Release> createRelease(
     _i5.RepositorySlug? slug,
@@ -2776,6 +2883,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.Release>);
+
   @override
   _i6.Future<_i5.Release> editRelease(
     _i5.RepositorySlug? slug,
@@ -2822,6 +2930,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.Release>);
+
   @override
   _i6.Future<bool> deleteRelease(
     _i5.RepositorySlug? slug,
@@ -2837,6 +2946,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Future<bool>.value(false),
       ) as _i6.Future<bool>);
+
   @override
   _i6.Stream<_i5.ReleaseAsset> listReleaseAssets(
     _i5.RepositorySlug? slug,
@@ -2852,6 +2962,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.ReleaseAsset>.empty(),
       ) as _i6.Stream<_i5.ReleaseAsset>);
+
   @override
   _i6.Future<_i5.ReleaseAsset> getReleaseAsset(
     _i5.RepositorySlug? slug,
@@ -2879,6 +2990,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.ReleaseAsset>);
+
   @override
   _i6.Future<_i5.ReleaseAsset> editReleaseAsset(
     _i5.RepositorySlug? slug,
@@ -2913,6 +3025,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.ReleaseAsset>);
+
   @override
   _i6.Future<bool> deleteReleaseAsset(
     _i5.RepositorySlug? slug,
@@ -2928,6 +3041,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Future<bool>.value(false),
       ) as _i6.Future<bool>);
+
   @override
   _i6.Future<List<_i5.ReleaseAsset>> uploadReleaseAssets(
     _i5.Release? release,
@@ -2943,6 +3057,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Future<List<_i5.ReleaseAsset>>.value(<_i5.ReleaseAsset>[]),
       ) as _i6.Future<List<_i5.ReleaseAsset>>);
+
   @override
   _i6.Future<List<_i5.ContributorStatistics>> listContributorStats(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -2951,6 +3066,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Future<List<_i5.ContributorStatistics>>.value(<_i5.ContributorStatistics>[]),
       ) as _i6.Future<List<_i5.ContributorStatistics>>);
+
   @override
   _i6.Stream<_i5.YearCommitCountWeek> listCommitActivity(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -2959,6 +3075,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.YearCommitCountWeek>.empty(),
       ) as _i6.Stream<_i5.YearCommitCountWeek>);
+
   @override
   _i6.Stream<_i5.WeeklyChangesCount> listCodeFrequency(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -2967,6 +3084,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.WeeklyChangesCount>.empty(),
       ) as _i6.Stream<_i5.WeeklyChangesCount>);
+
   @override
   _i6.Future<_i5.ContributorParticipation> getParticipation(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -2981,6 +3099,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.ContributorParticipation>);
+
   @override
   _i6.Stream<_i5.PunchcardEntry> listPunchcard(_i5.RepositorySlug? slug) => (super.noSuchMethod(
         Invocation.method(
@@ -2989,6 +3108,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.PunchcardEntry>.empty(),
       ) as _i6.Stream<_i5.PunchcardEntry>);
+
   @override
   _i6.Stream<_i5.RepositoryStatus> listStatuses(
     _i5.RepositorySlug? slug,
@@ -3004,6 +3124,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
         ),
         returnValue: _i6.Stream<_i5.RepositoryStatus>.empty(),
       ) as _i6.Stream<_i5.RepositoryStatus>);
+
   @override
   _i6.Future<_i5.RepositoryStatus> createStatus(
     _i5.RepositorySlug? slug,
@@ -3031,6 +3152,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.RepositoryStatus>);
+
   @override
   _i6.Future<_i5.CombinedRepositoryStatus> getCombinedStatus(
     _i5.RepositorySlug? slug,
@@ -3055,6 +3177,7 @@ class MockRepositoriesService extends _i1.Mock implements _i5.RepositoriesServic
           ),
         )),
       ) as _i6.Future<_i5.CombinedRepositoryStatus>);
+
   @override
   _i6.Future<_i5.ReleaseNotes> generateReleaseNotes(_i5.CreateReleaseNotes? crn) => (super.noSuchMethod(
         Invocation.method(
@@ -3087,6 +3210,7 @@ class MockGitHubComparison extends _i1.Mock implements _i5.GitHubComparison {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   set status(String? _status) => super.noSuchMethod(
         Invocation.setter(
@@ -3095,6 +3219,7 @@ class MockGitHubComparison extends _i1.Mock implements _i5.GitHubComparison {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   set aheadBy(int? _aheadBy) => super.noSuchMethod(
         Invocation.setter(
@@ -3103,6 +3228,7 @@ class MockGitHubComparison extends _i1.Mock implements _i5.GitHubComparison {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   set behindBy(int? _behindBy) => super.noSuchMethod(
         Invocation.setter(
@@ -3111,6 +3237,7 @@ class MockGitHubComparison extends _i1.Mock implements _i5.GitHubComparison {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   set totalCommits(int? _totalCommits) => super.noSuchMethod(
         Invocation.setter(
@@ -3119,6 +3246,7 @@ class MockGitHubComparison extends _i1.Mock implements _i5.GitHubComparison {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   set files(List<_i5.CommitFile>? _files) => super.noSuchMethod(
         Invocation.setter(
@@ -3127,6 +3255,7 @@ class MockGitHubComparison extends _i1.Mock implements _i5.GitHubComparison {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   set commits(List<_i5.RepositoryCommit>? _commits) => super.noSuchMethod(
         Invocation.setter(
@@ -3135,6 +3264,7 @@ class MockGitHubComparison extends _i1.Mock implements _i5.GitHubComparison {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   Map<String, dynamic> toJson() => (super.noSuchMethod(
         Invocation.method(
@@ -3158,6 +3288,7 @@ class MockResponse extends _i1.Mock implements _i2.Response {
         Invocation.getter(#bodyBytes),
         returnValue: _i11.Uint8List(0),
       ) as _i11.Uint8List);
+
   @override
   String get body => (super.noSuchMethod(
         Invocation.getter(#body),
@@ -3166,21 +3297,25 @@ class MockResponse extends _i1.Mock implements _i2.Response {
           Invocation.getter(#body),
         ),
       ) as String);
+
   @override
   int get statusCode => (super.noSuchMethod(
         Invocation.getter(#statusCode),
         returnValue: 0,
       ) as int);
+
   @override
   Map<String, String> get headers => (super.noSuchMethod(
         Invocation.getter(#headers),
         returnValue: <String, String>{},
       ) as Map<String, String>);
+
   @override
   bool get isRedirect => (super.noSuchMethod(
         Invocation.getter(#isRedirect),
         returnValue: false,
       ) as bool);
+
   @override
   bool get persistentConnection => (super.noSuchMethod(
         Invocation.getter(#persistentConnection),

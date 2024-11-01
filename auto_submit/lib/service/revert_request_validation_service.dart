@@ -288,7 +288,7 @@ class RevertRequestValidationService extends ValidationService {
     }
 
     // If we got to this point it means we are ready to submit the PR.
-    final MergeResult processed = await processMerge(
+    final MergeResult processed = await submitPullRequest(
       config: config,
       messagePullRequest: messagePullRequest,
     );

@@ -37,65 +37,74 @@ Duration twoSecondLinearBackoff(int attempt) {
   return const Duration(seconds: 2) * (attempt + 1);
 }
 
-/// Tests if the [pr] is in flutter/flutter and engine assets are available.
-Future<bool> isFusionPR(
-  PullRequest pr, {
-  required HttpClientProvider httpClientProvider,
-  Duration timeout = _githubTimeout,
-  RetryOptions retryOptions = _githubRetryOptions,
-}) {
-  return isFusionRef(
-    pr.base!.repo!.slug(),
-    pr.base!.ref!,
-    httpClientProvider: httpClientProvider,
-    timeout: timeout,
-    retryOptions: retryOptions,
-  );
-}
+http.Client _defaultHttpClientProvider() => http.Client();
 
-/// Tests if the [ref] is in flutter/flutter and engine assets are available.
-Future<bool> isFusionRef(
-  RepositorySlug slug,
-  String ref, {
-  required HttpClientProvider httpClientProvider,
-  Duration timeout = _githubTimeout,
-  RetryOptions retryOptions = _githubRetryOptions,
-}) async {
-  if (slug != Config.flutterSlug) {
-    log.fine('isFusionRef: not a fusion ref - wrong slug($slug)');
-    return false;
+class FusionTester {
+  final HttpClientProvider _httpClientProvider;
+
+  FusionTester({
+    http.Client Function() httpClientProvider = _defaultHttpClientProvider,
+  }) : _httpClientProvider = httpClientProvider;
+
+  /// Tests if the [pr] is in flutter/flutter and engine assets are available.
+  Future<bool> isFusionBasedPR(
+    PullRequest pr, {
+    Duration timeout = _githubTimeout,
+    RetryOptions retryOptions = _githubRetryOptions,
+  }) {
+    return isFusionBasedRef(
+      pr.base!.repo!.slug(),
+      pr.base!.ref!,
+      timeout: timeout,
+      retryOptions: retryOptions,
+    );
   }
-  try {
-    final files = await Future.wait([
-      githubFileContent(
-        slug,
-        'DEPS',
-        httpClientProvider: httpClientProvider,
-        ref: ref,
-        timeout: timeout,
-        retryOptions: retryOptions,
-      ),
-      githubFileContent(
-        slug,
-        'engine/src/.gn',
-        httpClientProvider: httpClientProvider,
-        ref: ref,
-        timeout: timeout,
-        retryOptions: retryOptions,
-      ),
-    ]);
-    if (files.any((contents) => contents.isEmpty)) {
+
+  /// Tests if the [ref] is in flutter/flutter and engine assets are available.
+  Future<bool> isFusionBasedRef(
+    RepositorySlug slug,
+    String ref, {
+    Duration timeout = _githubTimeout,
+    RetryOptions retryOptions = _githubRetryOptions,
+  }) async {
+    if (!(slug == Config.flutterSlug || slug == Config.flauxSlug)) {
+      log.fine('isFusionRef: not a fusion ref - wrong slug($slug)');
+      return false;
+    }
+    try {
+      final files = await Future.wait([
+        githubFileContent(
+          slug,
+          'DEPS',
+          httpClientProvider: _httpClientProvider,
+          ref: ref,
+          timeout: timeout,
+          retryOptions: retryOptions,
+        ),
+        githubFileContent(
+          slug,
+          'engine/src/.gn',
+          httpClientProvider: _httpClientProvider,
+          ref: ref,
+          timeout: timeout,
+          retryOptions: retryOptions,
+        ),
+      ]);
+      if (files.any((contents) => contents.isEmpty)) {
+        log.fine(
+          'isFusionRef: not a fusion ref - DEPS or engine/src/.gn is empty',
+        );
+        return false;
+      }
+
+      log.fine('isFusionRef: fusion ref - ');
+      return true;
+    } on NotFoundException catch (e) {
       log.fine(
-        'isFusionRef: not a fusion ref - DEPS or engine/src/.gn is empty',
+        "isFusionRef: 'DEPS' or 'engine/src/.gn' not found a fusion ref - error: $e",
       );
       return false;
     }
-
-    log.fine('isFusionRef: fusion ref - ');
-    return true;
-  } catch (e) {
-    log.fine('isFusionRef: not a fusion ref - error: $e');
-    return false;
   }
 }
 
@@ -129,8 +138,11 @@ Future<String> githubFileContent(
     );
   } catch (e) {
     await retryOptions.retry(
-      () async =>
-          content = String.fromCharCodes(base64Decode(await getUrl(gobUrl, httpClientProvider, timeout: timeout))),
+      () async => content = String.fromCharCodes(
+        base64Decode(
+          await getUrl(gobUrl, httpClientProvider, timeout: timeout),
+        ),
+      ),
       retryIf: (Exception e) => e is HttpException,
     );
   }
@@ -196,7 +208,10 @@ Future<RegExp> parseGlob(String glob) async {
 /// [run_if] is evaluated.
 ///
 /// [file] is based on repo root: `a/b/c.dart`.
-Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> files) async {
+Future<List<Target>> getTargetsToRun(
+  Iterable<Target> targets,
+  List<String?> files,
+) async {
   log.info('Getting targets to run from diff.');
   final List<Target> targetsToRun = <Target>[];
   for (Target target in targets) {
@@ -241,7 +256,11 @@ Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> fil
   return targetsToRun;
 }
 
-Future<void> insertBigquery(String tableName, Map<String, dynamic> data, TabledataResource tabledataResourceApi) async {
+Future<void> insertBigquery(
+  String tableName,
+  Map<String, dynamic> data,
+  TabledataResource tabledataResourceApi,
+) async {
   // Define const variables for [BigQuery] operations.
   const String projectId = 'flutter-dashboard';
   const String dataset = 'cocoon';
@@ -253,7 +272,9 @@ Future<void> insertBigquery(String tableName, Map<String, dynamic> data, Tableda
   });
 
   // Obtain [rows] to be inserted to [BigQuery].
-  final TableDataInsertAllRequest request = TableDataInsertAllRequest.fromJson(<String, dynamic>{'rows': requestRows});
+  final TableDataInsertAllRequest request = TableDataInsertAllRequest.fromJson(
+    <String, dynamic>{'rows': requestRows},
+  );
 
   try {
     await tabledataResourceApi.insertAll(request, projectId, dataset, table);
@@ -263,7 +284,11 @@ Future<void> insertBigquery(String tableName, Map<String, dynamic> data, Tableda
 }
 
 /// Validate test ownership defined in [testOwnersContent] for tests configured in `ciYamlContent`.
-List<String> validateOwnership(String ciYamlContent, String testOwnersContent, {bool unfilteredTargets = false}) {
+List<String> validateOwnership(
+  String ciYamlContent,
+  String testOwnersContent, {
+  bool unfilteredTargets = false,
+}) {
   final List<String> noOwnerBuilders = <String>[];
   final YamlMap? ciYaml = loadYaml(ciYamlContent) as YamlMap?;
   final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ciYaml);

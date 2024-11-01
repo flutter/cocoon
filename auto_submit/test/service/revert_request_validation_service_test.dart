@@ -1253,7 +1253,7 @@ Reason for reverting: comment was added by mistake.''';
     });
   });
 
-  group('processMerge:', () {
+  group('submitPullRequest:', () {
     test('Correct PR titles when merging to use Reland', () async {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
@@ -1267,7 +1267,7 @@ Reason for reverting: comment was added by mistake.''';
         sha: pullRequest.mergeCommitSha,
       );
 
-      final MergeResult result = await validationService.processMerge(
+      final MergeResult result = await validationService.submitPullRequest(
         config: config,
         messagePullRequest: pullRequest,
       );
@@ -1291,7 +1291,7 @@ Reason for reverting: comment was added by mistake.''';
         merged: true,
         sha: pullRequest.mergeCommitSha,
       );
-      final MergeResult result = await validationService.processMerge(
+      final MergeResult result = await validationService.submitPullRequest(
         config: config,
         messagePullRequest: pullRequest,
       );
@@ -1350,7 +1350,7 @@ If you need help, consider asking for advice on the #hackers-new channel on [Dis
         sha: pullRequest.mergeCommitSha,
       );
 
-      final MergeResult result = await validationService.processMerge(
+      final MergeResult result = await validationService.submitPullRequest(
         config: config,
         messagePullRequest: pullRequest,
       );

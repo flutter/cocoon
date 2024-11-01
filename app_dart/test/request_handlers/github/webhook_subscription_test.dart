@@ -24,6 +24,7 @@ import '../../src/datastore/fake_datastore.dart';
 import '../../src/request_handling/fake_http.dart';
 import '../../src/request_handling/subscription_tester.dart';
 import '../../src/service/fake_build_bucket_client.dart';
+import '../../src/service/fake_fusion_tester.dart';
 import '../../src/service/fake_github_service.dart';
 import '../../src/service/fake_gerrit_service.dart';
 import '../../src/service/fake_scheduler.dart';
@@ -46,6 +47,7 @@ void main() {
   late MockIssuesService issuesService;
   late MockPullRequestsService pullRequestsService;
   late SubscriptionTester tester;
+  late FakeFusionTester fakeFusionTester;
 
   /// Name of an example release base branch name.
   const String kReleaseBaseRef = 'flutter-2.12-candidate.4';
@@ -91,6 +93,8 @@ void main() {
     when(pullRequestsService.edit(any, any, title: anyNamed('title'), state: anyNamed('state'), base: anyNamed('base')))
         .thenAnswer((_) async => PullRequest());
     fakeBuildBucketClient = FakeBuildBucketClient();
+    fakeFusionTester = FakeFusionTester();
+    fakeFusionTester.isFusion = (_, __) => false;
     mockGithubChecksUtil = MockGithubChecksUtil();
     scheduler =
         FakeScheduler(config: config, buildbucket: fakeBuildBucketClient, githubChecksUtil: mockGithubChecksUtil);
@@ -114,6 +118,7 @@ void main() {
       gerritService: gerritService,
       scheduler: scheduler,
       commitService: commitService,
+      fusionTester: fakeFusionTester,
     );
   });
 
@@ -555,6 +560,73 @@ void main() {
           argThat(contains(config.missingTestsPullRequestMessageValue)),
         ),
       ).called(1);
+    });
+
+    test('Fusion labels engine PRs, comment if no tests', () async {
+      // Note: engine doesn't add any labels, so we're only looking for comments
+      const int issueNumber = 123;
+
+      fakeFusionTester.isFusion = (_, __) => true;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+      );
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable([
+          PullRequestFile()..filename = 'engine/src/flutter/fu.cc',
+        ]),
+      );
+
+      when(issuesService.listCommentsByIssue(Config.flutterSlug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verify(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      ).called(1);
+    });
+
+    test('Fusion labels engine PRs, no comment for tests', () async {
+      // Note: engine doesn't add any labels, so we're only looking for comments
+      const int issueNumber = 123;
+
+      fakeFusionTester.isFusion = (_, __) => true;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+      );
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable([
+          PullRequestFile()..filename = 'engine/src/flutter/fu.cc',
+          PullRequestFile()..filename = 'engine/src/flutter/fu_benchmarks.cc',
+        ]),
+      );
+
+      when(issuesService.listCommentsByIssue(Config.flutterSlug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     group('Auto-roller accounts do not label Framework PR with test label or comment.', () {
