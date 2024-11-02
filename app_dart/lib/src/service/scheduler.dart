@@ -264,9 +264,11 @@ class Scheduler {
     Future<pb.SchedulerConfig> getSchedulerConfig(String ciPath) async {
       final Uint8List ciYamlBytes = (await cache.getOrCreate(
         subcacheName,
-        ciPath,
+        // This is a key for a cache; not a path - so its needs to be 'unique'
+        '${commit.repository}/${commit.sha!}/$ciPath',
         createFn: () async => (await _downloadCiYaml(
           commit,
+          // actual path to go and fetch
           ciPath,
           retryOptions: retryOptions,
         ))
