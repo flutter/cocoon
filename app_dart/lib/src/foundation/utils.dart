@@ -22,7 +22,7 @@ import '../request_handling/exceptions.dart';
 import '../service/logging.dart';
 
 const String kCiYamlPath = '.ci.yaml';
-const String kCiYamlFusionPath = 'engine/src/flutter/$kCiYamlPath';
+const String kCiYamlFusionEnginePath = 'engine/src/flutter/$kCiYamlPath';
 const String kTestOwnerPath = 'TESTOWNERS';
 
 /// Signature for a function that calculates the backoff duration to wait in

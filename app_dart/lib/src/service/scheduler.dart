@@ -287,8 +287,8 @@ class Scheduler {
     pb.SchedulerConfig? engineFusionConfig;
     if (isFusionCommit) {
       // Fetch the engine yaml and mark it up.
-      engineFusionConfig = await getSchedulerConfig(kCiYamlFusionPath);
-      log.fine('fusion .ci.yaml file fetched');
+      engineFusionConfig = await getSchedulerConfig(kCiYamlFusionEnginePath);
+      log.fine('fusion engine .ci.yaml file fetched');
     }
 
     // If totCiYaml is not null, we assume upper level function has verified that current branch is not a release branch.
