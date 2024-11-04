@@ -87,7 +87,6 @@ class CiYaml {
 
   /// List of postsubmit target names used to filter target from release candidate branches
   /// that were already removed from main.
-
   List<String>? totPostsubmitTargetNames({CiType type = CiType.any}) => configs[type]!.totPostsubmitTargetNames;
 
   /// Filters post submit targets to remove targets we do not want backfilled.
