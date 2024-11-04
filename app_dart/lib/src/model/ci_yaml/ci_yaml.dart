@@ -52,10 +52,15 @@ class CiYaml {
 
   final configs = <CiType, CiYamlInner>{};
 
+  /// Get's the [pb.SchedulerConfig] for the requested [type].
+  ///
+  /// The type is expected to exist and will fail otherwise.
+  pb.SchedulerConfig configForInner(CiType type) => configs[type]!.config;
+
   /// Get's the [CiYamlInner] for the requested [type].
   ///
   /// The type is expected to exist and will fail otherwise.
-  CiYamlInner configInnerFor(CiType type) => configs[type]!;
+  CiYamlInner innerFor(CiType type) => configs[type]!;
 
   /// The [RepositorySlug] that [config] is from.
   final RepositorySlug slug;

@@ -63,7 +63,7 @@ void main() {
   group('initialTargets', () {
     test('targets without deps', () {
       final ciYaml = exampleConfig;
-      final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets(type: CiType.any));
+      final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
       final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
       expect(
         initialTargetNames,
@@ -78,26 +78,27 @@ void main() {
     });
 
     test('filter bringup targets on release branches', () {
-      final CiYamlInner ciYaml = CiYamlInner(
-        type: CiType.any,
+      final CiYaml ciYaml = CiYaml(
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
-        config: pb.SchedulerConfig(
-          enabledBranches: <String>[
-            Config.defaultBranch(Config.flutterSlug),
-          ],
-          targets: <pb.Target>[
-            pb.Target(
-              name: 'Linux A',
-            ),
-            pb.Target(
-              name: 'Mac A', // Should be ignored on release branches
-              bringup: true,
-            ),
-          ],
-        ),
+        yamls: {
+          CiType.any: pb.SchedulerConfig(
+            enabledBranches: <String>[
+              Config.defaultBranch(Config.flutterSlug),
+            ],
+            targets: <pb.Target>[
+              pb.Target(
+                name: 'Linux A',
+              ),
+              pb.Target(
+                name: 'Mac A', // Should be ignored on release branches
+                bringup: true,
+              ),
+            ],
+          ),
+        },
       );
-      final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets);
+      final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
       final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
       expect(
         initialTargetNames,
@@ -180,8 +181,8 @@ void main() {
       });
 
       test('Get backfill targets from postsubmit', () {
-        final  ciYaml = exampleBackfillConfig;
-        final List<Target> backfillTargets = ciYaml.backfillTargets(type: CiType.any);
+        final ciYaml = exampleBackfillConfig;
+        final List<Target> backfillTargets = ciYaml.backfillTargets();
         final List<String> backfillTargetNames = backfillTargets.map((Target target) => target.value.name).toList();
         expect(
           backfillTargetNames,
@@ -344,14 +345,14 @@ void main() {
 
   group('flakiness_threshold', () {
     test('is set', () {
-      final  ciYaml = exampleFlakyConfig;
+      final ciYaml = exampleFlakyConfig;
       final flaky1 = ciYaml.getFirstPostsubmitTarget('Flaky 1');
       expect(flaky1, isNotNull);
       expect(flaky1?.flakinessThreshold, 0.04);
     });
 
     test('is missing', () {
-      final  ciYaml = exampleFlakyConfig;
+      final ciYaml = exampleFlakyConfig;
       final flaky1 = ciYaml.getFirstPostsubmitTarget('Flaky Skip');
       expect(flaky1, isNotNull);
       expect(flaky1?.flakinessThreshold, isNull);

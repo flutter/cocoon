@@ -46,7 +46,7 @@ class FakeScheduler extends Scheduler {
 
   final CiYaml _defaultConfig = emptyConfig;
 
-  /// [CiYamlInner] value to be injected on [getCiYaml].
+  /// [CiYaml] value to be injected on [getCiYaml].
   CiYaml? ciYaml;
 
   /// If true, getCiYaml will throw a [FormatException] when validation is

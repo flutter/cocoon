@@ -156,7 +156,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     // TODO(codefu): handle fusion
     final CiYaml ciYaml = await scheduler.getCiYaml(commit);
     final Target target =
-        ciYaml.postsubmitTargets(type: CiType.any).singleWhere((Target target) => target.value.name == task.name);
+        ciYaml.postsubmitTargets().singleWhere((Target target) => target.value.name == task.name);
 
     // Prepares Firestore task.
     firestore.Task? taskDocument;

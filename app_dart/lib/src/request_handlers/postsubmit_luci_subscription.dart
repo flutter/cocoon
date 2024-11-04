@@ -131,7 +131,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
 
     // TODO(codefu): handle fusion
     final CiYaml ciYaml = await scheduler.getCiYaml(commit);
-    final List<Target> postsubmitTargets = ciYaml.postsubmitTargets(type: CiType.any);
+    final List<Target> postsubmitTargets = ciYaml.postsubmitTargets();
     if (!postsubmitTargets.any((element) => element.value.name == firestoreTask!.taskName)) {
       log.warning('Target ${firestoreTask.taskName} has been deleted from TOT. Skip updating.');
       return Body.empty;

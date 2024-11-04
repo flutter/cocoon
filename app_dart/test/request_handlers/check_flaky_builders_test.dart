@@ -29,8 +29,6 @@ const String kCurrentUserName = 'Name';
 const String kCurrentUserLogin = 'login';
 const String kCurrentUserEmail = 'login@email.com';
 
-class MockYaml extends Mock implements CiYamlInner {}
-
 void main() {
   group('Deflake', () {
     late CheckFlakyBuilders handler;
@@ -659,11 +657,10 @@ void main() {
     test('getIgnoreFlakiness handles non-existing builderame', () async {
       final YamlMap? ci = loadYaml(ciYamlContent) as YamlMap?;
       final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
-      final CiYamlInner ciYaml = CiYamlInner(
-        type: CiType.any,
+      final CiYaml ciYaml = CiYaml(
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
-        config: unCheckedSchedulerConfig,
+        yamls: {CiType.any: unCheckedSchedulerConfig},
       );
       CheckFlakyBuilders.getIgnoreFlakiness('Non_existing', ciYaml);
     });

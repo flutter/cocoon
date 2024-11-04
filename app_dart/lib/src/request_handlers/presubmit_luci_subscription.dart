@@ -162,17 +162,17 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     // TODO(codefu): support fusion
 
     // Do not block on the target not found.
-    if (!ciYaml.presubmitTargets(type: CiType.any).any((element) => element.value.name == builderName)) {
+    if (!ciYaml.presubmitTargets().any((element) => element.value.name == builderName)) {
       // do not reschedule
       log.warning('Did not find builder with name: $builderName in ciYaml for ${commit.sha}');
       final List<String> availableBuilderList =
-          ciYaml.presubmitTargets(type: CiType.any).map((Target e) => e.value.name).toList();
+          ciYaml.presubmitTargets().map((Target e) => e.value.name).toList();
       log.warning('ciYaml presubmit targets found: $availableBuilderList');
       return 1;
     }
 
     final Target target =
-        ciYaml.presubmitTargets(type: CiType.any).where((element) => element.value.name == builderName).single;
+        ciYaml.presubmitTargets().where((element) => element.value.name == builderName).single;
     final Map<String, Object> properties = target.getProperties();
     if (!properties.containsKey('presubmit_max_attempts')) {
       return 1;

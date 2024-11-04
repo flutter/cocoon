@@ -69,7 +69,7 @@ class BatchBackfiller extends RequestHandler {
 
       // TODO(codefu): handle fusion
       final CiYaml ciYaml = await scheduler.getCiYaml(task.commit);
-      final List<Target> ciYamlTargets = ciYaml.backfillTargets(type: CiType.any);
+      final List<Target> ciYamlTargets = ciYaml.backfillTargets();
 
       // Skips scheduling if the task is not in TOT commit anymore.
       final bool taskInToT = ciYamlTargets.map((Target target) => target.value.name).toList().contains(task.task.name);

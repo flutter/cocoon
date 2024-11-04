@@ -34,7 +34,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
   static const String kThresholdKey = 'threshold';
   static const int kFreshPeriodForOpenFlake = 7; // days
 
-  final CiYamlInner? ciYaml;
+  final CiYaml? ciYaml;
 
   @override
   Future<Body> get() async {
@@ -42,7 +42,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
 
-    CiYamlInner? localCiYaml = ciYaml;
+    CiYaml? localCiYaml = ciYaml;
     if (localCiYaml == null) {
       final YamlMap? ci = loadYaml(
         await gitHub.getFileContent(
@@ -51,11 +51,10 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
         ),
       ) as YamlMap?;
       final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
-      localCiYaml = CiYamlInner(
-        type: CiType.any,
+      localCiYaml = CiYaml(
         slug: slug,
         branch: Config.defaultBranch(slug),
-        config: unCheckedSchedulerConfig,
+        yamls: {CiType.any: unCheckedSchedulerConfig},
       );
     }
 
@@ -91,7 +90,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     required bool bringup,
     required BuilderStatistic statistic,
     required Issue existingIssue,
-    required CiYamlInner ciYaml,
+    required CiYaml ciYaml,
   }) async {
     if (DateTime.now().difference(existingIssue.createdAt!) < const Duration(days: kFreshPeriodForOpenFlake)) {
       return;
@@ -111,7 +110,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
         kTestOwnerPath,
       );
 
-      final pb.SchedulerConfig schedulerConfig = ciYaml.config;
+      final pb.SchedulerConfig schedulerConfig = ciYaml.configForInner(CiType.any);
       final List<pb.Target> targets = schedulerConfig.targets;
 
       final String? testOwner = getTestOwnership(
@@ -129,14 +128,14 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
   Future<void> _updateExistingFlakyIssue(
     GithubService gitHub,
     RepositorySlug slug,
-    CiYamlInner ciYaml, {
+    CiYaml ciYaml, {
     required List<BuilderStatistic> prodBuilderStatisticList,
     required List<BuilderStatistic> stagingBuilderStatisticList,
     required Map<String?, Issue> nameToExistingIssue,
   }) async {
     final Map<String, bool> builderFlakyMap = <String, bool>{};
     final Map<String, bool> ignoreFlakyMap = <String, bool>{};
-    for (Target target in ciYaml.postsubmitTargets) {
+    for (Target target in ciYaml.postsubmitTargets()) {
       builderFlakyMap[target.value.name] = target.value.bringup;
       if (target.getIgnoreFlakiness()) {
         ignoreFlakyMap[target.value.name] = true;

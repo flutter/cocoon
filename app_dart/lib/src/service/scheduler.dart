@@ -149,7 +149,7 @@ class Scheduler {
     final CiYaml ciYaml = await getCiYaml(commit);
 
     // TODO(codefu): support fusion engine
-    final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets(type: CiType.any));
+    final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
     final List<Task> tasks = targetsToTask(commit, initialTargets).toList();
 
     final List<Tuple<Target, Task, int>> toBeScheduled = <Tuple<Target, Task, int>>[];
@@ -339,7 +339,7 @@ class Scheduler {
   ///
   /// Cancels all existing targets then schedules the targets.
   ///
-  /// Schedules a [kCiYamlCheckName] to validate [CiYamlInner] is valid and all builds were able to be triggered.
+  /// Schedules a [kCiYamlCheckName] to validate [CiYaml] is valid and all builds were able to be triggered.
   /// If [builderTriggerList] is specified, then trigger only those targets.
   Future<void> triggerPresubmitTargets({
     required PullRequest pullRequest,
@@ -624,7 +624,7 @@ class Scheduler {
     log.info('ci.yaml loaded successfully.');
     log.info('Collecting presubmit targets for ${pullRequest.number}');
 
-    final inner = ciYaml.configInnerFor(type);
+    final inner = ciYaml.innerFor(type);
 
     // Filter out schedulers targets with schedulers different than luci or cocoon.
     final List<Target> presubmitTargets = inner.presubmitTargets
@@ -755,7 +755,7 @@ class Scheduler {
               log.fine('Latest firestore task is $taskDocument');
               final CiYaml ciYaml = await getCiYaml(commit);
               final Target target = ciYaml
-                  .postsubmitTargets(type: CiType.any)
+                  .postsubmitTargets()
                   .singleWhere((Target target) => target.value.name == task.name);
               await luciBuildService.reschedulePostsubmitBuildUsingCheckRunEvent(
                 checkRunEvent,
@@ -827,8 +827,8 @@ class Scheduler {
 
   /// Returns the tip of tree [Commit] using specified [branch] and [RepositorySlug].
   ///
-  /// A tip of tree [Commit] is used to help generate the tip of tree [CiYamlInner].
-  /// The generated tip of tree [CiYamlInner] will be compared against Presubmit Targets in current [CiYamlInner],
+  /// A tip of tree [Commit] is used to help generate the tip of tree [CiYaml].
+  /// The generated tip of tree [CiYaml] will be compared against Presubmit Targets in current [CiYaml],
   /// to ensure new targets without `bringup: true` label are not added into the build.
   Future<Commit> generateTotCommit({required String branch, required RepositorySlug slug}) async {
     datastore = datastoreProvider(config.db);
