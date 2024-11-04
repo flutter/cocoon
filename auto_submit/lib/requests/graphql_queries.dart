@@ -225,21 +225,6 @@ mutation EnqueueFlutterPullRequest ($clientMutationId:String!, $pullRequestId:ID
     }
   ) {
     clientMutationId
-    pullRequest {
-      author {
-        login
-      }
-      authorAssociation
-      id
-      title
-      number
-      repository {
-        owner {
-          login
-        }
-        name
-      }
-    }
   }
 }
 ''');
