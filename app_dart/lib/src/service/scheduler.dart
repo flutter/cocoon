@@ -754,9 +754,8 @@ class Scheduler {
                   taskDocuments.where((taskDocument) => taskDocument.taskName == checkName).toList().first;
               log.fine('Latest firestore task is $taskDocument');
               final CiYaml ciYaml = await getCiYaml(commit);
-              final Target target = ciYaml
-                  .postsubmitTargets()
-                  .singleWhere((Target target) => target.value.name == task.name);
+              final Target target =
+                  ciYaml.postsubmitTargets().singleWhere((Target target) => target.value.name == task.name);
               await luciBuildService.reschedulePostsubmitBuildUsingCheckRunEvent(
                 checkRunEvent,
                 commit: commit,
