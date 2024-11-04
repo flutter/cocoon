@@ -80,6 +80,7 @@ targets:
     scheduler: luci
   - name: Linux runIf engine
     runIf:
+      - DEPS
       - engine/src/flutter/.ci.yaml
       - engine/src/flutter/dev/**
 ''';

@@ -41,6 +41,8 @@ class CiYaml {
         branch: branch,
         config: config,
         type: type,
+        validate: validate,
+        isFusion: isFusion,
         totConfig: totConfig?.configs[type],
       );
     }
