@@ -8,6 +8,8 @@ set -e
 
 MINION_PLIST_PATH=/Library/LaunchDaemons/com.saltstack.salt.minion.plist
 LINUX_SALT_CLIENT_PATH="$HOME/salt-client"
+# NOTE: https://github.com/flutter/flutter/issues/142627#issuecomment-1919922724
+# before increasing this
 SALT_VERSION='3006.3'
 
 # Installs salt minion.
