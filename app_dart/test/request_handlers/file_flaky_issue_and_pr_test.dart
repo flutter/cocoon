@@ -676,7 +676,7 @@ void main() {
     test('skips when the target doesn not exist', () {
       final YamlMap? ci = loadYaml(ciYamlContent) as YamlMap?;
       final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
-      final CiYaml ciYaml = CiYaml(
+      final CiYamlSet ciYaml = CiYamlSet(
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         yamls: {CiType.any: unCheckedSchedulerConfig},
@@ -698,7 +698,7 @@ void main() {
     test('skips if the flakiness_threshold is not met', () {
       final YamlMap? ci = loadYaml(ciYamlContent) as YamlMap?;
       final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
-      final CiYaml ciYaml = CiYaml(
+      final CiYamlSet ciYaml = CiYamlSet(
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         yamls: {CiType.any: unCheckedSchedulerConfig},
@@ -724,7 +724,7 @@ void main() {
     test('honors the flakiness_threshold', () {
       final YamlMap? ci = loadYaml(ciYamlContent) as YamlMap?;
       final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
-      final CiYaml ciYaml = CiYaml(
+      final CiYamlSet ciYaml = CiYamlSet(
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         yamls: {CiType.any: unCheckedSchedulerConfig},
@@ -758,7 +758,7 @@ void main() {
   test('getIgnoreFlakiness handles non-existing builderame', () async {
     final YamlMap? ci = loadYaml(ciYamlContent) as YamlMap?;
     final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
-    final CiYaml ciYaml = CiYaml(
+    final CiYamlSet ciYaml = CiYamlSet(
       slug: Config.flutterSlug,
       branch: Config.defaultBranch(Config.flutterSlug),
       yamls: {CiType.any: unCheckedSchedulerConfig},

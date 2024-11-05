@@ -25,18 +25,25 @@ enum CiType {
   fusionEngine,
 }
 
-/// Wrapper arround one or more [CiYaml]
-class CiYaml {
-  CiYaml({
+/// Wrapper around one or more [CiYamlSet] files contained in a single repository.
+///
+/// Single sourced repositories will have exactly one `.ci.yaml` file at the
+/// root of the tree. This will have the type [CiType.any].
+///
+/// Merged repositories can have multiple `.ci.yaml` files located throughout
+/// the tree. Today we only support the root type as [CiType.any] and the second
+/// as [CiType.fusionEngine].
+class CiYamlSet {
+  CiYamlSet({
     required this.slug,
     required this.branch,
     required Map<CiType, pb.SchedulerConfig> yamls,
-    CiYaml? totConfig,
+    CiYamlSet? totConfig,
     bool validate = false,
     this.isFusion = false,
   }) {
     for (final MapEntry(key: type, value: config) in yamls.entries) {
-      configs[type] = CiYamlInner(
+      configs[type] = CiYaml(
         slug: slug,
         branch: branch,
         config: config,
@@ -50,17 +57,17 @@ class CiYaml {
 
   final bool isFusion;
 
-  final configs = <CiType, CiYamlInner>{};
+  final configs = <CiType, CiYaml>{};
 
   /// Get's the [pb.SchedulerConfig] for the requested [type].
   ///
   /// The type is expected to exist and will fail otherwise.
-  pb.SchedulerConfig configForInner(CiType type) => configs[type]!.config;
+  pb.SchedulerConfig configFor(CiType type) => configs[type]!.config;
 
-  /// Get's the [CiYamlInner] for the requested [type].
+  /// Get's the [CiYaml] for the requested [type].
   ///
   /// The type is expected to exist and will fail otherwise.
-  CiYamlInner innerFor(CiType type) => configs[type]!;
+  CiYaml ciYamlFor(CiType type) => configs[type]!;
 
   /// The [RepositorySlug] that [config] is from.
   final RepositorySlug slug;
@@ -122,16 +129,16 @@ class CiYaml {
 /// This is a wrapper class around S[pb.SchedulerConfig].
 ///
 /// See //CI_YAML.md for high level documentation.
-class CiYamlInner {
-  /// Creates [CiYaml] from a [RepositorySlug], [branch], [pb.SchedulerConfig] and an optional [CiYaml] of tip of tree CiYaml.
+class CiYaml {
+  /// Creates [CiYamlSet] from a [RepositorySlug], [branch], [pb.SchedulerConfig] and an optional [CiYamlSet] of tip of tree CiYaml.
   ///
   /// If [totConfig] is passed, the validation will verify no new targets have been added that may temporarily break the LUCI infrastructure (such as new prod or presubmit targets).
-  CiYamlInner({
+  CiYaml({
     required this.slug,
     required this.branch,
     required this.config,
     required this.type,
-    CiYamlInner? totConfig,
+    CiYaml? totConfig,
     bool validate = false,
     this.isFusion = false,
   }) {
@@ -310,7 +317,7 @@ class CiYamlInner {
     return regexp.hasMatch(branch);
   }
 
-  /// Validates [pb.SchedulerConfig] extracted from [CiYaml] files.
+  /// Validates [pb.SchedulerConfig] extracted from [CiYamlSet] files.
   ///
   /// A [pb.SchedulerConfig] file is considered good if:
   ///   1. It has at least one [pb.Target] in [pb.SchedulerConfig.targets]

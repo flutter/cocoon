@@ -146,7 +146,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       repository: slug.fullName,
       sha: userData['commit_sha'] as String,
     );
-    late CiYaml ciYaml;
+    late CiYamlSet ciYaml;
     try {
       if (commit.branch == Config.defaultBranch(commit.slug)) {
         ciYaml = await scheduler.getCiYaml(commit, validate: true);

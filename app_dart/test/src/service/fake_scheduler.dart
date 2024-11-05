@@ -44,19 +44,19 @@ class FakeScheduler extends Scheduler {
           fusionTester: fusionTester ?? FakeFusionTester(),
         );
 
-  final CiYaml _defaultConfig = emptyConfig;
+  final CiYamlSet _defaultConfig = emptyConfig;
 
-  /// [CiYaml] value to be injected on [getCiYaml].
-  CiYaml? ciYaml;
+  /// [CiYamlSet] value to be injected on [getCiYaml].
+  CiYamlSet? ciYaml;
 
   /// If true, getCiYaml will throw a [FormatException] when validation is
   /// enforced, simulating failing validation.
   bool failCiYamlValidation = false;
 
   @override
-  Future<CiYaml> getCiYaml(
+  Future<CiYamlSet> getCiYaml(
     Commit commit, {
-    CiYaml? totCiYaml,
+    CiYamlSet? totCiYaml,
     RetryOptions? retryOptions,
     bool validate = false,
   }) async {
@@ -122,7 +122,7 @@ class FakeScheduler extends Scheduler {
   }
 }
 
-final emptyConfig = CiYaml(
+final emptyConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
@@ -140,7 +140,7 @@ final emptyConfig = CiYaml(
   },
 );
 
-final exampleConfig = CiYaml(
+final exampleConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
@@ -172,7 +172,7 @@ final exampleConfig = CiYaml(
   },
 );
 
-final exampleFlakyConfig = CiYaml(
+final exampleFlakyConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
@@ -200,7 +200,7 @@ final exampleFlakyConfig = CiYaml(
   },
 );
 
-final exampleBackfillConfig = CiYaml(
+final exampleBackfillConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
@@ -231,7 +231,7 @@ final exampleBackfillConfig = CiYaml(
   },
 );
 
-final examplePresubmitRescheduleConfig = CiYaml(
+final examplePresubmitRescheduleConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
@@ -253,7 +253,7 @@ final examplePresubmitRescheduleConfig = CiYaml(
   },
 );
 
-final batchPolicyConfig = CiYaml(
+final batchPolicyConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
@@ -276,7 +276,7 @@ final batchPolicyConfig = CiYaml(
   },
 );
 
-final unsupportedPostsubmitCheckrunConfig = CiYaml(
+final unsupportedPostsubmitCheckrunConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
@@ -293,7 +293,7 @@ final unsupportedPostsubmitCheckrunConfig = CiYaml(
   },
 );
 
-final nonBringupPackagesConfig = CiYaml(
+final nonBringupPackagesConfig = CiYamlSet(
   slug: Config.packagesSlug,
   branch: Config.defaultBranch(Config.packagesSlug),
   yamls: {
@@ -310,7 +310,7 @@ final nonBringupPackagesConfig = CiYaml(
   },
 );
 
-final bringupPackagesConfig = CiYaml(
+final bringupPackagesConfig = CiYamlSet(
   slug: Config.packagesSlug,
   branch: Config.defaultBranch(Config.packagesSlug),
   yamls: {
@@ -328,7 +328,7 @@ final bringupPackagesConfig = CiYaml(
   },
 );
 
-final totCiYaml = CiYaml(
+final totCiYaml = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
@@ -348,7 +348,7 @@ final totCiYaml = CiYaml(
   },
 );
 
-final notInToTConfig = CiYaml(
+final notInToTConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {

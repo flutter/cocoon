@@ -657,7 +657,7 @@ void main() {
     test('getIgnoreFlakiness handles non-existing builderame', () async {
       final YamlMap? ci = loadYaml(ciYamlContent) as YamlMap?;
       final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
-      final CiYaml ciYaml = CiYaml(
+      final CiYamlSet ciYaml = CiYamlSet(
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         yamls: {CiType.any: unCheckedSchedulerConfig},

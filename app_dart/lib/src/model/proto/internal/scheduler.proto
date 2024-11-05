@@ -27,7 +27,7 @@ message SchedulerConfig {
 }
 
 // A unit of work for infrastructure to run.
-// Next ID: 18
+// Next ID: 17
 message Target {
     // Unique, human readable identifier.
     optional string name = 1;

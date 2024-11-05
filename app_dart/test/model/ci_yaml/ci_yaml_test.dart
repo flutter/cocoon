@@ -26,7 +26,7 @@ void main() {
     for (EnabledBranchesRegexTest regexTest in tests) {
       test(regexTest.name, () {
         expect(
-          CiYamlInner.enabledBranchesMatchesCurrentBranch(regexTest.enabledBranches, regexTest.branch),
+          CiYaml.enabledBranchesMatchesCurrentBranch(regexTest.enabledBranches, regexTest.branch),
           regexTest.expectation,
         );
       });
@@ -78,7 +78,7 @@ void main() {
     });
 
     test('filter bringup targets on release branches', () {
-      final CiYaml ciYaml = CiYaml(
+      final CiYamlSet ciYaml = CiYamlSet(
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         yamls: {
@@ -111,7 +111,7 @@ void main() {
     });
 
     group('validations and filters.', () {
-      final CiYamlInner totCIYaml = CiYamlInner(
+      final CiYaml totCIYaml = CiYaml(
         type: CiType.any,
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
@@ -130,7 +130,7 @@ void main() {
           ],
         ),
       );
-      final CiYamlInner ciYaml = CiYamlInner(
+      final CiYaml ciYaml = CiYaml(
         type: CiType.any,
         slug: Config.flutterSlug,
         branch: 'flutter-2.4-candidate.3',
@@ -196,7 +196,7 @@ void main() {
       });
 
       test('filter release_build targets from release candidate branches', () {
-        final CiYamlInner releaseYaml = CiYamlInner(
+        final CiYaml releaseYaml = CiYaml(
           type: CiType.any,
           slug: Config.flutterSlug,
           branch: 'flutter-2.4-candidate.3',
@@ -226,7 +226,7 @@ void main() {
       });
 
       test('release_build targets for main are not filtered', () {
-        final CiYamlInner releaseYaml = CiYamlInner(
+        final CiYaml releaseYaml = CiYaml(
           type: CiType.any,
           slug: Config.flutterSlug,
           branch: 'main',
@@ -261,7 +261,7 @@ void main() {
 
       test('validates yaml config', () {
         expect(
-          () => CiYamlInner(
+          () => CiYaml(
             type: CiType.any,
             slug: Config.flutterSlug,
             branch: Config.defaultBranch(Config.flutterSlug),
@@ -286,7 +286,7 @@ void main() {
       });
     });
     group('Presubmit validation', () {
-      final CiYamlInner totCIYaml = CiYamlInner(
+      final CiYaml totCIYaml = CiYaml(
         type: CiType.any,
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
@@ -306,7 +306,7 @@ void main() {
           ],
         ),
       );
-      final CiYamlInner ciYaml = CiYamlInner(
+      final CiYaml ciYaml = CiYaml(
         type: CiType.any,
         slug: Config.flutterSlug,
         branch: 'flutter-2.4-candidate.3',
@@ -360,7 +360,7 @@ void main() {
   });
 }
 
-/// Wrapper class for table driven design of [CiYamlInner.enabledBranchesMatchesCurrentBranch].
+/// Wrapper class for table driven design of [CiYaml.enabledBranchesMatchesCurrentBranch].
 class EnabledBranchesRegexTest {
   EnabledBranchesRegexTest(this.name, this.branch, this.enabledBranches, [this.expectation = true]);
 

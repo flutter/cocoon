@@ -146,7 +146,7 @@ class Scheduler {
       return;
     }
 
-    final CiYaml ciYaml = await getCiYaml(commit);
+    final CiYamlSet ciYaml = await getCiYaml(commit);
 
     // TODO(codefu): support fusion engine
     final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
@@ -243,20 +243,20 @@ class Scheduler {
   }
 
   /// Process and filters ciyaml.
-  Future<CiYaml> getCiYaml(
+  Future<CiYamlSet> getCiYaml(
     Commit commit, {
     bool validate = false,
   }) async {
     final isFusion = await fusionTester.isFusionBasedRef(commit.slug, commit.sha!);
     final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
-    final CiYaml totYaml = await _getCiYaml(totCommit, isFusionCommit: isFusion);
+    final CiYamlSet totYaml = await _getCiYaml(totCommit, isFusionCommit: isFusion);
     return _getCiYaml(commit, totCiYaml: totYaml, validate: validate, isFusionCommit: isFusion);
   }
 
   /// Load in memory the `.ci.yaml`.
-  Future<CiYaml> _getCiYaml(
+  Future<CiYamlSet> _getCiYaml(
     Commit commit, {
-    CiYaml? totCiYaml,
+    CiYamlSet? totCiYaml,
     bool validate = false,
     RetryOptions retryOptions = const RetryOptions(delayFactor: Duration(seconds: 2), maxAttempts: 4),
     bool isFusionCommit = false,
@@ -292,7 +292,7 @@ class Scheduler {
     }
 
     // If totCiYaml is not null, we assume upper level function has verified that current branch is not a release branch.
-    return CiYaml(
+    return CiYamlSet(
       yamls: {
         CiType.any: schedulerConfig,
         if (engineFusionConfig != null) CiType.fusionEngine: engineFusionConfig,
@@ -339,7 +339,7 @@ class Scheduler {
   ///
   /// Cancels all existing targets then schedules the targets.
   ///
-  /// Schedules a [kCiYamlCheckName] to validate [CiYaml] is valid and all builds were able to be triggered.
+  /// Schedules a [kCiYamlCheckName] to validate [CiYamlSet] is valid and all builds were able to be triggered.
   /// If [builderTriggerList] is specified, then trigger only those targets.
   Future<void> triggerPresubmitTargets({
     required PullRequest pullRequest,
@@ -614,7 +614,7 @@ class Scheduler {
       repository: pullRequest.base!.repo!.fullName,
       sha: pullRequest.head!.sha,
     );
-    late CiYaml ciYaml;
+    late CiYamlSet ciYaml;
     log.info('Attempting to read presubmit targets from ci.yaml for ${pullRequest.number}');
     if (commit.branch == Config.defaultBranch(commit.slug)) {
       ciYaml = await getCiYaml(commit, validate: true);
@@ -624,7 +624,7 @@ class Scheduler {
     log.info('ci.yaml loaded successfully.');
     log.info('Collecting presubmit targets for ${pullRequest.number}');
 
-    final inner = ciYaml.innerFor(type);
+    final inner = ciYaml.ciYamlFor(type);
 
     // Filter out schedulers targets with schedulers different than luci or cocoon.
     final List<Target> presubmitTargets = inner.presubmitTargets
@@ -679,7 +679,7 @@ class Scheduler {
   };
 
   /// Returns `true` if [ciYaml.postsubmitTargets] should be ran during presubmit.
-  static bool _includePostsubmitAsPresubmit(CiYamlInner ciYaml, PullRequest pullRequest) {
+  static bool _includePostsubmitAsPresubmit(CiYaml ciYaml, PullRequest pullRequest) {
     if (!_allowTestAll.contains(ciYaml.slug)) {
       return false;
     }
@@ -752,7 +752,7 @@ class Scheduler {
               final firestore.Task taskDocument =
                   taskDocuments.where((taskDocument) => taskDocument.taskName == checkName).toList().first;
               log.fine('Latest firestore task is $taskDocument');
-              final CiYaml ciYaml = await getCiYaml(commit);
+              final CiYamlSet ciYaml = await getCiYaml(commit);
               final Target target =
                   ciYaml.postsubmitTargets().singleWhere((Target target) => target.value.name == task.name);
               await luciBuildService.reschedulePostsubmitBuildUsingCheckRunEvent(
@@ -825,8 +825,8 @@ class Scheduler {
 
   /// Returns the tip of tree [Commit] using specified [branch] and [RepositorySlug].
   ///
-  /// A tip of tree [Commit] is used to help generate the tip of tree [CiYaml].
-  /// The generated tip of tree [CiYaml] will be compared against Presubmit Targets in current [CiYaml],
+  /// A tip of tree [Commit] is used to help generate the tip of tree [CiYamlSet].
+  /// The generated tip of tree [CiYamlSet] will be compared against Presubmit Targets in current [CiYamlSet],
   /// to ensure new targets without `bringup: true` label are not added into the build.
   Future<Commit> generateTotCommit({required String branch, required RepositorySlug slug}) async {
     datastore = datastoreProvider(config.db);

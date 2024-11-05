@@ -294,13 +294,13 @@ List<String> validateOwnership(
   final YamlMap? ciYaml = loadYaml(ciYamlContent) as YamlMap?;
   final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ciYaml);
 
-  final CiYaml ciYamlFromProto = CiYaml(
+  final CiYamlSet ciYamlFromProto = CiYamlSet(
     slug: Config.flutterSlug,
     branch: Config.defaultBranch(Config.flutterSlug),
     yamls: {CiType.any: unCheckedSchedulerConfig},
   );
 
-  final pb.SchedulerConfig schedulerConfig = ciYamlFromProto.configForInner(CiType.any);
+  final pb.SchedulerConfig schedulerConfig = ciYamlFromProto.configFor(CiType.any);
 
   for (pb.Target target in schedulerConfig.targets) {
     final String builder = target.name;

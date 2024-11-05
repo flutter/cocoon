@@ -219,7 +219,7 @@ Target generateTarget(
   pb.SchedulerSystem? schedulerSystem,
   String recipe = 'devicelab/devicelab',
 }) {
-  final pb.SchedulerConfig config = schedulerConfig ?? exampleConfig.configForInner(CiType.any);
+  final pb.SchedulerConfig config = schedulerConfig ?? exampleConfig.configFor(CiType.any);
   if (platformProperties != null && platformDimensions != null) {
     config.platformProperties[platform.toLowerCase()] =
         pb.SchedulerConfig_PlatformProperties(properties: platformProperties, dimensions: platformDimensions);
