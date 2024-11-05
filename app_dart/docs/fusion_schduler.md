@@ -19,7 +19,7 @@ At a very high level, presubmits looked like:
 
 ```mermaid
 sequenceDiagram
-github --) +cocoon: pr openned
+github --) +cocoon: pr opened
 
 note over cocoon: pubsub loop here
 
