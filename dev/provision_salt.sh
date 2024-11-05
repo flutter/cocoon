@@ -17,7 +17,7 @@ SALT_VERSION='3006.3'
 function install_salt() {
   OS="$(uname)"
   if [[ "$OS" == 'Darwin' ]]; then
-    curl "https://packages.broadcom.com/artifactory/saltproject-generic/macos/$SALT_VERSION/salt-$SALT_VERSION-py3-x86_64.pkg" -o /tmp/salt.pkg
+    curl -L "https://packages.broadcom.com/artifactory/saltproject-generic/macos/$SALT_VERSION/salt-$SALT_VERSION-py3-x86_64.pkg" -o /tmp/salt.pkg
     sudo installer -pkg /tmp/salt.pkg -target /
   elif [[ "$OS" == 'Linux' ]]; then
     DISTRO="$(lsb_release -is)"
@@ -57,7 +57,7 @@ function config_minion() {
 
 function set_deviceos_grains() {
   if [ -n "$1" ]; then
-    sudo /opt/salt/bin/salt-call grains.set 'device_os' "$1"
+    sudo PATH="/opt/salt/bin:/usr/local/sbin:$PATH" /opt/salt/bin/salt-call grains.set 'device_os' "$1"
   fi
 }
 
