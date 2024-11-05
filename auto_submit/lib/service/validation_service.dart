@@ -99,7 +99,7 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
 
     final enqueueMutation = EnqueuePullRequestMutation(
       id: pullRequest.id!.toString(),
-      expectedHeadOid: pullRequest.head!.ref!,
+      expectedHeadOid: pullRequest.head!.sha!,
       jump: isEmergencyPullRequest,
     );
 

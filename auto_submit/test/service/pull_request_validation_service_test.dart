@@ -475,7 +475,7 @@ This is the second line in a paragraph.''');
         {
           'clientMutationId': null,
           'pullRequestId': '1',
-          'expectedHeadOid': 'new-topic',
+          'expectedHeadOid': '6dcb09b5b57875f334f61aebed695e2e4193db5e',
           'jump': false,
         },
       );
@@ -514,7 +514,7 @@ This is the second line in a paragraph.''');
         {
           'clientMutationId': null,
           'pullRequestId': '1',
-          'expectedHeadOid': 'new-topic',
+          'expectedHeadOid': '6dcb09b5b57875f334f61aebed695e2e4193db5e',
           'jump': false,
         },
       );
@@ -557,7 +557,7 @@ This is the second line in a paragraph.''');
         {
           'clientMutationId': null,
           'pullRequestId': '1',
-          'expectedHeadOid': 'new-topic',
+          'expectedHeadOid': '6dcb09b5b57875f334f61aebed695e2e4193db5e',
           'jump': true,
         },
       );
