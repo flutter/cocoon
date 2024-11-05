@@ -48,7 +48,7 @@ deactivate cocoon
 There will be multiple `.ci.yaml` files in the repository now that the engine is
 present. Pull requests can contain framework, engine, or both changes. In this
 world: if any parts of the engine are changed, we need to schedule
-**and wait for** and engine builds to be present to test from source. This means
+**and wait for** all engine builds to be present to test from source. This means
 either `ci.yaml validation` is kept from completing; or anotther check is
 created that will block progress.
 
