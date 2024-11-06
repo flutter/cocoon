@@ -12,7 +12,6 @@ class FakeFusionTester implements FusionTester {
     String ref,
   ) isFusion = (_, __) => false;
 
-
   @override
   Future<bool> isFusionBasedRef(
     RepositorySlug slug,
