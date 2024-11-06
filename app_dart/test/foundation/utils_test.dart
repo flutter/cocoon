@@ -419,10 +419,14 @@ void main() {
       maxDelay: Duration.zero,
     );
 
+    final goodFlutterRef = (slug: RepositorySlug.full('flutter/flutter'), sha: '1234');
+    final goodFlauxRef = (slug: RepositorySlug.full('flutter/flaux'), sha: 'abcd');
+
     test('isFusionPR returns false non-flutter repo', () async {
       final branchHttpClient = MockClient(
         (req) async {
-          if (!'${req.url}'.contains('https://raw.githubusercontent.com/flutter/flutter/')) {
+          final url = '${req.url}';
+          if (!url.contains('https://raw.githubusercontent.com/flutter/flutter/DEPS')) {
             return http.Response('', HttpStatus.notFound);
           }
           return http.Response('test', HttpStatus.ok);
@@ -430,63 +434,22 @@ void main() {
       );
       final tester = FusionTester(httpClientProvider: () => branchHttpClient);
 
-      final fusion = await tester.isFusionBasedPR(
-        PullRequest.fromJson({
-          'base': {
-            'repo': {
-              'owner': {
-                'login': 'flutter',
-                'id': 1234,
-                'avatar_url': 'http://example.com/',
-                'html_url': 'http://example.com/',
-              },
-              'name': 'engine',
-            },
-            'ref': 'master',
-          },
-        }),
+      final fusion = await tester.isFusionBasedRef(
+        RepositorySlug('code', 'fu'),
+        goodFlutterRef.sha,
         retryOptions: noRetry,
       );
       expect(fusion, isFalse);
     });
 
-    final goodPrRequest = PullRequest.fromJson({
-      'base': {
-        'repo': {
-          'owner': {
-            'login': 'flutter',
-            'id': 1234,
-            'avatar_url': 'http://example.com/',
-            'html_url': 'http://example.com/',
-          },
-          'name': 'flutter',
-        },
-        'ref': 'master',
-      },
-    });
-
-    final goodFlauxPrRequest = PullRequest.fromJson({
-      'base': {
-        'repo': {
-          'owner': {
-            'login': 'flutter',
-            'id': 1234,
-            'avatar_url': 'http://example.com/',
-            'html_url': 'http://example.com/',
-          },
-          'name': 'flutter',
-        },
-        'ref': 'master',
-      },
-    });
-
     test('isFusionPR returns false for missing DEPS file', () async {
       final branchHttpClient = MockClient(
         (req) async {
-          if ('${req.url}'.contains('flutter.googlesource.com')) {
+          final url = '${req.url}';
+          if (url.contains('flutter.googlesource.com')) {
             return http.Response('', HttpStatus.notFound);
-          } else if ('${req.url}'.contains(
-            'https://raw.githubusercontent.com/flutter/flutter/master/DEPS',
+          } else if (url.contains(
+            'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS',
           )) {
             return http.Response('', HttpStatus.notFound);
           }
@@ -495,8 +458,9 @@ void main() {
       );
       final tester = FusionTester(httpClientProvider: () => branchHttpClient);
 
-      final fusion = await tester.isFusionBasedPR(
-        goodPrRequest,
+      final fusion = await tester.isFusionBasedRef(
+        goodFlutterRef.slug,
+        goodFlutterRef.sha,
         retryOptions: noRetry,
       );
       expect(fusion, isFalse);
@@ -505,10 +469,11 @@ void main() {
     test('isFusionPR returns false for missing engine/src/.gn file', () async {
       final branchHttpClient = MockClient(
         (req) async {
-          if ('${req.url}'.contains('flutter.googlesource.com')) {
+          final url = '${req.url}';
+          if (url.contains('flutter.googlesource.com')) {
             return http.Response('', HttpStatus.notFound);
-          } else if ('${req.url}'.contains(
-            'https://raw.githubusercontent.com/flutter/flutter/master/engine/src/.gn',
+          } else if (url.contains(
+            'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
           )) {
             return http.Response('', HttpStatus.notFound);
           }
@@ -517,8 +482,9 @@ void main() {
       );
       final tester = FusionTester(httpClientProvider: () => branchHttpClient);
 
-      final fusion = await tester.isFusionBasedPR(
-        goodPrRequest,
+      final fusion = await tester.isFusionBasedRef(
+        goodFlutterRef.slug,
+        goodFlutterRef.sha,
         retryOptions: noRetry,
       );
       expect(fusion, isFalse);
@@ -527,13 +493,14 @@ void main() {
     test('isFusionPR returns false if required files are empty', () async {
       final branchHttpClient = MockClient(
         (req) async {
-          if ('${req.url}'.contains('flutter.googlesource.com')) {
+          final url = '${req.url}';
+          if (url.contains('flutter.googlesource.com')) {
             return http.Response('', HttpStatus.notFound);
-          } else if ('${req.url}'.contains(
-                'https://raw.githubusercontent.com/flutter/flutter/master/engine/src/.gn',
+          } else if (url.contains(
+                'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
               ) ||
-              '${req.url}'.contains(
-                'https://raw.githubusercontent.com/flutter/flutter/master/DEPS',
+              url.contains(
+                'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS',
               )) {
             return http.Response('', HttpStatus.ok);
           }
@@ -542,8 +509,9 @@ void main() {
       );
       final tester = FusionTester(httpClientProvider: () => branchHttpClient);
 
-      final fusion = await tester.isFusionBasedPR(
-        goodPrRequest,
+      final fusion = await tester.isFusionBasedRef(
+        goodFlutterRef.slug,
+        goodFlutterRef.sha,
         retryOptions: noRetry,
       );
       expect(fusion, isFalse);
@@ -552,10 +520,11 @@ void main() {
     test('isFusionPR lets non-404 exceptions bubble', () async {
       final branchHttpClient = MockClient(
         (req) async {
-          if ('${req.url}'.contains('flutter.googlesource.com')) {
+          final url = '${req.url}';
+          if (url.contains('flutter.googlesource.com')) {
             return http.Response('', HttpStatus.badRequest);
-          } else if ('${req.url}'.contains(
-            'https://raw.githubusercontent.com/flutter/flutter/master/engine/src/.gn',
+          } else if (url.contains(
+            'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
           )) {
             return http.Response('', HttpStatus.badRequest);
           }
@@ -565,8 +534,9 @@ void main() {
       final tester = FusionTester(httpClientProvider: () => branchHttpClient);
 
       expect(
-        tester.isFusionBasedPR(
-          goodPrRequest,
+        tester.isFusionBasedRef(
+          goodFlutterRef.slug,
+          goodFlutterRef.sha,
           retryOptions: noRetry,
         ),
         throwsA(isA<HttpException>()),
@@ -576,19 +546,20 @@ void main() {
     test('isFusionPR returns true whe expected files are present', () async {
       final branchHttpClient = MockClient(
         (req) async {
-          if ('${req.url}'.contains('flutter.googlesource.com')) {
+          final url = '${req.url}';
+          if (url.contains('flutter.googlesource.com')) {
             return http.Response('', HttpStatus.notFound);
-          } else if ('${req.url}'.contains(
-                'https://raw.githubusercontent.com/flutter/flutter/master/engine/src/.gn',
+          } else if (url.contains(
+                'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
               ) ||
-              '${req.url}'.contains(
-                'https://raw.githubusercontent.com/flutter/flaux/master/engine/src/.gn',
+              url.contains(
+                'https://raw.githubusercontent.com/flutter/flaux/abcd/engine/src/.gn',
               ) ||
-              '${req.url}'.contains(
-                'https://raw.githubusercontent.com/flutter/flutter/master/DEPS',
+              url.contains(
+                'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS',
               ) ||
-              '${req.url}'.contains(
-                'https://raw.githubusercontent.com/flutter/flaux/master/DEPS',
+              url.contains(
+                'https://raw.githubusercontent.com/flutter/flaux/abcd/DEPS',
               )) {
             return http.Response('FUSION', HttpStatus.ok);
           }
@@ -596,15 +567,52 @@ void main() {
         },
       );
 
-      for (var request in [goodPrRequest, goodFlauxPrRequest]) {
+      for (var request in [goodFlutterRef, goodFlauxRef, goodFlutterRef, goodFlauxRef]) {
         final tester = FusionTester(httpClientProvider: () => branchHttpClient);
 
-        final fusion = await tester.isFusionBasedPR(
-          request,
+        final fusion = await tester.isFusionBasedRef(
+          request.slug,
+          request.sha,
           retryOptions: noRetry,
         );
         expect(fusion, isTrue);
       }
+    });
+
+    test('isFusionPR caches results', () async {
+      final urlCalled = <String, int>{};
+
+      final branchHttpClient = MockClient(
+        (req) async {
+          final url = '${req.url}';
+          urlCalled[url] = (urlCalled[url] ?? 0) + 1;
+          if (url.contains('flutter.googlesource.com')) {
+            return http.Response('', HttpStatus.notFound);
+          } else if (url.contains(
+                'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
+              ) ||
+              url.contains(
+                'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS',
+              )) {
+            return http.Response('FUSION', HttpStatus.ok);
+          }
+          return http.Response('test', HttpStatus.ok);
+        },
+      );
+
+      final tester = FusionTester(httpClientProvider: () => branchHttpClient);
+      for (var request in [goodFlutterRef, goodFlauxRef, goodFlutterRef, goodFlauxRef]) {
+        final fusion = await tester.isFusionBasedRef(
+          request.slug,
+          request.sha,
+          retryOptions: noRetry,
+        );
+        expect(fusion, isTrue);
+      }
+      expect(urlCalled['https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn'], 1);
+      expect(urlCalled['https://raw.githubusercontent.com/flutter/flutter/1234/DEPS'], 1);
+      expect(urlCalled['https://raw.githubusercontent.com/flutter/flaux/abcd/engine/src/.gn'], 1);
+      expect(urlCalled['https://raw.githubusercontent.com/flutter/flaux/abcd/DEPS'], 1);
     });
   });
 }
