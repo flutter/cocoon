@@ -10,9 +10,12 @@ import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:cocoon_service/src/service/logging.dart';
+import 'package:cocoon_service/src/service/scheduler.dart';
 
 import 'package:github/github.dart' hide Branch;
 import 'package:googleapis/bigquery/v2.dart';
+import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -21,6 +24,7 @@ import '../../src/datastore/fake_datastore.dart';
 import '../../src/request_handling/fake_http.dart';
 import '../../src/request_handling/subscription_tester.dart';
 import '../../src/service/fake_build_bucket_client.dart';
+import '../../src/service/fake_fusion_tester.dart';
 import '../../src/service/fake_github_service.dart';
 import '../../src/service/fake_gerrit_service.dart';
 import '../../src/service/fake_scheduler.dart';
@@ -43,6 +47,7 @@ void main() {
   late MockIssuesService issuesService;
   late MockPullRequestsService pullRequestsService;
   late SubscriptionTester tester;
+  late FakeFusionTester fakeFusionTester;
 
   /// Name of an example release base branch name.
   const String kReleaseBaseRef = 'flutter-2.12-candidate.4';
@@ -88,6 +93,8 @@ void main() {
     when(pullRequestsService.edit(any, any, title: anyNamed('title'), state: anyNamed('state'), base: anyNamed('base')))
         .thenAnswer((_) async => PullRequest());
     fakeBuildBucketClient = FakeBuildBucketClient();
+    fakeFusionTester = FakeFusionTester();
+    fakeFusionTester.isFusion = (_, __) => false;
     mockGithubChecksUtil = MockGithubChecksUtil();
     scheduler =
         FakeScheduler(config: config, buildbucket: fakeBuildBucketClient, githubChecksUtil: mockGithubChecksUtil);
@@ -111,6 +118,7 @@ void main() {
       gerritService: gerritService,
       scheduler: scheduler,
       commitService: commitService,
+      fusionTester: fakeFusionTester,
     );
   });
 
@@ -552,6 +560,73 @@ void main() {
           argThat(contains(config.missingTestsPullRequestMessageValue)),
         ),
       ).called(1);
+    });
+
+    test('Fusion labels engine PRs, comment if no tests', () async {
+      // Note: engine doesn't add any labels, so we're only looking for comments
+      const int issueNumber = 123;
+
+      fakeFusionTester.isFusion = (_, __) => true;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+      );
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable([
+          PullRequestFile()..filename = 'engine/src/flutter/fu.cc',
+        ]),
+      );
+
+      when(issuesService.listCommentsByIssue(Config.flutterSlug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verify(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      ).called(1);
+    });
+
+    test('Fusion labels engine PRs, no comment for tests', () async {
+      // Note: engine doesn't add any labels, so we're only looking for comments
+      const int issueNumber = 123;
+
+      fakeFusionTester.isFusion = (_, __) => true;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+      );
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable([
+          PullRequestFile()..filename = 'engine/src/flutter/fu.cc',
+          PullRequestFile()..filename = 'engine/src/flutter/fu_benchmarks.cc',
+        ]),
+      );
+
+      when(issuesService.listCommentsByIssue(Config.flutterSlug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     group('Auto-roller accounts do not label Framework PR with test label or comment.', () {
@@ -2414,6 +2489,137 @@ void foo() {
       await tester.post(webhook);
 
       verify(commitService.handleCreateGithubRequest(any)).called(1);
+    });
+  });
+
+  group('github webhook merge_group event', () {
+    setUpAll(() {
+      Scheduler.debugCheckPretendDelay = Duration.zero;
+    });
+
+    test('checks_requested success', () async {
+      final records = <String>[];
+      final subscription = log.onRecord.listen((record) {
+        if (record.level >= Level.FINE) {
+          records.add(record.message);
+        }
+      });
+      tester.message = generateMergeGroupMessage(
+        repository: 'flutter/flutter',
+        action: 'checks_requested',
+        message: 'Implement an amazing feature',
+      );
+      await tester.post(webhook);
+      await subscription.cancel();
+
+      verify(
+        mockGithubChecksUtil.createCheckRun(
+          any,
+          any,
+          'c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Simulated merge queue check',
+          output: anyNamed('output'),
+        ),
+      ).called(1);
+
+      verify(
+        mockGithubChecksUtil.updateCheckRun(
+          any,
+          any,
+          any,
+          status: CheckRunStatus.completed,
+          conclusion: CheckRunConclusion.success,
+        ),
+      ).called(2);
+
+      expect(
+        records,
+        <String>[
+          'Processing merge_group',
+          'Processing checks_requested for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Simulating checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Simulating merge group checks for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'All required CI tasks passed for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Finished Simulating merge group checks for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+        ],
+      );
+    });
+
+    test('checks_requested failure', () async {
+      final records = <String>[];
+      final subscription = log.onRecord.listen((record) {
+        if (record.level >= Level.FINE) {
+          records.add(record.message);
+        }
+      });
+
+      tester.message = generateMergeGroupMessage(
+        repository: 'flutter/flutter',
+        action: 'checks_requested',
+        message: 'Implement a buggy feature (MQ_FAIL)',
+      );
+
+      await tester.post(webhook);
+      await subscription.cancel();
+
+      verify(
+        mockGithubChecksUtil.createCheckRun(
+          any,
+          any,
+          'c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Simulated merge queue check',
+          output: anyNamed('output'),
+        ),
+      ).called(1);
+
+      verify(
+        mockGithubChecksUtil.updateCheckRun(
+          any,
+          any,
+          any,
+          status: CheckRunStatus.completed,
+          conclusion: CheckRunConclusion.failure,
+        ),
+      ).called(1);
+
+      expect(
+        records,
+        <String>[
+          'Processing merge_group',
+          'Processing checks_requested for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Simulating checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Simulating merge group checks for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Some required CI tasks failed for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Some checks failed',
+          'Finished Simulating merge group checks for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+        ],
+      );
+    });
+
+    test('destroyed', () async {
+      final records = <String>[];
+      final subscription = log.onRecord.listen((record) {
+        if (record.level >= Level.FINE) {
+          records.add(record.message);
+        }
+      });
+      tester.message = generateMergeGroupMessage(
+        repository: 'flutter/flutter',
+        action: 'destroyed',
+        message: 'test message',
+      );
+      await tester.post(webhook);
+      await subscription.cancel();
+
+      expect(
+        records,
+        <String>[
+          'Processing merge_group',
+          'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Simulating destruction of a merge group @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Simulating cancellation of merge group CI targets for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+        ],
+      );
     });
   });
 }

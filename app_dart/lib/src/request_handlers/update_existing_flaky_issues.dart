@@ -34,7 +34,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
   static const String kThresholdKey = 'threshold';
   static const int kFreshPeriodForOpenFlake = 7; // days
 
-  final CiYaml? ciYaml;
+  final CiYamlSet? ciYaml;
 
   @override
   Future<Body> get() async {
@@ -42,7 +42,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
 
-    CiYaml? localCiYaml = ciYaml;
+    CiYamlSet? localCiYaml = ciYaml;
     if (localCiYaml == null) {
       final YamlMap? ci = loadYaml(
         await gitHub.getFileContent(
@@ -51,10 +51,10 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
         ),
       ) as YamlMap?;
       final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
-      localCiYaml = CiYaml(
+      localCiYaml = CiYamlSet(
         slug: slug,
         branch: Config.defaultBranch(slug),
-        config: unCheckedSchedulerConfig,
+        yamls: {CiType.any: unCheckedSchedulerConfig},
       );
     }
 
@@ -90,7 +90,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     required bool bringup,
     required BuilderStatistic statistic,
     required Issue existingIssue,
-    required CiYaml ciYaml,
+    required CiYamlSet ciYaml,
   }) async {
     if (DateTime.now().difference(existingIssue.createdAt!) < const Duration(days: kFreshPeriodForOpenFlake)) {
       return;
@@ -110,7 +110,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
         kTestOwnerPath,
       );
 
-      final pb.SchedulerConfig schedulerConfig = ciYaml.config;
+      final pb.SchedulerConfig schedulerConfig = ciYaml.configFor(CiType.any);
       final List<pb.Target> targets = schedulerConfig.targets;
 
       final String? testOwner = getTestOwnership(
@@ -128,14 +128,14 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
   Future<void> _updateExistingFlakyIssue(
     GithubService gitHub,
     RepositorySlug slug,
-    CiYaml ciYaml, {
+    CiYamlSet ciYaml, {
     required List<BuilderStatistic> prodBuilderStatisticList,
     required List<BuilderStatistic> stagingBuilderStatisticList,
     required Map<String?, Issue> nameToExistingIssue,
   }) async {
     final Map<String, bool> builderFlakyMap = <String, bool>{};
     final Map<String, bool> ignoreFlakyMap = <String, bool>{};
-    for (Target target in ciYaml.postsubmitTargets) {
+    for (Target target in ciYaml.postsubmitTargets()) {
       builderFlakyMap[target.value.name] = target.value.bringup;
       if (target.getIgnoreFlakiness()) {
         ignoreFlakyMap[target.value.name] = true;
@@ -147,10 +147,8 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     // is newly identified as flaky, there is a gap between the builder is marked as `bringup: true` and the flaky bug is filed.
     // For this case, there will be builds still running in `prod` pool, and we need to append `prod` stats as well.
     for (final BuilderStatistic statistic in prodBuilderStatisticList) {
-      // ignore: iterable_contains_unrelated_type
       if (nameToExistingIssue.containsKey(statistic.name) &&
           builderFlakyMap.containsKey(statistic.name) &&
-          // ignore: iterable_contains_unrelated_type
           !ignoreFlakyMap.containsKey(statistic.name)) {
         await _addCommentToExistingIssue(
           gitHub,
@@ -167,7 +165,6 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     for (final BuilderStatistic statistic in stagingBuilderStatisticList) {
       if (nameToExistingIssue.containsKey(statistic.name) &&
           builderFlakyMap[statistic.name] == true &&
-          // ignore: iterable_contains_unrelated_type
           !ignoreFlakyMap.containsKey(statistic.name)) {
         await _addCommentToExistingIssue(
           gitHub,

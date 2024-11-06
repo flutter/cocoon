@@ -25,6 +25,7 @@ void main(List<String> args) async {
   final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
   print(
     CiYaml(
+      type: CiType.any,
       slug: Config.flutterSlug,
       branch: Config.defaultBranch(Config.flutterSlug),
       config: unCheckedSchedulerConfig,

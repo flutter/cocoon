@@ -23,7 +23,9 @@ Server createServer({
   required CommitService commitService,
   required GerritService gerritService,
   required Scheduler scheduler,
+  FusionTester? fusionTester,
 }) {
+  fusionTester ??= FusionTester();
   final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
     '/api/check_flaky_builders': CheckFlakyBuilders(
       config: config,
@@ -67,6 +69,7 @@ Server createServer({
       gerritService: gerritService,
       scheduler: scheduler,
       commitService: commitService,
+      fusionTester: fusionTester,
     ),
     '/api/v2/presubmit-luci-subscription': PresubmitLuciSubscription(
       cache: cache,

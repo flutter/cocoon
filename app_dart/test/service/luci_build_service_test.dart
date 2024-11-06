@@ -38,7 +38,6 @@ void main() {
   FakeGithubService githubService;
   late MockBuildBucketClient mockBuildBucketClient;
   late LuciBuildService service;
-  late RepositorySlug slug;
   late MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
   late FakePubSub pubsub;
 
@@ -49,8 +48,12 @@ void main() {
 
   group('getBuilds', () {
     final bbv2.Build macBuild = generateBbv2Build(Int64(998), name: 'Mac', status: bbv2.Status.STARTED);
-    final bbv2.Build linuxBuild =
-        generateBbv2Build(Int64(998), name: 'Linux', bucket: 'try', status: bbv2.Status.STARTED);
+    final bbv2.Build linuxBuild = generateBbv2Build(
+      Int64(998),
+      name: 'Linux',
+      bucket: 'try',
+      status: bbv2.Status.STARTED,
+    );
 
     setUp(() {
       cache = CacheService(inMemory: true);
@@ -65,7 +68,6 @@ void main() {
         gerritService: FakeGerritService(),
         pubsub: pubsub,
       );
-      slug = RepositorySlug('flutter', 'cocoon');
     });
 
     test('Null build', () async {
@@ -81,7 +83,6 @@ void main() {
         );
       });
       final Iterable<bbv2.Build> builds = await service.getTryBuilds(
-        slug: Config.flutterSlug,
         sha: 'shasha',
         builderName: 'abcd',
       );
@@ -101,8 +102,6 @@ void main() {
         );
       });
       final Iterable<bbv2.Build> builds = await service.getProdBuilds(
-        slug: slug,
-        commitSha: 'commit123',
         builderName: 'abcd',
       );
       expect(builds, isEmpty);
@@ -121,7 +120,6 @@ void main() {
         );
       });
       final Iterable<bbv2.Build> builds = await service.getTryBuilds(
-        slug: Config.flutterSlug,
         sha: 'shasha',
         builderName: 'abcd',
       );
@@ -164,15 +162,26 @@ void main() {
         gerritService: FakeGerritService(),
         pubsub: pubsub,
       );
-      slug = RepositorySlug('flutter', 'flutter');
     });
 
     test('with one rpc call', () async {
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         return bbv2.ListBuildersResponse(
           builders: [
-            bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'test1')),
-            bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'test2')),
+            bbv2.BuilderItem(
+              id: bbv2.BuilderID(
+                bucket: 'prod',
+                project: 'flutter',
+                builder: 'test1',
+              ),
+            ),
+            bbv2.BuilderItem(
+              id: bbv2.BuilderID(
+                bucket: 'prod',
+                project: 'flutter',
+                builder: 'test2',
+              ),
+            ),
           ],
         );
       });
@@ -188,16 +197,40 @@ void main() {
         if (retries == 0) {
           return bbv2.ListBuildersResponse(
             builders: [
-              bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'test1')),
-              bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'test2')),
+              bbv2.BuilderItem(
+                id: bbv2.BuilderID(
+                  bucket: 'prod',
+                  project: 'flutter',
+                  builder: 'test1',
+                ),
+              ),
+              bbv2.BuilderItem(
+                id: bbv2.BuilderID(
+                  bucket: 'prod',
+                  project: 'flutter',
+                  builder: 'test2',
+                ),
+              ),
             ],
             nextPageToken: 'token',
           );
         } else if (retries == 1) {
           return bbv2.ListBuildersResponse(
             builders: [
-              bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'test3')),
-              bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'test4')),
+              bbv2.BuilderItem(
+                id: bbv2.BuilderID(
+                  bucket: 'prod',
+                  project: 'flutter',
+                  builder: 'test3',
+                ),
+              ),
+              bbv2.BuilderItem(
+                id: bbv2.BuilderID(
+                  bucket: 'prod',
+                  project: 'flutter',
+                  builder: 'test4',
+                ),
+              ),
             ],
           );
         } else {
@@ -212,7 +245,11 @@ void main() {
 
   group('buildsForRepositoryAndPr', () {
     final bbv2.Build macBuild = generateBbv2Build(Int64(999), name: 'Mac', status: bbv2.Status.STARTED);
-    final bbv2.Build linuxBuild = generateBbv2Build(Int64(998), name: 'Linux', status: bbv2.Status.STARTED);
+    final bbv2.Build linuxBuild = generateBbv2Build(
+      Int64(998),
+      name: 'Linux',
+      status: bbv2.Status.STARTED,
+    );
 
     setUp(() {
       cache = CacheService(inMemory: true);
@@ -226,7 +263,6 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
-      slug = RepositorySlug('flutter', 'cocoon');
     });
 
     test('Empty responses are handled correctly', () async {
@@ -242,7 +278,6 @@ void main() {
         );
       });
       final Iterable<bbv2.Build> builds = await service.getTryBuilds(
-        slug: RepositorySlug.full(pullRequest.base!.repo!.fullName),
         sha: pullRequest.head!.sha!,
         builderName: null,
       );
@@ -267,7 +302,6 @@ void main() {
         );
       });
       final Iterable<bbv2.Build> builds = await service.getTryBuilds(
-        slug: RepositorySlug.full(pullRequest.base!.repo!.fullName),
         sha: pullRequest.head!.sha!,
         builderName: null,
       );
@@ -291,7 +325,6 @@ void main() {
         gerritService: FakeGerritService(branchesValue: <String>['master']),
         pubsub: pubsub,
       );
-      slug = RepositorySlug('flutter', 'cocoon');
     });
 
     test('schedule try builds successfully', () async {
@@ -322,7 +355,10 @@ void main() {
       final bbv2.ScheduleBuildRequest scheduleBuild = batchRequest.requests.single.scheduleBuild;
       expect(scheduleBuild.builder.bucket, 'try');
       expect(scheduleBuild.builder.builder, 'Linux 1');
-      expect(scheduleBuild.notify.pubsubTopic, 'projects/flutter-dashboard/topics/build-bucket-presubmit');
+      expect(
+        scheduleBuild.notify.pubsubTopic,
+        'projects/flutter-dashboard/topics/build-bucket-presubmit',
+      );
 
       final Map<String, dynamic> userDataMap = UserData.decodeUserDataBytes(scheduleBuild.notify.userData);
 
@@ -380,7 +416,10 @@ void main() {
       final bbv2.ScheduleBuildRequest scheduleBuild = batchRequest.requests.single.scheduleBuild;
       expect(scheduleBuild.builder.bucket, 'try');
       expect(scheduleBuild.builder.builder, 'Linux 1');
-      expect(scheduleBuild.notify.pubsubTopic, 'projects/flutter-dashboard/topics/build-bucket-presubmit');
+      expect(
+        scheduleBuild.notify.pubsubTopic,
+        'projects/flutter-dashboard/topics/build-bucket-presubmit',
+      );
 
       final Map<String, dynamic> userDataMap = UserData.decodeUserDataBytes(scheduleBuild.notify.userData);
 
@@ -441,12 +480,24 @@ void main() {
 
     test('schedule packages postsubmit builds successfully', () async {
       final Commit commit = generateCommit(0);
-      when(mockGithubChecksUtil.createCheckRun(any, Config.packagesSlug, any, 'Linux 1'))
-          .thenAnswer((_) async => generateCheckRun(1));
+      when(
+        mockGithubChecksUtil.createCheckRun(
+          any,
+          Config.packagesSlug,
+          any,
+          'Linux 1',
+        ),
+      ).thenAnswer((_) async => generateCheckRun(1));
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         return bbv2.ListBuildersResponse(
           builders: [
-            bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'Linux 1')),
+            bbv2.BuilderItem(
+              id: bbv2.BuilderID(
+                bucket: 'prod',
+                project: 'flutter',
+                builder: 'Linux 1',
+              ),
+            ),
           ],
         );
       });
@@ -478,7 +529,10 @@ void main() {
       final bbv2.ScheduleBuildRequest scheduleBuild = request.requests.single.scheduleBuild;
       expect(scheduleBuild.builder.bucket, 'prod');
       expect(scheduleBuild.builder.builder, 'Linux 1');
-      expect(scheduleBuild.notify.pubsubTopic, 'projects/flutter-dashboard/topics/build-bucket-postsubmit');
+      expect(
+        scheduleBuild.notify.pubsubTopic,
+        'projects/flutter-dashboard/topics/build-bucket-postsubmit',
+      );
 
       final Map<String, dynamic> userDataMap = UserData.decodeUserDataBytes(scheduleBuild.notify.userData);
 
@@ -505,10 +559,17 @@ void main() {
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
       });
 
-      expect(scheduleBuild.exe, bbv2.Executable(cipdVersion: 'refs/heads/master'));
+      expect(
+        scheduleBuild.exe,
+        bbv2.Executable(cipdVersion: 'refs/heads/master'),
+      );
       expect(scheduleBuild.dimensions, isNotEmpty);
       expect(
-        scheduleBuild.dimensions.singleWhere((bbv2.RequestedDimension dimension) => dimension.key == 'os').value,
+        scheduleBuild.dimensions
+            .singleWhere(
+              (bbv2.RequestedDimension dimension) => dimension.key == 'os',
+            )
+            .value,
         'debian-10.12',
       );
     });
@@ -520,7 +581,13 @@ void main() {
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         return bbv2.ListBuildersResponse(
           builders: [
-            bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'Linux 1')),
+            bbv2.BuilderItem(
+              id: bbv2.BuilderID(
+                bucket: 'prod',
+                project: 'flutter',
+                builder: 'Linux 1',
+              ),
+            ),
           ],
         );
       });
@@ -551,7 +618,10 @@ void main() {
       final bbv2.ScheduleBuildRequest scheduleBuild = request.requests.single.scheduleBuild;
       expect(scheduleBuild.builder.bucket, 'prod');
       expect(scheduleBuild.builder.builder, 'Linux 1');
-      expect(scheduleBuild.notify.pubsubTopic, 'projects/flutter-dashboard/topics/build-bucket-postsubmit');
+      expect(
+        scheduleBuild.notify.pubsubTopic,
+        'projects/flutter-dashboard/topics/build-bucket-postsubmit',
+      );
 
       final Map<String, dynamic> userData = UserData.decodeUserDataBytes(scheduleBuild.notify.userData);
 
@@ -693,7 +763,13 @@ void main() {
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         return bbv2.ListBuildersResponse(
           builders: [
-            bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'Linux 1')),
+            bbv2.BuilderItem(
+              id: bbv2.BuilderID(
+                bucket: 'prod',
+                project: 'flutter',
+                builder: 'Linux 1',
+              ),
+            ),
           ],
         );
       });
@@ -725,7 +801,10 @@ void main() {
       final bbv2.ScheduleBuildRequest scheduleBuild = request.requests.single.scheduleBuild;
       expect(scheduleBuild.builder.bucket, 'staging');
       expect(scheduleBuild.builder.builder, 'Linux 1');
-      expect(scheduleBuild.notify.pubsubTopic, 'projects/flutter-dashboard/topics/build-bucket-postsubmit');
+      expect(
+        scheduleBuild.notify.pubsubTopic,
+        'projects/flutter-dashboard/topics/build-bucket-postsubmit',
+      );
       final Map<String, dynamic> userData = UserData.decodeUserDataBytes(scheduleBuild.notify.userData);
       // No check run related data.
       expect(userData, <String, dynamic>{
@@ -745,7 +824,13 @@ void main() {
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         return bbv2.ListBuildersResponse(
           builders: [
-            bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'Linux 2')),
+            bbv2.BuilderItem(
+              id: bbv2.BuilderID(
+                bucket: 'prod',
+                project: 'flutter',
+                builder: 'Linux 2',
+              ),
+            ),
           ],
         );
       });
@@ -818,10 +903,20 @@ void main() {
                     status: bbv2.Status.ENDED_MASK,
                     tags: <bbv2.StringPair>[
                       bbv2.StringPair(key: 'buildset', value: 'pr/git/123'),
-                      bbv2.StringPair(key: 'cipd_version', value: 'refs/heads/main'),
-                      bbv2.StringPair(key: 'github_link', value: 'https://github.com/flutter/flutter/pull/1'),
+                      bbv2.StringPair(
+                        key: 'cipd_version',
+                        value: 'refs/heads/main',
+                      ),
+                      bbv2.StringPair(
+                        key: 'github_link',
+                        value: 'https://github.com/flutter/flutter/pull/1',
+                      ),
                     ],
-                    input: bbv2.Build_Input(properties: bbv2.Struct(fields: {'test': bbv2.Value(stringValue: 'abc')})),
+                    input: bbv2.Build_Input(
+                      properties: bbv2.Struct(
+                        fields: {'test': bbv2.Value(stringValue: 'abc')},
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -882,7 +977,6 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
-      slug = RepositorySlug('flutter', 'cocoon');
     });
 
     test('Cancel builds when build list is empty', () async {
@@ -891,7 +985,10 @@ void main() {
           responses: <bbv2.BatchResponse_Response>[],
         );
       });
-      await service.cancelBuilds(pullRequest: pullRequest, reason: 'new builds');
+      await service.cancelBuilds(
+        pullRequest: pullRequest,
+        reason: 'new builds',
+      );
       // This is okay, it is getting called twice when it runs cancel builds
       // because the call is no longer being short-circuited. It calls batch in
       // tryBuildsForPullRequest and it calls in the top level cancelBuilds
@@ -906,14 +1003,21 @@ void main() {
             bbv2.BatchResponse_Response(
               searchBuilds: bbv2.SearchBuildsResponse(
                 builds: <bbv2.Build>[
-                  generateBbv2Build(Int64(998), name: 'Linux', status: bbv2.Status.STARTED),
+                  generateBbv2Build(
+                    Int64(998),
+                    name: 'Linux',
+                    status: bbv2.Status.STARTED,
+                  ),
                 ],
               ),
             ),
           ],
         );
       });
-      await service.cancelBuilds(pullRequest: pullRequest, reason: 'new builds');
+      await service.cancelBuilds(
+        pullRequest: pullRequest,
+        reason: 'new builds',
+      );
 
       final List<dynamic> captured = verify(
         mockBuildBucketClient.batch(
@@ -951,7 +1055,6 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
-      slug = RepositorySlug('flutter', 'flutter');
     });
 
     test('Failed builds from an empty list', () async {
@@ -971,15 +1074,21 @@ void main() {
             bbv2.BatchResponse_Response(
               searchBuilds: bbv2.SearchBuildsResponse(
                 builds: <bbv2.Build>[
-                  generateBbv2Build(Int64(998), name: 'Linux 1', status: bbv2.Status.FAILURE),
+                  generateBbv2Build(
+                    Int64(998),
+                    name: 'Linux 1',
+                    status: bbv2.Status.FAILURE,
+                  ),
                 ],
               ),
             ),
           ],
         );
       });
-      final List<bbv2.Build?> result =
-          await service.failedBuilds(pullRequest: pullRequest, targets: <Target>[generateTarget(1)]);
+      final List<bbv2.Build?> result = await service.failedBuilds(
+        pullRequest: pullRequest,
+        targets: <Target>[generateTarget(1)],
+      );
       expect(result, hasLength(1));
     });
   });
@@ -998,7 +1107,11 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
-      rescheduleBuild = createBuild(Int64(1), status: bbv2.Status.FAILURE, builder: 'Linux Host Engine');
+      rescheduleBuild = createBuild(
+        Int64(1),
+        status: bbv2.Status.FAILURE,
+        builder: 'Linux Host Engine',
+      );
     });
 
     test('Reschedule an existing build', () async {
@@ -1038,8 +1151,15 @@ void main() {
       mockGithubChecksUtil = MockGithubChecksUtil();
       mockFirestoreService = MockFirestoreService();
       mockBuildBucketClient = MockBuildBucketClient();
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
-          .thenAnswer((realInvocation) async => generateCheckRun(1));
+      when(
+        mockGithubChecksUtil.createCheckRun(
+          any,
+          any,
+          any,
+          any,
+          output: anyNamed('output'),
+        ),
+      ).thenAnswer((realInvocation) async => generateCheckRun(1));
       when(
         mockFirestoreService.batchWriteDocuments(
           captureAny,
@@ -1080,7 +1200,11 @@ void main() {
     });
 
     test('Pass repo and properties correctly', () async {
-      firestoreTask = generateFirestoreTask(1, attempts: 1, status: firestore.Task.statusFailed);
+      firestoreTask = generateFirestoreTask(
+        1,
+        attempts: 1,
+        status: firestore.Task.statusFailed,
+      );
       firestoreCommit = generateFirestoreCommit(1);
       totCommit = generateCommit(1, repo: 'engine', branch: 'main');
       config.db.values[totCommit.key] = totCommit;
@@ -1115,14 +1239,21 @@ void main() {
       }
       expect(scheduleBuildRequest.priority, LuciBuildService.kRerunPriority);
       expect(scheduleBuildRequest.gitilesCommit.project, 'mirrors/engine');
-      expect(scheduleBuildRequest.tags.firstWhere((tag) => tag.key == 'trigger_type').value, 'auto_retry');
+      expect(
+        scheduleBuildRequest.tags.firstWhere((tag) => tag.key == 'trigger_type').value,
+        'auto_retry',
+      );
       expect(rerunFlag, isTrue);
       expect(task.attempts, 2);
       expect(task.status, Task.statusInProgress);
     });
 
     test('Rerun a test failed builder', () async {
-      firestoreTask = generateFirestoreTask(1, attempts: 1, status: firestore.Task.statusFailed);
+      firestoreTask = generateFirestoreTask(
+        1,
+        attempts: 1,
+        status: firestore.Task.statusFailed,
+      );
       firestoreCommit = generateFirestoreCommit(1);
       totCommit = generateCommit(1);
       config.db.values[totCommit.key] = totCommit;
@@ -1146,7 +1277,11 @@ void main() {
     });
 
     test('Rerun an infra failed builder', () async {
-      firestoreTask = generateFirestoreTask(1, attempts: 1, status: firestore.Task.statusInfraFailure);
+      firestoreTask = generateFirestoreTask(
+        1,
+        attempts: 1,
+        status: firestore.Task.statusInfraFailure,
+      );
       firestoreCommit = generateFirestoreCommit(1);
       totCommit = generateCommit(1);
       config.db.values[totCommit.key] = totCommit;
@@ -1170,7 +1305,11 @@ void main() {
     });
 
     test('Skip rerun a failed test when task status update hit exception', () async {
-      firestoreTask = generateFirestoreTask(1, attempts: 1, status: firestore.Task.statusInfraFailure);
+      firestoreTask = generateFirestoreTask(
+        1,
+        attempts: 1,
+        status: firestore.Task.statusInfraFailure,
+      );
       when(
         mockFirestoreService.batchWriteDocuments(
           captureAny,
@@ -1275,7 +1414,11 @@ void main() {
     });
 
     test('insert retried task document to firestore', () async {
-      firestoreTask = generateFirestoreTask(1, attempts: 1, status: firestore.Task.statusInfraFailure);
+      firestoreTask = generateFirestoreTask(
+        1,
+        attempts: 1,
+        status: firestore.Task.statusInfraFailure,
+      );
       firestoreCommit = generateFirestoreCommit(1);
       totCommit = generateCommit(1);
       config.db.values[totCommit.key] = totCommit;
@@ -1299,7 +1442,9 @@ void main() {
       expect(rerunFlag, isTrue);
 
       expect(firestoreTask!.attempts, 2);
-      final List<dynamic> captured = verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+      final List<dynamic> captured = verify(
+        mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+      ).captured;
       expect(captured.length, 2);
       final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
       expect(batchWriteRequest.writes!.length, 1);

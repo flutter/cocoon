@@ -14,6 +14,7 @@ import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/firestore/v1.dart';
+import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 import 'package:truncate/truncate.dart';
 import 'package:yaml/yaml.dart';
@@ -50,6 +51,7 @@ class Scheduler {
     required this.config,
     required this.githubChecksService,
     required this.luciBuildService,
+    required this.fusionTester,
     this.datastoreProvider = DatastoreService.defaultProvider,
     this.httpClientProvider = Providers.freshHttpClient,
     this.buildStatusProvider = BuildStatusService.defaultProvider,
@@ -61,7 +63,7 @@ class Scheduler {
   final DatastoreServiceProvider datastoreProvider;
   final GithubChecksService githubChecksService;
   final HttpClientProvider httpClientProvider;
-
+  final FusionTester fusionTester;
   late DatastoreService datastore;
   late FirestoreService firestoreService;
   LuciBuildService luciBuildService;
@@ -69,7 +71,19 @@ class Scheduler {
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
 
+  /// Validates that CI tasks were successfully created from the .ci.yaml file.
+  ///
+  /// If this check fails, it means Cocoon failed to fully populate the list of
+  /// CI checks and the PR/commit should be treated as failing.
   static const String kCiYamlCheckName = 'ci.yaml validation';
+
+  /// A virtual check that stays in pending state until all other CI tasks are
+  /// completed.
+  ///
+  /// This check is "required", meaning that it must pass before Github will
+  /// allow a PR to land in the merge queue, or a merge group to land on the
+  /// target branch (main or master).
+  static const String kCiTasksName = 'CI tasks';
 
   /// Ensure [commits] exist in Cocoon.
   ///
@@ -132,9 +146,10 @@ class Scheduler {
       return;
     }
 
-    final CiYaml ciYaml = await getCiYaml(commit);
+    final CiYamlSet ciYaml = await getCiYaml(commit);
 
-    final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets);
+    // TODO(codefu): support fusion engine
+    final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
     final List<Task> tasks = targetsToTask(commit, initialTargets).toList();
 
     final List<Tuple<Target, Task, int>> toBeScheduled = <Tuple<Target, Task, int>>[];
@@ -228,65 +243,84 @@ class Scheduler {
   }
 
   /// Process and filters ciyaml.
-  Future<CiYaml> getCiYaml(
+  Future<CiYamlSet> getCiYaml(
     Commit commit, {
     bool validate = false,
   }) async {
+    final isFusion = await fusionTester.isFusionBasedRef(commit.slug, commit.sha!);
     final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
-    final CiYaml totYaml = await _getCiYaml(totCommit);
-    return _getCiYaml(commit, totCiYaml: totYaml, validate: validate);
+    final CiYamlSet totYaml = await _getCiYaml(totCommit, isFusionCommit: isFusion);
+    return _getCiYaml(commit, totCiYaml: totYaml, validate: validate, isFusionCommit: isFusion);
   }
 
   /// Load in memory the `.ci.yaml`.
-  Future<CiYaml> _getCiYaml(
+  Future<CiYamlSet> _getCiYaml(
     Commit commit, {
-    CiYaml? totCiYaml,
+    CiYamlSet? totCiYaml,
     bool validate = false,
     RetryOptions retryOptions = const RetryOptions(delayFactor: Duration(seconds: 2), maxAttempts: 4),
+    bool isFusionCommit = false,
   }) async {
-    String ciPath;
-    ciPath = '${commit.repository}/${commit.sha!}/$kCiYamlPath';
-    final Uint8List ciYamlBytes = (await cache.getOrCreate(
-      subcacheName,
-      ciPath,
-      createFn: () => _downloadCiYaml(
-        commit,
-        ciPath,
-        retryOptions: retryOptions,
-      ),
-      ttl: const Duration(hours: 1),
-    ))!;
-    final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig.fromBuffer(ciYamlBytes);
-    log.fine('Retrieved .ci.yaml for $ciPath');
+    Future<pb.SchedulerConfig> getSchedulerConfig(String ciPath) async {
+      final Uint8List ciYamlBytes = (await cache.getOrCreate(
+        subcacheName,
+        // This is a key for a cache; not a path - so its needs to be 'unique'
+        '${commit.repository}/${commit.sha!}/$ciPath',
+        createFn: () async => (await _downloadCiYaml(
+          commit,
+          // actual path to go and fetch
+          ciPath,
+          retryOptions: retryOptions,
+        ))
+            .writeToBuffer(),
+        ttl: const Duration(hours: 1),
+      ))!;
+      final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig.fromBuffer(ciYamlBytes);
+      log.fine('Retrieved .ci.yaml for $ciPath');
+      return schedulerConfig;
+    }
+
+    // First, whatever was asked of us.
+    final schedulerConfig = await getSchedulerConfig(kCiYamlPath);
+
+    // Second - maybe the engine CI
+    pb.SchedulerConfig? engineFusionConfig;
+    if (isFusionCommit) {
+      // Fetch the engine yaml and mark it up.
+      engineFusionConfig = await getSchedulerConfig(kCiYamlFusionEnginePath);
+      log.fine('fusion engine .ci.yaml file fetched');
+    }
+
     // If totCiYaml is not null, we assume upper level function has verified that current branch is not a release branch.
-    return CiYaml(
-      config: schedulerConfig,
+    return CiYamlSet(
+      yamls: {
+        CiType.any: schedulerConfig,
+        if (engineFusionConfig != null) CiType.fusionEngine: engineFusionConfig,
+      },
       slug: commit.slug,
       branch: commit.branch!,
       totConfig: totCiYaml,
       validate: validate,
+      isFusion: isFusionCommit,
     );
   }
 
-  /// Get `.ci.yaml` from GitHub, and store the bytes in redis for future retrieval.
-  ///
-  /// If GitHub returns [HttpStatus.notFound], an empty config will be inserted assuming
-  /// that commit does not support the scheduler config file.
-  Future<Uint8List> _downloadCiYaml(
+  /// Get `.ci.yaml` from GitHub
+  Future<pb.SchedulerConfig> _downloadCiYaml(
     Commit commit,
     String ciPath, {
     RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
   }) async {
     final String configContent = await githubFileContent(
       commit.slug,
-      '.ci.yaml',
+      ciPath,
       httpClientProvider: httpClientProvider,
       ref: commit.sha!,
       retryOptions: retryOptions,
     );
     final YamlMap configYaml = loadYaml(configContent) as YamlMap;
     final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
-    return schedulerConfig.writeToBuffer();
+    return schedulerConfig;
   }
 
   /// Cancel all incomplete targets against a pull request.
@@ -305,7 +339,7 @@ class Scheduler {
   ///
   /// Cancels all existing targets then schedules the targets.
   ///
-  /// Schedules a [kCiYamlCheckName] to validate [CiYaml] is valid and all builds were able to be triggered.
+  /// Schedules a [kCiYamlCheckName] to validate [CiYamlSet] is valid and all builds were able to be triggered.
   /// If [builderTriggerList] is specified, then trigger only those targets.
   Future<void> triggerPresubmitTargets({
     required PullRequest pullRequest,
@@ -319,10 +353,22 @@ class Scheduler {
       reason: reason,
     );
 
+    final slug = pullRequest.base!.repo!.slug();
+
+    // The MQ only waits for "required status checks" before deciding whether to
+    // merge the PR into the target branch. This required check added to both
+    // the PR and to the merge group, and so it must be completed in both cases.
+    // TODO(yjbanov): unhardcode the repo name when MQ is enabled in production
+    //                repositories, and not just in flutter/flaux.
+    CheckRun? lock;
+    if (slug.fullName == 'flutter/flaux') {
+      lock = await lockMergeGroupChecks(slug, pullRequest.head!.sha!);
+    }
+
     log.info('Creating ciYaml validation check run for ${pullRequest.number}');
     final CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
       config,
-      pullRequest.base!.repo!.slug(),
+      slug,
       pullRequest.head!.sha!,
       kCiYamlCheckName,
       output: const CheckRunOutput(
@@ -332,7 +378,6 @@ class Scheduler {
     );
 
     log.info('Creating presubmit targets for ${pullRequest.number}');
-    final RepositorySlug slug = pullRequest.base!.repo!.slug();
     dynamic exception;
     try {
       // Both the author and label should be checked to make sure that no one is
@@ -387,9 +432,129 @@ class Scheduler {
         ),
       );
     }
+
+    if (lock != null) {
+      await unlockMergeGroupChecks(slug, pullRequest.head!.sha!, lock, exception);
+    }
+
     log.info(
-      'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug ${pullRequest.base!.repo!.slug()}}',
+      'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug $slug}',
     );
+  }
+
+  static Duration debugCheckPretendDelay = const Duration(minutes: 1);
+
+  Future<void> triggerMergeGroupTargets({
+    required cocoon_checks.MergeGroupEvent mergeGroupEvent,
+  }) async {
+    final mergeGroup = mergeGroupEvent.mergeGroup;
+    final headSha = mergeGroup.headSha;
+
+    log.info('Simulating merge group checks for @ $headSha');
+
+    final slug = mergeGroupEvent.repository!.slug();
+
+    final lock = await lockMergeGroupChecks(slug, headSha);
+
+    final ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
+      config,
+      slug,
+      headSha,
+      'Simulated merge queue check',
+      output: const CheckRunOutput(
+        title: 'Simulated merge queue check',
+        summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
+      ),
+    );
+
+    // Pretend the check took 1 minute to run
+    await Future<void>.delayed(debugCheckPretendDelay);
+
+    final conclusion =
+        mergeGroup.headCommit.message.contains('MQ_FAIL') ? CheckRunConclusion.failure : CheckRunConclusion.success;
+
+    await githubChecksService.githubChecksUtil.updateCheckRun(
+      config,
+      slug,
+      ciValidationCheckRun,
+      status: CheckRunStatus.completed,
+      conclusion: conclusion,
+    );
+
+    await unlockMergeGroupChecks(
+      slug,
+      headSha,
+      lock,
+      conclusion == CheckRunConclusion.success ? null : 'Some checks failed',
+    );
+
+    log.info('Finished Simulating merge group checks for @ $headSha');
+  }
+
+  Future<void> cancelMergeGroupTargets({
+    required String headSha,
+  }) async {
+    // TODO(yjbanov): there's no actual LUCI jobs to cancel, so for now just log
+    //                and move on.
+    log.info('Simulating cancellation of merge group CI targets for @ $headSha');
+  }
+
+  /// Pushes a required "CI tasks" check to the merge queue, which serves as a
+  /// "lock".
+  ///
+  /// While this check is still in progress, the merge queue will not merge the
+  /// respective PR onto the target branch (e.g. main or master), because this
+  /// check is "required".
+  Future<CheckRun> lockMergeGroupChecks(RepositorySlug slug, String headSha) async {
+    return githubChecksService.githubChecksUtil.createCheckRun(
+      config,
+      slug,
+      headSha,
+      kCiTasksName,
+      output: const CheckRunOutput(
+        title: kCiTasksName,
+        summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
+      ),
+    );
+  }
+
+  /// Completes a "CI tasks" check that was scheduled using [lockMergeGroupChecks]
+  /// with either success or failure.
+  ///
+  /// If [exception] is null completed the check with success. Otherwise,
+  /// completes the check with failure.
+  ///
+  /// Calling this method unlocks the merge group, allowing Github to either
+  /// merge the respective PR into the target branch (if success), or remove the
+  /// PR from the merge queue (if failure).
+  Future<void> unlockMergeGroupChecks(RepositorySlug slug, String headSha, CheckRun lock, Object? exception) async {
+    if (exception == null) {
+      // All checks have passed. Unlocking Github with success.
+      log.info('All required CI tasks passed for $headSha');
+      await githubChecksService.githubChecksUtil.updateCheckRun(
+        config,
+        slug,
+        lock,
+        status: CheckRunStatus.completed,
+        conclusion: CheckRunConclusion.success,
+      );
+    } else {
+      // Some checks failed. Unlocking Github with failure.
+      log.info('Some required CI tasks failed for $headSha');
+      log.warning(exception.toString());
+      await githubChecksService.githubChecksUtil.updateCheckRun(
+        config,
+        slug,
+        lock,
+        status: CheckRunStatus.completed,
+        conclusion: CheckRunConclusion.failure,
+        output: CheckRunOutput(
+          title: kCiYamlCheckName,
+          summary: 'Some required CI tasks failed for ${lock.headSha}',
+          text: exception.toString(),
+        ),
+      );
+    }
   }
 
   /// If [builderTriggerList] is specificed, return only builders that are contained in [presubmitTarget].
@@ -442,13 +607,14 @@ class Scheduler {
   /// Filters targets with runIf, matching them to the diff of [pullRequest].
   ///
   /// In the case there is an issue getting the diff from GitHub, all targets are returned.
-  Future<List<Target>> getPresubmitTargets(PullRequest pullRequest) async {
+  @visibleForTesting
+  Future<List<Target>> getPresubmitTargets(PullRequest pullRequest, {CiType type = CiType.any}) async {
     final Commit commit = Commit(
       branch: pullRequest.base!.ref,
       repository: pullRequest.base!.repo!.fullName,
       sha: pullRequest.head!.sha,
     );
-    late CiYaml ciYaml;
+    late CiYamlSet ciYaml;
     log.info('Attempting to read presubmit targets from ci.yaml for ${pullRequest.number}');
     if (commit.branch == Config.defaultBranch(commit.slug)) {
       ciYaml = await getCiYaml(commit, validate: true);
@@ -458,8 +624,10 @@ class Scheduler {
     log.info('ci.yaml loaded successfully.');
     log.info('Collecting presubmit targets for ${pullRequest.number}');
 
+    final inner = ciYaml.ciYamlFor(type);
+
     // Filter out schedulers targets with schedulers different than luci or cocoon.
-    final List<Target> presubmitTargets = ciYaml.presubmitTargets
+    final List<Target> presubmitTargets = inner.presubmitTargets
         .where(
           (Target target) =>
               target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon,
@@ -467,11 +635,11 @@ class Scheduler {
         .toList();
 
     // See https://github.com/flutter/flutter/issues/138430.
-    final includePostsubmitAsPresubmit = _includePostsubmitAsPresubmit(ciYaml, pullRequest);
+    final includePostsubmitAsPresubmit = _includePostsubmitAsPresubmit(inner, pullRequest);
     if (includePostsubmitAsPresubmit) {
       log.info('Including postsubmit targets as presubmit for ${pullRequest.number}');
 
-      for (Target target in ciYaml.postsubmitTargets) {
+      for (Target target in inner.postsubmitTargets) {
         // We don't want to include a presubmit twice
         // We don't want to run the builder_cache target as a presubmit
         if (!target.value.presubmit && !target.value.properties.containsKey('cache_name')) {
@@ -531,6 +699,7 @@ class Scheduler {
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs-and-requested-actions
   Future<bool> processCheckRun(cocoon_checks.CheckRunEvent checkRunEvent) async {
+    // TODO(codefu): Figure out if we're in fusion or not.
     switch (checkRunEvent.action) {
       case 'rerequested':
         log.fine('Rerun requested by GitHub user: ${checkRunEvent.sender?.login}');
@@ -583,9 +752,9 @@ class Scheduler {
               final firestore.Task taskDocument =
                   taskDocuments.where((taskDocument) => taskDocument.taskName == checkName).toList().first;
               log.fine('Latest firestore task is $taskDocument');
-              final CiYaml ciYaml = await getCiYaml(commit);
+              final CiYamlSet ciYaml = await getCiYaml(commit);
               final Target target =
-                  ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
+                  ciYaml.postsubmitTargets().singleWhere((Target target) => target.value.name == task.name);
               await luciBuildService.reschedulePostsubmitBuildUsingCheckRunEvent(
                 checkRunEvent,
                 commit: commit,
@@ -656,8 +825,8 @@ class Scheduler {
 
   /// Returns the tip of tree [Commit] using specified [branch] and [RepositorySlug].
   ///
-  /// A tip of tree [Commit] is used to help generate the tip of tree [CiYaml].
-  /// The generated tip of tree [CiYaml] will be compared against Presubmit Targets in current [CiYaml],
+  /// A tip of tree [Commit] is used to help generate the tip of tree [CiYamlSet].
+  /// The generated tip of tree [CiYamlSet] will be compared against Presubmit Targets in current [CiYamlSet],
   /// to ensure new targets without `bringup: true` label are not added into the build.
   Future<Commit> generateTotCommit({required String branch, required RepositorySlug slug}) async {
     datastore = datastoreProvider(config.db);

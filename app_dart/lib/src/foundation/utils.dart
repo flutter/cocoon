@@ -22,6 +22,7 @@ import '../request_handling/exceptions.dart';
 import '../service/logging.dart';
 
 const String kCiYamlPath = '.ci.yaml';
+const String kCiYamlFusionEnginePath = 'engine/src/flutter/$kCiYamlPath';
 const String kTestOwnerPath = 'TESTOWNERS';
 
 /// Signature for a function that calculates the backoff duration to wait in
@@ -37,17 +38,88 @@ Duration twoSecondLinearBackoff(int attempt) {
   return const Duration(seconds: 2) * (attempt + 1);
 }
 
+http.Client _defaultHttpClientProvider() => http.Client();
+
+class FusionTester {
+  final HttpClientProvider _httpClientProvider;
+
+  FusionTester({
+    http.Client Function() httpClientProvider = _defaultHttpClientProvider,
+  }) : _httpClientProvider = httpClientProvider;
+
+  /// Tests if the [pr] is in flutter/flutter and engine assets are available.
+  Future<bool> isFusionBasedPR(
+    PullRequest pr, {
+    Duration timeout = _githubTimeout,
+    RetryOptions retryOptions = _githubRetryOptions,
+  }) {
+    return isFusionBasedRef(
+      pr.base!.repo!.slug(),
+      pr.base!.ref!,
+      timeout: timeout,
+      retryOptions: retryOptions,
+    );
+  }
+
+  /// Tests if the [ref] is in flutter/flutter and engine assets are available.
+  Future<bool> isFusionBasedRef(
+    RepositorySlug slug,
+    String ref, {
+    Duration timeout = _githubTimeout,
+    RetryOptions retryOptions = _githubRetryOptions,
+  }) async {
+    if (!(slug == Config.flutterSlug || slug == Config.flauxSlug)) {
+      log.fine('isFusionRef: not a fusion ref - wrong slug($slug)');
+      return false;
+    }
+    try {
+      final files = await Future.wait([
+        githubFileContent(
+          slug,
+          'DEPS',
+          httpClientProvider: _httpClientProvider,
+          ref: ref,
+          timeout: timeout,
+          retryOptions: retryOptions,
+        ),
+        githubFileContent(
+          slug,
+          'engine/src/.gn',
+          httpClientProvider: _httpClientProvider,
+          ref: ref,
+          timeout: timeout,
+          retryOptions: retryOptions,
+        ),
+      ]);
+      if (files.any((contents) => contents.isEmpty)) {
+        log.fine(
+          'isFusionRef: not a fusion ref - DEPS or engine/src/.gn is empty',
+        );
+        return false;
+      }
+
+      log.fine('isFusionRef: fusion ref - ');
+      return true;
+    } on NotFoundException catch (e) {
+      log.fine(
+        "isFusionRef: 'DEPS' or 'engine/src/.gn' not found a fusion ref - error: $e",
+      );
+      return false;
+    }
+  }
+}
+
+const _githubTimeout = Duration(seconds: 5);
+const _githubRetryOptions = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 3));
+
 /// Get content of [filePath] from GitHub CDN.
 Future<String> githubFileContent(
   RepositorySlug slug,
   String filePath, {
   required HttpClientProvider httpClientProvider,
   String ref = 'master',
-  Duration timeout = const Duration(seconds: 5),
-  RetryOptions retryOptions = const RetryOptions(
-    maxAttempts: 3,
-    delayFactor: Duration(seconds: 3),
-  ),
+  Duration timeout = _githubTimeout,
+  RetryOptions retryOptions = _githubRetryOptions,
 }) async {
   final Uri githubUrl = Uri.https('raw.githubusercontent.com', '${slug.fullName}/$ref/$filePath');
   // git-on-borg has a different path for shas and refs to github
@@ -67,8 +139,11 @@ Future<String> githubFileContent(
     );
   } catch (e) {
     await retryOptions.retry(
-      () async =>
-          content = String.fromCharCodes(base64Decode(await getUrl(gobUrl, httpClientProvider, timeout: timeout))),
+      () async => content = String.fromCharCodes(
+        base64Decode(
+          await getUrl(gobUrl, httpClientProvider, timeout: timeout),
+        ),
+      ),
       retryIf: (Exception e) => e is HttpException,
     );
   }
@@ -134,7 +209,10 @@ Future<RegExp> parseGlob(String glob) async {
 /// [run_if] is evaluated.
 ///
 /// [file] is based on repo root: `a/b/c.dart`.
-Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> files) async {
+Future<List<Target>> getTargetsToRun(
+  Iterable<Target> targets,
+  List<String?> files,
+) async {
   log.info('Getting targets to run from diff.');
   final List<Target> targetsToRun = <Target>[];
   for (Target target in targets) {
@@ -179,7 +257,11 @@ Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> fil
   return targetsToRun;
 }
 
-Future<void> insertBigquery(String tableName, Map<String, dynamic> data, TabledataResource tabledataResourceApi) async {
+Future<void> insertBigquery(
+  String tableName,
+  Map<String, dynamic> data,
+  TabledataResource tabledataResourceApi,
+) async {
   // Define const variables for [BigQuery] operations.
   const String projectId = 'flutter-dashboard';
   const String dataset = 'cocoon';
@@ -191,7 +273,9 @@ Future<void> insertBigquery(String tableName, Map<String, dynamic> data, Tableda
   });
 
   // Obtain [rows] to be inserted to [BigQuery].
-  final TableDataInsertAllRequest request = TableDataInsertAllRequest.fromJson(<String, dynamic>{'rows': requestRows});
+  final TableDataInsertAllRequest request = TableDataInsertAllRequest.fromJson(
+    <String, dynamic>{'rows': requestRows},
+  );
 
   try {
     await tabledataResourceApi.insertAll(request, projectId, dataset, table);
@@ -201,18 +285,22 @@ Future<void> insertBigquery(String tableName, Map<String, dynamic> data, Tableda
 }
 
 /// Validate test ownership defined in [testOwnersContent] for tests configured in `ciYamlContent`.
-List<String> validateOwnership(String ciYamlContent, String testOwnersContent, {bool unfilteredTargets = false}) {
+List<String> validateOwnership(
+  String ciYamlContent,
+  String testOwnersContent, {
+  bool unfilteredTargets = false,
+}) {
   final List<String> noOwnerBuilders = <String>[];
   final YamlMap? ciYaml = loadYaml(ciYamlContent) as YamlMap?;
   final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ciYaml);
 
-  final CiYaml ciYamlFromProto = CiYaml(
+  final CiYamlSet ciYamlFromProto = CiYamlSet(
     slug: Config.flutterSlug,
     branch: Config.defaultBranch(Config.flutterSlug),
-    config: unCheckedSchedulerConfig,
+    yamls: {CiType.any: unCheckedSchedulerConfig},
   );
 
-  final pb.SchedulerConfig schedulerConfig = ciYamlFromProto.config;
+  final pb.SchedulerConfig schedulerConfig = ciYamlFromProto.configFor(CiType.any);
 
   for (pb.Target target in schedulerConfig.targets) {
     final String builder = target.name;

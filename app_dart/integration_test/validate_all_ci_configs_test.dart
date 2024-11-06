@@ -37,6 +37,7 @@ Future<void> main() async {
       final pb.SchedulerConfig currentSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
       try {
         CiYaml(
+          type: CiType.any,
           slug: config.slug,
           branch: Config.defaultBranch(config.slug),
           config: currentSchedulerConfig,
@@ -59,6 +60,7 @@ Future<void> main() async {
         final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
         // Validate using the existing CiYaml logic.
         CiYaml(
+          type: CiType.any,
           slug: config.slug,
           branch: config.branch,
           config: schedulerConfig,

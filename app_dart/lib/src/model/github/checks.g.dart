@@ -42,3 +42,45 @@ Map<String, dynamic> _$CheckRunToJson(CheckRun instance) => <String, dynamic>{
       'check_suite': instance.checkSuite,
       'pull_requests': instance.pullRequests,
     };
+
+MergeGroupEvent _$MergeGroupEventFromJson(Map<String, dynamic> json) => MergeGroupEvent(
+      action: json['action'] as String,
+      mergeGroup: MergeGroup.fromJson(json['merge_group'] as Map<String, dynamic>),
+      repository: json['repository'] == null ? null : Repository.fromJson(json['repository'] as Map<String, dynamic>),
+      sender: json['sender'] == null ? null : User.fromJson(json['sender'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$MergeGroupEventToJson(MergeGroupEvent instance) => <String, dynamic>{
+      'action': instance.action,
+      'merge_group': instance.mergeGroup,
+      'repository': instance.repository,
+      'sender': instance.sender,
+    };
+
+MergeGroup _$MergeGroupFromJson(Map<String, dynamic> json) => MergeGroup(
+      headSha: json['head_sha'] as String,
+      headRef: json['head_ref'] as String,
+      baseSha: json['base_sha'] as String,
+      baseRef: json['base_ref'] as String,
+      headCommit: HeadCommit.fromJson(json['head_commit'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$MergeGroupToJson(MergeGroup instance) => <String, dynamic>{
+      'head_sha': instance.headSha,
+      'head_ref': instance.headRef,
+      'base_sha': instance.baseSha,
+      'base_ref': instance.baseRef,
+      'head_commit': instance.headCommit,
+    };
+
+HeadCommit _$HeadCommitFromJson(Map<String, dynamic> json) => HeadCommit(
+      id: json['id'] as String,
+      treeId: json['tree_id'] as String,
+      message: json['message'] as String,
+    );
+
+Map<String, dynamic> _$HeadCommitToJson(HeadCommit instance) => <String, dynamic>{
+      'id': instance.id,
+      'tree_id': instance.treeId,
+      'message': instance.message,
+    };
