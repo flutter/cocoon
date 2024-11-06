@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:github/src/common/model/pulls.dart';
 import 'package:github/src/common/model/repos.dart';
 import 'package:retry/retry.dart';
 
@@ -13,17 +12,6 @@ class FakeFusionTester implements FusionTester {
     String ref,
   ) isFusion = (_, __) => false;
 
-  @override
-  Future<bool> isFusionBasedPR(
-    PullRequest pr, {
-    Duration timeout = const Duration(seconds: 4),
-    RetryOptions retryOptions = const RetryOptions(
-      maxAttempts: 3,
-      delayFactor: Duration(seconds: 3),
-    ),
-  }) {
-    return Future.value(isFusion(pr.base!.repo!.slug(), pr.mergeCommitSha!));
-  }
 
   @override
   Future<bool> isFusionBasedRef(
