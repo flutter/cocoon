@@ -195,37 +195,27 @@ mutation RevertPullFlutterPullRequest ($revertBody:String!, $clientMutationId:St
 class EnqueuePullRequestMutation extends GraphQLOperation {
   EnqueuePullRequestMutation({
     required this.id,
-    required this.expectedHeadOid,
     required this.jump,
-    this.clientMutationId,
   });
 
-  final String? clientMutationId;
   final String id;
-  final String expectedHeadOid;
   final bool jump;
 
   @override
   Map<String, dynamic> get variables => {
-        'clientMutationId': clientMutationId,
         'pullRequestId': id,
-        'expectedHeadOid': expectedHeadOid,
         'jump': jump,
       };
 
   @override
   DocumentNode get documentNode => lang.parseString(r'''
-mutation EnqueueFlutterPullRequest ($clientMutationId:String, $pullRequestId:ID!, $expectedHeadOid:GitObjectID!, $jump:Boolean!) {
+mutation EnqueueFlutterPullRequest ($pullRequestId:ID!, $jump:Boolean!) {
   enqueuePullRequest (
     input: {
-      clientMutationId: $clientMutationId,
-      expectedHeadOid: $expectedHeadOid,
-      jump: $jump,
       pullRequestId: $pullRequestId,
+      jump: $jump,
     }
-  ) {
-    clientMutationId
-  }
+  )
 }
 ''');
 }

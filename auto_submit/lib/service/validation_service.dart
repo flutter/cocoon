@@ -99,11 +99,14 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
 
     final enqueueMutation = EnqueuePullRequestMutation(
       id: pullRequest.id!.toString(),
-      expectedHeadOid: pullRequest.head!.sha!,
       jump: isEmergencyPullRequest,
     );
 
     try {
+      log.info(
+        'Attempting to enqueue ${slug.fullName}/${pullRequest.number} '
+        'with these variables: ${enqueueMutation.variables}',
+      );
       await retryOptions.retry(
         () async {
           await graphQlService.mutateGraphQL(
