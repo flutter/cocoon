@@ -215,7 +215,9 @@ mutation EnqueueFlutterPullRequest ($pullRequestId:ID!, $jump:Boolean!) {
       pullRequestId: $pullRequestId,
       jump: $jump,
     }
-  )
+  ) {
+    clientMutationId
+  }
 }
 ''');
 }
