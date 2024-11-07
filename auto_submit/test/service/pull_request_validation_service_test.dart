@@ -448,6 +448,22 @@ This is the second line in a paragraph.''');
       slug = RepositorySlug('flutter', 'flaux');
       final prTitle = 'This pull request should be enqueueueueueueueueueueued';
 
+      Map<String, Object?>? queryOptions;
+      githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
+        queryOptions = options.variables;
+        return QueryResult(
+          options: options,
+          source: QueryResultSource.network,
+          data: {
+            'repository': {
+              'pullRequest': {
+                'id': 'PR_blahblah',
+              },
+            },
+          },
+        );
+      };
+
       Map<String, Object?>? mutationOptions;
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) {
         mutationOptions = options.variables;
@@ -471,9 +487,18 @@ This is the second line in a paragraph.''');
       );
 
       expect(
+        queryOptions,
+        {
+          'repoOwner': 'flutter',
+          'repoName': 'flaux',
+          'pullRequestNumber': 1,
+        },
+      );
+
+      expect(
         mutationOptions,
         {
-          'pullRequestId': '1',
+          'pullRequestId': 'PR_blahblah',
           'jump': false,
         },
       );
@@ -484,6 +509,20 @@ This is the second line in a paragraph.''');
     test('Fails to enqueue pull request when merge queue is used', () async {
       slug = RepositorySlug('flutter', 'flaux');
       final prTitle = 'This pull request should fail to enqueueueueueueueueueu';
+
+      githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
+        return QueryResult(
+          options: options,
+          source: QueryResultSource.network,
+          data: {
+            'repository': {
+              'pullRequest': {
+                'id': 'PR_blahblah',
+              },
+            },
+          },
+        );
+      };
 
       Map<String, Object?>? mutationOptions;
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) {
@@ -510,7 +549,7 @@ This is the second line in a paragraph.''');
       expect(
         mutationOptions,
         {
-          'pullRequestId': '1',
+          'pullRequestId': 'PR_blahblah',
           'jump': false,
         },
       );
@@ -524,6 +563,20 @@ This is the second line in a paragraph.''');
     test('Jumps the queue for emergency pull requests', () async {
       slug = RepositorySlug('flutter', 'flaux');
       final prTitle = 'This pull request should fail to enqueueueueueueueueueu';
+
+      githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
+        return QueryResult(
+          options: options,
+          source: QueryResultSource.network,
+          data: {
+            'repository': {
+              'pullRequest': {
+                'id': 'PR_blahblah',
+              },
+            },
+          },
+        );
+      };
 
       Map<String, Object?>? mutationOptions;
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) {
@@ -551,7 +604,7 @@ This is the second line in a paragraph.''');
       expect(
         mutationOptions,
         {
-          'pullRequestId': '1',
+          'pullRequestId': 'PR_blahblah',
           'jump': true,
         },
       );

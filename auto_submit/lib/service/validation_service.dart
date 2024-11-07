@@ -91,24 +91,40 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
     }
   }
 
-  Future<MergeResult> _enqueuePullRequest(github.RepositorySlug slug, github.PullRequest pullRequest) async {
+  Future<MergeResult> _enqueuePullRequest(github.RepositorySlug slug, github.PullRequest restPullRequest) async {
     final graphQlService = GraphQlService();
     final graphQLClient = await config.createGitHubGraphQLClient(slug);
-
-    final isEmergencyPullRequest = pullRequest.labels?.where((label) => label.name == 'emergency').isNotEmpty ?? false;
-
-    final enqueueMutation = EnqueuePullRequestMutation(
-      id: pullRequest.id!.toString(),
-      jump: isEmergencyPullRequest,
-    );
+    final isEmergencyPullRequest =
+        restPullRequest.labels?.where((label) => label.name == 'emergency').isNotEmpty ?? false;
 
     try {
-      log.info(
-        'Attempting to enqueue ${slug.fullName}/${pullRequest.number} '
-        'with these variables: ${enqueueMutation.variables}',
-      );
       await retryOptions.retry(
         () async {
+          // Get the GraphQL data for the pull request. The REST pull request ID
+          // is not the same as the GraphQL ID, and the mutation only accepts
+          // the GraphQL value.
+          final queryPullRequest = FindPullRequestNodeIdQuery(
+            repositoryOwner: slug.owner,
+            repositoryName: slug.name,
+            pullRequestNumber: restPullRequest.id!,
+          );
+
+          final Map<String, dynamic> graphQlPullRequest = await graphQlService.queryGraphQL(
+            documentNode: queryPullRequest.documentNode,
+            variables: queryPullRequest.variables,
+            client: graphQLClient,
+          );
+
+          final enqueueMutation = EnqueuePullRequestMutation(
+            id: graphQlPullRequest['repository']['pullRequest']['id'],
+            jump: isEmergencyPullRequest,
+          );
+
+          log.info(
+            'Attempting to enqueue ${slug.fullName}/${restPullRequest.number} '
+            'with these variables: ${enqueueMutation.variables}',
+          );
+
           await graphQlService.mutateGraphQL(
             documentNode: enqueueMutation.documentNode,
             variables: enqueueMutation.variables,
@@ -118,12 +134,12 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
         retryIf: (Exception e) => e is RetryableException,
       );
     } catch (e) {
-      final message = 'Failed to enqueue ${slug.fullName}/${pullRequest.number} with $e';
+      final message = 'Failed to enqueue ${slug.fullName}/${restPullRequest.number} with $e';
       log.severe(message);
       return (result: false, message: message);
     }
 
-    return (result: true, message: pullRequest.title!);
+    return (result: true, message: restPullRequest.title!);
   }
 
   Future<MergeResult> _mergePullRequest(int number, String commitMessage, github.RepositorySlug slug) async {
