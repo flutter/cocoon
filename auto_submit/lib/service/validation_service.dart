@@ -106,7 +106,7 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
           final queryPullRequest = FindPullRequestNodeIdQuery(
             repositoryOwner: slug.owner,
             repositoryName: slug.name,
-            pullRequestNumber: restPullRequest.id!,
+            pullRequestNumber: restPullRequest.number!,
           );
 
           final Map<String, dynamic> graphQlPullRequest = await graphQlService.queryGraphQL(
