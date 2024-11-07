@@ -491,7 +491,7 @@ This is the second line in a paragraph.''');
         {
           'repoOwner': 'flutter',
           'repoName': 'flaux',
-          'pullRequestNumber': 1,
+          'pullRequestNumber': 0,
         },
       );
 
