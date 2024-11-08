@@ -15,7 +15,10 @@ import 'config.dart';
 class GraphQlService {
   GraphQlService._(this._client);
 
-  // TODO(yjbanov): GraphQlService should not be slug-specific (i.e. repo-specific)
+  // TODO(yjbanov): GraphQlService should not be slug-specific (i.e. repo-specific); you
+  //                only need the "owner" (i.e. the Github org or user). Making it
+  //                slug-specific makes it awkward to use for org operations and cross-repo
+  //                operations.
   static Future<GraphQlService> forRepo(Config config, github.RepositorySlug slug) async {
     final client = await config.createGitHubGraphQLClient(slug);
     return GraphQlService._(client);
@@ -24,6 +27,8 @@ class GraphQlService {
   final GraphQLClient _client;
 
   /// Runs a GraphQL query using [slug], [prNumber] and a [GraphQL] client.
+  // TODO(yjbanov): make this private, and instead expose higher-level testable
+  //                and mockable methods that perform specific queries.
   Future<Map<String, dynamic>> queryGraphQL({
     required DocumentNode documentNode,
     required Map<String, dynamic> variables,
@@ -43,6 +48,8 @@ class GraphQlService {
     return queryResult.data!;
   }
 
+  // TODO(yjbanov): make this private, and instead expose higher-level testable
+  //                and mockable methods that perform specific mutations.
   Future<Map<String, dynamic>> mutateGraphQL({
     required DocumentNode documentNode,
     required Map<String, dynamic> variables,

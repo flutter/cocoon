@@ -114,38 +114,6 @@ query FindPullRequestNodeId ($repoOwner:String!, $repoName:String!, $pullRequest
 ''');
 }
 
-/// Queries a pull request out of GraphQL.
-class GetPullRequestQuery extends GraphQLOperation {
-  GetPullRequestQuery({
-    required this.repositoryOwner,
-    required this.repositoryName,
-    required this.pullRequestNumber,
-  });
-
-  final String repositoryOwner;
-  final String repositoryName;
-  final int pullRequestNumber;
-
-  @override
-  Map<String, dynamic> get variables => {
-        'repoOwner': repositoryOwner,
-        'repoName': repositoryName,
-        'pullRequestNumber': pullRequestNumber,
-      };
-
-  @override
-  DocumentNode get documentNode => lang.parseString(r'''
-query GetPullRequestForAutosubmit ($repoOwner:String!, $repoName:String!, $pullRequestNumber:Int!) {
-  repository(owner:$repoOwner, name:$repoName) {
-    pullRequest(number:$pullRequestNumber) {
-      id,
-      isInMergeQueue,
-    }
-  }
-}
-''');
-}
-
 /// [RevertPullRequestMutation] encapsulates the input variables and
 /// [DocumentNode] needed to perform the revert request mutation to revert a
 /// closed pull request.

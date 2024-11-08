@@ -132,11 +132,11 @@ void main() {
       pubsub: pubsub,
     );
 
-    // These checks indicate that the pull request has been merged as the label
-    // is not removed and there was no issue coment generated and the message
-    // was acknowledged.
+    // These checks indicate that the pull request has been merged, the label
+    // was removed, there was no issue coment generated, and the message was
+    // acknowledged.
     expect(githubService.issueComment, isNull);
-    expect(githubService.labelRemoved, false);
+    expect(githubService.labelRemoved, isTrue);
     assert(pubsub.messagesQueue.isEmpty);
   });
 
@@ -349,11 +349,11 @@ void main() {
         pubsub: pubsub,
       );
 
-      // These checks indicate that the pull request has been merged as the label
-      // is not removed and there was no issue comment generated and the message
-      // was acknowledged.
+      // These checks indicate that the pull request has been merged, the label
+      // was removed, there was no issue coment generated, and the message was
+      // acknowledged.
       expect(githubService.issueComment, isNull);
-      expect(githubService.labelRemoved, false);
+      expect(githubService.labelRemoved, isTrue);
       assert(pubsub.messagesQueue.isEmpty);
     });
 
