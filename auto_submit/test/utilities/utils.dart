@@ -39,6 +39,7 @@ class PullRequestHelper {
     this.lastCommitMessage = '',
     this.dateTime,
     this.mergedAt,
+    this.isInMergeQueue = false,
   });
 
   final int prNumber;
@@ -53,6 +54,7 @@ class PullRequestHelper {
   final String title;
   final MergeableState mergeableState;
   final DateTime? mergedAt;
+  final bool isInMergeQueue;
 
   RepositorySlug get slug => RepositorySlug('flutter', repo);
 
@@ -65,6 +67,7 @@ class PullRequestHelper {
       'title': title,
       'mergeable': mergeableState.name,
       'mergedAt': (mergedAt ?? DateTime.now().subtract(const Duration(hours: 12))).toUtc().toIso8601String(),
+      'isInMergeQueue': isInMergeQueue,
       'reviews': <String, dynamic>{
         'nodes': reviews.map((PullRequestReviewHelper review) {
           return <String, dynamic>{

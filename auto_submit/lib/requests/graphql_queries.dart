@@ -48,6 +48,7 @@ query LabeledPullRequestWithReviews($sOwner: String!, $sName: String!, $sPrNumbe
       id
       title
       mergeable
+      isInMergeQueue
       commits(last:1) {
         nodes {
           commit {

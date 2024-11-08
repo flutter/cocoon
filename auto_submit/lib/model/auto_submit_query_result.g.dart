@@ -97,8 +97,9 @@ PullRequest _$PullRequestFromJson(Map<String, dynamic> json) => PullRequest(
       body: json['body'] as String?,
       reviews: json['reviews'] == null ? null : Reviews.fromJson(json['reviews'] as Map<String, dynamic>),
       commits: json['commits'] == null ? null : Commits.fromJson(json['commits'] as Map<String, dynamic>),
-      mergeable: $enumDecodeNullable(_$MergeableStateEnumMap, json['mergeable']),
       number: (json['number'] as num?)?.toInt(),
+      mergeable: $enumDecodeNullable(_$MergeableStateEnumMap, json['mergeable']),
+      isInMergeQueue: json['isInMergeQueue'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$PullRequestToJson(PullRequest instance) => <String, dynamic>{
@@ -111,6 +112,7 @@ Map<String, dynamic> _$PullRequestToJson(PullRequest instance) => <String, dynam
       'commits': instance.commits,
       'number': instance.number,
       'mergeable': _$MergeableStateEnumMap[instance.mergeable],
+      'isInMergeQueue': instance.isInMergeQueue,
     };
 
 const _$MergeableStateEnumMap = {

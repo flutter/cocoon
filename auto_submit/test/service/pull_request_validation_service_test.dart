@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto hide PullRequest;
+import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/service/pull_request_validation_service.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:github/github.dart';
@@ -131,11 +132,11 @@ void main() {
       pubsub: pubsub,
     );
 
-    // These checks indicate that the pull request has been merged as the label
-    // is not removed and there was no issue coment generated and the message
-    // was acknowledged.
+    // These checks indicate that the pull request has been merged, the label
+    // was removed, there was no issue comment generated, and the message was
+    // acknowledged.
     expect(githubService.issueComment, isNull);
-    expect(githubService.labelRemoved, false);
+    expect(githubService.labelRemoved, isTrue);
     assert(pubsub.messagesQueue.isEmpty);
   });
 
@@ -348,11 +349,11 @@ void main() {
         pubsub: pubsub,
       );
 
-      // These checks indicate that the pull request has been merged as the label
-      // is not removed and there was no issue comment generated and the message
-      // was acknowledged.
+      // These checks indicate that the pull request has been merged, the label
+      // was removed, there was no issue comment generated, and the message was
+      // acknowledged.
       expect(githubService.issueComment, isNull);
-      expect(githubService.labelRemoved, false);
+      expect(githubService.labelRemoved, isTrue);
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -610,6 +611,53 @@ This is the second line in a paragraph.''');
       );
       expect(result.result, isTrue);
       expect(result.message, contains(prTitle));
+    });
+
+    test('Does not enqueue pull requests already in the queue', () async {
+      final logs = <String>[];
+      final logSub = log.onRecord.listen((record) {
+        logs.add(record.toString());
+      });
+
+      slug = RepositorySlug('flutter', 'flaux');
+      final PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        isInMergeQueue: true,
+        reviews: <PullRequestReviewHelper>[
+          const PullRequestReviewHelper(
+            authorName: 'member',
+            state: ReviewState.APPROVED,
+            memberType: MemberType.OWNER,
+          ),
+        ],
+      );
+      githubService.checkRunsData = checkRunsMock;
+      githubService.checkRunsMock = checkRunsMock;
+      githubService.createCommentData = createCommentMock;
+      githubService.isTeamMemberMockMap['author1'] = true;
+      githubService.isTeamMemberMockMap['member'] = true;
+      final FakePubSub pubsub = FakePubSub();
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        baseRef: 'feature_a',
+        mergeable: true,
+      );
+
+      await validationService.processPullRequest(
+        config: config,
+        result: createQueryResult(flutterRequest),
+        messagePullRequest: pullRequest,
+        ackId: 'test',
+        pubsub: pubsub,
+      );
+
+      await logSub.cancel();
+      expect(
+        logs,
+        contains('[INFO] auto_submit: flutter/flaux/0 is already in the merge queue. Skipping.'),
+      );
     });
   });
 }
