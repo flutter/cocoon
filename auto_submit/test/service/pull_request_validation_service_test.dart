@@ -133,7 +133,7 @@ void main() {
     );
 
     // These checks indicate that the pull request has been merged, the label
-    // was removed, there was no issue coment generated, and the message was
+    // was removed, there was no issue comment generated, and the message was
     // acknowledged.
     expect(githubService.issueComment, isNull);
     expect(githubService.labelRemoved, isTrue);
@@ -350,7 +350,7 @@ void main() {
       );
 
       // These checks indicate that the pull request has been merged, the label
-      // was removed, there was no issue coment generated, and the message was
+      // was removed, there was no issue comment generated, and the message was
       // acknowledged.
       expect(githubService.issueComment, isNull);
       expect(githubService.labelRemoved, isTrue);
