@@ -74,7 +74,8 @@ class CheckPullRequest extends CheckRequest {
 
       log.info('Processing message ackId: ${message.ackId}');
       log.info('Processing mesageId: ${message.message!.messageId}');
-      log.info('Processing PR: $rawBody');
+      log.info('Processing PR: ${pullRequest.toJson()}');
+
       if (processingLog.contains(pullRequest.number)) {
         // Ack duplicate.
         log.info('Ack the duplicated message : ${message.ackId!}.');

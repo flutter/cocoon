@@ -138,7 +138,7 @@ class Commit {
   Map<String, dynamic> toJson() => _$CommitToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(fieldRename: FieldRename.none)
 class PullRequest {
   PullRequest({
     this.author,
@@ -148,11 +148,12 @@ class PullRequest {
     this.body,
     this.reviews,
     this.commits,
-    this.mergeable,
     this.number,
+    this.mergeable,
+    this.isInMergeQueue = false,
   });
+
   final Author? author;
-  @JsonKey(name: 'authorAssociation')
   final String? authorAssociation;
   final String? id;
   final String? title;
@@ -162,6 +163,7 @@ class PullRequest {
   final int? number;
   // https://docs.github.com/en/graphql/reference/enums#mergeablestate
   final MergeableState? mergeable;
+  final bool isInMergeQueue;
 
   factory PullRequest.fromJson(Map<String, dynamic> json) => _$PullRequestFromJson(json);
 
@@ -182,6 +184,7 @@ class Repository {
   Map<String, dynamic> toJson() => _$RepositoryToJson(this);
 }
 
+// TODO(yjbanov): rename to AutosubmitQueryResult to avoid name clash with graphql.dart/QueryResult
 @JsonSerializable()
 class QueryResult {
   QueryResult({

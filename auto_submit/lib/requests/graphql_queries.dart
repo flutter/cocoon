@@ -48,6 +48,7 @@ query LabeledPullRequestWithReviews($sOwner: String!, $sName: String!, $sPrNumbe
       id
       title
       mergeable
+      isInMergeQueue
       commits(last:1) {
         nodes {
           commit {
@@ -107,6 +108,38 @@ query FindPullRequestNodeId ($repoOwner:String!, $repoName:String!, $pullRequest
   repository(owner:$repoOwner, name:$repoName) {
     pullRequest(number:$pullRequestNumber) {
       id
+    }
+  }
+}
+''');
+}
+
+/// Queries a pull request out of GraphQL.
+class GetPullRequestQuery extends GraphQLOperation {
+  GetPullRequestQuery({
+    required this.repositoryOwner,
+    required this.repositoryName,
+    required this.pullRequestNumber,
+  });
+
+  final String repositoryOwner;
+  final String repositoryName;
+  final int pullRequestNumber;
+
+  @override
+  Map<String, dynamic> get variables => {
+        'repoOwner': repositoryOwner,
+        'repoName': repositoryName,
+        'pullRequestNumber': pullRequestNumber,
+      };
+
+  @override
+  DocumentNode get documentNode => lang.parseString(r'''
+query GetPullRequestForAutosubmit ($repoOwner:String!, $repoName:String!, $pullRequestNumber:Int!) {
+  repository(owner:$repoOwner, name:$repoName) {
+    pullRequest(number:$pullRequestNumber) {
+      id,
+      isInMergeQueue,
     }
   }
 }
