@@ -90,11 +90,14 @@ class Scheduler {
   /// workflow.
   static const String kMergeQueueLockName = 'Merge Queue Guard';
 
-  /// Briefly describes what [kMergeQueueLockName] is for.
+  /// Briefly describes what the "Merge Queue Guard" check is for.
+  ///
+  /// Find more details about this check at [kMergeQueueLockName].
   ///
   /// This description appears next to the Github check run in the pull request
   /// and merge queue UI.
-  static const String kMergeQueueLockDescription = 'This is only here to block the merge queue; nothing to see here in PRs';
+  static const String kMergeQueueLockDescription =
+      'This is only here to block the merge queue; nothing to see here in PRs';
 
   /// Ensure [commits] exist in Cocoon.
   ///
