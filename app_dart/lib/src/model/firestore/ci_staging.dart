@@ -10,7 +10,8 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 
 /// Representation of the current work scheduled for a given stage of monorepo check runs.
 ///
-/// Staging is required so that engine build artifacts can be made available to any tests that
+/// 'Staging' is the breaking up of the CI tasks such that some are performed before others.
+/// This is required so that engine build artifacts can be made available to any tests that
 /// depend on them.
 ///
 /// This document layout is currently:
