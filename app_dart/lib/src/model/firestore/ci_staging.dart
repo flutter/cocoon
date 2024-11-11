@@ -91,8 +91,7 @@ class CiStaging extends Document {
     );
     final transaction = transactionResponse.transaction;
     if (transaction == null) {
-      log.severe('$logCrumb: transaction was null when updating $conclusion');
-      throw '$logCrumb: transaction was null';
+      throw '$logCrumb: transaction was null when updating $conclusion';
     }
 
     var newRemaining = -1;
@@ -112,15 +111,13 @@ class CiStaging extends Document {
 
       final fields = doc.fields;
       if (fields == null) {
-        log.warning('$logCrumb: missing fields for $transaction / $doc');
-        throw '$logCrumb missing fields';
+        throw '$logCrumb: missing fields for $transaction / $doc';
       }
 
       // Fields and remaining _must_ be present.
       final remaining = int.tryParse(fields[kRemainingField]?.integerValue ?? '');
       if (remaining == null) {
-        log.warning('$logCrumb: missing field "$kRemainingField" for $transaction / ${doc.fields}');
-        throw '$logCrumb missing field "$kRemainingField"';
+        throw '$logCrumb: missing field "$kRemainingField" for $transaction / ${doc.fields}';
       }
 
       // We will have check_runs scheduled after the engine was built successfully, so missing the checkRun field
@@ -133,8 +130,7 @@ class CiStaging extends Document {
 
       // Guard against going negative and log enough info so we can debug.
       if (remaining == 0) {
-        log.warning('$logCrumb: field "$kRemainingField" is already zero for $transaction / ${doc.fields}');
-        throw '$logCrumb field "$kRemainingField" already zero';
+        throw '$logCrumb: field "$kRemainingField" is already zero for $transaction / ${doc.fields}';
       }
       newRemaining = remaining - 1;
 
