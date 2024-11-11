@@ -372,11 +372,7 @@ class Scheduler {
     // The MQ only waits for "required status checks" before deciding whether to
     // merge the PR into the target branch. This required check added to both
     // the PR and to the merge group, and so it must be completed in both cases.
-    // TODO(yjbanov): find a robust way to detect if a PR is enabled for MQ.
-    CheckRun? lock;
-    if (slug.fullName == 'flutter/flaux') {
-      lock = await lockMergeGroupChecks(slug, pullRequest.head!.sha!);
-    }
+    final lock = await lockMergeGroupChecks(slug, pullRequest.head!.sha!);
 
     log.info('Creating ciYaml validation check run for ${pullRequest.number}');
     final CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
@@ -446,9 +442,7 @@ class Scheduler {
       );
     }
 
-    if (lock != null) {
-      await unlockMergeGroupChecks(slug, pullRequest.head!.sha!, lock, exception);
-    }
+    await unlockMergeGroupChecks(slug, pullRequest.head!.sha!, lock, exception);
 
     log.info(
       'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug $slug}',

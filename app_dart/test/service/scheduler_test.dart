@@ -275,7 +275,7 @@ void main() {
         final Commit commit = shaToCommit('1');
         db.values[commit.key] = commit;
 
-        db.onCommit = (List<gcloud_db.Model<dynamic>> inserts, List<gcloud_db.Key<dynamic>> deletes) {
+        db.onCommit = (List<gcloud_db.Model<Object?>> inserts, List<gcloud_db.Key<Object?>> deletes) {
           if (inserts.whereType<Commit>().where((Commit commit) => commit.sha == '3').isNotEmpty) {
             throw StateError('Commit failed');
           }
@@ -304,7 +304,7 @@ void main() {
         final Commit commit = shaToCommit('1');
         db.values[commit.key] = commit;
 
-        db.onCommit = (List<gcloud_db.Model<dynamic>> inserts, List<gcloud_db.Key<dynamic>> deletes) {
+        db.onCommit = (List<gcloud_db.Model<Object?>> inserts, List<gcloud_db.Key<Object?>> deletes) {
           if (inserts.whereType<Task>().where((Task task) => task.createTimestamp == 3).isNotEmpty) {
             throw StateError('Task failed');
           }
@@ -351,13 +351,13 @@ void main() {
         );
 
         await scheduler.addCommits(createCommitList(<String>['1'], repo: 'engine', branch: 'main'));
-        final List<dynamic> captured = verify(
+        final List<Object?> captured = verify(
           luciBuildService.schedulePostsubmitBuilds(
             commit: anyNamed('commit'),
             toBeScheduled: captureAnyNamed('toBeScheduled'),
           ),
         ).captured;
-        final List<dynamic> toBeScheduled = captured.first as List<dynamic>;
+        final List<Object?> toBeScheduled = captured.first as List<Object?>;
         expect(toBeScheduled.length, 2);
         final Iterable<Tuple<Target, Task, int>> tuples =
             toBeScheduled.map((dynamic tuple) => tuple as Tuple<Target, Task, int>);
@@ -440,7 +440,7 @@ void main() {
         expect(commit.authorAvatarUrl, 'dashatar');
         expect(commit.message, 'example message');
 
-        final List<dynamic> captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
+        final List<Object?> captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
         expect(captured.length, 1);
         final List<Write> commitResponse = captured[0] as List<Write>;
         expect(commitResponse.length, 4);
@@ -1024,7 +1024,12 @@ targets:
         expect(
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
-          <dynamic>[
+          <Object?>[
+            Scheduler.kMergeQueueLockName,
+            const CheckRunOutput(
+              title: Scheduler.kMergeQueueLockName,
+              summary: Scheduler.kMergeQueueLockDescription,
+            ),
             Scheduler.kCiYamlCheckName,
             const CheckRunOutput(
               title: Scheduler.kCiYamlCheckName,
@@ -1048,7 +1053,12 @@ targets:
         expect(
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
-          <dynamic>[
+          <Object?>[
+            Scheduler.kMergeQueueLockName,
+            const CheckRunOutput(
+              title: Scheduler.kMergeQueueLockName,
+              summary: Scheduler.kMergeQueueLockDescription,
+            ),
             Scheduler.kCiYamlCheckName,
             // No other targets should be created.
             const CheckRunOutput(
@@ -1156,7 +1166,12 @@ targets:
         expect(
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
-          <dynamic>[
+          <Object?>[
+            Scheduler.kMergeQueueLockName,
+            const CheckRunOutput(
+              title: Scheduler.kMergeQueueLockName,
+              summary: Scheduler.kMergeQueueLockDescription,
+            ),
             Scheduler.kCiYamlCheckName,
             const CheckRunOutput(
               title: Scheduler.kCiYamlCheckName,
@@ -1179,7 +1194,12 @@ targets:
         expect(
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
-          <dynamic>[
+          <Object?>[
+            Scheduler.kMergeQueueLockName,
+            const CheckRunOutput(
+              title: Scheduler.kMergeQueueLockName,
+              summary: Scheduler.kMergeQueueLockDescription,
+            ),
             Scheduler.kCiYamlCheckName,
             const CheckRunOutput(
               title: Scheduler.kCiYamlCheckName,
@@ -1208,7 +1228,12 @@ targets:
               output: anyNamed('output'),
             ),
           ).captured,
-          <dynamic>[CheckRunStatus.completed, CheckRunConclusion.success],
+          <Object?>[
+            CheckRunStatus.completed,
+            CheckRunConclusion.success,
+            CheckRunStatus.completed,
+            CheckRunConclusion.success,
+          ],
         );
       });
 
@@ -1231,7 +1256,12 @@ targets:
               output: anyNamed('output'),
             ),
           ).captured,
-          <dynamic>[CheckRunStatus.completed, CheckRunConclusion.failure],
+          <Object?>[
+            CheckRunStatus.completed,
+            CheckRunConclusion.failure,
+            CheckRunStatus.completed,
+            CheckRunConclusion.failure,
+          ],
         );
       });
 
@@ -1249,7 +1279,12 @@ targets:
               output: anyNamed('output'),
             ),
           ).captured,
-          <dynamic>[CheckRunStatus.completed, CheckRunConclusion.failure],
+          <Object?>[
+            CheckRunStatus.completed,
+            CheckRunConclusion.failure,
+            CheckRunStatus.completed,
+            CheckRunConclusion.failure,
+          ],
         );
       });
 
