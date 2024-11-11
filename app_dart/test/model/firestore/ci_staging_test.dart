@@ -18,6 +18,7 @@ void main() {
     setUp(() {
       firestoreService = MockFirestoreService();
     });
+
     test('documentNameFor produces expected keys', () {
       expect(
         CiStaging.documentNameFor(slug: RepositorySlug('code', 'fu'), sha: '12345', stage: 'coconut'),
@@ -181,45 +182,6 @@ void main() {
             .called(1);
       });
 
-      test('handles previously completed check_runs', () async {
-        when(docRes.beginTransaction(any, any, $fields: argThat(isNull, named: r'$fields'))).thenAnswer((_) async {
-          return BeginTransactionResponse(transaction: kTransaction);
-        });
-        when(
-          docRes.get(
-            any,
-            mask_fieldPaths: anyNamed('mask_fieldPaths'),
-            transaction: anyNamed('transaction'),
-            $fields: argThat(isNull, named: r'$fields'),
-            readTime: argThat(isNull, named: 'readTime'),
-          ),
-        ).thenAnswer(
-          (_) async => Document(
-            name: expectedName,
-            fields: {
-              CiStaging.kRemainingField: Value(integerValue: '1'),
-              CiStaging.kTotalField: Value(integerValue: '3'),
-              'Linux build_test': Value(stringValue: 'scheduled'),
-              'MacOS build_test': Value(stringValue: 'success'),
-              'Failed build_test': Value(stringValue: 'failure'),
-            },
-          ),
-        );
-
-        final future = CiStaging.markConclusion(
-          firestoreService: firestoreService,
-          slug: slug,
-          sha: '1234',
-          stage: 'engine',
-          checkRun: 'MacOS build_test',
-          conclusion: 'mulligan',
-        );
-
-        await expectLater(future, throwsA(isA<String>()));
-        verify(docRes.rollback(argThat(predicate((RollbackRequest t) => t.transaction == kTransaction)), kDatabase))
-            .called(1);
-      });
-
       test('handles transaction failures', () async {
         when(docRes.beginTransaction(any, any, $fields: argThat(isNull, named: r'$fields'))).thenAnswer((_) async {
           return BeginTransactionResponse(transaction: kTransaction);
@@ -270,6 +232,7 @@ void main() {
         ).called(1);
         verifyNever(docRes.rollback(any, kDatabase));
       });
+
       test('handles writing updating', () async {
         when(docRes.beginTransaction(any, any, $fields: argThat(isNull, named: r'$fields'))).thenAnswer((_) async {
           return BeginTransactionResponse(transaction: kTransaction);
@@ -314,6 +277,58 @@ void main() {
                     t.writes!.first.update!.fields!.length == 2 &&
                     t.writes!.first.update!.fields!['Linux build_test']!.stringValue == 'mulligan' &&
                     t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '0';
+              }),
+            ),
+            kDatabase,
+          ),
+        ).called(1);
+        verifyNever(docRes.rollback(any, kDatabase));
+      });
+
+      test('handles previously completed check_runs', () async {
+        when(docRes.beginTransaction(any, any, $fields: argThat(isNull, named: r'$fields'))).thenAnswer((_) async {
+          return BeginTransactionResponse(transaction: kTransaction);
+        });
+        when(
+          docRes.get(
+            any,
+            mask_fieldPaths: anyNamed('mask_fieldPaths'),
+            transaction: anyNamed('transaction'),
+            $fields: argThat(isNull, named: r'$fields'),
+            readTime: argThat(isNull, named: 'readTime'),
+          ),
+        ).thenAnswer(
+          (_) async => Document(
+            name: expectedName,
+            fields: {
+              CiStaging.kRemainingField: Value(integerValue: '1'),
+              'MacOS build_test': Value(stringValue: 'success'),
+            },
+          ),
+        );
+
+        when(docRes.commit(any, kDatabase)).thenAnswer((_) async => CommitResponse());
+
+        final future = CiStaging.markConclusion(
+          firestoreService: firestoreService,
+          slug: slug,
+          sha: '1234',
+          stage: 'engine',
+          checkRun: 'MacOS build_test',
+          conclusion: 'mulligan',
+        );
+
+        final result = await future;
+        expect(result, (remaining: 1, valid: false));
+        verify(
+          docRes.commit(
+            argThat(
+              predicate((CommitRequest t) {
+                return t.transaction == kTransaction &&
+                    t.writes!.length == 1 &&
+                    t.writes!.first.update!.fields!.length == 2 &&
+                    t.writes!.first.update!.fields!['MacOS build_test']!.stringValue == 'mulligan' &&
+                    t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '1';
               }),
             ),
             kDatabase,

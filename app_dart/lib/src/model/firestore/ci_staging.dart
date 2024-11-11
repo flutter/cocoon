@@ -8,7 +8,7 @@ import 'package:github/github.dart';
 import '../../service/firestore.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 
-/// Representaion the current work scheduled for a given stage of monorepo check runs.
+/// Representation of the current work scheduled for a given stage of monorepo check runs.
 ///
 /// Staging is required so that engine build artifacts can be made available to any tests that
 /// depend on them.
@@ -55,10 +55,10 @@ class CiStaging extends Document {
   }
 
   /// The remaining number of checks in this staging.
-  int? get remaining => int.tryParse(fields![kRemainingField]!.integerValue ?? '');
+  int get remaining => int.parse(fields![kRemainingField]!.integerValue!);
 
   /// The total number of checks in this staging.
-  int? get total => int.tryParse(fields![kTotalField]!.integerValue ?? '');
+  int get total => int.parse(fields![kTotalField]!.integerValue!);
 
   /// Mark a [checkRun] for a given [stage] with [conclusion].
   ///
@@ -68,7 +68,6 @@ class CiStaging extends Document {
   /// otherwise.
   static Future<StagingConclusion> markConclusion({
     required FirestoreService firestoreService,
-    // required String documentNameString,
     required RepositorySlug slug,
     required String sha,
     required String stage,
@@ -78,7 +77,7 @@ class CiStaging extends Document {
     final logCrumb = 'markConclusion(${slug.owner}_${slug.name}_${sha}_$stage, $checkRun, $conclusion)';
 
     // Marking needs to happen while in a transaction to ensure `remaining` is
-    // updated correctly. For that to happen correctly; we need to as perform a
+    // updated correctly. For that to happen correctly; we need to perform a
     // read of the document in the transaction as well. So start the transaction
     // first thing.
     final docRes = await firestoreService.documentResource();
@@ -92,46 +91,67 @@ class CiStaging extends Document {
     );
     final transaction = transactionResponse.transaction;
     if (transaction == null) {
-      log.warning('$logCrumb: transaction was null');
+      log.severe('$logCrumb: transaction was null when updating $conclusion');
       throw '$logCrumb: transaction was null';
     }
 
     var newRemaining = -1;
+    bool valid = false;
 
     late final Document doc;
 
     // transaction block
     try {
       // First: read the fields we want to change.
-      final documentPath = documentNameFor(sha: sha, slug: slug, stage: stage);
-      doc = await docRes.get(documentPath, mask_fieldPaths: [kRemainingField, checkRun], transaction: transaction);
+      final documentName = documentNameFor(
+        slug: slug,
+        stage: stage,
+        sha: sha,
+      );
+      doc = await docRes.get(documentName, mask_fieldPaths: [kRemainingField, checkRun], transaction: transaction);
 
-      // Fields and remaining _must_ be present.
-      if (doc.fields == null ||
-          doc.fields![kRemainingField] == null ||
-          doc.fields![kRemainingField]!.integerValue == null) {
-        log.warning('$logCrumb: missing field for $transaction / ${doc.fields}');
+      final fields = doc.fields;
+      if (fields == null) {
+        log.warning('$logCrumb: missing fields for $transaction / $doc');
         throw '$logCrumb missing fields';
       }
 
-      final remaining = int.parse(doc.fields![kRemainingField]!.integerValue!);
-      newRemaining = remaining - 1;
+      // Fields and remaining _must_ be present.
+      final remaining = int.tryParse(fields[kRemainingField]?.integerValue ?? '');
+      if (remaining == null) {
+        log.warning('$logCrumb: missing field "$kRemainingField" for $transaction / ${doc.fields}');
+        throw '$logCrumb missing field "$kRemainingField"';
+      }
+
       // We will have check_runs scheduled after the engine was built successfully, so missing the checkRun field
       // is an OK response to have. All fields should have been written at creation time.
-      if (doc.fields?[checkRun] == null || doc.fields?[checkRun]!.stringValue == null) {
-        log.info('$logCrumb: $checkRun not present in doc; remaining=$remaining');
+      if (fields[checkRun] == null || fields[checkRun]!.stringValue == null) {
+        log.info('$logCrumb: $checkRun not present in doc for $transaction / $doc');
         await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
         return (valid: false, remaining: remaining);
       }
 
-      // Now we can modify the document the change in the conculsion
-      if (kDefaultTaskStatus == doc.fields![checkRun]!.stringValue) {
-        log.info('$logCrumb: setting remaining to $newRemaining and changing ${doc.fields![checkRun]!.stringValue}');
-        doc.fields![checkRun] = Value(stringValue: conclusion);
-        doc.fields![kRemainingField] = Value(integerValue: '$newRemaining');
+      // Guard against going negative and log enough info so we can debug.
+      if (remaining == 0) {
+        log.warning('$logCrumb: field "$kRemainingField" is already zero for $transaction / ${doc.fields}');
+        throw '$logCrumb field "$kRemainingField" already zero';
+      }
+      newRemaining = remaining - 1;
+
+      // Choose what to update in the document; by default we want to record the new conclusion, but we only
+      // want to record `remaining - 1` if the original conclusion was `scheduled`.
+      if (kDefaultTaskStatus == fields[checkRun]!.stringValue) {
+        log.info('$logCrumb: setting remaining to $newRemaining and changing ${fields[checkRun]!.stringValue}');
+        fields[checkRun] = Value(stringValue: conclusion);
+        fields[kRemainingField] = Value(integerValue: '$newRemaining');
+        valid = true;
       } else {
-        log.warning("$logCrumb: '$conclusion' already recorded? ${doc.fields![checkRun]!.stringValue}");
-        throw "$logCrumb: '$conclusion' already recorded? ${doc.fields![checkRun]!.stringValue}";
+        log.warning(
+          "$logCrumb: '$conclusion' already recorded for ${fields[checkRun]!.stringValue}, not updated $remaining",
+        );
+        newRemaining = remaining;
+        fields[checkRun] = Value(stringValue: conclusion);
+        valid = false;
       }
     } catch (e) {
       await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
@@ -141,13 +161,10 @@ class CiStaging extends Document {
     // Commit this write firebase and if no one else was writing at the same time, return success.
     // If this commit fails, that means someone else modified firestore and the caller should try again.
     // We do not need to rollback the transaction; firebase documentation says a failed commit takes care of that.
-    final CommitRequest commitRequest =
-        CommitRequest(transaction: transaction, writes: documentsToWrites([doc], exists: true));
-
+    final commitRequest = CommitRequest(transaction: transaction, writes: documentsToWrites([doc], exists: true));
     final response = await docRes.commit(commitRequest, kDatabase);
     log.info('$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}');
-
-    return (valid: true, remaining: newRemaining);
+    return (valid: valid, remaining: newRemaining);
   }
 }
 
