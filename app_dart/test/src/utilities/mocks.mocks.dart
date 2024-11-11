@@ -20,6 +20,7 @@ import 'package:cocoon_service/src/model/appengine/key_helper.dart' as _i12;
 import 'package:cocoon_service/src/model/appengine/stage.dart' as _i37;
 import 'package:cocoon_service/src/model/appengine/task.dart' as _i36;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart' as _i42;
+import 'package:cocoon_service/src/model/firestore/ci_staging.dart' as _i47;
 import 'package:cocoon_service/src/model/firestore/commit.dart' as _i40;
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart' as _i23;
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart' as _i22;
@@ -46,7 +47,7 @@ import 'package:http/http.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i31;
 import 'package:neat_cache/neat_cache.dart' as _i28;
-import 'package:process/src/interface/process_manager.dart' as _i45;
+import 'package:process/process.dart' as _i45;
 import 'package:retry/retry.dart' as _i30;
 
 import '../../service/cache_service_test.dart' as _i38;
@@ -4033,6 +4034,24 @@ class MockGithubService extends _i1.Mock implements _i17.GithubService {
         ),
         returnValue: _i20.Future<List<_i13.Issue>>.value(<_i13.Issue>[]),
       ) as _i20.Future<List<_i13.Issue>>);
+
+  @override
+  _i20.Future<bool> removeLabel(
+    _i13.RepositorySlug? slug,
+    int? issueNumber,
+    String? label,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #removeLabel,
+          [
+            slug,
+            issueNumber,
+            label,
+          ],
+        ),
+        returnValue: _i20.Future<bool>.value(false),
+      ) as _i20.Future<bool>);
 
   @override
   _i20.Future<_i13.Issue>? getIssue(
@@ -9828,6 +9847,41 @@ class MockBeginTransactionResponse extends _i1.Mock implements _i21.BeginTransac
         ),
         returnValue: <String, dynamic>{},
       ) as Map<String, dynamic>);
+}
+
+/// A class which mocks [Callbacks].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockCallbacks extends _i1.Mock implements _i46.Callbacks {
+  MockCallbacks() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i20.Future<({String? checkRunGuard, int failed, int remaining, bool valid})> markCheckRunConclusion({
+    required _i15.FirestoreService? firestoreService,
+    required _i13.RepositorySlug? slug,
+    required String? sha,
+    required _i47.CiStage? stage,
+    required String? checkRun,
+    required String? conclusion,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #markCheckRunConclusion,
+          [],
+          {
+            #firestoreService: firestoreService,
+            #slug: slug,
+            #sha: sha,
+            #stage: stage,
+            #checkRun: checkRun,
+            #conclusion: conclusion,
+          },
+        ),
+        returnValue: _i20.Future<({String? checkRunGuard, int failed, int remaining, bool valid})>.value(
+            (checkRunGuard: null, failed: 0, remaining: 0, valid: false)),
+      ) as _i20.Future<({String? checkRunGuard, int failed, int remaining, bool valid})>);
 }
 
 /// A class which mocks [Cache].

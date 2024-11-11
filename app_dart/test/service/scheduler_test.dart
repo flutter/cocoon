@@ -11,6 +11,7 @@ import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/stage.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
+import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
@@ -95,6 +96,7 @@ void main() {
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Scheduler scheduler;
   late FakeFusionTester fakeFusion;
+  late MockCallbacks callbacks;
 
   final PullRequest pullRequest = generatePullRequest(id: 42);
 
@@ -148,6 +150,8 @@ void main() {
           .thenAnswer((Invocation invocation) async => generateCheckRun(invocation.positionalArguments[2].hashCode));
 
       fakeFusion = FakeFusionTester();
+      callbacks = MockCallbacks();
+
       scheduler = Scheduler(
         cache: cache,
         config: config,
@@ -163,6 +167,7 @@ void main() {
           ),
         ),
         fusionTester: fakeFusion,
+        markCheckRunConclusion: callbacks.markCheckRunConclusion,
       );
 
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
@@ -823,6 +828,79 @@ targets:
         );
         expect(await scheduler.processCheckRun(checkRunEvent), true);
         verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
+      });
+
+      group('completed action', () {
+        final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
+          {
+            'action': 'completed',
+            'check_run': {
+              'head_sha': '1234',
+              'name': 'Linux unit_test',
+              'conclusion': CiStaging.kSuccessValue,
+            },
+            'repository': {
+              'name': 'flaux',
+              'full_name': 'flutter/flaux',
+              'owner': {'avatar_url': '', 'html_url': '', 'login': 'flutter', 'id': 54371434},
+            },
+          },
+        );
+
+        test('works for non fusion cases', () async {
+          fakeFusion.isFusion = (_, __) => false;
+          expect(await scheduler.processCheckRun(checkRunEvent), true);
+        });
+
+        group('in fusion', () {
+          setUp(() {
+            fakeFusion.isFusion = (_, __) => true;
+          });
+
+          test('updates the staging firestore', () async {
+            when(
+              callbacks.markCheckRunConclusion(
+                firestoreService: anyNamed('firestoreService'),
+                slug: anyNamed('slug'),
+                sha: anyNamed('sha'),
+                stage: anyNamed('stage'),
+                checkRun: anyNamed('checkRun'),
+                conclusion: anyNamed('conclusion'),
+              ),
+            ).thenAnswer((inv) async {
+              expect(inv.namedArguments[#firestoreService], isNotNull);
+              expect((inv.namedArguments[#slug] as RepositorySlug).fullName, 'flutter/flaux');
+              expect(inv.namedArguments[#sha], '1234');
+              expect(inv.namedArguments[#stage], CiStage.fusionEngineBuild);
+              expect(inv.namedArguments[#checkRun], 'Linux unit_test');
+              expect(inv.namedArguments[#conclusion], 'success');
+              return (valid: true, remaining: 1, checkRunGuard: '{}', failed: 0);
+            });
+
+            expect(await scheduler.processCheckRun(checkRunEvent), isTrue);
+            verify(
+              callbacks.markCheckRunConclusion(
+                firestoreService: anyNamed('firestoreService'),
+                slug: anyNamed('slug'),
+                sha: anyNamed('sha'),
+                stage: anyNamed('stage'),
+                checkRun: anyNamed('checkRun'),
+                conclusion: anyNamed('conclusion'),
+              ),
+            ).called(1);
+
+            verifyNever(
+              mockGithubChecksUtil.updateCheckRun(
+                any,
+                any,
+                any,
+                status: anyNamed('status'),
+                conclusion: anyNamed('conclusion'),
+                output: anyNamed('output'),
+              ),
+            );
+          });
+        });
       });
     });
 

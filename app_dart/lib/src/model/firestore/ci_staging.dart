@@ -27,17 +27,16 @@ class CiStaging extends Document {
   static const kTotalField = 'total';
   static const kFailedField = 'failed_count';
   static const kCheckRunGuardField = 'check_run_guard';
-  static const kEngineStage = 'engine';
 
   static const kScheduledValue = 'scheduled';
   static final kSuccessValue = CheckRunConclusion.success.value!;
   static final kFailureValue = CheckRunConclusion.failure.value!;
 
-  static String documentIdFor({required RepositorySlug slug, required String sha, required String stage}) =>
+  static String documentIdFor({required RepositorySlug slug, required String sha, required CiStage stage}) =>
       '${slug.owner}_${slug.name}_${sha}_$stage';
 
   /// Returns a firebase documentName used in [fromFirestore].
-  static String documentNameFor({required RepositorySlug slug, required String sha, required String stage}) {
+  static String documentNameFor({required RepositorySlug slug, required String sha, required CiStage stage}) {
     // Document names cannot cannot have '/' in the document id.
     final docId = documentIdFor(slug: slug, sha: sha, stage: stage);
     return '$kDocumentParent/$kCollectionId/$docId';
@@ -85,7 +84,7 @@ class CiStaging extends Document {
     required FirestoreService firestoreService,
     required RepositorySlug slug,
     required String sha,
-    required String stage,
+    required CiStage stage,
     required String checkRun,
     required String conclusion,
   }) async {
@@ -243,7 +242,7 @@ class CiStaging extends Document {
     required FirestoreService firestoreService,
     required RepositorySlug slug,
     required String sha,
-    required String stage,
+    required CiStage stage,
     required List<String> tasks,
     required String checkRunGuard,
   }) async {
@@ -277,6 +276,25 @@ class CiStaging extends Document {
       rethrow;
     }
   }
+}
+
+/// Well-defined stages in the build infrastructure.
+enum CiStage implements Comparable<CiStage> {
+  /// Build engine artifacts
+  fusionEngineBuild('engine'),
+
+  /// All non-engine artifact tests (engine & framework)
+  fusionTests('fusion');
+
+  const CiStage(this.name);
+
+  final String name;
+
+  @override
+  int compareTo(CiStage other) => index - other.index;
+
+  @override
+  String toString() => name;
 }
 
 /// Results from attempting to mark a staging task as completed.

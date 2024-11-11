@@ -2,10 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
@@ -55,6 +57,7 @@ class Scheduler {
     this.datastoreProvider = DatastoreService.defaultProvider,
     this.httpClientProvider = Providers.freshHttpClient,
     this.buildStatusProvider = BuildStatusService.defaultProvider,
+    @visibleForTesting this.markCheckRunConclusion = CiStaging.markConclusion,
   });
 
   final BuildStatusServiceProvider buildStatusProvider;
@@ -67,6 +70,15 @@ class Scheduler {
   late DatastoreService datastore;
   late FirestoreService firestoreService;
   LuciBuildService luciBuildService;
+
+  Future<StagingConclusion> Function({
+    required String checkRun,
+    required String conclusion,
+    required FirestoreService firestoreService,
+    required String sha,
+    required RepositorySlug slug,
+    required CiStage stage,
+  }) markCheckRunConclusion;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
@@ -374,29 +386,37 @@ class Scheduler {
     // the PR and to the merge group, and so it must be completed in both cases.
     final lock = await lockMergeGroupChecks(slug, pullRequest.head!.sha!);
 
-    log.info('Creating ciYaml validation check run for ${pullRequest.number}');
-    final CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
-      config,
-      slug,
-      pullRequest.head!.sha!,
-      kCiYamlCheckName,
-      output: const CheckRunOutput(
-        title: kCiYamlCheckName,
-        summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
-      ),
-    );
+    final ciValidationCheckRun = await createCiYamlCheckRun(pullRequest, slug);
 
     log.info('Creating presubmit targets for ${pullRequest.number}');
     dynamic exception;
     try {
+      final sha = pullRequest.head!.sha!;
+      final isFusion = await fusionTester.isFusionBasedRef(slug, sha);
+
       // Both the author and label should be checked to make sure that no one is
       // attempting to get a pull request without check through.
       if (pullRequest.user!.login == config.autosubmitBot &&
           pullRequest.labels!.any((element) => element.name == Config.revertOfLabel)) {
         log.info('Skipping generating the full set of checks for revert request.');
       } else {
-        final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
-        final List<Target> presubmitTriggerTargets = getTriggerList(presubmitTargets, builderTriggerList);
+        final presubmitTargets = isFusion
+            ? await getTestsForStage(pullRequest, CiStage.fusionEngineBuild)
+            : await getPresubmitTargets(pullRequest);
+        final presubmitTriggerTargets = getTriggerList(presubmitTargets, builderTriggerList);
+
+        // When running presubmits for a fusion PR; create a new staging document to track tasks needed
+        // to complete before we can schedule more tests (i.e. build engine artifacts before testing against them).
+        if (isFusion) {
+          await CiStaging.initializeDocument(
+            firestoreService: firestoreService,
+            slug: slug,
+            sha: sha,
+            stage: CiStage.fusionEngineBuild,
+            tasks: [...presubmitTriggerTargets.map((t) => t.value.name)],
+            checkRunGuard: '$ciValidationCheckRun',
+          );
+        }
         await luciBuildService.scheduleTryBuilds(
           targets: presubmitTriggerTargets,
           pullRequest: pullRequest,
@@ -413,6 +433,21 @@ class Scheduler {
     }
 
     // Update validate ci.yaml check
+    await closeCiYamlCheckRun(pullRequest, exception, slug, ciValidationCheckRun);
+
+    await unlockMergeGroupChecks(slug, pullRequest.head!.sha!, lock, exception);
+
+    log.info(
+      'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug $slug}',
+    );
+  }
+
+  Future<void> closeCiYamlCheckRun(
+    PullRequest pullRequest,
+    exception,
+    RepositorySlug slug,
+    CheckRun ciValidationCheckRun,
+  ) async {
     log.info('Updating ci.yaml validation check for ${pullRequest.number}');
     if (exception == null) {
       // Success in validating ci.yaml
@@ -441,12 +476,21 @@ class Scheduler {
         ),
       );
     }
+  }
 
-    await unlockMergeGroupChecks(slug, pullRequest.head!.sha!, lock, exception);
-
-    log.info(
-      'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug $slug}',
+  Future<CheckRun> createCiYamlCheckRun(PullRequest pullRequest, RepositorySlug slug) async {
+    log.info('Creating ciYaml validation check run for ${pullRequest.number}');
+    final CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
+      config,
+      slug,
+      pullRequest.head!.sha!,
+      kCiYamlCheckName,
+      output: const CheckRunOutput(
+        title: kCiYamlCheckName,
+        summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
+      ),
     );
+    return ciValidationCheckRun;
   }
 
   static Duration debugCheckPretendDelay = const Duration(minutes: 1);
@@ -696,6 +740,150 @@ class Scheduler {
     return false;
   }
 
+  /// Process completed GitHub `check_runs` to enable fusion engine builds.
+  Future<bool> processCheckRunCompletion(cocoon_checks.CheckRunEvent checkRunEvent) async {
+    final name = checkRunEvent.checkRun?.name;
+    final sha = checkRunEvent.checkRun?.headSha;
+    final slug = checkRunEvent.repository?.slug();
+    final conclusion = checkRunEvent.checkRun?.conclusion;
+    firestoreService = await config.createFirestoreService();
+
+    if (name == null || sha == null || slug == null || conclusion == null) return true;
+
+    final isFusion = await fusionTester.isFusionBasedRef(slug, sha);
+    if (!isFusion) {
+      return true;
+    }
+
+    // Check runs are fired at every stage; but this code is only interested in check runs during the engine-build
+    // stage. Once this stage passes, the document will still exist, but there won't be any valid updates.
+    const stage = CiStage.fusionEngineBuild;
+    final documentName = CiStaging.documentNameFor(slug: slug, sha: sha, stage: stage);
+
+    final logCrumb = 'checkCompleted($name, $slug, $sha, $conclusion)';
+    log.info('$logCrumb: $documentName');
+    final StagingConclusion stagingConclusion;
+    try {
+      // We're doing a transactional update, which could fail if multiple tasks are running at the same time; so retry
+      // a sane amount of times before giving up.
+      const RetryOptions r = RetryOptions(
+        maxAttempts: 3,
+        delayFactor: Duration(seconds: 2),
+      );
+      stagingConclusion = await r.retry(
+        () => markCheckRunConclusion(
+          firestoreService: firestoreService,
+          slug: slug,
+          sha: sha,
+          stage: stage,
+          checkRun: name,
+          conclusion: conclusion,
+        ),
+      );
+      // This occurs when we've scheduled tests for the next stage of CI.
+      if (!stagingConclusion.valid) return false;
+      if (stagingConclusion.remaining > 0) {
+        log.info('$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}');
+        return false;
+      }
+      if (stagingConclusion.failed > 0) {
+        log.info('$logCrumb: not progressing, failed test count: ${stagingConclusion.failed}');
+        return false;
+      }
+      if (stagingConclusion.checkRunGuard == null) {
+        log.severe('$logCrumb: not progressing, no check_run_guard in: $stagingConclusion');
+        return false;
+      }
+    } catch (e, s) {
+      // Ignore for now; we're testing
+      log.warning('$logCrumb: error processing check_run', e, s);
+      return false;
+    }
+
+    // We know that we're in a fusion repo; now we need to figure out if we are
+    //   1) in a presubmit test or
+    //   2) in the merge queue
+    final headBranch = checkRunEvent.checkRun?.checkSuite?.headBranch;
+    final mergeQueue = headBranch?.startsWith('gh-readonly-queue/') ?? false;
+    final checkRunGuard = CheckRun.fromJson(json.decode(stagingConclusion.checkRunGuard!));
+
+    final bool hasFailedTargets = stagingConclusion.failed > 0;
+
+    log.info('$logCrumb: Stage completed: $stage - should now complete ${checkRunGuard.name} with $hasFailedTargets');
+
+    // Merge Queue doesn't schedule more tests at the moment; those will happen in post submit.
+    // Failed targets fail right away and we don't schedule any tests to run.
+    if (mergeQueue || hasFailedTargets) {
+      await unlockMergeGroupChecks(slug, sha, checkRunGuard, hasFailedTargets ? 'some tests have failed' : null);
+      return true;
+    }
+
+    // We're in a pull request and the engine is fully built; schedule the tests that would
+    // have run in an old [triggerPresubmitTargets]
+    final int checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
+    final PullRequest? pullRequest = await githubChecksService.findMatchingPullRequest(slug, sha, checkSuiteId);
+    if (pullRequest == null) {
+      log.info('$logCrumb: no PR found matching this check_run');
+      return false;
+    }
+
+    // Create another ci yaml check to wrap our calls to luci
+    final ciValidationCheckRun = await createCiYamlCheckRun(pullRequest, slug);
+
+    dynamic exception;
+    try {
+      // Both the author and label should be checked to make sure that no one is
+      // attempting to get a pull request without check through.
+      if (pullRequest.user!.login == config.autosubmitBot &&
+          pullRequest.labels!.any((element) => element.name == Config.revertOfLabel)) {
+        log.info('$logCrumb: skipping generating the full set of checks for revert request.');
+      } else {
+        final presubmitTargets = await getTestsForStage(pullRequest, CiStage.fusionTests);
+
+        await luciBuildService.scheduleTryBuilds(
+          targets: presubmitTargets,
+          pullRequest: pullRequest,
+        );
+      }
+    } on FormatException catch (error, backtrace) {
+      log.warning(
+        '$logCrumb: FormatException encountered when scheduling presubmit targets for ${pullRequest.number}',
+        error,
+        backtrace,
+      );
+      exception = error;
+    } catch (error, backtrace) {
+      log.warning(
+        '$logCrumb: Exception encountered when scheduling presubmit targets for ${pullRequest.number}',
+        error,
+        backtrace,
+      );
+      exception = error;
+    }
+
+    // Update validate ci.yaml check
+    await closeCiYamlCheckRun(pullRequest, exception, slug, ciValidationCheckRun);
+
+    // Unlock the guarding check_run.
+    await unlockMergeGroupChecks(slug, sha, checkRunGuard, exception);
+
+    return true;
+  }
+
+  /// Returns the presubmit targets for the fusion repo [pullRequest] that should run for the given [stage].
+  Future<List<Target>> getTestsForStage(PullRequest pullRequest, CiStage stage) async {
+    final presubmitTargets = [
+      ...await getPresubmitTargets(pullRequest),
+      ...await getPresubmitTargets(pullRequest, type: CiType.fusionEngine),
+    ].where(
+      (Target target) => switch (stage) {
+        CiStage.fusionEngineBuild => target.value.properties['release_build'] == 'true',
+        CiStage.fusionTests => target.value.properties['release_build'] != 'true'
+      },
+    );
+    return [...presubmitTargets];
+  }
+
   /// Reschedules a failed build using a [CheckRunEvent]. The CheckRunEvent is
   /// generated when someone clicks the re-run button from a failed build from
   /// the Github UI.
@@ -708,6 +896,10 @@ class Scheduler {
   Future<bool> processCheckRun(cocoon_checks.CheckRunEvent checkRunEvent) async {
     // TODO(codefu): Figure out if we're in fusion or not.
     switch (checkRunEvent.action) {
+      case 'completed':
+        await processCheckRunCompletion(checkRunEvent);
+        return true;
+
       case 'rerequested':
         log.fine('Rerun requested by GitHub user: ${checkRunEvent.sender?.login}');
         final String? name = checkRunEvent.checkRun!.name;

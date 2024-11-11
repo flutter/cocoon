@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
+import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/access_client_provider.dart';
 import 'package:cocoon_service/src/service/access_token_provider.dart';
@@ -91,6 +92,7 @@ Future<AutoRefreshingAuthClient> authClientProviderShim({
     UsersService,
     ProjectsDatabasesDocumentsResource,
     BeginTransactionResponse,
+    Callbacks,
   ],
   customMocks: [
     MockSpec<Cache<Uint8List>>(),
@@ -106,4 +108,15 @@ void main() {}
 class ThrowingGitHub implements GitHub {
   @override
   dynamic noSuchMethod(Invocation invocation) => throw AssertionError();
+}
+
+abstract class Callbacks {
+  Future<StagingConclusion> markCheckRunConclusion({
+    required FirestoreService firestoreService,
+    required RepositorySlug slug,
+    required String sha,
+    required CiStage stage,
+    required String checkRun,
+    required String conclusion,
+  });
 }
