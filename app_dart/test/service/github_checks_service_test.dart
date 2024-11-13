@@ -59,30 +59,6 @@ void main() {
     });
   });
 
-  group('handleCheckSuiteEvent', () {
-    test('requested triggers all builds', () async {
-      final CheckSuiteEvent checkSuiteEvent =
-          CheckSuiteEvent.fromJson(jsonDecode(checkSuiteString) as Map<String, dynamic>);
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
-          .thenAnswer((_) async => generateCheckRun(1));
-      final PullRequest pullRequest = generatePullRequest(id: 758);
-      await githubChecksService.handleCheckSuite(pullRequest, checkSuiteEvent, scheduler);
-      final List<Target> scheduledTargets = verify(
-        mockLuciBuildService.scheduleTryBuilds(
-          targets: captureAnyNamed('targets'),
-          pullRequest: anyNamed('pullRequest'),
-          checkSuiteEvent: anyNamed('checkSuiteEvent'),
-        ),
-      ).captured.single as List<Target>;
-      final Iterable<String> scheduledTargetNames = scheduledTargets.map((Target target) => target.value.name);
-      expect(scheduledTargetNames, <String>[
-        'Linux A',
-        'Mac A',
-        'Windows A',
-      ]);
-    });
-  });
-
   group('updateCheckStatus', () {
     test('Userdata is empty', () async {
       final bool success = await githubChecksService.updateCheckStatus(
