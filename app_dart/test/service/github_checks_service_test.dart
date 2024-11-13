@@ -5,25 +5,19 @@
 import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart';
-import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:fixnum/fixnum.dart';
 
 import 'package:github/github.dart' as github;
 import 'package:github/github.dart';
-import 'package:github/hooks.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../model/github/checks_test_data.dart';
 import '../src/datastore/fake_config.dart';
-import '../src/service/fake_scheduler.dart';
-import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
   FakeConfig config;
-  late FakeScheduler scheduler;
   MockGithubService mockGithubService;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late MockLuciBuildService mockLuciBuildService;
@@ -42,12 +36,6 @@ void main() {
       githubChecksUtil: mockGithubChecksUtil,
     );
     slug = RepositorySlug('flutter', 'cocoon');
-    scheduler = FakeScheduler(
-      config: config,
-      luciBuildService: mockLuciBuildService,
-      githubChecksUtil: mockGithubChecksUtil,
-      ciYaml: exampleConfig,
-    );
     checkRun = github.CheckRun.fromJson(
       jsonDecode(
         '{"name": "Linux Coverage", "id": 123, "external_id": "678", "status": "completed", "started_at": "2020-05-10T02:49:31Z", "head_sha": "the_sha", "check_suite": {"id": 456}}',
@@ -56,30 +44,6 @@ void main() {
     final Map<String, github.CheckRun> checkRuns = <String, github.CheckRun>{'Cocoon': checkRun};
     when(mockGithubChecksUtil.allCheckRuns(any, any)).thenAnswer((_) async {
       return checkRuns;
-    });
-  });
-
-  group('handleCheckSuiteEvent', () {
-    test('requested triggers all builds', () async {
-      final CheckSuiteEvent checkSuiteEvent =
-          CheckSuiteEvent.fromJson(jsonDecode(checkSuiteString) as Map<String, dynamic>);
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
-          .thenAnswer((_) async => generateCheckRun(1));
-      final PullRequest pullRequest = generatePullRequest(id: 758);
-      await githubChecksService.handleCheckSuite(pullRequest, checkSuiteEvent, scheduler);
-      final List<Target> scheduledTargets = verify(
-        mockLuciBuildService.scheduleTryBuilds(
-          targets: captureAnyNamed('targets'),
-          pullRequest: anyNamed('pullRequest'),
-          checkSuiteEvent: anyNamed('checkSuiteEvent'),
-        ),
-      ).captured.single as List<Target>;
-      final Iterable<String> scheduledTargetNames = scheduledTargets.map((Target target) => target.value.name);
-      expect(scheduledTargetNames, <String>[
-        'Linux A',
-        'Mac A',
-        'Windows A',
-      ]);
     });
   });
 

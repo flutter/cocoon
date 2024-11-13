@@ -3603,25 +3603,6 @@ class MockGithubChecksService extends _i1.Mock implements _i15.GithubChecksServi
       );
 
   @override
-  _i20.Future<void> handleCheckSuite(
-    _i13.PullRequest? pullRequest,
-    _i33.CheckSuiteEvent? checkSuiteEvent,
-    _i15.Scheduler? scheduler,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #handleCheckSuite,
-          [
-            pullRequest,
-            checkSuiteEvent,
-            scheduler,
-          ],
-        ),
-        returnValue: _i20.Future<void>.value(),
-        returnValueForMissingStub: _i20.Future<void>.value(),
-      ) as _i20.Future<void>);
-
-  @override
   _i20.Future<bool> updateCheckStatus({
     required _i8.Build? build,
     required Map<String, dynamic>? userDataMap,
