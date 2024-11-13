@@ -128,7 +128,7 @@ void main() {
         verify(
           docRes.get(
             expectedName,
-            mask_fieldPaths: [CiStaging.kRemainingField, 'test'],
+            mask_fieldPaths: [CiStaging.kRemainingField, 'test', CiStaging.kCheckRunGuardField, CiStaging.kFailedField],
             transaction: argThat(equals(kTransaction), named: 'transaction'),
           ),
         ).called(1);
@@ -160,9 +160,11 @@ void main() {
             fields: {
               CiStaging.kRemainingField: Value(integerValue: '1'),
               CiStaging.kTotalField: Value(integerValue: '3'),
-              'Linux build_test': Value(stringValue: 'scheduled'),
-              'MacOS build_test': Value(stringValue: 'success'),
-              'Failed build_test': Value(stringValue: 'failure'),
+              CiStaging.kFailedField: Value(integerValue: '0'),
+              CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
+              'Linux build_test': Value(stringValue: CiStaging.kScheduledValue),
+              'MacOS build_test': Value(stringValue: CiStaging.kSuccessValue),
+              'Failed build_test': Value(stringValue: CiStaging.kFailureValue),
             },
           ),
         );
@@ -177,7 +179,7 @@ void main() {
         );
 
         final result = await future;
-        expect(result, (remaining: 1, valid: false));
+        expect(result, (remaining: 1, valid: false, failed: 0, checkRunGuard: null));
         verify(docRes.rollback(argThat(predicate((RollbackRequest t) => t.transaction == kTransaction)), kDatabase))
             .called(1);
       });
@@ -199,7 +201,9 @@ void main() {
             name: expectedName,
             fields: {
               CiStaging.kRemainingField: Value(integerValue: '1'),
-              'Linux build_test': Value(stringValue: 'scheduled'),
+              CiStaging.kFailedField: Value(integerValue: '0'),
+              CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
+              'Linux build_test': Value(stringValue: CiStaging.kScheduledValue),
             },
           ),
         );
@@ -222,7 +226,7 @@ void main() {
               predicate((CommitRequest t) {
                 return t.transaction == kTransaction &&
                     t.writes!.length == 1 &&
-                    t.writes!.first.update!.fields!.length == 2 &&
+                    t.writes!.first.update!.fields!.length == 4 &&
                     t.writes!.first.update!.fields!['Linux build_test']!.stringValue == 'mulligan' &&
                     t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '0';
               }),
@@ -250,7 +254,9 @@ void main() {
             name: expectedName,
             fields: {
               CiStaging.kRemainingField: Value(integerValue: '1'),
-              'Linux build_test': Value(stringValue: 'scheduled'),
+              CiStaging.kFailedField: Value(integerValue: '0'),
+              CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
+              'Linux build_test': Value(stringValue: CiStaging.kScheduledValue),
             },
           ),
         );
@@ -267,14 +273,14 @@ void main() {
         );
 
         final result = await future;
-        expect(result, (remaining: 0, valid: true));
+        expect(result, (remaining: 0, valid: true, failed: 0, checkRunGuard: '{}'));
         verify(
           docRes.commit(
             argThat(
               predicate((CommitRequest t) {
                 return t.transaction == kTransaction &&
                     t.writes!.length == 1 &&
-                    t.writes!.first.update!.fields!.length == 2 &&
+                    t.writes!.first.update!.fields!.length == 4 &&
                     t.writes!.first.update!.fields!['Linux build_test']!.stringValue == 'mulligan' &&
                     t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '0';
               }),
@@ -302,7 +308,9 @@ void main() {
             name: expectedName,
             fields: {
               CiStaging.kRemainingField: Value(integerValue: '1'),
-              'MacOS build_test': Value(stringValue: 'success'),
+              CiStaging.kFailedField: Value(integerValue: '0'),
+              CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
+              'MacOS build_test': Value(stringValue: CiStaging.kSuccessValue),
             },
           ),
         );
@@ -319,16 +327,182 @@ void main() {
         );
 
         final result = await future;
-        expect(result, (remaining: 1, valid: false));
+        expect(result, (remaining: 1, valid: false, failed: 0, checkRunGuard: '{}'));
         verify(
           docRes.commit(
             argThat(
               predicate((CommitRequest t) {
                 return t.transaction == kTransaction &&
                     t.writes!.length == 1 &&
-                    t.writes!.first.update!.fields!.length == 2 &&
+                    t.writes!.first.update!.fields!.length == 4 &&
                     t.writes!.first.update!.fields!['MacOS build_test']!.stringValue == 'mulligan' &&
                     t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '1';
+              }),
+            ),
+            kDatabase,
+          ),
+        ).called(1);
+        verifyNever(docRes.rollback(any, kDatabase));
+      });
+
+      test('handles a test flip-flop after re-running', () async {
+        when(docRes.beginTransaction(any, any, $fields: argThat(isNull, named: r'$fields'))).thenAnswer((_) async {
+          return BeginTransactionResponse(transaction: kTransaction);
+        });
+        when(
+          docRes.get(
+            any,
+            mask_fieldPaths: anyNamed('mask_fieldPaths'),
+            transaction: anyNamed('transaction'),
+            $fields: argThat(isNull, named: r'$fields'),
+            readTime: argThat(isNull, named: 'readTime'),
+          ),
+        ).thenAnswer(
+          (_) async => Document(
+            name: expectedName,
+            fields: {
+              CiStaging.kRemainingField: Value(integerValue: '1'),
+              CiStaging.kFailedField: Value(integerValue: '1'),
+              CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
+              'MacOS build_test': Value(stringValue: CiStaging.kFailureValue),
+            },
+          ),
+        );
+
+        when(docRes.commit(any, kDatabase)).thenAnswer((_) async => CommitResponse());
+
+        final future = CiStaging.markConclusion(
+          firestoreService: firestoreService,
+          slug: slug,
+          sha: '1234',
+          stage: 'engine',
+          checkRun: 'MacOS build_test',
+          conclusion: CiStaging.kSuccessValue,
+        );
+
+        final result = await future;
+        // Remaining == 1 because our test was already concluded.
+        expect(result, (remaining: 1, valid: true, failed: 0, checkRunGuard: '{}'));
+        verify(
+          docRes.commit(
+            argThat(
+              predicate((CommitRequest t) {
+                return t.transaction == kTransaction &&
+                    t.writes!.length == 1 &&
+                    t.writes!.first.update!.fields!.length == 4 &&
+                    t.writes!.first.update!.fields!['MacOS build_test']!.stringValue == CiStaging.kSuccessValue &&
+                    t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '1' &&
+                    t.writes!.first.update!.fields![CiStaging.kFailedField]!.integerValue == '0';
+              }),
+            ),
+            kDatabase,
+          ),
+        ).called(1);
+        verifyNever(docRes.rollback(any, kDatabase));
+      });
+
+      test('ignored repeat failures', () async {
+        when(docRes.beginTransaction(any, any, $fields: argThat(isNull, named: r'$fields'))).thenAnswer((_) async {
+          return BeginTransactionResponse(transaction: kTransaction);
+        });
+        when(
+          docRes.get(
+            any,
+            mask_fieldPaths: anyNamed('mask_fieldPaths'),
+            transaction: anyNamed('transaction'),
+            $fields: argThat(isNull, named: r'$fields'),
+            readTime: argThat(isNull, named: 'readTime'),
+          ),
+        ).thenAnswer(
+          (_) async => Document(
+            name: expectedName,
+            fields: {
+              CiStaging.kRemainingField: Value(integerValue: '1'),
+              CiStaging.kFailedField: Value(integerValue: '1'),
+              CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
+              'MacOS build_test': Value(stringValue: CiStaging.kFailureValue),
+            },
+          ),
+        );
+
+        when(docRes.commit(any, kDatabase)).thenAnswer((_) async => CommitResponse());
+
+        final future = CiStaging.markConclusion(
+          firestoreService: firestoreService,
+          slug: slug,
+          sha: '1234',
+          stage: 'engine',
+          checkRun: 'MacOS build_test',
+          conclusion: CiStaging.kFailureValue,
+        );
+
+        final result = await future;
+        expect(result, (remaining: 1, valid: false, failed: 1, checkRunGuard: '{}'));
+        verify(
+          docRes.commit(
+            argThat(
+              predicate((CommitRequest t) {
+                return t.transaction == kTransaction &&
+                    t.writes!.length == 1 &&
+                    t.writes!.first.update!.fields!.length == 4 &&
+                    t.writes!.first.update!.fields!['MacOS build_test']!.stringValue == CiStaging.kFailureValue &&
+                    t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '1' &&
+                    t.writes!.first.update!.fields![CiStaging.kFailedField]!.integerValue == '1';
+              }),
+            ),
+            kDatabase,
+          ),
+        ).called(1);
+        verifyNever(docRes.rollback(any, kDatabase));
+      });
+
+      test('handles success to failure case', () async {
+        when(docRes.beginTransaction(any, any, $fields: argThat(isNull, named: r'$fields'))).thenAnswer((_) async {
+          return BeginTransactionResponse(transaction: kTransaction);
+        });
+        when(
+          docRes.get(
+            any,
+            mask_fieldPaths: anyNamed('mask_fieldPaths'),
+            transaction: anyNamed('transaction'),
+            $fields: argThat(isNull, named: r'$fields'),
+            readTime: argThat(isNull, named: 'readTime'),
+          ),
+        ).thenAnswer(
+          (_) async => Document(
+            name: expectedName,
+            fields: {
+              CiStaging.kRemainingField: Value(integerValue: '1'),
+              CiStaging.kFailedField: Value(integerValue: '1'),
+              CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
+              'MacOS build_test': Value(stringValue: CiStaging.kSuccessValue),
+            },
+          ),
+        );
+
+        when(docRes.commit(any, kDatabase)).thenAnswer((_) async => CommitResponse());
+
+        final future = CiStaging.markConclusion(
+          firestoreService: firestoreService,
+          slug: slug,
+          sha: '1234',
+          stage: 'engine',
+          checkRun: 'MacOS build_test',
+          conclusion: CiStaging.kFailureValue,
+        );
+
+        final result = await future;
+        expect(result, (remaining: 1, valid: true, failed: 2, checkRunGuard: '{}'));
+        verify(
+          docRes.commit(
+            argThat(
+              predicate((CommitRequest t) {
+                return t.transaction == kTransaction &&
+                    t.writes!.length == 1 &&
+                    t.writes!.first.update!.fields!.length == 4 &&
+                    t.writes!.first.update!.fields!['MacOS build_test']!.stringValue == CiStaging.kFailureValue &&
+                    t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '1' &&
+                    t.writes!.first.update!.fields![CiStaging.kFailedField]!.integerValue == '2';
               }),
             ),
             kDatabase,
