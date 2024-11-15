@@ -332,7 +332,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       switch (slug.name) {
         case 'flaux':
         case 'flutter':
-          final bool isFusion = await fusionTester.isFusionBasedPR(pr);
+          final bool isFusion = await fusionTester.isFusionBasedRef(slug, pr.head!.sha!);
           final files = await gitHubClient.pullRequests.listFiles(slug, pr.number!).toList();
           await _applyFrameworkRepoLabels(gitHubClient, eventAction, pr, isFusion: isFusion, files: files);
           if (isFusion) {

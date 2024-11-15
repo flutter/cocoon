@@ -14,7 +14,6 @@ import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/graphql_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart' as github;
-import 'package:graphql/client.dart' as graphql;
 import 'package:retry/retry.dart';
 
 /// Class containing common methods to each of the pull request type validation
@@ -29,9 +28,9 @@ class ValidationService {
   /// Fetch the most up to date info for the current pull request from github.
   Future<QueryResult> getNewestPullRequestInfo(Config config, github.PullRequest pullRequest) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final graphql.GraphQLClient graphQLClient = await config.createGitHubGraphQLClient(slug);
     final int? prNumber = pullRequest.number;
-    final GraphQlService graphQlService = GraphQlService();
+
+    final GraphQlService graphQlService = await GraphQlService.forRepo(config, slug);
 
     final FindPullRequestsWithReviewsQuery findPullRequestsWithReviewsQuery = FindPullRequestsWithReviewsQuery(
       repositoryOwner: slug.owner,
@@ -42,7 +41,6 @@ class ValidationService {
     final Map<String, dynamic> data = await graphQlService.queryGraphQL(
       documentNode: findPullRequestsWithReviewsQuery.documentNode,
       variables: findPullRequestsWithReviewsQuery.variables,
-      client: graphQLClient,
     );
 
     return QueryResult.fromJson(data);
@@ -91,36 +89,25 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
     }
   }
 
-  Future<MergeResult> _enqueuePullRequest(github.RepositorySlug slug, github.PullRequest pullRequest) async {
-    final graphQlService = GraphQlService();
-    final graphQLClient = await config.createGitHubGraphQLClient(slug);
-
-    final isEmergencyPullRequest = pullRequest.labels?.where((label) => label.name == 'emergency').isNotEmpty ?? false;
-
-    final enqueueMutation = EnqueuePullRequestMutation(
-      id: pullRequest.id!.toString(),
-      expectedHeadOid: pullRequest.head!.sha!,
-      jump: isEmergencyPullRequest,
-    );
+  Future<MergeResult> _enqueuePullRequest(github.RepositorySlug slug, github.PullRequest restPullRequest) async {
+    final graphQlService = await GraphQlService.forRepo(config, slug);
+    final isEmergencyPullRequest =
+        restPullRequest.labels?.where((label) => label.name == 'emergency').isNotEmpty ?? false;
 
     try {
       await retryOptions.retry(
         () async {
-          await graphQlService.mutateGraphQL(
-            documentNode: enqueueMutation.documentNode,
-            variables: enqueueMutation.variables,
-            client: graphQLClient,
-          );
+          await graphQlService.enqueuePullRequest(slug, restPullRequest.number!, isEmergencyPullRequest);
         },
         retryIf: (Exception e) => e is RetryableException,
       );
     } catch (e) {
-      final message = 'Failed to enqueue ${slug.fullName}/${pullRequest.number} with $e';
+      final message = 'Failed to enqueue ${slug.fullName}/${restPullRequest.number} with $e';
       log.severe(message);
       return (result: false, message: message);
     }
 
-    return (result: true, message: pullRequest.title!);
+    return (result: true, message: restPullRequest.title!);
   }
 
   Future<MergeResult> _mergePullRequest(int number, String commitMessage, github.RepositorySlug slug) async {

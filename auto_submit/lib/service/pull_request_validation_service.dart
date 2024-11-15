@@ -58,6 +58,18 @@ class PullRequestValidationService extends ValidationService {
   }) async {
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int prNumber = messagePullRequest.number!;
+
+    // TODO(yjbanov): figure out how to determine if the repo is MQ-enabled.
+    final bool isMergeQueueEnabled = slug.fullName == 'flutter/flaux';
+    if (isMergeQueueEnabled) {
+      if (result.repository!.pullRequest!.isInMergeQueue) {
+        log.info(
+          '${slug.fullName}/$prNumber is already in the merge queue. Skipping.',
+        );
+        return;
+      }
+    }
+
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
     // filter out validations here
@@ -130,6 +142,20 @@ class PullRequestValidationService extends ValidationService {
       await githubService.createComment(slug, prNumber, message);
       log.info(message);
     } else {
+      // Remove the autosubmit label post enqueue/merge to avoid infinite loops.
+      // Here's an example of an infinite loop:
+      //
+      // 1. Autosubmit bot is notified that a PR is ready (reviewed, all green, has `autosubmit` label).
+      // 2. Autosubmit bot puts the PR onto the merge queue.
+      // 3. The PR fails some tests in the merge queue.
+      // 4. Github kicks the PR back, removing it fom the merge queue.
+      // 5. GOTO step 1.
+      //
+      // Removing the `autosubmit` label will prevent the autosubmit bot from
+      // repeating the process, until a human looks at the PR, decides that it's
+      // ready again, and manually adds the `autosubmit` label on it.
+      await githubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
+
       log.info('Pull Request ${slug.fullName}/$prNumber was merged successfully!');
       log.info('Attempting to insert a pull request record into the database for $prNumber');
       await insertPullRequestRecord(

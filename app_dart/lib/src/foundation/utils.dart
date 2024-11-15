@@ -43,31 +43,36 @@ http.Client _defaultHttpClientProvider() => http.Client();
 class FusionTester {
   final HttpClientProvider _httpClientProvider;
 
+  /// This is a lightweight in memory cache for commit-sha to isFusion
+  final _isFusionMap = <String, bool>{};
+
   FusionTester({
     http.Client Function() httpClientProvider = _defaultHttpClientProvider,
   }) : _httpClientProvider = httpClientProvider;
 
-  /// Tests if the [pr] is in flutter/flutter and engine assets are available.
-  Future<bool> isFusionBasedPR(
-    PullRequest pr, {
-    Duration timeout = _githubTimeout,
-    RetryOptions retryOptions = _githubRetryOptions,
-  }) {
-    return isFusionBasedRef(
-      pr.base!.repo!.slug(),
-      pr.base!.ref!,
-      timeout: timeout,
-      retryOptions: retryOptions,
-    );
-  }
-
-  /// Tests if the [ref] is in flutter/flutter and engine assets are available.
+  /// Tests if the [sha] is in flutter/flutter and engine assets are available.
   Future<bool> isFusionBasedRef(
     RepositorySlug slug,
-    String ref, {
+    String sha, {
     Duration timeout = _githubTimeout,
     RetryOptions retryOptions = _githubRetryOptions,
   }) async {
+    final cacheKey = '${slug.fullName}/$sha';
+    final cacheHit = _isFusionMap[cacheKey];
+    if (cacheHit != null) {
+      log.info('isFusionRef: cache hit for $cacheKey = $cacheHit');
+      return cacheHit;
+    }
+    final isFusion = _isFusionMap[cacheKey] = await _isFusionBasedRefReal(slug, sha, timeout, retryOptions);
+    return isFusion;
+  }
+
+  Future<bool> _isFusionBasedRefReal(
+    RepositorySlug slug,
+    String sha,
+    Duration timeout,
+    RetryOptions retryOptions,
+  ) async {
     if (!(slug == Config.flutterSlug || slug == Config.flauxSlug)) {
       log.fine('isFusionRef: not a fusion ref - wrong slug($slug)');
       return false;
@@ -78,7 +83,7 @@ class FusionTester {
           slug,
           'DEPS',
           httpClientProvider: _httpClientProvider,
-          ref: ref,
+          ref: sha,
           timeout: timeout,
           retryOptions: retryOptions,
         ),
@@ -86,7 +91,7 @@ class FusionTester {
           slug,
           'engine/src/.gn',
           httpClientProvider: _httpClientProvider,
-          ref: ref,
+          ref: sha,
           timeout: timeout,
           retryOptions: retryOptions,
         ),
@@ -105,6 +110,9 @@ class FusionTester {
         "isFusionRef: 'DEPS' or 'engine/src/.gn' not found a fusion ref - error: $e",
       );
       return false;
+    } catch (e) {
+      log.warning('isFusionRef: unknown error while testing: $e');
+      rethrow;
     }
   }
 }

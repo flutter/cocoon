@@ -11,7 +11,7 @@ dependencies:
   logging: 1.2.0
   meta: 1.16.0
   path: 1.9.1
-  process: 5.0.2
+  process: 5.0.3
   retry: 3.1.2
   yaml: 3.1.2
 
