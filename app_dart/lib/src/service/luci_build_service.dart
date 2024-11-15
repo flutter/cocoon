@@ -474,7 +474,7 @@ class LuciBuildService {
       properties[propertiesGithubBuildLabelName] = labels;
     }
 
-    final bbv2.ScheduleBuildRequest scheduleBuildRequest = await _createPresubmitScheduleBuild(
+    final bbv2.ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
       slug: slug,
       sha: sha,
       checkName: checkName,
