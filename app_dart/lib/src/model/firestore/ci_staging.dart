@@ -162,8 +162,8 @@ class CiStaging extends Document {
       // "remaining" should only go down if the previous state was scheduled - this is the first state
       // that is written by the scheduler.
       // "failed_count" can go up or down depending on:
-      //   previous == failure && current == success: +1
-      //   previous != failure && current == failure: -1
+      //   recordedConclusion == failure && conclusion == success: down (-1)
+      //   recordedConclusion != failure && conclusion == failure: up (+1)
       // So if the test existed and either remaining or failed_count is changed; the response is valid.
       if (recordedConclusion == kScheduledValue && conclusion != kScheduledValue) {
         // Guard against going negative and log enough info so we can debug.
@@ -174,34 +174,26 @@ class CiStaging extends Document {
         valid = true;
       }
 
-      if (recordedConclusion == kFailureValue) {
-        // Only rollback the "failed" counter if this is a successful test run,
-        // i.e. the test failed, the user requested a rerun, and now it passes.
-        if (conclusion == kSuccessValue) {
-          log.info('$logCrumb: conclusion flipped to positive - assuming test was re-run');
-          if (failed == 0) {
-            throw '$logCrumb: field "$kFailedField" is already zero for $transaction / ${doc.fields}';
-          }
-          valid = true;
-          failed = failed - 1;
+      // Only rollback the "failed" counter if this is a successful test run,
+      // i.e. the test failed, the user requested a rerun, and now it passes.
+      if (recordedConclusion == kFailureValue && conclusion == kSuccessValue) {
+        log.info('$logCrumb: conclusion flipped to positive - assuming test was re-run');
+        if (failed == 0) {
+          throw '$logCrumb: field "$kFailedField" is already zero for $transaction / ${doc.fields}';
         }
-      } else {
-        // previous "conclusion" is either freshly scheduled or a success.
-        if (recordedConclusion == kSuccessValue) {
-          // The test succeeded, the user requested a rerun (why?), and now it fails.
-          log.info('$logCrumb: conclusion flipped to negative - assuming test was re-run');
-        } else {
-          // The test is a new failure
-          log.info('$logCrumb: test failed');
+        valid = true;
+        failed = failed - 1;
+      }
+
+      // Only increment the "failed" counter if the new conclusion flips from positive or neutral to failure.
+      if ((recordedConclusion == kScheduledValue || recordedConclusion == kSuccessValue) &&
+          conclusion == kFailureValue) {
+        log.info('$logCrumb: test failed');
+        if (failed == 0) {
+          throw '$logCrumb: field "$kFailedField" is already zero for $transaction / ${doc.fields}';
         }
-        // Only increments on new failures.
-        if (conclusion == kFailureValue) {
-          if (failed == 0) {
-            throw '$logCrumb: field "$kFailedField" is already zero for $transaction / ${doc.fields}';
-          }
-          valid = true;
-          failed = failed + 1;
-        }
+        valid = true;
+        failed = failed + 1;
       }
 
       // Record the json string of the check_run to complete.
