@@ -79,10 +79,7 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
     final String prBody = _sanitizePrBody(messagePullRequest.body ?? '');
     final String commitMessage = '$messagePrefix$prBody';
 
-    // TODO(yjbanov): figure out how to determine if the repo is MQ-enabled.
-    final bool isMergeQueueEnabled = slug.fullName == 'flutter/flaux';
-
-    if (isMergeQueueEnabled) {
+    if (messagePullRequest.isMergeQueueEnabled) {
       return _enqueuePullRequest(slug, messagePullRequest);
     } else {
       return _mergePullRequest(number, commitMessage, slug);
@@ -250,4 +247,22 @@ String _sanitizePrBody(String rawPrBody) {
     buffer.writeln(line);
   }
   return buffer.toString().trim();
+}
+
+/// Repos that use MQ-based workflow.
+///
+/// This variable is read-write to allow tests to choose which repos they want
+/// to test in which mode.
+List<String> mqEnabledRepos = const <String>[
+  'flutter/flaux',
+  'flutter/flutter',
+];
+
+/// Convenience extension so one can just do `pullRequest.isMergeQueueEnabled`.
+extension PullRequestExtension on github.PullRequest {
+  /// Whether this pull requests must be merged via a merge queue.
+  bool get isMergeQueueEnabled {
+    final slug = base!.repo!.slug();
+    return mqEnabledRepos.contains(slug.fullName);
+  }
 }

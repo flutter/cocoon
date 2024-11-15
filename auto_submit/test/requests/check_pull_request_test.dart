@@ -11,6 +11,7 @@ import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/requests/check_pull_request.dart';
 import 'package:auto_submit/requests/graphql_queries.dart';
 import 'package:auto_submit/service/log.dart';
+import 'package:auto_submit/service/validation_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/pubsub/v1.dart' as pub;
@@ -59,23 +60,66 @@ void main() {
     const String noAutosubmitLabel = 'no_autosubmit';
 
     setUp(() {
+      // To keep pre-MQ workflow tested until we're completely moved to MQ-based
+      // workflow, pretend that flutter/flutter does not yet use MQ. Then all
+      // the existing tests will continue testing the non-MQ workflow.
+      mqEnabledRepos = const <String>[
+        'flutter/flaux',
+      ];
+
       githubGraphQLClient = FakeGraphQLClient();
       auth = FakeCronAuthProvider();
       pubsub = FakePubSub();
       expectedOptions = <QueryOptions>[];
       githubService = FakeGithubService();
 
-      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
+      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) {
+        final operation = options.asRequest.operation;
+        final mutationNameRegExp = RegExp(r'"mutation (\w+)');
+        final mutationName = mutationNameRegExp.firstMatch(operation.toString())!.group(1);
+
+        if (mutationName == 'EnqueueFlutterPullRequest') {
+          return QueryResult(
+            data: {
+              'clientMutationId': 1,
+            },
+            options: QueryOptions(
+              document: options.document,
+            ),
+            source: QueryResultSource.network,
+          );
+        }
+
+        return createFakeQueryResult();
+      };
 
       githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
-        expect(options.variables['sOwner'], 'flutter');
-        final String? repoName = options.variables['sName'] as String?;
-        if (repoName == 'flutter') {
-          return createQueryResult(flutterRequest);
-        } else if (repoName == 'cocoon') {
-          return createQueryResult(cocoonRequest);
+        final operation = options.asRequest.operation;
+        final queryNameRegExp = RegExp(r'"query (\w+)');
+        final queryName = queryNameRegExp.firstMatch(operation.toString())!.group(1);
+
+        if (queryName == 'LabeledPullRequestWithReviews') {
+          expect(options.variables['sOwner'], 'flutter');
+          final String? repoName = options.variables['sName'] as String?;
+          if (repoName == 'flutter') {
+            return createQueryResult(flutterRequest);
+          } else if (repoName == 'cocoon') {
+            return createQueryResult(cocoonRequest);
+          } else {
+            fail('unexpected repo $repoName');
+          }
+        } else if (queryName == 'FindPullRequestNodeId') {
+          return createFakeQueryResult(
+            data: <String, dynamic>{
+              'repository': <String, dynamic>{
+                'pullRequest': {
+                  'id': 'PR_blahblah',
+                },
+              },
+            },
+          );
         } else {
-          fail('unexpected repo $repoName');
+          throw UnsupportedError('Unexpected query "$queryName"');
         }
       };
 

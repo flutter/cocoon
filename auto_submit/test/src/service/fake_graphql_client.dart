@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:gql/ast.dart';
 import 'package:graphql/client.dart';
 import 'package:test/test.dart';
@@ -39,12 +41,24 @@ class FakeGraphQLClient implements GraphQLClient {
   }
 
   void verifyQueries(List<QueryOptions> expected) {
-    expect(queries.length, expected.length);
-    for (int i = 0; i < queries.length; i++) {
-      expect(
-        queries[i].properties,
-        equals(expected[i].properties),
-      );
+    final errorBuffer = StringBuffer();
+
+    if (queries.length != expected.length) {
+      errorBuffer.writeln('queries.length (${queries.length}) != expected.length (${expected.length})');
+    }
+
+    for (int i = 0; i < math.min(queries.length, expected.length); i++) {
+      final matcher = equals(expected[i].properties);
+      final matchState = {};
+      if (!matcher.matches(queries[i].properties, matchState)) {
+        final description = StringDescription();
+        matcher.describeMismatch(expected[i].properties, description, matchState, false);
+        errorBuffer.writeln(description);
+      }
+    }
+
+    if (errorBuffer.isNotEmpty) {
+      fail(errorBuffer.toString());
     }
   }
 
