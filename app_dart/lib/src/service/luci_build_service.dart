@@ -280,7 +280,7 @@ class LuciBuildService {
 
       batchRequestList.add(
         bbv2.BatchRequest_Request(
-          scheduleBuild: await _createPresubmitScheduleBuild(
+          scheduleBuild: _createPresubmitScheduleBuild(
             slug: slug,
             sha: pullRequest.head!.sha!,
             //Use target.value.name here otherwise tests will die due to null checkRun.name.
@@ -707,7 +707,7 @@ class LuciBuildService {
 
   /// Create a Presubmit ScheduleBuildRequest using the [slug], [sha], and
   /// [checkName] for the provided [build] with the provided [checkRunId].
-  Future<bbv2.ScheduleBuildRequest> _createPresubmitScheduleBuild({
+  bbv2.ScheduleBuildRequest _createPresubmitScheduleBuild({
     required github.RepositorySlug slug,
     required String sha,
     required String checkName,
@@ -717,7 +717,7 @@ class LuciBuildService {
     List<bbv2.StringPair>? tags,
     Map<String, dynamic>? userData,
     List<bbv2.RequestedDimension>? dimensions,
-  }) async {
+  }) {
     final Map<String, dynamic> processedUserData = userData ?? <String, dynamic>{};
     processedUserData['repo_owner'] = slug.owner;
     processedUserData['repo_name'] = slug.name;
