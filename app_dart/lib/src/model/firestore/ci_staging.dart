@@ -25,8 +25,13 @@ class CiStaging extends Document {
   static const kCollectionId = 'ciStaging';
   static const kRemainingField = 'remaining';
   static const kTotalField = 'total';
+  static const kFailedField = 'failed_count';
+  static const kCheckRunGuardField = 'check_run_guard';
   static const kEngineStage = 'engine';
-  static const kDefaultTaskStatus = 'scheduled';
+
+  static const kScheduledValue = 'scheduled';
+  static final kSuccessValue = CheckRunConclusion.success.value!;
+  static final kFailureValue = CheckRunConclusion.failure.value!;
 
   /// Returns a firebase documentName used in [fromFirestore].
   static String documentNameFor({required RepositorySlug slug, required String sha, required String stage}) {
@@ -60,6 +65,12 @@ class CiStaging extends Document {
 
   /// The total number of checks in this staging.
   int get total => int.parse(fields![kTotalField]!.integerValue!);
+
+  /// The total number of failing checks.
+  int get failed => int.parse(fields![kFailedField]!.integerValue!);
+
+  /// The check_run to complete when this stage is closed.
+  String get checkRunGuard => fields![kCheckRunGuardField]!.stringValue!;
 
   /// Mark a [checkRun] for a given [stage] with [conclusion].
   ///
@@ -95,8 +106,10 @@ class CiStaging extends Document {
       throw '$logCrumb: transaction was null when updating $conclusion';
     }
 
-    var newRemaining = -1;
+    var remaining = -1;
+    var failed = -1;
     bool valid = false;
+    String? checkRunGuard;
 
     late final Document doc;
 
@@ -108,7 +121,11 @@ class CiStaging extends Document {
         stage: stage,
         sha: sha,
       );
-      doc = await docRes.get(documentName, mask_fieldPaths: [kRemainingField, checkRun], transaction: transaction);
+      doc = await docRes.get(
+        documentName,
+        mask_fieldPaths: [kRemainingField, checkRun, kCheckRunGuardField, kFailedField],
+        transaction: transaction,
+      );
 
       final fields = doc.fields;
       if (fields == null) {
@@ -116,41 +133,89 @@ class CiStaging extends Document {
       }
 
       // Fields and remaining _must_ be present.
-      final remaining = int.tryParse(fields[kRemainingField]?.integerValue ?? '');
-      if (remaining == null) {
+      final docRemaining = int.tryParse(fields[kRemainingField]?.integerValue ?? '');
+      if (docRemaining == null) {
         throw '$logCrumb: missing field "$kRemainingField" for $transaction / ${doc.fields}';
       }
+      remaining = docRemaining;
+
+      final maybeFailed = int.tryParse(fields[kFailedField]?.integerValue ?? '');
+      if (maybeFailed == null) {
+        throw '$logCrumb: missing field "$kFailedField" for $transaction / ${doc.fields}';
+      }
+      failed = maybeFailed;
 
       // We will have check_runs scheduled after the engine was built successfully, so missing the checkRun field
       // is an OK response to have. All fields should have been written at creation time.
-      if (fields[checkRun] == null || fields[checkRun]!.stringValue == null) {
+      final recordedConclusion = fields[checkRun]?.stringValue;
+      if (recordedConclusion == null) {
         log.info('$logCrumb: $checkRun not present in doc for $transaction / $doc');
         await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
-        return (valid: false, remaining: remaining);
+        return (valid: false, remaining: remaining, checkRunGuard: null, failed: failed);
       }
 
-      // Guard against going negative and log enough info so we can debug.
-      if (remaining == 0) {
-        throw '$logCrumb: field "$kRemainingField" is already zero for $transaction / ${doc.fields}';
-      }
-      newRemaining = remaining - 1;
-
-      // Choose what to update in the document; by default we want to record the new conclusion, but we only
-      // want to record `remaining - 1` if the original conclusion was `scheduled`.
-      if (kDefaultTaskStatus == fields[checkRun]!.stringValue) {
-        log.info('$logCrumb: setting remaining to $newRemaining and changing ${fields[checkRun]!.stringValue}');
-        fields[checkRun] = Value(stringValue: conclusion);
-        fields[kRemainingField] = Value(integerValue: '$newRemaining');
+      // GitHub sends us 3 "action" messages for check_runs: created, completed, or rerequested.
+      //   - We are responsible for the "created" messages.
+      //   - The user is responsible for "rerequested"
+      //   - LUCI is responsible for the completed.
+      // Completed messages are either success / failure.
+      // "remaining" should only go down if the previous state was scheduled - this is the first state
+      // that is written by the scheduler.
+      // "failed_count" can go up or down depending on:
+      //   recordedConclusion == failure && conclusion == success: down (-1)
+      //   recordedConclusion != failure && conclusion == failure: up (+1)
+      // So if the test existed and either remaining or failed_count is changed; the response is valid.
+      if (recordedConclusion == kScheduledValue && conclusion != kScheduledValue) {
+        // Guard against going negative and log enough info so we can debug.
+        if (remaining == 0) {
+          throw '$logCrumb: field "$kRemainingField" is already zero for $transaction / ${doc.fields}';
+        }
+        remaining = remaining - 1;
         valid = true;
-      } else {
-        log.warning(
-          "$logCrumb: '$conclusion' already recorded for ${fields[checkRun]!.stringValue}, not updated $remaining",
-        );
-        newRemaining = remaining;
-        fields[checkRun] = Value(stringValue: conclusion);
-        valid = false;
       }
+
+      // Only rollback the "failed" counter if this is a successful test run,
+      // i.e. the test failed, the user requested a rerun, and now it passes.
+      if (recordedConclusion == kFailureValue && conclusion == kSuccessValue) {
+        log.info('$logCrumb: conclusion flipped to positive - assuming test was re-run');
+        if (failed == 0) {
+          throw '$logCrumb: field "$kFailedField" is already zero for $transaction / ${doc.fields}';
+        }
+        valid = true;
+        failed = failed - 1;
+      }
+
+      // Only increment the "failed" counter if the new conclusion flips from positive or neutral to failure.
+      if ((recordedConclusion == kScheduledValue || recordedConclusion == kSuccessValue) &&
+          conclusion == kFailureValue) {
+        log.info('$logCrumb: test failed');
+        if (failed == 0) {
+          throw '$logCrumb: field "$kFailedField" is already zero for $transaction / ${doc.fields}';
+        }
+        valid = true;
+        failed = failed + 1;
+      }
+
+      // Record the json string of the check_run to complete.
+      checkRunGuard = fields[kCheckRunGuardField]?.stringValue;
+
+      // All checks pass. "valid" is only set to true if there was a change in either the remaining or failed count.
+      log.info('$logCrumb: setting remaining to $remaining, failed to $failed, and changing $recordedConclusion');
+      fields[checkRun] = Value(stringValue: conclusion);
+      fields[kRemainingField] = Value(integerValue: '$remaining');
+      fields[kFailedField] = Value(integerValue: '$failed');
+    } on DetailedApiRequestError catch (e) {
+      if (e.status == 404) {
+        // An attempt to read a document not in firestore should not be retried.
+        log.info('$logCrumb: staging document not found for $transaction');
+        await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
+        return (valid: false, remaining: -1, checkRunGuard: null, failed: failed);
+      }
+      // All other errors should bubble up and be retried.
+      await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
+      rethrow;
     } catch (e) {
+      // All other errors should bubble up and be retried.
       await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
       rethrow;
     }
@@ -161,11 +226,11 @@ class CiStaging extends Document {
     final commitRequest = CommitRequest(transaction: transaction, writes: documentsToWrites([doc], exists: true));
     final response = await docRes.commit(commitRequest, kDatabase);
     log.info('$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}');
-    return (valid: valid, remaining: newRemaining);
+    return (valid: valid, remaining: remaining, checkRunGuard: checkRunGuard, failed: failed);
   }
 }
 
 /// Results from attempting to mark a staging task as completed.
 ///
 /// See: [CiStaging.markConclusion]
-typedef StagingConclusion = ({bool valid, int remaining});
+typedef StagingConclusion = ({bool valid, int remaining, String? checkRunGuard, int failed});
