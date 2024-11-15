@@ -59,9 +59,7 @@ class PullRequestValidationService extends ValidationService {
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int prNumber = messagePullRequest.number!;
 
-    // TODO(yjbanov): figure out how to determine if the repo is MQ-enabled.
-    final bool isMergeQueueEnabled = slug.fullName == 'flutter/flaux';
-    if (isMergeQueueEnabled) {
+    if (messagePullRequest.isMergeQueueEnabled) {
       if (result.repository!.pullRequest!.isInMergeQueue) {
         log.info(
           '${slug.fullName}/$prNumber is already in the merge queue. Skipping.',
