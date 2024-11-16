@@ -465,6 +465,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.startsWith('${engineBasePath}impeller/playground') ||
         filename.startsWith('${engineBasePath}shell/platform/embedder/tests') ||
         filename.startsWith('${engineBasePath}shell/platform/embedder/fixtures') ||
+        filename.startsWith('${engineBasePath}testing') ||
         filename.startsWith('${engineBasePath}tools/clangd_check');
   }
 
