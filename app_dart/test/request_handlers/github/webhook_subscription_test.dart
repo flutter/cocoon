@@ -770,6 +770,36 @@ void main() {
       );
     });
 
+    test('Framework labels PRs, comment if no tests. Verify a trailing slash was added to the path prefix', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+      );
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'testingénieux/davoir/trouvé/ce/truc',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(Config.flutterSlug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verify(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      ).called(1);
+    });
+
     test('Framework labels PRs, comment if no tests including hit_test.dart file', () async {
       const int issueNumber = 123;
 

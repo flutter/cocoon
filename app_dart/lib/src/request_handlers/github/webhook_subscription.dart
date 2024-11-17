@@ -454,19 +454,19 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.endsWith('.md') ||
         // Exempt paths.
         filename.startsWith('dev/devicelab/lib/versions/gallery.dart') ||
-        filename.startsWith('dev/integration_tests') ||
+        filename.startsWith('dev/integration_tests/') ||
         filename.startsWith('docs/') ||
         filename.startsWith('${engineBasePath}docs/') ||
         // ↓↓↓ Begin engine specific paths ↓↓↓
         filename == 'DEPS' || // note: in monorepo; DEPS is still at the root.
         isBuildPythonScript ||
-        filename.startsWith('${engineBasePath}impeller/fixtures') ||
-        filename.startsWith('${engineBasePath}impeller/golden_tests') ||
-        filename.startsWith('${engineBasePath}impeller/playground') ||
-        filename.startsWith('${engineBasePath}shell/platform/embedder/tests') ||
-        filename.startsWith('${engineBasePath}shell/platform/embedder/fixtures') ||
-        filename.startsWith('${engineBasePath}testing') ||
-        filename.startsWith('${engineBasePath}tools/clangd_check');
+        filename.startsWith('${engineBasePath}impeller/fixtures/') ||
+        filename.startsWith('${engineBasePath}impeller/golden_tests/') ||
+        filename.startsWith('${engineBasePath}impeller/playground/') ||
+        filename.startsWith('${engineBasePath}shell/platform/embedder/tests/') ||
+        filename.startsWith('${engineBasePath}shell/platform/embedder/fixtures/') ||
+        filename.startsWith('${engineBasePath}testing/') ||
+        filename.startsWith('${engineBasePath}tools/clangd_check/');
   }
 
   bool _isFusionEnginePath(String path) => (path.startsWith('engine/') || path == 'DEPS');
