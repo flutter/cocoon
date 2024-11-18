@@ -511,5 +511,91 @@ void main() {
         verifyNever(docRes.rollback(any, kDatabase));
       });
     });
+
+    group('initializeDocument', () {
+      final slug = RepositorySlug('flutter', 'flaux');
+      final tasks = <String>['task1', 'task2'];
+      const checkRunGuard = '{"id": "check_run_id"}';
+      const sha = '1234abc';
+      const stage = 'unit_test';
+
+      late MockProjectsDatabasesDocumentsResource docRes;
+
+      setUp(() {
+        docRes = MockProjectsDatabasesDocumentsResource();
+        when(firestoreService.documentResource()).thenAnswer((_) async => docRes);
+      });
+
+      test('creates a document with the correct fields', () async {
+        when(
+          docRes.createDocument(
+            any,
+            any,
+            any,
+            documentId: anyNamed('documentId'),
+            $fields: anyNamed(r'$fields'),
+          ),
+        ).thenAnswer((Invocation inv) async {
+          final Document document = inv.positionalArguments[0] as Document;
+          final String collectionId = inv.positionalArguments[2] as String;
+          final String documentId = inv.namedArguments[#documentId] as String;
+
+          // Check the fields of the document
+          expect(document.fields, isNotNull);
+          expect(document.fields![CiStaging.kTotalField]!.integerValue, tasks.length.toString());
+          expect(document.fields![CiStaging.kRemainingField]!.integerValue, tasks.length.toString());
+          expect(document.fields![CiStaging.kFailedField]!.integerValue, '0');
+          expect(document.fields![CiStaging.kCheckRunGuardField]!.stringValue, checkRunGuard);
+
+          for (final task in tasks) {
+            expect(document.fields![task]!.stringValue, CiStaging.kScheduledValue);
+          }
+
+          return Document(name: '$kDocumentParent/$collectionId/$documentId');
+        });
+
+        final createdDoc = await CiStaging.initializeDocument(
+          firestoreService: firestoreService,
+          slug: slug,
+          sha: sha,
+          stage: stage,
+          tasks: tasks,
+          checkRunGuard: checkRunGuard,
+        );
+        expect(createdDoc.name, CiStaging.documentNameFor(slug: slug, sha: sha, stage: stage));
+        verify(
+          docRes.createDocument(
+            any,
+            any,
+            any,
+            documentId: anyNamed('documentId'),
+          ),
+        ).called(1);
+      });
+
+      test('throws error if document creation fails', () async {
+        when(
+          docRes.createDocument(
+            any,
+            any,
+            any,
+            documentId: anyNamed('documentId'),
+            $fields: anyNamed(r'$fields'),
+          ),
+        ).thenThrow(Exception('Document creation failed'));
+
+        expect(
+          CiStaging.initializeDocument(
+            firestoreService: firestoreService,
+            slug: slug,
+            sha: sha,
+            stage: stage,
+            tasks: tasks,
+            checkRunGuard: checkRunGuard,
+          ),
+          throwsA(isA<Exception>()),
+        );
+      });
+    });
   });
 }

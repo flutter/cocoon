@@ -33,11 +33,14 @@ class CiStaging extends Document {
   static final kSuccessValue = CheckRunConclusion.success.value!;
   static final kFailureValue = CheckRunConclusion.failure.value!;
 
+  static String documentIdFor({required RepositorySlug slug, required String sha, required String stage}) =>
+      '${slug.owner}_${slug.name}_${sha}_$stage';
+
   /// Returns a firebase documentName used in [fromFirestore].
   static String documentNameFor({required RepositorySlug slug, required String sha, required String stage}) {
     // Document names cannot cannot have '/' in the document id.
-    final docId = '${slug.owner}_${slug.name}_${sha}_$stage';
-    return '$kDocumentParent/ciStaging/$docId';
+    final docId = documentIdFor(slug: slug, sha: sha, stage: stage);
+    return '$kDocumentParent/$kCollectionId/$docId';
   }
 
   /// Lookup [Commit] from Firestore.
@@ -227,6 +230,52 @@ class CiStaging extends Document {
     final response = await docRes.commit(commitRequest, kDatabase);
     log.info('$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}');
     return (valid: valid, remaining: remaining, checkRunGuard: checkRunGuard, failed: failed);
+  }
+
+  /// Initializes a new document for the given [tasks] in Firestore so that stage-tracking can succeed.
+  ///
+  /// The list of tasks will be written as fields of a document with additional fields for tracking the total
+  /// number of tasks, remaining count. It is required to include [checkRunGuard] as a json encoded [CheckRun] as this
+  /// will be used to unlock any check runs blocking progress.
+  ///
+  /// Returns the created document or throws an error.
+  static Future<Document> initializeDocument({
+    required FirestoreService firestoreService,
+    required RepositorySlug slug,
+    required String sha,
+    required String stage,
+    required List<String> tasks,
+    required String checkRunGuard,
+  }) async {
+    final logCrumb = 'initializeDocument(${slug.owner}_${slug.name}_${sha}_$stage, ${tasks.length} tasks)';
+
+    final fields = <String, Value>{
+      kTotalField: Value(integerValue: '${tasks.length}'),
+      kRemainingField: Value(integerValue: '${tasks.length}'),
+      kFailedField: Value(integerValue: '0'),
+      kCheckRunGuardField: Value(stringValue: checkRunGuard),
+      for (final task in tasks) task: Value(stringValue: kScheduledValue),
+    };
+
+    final document = Document(fields: fields);
+
+    try {
+      // Calling createDocument multiple times for the same documentId will return a 409 - ALREADY_EXISTS error;
+      // this is good because it means we don't have to do any transactions.
+      // curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN>" "https://firestore.googleapis.com/v1beta1/projects/flutter-dashboard/databases/cocoon/documents/ciStaging?documentId=foo_bar_baz" -d '{"fields": {"test": {"stringValue": "baz"}}}'
+      final databasesDocumentsResource = await firestoreService.documentResource();
+      final newDoc = await databasesDocumentsResource.createDocument(
+        document,
+        kDocumentParent,
+        kCollectionId,
+        documentId: documentIdFor(slug: slug, sha: sha, stage: stage),
+      );
+      log.info('$logCrumb: document created');
+      return newDoc;
+    } catch (e) {
+      log.warning('$logCrumb: failed to create document: $e');
+      rethrow;
+    }
   }
 }
 
