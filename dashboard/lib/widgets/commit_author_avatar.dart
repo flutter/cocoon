@@ -5,7 +5,7 @@
 import 'package:flutter/material.dart';
 
 import '../model/commit.pb.dart';
-import 'web_image.dart';
+import 'optional_image.dart';
 
 /// Shows the appropriate avatar for a [Commit]'s author.
 ///
@@ -45,7 +45,7 @@ class CommitAuthorAvatar extends StatelessWidget {
       ),
     );
 
-    return WebImage(
+    return OptionalImage(
       imageUrl: commit!.authorAvatarUrl,
       placeholder: avatar,
     );
