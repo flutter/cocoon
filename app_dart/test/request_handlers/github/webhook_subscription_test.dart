@@ -2329,6 +2329,37 @@ void foo() {
       expect(batchRequestCalled, isTrue);
     });
 
+    test('Removes the "autosubmit" label on dequeued', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'dequeued',
+        number: issueNumber,
+        withAutosubmit: true,
+      );
+
+      await tester.post(webhook);
+
+      expect(
+        githubService.removedLabels,
+        [(RepositorySlug('flutter', 'flutter'), 123, 'autosubmit')],
+      );
+    });
+
+    test('Does not try to remove the "autosubmit" label on dequeued if it is not there', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'dequeued',
+        number: issueNumber,
+        withAutosubmit: false,
+      );
+
+      await tester.post(webhook);
+
+      expect(githubService.removedLabels, isEmpty);
+    });
+
     group('BuildBucket', () {
       const int issueNumber = 123;
 

@@ -17,6 +17,7 @@ import '../../model/github/checks.dart' as cocoon_checks;
 import '../../request_handling/exceptions.dart';
 import '../../request_handling/subscription_handler.dart';
 import '../../service/datastore.dart';
+import '../../service/github_service.dart';
 import '../../service/logging.dart';
 
 // Filenames which are not actually tests.
@@ -202,6 +203,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         // and schedule new ones.
         await _scheduleIfMergeable(pullRequestEvent);
         break;
+      case 'dequeued':
+        await _respondToPullRequestDequeued(pullRequestEvent);
+        break;
       // Ignore the rest of the events.
       case 'ready_for_review':
       case 'unlabeled':
@@ -267,6 +271,36 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     final String sha = pr.mergeCommitSha!;
     final GerritCommit? gobCommit = await gerritService.findMirroredCommit(slug, sha);
     return gobCommit != null;
+  }
+
+  /// Responds to the "dequeued" pull request event.
+  ///
+  /// See also: https://docs.github.com/en/webhooks/webhook-events-and-payloads?actionType=dequeued#pull_request
+  Future<void> _respondToPullRequestDequeued(
+    PullRequestEvent pullRequestEvent,
+  ) async {
+    final PullRequest pr = pullRequestEvent.pullRequest!;
+    final RepositorySlug slug = pullRequestEvent.repository!.slug();
+    final GithubService githubService = await config.createGithubService(slug);
+
+    // Remove the autosubmit label when a pull request is kicked out of the
+    // merge queue to avoid infinite loops.
+    //
+    // An example of an infinite loop:
+    //
+    // 1. Autosubmit bot is notified that a PR is ready (reviewed, all green, has `autosubmit` label).
+    // 2. Autosubmit bot puts the PR onto the merge queue.
+    // 3. The PR fails some tests in the merge queue.
+    // 4. Github kicks the PR back, removing it fom the merge queue.
+    // 5. GOTO step 1.
+    //
+    // Removing the `autosubmit` label will prevent the autosubmit bot from
+    // repeating the process, until a human looks at the PR, decides that it's
+    // ready again, and manually adds the `autosubmit` label on it.
+    final bool hasAutosubmitLabel = pr.labels!.any((label) => label.name == Config.kAutosubmitLabel);
+    if (hasAutosubmitLabel) {
+      await githubService.removeLabel(slug, pr.number!, Config.kAutosubmitLabel);
+    }
   }
 
   /// This method assumes that jobs should be cancelled if they are already

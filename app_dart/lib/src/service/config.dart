@@ -32,6 +32,11 @@ const String kDefaultBranchName = 'master';
 class Config {
   Config(this._db, this._cache);
 
+  /// Labels autosubmit looks for on pull requests
+  ///
+  /// Keep this in sync with the similar `Config` class in `auto_submit`.
+  static const String kAutosubmitLabel = 'autosubmit';
+
   final DatastoreDB _db;
 
   final CacheService _cache;

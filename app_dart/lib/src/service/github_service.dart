@@ -189,6 +189,15 @@ class GithubService {
     return github.issues.listByRepo(slug, labels: labels, state: state).toList();
   }
 
+  /// Removes a label from a pull request.
+  Future<bool> removeLabel(
+    RepositorySlug slug,
+    int issueNumber,
+    String label,
+  ) {
+    return github.issues.removeLabelForIssue(slug, issueNumber, label);
+  }
+
   /// Get an issue with the issue number
   Future<Issue>? getIssue(
     RepositorySlug slug, {
