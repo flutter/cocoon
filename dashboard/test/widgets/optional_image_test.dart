@@ -8,7 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets('OptionalImage.enabled', (WidgetTester tester) async {
-    expect(const OptionalImage(imageUrl: 'url').enabled,
+    expect(
+      const OptionalImage(imageUrl: 'url').enabled,
       isFalse,
     ); // because this is a test
     expect(
