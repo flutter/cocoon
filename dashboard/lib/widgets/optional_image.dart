@@ -11,8 +11,8 @@ import 'package:flutter/widgets.dart';
 ///
 /// This bypasses network image provider when testing to not surface the
 /// HTTP errors in tests by default.
-class WebImage extends StatelessWidget {
-  const WebImage({
+class OptionalImage extends StatelessWidget {
+  const OptionalImage({
     super.key,
     bool? enabled,
     this.imageUrl,
