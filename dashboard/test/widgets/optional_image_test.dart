@@ -9,9 +9,15 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   testWidgets('OptionalImage.enabled', (WidgetTester tester) async {
     expect(const OptionalImage(imageUrl: 'url').enabled,
-        isFalse); // because this is a test
+      isFalse,
+    ); // because this is a test
     expect(
-        const OptionalImage(imageUrl: 'url', enabled: false).enabled, isFalse);
-    expect(const OptionalImage(imageUrl: 'url', enabled: true).enabled, isTrue);
+      const OptionalImage(imageUrl: 'url', enabled: false).enabled,
+      isFalse,
+    );
+    expect(
+      const OptionalImage(imageUrl: 'url', enabled: true).enabled,
+      isTrue,
+    );
   });
 }
