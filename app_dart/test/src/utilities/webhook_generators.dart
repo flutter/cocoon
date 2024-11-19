@@ -24,6 +24,7 @@ PushMessage generateGithubWebhookMessage({
   String mergeCommitSha = 'fd6b46416c18de36ce87d0241994b2da180cab4c',
   RepositorySlug? slug,
   bool includeChanges = false,
+  bool withAutosubmit = false,
 }) {
   final String data = (pb.GithubWebhookMessage.create()
         ..event = event
@@ -40,6 +41,7 @@ PushMessage generateGithubWebhookMessage({
           slug: slug,
           mergeCommitSha: mergeCommitSha,
           includeChanges: includeChanges,
+          withAutosubmit: withAutosubmit,
         ))
       .writeToJson();
   return PushMessage(data: data, messageId: 'abc123');
@@ -59,6 +61,7 @@ String _generatePullRequestEvent(
   bool isMergeable = true,
   String mergeCommitSha = 'fd6b46416c18de36ce87d0241994b2da180cab4c',
   bool includeChanges = false,
+  bool withAutosubmit = false,
 }) {
   slug ??= Config.flutterSlug;
   baseRef ??= Config.defaultBranch(slug);
@@ -133,6 +136,16 @@ String _generatePullRequestEvent(
         "url": "https://api.github.com/repos/${slug.fullName}/labels/tool",
         "color": "5319e7",
         "default": false
+      },''' : ''}
+      ${withAutosubmit ? '''
+      {
+        "id": 4232992339,
+        "node_id": "LA_kwDOAeUeuM78TlZT",
+        "url": "https://api.github.com/repos/${slug.fullName}/labels/autosubmit",
+        "name": "autosubmit",
+        "color": "008820",
+        "default": false,
+        "description": "Merge PR when tree becomes green via auto submit App"
       },''' : ''}
       {
         "id": 283480100,

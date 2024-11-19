@@ -60,6 +60,8 @@ class Config {
   static const String kTreeStatusDiscordUrl = 'TREE_STATUS_DISCORD_WEBHOOK_URL';
 
   /// Labels autosubmit looks for on pull requests
+  ///
+  /// Keep this in sync with the similar `Config` class in `app_dart`.
   static const String kAutosubmitLabel = 'autosubmit';
 
   /// GitHub check stale threshold.

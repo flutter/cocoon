@@ -136,7 +136,7 @@ void main() {
     // was removed, there was no issue comment generated, and the message was
     // acknowledged.
     expect(githubService.issueComment, isNull);
-    expect(githubService.labelRemoved, isTrue);
+    expect(githubService.labelRemoved, isFalse);
     assert(pubsub.messagesQueue.isEmpty);
   });
 
@@ -353,7 +353,7 @@ void main() {
       // was removed, there was no issue comment generated, and the message was
       // acknowledged.
       expect(githubService.issueComment, isNull);
-      expect(githubService.labelRemoved, isTrue);
+      expect(githubService.labelRemoved, isFalse);
       assert(pubsub.messagesQueue.isEmpty);
     });
 
