@@ -297,7 +297,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     // Removing the `autosubmit` label will prevent the autosubmit bot from
     // repeating the process, until a human looks at the PR, decides that it's
     // ready again, and manually adds the `autosubmit` label on it.
-    final bool hasAutosubmitLabel = pr.labels!.any((label) => label.name == Config.kAutosubmitLabel);
+    final bool hasAutosubmitLabel = pr.labels?.any((label) => label.name == Config.kAutosubmitLabel) ?? false;
     if (hasAutosubmitLabel) {
       await githubService.removeLabel(slug, pr.number!, Config.kAutosubmitLabel);
     }
