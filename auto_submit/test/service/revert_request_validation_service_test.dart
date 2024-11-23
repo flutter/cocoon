@@ -137,6 +137,11 @@ void main() {
       final RevertProcessMethod revertProcessMethod = await validationService.shouldProcess(pullRequest, labelNames);
 
       expect(revertProcessMethod, RevertProcessMethod.revertOf);
+
+      // The revert branch should not be deleted immediately. The PR may still
+      // be in the queue. The branch will be deleted after GitHub successfully
+      // merges the PR and notified the webhook using the "closed" event.
+      expect(githubService.deletedBranches, isEmpty);
     });
 
     test('Pull request state is open with revert label is not processed', () async {

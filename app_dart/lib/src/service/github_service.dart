@@ -82,6 +82,14 @@ class GithubService {
     }).toList();
   }
 
+  Future<bool> deleteBranch(
+    RepositorySlug slug,
+    String branchName,
+  ) async {
+    final String ref = 'heads/$branchName';
+    return github.git.deleteReference(slug, ref);
+  }
+
   /// List pull requests in the repository.
   Future<List<PullRequest>> listPullRequests(RepositorySlug slug, String? branch) {
     ArgumentError.checkNotNull(slug);

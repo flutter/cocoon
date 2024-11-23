@@ -162,24 +162,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     log.fine('Processing $eventAction for ${pr.htmlUrl}');
     switch (eventAction) {
       case 'closed':
-        // If it was closed without merging, cancel any outstanding tryjobs.
-        // We'll leave unfinished jobs if it was merged since we care about those
-        // results.
-        await scheduler.cancelPreSubmitTargets(
-          pullRequest: pr,
-          reason: (!pr.merged!) ? 'Pull request closed' : 'Pull request merged',
-        );
-
-        if (pr.merged!) {
-          log.fine('Pull request ${pr.number} was closed and merged.');
-          if (await _commitExistsInGob(pr)) {
-            log.fine('Merged commit was found on GoB mirror. Scheduling postsubmit tasks...');
-            return scheduler.addPullRequest(pr);
-          }
-          throw InternalServerError(
-            '${pr.mergeCommitSha!} was not found on GoB. Failing so this event can be retried...',
-          );
-        }
+        await _processPullRequestClosed(pullRequestEvent);
         break;
       case 'edited':
         await _checkForTests(pullRequestEvent);
@@ -353,6 +336,42 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     final GitHub gitHubClient = config.createGitHubClientWithToken(await config.githubOAuthToken);
     final CreatePullRequestReview review = CreatePullRequestReview(slug.owner, slug.name, pr.number!, 'APPROVE');
     await gitHubClient.pullRequests.createReview(slug, review);
+  }
+
+  Future<void> _processPullRequestClosed(PullRequestEvent pullRequestEvent) async {
+    final PullRequest pr = pullRequestEvent.pullRequest!;
+
+    // Cancel any outstanding presubmit jobs. They are useless after the PR is
+    // closed. If the PR was merged, then the post-submit results will determine
+    // what needs to be done about this PR (maybe it lands, or maybe it will be
+    // reverted). If the PR was just closed and abandoned, well, that means we
+    // don't care about it any more.
+    await scheduler.cancelPreSubmitTargets(
+      pullRequest: pr,
+      reason: (!pr.merged!) ? 'Pull request closed' : 'Pull request merged',
+    );
+
+    if (pr.merged!) {
+      log.fine('Pull request ${pr.number} was closed and merged.');
+
+      // To avoid polluting the repo with temporary revert branches, delete the
+      // branch after the reverted PR is merged.
+      final isRevertPullRequest = pr.labels?.any((label) => label.name == Config.revertOfLabel) == true;
+      if (isRevertPullRequest) {
+        log.info('Revert merged successfully, deleting branch ${pr.head!.ref!}');
+        final slug = pullRequestEvent.repository!.slug();
+        final githubService = await config.createGithubService(slug);
+        await githubService.deleteBranch(slug, pr.head!.ref!);
+      }
+
+      if (await _commitExistsInGob(pr)) {
+        log.fine('Merged commit was found on GoB mirror. Scheduling postsubmit tasks...');
+        return scheduler.addPullRequest(pr);
+      }
+      throw InternalServerError(
+        '${pr.mergeCommitSha!} was not found on GoB. Failing so this event can be retried...',
+      );
+    }
   }
 
   Future<void> _checkForTests(PullRequestEvent pullRequestEvent) async {
