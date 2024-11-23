@@ -390,9 +390,10 @@ class Scheduler {
 
     log.info('Creating presubmit targets for ${pullRequest.number}');
     dynamic exception;
+    bool isFusion = false;
     try {
       final sha = pullRequest.head!.sha!;
-      final isFusion = await fusionTester.isFusionBasedRef(slug, sha);
+      isFusion = await fusionTester.isFusionBasedRef(slug, sha);
 
       // Both the author and label should be checked to make sure that no one is
       // attempting to get a pull request without check through.
@@ -414,7 +415,7 @@ class Scheduler {
             sha: sha,
             stage: CiStage.fusionEngineBuild,
             tasks: [...presubmitTriggerTargets.map((t) => t.value.name)],
-            checkRunGuard: '$ciValidationCheckRun',
+            checkRunGuard: '$lock',
           );
         }
         await luciBuildService.scheduleTryBuilds(
@@ -435,8 +436,9 @@ class Scheduler {
     // Update validate ci.yaml check
     await closeCiYamlCheckRun(pullRequest, exception, slug, ciValidationCheckRun);
 
-    await unlockMergeGroupChecks(slug, pullRequest.head!.sha!, lock, exception);
-
+    if (!isFusion) {
+      await unlockMergeGroupChecks(slug, pullRequest.head!.sha!, lock, exception);
+    }
     log.info(
       'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug $slug}',
     );
@@ -780,23 +782,21 @@ class Scheduler {
           conclusion: conclusion,
         ),
       );
-      // This occurs when we've scheduled tests for the next stage of CI.
-      if (!stagingConclusion.valid) return false;
-      if (stagingConclusion.remaining > 0) {
-        log.info('$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}');
-        return false;
-      }
-      if (stagingConclusion.failed > 0) {
-        log.info('$logCrumb: not progressing, failed test count: ${stagingConclusion.failed}');
-        return false;
-      }
-      if (stagingConclusion.checkRunGuard == null) {
-        log.severe('$logCrumb: not progressing, no check_run_guard in: $stagingConclusion');
-        return false;
-      }
     } catch (e, s) {
       // Ignore for now; we're testing
       log.warning('$logCrumb: error processing check_run', e, s);
+      return false;
+    }
+
+    // First; check if we even recorded anything. This can occur if we've already passed the check_run and
+    // have moved on to running more tests (which wouldn't be present in our document).
+    if (!stagingConclusion.valid) {
+      return false;
+    }
+
+    // Are their tests remaining? Then we shouldn't unblock guard yet.
+    if (stagingConclusion.remaining > 0) {
+      log.info('$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}');
       return false;
     }
 
@@ -805,30 +805,34 @@ class Scheduler {
     //   2) in the merge queue
     final headBranch = checkRunEvent.checkRun?.checkSuite?.headBranch;
     final mergeQueue = headBranch?.startsWith('gh-readonly-queue/') ?? false;
-    final checkRunGuard = CheckRun.fromJson(json.decode(stagingConclusion.checkRunGuard!));
-
     final bool hasFailedTargets = stagingConclusion.failed > 0;
 
-    log.info('$logCrumb: Stage completed: $stage - should now complete ${checkRunGuard.name} with $hasFailedTargets');
+    log.info('$logCrumb: Stage completed: $stage with failed=${stagingConclusion.failed}');
+
+    // Unlock the guarding check_run.
+    CheckRun? checkRunGuard;
+    if (stagingConclusion.checkRunGuard != null) {
+      checkRunGuard = CheckRun.fromJson(json.decode(stagingConclusion.checkRunGuard!));
+    }
 
     // Merge Queue doesn't schedule more tests at the moment; those will happen in post submit.
-    // Failed targets fail right away and we don't schedule any tests to run.
+    // Failed targets will not schedule more tests.
     if (mergeQueue || hasFailedTargets) {
-      await unlockMergeGroupChecks(slug, sha, checkRunGuard, hasFailedTargets ? 'some tests have failed' : null);
+      if (checkRunGuard != null) {
+        await unlockMergeGroupChecks(slug, sha, checkRunGuard, hasFailedTargets ? 'some tests have failed' : null);
+      }
       return true;
     }
 
-    // We're in a pull request and the engine is fully built; schedule the tests that would
-    // have run in an old [triggerPresubmitTargets]
+    // We're in a pull request and the engine is fully built. We need to reverse look up the PR from the check suite,
+    // which sadly is not available in the check_run data. This could be cached at check_run creation time to avoid
+    // this cost.
     final int checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
     final PullRequest? pullRequest = await githubChecksService.findMatchingPullRequest(slug, sha, checkSuiteId);
     if (pullRequest == null) {
       log.info('$logCrumb: no PR found matching this check_run');
       return false;
     }
-
-    // Create another ci yaml check to wrap our calls to luci
-    final ciValidationCheckRun = await createCiYamlCheckRun(pullRequest, slug);
 
     dynamic exception;
     try {
@@ -838,6 +842,8 @@ class Scheduler {
           pullRequest.labels!.any((element) => element.name == Config.revertOfLabel)) {
         log.info('$logCrumb: skipping generating the full set of checks for revert request.');
       } else {
+        // Schedule the tests that would have run in a call to triggerPresubmitTargets - but for both the
+        // engine and the framework.
         final presubmitTargets = await getTestsForStage(pullRequest, CiStage.fusionTests);
 
         await luciBuildService.scheduleTryBuilds(
@@ -861,12 +867,10 @@ class Scheduler {
       exception = error;
     }
 
-    // Update validate ci.yaml check
-    await closeCiYamlCheckRun(pullRequest, exception, slug, ciValidationCheckRun);
-
     // Unlock the guarding check_run.
-    await unlockMergeGroupChecks(slug, sha, checkRunGuard, exception);
-
+    if (checkRunGuard != null) {
+      await unlockMergeGroupChecks(slug, sha, checkRunGuard, exception);
+    }
     return true;
   }
 

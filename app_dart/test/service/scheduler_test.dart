@@ -831,25 +831,62 @@ targets:
       });
 
       group('completed action', () {
-        final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
-          {
-            'action': 'completed',
-            'check_run': {
-              'head_sha': '1234',
-              'name': 'Linux unit_test',
-              'conclusion': CiStaging.kSuccessValue,
-            },
-            'repository': {
-              'name': 'flaux',
-              'full_name': 'flutter/flaux',
-              'owner': {'avatar_url': '', 'html_url': '', 'login': 'flutter', 'id': 54371434},
-            },
-          },
-        );
+        String checkRunFor({
+          String sha = '1234',
+          String test = 'Linux unit_test',
+          String conclusion = 'success',
+          String owner = 'flutter',
+          String repo = 'flaux',
+          String headBranch = 'master',
+          int checkSuiteId = 668083231,
+        }) =>
+            '''{
+                "head_sha": "$sha",
+                "name": "$test",
+                "conclusion": "$conclusion",
+                "started_at": "2020-05-10T02:49:31Z",
+                "completed_at": "2020-05-10T03:11:08Z",
+                "check_suite": {
+                  "id": $checkSuiteId,
+                  "pull_requests": [],
+                  "conclusion": "$conclusion",
+                  "head_branch": "$headBranch"
+                }
+              }''';
+
+        String checkRunEventFor({
+          String action = 'completed',
+          String sha = '1234',
+          String test = 'Linux unit_test',
+          String conclusion = 'success',
+          String owner = 'flutter',
+          String repo = 'flaux',
+        }) =>
+            '''{
+                "action": "$action",
+                "check_run": ${checkRunFor(test: test, sha: sha, conclusion: conclusion, owner: owner, repo: repo)},
+                "repository": {
+                  "name": "$repo",
+                  "full_name": "$owner/$repo",
+                  "owner": {
+                    "avatar_url": "",
+                    "html_url": "",
+                    "login": "$owner",
+                    "id": 54371434
+                  }
+                }
+              }''';
 
         test('works for non fusion cases', () async {
           fakeFusion.isFusion = (_, __) => false;
-          expect(await scheduler.processCheckRun(checkRunEvent), true);
+          expect(
+            await scheduler.processCheckRun(
+              cocoon_checks.CheckRunEvent.fromJson(
+                json.decode(checkRunEventFor()),
+              ),
+            ),
+            true,
+          );
         });
 
         group('in fusion', () {
@@ -857,7 +894,7 @@ targets:
             fakeFusion.isFusion = (_, __) => true;
           });
 
-          test('updates the staging firestore', () async {
+          test('ignores invalid conclusions', () async {
             when(
               callbacks.markCheckRunConclusion(
                 firestoreService: anyNamed('firestoreService'),
@@ -872,12 +909,19 @@ targets:
               expect((inv.namedArguments[#slug] as RepositorySlug).fullName, 'flutter/flaux');
               expect(inv.namedArguments[#sha], '1234');
               expect(inv.namedArguments[#stage], CiStage.fusionEngineBuild);
-              expect(inv.namedArguments[#checkRun], 'Linux unit_test');
+              expect(inv.namedArguments[#checkRun], 'Bar bar');
               expect(inv.namedArguments[#conclusion], 'success');
-              return (valid: true, remaining: 1, checkRunGuard: '{}', failed: 0);
+              return (valid: false, remaining: 1, checkRunGuard: '{}', failed: 0);
             });
 
-            expect(await scheduler.processCheckRun(checkRunEvent), isTrue);
+            expect(
+              await scheduler.processCheckRunCompletion(
+                cocoon_checks.CheckRunEvent.fromJson(
+                  json.decode(checkRunEventFor(test: 'Bar bar')),
+                ),
+              ),
+              isFalse,
+            );
             verify(
               callbacks.markCheckRunConclusion(
                 firestoreService: anyNamed('firestoreService'),
@@ -900,6 +944,219 @@ targets:
               ),
             );
           });
+
+          test('does not complete with remaining tests', () async {
+            when(
+              callbacks.markCheckRunConclusion(
+                firestoreService: anyNamed('firestoreService'),
+                slug: anyNamed('slug'),
+                sha: anyNamed('sha'),
+                stage: anyNamed('stage'),
+                checkRun: anyNamed('checkRun'),
+                conclusion: anyNamed('conclusion'),
+              ),
+            ).thenAnswer((inv) async {
+              expect(inv.namedArguments[#firestoreService], isNotNull);
+              expect((inv.namedArguments[#slug] as RepositorySlug).fullName, 'flutter/flaux');
+              expect(inv.namedArguments[#sha], '1234');
+              expect(inv.namedArguments[#stage], CiStage.fusionEngineBuild);
+              expect(inv.namedArguments[#checkRun], 'Bar bar');
+              expect(inv.namedArguments[#conclusion], 'success');
+              return (valid: true, remaining: 1, checkRunGuard: '{}', failed: 0);
+            });
+
+            expect(
+              await scheduler.processCheckRunCompletion(
+                cocoon_checks.CheckRunEvent.fromJson(
+                  json.decode(checkRunEventFor(test: 'Bar bar')),
+                ),
+              ),
+              isFalse,
+            );
+            verify(
+              callbacks.markCheckRunConclusion(
+                firestoreService: anyNamed('firestoreService'),
+                slug: anyNamed('slug'),
+                sha: anyNamed('sha'),
+                stage: anyNamed('stage'),
+                checkRun: anyNamed('checkRun'),
+                conclusion: anyNamed('conclusion'),
+              ),
+            ).called(1);
+
+            verifyNever(
+              mockGithubChecksUtil.updateCheckRun(
+                any,
+                any,
+                any,
+                status: anyNamed('status'),
+                conclusion: anyNamed('conclusion'),
+                output: anyNamed('output'),
+              ),
+            );
+          });
+
+          test('failed tests unlocks but does not schedule more', () async {
+            when(
+              callbacks.markCheckRunConclusion(
+                firestoreService: anyNamed('firestoreService'),
+                slug: anyNamed('slug'),
+                sha: anyNamed('sha'),
+                stage: anyNamed('stage'),
+                checkRun: anyNamed('checkRun'),
+                conclusion: anyNamed('conclusion'),
+              ),
+            ).thenAnswer((inv) async {
+              expect(inv.namedArguments[#firestoreService], isNotNull);
+              expect((inv.namedArguments[#slug] as RepositorySlug).fullName, 'flutter/flaux');
+              expect(inv.namedArguments[#sha], '1234');
+              expect(inv.namedArguments[#stage], CiStage.fusionEngineBuild);
+              expect(inv.namedArguments[#checkRun], 'Bar bar');
+              expect(inv.namedArguments[#conclusion], 'success');
+              return (valid: true, remaining: 0, checkRunGuard: checkRunFor(test: 'GUARD TEST'), failed: 1);
+            });
+
+            expect(
+              await scheduler.processCheckRunCompletion(
+                cocoon_checks.CheckRunEvent.fromJson(
+                  json.decode(checkRunEventFor(test: 'Bar bar')),
+                ),
+              ),
+              isTrue,
+            );
+            verify(
+              callbacks.markCheckRunConclusion(
+                firestoreService: anyNamed('firestoreService'),
+                slug: anyNamed('slug'),
+                sha: anyNamed('sha'),
+                stage: anyNamed('stage'),
+                checkRun: anyNamed('checkRun'),
+                conclusion: anyNamed('conclusion'),
+              ),
+            ).called(1);
+
+            verify(
+              mockGithubChecksUtil.updateCheckRun(
+                any,
+                argThat(equals(RepositorySlug('flutter', 'flaux'))),
+                argThat(
+                  predicate<CheckRun>((arg) {
+                    expect(arg.name, 'GUARD TEST');
+                    return true;
+                  }),
+                ),
+                status: argThat(equals(CheckRunStatus.completed), named: 'status'),
+                conclusion: argThat(equals(CheckRunConclusion.failure), named: 'conclusion'),
+                output: anyNamed('output'),
+              ),
+            ).called(1);
+          });
+
+          test('schedules tests after engine stage', () async {
+            final githubService = config.githubService = MockGithubService();
+            final githubClient = MockGitHub();
+            when(githubService.github).thenReturn(githubClient);
+            when(githubService.searchIssuesAndPRs(any, any, sort: anyNamed('sort'), pages: anyNamed('pages')))
+                .thenAnswer((_) async => [generateIssue(42)]);
+
+            final pullRequest = generatePullRequest();
+            when(githubService.getPullRequest(any, any)).thenAnswer((_) async => pullRequest);
+            when(githubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+            when(mockGithubChecksUtil.listCheckSuitesForRef(any, any, ref: anyNamed('ref'))).thenAnswer(
+              (_) async => [
+                // From check_run.check_suite.id in [checkRunString].
+                generateCheckSuite(668083231),
+              ],
+            );
+            httpClient = MockClient((http.Request request) async {
+              if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
+                return http.Response(fusionCiYaml, 200);
+              } else if (request.url.path.endsWith('.ci.yaml')) {
+                return http.Response(singleCiYaml, 200);
+              }
+              throw Exception('Failed to find ${request.url.path}');
+            });
+            final luci = MockLuciBuildService();
+            when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
+                .thenAnswer((inv) async {
+              expect(inv.namedArguments[#targets], hasLength(2));
+              // see the blend of fusionCiYaml and singleCiYaml
+              expect(inv.namedArguments[#targets][0].getTestName, 'A');
+              expect(inv.namedArguments[#targets][1].getTestName, 'Z');
+              expect(inv.namedArguments[#pullRequest], pullRequest);
+              return [];
+            });
+
+            scheduler = Scheduler(
+              cache: cache,
+              config: config,
+              datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+              buildStatusProvider: (_, __) => buildStatusService,
+              githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+              httpClientProvider: () => httpClient,
+              luciBuildService: luci,
+              fusionTester: fakeFusion,
+              markCheckRunConclusion: callbacks.markCheckRunConclusion,
+            );
+
+            when(
+              callbacks.markCheckRunConclusion(
+                firestoreService: anyNamed('firestoreService'),
+                slug: anyNamed('slug'),
+                sha: anyNamed('sha'),
+                stage: anyNamed('stage'),
+                checkRun: anyNamed('checkRun'),
+                conclusion: anyNamed('conclusion'),
+              ),
+            ).thenAnswer((inv) async {
+              expect(inv.namedArguments[#firestoreService], isNotNull);
+              expect((inv.namedArguments[#slug] as RepositorySlug).fullName, 'flutter/flaux');
+              expect(inv.namedArguments[#sha], '1234');
+              expect(inv.namedArguments[#stage], CiStage.fusionEngineBuild);
+              expect(inv.namedArguments[#checkRun], 'Bar bar');
+              expect(inv.namedArguments[#conclusion], 'success');
+              return (valid: true, remaining: 0, checkRunGuard: checkRunFor(test: 'GUARD TEST'), failed: 0);
+            });
+
+            expect(
+              await scheduler.processCheckRunCompletion(
+                cocoon_checks.CheckRunEvent.fromJson(
+                  json.decode(checkRunEventFor(test: 'Bar bar')),
+                ),
+              ),
+              isTrue,
+            );
+            verify(
+              callbacks.markCheckRunConclusion(
+                firestoreService: anyNamed('firestoreService'),
+                slug: anyNamed('slug'),
+                sha: anyNamed('sha'),
+                stage: anyNamed('stage'),
+                checkRun: anyNamed('checkRun'),
+                conclusion: anyNamed('conclusion'),
+              ),
+            ).called(1);
+
+            verify(
+              mockGithubChecksUtil.updateCheckRun(
+                any,
+                argThat(equals(RepositorySlug('flutter', 'flaux'))),
+                argThat(
+                  predicate<CheckRun>((arg) {
+                    expect(arg.name, 'GUARD TEST');
+                    return true;
+                  }),
+                ),
+                status: argThat(equals(CheckRunStatus.completed), named: 'status'),
+                conclusion: argThat(equals(CheckRunConclusion.success), named: 'conclusion'),
+                output: anyNamed('output'),
+              ),
+            ).called(1);
+
+            verify(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
+                .called(1);
+          });
+          // end of group
         });
       });
     });
