@@ -21,8 +21,8 @@ void main() {
 
     test('documentNameFor produces expected keys', () {
       expect(
-        CiStaging.documentNameFor(slug: RepositorySlug('code', 'fu'), sha: '12345', stage: 'coconut'),
-        '$kDocumentParent/ciStaging/code_fu_12345_coconut',
+        CiStaging.documentNameFor(slug: RepositorySlug('code', 'fu'), sha: '12345', stage: CiStage.fusionTests),
+        '$kDocumentParent/ciStaging/code_fu_12345_fusion',
       );
     });
 
@@ -33,7 +33,7 @@ void main() {
           name: CiStaging.documentNameFor(
             slug: RepositorySlug('flutter', 'flaux'),
             sha: '12345',
-            stage: 'engine',
+            stage: CiStage.fusionEngineBuild,
           ),
           fields: {
             CiStaging.kRemainingField: Value(integerValue: '1'),
@@ -50,7 +50,7 @@ void main() {
         documentName: CiStaging.documentNameFor(
           slug: RepositorySlug('flutter', 'flaux'),
           sha: '12345',
-          stage: 'engine',
+          stage: CiStage.fusionEngineBuild,
         ),
       );
       expect(future, completes);
@@ -62,7 +62,7 @@ void main() {
           CiStaging.documentNameFor(
             slug: RepositorySlug('flutter', 'flaux'),
             sha: '12345',
-            stage: 'engine',
+            stage: CiStage.fusionEngineBuild,
           ),
         ),
       ).called(1);
@@ -77,7 +77,7 @@ void main() {
       final expectedName = CiStaging.documentNameFor(
         slug: RepositorySlug('flutter', 'flaux'),
         sha: '1234',
-        stage: 'engine',
+        stage: CiStage.fusionEngineBuild,
       );
 
       setUp(() {
@@ -93,7 +93,7 @@ void main() {
             firestoreService: firestoreService,
             slug: slug,
             sha: '1234',
-            stage: 'engine',
+            stage: CiStage.fusionEngineBuild,
             checkRun: 'test',
             conclusion: 'mulligan',
           ),
@@ -119,7 +119,7 @@ void main() {
           firestoreService: firestoreService,
           slug: slug,
           sha: '1234',
-          stage: 'engine',
+          stage: CiStage.fusionEngineBuild,
           checkRun: 'test',
           conclusion: 'mulligan',
         );
@@ -173,13 +173,13 @@ void main() {
           firestoreService: firestoreService,
           slug: slug,
           sha: '1234',
-          stage: 'engine',
+          stage: CiStage.fusionEngineBuild,
           checkRun: 'test',
           conclusion: 'mulligan',
         );
 
         final result = await future;
-        expect(result, (remaining: 1, valid: false, failed: 0, checkRunGuard: null));
+        expect(result, const StagingConclusion(remaining: 1, valid: false, failed: 0, checkRunGuard: null));
         verify(docRes.rollback(argThat(predicate((RollbackRequest t) => t.transaction == kTransaction)), kDatabase))
             .called(1);
       });
@@ -214,7 +214,7 @@ void main() {
           firestoreService: firestoreService,
           slug: slug,
           sha: '1234',
-          stage: 'engine',
+          stage: CiStage.fusionEngineBuild,
           checkRun: 'Linux build_test',
           conclusion: 'mulligan',
         );
@@ -267,13 +267,13 @@ void main() {
           firestoreService: firestoreService,
           slug: slug,
           sha: '1234',
-          stage: 'engine',
+          stage: CiStage.fusionEngineBuild,
           checkRun: 'Linux build_test',
           conclusion: 'mulligan',
         );
 
         final result = await future;
-        expect(result, (remaining: 0, valid: true, failed: 0, checkRunGuard: '{}'));
+        expect(result, const StagingConclusion(remaining: 0, valid: true, failed: 0, checkRunGuard: '{}'));
         verify(
           docRes.commit(
             argThat(
@@ -321,13 +321,13 @@ void main() {
           firestoreService: firestoreService,
           slug: slug,
           sha: '1234',
-          stage: 'engine',
+          stage: CiStage.fusionEngineBuild,
           checkRun: 'MacOS build_test',
           conclusion: 'mulligan',
         );
 
         final result = await future;
-        expect(result, (remaining: 1, valid: false, failed: 0, checkRunGuard: '{}'));
+        expect(result, const StagingConclusion(remaining: 1, valid: false, failed: 0, checkRunGuard: '{}'));
         verify(
           docRes.commit(
             argThat(
@@ -375,14 +375,14 @@ void main() {
           firestoreService: firestoreService,
           slug: slug,
           sha: '1234',
-          stage: 'engine',
+          stage: CiStage.fusionEngineBuild,
           checkRun: 'MacOS build_test',
           conclusion: CiStaging.kSuccessValue,
         );
 
         final result = await future;
         // Remaining == 1 because our test was already concluded.
-        expect(result, (remaining: 1, valid: true, failed: 0, checkRunGuard: '{}'));
+        expect(result, const StagingConclusion(remaining: 1, valid: true, failed: 0, checkRunGuard: '{}'));
         verify(
           docRes.commit(
             argThat(
@@ -431,13 +431,13 @@ void main() {
           firestoreService: firestoreService,
           slug: slug,
           sha: '1234',
-          stage: 'engine',
+          stage: CiStage.fusionEngineBuild,
           checkRun: 'MacOS build_test',
           conclusion: CiStaging.kFailureValue,
         );
 
         final result = await future;
-        expect(result, (remaining: 1, valid: false, failed: 1, checkRunGuard: '{}'));
+        expect(result, const StagingConclusion(remaining: 1, valid: false, failed: 1, checkRunGuard: '{}'));
         verify(
           docRes.commit(
             argThat(
@@ -486,13 +486,13 @@ void main() {
           firestoreService: firestoreService,
           slug: slug,
           sha: '1234',
-          stage: 'engine',
+          stage: CiStage.fusionEngineBuild,
           checkRun: 'MacOS build_test',
           conclusion: CiStaging.kFailureValue,
         );
 
         final result = await future;
-        expect(result, (remaining: 1, valid: true, failed: 2, checkRunGuard: '{}'));
+        expect(result, const StagingConclusion(remaining: 1, valid: true, failed: 2, checkRunGuard: '{}'));
         verify(
           docRes.commit(
             argThat(
@@ -517,7 +517,7 @@ void main() {
       final tasks = <String>['task1', 'task2'];
       const checkRunGuard = '{"id": "check_run_id"}';
       const sha = '1234abc';
-      const stage = 'unit_test';
+      const stage = CiStage.fusionTests;
 
       late MockProjectsDatabasesDocumentsResource docRes;
 

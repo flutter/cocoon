@@ -27,17 +27,16 @@ class CiStaging extends Document {
   static const kTotalField = 'total';
   static const kFailedField = 'failed_count';
   static const kCheckRunGuardField = 'check_run_guard';
-  static const kEngineStage = 'engine';
 
   static const kScheduledValue = 'scheduled';
   static final kSuccessValue = CheckRunConclusion.success.value!;
   static final kFailureValue = CheckRunConclusion.failure.value!;
 
-  static String documentIdFor({required RepositorySlug slug, required String sha, required String stage}) =>
+  static String documentIdFor({required RepositorySlug slug, required String sha, required CiStage stage}) =>
       '${slug.owner}_${slug.name}_${sha}_$stage';
 
   /// Returns a firebase documentName used in [fromFirestore].
-  static String documentNameFor({required RepositorySlug slug, required String sha, required String stage}) {
+  static String documentNameFor({required RepositorySlug slug, required String sha, required CiStage stage}) {
     // Document names cannot cannot have '/' in the document id.
     final docId = documentIdFor(slug: slug, sha: sha, stage: stage);
     return '$kDocumentParent/$kCollectionId/$docId';
@@ -85,7 +84,7 @@ class CiStaging extends Document {
     required FirestoreService firestoreService,
     required RepositorySlug slug,
     required String sha,
-    required String stage,
+    required CiStage stage,
     required String checkRun,
     required String conclusion,
   }) async {
@@ -154,7 +153,7 @@ class CiStaging extends Document {
       if (recordedConclusion == null) {
         log.info('$logCrumb: $checkRun not present in doc for $transaction / $doc');
         await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
-        return (valid: false, remaining: remaining, checkRunGuard: null, failed: failed);
+        return StagingConclusion(valid: false, remaining: remaining, checkRunGuard: null, failed: failed);
       }
 
       // GitHub sends us 3 "action" messages for check_runs: created, completed, or rerequested.
@@ -212,7 +211,7 @@ class CiStaging extends Document {
         // An attempt to read a document not in firestore should not be retried.
         log.info('$logCrumb: staging document not found for $transaction');
         await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
-        return (valid: false, remaining: -1, checkRunGuard: null, failed: failed);
+        return StagingConclusion(valid: false, remaining: -1, checkRunGuard: null, failed: failed);
       }
       // All other errors should bubble up and be retried.
       await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
@@ -229,7 +228,7 @@ class CiStaging extends Document {
     final commitRequest = CommitRequest(transaction: transaction, writes: documentsToWrites([doc], exists: true));
     final response = await docRes.commit(commitRequest, kDatabase);
     log.info('$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}');
-    return (valid: valid, remaining: remaining, checkRunGuard: checkRunGuard, failed: failed);
+    return StagingConclusion(valid: valid, remaining: remaining, checkRunGuard: checkRunGuard, failed: failed);
   }
 
   /// Initializes a new document for the given [tasks] in Firestore so that stage-tracking can succeed.
@@ -243,7 +242,7 @@ class CiStaging extends Document {
     required FirestoreService firestoreService,
     required RepositorySlug slug,
     required String sha,
-    required String stage,
+    required CiStage stage,
     required List<String> tasks,
     required String checkRunGuard,
   }) async {
@@ -279,7 +278,56 @@ class CiStaging extends Document {
   }
 }
 
+/// Well-defined stages in the build infrastructure.
+enum CiStage implements Comparable<CiStage> {
+  /// Build engine artifacts
+  fusionEngineBuild('engine'),
+
+  /// All non-engine artifact tests (engine & framework)
+  fusionTests('fusion');
+
+  const CiStage(this.name);
+
+  final String name;
+
+  @override
+  int compareTo(CiStage other) => index - other.index;
+
+  @override
+  String toString() => name;
+}
+
 /// Results from attempting to mark a staging task as completed.
 ///
 /// See: [CiStaging.markConclusion]
-typedef StagingConclusion = ({bool valid, int remaining, String? checkRunGuard, int failed});
+class StagingConclusion {
+  final bool valid;
+  final int remaining;
+  final String? checkRunGuard;
+  final int failed;
+
+  const StagingConclusion({
+    required this.valid,
+    required this.remaining,
+    required this.checkRunGuard,
+    required this.failed,
+  });
+
+  bool get isPending => valid && remaining > 0;
+
+  bool get isFailed => valid && !isPending && failed > 0;
+
+  bool get isComplete => valid && !isPending && !isFailed;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StagingConclusion &&
+          other.valid == valid &&
+          other.remaining == remaining &&
+          other.checkRunGuard == checkRunGuard &&
+          other.failed == failed);
+
+  @override
+  int get hashCode => Object.hashAll([valid, remaining, checkRunGuard, failed]);
+}
