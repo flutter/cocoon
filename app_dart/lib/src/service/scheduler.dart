@@ -58,6 +58,7 @@ class Scheduler {
     this.httpClientProvider = Providers.freshHttpClient,
     this.buildStatusProvider = BuildStatusService.defaultProvider,
     @visibleForTesting this.markCheckRunConclusion = CiStaging.markConclusion,
+    @visibleForTesting this.initializeCiStagingDocument = CiStaging.initializeDocument,
   });
 
   final BuildStatusServiceProvider buildStatusProvider;
@@ -79,6 +80,15 @@ class Scheduler {
     required RepositorySlug slug,
     required CiStage stage,
   }) markCheckRunConclusion;
+
+  Future<Document> Function({
+    required FirestoreService firestoreService,
+    required RepositorySlug slug,
+    required String sha,
+    required CiStage stage,
+    required List<String> tasks,
+    required String checkRunGuard,
+  }) initializeCiStagingDocument;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
@@ -409,7 +419,7 @@ class Scheduler {
         // When running presubmits for a fusion PR; create a new staging document to track tasks needed
         // to complete before we can schedule more tests (i.e. build engine artifacts before testing against them).
         if (isFusion) {
-          await CiStaging.initializeDocument(
+          await initializeCiStagingDocument(
             firestoreService: firestoreService,
             slug: slug,
             sha: sha,

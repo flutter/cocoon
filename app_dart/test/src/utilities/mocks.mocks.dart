@@ -9882,6 +9882,45 @@ class MockCallbacks extends _i1.Mock implements _i46.Callbacks {
         returnValue: _i20.Future<({String? checkRunGuard, int failed, int remaining, bool valid})>.value(
             (checkRunGuard: null, failed: 0, remaining: 0, valid: false)),
       ) as _i20.Future<({String? checkRunGuard, int failed, int remaining, bool valid})>);
+
+  @override
+  _i20.Future<_i21.Document> initializeDocument({
+    required _i15.FirestoreService? firestoreService,
+    required _i13.RepositorySlug? slug,
+    required String? sha,
+    required _i47.CiStage? stage,
+    required List<String>? tasks,
+    required String? checkRunGuard,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #initializeDocument,
+          [],
+          {
+            #firestoreService: firestoreService,
+            #slug: slug,
+            #sha: sha,
+            #stage: stage,
+            #tasks: tasks,
+            #checkRunGuard: checkRunGuard,
+          },
+        ),
+        returnValue: _i20.Future<_i21.Document>.value(_FakeDocument_25(
+          this,
+          Invocation.method(
+            #initializeDocument,
+            [],
+            {
+              #firestoreService: firestoreService,
+              #slug: slug,
+              #sha: sha,
+              #stage: stage,
+              #tasks: tasks,
+              #checkRunGuard: checkRunGuard,
+            },
+          ),
+        )),
+      ) as _i20.Future<_i21.Document>);
 }
 
 /// A class which mocks [Cache].

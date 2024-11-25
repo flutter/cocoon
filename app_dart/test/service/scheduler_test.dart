@@ -79,6 +79,9 @@ targets:
     enabled_branches:
       - stable
     scheduler: luci
+  - name: Linux engine_build
+    properties:
+      release_build: "true"
   - name: Linux runIf engine
     runIf:
       - DEPS
@@ -831,52 +834,6 @@ targets:
       });
 
       group('completed action', () {
-        String checkRunFor({
-          String sha = '1234',
-          String test = 'Linux unit_test',
-          String conclusion = 'success',
-          String owner = 'flutter',
-          String repo = 'flaux',
-          String headBranch = 'master',
-          int checkSuiteId = 668083231,
-        }) =>
-            '''{
-                "head_sha": "$sha",
-                "name": "$test",
-                "conclusion": "$conclusion",
-                "started_at": "2020-05-10T02:49:31Z",
-                "completed_at": "2020-05-10T03:11:08Z",
-                "check_suite": {
-                  "id": $checkSuiteId,
-                  "pull_requests": [],
-                  "conclusion": "$conclusion",
-                  "head_branch": "$headBranch"
-                }
-              }''';
-
-        String checkRunEventFor({
-          String action = 'completed',
-          String sha = '1234',
-          String test = 'Linux unit_test',
-          String conclusion = 'success',
-          String owner = 'flutter',
-          String repo = 'flaux',
-        }) =>
-            '''{
-                "action": "$action",
-                "check_run": ${checkRunFor(test: test, sha: sha, conclusion: conclusion, owner: owner, repo: repo)},
-                "repository": {
-                  "name": "$repo",
-                  "full_name": "$owner/$repo",
-                  "owner": {
-                    "avatar_url": "",
-                    "html_url": "",
-                    "login": "$owner",
-                    "id": 54371434
-                  }
-                }
-              }''';
-
         test('works for non fusion cases', () async {
           fakeFusion.isFusion = (_, __) => false;
           expect(
@@ -995,7 +952,7 @@ targets:
                 conclusion: anyNamed('conclusion'),
               ),
             ).thenAnswer((inv) async {
-              return (valid: true, remaining: 0, checkRunGuard: checkRunFor(test: 'GUARD TEST'), failed: 1);
+              return (valid: true, remaining: 0, checkRunGuard: checkRunFor(name: 'GUARD TEST'), failed: 1);
             });
 
             expect(
@@ -1061,11 +1018,6 @@ targets:
             final luci = MockLuciBuildService();
             when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
                 .thenAnswer((inv) async {
-              expect(inv.namedArguments[#targets], hasLength(2));
-              // see the blend of fusionCiYaml and singleCiYaml
-              expect(inv.namedArguments[#targets][0].getTestName, 'A');
-              expect(inv.namedArguments[#targets][1].getTestName, 'Z');
-              expect(inv.namedArguments[#pullRequest], pullRequest);
               return [];
             });
 
@@ -1091,7 +1043,7 @@ targets:
                 conclusion: anyNamed('conclusion'),
               ),
             ).thenAnswer((inv) async {
-              return (valid: true, remaining: 0, checkRunGuard: checkRunFor(test: 'GUARD TEST'), failed: 0);
+              return (valid: true, remaining: 0, checkRunGuard: checkRunFor(name: 'GUARD TEST'), failed: 0);
             });
 
             expect(
@@ -1129,8 +1081,19 @@ targets:
               ),
             ).called(1);
 
-            verify(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
-                .called(1);
+            final result = verify(
+              luci.scheduleTryBuilds(
+                targets: captureAnyNamed('targets'),
+                pullRequest: captureAnyNamed('pullRequest'),
+              ),
+            );
+            expect(result.callCount, 1);
+            final captured = result.captured;
+            expect(captured[0], hasLength(2));
+            // see the blend of fusionCiYaml and singleCiYaml
+            expect(captured[0][0].getTestName, 'A');
+            expect(captured[0][1].getTestName, 'Z');
+            expect(captured[1], pullRequest);
           });
           // end of group
         });
@@ -1802,17 +1765,182 @@ targets:
         expect(presubmitTriggerTargets.length, 1);
         expect(presubmitTargets[0].value.name, 'Linux 1');
       });
+
+      test('in fusion gathers creates engine builds', () async {
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
+            return http.Response(fusionCiYaml, 200);
+          } else if (request.url.path.endsWith('.ci.yaml')) {
+            return http.Response(singleCiYaml, 200);
+          }
+          throw Exception('Failed to find ${request.url.path}');
+        });
+        final luci = MockLuciBuildService();
+        when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
+            .thenAnswer((inv) async {
+          return [];
+        });
+        final MockGithubService mockGithubService = MockGithubService();
+        final checkRuns = <CheckRun>[];
+        when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
+            .thenAnswer((inv) async {
+          final slug = inv.positionalArguments[1] as RepositorySlug;
+          final sha = inv.positionalArguments[2];
+          final name = inv.positionalArguments[3];
+          checkRuns.add(createCheckRun(id: 1, owner: slug.owner, repo: slug.name, sha: sha, name: name));
+          return checkRuns.last;
+        });
+        when(mockGithubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+
+        fakeFusion.isFusion = (_, __) => true;
+
+        when(
+          callbacks.initializeDocument(
+            firestoreService: anyNamed('firestoreService'),
+            slug: anyNamed('slug'),
+            sha: anyNamed('sha'),
+            stage: anyNamed('stage'),
+            tasks: anyNamed('tasks'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+          ),
+        ).thenAnswer((_) async => CiStaging());
+
+        scheduler = Scheduler(
+          cache: cache,
+          config: FakeConfig(
+            // tabledataResource: tabledataResource,
+            dbValue: db,
+            githubService: mockGithubService,
+            githubClient: MockGitHub(),
+            firestoreService: mockFirestoreService,
+          ),
+          buildStatusProvider: (_, __) => buildStatusService,
+          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          httpClientProvider: () => httpClient,
+          luciBuildService: luci,
+          fusionTester: fakeFusion,
+          initializeCiStagingDocument: callbacks.initializeDocument,
+        );
+        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
+        final results =
+            verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
+                .captured;
+        stdout.writeAll(results);
+
+        final result =
+            verify(luci.scheduleTryBuilds(targets: captureAnyNamed('targets'), pullRequest: anyNamed('pullRequest')));
+        expect(result.callCount, 1);
+        final captured = result.captured;
+        expect(captured[0], hasLength(1));
+        // see the blend of fusionCiYaml and singleCiYaml
+        expect(captured[0][0].getTestName, 'engine_build');
+
+        expect(checkRuns, hasLength(2));
+        verify(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            Config.flutterSlug,
+            checkRuns[1],
+            status: argThat(equals(CheckRunStatus.completed), named: 'status'),
+            conclusion: argThat(equals(CheckRunConclusion.success), named: 'conclusion'),
+            output: anyNamed('output'),
+          ),
+        ).called(1);
+
+        verifyNever(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            Config.flutterSlug,
+            checkRuns[0],
+            status: anyNamed('status'),
+            conclusion: anyNamed('conclusion'),
+            output: anyNamed('output'),
+          ),
+        );
+      });
     });
   });
 }
 
-CheckRun createCheckRun({String? name, required int id, CheckRunStatus status = CheckRunStatus.completed}) {
-  final int externalId = id * 2;
-  final String checkRunJson =
-      '{"name": "$name", "id": $id, "external_id": "{$externalId}", "status": "$status", "started_at": "2020-05-10T02:49:31Z", "head_sha": "the_sha", "check_suite": {"id": 456}}';
+CheckRun createCheckRun({
+  int id = 1,
+  String sha = '1234',
+  String? name = 'Linux unit_test',
+  String conclusion = 'success',
+  String owner = 'flutter',
+  String repo = 'flaux',
+  String headBranch = 'master',
+  CheckRunStatus status = CheckRunStatus.completed,
+  int checkSuiteId = 668083231,
+}) {
+  final String checkRunJson = checkRunFor(
+    id: id,
+    sha: sha,
+    name: name,
+    conclusion: conclusion,
+    owner: owner,
+    repo: repo,
+    headBranch: headBranch,
+    status: status,
+    checkSuiteId: checkSuiteId,
+  );
   return CheckRun.fromJson(jsonDecode(checkRunJson) as Map<String, dynamic>);
 }
 
 String toSha(Commit commit) => commit.sha!;
 
 int toTimestamp(Commit commit) => commit.timestamp!;
+
+String checkRunFor({
+  int id = 1,
+  String sha = '1234',
+  String? name = 'Linux unit_test',
+  String conclusion = 'success',
+  String owner = 'flutter',
+  String repo = 'flaux',
+  String headBranch = 'master',
+  CheckRunStatus status = CheckRunStatus.completed,
+  int checkSuiteId = 668083231,
+}) {
+  final int externalId = id * 2;
+  return '''{
+  "id": $id,
+  "external_id": "{$externalId}",  
+  "head_sha": "$sha",
+  "name": "$name",
+  "conclusion": "$conclusion",
+  "started_at": "2020-05-10T02:49:31Z",
+  "completed_at": "2020-05-10T03:11:08Z",
+  "status": "$status",
+  "check_suite": {
+    "id": $checkSuiteId,
+    "pull_requests": [],
+    "conclusion": "$conclusion",
+    "head_branch": "$headBranch"
+  }
+}''';
+}
+
+String checkRunEventFor({
+  String action = 'completed',
+  String sha = '1234',
+  String test = 'Linux unit_test',
+  String conclusion = 'success',
+  String owner = 'flutter',
+  String repo = 'flaux',
+}) =>
+    '''{
+  "action": "$action",
+  "check_run": ${checkRunFor(name: test, sha: sha, conclusion: conclusion, owner: owner, repo: repo)},
+  "repository": {
+    "name": "$repo",
+    "full_name": "$owner/$repo",
+    "owner": {
+      "avatar_url": "",
+      "html_url": "",
+      "login": "$owner",
+      "id": 54371434
+    }
+  }
+}''';

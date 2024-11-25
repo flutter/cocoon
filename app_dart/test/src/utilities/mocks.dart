@@ -119,4 +119,13 @@ abstract class Callbacks {
     required String checkRun,
     required String conclusion,
   });
+
+  Future<Document> initializeDocument({
+    required FirestoreService firestoreService,
+    required RepositorySlug slug,
+    required String sha,
+    required CiStage stage,
+    required List<String> tasks,
+    required String checkRunGuard,
+  });
 }
