@@ -904,13 +904,7 @@ targets:
                 checkRun: anyNamed('checkRun'),
                 conclusion: anyNamed('conclusion'),
               ),
-            ).thenAnswer((inv) async {
-              expect(inv.namedArguments[#firestoreService], isNotNull);
-              expect((inv.namedArguments[#slug] as RepositorySlug).fullName, 'flutter/flaux');
-              expect(inv.namedArguments[#sha], '1234');
-              expect(inv.namedArguments[#stage], CiStage.fusionEngineBuild);
-              expect(inv.namedArguments[#checkRun], 'Bar bar');
-              expect(inv.namedArguments[#conclusion], 'success');
+            ).thenAnswer((_) async {
               return (valid: false, remaining: 1, checkRunGuard: '{}', failed: 0);
             });
 
@@ -924,12 +918,12 @@ targets:
             );
             verify(
               callbacks.markCheckRunConclusion(
-                firestoreService: anyNamed('firestoreService'),
-                slug: anyNamed('slug'),
-                sha: anyNamed('sha'),
-                stage: anyNamed('stage'),
-                checkRun: anyNamed('checkRun'),
-                conclusion: anyNamed('conclusion'),
+                firestoreService: argThat(isNotNull, named: 'firestoreService'),
+                slug: argThat(equals(Config.flauxSlug), named: 'slug'),
+                sha: '1234',
+                stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
+                checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
+                conclusion: argThat(equals('success'), named: 'conclusion'),
               ),
             ).called(1);
 
@@ -956,12 +950,6 @@ targets:
                 conclusion: anyNamed('conclusion'),
               ),
             ).thenAnswer((inv) async {
-              expect(inv.namedArguments[#firestoreService], isNotNull);
-              expect((inv.namedArguments[#slug] as RepositorySlug).fullName, 'flutter/flaux');
-              expect(inv.namedArguments[#sha], '1234');
-              expect(inv.namedArguments[#stage], CiStage.fusionEngineBuild);
-              expect(inv.namedArguments[#checkRun], 'Bar bar');
-              expect(inv.namedArguments[#conclusion], 'success');
               return (valid: true, remaining: 1, checkRunGuard: '{}', failed: 0);
             });
 
@@ -975,12 +963,12 @@ targets:
             );
             verify(
               callbacks.markCheckRunConclusion(
-                firestoreService: anyNamed('firestoreService'),
-                slug: anyNamed('slug'),
-                sha: anyNamed('sha'),
-                stage: anyNamed('stage'),
-                checkRun: anyNamed('checkRun'),
-                conclusion: anyNamed('conclusion'),
+                firestoreService: argThat(isNotNull, named: 'firestoreService'),
+                slug: argThat(equals(Config.flauxSlug), named: 'slug'),
+                sha: '1234',
+                stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
+                checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
+                conclusion: argThat(equals('success'), named: 'conclusion'),
               ),
             ).called(1);
 
@@ -1007,12 +995,6 @@ targets:
                 conclusion: anyNamed('conclusion'),
               ),
             ).thenAnswer((inv) async {
-              expect(inv.namedArguments[#firestoreService], isNotNull);
-              expect((inv.namedArguments[#slug] as RepositorySlug).fullName, 'flutter/flaux');
-              expect(inv.namedArguments[#sha], '1234');
-              expect(inv.namedArguments[#stage], CiStage.fusionEngineBuild);
-              expect(inv.namedArguments[#checkRun], 'Bar bar');
-              expect(inv.namedArguments[#conclusion], 'success');
               return (valid: true, remaining: 0, checkRunGuard: checkRunFor(test: 'GUARD TEST'), failed: 1);
             });
 
@@ -1026,12 +1008,12 @@ targets:
             );
             verify(
               callbacks.markCheckRunConclusion(
-                firestoreService: anyNamed('firestoreService'),
-                slug: anyNamed('slug'),
-                sha: anyNamed('sha'),
-                stage: anyNamed('stage'),
-                checkRun: anyNamed('checkRun'),
-                conclusion: anyNamed('conclusion'),
+                firestoreService: argThat(isNotNull, named: 'firestoreService'),
+                slug: argThat(equals(Config.flauxSlug), named: 'slug'),
+                sha: '1234',
+                stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
+                checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
+                conclusion: argThat(equals('success'), named: 'conclusion'),
               ),
             ).called(1);
 
@@ -1109,12 +1091,6 @@ targets:
                 conclusion: anyNamed('conclusion'),
               ),
             ).thenAnswer((inv) async {
-              expect(inv.namedArguments[#firestoreService], isNotNull);
-              expect((inv.namedArguments[#slug] as RepositorySlug).fullName, 'flutter/flaux');
-              expect(inv.namedArguments[#sha], '1234');
-              expect(inv.namedArguments[#stage], CiStage.fusionEngineBuild);
-              expect(inv.namedArguments[#checkRun], 'Bar bar');
-              expect(inv.namedArguments[#conclusion], 'success');
               return (valid: true, remaining: 0, checkRunGuard: checkRunFor(test: 'GUARD TEST'), failed: 0);
             });
 
@@ -1128,12 +1104,12 @@ targets:
             );
             verify(
               callbacks.markCheckRunConclusion(
-                firestoreService: anyNamed('firestoreService'),
-                slug: anyNamed('slug'),
-                sha: anyNamed('sha'),
-                stage: anyNamed('stage'),
-                checkRun: anyNamed('checkRun'),
-                conclusion: anyNamed('conclusion'),
+                firestoreService: argThat(isNotNull, named: 'firestoreService'),
+                slug: argThat(equals(Config.flauxSlug), named: 'slug'),
+                sha: '1234',
+                stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
+                checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
+                conclusion: argThat(equals('success'), named: 'conclusion'),
               ),
             ).called(1);
 
