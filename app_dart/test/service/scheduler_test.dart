@@ -862,7 +862,7 @@ targets:
                 conclusion: anyNamed('conclusion'),
               ),
             ).thenAnswer((_) async {
-              return (valid: false, remaining: 1, checkRunGuard: '{}', failed: 0);
+              return const StagingConclusion(valid: false, remaining: 1, checkRunGuard: '{}', failed: 0);
             });
 
             expect(
@@ -907,7 +907,7 @@ targets:
                 conclusion: anyNamed('conclusion'),
               ),
             ).thenAnswer((inv) async {
-              return (valid: true, remaining: 1, checkRunGuard: '{}', failed: 0);
+              return const StagingConclusion(valid: true, remaining: 1, checkRunGuard: '{}', failed: 0);
             });
 
             expect(
@@ -952,7 +952,12 @@ targets:
                 conclusion: anyNamed('conclusion'),
               ),
             ).thenAnswer((inv) async {
-              return (valid: true, remaining: 0, checkRunGuard: checkRunFor(name: 'GUARD TEST'), failed: 1);
+              return StagingConclusion(
+                valid: true,
+                remaining: 0,
+                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+                failed: 1,
+              );
             });
 
             expect(
@@ -1043,7 +1048,12 @@ targets:
                 conclusion: anyNamed('conclusion'),
               ),
             ).thenAnswer((inv) async {
-              return (valid: true, remaining: 0, checkRunGuard: checkRunFor(name: 'GUARD TEST'), failed: 0);
+              return StagingConclusion(
+                valid: true,
+                remaining: 0,
+                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+                failed: 0,
+              );
             });
 
             expect(
@@ -1742,26 +1752,26 @@ targets:
 
       test('triggers only specificed targets', () async {
         final List<Target> presubmitTargets = <Target>[generateTarget(1), generateTarget(2)];
-        final List<Target> presubmitTriggerTargets = scheduler.getTriggerList(presubmitTargets, <String>['Linux 1']);
+        final List<Target> presubmitTriggerTargets = scheduler.filterTargets(presubmitTargets, <String>['Linux 1']);
         expect(presubmitTriggerTargets.length, 1);
       });
 
       test('triggers all presubmit targets when trigger list is null', () async {
         final List<Target> presubmitTargets = <Target>[generateTarget(1), generateTarget(2)];
-        final List<Target> presubmitTriggerTargets = scheduler.getTriggerList(presubmitTargets, null);
+        final List<Target> presubmitTriggerTargets = scheduler.filterTargets(presubmitTargets, null);
         expect(presubmitTriggerTargets.length, 2);
       });
 
       test('triggers all presubmit targets when trigger list is empty', () async {
         final List<Target> presubmitTargets = <Target>[generateTarget(1), generateTarget(2)];
-        final List<Target> presubmitTriggerTargets = scheduler.getTriggerList(presubmitTargets, <String>[]);
+        final List<Target> presubmitTriggerTargets = scheduler.filterTargets(presubmitTargets, <String>[]);
         expect(presubmitTriggerTargets.length, 2);
       });
 
       test('triggers only targets that are contained in the trigger list', () async {
         final List<Target> presubmitTargets = <Target>[generateTarget(1), generateTarget(2)];
         final List<Target> presubmitTriggerTargets =
-            scheduler.getTriggerList(presubmitTargets, <String>['Linux 1', 'Linux 3']);
+            scheduler.filterTargets(presubmitTargets, <String>['Linux 1', 'Linux 3']);
         expect(presubmitTriggerTargets.length, 1);
         expect(presubmitTargets[0].value.name, 'Linux 1');
       });

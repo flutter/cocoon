@@ -399,7 +399,7 @@ class Scheduler {
     final ciValidationCheckRun = await createCiYamlCheckRun(pullRequest, slug);
 
     log.info('Creating presubmit targets for ${pullRequest.number}');
-    dynamic exception;
+    Object? exception;
     bool isFusion = false;
     try {
       final sha = pullRequest.head!.sha!;
@@ -414,7 +414,7 @@ class Scheduler {
         final presubmitTargets = isFusion
             ? await getTestsForStage(pullRequest, CiStage.fusionEngineBuild)
             : await getPresubmitTargets(pullRequest);
-        final presubmitTriggerTargets = getTriggerList(presubmitTargets, builderTriggerList);
+        final presubmitTriggerTargets = filterTargets(presubmitTargets, builderTriggerList);
 
         // When running presubmits for a fusion PR; create a new staging document to track tasks needed
         // to complete before we can schedule more tests (i.e. build engine artifacts before testing against them).
@@ -623,7 +623,7 @@ class Scheduler {
 
   /// If [builderTriggerList] is specificed, return only builders that are contained in [presubmitTarget].
   /// Otherwise, return [presubmitTarget].
-  List<Target> getTriggerList(
+  List<Target> filterTargets(
     List<Target> presubmitTarget,
     List<String>? builderTriggerList,
   ) {
@@ -753,7 +753,7 @@ class Scheduler {
     return false;
   }
 
-  /// Process completed GitHub `check_runs` to enable fusion engine builds.
+  /// Process completed GitHub `check_run` to enable fusion engine builds.
   Future<bool> processCheckRunCompletion(cocoon_checks.CheckRunEvent checkRunEvent) async {
     final name = checkRunEvent.checkRun?.name;
     final sha = checkRunEvent.checkRun?.headSha;
@@ -767,73 +767,119 @@ class Scheduler {
     if (!isFusion) {
       return true;
     }
+    final logCrumb = 'checkCompleted($name, $slug, $sha, $conclusion)';
 
     // Check runs are fired at every stage; but this code is only interested in check runs during the engine-build
     // stage. Once this stage passes, the document will still exist, but there won't be any valid updates.
     const stage = CiStage.fusionEngineBuild;
-    final documentName = CiStaging.documentNameFor(slug: slug, sha: sha, stage: stage);
-
-    final logCrumb = 'checkCompleted($name, $slug, $sha, $conclusion)';
-    log.info('$logCrumb: $documentName');
-    final StagingConclusion stagingConclusion;
-    try {
-      // We're doing a transactional update, which could fail if multiple tasks are running at the same time; so retry
-      // a sane amount of times before giving up.
-      const RetryOptions r = RetryOptions(
-        maxAttempts: 3,
-        delayFactor: Duration(seconds: 2),
-      );
-      stagingConclusion = await r.retry(
-        () => markCheckRunConclusion(
-          firestoreService: firestoreService,
-          slug: slug,
-          sha: sha,
-          stage: stage,
-          checkRun: name,
-          conclusion: conclusion,
-        ),
-      );
-    } catch (e, s) {
-      // Ignore for now; we're testing
-      log.warning('$logCrumb: error processing check_run', e, s);
-      return false;
-    }
+    final stagingConclusion =
+        await _recordCurrentCiStage(slug: slug, sha: sha, stage: stage, name: name, conclusion: conclusion);
 
     // First; check if we even recorded anything. This can occur if we've already passed the check_run and
     // have moved on to running more tests (which wouldn't be present in our document).
-    if (!stagingConclusion.valid) {
+    if (stagingConclusion == null || !stagingConclusion.valid) {
       return false;
     }
 
     // Are their tests remaining? Then we shouldn't unblock guard yet.
-    if (stagingConclusion.remaining > 0) {
+    if (stagingConclusion.isPending) {
       log.info('$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}');
       return false;
+    }
+
+    if (stagingConclusion.isFailed) {
+      await _reportCiStageFailure(
+        conclusion: stagingConclusion,
+        slug: slug,
+        sha: sha,
+        stage: stage,
+        logCrumb: logCrumb,
+      );
+      return true;
     }
 
     // We know that we're in a fusion repo; now we need to figure out if we are
     //   1) in a presubmit test or
     //   2) in the merge queue
     final headBranch = checkRunEvent.checkRun?.checkSuite?.headBranch;
-    final mergeQueue = headBranch?.startsWith('gh-readonly-queue/') ?? false;
-    final bool hasFailedTargets = stagingConclusion.failed > 0;
-
-    log.info('$logCrumb: Stage completed: $stage with failed=${stagingConclusion.failed}');
-
-    // Unlock the guarding check_run.
-    CheckRun? checkRunGuard;
-    if (stagingConclusion.checkRunGuard != null) {
-      checkRunGuard = CheckRun.fromJson(json.decode(stagingConclusion.checkRunGuard!));
-    }
-
-    // Merge Queue doesn't schedule more tests at the moment; those will happen in post submit.
-    // Failed targets will not schedule more tests.
-    if (mergeQueue || hasFailedTargets) {
-      if (checkRunGuard != null) {
-        await unlockMergeGroupChecks(slug, sha, checkRunGuard, hasFailedTargets ? 'some tests have failed' : null);
-      }
+    final isInMergeQueue = headBranch?.startsWith('gh-readonly-queue/') ?? false;
+    if (isInMergeQueue) {
+      await _closeMergeQueue(
+        conclusion: stagingConclusion,
+        slug: slug,
+        sha: sha,
+        stage: stage,
+        logCrumb: logCrumb,
+      );
       return true;
     }
+
+    // TODO: track newer stages.
+    await _proceedToCiTestingStage(
+      checkRunEvent: checkRunEvent,
+      conclusion: stagingConclusion,
+      slug: slug,
+      sha: sha,
+      stage: stage,
+      logCrumb: logCrumb,
+    );
+
+    return true;
+  }
+
+  /// Returns the presubmit targets for the fusion repo [pullRequest] that should run for the given [stage].
+  Future<List<Target>> getTestsForStage(PullRequest pullRequest, CiStage stage) async {
+    final presubmitTargets = [
+      ...await getPresubmitTargets(pullRequest),
+      ...await getPresubmitTargets(pullRequest, type: CiType.fusionEngine),
+    ].where(
+      (Target target) => switch (stage) {
+        CiStage.fusionEngineBuild => target.value.properties['release_build'] == 'true',
+        CiStage.fusionTests => target.value.properties['release_build'] != 'true'
+      },
+    );
+    return [...presubmitTargets];
+  }
+
+  Future<void> _closeMergeQueue({
+    required StagingConclusion conclusion,
+    required RepositorySlug slug,
+    required String sha,
+    required CiStage stage,
+    required String logCrumb,
+  }) async {
+    log.info('$logCrumb: Merge Queue finished successfully');
+
+    // Unlock the guarding check_run.
+    final checkRunGuard = CheckRun.fromJson(json.decode(conclusion.checkRunGuard!));
+    await unlockMergeGroupChecks(slug, sha, checkRunGuard, null);
+  }
+
+  Future<void> _reportCiStageFailure({
+    required RepositorySlug slug,
+    required String sha,
+    required StagingConclusion conclusion,
+    required CiStage stage,
+    required String logCrumb,
+  }) async {
+    log.info('$logCrumb: Stage failed: $stage with failed=${conclusion.failed}');
+
+    // Unlock the guarding check_run.
+    final checkRunGuard = CheckRun.fromJson(json.decode(conclusion.checkRunGuard!));
+    await unlockMergeGroupChecks(slug, sha, checkRunGuard, 'failed ${conclusion.failed} test');
+  }
+
+  Future<void> _proceedToCiTestingStage({
+    required cocoon_checks.CheckRunEvent checkRunEvent,
+    required RepositorySlug slug,
+    required String sha,
+    required StagingConclusion conclusion,
+    required CiStage stage,
+    required String logCrumb,
+  }) async {
+    log.info('$logCrumb: Stage completed: $stage with failed=${conclusion.failed}');
+
+    final checkRunGuard = CheckRun.fromJson(json.decode(conclusion.checkRunGuard!));
 
     // We're in a pull request and the engine is fully built. We need to reverse look up the PR from the check suite,
     // which sadly is not available in the check_run data. This could be cached at check_run creation time to avoid
@@ -841,11 +887,10 @@ class Scheduler {
     final int checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
     final PullRequest? pullRequest = await githubChecksService.findMatchingPullRequest(slug, sha, checkSuiteId);
     if (pullRequest == null) {
-      log.info('$logCrumb: no PR found matching this check_run');
-      return false;
+      throw 'No PR found matching this check_run';
     }
 
-    dynamic exception;
+    Object? exception;
     try {
       // Both the author and label should be checked to make sure that no one is
       // attempting to get a pull request without check through.
@@ -879,24 +924,44 @@ class Scheduler {
     }
 
     // Unlock the guarding check_run.
-    if (checkRunGuard != null) {
-      await unlockMergeGroupChecks(slug, sha, checkRunGuard, exception);
-    }
-    return true;
+    await unlockMergeGroupChecks(slug, sha, checkRunGuard, exception);
   }
 
-  /// Returns the presubmit targets for the fusion repo [pullRequest] that should run for the given [stage].
-  Future<List<Target>> getTestsForStage(PullRequest pullRequest, CiStage stage) async {
-    final presubmitTargets = [
-      ...await getPresubmitTargets(pullRequest),
-      ...await getPresubmitTargets(pullRequest, type: CiType.fusionEngine),
-    ].where(
-      (Target target) => switch (stage) {
-        CiStage.fusionEngineBuild => target.value.properties['release_build'] == 'true',
-        CiStage.fusionTests => target.value.properties['release_build'] != 'true'
-      },
-    );
-    return [...presubmitTargets];
+  Future<StagingConclusion?> _recordCurrentCiStage({
+    required RepositorySlug slug,
+    required String sha,
+    required CiStage stage,
+    required String name,
+    required String conclusion,
+  }) async {
+    final logCrumb = 'checkCompleted($name, $slug, $sha, $conclusion)';
+    final documentName = CiStaging.documentNameFor(slug: slug, sha: sha, stage: stage);
+    log.info('$logCrumb: $documentName');
+    StagingConclusion stagingConclusion;
+    try {
+      // We're doing a transactional update, which could fail if multiple tasks are running at the same time; so retry
+      // a sane amount of times before giving up.
+      const RetryOptions r = RetryOptions(
+        maxAttempts: 3,
+        delayFactor: Duration(seconds: 2),
+      );
+      stagingConclusion = await r.retry(
+        () => markCheckRunConclusion(
+          firestoreService: firestoreService,
+          slug: slug,
+          sha: sha,
+          stage: stage,
+          checkRun: name,
+          conclusion: conclusion,
+        ),
+      );
+    } catch (e, s) {
+      // Ignore for now; we're testing
+      log.warning('$logCrumb: error processing check_run', e, s);
+      return null;
+    }
+
+    return stagingConclusion;
   }
 
   /// Reschedules a failed build using a [CheckRunEvent]. The CheckRunEvent is
