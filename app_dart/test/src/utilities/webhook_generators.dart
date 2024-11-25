@@ -25,6 +25,7 @@ PushMessage generateGithubWebhookMessage({
   RepositorySlug? slug,
   bool includeChanges = false,
   bool withAutosubmit = false,
+  bool withRevertOf = false,
 }) {
   final String data = (pb.GithubWebhookMessage.create()
         ..event = event
@@ -42,6 +43,7 @@ PushMessage generateGithubWebhookMessage({
           mergeCommitSha: mergeCommitSha,
           includeChanges: includeChanges,
           withAutosubmit: withAutosubmit,
+          withRevertOf: withRevertOf,
         ))
       .writeToJson();
   return PushMessage(data: data, messageId: 'abc123');
@@ -61,7 +63,8 @@ String _generatePullRequestEvent(
   bool isMergeable = true,
   String mergeCommitSha = 'fd6b46416c18de36ce87d0241994b2da180cab4c',
   bool includeChanges = false,
-  bool withAutosubmit = false,
+  required bool withAutosubmit,
+  required bool withRevertOf,
 }) {
   slug ??= Config.flutterSlug;
   baseRef ??= Config.defaultBranch(slug);
@@ -146,6 +149,16 @@ String _generatePullRequestEvent(
         "color": "008820",
         "default": false,
         "description": "Merge PR when tree becomes green via auto submit App"
+      },''' : ''}
+      ${withRevertOf ? '''
+      {
+        "id": 4232992339,
+        "node_id": "LA_kwDOAeUeuM8AAAABZOz6vw",
+        "url": "https://api.github.com/repos/${slug.fullName}/labels/revert%20of",
+        "name": "revert of",
+        "color": "008820",
+        "default": false,
+        "description": "Bot Only: Tracking label for bot. Tracks new revert of pull requests."
       },''' : ''}
       {
         "id": 283480100,

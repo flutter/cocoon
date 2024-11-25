@@ -388,6 +388,7 @@ class FakeGithubService implements GithubService {
     return addAssigneeMock;
   }
 
+  final List<(RepositorySlug, String)> deletedBranches = [];
   bool deleteBranchMock = true;
 
   @override
@@ -395,6 +396,7 @@ class FakeGithubService implements GithubService {
     RepositorySlug slug,
     String branchName,
   ) async {
+    deletedBranches.add((slug, branchName));
     return deleteBranchMock;
   }
 

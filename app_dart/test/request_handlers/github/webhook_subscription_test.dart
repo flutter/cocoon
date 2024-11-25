@@ -266,12 +266,62 @@ void main() {
         merged: true,
         baseSha: 'sha1',
         mergeCommitSha: 'sha2',
+
+        // Just spelling this out here, because this test specifically tests a
+        // non-revert PR.
+        withRevertOf: false,
       );
 
       await tester.post(webhook);
 
       expect(scheduler.cancelPreSubmitTargetsCallCnt, 1);
       expect(scheduler.addPullRequestCallCnt, 1);
+
+      // This was not a revert PR, so no branches deleted.
+      expect(githubService.deletedBranches, isEmpty);
+    });
+
+    test('Removes temporary revert branches upon merging the PR', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'closed',
+        number: issueNumber,
+        baseRef: 'dev',
+        merged: true,
+        baseSha: 'sha1',
+        mergeCommitSha: 'sha2',
+        withRevertOf: true,
+        headRef: 'test/headref',
+      );
+
+      await tester.post(webhook);
+
+      // This was a merged revert PR. The temp branch should be deleted.
+      expect(
+        githubService.deletedBranches,
+        [(RepositorySlug('flutter', 'flutter'), 'test/headref')],
+      );
+    });
+
+    test('Does NOT remove temporary revert branches upon closing a revert PR because the PR may be manually reopened',
+        () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'closed',
+        number: issueNumber,
+        baseRef: 'dev',
+        merged: false,
+        baseSha: 'sha1',
+        mergeCommitSha: 'sha2',
+        withRevertOf: true,
+      );
+
+      await tester.post(webhook);
+
+      // This was a closed (not merged) revert PR, so no branches deleted.
+      expect(githubService.deletedBranches, isEmpty);
     });
 
     test('Acts on opened against master when default is main', () async {

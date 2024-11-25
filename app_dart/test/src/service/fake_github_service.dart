@@ -25,6 +25,17 @@ class FakeGithubService implements GithubService {
     return listCommitsBranch(branch, lastCommitTimestampMills ?? 0);
   }
 
+  final List<(RepositorySlug, String)> deletedBranches = [];
+
+  @override
+  Future<bool> deleteBranch(
+    RepositorySlug slug,
+    String branchName,
+  ) async {
+    deletedBranches.add((slug, branchName));
+    return true;
+  }
+
   @override
   Future<List<PullRequest>> listPullRequests(RepositorySlug slug, String? branch) async {
     return listPullRequestsBranch(branch);

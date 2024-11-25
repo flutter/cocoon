@@ -304,8 +304,6 @@ class RevertRequestValidationService extends ValidationService {
       final Message discordMessage = craftDiscordRevertMessage(messagePullRequest);
       discordNotification.notifyDiscordChannelWebhook(jsonEncode(discordMessage.toJson()));
 
-      log.info('Revert merged successfully, deleting branch ${messagePullRequest.head!.ref!}');
-      await githubService.deleteBranch(slug, messagePullRequest.head!.ref!);
       log.info('Pull Request ${slug.fullName}/$prNumber was merged successfully!');
       log.info('Attempting to insert a pull request record into the database for $prNumber');
       await insertPullRequestRecord(
