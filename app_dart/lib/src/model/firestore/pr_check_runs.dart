@@ -95,7 +95,7 @@ class PrCheckRuns extends Document {
     }
   }
 
-  /// Retrieve the [PullRequest] for a given [checkRun] or throw an error.  
+  /// Retrieve the [PullRequest] for a given [checkRun] or throw an error.
   static Future<PullRequest> findDocumentFor(
     FirestoreService firestoreService,
     CheckRun checkRun,
