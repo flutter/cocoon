@@ -446,6 +446,7 @@ class Scheduler {
     // Update validate ci.yaml check
     await closeCiYamlCheckRun(pullRequest, exception, slug, ciValidationCheckRun);
 
+    // The 'lock' will be unlocked later in processCheckRunCompletion after all engine builds are processed.
     if (!isFusion) {
       await unlockMergeGroupChecks(slug, pullRequest.head!.sha!, lock, exception);
     }
