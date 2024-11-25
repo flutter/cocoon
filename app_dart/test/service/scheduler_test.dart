@@ -1906,7 +1906,7 @@ String checkRunFor({
   final int externalId = id * 2;
   return '''{
   "id": $id,
-  "external_id": "{$externalId}",  
+  "external_id": "{$externalId}",
   "head_sha": "$sha",
   "name": "$name",
   "conclusion": "$conclusion",
