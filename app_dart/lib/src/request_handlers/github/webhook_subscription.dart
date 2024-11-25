@@ -356,6 +356,19 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
       // To avoid polluting the repo with temporary revert branches, delete the
       // branch after the reverted PR is merged.
+      //
+      // This can be done no ealier than the event declaring the PR both
+      // 'closed' and merged, because:
+      //
+      // * If the branch is deleted before the PR reaches 'closed', then GitHub
+      //   will force-close the PR because the branch is the source of all the
+      //   code changes in the PR. In a previous iteration, Cocoon used to
+      //   delete the branch immediately after merging it. However, with merge
+      //   queues a PR is not merged by Cocoon anymore. It stays open while in
+      //   the merge queue. Deleting the branch while in the queue would close
+      //   the PR and not merge it.
+      // * If a PR is closed but not merged, the author may still want to reopen
+      //   the PR. That would not be possible if the source branch was deleted.
       final isRevertPullRequest = pr.labels?.any((label) => label.name == Config.revertOfLabel) == true;
       if (isRevertPullRequest) {
         log.info('Revert merged successfully, deleting branch ${pr.head!.ref!}');
