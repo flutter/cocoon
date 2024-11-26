@@ -112,6 +112,10 @@ class Scheduler {
   /// workflow.
   static const String kMergeQueueLockName = 'Merge Queue Guard';
 
+  /// List of check runs that do not need to be tracked or looked up in
+  /// any staging logic.
+  static const kCheckRunsToIgnore = [kMergeQueueLockName, kCiYamlCheckName];
+
   /// Briefly describes what the "Merge Queue Guard" check is for.
   ///
   /// Find more details about this check at [kMergeQueueLockName].
@@ -759,15 +763,18 @@ class Scheduler {
     final sha = checkRunEvent.checkRun?.headSha;
     final slug = checkRunEvent.repository?.slug();
     final conclusion = checkRunEvent.checkRun?.conclusion;
-    firestoreService = await config.createFirestoreService();
 
-    if (name == null || sha == null || slug == null || conclusion == null) return true;
+    if (name == null || sha == null || slug == null || conclusion == null || kCheckRunsToIgnore.contains(name)) {
+      return true;
+    }
 
     final isFusion = await fusionTester.isFusionBasedRef(slug, sha);
     if (!isFusion) {
       return true;
     }
     final logCrumb = 'checkCompleted($name, $slug, $sha, $conclusion)';
+
+    firestoreService = await config.createFirestoreService();
 
     // Check runs are fired at every stage; but this code is only interested in check runs during the engine-build
     // stage. Once this stage passes, the document will still exist, but there won't be any valid updates.

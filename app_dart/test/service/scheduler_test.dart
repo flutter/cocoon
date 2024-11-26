@@ -851,6 +851,43 @@ targets:
             fakeFusion.isFusion = (_, __) => true;
           });
 
+          test('ignores default check runs that have no side effects', () async {
+            when(
+              callbacks.markCheckRunConclusion(
+                firestoreService: anyNamed('firestoreService'),
+                slug: anyNamed('slug'),
+                sha: anyNamed('sha'),
+                stage: anyNamed('stage'),
+                checkRun: anyNamed('checkRun'),
+                conclusion: anyNamed('conclusion'),
+              ),
+            ).thenAnswer((_) async {
+              return const StagingConclusion(valid: false, remaining: 1, checkRunGuard: '{}', failed: 0);
+            });
+
+            for (final ignored in Scheduler.kCheckRunsToIgnore) {
+              expect(
+                await scheduler.processCheckRunCompletion(
+                  cocoon_checks.CheckRunEvent.fromJson(
+                    json.decode(checkRunEventFor(test: ignored)),
+                  ),
+                ),
+                isTrue,
+              );
+
+              verifyNever(
+                callbacks.markCheckRunConclusion(
+                  firestoreService: anyNamed('firestoreService'),
+                  slug: anyNamed('slug'),
+                  sha: anyNamed('sha'),
+                  stage: anyNamed('stage'),
+                  checkRun: anyNamed('checkRun'),
+                  conclusion: anyNamed('conclusion'),
+                ),
+              );
+            }
+          });
+
           test('ignores invalid conclusions', () async {
             when(
               callbacks.markCheckRunConclusion(
