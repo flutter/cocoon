@@ -112,6 +112,10 @@ class Scheduler {
   /// workflow.
   static const String kMergeQueueLockName = 'Merge Queue Guard';
 
+  /// List of check runs that do not need to be tracked or looked up in
+  /// any staging logic.
+  static const kCheckRunsToIgnore = [kMergeQueueLockName, kCiYamlCheckName];
+
   /// Briefly describes what the "Merge Queue Guard" check is for.
   ///
   /// Find more details about this check at [kMergeQueueLockName].
@@ -762,6 +766,10 @@ class Scheduler {
     firestoreService = await config.createFirestoreService();
 
     if (name == null || sha == null || slug == null || conclusion == null) return true;
+
+    if (kCheckRunsToIgnore.contains(name)) {
+      return true;
+    }
 
     final isFusion = await fusionTester.isFusionBasedRef(slug, sha);
     if (!isFusion) {
