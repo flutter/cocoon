@@ -96,7 +96,7 @@ class Scheduler {
     FirestoreService firestoreService,
     int checkRunId,
     String checkRunName,
-  ) findPullRequestFor;  
+  ) findPullRequestFor;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';

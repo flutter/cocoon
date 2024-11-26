@@ -1109,8 +1109,7 @@ targets:
               isTrue,
             );
 
-            verify(gitHubChecksService.findMatchingPullRequest(Config.flauxSlug, 'testSha', 668083231))
-                .called(1);
+            verify(gitHubChecksService.findMatchingPullRequest(Config.flauxSlug, 'testSha', 668083231)).called(1);
 
             verify(
               callbacks.markCheckRunConclusion(
