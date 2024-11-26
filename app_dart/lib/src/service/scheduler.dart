@@ -8,6 +8,7 @@ import 'dart:typed_data';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
+import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
@@ -59,6 +60,7 @@ class Scheduler {
     this.buildStatusProvider = BuildStatusService.defaultProvider,
     @visibleForTesting this.markCheckRunConclusion = CiStaging.markConclusion,
     @visibleForTesting this.initializeCiStagingDocument = CiStaging.initializeDocument,
+    @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
   });
 
   final BuildStatusServiceProvider buildStatusProvider;
@@ -89,6 +91,12 @@ class Scheduler {
     required List<String> tasks,
     required String checkRunGuard,
   }) initializeCiStagingDocument;
+
+  final Future<PullRequest> Function(
+    FirestoreService firestoreService,
+    int checkRunId,
+    String checkRunName,
+  ) findPullRequestFor;  
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
@@ -888,11 +896,25 @@ class Scheduler {
 
     final checkRunGuard = CheckRun.fromJson(json.decode(conclusion.checkRunGuard!));
 
-    // We're in a pull request and the engine is fully built. We need to reverse look up the PR from the check suite,
-    // which sadly is not available in the check_run data. This could be cached at check_run creation time to avoid
-    // this cost.
-    final int checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
-    final PullRequest? pullRequest = await githubChecksService.findMatchingPullRequest(slug, sha, checkSuiteId);
+    // Look up the PR in our cache first. This reduces github quota and requires less calls.
+    PullRequest? pullRequest;
+    try {
+      pullRequest = await findPullRequestFor(
+        firestoreService,
+        checkRunEvent.checkRun!.id!,
+        checkRunEvent.checkRun!.name!,
+      );
+    } catch (e, s) {
+      log.warning('$logCrumb: unable to find PR in PrCheckRuns', e, s);
+    }
+
+    // We'va failed to find the pull request; try a reverse look it from the check suite.
+    if (pullRequest == null) {
+      final int checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
+      pullRequest = await githubChecksService.findMatchingPullRequest(slug, sha, checkSuiteId);
+    }
+
+    // We cannot make any forward progress. Abandon all hope, Check runs who enter here.
     if (pullRequest == null) {
       throw 'No PR found matching this check_run';
     }

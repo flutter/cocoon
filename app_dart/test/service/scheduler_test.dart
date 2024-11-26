@@ -1049,6 +1049,7 @@ targets:
                 generateCheckSuite(668083231),
               ],
             );
+
             httpClient = MockClient((http.Request request) async {
               if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
                 return http.Response(fusionCiYaml, 200);
@@ -1063,16 +1064,145 @@ targets:
               return [];
             });
 
+            final gitHubChecksService = MockGithubChecksService();
+            when(gitHubChecksService.githubChecksUtil).thenReturn(mockGithubChecksUtil);
+            when(gitHubChecksService.findMatchingPullRequest(any, any, any)).thenAnswer((inv) async {
+              return pullRequest;
+            });
+
             scheduler = Scheduler(
               cache: cache,
               config: config,
               datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
               buildStatusProvider: (_, __) => buildStatusService,
-              githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+              githubChecksService: gitHubChecksService,
               httpClientProvider: () => httpClient,
               luciBuildService: luci,
               fusionTester: fakeFusion,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
+            );
+
+            when(
+              callbacks.markCheckRunConclusion(
+                firestoreService: anyNamed('firestoreService'),
+                slug: anyNamed('slug'),
+                sha: anyNamed('sha'),
+                stage: anyNamed('stage'),
+                checkRun: anyNamed('checkRun'),
+                conclusion: anyNamed('conclusion'),
+              ),
+            ).thenAnswer((inv) async {
+              return StagingConclusion(
+                valid: true,
+                remaining: 0,
+                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+                failed: 0,
+              );
+            });
+
+            expect(
+              await scheduler.processCheckRunCompletion(
+                cocoon_checks.CheckRunEvent.fromJson(
+                  json.decode(checkRunEventFor(test: 'Bar bar', sha: 'testSha')),
+                ),
+              ),
+              isTrue,
+            );
+
+            verify(gitHubChecksService.findMatchingPullRequest(Config.flauxSlug, 'testSha', 668083231))
+                .called(1);
+
+            verify(
+              callbacks.markCheckRunConclusion(
+                firestoreService: argThat(isNotNull, named: 'firestoreService'),
+                slug: argThat(equals(Config.flauxSlug), named: 'slug'),
+                sha: 'testSha',
+                stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
+                checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
+                conclusion: argThat(equals('success'), named: 'conclusion'),
+              ),
+            ).called(1);
+
+            verify(
+              mockGithubChecksUtil.updateCheckRun(
+                any,
+                argThat(equals(RepositorySlug('flutter', 'flaux'))),
+                argThat(
+                  predicate<CheckRun>((arg) {
+                    expect(arg.name, 'GUARD TEST');
+                    return true;
+                  }),
+                ),
+                status: argThat(equals(CheckRunStatus.completed), named: 'status'),
+                conclusion: argThat(equals(CheckRunConclusion.success), named: 'conclusion'),
+                output: anyNamed('output'),
+              ),
+            ).called(1);
+
+            final result = verify(
+              luci.scheduleTryBuilds(
+                targets: captureAnyNamed('targets'),
+                pullRequest: captureAnyNamed('pullRequest'),
+              ),
+            );
+            expect(result.callCount, 1);
+            final captured = result.captured;
+            expect(captured[0], hasLength(2));
+            // see the blend of fusionCiYaml and singleCiYaml
+            expect(captured[0][0].getTestName, 'A');
+            expect(captured[0][1].getTestName, 'Z');
+            expect(captured[1], pullRequest);
+          });
+
+          test('schedules tests after engine stage - with pr caching', () async {
+            final githubService = config.githubService = MockGithubService();
+            final githubClient = MockGitHub();
+            when(githubService.github).thenReturn(githubClient);
+            when(githubService.searchIssuesAndPRs(any, any, sort: anyNamed('sort'), pages: anyNamed('pages')))
+                .thenAnswer((_) async => [generateIssue(42)]);
+
+            final pullRequest = generatePullRequest();
+            when(githubService.getPullRequest(any, any)).thenAnswer((_) async => pullRequest);
+            when(githubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+            when(mockGithubChecksUtil.listCheckSuitesForRef(any, any, ref: anyNamed('ref'))).thenAnswer(
+              (_) async => [
+                // From check_run.check_suite.id in [checkRunString].
+                generateCheckSuite(668083231),
+              ],
+            );
+
+            when(callbacks.findPullRequestFor(any, any, any)).thenAnswer((inv) async {
+              return pullRequest;
+            });
+
+            httpClient = MockClient((http.Request request) async {
+              if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
+                return http.Response(fusionCiYaml, 200);
+              } else if (request.url.path.endsWith('.ci.yaml')) {
+                return http.Response(singleCiYaml, 200);
+              }
+              throw Exception('Failed to find ${request.url.path}');
+            });
+            final luci = MockLuciBuildService();
+            when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
+                .thenAnswer((inv) async {
+              return [];
+            });
+
+            final gitHubChecksService = MockGithubChecksService();
+            when(gitHubChecksService.githubChecksUtil).thenReturn(mockGithubChecksUtil);
+
+            scheduler = Scheduler(
+              cache: cache,
+              config: config,
+              datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+              buildStatusProvider: (_, __) => buildStatusService,
+              githubChecksService: gitHubChecksService,
+              httpClientProvider: () => httpClient,
+              luciBuildService: luci,
+              fusionTester: fakeFusion,
+              markCheckRunConclusion: callbacks.markCheckRunConclusion,
+              findPullRequestFor: callbacks.findPullRequestFor,
             );
 
             when(
@@ -1101,6 +1231,10 @@ targets:
               ),
               isTrue,
             );
+
+            verify(callbacks.findPullRequestFor(mockFirestoreService, 1, 'Bar bar')).called(1);
+            verifyNever(gitHubChecksService.findMatchingPullRequest(any, any, any));
+
             verify(
               callbacks.markCheckRunConclusion(
                 firestoreService: argThat(isNotNull, named: 'firestoreService'),
