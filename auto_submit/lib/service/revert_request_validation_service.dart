@@ -218,6 +218,18 @@ class RevertRequestValidationService extends ValidationService {
     final GithubService githubService = await config.createGithubService(slug);
     final int prNumber = messagePullRequest.number!;
 
+    // If a pull request is currently in the merge queue do not touch it. Let
+    // the merge queue merge it, or kick it out of the merge queue.
+    if (messagePullRequest.isMergeQueueEnabled) {
+      if (result.repository!.pullRequest!.isInMergeQueue) {
+        log.info(
+          '${slug.fullName}/$prNumber is already in the merge queue. Skipping.',
+        );
+        await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
+        return;
+      }
+    }
+
     // Check to make sure the repository allows review-less revert pull requests
     // so that we can reassign if needed otherwise autoapprove the pull request.
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
@@ -304,7 +316,7 @@ class RevertRequestValidationService extends ValidationService {
       final Message discordMessage = craftDiscordRevertMessage(messagePullRequest);
       discordNotification.notifyDiscordChannelWebhook(jsonEncode(discordMessage.toJson()));
 
-      log.info('Pull Request ${slug.fullName}/$prNumber was merged successfully!');
+      log.info('Pull Request ${slug.fullName}/$prNumber was ${processed.method.pastTenseLabel} successfully!');
       log.info('Attempting to insert a pull request record into the database for $prNumber');
       await insertPullRequestRecord(
         config: config,

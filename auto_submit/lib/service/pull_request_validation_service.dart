@@ -59,11 +59,14 @@ class PullRequestValidationService extends ValidationService {
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int prNumber = messagePullRequest.number!;
 
+    // If a pull request is currently in the merge queue do not touch it. Let
+    // the merge queue merge it, or kick it out of the merge queue.
     if (messagePullRequest.isMergeQueueEnabled) {
       if (result.repository!.pullRequest!.isInMergeQueue) {
         log.info(
           '${slug.fullName}/$prNumber is already in the merge queue. Skipping.',
         );
+        await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
         return;
       }
     }
@@ -140,7 +143,7 @@ class PullRequestValidationService extends ValidationService {
       await githubService.createComment(slug, prNumber, message);
       log.info(message);
     } else {
-      log.info('Pull Request ${slug.fullName}/$prNumber was merged successfully!');
+      log.info('Pull Request ${slug.fullName}/$prNumber was ${processed.method.pastTenseLabel} successfully!');
       log.info('Attempting to insert a pull request record into the database for $prNumber');
       await insertPullRequestRecord(
         config: config,
