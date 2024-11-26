@@ -101,10 +101,10 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
     } catch (e) {
       final message = 'Failed to enqueue ${slug.fullName}/${restPullRequest.number} with $e';
       log.severe(message);
-      return (result: false, message: message);
+      return (result: false, message: message, method: SubmitMethod.enqueue);
     }
 
-    return (result: true, message: restPullRequest.title!);
+    return (result: true, message: restPullRequest.title!, method: SubmitMethod.enqueue);
   }
 
   Future<MergeResult> _mergePullRequest(int number, String commitMessage, github.RepositorySlug slug) async {
@@ -129,16 +129,16 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
       if (result != null && !merged) {
         final String message = 'Failed to merge ${slug.fullName}/$number with ${result?.message}';
         log.severe(message);
-        return (result: false, message: message);
+        return (result: false, message: message, method: SubmitMethod.merge);
       }
     } catch (e) {
       // Catch graphql client init exceptions.
       final String message = 'Failed to merge ${slug.fullName}/$number with $e';
       log.severe(message);
-      return (result: false, message: message);
+      return (result: false, message: message, method: SubmitMethod.merge);
     }
 
-    return (result: true, message: commitMessage);
+    return (result: true, message: commitMessage, method: SubmitMethod.merge);
   }
 
   /// Insert a merged pull request record into the database.
@@ -183,9 +183,28 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
   }
 }
 
+/// Method used to submit the PR for merging.
+enum SubmitMethod {
+  /// The PR is enqueued into the merge queue, and the merge queue is responsible
+  /// for merging the PR.
+  enqueue('enqueued'),
+
+  /// The PR is immediately merged into the target branch.
+  ///
+  /// This is the old method for merging PRs, used by repos where merge queues
+  /// are not (yet?) enabled.
+  merge('merged');
+
+  const SubmitMethod(this.pastTenseLabel);
+
+  /// The verb in past tense used to describe what happened to a PR when this
+  /// submit method was used, e.g. "merged".
+  final String pastTenseLabel;
+}
+
 /// Small wrapper class to allow us to capture and create a comment in the PR with
 /// the issue that caused the merge failure.
-typedef MergeResult = ({bool result, String message});
+typedef MergeResult = ({bool result, String message, SubmitMethod method});
 
 /// Function signature that will be executed with retries.
 typedef RetryHandler = Function();

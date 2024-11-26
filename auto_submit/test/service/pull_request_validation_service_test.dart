@@ -645,6 +645,7 @@ This is the second line in a paragraph.''');
         mergeable: true,
       );
 
+      unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
       await validationService.processPullRequest(
         config: config,
         result: createQueryResult(flutterRequest),
@@ -658,6 +659,7 @@ This is the second line in a paragraph.''');
         logs,
         contains('[INFO] auto_submit: flutter/flaux/0 is already in the merge queue. Skipping.'),
       );
+      assert(pubsub.messagesQueue.isEmpty);
     });
   });
 }

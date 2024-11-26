@@ -9,6 +9,7 @@ import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto hide PullRequest;
 import 'package:auto_submit/requests/github_pull_request_event.dart';
 import 'package:auto_submit/model/discord_message.dart';
+import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/service/revert_request_validation_service.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/validations/validation.dart';
@@ -1231,6 +1232,59 @@ void main() {
       // validate
       expect(githubService.issueComment, isNotNull);
       expect(githubService.labelRemoved, true);
+      assert(pubsub.messagesQueue.isEmpty);
+    });
+
+    test('Do not re-enqueue already enqueued pull requests', () async {
+      // Use a test slug that has MQ enabled
+      slug = RepositorySlug('flutter', 'flaux');
+
+      final logs = <String>[];
+      final logSub = log.onRecord.listen((record) {
+        logs.add(record.toString());
+      });
+
+      final FakePubSub pubsub = FakePubSub();
+
+      final PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+        isInMergeQueue: true,
+      );
+
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        labelName: 'revert of',
+        body: sampleRevertBody.replaceAll('\n', ''),
+      );
+
+      final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent(
+        pullRequest: pullRequest,
+        action: 'labeled',
+        sender: User(login: 'auto-submit[bot]'),
+      );
+
+      // Process the pull request
+      unawaited(pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest));
+      await validationService.processRevertOfRequest(
+        result: queryResult,
+        githubPullRequestEvent: githubPullRequestEvent,
+        ackId: 'test',
+        pubsub: pubsub,
+      );
+      await logSub.cancel();
+
+      // Expectations
+      expect(
+        logs,
+        contains('[INFO] auto_submit: flutter/flaux/0 is already in the merge queue. Skipping.'),
+      );
+      expect(githubService.issueComment, isNull);
+      expect(githubService.labelRemoved, false);
       assert(pubsub.messagesQueue.isEmpty);
     });
   });
