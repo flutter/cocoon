@@ -329,6 +329,11 @@ github.PullRequest generatePullRequest({
     head: github.PullRequestHead(
       ref: branch,
       sha: sha,
+      repo: github.Repository(
+        fullName: 'flutter/$repo',
+        name: repo,
+        owner: github.UserInformation('flutter', 1, '', ''),
+      ),
     ),
     user: github.User(
       login: authorLogin,
