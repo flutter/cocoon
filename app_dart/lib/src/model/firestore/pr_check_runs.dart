@@ -30,9 +30,8 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 ///       pullRequest: json string
 ///       slug: json string
 ///       sha: string
-///       [*fields]: <string check_run id>: empty string
+///       [*fields]: "test_name": "check_run id"
 class PrCheckRuns extends Document {
-  /// Firestore collection for the staging documents.
   static const kCollectionId = 'prCheckRuns';
   static const kPullRequestField = 'pull_request';
   static const kSlugField = 'slug';
@@ -72,7 +71,7 @@ class PrCheckRuns extends Document {
       kPullRequestField: Value(stringValue: json.encode(pullRequest.toJson())),
       kSlugField: Value(stringValue: json.encode(pullRequest.head!.repo!.slug().toJson())),
       kShaField: Value(stringValue: pullRequest.head!.sha!),
-      for (final run in checks) '${run.id}': Value(stringValue: run.name),
+      for (final run in checks) run.name!: Value(stringValue: '${run.id}'),
     };
 
     final document = Document(fields: fields);
@@ -101,7 +100,7 @@ class PrCheckRuns extends Document {
     CheckRun checkRun,
   ) async {
     final filterMap = <String, Object>{
-      '${checkRun.id} =': checkRun.name!,
+      '${checkRun.name!} =': '${checkRun.id}',
     };
     log.info('findDocumentFor($filterMap): finding prCheckRuns document');
     final docs = await firestoreService.query(kCollectionId, filterMap);

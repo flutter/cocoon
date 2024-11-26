@@ -72,8 +72,8 @@ void main() {
         expect(document.fields![PrCheckRuns.kPullRequestField]!.stringValue, json.encode(pr.toJson()));
         expect(document.fields![PrCheckRuns.kSlugField]!.stringValue, json.encode(pr.head!.repo!.slug().toJson()));
         expect(document.fields![PrCheckRuns.kShaField]!.stringValue, pr.head!.sha);
-        expect(document.fields!['1']!.stringValue, 'check 1');
-        expect(document.fields!['2']!.stringValue, 'check 2');
+        expect(document.fields!['check 1']!.stringValue, '1');
+        expect(document.fields!['check 2']!.stringValue, '2');
       });
     });
 
@@ -93,7 +93,7 @@ void main() {
       final captured = verify(firestoreService.query(PrCheckRuns.kCollectionId, captureAny)).captured;
       expect(captured, [
         {
-          '1 =': 'testing tesing',
+          'testing tesing =': '1',
         },
       ]);
       expect(pr.id, 1234);
