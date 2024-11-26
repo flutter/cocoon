@@ -877,12 +877,12 @@ targets:
 
               verifyNever(
                 callbacks.markCheckRunConclusion(
-                  firestoreService: argThat(isNotNull, named: 'firestoreService'),
-                  slug: argThat(equals(Config.flauxSlug), named: 'slug'),
-                  sha: '1234',
-                  stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
-                  checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                  conclusion: argThat(equals('success'), named: 'conclusion'),
+                  firestoreService: anyNamed('firestoreService'),
+                  slug: anyNamed('slug'),
+                  sha: anyNamed('sha'),
+                  stage: anyNamed('stage'),
+                  checkRun: anyNamed('checkRun'),
+                  conclusion: anyNamed('conclusion'),
                 ),
               );
             }
