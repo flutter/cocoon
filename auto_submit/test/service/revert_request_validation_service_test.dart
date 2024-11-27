@@ -13,6 +13,7 @@ import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/service/revert_request_validation_service.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/validations/validation.dart';
+import 'package:cocoon_server/testing/bigquery_testing.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
@@ -25,7 +26,6 @@ import '../revert/revert_support_data.dart';
 import '../src/action/fake_revert_method.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_approver_service.dart';
-import '../src/service/fake_bigquery_service.dart';
 import '../src/service/fake_config.dart';
 import '../src/service/fake_discord_notification.dart';
 import '../src/service/fake_graphql_client.dart';
@@ -36,7 +36,6 @@ import '../src/validations/fake_required_check_runs.dart';
 import '../src/validations/fake_validation_filter.dart';
 import '../utilities/utils.dart';
 import '../utilities/mocks.dart';
-import 'bigquery_test.dart';
 
 void main() {
   late RevertRequestValidationService validationService;

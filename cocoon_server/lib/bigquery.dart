@@ -4,11 +4,10 @@
 
 import 'dart:async';
 
-import 'package:auto_submit/exception/bigquery_exception.dart';
-import 'package:auto_submit/model/big_query_pull_request_record.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart';
 
+import 'big_query_pull_request_record.dart';
 import 'access_client_provider.dart';
 
 const String _insertPullRequestDml = r'''
@@ -132,4 +131,14 @@ class BigqueryService {
       parameterValue: QueryParameterValue(value: value),
     );
   }
+}
+
+class BigQueryException implements Exception {
+  /// Create a custom exception for Big Query Errors.
+  BigQueryException(this.cause);
+
+  final String cause;
+
+  @override
+  String toString() => cause;
 }

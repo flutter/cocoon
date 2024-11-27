@@ -4,10 +4,9 @@
 
 import 'dart:async';
 
+import 'package:cocoon_server/access_client_provider.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart';
-
-import 'access_client_provider.dart';
 
 /// The sql query to query the build statistic from the
 /// `flutter-dashboard.datasite.luci_prod_build_status`.

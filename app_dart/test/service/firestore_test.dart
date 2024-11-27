@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
-import 'package:cocoon_service/src/service/access_client_provider.dart';
+import 'package:cocoon_server/access_client_provider.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 
 import 'package:googleapis/firestore/v1.dart';

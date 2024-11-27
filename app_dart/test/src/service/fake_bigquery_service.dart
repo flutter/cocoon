@@ -4,8 +4,7 @@
 
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:googleapis/bigquery/v2.dart';
-
-import '../utilities/mocks.dart';
+import 'package:cocoon_server/testing/mocks.dart';
 
 class FakeBigqueryService extends BigqueryService {
   FakeBigqueryService(this.jobsResource) : super(MockAccessClientProvider());

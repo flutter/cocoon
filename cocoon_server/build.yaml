@@ -1,0 +1,25 @@
+targets:
+  $default:
+    sources:
+      - $package$
+      - lib/$lib$
+      - lib/**.dart
+      - test/**.dart
+    builders:
+      json_serializable:
+        generate_for:
+          - test/**.dart
+          - lib/**.dart
+        options:
+          # Options configure how source code is generated for every
+          # `@JsonSerializable`-annotated class in the package.
+          field_rename: snake
+      source_gen|combining_builder:
+        options:
+          ignore_for_file:
+            - always_specify_types
+            - implicit_dynamic_parameter
+      mockito|mockBuilder:
+        generate_for:
+          - test/**.dart
+          - lib/**.dart
