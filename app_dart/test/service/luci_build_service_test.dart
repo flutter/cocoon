@@ -38,7 +38,7 @@ void main() {
   FakeGithubService githubService;
   late MockBuildBucketClient mockBuildBucketClient;
   late LuciBuildService service;
-  late MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
+  MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
   late FakePubSub pubsub;
 
   final List<Target> targets = <Target>[
@@ -310,10 +310,15 @@ void main() {
   });
 
   group('scheduleBuilds', () {
+    late MockFirestoreService firestoreService;
+    late MockCallbacks callbacks;
+
     setUp(() {
+      firestoreService = MockFirestoreService();
+      callbacks = MockCallbacks();
       cache = CacheService(inMemory: true);
       githubService = FakeGithubService();
-      config = FakeConfig(githubService: githubService);
+      config = FakeConfig(githubService: githubService, firestoreService: firestoreService);
       mockBuildBucketClient = MockBuildBucketClient();
       mockGithubChecksUtil = MockGithubChecksUtil();
       pubsub = FakePubSub();
@@ -324,10 +329,20 @@ void main() {
         githubChecksUtil: mockGithubChecksUtil,
         gerritService: FakeGerritService(branchesValue: <String>['master']),
         pubsub: pubsub,
+        initializePrCheckRuns: callbacks.initializePrCheckRuns,
       );
     });
 
     test('schedule try builds successfully', () async {
+      when(
+        callbacks.initializePrCheckRuns(
+          firestoreService: anyNamed('firestoreService'),
+          pullRequest: anyNamed('pullRequest'),
+          checks: anyNamed('checks'),
+        ),
+      ).thenAnswer((inv) async {
+        return Document(name: '1234-56-7890', fields: {});
+      });
       final PullRequest pullRequest = generatePullRequest();
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return bbv2.BatchResponse(
@@ -344,6 +359,18 @@ void main() {
         pullRequest: pullRequest,
         targets: targets,
       );
+
+      final result = verify(
+        callbacks.initializePrCheckRuns(
+          firestoreService: anyNamed('firestoreService'),
+          pullRequest: argThat(equals(pullRequest), named: 'pullRequest'),
+          checks: captureAnyNamed('checks'),
+        ),
+      )..called(1);
+      final checkRuns = result.captured.first as List<CheckRun>;
+      expect(checkRuns, hasLength(1));
+      expect(checkRuns.first.id, 1);
+      expect(checkRuns.first.name, 'Linux 1');
 
       final Iterable<String> scheduledTargetNames = scheduledTargets.map((Target target) => target.value.name);
       expect(scheduledTargetNames, <String>['Linux 1']);

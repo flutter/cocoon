@@ -128,4 +128,18 @@ abstract class Callbacks {
     required List<String> tasks,
     required String checkRunGuard,
   });
+
+  /// See [PrCheckRuns.initializeDocument]
+  Future<Document> initializePrCheckRuns({
+    required FirestoreService firestoreService,
+    required PullRequest pullRequest,
+    required List<CheckRun> checks,
+  });
+
+  /// See [PrCheckRuns.findPullRequestFor]
+  Future<PullRequest> findPullRequestFor(
+    FirestoreService firestoreService,
+    int checkRunId,
+    String checkRunName,
+  );
 }

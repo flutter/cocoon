@@ -7,12 +7,15 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:collection/collection.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:github/github.dart';
+import 'package:meta/meta.dart';
 
 import '../foundation/github_checks_util.dart';
 import '../model/appengine/commit.dart';
@@ -38,6 +41,8 @@ class LuciBuildService {
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
     this.pubsub = const PubSub(),
+    @visibleForTesting this.initializePrCheckRuns = PrCheckRuns.initializeDocument,
+    @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
   })  : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
         gerritService = gerritService ?? GerritService(config: config);
 
@@ -48,6 +53,18 @@ class LuciBuildService {
   GerritService gerritService;
 
   final PubSub pubsub;
+
+  final Future<Document> Function({
+    required FirestoreService firestoreService,
+    required PullRequest pullRequest,
+    required List<CheckRun> checks,
+  }) initializePrCheckRuns;
+
+  final Future<PullRequest> Function(
+    FirestoreService firestoreService,
+    int checkRunId,
+    String checkRunName,
+  ) findPullRequestFor;
 
   static const Set<bbv2.Status> failStatusSet = <bbv2.Status>{
     bbv2.Status.CANCELED,
@@ -233,13 +250,15 @@ class LuciBuildService {
     String cipdVersion = 'refs/heads/${pullRequest.base!.ref!}';
     cipdVersion = branches.contains(cipdVersion) ? cipdVersion : config.defaultRecipeBundleRef;
 
+    final checkRuns = <github.CheckRun>[];
     for (Target target in targets) {
-      final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
+      final checkRun = await githubChecksUtil.createCheckRun(
         config,
         target.slug,
         sha,
         target.value.name,
       );
+      checkRuns.add(checkRun);
 
       final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
 
@@ -294,6 +313,22 @@ class LuciBuildService {
           ),
         ),
       );
+    }
+
+    // All check runs created, now record them in firestore so we can
+    // figure out which PR started what check run later (e.g. check_run completed).
+    try {
+      final firestore = await config.createFirestoreService();
+      final doc = await initializePrCheckRuns(
+        firestoreService: firestore,
+        pullRequest: pullRequest,
+        checks: checkRuns,
+      );
+      log.info('scheduleTryBuilds: created PrCheckRuns doc ${doc.name}');
+    } catch (e, s) {
+      // We are not going to block on this error. If we cannot find this document
+      // later, we'll fall back to the old github query method.
+      log.warning('scheduleTryBuilds: error creating PrCheckRuns doc', e, s);
     }
 
     final Iterable<List<bbv2.BatchRequest_Request>> requestPartitions = await shard(
@@ -492,6 +527,26 @@ class LuciBuildService {
       githubCheckRun,
       detailsUrl: buildUrl,
     );
+
+    // Check run created, now record it in firestore so we can figure out which
+    // PR started what check run later (e.g. check_run completed).
+    try {
+      final firestore = await config.createFirestoreService();
+      // Find the original pull request.
+      final pullRequest = await findPullRequestFor(firestore, checkRunEvent.checkRun!.id!, checkName);
+
+      final doc = await initializePrCheckRuns(
+        firestoreService: firestore,
+        pullRequest: pullRequest,
+        checks: [githubCheckRun],
+      );
+      log.info('reschedulePresubmitBuildUsingCheckRunEvent: created PrCheckRuns doc ${doc.name}');
+    } catch (e, s) {
+      // We are not going to block on this error. If we cannot find this document
+      // later, we'll fall back to the old github query method.
+      log.warning('reschedulePresubmitBuildUsingCheckRunEvent: error creating PrCheckRuns doc', e, s);
+    }
+
     return scheduleBuild;
   }
 
@@ -928,6 +983,8 @@ class LuciBuildService {
     Target target,
     Map<String, dynamic> rawUserData,
   ) async {
+    // We are not tracking this check run in the PrCheckRuns firestore doc because
+    // there is no PR to track here.
     final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
       config,
       target.slug,

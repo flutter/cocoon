@@ -95,12 +95,13 @@ class PrCheckRuns extends Document {
   }
 
   /// Retrieve the [PullRequest] for a given [checkRun] or throw an error.
-  static Future<PullRequest> findDocumentFor(
+  static Future<PullRequest> findPullRequestFor(
     FirestoreService firestoreService,
-    CheckRun checkRun,
+    int checkRunId,
+    String checkRunName,
   ) async {
     final filterMap = <String, Object>{
-      '${checkRun.name!} =': '${checkRun.id}',
+      '$checkRunName =': '$checkRunId',
     };
     log.info('findDocumentFor($filterMap): finding prCheckRuns document');
     final docs = await firestoreService.query(kCollectionId, filterMap);

@@ -3922,6 +3922,22 @@ class MockGithubService extends _i1.Mock implements _i17.GithubService {
       ) as _i20.Future<List<_i13.RepositoryCommit>>);
 
   @override
+  _i20.Future<bool> deleteBranch(
+    _i13.RepositorySlug? slug,
+    String? branchName,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #deleteBranch,
+          [
+            slug,
+            branchName,
+          ],
+        ),
+        returnValue: _i20.Future<bool>.value(false),
+      ) as _i20.Future<bool>);
+
+  @override
   _i20.Future<List<_i13.PullRequest>> listPullRequests(
     _i13.RepositorySlug? slug,
     String? branch,
@@ -6562,6 +6578,28 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
           Invocation.getter(#pubsub),
         ),
       ) as _i15.PubSub);
+
+  @override
+  _i20.Future<_i21.Document> Function({
+    required List<_i13.CheckRun> checks,
+    required _i15.FirestoreService firestoreService,
+    required _i13.PullRequest pullRequest,
+  }) get initializePrCheckRuns => (super.noSuchMethod(
+        Invocation.getter(#initializePrCheckRuns),
+        returnValue: ({
+          required List<_i13.CheckRun> checks,
+          required _i15.FirestoreService firestoreService,
+          required _i13.PullRequest pullRequest,
+        }) =>
+            _i20.Future<_i21.Document>.value(_FakeDocument_25(
+          this,
+          Invocation.getter(#initializePrCheckRuns),
+        )),
+      ) as _i20.Future<_i21.Document> Function({
+        required List<_i13.CheckRun> checks,
+        required _i15.FirestoreService firestoreService,
+        required _i13.PullRequest pullRequest,
+      }));
 
   @override
   _i20.Future<List<List<_i8.BatchRequest_Request>>> shard({
@@ -9944,6 +9982,64 @@ class MockCallbacks extends _i1.Mock implements _i47.Callbacks {
           ),
         )),
       ) as _i20.Future<_i21.Document>);
+
+  @override
+  _i20.Future<_i21.Document> initializePrCheckRuns({
+    required _i15.FirestoreService? firestoreService,
+    required _i13.PullRequest? pullRequest,
+    required List<_i13.CheckRun>? checks,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #initializePrCheckRuns,
+          [],
+          {
+            #firestoreService: firestoreService,
+            #pullRequest: pullRequest,
+            #checks: checks,
+          },
+        ),
+        returnValue: _i20.Future<_i21.Document>.value(_FakeDocument_25(
+          this,
+          Invocation.method(
+            #initializePrCheckRuns,
+            [],
+            {
+              #firestoreService: firestoreService,
+              #pullRequest: pullRequest,
+              #checks: checks,
+            },
+          ),
+        )),
+      ) as _i20.Future<_i21.Document>);
+
+  @override
+  _i20.Future<_i13.PullRequest> findPullRequestFor(
+    _i15.FirestoreService? firestoreService,
+    int? checkRunId,
+    String? checkRunName,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #findPullRequestFor,
+          [
+            firestoreService,
+            checkRunId,
+            checkRunName,
+          ],
+        ),
+        returnValue: _i20.Future<_i13.PullRequest>.value(_FakePullRequest_41(
+          this,
+          Invocation.method(
+            #findPullRequestFor,
+            [
+              firestoreService,
+              checkRunId,
+              checkRunName,
+            ],
+          ),
+        )),
+      ) as _i20.Future<_i13.PullRequest>);
 }
 
 /// A class which mocks [Cache].

@@ -88,7 +88,7 @@ void main() {
           ),
         ],
       );
-      final pr = await PrCheckRuns.findDocumentFor(firestoreService, generateCheckRun(1, name: 'testing tesing'));
+      final pr = await PrCheckRuns.findPullRequestFor(firestoreService, 1, 'testing tesing');
 
       final captured = verify(firestoreService.query(PrCheckRuns.kCollectionId, captureAny)).captured;
       expect(captured, [
