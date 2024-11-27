@@ -898,11 +898,13 @@ class Scheduler {
 
     // Look up the PR in our cache first. This reduces github quota and requires less calls.
     PullRequest? pullRequest;
+    final id = checkRunEvent.checkRun!.id!;
+    final name = checkRunEvent.checkRun!.name!;
     try {
       pullRequest = await findPullRequestFor(
         firestoreService,
-        checkRunEvent.checkRun!.id!,
-        checkRunEvent.checkRun!.name!,
+        id,
+        name,
       );
     } catch (e, s) {
       log.warning('$logCrumb: unable to find PR in PrCheckRuns', e, s);
@@ -916,7 +918,7 @@ class Scheduler {
 
     // We cannot make any forward progress. Abandon all hope, Check runs who enter here.
     if (pullRequest == null) {
-      throw 'No PR found matching this check_run';
+      throw 'No PR found matching this check_run($id, $name)';
     }
 
     Object? exception;
