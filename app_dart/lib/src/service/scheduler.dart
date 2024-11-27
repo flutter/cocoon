@@ -456,7 +456,7 @@ class Scheduler {
     }
 
     // Update validate ci.yaml check
-    await closeCiYamlCheckRun(pullRequest, exception, slug, ciValidationCheckRun);
+    await closeCiYamlCheckRun('PR ${pullRequest.number}', exception, slug, ciValidationCheckRun);
 
     // The 'lock' will be unlocked later in processCheckRunCompletion after all engine builds are processed.
     if (!isFusion) {
@@ -468,15 +468,15 @@ class Scheduler {
   }
 
   Future<void> closeCiYamlCheckRun(
-    PullRequest pullRequest,
+    String description,
     exception,
     RepositorySlug slug,
     CheckRun ciValidationCheckRun,
   ) async {
-    log.info('Updating ci.yaml validation check for ${pullRequest.number}');
+    log.info('Updating ci.yaml validation check for $description');
     if (exception == null) {
       // Success in validating ci.yaml
-      log.info('ci.yaml validation check was successful for ${pullRequest.number}');
+      log.info('ci.yaml validation check was successful for $description');
       await githubChecksService.githubChecksUtil.updateCheckRun(
         config,
         slug,
@@ -485,8 +485,7 @@ class Scheduler {
         conclusion: CheckRunConclusion.success,
       );
     } else {
-      log.warning('Marking PR #${pullRequest.number} $kCiYamlCheckName as failed');
-      log.warning(exception.toString());
+      log.warning('Marking $description $kCiYamlCheckName as failed', e);
       // Failure when validating ci.yaml
       await githubChecksService.githubChecksUtil.updateCheckRun(
         config,
@@ -523,12 +522,29 @@ class Scheduler {
   Future<void> triggerMergeGroupTargets({
     required cocoon_checks.MergeGroupEvent mergeGroupEvent,
   }) async {
+    /*
+      Behave similar to addPullRequest, except we're not yet merged into master.
+        - We are mirrored in to GoB
+        - We want PROD builds
+        - We want check_runs as well
+          - this might mean we want a different pubsub?
+      
+      We don't need "Task" objects because I beleive these are used by flutter-dashboard,
+      we're tracking with github. So really we need _batchScheduleBuilds
+
+      batchSCheduleBuilds just calls schedulePostsubmitBuilds - which creates but doesn't
+      return the check run?
+
+      CODEFU - left off here.
+    */
     final mergeGroup = mergeGroupEvent.mergeGroup;
     final headSha = mergeGroup.headSha;
-
-    log.info('Simulating merge group checks for @ $headSha');
-
     final slug = mergeGroupEvent.repository!.slug();
+    final isFusion = await fusionTester.isFusionBasedRef(slug, headSha);
+
+    final logCrumb = 'triggerMergeGroupTargets($slug, $headSha, ${isFusion ? 'simulated' : 'real'})';
+
+    log.info('$logCrumb: Scheduling merge group checks');
 
     final lock = await lockMergeGroupChecks(slug, headSha);
 
@@ -536,13 +552,117 @@ class Scheduler {
       config,
       slug,
       headSha,
-      'Simulated merge queue check',
+      'Merge queue check',
       output: const CheckRunOutput(
-        title: 'Simulated merge queue check',
+        title: 'Merge queue check',
         summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
       ),
     );
 
+    if (!isFusion) {
+      await simulateMergeGroupUnlock(mergeGroup, slug, ciValidationCheckRun, headSha, lock);
+      return;
+    }
+
+    final mergeGroupTargets = await getMergeGroupTargetsForStage(
+      mergeGroup.baseRef,
+      slug,
+      headSha,
+      CiStage.fusionEngineBuild,
+    );
+
+    Object? exception;
+    try {
+      // Create the staging doc that will track our engine progress and allow us to unlock
+      // the merge group lock later.
+      await initializeCiStagingDocument(
+        firestoreService: firestoreService,
+        slug: slug,
+        sha: headSha,
+        stage: CiStage.fusionEngineBuild,
+        tasks: [...mergeGroupTargets.map((t) => t.value.name)],
+        checkRunGuard: '$lock',
+      );
+
+      // Create the minimal Commit needed to pass the next stage.
+      // Note: headRef encodes refs/heads/... and what we want is the branch
+      final commit = Commit(
+        branch: mergeGroup.headRef.substring('refs/heads/'.length),
+        repository: slug.fullName,
+        sha: headSha,
+      );
+
+      await luciBuildService.scheduleMergeGroupBuilds(
+        targets: mergeGroupTargets,
+        commit: commit,
+      );
+    } catch (e, s) {
+      log.warning('$logCrumb: error encountered when scheduling presubmit targets', e, s);
+      exception = e;
+    }
+
+    await closeCiYamlCheckRun('MQ $slug/$headSha', exception, slug, ciValidationCheckRun);
+
+    // Do not unlock the merge group `lock` - that will be done by staging checks.
+
+    log.info('$logCrumb: Finished merge group checks');
+  }
+
+  Future<List<Target>> getMergeGroupTargetsForStage(
+    String baseRef,
+    RepositorySlug slug,
+    String headSha,
+    CiStage stage,
+  ) async {
+    final mergeGroupTargets = [
+      ...await getMergeGroupTargets(baseRef, slug, headSha),
+      ...await getMergeGroupTargets(baseRef, slug, headSha, type: CiType.fusionEngine),
+    ].where(
+      (Target target) => switch (stage) {
+        CiStage.fusionEngineBuild => target.value.properties['release_build'] == 'true',
+        CiStage.fusionTests => target.value.properties['release_build'] != 'true'
+      },
+    );
+
+    return [...mergeGroupTargets];
+  }
+
+  Future<List<Target>> getMergeGroupTargets(
+    String baseRef,
+    RepositorySlug slug,
+    String headSha, {
+    CiType type = CiType.any,
+  }) async {
+    log.info('Attempting to read merge group targets from ci.yaml for $headSha');
+
+    final Commit commit = Commit(
+      branch: baseRef,
+      repository: slug.fullName,
+      sha: headSha,
+    );
+    final ciYaml = await getCiYaml(commit, validate: true);
+    log.info('ci.yaml loaded successfully.');
+    log.info('Collecting merge group targets for $headSha');
+    final inner = ciYaml.ciYamlFor(type);
+    final List<Target> postSubmitTargets = [
+      ...inner.postsubmitTargets.where(
+        (Target target) =>
+            target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon,
+      ),
+    ];
+
+    log.info('Collected ${postSubmitTargets.length} merge group targets.');
+    return postSubmitTargets;
+  }
+
+  // Pretend the check took 1 minute to run
+  Future<void> simulateMergeGroupUnlock(
+    cocoon_checks.MergeGroup mergeGroup,
+    RepositorySlug slug,
+    CheckRun ciValidationCheckRun,
+    String headSha,
+    CheckRun lock,
+  ) async {
     // Pretend the check took 1 minute to run
     await Future<void>.delayed(debugCheckPretendDelay);
 
@@ -563,7 +683,6 @@ class Scheduler {
       lock,
       conclusion == CheckRunConclusion.success ? null : 'Some checks failed',
     );
-
     log.info('Finished Simulating merge group checks for @ $headSha');
   }
 
