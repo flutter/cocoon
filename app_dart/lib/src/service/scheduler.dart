@@ -542,7 +542,7 @@ class Scheduler {
     final slug = mergeGroupEvent.repository!.slug();
     final isFusion = await fusionTester.isFusionBasedRef(slug, headSha);
 
-    final logCrumb = 'triggerMergeGroupTargets($slug, $headSha, ${isFusion ? 'simulated' : 'real'})';
+    final logCrumb = 'triggerMergeGroupTargets($slug, $headSha, ${isFusion ? 'real' : 'simulated'})';
 
     log.info('$logCrumb: Scheduling merge group checks');
 

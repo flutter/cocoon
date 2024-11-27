@@ -28,6 +28,7 @@ import '../../src/service/fake_fusion_tester.dart';
 import '../../src/service/fake_github_service.dart';
 import '../../src/service/fake_gerrit_service.dart';
 import '../../src/service/fake_scheduler.dart';
+import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.dart';
 import '../../src/utilities/webhook_generators.dart';
 
@@ -96,8 +97,12 @@ void main() {
     fakeFusionTester = FakeFusionTester();
     fakeFusionTester.isFusion = (_, __) => false;
     mockGithubChecksUtil = MockGithubChecksUtil();
-    scheduler =
-        FakeScheduler(config: config, buildbucket: fakeBuildBucketClient, githubChecksUtil: mockGithubChecksUtil);
+    scheduler = FakeScheduler(
+      config: config,
+      buildbucket: fakeBuildBucketClient,
+      githubChecksUtil: mockGithubChecksUtil,
+      fusionTester: fakeFusionTester,
+    );
     tester = SubscriptionTester(request: request);
 
     when(gitHubClient.issues).thenReturn(issuesService);
@@ -264,8 +269,8 @@ void main() {
         number: issueNumber,
         baseRef: 'dev',
         merged: true,
-        baseSha: 'sha1',
-        mergeCommitSha: 'sha2',
+        baseSha: 'abc',
+        mergeCommitSha: 'cde',
 
         // Just spelling this out here, because this test specifically tests a
         // non-revert PR.
@@ -289,8 +294,8 @@ void main() {
         number: issueNumber,
         baseRef: 'dev',
         merged: true,
-        baseSha: 'sha1',
-        mergeCommitSha: 'sha2',
+        baseSha: 'abc',
+        mergeCommitSha: 'cde',
         withRevertOf: true,
         headRef: 'test/headref',
       );
@@ -2202,8 +2207,8 @@ void foo() {
         action: 'closed',
         number: issueNumber,
         merged: true,
-        baseSha: 'sha1', // Found in pre-populated commits in FakeGerritService.
-        mergeCommitSha: 'sha2',
+        baseSha: 'abc', // Found in pre-populated commits in FakeGerritService.
+        mergeCommitSha: 'cde',
       );
 
       expect(db.values.values.whereType<Commit>().length, 0);
@@ -2609,7 +2614,13 @@ void foo() {
       Scheduler.debugCheckPretendDelay = Duration.zero;
     });
 
-    test('checks_requested success', () async {
+    setUp(() {
+      gerritService.commitsValue = [
+        generateGerritCommit('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf', 1),
+      ];
+    });
+
+    test('checks_requested success for non-fusion repository (simulated)', () async {
       final records = <String>[];
       final subscription = log.onRecord.listen((record) {
         if (record.level >= Level.FINE) {
@@ -2621,6 +2632,7 @@ void foo() {
         action: 'checks_requested',
         message: 'Implement an amazing feature',
       );
+
       await tester.post(webhook);
       await subscription.cancel();
 
@@ -2629,7 +2641,7 @@ void foo() {
           any,
           any,
           'c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Simulated merge queue check',
+          'Merge queue check',
           output: anyNamed('output'),
         ),
       ).called(1);
@@ -2649,8 +2661,9 @@ void foo() {
         <String>[
           'Processing merge_group',
           'Processing checks_requested for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Simulating checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Simulating merge group checks for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was found on GoB mirror. Scheduling merge group tasks...',
+          'triggerMergeGroupTargets(flutter/flutter, c9affbbb12aa40cb3afbe94b9ea6b119a256bebf, simulated): Scheduling merge group checks',
           'All required tests passed for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Finished Simulating merge group checks for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
         ],
@@ -2679,7 +2692,7 @@ void foo() {
           any,
           any,
           'c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Simulated merge queue check',
+          'Merge queue check',
           output: anyNamed('output'),
         ),
       ).called(1);
@@ -2699,8 +2712,9 @@ void foo() {
         <String>[
           'Processing merge_group',
           'Processing checks_requested for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Simulating checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Simulating merge group checks for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was found on GoB mirror. Scheduling merge group tasks...',
+          'triggerMergeGroupTargets(flutter/flutter, c9affbbb12aa40cb3afbe94b9ea6b119a256bebf, simulated): Scheduling merge group checks',
           'Some required tests failed for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Some checks failed',
           'Finished Simulating merge group checks for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
@@ -2728,7 +2742,7 @@ void foo() {
         <String>[
           'Processing merge_group',
           'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Simulating destruction of a merge group @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Destroying the merge group for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Simulating cancellation of merge group CI targets for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
         ],
       );

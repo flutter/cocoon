@@ -345,12 +345,12 @@ github.PullRequest generatePullRequest({
   );
 }
 
-GerritCommit generateGerritCommit(int i) => GerritCommit(
-      commit: 'sha$i',
+GerritCommit generateGerritCommit(String sha, int milliseconds) => GerritCommit(
+      commit: sha,
       tree: 'main',
       author: GerritUser(
         email: 'dash@flutter.dev',
-        time: DateTime.fromMillisecondsSinceEpoch(i),
+        time: DateTime.fromMillisecondsSinceEpoch(milliseconds),
       ),
     );
 
