@@ -636,23 +636,33 @@ class Scheduler {
     log.info('Attempting to read merge group targets from ci.yaml for $headSha');
 
     final Commit commit = Commit(
-      branch: baseRef,
+      branch: baseRef.substring('refs/heads/'.length),
       repository: slug.fullName,
       sha: headSha,
     );
-    final ciYaml = await getCiYaml(commit, validate: true);
+
+    late CiYamlSet ciYaml;
+    log.info('Attempting to read merge group targets from ci.yaml for $headSha');
+    if (commit.branch == Config.defaultBranch(commit.slug)) {
+      ciYaml = await getCiYaml(commit, validate: true);
+    } else {
+      ciYaml = await getCiYaml(commit);
+    }
     log.info('ci.yaml loaded successfully.');
     log.info('Collecting merge group targets for $headSha');
-    final inner = ciYaml.ciYamlFor(type);
-    final List<Target> postSubmitTargets = [
-      ...inner.postsubmitTargets.where(
-        (Target target) =>
-            target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon,
-      ),
-    ];
 
-    log.info('Collected ${postSubmitTargets.length} merge group targets.');
-    return postSubmitTargets;
+    final inner = ciYaml.ciYamlFor(type);
+
+    // Filter out schedulers targets with schedulers different than luci or cocoon.
+    final List<Target> mergeGroupTargets = inner.presubmitTargets
+        .where(
+          (Target target) =>
+              target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon,
+        )
+        .toList();
+
+    log.info('Collected ${mergeGroupTargets.length} presubmit targets.');
+    return mergeGroupTargets;
   }
 
   // Pretend the check took 1 minute to run
