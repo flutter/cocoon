@@ -12,18 +12,8 @@ Message _$MessageFromJson(Map<String, dynamic> json) => Message(
       avatarUrl: json['avatar_url'] as String?,
     );
 
-Map<String, dynamic> _$MessageToJson(Message instance) {
-  final val = <String, dynamic>{
-    'content': instance.content,
-    'username': instance.username,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('avatar_url', instance.avatarUrl);
-  return val;
-}
+Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
+      'content': instance.content,
+      'username': instance.username,
+      if (instance.avatarUrl case final value?) 'avatar_url': value,
+    };

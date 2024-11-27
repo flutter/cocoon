@@ -13,7 +13,6 @@ import 'package:cocoon_server/big_query_pull_request_record.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
-
 void main() {
   late FakeBigqueryService service;
   late MockJobsResource jobsResource;
