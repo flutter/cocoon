@@ -777,6 +777,62 @@ class LuciBuildService {
     return <Tuple<Target, Task, int>>[];
   }
 
+  /// Schedules [targets] for building of prod artifacts while in a merge queue.
+  Future<void> scheduleMergeGroupBuilds({
+    required Commit commit,
+    required List<Target> targets,
+  }) async {
+    final List<bbv2.BatchRequest_Request> buildRequests = [];
+
+    Set<String> availableBuilderSet;
+    try {
+      availableBuilderSet = await getAvailableBuilderSet(
+        project: 'flutter',
+        bucket: 'prod',
+      );
+    } catch (error) {
+      throw 'Failed to get buildbucket builder list due to $error';
+    }
+    log.info('Available builder list: $availableBuilderSet');
+    for (var target in targets) {
+      // Non-existing builder target will be skipped from scheduling.
+      if (!availableBuilderSet.contains(target.value.name)) {
+        log.warning(
+          'Found no available builder for ${target.value.name}, commit ${commit.sha}',
+        );
+        continue;
+      }
+      log.info(
+        'create postsubmit schedule request for target: ${target.value} in commit ${commit.sha}',
+      );
+
+      final scheduleBuildRequest = await _createMergeGroupScheduleBuild(
+        commit: commit,
+        target: target,
+      );
+      buildRequests.add(bbv2.BatchRequest_Request(scheduleBuild: scheduleBuildRequest));
+      log.info(
+        'created postsubmit schedule request for target: ${target.value} in commit ${commit.sha}',
+      );
+    }
+
+    final bbv2.BatchRequest batchRequest = bbv2.BatchRequest(requests: buildRequests);
+    log.fine(batchRequest);
+    List<String> messageIds;
+
+    try {
+      messageIds = await pubsub.publish(
+        'cocoon-scheduler-requests',
+        batchRequest.toProto3Json(),
+      );
+      log.info('Published $messageIds for commit ${commit.sha}');
+    } catch (error) {
+      log.severe('Failed to publish message to pub/sub due to $error');
+      rethrow;
+    }
+    log.info('Published a request with ${buildRequests.length} builds');
+  }
+
   /// Create a Presubmit ScheduleBuildRequest using the [slug], [sha], and
   /// [checkName] for the provided [build] with the provided [checkRunId].
   bbv2.ScheduleBuildRequest _createPresubmitScheduleBuild({
@@ -997,6 +1053,112 @@ class LuciBuildService {
     );
   }
 
+  /// Creates a build request for a commit in a merge queue which will notify
+  /// presubmit channels.
+  Future<bbv2.ScheduleBuildRequest> _createMergeGroupScheduleBuild({
+    required Commit commit,
+    required Target target,
+    Map<String, Object?>? properties,
+    List<bbv2.StringPair>? tags,
+    int priority = kDefaultPriority,
+  }) async {
+    log.info(
+      'Creating merge group schedule builder for ${target.value.name} on commit ${commit.sha}',
+    );
+    tags ??= [];
+    tags.addAll([
+      bbv2.StringPair(
+        key: 'buildset',
+        value: 'commit/git/${commit.sha}',
+      ),
+      bbv2.StringPair(
+        key: 'buildset',
+        value: 'commit/gitiles/flutter.googlesource.com/mirrors/${commit.slug.name}/+/${commit.sha}',
+      ),
+    ]);
+
+    log.info(
+      'Scheduling builder: ${target.value.name} for commit ${commit.sha}',
+    );
+
+    final Map<String, dynamic> rawUserData = <String, dynamic>{};
+
+    await createPostsubmitCheckRun(
+      commit,
+      target,
+      rawUserData,
+    );
+
+    tags.add(
+      bbv2.StringPair(
+        key: 'user_agent',
+        value: 'flutter-cocoon',
+      ),
+    );
+    // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
+    tags.add(
+      bbv2.StringPair(
+        key: 'scheduler_job_id',
+        value: 'flutter/${target.value.name}',
+      ),
+    );
+    // Default attempt is the initial attempt, which is 1.
+    final bbv2.StringPair? attemptTag = tags.singleWhereOrNull((tag) => tag.key == 'current_attempt');
+    if (attemptTag == null) {
+      tags.add(
+        bbv2.StringPair(
+          key: 'current_attempt',
+          value: '1',
+        ),
+      );
+    }
+
+    final String currentAttemptStr = tags.firstWhere((tag) => tag.key == 'current_attempt').value;
+    rawUserData['firestore_task_document_name'] = '${commit.sha}_${target.value.name}_$currentAttemptStr';
+
+    final Map<String, Object?> processedProperties = target.getProperties().cast<String, Object?>();
+    processedProperties.addAll(properties ?? <String, Object?>{});
+    processedProperties['git_branch'] = commit.branch!;
+    final String cipdExe = 'refs/heads/${commit.branch}';
+    processedProperties['exe_cipd_version'] = cipdExe;
+
+    final bbv2.Struct propertiesStruct = bbv2.Struct.create();
+    propertiesStruct.mergeFromProto3Json(processedProperties);
+
+    final List<bbv2.RequestedDimension> requestedDimensions = target.getDimensions();
+
+    final bbv2.Executable executable = bbv2.Executable(cipdVersion: cipdExe);
+
+    log.info(
+      'Constructing the merge group schedule build request for ${target.value.name} on commit ${commit.sha}.',
+    );
+
+    return bbv2.ScheduleBuildRequest(
+      builder: bbv2.BuilderID(
+        project: 'flutter',
+        bucket: target.getBucket(),
+        builder: target.value.name,
+      ),
+      dimensions: requestedDimensions,
+      exe: executable,
+      gitilesCommit: bbv2.GitilesCommit(
+        project: 'mirrors/${commit.slug.name}',
+        host: 'flutter.googlesource.com',
+        ref: 'refs/heads/${commit.branch}',
+        id: commit.sha,
+      ),
+      notify: bbv2.NotificationConfig(
+        // IMPORTANT: We're not post-submit yet, so we want to handle updates to
+        // the MQ differently.
+        pubsubTopic: 'projects/flutter-dashboard/topics/build-bucket-presubmit',
+        userData: UserData.encodeUserDataToBytes(rawUserData),
+      ),
+      tags: tags,
+      properties: propertiesStruct,
+      priority: priority,
+    );
+  }
+
   /// Creates postsubmit check runs for prod targets in supported repositories.
   Future<void> createPostsubmitCheckRun(
     Commit commit,
@@ -1004,7 +1166,8 @@ class LuciBuildService {
     Map<String, dynamic> rawUserData,
   ) async {
     // We are not tracking this check run in the PrCheckRuns firestore doc because
-    // there is no PR to track here.
+    // there is no PR to look up later. The check run is important because it
+    // informs the staging document setup for Merge Groups in triggerMergeGroupTargets.
     final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
       config,
       target.slug,
