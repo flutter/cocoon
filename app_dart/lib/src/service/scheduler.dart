@@ -555,15 +555,26 @@ class Scheduler {
       return;
     }
 
-    final mergeGroupTargets = await getMergeGroupTargetsForStage(
-      mergeGroup.baseRef,
-      slug,
-      headSha,
-      CiStage.fusionEngineBuild,
-    );
+    final mergeGroupTargets = {
+      ...await getMergeGroupTargetsForStage(
+        mergeGroup.baseRef,
+        slug,
+        headSha,
+        CiStage.fusionEngineBuild,
+      ),
+    };
 
     Object? exception;
     try {
+      // Filter out targets missing builders - we cannot wait to complete the merge group if we will never complete.
+      final availableBuilders = await luciBuildService.getAvailableBuilderSet(
+        project: 'flutter',
+        bucket: 'prod',
+      );
+      final availableTargets = {...mergeGroupTargets.where((target) => availableBuilders.contains(target.value.name))};
+      if (availableTargets.length != mergeGroupTargets.length) {
+        log.warning('$logCrumb: missing builders for targtets: ${mergeGroupTargets.difference(availableTargets)}');
+      }
       // Create the staging doc that will track our engine progress and allow us to unlock
       // the merge group lock later.
       await initializeCiStagingDocument(
@@ -571,7 +582,7 @@ class Scheduler {
         slug: slug,
         sha: headSha,
         stage: CiStage.fusionEngineBuild,
-        tasks: [...mergeGroupTargets.map((t) => t.value.name)],
+        tasks: [...availableTargets.map((t) => t.value.name)],
         checkRunGuard: '$lock',
       );
 
@@ -584,7 +595,7 @@ class Scheduler {
       );
 
       await luciBuildService.scheduleMergeGroupBuilds(
-        targets: mergeGroupTargets,
+        targets: [...availableTargets],
         commit: commit,
       );
     } catch (e, s) {
