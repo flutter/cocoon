@@ -30,12 +30,15 @@ Future<void> main() async {
     accessTokenService: AccessTokenService.defaultProvider(config),
   );
 
+  final fusionTester = FusionTester();
+
   /// LUCI service class to communicate with buildBucket service.
   final LuciBuildService luciBuildService = LuciBuildService(
     config: config,
     cache: cache,
     buildBucketClient: buildBucketClient,
     pubsub: const PubSub(),
+    fusionTester: fusionTester,
   );
 
   /// Github checks api service used to provide luci test execution status on the Github UI.
@@ -45,8 +48,6 @@ Future<void> main() async {
 
   // Gerrit service class to communicate with GoB.
   final GerritService gerritService = GerritService(config: config);
-
-  final fusionTester = FusionTester();
 
   /// Cocoon scheduler service to manage validating commits in presubmit and postsubmit.
   final Scheduler scheduler = Scheduler(

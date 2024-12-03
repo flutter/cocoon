@@ -125,7 +125,6 @@ class CiStaging extends Document {
       );
       doc = await docRes.get(
         documentName,
-        mask_fieldPaths: [kRemainingField, checkRun, kCheckRunGuardField, kFailedField],
         transaction: transaction,
       );
 

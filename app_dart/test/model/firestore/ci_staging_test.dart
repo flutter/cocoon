@@ -128,7 +128,7 @@ void main() {
         verify(
           docRes.get(
             expectedName,
-            mask_fieldPaths: [CiStaging.kRemainingField, 'test', CiStaging.kCheckRunGuardField, CiStaging.kFailedField],
+            mask_fieldPaths: anyNamed('mask_fieldPaths'),
             transaction: argThat(equals(kTransaction), named: 'transaction'),
           ),
         ).called(1);

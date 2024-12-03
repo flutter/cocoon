@@ -38,6 +38,7 @@ class LuciBuildService {
     required this.config,
     required this.cache,
     required this.buildBucketClient,
+    required this.fusionTester,
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
     this.pubsub = const PubSub(),
@@ -45,6 +46,8 @@ class LuciBuildService {
     @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
   })  : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
         gerritService = gerritService ?? GerritService(config: config);
+
+  final FusionTester fusionTester;
 
   BuildBucketClient buildBucketClient;
   final CacheService cache;
@@ -250,6 +253,8 @@ class LuciBuildService {
     String cipdVersion = 'refs/heads/${pullRequest.base!.ref!}';
     cipdVersion = branches.contains(cipdVersion) ? cipdVersion : config.defaultRecipeBundleRef;
 
+    final isFusion = await fusionTester.isFusionBasedRef(pullRequest.base!.repo!.slug(), sha);
+
     final checkRuns = <github.CheckRun>[];
     for (Target target in targets) {
       final checkRun = await githubChecksUtil.createCheckRun(
@@ -293,6 +298,10 @@ class LuciBuildService {
 
       if (labels != null && labels.isNotEmpty) {
         properties[propertiesGithubBuildLabelName] = labels;
+      }
+
+      if (isFusion) {
+        properties['is_fusion'] = 'true';
       }
 
       final List<bbv2.RequestedDimension> requestedDimensions = target.getDimensions();
@@ -507,6 +516,11 @@ class LuciBuildService {
 
     if (labels != null && labels.isNotEmpty) {
       properties[propertiesGithubBuildLabelName] = labels;
+    }
+
+    final isFusion = await fusionTester.isFusionBasedRef(slug, sha);
+    if (isFusion) {
+      properties['is_fusion'] = 'true';
     }
 
     final bbv2.ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(

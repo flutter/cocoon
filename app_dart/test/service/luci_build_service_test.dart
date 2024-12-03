@@ -25,6 +25,7 @@ import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_pubsub.dart';
+import '../src/service/fake_fusion_tester.dart';
 import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/utilities/build_bucket_messages.dart';
@@ -67,6 +68,7 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         gerritService: FakeGerritService(),
         pubsub: pubsub,
+        fusionTester: FakeFusionTester(),
       );
     });
 
@@ -161,6 +163,7 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         gerritService: FakeGerritService(),
         pubsub: pubsub,
+        fusionTester: FakeFusionTester(),
       );
     });
 
@@ -262,6 +265,7 @@ void main() {
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
+        fusionTester: FakeFusionTester(),
       );
     });
 
@@ -330,6 +334,7 @@ void main() {
         gerritService: FakeGerritService(branchesValue: <String>['master']),
         pubsub: pubsub,
         initializePrCheckRuns: callbacks.initializePrCheckRuns,
+        fusionTester: FakeFusionTester(),
       );
     });
 
@@ -355,6 +360,9 @@ void main() {
       });
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
           .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+
+      (service.fusionTester as FakeFusionTester).isFusion = (_, __) => true;
+
       final List<Target> scheduledTargets = await service.scheduleTryBuilds(
         pullRequest: pullRequest,
         targets: targets,
@@ -410,6 +418,7 @@ void main() {
         'git_ref': bbv2.Value(stringValue: 'refs/pull/123/head'),
         'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
+        'is_fusion': bbv2.Value(stringValue: 'true'),
       });
       expect(dimensions.length, 1);
       expect(dimensions[0].key, 'os');
@@ -502,6 +511,7 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
+        fusionTester: FakeFusionTester(),
       );
     });
 
@@ -911,6 +921,7 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
+        fusionTester: FakeFusionTester(),
       );
     });
 
@@ -1003,6 +1014,7 @@ void main() {
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
+        fusionTester: FakeFusionTester(),
       );
     });
 
@@ -1081,6 +1093,7 @@ void main() {
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
+        fusionTester: FakeFusionTester(),
       );
     });
 
@@ -1133,6 +1146,7 @@ void main() {
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
+        fusionTester: FakeFusionTester(),
       );
       rescheduleBuild = createBuild(
         Int64(1),
@@ -1222,6 +1236,7 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
+        fusionTester: FakeFusionTester(),
       );
       datastore = DatastoreService(config.db, 5);
     });
