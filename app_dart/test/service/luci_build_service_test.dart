@@ -1702,7 +1702,6 @@ void main() {
           'commit_sha': 'abc1234',
           'commit_branch': 'gh-readonly-queue/master/pr-1234-abcd',
           'builder_name': builderName,
-          'firestore_task_document_name': 'abc1234_${builderName}_1',
         });
 
         final properties = scheduleBuild.properties.fields;
