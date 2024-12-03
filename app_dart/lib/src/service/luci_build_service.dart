@@ -782,7 +782,7 @@ class LuciBuildService {
     required Commit commit,
     required List<Target> targets,
   }) async {
-    final List<bbv2.BatchRequest_Request> buildRequests = [];
+    final buildRequests = <bbv2.BatchRequest_Request>[];
 
     Set<String> availableBuilderSet;
     try {
@@ -816,7 +816,7 @@ class LuciBuildService {
       );
     }
 
-    final bbv2.BatchRequest batchRequest = bbv2.BatchRequest(requests: buildRequests);
+    final batchRequest = bbv2.BatchRequest(requests: buildRequests);
     log.fine(batchRequest);
     List<String> messageIds;
 
@@ -1065,7 +1065,7 @@ class LuciBuildService {
     log.info(
       'Creating merge group schedule builder for ${target.value.name} on commit ${commit.sha}',
     );
-    tags ??= [];
+    tags ??= <bbv2.StringPair>[];
     tags.addAll([
       bbv2.StringPair(
         key: 'buildset',
@@ -1081,7 +1081,7 @@ class LuciBuildService {
       'Scheduling builder: ${target.value.name} for commit ${commit.sha}',
     );
 
-    final Map<String, dynamic> rawUserData = <String, dynamic>{};
+    final rawUserData = <String, dynamic>{};
 
     await createPostsubmitCheckRun(
       commit,
@@ -1103,7 +1103,7 @@ class LuciBuildService {
       ),
     );
     // Default attempt is the initial attempt, which is 1.
-    final bbv2.StringPair? attemptTag = tags.singleWhereOrNull((tag) => tag.key == 'current_attempt');
+    final attemptTag = tags.singleWhereOrNull((tag) => tag.key == 'current_attempt');
     if (attemptTag == null) {
       tags.add(
         bbv2.StringPair(
@@ -1113,21 +1113,18 @@ class LuciBuildService {
       );
     }
 
-    final String currentAttemptStr = tags.firstWhere((tag) => tag.key == 'current_attempt').value;
+    final currentAttemptStr = tags.firstWhere((tag) => tag.key == 'current_attempt').value;
     rawUserData['firestore_task_document_name'] = '${commit.sha}_${target.value.name}_$currentAttemptStr';
 
-    final Map<String, Object?> processedProperties = target.getProperties().cast<String, Object?>();
+    final processedProperties = target.getProperties().cast<String, Object?>();
     processedProperties.addAll(properties ?? <String, Object?>{});
     processedProperties['git_branch'] = commit.branch!;
-    final String cipdExe = 'refs/heads/${commit.branch}';
+    final cipdExe = 'refs/heads/${commit.branch}';
     processedProperties['exe_cipd_version'] = cipdExe;
 
-    final bbv2.Struct propertiesStruct = bbv2.Struct.create();
-    propertiesStruct.mergeFromProto3Json(processedProperties);
-
-    final List<bbv2.RequestedDimension> requestedDimensions = target.getDimensions();
-
-    final bbv2.Executable executable = bbv2.Executable(cipdVersion: cipdExe);
+    final propertiesStruct = bbv2.Struct()..mergeFromProto3Json(processedProperties);
+    final requestedDimensions = target.getDimensions();
+    final executable = bbv2.Executable(cipdVersion: cipdExe);
 
     log.info(
       'Constructing the merge group schedule build request for ${target.value.name} on commit ${commit.sha}.',
@@ -1168,7 +1165,7 @@ class LuciBuildService {
     // We are not tracking this check run in the PrCheckRuns firestore doc because
     // there is no PR to look up later. The check run is important because it
     // informs the staging document setup for Merge Groups in triggerMergeGroupTargets.
-    final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
+    final checkRun = await githubChecksUtil.createCheckRun(
       config,
       target.slug,
       commit.sha!,
