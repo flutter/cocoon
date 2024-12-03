@@ -522,21 +522,12 @@ class Scheduler {
   Future<void> triggerMergeGroupTargets({
     required cocoon_checks.MergeGroupEvent mergeGroupEvent,
   }) async {
-    /*
-      Behave similar to addPullRequest, except we're not yet merged into master.
-        - We are mirrored in to GoB
-        - We want PROD builds
-        - We want check_runs as well
-          - this might mean we want a different pubsub?
-      
-      We don't need "Task" objects because I beleive these are used by flutter-dashboard,
-      we're tracking with github. So really we need _batchScheduleBuilds
-
-      batchSCheduleBuilds just calls schedulePostsubmitBuilds - which creates but doesn't
-      return the check run?
-
-      CODEFU - left off here.
-    */
+    // Behave similar to addPullRequest, except we're not yet merged into master.
+    //   - We are mirrored in to GoB
+    //   - We want PROD builds
+    //   - We want check_runs as well
+    //   - We want updates on check_runs to the presubmit pubsub.
+    // We do not want "Task" objects because these are for flutter-dashboard tracking (post submit)
     final mergeGroup = mergeGroupEvent.mergeGroup;
     final headSha = mergeGroup.headSha;
     final slug = mergeGroupEvent.repository!.slug();
