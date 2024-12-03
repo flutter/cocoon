@@ -1660,12 +1660,14 @@ void main() {
         );
       });
       pubsub = FakePubSub();
+
       service = LuciBuildService(
         config: config,
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
+        fusionTester: FakeFusionTester()..isFusion = (_, __) => true,
       );
     });
 
@@ -1714,6 +1716,7 @@ void main() {
           'git_branch': bbv2.Value(stringValue: 'gh-readonly-queue/master/pr-1234-abcd'),
           'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/gh-readonly-queue/master/pr-1234-abcd'),
           'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
+          'is_fusion': bbv2.Value(stringValue: 'true'),
         });
         expect(dimensions.length, 1);
         expect(dimensions[0].key, 'os');

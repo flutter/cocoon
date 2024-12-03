@@ -1104,6 +1104,7 @@ class LuciBuildService {
     processedProperties['git_branch'] = commit.branch!;
     final cipdExe = 'refs/heads/${commit.branch}';
     processedProperties['exe_cipd_version'] = cipdExe;
+    processedProperties['is_fusion'] = 'true';
 
     final propertiesStruct = bbv2.Struct()..mergeFromProto3Json(processedProperties);
     final requestedDimensions = target.getDimensions();
