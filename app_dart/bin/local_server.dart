@@ -49,7 +49,6 @@ Future<void> main() async {
   // Gerrit service class to communicate with GoB.
   final GerritService gerritService = GerritService(config: config);
 
-
   /// Cocoon scheduler service to manage validating commits in presubmit and postsubmit.
   final Scheduler scheduler = Scheduler(
     cache: cache,
