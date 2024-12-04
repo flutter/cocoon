@@ -1019,6 +1019,10 @@ class LuciBuildService {
     final String cipdExe = 'refs/heads/${commit.branch}';
     processedProperties['exe_cipd_version'] = cipdExe;
 
+    final isFusion = await fusionTester.isFusionBasedRef(commit.slug, commit.sha!);
+    if (isFusion) {
+      processedProperties['is_fusion'] = 'true';
+    }
     final bbv2.Struct propertiesStruct = bbv2.Struct.create();
     propertiesStruct.mergeFromProto3Json(processedProperties);
 
