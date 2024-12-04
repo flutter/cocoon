@@ -644,30 +644,22 @@ class Scheduler {
     );
 
     late CiYamlSet ciYaml;
-    log.info('Attempting to read merge group targets from ci.yaml for $headSha');
     if (commit.branch == Config.defaultBranch(commit.slug)) {
       ciYaml = await getCiYaml(commit, validate: true);
     } else {
       ciYaml = await getCiYaml(commit);
     }
-    log.info('ci.yaml loaded successfully.');
-    log.info('Collecting merge group targets for $headSha');
+    log.info('ci.yaml loaded successfully; collecting merge group targets for $headSha');
 
     final inner = ciYaml.ciYamlFor(type);
 
-    // Filter out schedulers targets with schedulers different than luci or cocoon.
-    final List<Target> mergeGroupTargets = inner.presubmitTargets
-        .where(
-          (Target target) =>
-              target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon,
-        )
-        .toList();
-
-    log.info('Collected ${mergeGroupTargets.length} presubmit targets.');
-    return mergeGroupTargets;
+    // Filter out targets with schedulers different than luci or cocoon.
+    bool filter(Target target) =>
+        target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon;
+    return [...inner.presubmitTargets.where(filter)];
   }
 
-  // Pretend the check took 1 minute to run
+  /// Pretends the merge group check took 1 minute to run.
   Future<void> simulateMergeGroupUnlock(
     cocoon_checks.MergeGroup mergeGroup,
     RepositorySlug slug,
@@ -675,7 +667,6 @@ class Scheduler {
     String headSha,
     CheckRun lock,
   ) async {
-    // Pretend the check took 1 minute to run
     await Future<void>.delayed(debugCheckPretendDelay);
 
     final conclusion =
