@@ -18,7 +18,7 @@ steps:
 
   # Build docker image
   - name: 'us-docker.pkg.dev/cloud-builders/ga/v1/docker'
-    args: ['build', '-t', 'us-docker.pkg.dev/$PROJECT_ID/appengine/default.version-$SHORT_SHA', 'app_dart']
+    args: ['build', '-t', 'us-docker.pkg.dev/$PROJECT_ID/appengine/default.version-$SHORT_SHA', '-f', 'Dockerfile.app_dart']
 
   # Trigger the cloud build that deploys the docker image
   - name: gcr.io/cloud-builders/gcloud

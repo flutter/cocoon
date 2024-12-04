@@ -10,7 +10,7 @@
 steps:
   # Build docker image
   - name: 'us-docker.pkg.dev/cloud-builders/ga/v1/docker'
-    args: ['build', '-t', 'us-docker.pkg.dev/$PROJECT_ID/appengine/auto-submit.version-$SHORT_SHA', 'auto_submit']
+    args: ['build', '-t', 'us-docker.pkg.dev/$PROJECT_ID/appengine/auto-submit.version-$SHORT_SHA', '-f', 'Dockerfile.auto_submit']
 
   # Trigger the cloud build that deploys the docker image
   - name: gcr.io/cloud-builders/gcloud
