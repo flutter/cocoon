@@ -501,6 +501,53 @@ void main() {
         expect(db.values.values.whereType<Task>().length, 3);
       });
 
+      test('schedules tasks against merged PRs (fusion)', () async {
+        // NOTE: The scheduler doesn't actually do anything except for write backfill requests - unless its a release.
+        // When backfills are picked up, they'll go through the same flow (schedulePostsubmitBuilds).
+        fakeFusion.isFusion = (_, __) => true;
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
+            return http.Response(fusionCiYaml, 200);
+          } else if (request.url.path.endsWith('.ci.yaml')) {
+            return http.Response(singleCiYaml, 200);
+          }
+          throw Exception('Failed to find ${request.url.path}');
+        });
+        when(
+          mockFirestoreService.writeViaTransaction(
+            captureAny,
+          ),
+        ).thenAnswer((Invocation invocation) {
+          return Future<CommitResponse>.value(CommitResponse());
+        });
+        final PullRequest mergedPr = generatePullRequest();
+        await scheduler.addPullRequest(mergedPr);
+
+        expect(db.values.values.whereType<Commit>().length, 1);
+        expect(db.values.values.whereType<Task>().length, 6);
+        final captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
+        expect(captured.first, hasLength(7)); // docs + commit
+        expect(
+          captured.first as List<Write>,
+          containsAll([
+            predicate((Write write) {
+              // return false;
+              return write.update?.name ==
+                  'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux runIf engine_1';
+            }),
+            predicate((Write write) {
+              // return false;
+              return write.update?.name ==
+                  'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux engine_build_1';
+            }),
+            predicate((Write write) {
+              // return false;
+              return write.update?.name == 'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux Z_1';
+            }),
+          ]),
+        );
+      });
+
       test('guarantees scheduling of tasks against merged release branch PR', () async {
         when(
           mockFirestoreService.writeViaTransaction(
