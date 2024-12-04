@@ -15,6 +15,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart' as pb;
+import 'package:cocoon_server/testing/mocks.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';

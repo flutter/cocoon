@@ -12,6 +12,7 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:github/hooks.dart';
+import 'package:cocoon_server/testing/mocks.dart';
 
 import '../src/datastore/fake_datastore.dart';
 import '../src/utilities/entity_generators.dart';

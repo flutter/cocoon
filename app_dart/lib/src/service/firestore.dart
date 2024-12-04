@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_server/access_client_provider.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
@@ -13,7 +14,6 @@ import '../model/firestore/commit.dart';
 import '../model/firestore/github_build_status.dart';
 import '../model/firestore/github_gold_status.dart';
 import '../model/firestore/task.dart';
-import 'access_client_provider.dart';
 import 'config.dart';
 
 const String kDatabase = 'projects/${Config.flutterGcpProjectId}/databases/${Config.flutterGcpFirestoreDatabase}';

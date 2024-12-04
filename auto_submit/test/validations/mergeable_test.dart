@@ -7,12 +7,12 @@ import 'package:auto_submit/validations/mergeable.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
 import 'package:test/test.dart';
+import 'package:cocoon_server/testing/mocks.dart';
 
 import '../requests/github_webhook_test_data.dart';
 import '../src/service/fake_config.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_graphql_client.dart';
-import '../utilities/mocks.dart';
 import '../utilities/utils.dart';
 
 void main() {

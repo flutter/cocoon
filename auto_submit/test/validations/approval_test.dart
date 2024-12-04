@@ -9,6 +9,7 @@ import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/validations/approval.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:test/test.dart';
+import 'package:cocoon_server/testing/mocks.dart';
 
 import 'package:github/github.dart' as gh;
 import '../configuration/repository_configuration_data.dart';
@@ -16,7 +17,6 @@ import '../requests/github_webhook_test_data.dart';
 import '../src/service/fake_config.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_graphql_client.dart';
-import '../utilities/mocks.mocks.dart';
 import 'approval_test_data.dart';
 
 void main() {

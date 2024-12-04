@@ -180,7 +180,7 @@ class FakeQuery<T extends Model<dynamic>> implements Query<T> {
   @override
   void order(String orderString) {
     if (orderString.startsWith('-')) {
-      orders.add(FakeOrderSpec._(orderString.substring(1), OrderDirection.Decending));
+      orders.add(FakeOrderSpec._(orderString.substring(1), OrderDirection.Descending));
     } else {
       orders.add(FakeOrderSpec._(orderString, OrderDirection.Ascending));
     }

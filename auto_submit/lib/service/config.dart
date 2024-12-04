@@ -15,11 +15,11 @@ import 'package:http/http.dart' as http;
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:retry/retry.dart';
+import 'package:cocoon_server/access_client_provider.dart';
+import 'package:cocoon_server/bigquery.dart';
 
 import '../foundation/providers.dart';
 import '../service/secrets.dart';
-import 'access_client_provider.dart';
-import 'bigquery.dart';
 import 'github_service.dart';
 import 'log.dart';
 

@@ -13,6 +13,7 @@ import 'package:googleapis/bigquery/v2.dart' hide Model;
 import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
+import 'package:cocoon_server/testing/mocks.dart';
 
 import '../src/bigquery/fake_tabledata_resource.dart';
 import '../src/datastore/fake_config.dart';

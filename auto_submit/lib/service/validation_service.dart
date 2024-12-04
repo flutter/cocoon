@@ -2,19 +2,18 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/exception/bigquery_exception.dart';
 import 'package:auto_submit/exception/retryable_exception.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
-import 'package:auto_submit/model/big_query_pull_request_record.dart';
 import 'package:auto_submit/model/pull_request_data_types.dart';
 import 'package:auto_submit/requests/graphql_queries.dart';
-import 'package:auto_submit/service/bigquery.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/graphql_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
+import 'package:cocoon_server/big_query_pull_request_record.dart';
+import 'package:cocoon_server/bigquery.dart';
 
 /// Class containing common methods to each of the pull request type validation
 /// services.
