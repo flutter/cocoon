@@ -196,9 +196,14 @@ class Scheduler {
 
     final CiYamlSet ciYaml = await getCiYaml(commit);
 
-    // TODO(codefu): support fusion engine
-    final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
-    final List<Task> tasks = targetsToTask(commit, initialTargets).toList();
+    final isFusion = await fusionTester.isFusionBasedRef(commit.slug, commit.sha!);
+    final List<Target> initialTargets = [
+      ...ciYaml.getInitialTargets(ciYaml.postsubmitTargets()),
+      if (isFusion)
+        ...ciYaml.getInitialTargets(ciYaml.postsubmitTargets(type: CiType.fusionEngine), type: CiType.fusionEngine),
+    ];
+
+    final List<Task> tasks = [...targetsToTask(commit, initialTargets)];
 
     final List<Tuple<Target, Task, int>> toBeScheduled = <Tuple<Target, Task, int>>[];
     for (Target target in initialTargets) {
