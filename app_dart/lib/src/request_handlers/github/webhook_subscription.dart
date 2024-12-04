@@ -239,10 +239,10 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
         if (!await _shaExistsInGob(slug, headSha)) {
           throw InternalServerError(
-            '$slug/$headSha was not found on GoB. Failing so this event can be retried...',
+            '$slug/$headSha was not found on GoB. Failing so this event can be retried',
           );
         }
-        log.fine('$slug/$headSha was found on GoB mirror. Scheduling merge group tasks...');
+        log.fine('$slug/$headSha was found on GoB mirror. Scheduling merge group tasks');
         await scheduler.triggerMergeGroupTargets(mergeGroupEvent: mergeGroupEvent);
 
       // A merge group was deleted. This can happen when a PR is pulled from the
@@ -250,7 +250,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       // stopped to save CI resources, as Github will no longer merge this group
       // into the main branch.
       case 'destroyed':
-        log.fine('Destroying the merge group for $slug/$headSha');
+        log.fine('Merge group destroyed for $slug/$headSha');
         await scheduler.cancelMergeGroupTargets(headSha: headSha);
     }
   }
