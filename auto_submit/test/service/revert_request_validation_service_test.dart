@@ -19,6 +19,7 @@ import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
+import 'package:cocoon_server/testing/mocks.dart';
 
 import '../configuration/repository_configuration_data.dart';
 import '../requests/github_webhook_test_data.dart';
@@ -35,7 +36,6 @@ import '../src/validations/fake_mergeable.dart';
 import '../src/validations/fake_required_check_runs.dart';
 import '../src/validations/fake_validation_filter.dart';
 import '../utilities/utils.dart';
-import '../utilities/mocks.dart';
 
 void main() {
   late RevertRequestValidationService validationService;

@@ -17,6 +17,7 @@ import 'package:graphql/client.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
+import 'package:cocoon_server/testing/mocks.dart';
 
 import '../configuration/repository_configuration_data.dart';
 import '../requests/github_webhook_test_data.dart';
@@ -25,7 +26,6 @@ import '../src/service/fake_config.dart';
 import '../src/service/fake_graphql_client.dart';
 import '../src/service/fake_github_service.dart';
 import '../utilities/utils.dart';
-import '../utilities/mocks.dart';
 
 void main() {
   late PullRequestValidationService validationService;

@@ -80,11 +80,8 @@ Future<AutoRefreshingAuthClient> authClientProviderShim({
     HttpClient,
     HttpClientRequest,
     HttpClientResponse,
-    JobsResource,
     LuciBuildService,
     ProcessManager,
-    PullRequestsService,
-    RepositoriesService,
     SearchService,
     TabledataResource,
     UsersService,
@@ -94,11 +91,11 @@ Future<AutoRefreshingAuthClient> authClientProviderShim({
   ],
   customMocks: [
     MockSpec<Cache<Uint8List>>(),
-    MockSpec<GitHub>(
-      fallbackGenerators: <Symbol, Function>{
-        #postJSON: postJsonShim,
-      },
-    ),
+    // MockSpec<GitHub>(
+    //   fallbackGenerators: <Symbol, Function>{
+    //     #postJSON: postJsonShim,
+    //   },
+    // ),
   ],
 )
 void main() {}

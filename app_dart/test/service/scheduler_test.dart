@@ -28,6 +28,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
+import 'package:cocoon_server/testing/mocks.dart';
 
 import '../model/github/checks_test_data.dart';
 import '../src/datastore/fake_config.dart';

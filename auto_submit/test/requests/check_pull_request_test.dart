@@ -22,6 +22,7 @@ import 'package:test/test.dart';
 
 import '../configuration/repository_configuration_data.dart';
 import 'package:cocoon_server/testing/bigquery_testing.dart';
+import 'package:cocoon_server/testing/mocks.dart';
 import './github_webhook_test_data.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/request_handling/fake_authentication.dart';

@@ -7,6 +7,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
+import 'package:cocoon_server/testing/mocks.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
