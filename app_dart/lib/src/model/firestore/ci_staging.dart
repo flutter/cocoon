@@ -190,9 +190,6 @@ class CiStaging extends Document {
       if ((recordedConclusion == kScheduledValue || recordedConclusion == kSuccessValue) &&
           conclusion == kFailureValue) {
         log.info('$logCrumb: test failed');
-        if (failed == 0) {
-          throw '$logCrumb: field "$kFailedField" is already zero for $transaction / ${doc.fields}';
-        }
         valid = true;
         failed = failed + 1;
       }

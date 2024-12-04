@@ -473,7 +473,7 @@ void main() {
             name: expectedName,
             fields: {
               CiStaging.kRemainingField: Value(integerValue: '1'),
-              CiStaging.kFailedField: Value(integerValue: '1'),
+              CiStaging.kFailedField: Value(integerValue: '0'),
               CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
               'MacOS build_test': Value(stringValue: CiStaging.kSuccessValue),
             },
@@ -492,7 +492,7 @@ void main() {
         );
 
         final result = await future;
-        expect(result, const StagingConclusion(remaining: 1, valid: true, failed: 2, checkRunGuard: '{}'));
+        expect(result, const StagingConclusion(remaining: 1, valid: true, failed: 1, checkRunGuard: '{}'));
         verify(
           docRes.commit(
             argThat(
@@ -502,7 +502,7 @@ void main() {
                     t.writes!.first.update!.fields!.length == 4 &&
                     t.writes!.first.update!.fields!['MacOS build_test']!.stringValue == CiStaging.kFailureValue &&
                     t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '1' &&
-                    t.writes!.first.update!.fields![CiStaging.kFailedField]!.integerValue == '2';
+                    t.writes!.first.update!.fields![CiStaging.kFailedField]!.integerValue == '1';
               }),
             ),
             kDatabase,
