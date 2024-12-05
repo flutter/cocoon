@@ -12,7 +12,7 @@ import 'package:retry/retry.dart';
 import '../model/gerrit/commit.dart';
 import '../request_handling/exceptions.dart';
 import 'gerrit_service.dart';
-import 'logging.dart';
+import 'package:cocoon_server/logging.dart';
 
 class RetryException implements Exception {}
 

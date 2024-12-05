@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:cocoon_service/src/service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 
 import '../../service/firestore.dart';

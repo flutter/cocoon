@@ -18,7 +18,7 @@ import '../../request_handling/exceptions.dart';
 import '../../request_handling/subscription_handler.dart';
 import '../../service/datastore.dart';
 import '../../service/github_service.dart';
-import '../../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 
 // Filenames which are not actually tests.
 const List<String> kNotActuallyATest = <String>[

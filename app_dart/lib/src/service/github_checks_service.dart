@@ -8,7 +8,7 @@ import '../foundation/github_checks_util.dart';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'config.dart';
 import 'github_service.dart';
-import 'logging.dart';
+import 'package:cocoon_server/logging.dart';
 import 'luci_build_service.dart';
 
 const String kGithubSummary = '''

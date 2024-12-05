@@ -8,7 +8,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../../request_handling/exceptions.dart';
 import '../../service/datastore.dart';
-import '../../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 import '../ci_yaml/target.dart';
 import 'commit.dart';
 import 'key_converter.dart';

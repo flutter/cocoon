@@ -16,7 +16,7 @@ import 'package:retry/retry.dart';
 import '../../model/ci_yaml/ci_yaml.dart';
 import '../../model/ci_yaml/target.dart';
 import '../../request_handling/exceptions.dart';
-import '../../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 
 /// Cron request handler for scheduling targets when capacity becomes available.
 ///

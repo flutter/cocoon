@@ -26,7 +26,7 @@ import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/user_data.dart';
 import '../service/datastore.dart';
-import '../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 import 'exceptions.dart';
 import 'github_service.dart';
 

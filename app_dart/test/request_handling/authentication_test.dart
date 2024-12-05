@@ -8,7 +8,7 @@ import 'package:cocoon_service/src/model/appengine/allowed_account.dart';
 import 'package:cocoon_service/src/model/google/token_info.dart';
 import 'package:cocoon_service/src/request_handling/authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:logging/logging.dart';

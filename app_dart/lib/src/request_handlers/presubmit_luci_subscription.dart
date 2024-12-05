@@ -20,7 +20,7 @@ import '../model/ci_yaml/target.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/config.dart';
-import '../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
 ///

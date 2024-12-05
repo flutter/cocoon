@@ -16,7 +16,7 @@ import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../model/appengine/allowed_account.dart';
 import '../model/google/token_info.dart';
-import '../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 import 'exceptions.dart';
 
 /// Class capable of authenticating [HttpRequest]s.

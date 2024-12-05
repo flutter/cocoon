@@ -13,7 +13,7 @@ import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 import 'package:truncate/truncate.dart';
 
-import 'logging.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/hooks.dart';

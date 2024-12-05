@@ -10,7 +10,7 @@ import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:cocoon_service/src/service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 
 import 'package:github/github.dart' hide Branch;

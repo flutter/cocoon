@@ -15,7 +15,7 @@ import 'package:meta/meta.dart';
 
 import '../model/gerrit/commit.dart';
 import 'config.dart';
-import 'logging.dart';
+import 'package:cocoon_server/logging.dart';
 
 /// Communicates with gerrit APIs https://gerrit-review.googlesource.com/Documentation/rest-api-projects.html
 /// to get information about projects hosted in Git on Borg.
