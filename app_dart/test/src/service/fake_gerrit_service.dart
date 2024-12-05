@@ -28,9 +28,9 @@ class FakeGerritService extends GerritService {
 
   List<GerritCommit>? commitsValue;
   final List<GerritCommit> _defaultCommits = <GerritCommit>[
-    generateGerritCommit(1),
-    generateGerritCommit(2),
-    generateGerritCommit(3),
+    generateGerritCommit('abc', 1),
+    generateGerritCommit('cde', 2),
+    generateGerritCommit('efg', 3),
   ];
 
   @override

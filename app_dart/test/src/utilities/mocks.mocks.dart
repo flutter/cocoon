@@ -5882,6 +5882,28 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
       }));
 
   @override
+  _i20.Future<_i13.PullRequest> Function(
+    _i15.FirestoreService,
+    int,
+    String,
+  ) get findPullRequestFor => (super.noSuchMethod(
+        Invocation.getter(#findPullRequestFor),
+        returnValue: (
+          _i15.FirestoreService firestoreService,
+          int checkRunId,
+          String checkRunName,
+        ) =>
+            _i20.Future<_i13.PullRequest>.value(_FakePullRequest_41(
+          this,
+          Invocation.getter(#findPullRequestFor),
+        )),
+      ) as _i20.Future<_i13.PullRequest> Function(
+        _i15.FirestoreService,
+        int,
+        String,
+      ));
+
+  @override
   _i20.Future<List<List<_i8.BatchRequest_Request>>> shard({
     required List<_i8.BatchRequest_Request>? requests,
     required int? maxShardSize,
@@ -6156,6 +6178,24 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
         returnValue: _i20.Future<List<_i15.Tuple<_i43.Target, _i37.Task, int>>>.value(
             <_i15.Tuple<_i43.Target, _i37.Task, int>>[]),
       ) as _i20.Future<List<_i15.Tuple<_i43.Target, _i37.Task, int>>>);
+
+  @override
+  _i20.Future<void> scheduleMergeGroupBuilds({
+    required _i36.Commit? commit,
+    required List<_i43.Target>? targets,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #scheduleMergeGroupBuilds,
+          [],
+          {
+            #commit: commit,
+            #targets: targets,
+          },
+        ),
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
 
   @override
   _i20.Future<void> createPostsubmitCheckRun(
