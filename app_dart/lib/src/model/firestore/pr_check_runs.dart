@@ -65,7 +65,7 @@ class PrCheckRuns extends Document {
     required List<CheckRun> checks,
   }) async {
     final logCrumb =
-        'initializeDocument(${pullRequest.repo?.slug().fullName}/${pullRequest.number}, ${checks.length} check runs)';
+        'initializeDocument(${pullRequest.head!.repo!.slug().fullName}/${pullRequest.number}, ${checks.length} check runs)';
 
     final fields = <String, Value>{
       kPullRequestField: Value(stringValue: json.encode(pullRequest.toJson())),
