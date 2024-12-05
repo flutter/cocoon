@@ -866,7 +866,7 @@ class Scheduler {
     log.info('$logCrumb: Merge Queue finished successfully');
 
     // Unlock the guarding check_run.
-    final checkRunGuard = CheckRun.fromJson(json.decode(conclusion.checkRunGuard!));
+    final checkRunGuard = checkRunFromString(conclusion.checkRunGuard!);
     await unlockMergeGroupChecks(slug, sha, checkRunGuard, null);
   }
 
@@ -880,7 +880,7 @@ class Scheduler {
     log.info('$logCrumb: Stage failed: $stage with failed=${conclusion.failed}');
 
     // Unlock the guarding check_run.
-    final checkRunGuard = CheckRun.fromJson(json.decode(conclusion.checkRunGuard!));
+    final checkRunGuard = checkRunFromString(conclusion.checkRunGuard!);
     await unlockMergeGroupChecks(slug, sha, checkRunGuard, 'failed ${conclusion.failed} test');
   }
 
@@ -894,7 +894,7 @@ class Scheduler {
   }) async {
     log.info('$logCrumb: Stage completed: $stage with failed=${conclusion.failed}');
 
-    final checkRunGuard = CheckRun.fromJson(json.decode(conclusion.checkRunGuard!));
+    final checkRunGuard = checkRunFromString(conclusion.checkRunGuard!);
 
     // Look up the PR in our cache first. This reduces github quota and requires less calls.
     PullRequest? pullRequest;
@@ -1153,5 +1153,15 @@ class Scheduler {
         .single;
 
     return totCommit;
+  }
+
+  /// Parses CheckRun from a previously json string encode
+  CheckRun checkRunFromString(String input) {
+    final checkRunJson = json.decode(input) as Map<String, dynamic>;
+    // Workaround for https://github.com/SpinlockLabs/github.dart/issues/412
+    if (checkRunJson['conclusion'] == 'null') {
+      checkRunJson.remove('conclusion');
+    }
+    return CheckRun.fromJson(checkRunJson);
   }
 }

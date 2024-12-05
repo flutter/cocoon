@@ -2041,6 +2041,15 @@ targets:
         );
       });
     });
+
+    test('busted CheckRun does not kill the system', () {
+      final data = scheduler.checkRunFromString(
+        '{"name":"Merge Queue Guard","id":33947747856,"external_id":"","status":"queued","head_sha":"","check_suite":{"id":31681571627},"details_url":"https://flutter-dashboard.appspot.com","started_at":"2024-12-05T01:05:24.000Z","conclusion":"null"}',
+      );
+      expect(data.name, 'Merge Queue Guard');
+      expect(data.id, 33947747856);
+      expect(data.conclusion, CheckRunConclusion.empty);
+    });
   });
 }
 
