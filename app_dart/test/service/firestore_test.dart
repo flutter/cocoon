@@ -52,9 +52,23 @@ void main() {
       expect(filter.compositeFilter, isNotNull);
       final List<Filter> filters = filter.compositeFilter!.filters!;
       expect(filters.length, 1);
-      expect(filters[0].fieldFilter!.field!.fieldPath, 'intField');
+      expect(filters[0].fieldFilter!.field!.fieldPath, '`intField`', reason: 'field escaped properly');
       expect(filters[0].fieldFilter!.value!.integerValue, '1');
       expect(filters[0].fieldFilter!.op, kFieldFilterOpEqual);
+    });
+
+    test('accepts complex field names', () async {
+      final Map<String, Object> filterMap = <String, Object>{
+        'this is my field      !=': 'there are many like it ',
+      };
+      const String compositeFilterOp = kCompositeFilterOpAnd;
+      final Filter filter = firestoreService.generateFilter(filterMap, compositeFilterOp);
+      expect(filter.compositeFilter, isNotNull);
+      final List<Filter> filters = filter.compositeFilter!.filters!;
+      expect(filters.length, 1);
+      expect(filters[0].fieldFilter!.field!.fieldPath, '`this is my field`', reason: 'field escaped properly');
+      expect(filters[0].fieldFilter!.value!.stringValue, 'there are many like it ');
+      expect(filters[0].fieldFilter!.op, kFieldFilterOpNotEqual);
     });
 
     test('a composite filter with multiple field filters', () async {
@@ -68,10 +82,10 @@ void main() {
       expect(filter.compositeFilter, isNotNull);
       final List<Filter> filters = filter.compositeFilter!.filters!;
       expect(filters.length, 2);
-      expect(filters[0].fieldFilter!.field!.fieldPath, 'intField');
+      expect(filters[0].fieldFilter!.field!.fieldPath, '`intField`', reason: 'field escaped properly');
       expect(filters[0].fieldFilter!.value!.integerValue, '1');
       expect(filters[0].fieldFilter!.op, kFieldFilterOpEqual);
-      expect(filters[1].fieldFilter!.field!.fieldPath, 'stringField');
+      expect(filters[1].fieldFilter!.field!.fieldPath, '`stringField`');
       expect(filters[1].fieldFilter!.value!.stringValue, 'string');
       expect(filters[1].fieldFilter!.op, kFieldFilterOpEqual);
     });

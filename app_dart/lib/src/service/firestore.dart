@@ -19,6 +19,7 @@ import 'config.dart';
 const String kDatabase = 'projects/${Config.flutterGcpProjectId}/databases/${Config.flutterGcpFirestoreDatabase}';
 const String kDocumentParent = '$kDatabase/documents';
 const String kFieldFilterOpEqual = 'EQUAL';
+const String kFieldFilterOpNotEqual = 'NOT_EQUAL';
 const String kCompositeFilterOpAnd = 'AND';
 const String kQueryOrderDescending = 'DESCENDING';
 
@@ -31,7 +32,10 @@ const Map<String, String> kRelationMapping = <String, String>{
   '<=': 'LESS_THAN_OR_EQUAL',
   '>': 'GREATER_THAN',
   '>=': 'GREATER_THAN_OR_EQUAL',
+  '!=': 'NOT_EQUAL',
 };
+
+final kFieldMapRegExp = RegExp(r'([a-zA-Z0-9_\t ]+)' '(${kRelationMapping.keys.join("|")})');
 
 class FirestoreService {
   const FirestoreService(this.accessClientProvider);
@@ -205,20 +209,21 @@ class FirestoreService {
   Filter generateFilter(Map<String, Object> filterMap, String compositeFilterOp) {
     final List<Filter> filters = <Filter>[];
     filterMap.forEach((filterString, comparisonOject) {
-      final List<String> parts = filterString.split(' ');
-      if (parts.length != kFilterStringSpaceSplitElements ||
-          !kRelationMapping.containsKey(parts[kFilterStringSpaceSplitOpIndex])) {
+      final match = kFieldMapRegExp.firstMatch(filterString);
+      if (match == null) {
         throw ArgumentError("Invalid filter string '$filterString'.");
       }
-      final String name = parts[0];
-      final String comparison = kRelationMapping[parts[1]]!;
-      final Value value = getValueFromFilter(comparisonOject);
+      final [name!, comparison!] = match.groups([1, 2]);
+      if (!kRelationMapping.containsKey(comparison)) {
+        throw ArgumentError("Invalid filter comparison in '$filterString'.");
+      }
 
+      final Value value = getValueFromFilter(comparisonOject);
       filters.add(
         Filter(
           fieldFilter: FieldFilter(
-            field: FieldReference(fieldPath: name),
-            op: comparison,
+            field: FieldReference(fieldPath: '`${name.trim()}`'),
+            op: kRelationMapping[comparison],
             value: value,
           ),
         ),
