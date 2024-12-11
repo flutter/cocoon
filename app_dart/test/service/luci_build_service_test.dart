@@ -416,6 +416,95 @@ void main() {
         'git_branch': bbv2.Value(stringValue: 'master'),
         'git_url': bbv2.Value(stringValue: 'https://github.com/flutter/flutter'),
         'git_ref': bbv2.Value(stringValue: 'refs/pull/123/head'),
+        'git_repo': bbv2.Value(stringValue: 'flutter'),
+        'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
+        'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
+        'is_fusion': bbv2.Value(stringValue: 'true'),
+      });
+      expect(dimensions.length, 1);
+      expect(dimensions[0].key, 'os');
+      expect(dimensions[0].value, 'abc');
+    });
+
+    test('schedule try builds for flaux', () async {
+      when(
+        callbacks.initializePrCheckRuns(
+          firestoreService: anyNamed('firestoreService'),
+          pullRequest: anyNamed('pullRequest'),
+          checks: anyNamed('checks'),
+        ),
+      ).thenAnswer((inv) async {
+        return Document(name: '1234-56-7890', fields: {});
+      });
+      final PullRequest pullRequest = generatePullRequest(repo: 'flaux');
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return bbv2.BatchResponse(
+          responses: <bbv2.BatchResponse_Response>[
+            bbv2.BatchResponse_Response(
+              scheduleBuild: generateBbv2Build(Int64(1)),
+            ),
+          ],
+        );
+      });
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+
+      (service.fusionTester as FakeFusionTester).isFusion = (_, __) => true;
+
+      final List<Target> scheduledTargets = await service.scheduleTryBuilds(
+        pullRequest: pullRequest,
+        targets: targets,
+      );
+
+      final result = verify(
+        callbacks.initializePrCheckRuns(
+          firestoreService: anyNamed('firestoreService'),
+          pullRequest: argThat(equals(pullRequest), named: 'pullRequest'),
+          checks: captureAnyNamed('checks'),
+        ),
+      )..called(1);
+      final checkRuns = result.captured.first as List<CheckRun>;
+      expect(checkRuns, hasLength(1));
+      expect(checkRuns.first.id, 1);
+      expect(checkRuns.first.name, 'Linux 1');
+
+      final Iterable<String> scheduledTargetNames = scheduledTargets.map((Target target) => target.value.name);
+      expect(scheduledTargetNames, <String>['Linux 1']);
+
+      final bbv2.BatchRequest batchRequest = bbv2.BatchRequest().createEmptyInstance();
+      batchRequest.mergeFromProto3Json(pubsub.messages.single);
+      expect(batchRequest.requests.single.scheduleBuild, isNotNull);
+
+      final bbv2.ScheduleBuildRequest scheduleBuild = batchRequest.requests.single.scheduleBuild;
+      expect(scheduleBuild.builder.bucket, 'try');
+      expect(scheduleBuild.builder.builder, 'Linux 1');
+      expect(
+        scheduleBuild.notify.pubsubTopic,
+        'projects/flutter-dashboard/topics/build-bucket-presubmit',
+      );
+
+      final Map<String, dynamic> userDataMap = UserData.decodeUserDataBytes(scheduleBuild.notify.userData);
+
+      expect(userDataMap, <String, dynamic>{
+        'repo_owner': 'flutter',
+        'repo_name': 'flaux',
+        'user_agent': 'flutter-cocoon',
+        'check_run_id': 1,
+        'commit_sha': 'abc',
+        'commit_branch': 'master',
+        'builder_name': 'Linux 1',
+      });
+
+      final Map<String, bbv2.Value> properties = scheduleBuild.properties.fields;
+      final List<bbv2.RequestedDimension> dimensions = scheduleBuild.dimensions;
+      expect(properties, <String, bbv2.Value>{
+        'os': bbv2.Value(stringValue: 'abc'),
+        'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
+        'bringup': bbv2.Value(boolValue: false),
+        'git_branch': bbv2.Value(stringValue: 'master'),
+        'git_url': bbv2.Value(stringValue: 'https://github.com/flutter/flaux'),
+        'git_ref': bbv2.Value(stringValue: 'refs/pull/123/head'),
+        'git_repo': bbv2.Value(stringValue: 'flaux'),
         'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
         'is_fusion': bbv2.Value(stringValue: 'true'),
@@ -478,6 +567,7 @@ void main() {
         'git_branch': bbv2.Value(stringValue: 'master'),
         'git_url': bbv2.Value(stringValue: 'https://github.com/flutter/flutter'),
         'git_ref': bbv2.Value(stringValue: 'refs/pull/123/head'),
+        'git_repo': bbv2.Value(stringValue: 'flutter'),
         'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
       });
@@ -591,6 +681,7 @@ void main() {
         'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
         'bringup': bbv2.Value(boolValue: false),
         'git_branch': bbv2.Value(stringValue: 'master'),
+        'git_repo': bbv2.Value(stringValue: 'flutter'),
         'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/master'),
         'os': bbv2.Value(stringValue: 'debian-10.12'),
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
