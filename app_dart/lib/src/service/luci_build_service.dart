@@ -864,6 +864,7 @@ class LuciBuildService {
     properties ??= {};
     properties['git_url'] = 'https://github.com/${slug.owner}/${slug.name}';
     properties['git_ref'] = 'refs/pull/$pullRequestNumber/head';
+    properties['git_repo'] = slug.name;
     properties['exe_cipd_version'] = cipdVersion;
 
     final bbv2.Struct propertiesStruct = bbv2.Struct.create();
@@ -953,6 +954,8 @@ class LuciBuildService {
     final Map<String, Object?> processedProperties = target.getProperties().cast<String, Object?>();
     processedProperties.addAll(properties ?? <String, Object?>{});
     processedProperties['git_branch'] = commit.branch!;
+    processedProperties['git_repo'] = commit.slug.name;
+
     final String cipdExe = 'refs/heads/${commit.branch}';
     processedProperties['exe_cipd_version'] = cipdExe;
 
