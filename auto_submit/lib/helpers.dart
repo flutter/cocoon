@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 
-import '../service/log.dart';
+import 'package:cocoon_server/logging.dart';
 
 /// Serves [handler] on [InternetAddress.anyIPv4] using the port returned by
 /// [listenPort].

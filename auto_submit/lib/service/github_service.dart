@@ -4,7 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'package:auto_submit/service/log.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 
 /// If a pull request was behind the tip of tree by _kBehindToT commits

@@ -8,7 +8,7 @@ import 'package:auto_submit/request_handling/pubsub.dart';
 import 'package:auto_submit/requests/check_request.dart';
 import 'package:auto_submit/requests/github_pull_request_event.dart';
 import 'package:auto_submit/service/approver_service.dart';
-import 'package:auto_submit/service/log.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:auto_submit/service/revert_request_validation_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/pubsub/v1.dart' as pub;

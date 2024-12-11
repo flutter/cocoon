@@ -3,9 +3,9 @@
 // found in the LICENSE file.
 
 import 'package:http/http.dart' as http;
+import 'package:cocoon_server/logging.dart';
 
 import '../foundation/providers.dart';
-import 'log.dart';
 
 class DiscordNotification {
   DiscordNotification({required this.targetUri, Map<String, String>? headers}) {

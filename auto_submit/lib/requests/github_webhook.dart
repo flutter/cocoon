@@ -12,7 +12,7 @@ import 'package:crypto/crypto.dart';
 
 import '../request_handling/pubsub.dart';
 import '../service/config.dart';
-import '../service/log.dart';
+import 'package:cocoon_server/logging.dart';
 import '../server/request_handler.dart';
 import '../requests/exceptions.dart';
 

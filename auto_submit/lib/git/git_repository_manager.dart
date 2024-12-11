@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:io';
-import 'package:auto_submit/service/log.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'git_cli.dart';
 import 'utilities.dart';

@@ -10,7 +10,7 @@ import 'package:auto_submit/service/config.dart';
 
 import 'package:auto_submit/requests/check_pull_request.dart';
 import 'package:auto_submit/requests/graphql_queries.dart';
-import 'package:auto_submit/service/log.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';

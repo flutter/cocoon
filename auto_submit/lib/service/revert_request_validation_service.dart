@@ -18,7 +18,7 @@ import 'package:auto_submit/service/discord_notification.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
-import 'package:auto_submit/service/log.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:auto_submit/validations/validation_filter.dart';
 import 'package:github/github.dart' as github;

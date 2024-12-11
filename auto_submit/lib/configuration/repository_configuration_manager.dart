@@ -5,7 +5,7 @@
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
-import 'package:auto_submit/service/log.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:mutex/mutex.dart';
 import 'package:neat_cache/neat_cache.dart';

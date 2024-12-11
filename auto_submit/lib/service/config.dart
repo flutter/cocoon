@@ -17,11 +17,11 @@ import 'package:neat_cache/neat_cache.dart';
 import 'package:retry/retry.dart';
 import 'package:cocoon_server/access_client_provider.dart';
 import 'package:cocoon_server/bigquery.dart';
+import 'package:cocoon_server/logging.dart';
 
 import '../foundation/providers.dart';
 import '../service/secrets.dart';
 import 'github_service.dart';
-import 'log.dart';
 
 class CocoonGitHubRequestException implements Exception {
   const CocoonGitHubRequestException(this.message, {required this.code, required this.uri});
