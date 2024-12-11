@@ -13,7 +13,7 @@ import '../model/appengine/task.dart';
 import '../model/firestore/task.dart' as firestore;
 import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
-import '../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 
 /// TODO(drewroengoogle): Make this subscription generic so we can accept more
 /// than just dart-internal builds.

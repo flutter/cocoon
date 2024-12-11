@@ -10,7 +10,7 @@ import 'package:meta/meta.dart';
 
 import '../model/luci/pubsub_message.dart';
 import '../service/cache_service.dart';
-import '../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 import 'api_request_handler.dart';
 import 'authentication.dart';
 import 'body.dart';

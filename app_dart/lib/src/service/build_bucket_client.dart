@@ -12,7 +12,7 @@ import 'package:meta/meta.dart';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'access_token_provider.dart';
 
-import '../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 
 // TODO generalize the two clients to remove this.
 /// A client interface to LUCI BuildBucket.

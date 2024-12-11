@@ -33,7 +33,7 @@ import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/proto/internal/scheduler.pb.dart' as pb;
-import '../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 import 'cache_service.dart';
 import 'config.dart';
 import 'datastore.dart';

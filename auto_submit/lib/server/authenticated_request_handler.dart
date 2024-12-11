@@ -8,7 +8,7 @@ import 'package:shelf/shelf.dart';
 import 'request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../requests/exceptions.dart';
-import '../service/log.dart';
+import 'package:cocoon_server/logging.dart';
 
 /// A [RequestHandler] that handles API requests.
 ///

@@ -10,7 +10,7 @@ import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
 
 import '../service/config.dart';
-import '../service/log.dart';
+import 'package:cocoon_server/logging.dart';
 
 /// Validates all the CI build/tests ran and were successful.
 class CiSuccessful extends Validation {

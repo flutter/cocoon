@@ -10,7 +10,7 @@ import '../foundation/utils.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/github_service.dart';
-import '../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 
 @immutable
 

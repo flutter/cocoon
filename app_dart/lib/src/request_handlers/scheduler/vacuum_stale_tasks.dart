@@ -12,7 +12,7 @@ import 'package:meta/meta.dart';
 import '../../model/appengine/task.dart';
 import '../../model/firestore/task.dart' as firestore;
 import '../../service/datastore.dart';
-import '../../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 
 /// Vacuum stale tasks.
 ///

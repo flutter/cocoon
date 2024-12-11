@@ -19,7 +19,7 @@ import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../request_handlers/flaky_handler_utils.dart';
 import '../request_handling/exceptions.dart';
-import '../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 
 const String kCiYamlPath = '.ci.yaml';
 const String kCiYamlFusionEnginePath = 'engine/src/flutter/$kCiYamlPath';

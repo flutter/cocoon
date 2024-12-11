@@ -16,7 +16,7 @@ import '../request_handling/body.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/github_service.dart';
-import '../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 
 /// Query GitHub for commits from the past day and ensure they exist in datastore.
 @immutable

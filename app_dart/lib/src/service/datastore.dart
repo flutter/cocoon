@@ -20,7 +20,7 @@ import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/github_gold_status_update.dart';
 import '../model/appengine/stage.dart';
 import '../model/appengine/task.dart';
-import '../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 import 'config.dart';
 
 /// Per the docs in [DatastoreDB.withTransaction], only 5 entity groups can

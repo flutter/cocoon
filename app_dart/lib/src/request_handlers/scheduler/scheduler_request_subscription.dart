@@ -11,7 +11,7 @@ import 'package:retry/retry.dart';
 import '../../../cocoon_service.dart';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import '../../request_handling/exceptions.dart';
-import '../../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 
 /// Subscription for making requests to BuildBucket.
 ///

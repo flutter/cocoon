@@ -12,7 +12,7 @@ import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
-import '../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 import 'exceptions.dart';
 
 /// Class capable of authenticating [HttpRequest]s for PubSub messages.

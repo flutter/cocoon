@@ -9,7 +9,7 @@ import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
 
-import '../service/log.dart';
+import 'package:cocoon_server/logging.dart';
 
 /// Validates that a PR has been approved in accordance with the flutter code
 /// review guidelines.

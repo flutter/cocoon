@@ -9,7 +9,7 @@ import 'package:auto_submit/requests/graphql_queries.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/graphql_service.dart';
-import 'package:auto_submit/service/log.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
 import 'package:cocoon_server/big_query_pull_request_record.dart';

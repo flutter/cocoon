@@ -10,7 +10,7 @@ import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/request_handlers/push_gold_status_to_github.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:cocoon_service/src/service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';

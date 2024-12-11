@@ -16,7 +16,7 @@ import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/model/pull_request_data_types.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:auto_submit/configuration/repository_configuration.dart';
-import 'package:auto_submit/service/log.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server/testing/mocks.dart';
 
 import '../utilities/utils.dart';

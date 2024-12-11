@@ -10,7 +10,7 @@ import 'package:http/http.dart';
 
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
-import '../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 
 /// Service class for interacting with PubSub.
 class PubSub {

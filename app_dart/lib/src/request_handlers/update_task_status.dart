@@ -16,7 +16,7 @@ import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
 import '../service/firestore.dart';
-import '../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 
 /// Endpoint for task runners to update Cocoon with test run information.
 ///

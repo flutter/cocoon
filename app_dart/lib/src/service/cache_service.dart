@@ -11,7 +11,7 @@ import 'package:neat_cache/neat_cache.dart';
 import 'package:mutex/mutex.dart';
 import 'package:retry/retry.dart';
 
-import 'logging.dart';
+import 'package:cocoon_server/logging.dart';
 
 /// Service for reading and writing values to a cache for quick access of data.
 ///

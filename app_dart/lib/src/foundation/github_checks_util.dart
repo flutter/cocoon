@@ -10,7 +10,7 @@ import 'package:github/hooks.dart';
 import 'package:retry/retry.dart';
 
 import '../service/config.dart';
-import '../service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 
 /// Wrapper class for github checkrun service. This is used to simplify
 /// mocking during testing because some of the subclasses are private.

@@ -5,7 +5,7 @@
 import 'package:cocoon_service/src/service/datastore.dart';
 
 import '../../model/appengine/task.dart';
-import '../logging.dart';
+import 'package:cocoon_server/logging.dart';
 import '../luci_build_service.dart';
 
 /// Interface for implementing various scheduling policies in the Cocoon scheduler.

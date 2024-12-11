@@ -24,7 +24,7 @@ import '../model/appengine/cocoon_config.dart';
 import '../model/appengine/key_helper.dart';
 import 'bigquery.dart';
 import 'github_service.dart';
-import 'logging.dart';
+import 'package:cocoon_server/logging.dart';
 
 /// Name of the default git branch.
 const String kDefaultBranchName = 'master';
