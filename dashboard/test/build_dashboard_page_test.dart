@@ -15,9 +15,9 @@ import 'package:flutter_dashboard/service/dev_cocoon.dart';
 import 'package:flutter_dashboard/service/google_authentication.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/widgets/error_brook_watcher.dart';
-import 'package:flutter_dashboard/widgets/user_sign_in.dart';
 import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
+import 'package:flutter_dashboard/widgets/user_sign_in.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 

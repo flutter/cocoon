@@ -2,13 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert' show utf8;
 import 'dart:io';
 
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:process/process.dart';
-
-import 'dart:convert' show utf8;
 
 const String kDeviceAccessCheckKey = 'device_access';
 const String kAttachedDeviceHealthcheckKey = 'attached_device';

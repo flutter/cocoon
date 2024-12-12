@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
@@ -19,7 +20,6 @@ import '../model/firestore/github_gold_status.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
-import 'package:cocoon_server/logging.dart';
 
 @immutable
 class PushGoldStatusToGithub extends ApiRequestHandler<Body> {

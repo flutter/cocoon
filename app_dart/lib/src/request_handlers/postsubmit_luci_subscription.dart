@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:gcloud/db.dart';
@@ -20,7 +21,6 @@ import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
 import '../service/firestore.dart';
-import 'package:cocoon_server/logging.dart';
 import '../service/github_checks_service.dart';
 import '../service/scheduler.dart';
 

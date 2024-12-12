@@ -7,8 +7,8 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 
-import '../service/config.dart';
 import '../requests/exceptions.dart';
+import '../service/config.dart';
 
 @immutable
 abstract class RequestHandler {

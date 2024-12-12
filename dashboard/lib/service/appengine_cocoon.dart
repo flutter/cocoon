@@ -12,8 +12,8 @@ import 'package:http/http.dart' as http;
 
 import '../logic/qualified_task.dart';
 import '../model/build_status_response.pb.dart';
-import '../model/commit_firestore.pb.dart';
 import '../model/commit.pb.dart';
+import '../model/commit_firestore.pb.dart';
 import '../model/commit_status.pb.dart';
 import '../model/commit_tasks_status.pb.dart';
 import '../model/key.pb.dart';

@@ -10,9 +10,9 @@ import 'package:cocoon_service/src/request_handlers/test_ownership.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 
+import '../../protos.dart' as pb;
 import '../service/bigquery.dart';
 import '../service/github_service.dart';
-import '../../protos.dart' as pb;
 
 // String constants.
 const String kFlakeLabel = 'c: flake';

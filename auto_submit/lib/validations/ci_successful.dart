@@ -7,10 +7,10 @@ import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/model/pull_request_data_types.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/validations/validation.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
 
 import '../service/config.dart';
-import 'package:cocoon_server/logging.dart';
 
 /// Validates all the CI build/tests ran and were successful.
 class CiSuccessful extends Validation {

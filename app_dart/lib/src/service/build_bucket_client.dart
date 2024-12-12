@@ -5,14 +5,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server/logging.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'access_token_provider.dart';
-
-import 'package:cocoon_server/logging.dart';
 
 // TODO generalize the two clients to remove this.
 /// A client interface to LUCI BuildBucket.

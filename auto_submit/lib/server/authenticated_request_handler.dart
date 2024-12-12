@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 
-import 'request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../requests/exceptions.dart';
-import 'package:cocoon_server/logging.dart';
+import 'request_handler.dart';
 
 /// A [RequestHandler] that handles API requests.
 ///

@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
 
 import '../foundation/github_checks_util.dart';
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'config.dart';
 import 'github_service.dart';
-import 'package:cocoon_server/logging.dart';
 import 'luci_build_service.dart';
 
 const String kGithubSummary = '''

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -9,8 +10,6 @@ import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
-
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 
 import '../../src/datastore/fake_config.dart';
 import '../../src/utilities/entity_generators.dart';

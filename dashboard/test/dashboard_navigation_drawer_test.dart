@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:flutter_dashboard/main.dart';
 import 'package:flutter_dashboard/dashboard_navigation_drawer.dart';
+import 'package:flutter_dashboard/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';

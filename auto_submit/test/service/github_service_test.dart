@@ -5,10 +5,10 @@
 import 'dart:convert';
 
 import 'package:auto_submit/service/github_service.dart';
+import 'package:cocoon_server/testing/mocks.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-import 'package:cocoon_server/testing/mocks.dart';
 
 import '../requests/github_webhook_test_data.dart';
 

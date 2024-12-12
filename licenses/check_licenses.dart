@@ -3,9 +3,10 @@
 // found in the LICENSE file.
 
 import 'dart:core';
-import 'dart:io';
-import 'package:path/path.dart' as path;
 import 'dart:io' as io_internals show exit;
+import 'dart:io';
+
+import 'package:path/path.dart' as path;
 
 final bool hasColor = stdout.supportsAnsiEscapes;
 final String bold = hasColor ? '\x1B[1m' : ''; // used for shard titles

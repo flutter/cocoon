@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:http/http.dart' as http;
 import 'package:cocoon_server/logging.dart';
+import 'package:http/http.dart' as http;
 
 import '../foundation/providers.dart';
 

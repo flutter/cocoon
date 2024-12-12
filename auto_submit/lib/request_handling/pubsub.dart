@@ -5,13 +5,13 @@
 import 'dart:convert';
 
 import 'package:auto_submit/service/config.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:googleapis/pubsub/v1.dart' as pubsub;
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart';
 
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
-import 'package:cocoon_server/logging.dart';
 
 /// Service class for interacting with PubSub.
 class PubSub {

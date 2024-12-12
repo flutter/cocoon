@@ -2,17 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server/testing/mocks.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore;
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:github/github.dart';
+import 'package:github/hooks.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
-
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-import 'package:github/hooks.dart';
-import 'package:cocoon_server/testing/mocks.dart';
 
 import '../src/datastore/fake_datastore.dart';
 import '../src/utilities/entity_generators.dart';

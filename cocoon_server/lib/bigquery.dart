@@ -7,8 +7,8 @@ import 'dart:async';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart';
 
-import 'big_query_pull_request_record.dart';
 import 'access_client_provider.dart';
+import 'big_query_pull_request_record.dart';
 
 const String _insertPullRequestDml = r'''
 INSERT INTO `flutter-dashboard.autosubmit.pull_requests` (

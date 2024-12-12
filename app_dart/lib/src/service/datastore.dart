@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
@@ -20,7 +21,6 @@ import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/github_gold_status_update.dart';
 import '../model/appengine/stage.dart';
 import '../model/appengine/task.dart';
-import 'package:cocoon_server/logging.dart';
 import 'config.dart';
 
 /// Per the docs in [DatastoreDB.withTransaction], only 5 entity groups can

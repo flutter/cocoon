@@ -4,12 +4,12 @@
 
 import 'dart:convert';
 
-import 'package:googleapis/bigquery/v2.dart';
-import 'package:mockito/mockito.dart';
+import 'package:cocoon_server/big_query_pull_request_record.dart';
 import 'package:cocoon_server/bigquery.dart';
 import 'package:cocoon_server/testing/bigquery_testing.dart';
 import 'package:cocoon_server/testing/mocks.dart';
-import 'package:cocoon_server/big_query_pull_request_record.dart';
+import 'package:googleapis/bigquery/v2.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 

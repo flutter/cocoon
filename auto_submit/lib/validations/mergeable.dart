@@ -4,8 +4,8 @@
 
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/validations/validation.dart';
-import 'package:github/github.dart' as github;
 import 'package:cocoon_server/logging.dart';
+import 'package:github/github.dart' as github;
 
 /// Validates that a pull request is in a mergeable state.
 class Mergeable extends Validation {

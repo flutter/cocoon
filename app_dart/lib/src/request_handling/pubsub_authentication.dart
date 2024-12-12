@@ -6,13 +6,13 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:googleapis/oauth2/v2.dart';
 import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
-import 'package:cocoon_server/logging.dart';
 import 'exceptions.dart';
 
 /// Class capable of authenticating [HttpRequest]s for PubSub messages.

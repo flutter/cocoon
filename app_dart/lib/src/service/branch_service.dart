@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart' as gh;
@@ -12,7 +13,6 @@ import 'package:retry/retry.dart';
 import '../model/gerrit/commit.dart';
 import '../request_handling/exceptions.dart';
 import 'gerrit_service.dart';
-import 'package:cocoon_server/logging.dart';
 
 class RetryException implements Exception {}
 

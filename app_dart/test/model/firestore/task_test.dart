@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart' as datastore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
@@ -12,7 +13,6 @@ import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 
 import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.dart';

@@ -4,8 +4,8 @@
 
 import 'package:auto_submit/request_handling/authentication.dart';
 import 'package:auto_submit/requests/exceptions.dart';
-import 'package:test/test.dart';
 import 'package:shelf/shelf.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('CronAuthProvider', () {

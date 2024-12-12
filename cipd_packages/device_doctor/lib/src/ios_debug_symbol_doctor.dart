@@ -9,9 +9,9 @@ import 'dart:io' as io;
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
-import 'package:process/process.dart';
 import 'package:logging/logging.dart';
 import 'package:platform/platform.dart';
+import 'package:process/process.dart';
 
 class DiagnoseCommand extends Command<bool> {
   DiagnoseCommand({

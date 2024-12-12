@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/protos.dart' as pb;
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
-import 'package:cocoon_service/protos.dart' as pb;
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:test/test.dart';
 
