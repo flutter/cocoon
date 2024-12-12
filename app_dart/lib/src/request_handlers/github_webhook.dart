@@ -4,13 +4,15 @@
 
 import 'dart:async';
 import 'dart:convert';
+
+import 'package:cocoon_server/logging.dart';
 import 'package:crypto/crypto.dart';
+
 import '../model/proto/protos.dart' as pb;
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/pubsub.dart';
 import '../request_handling/request_handler.dart';
-import 'package:cocoon_server/logging.dart';
 
 /// The [RequestHandler] for processing GitHub webhooks and publishing valid events to PubSub.
 ///

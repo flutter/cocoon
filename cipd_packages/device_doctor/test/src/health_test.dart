@@ -4,12 +4,11 @@
 
 import 'dart:io';
 
+import 'package:device_doctor/src/health.dart';
+import 'package:device_doctor/src/utils.dart';
 import 'package:mockito/mockito.dart';
 import 'package:platform/platform.dart' as platform;
 import 'package:test/test.dart';
-
-import 'package:device_doctor/src/health.dart';
-import 'package:device_doctor/src/utils.dart';
 
 import 'utils.dart';
 

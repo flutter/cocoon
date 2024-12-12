@@ -3,7 +3,9 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server/logging.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
@@ -13,7 +15,6 @@ import '../model/appengine/task.dart';
 import '../model/firestore/task.dart' as firestore;
 import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
-import 'package:cocoon_server/logging.dart';
 
 /// TODO(drewroengoogle): Make this subscription generic so we can accept more
 /// than just dart-internal builds.

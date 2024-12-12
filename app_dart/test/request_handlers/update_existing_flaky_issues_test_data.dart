@@ -5,10 +5,9 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
+import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/config.dart';
-
-import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 
 const String expectedSemanticsIntegrationTestIssueComment = '''
 [prod pool] flaky ratio for the past (up to) 100 commits between 2023-06-20 and 2023-06-29 is 50.00%. Flaky number: 3; total number: 10.

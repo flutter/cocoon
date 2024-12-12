@@ -7,10 +7,11 @@ import 'dart:convert';
 
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto hide PullRequest;
-import 'package:cocoon_server/logging.dart';
 import 'package:auto_submit/service/pull_request_validation_service.dart';
 import 'package:auto_submit/service/validation_service.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server/testing/bigquery_testing.dart';
+import 'package:cocoon_server/testing/mocks.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
@@ -18,14 +19,13 @@ import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
-import 'package:cocoon_server/testing/mocks.dart';
 
 import '../configuration/repository_configuration_data.dart';
 import '../requests/github_webhook_test_data.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_config.dart';
-import '../src/service/fake_graphql_client.dart';
 import '../src/service/fake_github_service.dart';
+import '../src/service/fake_graphql_client.dart';
 import '../utilities/utils.dart';
 
 void main() {

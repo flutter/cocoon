@@ -5,8 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:auto_submit/service/config.dart';
 import 'package:appengine/appengine.dart';
+import 'package:auto_submit/service/config.dart';
 import 'package:googleapis/secretmanager/v1.dart';
 
 /// Access secrets for Google Cloud projects.

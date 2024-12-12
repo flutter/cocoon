@@ -5,16 +5,16 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:auto_submit/requests/github_webhook.dart';
 import 'package:auto_submit/requests/exceptions.dart';
+import 'package:auto_submit/requests/github_webhook.dart';
 import 'package:crypto/crypto.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
-import './github_webhook_test_data.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_config.dart';
+import './github_webhook_test_data.dart';
 
 void main() {
   group('Check Webhook', () {

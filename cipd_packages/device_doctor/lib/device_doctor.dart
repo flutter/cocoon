@@ -5,6 +5,6 @@
 export 'src/device.dart';
 export 'src/health.dart';
 export 'src/host_utils.dart';
+export 'src/ios_debug_symbol_doctor.dart';
 export 'src/ios_device.dart';
 export 'src/utils.dart';
-export 'src/ios_debug_symbol_doctor.dart';

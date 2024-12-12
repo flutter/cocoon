@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:gcloud/db.dart';
@@ -14,9 +15,9 @@ import 'package:meta/meta.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';
 import '../model/appengine/task.dart';
-import '../model/firestore/task.dart' as firestore;
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
+import '../model/firestore/task.dart' as firestore;
 import '../model/google/token_info.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
@@ -24,7 +25,6 @@ import '../request_handling/exceptions.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/firestore.dart';
-import 'package:cocoon_server/logging.dart';
 
 /// Reruns a postsubmit LUCI build.
 ///

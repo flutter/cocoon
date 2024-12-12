@@ -5,12 +5,13 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cocoon_server/logging.dart';
+import 'package:cocoon_server/testing/mocks.dart';
 import 'package:cocoon_service/src/model/appengine/github_gold_status_update.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/request_handlers/push_gold_status_to_github.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:cocoon_server/logging.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
@@ -22,7 +23,6 @@ import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
-import 'package:cocoon_server/testing/mocks.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';

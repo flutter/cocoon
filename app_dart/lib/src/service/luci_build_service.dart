@@ -6,27 +6,27 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:collection/collection.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' as github;
+import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../foundation/github_checks_util.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
+import '../model/ci_yaml/target.dart';
 import '../model/firestore/commit.dart' as firestore_commit;
 import '../model/firestore/task.dart' as firestore;
-import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/user_data.dart';
 import '../service/datastore.dart';
-import 'package:cocoon_server/logging.dart';
 import 'exceptions.dart';
 import 'github_service.dart';
 

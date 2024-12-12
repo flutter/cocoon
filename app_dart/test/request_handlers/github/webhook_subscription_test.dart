@@ -3,22 +3,20 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-
+import 'package:cocoon_server/logging.dart';
+import 'package:cocoon_server/testing/mocks.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
-
 import 'package:github/github.dart' hide Branch;
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-import 'package:cocoon_server/testing/mocks.dart';
 
 import '../../src/datastore/fake_config.dart';
 import '../../src/datastore/fake_datastore.dart';
@@ -26,8 +24,8 @@ import '../../src/request_handling/fake_http.dart';
 import '../../src/request_handling/subscription_tester.dart';
 import '../../src/service/fake_build_bucket_client.dart';
 import '../../src/service/fake_fusion_tester.dart';
-import '../../src/service/fake_github_service.dart';
 import '../../src/service/fake_gerrit_service.dart';
+import '../../src/service/fake_github_service.dart';
 import '../../src/service/fake_scheduler.dart';
 import '../../src/utilities/mocks.dart';
 import '../../src/utilities/webhook_generators.dart';

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server/testing/mocks.dart';
 import 'package:cocoon_service/protos.dart' as pb;
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import 'package:cocoon_service/src/service/config.dart';
@@ -9,7 +10,6 @@ import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart' hide Team;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-import 'package:cocoon_server/testing/mocks.dart';
 
 import '../src/datastore/fake_config.dart';
 

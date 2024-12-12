@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:gcloud/db.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -16,7 +17,6 @@ import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../model/appengine/allowed_account.dart';
 import '../model/google/token_info.dart';
-import 'package:cocoon_server/logging.dart';
 import 'exceptions.dart';
 
 /// Class capable of authenticating [HttpRequest]s.

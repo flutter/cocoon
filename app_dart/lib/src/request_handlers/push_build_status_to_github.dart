@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
@@ -14,7 +15,6 @@ import '../model/firestore/github_build_status.dart';
 import '../request_handling/api_request_handler.dart';
 import '../service/build_status_provider.dart';
 import '../service/datastore.dart';
-import 'package:cocoon_server/logging.dart';
 
 @immutable
 class PushBuildStatusToGithub extends ApiRequestHandler<Body> {

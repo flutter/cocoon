@@ -6,15 +6,15 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:auto_submit/requests/github_pull_request_event.dart';
+import 'package:cocoon_server/logging.dart';
+import 'package:crypto/crypto.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
-import 'package:crypto/crypto.dart';
 
 import '../request_handling/pubsub.dart';
-import '../service/config.dart';
-import 'package:cocoon_server/logging.dart';
-import '../server/request_handler.dart';
 import '../requests/exceptions.dart';
+import '../server/request_handler.dart';
+import '../service/config.dart';
 
 /// Handler for processing GitHub webhooks.
 ///

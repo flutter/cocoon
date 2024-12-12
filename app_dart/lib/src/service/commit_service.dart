@@ -4,19 +4,18 @@
 
 import 'dart:async';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore;
+import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
+import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
+import 'package:github/hooks.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 import 'package:truncate/truncate.dart';
-
-import 'package:cocoon_server/logging.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:gcloud/db.dart';
-import 'package:github/hooks.dart';
 
 /// A class for doing various actions related to Github commits.
 class CommitService {

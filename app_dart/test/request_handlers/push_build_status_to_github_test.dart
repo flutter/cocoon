@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server/testing/mocks.dart';
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/request_handlers/push_build_status_to_github.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
@@ -13,7 +14,6 @@ import 'package:googleapis/bigquery/v2.dart' hide Model;
 import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-import 'package:cocoon_server/testing/mocks.dart';
 
 import '../src/bigquery/fake_tabledata_resource.dart';
 import '../src/datastore/fake_config.dart';

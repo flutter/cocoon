@@ -6,25 +6,24 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:core';
 
-import 'ci_successful_test_data.dart';
-
+import 'package:auto_submit/configuration/repository_configuration.dart';
+import 'package:auto_submit/model/auto_submit_query_result.dart';
+import 'package:auto_submit/model/pull_request_data_types.dart';
+import 'package:auto_submit/validations/ci_successful.dart';
+import 'package:auto_submit/validations/validation.dart';
+import 'package:cocoon_server/logging.dart';
+import 'package:cocoon_server/testing/mocks.dart';
 import 'package:github/github.dart' as github;
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
-import 'package:auto_submit/validations/ci_successful.dart';
-import 'package:auto_submit/model/auto_submit_query_result.dart';
-import 'package:auto_submit/model/pull_request_data_types.dart';
-import 'package:auto_submit/validations/validation.dart';
-import 'package:auto_submit/configuration/repository_configuration.dart';
-import 'package:cocoon_server/logging.dart';
-import 'package:cocoon_server/testing/mocks.dart';
 
-import '../utilities/utils.dart';
+import '../configuration/repository_configuration_data.dart';
+import '../requests/github_webhook_test_data.dart';
 import '../src/service/fake_config.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_graphql_client.dart';
-import '../requests/github_webhook_test_data.dart';
-import '../configuration/repository_configuration_data.dart';
+import '../utilities/utils.dart';
+import 'ci_successful_test_data.dart';
 
 void main() {
   late CiSuccessful ciSuccessful;

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -9,7 +10,6 @@ import 'package:fixnum/fixnum.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 
 import '../../src/datastore/fake_config.dart';
 import '../../src/request_handling/fake_authentication.dart';

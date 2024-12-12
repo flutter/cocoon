@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
@@ -20,7 +21,6 @@ import '../model/ci_yaml/target.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/config.dart';
-import 'package:cocoon_server/logging.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
 ///
