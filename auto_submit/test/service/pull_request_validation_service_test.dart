@@ -491,6 +491,8 @@ This is the second line in a paragraph.''');
         messagePullRequest: pullRequest,
       );
 
+      expect(result.method, SubmitMethod.enqueue);
+
       expect(
         queryOptions,
         {
@@ -509,6 +511,51 @@ This is the second line in a paragraph.''');
       );
       expect(result.result, isTrue);
       expect(result.message, contains(prTitle));
+    });
+
+    test('Merges instead of enqueuing when the branch is not main or master', () async {
+      final PullRequest pullRequest = generatePullRequest(
+        repoName: 'flaux',
+        title: 'Release branch PR',
+        baseRef: 'release-branch',
+      );
+
+      final MergeResult result = await validationService.submitPullRequest(
+        config: config,
+        messagePullRequest: pullRequest,
+      );
+
+      expect(result.method, SubmitMethod.merge);
+    });
+
+    test('Enqueues instead of merging when the branch is main', () async {
+      final PullRequest pullRequest = generatePullRequest(
+        repoName: 'flaux',
+        title: 'Regular PR',
+        baseRef: 'main',
+      );
+
+      final MergeResult result = await validationService.submitPullRequest(
+        config: config,
+        messagePullRequest: pullRequest,
+      );
+
+      expect(result.method, SubmitMethod.enqueue);
+    });
+
+    test('Enqueues instead of merging when the branch is master', () async {
+      final PullRequest pullRequest = generatePullRequest(
+        repoName: 'flaux',
+        title: 'Regular PR',
+        baseRef: 'master',
+      );
+
+      final MergeResult result = await validationService.submitPullRequest(
+        config: config,
+        messagePullRequest: pullRequest,
+      );
+
+      expect(result.method, SubmitMethod.enqueue);
     });
 
     test('Fails to enqueue pull request when merge queue is used', () async {
@@ -645,7 +692,7 @@ This is the second line in a paragraph.''');
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
-        baseRef: 'feature_a',
+        baseRef: 'master',
         mergeable: true,
       );
 

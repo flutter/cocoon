@@ -280,6 +280,12 @@ List<String> mqEnabledRepos = const <String>[
 extension PullRequestExtension on github.PullRequest {
   /// Whether this pull requests must be merged via a merge queue.
   bool get isMergeQueueEnabled {
+    final baseRef = base!.ref;
+    if (baseRef != 'main' && baseRef != 'master') {
+      // MQ is only enabled for main and master branches.
+      return false;
+    }
+
     final slug = base!.repo!.slug();
     return mqEnabledRepos.contains(slug.fullName);
   }
