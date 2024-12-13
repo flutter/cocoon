@@ -302,6 +302,9 @@ class LuciBuildService {
 
       if (isFusion) {
         properties['is_fusion'] = 'true';
+        // When in fusion, we want the recipies to override the engine.realm
+        // if some environment variable (FLUTTER_REALM) is set.
+        properties['flutter_realm'] = 'flutter_archives_v2';
       }
 
       final List<bbv2.RequestedDimension> requestedDimensions = target.getDimensions();

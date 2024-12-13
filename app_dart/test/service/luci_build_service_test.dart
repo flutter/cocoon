@@ -420,6 +420,7 @@ void main() {
         'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
         'is_fusion': bbv2.Value(stringValue: 'true'),
+        'flutter_realm': bbv2.Value(stringValue: 'flutter_archives_v2'),
       });
       expect(dimensions.length, 1);
       expect(dimensions[0].key, 'os');
@@ -508,6 +509,7 @@ void main() {
         'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
         'is_fusion': bbv2.Value(stringValue: 'true'),
+        'flutter_realm': bbv2.Value(stringValue: 'flutter_archives_v2'),
       });
       expect(dimensions.length, 1);
       expect(dimensions[0].key, 'os');
