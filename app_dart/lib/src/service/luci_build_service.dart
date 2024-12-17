@@ -524,6 +524,9 @@ class LuciBuildService {
     final isFusion = await fusionTester.isFusionBasedRef(slug, sha);
     if (isFusion) {
       properties['is_fusion'] = 'true';
+      // When in fusion, we want the recipes to override the engine.realm
+      // if some environment variable (FLUTTER_REALM) is set.
+      properties['flutter_realm'] = 'flutter_archives_v2';
     }
 
     final bbv2.ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
@@ -1019,6 +1022,10 @@ class LuciBuildService {
     final String cipdExe = 'refs/heads/${commit.branch}';
     processedProperties['exe_cipd_version'] = cipdExe;
 
+    final isFusion = await fusionTester.isFusionBasedRef(commit.slug, commit.sha!);
+    if (isFusion) {
+      processedProperties['is_fusion'] = 'true';
+    }
     final bbv2.Struct propertiesStruct = bbv2.Struct.create();
     propertiesStruct.mergeFromProto3Json(processedProperties);
 

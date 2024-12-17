@@ -501,6 +501,45 @@ void main() {
         expect(db.values.values.whereType<Task>().length, 3);
       });
 
+      test('schedules tasks against merged PRs (fusion)', () async {
+        // NOTE: The scheduler doesn't actually do anything except for write backfill requests - unless its a release.
+        // When backfills are picked up, they'll go through the same flow (schedulePostsubmitBuilds).
+        fakeFusion.isFusion = (_, __) => true;
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
+            return http.Response(fusionCiYaml, 200);
+          } else if (request.url.path.endsWith('.ci.yaml')) {
+            return http.Response(singleCiYaml, 200);
+          }
+          throw Exception('Failed to find ${request.url.path}');
+        });
+        when(
+          mockFirestoreService.writeViaTransaction(
+            captureAny,
+          ),
+        ).thenAnswer((Invocation invocation) {
+          return Future<CommitResponse>.value(CommitResponse());
+        });
+        final PullRequest mergedPr = generatePullRequest();
+        await scheduler.addPullRequest(mergedPr);
+
+        expect(db.values.values.whereType<Commit>().length, 1);
+        expect(db.values.values.whereType<Task>().length, 5, reason: 'removes release_build targets');
+        final captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
+        expect(
+          captured.first.map((write) => write.update?.name),
+          [
+            'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux A_1',
+            'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux runIf_1',
+            'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Google Internal Roll_1',
+            'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux Z_1',
+            'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux runIf engine_1',
+            'projects/flutter-dashboard/databases/cocoon/documents/commits/abc',
+          ],
+          reason: 'postsubmit release_build targets removed',
+        );
+      });
+
       test('guarantees scheduling of tasks against merged release branch PR', () async {
         when(
           mockFirestoreService.writeViaTransaction(

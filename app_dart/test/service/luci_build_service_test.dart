@@ -590,6 +590,8 @@ void main() {
   group('schedulePostsubmitBuilds', () {
     late DatastoreService datastore;
     late MockFirestoreService mockFirestoreService;
+    late FakeFusionTester fusionTester;
+
     setUp(() {
       config = FakeConfig();
       datastore = DatastoreService(config.db, 5);
@@ -597,13 +599,14 @@ void main() {
       cache = CacheService(inMemory: true);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
+      fusionTester = FakeFusionTester();
       service = LuciBuildService(
         config: config,
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
-        fusionTester: FakeFusionTester(),
+        fusionTester: fusionTester,
       );
     });
 
@@ -687,6 +690,105 @@ void main() {
         'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/master'),
         'os': bbv2.Value(stringValue: 'debian-10.12'),
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
+      });
+
+      expect(
+        scheduleBuild.exe,
+        bbv2.Executable(cipdVersion: 'refs/heads/master'),
+      );
+      expect(scheduleBuild.dimensions, isNotEmpty);
+      expect(
+        scheduleBuild.dimensions
+            .singleWhere(
+              (bbv2.RequestedDimension dimension) => dimension.key == 'os',
+            )
+            .value,
+        'debian-10.12',
+      );
+    });
+
+    test('schedule packages postsubmit builds successfully with fusion', () async {
+      fusionTester.isFusion = (_, __) => true;
+      final Commit commit = generateCommit(0);
+      when(
+        mockGithubChecksUtil.createCheckRun(
+          any,
+          Config.packagesSlug,
+          any,
+          'Linux 1',
+        ),
+      ).thenAnswer((_) async => generateCheckRun(1));
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+        return bbv2.ListBuildersResponse(
+          builders: [
+            bbv2.BuilderItem(
+              id: bbv2.BuilderID(
+                bucket: 'prod',
+                project: 'flutter',
+                builder: 'Linux 1',
+              ),
+            ),
+          ],
+        );
+      });
+      final Tuple<Target, Task, int> toBeScheduled = Tuple<Target, Task, int>(
+        generateTarget(
+          1,
+          properties: <String, String>{
+            'recipe': 'devicelab/devicelab',
+            'os': 'debian-10.12',
+          },
+          slug: Config.packagesSlug,
+        ),
+        generateTask(1),
+        LuciBuildService.kDefaultPriority,
+      );
+      await service.schedulePostsubmitBuilds(
+        commit: commit,
+        toBeScheduled: <Tuple<Target, Task, int>>[
+          toBeScheduled,
+        ],
+      );
+      // Only one batch request should be published
+      expect(pubsub.messages.length, 1);
+
+      final bbv2.BatchRequest request = bbv2.BatchRequest().createEmptyInstance();
+      request.mergeFromProto3Json(pubsub.messages.single);
+      expect(request.requests.single.scheduleBuild, isNotNull);
+
+      final bbv2.ScheduleBuildRequest scheduleBuild = request.requests.single.scheduleBuild;
+      expect(scheduleBuild.builder.bucket, 'prod');
+      expect(scheduleBuild.builder.builder, 'Linux 1');
+      expect(
+        scheduleBuild.notify.pubsubTopic,
+        'projects/flutter-dashboard/topics/build-bucket-postsubmit',
+      );
+
+      final Map<String, dynamic> userDataMap = UserData.decodeUserDataBytes(scheduleBuild.notify.userData);
+
+      expect(userDataMap, <String, dynamic>{
+        'commit_key': 'flutter/flutter/master/1',
+        'task_key': '1',
+        'check_run_id': 1,
+        'commit_sha': '0',
+        'commit_branch': 'master',
+        'builder_name': 'Linux 1',
+        'repo_owner': 'flutter',
+        'repo_name': 'packages',
+        'firestore_commit_document_name': '0',
+        'firestore_task_document_name': '0_task1_1',
+      });
+
+      final Map<String, bbv2.Value> properties = scheduleBuild.properties.fields;
+      expect(properties, <String, bbv2.Value>{
+        'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
+        'bringup': bbv2.Value(boolValue: false),
+        'git_branch': bbv2.Value(stringValue: 'master'),
+        'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/master'),
+        'os': bbv2.Value(stringValue: 'debian-10.12'),
+        'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
+        'is_fusion': bbv2.Value(stringValue: 'true'),
+        'git_repo': bbv2.Value(stringValue: 'flutter'),
       });
 
       expect(
