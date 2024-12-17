@@ -184,7 +184,7 @@ class Config {
   ///
   /// This limits the number of commits to be checked to backfill. When bots
   /// are idle, we hope to scan as many commit rows as possible.
-  int get backfillerCommitLimit => 50;
+  int get backfillerCommitLimit => 1;
 
   /// Upper limit of issue/PRs allowed each API call.
   ///
