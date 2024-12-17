@@ -202,6 +202,7 @@ class Scheduler {
       final fusionPostTargets = ciYaml.postsubmitTargets(type: CiType.fusionEngine);
       final fusionInitialTargets = ciYaml.getInitialTargets(fusionPostTargets, type: CiType.fusionEngine);
       initialTargets.addAll(fusionInitialTargets);
+      // Note on post submit targets: CiYaml filters out release_true for release branches and fusion trees
     }
 
     final List<Task> tasks = [...targetsToTask(commit, initialTargets)];

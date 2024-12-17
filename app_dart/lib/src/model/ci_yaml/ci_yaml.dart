@@ -200,7 +200,7 @@ class CiYaml {
     if (totPostsubmitTargetNames!.isNotEmpty) {
       enabledTargets = filterOutdatedTargets(slug, enabledTargets, totPostsubmitTargetNames);
     }
-    // filter if release_build true if current branch is a release candidate branch.
+    // filter if release_build true if current branch is a release candidate branch, or a fusion tree.
     enabledTargets = _filterReleaseBuildTargets(enabledTargets);
     return enabledTargets;
   }
@@ -222,11 +222,11 @@ class CiYaml {
     return filteredTargets;
   }
 
-  /// Filters targets with release_build = true on release candidate branches.
+  /// Filters targets with release_build = true on release candidate branches and post submit in fusion trees.
   List<Target> _filterReleaseBuildTargets(List<Target> targets) {
     final List<Target> results = <Target>[];
     final bool releaseBranch = branch.contains(RegExp('^flutter-'));
-    if (!releaseBranch) {
+    if (!releaseBranch && !isFusion) {
       return targets;
     }
     for (Target target in targets) {
