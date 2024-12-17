@@ -224,6 +224,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     final mergeGroupEvent = MergeGroupEvent.fromJson(request);
     final MergeGroupEvent(:mergeGroup, :action) = mergeGroupEvent;
     final headSha = mergeGroup.headSha;
+    final slug = mergeGroupEvent.repository!.slug();
 
     // See the API reference:
     // https://docs.github.com/en/webhooks/webhook-events-and-payloads#merge_group
@@ -234,24 +235,33 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       // into the main branch. Cocoon should kick off CI jobs needed to verify
       // the PR group.
       case 'checks_requested':
-        log.fine('Simulating checks requests for merge queue @ $headSha');
+        log.fine('Checks requests for merge queue @ $headSha');
+
+        if (!await _shaExistsInGob(slug, headSha)) {
+          throw InternalServerError(
+            '$slug/$headSha was not found on GoB. Failing so this event can be retried',
+          );
+        }
+        log.fine('$slug/$headSha was found on GoB mirror. Scheduling merge group tasks');
         await scheduler.triggerMergeGroupTargets(mergeGroupEvent: mergeGroupEvent);
-        break;
 
       // A merge group was deleted. This can happen when a PR is pulled from the
       // merge queue. All CI jobs pertaining to this merge group should be
       // stopped to save CI resources, as Github will no longer merge this group
       // into the main branch.
       case 'destroyed':
-        log.fine('Simulating destruction of a merge group @ $headSha');
+        log.fine('Merge group destroyed for $slug/$headSha');
         await scheduler.cancelMergeGroupTargets(headSha: headSha);
-        break;
     }
   }
 
   Future<bool> _commitExistsInGob(PullRequest pr) async {
     final RepositorySlug slug = pr.base!.repo!.slug();
     final String sha = pr.mergeCommitSha!;
+    return _shaExistsInGob(slug, sha);
+  }
+
+  Future<bool> _shaExistsInGob(RepositorySlug slug, String sha) async {
     final GerritCommit? gobCommit = await gerritService.findMirroredCommit(slug, sha);
     return gobCommit != null;
   }
