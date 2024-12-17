@@ -2661,7 +2661,7 @@ void foo() {
           'Processing merge_group',
           'Processing checks_requested for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was found on GoB mirror. Scheduling merge group tasks...',
+          'flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was found on GoB mirror. Scheduling merge group tasks',
           'triggerMergeGroupTargets(flutter/flutter, c9affbbb12aa40cb3afbe94b9ea6b119a256bebf, simulated): Scheduling merge group checks',
           'All required tests passed for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Finished Simulating merge group checks for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
@@ -2712,7 +2712,7 @@ void foo() {
           'Processing merge_group',
           'Processing checks_requested for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was found on GoB mirror. Scheduling merge group tasks...',
+          'flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was found on GoB mirror. Scheduling merge group tasks',
           'triggerMergeGroupTargets(flutter/flutter, c9affbbb12aa40cb3afbe94b9ea6b119a256bebf, simulated): Scheduling merge group checks',
           'Some required tests failed for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Some checks failed',
@@ -2741,7 +2741,7 @@ void foo() {
         <String>[
           'Processing merge_group',
           'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Destroying the merge group for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Simulating cancellation of merge group CI targets for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
         ],
       );
