@@ -69,7 +69,8 @@ class GithubWebhook extends RequestHandler {
     final RepositorySlug slug = pullRequest.head!.repo!.slug();
     if (slug.name == 'flutter' || slug.name == 'engine') {
       log.info(
-          'Skipping PR ${pullRequest.id} until monorepo merge is finished: https://github.com/flutter/flutter/issues/160451');
+        'Skipping PR ${pullRequest.id} until monorepo merge is finished: https://github.com/flutter/flutter/issues/160451',
+      );
       throw BadRequestException('Auto-submitting to flutter/flutter & flutter/engine temporarily disabled');
     }
 
