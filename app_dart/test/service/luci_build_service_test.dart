@@ -788,6 +788,7 @@ void main() {
         'os': bbv2.Value(stringValue: 'debian-10.12'),
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
         'is_fusion': bbv2.Value(stringValue: 'true'),
+        'git_repo': bbv2.Value(stringValue: 'flutter'),
       });
 
       expect(

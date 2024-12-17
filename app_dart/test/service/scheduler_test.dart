@@ -524,27 +524,19 @@ void main() {
         await scheduler.addPullRequest(mergedPr);
 
         expect(db.values.values.whereType<Commit>().length, 1);
-        expect(db.values.values.whereType<Task>().length, 6);
+        expect(db.values.values.whereType<Task>().length, 5, reason: 'removes release_build targets');
         final captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
-        expect(captured.first, hasLength(7)); // docs + commit
         expect(
-          captured.first as List<Write>,
-          containsAll([
-            predicate((Write write) {
-              // return false;
-              return write.update?.name ==
-                  'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux runIf engine_1';
-            }),
-            predicate((Write write) {
-              // return false;
-              return write.update?.name ==
-                  'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux engine_build_1';
-            }),
-            predicate((Write write) {
-              // return false;
-              return write.update?.name == 'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux Z_1';
-            }),
-          ]),
+          captured.first.map((write) => write.update?.name),
+          [
+            'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux A_1',
+            'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux runIf_1',
+            'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Google Internal Roll_1',
+            'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux Z_1',
+            'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux runIf engine_1',
+            'projects/flutter-dashboard/databases/cocoon/documents/commits/abc',
+          ],
+          reason: 'postsubmit release_build targets removed',
         );
       });
 
