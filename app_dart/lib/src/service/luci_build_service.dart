@@ -524,7 +524,7 @@ class LuciBuildService {
     final isFusion = await fusionTester.isFusionBasedRef(slug, sha);
     if (isFusion) {
       properties['is_fusion'] = 'true';
-      // When in fusion, we want the recipies to override the engine.realm
+      // When in fusion, we want the recipes to override the engine.realm
       // if some environment variable (FLUTTER_REALM) is set.
       properties['flutter_realm'] = 'flutter_archives_v2';
     }
