@@ -35,12 +35,25 @@ void main() {
       githubWebhook = GithubWebhook(config: config, pubsub: pubsub);
     });
 
-    test('call handler to handle the post request', () async {
+    test('throws if repo base is flutter/flutter', () async {
       final Uint8List body = utf8.encode(generateWebhookEvent());
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
       validHeader = <String, String>{'X-Hub-Signature': 'sha1=$hmac', 'X-GitHub-Event': 'yes'};
       req = Request('POST', Uri.parse('http://localhost/'), body: generateWebhookEvent(), headers: validHeader);
+      expect(
+        () async => githubWebhook.post(req),
+        throwsA(isA<BadRequestException>()),
+      );
+    });
+
+    test('call handler to handle the post request', () async {
+      final String event = generateWebhookEvent(repoName: 'not-flutter');
+      final Uint8List body = utf8.encode(event);
+      final Uint8List key = utf8.encode(keyString);
+      final String hmac = getHmac(body, key);
+      validHeader = <String, String>{'X-Hub-Signature': 'sha1=$hmac', 'X-GitHub-Event': 'yes'};
+      req = Request('POST', Uri.parse('http://localhost/'), body: event, headers: validHeader);
       final Response response = await githubWebhook.post(req);
       final String resBody = await response.readAsString();
       final reqBody = json.decode(resBody) as Map<String, dynamic>;
