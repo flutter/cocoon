@@ -2081,7 +2081,7 @@ targets:
       expect(data.id, 33947747856);
       expect(data.conclusion, CheckRunConclusion.empty);
     });
-    
+
     group('merge groups', () {
       test('schedule some work on prod', () async {
         httpClient = MockClient((http.Request request) async {
