@@ -5,10 +5,9 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart';
-
-import '../service/logging.dart';
 
 class GithubService {
   GithubService(this.github);

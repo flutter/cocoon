@@ -9,11 +9,11 @@ import 'package:auto_submit/requests/graphql_queries.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/graphql_service.dart';
-import 'package:auto_submit/service/log.dart';
-import 'package:github/github.dart' as github;
-import 'package:retry/retry.dart';
 import 'package:cocoon_server/big_query_pull_request_record.dart';
 import 'package:cocoon_server/bigquery.dart';
+import 'package:cocoon_server/logging.dart';
+import 'package:github/github.dart' as github;
+import 'package:retry/retry.dart';
 
 /// Class containing common methods to each of the pull request type validation
 /// services.
@@ -280,6 +280,12 @@ List<String> mqEnabledRepos = const <String>[
 extension PullRequestExtension on github.PullRequest {
   /// Whether this pull requests must be merged via a merge queue.
   bool get isMergeQueueEnabled {
+    final baseRef = base!.ref;
+    if (baseRef != 'main' && baseRef != 'master') {
+      // MQ is only enabled for main and master branches.
+      return false;
+    }
+
     final slug = base!.repo!.slug();
     return mqEnabledRepos.contains(slug.fullName);
   }

@@ -5,9 +5,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
-import 'package:cocoon_service/src/service/logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart' as http;

@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server/logging.dart';
 import 'package:http/http.dart' as http;
 
 import '../foundation/providers.dart';
-import 'log.dart';
 
 class DiscordNotification {
   DiscordNotification({required this.targetUri, Map<String, String>? headers}) {

@@ -5,13 +5,12 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:mutex/mutex.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
-import 'package:mutex/mutex.dart';
 import 'package:retry/retry.dart';
-
-import 'logging.dart';
 
 /// Service for reading and writing values to a cache for quick access of data.
 ///

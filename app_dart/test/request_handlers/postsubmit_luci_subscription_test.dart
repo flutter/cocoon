@@ -10,6 +10,7 @@ import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_com
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -23,7 +24,6 @@ import '../src/service/fake_scheduler.dart';
 import '../src/utilities/build_bucket_messages.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
-import 'package:fixnum/fixnum.dart';
 
 void main() {
   late PostsubmitLuciSubscription handler;

@@ -9,8 +9,8 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
-import '../model/firestore/commit_tasks_status.dart';
 import '../model/appengine/key_helper.dart';
+import '../model/firestore/commit_tasks_status.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';

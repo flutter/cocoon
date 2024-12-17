@@ -4,27 +4,28 @@
 
 import 'dart:convert';
 
-import 'package:auto_submit/model/discord_message.dart';
 import 'package:auto_submit/action/git_cli_revert_method.dart';
+import 'package:auto_submit/action/revert_method.dart';
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
+import 'package:auto_submit/model/discord_message.dart';
 import 'package:auto_submit/model/pull_request_data_types.dart';
 import 'package:auto_submit/request_handling/pubsub.dart';
 import 'package:auto_submit/requests/github_pull_request_event.dart';
 import 'package:auto_submit/revert/revert_discord_message.dart';
 import 'package:auto_submit/revert/revert_info_collection.dart';
 import 'package:auto_submit/service/approver_service.dart';
-import 'package:auto_submit/service/discord_notification.dart';
-import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/service/config.dart';
+import 'package:auto_submit/service/discord_notification.dart';
 import 'package:auto_submit/service/github_service.dart';
-import 'package:auto_submit/service/log.dart';
+import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:auto_submit/validations/validation_filter.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
-import 'package:auto_submit/action/revert_method.dart';
+
 import 'process_method.dart';
 
 enum RevertProcessMethod { revert, revertOf, none }

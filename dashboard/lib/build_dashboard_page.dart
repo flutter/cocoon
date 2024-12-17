@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_app_icons/flutter_app_icons.dart';
 import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:provider/provider.dart';
 import 'package:truncate/truncate.dart';
@@ -18,7 +19,6 @@ import 'widgets/error_brook_watcher.dart';
 import 'widgets/filter_property_sheet.dart';
 import 'widgets/task_box.dart';
 import 'widgets/task_grid.dart';
-import 'package:flutter_app_icons/flutter_app_icons.dart';
 
 /// Shows information about the current build status of flutter/flutter.
 ///

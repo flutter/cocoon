@@ -4,13 +4,13 @@
 
 import 'dart:async';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
 
 import '../foundation/utils.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/github_service.dart';
-import '../service/logging.dart';
 
 @immutable
 

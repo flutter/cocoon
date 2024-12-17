@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-import 'package:github/github.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
+import 'package:github/github.dart';
+import 'package:meta/meta.dart';
 
 const String oid = '6dcb09b5b57875f334f61aebed695e2e4193db5e';
 const String title = 'some_title';

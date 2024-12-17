@@ -5,11 +5,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
-
-import '../service/logging.dart';
 
 import 'exceptions.dart';
 

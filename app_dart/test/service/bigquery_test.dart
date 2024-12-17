@@ -4,12 +4,11 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_server/testing/mocks.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
-
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-import 'package:cocoon_server/testing/mocks.dart';
 
 import '../src/service/fake_bigquery_service.dart';
 

@@ -2,8 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:github/github.dart';
 import 'dart:collection';
+
+import 'package:github/github.dart';
 
 class RevertIssueBodyFormatter {
   RevertIssueBodyFormatter({

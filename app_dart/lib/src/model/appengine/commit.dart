@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server/logging.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../service/datastore.dart';
-import '../../service/logging.dart';
 import 'key_converter.dart';
 
 part 'commit.g.dart';

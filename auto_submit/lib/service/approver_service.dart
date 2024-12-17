@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/service/log.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
 
 import '../configuration/repository_configuration.dart';

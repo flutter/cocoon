@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart' as gh;
 import 'package:googleapis/firestore/v1.dart';
@@ -12,7 +13,6 @@ import 'package:meta/meta.dart';
 import '../../model/appengine/task.dart';
 import '../../model/firestore/task.dart' as firestore;
 import '../../service/datastore.dart';
-import '../../service/logging.dart';
 
 /// Vacuum stale tasks.
 ///

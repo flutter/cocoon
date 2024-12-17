@@ -5,12 +5,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:mockito/mockito.dart';
-import 'package:test/test.dart';
-
 import 'package:device_doctor/src/health.dart';
 import 'package:device_doctor/src/mac.dart';
 import 'package:device_doctor/src/utils.dart';
+import 'package:mockito/mockito.dart';
+import 'package:test/test.dart';
 
 import 'utils.dart';
 

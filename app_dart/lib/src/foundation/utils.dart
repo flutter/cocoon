@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -19,7 +20,6 @@ import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../request_handlers/flaky_handler_utils.dart';
 import '../request_handling/exceptions.dart';
-import '../service/logging.dart';
 
 const String kCiYamlPath = '.ci.yaml';
 const String kCiYamlFusionEnginePath = 'engine/src/flutter/$kCiYamlPath';

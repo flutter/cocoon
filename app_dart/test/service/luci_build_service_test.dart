@@ -9,13 +9,13 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_commit;
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
-import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/model/luci/user_data.dart';
-import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/datastore.dart';
 import 'package:github/github.dart';
@@ -416,9 +416,100 @@ void main() {
         'git_branch': bbv2.Value(stringValue: 'master'),
         'git_url': bbv2.Value(stringValue: 'https://github.com/flutter/flutter'),
         'git_ref': bbv2.Value(stringValue: 'refs/pull/123/head'),
+        'git_repo': bbv2.Value(stringValue: 'flutter'),
         'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
         'is_fusion': bbv2.Value(stringValue: 'true'),
+        'flutter_realm': bbv2.Value(stringValue: 'flutter_archives_v2'),
+      });
+      expect(dimensions.length, 1);
+      expect(dimensions[0].key, 'os');
+      expect(dimensions[0].value, 'abc');
+    });
+
+    test('schedule try builds for flaux', () async {
+      when(
+        callbacks.initializePrCheckRuns(
+          firestoreService: anyNamed('firestoreService'),
+          pullRequest: anyNamed('pullRequest'),
+          checks: anyNamed('checks'),
+        ),
+      ).thenAnswer((inv) async {
+        return Document(name: '1234-56-7890', fields: {});
+      });
+      final PullRequest pullRequest = generatePullRequest(repo: 'flaux');
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return bbv2.BatchResponse(
+          responses: <bbv2.BatchResponse_Response>[
+            bbv2.BatchResponse_Response(
+              scheduleBuild: generateBbv2Build(Int64(1)),
+            ),
+          ],
+        );
+      });
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+
+      (service.fusionTester as FakeFusionTester).isFusion = (_, __) => true;
+
+      final List<Target> scheduledTargets = await service.scheduleTryBuilds(
+        pullRequest: pullRequest,
+        targets: targets,
+      );
+
+      final result = verify(
+        callbacks.initializePrCheckRuns(
+          firestoreService: anyNamed('firestoreService'),
+          pullRequest: argThat(equals(pullRequest), named: 'pullRequest'),
+          checks: captureAnyNamed('checks'),
+        ),
+      )..called(1);
+      final checkRuns = result.captured.first as List<CheckRun>;
+      expect(checkRuns, hasLength(1));
+      expect(checkRuns.first.id, 1);
+      expect(checkRuns.first.name, 'Linux 1');
+
+      final Iterable<String> scheduledTargetNames = scheduledTargets.map((Target target) => target.value.name);
+      expect(scheduledTargetNames, <String>['Linux 1']);
+
+      final bbv2.BatchRequest batchRequest = bbv2.BatchRequest().createEmptyInstance();
+      batchRequest.mergeFromProto3Json(pubsub.messages.single);
+      expect(batchRequest.requests.single.scheduleBuild, isNotNull);
+
+      final bbv2.ScheduleBuildRequest scheduleBuild = batchRequest.requests.single.scheduleBuild;
+      expect(scheduleBuild.builder.bucket, 'try');
+      expect(scheduleBuild.builder.builder, 'Linux 1');
+      expect(
+        scheduleBuild.notify.pubsubTopic,
+        'projects/flutter-dashboard/topics/build-bucket-presubmit',
+      );
+
+      final Map<String, dynamic> userDataMap = UserData.decodeUserDataBytes(scheduleBuild.notify.userData);
+
+      expect(userDataMap, <String, dynamic>{
+        'repo_owner': 'flutter',
+        'repo_name': 'flaux',
+        'user_agent': 'flutter-cocoon',
+        'check_run_id': 1,
+        'commit_sha': 'abc',
+        'commit_branch': 'master',
+        'builder_name': 'Linux 1',
+      });
+
+      final Map<String, bbv2.Value> properties = scheduleBuild.properties.fields;
+      final List<bbv2.RequestedDimension> dimensions = scheduleBuild.dimensions;
+      expect(properties, <String, bbv2.Value>{
+        'os': bbv2.Value(stringValue: 'abc'),
+        'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
+        'bringup': bbv2.Value(boolValue: false),
+        'git_branch': bbv2.Value(stringValue: 'master'),
+        'git_url': bbv2.Value(stringValue: 'https://github.com/flutter/flaux'),
+        'git_ref': bbv2.Value(stringValue: 'refs/pull/123/head'),
+        'git_repo': bbv2.Value(stringValue: 'flaux'),
+        'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
+        'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
+        'is_fusion': bbv2.Value(stringValue: 'true'),
+        'flutter_realm': bbv2.Value(stringValue: 'flutter_archives_v2'),
       });
       expect(dimensions.length, 1);
       expect(dimensions[0].key, 'os');
@@ -478,6 +569,7 @@ void main() {
         'git_branch': bbv2.Value(stringValue: 'master'),
         'git_url': bbv2.Value(stringValue: 'https://github.com/flutter/flutter'),
         'git_ref': bbv2.Value(stringValue: 'refs/pull/123/head'),
+        'git_repo': bbv2.Value(stringValue: 'flutter'),
         'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
       });
@@ -591,6 +683,7 @@ void main() {
         'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
         'bringup': bbv2.Value(boolValue: false),
         'git_branch': bbv2.Value(stringValue: 'master'),
+        'git_repo': bbv2.Value(stringValue: 'flutter'),
         'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/master'),
         'os': bbv2.Value(stringValue: 'debian-10.12'),
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
@@ -1493,6 +1586,176 @@ void main() {
       final Document insertedTaskDocument = batchWriteRequest.writes![0].update!;
       expect(insertedTaskDocument, firestoreTask);
       expect(firestoreTask!.status, firestore.Task.statusInProgress);
+    });
+  });
+
+  group('scheduleMergeGroupBuilds', () {
+    late MockGithubChecksUtil mockGithubChecksUtil;
+    late MockFirestoreService mockFirestoreService;
+    firestore_commit.Commit? firestoreCommit;
+    setUp(() {
+      cache = CacheService(inMemory: true);
+      config = FakeConfig();
+      firestoreCommit = null;
+      mockBuildBucketClient = MockBuildBucketClient();
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+        return bbv2.ListBuildersResponse(
+          builders: [
+            bbv2.BuilderItem(
+              id: bbv2.BuilderID(
+                bucket: 'prod',
+                project: 'flutter',
+                builder: 'Linux 1',
+              ),
+            ),
+            bbv2.BuilderItem(
+              id: bbv2.BuilderID(
+                bucket: 'prod',
+                project: 'flutter',
+                builder: 'Linux 2',
+              ),
+            ),
+          ],
+        );
+      });
+
+      mockGithubChecksUtil = MockGithubChecksUtil();
+      when(
+        mockGithubChecksUtil.createCheckRun(
+          any,
+          any,
+          any,
+          any,
+          output: anyNamed('output'),
+        ),
+      ).thenAnswer((realInvocation) async => generateCheckRun(1));
+
+      mockFirestoreService = MockFirestoreService();
+      when(
+        mockFirestoreService.batchWriteDocuments(
+          captureAny,
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<BatchWriteResponse>.value(BatchWriteResponse());
+      });
+      when(
+        mockFirestoreService.getDocument(
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<firestore_commit.Commit>.value(
+          firestoreCommit,
+        );
+      });
+      when(
+        mockFirestoreService.queryRecentCommits(
+          limit: captureAnyNamed('limit'),
+          slug: captureAnyNamed('slug'),
+          branch: captureAnyNamed('branch'),
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<List<firestore_commit.Commit>>.value(
+          <firestore_commit.Commit>[firestoreCommit!],
+        );
+      });
+      pubsub = FakePubSub();
+
+      service = LuciBuildService(
+        config: config,
+        cache: cache,
+        buildBucketClient: mockBuildBucketClient,
+        githubChecksUtil: mockGithubChecksUtil,
+        pubsub: pubsub,
+        fusionTester: FakeFusionTester()..isFusion = (_, __) => true,
+      );
+    });
+
+    test('schedules prod builds for commit', () async {
+      final Commit commit =
+          generateCommit(100, sha: 'abc1234', repo: 'flaux', branch: 'gh-readonly-queue/master/pr-1234-abcd');
+      final List<Target> targets = <Target>[
+        generateTarget(1, properties: <String, String>{'os': 'abc'}, slug: RepositorySlug('flutter', 'flaux')),
+        generateTarget(2, properties: <String, String>{'os': 'abc'}, slug: RepositorySlug('flutter', 'flaux')),
+      ];
+      await service.scheduleMergeGroupBuilds(commit: commit, targets: targets);
+
+      verify(mockGithubChecksUtil.createCheckRun(any, RepositorySlug('flutter', 'flaux'), 'abc1234', 'Linux 1'))
+          .called(1);
+      verify(mockGithubChecksUtil.createCheckRun(any, RepositorySlug('flutter', 'flaux'), 'abc1234', 'Linux 2'))
+          .called(1);
+      expect(pubsub.messages, hasLength(1));
+      final batchRequest = bbv2.BatchRequest()..mergeFromProto3Json(pubsub.messages.first);
+      expect(batchRequest.requests, hasLength(2));
+
+      validateSchedule(bbv2.ScheduleBuildRequest scheduleBuild, String builderName) {
+        expect(scheduleBuild.builder.bucket, 'prod');
+        expect(scheduleBuild.builder.builder, builderName);
+        expect(
+          scheduleBuild.notify.pubsubTopic,
+          'projects/flutter-dashboard/topics/build-bucket-presubmit',
+        );
+
+        final userDataMap = UserData.decodeUserDataBytes(scheduleBuild.notify.userData);
+        expect(userDataMap, <String, dynamic>{
+          'repo_owner': 'flutter',
+          'repo_name': 'flaux',
+          'check_run_id': 1,
+          'commit_sha': 'abc1234',
+          'commit_branch': 'gh-readonly-queue/master/pr-1234-abcd',
+          'builder_name': builderName,
+        });
+
+        final properties = scheduleBuild.properties.fields;
+        final dimensions = scheduleBuild.dimensions;
+
+        expect(properties, <String, bbv2.Value>{
+          'os': bbv2.Value(stringValue: 'abc'),
+          'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
+          'bringup': bbv2.Value(boolValue: false),
+          'git_branch': bbv2.Value(stringValue: 'gh-readonly-queue/master/pr-1234-abcd'),
+          'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/gh-readonly-queue/master/pr-1234-abcd'),
+          'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
+          'is_fusion': bbv2.Value(stringValue: 'true'),
+          'git_repo': bbv2.Value(stringValue: 'flaux'),
+        });
+        expect(dimensions.length, 1);
+        expect(dimensions[0].key, 'os');
+        expect(dimensions[0].value, 'abc');
+      }
+
+      validateSchedule(batchRequest.requests[0].scheduleBuild, 'Linux 1');
+      validateSchedule(batchRequest.requests[1].scheduleBuild, 'Linux 2');
+    });
+
+    test('skips unmatched builders', () async {
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+        return bbv2.ListBuildersResponse(
+          builders: [
+            bbv2.BuilderItem(
+              id: bbv2.BuilderID(
+                bucket: 'prod',
+                project: 'flutter',
+                builder: 'Linux 1',
+              ),
+            ),
+          ],
+        );
+      });
+      final Commit commit =
+          generateCommit(100, sha: 'abc1234', repo: 'flaux', branch: 'gh-readonly-queue/master/pr-1234-abcd');
+      final List<Target> targets = <Target>[
+        generateTarget(1, properties: <String, String>{'os': 'abc'}, slug: RepositorySlug('flutter', 'flaux')),
+        generateTarget(2, properties: <String, String>{'os': 'abc'}, slug: RepositorySlug('flutter', 'flaux')),
+      ];
+      await service.scheduleMergeGroupBuilds(commit: commit, targets: targets);
+
+      verify(mockGithubChecksUtil.createCheckRun(any, RepositorySlug('flutter', 'flaux'), 'abc1234', 'Linux 1'))
+          .called(1);
+      verifyNever(mockGithubChecksUtil.createCheckRun(any, RepositorySlug('flutter', 'flaux'), 'abc1234', 'Linux 2'));
+      expect(pubsub.messages, hasLength(1));
+      final batchRequest = bbv2.BatchRequest()..mergeFromProto3Json(pubsub.messages.first);
+      expect(batchRequest.requests, hasLength(1));
     });
   });
 }

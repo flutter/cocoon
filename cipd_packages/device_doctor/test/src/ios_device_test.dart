@@ -5,14 +5,13 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:file/src/backends/memory/memory_file_system.dart';
-import 'package:mockito/mockito.dart';
-import 'package:test/test.dart';
-
 import 'package:device_doctor/src/device.dart';
 import 'package:device_doctor/src/health.dart';
 import 'package:device_doctor/src/ios_device.dart';
 import 'package:device_doctor/src/utils.dart';
+import 'package:file/src/backends/memory/memory_file_system.dart';
+import 'package:mockito/mockito.dart';
+import 'package:test/test.dart';
 
 import 'fake_ios_device.dart';
 import 'utils.dart';

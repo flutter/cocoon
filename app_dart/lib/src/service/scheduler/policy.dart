@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 
 import '../../model/appengine/task.dart';
-import '../logging.dart';
 import '../luci_build_service.dart';
 
 /// Interface for implementing various scheduling policies in the Cocoon scheduler.

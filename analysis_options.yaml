@@ -48,3 +48,4 @@ linter:
     require_trailing_commas: true
     unawaited_futures: true
     unnecessary_await_in_return: true
+    directives_ordering: true

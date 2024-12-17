@@ -5,9 +5,9 @@
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto;
 import 'package:auto_submit/validations/mergeable.dart';
 import 'package:auto_submit/validations/validation.dart';
+import 'package:cocoon_server/testing/mocks.dart';
 import 'package:github/github.dart' as github;
 import 'package:test/test.dart';
-import 'package:cocoon_server/testing/mocks.dart';
 
 import '../requests/github_webhook_test_data.dart';
 import '../src/service/fake_config.dart';

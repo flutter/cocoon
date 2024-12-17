@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
@@ -16,7 +17,6 @@ import 'package:retry/retry.dart';
 import '../../model/ci_yaml/ci_yaml.dart';
 import '../../model/ci_yaml/target.dart';
 import '../../request_handling/exceptions.dart';
-import '../../service/logging.dart';
 
 /// Cron request handler for scheduling targets when capacity becomes available.
 ///

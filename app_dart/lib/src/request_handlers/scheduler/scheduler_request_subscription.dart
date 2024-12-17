@@ -4,14 +4,14 @@
 
 import 'dart:convert';
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../../../cocoon_service.dart';
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import '../../request_handling/exceptions.dart';
-import '../../service/logging.dart';
 
 /// Subscription for making requests to BuildBucket.
 ///

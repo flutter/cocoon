@@ -4,9 +4,9 @@
 
 import 'dart:io';
 
+import 'package:device_doctor/src/host_utils.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-import 'package:device_doctor/src/host_utils.dart';
 
 import 'utils.dart';
 

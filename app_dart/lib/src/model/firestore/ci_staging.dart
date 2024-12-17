@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/firestore/v1.dart' hide Status;
 
 import '../../service/firestore.dart';
-import 'package:googleapis/firestore/v1.dart' hide Status;
 
 /// Representation of the current work scheduled for a given stage of monorepo check runs.
 ///

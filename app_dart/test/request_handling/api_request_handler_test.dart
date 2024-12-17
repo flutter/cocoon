@@ -6,9 +6,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/src/request_handling/api_request_handler.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
-import 'package:cocoon_service/src/service/logging.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';

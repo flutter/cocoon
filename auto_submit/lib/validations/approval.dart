@@ -3,13 +3,12 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/configuration/repository_configuration.dart';
-import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
+import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/validations/validation.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
-
-import '../service/log.dart';
 
 /// Validates that a PR has been approved in accordance with the flutter code
 /// review guidelines.

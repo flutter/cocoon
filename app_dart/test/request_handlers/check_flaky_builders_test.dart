@@ -4,8 +4,10 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_server/testing/mocks.dart';
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart' as pb;
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
@@ -13,15 +15,12 @@ import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
-import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart' as pb;
-import 'package:cocoon_server/testing/mocks.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/utilities/mocks.dart';
-
 import 'check_flaky_builders_test_data.dart';
 
 const String kThreshold = '0.02';

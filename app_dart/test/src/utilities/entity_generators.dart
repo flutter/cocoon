@@ -14,8 +14,8 @@ import 'package:cocoon_service/src/model/gerrit/commit.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart';
-import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:github/github.dart' as github;
+import 'package:googleapis/firestore/v1.dart' hide Status;
 
 import '../service/fake_scheduler.dart';
 
@@ -345,12 +345,12 @@ github.PullRequest generatePullRequest({
   );
 }
 
-GerritCommit generateGerritCommit(int i) => GerritCommit(
-      commit: 'sha$i',
+GerritCommit generateGerritCommit(String sha, int milliseconds) => GerritCommit(
+      commit: sha,
       tree: 'main',
       author: GerritUser(
         email: 'dash@flutter.dev',
-        time: DateTime.fromMillisecondsSinceEpoch(i),
+        time: DateTime.fromMillisecondsSinceEpoch(milliseconds),
       ),
     );
 

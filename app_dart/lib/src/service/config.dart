@@ -6,8 +6,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_server/access_client_provider.dart';
+import 'package:cocoon_server/logging.dart';
+import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -24,7 +25,6 @@ import '../model/appengine/cocoon_config.dart';
 import '../model/appengine/key_helper.dart';
 import 'bigquery.dart';
 import 'github_service.dart';
-import 'logging.dart';
 
 /// Name of the default git branch.
 const String kDefaultBranchName = 'master';

@@ -7,6 +7,9 @@ import 'dart:typed_data';
 
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/configuration/repository_configuration_manager.dart';
+import 'package:cocoon_server/access_client_provider.dart';
+import 'package:cocoon_server/bigquery.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -15,13 +18,10 @@ import 'package:http/http.dart' as http;
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:retry/retry.dart';
-import 'package:cocoon_server/access_client_provider.dart';
-import 'package:cocoon_server/bigquery.dart';
 
 import '../foundation/providers.dart';
 import '../service/secrets.dart';
 import 'github_service.dart';
-import 'log.dart';
 
 class CocoonGitHubRequestException implements Exception {
   const CocoonGitHubRequestException(this.message, {required this.code, required this.uri});

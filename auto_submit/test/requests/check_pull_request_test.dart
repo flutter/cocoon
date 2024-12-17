@@ -5,13 +5,15 @@
 // ignore_for_file: constant_identifier_names
 import 'dart:async';
 import 'dart:convert';
-import 'package:auto_submit/configuration/repository_configuration.dart';
-import 'package:auto_submit/service/config.dart';
 
+import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/requests/check_pull_request.dart';
 import 'package:auto_submit/requests/graphql_queries.dart';
-import 'package:auto_submit/service/log.dart';
+import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/validation_service.dart';
+import 'package:cocoon_server/logging.dart';
+import 'package:cocoon_server/testing/bigquery_testing.dart';
+import 'package:cocoon_server/testing/mocks.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/pubsub/v1.dart' as pub;
@@ -21,16 +23,14 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../configuration/repository_configuration_data.dart';
-import 'package:cocoon_server/testing/bigquery_testing.dart';
-import 'package:cocoon_server/testing/mocks.dart';
-import './github_webhook_test_data.dart';
-import '../src/request_handling/fake_pubsub.dart';
 import '../src/request_handling/fake_authentication.dart';
+import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_config.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_graphql_client.dart';
 import '../utilities/mocks.dart';
 import '../utilities/utils.dart' hide createQueryResult;
+import './github_webhook_test_data.dart';
 
 const String oid = '6dcb09b5b57875f334f61aebed695e2e4193db5e';
 const String title = 'some_title';

@@ -5,9 +5,9 @@
 import 'dart:convert';
 
 import 'package:auto_submit/service/github_service.dart';
+import 'package:cocoon_server/testing/mocks.dart';
 import 'package:github/github.dart';
 import 'package:shelf/src/response.dart';
-import 'package:cocoon_server/testing/mocks.dart';
 
 /// A fake GithubService implementation.
 class FakeGithubService implements GithubService {

@@ -4,11 +4,11 @@
 
 import 'dart:convert';
 
-import 'package:cocoon_service/src/service/logging.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/firestore/v1.dart' hide Status;
 
 import '../../service/firestore.dart';
-import 'package:googleapis/firestore/v1.dart' hide Status;
 
 /// Pairs the GitHub PR with the check runs associated with it.
 ///

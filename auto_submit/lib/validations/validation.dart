@@ -3,9 +3,9 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/model/auto_submit_query_result.dart';
+import 'package:github/github.dart' as github;
 
 import '../service/config.dart';
-import 'package:github/github.dart' as github;
 
 /// GitHub PR state constants.
 const APPROVED_STATE = 'APPROVED';

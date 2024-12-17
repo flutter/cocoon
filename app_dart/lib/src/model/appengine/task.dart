@@ -2,18 +2,18 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server/logging.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../request_handling/exceptions.dart';
 import '../../service/datastore.dart';
-import '../../service/logging.dart';
 import '../ci_yaml/target.dart';
 import 'commit.dart';
 import 'key_converter.dart';
 
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 part 'task.g.dart';
 
 /// Class that represents the intersection of a test at a particular [Commit].

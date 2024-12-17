@@ -7,14 +7,14 @@ import 'dart:io';
 import 'package:auto_submit/action/revert_method.dart';
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/git/cli_command.dart';
-import 'package:auto_submit/git/utilities.dart';
 import 'package:auto_submit/git/git_cli.dart';
 import 'package:auto_submit/git/git_repository_manager.dart';
+import 'package:auto_submit/git/utilities.dart';
 import 'package:auto_submit/requests/exceptions.dart';
+import 'package:auto_submit/revert/revert_issue_body_formatter.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
-import 'package:auto_submit/service/log.dart';
-import 'package:auto_submit/revert/revert_issue_body_formatter.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
 
