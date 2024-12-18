@@ -46,6 +46,20 @@ void main() {
       delayFactor: Duration.zero,
       maxDelay: Duration.zero,
     );
+
+    test('github merge queue branch parsing', () {
+      expect(
+        tryParseGitHubMergeQueueBranch('gh-readonly-queue/master/pr-160481-1398dc7eecb696d302e4edb19ad79901e615ed56'),
+        (parsed: true, branch: 'master', pullRequestNumber: 160481, sha: '1398dc7eecb696d302e4edb19ad79901e615ed56'),
+        reason: 'parses expected magic branch',
+      );
+      expect(
+        tryParseGitHubMergeQueueBranch('master'),
+        notGitHubMergeQueueBranch,
+        reason: 'does not parse regular branch',
+      );
+    });
+
     group('githubFileContent', () {
       late MockClient branchHttpClient;
 

@@ -287,15 +287,18 @@ class CiYaml {
   List<Target> _filterEnabledTargets(Iterable<Target> targets) {
     final List<Target> filteredTargets = <Target>[];
 
+    final ghMqBranch = tryParseGitHubMergeQueueBranch(branch);
+    final realBranch = ghMqBranch == notGitHubMergeQueueBranch ? branch : ghMqBranch.branch;
+
     // 1. Add targets with local definition
     final Iterable<Target> overrideBranchTargets =
         targets.where((Target target) => target.value.enabledBranches.isNotEmpty);
     final Iterable<Target> enabledTargets = overrideBranchTargets
-        .where((Target target) => enabledBranchesMatchesCurrentBranch(target.value.enabledBranches, branch));
+        .where((Target target) => enabledBranchesMatchesCurrentBranch(target.value.enabledBranches, realBranch));
     filteredTargets.addAll(enabledTargets);
 
     // 2. Add targets with global definition (this is the majority of targets)
-    if (enabledBranchesMatchesCurrentBranch(config.enabledBranches, branch)) {
+    if (enabledBranchesMatchesCurrentBranch(config.enabledBranches, realBranch)) {
       final Iterable<Target> defaultBranchTargets =
           targets.where((Target target) => target.value.enabledBranches.isEmpty);
       filteredTargets.addAll(defaultBranchTargets);

@@ -167,6 +167,43 @@ void main() {
         );
       });
 
+      test('handles github merge queue branch', () {
+        final ciYaml = CiYaml(
+          type: CiType.any,
+          slug: Config.flutterSlug,
+          branch: 'gh-readonly-queue/master/pr-160481-1398dc7eecb696d302e4edb19ad79901e615ed56',
+          config: pb.SchedulerConfig(
+            enabledBranches: <String>[
+              'master',
+            ],
+            targets: <pb.Target>[
+              pb.Target(
+                name: 'Linux A',
+              ),
+              pb.Target(
+                name: 'Linux B',
+              ),
+              pb.Target(
+                name: 'Mac A', // Should be ignored on release branches
+                bringup: true,
+              ),
+            ],
+          ),
+          totConfig: totCIYaml,
+        );
+
+        final List<String> initialTargetNames =
+            ciYaml.presubmitTargets.map((Target target) => target.value.name).toList();
+        expect(
+          initialTargetNames,
+          containsAll(
+            <String>[
+              'Linux A',
+            ],
+          ),
+        );
+      });
+
       test('filter targets removed from postsubmit', () {
         final List<Target> initialTargets = ciYaml.postsubmitTargets;
         final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
