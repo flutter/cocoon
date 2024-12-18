@@ -1109,7 +1109,11 @@ class LuciBuildService {
 
     final processedProperties = target.getProperties().cast<String, Object?>();
     processedProperties['git_branch'] = commit.branch!;
-    final cipdExe = 'refs/heads/${commit.branch}';
+
+    final mqBranch = tryParseGitHubMergeQueueBranch(commit.branch!);
+    log.info('parsed mqBranch: $mqBranch');
+
+    final cipdExe = 'refs/heads/${mqBranch.branch}';
     processedProperties['exe_cipd_version'] = cipdExe;
     processedProperties['is_fusion'] = 'true';
     processedProperties['git_repo'] = commit.slug.name;
