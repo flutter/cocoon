@@ -1016,6 +1016,366 @@ void main() {
           );
         });
 
+        test('includes linux_android_emulator test shard - monorepo', () async {
+          // New commit
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
+          db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
+
+          // Checks completed
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'linux_android_emulator', 'status': 'completed', 'conclusion': 'success'},
+          ];
+
+          // Change detected by Gold
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+              return http.Response(tryjobEmpty(), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config: config,
+            authenticationProvider: auth,
+            datastoreProvider: (DatastoreDB db) {
+              return DatastoreService(
+                config.db,
+                5,
+                retryOptions: retryOptions,
+              );
+            },
+            goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(status.status, GithubGoldStatusUpdate.statusCompleted);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
+
+          final List<dynamic> captured =
+              verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+          expect(captured.length, 2);
+          // The first element corresponds to the `status`.
+          final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+          expect(batchWriteRequest.writes!.length, 1);
+          final GithubGoldStatus updatedDocument =
+              GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
+          expect(updatedDocument.updates, 1);
+
+          // Should not label or comment
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
+
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
+        });
+
+        test('includes linux_host_engine test shard - monorepo', () async {
+          // New commit
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
+          db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
+
+          // Checks completed
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'linux_host_engine', 'status': 'completed', 'conclusion': 'success'},
+          ];
+
+          // Change detected by Gold
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+              return http.Response(tryjobEmpty(), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config: config,
+            authenticationProvider: auth,
+            datastoreProvider: (DatastoreDB db) {
+              return DatastoreService(
+                config.db,
+                5,
+                retryOptions: retryOptions,
+              );
+            },
+            goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(status.status, GithubGoldStatusUpdate.statusCompleted);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
+
+          final List<dynamic> captured =
+              verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+          expect(captured.length, 2);
+          // The first element corresponds to the `status`.
+          final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+          expect(batchWriteRequest.writes!.length, 1);
+          final GithubGoldStatus updatedDocument =
+              GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
+          expect(updatedDocument.updates, 1);
+
+          // Should not label or comment
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
+
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
+        });
+
+        test('includes linux_web_engine test shard - monorepo', () async {
+          // New commit
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
+          db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
+
+          // Checks completed
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'linux_web_engine', 'status': 'completed', 'conclusion': 'success'},
+          ];
+
+          // Change detected by Gold
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+              return http.Response(tryjobEmpty(), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config: config,
+            authenticationProvider: auth,
+            datastoreProvider: (DatastoreDB db) {
+              return DatastoreService(
+                config.db,
+                5,
+                retryOptions: retryOptions,
+              );
+            },
+            goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(status.status, GithubGoldStatusUpdate.statusCompleted);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
+
+          final List<dynamic> captured =
+              verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+          expect(captured.length, 2);
+          // The first element corresponds to the `status`.
+          final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+          expect(batchWriteRequest.writes!.length, 1);
+          final GithubGoldStatus updatedDocument =
+              GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
+          expect(updatedDocument.updates, 1);
+
+          // Should not label or comment
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
+
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
+        });
+
+        test('includes mac_host_engine test shard - monorepo', () async {
+          // New commit
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
+          db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
+
+          // Checks completed
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'mac_host_engine', 'status': 'completed', 'conclusion': 'success'},
+          ];
+
+          // Change detected by Gold
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+              return http.Response(tryjobEmpty(), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config: config,
+            authenticationProvider: auth,
+            datastoreProvider: (DatastoreDB db) {
+              return DatastoreService(
+                config.db,
+                5,
+                retryOptions: retryOptions,
+              );
+            },
+            goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(status.status, GithubGoldStatusUpdate.statusCompleted);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
+
+          final List<dynamic> captured =
+              verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+          expect(captured.length, 2);
+          // The first element corresponds to the `status`.
+          final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+          expect(batchWriteRequest.writes!.length, 1);
+          final GithubGoldStatus updatedDocument =
+              GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
+          expect(updatedDocument.updates, 1);
+
+          // Should not label or comment
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
+
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
+        });
+
+        test('includes mac_unopt test shard - monorepo', () async {
+          // New commit
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
+          db.values[status.key] = status;
+          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
+
+          // Checks completed
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'mac_host_engine', 'status': 'completed', 'conclusion': 'success'},
+          ];
+
+          // Change detected by Gold
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+              return http.Response(tryjobEmpty(), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config: config,
+            authenticationProvider: auth,
+            datastoreProvider: (DatastoreDB db) {
+              return DatastoreService(
+                config.db,
+                5,
+                retryOptions: retryOptions,
+              );
+            },
+            goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(status.status, GithubGoldStatusUpdate.statusCompleted);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
+
+          final List<dynamic> captured =
+              verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+          expect(captured.length, 2);
+          // The first element corresponds to the `status`.
+          final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+          expect(batchWriteRequest.writes!.length, 1);
+          final GithubGoldStatus updatedDocument =
+              GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
+          expect(updatedDocument.updates, 1);
+
+          // Should not label or comment
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
+
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
+        });
+
         test('new commit, checks complete, no changes detected', () async {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
