@@ -136,7 +136,6 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         } else if (slug == Config.flutterSlug) {
           if (const <String>[
             // Framework test shards that run golden file tests
-            'flutter_driver_android_test',
             'framework',
             'misc',
 
@@ -149,7 +148,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
             'mac_unopt',
 
             // Integration test shards that run golden file tests
-            // TODO(matanlurey): Add here!
+            'flutter_driver_android_test',
           ].any((String shardSubString) => name.contains(shardSubString))) {
             runsGoldenFileTests = true;
           }
