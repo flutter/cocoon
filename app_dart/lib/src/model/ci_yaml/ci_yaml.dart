@@ -288,7 +288,7 @@ class CiYaml {
     final List<Target> filteredTargets = <Target>[];
 
     final ghMqBranch = tryParseGitHubMergeQueueBranch(branch);
-    final realBranch = ghMqBranch.parsed ? ghMqBranch.branch : branch;
+    final realBranch = ghMqBranch == notGitHubMergeQueueBranch ? branch : ghMqBranch.branch;
 
     // 1. Add targets with local definition
     final Iterable<Target> overrideBranchTargets =

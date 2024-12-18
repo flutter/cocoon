@@ -55,7 +55,7 @@ void main() {
       );
       expect(
         tryParseGitHubMergeQueueBranch('master'),
-        (parsed: false, branch: '', pullRequestNumber: -1, sha: ''),
+        notGitHubMergeQueueBranch,
         reason: 'does not parse regular branch',
       );
     });

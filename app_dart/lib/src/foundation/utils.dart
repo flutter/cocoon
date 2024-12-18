@@ -29,11 +29,13 @@ const String kTestOwnerPath = 'TESTOWNERS';
 ({bool parsed, String branch, int pullRequestNumber, String sha}) tryParseGitHubMergeQueueBranch(String branch) {
   final match = _githubMqBranch.firstMatch(branch);
   if (match == null) {
-    return (parsed: false, branch: '', pullRequestNumber: -1, sha: '');
+    return notGitHubMergeQueueBranch;
   }
 
   return (parsed: true, branch: match.group(1)!, pullRequestNumber: int.parse(match.group(2)!), sha: match.group(3)!);
 }
+
+const notGitHubMergeQueueBranch = (parsed: false, branch: '', pullRequestNumber: -1, sha: '');
 
 final _githubMqBranch = RegExp(r'^gh-readonly-queue\/([^/]+)\/pr-(\d+)-([a-fA-F0-9]+)$');
 
