@@ -1134,7 +1134,6 @@ class Scheduler {
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs-and-requested-actions
   Future<bool> processCheckRun(cocoon_checks.CheckRunEvent checkRunEvent) async {
-    // TODO(codefu): Figure out if we're in fusion or not.
     switch (checkRunEvent.action) {
       case 'completed':
         await processCheckRunCompletion(checkRunEvent);
