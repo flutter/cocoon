@@ -2691,7 +2691,39 @@ void foo() {
           'Processing merge_group',
           'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Simulating cancellation of merge group CI targets for @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Cancelling merge group targets.',
+          'Attempting to cancel builds (v2) for git SHA c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Responses from get builds batch request = 1',
+          'Found a response: searchBuilds: {\n'
+              '  builds: {\n'
+              '    id: 123\n'
+              '    builder: {\n'
+              '      project: flutter\n'
+              '      bucket: try\n'
+              '      builder: builder_abc\n'
+              '    }\n'
+              '    input: {\n'
+              '      properties: {\n'
+              '        fields: {bringup : stringValue: true\n'
+              '} \n'
+              '      }\n'
+              '    }\n'
+              '    tags: {\n'
+              '      key: buildset\n'
+              '      value: pr/git/12345\n'
+              '    }\n'
+              '    tags: {\n'
+              '      key: cipd_version\n'
+              '      value: refs/heads/main\n'
+              '    }\n'
+              '    tags: {\n'
+              '      key: github_link\n'
+              '      value: https://github/flutter/flutter/pull/1\n'
+              '    }\n'
+              '  }\n'
+              '}\n'
+              '',
+          'Found 1 builds.',
         ],
       );
     });

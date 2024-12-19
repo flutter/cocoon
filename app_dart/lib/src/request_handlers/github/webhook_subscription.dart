@@ -251,7 +251,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       // into the main branch.
       case 'destroyed':
         log.info('Merge group destroyed for $slug/$headSha');
-        await scheduler.cancelMergeGroupTargets(headSha: headSha);
+        await scheduler.cancelDestroyedMergeGroupTargets(headSha: headSha);
     }
   }
 
