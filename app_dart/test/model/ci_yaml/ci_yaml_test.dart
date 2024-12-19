@@ -282,17 +282,18 @@ void main() {
               ),
             ],
           ),
-          totConfig: totCIYaml,
+          isFusion: true,
         );
         final List<Target> initialTargets = releaseYaml.postsubmitTargets;
         final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
         expect(
           initialTargetNames,
-          containsAll(
-            <String>[
-              'Linux A',
-            ],
-          ),
+          <String>[
+            // This is a non-release target and therefore must run in post-submit in fusion mode.
+            'Linux B',
+            // This is a bringup target and therefore must run in post-submit on a non-release branch.
+            'Mac A',
+          ],
         );
       });
 

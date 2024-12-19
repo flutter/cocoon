@@ -201,7 +201,7 @@ class CiYaml {
       enabledTargets = filterOutdatedTargets(slug, enabledTargets, totPostsubmitTargetNames);
     }
     // filter if release_build true if current branch is a release candidate branch, or a fusion tree.
-    enabledTargets = _filterReleaseBuildTargets(enabledTargets);
+    enabledTargets = _selectTargetsForBranch(enabledTargets);
     return enabledTargets;
   }
 
@@ -222,20 +222,33 @@ class CiYaml {
     return filteredTargets;
   }
 
-  /// Filters targets with release_build = true on release candidate branches and post submit in fusion trees.
-  List<Target> _filterReleaseBuildTargets(List<Target> targets) {
-    final List<Target> results = <Target>[];
-    final bool releaseBranch = branch.contains(RegExp('^flutter-'));
-    if (!releaseBranch && !isFusion) {
-      return targets;
-    }
-    for (Target target in targets) {
-      final Map<String, Object> properties = target.getProperties();
-      if (!properties.containsKey('release_build') || !(properties['release_build'] as bool)) {
-        if (!target.value.bringup) results.add(target);
+  /// Pick targets out of the given [targets] list that should be run for the
+  /// branch that's being tested.
+  List<Target> _selectTargetsForBranch(List<Target> targets) {
+    final isReleaseBranch = branch.contains(RegExp('^flutter-'));
+
+    if (isReleaseBranch) {
+      // For release branches we don't want to run release targets or bringup
+      // targets because they are built outside of Cocoon. This applies in both
+      // fusion and non-fusion repos.
+      return [...targets
+        .where((target) => !target.isReleaseBuildTarget && !target.isBringupTarget)
+      ];
+    } else {
+      // For non-release branches we also want to include bringup targets.
+      // However, there's a difference between fusion and non-fusion repos.
+      if (isFusion) {
+        // Fusion repos run release targets in the MQ, so we only need to
+        // schedule non-release targets in post-submit.
+        return targets
+          .where((target) => !target.isReleaseBuildTarget)
+          .toList();
+      } else {
+        // Non-fusion repos run all targets in post-submit. There's no MQ to run
+        // release builds prior to post-submit.
+        return targets;
       }
     }
-    return results;
   }
 
   /// Filters targets that were removed from main. [slug] is the gihub
