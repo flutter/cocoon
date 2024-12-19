@@ -172,7 +172,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       return 1;
     }
 
-    final Target target = ciYaml.presubmitTargets().where((element) => element.value.name == builderName).single;
+    final target = targets.singleWhere((element) => element.value.name == builderName);
     final Map<String, Object> properties = target.getProperties();
     if (!properties.containsKey('presubmit_max_attempts')) {
       return 1;
