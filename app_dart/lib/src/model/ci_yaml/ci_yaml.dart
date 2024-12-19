@@ -238,7 +238,7 @@ class CiYaml {
       if (isFusion) {
         // Fusion repos run release targets in the MQ, so we only need to
         // schedule non-release targets in post-submit.
-        return targets.where((target) => !target.isReleaseBuildTarget).toList();
+        return [...targets.where((target) => !target.isReleaseBuildTarget)];
       } else {
         // Non-fusion repos run all targets in post-submit. There's no MQ to run
         // release builds prior to post-submit.
