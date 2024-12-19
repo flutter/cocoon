@@ -282,6 +282,40 @@ void main() {
               ),
             ],
           ),
+          totConfig: totCIYaml,
+        );
+        final List<Target> initialTargets = releaseYaml.postsubmitTargets;
+        final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
+        expect(
+          initialTargetNames,
+          containsAll(
+            <String>[
+              'Linux A',
+            ],
+          ),
+        );
+      });
+
+      test('release_build and bringup targets are correctly filtered for postsubmit in fusion mode', () {
+        final CiYaml releaseYaml = CiYaml(
+          type: CiType.any,
+          slug: Config.flutterSlug,
+          branch: 'main',
+          config: pb.SchedulerConfig(
+            targets: <pb.Target>[
+              pb.Target(
+                name: 'Linux A',
+                properties: <String, String>{'release_build': 'true'},
+              ),
+              pb.Target(
+                name: 'Linux B',
+              ),
+              pb.Target(
+                name: 'Mac A', // Should be ignored on release branches
+                bringup: true,
+              ),
+            ],
+          ),
           isFusion: true,
         );
         final List<Target> initialTargets = releaseYaml.postsubmitTargets;
