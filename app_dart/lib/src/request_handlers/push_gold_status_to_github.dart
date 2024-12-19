@@ -135,9 +135,20 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           }
         } else if (slug == Config.flutterSlug) {
           if (const <String>[
-            'flutter_driver_android_test',
+            // Framework test shards that run golden file tests
             'framework',
             'misc',
+
+            // Engine test shards that run golden file tests
+            // Monorepo
+            'linux_android_emulator',
+            'linux_host_engine',
+            'linux_web_engine',
+            'mac_host_engine',
+            'mac_unopt',
+
+            // Integration test shards that run golden file tests
+            'flutter_driver_android_test',
           ].any((String shardSubString) => name.contains(shardSubString))) {
             runsGoldenFileTests = true;
           }
@@ -164,6 +175,9 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           continue;
         }
 
+        // TODO(Piinks): Check after monorepo settles that this accounts for
+        // framework checks added after engine checks complete, there could be a
+        // hole here.
         if (incompleteChecks.isNotEmpty) {
           // If checks on an open PR are running or failing, the gold status
           // should just be pending. Any draft PRs are skipped
