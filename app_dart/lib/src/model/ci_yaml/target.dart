@@ -266,6 +266,15 @@ class Target {
     }
     return null;
   }
+
+  /// Whether this target was marked with `release_build: true` in `.ci.yaml`.
+  bool get isReleaseBuildTarget {
+    final properties = getProperties();
+    return properties.containsKey('release_build') && (properties['release_build'] as bool);
+  }
+
+  /// Whether this target was marked with `bringup: true` in `.ci.yaml`.
+  bool get isBringupTarget => value.bringup;
 }
 
 /// Representation of a Flutter dependency.
