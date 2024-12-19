@@ -159,10 +159,12 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       return 0;
     }
 
-    // TODO(codefu): support fusion
-
+    final targets = [
+      ...ciYaml.presubmitTargets(),
+      if (ciYaml.isFusion) ...ciYaml.presubmitTargets(type: CiType.fusionEngine),
+    ];
     // Do not block on the target not found.
-    if (!ciYaml.presubmitTargets().any((element) => element.value.name == builderName)) {
+    if (!targets.any((element) => element.value.name == builderName)) {
       // do not reschedule
       log.warning('Did not find builder with name: $builderName in ciYaml for ${commit.sha}');
       final List<String> availableBuilderList = ciYaml.presubmitTargets().map((Target e) => e.value.name).toList();
