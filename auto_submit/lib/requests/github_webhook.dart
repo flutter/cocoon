@@ -66,13 +66,6 @@ class GithubWebhook extends RequestHandler {
     final PullRequest pullRequest = PullRequest.fromJson(body[GithubWebhook.pullRequest] as Map<String, dynamic>);
     final String action = body[GithubWebhook.action];
     final User sender = User.fromJson(body[GithubWebhook.sender] as Map<String, dynamic>);
-    final RepositorySlug slug = pullRequest.head!.repo!.slug();
-    if (slug.name == 'flutter' || slug.name == 'engine') {
-      log.info(
-        'Skipping PR ${pullRequest.id} until monorepo merge is finished: https://github.com/flutter/flutter/issues/160451',
-      );
-      throw BadRequestException('Auto-submitting to flutter/flutter & flutter/engine temporarily disabled');
-    }
 
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
     hasRevertLabel =
