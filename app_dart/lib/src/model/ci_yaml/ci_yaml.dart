@@ -231,18 +231,14 @@ class CiYaml {
       // For release branches we don't want to run release targets or bringup
       // targets because they are built outside of Cocoon. This applies in both
       // fusion and non-fusion repos.
-      return [...targets
-        .where((target) => !target.isReleaseBuildTarget && !target.isBringupTarget)
-      ];
+      return [...targets.where((target) => !target.isReleaseBuildTarget && !target.isBringupTarget)];
     } else {
       // For non-release branches we also want to include bringup targets.
       // However, there's a difference between fusion and non-fusion repos.
       if (isFusion) {
         // Fusion repos run release targets in the MQ, so we only need to
         // schedule non-release targets in post-submit.
-        return targets
-          .where((target) => !target.isReleaseBuildTarget)
-          .toList();
+        return targets.where((target) => !target.isReleaseBuildTarget).toList();
       } else {
         // Non-fusion repos run all targets in post-submit. There's no MQ to run
         // release builds prior to post-submit.

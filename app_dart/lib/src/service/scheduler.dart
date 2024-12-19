@@ -236,7 +236,8 @@ class Scheduler {
       log.severe('Failed to add commit ${commit.sha!}: $error');
     }
 
-    log.info('Firestore initial targets created for $commit: ${initialTargets.map((t) => '"${t.value.name}"').join(', ')}');
+    log.info(
+        'Firestore initial targets created for $commit: ${initialTargets.map((t) => '"${t.value.name}"').join(', ')}');
     final firestore_commmit.Commit commitDocument = firestore_commmit.commitToCommitDocument(commit);
     final List<firestore.Task> taskDocuments = firestore.targetsToTaskDocuments(commit, initialTargets);
     final List<Write> writes = documentsToWrites([...taskDocuments, commitDocument], exists: false);
