@@ -567,8 +567,11 @@ class Scheduler {
       ),
     );
 
+    // If the repo is not fusion, it doesn't run anything in the MQ, so just
+    // close the ci.yaml validation and merge group guard.
     if (!isFusion) {
-      await simulateMergeGroupUnlock(mergeGroup, slug, ciValidationCheckRun, headSha, lock);
+      await closeCiYamlCheckRun('MQ $slug/$headSha', null, slug, ciValidationCheckRun);
+      await unlockMergeGroupChecks(slug, headSha, lock, null);
       return;
     }
 
@@ -674,36 +677,6 @@ class Scheduler {
     bool filter(Target target) =>
         target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon;
     return [...inner.presubmitTargets.where(filter)];
-  }
-
-  /// Pretends the merge group check took 1 minute to run.
-  Future<void> simulateMergeGroupUnlock(
-    cocoon_checks.MergeGroup mergeGroup,
-    RepositorySlug slug,
-    CheckRun ciValidationCheckRun,
-    String headSha,
-    CheckRun lock,
-  ) async {
-    await Future<void>.delayed(debugCheckPretendDelay);
-
-    final conclusion =
-        mergeGroup.headCommit.message.contains('MQ_FAIL') ? CheckRunConclusion.failure : CheckRunConclusion.success;
-
-    await githubChecksService.githubChecksUtil.updateCheckRun(
-      config,
-      slug,
-      ciValidationCheckRun,
-      status: CheckRunStatus.completed,
-      conclusion: conclusion,
-    );
-
-    await unlockMergeGroupChecks(
-      slug,
-      headSha,
-      lock,
-      conclusion == CheckRunConclusion.success ? null : 'Some checks failed',
-    );
-    log.info('Finished Simulating merge group checks for @ $headSha');
   }
 
   Future<void> cancelMergeGroupTargets({
