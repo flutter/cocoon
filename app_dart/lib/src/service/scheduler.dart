@@ -205,7 +205,7 @@ class Scheduler {
       // Note on post submit targets: CiYaml filters out release_true for release branches and fusion trees
     }
 
-    final List<Task> tasks = [...targetsToTask(commit, initialTargets)];
+    final List<Task> tasks = [...targetsToTasks(commit, initialTargets)];
 
     final List<Tuple<Target, Task, int>> toBeScheduled = <Tuple<Target, Task, int>>[];
     for (Target target in initialTargets) {
@@ -225,6 +225,7 @@ class Scheduler {
 
     // Datastore must be written to generate task keys
     try {
+      log.info('Datastore tasks created for $commit: ${tasks.map((t) => '"${t.name}"').join(', ')}');
       await datastore.withTransaction<void>((Transaction transaction) async {
         transaction.queueMutations(inserts: <Commit>[commit]);
         transaction.queueMutations(inserts: tasks);
@@ -235,6 +236,9 @@ class Scheduler {
       log.severe('Failed to add commit ${commit.sha!}: $error');
     }
 
+    log.info(
+      'Firestore initial targets created for $commit: ${initialTargets.map((t) => '"${t.value.name}"').join(', ')}',
+    );
     final firestore_commmit.Commit commitDocument = firestore_commmit.commitToCommitDocument(commit);
     final List<firestore.Task> taskDocuments = firestore.targetsToTaskDocuments(commit, initialTargets);
     final List<Write> writes = documentsToWrites([...taskDocuments, commitDocument], exists: false);
@@ -246,6 +250,7 @@ class Scheduler {
       log.warning('Failed to add to Firestore: $error');
     }
 
+    log.info('Immediately scheduled tasks for $commit: ${toBeScheduled.map((t) => '"${t.second.name}"').join(', ')}');
     await _batchScheduleBuilds(commit, toBeScheduled);
     await _uploadToBigQuery(commit);
   }
@@ -254,16 +259,21 @@ class Scheduler {
   ///
   /// Each batch request contains [Config.batchSize] builds to be scheduled.
   Future<void> _batchScheduleBuilds(Commit commit, List<Tuple<Target, Task, int>> toBeScheduled) async {
-    log.info('Batching ${toBeScheduled.length} for ${commit.sha}');
+    final batchLog = StringBuffer(
+      'Scheduling ${toBeScheduled.length} tasks in batches for ${commit.sha} as follows:\n',
+    );
     final List<Future<void>> futures = <Future<void>>[];
     for (int i = 0; i < toBeScheduled.length; i += config.batchSize) {
+      final batch = toBeScheduled.sublist(i, min(i + config.batchSize, toBeScheduled.length));
+      batchLog.writeln('  - ${batch.map((t) => '"${t.second.name}"').join(', ')}');
       futures.add(
         luciBuildService.schedulePostsubmitBuilds(
           commit: commit,
-          toBeScheduled: toBeScheduled.sublist(i, min(i + config.batchSize, toBeScheduled.length)),
+          toBeScheduled: batch,
         ),
       );
     }
+    log.info(batchLog);
     await Future.wait<void>(futures);
   }
 

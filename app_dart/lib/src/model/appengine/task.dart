@@ -440,7 +440,7 @@ class Task extends Model<int> {
   }
 }
 
-Iterable<Task> targetsToTask(Commit commit, List<Target> targets) =>
+Iterable<Task> targetsToTasks(Commit commit, List<Target> targets) =>
     targets.map((Target target) => Task.fromTarget(commit: commit, target: target));
 
 /// The serialized representation of a [Task].
