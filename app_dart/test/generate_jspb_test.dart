@@ -29,8 +29,10 @@ void main() {
 
   test('generate with three args', () async {
     mockClient = MockClient((request) async {
-      expect(request.url,
-          Uri.parse('https://raw.githubusercontent.com/flutter/flutter/flutter/abcde/engine/src/.ci.yaml'));
+      expect(
+        request.url,
+        Uri.parse('https://raw.githubusercontent.com/flutter/flutter/flutter/abcde/engine/src/.ci.yaml'),
+      );
       return http.Response(fakeCiYaml, 200);
     });
     await gen_jspb.main(['flutter/flutter', 'abcde', 'engine/src/.ci.yaml']);
