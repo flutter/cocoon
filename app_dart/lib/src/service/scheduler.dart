@@ -683,7 +683,7 @@ class Scheduler {
   Future<void> cancelDestroyedMergeGroupTargets({
     required String headSha,
   }) async {
-    log.info('Cancelling merge group targets.');
+    log.info('Cancelling merge group targets for $headSha');
     await luciBuildService.cancelBuildsBySha(
       sha: headSha,
       reason: 'Merge group was destroyed',

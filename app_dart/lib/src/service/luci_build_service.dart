@@ -366,8 +366,6 @@ class LuciBuildService {
   }
 
   /// Cancels all the current builds on [pullRequest] with [reason].
-  ///
-  /// Builds are queried based on the [RepositorySlug] and pull request number.
   Future<void> cancelBuilds({
     required github.PullRequest pullRequest,
     required String reason,
@@ -408,24 +406,23 @@ class LuciBuildService {
   }
 
   /// Cancels all the current builds against the give [sha] with [reason].
-  ///
-  /// Builds are queried based on the [RepositorySlug] and git SHA.
   Future<void> cancelBuildsBySha({
     required String sha,
     required String reason,
   }) async {
-    log.info('Attempting to cancel builds (v2) for git SHA $sha');
+    log.info('Attempting to cancel builds (v2) for git SHA $sha because $reason');
 
-    final Iterable<bbv2.Build> builds = await getProdBuilds(sha: sha);
-    log.info('Found ${builds.length} builds.');
+    final builds = await getProdBuilds(sha: sha);
 
     if (builds.isEmpty) {
-      log.warning('No builds were found for SHA $sha.');
+      log.warning('Will not request cancellation from LUCI.');
       return;
     }
 
-    final List<bbv2.BatchRequest_Request> requests = <bbv2.BatchRequest_Request>[];
-    for (bbv2.Build build in builds) {
+    log.info('Found ${builds.length} builds.');
+
+    final requests = <bbv2.BatchRequest_Request>[];
+    for (final build in builds) {
       if (build.status == bbv2.Status.SCHEDULED || build.status == bbv2.Status.STARTED) {
         // Scheduled status includes scheduled and pending tasks.
         log.info('Cancelling build with build id ${build.id}.');

@@ -12,6 +12,7 @@ import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' hide Branch;
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:logging/logging.dart';
@@ -432,7 +433,7 @@ void main() {
       );
       bool batchRequestCalled = false;
 
-      Future<bbv2.BatchResponse> getBatchResponse() async {
+      Future<bbv2.BatchResponse> getBatchResponse(_, __) async {
         batchRequestCalled = true;
         fail('Marking a draft ready for review should not trigger new builds');
       }
@@ -455,7 +456,7 @@ void main() {
 
       bool batchRequestCalled = false;
 
-      Future<bbv2.BatchResponse> getBatchResponse() async {
+      Future<bbv2.BatchResponse> getBatchResponse(_, __) async {
         batchRequestCalled = true;
         return bbv2.BatchResponse(
           responses: <bbv2.BatchResponse_Response>[
@@ -2347,7 +2348,7 @@ void foo() {
       const int issueNumber = 12345;
       bool batchRequestCalled = false;
 
-      Future<bbv2.BatchResponse> getBatchResponse() async {
+      Future<bbv2.BatchResponse> getBatchResponse(_, __) async {
         batchRequestCalled = true;
         return bbv2.BatchResponse(
           responses: <bbv2.BatchResponse_Response>[
@@ -2424,7 +2425,7 @@ void foo() {
           ]);
         });
 
-        fakeBuildBucketClient.batchResponse = () => Future<bbv2.BatchResponse>.value(
+        fakeBuildBucketClient.batchResponse = (_, __) => Future<bbv2.BatchResponse>.value(
               bbv2.BatchResponse(
                 responses: <bbv2.BatchResponse_Response>[
                   bbv2.BatchResponse_Response(
@@ -2492,7 +2493,7 @@ void foo() {
       });
 
       test('When synchronized, cancels existing builds and schedules new ones', () async {
-        fakeBuildBucketClient.batchResponse = () => Future<bbv2.BatchResponse>.value(
+        fakeBuildBucketClient.batchResponse = (_, __) => Future<bbv2.BatchResponse>.value(
               bbv2.BatchResponse(
                 responses: <bbv2.BatchResponse_Response>[
                   bbv2.BatchResponse_Response(
@@ -2682,48 +2683,149 @@ void foo() {
         action: 'destroyed',
         message: 'test message',
       );
+
+      final luciLog = <String>[];
+
+      fakeBuildBucketClient.batchResponse = (batchRequest, uri) async {
+        final batchResponseRc = bbv2.BatchResponse.create();
+        final batchResponseResponses = batchResponseRc.responses;
+
+        for (final request in batchRequest.requests) {
+          if (request.hasSearchBuilds()) {
+            final requestSha = request.searchBuilds.predicate.tags.singleWhere((tag) => tag.key == 'buildset').value;
+            luciLog.add('search builds for $requestSha');
+            batchResponseResponses.add(
+              bbv2.BatchResponse_Response(
+                searchBuilds: bbv2.SearchBuildsResponse(
+                  builds: <bbv2.Build>[
+                    for (final status in bbv2.Status.values)
+                      bbv2.Build(
+                        id: Int64(status.value),
+                        status: status,
+                        builder: bbv2.BuilderID(
+                          builder: 'builder_abc',
+                          bucket: 'try',
+                          project: 'flutter',
+                        ),
+                        tags: <bbv2.StringPair>[
+                          bbv2.StringPair(key: 'buildset', value: 'pr/git/12345'),
+                          bbv2.StringPair(key: 'cipd_version', value: 'refs/heads/main'),
+                          bbv2.StringPair(key: 'github_link', value: 'https://github/flutter/flutter/pull/1'),
+                        ],
+                        input: bbv2.Build_Input(
+                          properties: bbv2.Struct(fields: {'bringup': bbv2.Value(stringValue: 'false')}),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          } else if (request.hasCancelBuild()) {
+            final bbv2.CancelBuildRequest cancelBuildRequest = request.cancelBuild;
+            luciLog.add('cancel ${cancelBuildRequest.id}');
+            batchResponseResponses.add(
+              bbv2.BatchResponse_Response(
+                cancelBuild: bbv2.Build(
+                  id: cancelBuildRequest.id,
+                ),
+              ),
+            );
+          } else {
+            throw UnimplementedError();
+          }
+        }
+        return batchResponseRc;
+      };
+
       await tester.post(webhook);
       await subscription.cancel();
 
       expect(
-        records,
+        luciLog,
         <String>[
+          'search builds for sha/git/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          // Even though there are 8 builds in total, only 2 of them are eligible
+          // for cancellation.
+          'cancel ${bbv2.Status.SCHEDULED.value}',
+          'cancel ${bbv2.Status.STARTED.value}',
+        ],
+      );
+
+      expect(
+        records,
+        [
           'Processing merge_group',
           'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Cancelling merge group targets.',
-          'Attempting to cancel builds (v2) for git SHA c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Cancelling merge group targets for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Attempting to cancel builds (v2) for git SHA c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because Merge group was destroyed',
           'Responses from get builds batch request = 1',
-          'Found a response: searchBuilds: {\n'
-              '  builds: {\n'
-              '    id: 123\n'
-              '    builder: {\n'
-              '      project: flutter\n'
-              '      bucket: try\n'
-              '      builder: builder_abc\n'
-              '    }\n'
-              '    input: {\n'
-              '      properties: {\n'
-              '        fields: {bringup : stringValue: true\n'
-              '} \n'
-              '      }\n'
-              '    }\n'
-              '    tags: {\n'
-              '      key: buildset\n'
-              '      value: pr/git/12345\n'
-              '    }\n'
-              '    tags: {\n'
-              '      key: cipd_version\n'
-              '      value: refs/heads/main\n'
-              '    }\n'
-              '    tags: {\n'
-              '      key: github_link\n'
-              '      value: https://github/flutter/flutter/pull/1\n'
-              '    }\n'
-              '  }\n'
-              '}\n'
-              '',
-          'Found 1 builds.',
+          contains('Found a response: searchBuilds:'),
+          'Found 8 builds.',
+          'Cancelling build with build id 1.',
+          'Cancelling build with build id 2.',
+        ],
+      );
+    });
+
+    test('destroyed with no builds', () async {
+      final records = <String>[];
+      final subscription = log.onRecord.listen((record) {
+        if (record.level >= Level.FINE) {
+          records.add(record.message);
+        }
+      });
+      tester.message = generateMergeGroupMessage(
+        repository: 'flutter/flutter',
+        action: 'destroyed',
+        message: 'test message',
+      );
+
+      final luciLog = <String>[];
+
+      fakeBuildBucketClient.batchResponse = (batchRequest, uri) async {
+        final batchResponseRc = bbv2.BatchResponse.create();
+        final batchResponseResponses = batchResponseRc.responses;
+
+        for (final request in batchRequest.requests) {
+          if (request.hasSearchBuilds()) {
+            final requestSha = request.searchBuilds.predicate.tags.singleWhere((tag) => tag.key == 'buildset').value;
+            luciLog.add('search builds for $requestSha');
+            batchResponseResponses.add(
+              bbv2.BatchResponse_Response(
+                searchBuilds: bbv2.SearchBuildsResponse(
+                  builds: <bbv2.Build>[],
+                ),
+              ),
+            );
+          } else {
+            throw UnimplementedError();
+          }
+        }
+        return batchResponseRc;
+      };
+
+      await tester.post(webhook);
+      await subscription.cancel();
+
+      expect(
+        luciLog,
+        <String>[
+          'search builds for sha/git/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+        ],
+      );
+
+      expect(
+        records,
+        [
+          'Processing merge_group',
+          'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Cancelling merge group targets for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Attempting to cancel builds (v2) for git SHA c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because Merge group was destroyed',
+          'Responses from get builds batch request = 1',
+          contains('Found a response: searchBuilds:'),
+          'Will not request cancellation from LUCI.',
         ],
       );
     });
