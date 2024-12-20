@@ -164,6 +164,7 @@ void main() {
       Int64(1),
       status: bbv2.Status.SUCCESS,
       userData: userDataMap,
+      number: 63405,
     );
 
     config.db.values[commit.key] = commit;
@@ -222,7 +223,7 @@ void main() {
     expect(firestoreTask!.status, firestore.Task.statusInProgress);
     expect(firestoreTask!.attempts, 1);
     expect(await tester.post(handler), Body.empty);
-    expect(firestoreTask!.status, firestore.Task.statusSucceeded);
+    expect(firestoreTask!.status, firestore.Task.statusInProgress);
   });
 
   test('skips task processing when task has already finished', () async {

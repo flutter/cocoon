@@ -248,6 +248,78 @@ void main() {
     ).called(1);
   });
 
+  test('Build rescheduled when in merge queue', () async {
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        rescheduled: true,
+      ),
+    ).thenAnswer((_) async => true);
+    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
+    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 0);
+
+    const Map<String, dynamic> userDataMap = {
+      'repo_owner': 'flutter',
+      'commit_branch': 'main',
+      'commit_sha': 'abc',
+      'repo_name': 'flutter',
+    };
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.INFRA_FAILURE,
+      builder: 'Linux A',
+      userData: userDataMap,
+      extraTags: [bbv2.StringPair(key: LuciBuildService.kMergeQueueKey, value: 'true')],
+    );
+
+    when(
+      mockLuciBuildService.rescheduleBuild(
+        build: anyNamed('build'),
+        builderName: anyNamed('builderName'),
+        rescheduleAttempt: anyNamed('rescheduleAttempt'),
+        userDataMap: anyNamed('userDataMap'),
+      ),
+    ).thenAnswer(
+      (_) async => bbv2.Build(
+        id: Int64(8905920700440101120),
+        builder: bbv2.BuilderID(bucket: 'luci.flutter.prod', project: 'flutter', builder: 'Linux B'),
+      ),
+    );
+
+    /// Create a handler using the mock LuciBuildService instead of the fake.
+    final luciHandler = PresubmitLuciSubscription(
+      cache: CacheService(inMemory: true),
+      config: config,
+      luciBuildService: mockLuciBuildService,
+      githubChecksService: mockGithubChecksService,
+      authProvider: FakeAuthenticationProvider(),
+      scheduler: scheduler,
+    );
+
+    await tester.post(luciHandler);
+    verify(
+      mockLuciBuildService.rescheduleBuild(
+        build: anyNamed('build'),
+        builderName: 'Linux A',
+        rescheduleAttempt: 1,
+        userDataMap: anyNamed('userDataMap'),
+      ),
+    ).called(1);
+    verify(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        userDataMap: anyNamed('userDataMap'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        rescheduled: true,
+      ),
+    ).called(1);
+  });
+
   test('Build not rescheduled if not found in ciYaml list.', () async {
     when(
       mockGithubChecksService.updateCheckStatus(

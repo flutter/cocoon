@@ -1798,6 +1798,16 @@ void main() {
           'projects/flutter-dashboard/topics/build-bucket-presubmit',
         );
 
+        expect(
+          scheduleBuild.tags,
+          contains(
+            bbv2.StringPair(
+              key: 'in_merge_queue',
+              value: 'true',
+            ),
+          ),
+        );
+
         final userDataMap = UserData.decodeUserDataBytes(scheduleBuild.notify.userData);
         expect(userDataMap, <String, dynamic>{
           'repo_owner': 'flutter',
@@ -1820,6 +1830,7 @@ void main() {
           'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
           'is_fusion': bbv2.Value(stringValue: 'true'),
           'git_repo': bbv2.Value(stringValue: 'flaux'),
+          'in_merge_queue': bbv2.Value(boolValue: true),
         });
         expect(dimensions.length, 1);
         expect(dimensions[0].key, 'os');
