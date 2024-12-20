@@ -48,8 +48,8 @@ String generateWebhookEvent({
             "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
             "repo": {
               "id": 1296269,
-              "name": "${repoName ?? "flutter"}",
-              "full_name": "${login ?? "flutter"}/${repoName ?? "flutter"}",
+              "name": "Hello-World",
+              "full_name": "octocat/Hello-World",
               "owner": {
                 "login": "octocat",
                 "id": 1,
