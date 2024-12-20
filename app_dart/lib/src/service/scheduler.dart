@@ -1129,7 +1129,7 @@ class Scheduler {
         if (name == kMergeQueueLockName) {
           final RepositorySlug slug = checkRunEvent.repository!.slug();
           final int checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
-            log.fine('Requested re-run of "$kMergeQueueLockName" for $slug / $checkSuiteId - ignoring');
+          log.fine('Requested re-run of "$kMergeQueueLockName" for $slug / $checkSuiteId - ignoring');
           success = true;
         } else if (name == kCiYamlCheckName) {
           // The CheckRunEvent.checkRun.pullRequests array is empty for this
