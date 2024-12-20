@@ -9,7 +9,11 @@ import 'dart:io';
 import 'package:cocoon_service/protos.dart' as pb;
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
+
+@visibleForTesting
+http.Client Function()? debugHttpClientFactory;
 
 Future<String> githubFileContent(
   RepositorySlug slug,
@@ -22,7 +26,7 @@ Future<String> githubFileContent(
 }
 
 FutureOr<String> getUrl(Uri url) async {
-  final http.Client client = http.Client();
+  final http.Client client = debugHttpClientFactory?.call() ?? http.Client();
   try {
     final http.Response response = await client.get(url);
 
@@ -36,10 +40,10 @@ FutureOr<String> getUrl(Uri url) async {
   }
 }
 
-Future<String> getRemoteConfigContent(String repo, String ref) async {
+Future<String> getRemoteConfigContent(String repo, String ref, String relativePath) async {
   final String configContent = await githubFileContent(
     RepositorySlug('flutter', repo),
-    '.ci.yaml',
+    relativePath,
     ref: ref,
   );
   return configContent;
@@ -51,16 +55,18 @@ String getLocalConfigContent(String path) {
 }
 
 Future<void> main(List<String> args) async {
-  if (args.length != 1 && args.length != 2) {
+  if (args.length != 1 && args.length != 2 && args.length != 3) {
     print('generate_jspb.dart \$local_ci_yaml');
     print('generate_jspb.dart \$repo \$sha');
+    print('generate_jspb.dart \$repo \$sha \$relativePath');
     exit(1);
   }
   String configContent;
-  if (args.length == 2) {
-    configContent = await getRemoteConfigContent(args[0], args[1]);
-  } else {
+  if (args.length == 1) {
     configContent = getLocalConfigContent(args[0]);
+  } else {
+    final String relativePath = args.elementAtOrNull(2) ?? '.ci.yaml';
+    configContent = await getRemoteConfigContent(args[0], args[1], relativePath);
   }
 
   final YamlMap configYaml = loadYaml(configContent) as YamlMap;
