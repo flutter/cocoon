@@ -96,7 +96,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
     final pb.GithubWebhookMessage webhook = pb.GithubWebhookMessage.fromJson(message.data!);
 
-    log.fine('Processing ${webhook.event}');
+    log.info('Processing ${webhook.event}');
     log.finest(webhook.payload);
     switch (webhook.event) {
       case 'pull_request':
@@ -228,21 +228,21 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
     // See the API reference:
     // https://docs.github.com/en/webhooks/webhook-events-and-payloads#merge_group
-    log.fine('Processing $action for merge queue @ $headSha');
+    log.info('Processing $action for merge queue @ $headSha');
     switch (action) {
       // A merge group (a group of PRs to be tested a merged together) was
       // created and Github is requesting checks to be performed before merging
       // into the main branch. Cocoon should kick off CI jobs needed to verify
       // the PR group.
       case 'checks_requested':
-        log.fine('Checks requests for merge queue @ $headSha');
+        log.info('Checks requests for merge queue @ $headSha');
 
         if (!await _shaExistsInGob(slug, headSha)) {
           throw InternalServerError(
             '$slug/$headSha was not found on GoB. Failing so this event can be retried',
           );
         }
-        log.fine('$slug/$headSha was found on GoB mirror. Scheduling merge group tasks');
+        log.info('$slug/$headSha was found on GoB mirror. Scheduling merge group tasks');
         await scheduler.triggerMergeGroupTargets(mergeGroupEvent: mergeGroupEvent);
 
       // A merge group was deleted. This can happen when a PR is pulled from the
@@ -250,7 +250,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       // stopped to save CI resources, as Github will no longer merge this group
       // into the main branch.
       case 'destroyed':
-        log.fine('Merge group destroyed for $slug/$headSha');
+        log.info('Merge group destroyed for $slug/$headSha');
         await scheduler.cancelMergeGroupTargets(headSha: headSha);
     }
   }
