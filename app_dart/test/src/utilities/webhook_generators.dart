@@ -1133,8 +1133,12 @@ PushMessage generateMergeGroupMessage({
   return PushMessage(data: webhookMessage.writeToJson(), messageId: 'abc123');
 }
 
-String generateMergeGroupEventString(
-    {required String action, required String message, required String repository, String? reason}) {
+String generateMergeGroupEventString({
+  required String action,
+  required String message,
+  required String repository,
+  String? reason,
+}) {
   return '''
 {
 "action": "$action",
