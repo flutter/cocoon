@@ -415,7 +415,7 @@ class LuciBuildService {
     final builds = await getProdBuilds(sha: sha);
 
     if (builds.isEmpty) {
-      log.warning('Will not request cancellation from LUCI.');
+      log.info('No builds found. Will not request cancellation from LUCI.');
       return;
     }
 
