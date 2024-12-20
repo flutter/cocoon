@@ -21,20 +21,20 @@ void main() {
 
   test('generate with two args', () async {
     mockClient = MockClient((request) async {
-      expect(request.url, Uri.parse('https://raw.githubusercontent.com/flutter/flutter/flutter/abcde/.ci.yaml'));
+      expect(request.url, Uri.parse('https://raw.githubusercontent.com/flutter/flutter/abcde/.ci.yaml'));
       return http.Response(fakeCiYaml, 200);
     });
-    await gen_jspb.main(['flutter/flutter', 'abcde']);
+    await gen_jspb.main(['flutter', 'abcde']);
   });
 
   test('generate with three args', () async {
     mockClient = MockClient((request) async {
       expect(
         request.url,
-        Uri.parse('https://raw.githubusercontent.com/flutter/flutter/flutter/abcde/engine/src/.ci.yaml'),
+        Uri.parse('https://raw.githubusercontent.com/flutter/flutter/abcde/engine/src/.ci.yaml'),
       );
       return http.Response(fakeCiYaml, 200);
     });
-    await gen_jspb.main(['flutter/flutter', 'abcde', 'engine/src/.ci.yaml']);
+    await gen_jspb.main(['flutter', 'abcde', 'engine/src/.ci.yaml']);
   });
 }
