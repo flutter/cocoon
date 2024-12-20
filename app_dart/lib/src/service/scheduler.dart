@@ -1126,7 +1126,12 @@ class Scheduler {
         log.fine('Rerun requested by GitHub user: ${checkRunEvent.sender?.login}');
         final String? name = checkRunEvent.checkRun!.name;
         bool success = false;
-        if (name == kCiYamlCheckName) {
+        if (name == kMergeQueueLockName) {
+          final RepositorySlug slug = checkRunEvent.repository!.slug();
+          final int checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
+            log.fine('Requested re-run of "$kMergeQueueLockName" for $slug / $checkSuiteId - ignoring');
+          success = true;
+        } else if (name == kCiYamlCheckName) {
           // The CheckRunEvent.checkRun.pullRequests array is empty for this
           // event, so we need to find the matching pull request.
           final RepositorySlug slug = checkRunEvent.repository!.slug();
