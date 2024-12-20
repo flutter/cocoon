@@ -2828,7 +2828,7 @@ void foo() {
           'Attempting to cancel builds (v2) for git SHA c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because Merge group was destroyed',
           'Responses from get builds batch request = 1',
           contains('Found a response: searchBuilds:'),
-          'Will not request cancellation from LUCI.',
+          'No builds found. Will not request cancellation from LUCI.',
         ],
       );
     });
