@@ -8,8 +8,7 @@ import 'package:test/test.dart';
 
 import '../bin/generate_jspb.dart' as gen_jspb show main, debugHttpClientFactory;
 
-const String fakeCiYaml =
-'''
+const String fakeCiYaml = '''
 enabled_branches:
   - main
 ''';
@@ -30,7 +29,8 @@ void main() {
 
   test('generate with three args', () async {
     mockClient = MockClient((request) async {
-      expect(request.url, Uri.parse('https://raw.githubusercontent.com/flutter/flutter/flutter/abcde/engine/src/.ci.yaml'));
+      expect(request.url,
+          Uri.parse('https://raw.githubusercontent.com/flutter/flutter/flutter/abcde/engine/src/.ci.yaml'));
       return http.Response(fakeCiYaml, 200);
     });
     await gen_jspb.main(['flutter/flutter', 'abcde', 'engine/src/.ci.yaml']);
