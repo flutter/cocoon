@@ -82,6 +82,11 @@ class LuciBuildService {
   /// LUCI builds that are in merge queues might be retried on flakes.
   static const String kMergeQueueKey = 'in_merge_queue';
 
+  /// How many times to retry tests in the merge queue.
+  ///
+  /// Note: the math for max testing is "<" and starts at 1; hence 3 retries.
+  static const int kMergeQueueMaxRetries = 4;
+
   /// Github labels have a max length of 100, so conserve chars here.
   /// This is currently used by packages repo only.
   /// See: https://github.com/flutter/flutter/issues/130076

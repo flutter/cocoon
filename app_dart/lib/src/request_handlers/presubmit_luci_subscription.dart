@@ -178,7 +178,9 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     final Map<String, Object> properties = target.getProperties();
     if (!properties.containsKey('presubmit_max_attempts')) {
       // Give any test in the merge queue another try... its expensive otherwise.
-      return tags.any((pair) => pair.key == LuciBuildService.kMergeQueueKey) ? 3 : 1;
+      return tags.any((pair) => pair.key == LuciBuildService.kMergeQueueKey)
+          ? LuciBuildService.kMergeQueueMaxRetries
+          : 1;
     }
     return properties['presubmit_max_attempts'] as int;
   }
