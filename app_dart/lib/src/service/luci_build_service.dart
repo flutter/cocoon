@@ -79,6 +79,14 @@ class LuciBuildService {
   static const int kDefaultPriority = 30;
   static const int kRerunPriority = 29;
 
+  /// LUCI builds that are in merge queues might be retried on flakes.
+  static const String kMergeQueueKey = 'in_merge_queue';
+
+  /// How many times to retry tests in the merge queue.
+  ///
+  /// Note: the math for max testing is "<" and starts at 1; hence 3 retries.
+  static const int kMergeQueueMaxRetries = 4;
+
   /// Github labels have a max length of 100, so conserve chars here.
   /// This is currently used by packages repo only.
   /// See: https://github.com/flutter/flutter/issues/130076
@@ -1134,6 +1142,10 @@ class LuciBuildService {
         key: 'current_attempt',
         value: '1',
       ),
+      bbv2.StringPair(
+        key: kMergeQueueKey,
+        value: 'true',
+      ),
     ]);
 
     log.info(
@@ -1157,6 +1169,7 @@ class LuciBuildService {
     final cipdExe = 'refs/heads/${mqBranch.branch}';
     processedProperties['exe_cipd_version'] = cipdExe;
     processedProperties['is_fusion'] = 'true';
+    processedProperties[kMergeQueueKey] = true;
     processedProperties['git_repo'] = commit.slug.name;
 
     final propertiesStruct = bbv2.Struct()..mergeFromProto3Json(processedProperties);

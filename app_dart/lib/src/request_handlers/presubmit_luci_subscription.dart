@@ -76,7 +76,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
 
     final List<bbv2.StringPair> tags = build.tags;
 
-    log.fine('Available tags: ${tags.toString()}');
+    log.info('Available tags: $tags');
 
     // Skip status update if we can not get the sha tag.
     if (tags.where((element) => element.key == 'buildset').isEmpty) {
@@ -84,7 +84,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       return Body.empty;
     }
 
-    log.fine('Setting status (${build.status.toString()}) for $builderName');
+    log.fine('Setting status (${build.status}) for $builderName');
 
     if (!pubSubCallBack.hasUserData()) {
       log.info('No user data was found in this request');
@@ -111,6 +111,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
           userDataMap,
           slug,
           builderName,
+          tags,
         );
         if (currentAttempt < maxAttempt) {
           rescheduled = true;
@@ -140,6 +141,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     Map<String, dynamic> userData,
     RepositorySlug slug,
     String builderName,
+    List<bbv2.StringPair> tags,
   ) async {
     final Commit commit = Commit(
       branch: userData['commit_branch'] as String,
@@ -175,7 +177,10 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     final target = targets.singleWhere((element) => element.value.name == builderName);
     final Map<String, Object> properties = target.getProperties();
     if (!properties.containsKey('presubmit_max_attempts')) {
-      return 1;
+      // Give any test in the merge queue another try... its expensive otherwise.
+      return tags.any((pair) => pair.key == LuciBuildService.kMergeQueueKey)
+          ? LuciBuildService.kMergeQueueMaxRetries
+          : 1;
     }
     return properties['presubmit_max_attempts'] as int;
   }

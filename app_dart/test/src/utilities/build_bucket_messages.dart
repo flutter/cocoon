@@ -14,10 +14,11 @@ PushMessage createPushMessage(
   String? project = 'flutter',
   String? bucket = 'try',
   String? builder = 'Windows Engine Drone',
-  int? number = 259942,
+  int number = 259942,
   bbv2.Status? status = bbv2.Status.SCHEDULED,
   Map<String, dynamic>? userData = const {},
   bool? addBuildSet = true,
+  List<bbv2.StringPair> extraTags = const [],
 }) {
   final bbv2.PubSubCallBack pubSubCallBack = createPubSubCallBack(
     id,
@@ -28,6 +29,7 @@ PushMessage createPushMessage(
     status: status,
     userData: userData,
     addBuildSet: addBuildSet,
+    extraTags: extraTags,
   );
 
   final Map<String, dynamic> pubSubCallBackMap = pubSubCallBack.toProto3Json() as Map<String, dynamic>;
@@ -42,10 +44,11 @@ bbv2.PubSubCallBack createPubSubCallBack(
   String? project = 'flutter',
   String? bucket = 'try',
   String? builder = 'Windows Engine Drone',
-  int? number = 259942,
+  int number = 259942,
   bbv2.Status? status = bbv2.Status.SCHEDULED,
   Map<String, dynamic>? userData = const {},
   bool? addBuildSet = true,
+  List<bbv2.StringPair> extraTags = const [],
 }) {
   // this contains BuildsV2PubSub and UserData (List<int>).
   final bbv2.BuildsV2PubSub buildsPubSub = createBuild(
@@ -56,6 +59,7 @@ bbv2.PubSubCallBack createPubSubCallBack(
     number: number,
     status: status,
     addBuildSet: addBuildSet,
+    extraTags: extraTags,
   );
   final List<int>? userDataBytes = UserData.encodeUserDataToBytes(userData!);
   return bbv2.PubSubCallBack(buildPubsub: buildsPubSub, userData: userDataBytes);
@@ -66,9 +70,10 @@ bbv2.BuildsV2PubSub createBuild(
   String? project = 'flutter',
   String? bucket = 'try',
   String? builder = 'Windows Engine Drone',
-  int? number = 259942,
+  int number = 259942,
   bbv2.Status? status = bbv2.Status.SCHEDULED,
   bool? addBuildSet = true,
+  List<bbv2.StringPair> extraTags = const [],
 }) {
   final bbv2.BuildsV2PubSub build = bbv2.BuildsV2PubSub().createEmptyInstance();
   build.mergeFromProto3Json(
@@ -84,6 +89,9 @@ bbv2.BuildsV2PubSub createBuild(
       ),
     ) as Map<String, dynamic>,
   );
+  if (extraTags.isNotEmpty) {
+    build.build.tags.addAll(extraTags);
+  }
   return build;
 }
 
@@ -92,26 +100,26 @@ String createBuildString(
   String? project = 'flutter',
   String? bucket = 'try',
   String? builder = 'Windows Engine Drone',
-  int? number = 259942,
+  int number = 259942,
   bbv2.Status? status = bbv2.Status.SCHEDULED,
   bool? addBuildSet = true,
 }) {
   return '''
   {
   "build":  {
-    "id":  "8746138145094216865",
+    "id":  "$id",
     "builder":  {
-      "project":  "flutter",
-      "bucket":  "try",
-      "builder":  "Linux web_long_running_tests_1_5"
+      "project":  "${project ?? 'flutter'}",
+      "bucket":  "${bucket ?? 'try'}",
+      "builder":  "${builder ?? 'Linux web_long_running_tests_1_5'}"
     },
-    "number":  63405,
+    "number":  $number,
     "createdBy":  "user:flutter-dashboard@appspot.gserviceaccount.com",
     "createTime":  "2024-06-03T15:48:25.490485466Z",
     "startTime":  "2024-06-03T15:48:35.560843535Z",
     "endTime":  "2024-06-03T16:05:18.072809938Z",
     "updateTime":  "2024-06-03T16:05:18.072809938Z",
-    "status":  "SUCCESS",
+    "status":  "${status?.name ?? 'SUCCESS'}",
     "input":  {
       "experiments":  [
         "luci.buildbucket.agent.cipd_installation",
