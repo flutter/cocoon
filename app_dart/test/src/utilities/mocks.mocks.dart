@@ -677,8 +677,8 @@ class _FakeStreamSubscription_60<T> extends _i1.SmartFake implements _i20.Stream
         );
 }
 
-class _FakeBuildBucketClient_61 extends _i1.SmartFake implements _i15.BuildBucketClient {
-  _FakeBuildBucketClient_61(
+class _FakeFusionTester_61 extends _i1.SmartFake implements _i15.FusionTester {
+  _FakeFusionTester_61(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -687,8 +687,8 @@ class _FakeBuildBucketClient_61 extends _i1.SmartFake implements _i15.BuildBucke
         );
 }
 
-class _FakeCacheService_62 extends _i1.SmartFake implements _i15.CacheService {
-  _FakeCacheService_62(
+class _FakeBuildBucketClient_62 extends _i1.SmartFake implements _i15.BuildBucketClient {
+  _FakeBuildBucketClient_62(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -697,8 +697,8 @@ class _FakeCacheService_62 extends _i1.SmartFake implements _i15.CacheService {
         );
 }
 
-class _FakePubSub_63 extends _i1.SmartFake implements _i15.PubSub {
-  _FakePubSub_63(
+class _FakeCacheService_63 extends _i1.SmartFake implements _i15.CacheService {
+  _FakeCacheService_63(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -707,8 +707,8 @@ class _FakePubSub_63 extends _i1.SmartFake implements _i15.PubSub {
         );
 }
 
-class _FakeProcess_64 extends _i1.SmartFake implements _i25.Process {
-  _FakeProcess_64(
+class _FakePubSub_64 extends _i1.SmartFake implements _i15.PubSub {
+  _FakePubSub_64(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -717,8 +717,8 @@ class _FakeProcess_64 extends _i1.SmartFake implements _i25.Process {
         );
 }
 
-class _FakeTableDataInsertAllResponse_65 extends _i1.SmartFake implements _i5.TableDataInsertAllResponse {
-  _FakeTableDataInsertAllResponse_65(
+class _FakeProcess_65 extends _i1.SmartFake implements _i25.Process {
+  _FakeProcess_65(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -727,8 +727,8 @@ class _FakeTableDataInsertAllResponse_65 extends _i1.SmartFake implements _i5.Ta
         );
 }
 
-class _FakeTableDataList_66 extends _i1.SmartFake implements _i5.TableDataList {
-  _FakeTableDataList_66(
+class _FakeTableDataInsertAllResponse_66 extends _i1.SmartFake implements _i5.TableDataInsertAllResponse {
+  _FakeTableDataInsertAllResponse_66(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -737,8 +737,8 @@ class _FakeTableDataList_66 extends _i1.SmartFake implements _i5.TableDataList {
         );
 }
 
-class _FakeUser_67 extends _i1.SmartFake implements _i13.User {
-  _FakeUser_67(
+class _FakeTableDataList_67 extends _i1.SmartFake implements _i5.TableDataList {
+  _FakeTableDataList_67(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -747,8 +747,8 @@ class _FakeUser_67 extends _i1.SmartFake implements _i13.User {
         );
 }
 
-class _FakeCurrentUser_68 extends _i1.SmartFake implements _i13.CurrentUser {
-  _FakeCurrentUser_68(
+class _FakeUser_68 extends _i1.SmartFake implements _i13.User {
+  _FakeUser_68(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -757,8 +757,8 @@ class _FakeCurrentUser_68 extends _i1.SmartFake implements _i13.CurrentUser {
         );
 }
 
-class _FakePublicKey_69 extends _i1.SmartFake implements _i13.PublicKey {
-  _FakePublicKey_69(
+class _FakeCurrentUser_69 extends _i1.SmartFake implements _i13.CurrentUser {
+  _FakeCurrentUser_69(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -767,8 +767,8 @@ class _FakePublicKey_69 extends _i1.SmartFake implements _i13.PublicKey {
         );
 }
 
-class _FakeBeginTransactionResponse_70 extends _i1.SmartFake implements _i21.BeginTransactionResponse {
-  _FakeBeginTransactionResponse_70(
+class _FakePublicKey_70 extends _i1.SmartFake implements _i13.PublicKey {
+  _FakePublicKey_70(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -777,8 +777,8 @@ class _FakeBeginTransactionResponse_70 extends _i1.SmartFake implements _i21.Beg
         );
 }
 
-class _Fake$Empty_71 extends _i1.SmartFake implements _i27.$Empty {
-  _Fake$Empty_71(
+class _FakeBeginTransactionResponse_71 extends _i1.SmartFake implements _i21.BeginTransactionResponse {
+  _FakeBeginTransactionResponse_71(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -787,8 +787,8 @@ class _Fake$Empty_71 extends _i1.SmartFake implements _i27.$Empty {
         );
 }
 
-class _FakeListDocumentsResponse_72 extends _i1.SmartFake implements _i21.ListDocumentsResponse {
-  _FakeListDocumentsResponse_72(
+class _Fake$Empty_72 extends _i1.SmartFake implements _i27.$Empty {
+  _Fake$Empty_72(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -797,8 +797,8 @@ class _FakeListDocumentsResponse_72 extends _i1.SmartFake implements _i21.ListDo
         );
 }
 
-class _FakeListCollectionIdsResponse_73 extends _i1.SmartFake implements _i21.ListCollectionIdsResponse {
-  _FakeListCollectionIdsResponse_73(
+class _FakeListDocumentsResponse_73 extends _i1.SmartFake implements _i21.ListDocumentsResponse {
+  _FakeListDocumentsResponse_73(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -807,8 +807,8 @@ class _FakeListCollectionIdsResponse_73 extends _i1.SmartFake implements _i21.Li
         );
 }
 
-class _FakePartitionQueryResponse_74 extends _i1.SmartFake implements _i21.PartitionQueryResponse {
-  _FakePartitionQueryResponse_74(
+class _FakeListCollectionIdsResponse_74 extends _i1.SmartFake implements _i21.ListCollectionIdsResponse {
+  _FakeListCollectionIdsResponse_74(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -817,8 +817,8 @@ class _FakePartitionQueryResponse_74 extends _i1.SmartFake implements _i21.Parti
         );
 }
 
-class _FakeWriteResponse_75 extends _i1.SmartFake implements _i21.WriteResponse {
-  _FakeWriteResponse_75(
+class _FakePartitionQueryResponse_75 extends _i1.SmartFake implements _i21.PartitionQueryResponse {
+  _FakePartitionQueryResponse_75(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -827,8 +827,8 @@ class _FakeWriteResponse_75 extends _i1.SmartFake implements _i21.WriteResponse 
         );
 }
 
-class _FakeStagingConclusion_76 extends _i1.SmartFake implements _i28.StagingConclusion {
-  _FakeStagingConclusion_76(
+class _FakeWriteResponse_76 extends _i1.SmartFake implements _i21.WriteResponse {
+  _FakeWriteResponse_76(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -837,8 +837,8 @@ class _FakeStagingConclusion_76 extends _i1.SmartFake implements _i28.StagingCon
         );
 }
 
-class _FakeEntry_77<T> extends _i1.SmartFake implements _i29.Entry<T> {
-  _FakeEntry_77(
+class _FakeStagingConclusion_77 extends _i1.SmartFake implements _i28.StagingConclusion {
+  _FakeStagingConclusion_77(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -847,8 +847,18 @@ class _FakeEntry_77<T> extends _i1.SmartFake implements _i29.Entry<T> {
         );
 }
 
-class _FakeCache_78<T> extends _i1.SmartFake implements _i29.Cache<T> {
-  _FakeCache_78(
+class _FakeEntry_78<T> extends _i1.SmartFake implements _i29.Entry<T> {
+  _FakeEntry_78(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeCache_79<T> extends _i1.SmartFake implements _i29.Cache<T> {
+  _FakeCache_79(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -5770,9 +5780,18 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
   }
 
   @override
+  _i15.FusionTester get fusionTester => (super.noSuchMethod(
+        Invocation.getter(#fusionTester),
+        returnValue: _FakeFusionTester_61(
+          this,
+          Invocation.getter(#fusionTester),
+        ),
+      ) as _i15.FusionTester);
+
+  @override
   _i15.BuildBucketClient get buildBucketClient => (super.noSuchMethod(
         Invocation.getter(#buildBucketClient),
-        returnValue: _FakeBuildBucketClient_61(
+        returnValue: _FakeBuildBucketClient_62(
           this,
           Invocation.getter(#buildBucketClient),
         ),
@@ -5790,7 +5809,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
   @override
   _i15.CacheService get cache => (super.noSuchMethod(
         Invocation.getter(#cache),
-        returnValue: _FakeCacheService_62(
+        returnValue: _FakeCacheService_63(
           this,
           Invocation.getter(#cache),
         ),
@@ -5853,7 +5872,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
   @override
   _i15.PubSub get pubsub => (super.noSuchMethod(
         Invocation.getter(#pubsub),
-        returnValue: _FakePubSub_63(
+        returnValue: _FakePubSub_64(
           this,
           Invocation.getter(#pubsub),
         ),
@@ -5949,11 +5968,18 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
       ) as _i20.Future<Iterable<_i8.Build>>);
 
   @override
-  _i20.Future<Iterable<_i8.Build>> getProdBuilds({String? builderName}) => (super.noSuchMethod(
+  _i20.Future<Iterable<_i8.Build>> getProdBuilds({
+    String? builderName,
+    String? sha,
+  }) =>
+      (super.noSuchMethod(
         Invocation.method(
           #getProdBuilds,
           [],
-          {#builderName: builderName},
+          {
+            #builderName: builderName,
+            #sha: sha,
+          },
         ),
         returnValue: _i20.Future<Iterable<_i8.Build>>.value(<_i8.Build>[]),
       ) as _i20.Future<Iterable<_i8.Build>>);
@@ -6007,6 +6033,24 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
           [],
           {
             #pullRequest: pullRequest,
+            #reason: reason,
+          },
+        ),
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
+
+  @override
+  _i20.Future<void> cancelBuildsBySha({
+    required String? sha,
+    required String? reason,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #cancelBuildsBySha,
+          [],
+          {
+            #sha: sha,
             #reason: reason,
           },
         ),
@@ -6275,7 +6319,7 @@ class MockProcessManager extends _i1.Mock implements _i46.ProcessManager {
             #mode: mode,
           },
         ),
-        returnValue: _i20.Future<_i25.Process>.value(_FakeProcess_64(
+        returnValue: _i20.Future<_i25.Process>.value(_FakeProcess_65(
           this,
           Invocation.method(
             #start,
@@ -6543,7 +6587,7 @@ class MockTabledataResource extends _i1.Mock implements _i5.TabledataResource {
           ],
           {#$fields: $fields},
         ),
-        returnValue: _i20.Future<_i5.TableDataInsertAllResponse>.value(_FakeTableDataInsertAllResponse_65(
+        returnValue: _i20.Future<_i5.TableDataInsertAllResponse>.value(_FakeTableDataInsertAllResponse_66(
           this,
           Invocation.method(
             #insertAll,
@@ -6587,7 +6631,7 @@ class MockTabledataResource extends _i1.Mock implements _i5.TabledataResource {
             #$fields: $fields,
           },
         ),
-        returnValue: _i20.Future<_i5.TableDataList>.value(_FakeTableDataList_66(
+        returnValue: _i20.Future<_i5.TableDataList>.value(_FakeTableDataList_67(
           this,
           Invocation.method(
             #list,
@@ -6632,7 +6676,7 @@ class MockUsersService extends _i1.Mock implements _i13.UsersService {
           #getUser,
           [name],
         ),
-        returnValue: _i20.Future<_i13.User>.value(_FakeUser_67(
+        returnValue: _i20.Future<_i13.User>.value(_FakeUser_68(
           this,
           Invocation.method(
             #getUser,
@@ -6665,7 +6709,7 @@ class MockUsersService extends _i1.Mock implements _i13.UsersService {
             #bio: bio,
           },
         ),
-        returnValue: _i20.Future<_i13.CurrentUser>.value(_FakeCurrentUser_68(
+        returnValue: _i20.Future<_i13.CurrentUser>.value(_FakeCurrentUser_69(
           this,
           Invocation.method(
             #editCurrentUser,
@@ -6703,7 +6747,7 @@ class MockUsersService extends _i1.Mock implements _i13.UsersService {
           #getCurrentUser,
           [],
         ),
-        returnValue: _i20.Future<_i13.CurrentUser>.value(_FakeCurrentUser_68(
+        returnValue: _i20.Future<_i13.CurrentUser>.value(_FakeCurrentUser_69(
           this,
           Invocation.method(
             #getCurrentUser,
@@ -6850,7 +6894,7 @@ class MockUsersService extends _i1.Mock implements _i13.UsersService {
           #createPublicKey,
           [key],
         ),
-        returnValue: _i20.Future<_i13.PublicKey>.value(_FakePublicKey_69(
+        returnValue: _i20.Future<_i13.PublicKey>.value(_FakePublicKey_70(
           this,
           Invocation.method(
             #createPublicKey,
@@ -6930,7 +6974,7 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock implements _i21.Pr
           ],
           {#$fields: $fields},
         ),
-        returnValue: _i20.Future<_i21.BeginTransactionResponse>.value(_FakeBeginTransactionResponse_70(
+        returnValue: _i20.Future<_i21.BeginTransactionResponse>.value(_FakeBeginTransactionResponse_71(
           this,
           Invocation.method(
             #beginTransaction,
@@ -7029,7 +7073,7 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock implements _i21.Pr
             #$fields: $fields,
           },
         ),
-        returnValue: _i20.Future<_i27.$Empty>.value(_Fake$Empty_71(
+        returnValue: _i20.Future<_i27.$Empty>.value(_Fake$Empty_72(
           this,
           Invocation.method(
             #delete,
@@ -7108,7 +7152,7 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock implements _i21.Pr
             #$fields: $fields,
           },
         ),
-        returnValue: _i20.Future<_i21.ListDocumentsResponse>.value(_FakeListDocumentsResponse_72(
+        returnValue: _i20.Future<_i21.ListDocumentsResponse>.value(_FakeListDocumentsResponse_73(
           this,
           Invocation.method(
             #list,
@@ -7145,7 +7189,7 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock implements _i21.Pr
           ],
           {#$fields: $fields},
         ),
-        returnValue: _i20.Future<_i21.ListCollectionIdsResponse>.value(_FakeListCollectionIdsResponse_73(
+        returnValue: _i20.Future<_i21.ListCollectionIdsResponse>.value(_FakeListCollectionIdsResponse_74(
           this,
           Invocation.method(
             #listCollectionIds,
@@ -7189,7 +7233,7 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock implements _i21.Pr
             #$fields: $fields,
           },
         ),
-        returnValue: _i20.Future<_i21.ListDocumentsResponse>.value(_FakeListDocumentsResponse_72(
+        returnValue: _i20.Future<_i21.ListDocumentsResponse>.value(_FakeListDocumentsResponse_73(
           this,
           Invocation.method(
             #listDocuments,
@@ -7226,7 +7270,7 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock implements _i21.Pr
           ],
           {#$fields: $fields},
         ),
-        returnValue: _i20.Future<_i21.PartitionQueryResponse>.value(_FakePartitionQueryResponse_74(
+        returnValue: _i20.Future<_i21.PartitionQueryResponse>.value(_FakePartitionQueryResponse_75(
           this,
           Invocation.method(
             #partitionQuery,
@@ -7298,7 +7342,7 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock implements _i21.Pr
           ],
           {#$fields: $fields},
         ),
-        returnValue: _i20.Future<_i27.$Empty>.value(_Fake$Empty_71(
+        returnValue: _i20.Future<_i27.$Empty>.value(_Fake$Empty_72(
           this,
           Invocation.method(
             #rollback,
@@ -7363,7 +7407,7 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock implements _i21.Pr
           ],
           {#$fields: $fields},
         ),
-        returnValue: _i20.Future<_i21.WriteResponse>.value(_FakeWriteResponse_75(
+        returnValue: _i20.Future<_i21.WriteResponse>.value(_FakeWriteResponse_76(
           this,
           Invocation.method(
             #write,
@@ -7449,7 +7493,7 @@ class MockCallbacks extends _i1.Mock implements _i47.Callbacks {
             #conclusion: conclusion,
           },
         ),
-        returnValue: _i20.Future<_i28.StagingConclusion>.value(_FakeStagingConclusion_76(
+        returnValue: _i20.Future<_i28.StagingConclusion>.value(_FakeStagingConclusion_77(
           this,
           Invocation.method(
             #markCheckRunConclusion,
@@ -7578,7 +7622,7 @@ class MockCache extends _i1.Mock implements _i29.Cache<_i40.Uint8List> {
           #[],
           [key],
         ),
-        returnValue: _FakeEntry_77<_i40.Uint8List>(
+        returnValue: _FakeEntry_78<_i40.Uint8List>(
           this,
           Invocation.method(
             #[],
@@ -7593,7 +7637,7 @@ class MockCache extends _i1.Mock implements _i29.Cache<_i40.Uint8List> {
           #withPrefix,
           [prefix],
         ),
-        returnValue: _FakeCache_78<_i40.Uint8List>(
+        returnValue: _FakeCache_79<_i40.Uint8List>(
           this,
           Invocation.method(
             #withPrefix,
@@ -7608,7 +7652,7 @@ class MockCache extends _i1.Mock implements _i29.Cache<_i40.Uint8List> {
           #withCodec,
           [codec],
         ),
-        returnValue: _FakeCache_78<S>(
+        returnValue: _FakeCache_79<S>(
           this,
           Invocation.method(
             #withCodec,
@@ -7623,7 +7667,7 @@ class MockCache extends _i1.Mock implements _i29.Cache<_i40.Uint8List> {
           #withTTL,
           [ttl],
         ),
-        returnValue: _FakeCache_78<_i40.Uint8List>(
+        returnValue: _FakeCache_79<_i40.Uint8List>(
           this,
           Invocation.method(
             #withTTL,

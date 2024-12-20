@@ -222,7 +222,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
 
     final mergeGroupEvent = MergeGroupEvent.fromJson(request);
-    final MergeGroupEvent(:mergeGroup, :action) = mergeGroupEvent;
+    final MergeGroupEvent(:mergeGroup, :action, :reason) = mergeGroupEvent;
     final headSha = mergeGroup.headSha;
     final slug = mergeGroupEvent.repository!.slug();
 
@@ -250,8 +250,14 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       // stopped to save CI resources, as Github will no longer merge this group
       // into the main branch.
       case 'destroyed':
-        log.info('Merge group destroyed for $slug/$headSha');
-        await scheduler.cancelMergeGroupTargets(headSha: headSha);
+        log.info('Merge group destroyed for $slug/$headSha because it was $reason.');
+        if (reason == 'invalidated' || reason == 'dequeued') {
+          await scheduler.cancelDestroyedMergeGroupTargets(headSha: headSha);
+        } else if (reason == 'merged') {
+          log.info('Merge group for $slug/$headSha was merged successfully.');
+        } else {
+          log.warning('Unrecognized reason for merge group destroyed event: $reason');
+        }
     }
   }
 

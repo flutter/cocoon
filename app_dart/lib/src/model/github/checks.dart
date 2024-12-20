@@ -68,6 +68,7 @@ class MergeGroupEvent extends HookEvent {
   MergeGroupEvent({
     required this.action,
     required this.mergeGroup,
+    this.reason,
     this.repository,
     this.sender,
   });
@@ -75,6 +76,23 @@ class MergeGroupEvent extends HookEvent {
   factory MergeGroupEvent.fromJson(Map<String, dynamic> input) => _$MergeGroupEventFromJson(input);
 
   String action;
+
+  /// Possible reasons for the 'destroyed' event.
+  static const String merged = 'merged';
+  static const String invalidated = 'invalidated';
+  static const String dequeued = 'dequeued';
+  static const destroyReasons = <String>[merged, invalidated, dequeued];
+
+  /// If [action] is "destroyed", explains why the merge group is being destroyed.
+  ///
+  /// The group could have been merged, removed from the queue (dequeued), or
+  /// invalidated by an earlier queue entry being dequeued (invalidated).
+  ///
+  /// Can be one of: merged, invalidated, dequeued.
+  ///
+  /// If [action] is not "destroyed", this field is null.
+  String? reason;
+
   MergeGroup mergeGroup;
   Repository? repository;
   User? sender;

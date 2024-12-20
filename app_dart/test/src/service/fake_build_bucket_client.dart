@@ -24,7 +24,12 @@ class FakeBuildBucketClient extends BuildBucketClient {
 
   Future<bbv2.Build>? scheduleBuildResponse;
   Future<bbv2.SearchBuildsResponse>? searchBuildsResponse;
-  Future<bbv2.BatchResponse> Function()? batchResponse;
+
+  Future<bbv2.BatchResponse>? Function(
+    bbv2.BatchRequest request,
+    String buildBucketUri,
+  )? batchResponse;
+
   Future<bbv2.Build>? cancelBuildResponse;
   Future<bbv2.Build>? getBuildResponse;
   Future<bbv2.ListBuildersResponse>? listBuildersResponse;
@@ -101,8 +106,9 @@ class FakeBuildBucketClient extends BuildBucketClient {
     bbv2.BatchRequest request, {
     String buildBucketUri = 'https://localhost/builds',
   }) async {
-    if (batchResponse != null) {
-      return batchResponse!();
+    final customResponse = batchResponse?.call(request, buildBucketUri);
+    if (customResponse != null) {
+      return customResponse;
     }
 
     final bbv2.BatchResponse batchResponseRc = bbv2.BatchResponse.create();

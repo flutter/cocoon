@@ -679,12 +679,15 @@ class Scheduler {
     return [...inner.presubmitTargets.where(filter)];
   }
 
-  Future<void> cancelMergeGroupTargets({
+  /// Cancels builds for a destroyed merge group.
+  Future<void> cancelDestroyedMergeGroupTargets({
     required String headSha,
   }) async {
-    // TODO(yjbanov): there's no actual LUCI jobs to cancel, so for now just log
-    //                and move on.
-    log.info('Simulating cancellation of merge group CI targets for @ $headSha');
+    log.info('Cancelling merge group targets for $headSha');
+    await luciBuildService.cancelBuildsBySha(
+      sha: headSha,
+      reason: 'Merge group was destroyed',
+    );
   }
 
   /// Pushes the required "Merge Queue Guard" check to the merge queue, which

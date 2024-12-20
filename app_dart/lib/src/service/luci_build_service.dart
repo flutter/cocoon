@@ -162,8 +162,15 @@ class LuciBuildService {
   /// [builderName].
   Future<Iterable<bbv2.Build>> getProdBuilds({
     String? builderName,
+    String? sha,
   }) async {
-    final List<bbv2.StringPair> tags = [];
+    final List<bbv2.StringPair> tags = [
+      if (sha != null)
+        bbv2.StringPair(
+          key: 'buildset',
+          value: 'sha/git/$sha',
+        ),
+    ];
     return getBuilds(
       builderName: builderName,
       bucket: 'prod',
@@ -359,9 +366,6 @@ class LuciBuildService {
   }
 
   /// Cancels all the current builds on [pullRequest] with [reason].
-  ///
-  /// Builds are queried based on the [RepositorySlug] and pull request number.
-  //
   Future<void> cancelBuilds({
     required github.PullRequest pullRequest,
     required String reason,
@@ -382,6 +386,43 @@ class LuciBuildService {
 
     final List<bbv2.BatchRequest_Request> requests = <bbv2.BatchRequest_Request>[];
     for (bbv2.Build build in builds) {
+      if (build.status == bbv2.Status.SCHEDULED || build.status == bbv2.Status.STARTED) {
+        // Scheduled status includes scheduled and pending tasks.
+        log.info('Cancelling build with build id ${build.id}.');
+        requests.add(
+          bbv2.BatchRequest_Request(
+            cancelBuild: bbv2.CancelBuildRequest(
+              id: build.id,
+              summaryMarkdown: reason,
+            ),
+          ),
+        );
+      }
+    }
+
+    if (requests.isNotEmpty) {
+      await buildBucketClient.batch(bbv2.BatchRequest(requests: requests));
+    }
+  }
+
+  /// Cancels all the current builds against the give [sha] with [reason].
+  Future<void> cancelBuildsBySha({
+    required String sha,
+    required String reason,
+  }) async {
+    log.info('Attempting to cancel builds (v2) for git SHA $sha because $reason');
+
+    final builds = await getProdBuilds(sha: sha);
+
+    if (builds.isEmpty) {
+      log.warning('Will not request cancellation from LUCI.');
+      return;
+    }
+
+    log.info('Found ${builds.length} builds.');
+
+    final requests = <bbv2.BatchRequest_Request>[];
+    for (final build in builds) {
       if (build.status == bbv2.Status.SCHEDULED || build.status == bbv2.Status.STARTED) {
         // Scheduled status includes scheduled and pending tasks.
         log.info('Cancelling build with build id ${build.id}.');
