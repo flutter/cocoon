@@ -745,6 +745,71 @@ targets:
         verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
       });
 
+      test('rerequested merge queue guard check is ignored', () async {
+        final MockGithubService mockGithubService = MockGithubService();
+        final MockGitHub mockGithubClient = MockGitHub();
+        buildStatusService =
+            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
+        config = FakeConfig(
+          githubService: mockGithubService,
+          firestoreService: mockFirestoreService,
+        );
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          buildStatusProvider: (_, __) => buildStatusService,
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          httpClientProvider: () => httpClient,
+          luciBuildService: FakeLuciBuildService(
+            config: config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          fusionTester: fakeFusion,
+        );
+        when(mockGithubService.github).thenReturn(mockGithubClient);
+        when(mockGithubService.searchIssuesAndPRs(any, any, sort: anyNamed('sort'), pages: anyNamed('pages')))
+            .thenAnswer((_) async => [generateIssue(3)]);
+        when(mockGithubChecksUtil.listCheckSuitesForRef(any, any, ref: anyNamed('ref'))).thenAnswer(
+          (_) async => [
+            // From check_run.check_suite.id in [checkRunString].
+            generateCheckSuite(668083231),
+          ],
+        );
+        when(mockGithubService.getPullRequest(any, any)).thenAnswer((_) async => generatePullRequest());
+        when(mockGithubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+        when(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            any,
+            output: anyNamed('output'),
+          ),
+        ).thenAnswer((_) async {
+          return CheckRun.fromJson(const <String, dynamic>{
+            'id': 1,
+            'started_at': '2020-05-10T02:49:31Z',
+            'name': Scheduler.kCiYamlCheckName,
+            'check_suite': <String, dynamic>{'id': 2},
+          });
+        });
+        final Map<String, dynamic> checkRunEventJson = jsonDecode(checkRunString) as Map<String, dynamic>;
+        checkRunEventJson['check_run']['name'] = Scheduler.kMergeQueueLockName;
+        final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(checkRunEventJson);
+        expect(await scheduler.processCheckRun(checkRunEvent), true);
+        verifyNever(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            Scheduler.kMergeQueueLockName,
+            output: anyNamed('output'),
+          ),
+        );
+        // Verfies Linux A was created
+        verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
+      });
+
       test('rerequested presubmit check triggers presubmit build', () async {
         // Note that we're not inserting any commits into the db, because
         // only postsubmit commits are stored in the datastore.
