@@ -5,10 +5,12 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/protos.dart' as pb;
+import 'package:cocoon_service/src/model/github/checks.dart';
 import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
+import 'package:test/test.dart';
 
 PushMessage generateGithubWebhookMessage({
   String event = 'pull_request',
@@ -1116,18 +1118,27 @@ PushMessage generateMergeGroupMessage({
   required String repository,
   required String action,
   required String message,
+  String? reason,
 }) {
+  if (action == 'destroyed' && !MergeGroupEvent.destroyReasons.contains(reason)) {
+    fail(
+      'Invalid reason "$reason" for merge group "destroyed" event. The reason '
+      'must be one of: ${MergeGroupEvent.destroyReasons}',
+    );
+  }
   final pb.GithubWebhookMessage webhookMessage = pb.GithubWebhookMessage(
     event: 'merge_group',
-    payload: generateMergeGroupEventString(action: action, message: message, repository: repository),
+    payload: generateMergeGroupEventString(action: action, message: message, repository: repository, reason: reason),
   );
   return PushMessage(data: webhookMessage.writeToJson(), messageId: 'abc123');
 }
 
-String generateMergeGroupEventString({required String action, required String message, required String repository}) {
+String generateMergeGroupEventString(
+    {required String action, required String message, required String repository, String? reason}) {
   return '''
 {
 "action": "$action",
+${reason != null ? '"reason": "$reason",' : ''}
 "merge_group": {
   "head_sha": "c9affbbb12aa40cb3afbe94b9ea6b119a256bebf",
   "head_ref": "refs/heads/gh-readonly-queue/main/pr-15-172355550dde5881b0269972ea4cbe5a6d0561bc",

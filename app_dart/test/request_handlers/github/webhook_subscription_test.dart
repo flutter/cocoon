@@ -6,6 +6,7 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server/testing/mocks.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/github/checks.dart' hide CheckRun;
 import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
@@ -2682,6 +2683,7 @@ void foo() {
         repository: 'flutter/flutter',
         action: 'destroyed',
         message: 'test message',
+        reason: MergeGroupEvent.dequeued,
       );
 
       final luciLog = <String>[];
@@ -2756,7 +2758,7 @@ void foo() {
         [
           'Processing merge_group',
           'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because it was dequeued.',
           'Cancelling merge group targets for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Attempting to cancel builds (v2) for git SHA c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because Merge group was destroyed',
           'Responses from get builds batch request = 1',
@@ -2779,6 +2781,7 @@ void foo() {
         repository: 'flutter/flutter',
         action: 'destroyed',
         message: 'test message',
+        reason: MergeGroupEvent.invalidated,
       );
 
       final luciLog = <String>[];
@@ -2820,12 +2823,44 @@ void foo() {
         [
           'Processing merge_group',
           'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because it was invalidated.',
           'Cancelling merge group targets for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Attempting to cancel builds (v2) for git SHA c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because Merge group was destroyed',
           'Responses from get builds batch request = 1',
           contains('Found a response: searchBuilds:'),
           'Will not request cancellation from LUCI.',
+        ],
+      );
+    });
+
+    test('does not cancel builds if destroyed because merged successfully', () async {
+      final records = <String>[];
+      final subscription = log.onRecord.listen((record) {
+        if (record.level >= Level.FINE) {
+          records.add(record.message);
+        }
+      });
+      tester.message = generateMergeGroupMessage(
+        repository: 'flutter/flutter',
+        action: 'destroyed',
+        message: 'test message',
+        reason: MergeGroupEvent.merged,
+      );
+
+      fakeBuildBucketClient.batchResponse = (batchRequest, uri) async {
+        fail('Must not attempt to cancel builds.');
+      };
+
+      await tester.post(webhook);
+      await subscription.cancel();
+
+      expect(
+        records,
+        [
+          'Processing merge_group',
+          'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because it was merged.',
+          'Merge group for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was merged successfully.',
         ],
       );
     });

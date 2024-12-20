@@ -46,12 +46,14 @@ Map<String, dynamic> _$CheckRunToJson(CheckRun instance) => <String, dynamic>{
 MergeGroupEvent _$MergeGroupEventFromJson(Map<String, dynamic> json) => MergeGroupEvent(
       action: json['action'] as String,
       mergeGroup: MergeGroup.fromJson(json['merge_group'] as Map<String, dynamic>),
+      reason: json['reason'] as String?,
       repository: json['repository'] == null ? null : Repository.fromJson(json['repository'] as Map<String, dynamic>),
       sender: json['sender'] == null ? null : User.fromJson(json['sender'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$MergeGroupEventToJson(MergeGroupEvent instance) => <String, dynamic>{
       'action': instance.action,
+      'reason': instance.reason,
       'merge_group': instance.mergeGroup,
       'repository': instance.repository,
       'sender': instance.sender,
