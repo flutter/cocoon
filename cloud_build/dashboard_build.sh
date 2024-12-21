@@ -8,7 +8,7 @@
 pushd dashboard > /dev/null
 set -e
 rm -rf build
-flutter channel master
+flutter channel stable 
 flutter upgrade
 flutter doctor
 flutter pub get
