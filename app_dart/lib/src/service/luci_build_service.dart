@@ -496,6 +496,7 @@ class LuciBuildService {
         builder: build.builder,
         tags: tags,
         properties: build.input.properties,
+        gitilesCommit: build.input.gitilesCommit,
         notify: bbv2.NotificationConfig(
           pubsubTopic: 'projects/flutter-dashboard/topics/build-bucket-presubmit',
           userData: UserData.encodeUserDataToBytes(userDataMap),

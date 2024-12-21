@@ -84,7 +84,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       return Body.empty;
     }
 
-    log.fine('Setting status (${build.status}) for $builderName');
+    log.info('Setting status (${build.status}) for $builderName');
 
     if (!pubSubCallBack.hasUserData()) {
       log.info('No user data was found in this request');
@@ -115,7 +115,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
         );
         if (currentAttempt < maxAttempt) {
           rescheduled = true;
-          log.fine('Rerunning failed task: $builderName');
+          log.info('Rerunning failed task: $builderName');
           await luciBuildService.rescheduleBuild(
             builderName: builderName,
             build: build,
