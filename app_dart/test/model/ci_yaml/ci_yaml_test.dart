@@ -6,7 +6,6 @@ import 'package:cocoon_service/protos.dart' as pb;
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/service/config.dart';
-import 'package:github/github.dart';
 import 'package:test/test.dart';
 
 import '../../src/service/fake_scheduler.dart';

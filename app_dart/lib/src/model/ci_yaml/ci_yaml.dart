@@ -76,12 +76,10 @@ class CiYamlSet {
   final String branch;
 
   /// Gets all [Target] that run on presubmit for this config.
-  List<Target> presubmitTargets({CiType type = CiType.any}) =>
-      configs[type]!.presubmitTargets;
+  List<Target> presubmitTargets({CiType type = CiType.any}) => configs[type]!.presubmitTargets;
 
   /// Gets all [Target] that run on postsubmit for this config.
-  List<Target> postsubmitTargets({CiType type = CiType.any}) =>
-      configs[type]!.postsubmitTargets;
+  List<Target> postsubmitTargets({CiType type = CiType.any}) => configs[type]!.postsubmitTargets;
 
   /// Gets the first [Target] matching [builderName] or null.
   Target? getFirstPostsubmitTarget(
@@ -92,17 +90,14 @@ class CiYamlSet {
 
   /// List of target names used to filter target from release candidate branches
   /// that were already removed from main.
-  List<String>? totTargetNames({CiType type = CiType.any}) =>
-      configs[type]!.totTargetNames;
+  List<String>? totTargetNames({CiType type = CiType.any}) => configs[type]!.totTargetNames;
 
   /// List of postsubmit target names used to filter target from release candidate branches
   /// that were already removed from main.
-  List<String>? totPostsubmitTargetNames({CiType type = CiType.any}) =>
-      configs[type]!.totPostsubmitTargetNames;
+  List<String>? totPostsubmitTargetNames({CiType type = CiType.any}) => configs[type]!.totPostsubmitTargetNames;
 
   /// Filters post submit targets to remove targets we do not want backfilled.
-  List<Target> backfillTargets({CiType type = CiType.any}) =>
-      configs[type]!.backfillTargets;
+  List<Target> backfillTargets({CiType type = CiType.any}) => configs[type]!.backfillTargets;
 
   /// Filters targets that were removed from main. [slug] is the gihub
   /// slug for branch under test, [targets] is the list of targets from
@@ -154,12 +149,9 @@ class CiYaml {
     // with release candidate branches.
     final Iterable<Target> totTargets = totConfig?._targets ?? <Target>[];
     final List<Target> totEnabledTargets = _filterEnabledTargets(totTargets);
-    totTargetNames =
-        totEnabledTargets.map((Target target) => target.value.name).toList();
-    totPostsubmitTargetNames = totConfig?.postsubmitTargets
-            .map((Target target) => target.value.name)
-            .toList() ??
-        <String>[];
+    totTargetNames = totEnabledTargets.map((Target target) => target.value.name).toList();
+    totPostsubmitTargetNames =
+        totConfig?.postsubmitTargets.map((Target target) => target.value.name).toList() ?? <String>[];
   }
 
   final CiType type;
@@ -185,32 +177,28 @@ class CiYaml {
 
   /// Gets all [Target] that run on presubmit for this config.
   List<Target> get presubmitTargets {
-    final Iterable<Target> presubmitTargets = _targets.where(
-        (Target target) => target.value.presubmit && !target.value.bringup);
+    final Iterable<Target> presubmitTargets =
+        _targets.where((Target target) => target.value.presubmit && !target.value.bringup);
     List<Target> enabledTargets = _filterEnabledTargets(presubmitTargets);
 
     if (enabledTargets.isEmpty) {
-      throw Exception(
-          '$branch is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
+      throw Exception('$branch is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
     }
     // Filter targets removed from main.
     if (totTargetNames!.isNotEmpty) {
-      enabledTargets =
-          filterOutdatedTargets(slug, enabledTargets, totTargetNames);
+      enabledTargets = filterOutdatedTargets(slug, enabledTargets, totTargetNames);
     }
     return enabledTargets;
   }
 
   /// Gets all [Target] that run on postsubmit for this config.
   List<Target> get postsubmitTargets {
-    final Iterable<Target> postsubmitTargets =
-        _targets.where((Target target) => target.value.postsubmit);
+    final Iterable<Target> postsubmitTargets = _targets.where((Target target) => target.value.postsubmit);
 
     List<Target> enabledTargets = _filterEnabledTargets(postsubmitTargets);
     // Filter targets removed from main.
     if (totPostsubmitTargetNames!.isNotEmpty) {
-      enabledTargets =
-          filterOutdatedTargets(slug, enabledTargets, totPostsubmitTargetNames);
+      enabledTargets = filterOutdatedTargets(slug, enabledTargets, totPostsubmitTargetNames);
     }
     // filter if release_build true if current branch is a release candidate branch, or a fusion tree.
     enabledTargets = _selectTargetsForBranch(enabledTargets);
@@ -219,8 +207,7 @@ class CiYaml {
 
   /// Gets the first [Target] matching [builderName] or null.
   Target? getFirstPostsubmitTarget(String builderName) {
-    return postsubmitTargets
-        .singleWhereOrNull((Target target) => target.value.name == builderName);
+    return postsubmitTargets.singleWhereOrNull((Target target) => target.value.name == builderName);
   }
 
   /// Filters post submit targets to remove targets we do not want backfilled.
@@ -228,8 +215,7 @@ class CiYaml {
     final List<Target> filteredTargets = <Target>[];
     for (Target target in postsubmitTargets) {
       final Map<String, Object> properties = target.getProperties();
-      if (!properties.containsKey('backfill') ||
-          properties['backfill'] as bool) {
+      if (!properties.containsKey('backfill') || properties['backfill'] as bool) {
         filteredTargets.add(target);
       }
     }
@@ -245,10 +231,7 @@ class CiYaml {
       // For release branches we don't want to run release targets or bringup
       // targets because they are built outside of Cocoon. This applies in both
       // fusion and non-fusion repos.
-      return [
-        ...targets.where(
-            (target) => !target.isReleaseBuildTarget && !target.isBringupTarget)
-      ];
+      return [...targets.where((target) => !target.isReleaseBuildTarget && !target.isBringupTarget)];
     } else {
       // For non-release branches we also want to include bringup targets.
       // However, there's a difference between fusion and non-fusion repos.
@@ -273,8 +256,7 @@ class CiYaml {
     return targets
         .where(
           (Target target) =>
-              (target.value.enabledBranches.isNotEmpty &&
-                  !target.value.enabledBranches.contains(defaultBranch)) ||
+              (target.value.enabledBranches.isNotEmpty && !target.value.enabledBranches.contains(defaultBranch)) ||
               totTargetNames!.contains(target.value.name),
         )
         .toList();
@@ -286,13 +268,10 @@ class CiYaml {
   /// This shouldn't be confused for targets that have the property named dependency, which is used by the
   /// flutter_deps recipe module on LUCI.
   List<Target> getInitialTargets(List<Target> targets) {
-    Iterable<Target> initialTargets = targets
-        .where((Target target) => target.value.dependencies.isEmpty)
-        .toList();
+    Iterable<Target> initialTargets = targets.where((Target target) => target.value.dependencies.isEmpty).toList();
     if (branch != Config.defaultBranch(slug)) {
       // Filter out bringup targets for release branches
-      initialTargets =
-          initialTargets.where((Target target) => !target.value.bringup);
+      initialTargets = initialTargets.where((Target target) => !target.value.bringup);
     }
 
     return initialTargets.toList();
@@ -318,22 +297,19 @@ class CiYaml {
     final List<Target> filteredTargets = <Target>[];
 
     final ghMqBranch = tryParseGitHubMergeQueueBranch(branch);
-    final realBranch =
-        ghMqBranch == notGitHubMergeQueueBranch ? branch : ghMqBranch.branch;
+    final realBranch = ghMqBranch == notGitHubMergeQueueBranch ? branch : ghMqBranch.branch;
 
     // 1. Add targets with local definition
-    final Iterable<Target> overrideBranchTargets = targets
-        .where((Target target) => target.value.enabledBranches.isNotEmpty);
-    final Iterable<Target> enabledTargets = overrideBranchTargets.where(
-        (Target target) => enabledBranchesMatchesCurrentBranch(
-            target.value.enabledBranches, realBranch));
+    final Iterable<Target> overrideBranchTargets =
+        targets.where((Target target) => target.value.enabledBranches.isNotEmpty);
+    final Iterable<Target> enabledTargets = overrideBranchTargets
+        .where((Target target) => enabledBranchesMatchesCurrentBranch(target.value.enabledBranches, realBranch));
     filteredTargets.addAll(enabledTargets);
 
     // 2. Add targets with global definition (this is the majority of targets)
-    if (enabledBranchesMatchesCurrentBranch(
-        config.enabledBranches, realBranch)) {
-      final Iterable<Target> defaultBranchTargets = targets
-          .where((Target target) => target.value.enabledBranches.isEmpty);
+    if (enabledBranchesMatchesCurrentBranch(config.enabledBranches, realBranch)) {
+      final Iterable<Target> defaultBranchTargets =
+          targets.where((Target target) => target.value.enabledBranches.isEmpty);
       filteredTargets.addAll(defaultBranchTargets);
     }
 
@@ -341,8 +317,7 @@ class CiYaml {
   }
 
   /// Whether any of the possible [RegExp] in [enabledBranches] match [branch].
-  static bool enabledBranchesMatchesCurrentBranch(
-      List<String> enabledBranches, String branch) {
+  static bool enabledBranchesMatchesCurrentBranch(List<String> enabledBranches, String branch) {
     final List<String> regexes = <String>[];
     for (String enabledBranch in enabledBranches) {
       // Prefix with start of line and suffix with end of line
@@ -369,20 +344,16 @@ class CiYaml {
   ///   6. [pb.Target] cannot have more than 1 dependency
   ///   7. [pb.Target] should depend on target that already exist in depedency graph, and already recorded in map [targetGraph]
   ///   8. [pb.Target] has an empty runIf or the runIf includes `.ci.yaml` `DEPS`, and `engine/**` if validating the framework.
-  void _validate(pb.SchedulerConfig schedulerConfig, String branch,
-      {pb.SchedulerConfig? totSchedulerConfig}) {
+  void _validate(pb.SchedulerConfig schedulerConfig, String branch, {pb.SchedulerConfig? totSchedulerConfig}) {
     if (schedulerConfig.targets.isEmpty) {
-      throw const FormatException(
-          'Scheduler config must have at least 1 target');
+      throw const FormatException('Scheduler config must have at least 1 target');
     }
 
     if (schedulerConfig.enabledBranches.isEmpty) {
-      throw const FormatException(
-          'Scheduler config must have at least 1 enabled branch');
+      throw const FormatException('Scheduler config must have at least 1 enabled branch');
     }
 
-    final Map<String, List<pb.Target>> targetGraph =
-        <String, List<pb.Target>>{};
+    final Map<String, List<pb.Target>> targetGraph = <String, List<pb.Target>>{};
     final List<String> exceptions = <String>[];
     final Set<String> totTargets = <String>{};
     if (totSchedulerConfig != null) {
@@ -398,9 +369,7 @@ class CiYaml {
       } else {
         // a new build without "bringup: true"
         // link to wiki - https://github.com/flutter/flutter/blob/master/docs/infra/Reducing-Test-Flakiness.md#adding-a-new-devicelab-test
-        if (totTargets.isNotEmpty &&
-            !totTargets.contains(target.name) &&
-            target.bringup != true) {
+        if (totTargets.isNotEmpty && !totTargets.contains(target.name) && target.bringup != true) {
           exceptions.add(
             'ERROR: ${target.name} is a new builder added. it needs to be marked bringup: true\nIf ci.yaml wasn\'t changed, try `git fetch upstream && git merge upstream/master`',
           );
@@ -410,16 +379,15 @@ class CiYaml {
         // Add edges
         if (target.dependencies.isNotEmpty) {
           if (target.dependencies.length != 1) {
-            exceptions.add(
-                'ERROR: ${target.name} has multiple dependencies which is not supported. Use only one dependency');
+            exceptions
+                .add('ERROR: ${target.name} has multiple dependencies which is not supported. Use only one dependency');
           } else {
             if (target.dependencies.first == target.name) {
               exceptions.add('ERROR: ${target.name} cannot depend on itself');
             } else if (targetGraph.containsKey(target.dependencies.first)) {
               targetGraph[target.dependencies.first]!.add(target);
             } else {
-              exceptions.add(
-                  'ERROR: ${target.name} depends on ${target.dependencies.first} which does not exist');
+              exceptions.add('ERROR: ${target.name} depends on ${target.dependencies.first} which does not exist');
             }
           }
         }
@@ -501,8 +469,7 @@ class CiYaml {
 
   void _checkExceptions(List<String> exceptions) {
     if (exceptions.isNotEmpty) {
-      final String fullException =
-          exceptions.reduce((String exception, _) => '$exception\n');
+      final String fullException = exceptions.reduce((String exception, _) => '$exception\n');
       throw FormatException(fullException);
     }
   }
@@ -520,25 +487,22 @@ class DependencyValidator {
     final List<String> exceptions = <String>[];
 
     /// Decoded will contain a list of maps for the dependencies found.
-    final List<dynamic> decoded =
-        json.decode(dependencyJsonString) as List<dynamic>;
+    final List<dynamic> decoded = json.decode(dependencyJsonString) as List<dynamic>;
 
     for (Map<String, dynamic> depMap in decoded) {
       if (!depMap.containsKey('version')) {
-        exceptions.add(
-            'ERROR: dependency ${depMap['dependency']} must have a version.');
+        exceptions.add('ERROR: dependency ${depMap['dependency']} must have a version.');
       } else {
         final String version = depMap['version'] as String;
         if (version.isEmpty || version == 'latest') {
-          exceptions.add(
-              'ERROR: dependency ${depMap['dependency']} must have a non empty, non "latest" version supplied.');
+          exceptions
+              .add('ERROR: dependency ${depMap['dependency']} must have a non empty, non "latest" version supplied.');
         }
       }
     }
 
     if (exceptions.isNotEmpty) {
-      final String fullException =
-          exceptions.reduce((String exception, _) => '$exception\n');
+      final String fullException = exceptions.reduce((String exception, _) => '$exception\n');
       throw FormatException(fullException);
     }
   }
