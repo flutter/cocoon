@@ -181,8 +181,8 @@ class LuciBuildService {
           value: 'commit/git/$sha',
         ),
 
-      // Only cancel jobs automatically kicked off by Cocoon. For example, do
-      // not cancel manual jobs.
+      // Only process jobs automatically kicked off by Cocoon. For example, we
+      // do not want to cancel or retry manually started jobs.
       bbv2.StringPair(
         key: 'user_agent',
         value: 'flutter-cocoon',
