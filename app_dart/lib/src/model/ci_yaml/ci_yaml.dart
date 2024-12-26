@@ -427,11 +427,15 @@ class CiYaml {
     assert(target.runIf.isNotEmpty, 'Expected to be called when non-empty');
 
     // 1. Every target must depend on .ci.yaml at the root of the repo.
+    // TODO(matanlurey): Can this be inferred instead in the .ci.yaml parser?
+    // See https://github.com/flutter/flutter/issues/160874.
     if (!target.runIf.contains('.ci.yaml')) {
       exceptions.add('ERROR: ${target.name} is missing `.ci.yaml` in runIf');
     }
 
     // 2. The engine repo must additionally depend on DEPS.
+    // TODO(matanlurey): Can this be inferred instead in the .ci.yaml parser?
+    // See https://github.com/flutter/flutter/issues/160874.
     if (slug == Config.engineSlug && !target.runIf.contains('DEPS')) {
       exceptions.add('ERROR: ${target.name} is missing `DEPS` in runIf');
     }
@@ -447,6 +451,9 @@ class CiYaml {
     // The path depends on whether the framework or engine are being validated;
     // while both belong in the same (mono)repo, they have separate .ci.yaml
     // files located in different paths.
+    //
+    // TODO(matanlurey): Can this be inferred instead in the .ci.yaml parser?
+    // See https://github.com/flutter/flutter/issues/160874.
     final ciYamlPath = switch (type) {
       CiType.fusionEngine => 'engine/src/flutter/.ci.yaml',
       _ => '.ci.yaml',
@@ -456,6 +463,8 @@ class CiYaml {
     }
 
     // 2. Every target must depend on DEPS.
+    // TODO(matanlurey): Can this be inferred instead in the .ci.yaml parser?
+    // See https://github.com/flutter/flutter/issues/160874.
     if (!target.runIf.contains('DEPS')) {
       exceptions.add('ERROR: ${target.name} is missing `DEPS` in runIf');
     }
