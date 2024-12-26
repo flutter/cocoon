@@ -2695,7 +2695,8 @@ void foo() {
         for (final request in batchRequest.requests) {
           if (request.hasSearchBuilds()) {
             final requestSha = request.searchBuilds.predicate.tags.singleWhere((tag) => tag.key == 'buildset').value;
-            luciLog.add('search builds for $requestSha');
+            final userAgent = request.searchBuilds.predicate.tags.singleWhere((tag) => tag.key == 'user_agent').value;
+            luciLog.add('search builds for $requestSha by $userAgent');
             batchResponseResponses.add(
               bbv2.BatchResponse_Response(
                 searchBuilds: bbv2.SearchBuildsResponse(
@@ -2745,7 +2746,7 @@ void foo() {
       expect(
         luciLog,
         <String>[
-          'search builds for sha/git/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'search builds for commit/git/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf by flutter-cocoon',
           // Even though there are 8 builds in total, only 2 of them are eligible
           // for cancellation.
           'cancel ${bbv2.Status.SCHEDULED.value}',
@@ -2793,7 +2794,8 @@ void foo() {
         for (final request in batchRequest.requests) {
           if (request.hasSearchBuilds()) {
             final requestSha = request.searchBuilds.predicate.tags.singleWhere((tag) => tag.key == 'buildset').value;
-            luciLog.add('search builds for $requestSha');
+            final userAgent = request.searchBuilds.predicate.tags.singleWhere((tag) => tag.key == 'user_agent').value;
+            luciLog.add('search builds for $requestSha by $userAgent');
             batchResponseResponses.add(
               bbv2.BatchResponse_Response(
                 searchBuilds: bbv2.SearchBuildsResponse(
@@ -2814,7 +2816,7 @@ void foo() {
       expect(
         luciLog,
         <String>[
-          'search builds for sha/git/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'search builds for commit/git/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf by flutter-cocoon',
         ],
       );
 

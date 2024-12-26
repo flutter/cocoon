@@ -174,9 +174,18 @@ class LuciBuildService {
   }) async {
     final List<bbv2.StringPair> tags = [
       if (sha != null)
+        // Unlike try tasks, which use the "sha/git/" prefix, prod tasks use the
+        // "commit/git/" prefix.
         bbv2.StringPair(
           key: 'buildset',
-          value: 'sha/git/$sha',
+          value: 'commit/git/$sha',
+        ),
+
+        // Only cancel jobs automatically kicked off by Cocoon. For example, do
+        // not cancel manual jobs.
+        bbv2.StringPair(
+          key: 'user_agent',
+          value: 'flutter-cocoon',
         ),
     ];
     return getBuilds(
