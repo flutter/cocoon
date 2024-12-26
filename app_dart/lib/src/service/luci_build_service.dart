@@ -181,12 +181,12 @@ class LuciBuildService {
           value: 'commit/git/$sha',
         ),
 
-        // Only cancel jobs automatically kicked off by Cocoon. For example, do
-        // not cancel manual jobs.
-        bbv2.StringPair(
-          key: 'user_agent',
-          value: 'flutter-cocoon',
-        ),
+      // Only cancel jobs automatically kicked off by Cocoon. For example, do
+      // not cancel manual jobs.
+      bbv2.StringPair(
+        key: 'user_agent',
+        value: 'flutter-cocoon',
+      ),
     ];
     return getBuilds(
       builderName: builderName,
