@@ -26,16 +26,16 @@ const String kCiYamlFusionEnginePath = 'engine/src/flutter/$kCiYamlPath';
 const String kTestOwnerPath = 'TESTOWNERS';
 
 /// Attempts to parse the github merge queue branch into its constituent parts to be returned as a record.
-({bool parsed, String branch, int pullRequestNumber, String sha}) tryParseGitHubMergeQueueBranch(String branch) {
+({bool parsed, String branch, int pullRequestNumber}) tryParseGitHubMergeQueueBranch(String branch) {
   final match = _githubMqBranch.firstMatch(branch);
   if (match == null) {
     return notGitHubMergeQueueBranch;
   }
 
-  return (parsed: true, branch: match.group(1)!, pullRequestNumber: int.parse(match.group(2)!), sha: match.group(3)!);
+  return (parsed: true, branch: match.group(1)!, pullRequestNumber: int.parse(match.group(2)!));
 }
 
-const notGitHubMergeQueueBranch = (parsed: false, branch: '', pullRequestNumber: -1, sha: '');
+const notGitHubMergeQueueBranch = (parsed: false, branch: '', pullRequestNumber: -1);
 
 final _githubMqBranch = RegExp(r'^gh-readonly-queue\/([^/]+)\/pr-(\d+)-([a-fA-F0-9]+)$');
 
