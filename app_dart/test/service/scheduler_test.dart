@@ -60,7 +60,9 @@ targets:
   - name: Linux runIf
     runIf:
       - .ci.yaml
+      - DEPS
       - dev/**
+      - engine/**
   - name: Google Internal Roll
     postsubmit: true
     presubmit: false
@@ -1481,11 +1483,6 @@ targets:
         - .ci.yaml
         - DEPS
         - dev/run_if/**
-    - name: Linux Conditional Presubmit (runIfNot)
-      presubmit: true
-      scheduler: luci
-      runIfNot:
-        - dev/run_if_not/**
     - name: Linux Postsubmit
       presubmit: false
       scheduler: luci
@@ -1516,7 +1513,6 @@ targets:
               'Linux Presubmit',
               // test: all label is present, so runIf is skipped.
               'Linux Conditional Presubmit (runIf)',
-              'Linux Conditional Presubmit (runIfNot)',
               // test: all label is present, so postsubmit is treated as presubmit.
               'Linux Postsubmit',
             ],
@@ -1537,7 +1533,6 @@ targets:
               'Linux Presubmit',
               // test: all label is present, so runIf is skipped.
               'Linux Conditional Presubmit (runIf)',
-              'Linux Conditional Presubmit (runIfNot)',
               // test: all label is present, so postsubmit is treated as presubmit.
               'Linux Postsubmit',
             ],
@@ -1556,7 +1551,6 @@ targets:
             (<String>[
               // Always runs.
               'Linux Presubmit',
-              'Linux Conditional Presubmit (runIfNot)',
             ]),
           );
         });
