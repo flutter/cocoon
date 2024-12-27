@@ -36,9 +36,7 @@ void main() {
     FlutterAppIconsPlatform.instance = FakeFlutterAppIcons();
   });
 
-  testWidgets(
-      'TaskGridContainer shows loading indicator when statuses is empty',
-      (WidgetTester tester) async {
+  testWidgets('TaskGridContainer shows loading indicator when statuses is empty', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: ValueProvider<BuildState>(
@@ -53,11 +51,9 @@ void main() {
     expect(find.byType(LatticeScrollView), findsNothing);
   });
 
-  testWidgets('TaskGridContainer with DevelopmentCocoonService',
-      (WidgetTester tester) async {
+  testWidgets('TaskGridContainer with DevelopmentCocoonService', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
-    final DevelopmentCocoonService service =
-        DevelopmentCocoonService(DateTime.utc(2020));
+    final DevelopmentCocoonService service = DevelopmentCocoonService(DateTime.utc(2020));
     final BuildState buildState = BuildState(
       cocoonService: service,
       authService: MockGoogleSignInService(),
@@ -98,15 +94,13 @@ void main() {
       expect(tester.getTopLeft(find.byType(CommitBox).at(index)).dx, xPosition);
     }
 
-    await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.dev.origin.png');
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.origin.png');
 
     // Check if the LOADING... indicator appears.
     service.paused = true;
     await tester.drag(find.byType(TaskGrid), const Offset(0.0, -5000.0));
     await tester.pumpAndSettle();
-    await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.dev.scroll_y.png');
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_y.png');
     service.paused = false;
     await tester.pumpAndSettle();
 
@@ -114,8 +108,7 @@ void main() {
     service.paused = true;
     await tester.drag(find.byType(TaskGrid), const Offset(-5000.0, 0.0));
     await tester.pumpAndSettle();
-    await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.dev.scroll_x.png');
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_x.png');
     service.paused = false;
     await tester.pumpAndSettle();
 
@@ -123,11 +116,9 @@ void main() {
     buildState.dispose();
   });
 
-  testWidgets('TaskGridContainer supports mouse drag',
-      (WidgetTester tester) async {
+  testWidgets('TaskGridContainer supports mouse drag', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
-    final DevelopmentCocoonService service =
-        DevelopmentCocoonService(DateTime.utc(2020));
+    final DevelopmentCocoonService service = DevelopmentCocoonService(DateTime.utc(2020));
     final BuildState buildState = BuildState(
       cocoonService: service,
       authService: MockGoogleSignInService(),
@@ -168,8 +159,7 @@ void main() {
       expect(tester.getTopLeft(find.byType(CommitBox).at(index)).dx, xPosition);
     }
 
-    await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.dev.origin.png');
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.origin.png');
 
     // Check if the LOADING... indicator appears.
     service.paused = true;
@@ -184,8 +174,7 @@ void main() {
     await gesture.up();
 
     await tester.pumpAndSettle();
-    await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.dev.mouse_scroll_y.png');
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.mouse_scroll_y.png');
 
     await gesture.removePointer();
     service.paused = false;
@@ -206,8 +195,7 @@ void main() {
     await gesture.up();
 
     await tester.pumpAndSettle();
-    await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.dev.mouse_scroll_x.png');
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.mouse_scroll_x.png');
 
     service.paused = false;
     await gesture.removePointer();
@@ -216,11 +204,9 @@ void main() {
     buildState.dispose();
   });
 
-  testWidgets('TaskGridContainer with DevelopmentCocoonService - dark',
-      (WidgetTester tester) async {
+  testWidgets('TaskGridContainer with DevelopmentCocoonService - dark', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
-    final DevelopmentCocoonService service =
-        DevelopmentCocoonService(DateTime.utc(2020));
+    final DevelopmentCocoonService service = DevelopmentCocoonService(DateTime.utc(2020));
     final BuildState buildState = BuildState(
       cocoonService: service,
       authService: MockGoogleSignInService(),
@@ -261,15 +247,13 @@ void main() {
       expect(tester.getTopLeft(find.byType(CommitBox).at(index)).dx, xPosition);
     }
 
-    await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.dev.origin.dark.png');
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.origin.dark.png');
 
     // Check if the LOADING... indicator appears.
     service.paused = true;
     await tester.drag(find.byType(TaskGrid), const Offset(0.0, -5000.0));
     await tester.pumpAndSettle();
-    await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.dev.scroll_y.dark.png');
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_y.dark.png');
     service.paused = false;
     await tester.pumpAndSettle();
 
@@ -277,8 +261,7 @@ void main() {
     service.paused = true;
     await tester.drag(find.byType(TaskGrid), const Offset(-5000.0, 0.0));
     await tester.pumpAndSettle();
-    await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.dev.scroll_x.dark.png');
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_x.dark.png');
     service.paused = false;
     await tester.pumpAndSettle();
 
@@ -286,8 +269,7 @@ void main() {
     buildState.dispose();
   });
 
-  Future<void> testGrid(
-      WidgetTester tester, TaskGridFilter? filter, int rows, int cols) async {
+  Future<void> testGrid(WidgetTester tester, TaskGridFilter? filter, int rows, int cols) async {
     final BuildState buildState = BuildState(
       cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
       authService: MockGoogleSignInService(),
@@ -312,11 +294,7 @@ void main() {
     await tester.pump();
 
     expect(find.byType(LatticeScrollView), findsOneWidget);
-    final LatticeScrollView lattice = find
-        .byType(LatticeScrollView)
-        .evaluate()
-        .first
-        .widget as LatticeScrollView;
+    final LatticeScrollView lattice = find.byType(LatticeScrollView).evaluate().first.widget as LatticeScrollView;
 
     expect(lattice.cells.length, rows);
     for (final List<LatticeCell> row in lattice.cells) {
@@ -334,24 +312,15 @@ void main() {
     await testGrid(tester, TaskGridFilter.fromMap(null), 27, 100);
 
     // QualifiedTask (column) filters
-    await testGrid(tester,
-        TaskGridFilter()..taskFilter = RegExp('Linux_android 2'), 27, 12);
+    await testGrid(tester, TaskGridFilter()..taskFilter = RegExp('Linux_android 2'), 27, 12);
 
     // CommitStatus (row) filters
-    await testGrid(
-        tester, TaskGridFilter()..authorFilter = RegExp('bob'), 8, 100);
-    await testGrid(
-        tester, TaskGridFilter()..messageFilter = RegExp('developer'), 18, 100);
-    await testGrid(
-        tester,
-        TaskGridFilter()
-          ..hashFilter = RegExp('2d22b5e85f986f3fa2cf1bfaf085905c2182c270'),
-        4,
-        100);
+    await testGrid(tester, TaskGridFilter()..authorFilter = RegExp('bob'), 8, 100);
+    await testGrid(tester, TaskGridFilter()..messageFilter = RegExp('developer'), 18, 100);
+    await testGrid(tester, TaskGridFilter()..hashFilter = RegExp('2d22b5e85f986f3fa2cf1bfaf085905c2182c270'), 4, 100);
   });
 
-  testWidgets('Skipped tasks do not break the grid',
-      (WidgetTester tester) async {
+  testWidgets('Skipped tasks do not break the grid', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     // Matrix Diagram:
     //
@@ -411,12 +380,10 @@ void main() {
       ),
     );
 
-    await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.withSkips.png');
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.withSkips.png');
   });
 
-  testWidgets('Cocoon and LUCI tasks share the same column',
-      (WidgetTester tester) async {
+  testWidgets('Cocoon and LUCI tasks share the same column', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     // Matrix Diagram:
     //
@@ -463,11 +430,7 @@ void main() {
     );
 
     expect(find.byType(LatticeScrollView), findsOneWidget);
-    final LatticeScrollView lattice = find
-        .byType(LatticeScrollView)
-        .evaluate()
-        .first
-        .widget as LatticeScrollView;
+    final LatticeScrollView lattice = find.byType(LatticeScrollView).evaluate().first.widget as LatticeScrollView;
 
     // Rows (task icon, two commits, load more row)
     expect(lattice.cells.length, 4);
@@ -476,8 +439,7 @@ void main() {
     expect(lattice.cells[1].length, 2);
   });
 
-  testWidgets('TaskGrid creates a task icon row and they line up',
-      (WidgetTester tester) async {
+  testWidgets('TaskGrid creates a task icon row and they line up', (WidgetTester tester) async {
     final List<CommitStatus> commitStatuses = <CommitStatus>[
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
@@ -509,8 +471,7 @@ void main() {
     );
 
     expect(find.byType(TaskIcon), findsNWidgets(2));
-    expect(tester.getTopLeft(find.byType(TaskIcon).at(0)).dy,
-        tester.getTopLeft(find.byType(TaskIcon).at(1)).dy);
+    expect(tester.getTopLeft(find.byType(TaskIcon).at(0)).dy, tester.getTopLeft(find.byType(TaskIcon).at(1)).dy);
   });
 
   testWidgets('TaskGrid honors moreStatusesExist', (WidgetTester tester) async {
@@ -541,8 +502,7 @@ void main() {
       ),
     );
 
-    await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.withoutL.png');
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.withoutL.png');
 
     await tester.pumpWidget(
       MaterialApp(
@@ -556,12 +516,10 @@ void main() {
       ),
     );
 
-    await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.withL.png');
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.withL.png');
   });
 
-  testWidgets('TaskGrid shows icon for rerun tasks',
-      (WidgetTester tester) async {
+  testWidgets('TaskGrid shows icon for rerun tasks', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Material(
@@ -614,8 +572,7 @@ void main() {
     expect(find.byIcon(Icons.priority_high), findsNothing);
   });
 
-  testWidgets('TaskGrid shows icon for isTestFlaky tasks',
-      (WidgetTester tester) async {
+  testWidgets('TaskGrid shows icon for isTestFlaky tasks', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Material(
@@ -670,9 +627,7 @@ void main() {
     expect(find.byIcon(Icons.priority_high), findsNothing);
   });
 
-  testWidgets(
-      'TaskGrid shows icon for isTestFlaky tasks with multiple attempts',
-      (WidgetTester tester) async {
+  testWidgets('TaskGrid shows icon for isTestFlaky tasks with multiple attempts', (WidgetTester tester) async {
     final Task taskA3 = Task()
       ..stageName = 'A'
       ..builderName = '1'
@@ -720,8 +675,7 @@ void main() {
     // check the order of the items. The flaky should be to the left and first.
     expect(find.byType(TaskGrid).first, findsAtLeastNWidgets(1));
 
-    final LatticeScrollView latticeScrollView =
-        tester.firstWidget(find.byType(LatticeScrollView));
+    final LatticeScrollView latticeScrollView = tester.firstWidget(find.byType(LatticeScrollView));
     final List<List<LatticeCell>> cells = latticeScrollView.cells;
     final List<LatticeCell> myCells = cells.first;
     expect(myCells.length, 3);
@@ -730,8 +684,7 @@ void main() {
     expect(myCells[1].taskName, 'B');
   });
 
-  testWidgets('TaskGrid can handle all the various different statuses',
-      (WidgetTester tester) async {
+  testWidgets('TaskGrid can handle all the various different statuses', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     final List<CommitStatus> statuses = <CommitStatus>[
       CommitStatus()
@@ -902,21 +855,18 @@ void main() {
       ),
     );
 
-    await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.differentTypes.png');
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.differentTypes.png');
   });
 
   // Table Driven Approach to ensure every message does show the corresponding color
   TaskBox.statusColor.forEach((String message, Color color) {
-    testWidgets('Is the color $color when given the message $message',
-        (WidgetTester tester) async {
+    testWidgets('Is the color $color when given the message $message', (WidgetTester tester) async {
       await expectTaskBoxColorWithMessage(tester, message, color);
     });
   });
 }
 
-Future<void> expectTaskBoxColorWithMessage(
-    WidgetTester tester, String message, Color expectedColor) async {
+Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, Color expectedColor) async {
   const double cellSize = 18;
   const double cellPixelSize = cellSize * 3.0;
   const double cellPixelArea = cellPixelSize * cellPixelSize;
@@ -947,17 +897,14 @@ Future<void> expectTaskBoxColorWithMessage(
       ),
     ),
   );
-  final RenderRepaintBoundary? renderObject = tester
-      .renderObject(find.byType(TaskGrid))
-      .parent as RenderRepaintBoundary?;
+  final RenderRepaintBoundary? renderObject =
+      tester.renderObject(find.byType(TaskGrid)).parent as RenderRepaintBoundary?;
   final ByteData? pixels = await tester.runAsync<ByteData?>(() async {
     return (await renderObject!.toImage()).toByteData();
   });
   expect(pixels!.lengthInBytes, (cellPixelArea * 4).round());
   const double padding = 4.0;
-  final int rgba = pixels.getUint32(
-      (((cellPixelSize * (cellSize + padding)) + cellSize + padding).ceil()) *
-          4);
+  final int rgba = pixels.getUint32((((cellPixelSize * (cellSize + padding)) + cellSize + padding).ceil()) * 4);
   final Color actualColor = Color((rgba >> 8) | (rgba << 24) & 0xFFFFFFFF);
   expect(actualColor, isSameColorAs(expectedColor));
 }
