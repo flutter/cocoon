@@ -68,8 +68,15 @@ void main() {
           theme: ThemeData(useMaterial3: false),
           home: ValueProvider<BuildState>(
             value: buildState,
-            child: const Material(
-              child: TaskGridContainer(),
+            child: Material(
+              child: TaskGridContainer(
+                // TODO(matanlurey): Either find a Linux machine, or remove.
+                // To avoid making a golden-file breaking change as part of
+                // https://github.com/flutter/cocoon/pull/4141
+                //
+                // See https://github.com/flutter/flutter/issues/160931.
+                filter: TaskGridFilter()..showBringup = true,
+              ),
             ),
           ),
         ),
@@ -126,8 +133,15 @@ void main() {
           theme: ThemeData(useMaterial3: false),
           home: ValueProvider<BuildState>(
             value: buildState,
-            child: const Material(
-              child: TaskGridContainer(),
+            child: Material(
+              child: TaskGridContainer(
+                // TODO(matanlurey): Either find a Linux machine, or remove.
+                // To avoid making a golden-file breaking change as part of
+                // https://github.com/flutter/cocoon/pull/4141
+                //
+                // See https://github.com/flutter/flutter/issues/160931.
+                filter: TaskGridFilter()..showBringup = true,
+              ),
             ),
           ),
         ),
@@ -207,8 +221,15 @@ void main() {
           theme: ThemeData.dark(useMaterial3: false),
           home: ValueProvider<BuildState>(
             value: buildState,
-            child: const Material(
-              child: TaskGridContainer(),
+            child: Material(
+              child: TaskGridContainer(
+                // TODO(matanlurey): Either find a Linux machine, or remove.
+                // To avoid making a golden-file breaking change as part of
+                // https://github.com/flutter/cocoon/pull/4141
+                //
+                // See https://github.com/flutter/flutter/issues/160931.
+                filter: TaskGridFilter()..showBringup = true,
+              ),
             ),
           ),
         ),
@@ -286,17 +307,17 @@ void main() {
 
   testWidgets('Task name filter affects grid', (WidgetTester tester) async {
     // Default filters
-    await testGrid(tester, null, 27, 101);
-    await testGrid(tester, TaskGridFilter(), 27, 101);
-    await testGrid(tester, TaskGridFilter.fromMap(null), 27, 101);
+    await testGrid(tester, null, 27, 100);
+    await testGrid(tester, TaskGridFilter(), 27, 100);
+    await testGrid(tester, TaskGridFilter.fromMap(null), 27, 100);
 
     // QualifiedTask (column) filters
     await testGrid(tester, TaskGridFilter()..taskFilter = RegExp('Linux_android 2'), 27, 12);
 
     // CommitStatus (row) filters
-    await testGrid(tester, TaskGridFilter()..authorFilter = RegExp('bob'), 8, 101);
-    await testGrid(tester, TaskGridFilter()..messageFilter = RegExp('developer'), 18, 101);
-    await testGrid(tester, TaskGridFilter()..hashFilter = RegExp('2d22b5e85f986f3fa2cf1bfaf085905c2182c270'), 4, 101);
+    await testGrid(tester, TaskGridFilter()..authorFilter = RegExp('bob'), 8, 100);
+    await testGrid(tester, TaskGridFilter()..messageFilter = RegExp('developer'), 18, 100);
+    await testGrid(tester, TaskGridFilter()..hashFilter = RegExp('2d22b5e85f986f3fa2cf1bfaf085905c2182c270'), 4, 100);
   });
 
   testWidgets('Skipped tasks do not break the grid', (WidgetTester tester) async {
@@ -823,6 +844,12 @@ void main() {
           child: TaskGrid(
             buildState: FakeBuildState(),
             commitStatuses: statuses,
+            // TODO(matanlurey): Either find a Linux machine, or remove.
+            // To avoid making a golden-file breaking change as part of
+            // https://github.com/flutter/cocoon/pull/4141
+            //
+            // See https://github.com/flutter/flutter/issues/160931.
+            filter: TaskGridFilter()..showBringup = true,
           ),
         ),
       ),

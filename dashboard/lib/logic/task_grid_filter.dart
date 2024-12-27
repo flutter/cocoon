@@ -55,6 +55,8 @@ class TaskGridFilter extends FilterPropertySource {
   final BoolFilterProperty _iosProperty = BoolFilterProperty(fieldName: 'showiOS', label: 'iOS');
   final BoolFilterProperty _linuxPorperty = BoolFilterProperty(fieldName: 'showLinux', label: 'Linux');
   final BoolFilterProperty _androidProperty = BoolFilterProperty(fieldName: 'showAndroid', label: 'Android');
+  final BoolFilterProperty _bringUpProperty =
+      BoolFilterProperty(fieldName: 'showBringup', label: 'Bring Up', value: false);
   final BoolFilterProperty _stagingProperty =
       BoolFilterProperty(fieldName: 'showStaging', label: 'Staging', value: false);
 
@@ -72,7 +74,8 @@ class TaskGridFilter extends FilterPropertySource {
         ..[_iosProperty.fieldName] = _iosProperty
         ..[_linuxPorperty.fieldName] = _linuxPorperty
         ..[_androidProperty.fieldName] = _androidProperty
-        ..[_stagingProperty.fieldName] = _stagingProperty) as LinkedHashMap<String, ValueFilterProperty<dynamic>>?)!;
+        ..[_stagingProperty.fieldName] = _stagingProperty
+        ..[_bringUpProperty.fieldName] = _bringUpProperty) as LinkedHashMap<String, ValueFilterProperty<dynamic>>?)!;
 
   /// The [taskFilter] property is a regular expression that must match the name of the
   /// task in the grid. This property will filter out columns on the build dashboard.
@@ -147,6 +150,13 @@ class TaskGridFilter extends FilterPropertySource {
 
   set showStaging(bool? value) => _stagingProperty.value = value;
 
+  /// Whether to display tasks that are marked `bringup` (do not block the tree).
+  ///
+  /// This property will filter out columns on the build dashboard.
+  bool? get showBringup => _bringUpProperty.value;
+
+  set showBringup(bool? value) => _bringUpProperty.value = value;
+
   /// Check the values in the [CommitStatus] for compatibility with the properties of this
   /// filter and return [true] iff the commit row should be displayed.
   bool matchesCommit(CommitStatus commitStatus) {
@@ -170,6 +180,10 @@ class TaskGridFilter extends FilterPropertySource {
     }
 
     if ((!_allProperties['showStaging']?.value) && qualifiedTask.task!.toLowerCase().startsWith('staging_build_')) {
+      return false;
+    }
+
+    if ((!_allProperties['showBringup']?.value) && qualifiedTask.isBringup) {
       return false;
     }
 
@@ -244,11 +258,12 @@ class TaskGridFilter extends FilterPropertySource {
           label: 'Stages',
           members: <BoolFilterProperty>[
             _androidProperty,
-            _stagingProperty,
             _iosProperty,
             _linuxPorperty,
             _macProperty,
             _windowsPorperty,
+            _stagingProperty,
+            _bringUpProperty,
           ],
         ),
       ];
