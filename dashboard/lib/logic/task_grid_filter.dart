@@ -189,19 +189,39 @@ class TaskGridFilter extends FilterPropertySource {
         true; // Unrecognized stages always pass.
   }
 
-  /// Convert the filter into a String map (with or without default values populated) that
-  /// can be used to reconstruct the filter using the [fromMap] constructor and/or inject
-  /// its data into a JSON file or URL query parameter list.
-  Map<String, String> toMap() => Map<String, String>.fromEntries(
-        _allProperties.entries
-            .where(
-              (MapEntry<String, ValueFilterProperty<dynamic>> element) => !element.value.isDefault,
-            )
-            .map(
-              (MapEntry<String, ValueFilterProperty<dynamic>> e) =>
-                  MapEntry<String, String>(e.key, e.value.stringValue),
-            ),
-      );
+  /// Converts the filter into a map of `key -> value`.
+  ///
+  /// Only keys that have a _non-default_ value are returned in the map; for
+  /// example if a given key `showAndroid` is by default `true`, and the
+  /// _current_ value is `true`, then `showAndroid` will _not_ show up in
+  /// resulting map.
+  ///
+  /// Optionally may provide an [initialMap] of `key -> value` to use as a
+  /// starting point for the returned map, which may be useful when taking an
+  /// existing serialized map of non-default values, and removing key->value
+  /// pairs that _now_ represent default ones:
+  ///
+  /// ```dart
+  /// // Assume filter has showAndroid (default=true, current=true)
+  /// filter.toMap(); // {}
+  ///
+  /// // Assume filter has showAndroid (default=true, current=false)
+  /// filter.toMap(); // {"showAndroid": "false"}
+  ///
+  /// // Assume filter has showAndroid (default=true, current=true)
+  /// filter.toMap({"showAndroid": "false"}) // {}
+  /// ```
+  Map<String, String> toMap({Map<String, String>? initialMap}) {
+    final result = <String, String>{...?initialMap};
+    for (final MapEntry(:key, :value) in _allProperties.entries) {
+      if (value.isDefault) {
+        result.remove(key);
+      } else {
+        result[key] = value.stringValue;
+      }
+    }
+    return result;
+  }
 
   /// A string useful for including in a URL as query parameters. The returned string will
   /// include only non-default filter values separated by the URL parameter separator (`&`).
