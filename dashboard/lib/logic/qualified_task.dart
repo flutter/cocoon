@@ -23,7 +23,7 @@ const String _dartInternalUrl = 'https://ci.chromium.org/p/dart-internal';
 
 @immutable
 class QualifiedTask {
-  const QualifiedTask({this.stage, this.task, this.pool});
+  const QualifiedTask({this.stage, this.task, this.pool, this.isBringup = false});
 
   QualifiedTask.fromTask(Task task)
       : stage = task.stageName,
@@ -57,10 +57,7 @@ class QualifiedTask {
   bool get isGoogleTest => stage == StageName.googleTest;
 
   /// Whether the task was run on the LUCI infrastructure.
-  bool get isLuci =>
-      stage == StageName.cocoon ||
-      stage == StageName.legacyLuci ||
-      stage == StageName.luci;
+  bool get isLuci => stage == StageName.cocoon || stage == StageName.legacyLuci || stage == StageName.luci;
 
   /// Whether this task was run on internal infrastructure (example: luci dart-internal).
   bool get isDartInternal => stage == StageName.dartInternal;

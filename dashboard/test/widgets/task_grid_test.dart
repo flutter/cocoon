@@ -68,8 +68,15 @@ void main() {
           theme: ThemeData(useMaterial3: false),
           home: ValueProvider<BuildState>(
             value: buildState,
-            child: const Material(
-              child: TaskGridContainer(),
+            child: Material(
+              child: TaskGridContainer(
+                // TODO(matanlurey): Either find a Linux machine, or remove.
+                // To avoid making a golden-file breaking change as part of
+                // https://github.com/flutter/cocoon/pull/4141
+                //
+                // See https://github.com/flutter/flutter/issues/160931.
+                filter: TaskGridFilter()..showBringUp = true,
+              ),
             ),
           ),
         ),
@@ -126,8 +133,15 @@ void main() {
           theme: ThemeData(useMaterial3: false),
           home: ValueProvider<BuildState>(
             value: buildState,
-            child: const Material(
-              child: TaskGridContainer(),
+            child: Material(
+              child: TaskGridContainer(
+                // TODO(matanlurey): Either find a Linux machine, or remove.
+                // To avoid making a golden-file breaking change as part of
+                // https://github.com/flutter/cocoon/pull/4141
+                //
+                // See https://github.com/flutter/flutter/issues/160931.
+                filter: TaskGridFilter()..showBringUp = true,
+              ),
             ),
           ),
         ),
@@ -207,8 +221,15 @@ void main() {
           theme: ThemeData.dark(useMaterial3: false),
           home: ValueProvider<BuildState>(
             value: buildState,
-            child: const Material(
-              child: TaskGridContainer(),
+            child: Material(
+              child: TaskGridContainer(
+                // TODO(matanlurey): Either find a Linux machine, or remove.
+                // To avoid making a golden-file breaking change as part of
+                // https://github.com/flutter/cocoon/pull/4141
+                //
+                // See https://github.com/flutter/flutter/issues/160931.
+                filter: TaskGridFilter()..showBringUp = true,
+              ),
             ),
           ),
         ),
@@ -823,6 +844,12 @@ void main() {
           child: TaskGrid(
             buildState: FakeBuildState(),
             commitStatuses: statuses,
+            // TODO(matanlurey): Either find a Linux machine, or remove.
+            // To avoid making a golden-file breaking change as part of
+            // https://github.com/flutter/cocoon/pull/4141
+            //
+            // See https://github.com/flutter/flutter/issues/160931.
+            filter: TaskGridFilter()..showBringUp = true,
           ),
         ),
       ),
