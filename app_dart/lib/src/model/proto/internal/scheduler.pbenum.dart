@@ -21,7 +21,7 @@ class SchedulerSystem extends $pb.ProtobufEnum {
   static const SchedulerSystem google_internal = SchedulerSystem._(3, _omitEnumNames ? '' : 'google_internal');
   static const SchedulerSystem release = SchedulerSystem._(4, _omitEnumNames ? '' : 'release');
 
-  static const $core.List<SchedulerSystem> values = <SchedulerSystem> [
+  static const $core.List<SchedulerSystem> values = <SchedulerSystem>[
     cocoon,
     luci,
     google_internal,
@@ -33,6 +33,5 @@ class SchedulerSystem extends $pb.ProtobufEnum {
 
   const SchedulerSystem._($core.int v, $core.String n) : super(v, n);
 }
-
 
 const _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');

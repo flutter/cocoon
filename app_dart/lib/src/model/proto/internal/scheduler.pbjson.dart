@@ -25,9 +25,9 @@ const SchedulerSystem$json = {
 };
 
 /// Descriptor for `SchedulerSystem`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List schedulerSystemDescriptor = $convert.base64Decode(
-    'Cg9TY2hlZHVsZXJTeXN0ZW0SCgoGY29jb29uEAESCAoEbHVjaRACEhMKD2dvb2dsZV9pbnRlcm'
-    '5hbBADEgsKB3JlbGVhc2UQBA==');
+final $typed_data.Uint8List schedulerSystemDescriptor =
+    $convert.base64Decode('Cg9TY2hlZHVsZXJTeXN0ZW0SCgoGY29jb29uEAESCAoEbHVjaRACEhMKD2dvb2dsZV9pbnRlcm'
+        '5hbBADEgsKB3JlbGVhc2UQBA==');
 
 @$core.Deprecated('Use schedulerConfigDescriptor instead')
 const SchedulerConfig$json = {
@@ -35,7 +35,14 @@ const SchedulerConfig$json = {
   '2': [
     {'1': 'targets', '3': 1, '4': 3, '5': 11, '6': '.scheduler.Target', '10': 'targets'},
     {'1': 'enabled_branches', '3': 2, '4': 3, '5': 9, '10': 'enabledBranches'},
-    {'1': 'platform_properties', '3': 3, '4': 3, '5': 11, '6': '.scheduler.SchedulerConfig.PlatformPropertiesEntry', '10': 'platformProperties'},
+    {
+      '1': 'platform_properties',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.scheduler.SchedulerConfig.PlatformPropertiesEntry',
+      '10': 'platformProperties'
+    },
   ],
   '3': [SchedulerConfig_PlatformPropertiesEntry$json, SchedulerConfig_PlatformProperties$json],
 };
@@ -54,10 +61,27 @@ const SchedulerConfig_PlatformPropertiesEntry$json = {
 const SchedulerConfig_PlatformProperties$json = {
   '1': 'PlatformProperties',
   '2': [
-    {'1': 'properties', '3': 1, '4': 3, '5': 11, '6': '.scheduler.SchedulerConfig.PlatformProperties.PropertiesEntry', '10': 'properties'},
-    {'1': 'dimensions', '3': 2, '4': 3, '5': 11, '6': '.scheduler.SchedulerConfig.PlatformProperties.DimensionsEntry', '10': 'dimensions'},
+    {
+      '1': 'properties',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.scheduler.SchedulerConfig.PlatformProperties.PropertiesEntry',
+      '10': 'properties'
+    },
+    {
+      '1': 'dimensions',
+      '3': 2,
+      '4': 3,
+      '5': 11,
+      '6': '.scheduler.SchedulerConfig.PlatformProperties.DimensionsEntry',
+      '10': 'dimensions'
+    },
   ],
-  '3': [SchedulerConfig_PlatformProperties_PropertiesEntry$json, SchedulerConfig_PlatformProperties_DimensionsEntry$json],
+  '3': [
+    SchedulerConfig_PlatformProperties_PropertiesEntry$json,
+    SchedulerConfig_PlatformProperties_DimensionsEntry$json
+  ],
 };
 
 @$core.Deprecated('Use schedulerConfigDescriptor instead')
@@ -81,19 +105,19 @@ const SchedulerConfig_PlatformProperties_DimensionsEntry$json = {
 };
 
 /// Descriptor for `SchedulerConfig`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List schedulerConfigDescriptor = $convert.base64Decode(
-    'Cg9TY2hlZHVsZXJDb25maWcSKwoHdGFyZ2V0cxgBIAMoCzIRLnNjaGVkdWxlci5UYXJnZXRSB3'
-    'RhcmdldHMSKQoQZW5hYmxlZF9icmFuY2hlcxgCIAMoCVIPZW5hYmxlZEJyYW5jaGVzEmMKE3Bs'
-    'YXRmb3JtX3Byb3BlcnRpZXMYAyADKAsyMi5zY2hlZHVsZXIuU2NoZWR1bGVyQ29uZmlnLlBsYX'
-    'Rmb3JtUHJvcGVydGllc0VudHJ5UhJwbGF0Zm9ybVByb3BlcnRpZXMadAoXUGxhdGZvcm1Qcm9w'
-    'ZXJ0aWVzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSQwoFdmFsdWUYAiABKAsyLS5zY2hlZHVsZX'
-    'IuU2NoZWR1bGVyQ29uZmlnLlBsYXRmb3JtUHJvcGVydGllc1IFdmFsdWU6AjgBGtACChJQbGF0'
-    'Zm9ybVByb3BlcnRpZXMSXQoKcHJvcGVydGllcxgBIAMoCzI9LnNjaGVkdWxlci5TY2hlZHVsZX'
-    'JDb25maWcuUGxhdGZvcm1Qcm9wZXJ0aWVzLlByb3BlcnRpZXNFbnRyeVIKcHJvcGVydGllcxJd'
-    'CgpkaW1lbnNpb25zGAIgAygLMj0uc2NoZWR1bGVyLlNjaGVkdWxlckNvbmZpZy5QbGF0Zm9ybV'
-    'Byb3BlcnRpZXMuRGltZW5zaW9uc0VudHJ5UgpkaW1lbnNpb25zGj0KD1Byb3BlcnRpZXNFbnRy'
-    'eRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6AjgBGj0KD0RpbWVuc2'
-    'lvbnNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6AjgB');
+final $typed_data.Uint8List schedulerConfigDescriptor =
+    $convert.base64Decode('Cg9TY2hlZHVsZXJDb25maWcSKwoHdGFyZ2V0cxgBIAMoCzIRLnNjaGVkdWxlci5UYXJnZXRSB3'
+        'RhcmdldHMSKQoQZW5hYmxlZF9icmFuY2hlcxgCIAMoCVIPZW5hYmxlZEJyYW5jaGVzEmMKE3Bs'
+        'YXRmb3JtX3Byb3BlcnRpZXMYAyADKAsyMi5zY2hlZHVsZXIuU2NoZWR1bGVyQ29uZmlnLlBsYX'
+        'Rmb3JtUHJvcGVydGllc0VudHJ5UhJwbGF0Zm9ybVByb3BlcnRpZXMadAoXUGxhdGZvcm1Qcm9w'
+        'ZXJ0aWVzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSQwoFdmFsdWUYAiABKAsyLS5zY2hlZHVsZX'
+        'IuU2NoZWR1bGVyQ29uZmlnLlBsYXRmb3JtUHJvcGVydGllc1IFdmFsdWU6AjgBGtACChJQbGF0'
+        'Zm9ybVByb3BlcnRpZXMSXQoKcHJvcGVydGllcxgBIAMoCzI9LnNjaGVkdWxlci5TY2hlZHVsZX'
+        'JDb25maWcuUGxhdGZvcm1Qcm9wZXJ0aWVzLlByb3BlcnRpZXNFbnRyeVIKcHJvcGVydGllcxJd'
+        'CgpkaW1lbnNpb25zGAIgAygLMj0uc2NoZWR1bGVyLlNjaGVkdWxlckNvbmZpZy5QbGF0Zm9ybV'
+        'Byb3BlcnRpZXMuRGltZW5zaW9uc0VudHJ5UgpkaW1lbnNpb25zGj0KD1Byb3BlcnRpZXNFbnRy'
+        'eRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6AjgBGj0KD0RpbWVuc2'
+        'lvbnNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6AjgB');
 
 @$core.Deprecated('Use targetDescriptor instead')
 const Target$json = {
@@ -119,7 +143,14 @@ const Target$json = {
     {'1': 'run_if', '3': 11, '4': 3, '5': 9, '10': 'runIf'},
     {'1': 'enabled_branches', '3': 12, '4': 3, '5': 9, '10': 'enabledBranches'},
     {'1': 'recipe', '3': 13, '4': 1, '5': 9, '10': 'recipe'},
-    {'1': 'postsubmit_properties', '3': 15, '4': 3, '5': 11, '6': '.scheduler.Target.PostsubmitPropertiesEntry', '10': 'postsubmitProperties'},
+    {
+      '1': 'postsubmit_properties',
+      '3': 15,
+      '4': 3,
+      '5': 11,
+      '6': '.scheduler.Target.PostsubmitPropertiesEntry',
+      '10': 'postsubmitProperties'
+    },
     {'1': 'dimensions', '3': 16, '4': 3, '5': 11, '6': '.scheduler.Target.DimensionsEntry', '10': 'dimensions'},
     {'1': 'drone_dimensions', '3': 17, '4': 3, '5': 9, '10': 'droneDimensions'},
   ],
@@ -161,22 +192,21 @@ const Target_DimensionsEntry$json = {
 };
 
 /// Descriptor for `Target`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List targetDescriptor = $convert.base64Decode(
-    'CgZUYXJnZXQSEgoEbmFtZRgBIAEoCVIEbmFtZRIiCgxkZXBlbmRlbmNpZXMYAiADKAlSDGRlcG'
-    'VuZGVuY2llcxIfCgdicmluZ3VwGAMgASgIOgVmYWxzZVIHYnJpbmd1cBIcCgd0aW1lb3V0GAQg'
-    'ASgFOgIzMFIHdGltZW91dBIiCgd0ZXN0YmVkGAUgASgJOghsaW51eC12bVIHdGVzdGJlZBJBCg'
-    'pwcm9wZXJ0aWVzGAYgAygLMiEuc2NoZWR1bGVyLlRhcmdldC5Qcm9wZXJ0aWVzRW50cnlSCnBy'
-    'b3BlcnRpZXMSHAoHYnVpbGRlchgHIAEoCUICGAFSB2J1aWxkZXISQAoJc2NoZWR1bGVyGAggAS'
-    'gOMhouc2NoZWR1bGVyLlNjaGVkdWxlclN5c3RlbToGY29jb29uUglzY2hlZHVsZXISIgoJcHJl'
-    'c3VibWl0GAkgASgIOgR0cnVlUglwcmVzdWJtaXQSJAoKcG9zdHN1Ym1pdBgKIAEoCDoEdHJ1ZV'
-    'IKcG9zdHN1Ym1pdBIVCgZydW5faWYYCyADKAlSBXJ1bklmEikKEGVuYWJsZWRfYnJhbmNoZXMY'
-    'DCADKAlSD2VuYWJsZWRCcmFuY2hlcxIWCgZyZWNpcGUYDSABKAlSBnJlY2lwZRJgChVwb3N0c3'
-    'VibWl0X3Byb3BlcnRpZXMYDyADKAsyKy5zY2hlZHVsZXIuVGFyZ2V0LlBvc3RzdWJtaXRQcm9w'
-    'ZXJ0aWVzRW50cnlSFHBvc3RzdWJtaXRQcm9wZXJ0aWVzEkEKCmRpbWVuc2lvbnMYECADKAsyIS'
-    '5zY2hlZHVsZXIuVGFyZ2V0LkRpbWVuc2lvbnNFbnRyeVIKZGltZW5zaW9ucxIpChBkcm9uZV9k'
-    'aW1lbnNpb25zGBEgAygJUg9kcm9uZURpbWVuc2lvbnMaPQoPUHJvcGVydGllc0VudHJ5EhAKA2'
-    'tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAEaRwoZUG9zdHN1Ym1pdFBy'
-    'b3BlcnRpZXNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6Aj'
-    'gBGj0KD0RpbWVuc2lvbnNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIF'
-    'dmFsdWU6AjgBSgQIDhAPSgQIEhAT');
-
+final $typed_data.Uint8List targetDescriptor =
+    $convert.base64Decode('CgZUYXJnZXQSEgoEbmFtZRgBIAEoCVIEbmFtZRIiCgxkZXBlbmRlbmNpZXMYAiADKAlSDGRlcG'
+        'VuZGVuY2llcxIfCgdicmluZ3VwGAMgASgIOgVmYWxzZVIHYnJpbmd1cBIcCgd0aW1lb3V0GAQg'
+        'ASgFOgIzMFIHdGltZW91dBIiCgd0ZXN0YmVkGAUgASgJOghsaW51eC12bVIHdGVzdGJlZBJBCg'
+        'pwcm9wZXJ0aWVzGAYgAygLMiEuc2NoZWR1bGVyLlRhcmdldC5Qcm9wZXJ0aWVzRW50cnlSCnBy'
+        'b3BlcnRpZXMSHAoHYnVpbGRlchgHIAEoCUICGAFSB2J1aWxkZXISQAoJc2NoZWR1bGVyGAggAS'
+        'gOMhouc2NoZWR1bGVyLlNjaGVkdWxlclN5c3RlbToGY29jb29uUglzY2hlZHVsZXISIgoJcHJl'
+        'c3VibWl0GAkgASgIOgR0cnVlUglwcmVzdWJtaXQSJAoKcG9zdHN1Ym1pdBgKIAEoCDoEdHJ1ZV'
+        'IKcG9zdHN1Ym1pdBIVCgZydW5faWYYCyADKAlSBXJ1bklmEikKEGVuYWJsZWRfYnJhbmNoZXMY'
+        'DCADKAlSD2VuYWJsZWRCcmFuY2hlcxIWCgZyZWNpcGUYDSABKAlSBnJlY2lwZRJgChVwb3N0c3'
+        'VibWl0X3Byb3BlcnRpZXMYDyADKAsyKy5zY2hlZHVsZXIuVGFyZ2V0LlBvc3RzdWJtaXRQcm9w'
+        'ZXJ0aWVzRW50cnlSFHBvc3RzdWJtaXRQcm9wZXJ0aWVzEkEKCmRpbWVuc2lvbnMYECADKAsyIS'
+        '5zY2hlZHVsZXIuVGFyZ2V0LkRpbWVuc2lvbnNFbnRyeVIKZGltZW5zaW9ucxIpChBkcm9uZV9k'
+        'aW1lbnNpb25zGBEgAygJUg9kcm9uZURpbWVuc2lvbnMaPQoPUHJvcGVydGllc0VudHJ5EhAKA2'
+        'tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAEaRwoZUG9zdHN1Ym1pdFBy'
+        'b3BlcnRpZXNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6Aj'
+        'gBGj0KD0RpbWVuc2lvbnNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIF'
+        'dmFsdWU6AjgBSgQIDhAPSgQIEhAT');

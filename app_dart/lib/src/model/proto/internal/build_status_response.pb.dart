@@ -32,25 +32,28 @@ class BuildStatusResponse extends $pb.GeneratedMessage {
     return $result;
   }
   BuildStatusResponse._() : super();
-  factory BuildStatusResponse.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory BuildStatusResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory BuildStatusResponse.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory BuildStatusResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildStatusResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'cocoon'), createEmptyInstance: create)
-    ..e<EnumBuildStatus>(1, _omitFieldNames ? '' : 'buildStatus', $pb.PbFieldType.OE, defaultOrMaker: EnumBuildStatus.success, valueOf: EnumBuildStatus.valueOf, enumValues: EnumBuildStatus.values)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildStatusResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'cocoon'), createEmptyInstance: create)
+    ..e<EnumBuildStatus>(1, _omitFieldNames ? '' : 'buildStatus', $pb.PbFieldType.OE,
+        defaultOrMaker: EnumBuildStatus.success, valueOf: EnumBuildStatus.valueOf, enumValues: EnumBuildStatus.values)
     ..pPS(2, _omitFieldNames ? '' : 'failingTasks')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   BuildStatusResponse clone() => BuildStatusResponse()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  BuildStatusResponse copyWith(void Function(BuildStatusResponse) updates) => super.copyWith((message) => updates(message as BuildStatusResponse)) as BuildStatusResponse;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  BuildStatusResponse copyWith(void Function(BuildStatusResponse) updates) =>
+      super.copyWith((message) => updates(message as BuildStatusResponse)) as BuildStatusResponse;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -59,13 +62,17 @@ class BuildStatusResponse extends $pb.GeneratedMessage {
   BuildStatusResponse createEmptyInstance() => create();
   static $pb.PbList<BuildStatusResponse> createRepeated() => $pb.PbList<BuildStatusResponse>();
   @$core.pragma('dart2js:noInline')
-  static BuildStatusResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildStatusResponse>(create);
+  static BuildStatusResponse getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildStatusResponse>(create);
   static BuildStatusResponse? _defaultInstance;
 
   @$pb.TagNumber(1)
   EnumBuildStatus get buildStatus => $_getN(0);
   @$pb.TagNumber(1)
-  set buildStatus(EnumBuildStatus v) { setField(1, v); }
+  set buildStatus(EnumBuildStatus v) {
+    setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasBuildStatus() => $_has(0);
   @$pb.TagNumber(1)
@@ -74,7 +81,6 @@ class BuildStatusResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.List<$core.String> get failingTasks => $_getList(1);
 }
-
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
 const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');

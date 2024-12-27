@@ -23,8 +23,8 @@ const EnumBuildStatus$json = {
 };
 
 /// Descriptor for `EnumBuildStatus`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List enumBuildStatusDescriptor = $convert.base64Decode(
-    'Cg9FbnVtQnVpbGRTdGF0dXMSCwoHc3VjY2VzcxABEgsKB2ZhaWx1cmUQAg==');
+final $typed_data.Uint8List enumBuildStatusDescriptor =
+    $convert.base64Decode('Cg9FbnVtQnVpbGRTdGF0dXMSCwoHc3VjY2VzcxABEgsKB2ZhaWx1cmUQAg==');
 
 @$core.Deprecated('Use buildStatusResponseDescriptor instead')
 const BuildStatusResponse$json = {
@@ -36,8 +36,7 @@ const BuildStatusResponse$json = {
 };
 
 /// Descriptor for `BuildStatusResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List buildStatusResponseDescriptor = $convert.base64Decode(
-    'ChNCdWlsZFN0YXR1c1Jlc3BvbnNlEjoKDGJ1aWxkX3N0YXR1cxgBIAEoDjIXLmNvY29vbi5Fbn'
-    'VtQnVpbGRTdGF0dXNSC2J1aWxkU3RhdHVzEiMKDWZhaWxpbmdfdGFza3MYAiADKAlSDGZhaWxp'
-    'bmdUYXNrcw==');
-
+final $typed_data.Uint8List buildStatusResponseDescriptor =
+    $convert.base64Decode('ChNCdWlsZFN0YXR1c1Jlc3BvbnNlEjoKDGJ1aWxkX3N0YXR1cxgBIAEoDjIXLmNvY29vbi5Fbn'
+        'VtQnVpbGRTdGF0dXNSC2J1aWxkU3RhdHVzEiMKDWZhaWxpbmdfdGFza3MYAiADKAlSDGZhaWxp'
+        'bmdUYXNrcw==');

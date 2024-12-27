@@ -26,25 +26,18 @@ const String kCiYamlFusionEnginePath = 'engine/src/flutter/$kCiYamlPath';
 const String kTestOwnerPath = 'TESTOWNERS';
 
 /// Attempts to parse the github merge queue branch into its constituent parts to be returned as a record.
-({bool parsed, String branch, int pullRequestNumber})
-    tryParseGitHubMergeQueueBranch(String branch) {
+({bool parsed, String branch, int pullRequestNumber}) tryParseGitHubMergeQueueBranch(String branch) {
   final match = _githubMqBranch.firstMatch(branch);
   if (match == null) {
     return notGitHubMergeQueueBranch;
   }
 
-  return (
-    parsed: true,
-    branch: match.group(1)!,
-    pullRequestNumber: int.parse(match.group(2)!)
-  );
+  return (parsed: true, branch: match.group(1)!, pullRequestNumber: int.parse(match.group(2)!));
 }
 
-const notGitHubMergeQueueBranch =
-    (parsed: false, branch: '', pullRequestNumber: -1);
+const notGitHubMergeQueueBranch = (parsed: false, branch: '', pullRequestNumber: -1);
 
-final _githubMqBranch =
-    RegExp(r'^gh-readonly-queue\/([^/]+)\/pr-(\d+)-([a-fA-F0-9]+)$');
+final _githubMqBranch = RegExp(r'^gh-readonly-queue\/([^/]+)\/pr-(\d+)-([a-fA-F0-9]+)$');
 
 /// Signature for a function that calculates the backoff duration to wait in
 /// between requests when GitHub responds with an error.
@@ -84,8 +77,7 @@ class FusionTester {
       log.info('isFusionRef: cache hit for $cacheKey = $cacheHit');
       return cacheHit;
     }
-    final isFusion = _isFusionMap[cacheKey] =
-        await _isFusionBasedRefReal(slug, sha, timeout, retryOptions);
+    final isFusion = _isFusionMap[cacheKey] = await _isFusionBasedRefReal(slug, sha, timeout, retryOptions);
     return isFusion;
   }
 
@@ -140,8 +132,7 @@ class FusionTester {
 }
 
 const _githubTimeout = Duration(seconds: 5);
-const _githubRetryOptions =
-    RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 3));
+const _githubRetryOptions = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 3));
 
 /// Get content of [filePath] from GitHub CDN.
 Future<String> githubFileContent(
@@ -152,8 +143,7 @@ Future<String> githubFileContent(
   Duration timeout = _githubTimeout,
   RetryOptions retryOptions = _githubRetryOptions,
 }) async {
-  final Uri githubUrl =
-      Uri.https('raw.githubusercontent.com', '${slug.fullName}/$ref/$filePath');
+  final Uri githubUrl = Uri.https('raw.githubusercontent.com', '${slug.fullName}/$ref/$filePath');
   // git-on-borg has a different path for shas and refs to github
   final String gobRef = (ref.length < 40) ? 'refs/heads/$ref' : ref;
   final Uri gobUrl = Uri.https(
@@ -166,8 +156,7 @@ Future<String> githubFileContent(
   late String content;
   try {
     await retryOptions.retry(
-      () async => content =
-          await getUrl(githubUrl, httpClientProvider, timeout: timeout),
+      () async => content = await getUrl(githubUrl, httpClientProvider, timeout: timeout),
       retryIf: (Exception e) => e is HttpException || e is NotFoundException,
     );
   } catch (e) {
@@ -257,8 +246,7 @@ Future<List<Target>> getTargetsToRun(
       for (String glob in globs) {
         // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
         final RegExp regExp = await parseGlob(glob);
-        if (glob.isEmpty ||
-            files.any((String? file) => regExp.hasMatch(file!))) {
+        if (glob.isEmpty || files.any((String? file) => regExp.hasMatch(file!))) {
           targetsToRun.add(target);
           break;
         }
@@ -309,8 +297,7 @@ List<String> validateOwnership(
 }) {
   final List<String> noOwnerBuilders = <String>[];
   final YamlMap? ciYaml = loadYaml(ciYamlContent) as YamlMap?;
-  final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()
-    ..mergeFromProto3Json(ciYaml);
+  final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ciYaml);
 
   final CiYamlSet ciYamlFromProto = CiYamlSet(
     slug: Config.flutterSlug,
@@ -318,8 +305,7 @@ List<String> validateOwnership(
     yamls: {CiType.any: unCheckedSchedulerConfig},
   );
 
-  final pb.SchedulerConfig schedulerConfig =
-      ciYamlFromProto.configFor(CiType.any);
+  final pb.SchedulerConfig schedulerConfig = ciYamlFromProto.configFor(CiType.any);
 
   for (pb.Target target in schedulerConfig.targets) {
     final String builder = target.name;
