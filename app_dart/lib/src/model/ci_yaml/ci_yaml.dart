@@ -400,12 +400,6 @@ class CiYaml {
             _verifyTargetClassicRepo(target, exceptions);
           }
         }
-
-        // Verify runIfNot is never used, as it is a very confusing feature.
-        // https://github.com/flutter/flutter/issues/147182
-        if (target.runIfNot.isNotEmpty) {
-          exceptions.add('ERROR: ${target.name}: Do not use runIfNot.');
-        }
       }
 
       /// Check the dependencies for the current target if it is viable and to

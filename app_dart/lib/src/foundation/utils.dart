@@ -241,24 +241,7 @@ Future<List<Target>> getTargetsToRun(
     final List<String> globs = target.value.runIf;
     // Handle case where [Target] initializes empty runif
     if (globs.isEmpty) {
-      // Evaluate run_if_not.
-      final List<String> negativeGlobs = target.value.runIfNot;
-      if (negativeGlobs.isEmpty) {
-        targetsToRun.add(target);
-        continue;
-      }
-      bool shouldAdd = true;
-      for (String glob in negativeGlobs) {
-        final RegExp regExp = await parseGlob(glob);
-        // if the file is not in any of the paths then add the target.
-        if (files.any((String? file) => regExp.hasMatch(file!))) {
-          shouldAdd = false;
-          break;
-        }
-      }
-      if (shouldAdd) {
-        targetsToRun.add(target);
-      }
+      targetsToRun.add(target);
     } else {
       for (String glob in globs) {
         // If a file is found within a pre-set dir, the builder needs to run. No need to check further.

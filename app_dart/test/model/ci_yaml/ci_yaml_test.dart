@@ -417,36 +417,6 @@ void main() {
   });
 
   group('validates runIf blocks', () {
-    test('never use runIfNot', () {
-      expect(
-        () => CiYaml(
-          slug: Config.flutterSlug,
-          branch: Config.defaultBranch(Config.flutterSlug),
-          config: pb.SchedulerConfig(
-            enabledBranches: [Config.defaultBranch(Config.flutterSlug)],
-            targets: [
-              pb.Target(
-                name: 'Target.Uses.runIfNot',
-                runIfNot: ['some-file'],
-              ),
-            ],
-          ),
-          type: CiType.any,
-          validate: true,
-        ),
-        throwsA(
-          isA<FormatException>().having(
-            (e) => e.message,
-            'message',
-            stringContainsInOrder([
-              'Target.Uses.runIfNot',
-              'Do not use runIfNot',
-            ]),
-          ),
-        ),
-      );
-    });
-
     group('classic repo', () {
       test('must include .ci.yaml', () {
         expect(

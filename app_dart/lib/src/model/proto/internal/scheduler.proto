@@ -66,8 +66,7 @@ message Target {
     map<string, string> dimensions = 16;
     // Dimensions used when this build runs within a drone.
     repeated string drone_dimensions = 17;
-    // Runs the target if files are not in these paths.
-    repeated string run_if_not = 18;
+    reserved 18; // run_if_not
 }
 
 // Schedulers supported in SchedulerConfig.
