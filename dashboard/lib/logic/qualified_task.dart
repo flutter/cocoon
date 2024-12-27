@@ -28,14 +28,15 @@ class QualifiedTask {
   QualifiedTask.fromTask(Task task)
       : stage = task.stageName,
         task = task.builderName,
-        pool = task.isFlaky ? 'luci.flutter.staging' : 'luci.flutter.prod';
+        pool = task.isFlaky ? 'luci.flutter.staging' : 'luci.flutter.prod',
+        isBringup = task.isFlaky;
 
   final String? pool;
   final String? stage;
   final String? task;
 
   /// Whether this task originated as a `bringup: true` task.
-  bool get isBringUp => pool == 'luci.flutter.staging';
+  final bool isBringup;
 
   /// Get the URL for the configuration of this task.
   ///
@@ -56,7 +57,10 @@ class QualifiedTask {
   bool get isGoogleTest => stage == StageName.googleTest;
 
   /// Whether the task was run on the LUCI infrastructure.
-  bool get isLuci => stage == StageName.cocoon || stage == StageName.legacyLuci || stage == StageName.luci;
+  bool get isLuci =>
+      stage == StageName.cocoon ||
+      stage == StageName.legacyLuci ||
+      stage == StageName.luci;
 
   /// Whether this task was run on internal infrastructure (example: luci dart-internal).
   bool get isDartInternal => stage == StageName.dartInternal;
