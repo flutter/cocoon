@@ -332,4 +332,26 @@ void main() {
       expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'foo')), false);
     }
   });
+
+  group('filter.toMap()', () {
+    test('adds key-value pairs that are non-default', () {
+      final showAndroidFalseNonDefault = TaskGridFilter()..showAndroid = false;
+      expect(showAndroidFalseNonDefault.toMap(), {'showAndroid': 'false'});
+    });
+
+    test('ignores key-value pairs that are default', () {
+      final showAndroidTrueIsDefault = TaskGridFilter()..showAndroid = true;
+      expect(showAndroidTrueIsDefault.toMap(), isEmpty);
+    });
+
+    test('ignores existing key-value pairs that are not filter keys', () {
+      final showAndroidTrueIsDefault = TaskGridFilter()..showAndroid = true;
+      expect(showAndroidTrueIsDefault.toMap(initialMap: {'foo': 'bar'}), {'foo': 'bar'});
+    });
+
+    test('removes existing key-value pairs that are now default values', () {
+      final showAndroidTrueIsDefault = TaskGridFilter()..showAndroid = true;
+      expect(showAndroidTrueIsDefault.toMap(initialMap: {'showAndroid': 'false'}), isEmpty);
+    });
+  });
 }
