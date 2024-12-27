@@ -113,7 +113,8 @@ void main() {
     expect(find.text(expectedTaskInfoString), findsNothing);
     expect(find.text(expectedTask.reservedForAgentId), findsNothing);
 
-    await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.normal_overlay_closed.png');
+    await expectGoldenMatches(find.byType(MaterialApp),
+        'task_overlay_test.normal_overlay_closed.png');
 
     await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
@@ -121,7 +122,8 @@ void main() {
     expect(find.text(expectedTask.name), findsOneWidget);
     expect(find.text(expectedTaskInfoString), findsOneWidget);
 
-    await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.normal_overlay_open.png');
+    await expectGoldenMatches(
+        find.byType(MaterialApp), 'task_overlay_test.normal_overlay_open.png');
 
     // Since the overlay positions itself below the middle of the widget,
     // it is safe to click the widget to close it again.
@@ -132,10 +134,12 @@ void main() {
     expect(find.text(expectedTaskInfoString), findsNothing);
     expect(find.text(expectedTask.reservedForAgentId), findsNothing);
 
-    await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.normal_overlay_closed.png');
+    await expectGoldenMatches(find.byType(MaterialApp),
+        'task_overlay_test.normal_overlay_closed.png');
   });
 
-  testWidgets('TaskOverlay shows when flaky is true', (WidgetTester tester) async {
+  testWidgets('TaskOverlay shows when flaky is true',
+      (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     final Task flakyTask = Task()
       ..attempts = 3
@@ -164,7 +168,7 @@ void main() {
                 buildState: buildState,
                 task: flakyTask,
                 // Otherwise the task is not rendered at all.
-                filter: TaskGridFilter()..showBringUp = true,
+                filter: TaskGridFilter()..showBringup = true,
               ),
             ),
           ),
@@ -177,7 +181,8 @@ void main() {
     expect(find.text(flakyTaskInfoString), findsNothing);
     expect(find.text(flakyTask.reservedForAgentId), findsNothing);
 
-    await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.flaky_overlay_closed.png');
+    await expectGoldenMatches(
+        find.byType(MaterialApp), 'task_overlay_test.flaky_overlay_closed.png');
 
     await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
@@ -185,10 +190,12 @@ void main() {
     expect(find.text(flakyTask.name), findsOneWidget);
     expect(find.text(flakyTaskInfoString), findsOneWidget);
 
-    await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.flaky_overlay_open.png');
+    await expectGoldenMatches(
+        find.byType(MaterialApp), 'task_overlay_test.flaky_overlay_open.png');
   });
 
-  testWidgets('TaskOverlay computes durations correctly for completed task', (WidgetTester tester) async {
+  testWidgets('TaskOverlay computes durations correctly for completed task',
+      (WidgetTester tester) async {
     /// Create a queue time of 2 minutes, run time of 8 minutes
     final DateTime createTime = nowTime.subtract(const Duration(minutes: 11));
     final DateTime startTime = nowTime.subtract(const Duration(minutes: 9));
@@ -233,7 +240,8 @@ void main() {
     expect(find.text(timeTaskInfoString), findsOneWidget);
   });
 
-  testWidgets('TaskOverlay computes durations correctly for running task', (WidgetTester tester) async {
+  testWidgets('TaskOverlay computes durations correctly for running task',
+      (WidgetTester tester) async {
     /// Create a queue time of 2 minutes, running time of 9 minutes
     final DateTime createTime = nowTime.subtract(const Duration(minutes: 11));
     final DateTime startTime = nowTime.subtract(const Duration(minutes: 9));
@@ -277,7 +285,8 @@ void main() {
     expect(find.text(timeTaskInfoString), findsOneWidget);
   });
 
-  testWidgets('TaskOverlay computes durations correctly for queueing task', (WidgetTester tester) async {
+  testWidgets('TaskOverlay computes durations correctly for queueing task',
+      (WidgetTester tester) async {
     /// Create a queue time of 2 minutes
     final DateTime createTime = nowTime.subtract(const Duration(minutes: 2));
 
@@ -318,7 +327,8 @@ void main() {
     expect(find.text(timeTaskInfoString), findsOneWidget);
   });
 
-  testWidgets('TaskOverlay shows the right message for nondevicelab tasks', (WidgetTester tester) async {
+  testWidgets('TaskOverlay shows the right message for nondevicelab tasks',
+      (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     await tester.pumpWidget(
       Now.fixed(
@@ -341,15 +351,18 @@ void main() {
     );
     await tester.pump();
 
-    await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.nondevicelab_closed.png');
+    await expectGoldenMatches(
+        find.byType(MaterialApp), 'task_overlay_test.nondevicelab_closed.png');
 
     await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
-    await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.nondevicelab_open.png');
+    await expectGoldenMatches(
+        find.byType(MaterialApp), 'task_overlay_test.nondevicelab_open.png');
   });
 
-  testWidgets('TaskOverlay shows TaskAttemptSummary for Luci tasks', (WidgetTester tester) async {
+  testWidgets('TaskOverlay shows TaskAttemptSummary for Luci tasks',
+      (WidgetTester tester) async {
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
@@ -378,7 +391,8 @@ void main() {
     expect(find.byType(LuciTaskAttemptSummary), findsOneWidget);
   });
 
-  testWidgets('TaskOverlay shows TaskAttemptSummary for dart-internal tasks', (WidgetTester tester) async {
+  testWidgets('TaskOverlay shows TaskAttemptSummary for dart-internal tasks',
+      (WidgetTester tester) async {
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
@@ -407,7 +421,8 @@ void main() {
     expect(find.byType(LuciTaskAttemptSummary), findsOneWidget);
   });
 
-  testWidgets('TaskOverlay: RERUN button disabled when user !isAuthenticated', (WidgetTester tester) async {
+  testWidgets('TaskOverlay: RERUN button disabled when user !isAuthenticated',
+      (WidgetTester tester) async {
     final Task expectedTask = Task()
       ..attempts = 3
       ..stageName = StageName.luci
@@ -439,13 +454,17 @@ void main() {
     await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
-    final ProgressButton? rerun = tester.element(find.text('RERUN')).findAncestorWidgetOfExactType<ProgressButton>();
+    final ProgressButton? rerun = tester
+        .element(find.text('RERUN'))
+        .findAncestorWidgetOfExactType<ProgressButton>();
 
     expect(rerun, isNotNull, reason: 'The rerun button should exist.');
-    expect(rerun!.onPressed, isNull, reason: 'The rerun button should be disabled.');
+    expect(rerun!.onPressed, isNull,
+        reason: 'The rerun button should be disabled.');
   });
 
-  testWidgets('TaskOverlay: successful rerun shows success snackbar message', (WidgetTester tester) async {
+  testWidgets('TaskOverlay: successful rerun shows success snackbar message',
+      (WidgetTester tester) async {
     final Task expectedTask = Task()
       ..attempts = 3
       ..stageName = StageName.luci
@@ -496,7 +515,8 @@ void main() {
     expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
   });
 
-  testWidgets('failed rerun shows errorBrook snackbar message', (WidgetTester tester) async {
+  testWidgets('failed rerun shows errorBrook snackbar message',
+      (WidgetTester tester) async {
     final Task expectedTask = Task()
       ..attempts = 3
       ..stageName = StageName.luci
@@ -545,7 +565,8 @@ void main() {
     expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
 
     // Snackbar message should go away after its duration
-    await tester.pump(ErrorBrookWatcher.errorSnackbarDuration); // wait the duration
+    await tester
+        .pump(ErrorBrookWatcher.errorSnackbarDuration); // wait the duration
     await tester.pump(); // schedule animation
     await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
