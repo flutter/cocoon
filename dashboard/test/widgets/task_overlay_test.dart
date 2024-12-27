@@ -5,6 +5,7 @@
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dashboard/logic/qualified_task.dart';
+import 'package:flutter_dashboard/logic/task_grid_filter.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
@@ -28,16 +29,19 @@ class TestGrid extends StatelessWidget {
   const TestGrid({
     required this.buildState,
     required this.task,
+    this.filter,
     super.key,
   });
 
   final BuildState buildState;
   final Task task;
+  final TaskGridFilter? filter;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       child: TaskGrid(
+        filter: filter,
         buildState: buildState,
         commitStatuses: <CommitStatus>[
           CommitStatus()
@@ -159,6 +163,8 @@ void main() {
               body: TestGrid(
                 buildState: buildState,
                 task: flakyTask,
+                // Otherwise the task is not rendered at all.
+                filter: TaskGridFilter()..showBringUp = true,
               ),
             ),
           ),

@@ -34,6 +34,9 @@ class QualifiedTask {
   final String? stage;
   final String? task;
 
+  /// Whether this task originated as a `bringup: true` task.
+  bool get isBringUp => pool == 'luci.flutter.staging';
+
   /// Get the URL for the configuration of this task.
   ///
   /// Luci tasks are stored on Luci.

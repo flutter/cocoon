@@ -183,7 +183,7 @@ class TaskGridFilter extends FilterPropertySource {
       return false;
     }
 
-    if ((!_allProperties['showBringUp']?.value) && qualifiedTask.pool == 'luci.flutter.staging') {
+    if ((!_allProperties['showBringUp']?.value) && qualifiedTask.isBringUp) {
       return false;
     }
 
