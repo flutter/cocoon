@@ -19,6 +19,7 @@ void main() {
     expect(filter.hashFilter, null);
     expect(filter.showiOS, true);
     expect(filter.showStaging, false);
+    expect(filter.showBringUp, false);
 
     expect(filter.matchesTask(QualifiedTask.fromTask(Task())), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), true);
@@ -62,6 +63,7 @@ void main() {
     expect(TaskGridFilter.fromMap(<String, String>{'hashFilter': 'foo'}), TaskGridFilter()..hashFilter = RegExp('foo'));
     expect(TaskGridFilter.fromMap(<String, String>{'showMac': 'false'}), TaskGridFilter()..showMac = false);
     expect(TaskGridFilter.fromMap(<String, String>{'showStaging': 'false'}), TaskGridFilter()..showStaging = false);
+    expect(TaskGridFilter.fromMap(<String, String>{'showBringUp': 'false'}), TaskGridFilter()..showBringUp = false);
   });
 
   test('cross check on inequality', () {
@@ -85,6 +87,34 @@ void main() {
           expect(nonDefaultFilters[i], isNot(equals(nonDefaultFilters[j])));
         }
       }
+    }
+  });
+
+  test('bringup filter show all tasks', () {
+    final List<TaskGridFilter> filters = <TaskGridFilter>[
+      TaskGridFilter()..showBringUp = true,
+    ];
+    for (final TaskGridFilter filter in filters) {
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Good task')), true);
+      expect(
+          filter.matchesTask(QualifiedTask.fromTask(Task()
+            ..builderName = 'Bringup task'
+            ..isFlaky = true)),
+          true);
+    }
+  });
+
+  test('bringup filter hide bringup tasks', () {
+    final List<TaskGridFilter> filters = <TaskGridFilter>[
+      TaskGridFilter()..showBringUp = false,
+    ];
+    for (final TaskGridFilter filter in filters) {
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Good task')), true);
+      expect(
+          filter.matchesTask(QualifiedTask.fromTask(Task()
+            ..builderName = 'Bringup task'
+            ..isFlaky = true)),
+          false);
     }
   });
 
