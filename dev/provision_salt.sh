@@ -7,25 +7,36 @@
 set -e
 
 MINION_PLIST_PATH=/Library/LaunchDaemons/com.saltstack.salt.minion.plist
+LINUX_SALT_CLIENT_PATH="$HOME/salt-client"
+# NOTE: https://github.com/flutter/flutter/issues/142627#issuecomment-1919922724
+# before increasing this
+SALT_VERSION='3006.3'
 
 # Installs salt minion.
 # Pins the version to 2019.2.0 and Python 2 to be compatible with Fuchsia salt master.
 function install_salt() {
-  if [[ "$(uname)" == 'Darwin' ]]; then
-    curl https://repo.saltproject.io/osx/salt-3002.9-py3-x86_64.pkg -o /tmp/salt.pkg
+  OS="$(uname)"
+  if [[ "$OS" == 'Darwin' ]]; then
+    curl -L "https://packages.broadcom.com/artifactory/saltproject-generic/macos/$SALT_VERSION/salt-$SALT_VERSION-py3-x86_64.pkg" -o /tmp/salt.pkg
     sudo installer -pkg /tmp/salt.pkg -target /
-  elif [[ "$(lsb_release -is)" == 'Debian' ]]; then
-    wget -O - https://repo.saltproject.io/py3/debian/10/amd64/3002/SALTSTACK-GPG-KEY.pub | sudo apt-key add -
-    echo 'deb http://repo.saltproject.io/py3/debian/10/amd64/3002 buster main' | sudo tee /etc/apt/sources.list.d/saltstack.list
-    # Also provision debian backports for m2crypto
-    echo 'deb http://deb.debian.org/debian buster-backports main' | sudo tee /etc/apt/sources.list.d/backports.list
-    sudo apt update
-    sudo apt install salt-minion
-  elif [[ "$(lsb_release -is)" == 'Ubuntu' ]]; then
-    sudo curl -fsSL -o /usr/share/keyrings/salt-archive-keyring.gpg https://repo.saltproject.io/py3/ubuntu/20.04/amd64/latest/salt-archive-keyring.gpg
-    echo 'deb [signed-by=/usr/share/keyrings/salt-archive-keyring.gpg arch=amd64] https://repo.saltproject.io/py3/ubuntu/20.04/amd64/3005/ focal main' | sudo tee /etc/apt/sources.list.d/salt.list
-    sudo apt update
-    sudo apt install salt-minion
+  elif [[ "$OS" == 'Linux' ]]; then
+    DISTRO="$(lsb_release -is)"
+    if [[ "$DISTRO" == 'Ubuntu' ]]; then
+      # Download the SALT client tarball
+      SALT_DEB_PKG="/tmp/salt.deb"
+      curl -L -o "$SALT_DEB_PKG" https://packages.broadcom.com/artifactory/saltproject-deb/pool/salt-api_3006.9_amd64.deb
+      # Uninstall previous package, if any
+      sudo dpkg --remove salt-minion
+
+      # Install our downloaded .deb package
+      sudo dpkg --install "$SALT_DEB_PKG"
+    else
+      echo "Unsupported Linux distribution: $DISTRO" >&2
+      exit 1
+    fi
+  else
+    echo "Unsupported operating system $OS" >&2
+    exit 1
   fi
 }
 
@@ -45,13 +56,14 @@ function config_minion() {
 }
 
 function set_deviceos_grains() {
-  if [ ! -z "$1" ]; then
-    sudo /opt/salt/bin/salt-call grains.set 'device_os' "$1"
+  if [ -n "$1" ]; then
+    sudo PATH="/opt/salt/bin:/usr/local/sbin:$PATH" /opt/salt/bin/salt-call grains.set 'device_os' "$1"
   fi
 }
 
 function reboot_salt() {
   if [[ "$(uname)" == 'Linux' ]]; then
+    # TODO hmm....
     sudo systemctl restart salt-minion
   elif [[ "$(uname)" == 'Darwin' ]]; then
     sudo launchctl unload "$MINION_PLIST_PATH"
