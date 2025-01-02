@@ -539,6 +539,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.startsWith('dev/integration_tests/') ||
         filename.startsWith('docs/') ||
         filename.startsWith('${engineBasePath}docs/') ||
+        filename.endsWith('test/flutter_test_config.dart') ||
         // ↓↓↓ Begin engine specific paths ↓↓↓
         filename == 'DEPS' || // note: in monorepo; DEPS is still at the root.
         isBuildPythonScript ||
