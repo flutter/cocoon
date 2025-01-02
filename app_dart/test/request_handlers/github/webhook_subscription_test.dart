@@ -791,6 +791,7 @@ void main() {
           PullRequestFile()..filename = 'dev/devicelab/lib/versions/gallery.dart',
           PullRequestFile()..filename = 'dev/integration_tests/some_package/android/build.gradle',
           PullRequestFile()..filename = 'docs/app_anatomy.svg',
+          PullRequestFile()..filename = 'example/test/flutter_test_config.dart',
           PullRequestFile()..filename = 'impeller/fixtures/dart_tests.dart',
           PullRequestFile()..filename = 'impeller/golden_tests/golden_tests.cc',
           PullRequestFile()..filename = 'impeller/playground/playground.cc',
@@ -798,6 +799,7 @@ void main() {
           PullRequestFile()..filename = 'shell/platform/embedder/fixtures/main.dart',
           PullRequestFile()..filename = 'testing/test_gl_surface.h',
           PullRequestFile()..filename = 'tools/clangd_check/bin/main.dart',
+          PullRequestFile()..filename = 'test/flutter_test_config.dart',
         ]),
       );
 
