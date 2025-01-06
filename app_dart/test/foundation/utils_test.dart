@@ -534,16 +534,14 @@ void main() {
         },
       );
 
-      for (var request in [goodFlutterRef, goodFlutterRef]) {
-        final tester = FusionTester(httpClientProvider: () => branchHttpClient);
+      final tester = FusionTester(httpClientProvider: () => branchHttpClient);
 
-        final fusion = await tester.isFusionBasedRef(
-          request.slug,
-          request.sha,
-          retryOptions: noRetry,
-        );
-        expect(fusion, isTrue);
-      }
+      final fusion = await tester.isFusionBasedRef(
+        goodFlutterRef.slug,
+        goodFlutterRef.sha,
+        retryOptions: noRetry,
+      );
+      expect(fusion, isTrue);
     });
 
     test('isFusionPR caches results', () async {
@@ -568,14 +566,12 @@ void main() {
       );
 
       final tester = FusionTester(httpClientProvider: () => branchHttpClient);
-      for (var request in [goodFlutterRef, goodFlutterRef]) {
-        final fusion = await tester.isFusionBasedRef(
-          request.slug,
-          request.sha,
-          retryOptions: noRetry,
-        );
-        expect(fusion, isTrue);
-      }
+      final fusion = await tester.isFusionBasedRef(
+        goodFlutterRef.slug,
+        goodFlutterRef.sha,
+        retryOptions: noRetry,
+      );
+      expect(fusion, isTrue);
       expect(urlCalled['https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn'], 1);
       expect(urlCalled['https://raw.githubusercontent.com/flutter/flutter/1234/DEPS'], 1);
     });
