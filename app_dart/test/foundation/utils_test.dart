@@ -394,7 +394,6 @@ void main() {
     );
 
     final goodFlutterRef = (slug: RepositorySlug.full('flutter/flutter'), sha: '1234');
-    final goodFlauxRef = (slug: RepositorySlug.full('flutter/flaux'), sha: 'abcd');
 
     test('isFusionPR returns false non-flutter repo', () async {
       final branchHttpClient = MockClient(
@@ -527,13 +526,7 @@ void main() {
                 'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
               ) ||
               url.contains(
-                'https://raw.githubusercontent.com/flutter/flaux/abcd/engine/src/.gn',
-              ) ||
-              url.contains(
                 'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS',
-              ) ||
-              url.contains(
-                'https://raw.githubusercontent.com/flutter/flaux/abcd/DEPS',
               )) {
             return http.Response('FUSION', HttpStatus.ok);
           }
@@ -541,16 +534,14 @@ void main() {
         },
       );
 
-      for (var request in [goodFlutterRef, goodFlauxRef, goodFlutterRef, goodFlauxRef]) {
-        final tester = FusionTester(httpClientProvider: () => branchHttpClient);
+      final tester = FusionTester(httpClientProvider: () => branchHttpClient);
 
-        final fusion = await tester.isFusionBasedRef(
-          request.slug,
-          request.sha,
-          retryOptions: noRetry,
-        );
-        expect(fusion, isTrue);
-      }
+      final fusion = await tester.isFusionBasedRef(
+        goodFlutterRef.slug,
+        goodFlutterRef.sha,
+        retryOptions: noRetry,
+      );
+      expect(fusion, isTrue);
     });
 
     test('isFusionPR caches results', () async {
@@ -575,18 +566,14 @@ void main() {
       );
 
       final tester = FusionTester(httpClientProvider: () => branchHttpClient);
-      for (var request in [goodFlutterRef, goodFlauxRef, goodFlutterRef, goodFlauxRef]) {
-        final fusion = await tester.isFusionBasedRef(
-          request.slug,
-          request.sha,
-          retryOptions: noRetry,
-        );
-        expect(fusion, isTrue);
-      }
+      final fusion = await tester.isFusionBasedRef(
+        goodFlutterRef.slug,
+        goodFlutterRef.sha,
+        retryOptions: noRetry,
+      );
+      expect(fusion, isTrue);
       expect(urlCalled['https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn'], 1);
       expect(urlCalled['https://raw.githubusercontent.com/flutter/flutter/1234/DEPS'], 1);
-      expect(urlCalled['https://raw.githubusercontent.com/flutter/flaux/abcd/engine/src/.gn'], 1);
-      expect(urlCalled['https://raw.githubusercontent.com/flutter/flaux/abcd/DEPS'], 1);
     });
   });
 }

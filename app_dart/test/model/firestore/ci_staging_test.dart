@@ -31,7 +31,7 @@ void main() {
         (_) async => Document(
           createTime: '1234',
           name: CiStaging.documentNameFor(
-            slug: RepositorySlug('flutter', 'flaux'),
+            slug: RepositorySlug('flutter', 'flutter'),
             sha: '12345',
             stage: CiStage.fusionEngineBuild,
           ),
@@ -48,7 +48,7 @@ void main() {
       final future = CiStaging.fromFirestore(
         firestoreService: firestoreService,
         documentName: CiStaging.documentNameFor(
-          slug: RepositorySlug('flutter', 'flaux'),
+          slug: RepositorySlug('flutter', 'flutter'),
           sha: '12345',
           stage: CiStage.fusionEngineBuild,
         ),
@@ -60,7 +60,7 @@ void main() {
       verify(
         firestoreService.getDocument(
           CiStaging.documentNameFor(
-            slug: RepositorySlug('flutter', 'flaux'),
+            slug: RepositorySlug('flutter', 'flutter'),
             sha: '12345',
             stage: CiStage.fusionEngineBuild,
           ),
@@ -70,12 +70,12 @@ void main() {
 
     group('markConclusion', () {
       const kTransaction = 'a-totally-real-transaction-string';
-      final slug = RepositorySlug('flutter', 'flaux');
+      final slug = RepositorySlug('flutter', 'flutter');
 
       late MockProjectsDatabasesDocumentsResource docRes;
 
       final expectedName = CiStaging.documentNameFor(
-        slug: RepositorySlug('flutter', 'flaux'),
+        slug: RepositorySlug('flutter', 'flutter'),
         sha: '1234',
         stage: CiStage.fusionEngineBuild,
       );
@@ -513,7 +513,7 @@ void main() {
     });
 
     group('initializeDocument', () {
-      final slug = RepositorySlug('flutter', 'flaux');
+      final slug = RepositorySlug('flutter', 'flutter');
       final tasks = <String>['task1', 'task2'];
       const checkRunGuard = '{"id": "check_run_id"}';
       const sha = '1234abc';
