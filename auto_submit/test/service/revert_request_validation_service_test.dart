@@ -1241,7 +1241,7 @@ void main() {
 
     test('Do not re-enqueue already enqueued pull requests', () async {
       // Use a test slug that has MQ enabled
-      slug = RepositorySlug('flutter', 'flaux');
+      slug = RepositorySlug('flutter', 'flutter');
 
       final logs = <String>[];
       final logSub = log.onRecord.listen((record) {
@@ -1285,7 +1285,7 @@ void main() {
       // Expectations
       expect(
         logs,
-        contains('[INFO] auto_submit: flutter/flaux/0 is already in the merge queue. Skipping.'),
+        contains('[INFO] auto_submit: flutter/flutter/0 is already in the merge queue. Skipping.'),
       );
       expect(githubService.issueComment, isNull);
       expect(githubService.labelRemoved, false);
