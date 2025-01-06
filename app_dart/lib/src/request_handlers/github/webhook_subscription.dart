@@ -412,7 +412,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     await _validateRefs(gitHubClient, pr);
     if (kNeedsTests.contains(slug) && isTipOfTree) {
       switch (slug.name) {
-        case 'flaux':
         case 'flutter':
           final bool isFusion = await fusionTester.isFusionBasedRef(slug, pr.head!.sha!);
           final files = await gitHubClient.pullRequests.listFiles(slug, pr.number!).toList();

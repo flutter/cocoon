@@ -1051,7 +1051,7 @@ targets:
             verify(
               callbacks.markCheckRunConclusion(
                 firestoreService: argThat(isNotNull, named: 'firestoreService'),
-                slug: argThat(equals(Config.flauxSlug), named: 'slug'),
+                slug: argThat(equals(Config.flutterSlug), named: 'slug'),
                 sha: '1234',
                 stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
                 checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
@@ -1096,7 +1096,7 @@ targets:
             verify(
               callbacks.markCheckRunConclusion(
                 firestoreService: argThat(isNotNull, named: 'firestoreService'),
-                slug: argThat(equals(Config.flauxSlug), named: 'slug'),
+                slug: argThat(equals(Config.flutterSlug), named: 'slug'),
                 sha: '1234',
                 stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
                 checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
@@ -1146,7 +1146,7 @@ targets:
             verify(
               callbacks.markCheckRunConclusion(
                 firestoreService: argThat(isNotNull, named: 'firestoreService'),
-                slug: argThat(equals(Config.flauxSlug), named: 'slug'),
+                slug: argThat(equals(Config.flutterSlug), named: 'slug'),
                 sha: '1234',
                 stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
                 checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
@@ -1157,7 +1157,7 @@ targets:
             verify(
               mockGithubChecksUtil.updateCheckRun(
                 any,
-                argThat(equals(RepositorySlug('flutter', 'flaux'))),
+                argThat(equals(RepositorySlug('flutter', 'flutter'))),
                 argThat(
                   predicate<CheckRun>((arg) {
                     expect(arg.name, 'GUARD TEST');
@@ -1247,12 +1247,12 @@ targets:
               isTrue,
             );
 
-            verify(gitHubChecksService.findMatchingPullRequest(Config.flauxSlug, 'testSha', 668083231)).called(1);
+            verify(gitHubChecksService.findMatchingPullRequest(Config.flutterSlug, 'testSha', 668083231)).called(1);
 
             verify(
               callbacks.markCheckRunConclusion(
                 firestoreService: argThat(isNotNull, named: 'firestoreService'),
-                slug: argThat(equals(Config.flauxSlug), named: 'slug'),
+                slug: argThat(equals(Config.flutterSlug), named: 'slug'),
                 sha: 'testSha',
                 stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
                 checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
@@ -1263,7 +1263,7 @@ targets:
             verify(
               mockGithubChecksUtil.updateCheckRun(
                 any,
-                argThat(equals(RepositorySlug('flutter', 'flaux'))),
+                argThat(equals(RepositorySlug('flutter', 'flutter'))),
                 argThat(
                   predicate<CheckRun>((arg) {
                     expect(arg.name, 'GUARD TEST');
@@ -1375,7 +1375,7 @@ targets:
             verify(
               callbacks.markCheckRunConclusion(
                 firestoreService: argThat(isNotNull, named: 'firestoreService'),
-                slug: argThat(equals(Config.flauxSlug), named: 'slug'),
+                slug: argThat(equals(Config.flutterSlug), named: 'slug'),
                 sha: '1234',
                 stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
                 checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
@@ -1386,7 +1386,7 @@ targets:
             verify(
               mockGithubChecksUtil.updateCheckRun(
                 any,
-                argThat(equals(RepositorySlug('flutter', 'flaux'))),
+                argThat(equals(RepositorySlug('flutter', 'flutter'))),
                 argThat(
                   predicate<CheckRun>((arg) {
                     expect(arg.name, 'GUARD TEST');
@@ -2427,7 +2427,7 @@ CheckRun createCheckRun({
   String? name = 'Linux unit_test',
   String conclusion = 'success',
   String owner = 'flutter',
-  String repo = 'flaux',
+  String repo = 'flutter',
   String headBranch = 'master',
   CheckRunStatus status = CheckRunStatus.completed,
   int checkSuiteId = 668083231,
@@ -2456,7 +2456,7 @@ String checkRunFor({
   String? name = 'Linux unit_test',
   String conclusion = 'success',
   String owner = 'flutter',
-  String repo = 'flaux',
+  String repo = 'flutter',
   String headBranch = 'master',
   CheckRunStatus status = CheckRunStatus.completed,
   int checkSuiteId = 668083231,
@@ -2486,7 +2486,7 @@ String checkRunEventFor({
   String test = 'Linux unit_test',
   String conclusion = 'success',
   String owner = 'flutter',
-  String repo = 'flaux',
+  String repo = 'flutter',
 }) =>
     '''{
   "action": "$action",
