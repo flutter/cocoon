@@ -272,7 +272,6 @@ String _sanitizePrBody(String rawPrBody) {
 /// This variable is read-write to allow tests to choose which repos they want
 /// to test in which mode.
 List<String> mqEnabledRepos = const <String>[
-  'flutter/flaux',
   'flutter/flutter',
 ];
 

@@ -63,9 +63,7 @@ void main() {
       // To keep pre-MQ workflow tested until we're completely moved to MQ-based
       // workflow, pretend that flutter/flutter does not yet use MQ. Then all
       // the existing tests will continue testing the non-MQ workflow.
-      mqEnabledRepos = const <String>[
-        'flutter/flaux',
-      ];
+      mqEnabledRepos = const <String>[];
 
       githubGraphQLClient = FakeGraphQLClient();
       auth = FakeCronAuthProvider();

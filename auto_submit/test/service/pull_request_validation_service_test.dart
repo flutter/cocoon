@@ -450,7 +450,7 @@ This is the second line in a paragraph.''');
     });
 
     test('Enqueues pull request when merge queue is used', () async {
-      slug = RepositorySlug('flutter', 'flaux');
+      slug = RepositorySlug('flutter', 'flutter');
       final prTitle = 'This pull request should be enqueueueueueueueueueueued';
 
       Map<String, Object?>? queryOptions;
@@ -497,7 +497,7 @@ This is the second line in a paragraph.''');
         queryOptions,
         {
           'repoOwner': 'flutter',
-          'repoName': 'flaux',
+          'repoName': 'flutter',
           'pullRequestNumber': 0,
         },
       );
@@ -515,7 +515,7 @@ This is the second line in a paragraph.''');
 
     test('Merges instead of enqueuing when the branch is not main or master', () async {
       final PullRequest pullRequest = generatePullRequest(
-        repoName: 'flaux',
+        repoName: 'flutter',
         title: 'Release branch PR',
         baseRef: 'release-branch',
       );
@@ -530,7 +530,7 @@ This is the second line in a paragraph.''');
 
     test('Enqueues instead of merging when the branch is main', () async {
       final PullRequest pullRequest = generatePullRequest(
-        repoName: 'flaux',
+        repoName: 'flutter',
         title: 'Regular PR',
         baseRef: 'main',
       );
@@ -545,7 +545,7 @@ This is the second line in a paragraph.''');
 
     test('Enqueues instead of merging when the branch is master', () async {
       final PullRequest pullRequest = generatePullRequest(
-        repoName: 'flaux',
+        repoName: 'flutter',
         title: 'Regular PR',
         baseRef: 'master',
       );
@@ -559,7 +559,7 @@ This is the second line in a paragraph.''');
     });
 
     test('Fails to enqueue pull request when merge queue is used', () async {
-      slug = RepositorySlug('flutter', 'flaux');
+      slug = RepositorySlug('flutter', 'flutter');
       final prTitle = 'This pull request should fail to enqueueueueueueueueueu';
 
       githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
@@ -608,12 +608,12 @@ This is the second line in a paragraph.''');
       expect(result.result, isFalse);
       expect(
         result.message,
-        contains('Failed to enqueue flutter/flaux/42 with HTTP 400: GraphQL mutate failed'),
+        contains('Failed to enqueue flutter/flutter/42 with HTTP 400: GraphQL mutate failed'),
       );
     });
 
     test('Jumps the queue for emergency pull requests', () async {
-      slug = RepositorySlug('flutter', 'flaux');
+      slug = RepositorySlug('flutter', 'flutter');
       final prTitle = 'This pull request should fail to enqueueueueueueueueueu';
 
       githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
@@ -670,7 +670,7 @@ This is the second line in a paragraph.''');
         logs.add(record.toString());
       });
 
-      slug = RepositorySlug('flutter', 'flaux');
+      slug = RepositorySlug('flutter', 'flutter');
       final PullRequestHelper flutterRequest = PullRequestHelper(
         prNumber: 0,
         lastCommitHash: oid,
@@ -708,7 +708,7 @@ This is the second line in a paragraph.''');
       await logSub.cancel();
       expect(
         logs,
-        contains('[INFO] auto_submit: flutter/flaux/0 is already in the merge queue. Skipping.'),
+        contains('[INFO] auto_submit: flutter/flutter/0 is already in the merge queue. Skipping.'),
       );
       assert(pubsub.messagesQueue.isEmpty);
     });
