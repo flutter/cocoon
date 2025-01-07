@@ -343,7 +343,6 @@ class CiYaml {
   ///   5. [pb.Target] should not depend on self
   ///   6. [pb.Target] cannot have more than 1 dependency
   ///   7. [pb.Target] should depend on target that already exist in depedency graph, and already recorded in map [targetGraph]
-  ///   8. [pb.Target] has an empty runIf or the runIf includes `.ci.yaml` `DEPS`, and `engine/**` if validating the framework.
   void _validate(pb.SchedulerConfig schedulerConfig, String branch, {pb.SchedulerConfig? totSchedulerConfig}) {
     if (schedulerConfig.targets.isEmpty) {
       throw const FormatException('Scheduler config must have at least 1 target');
@@ -392,14 +391,8 @@ class CiYaml {
           }
         }
 
-        // Verify runIf includes foundational files.
-        if (target.runIf.isNotEmpty) {
-          if (isFusion) {
-            _verifyTargetFusionRepo(target, exceptions);
-          } else {
-            _verifyTargetClassicRepo(target, exceptions);
-          }
-        }
+        // To add or change validations that are specific to a repository, such as flutter/flutter,
+        // see https://github.com/flutter/flutter/blob/master/dev/bots/test/ci_yaml_validation_test.dart.
       }
 
       /// Check the dependencies for the current target if it is viable and to
@@ -412,65 +405,7 @@ class CiYaml {
         }
       }
     }
-    _checkExceptions(exceptions);
-  }
 
-  void _verifyTargetClassicRepo(pb.Target target, List<String> exceptions) {
-    // These serve mostly as documentation.
-    assert(!isFusion, 'Expected to be called in a non-monorepo');
-    assert(target.runIf.isNotEmpty, 'Expected to be called when non-empty');
-
-    // 1. Every target must depend on .ci.yaml at the root of the repo.
-    // TODO(matanlurey): Can this be inferred instead in the .ci.yaml parser?
-    // See https://github.com/flutter/flutter/issues/160874.
-    if (!target.runIf.contains('.ci.yaml')) {
-      exceptions.add('ERROR: ${target.name} is missing `.ci.yaml` in runIf');
-    }
-
-    // 2. The engine repo must additionally depend on DEPS.
-    // TODO(matanlurey): Can this be inferred instead in the .ci.yaml parser?
-    // See https://github.com/flutter/flutter/issues/160874.
-    if (slug == Config.engineSlug && !target.runIf.contains('DEPS')) {
-      exceptions.add('ERROR: ${target.name} is missing `DEPS` in runIf');
-    }
-  }
-
-  void _verifyTargetFusionRepo(pb.Target target, List<String> exceptions) {
-    // These serve mostly as documentation.
-    assert(isFusion, 'Expected to be called in a fusion monorepo');
-    assert(target.runIf.isNotEmpty, 'Expected to be called when non-empty');
-    assert(slug == Config.flutterSlug, 'Expected to be in the combined repo');
-
-    // 1. Every target must depend on .ci.yaml.
-    // The path depends on whether the framework or engine are being validated;
-    // while both belong in the same (mono)repo, they have separate .ci.yaml
-    // files located in different paths.
-    //
-    // TODO(matanlurey): Can this be inferred instead in the .ci.yaml parser?
-    // See https://github.com/flutter/flutter/issues/160874.
-    final ciYamlPath = switch (type) {
-      CiType.fusionEngine => 'engine/src/flutter/.ci.yaml',
-      _ => '.ci.yaml',
-    };
-    if (!target.runIf.contains(ciYamlPath)) {
-      exceptions.add('ERROR: ${target.name} is missing `$ciYamlPath` in runIf');
-    }
-
-    // 2. Every target must depend on DEPS.
-    // TODO(matanlurey): Can this be inferred instead in the .ci.yaml parser?
-    // See https://github.com/flutter/flutter/issues/160874.
-    if (!target.runIf.contains('DEPS')) {
-      exceptions.add('ERROR: ${target.name} is missing `DEPS` in runIf');
-    }
-
-    // 3. The framework tree must depend on engine/**.
-    final isFrameworkCiYaml = type != CiType.fusionEngine;
-    if (isFrameworkCiYaml && !target.runIf.contains('engine/**')) {
-      exceptions.add('ERROR: ${target.name} is missing `engine/**` in runIf');
-    }
-  }
-
-  void _checkExceptions(List<String> exceptions) {
     if (exceptions.isNotEmpty) {
       final String fullException = exceptions.reduce((String exception, _) => '$exception\n');
       throw FormatException(fullException);
