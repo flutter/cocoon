@@ -425,6 +425,10 @@ class Scheduler {
     // the PR and to the merge group, and so it must be completed in both cases.
     final lock = await lockMergeGroupChecks(slug, pullRequest.head!.sha!);
 
+    // Track if we should unlock the merge group lock in case of non-fusion or
+    // revert bots.
+    bool unlockMergeGroup = false;
+
     final ciValidationCheckRun = await createCiYamlCheckRun(pullRequest, slug);
 
     log.info('Creating presubmit targets for ${pullRequest.number}');
@@ -433,12 +437,16 @@ class Scheduler {
     try {
       final sha = pullRequest.head!.sha!;
       isFusion = await fusionTester.isFusionBasedRef(slug, sha);
+      if (!isFusion) {
+        unlockMergeGroup = true;
+      }
 
       // Both the author and label should be checked to make sure that no one is
       // attempting to get a pull request without check through.
       if (pullRequest.user!.login == config.autosubmitBot &&
           pullRequest.labels!.any((element) => element.name == Config.revertOfLabel)) {
         log.info('Skipping generating the full set of checks for revert request.');
+        unlockMergeGroup = true;
       } else {
         final presubmitTargets = isFusion
             ? await getTestsForStage(pullRequest, CiStage.fusionEngineBuild)
@@ -476,7 +484,7 @@ class Scheduler {
     await closeCiYamlCheckRun('PR ${pullRequest.number}', exception, slug, ciValidationCheckRun);
 
     // The 'lock' will be unlocked later in processCheckRunCompletion after all engine builds are processed.
-    if (!isFusion) {
+    if (unlockMergeGroup) {
       await unlockMergeGroupChecks(slug, pullRequest.head!.sha!, lock, exception);
     }
     log.info(
