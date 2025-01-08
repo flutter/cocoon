@@ -1653,6 +1653,38 @@ targets:
         );
       });
 
+      test('Unlocks merge group on revert request.', () async {
+        fakeFusion.isFusion = (_, __) => true;
+
+        final PullRequest releasePullRequest = generatePullRequest(
+          labels: [IssueLabel(name: 'revert of')],
+        );
+
+        releasePullRequest.user = User(login: 'auto-submit[bot]');
+
+        await scheduler.triggerPresubmitTargets(pullRequest: releasePullRequest);
+        expect(
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              any,
+              status: captureAnyNamed('status'),
+              conclusion: captureAnyNamed('conclusion'),
+              output: captureAnyNamed('output'),
+            ),
+          ).captured,
+          <Object?>[
+            CheckRunStatus.completed,
+            CheckRunConclusion.success,
+            null,
+            CheckRunStatus.completed,
+            CheckRunConclusion.success,
+            null,
+          ],
+        );
+      });
+
       test('filters out presubmit targets that do not exist in main and do not filter targets not in main', () async {
         const String singleCiYaml = r'''
 enabled_branches:
