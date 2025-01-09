@@ -500,18 +500,20 @@ class LuciBuildService {
       value: rescheduleAttempt.toString(),
     );
 
-    return buildBucketClient.scheduleBuild(
-      bbv2.ScheduleBuildRequest(
-        builder: build.builder,
-        tags: tags,
-        properties: build.input.properties,
-        gitilesCommit: build.input.gitilesCommit,
-        notify: bbv2.NotificationConfig(
-          pubsubTopic: 'projects/flutter-dashboard/topics/build-bucket-presubmit',
-          userData: UserData.encodeUserDataToBytes(userDataMap),
-        ),
+    final request = bbv2.ScheduleBuildRequest(
+      builder: build.builder,
+      tags: tags,
+      properties: build.input.properties,
+      notify: bbv2.NotificationConfig(
+        pubsubTopic: 'projects/flutter-dashboard/topics/build-bucket-presubmit',
+        userData: UserData.encodeUserDataToBytes(userDataMap),
       ),
     );
+    if (build.input.hasGitilesCommit()) {
+      request.gitilesCommit = build.input.gitilesCommit;
+    }
+
+    return buildBucketClient.scheduleBuild(request);
   }
 
   /// Sends presubmit [ScheduleBuildRequest] for a pull request using [checkRunEvent].
