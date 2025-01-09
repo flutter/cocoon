@@ -1279,6 +1279,7 @@ void main() {
 
       final bbv2.ScheduleBuildRequest scheduleBuildRequest = captured[0];
       expect(scheduleBuildRequest, isNotNull);
+      expect(scheduleBuildRequest.hasGitilesCommit(), isFalse);
       final List<bbv2.StringPair> tags = scheduleBuildRequest.tags;
       final bbv2.StringPair attemptPair = tags.firstWhere((element) => element.key == 'current_attempt');
       expect(attemptPair.value, '2');
@@ -1311,6 +1312,7 @@ void main() {
 
       final bbv2.ScheduleBuildRequest scheduleBuildRequest = captured[0];
       expect(scheduleBuildRequest, isNotNull);
+      expect(scheduleBuildRequest.hasGitilesCommit(), isTrue);
       final List<bbv2.StringPair> tags = scheduleBuildRequest.tags;
       final bbv2.StringPair attemptPair = tags.firstWhere((element) => element.key == 'current_attempt');
       expect(attemptPair.value, '2');
