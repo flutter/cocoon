@@ -1000,7 +1000,7 @@ targets:
                 conclusion: anyNamed('conclusion'),
               ),
             ).thenAnswer((_) async {
-              return const StagingConclusion(valid: false, remaining: 1, checkRunGuard: '{}', failed: 0);
+              return const StagingConclusion(result: StagingConclusionResult.missing, remaining: 1, checkRunGuard: '{}', failed: 0);
             });
 
             for (final ignored in Scheduler.kCheckRunsToIgnore) {
@@ -1037,7 +1037,7 @@ targets:
                 conclusion: anyNamed('conclusion'),
               ),
             ).thenAnswer((_) async {
-              return const StagingConclusion(valid: false, remaining: 1, checkRunGuard: '{}', failed: 0);
+              return const StagingConclusion(result: StagingConclusionResult.failed, remaining: 1, checkRunGuard: '{}', failed: 0);
             });
 
             expect(
@@ -1082,7 +1082,7 @@ targets:
                 conclusion: anyNamed('conclusion'),
               ),
             ).thenAnswer((inv) async {
-              return const StagingConclusion(valid: true, remaining: 1, checkRunGuard: '{}', failed: 0);
+              return const StagingConclusion(result: StagingConclusionResult.ok, remaining: 1, checkRunGuard: '{}', failed: 0);
             });
 
             expect(
@@ -1128,7 +1128,7 @@ targets:
               ),
             ).thenAnswer((inv) async {
               return StagingConclusion(
-                valid: true,
+                result: StagingConclusionResult.ok,
                 remaining: 0,
                 checkRunGuard: checkRunFor(name: 'GUARD TEST'),
                 failed: 1,
@@ -1208,6 +1208,19 @@ targets:
               return pullRequest;
             });
 
+            // Cocoon creates a Firestore document to track the tasks in the
+            // test stage.
+            when(
+              callbacks.initializeDocument(
+                firestoreService: anyNamed('firestoreService'),
+                slug: anyNamed('slug'),
+                sha: anyNamed('sha'),
+                stage: anyNamed('stage'),
+                tasks: anyNamed('tasks'),
+                checkRunGuard: anyNamed('checkRunGuard'),
+              ),
+            ).thenAnswer((_) async => CiStaging());
+
             scheduler = Scheduler(
               cache: cache,
               config: config,
@@ -1218,6 +1231,7 @@ targets:
               luciBuildService: luci,
               fusionTester: fakeFusion,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
+              initializeCiStagingDocument: callbacks.initializeDocument,
             );
 
             when(
@@ -1231,7 +1245,7 @@ targets:
               ),
             ).thenAnswer((inv) async {
               return StagingConclusion(
-                valid: true,
+                result: StagingConclusionResult.ok,
                 remaining: 0,
                 checkRunGuard: checkRunFor(name: 'GUARD TEST'),
                 failed: 0,
@@ -1291,6 +1305,113 @@ targets:
             expect(captured[1], pullRequest);
           });
 
+          test('tracks test check runs in firestore', () async {
+            final githubService = config.githubService = MockGithubService();
+            final githubClient = MockGitHub();
+            when(githubService.github).thenReturn(githubClient);
+            when(githubService.searchIssuesAndPRs(any, any, sort: anyNamed('sort'), pages: anyNamed('pages')))
+                .thenAnswer((_) async => [generateIssue(42)]);
+
+            final pullRequest = generatePullRequest();
+            when(githubService.getPullRequest(any, any)).thenAnswer((_) async => pullRequest);
+            when(githubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+            when(mockGithubChecksUtil.listCheckSuitesForRef(any, any, ref: anyNamed('ref'))).thenAnswer(
+              (_) async => [
+                // From check_run.check_suite.id in [checkRunString].
+                generateCheckSuite(668083231),
+              ],
+            );
+
+            httpClient = MockClient((http.Request request) async {
+              if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
+                return http.Response(fusionCiYaml, 200);
+              } else if (request.url.path.endsWith('.ci.yaml')) {
+                return http.Response(singleCiYaml, 200);
+              }
+              throw Exception('Failed to find ${request.url.path}');
+            });
+            final luci = MockLuciBuildService();
+            when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
+                .thenAnswer((inv) async {
+              return [];
+            });
+
+            final gitHubChecksService = MockGithubChecksService();
+            when(gitHubChecksService.githubChecksUtil).thenReturn(mockGithubChecksUtil);
+            when(gitHubChecksService.findMatchingPullRequest(any, any, any)).thenAnswer((inv) async {
+              return pullRequest;
+            });
+
+            scheduler = Scheduler(
+              cache: cache,
+              config: config,
+              datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+              buildStatusProvider: (_, __) => buildStatusService,
+              githubChecksService: gitHubChecksService,
+              httpClientProvider: () => httpClient,
+              luciBuildService: luci,
+              fusionTester: fakeFusion,
+              markCheckRunConclusion: callbacks.markCheckRunConclusion,
+            );
+
+            when(
+              callbacks.markCheckRunConclusion(
+                firestoreService: anyNamed('firestoreService'),
+                slug: anyNamed('slug'),
+                sha: anyNamed('sha'),
+                stage: anyNamed('stage'),
+                checkRun: anyNamed('checkRun'),
+                conclusion: anyNamed('conclusion'),
+              ),
+            ).thenAnswer((inv) async {
+              final CiStage stage = inv.namedArguments[#stage];
+              return StagingConclusion(
+                result: switch (stage) {
+                  CiStage.fusionEngineBuild => StagingConclusionResult.missing,
+                  CiStage.fusionTests => StagingConclusionResult.ok,
+                },
+                remaining: 0,
+                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+                failed: 0,
+              );
+            });
+
+            expect(
+              await scheduler.processCheckRunCompletion(
+                cocoon_checks.CheckRunEvent.fromJson(
+                  json.decode(checkRunEventFor(test: 'Bar bar', sha: 'testSha')),
+                ),
+              ),
+              isTrue,
+            );
+
+            // The first invocation looks in the fusionEngineBuild stage, which
+            // returns "missing" result.
+            verify(
+              callbacks.markCheckRunConclusion(
+                firestoreService: argThat(isNotNull, named: 'firestoreService'),
+                slug: argThat(equals(Config.flutterSlug), named: 'slug'),
+                sha: 'testSha',
+                stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
+                checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
+                conclusion: argThat(equals('success'), named: 'conclusion'),
+              ),
+            ).called(1);
+
+            // The second invocation looks in the fusionTests stage, which returns
+            // "ok" result.
+            verify(
+              callbacks.markCheckRunConclusion(
+                firestoreService: argThat(isNotNull, named: 'firestoreService'),
+                slug: argThat(equals(Config.flutterSlug), named: 'slug'),
+                sha: 'testSha',
+                stage: argThat(equals(CiStage.fusionTests), named: 'stage'),
+                checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
+                conclusion: argThat(equals('success'), named: 'conclusion'),
+              ),
+            ).called(1);
+          });
+
           test('schedules tests after engine stage - with pr caching', () async {
             final githubService = config.githubService = MockGithubService();
             final githubClient = MockGitHub();
@@ -1329,6 +1450,19 @@ targets:
             final gitHubChecksService = MockGithubChecksService();
             when(gitHubChecksService.githubChecksUtil).thenReturn(mockGithubChecksUtil);
 
+            // Cocoon creates a Firestore document to track the tasks in the
+            // test stage.
+            when(
+              callbacks.initializeDocument(
+                firestoreService: anyNamed('firestoreService'),
+                slug: anyNamed('slug'),
+                sha: anyNamed('sha'),
+                stage: anyNamed('stage'),
+                tasks: anyNamed('tasks'),
+                checkRunGuard: anyNamed('checkRunGuard'),
+              ),
+            ).thenAnswer((_) async => CiStaging());
+
             scheduler = Scheduler(
               cache: cache,
               config: config,
@@ -1340,6 +1474,7 @@ targets:
               fusionTester: fakeFusion,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
               findPullRequestFor: callbacks.findPullRequestFor,
+              initializeCiStagingDocument: callbacks.initializeDocument,
             );
 
             when(
@@ -1353,7 +1488,7 @@ targets:
               ),
             ).thenAnswer((inv) async {
               return StagingConclusion(
-                valid: true,
+                result: StagingConclusionResult.ok,
                 remaining: 0,
                 checkRunGuard: checkRunFor(name: 'GUARD TEST'),
                 failed: 0,
