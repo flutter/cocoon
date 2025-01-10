@@ -308,6 +308,8 @@ enum CiStage implements Comparable<CiStage> {
   String toString() => name;
 }
 
+/// Explains what happened when attempting to mark the conclusion of a check run
+/// using [CiStaging.markConclusion].
 enum StagingConclusionResult {
   /// Check run update recorded successfully in the respective CI stage.
   ok,

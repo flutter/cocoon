@@ -1013,7 +1013,8 @@ class Scheduler {
     // TODO: Unlock the guarding check_run after confirming that the test stage
     //       document is tracking all check runs correctly.
     // IMPORTANT: when moving the unlock here, REMEMBER to remove the unlock in
-    //            _proceedToCiTestingStage !!!
+    //            _proceedToCiTestingStage for non-MQ runs. MQ should unlock the
+    //            guard right after the build stage.
     // await unlockMergeGroupChecks(slug, sha, checkRunGuard, exception);
 
     return true;

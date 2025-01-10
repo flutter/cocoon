@@ -180,9 +180,14 @@ void main() {
 
         final result = await future;
         expect(
-            result,
-            const StagingConclusion(
-                remaining: 1, result: StagingConclusionResult.missing, failed: 0, checkRunGuard: null));
+          result,
+          const StagingConclusion(
+            remaining: 1,
+            result: StagingConclusionResult.missing,
+            failed: 0,
+            checkRunGuard: null,
+          ),
+        );
         verify(docRes.rollback(argThat(predicate((RollbackRequest t) => t.transaction == kTransaction)), kDatabase))
             .called(1);
       });
@@ -276,8 +281,10 @@ void main() {
         );
 
         final result = await future;
-        expect(result,
-            const StagingConclusion(remaining: 0, result: StagingConclusionResult.ok, failed: 0, checkRunGuard: '{}'));
+        expect(
+          result,
+          const StagingConclusion(remaining: 0, result: StagingConclusionResult.ok, failed: 0, checkRunGuard: '{}'),
+        );
         verify(
           docRes.commit(
             argThat(
@@ -332,9 +339,14 @@ void main() {
 
         final result = await future;
         expect(
-            result,
-            const StagingConclusion(
-                remaining: 1, result: StagingConclusionResult.failed, failed: 0, checkRunGuard: '{}'));
+          result,
+          const StagingConclusion(
+            remaining: 1,
+            result: StagingConclusionResult.failed,
+            failed: 0,
+            checkRunGuard: '{}',
+          ),
+        );
         verify(
           docRes.commit(
             argThat(
@@ -389,8 +401,10 @@ void main() {
 
         final result = await future;
         // Remaining == 1 because our test was already concluded.
-        expect(result,
-            const StagingConclusion(remaining: 1, result: StagingConclusionResult.ok, failed: 0, checkRunGuard: '{}'));
+        expect(
+          result,
+          const StagingConclusion(remaining: 1, result: StagingConclusionResult.ok, failed: 0, checkRunGuard: '{}'),
+        );
         verify(
           docRes.commit(
             argThat(
@@ -446,9 +460,14 @@ void main() {
 
         final result = await future;
         expect(
-            result,
-            const StagingConclusion(
-                remaining: 1, result: StagingConclusionResult.failed, failed: 1, checkRunGuard: '{}'));
+          result,
+          const StagingConclusion(
+            remaining: 1,
+            result: StagingConclusionResult.failed,
+            failed: 1,
+            checkRunGuard: '{}',
+          ),
+        );
         verify(
           docRes.commit(
             argThat(
@@ -503,8 +522,10 @@ void main() {
         );
 
         final result = await future;
-        expect(result,
-            const StagingConclusion(remaining: 1, result: StagingConclusionResult.ok, failed: 1, checkRunGuard: '{}'));
+        expect(
+          result,
+          const StagingConclusion(remaining: 1, result: StagingConclusionResult.ok, failed: 1, checkRunGuard: '{}'),
+        );
         verify(
           docRes.commit(
             argThat(
