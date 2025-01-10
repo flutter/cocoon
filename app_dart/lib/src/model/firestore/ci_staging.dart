@@ -153,7 +153,11 @@ class CiStaging extends Document {
         log.info('$logCrumb: $checkRun not present in doc for $transaction / $doc');
         await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
         return StagingConclusion(
-            result: StagingConclusionResult.missing, remaining: remaining, checkRunGuard: null, failed: failed,);
+          result: StagingConclusionResult.missing,
+          remaining: remaining,
+          checkRunGuard: null,
+          failed: failed,
+        );
       }
 
       // GitHub sends us 3 "action" messages for check_runs: created, completed, or rerequested.
@@ -209,7 +213,11 @@ class CiStaging extends Document {
         log.info('$logCrumb: staging document not found for $transaction');
         await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
         return StagingConclusion(
-            result: StagingConclusionResult.failed, remaining: -1, checkRunGuard: null, failed: failed,);
+          result: StagingConclusionResult.failed,
+          remaining: -1,
+          checkRunGuard: null,
+          failed: failed,
+        );
       }
       // All other errors should bubble up and be retried.
       await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);

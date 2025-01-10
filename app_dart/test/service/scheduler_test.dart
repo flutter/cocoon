@@ -1000,7 +1000,8 @@ targets:
                 conclusion: anyNamed('conclusion'),
               ),
             ).thenAnswer((_) async {
-              return const StagingConclusion(result: StagingConclusionResult.missing, remaining: 1, checkRunGuard: '{}', failed: 0);
+              return const StagingConclusion(
+                  result: StagingConclusionResult.missing, remaining: 1, checkRunGuard: '{}', failed: 0);
             });
 
             for (final ignored in Scheduler.kCheckRunsToIgnore) {
@@ -1037,7 +1038,8 @@ targets:
                 conclusion: anyNamed('conclusion'),
               ),
             ).thenAnswer((_) async {
-              return const StagingConclusion(result: StagingConclusionResult.failed, remaining: 1, checkRunGuard: '{}', failed: 0);
+              return const StagingConclusion(
+                  result: StagingConclusionResult.failed, remaining: 1, checkRunGuard: '{}', failed: 0);
             });
 
             expect(
@@ -1082,7 +1084,8 @@ targets:
                 conclusion: anyNamed('conclusion'),
               ),
             ).thenAnswer((inv) async {
-              return const StagingConclusion(result: StagingConclusionResult.ok, remaining: 1, checkRunGuard: '{}', failed: 0);
+              return const StagingConclusion(
+                  result: StagingConclusionResult.ok, remaining: 1, checkRunGuard: '{}', failed: 0);
             });
 
             expect(

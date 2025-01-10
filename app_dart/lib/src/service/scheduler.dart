@@ -1163,13 +1163,13 @@ class Scheduler {
     return r.retry(
       () {
         return markCheckRunConclusion(
-        firestoreService: firestoreService,
-        slug: slug,
-        sha: sha,
-        stage: stage,
-        checkRun: name,
-        conclusion: conclusion,
-      );
+          firestoreService: firestoreService,
+          slug: slug,
+          sha: sha,
+          stage: stage,
+          checkRun: name,
+          conclusion: conclusion,
+        );
       },
     );
   }
