@@ -964,19 +964,30 @@ class Scheduler {
     //   enter the MQ).
     switch (stage) {
       case CiStage.fusionEngineBuild:
-        return _closeSuccessfulEngineBuildStage(checkRunEvent, stagingConclusion, slug, sha, logCrumb);
+        return _closeSuccessfulEngineBuildStage(
+          checkRunEvent: checkRunEvent,
+          mergeQueueGuard: stagingConclusion.checkRunGuard!,
+          slug: slug,
+          sha: sha,
+          logCrumb: logCrumb,
+        );
       case CiStage.fusionTests:
-        return _closeSuccessfulTestStage(logCrumb);
+        return _closeSuccessfulTestStage(
+          mergeQueueGuard: stagingConclusion.checkRunGuard!,
+          slug: slug,
+          sha: sha,
+          logCrumb: logCrumb,
+        );
     }
   }
 
-  Future<bool> _closeSuccessfulEngineBuildStage(
-    cocoon_checks.CheckRunEvent checkRunEvent,
-    StagingConclusion stagingConclusion,
-    RepositorySlug slug,
-    String sha,
-    String logCrumb,
-  ) async {
+  Future<bool> _closeSuccessfulEngineBuildStage({
+    required cocoon_checks.CheckRunEvent checkRunEvent,
+    required String mergeQueueGuard,
+    required RepositorySlug slug,
+    required String sha,
+    required String logCrumb,
+  }) async {
     // We know that we're in a fusion repo; now we need to figure out if we are
     //   1) in a presubmit test or
     //   2) in the merge queue
@@ -984,7 +995,7 @@ class Scheduler {
     final isInMergeQueue = headBranch?.startsWith('gh-readonly-queue/') ?? false;
     if (isInMergeQueue) {
       await _closeMergeQueue(
-        conclusion: stagingConclusion,
+        mergeQueueGuard: mergeQueueGuard,
         slug: slug,
         sha: sha,
         stage: CiStage.fusionEngineBuild,
@@ -993,11 +1004,11 @@ class Scheduler {
       return true;
     }
 
-    log.info('$logCrumb: Stage completed: ${CiStage.fusionEngineBuild} with failed=${stagingConclusion.failed}');
+    log.info('$logCrumb: Stage completed successfully: ${CiStage.fusionEngineBuild}');
 
     await _proceedToCiTestingStage(
       checkRunEvent: checkRunEvent,
-      conclusion: stagingConclusion,
+      mergeQueueGuard: mergeQueueGuard,
       slug: slug,
       sha: sha,
       logCrumb: logCrumb,
@@ -1005,9 +1016,12 @@ class Scheduler {
     return true;
   }
 
-  Future<bool> _closeSuccessfulTestStage(
-    String logCrumb,
-  ) async {
+  Future<bool> _closeSuccessfulTestStage({
+    required String mergeQueueGuard,
+    required RepositorySlug slug,
+    required String sha,
+    required String logCrumb,
+  }) async {
     log.info('$logCrumb: Stage completed: ${CiStage.fusionTests}');
 
     // TODO: Unlock the guarding check_run after confirming that the test stage
@@ -1015,7 +1029,16 @@ class Scheduler {
     // IMPORTANT: when moving the unlock here, REMEMBER to remove the unlock in
     //            _proceedToCiTestingStage for non-MQ runs. MQ should unlock the
     //            guard right after the build stage.
-    // await unlockMergeGroupChecks(slug, sha, checkRunGuard, exception);
+    log.info('''
+Emulate:
+
+await unlockMergeGroupChecks(
+  slug = $slug,
+  sha = $sha,
+  mergeQueueGuard = $mergeQueueGuard,
+  null,
+);
+''');
 
     return true;
   }
@@ -1035,7 +1058,7 @@ class Scheduler {
   }
 
   Future<void> _closeMergeQueue({
-    required StagingConclusion conclusion,
+    required String mergeQueueGuard,
     required RepositorySlug slug,
     required String sha,
     required CiStage stage,
@@ -1044,7 +1067,7 @@ class Scheduler {
     log.info('$logCrumb: Merge Queue finished successfully');
 
     // Unlock the guarding check_run.
-    final checkRunGuard = checkRunFromString(conclusion.checkRunGuard!);
+    final checkRunGuard = checkRunFromString(mergeQueueGuard);
     await unlockMergeGroupChecks(slug, sha, checkRunGuard, null);
   }
 
@@ -1066,10 +1089,10 @@ class Scheduler {
     required cocoon_checks.CheckRunEvent checkRunEvent,
     required RepositorySlug slug,
     required String sha,
-    required StagingConclusion conclusion,
+    required String mergeQueueGuard,
     required String logCrumb,
   }) async {
-    final checkRunGuard = checkRunFromString(conclusion.checkRunGuard!);
+    final checkRunGuard = checkRunFromString(mergeQueueGuard);
 
     // Look up the PR in our cache first. This reduces github quota and requires less calls.
     PullRequest? pullRequest;

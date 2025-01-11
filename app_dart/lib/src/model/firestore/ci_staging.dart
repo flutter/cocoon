@@ -312,6 +312,8 @@ enum CiStage implements Comparable<CiStage> {
 /// using [CiStaging.markConclusion].
 enum StagingConclusionResult {
   /// Check run update recorded successfully in the respective CI stage.
+  ///
+  /// It is OK to evaluate returned results for stage completeness.
   ok,
 
   /// The check run is not in the specified CI stage.
