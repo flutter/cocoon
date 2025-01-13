@@ -236,6 +236,21 @@ Future<List<Target>> getTargetsToRun(
   List<String?> files,
 ) async {
   log.info('Getting targets to run from diff.');
+
+  // TODO(matanlurey): https://github.com/flutter/flutter/issues/161462.
+  //
+  // As currently implemented, the GitHub REST API returns a
+  // maximum of 30 changed files, meaning that if we get 30 files, there is a
+  // good chance *more* file were changed, we just do not know which ones.
+  //
+  // As a result, it's unsafe to filter out targets based on runIf. It actually
+  // might even be unsafe for smaller amounts of files if the patch diffs are
+  // really big, but for now just using the number of files.
+  if (files.length >= 30) {
+    log.info('Skipping runIf evaluation, file length is >= 30.');
+    return targets.toList();
+  }
+
   final List<Target> targetsToRun = <Target>[];
   for (Target target in targets) {
     final List<String> globs = target.value.runIf;

@@ -236,6 +236,17 @@ void main() {
         expect(result.isEmpty, isTrue);
       });
 
+      test('skips filtering when 30 or more files were updated', () async {
+        final List<Target> targets = <Target>[
+          generateTarget(1, runIf: <String>['cde/']),
+        ];
+        final List<String> files = <String>[
+          for (var i = 0; i < 30; i++) 'abc/file_$i.dart',
+        ];
+        final List<Target> result = await getTargetsToRun(targets, files);
+        expect(result, targets);
+      });
+
       test('returns builders when run_if is null', () async {
         final List<String> files = <String>['abc/def.py', 'cde/dgh.dart'];
         final List<Target> targets = <Target>[generateTarget(1)];
