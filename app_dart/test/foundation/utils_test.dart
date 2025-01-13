@@ -49,8 +49,7 @@ void main() {
 
     test('github merge queue branch parsing', () {
       expect(
-        tryParseGitHubMergeQueueBranch(
-            'gh-readonly-queue/master/pr-160481-1398dc7eecb696d302e4edb19ad79901e615ed56'),
+        tryParseGitHubMergeQueueBranch('gh-readonly-queue/master/pr-160481-1398dc7eecb696d302e4edb19ad79901e615ed56'),
         (parsed: true, branch: 'master', pullRequestNumber: 160481),
         reason: 'parses expected magic branch',
       );
@@ -65,16 +64,14 @@ void main() {
       late MockClient branchHttpClient;
 
       test('returns branches', () async {
-        branchHttpClient =
-            MockClient((_) async => http.Response(branchRegExp, HttpStatus.ok));
+        branchHttpClient = MockClient((_) async => http.Response(branchRegExp, HttpStatus.ok));
         final String branches = await githubFileContent(
           RepositorySlug('flutter', 'cocoon'),
           'branches.txt',
           httpClientProvider: () => branchHttpClient,
           retryOptions: noRetry,
         );
-        final List<String> branchList =
-            branches.split('\n').map((String branch) => branch.trim()).toList();
+        final List<String> branchList = branches.split('\n').map((String branch) => branch.trim()).toList();
         branchList.removeWhere((String branch) => branch.isEmpty);
         expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
       });
@@ -99,8 +96,7 @@ void main() {
             maxDelay: Duration.zero,
           ),
         );
-        final List<String> branchList =
-            branches.split('\n').map((String branch) => branch.trim()).toList();
+        final List<String> branchList = branches.split('\n').map((String branch) => branch.trim()).toList();
         branchList.removeWhere((String branch) => branch.isEmpty);
         expect(retry, 2);
         expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
@@ -139,8 +135,7 @@ void main() {
             maxDelay: Duration.zero,
           ),
         );
-        final List<String> branchList =
-            branches.split('\n').map((String branch) => branch.trim()).toList();
+        final List<String> branchList = branches.split('\n').map((String branch) => branch.trim()).toList();
         branchList.removeWhere((String branch) => branch.isEmpty);
         expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
       });
@@ -170,8 +165,7 @@ void main() {
             maxDelay: Duration.zero,
           ),
         );
-        final List<String> branchList =
-            branches.split('\n').map((String branch) => branch.trim()).toList();
+        final List<String> branchList = branches.split('\n').map((String branch) => branch.trim()).toList();
         branchList.removeWhere((String branch) => branch.isEmpty);
         expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
       });
@@ -227,15 +221,13 @@ void main() {
           <String, dynamic>{'test': 'test'},
           tabledataResourceApi,
         );
-        final TableDataList tableDataList =
-            await tabledataResourceApi.list('test', 'test', 'test');
+        final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
         expect(tableDataList.totalRows, '1');
       });
     });
 
     group('getFilteredBuilders', () {
-      test('does not return builders when run_if does not match any file',
-          () async {
+      test('does not return builders when run_if does not match any file', () async {
         final List<Target> targets = <Target>[
           generateTarget(1, runIf: <String>['cde/']),
         ];
@@ -262,8 +254,7 @@ void main() {
         expect(result, targets);
       });
 
-      test('returns builders when run_if matches files using full path',
-          () async {
+      test('returns builders when run_if matches files using full path', () async {
         final List<String> files = <String>['abc/cde.py', 'cgh/dhj.dart'];
         final List<Target> targets = <Target>[
           generateTarget(1, runIf: <String>['abc/cde.py']),
@@ -281,9 +272,7 @@ void main() {
         expect(result, targets);
       });
 
-      test(
-          'returns builders when run_if matches files with ** that contain digits',
-          () async {
+      test('returns builders when run_if matches files with ** that contain digits', () async {
         final List<Target> targets = <Target>[
           generateTarget(
             1,
@@ -310,9 +299,7 @@ void main() {
         expect(result, targets);
       });
 
-      test(
-          'returns builders when run_if matches files with * and ** that contains digits',
-          () async {
+      test('returns builders when run_if matches files with * and ** that contains digits', () async {
         final List<Target> targets = <Target>[
           generateTarget(
             1,
@@ -340,8 +327,7 @@ void main() {
         expect(result, targets);
       });
 
-      test('returns builders when run_if matches files with * trailing glob',
-          () async {
+      test('returns builders when run_if matches files with * trailing glob', () async {
         final List<Target> targets = <Target>[
           generateTarget(
             1,
@@ -359,8 +345,7 @@ void main() {
         expect(result, targets);
       });
 
-      test('returns builders when run_if matches files with * trailing glob 2',
-          () async {
+      test('returns builders when run_if matches files with * trailing glob 2', () async {
         final List<Target> targets = <Target>[
           generateTarget(
             1,
@@ -378,8 +363,7 @@ void main() {
         expect(result, targets);
       });
 
-      test('returns builders when run_if matches files with ** in the middle',
-          () async {
+      test('returns builders when run_if matches files with ** in the middle', () async {
         final List<Target> targets = <Target>[
           generateTarget(1, runIf: <String>['abc/**/hj.dart']),
         ];
@@ -391,8 +375,7 @@ void main() {
         expect(result, [targets[0]]);
       });
 
-      test('returns builders when run_if matches files with both * and **',
-          () async {
+      test('returns builders when run_if matches files with both * and **', () async {
         final List<Target> targets = <Target>[
           generateTarget(1, runIf: <String>['a/b*c/**']),
         ];
@@ -401,8 +384,7 @@ void main() {
         expect(result, targets);
       });
 
-      test('returns correct builders when file and folder share the same name',
-          () async {
+      test('returns correct builders when file and folder share the same name', () async {
         final List<Target> targets = <Target>[
           generateTarget(1, runIf: <String>['a/b/']),
           generateTarget(2, runIf: <String>['a']),
@@ -422,15 +404,13 @@ void main() {
       maxDelay: Duration.zero,
     );
 
-    final goodFlutterRef =
-        (slug: RepositorySlug.full('flutter/flutter'), sha: '1234');
+    final goodFlutterRef = (slug: RepositorySlug.full('flutter/flutter'), sha: '1234');
 
     test('isFusionPR returns false non-flutter repo', () async {
       final branchHttpClient = MockClient(
         (req) async {
           final url = '${req.url}';
-          if (!url.contains(
-              'https://raw.githubusercontent.com/flutter/flutter/DEPS')) {
+          if (!url.contains('https://raw.githubusercontent.com/flutter/flutter/DEPS')) {
             return http.Response('', HttpStatus.notFound);
           }
           return http.Response('test', HttpStatus.ok);
@@ -603,14 +583,8 @@ void main() {
         retryOptions: noRetry,
       );
       expect(fusion, isTrue);
-      expect(
-          urlCalled[
-              'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn'],
-          1);
-      expect(
-          urlCalled[
-              'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS'],
-          1);
+      expect(urlCalled['https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn'], 1);
+      expect(urlCalled['https://raw.githubusercontent.com/flutter/flutter/1234/DEPS'], 1);
     });
   });
 }
