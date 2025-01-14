@@ -152,7 +152,12 @@ class CiStaging extends Document {
       if (recordedConclusion == null) {
         log.info('$logCrumb: $checkRun not present in doc for $transaction / $doc');
         await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
-        return StagingConclusion(valid: false, remaining: remaining, checkRunGuard: null, failed: failed);
+        return StagingConclusion(
+          result: StagingConclusionResult.missing,
+          remaining: remaining,
+          checkRunGuard: null,
+          failed: failed,
+        );
       }
 
       // GitHub sends us 3 "action" messages for check_runs: created, completed, or rerequested.
@@ -207,7 +212,12 @@ class CiStaging extends Document {
         // An attempt to read a document not in firestore should not be retried.
         log.info('$logCrumb: staging document not found for $transaction');
         await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
-        return StagingConclusion(valid: false, remaining: -1, checkRunGuard: null, failed: failed);
+        return StagingConclusion(
+          result: StagingConclusionResult.internalError,
+          remaining: -1,
+          checkRunGuard: null,
+          failed: failed,
+        );
       }
       // All other errors should bubble up and be retried.
       await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
@@ -224,7 +234,12 @@ class CiStaging extends Document {
     final commitRequest = CommitRequest(transaction: transaction, writes: documentsToWrites([doc], exists: true));
     final response = await docRes.commit(commitRequest, kDatabase);
     log.info('$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}');
-    return StagingConclusion(valid: valid, remaining: remaining, checkRunGuard: checkRunGuard, failed: failed);
+    return StagingConclusion(
+      result: valid ? StagingConclusionResult.ok : StagingConclusionResult.internalError,
+      remaining: remaining,
+      checkRunGuard: checkRunGuard,
+      failed: failed,
+    );
   }
 
   /// Initializes a new document for the given [tasks] in Firestore so that stage-tracking can succeed.
@@ -293,37 +308,66 @@ enum CiStage implements Comparable<CiStage> {
   String toString() => name;
 }
 
+/// Explains what happened when attempting to mark the conclusion of a check run
+/// using [CiStaging.markConclusion].
+enum StagingConclusionResult {
+  /// Check run update recorded successfully in the respective CI stage.
+  ///
+  /// It is OK to evaluate returned results for stage completeness.
+  ok,
+
+  /// The check run is not in the specified CI stage.
+  ///
+  /// Perhaps it's from a different CI stage.
+  missing,
+
+  /// An unexpected error happened, and the results of the conclusion are
+  /// undefined.
+  ///
+  /// Examples of situations that can lead to this result:
+  ///
+  /// * The Firestore document is missing.
+  /// * The contents of the Firestore document are inconsistent.
+  /// * An unexpected error happend while trying to read from/write to Firestore.
+  ///
+  /// When this happens, it's best to stop the current transaction, report the
+  /// error to the logs, and have someone investigate the issue.
+  internalError,
+}
+
 /// Results from attempting to mark a staging task as completed.
 ///
 /// See: [CiStaging.markConclusion]
 class StagingConclusion {
-  final bool valid;
+  final StagingConclusionResult result;
   final int remaining;
   final String? checkRunGuard;
   final int failed;
 
   const StagingConclusion({
-    required this.valid,
+    required this.result,
     required this.remaining,
     required this.checkRunGuard,
     required this.failed,
   });
 
-  bool get isPending => valid && remaining > 0;
+  bool get isOk => result == StagingConclusionResult.ok;
 
-  bool get isFailed => valid && !isPending && failed > 0;
+  bool get isPending => isOk && remaining > 0;
 
-  bool get isComplete => valid && !isPending && !isFailed;
+  bool get isFailed => isOk && !isPending && failed > 0;
+
+  bool get isComplete => isOk && !isPending && !isFailed;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is StagingConclusion &&
-          other.valid == valid &&
+          other.result == result &&
           other.remaining == remaining &&
           other.checkRunGuard == checkRunGuard &&
           other.failed == failed);
 
   @override
-  int get hashCode => Object.hashAll([valid, remaining, checkRunGuard, failed]);
+  int get hashCode => Object.hashAll([result, remaining, checkRunGuard, failed]);
 }
