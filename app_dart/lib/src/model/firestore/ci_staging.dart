@@ -213,7 +213,7 @@ class CiStaging extends Document {
         log.info('$logCrumb: staging document not found for $transaction');
         await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
         return StagingConclusion(
-          result: StagingConclusionResult.failed,
+          result: StagingConclusionResult.internalError,
           remaining: -1,
           checkRunGuard: null,
           failed: failed,
@@ -235,7 +235,7 @@ class CiStaging extends Document {
     final response = await docRes.commit(commitRequest, kDatabase);
     log.info('$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}');
     return StagingConclusion(
-      result: valid ? StagingConclusionResult.ok : StagingConclusionResult.failed,
+      result: valid ? StagingConclusionResult.ok : StagingConclusionResult.internalError,
       remaining: remaining,
       checkRunGuard: checkRunGuard,
       failed: failed,
@@ -321,8 +321,18 @@ enum StagingConclusionResult {
   /// Perhaps it's from a different CI stage.
   missing,
 
-  /// The check run was found in the specified CI stage but the update failed.
-  failed,
+  /// An unexpected error happened, and the results of the conclusion are
+  /// undefined.
+  ///
+  /// Examples of situations that can lead to this result:
+  ///
+  /// * The Firestore document is missing.
+  /// * The contents of the Firestore document are inconsistent.
+  /// * An unexpected error happend while trying to read from/write to Firestore.
+  ///
+  /// When this happens, it's best to stop the current transaction, report the
+  /// error to the logs, and have someone investigate the issue.
+  internalError,
 }
 
 /// Results from attempting to mark a staging task as completed.

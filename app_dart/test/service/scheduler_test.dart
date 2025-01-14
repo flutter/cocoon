@@ -1043,7 +1043,7 @@ targets:
               ),
             ).thenAnswer((_) async {
               return const StagingConclusion(
-                result: StagingConclusionResult.failed,
+                result: StagingConclusionResult.internalError,
                 remaining: 1,
                 checkRunGuard: '{}',
                 failed: 0,

@@ -342,7 +342,7 @@ void main() {
           result,
           const StagingConclusion(
             remaining: 1,
-            result: StagingConclusionResult.failed,
+            result: StagingConclusionResult.internalError,
             failed: 0,
             checkRunGuard: '{}',
           ),
@@ -463,7 +463,7 @@ void main() {
           result,
           const StagingConclusion(
             remaining: 1,
-            result: StagingConclusionResult.failed,
+            result: StagingConclusionResult.internalError,
             failed: 1,
             checkRunGuard: '{}',
           ),
