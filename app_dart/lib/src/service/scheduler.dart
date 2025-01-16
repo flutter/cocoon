@@ -944,7 +944,10 @@ class Scheduler {
       return false;
     }
 
-    if (stagingConclusion.isFailed) {
+    // Only report failure into the merge queue guard for engine build stage.
+    // Until https://github.com/flutter/flutter/issues/159898 is fixed, the
+    // merge queue guard ignores the `fusionTests` stage.
+    if (stage == CiStage.fusionEngineBuild && stagingConclusion.isFailed) {
       await _reportCiStageFailure(
         conclusion: stagingConclusion,
         slug: slug,
