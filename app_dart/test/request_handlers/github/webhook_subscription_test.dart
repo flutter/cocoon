@@ -1958,6 +1958,34 @@ void foo() {
       );
     });
 
+    test('Framework does not comment if Kotlin gradle tests', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.flutterSlug,
+        baseRef: Config.defaultBranch(Config.flutterSlug),
+      );
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
+            (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'packages/flutter_tools/gradle/src/main/kotlin/Deeplink.kt',
+          PullRequestFile()
+            ..filename = 'packages/flutter_tools/gradle/src/test/kotlin/DeeplinkTest.kt',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+    });
+
     test('Packages does not comment if Pigeon native tests', () async {
       const int issueNumber = 123;
 
