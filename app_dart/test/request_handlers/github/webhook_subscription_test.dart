@@ -1968,10 +1968,9 @@ void foo() {
         baseRef: Config.defaultBranch(Config.flutterSlug),
       );
       when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
-            (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'packages/flutter_tools/gradle/src/main/kotlin/Deeplink.kt',
-          PullRequestFile()
-            ..filename = 'packages/flutter_tools/gradle/src/test/kotlin/DeeplinkTest.kt',
+          PullRequestFile()..filename = 'packages/flutter_tools/gradle/src/test/kotlin/DeeplinkTest.kt',
         ]),
       );
 
