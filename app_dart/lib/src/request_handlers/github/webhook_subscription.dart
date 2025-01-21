@@ -664,7 +664,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           filename.contains('android/src/test/') ||
           filename.contains('androidTest/') ||
           // Kotlin source tests, used in the Flutter Gradle Plugin.
-          filename.contains('Test.kt') ||
+          filename.endsWith('Test.kt') ||
           // Native Linux tests.
           filename.endsWith('_test.cc') ||
           // Native Windows tests.
