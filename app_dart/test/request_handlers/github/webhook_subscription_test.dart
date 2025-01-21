@@ -2669,7 +2669,7 @@ void foo() {
           'triggerMergeGroupTargets(flutter/flutter, c9affbbb12aa40cb3afbe94b9ea6b119a256bebf, simulated): Scheduling merge group checks',
           'Updating ci.yaml validation check for MQ flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'ci.yaml validation check was successful for MQ flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'All required tests passed for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Unlocking Merge Queue Guard for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
         ],
       );
     });

@@ -485,7 +485,7 @@ class Scheduler {
 
     // The 'lock' will be unlocked later in processCheckRunCompletion after all engine builds are processed.
     if (unlockMergeGroup) {
-      await unlockMergeGroupChecks(slug, pullRequest.head!.sha!, lock, exception);
+      await unlockMergeQueueGuard(slug, pullRequest.head!.sha!, lock);
     }
     log.info(
       'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug $slug}',
@@ -579,7 +579,7 @@ class Scheduler {
     // close the ci.yaml validation and merge group guard.
     if (!isFusion) {
       await closeCiYamlCheckRun('MQ $slug/$headSha', null, slug, ciValidationCheckRun);
-      await unlockMergeGroupChecks(slug, headSha, lock, null);
+      await unlockMergeQueueGuard(slug, headSha, lock);
       return;
     }
 
@@ -717,43 +717,38 @@ class Scheduler {
     );
   }
 
-  /// Completes the "Merge Queue Guard" check that was scheduled using
-  /// [lockMergeGroupChecks] with either success or failure.
+  /// Completes the "Merge Queue Guard" check run.
   ///
-  /// If [exception] is null completed the check with success. Otherwise,
-  /// completes the check with failure.
+  /// If the guard is guarding a merge group, this immediately makes the merge
+  /// group eligible for landing onto the target branch (e.g. master), depending
+  /// on the success of the merge groups queued in front of this one.
   ///
-  /// Calling this method unlocks the merge group, allowing Github to either
-  /// merge the respective PR into the target branch (if success), or remove the
-  /// PR from the merge queue (if failure).
-  Future<void> unlockMergeGroupChecks(RepositorySlug slug, String headSha, CheckRun lock, Object? exception) async {
-    if (exception == null) {
-      // All checks have passed. Unlocking Github with success.
-      log.info('All required tests passed for $headSha');
-      await githubChecksService.githubChecksUtil.updateCheckRun(
-        config,
-        slug,
-        lock,
-        status: CheckRunStatus.completed,
-        conclusion: CheckRunConclusion.success,
-      );
-    } else {
-      // Some checks failed. Unlocking Github with failure.
-      log.info('Some required tests failed for $headSha');
-      log.warning(exception.toString());
-      await githubChecksService.githubChecksUtil.updateCheckRun(
-        config,
-        slug,
-        lock,
-        status: CheckRunStatus.completed,
-        conclusion: CheckRunConclusion.failure,
-        output: CheckRunOutput(
-          title: kCiYamlCheckName,
-          summary: 'Some required tests failed for $headSha',
-          text: exception.toString(),
-        ),
-      );
-    }
+  /// If the guard is guarding a pull request, this immediately makes the pull
+  /// request eligible for enqueuing into the merge queue.
+  Future<void> unlockMergeQueueGuard(RepositorySlug slug, String headSha, CheckRun lock) async {
+    log.info('Unlocking Merge Queue Guard for $slug/$headSha');
+    await githubChecksService.githubChecksUtil.updateCheckRun(
+      config,
+      slug,
+      lock,
+      status: CheckRunStatus.completed,
+      conclusion: CheckRunConclusion.success,
+    );
+  }
+
+  /// Fails the "Merge Queue Guard" check for a merge group.
+  ///
+  /// This removes the merge group from the merge queue without landing it. The
+  /// corresponding pull request will have to be fixed and re-enqueued again.
+  Future<void> failGuardForMergeGroup(RepositorySlug slug, String headSha, CheckRun lock) async {
+    log.info('Failing merge group guard for merge group $headSha in $slug');
+    await githubChecksService.githubChecksUtil.updateCheckRun(
+      config,
+      slug,
+      lock,
+      status: CheckRunStatus.completed,
+      conclusion: CheckRunConclusion.failure,
+    );
   }
 
   /// If [builderTriggerList] is specificed, return only builders that are contained in [presubmitTarget].
@@ -888,22 +883,29 @@ class Scheduler {
     return false;
   }
 
-  /// Process completed GitHub `check_run` to enable fusion engine builds.
+  /// Process a completed GitHub `check_run`.
+  ///
+  /// Handles both fusion engine build and test stages, and both pull requests
+  /// and merge groups.
   Future<bool> processCheckRunCompletion(cocoon_checks.CheckRunEvent checkRunEvent) async {
-    final name = checkRunEvent.checkRun?.name;
-    final sha = checkRunEvent.checkRun?.headSha;
+    final checkRun = checkRunEvent.checkRun!;
+    final name = checkRun.name;
+    final sha = checkRun.headSha;
     final slug = checkRunEvent.repository?.slug();
-    final conclusion = checkRunEvent.checkRun?.conclusion;
+    final conclusion = checkRun.conclusion;
 
     if (name == null || sha == null || slug == null || conclusion == null || kCheckRunsToIgnore.contains(name)) {
       return true;
     }
 
+    final logCrumb = 'checkCompleted($name, $slug, $sha, $conclusion)';
+
     final isFusion = await fusionTester.isFusionBasedRef(slug, sha);
     if (!isFusion) {
       return true;
     }
-    final logCrumb = 'checkCompleted($name, $slug, $sha, $conclusion)';
+
+    final isMergeGroup = detectMergeGroup(checkRun);
 
     firestoreService = await config.createFirestoreService();
 
@@ -938,23 +940,38 @@ class Scheduler {
       return false;
     }
 
-    // Are their tests remaining? Then we shouldn't unblock guard yet.
+    // If an internal error happened in Cocoon, we need human assistance to
+    // figure out next steps.
+    if (stagingConclusion.result == StagingConclusionResult.internalError) {
+      // If an internal error happened in the merge group, there may be no further
+      // signals from GitHub that would cause the merge group to either land or
+      // fail. The safest thing to do is to kick the pull request out of the queue
+      // and let humans sort it out. If the group is left hanging in the queue, it
+      // will hold up all other PRs that are trying to land.
+      if (isMergeGroup) {
+        final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
+        await failGuardForMergeGroup(slug, sha, guard);
+      }
+      return false;
+    }
+
+    // Are there tests remaining? Keep waiting.
     if (stagingConclusion.isPending) {
       log.info('$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}');
       return false;
     }
 
-    // Only report failure into the merge queue guard for engine build stage.
-    // Until https://github.com/flutter/flutter/issues/159898 is fixed, the
-    // merge queue guard ignores the `fusionTests` stage.
-    if (stage == CiStage.fusionEngineBuild && stagingConclusion.isFailed) {
-      await _reportCiStageFailure(
-        conclusion: stagingConclusion,
-        slug: slug,
-        sha: sha,
-        stage: stage,
-        logCrumb: logCrumb,
-      );
+    if (stagingConclusion.isFailed) {
+      // Something failed in the current CI stage:
+      //
+      // * If this is a pull request: keep the merge guard open and do not proceed
+      //   to the next stage. Let the author sort out what's up.
+      // * If this is a merge group: kick the pull request out of the queue, and
+      //   let the author sort it out.
+      if (isMergeGroup) {
+        final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
+        await failGuardForMergeGroup(slug, sha, guard);
+      }
       return true;
     }
 
@@ -962,30 +979,38 @@ class Scheduler {
     //
     // * If this is a build stage, then:
     //    * If this is a pull request presubmit, then start the test stage.
-    //    * If this is a merge group (in MQ), then close the MQ guard and land it.
+    //    * If this is a merge group (in MQ), then close the MQ guard, letting
+    //      GitHub land it.
     // * If this is a test stage, then close the MQ guard (allowing the PR to
     //   enter the MQ).
     switch (stage) {
       case CiStage.fusionEngineBuild:
-        return _closeSuccessfulEngineBuildStage(
-          checkRunEvent: checkRunEvent,
+        await _closeSuccessfulEngineBuildStage(
+          checkRun: checkRun,
           mergeQueueGuard: stagingConclusion.checkRunGuard!,
           slug: slug,
           sha: sha,
           logCrumb: logCrumb,
         );
       case CiStage.fusionTests:
-        return _closeSuccessfulTestStage(
+        await _closeSuccessfulTestStage(
           mergeQueueGuard: stagingConclusion.checkRunGuard!,
           slug: slug,
           sha: sha,
           logCrumb: logCrumb,
         );
     }
+    return true;
   }
 
-  Future<bool> _closeSuccessfulEngineBuildStage({
-    required cocoon_checks.CheckRunEvent checkRunEvent,
+  /// Whether the [checkRunEvent] is for a merge group (rather than a pull request).
+  bool detectMergeGroup(cocoon_checks.CheckRun checkRun) {
+    final headBranch = checkRun.checkSuite?.headBranch;
+    return headBranch?.startsWith('gh-readonly-queue/') ?? false;
+  }
+
+  Future<void> _closeSuccessfulEngineBuildStage({
+    required cocoon_checks.CheckRun checkRun,
     required String mergeQueueGuard,
     required RepositorySlug slug,
     required String sha,
@@ -994,9 +1019,7 @@ class Scheduler {
     // We know that we're in a fusion repo; now we need to figure out if we are
     //   1) in a presubmit test or
     //   2) in the merge queue
-    final headBranch = checkRunEvent.checkRun?.checkSuite?.headBranch;
-    final isInMergeQueue = headBranch?.startsWith('gh-readonly-queue/') ?? false;
-    if (isInMergeQueue) {
+    if (detectMergeGroup(checkRun)) {
       await _closeMergeQueue(
         mergeQueueGuard: mergeQueueGuard,
         slug: slug,
@@ -1004,46 +1027,28 @@ class Scheduler {
         stage: CiStage.fusionEngineBuild,
         logCrumb: logCrumb,
       );
-      return true;
+      return;
     }
 
     log.info('$logCrumb: Stage completed successfully: ${CiStage.fusionEngineBuild}');
 
     await _proceedToCiTestingStage(
-      checkRunEvent: checkRunEvent,
+      checkRun: checkRun,
       mergeQueueGuard: mergeQueueGuard,
       slug: slug,
       sha: sha,
       logCrumb: logCrumb,
     );
-    return true;
   }
 
-  Future<bool> _closeSuccessfulTestStage({
+  Future<void> _closeSuccessfulTestStage({
     required String mergeQueueGuard,
     required RepositorySlug slug,
     required String sha,
     required String logCrumb,
   }) async {
     log.info('$logCrumb: Stage completed: ${CiStage.fusionTests}');
-
-    // TODO: Unlock the guarding check_run after confirming that the test stage
-    //       document is tracking all check runs correctly.
-    // IMPORTANT: when moving the unlock here, REMEMBER to remove the unlock in
-    //            _proceedToCiTestingStage for non-MQ runs. MQ should unlock the
-    //            guard right after the build stage.
-    log.info('''
-Emulate:
-
-await unlockMergeGroupChecks(
-  slug = $slug,
-  sha = $sha,
-  mergeQueueGuard = $mergeQueueGuard,
-  null,
-);
-''');
-
-    return true;
+    await unlockMergeQueueGuard(slug, sha, checkRunFromString(mergeQueueGuard));
   }
 
   /// Returns the presubmit targets for the fusion repo [pullRequest] that should run for the given [stage].
@@ -1071,25 +1076,11 @@ await unlockMergeGroupChecks(
 
     // Unlock the guarding check_run.
     final checkRunGuard = checkRunFromString(mergeQueueGuard);
-    await unlockMergeGroupChecks(slug, sha, checkRunGuard, null);
-  }
-
-  Future<void> _reportCiStageFailure({
-    required RepositorySlug slug,
-    required String sha,
-    required StagingConclusion conclusion,
-    required CiStage stage,
-    required String logCrumb,
-  }) async {
-    log.info('$logCrumb: Stage failed: $stage with failed=${conclusion.failed}');
-
-    // Unlock the guarding check_run.
-    final checkRunGuard = checkRunFromString(conclusion.checkRunGuard!);
-    await unlockMergeGroupChecks(slug, sha, checkRunGuard, 'failed ${conclusion.failed} tests');
+    await unlockMergeQueueGuard(slug, sha, checkRunGuard);
   }
 
   Future<void> _proceedToCiTestingStage({
-    required cocoon_checks.CheckRunEvent checkRunEvent,
+    required cocoon_checks.CheckRun checkRun,
     required RepositorySlug slug,
     required String sha,
     required String mergeQueueGuard,
@@ -1099,8 +1090,8 @@ await unlockMergeGroupChecks(
 
     // Look up the PR in our cache first. This reduces github quota and requires less calls.
     PullRequest? pullRequest;
-    final id = checkRunEvent.checkRun!.id!;
-    final name = checkRunEvent.checkRun!.name!;
+    final id = checkRun.id!;
+    final name = checkRun.name!;
     try {
       pullRequest = await findPullRequestFor(
         firestoreService,
@@ -1113,7 +1104,7 @@ await unlockMergeGroupChecks(
 
     // We'va failed to find the pull request; try a reverse look it from the check suite.
     if (pullRequest == null) {
-      final int checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
+      final int checkSuiteId = checkRun.checkSuite!.id!;
       pullRequest = await githubChecksService.findMatchingPullRequest(slug, sha, checkSuiteId);
     }
 
@@ -1165,8 +1156,9 @@ await unlockMergeGroupChecks(
       exception = error;
     }
 
-    // Unlock the guarding check_run.
-    await unlockMergeGroupChecks(slug, sha, checkRunGuard, exception);
+    if (exception != null) {
+      throw exception;
+    }
   }
 
   Future<StagingConclusion> _recordCurrentCiStage({
