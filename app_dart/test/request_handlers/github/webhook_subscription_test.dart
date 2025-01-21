@@ -1191,7 +1191,7 @@ void main() {
 
       await tester.post(webhook);
 
-      verifyNever(
+      verify(
         issuesService.createComment(
           Config.flutterSlug,
           issueNumber,
