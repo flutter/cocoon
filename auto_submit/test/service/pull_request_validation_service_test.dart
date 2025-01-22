@@ -187,21 +187,21 @@ void main() {
     test('Should process message when autosubmit label exists and pr is open', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       githubService.pullRequestData = pullRequest;
-      expect(await validationService.shouldProcess(pullRequest), true);
+      expect(validationService.shouldProcess(pullRequest), true);
     });
 
     test('Skip processing message when autosubmit label does not exist anymore', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       pullRequest.labels = <IssueLabel>[];
       githubService.pullRequestData = pullRequest;
-      expect(await validationService.shouldProcess(pullRequest), false);
+      expect(validationService.shouldProcess(pullRequest), false);
     });
 
     test('Skip processing message when the pull request is closed', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       pullRequest.state = 'closed';
       githubService.pullRequestData = pullRequest;
-      expect(await validationService.shouldProcess(pullRequest), false);
+      expect(validationService.shouldProcess(pullRequest), false);
     });
 
     test('Should not process message when revert label exists and pr is open', () async {
@@ -209,7 +209,7 @@ void main() {
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
-      expect(await validationService.shouldProcess(pullRequest), false);
+      expect(validationService.shouldProcess(pullRequest), false);
     });
 
     test('Skip processing message when revert label exists and pr is closed', () async {
@@ -218,7 +218,7 @@ void main() {
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
-      expect(await validationService.shouldProcess(pullRequest), false);
+      expect(validationService.shouldProcess(pullRequest), false);
     });
   });
 
