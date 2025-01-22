@@ -1176,6 +1176,30 @@ void main() {
       );
     });
 
+    test('Framework no test comment if Kotlin test changed', () async {
+      const int issueNumber = 123;
+      tester.message = generateGithubWebhookMessage(action: 'opened', number: issueNumber);
+
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          // Example of real behavior code change.
+          PullRequestFile()..filename = 'packages/flutter_tools/gradle/src/main/kotlin/Deeplink.kt',
+          // Example of Kotlin test.
+          PullRequestFile()..filename = 'packages/flutter_tools/gradle/src/test/kotlin/DeeplinkTest.kt',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+    });
+
     test('Framework no comment if only AUTHORS changed', () async {
       const int issueNumber = 123;
       tester.message = generateGithubWebhookMessage(

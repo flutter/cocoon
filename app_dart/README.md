@@ -22,6 +22,12 @@ flutter pub get
 export PATH="$PATH":"path/to/flutter/bin/cache/dart-sdk/bin/"
 ```
 
+* Set the GOOGLE_CLOUD_PROJECT Environment Variable
+
+```sh
+export GOOGLE_CLOUD_PROJECT=flutter-dashboard
+```
+
 ### Running the tests
 
 ```sh
