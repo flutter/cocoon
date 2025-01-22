@@ -57,7 +57,7 @@ class CiSuccessful extends Validation {
     final String? baseBranch = messagePullRequest.base!.ref;
     if (baseBranch == targetBranch) {
       // Only validate tree status where base branch is the default branch.
-      if (!treeStatusCheck(slug, prNumber, statuses)) {
+      if (!isTreeStatusReporting(slug, prNumber, statuses)) {
         log.warning('Statuses were not ready for ${slug.fullName}/$prNumber, sha: $commit.');
         return ValidationResult(false, Action.IGNORE_TEMPORARILY, 'Hold to wait for the tree status ready.');
       }
@@ -95,17 +95,22 @@ class CiSuccessful extends Validation {
             'issues identified (or deflake) before re-applying this label.');
       }
     }
-    final Action action =
-        labelNames.contains(config.overrideTreeStatusLabel) ? Action.IGNORE_FAILURE : Action.REMOVE_LABEL;
+    final Action action = labelNames.contains(Config.kEmergencyLabel) ? Action.IGNORE_FAILURE : Action.REMOVE_LABEL;
     return ValidationResult(allSuccess, action, buffer.toString());
   }
 
-  /// Check the tree status.
+  /// Return true if the tree status check has been reported, or if doesn't have
+  /// to be reported.
+  ///
+  /// Tree status is pushed by [PushBuildStatusToGithub], which is asynchronous
+  /// relative to the creation of the PR. At the time the CI status is being
+  /// checked, the tree status may not have been reported yet.
   ///
   /// If a repo has a tree status, we should wait for it to show up instead of posting
   /// a failure to GitHub pull request.
+  ///
   /// If a repo doesn't have a tree status, simply return `true`.
-  bool treeStatusCheck(github.RepositorySlug slug, int prNumber, List<ContextNode> statuses) {
+  bool isTreeStatusReporting(github.RepositorySlug slug, int prNumber, List<ContextNode> statuses) {
     bool treeStatusValid = false;
     if (!Config.reposWithTreeStatus.contains(slug)) {
       return true;
@@ -141,7 +146,6 @@ class CiSuccessful extends Validation {
     Set<FailureDetail> failures,
     bool allSuccess,
   ) {
-    final String overrideTreeStatusLabel = config.overrideTreeStatusLabel;
     log.info('Validating name: ${slug.name}/$prNumber, statuses: $statuses');
 
     final List<ContextNode> staleStatuses = <ContextNode>[];
@@ -150,7 +154,7 @@ class CiSuccessful extends Validation {
       final String? name = status.context;
 
       if (status.state != STATUS_SUCCESS) {
-        if (notInAuthorsControl.contains(name) && labelNames.contains(overrideTreeStatusLabel)) {
+        if (notInAuthorsControl.contains(name) && labelNames.contains(Config.kEmergencyLabel)) {
           continue;
         }
         allSuccess = false;
@@ -193,6 +197,11 @@ class CiSuccessful extends Validation {
     final List<github.CheckRun> staleCheckRuns = <github.CheckRun>[];
     for (github.CheckRun checkRun in checkRuns) {
       final String? name = checkRun.name;
+
+      if (checkRun.name == Config.kMergeQueueLockName) {
+        // Merge Queue Guard is not used to determine the status of CI.
+        continue;
+      }
 
       if (checkRun.conclusion == github.CheckRunConclusion.skipped ||
           checkRun.conclusion == github.CheckRunConclusion.success ||

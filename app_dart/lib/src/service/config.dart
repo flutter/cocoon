@@ -32,8 +32,8 @@ const String kDefaultBranchName = 'master';
 class Config {
   Config(this._db, this._cache);
 
-  /// When present on a pull request, instructs Cocoon to land it automatically
-  /// as soon as all the required checks pass.
+  /// When present on a pull request, instructs Cocoon to submit it
+  /// automatically as soon as all the required checks pass.
   ///
   /// Keep this in sync with the similar `Config` class in `auto_submit`.
   static const String kAutosubmitLabel = 'autosubmit';
@@ -43,6 +43,25 @@ class Config {
   ///
   /// Keep this in sync with the similar `Config` class in `auto_submit`.
   static const String kEmergencyLabel = 'emergency';
+
+  /// Validates that CI tasks were successfully created from the .ci.yaml file.
+  ///
+  /// If this check fails, it means Cocoon failed to fully populate the list of
+  /// CI checks and the PR/commit should be treated as failing.
+  static const String kCiYamlCheckName = 'ci.yaml validation';
+
+  /// A required check that stays in pending state until a sufficient subset of
+  /// checks pass.
+  ///
+  /// This check is "required", meaning that it must pass before Github will
+  /// allow a PR to land in the merge queue, or a merge group to land on the
+  /// target branch (main or master).
+  ///
+  /// IMPORTANT: the name of this task - "Merge Queue Guard" - must strictly
+  /// match the name of the required check configured in the repo settings.
+  /// Changing the name here or in the settings alone will break the PR
+  /// workflow.
+  static const String kMergeQueueLockName = 'Merge Queue Guard';
 
   final DatastoreDB _db;
 
@@ -157,7 +176,6 @@ class Config {
 
   // GitHub App properties.
   Future<String> get githubPrivateKey => _getSingleValue('githubapp_private_pem');
-  Future<String> get overrideTreeStatusLabel => _getSingleValue('override_tree_status_label');
   Future<String> get githubPublicKey => _getSingleValue('githubapp_public_pem');
   Future<String> get githubAppId => _getSingleValue('githubapp_id');
   Future<Map<String, dynamic>> get githubAppInstallations async {

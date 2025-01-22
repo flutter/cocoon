@@ -101,28 +101,9 @@ class Scheduler {
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
 
-  /// Validates that CI tasks were successfully created from the .ci.yaml file.
-  ///
-  /// If this check fails, it means Cocoon failed to fully populate the list of
-  /// CI checks and the PR/commit should be treated as failing.
-  static const String kCiYamlCheckName = 'ci.yaml validation';
-
-  /// A required check that stays in pending state until a sufficient subset of
-  /// checks pass.
-  ///
-  /// This check is "required", meaning that it must pass before Github will
-  /// allow a PR to land in the merge queue, or a merge group to land on the
-  /// target branch (main or master).
-  ///
-  /// IMPORTANT: the name of this task - "Merge Queue Guard" - must strictly
-  /// match the name of the required check configured in the repo settings.
-  /// Changing the name here or in the settings alone will break the PR
-  /// workflow.
-  static const String kMergeQueueLockName = 'Merge Queue Guard';
-
   /// List of check runs that do not need to be tracked or looked up in
   /// any staging logic.
-  static const kCheckRunsToIgnore = [kMergeQueueLockName, kCiYamlCheckName];
+  static const kCheckRunsToIgnore = [Config.kMergeQueueLockName, Config.kCiYamlCheckName];
 
   /// Briefly describes what the "Merge Queue Guard" check is for.
   ///
@@ -510,7 +491,7 @@ class Scheduler {
         conclusion: CheckRunConclusion.success,
       );
     } else {
-      log.warning('Marking $description $kCiYamlCheckName as failed', e);
+      log.warning('Marking $description ${Config.kCiYamlCheckName} as failed', e);
       // Failure when validating ci.yaml
       await githubChecksService.githubChecksUtil.updateCheckRun(
         config,
@@ -519,7 +500,7 @@ class Scheduler {
         status: CheckRunStatus.completed,
         conclusion: CheckRunConclusion.failure,
         output: CheckRunOutput(
-          title: kCiYamlCheckName,
+          title: Config.kCiYamlCheckName,
           summary: '.ci.yaml has failures',
           text: exception.toString(),
         ),
@@ -533,9 +514,9 @@ class Scheduler {
       config,
       slug,
       pullRequest.head!.sha!,
-      kCiYamlCheckName,
+      Config.kCiYamlCheckName,
       output: const CheckRunOutput(
-        title: kCiYamlCheckName,
+        title: Config.kCiYamlCheckName,
         summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
       ),
     );
@@ -709,9 +690,9 @@ class Scheduler {
       config,
       slug,
       headSha,
-      kMergeQueueLockName,
+      Config.kMergeQueueLockName,
       output: const CheckRunOutput(
-        title: kMergeQueueLockName,
+        title: Config.kMergeQueueLockName,
         summary: kMergeQueueLockDescription,
       ),
     );
@@ -1197,7 +1178,7 @@ class Scheduler {
   /// generated when someone clicks the re-run button from a failed build from
   /// the Github UI.
   ///
-  /// If the rerequested check is for [kCiYamlCheckName], all presubmit jobs are retried.
+  /// If the rerequested check is for [Config.kCiYamlCheckName], all presubmit jobs are retried.
   /// Otherwise, the specific check will be retried.
   ///
   /// Relevant APIs:
@@ -1212,12 +1193,12 @@ class Scheduler {
         log.fine('Rerun requested by GitHub user: ${checkRunEvent.sender?.login}');
         final String? name = checkRunEvent.checkRun!.name;
         bool success = false;
-        if (name == kMergeQueueLockName) {
+        if (name == Config.kMergeQueueLockName) {
           final RepositorySlug slug = checkRunEvent.repository!.slug();
           final int checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
-          log.fine('Requested re-run of "$kMergeQueueLockName" for $slug / $checkSuiteId - ignoring');
+          log.fine('Requested re-run of "${Config.kMergeQueueLockName}" for $slug / $checkSuiteId - ignoring');
           success = true;
-        } else if (name == kCiYamlCheckName) {
+        } else if (name == Config.kCiYamlCheckName) {
           // The CheckRunEvent.checkRun.pullRequests array is empty for this
           // event, so we need to find the matching pull request.
           final RepositorySlug slug = checkRunEvent.repository!.slug();

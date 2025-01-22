@@ -9,6 +9,7 @@ import 'dart:core';
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/model/pull_request_data_types.dart';
+import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:cocoon_server/logging.dart';
@@ -277,7 +278,7 @@ void main() {
       final Author author = Author(login: 'ricardoamador');
 
       final List<String> labelNames = [];
-      labelNames.add('warning: land on red to fix tree breakage');
+      labelNames.add(Config.kEmergencyLabel);
       labelNames.add('Other label');
 
       convertContextNodeStatuses(contextNodeList);
@@ -519,7 +520,7 @@ void main() {
 
       /// The status must be uppercase as the original code is expecting this.
       convertContextNodeStatuses(contextNodeList);
-      final bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, prNumber, contextNodeList);
+      final bool treeStatusFlag = ciSuccessful.isTreeStatusReporting(slug, prNumber, contextNodeList);
       expect(treeStatusFlag, true);
     });
 
@@ -530,7 +531,7 @@ void main() {
 
       /// The status must be uppercase as the original code is expecting this.
       convertContextNodeStatuses(contextNodeList);
-      final bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, prNumber, contextNodeList);
+      final bool treeStatusFlag = ciSuccessful.isTreeStatusReporting(slug, prNumber, contextNodeList);
       expect(treeStatusFlag, true);
     });
 
@@ -540,7 +541,7 @@ void main() {
 
       /// The status must be uppercase as the original code is expecting this.
       convertContextNodeStatuses(contextNodeList);
-      final bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, prNumber, contextNodeList);
+      final bool treeStatusFlag = ciSuccessful.isTreeStatusReporting(slug, prNumber, contextNodeList);
       expect(treeStatusFlag, false);
     });
   });
@@ -663,7 +664,7 @@ void main() {
       expect(commit, isNotNull);
       expect(commit.status, isNotNull);
 
-      final github.PullRequest npr = generatePullRequest(labelName: 'warning: land on red to fix tree breakage');
+      final github.PullRequest npr = generatePullRequest(labelName: Config.kEmergencyLabel);
       githubService.checkRunsData = checkRunsMock;
 
       ciSuccessful.validate(queryResult, npr).then((value) {

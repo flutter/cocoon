@@ -56,8 +56,6 @@ class CheckPullRequest extends CheckRequest {
 
     log.info('Processing ${messageList.length} messages');
 
-    final PullRequestValidationService validationService = PullRequestValidationService(config);
-
     final List<Future<void>> futures = <Future<void>>[];
 
     for (pub.ReceivedMessage message in messageList) {
@@ -92,6 +90,7 @@ class CheckPullRequest extends CheckRequest {
         processingLog.add(pullRequest.number!);
       }
 
+      final PullRequestValidationService validationService = PullRequestValidationService(config);
       futures.add(
         validationService.processMessage(pullRequest, message.ackId!, pubsub),
       );

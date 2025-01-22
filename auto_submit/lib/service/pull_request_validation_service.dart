@@ -17,21 +17,6 @@ import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
 
-/// A required check that stays in pending state until a sufficient subset of
-/// checks pass.
-///
-/// This check is "required", meaning that it must pass before Github will
-/// allow a PR to land in the merge queue, or a merge group to land on the
-/// target branch (main or master).
-///
-/// IMPORTANT: the name of this task - "Merge Queue Guard" - must strictly
-/// match the name of the required check configured in the repo settings.
-/// Changing the name here or in the settings alone will break the PR
-/// workflow.
-///
-/// Keep this in sync with the identical constant defined in `scheduler.dart`.
-const String kMergeQueueLockName = 'Merge Queue Guard';
-
 class PullRequestValidationService extends ValidationService {
   PullRequestValidationService(Config config, {RetryOptions? retryOptions})
       : super(config, retryOptions: retryOptions) {
@@ -92,33 +77,23 @@ class PullRequestValidationService extends ValidationService {
 
     final processor = _PullRequestValidationProcessor(
       validationService: this,
+      githubService: await config.createGithubService(slug),
       config: config,
       result: result,
       pullRequest: pullRequest,
       ackId: ackId,
       pubsub: pubsub,
     );
-
-    final hasEmergencyLabel = pullRequest.labelNames.contains(Config.kEmergencyLabel);
-
-    if (hasEmergencyLabel) {
-      await processor.processEmergency();
-    }
-
-    final hasAutosubmitLabel = pullRequest.labelNames.contains(Config.kAutosubmitLabel);
-
-    if (hasAutosubmitLabel) {
-      return processor.processAutosubmit();
-    } else {
-      log.info('Ack the processed message : $ackId.');
-      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
-    }
+    await processor.process();
   }
 }
 
+/// A helper class that breaks down the logic into multiple smaller methods, and
+/// provides common objects to all methods that need them.
 class _PullRequestValidationProcessor {
   _PullRequestValidationProcessor({
     required this.validationService,
+    required this.githubService,
     required this.config,
     required this.result,
     required this.pullRequest,
@@ -128,6 +103,7 @@ class _PullRequestValidationProcessor {
         prNumber = pullRequest.number!;
 
   final PullRequestValidationService validationService;
+  final GithubService githubService;
   final Config config;
   final QueryResult result;
   final github.PullRequest pullRequest;
@@ -136,7 +112,43 @@ class _PullRequestValidationProcessor {
   final github.RepositorySlug slug;
   final int prNumber;
 
-  Future<void> processEmergency() async {
+  Future<void> process() async {
+    final hasEmergencyLabel = pullRequest.labelNames.contains(Config.kEmergencyLabel);
+    final hasAutosubmitLabel = pullRequest.labelNames.contains(Config.kAutosubmitLabel);
+
+    if (hasEmergencyLabel) {
+      final didEmergencyProcessCleanly = await _processEmergency();
+      if (!didEmergencyProcessCleanly) {
+        // The emergency label failed to process cleanly. Do not continue processing
+        // the "autosubmit" label, as it may not be safe. The author assumed that
+        // the combination of both labels would cleanly land, and it didn't.
+        if (hasAutosubmitLabel) {
+          await _removeAutosubmitLabel('emergency label processing failed');
+        }
+        await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+        return;
+      }
+    }
+
+    if (hasAutosubmitLabel) {
+      await _processAutosubmit();
+    } else {
+      log.info('Ack the processed message : $ackId.');
+      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+    }
+  }
+
+  /// Processes the "emergency" label.
+  ///
+  /// Returns true, if the processing succeeded and the validation should move
+  /// onto the "autosubmit" label. The primary result of a successful processing
+  /// of the "emergency" label is the unlocking of the "Merge Queue Guard" check
+  /// run, which allows the respective PR to be enqueued either manually using
+  /// GitHub UI, or via the "autosubmit" label.
+  ///
+  /// Returns false, if the processing failed, the "Merge Queue Guard" was not
+  /// unlocked, and any further validation should stop.
+  Future<bool> _processEmergency() async {
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
     // filter out validations here
@@ -148,7 +160,6 @@ class _PullRequestValidationProcessor {
     final Set<Validation> validations = validationFilter.getValidations();
 
     final Map<String, ValidationResult> validationsMap = <String, ValidationResult>{};
-    final GithubService githubService = await config.createGithubService(slug);
 
     /// Runs all the validation defined in the service.
     /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
@@ -176,12 +187,8 @@ class _PullRequestValidationProcessor {
     }
 
     if (shouldReturn) {
-      log.info(
-        'The pr ${slug.fullName}/$prNumber with message: $ackId should be acknowledged due to validation failure.',
-      );
-      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
-      log.info('The pr ${slug.fullName}/$prNumber is not eligible for emergency landing: $ackId is acknowledged.');
-      return;
+      log.info('The pr ${slug.fullName}/$prNumber is not eligible for emergency landing.');
+      return false;
     }
 
     // If PR has some failures to ignore temporarily do nothing and continue.
@@ -190,7 +197,7 @@ class _PullRequestValidationProcessor {
         log.info(
           'Temporarily ignoring processing of ${slug.fullName}/$prNumber due to ${result.key} failing validation.',
         );
-        return;
+        return true;
       }
     }
 
@@ -199,7 +206,7 @@ class _PullRequestValidationProcessor {
     final guard = (await githubService.getCheckRunsFiltered(
       slug: slug,
       ref: pullRequest.base!.ref!,
-      checkName: kMergeQueueLockName,
+      checkName: Config.kMergeQueueLockName,
     ))
         .singleOrNull;
 
@@ -208,8 +215,7 @@ class _PullRequestValidationProcessor {
         'Failed to process the emergency label in ${slug.fullName}/$prNumber. '
         '"kMergeQueueLockName" check run is missing.',
       );
-      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
-      return;
+      return false;
     }
 
     await githubService.updateCheckRun(
@@ -220,10 +226,10 @@ class _PullRequestValidationProcessor {
     );
 
     log.info('Unlocked merge guard for ${slug.fullName}/$prNumber to allow it to land as an emergency.');
-    await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+    return true;
   }
 
-  Future<void> processAutosubmit() async {
+  Future<void> _processAutosubmit() async {
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
     // filter out validations here
@@ -235,7 +241,6 @@ class _PullRequestValidationProcessor {
     final Set<Validation> validations = validationFilter.getValidations();
 
     final Map<String, ValidationResult> validationsMap = <String, ValidationResult>{};
-    final GithubService githubService = await config.createGithubService(slug);
 
     /// Runs all the validation defined in the service.
     /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
@@ -252,11 +257,8 @@ class _PullRequestValidationProcessor {
     bool shouldReturn = false;
     for (MapEntry<String, ValidationResult> result in validationsMap.entries) {
       if (!result.value.result && result.value.action == Action.REMOVE_LABEL) {
-        final String commmentMessage = result.value.message.isEmpty ? 'Validations Fail.' : result.value.message;
-        final String message = 'auto label is removed for ${slug.fullName}/$prNumber, due to $commmentMessage';
-        await githubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
-        await githubService.createComment(slug, prNumber, message);
-        log.info(message);
+        final String commentMessage = result.value.message.isEmpty ? 'Validations Fail.' : result.value.message;
+        await _removeAutosubmitLabel(commentMessage);
         shouldReturn = true;
       }
     }
@@ -303,5 +305,13 @@ class _PullRequestValidationProcessor {
 
     log.info('Ack the processed message : $ackId.');
     await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+  }
+
+  Future<void> _removeAutosubmitLabel(String reason) async {
+    final String message =
+        '${Config.kAutosubmitLabel} label was removed for ${slug.fullName}/$prNumber, because $reason';
+    await githubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
+    await githubService.createComment(slug, prNumber, message);
+    log.info(message);
   }
 }
