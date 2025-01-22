@@ -148,6 +148,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
             'mac_unopt',
 
             // Integration test shards that run golden file tests
+            'android_engine_vulkan_tests',
+            'android_engine_opengles_tests',
             'flutter_driver_android_test',
           ].any((String shardSubString) => name.contains(shardSubString))) {
             runsGoldenFileTests = true;
