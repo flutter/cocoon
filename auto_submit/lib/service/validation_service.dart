@@ -125,9 +125,6 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
         return (result: false, message: message, method: SubmitMethod.merge);
       }
     } catch (e) {
-      if ('$e'.contains('Null check operator used')) {
-        rethrow;
-      }
       // Catch graphql client init exceptions.
       final String message = 'Failed to merge ${slug.fullName}/$number with $e';
       log.severe(message);
