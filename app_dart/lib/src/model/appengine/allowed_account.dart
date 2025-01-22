@@ -16,7 +16,6 @@ class AllowedAccount extends Model<int> {
   /// Creates a new [AllowedAccount].
   AllowedAccount({
     Key<int>? key,
-    required this.email,
   }) {
     parentKey = key?.parent;
     id = key?.id;
@@ -24,7 +23,7 @@ class AllowedAccount extends Model<int> {
 
   /// The email address of the account that has been allowlisted.
   @StringProperty(propertyName: 'Email', required: true)
-  String email;
+  String email = '';
 
   @override
   String toString() {
