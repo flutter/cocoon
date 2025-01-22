@@ -59,10 +59,17 @@ class Config {
   static const String kFlutterGitHubBotKey = 'AUTO_SUBMIT_FLUTTER_GITHUB_TOKEN';
   static const String kTreeStatusDiscordUrl = 'TREE_STATUS_DISCORD_WEBHOOK_URL';
 
-  /// Labels autosubmit looks for on pull requests
+  /// When present on a pull request, instructs Cocoon to land it automatically
+  /// as soon as all the required checks pass.
   ///
   /// Keep this in sync with the similar `Config` class in `app_dart`.
   static const String kAutosubmitLabel = 'autosubmit';
+
+  /// When present on a pull request, allows it to land without passing all the
+  /// checks, and jumps the merge queue.
+  ///
+  /// Keep this in sync with the similar `Config` class in `app_dart`.
+  static const String kEmergencyLabel = 'emergency';
 
   /// GitHub check stale threshold.
   static const int kGitHubCheckStaleThreshold = 2; // hours

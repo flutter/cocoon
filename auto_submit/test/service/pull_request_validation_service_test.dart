@@ -83,7 +83,7 @@ void main() {
     await validationService.processPullRequest(
       config: config,
       result: queryResult,
-      messagePullRequest: pullRequest,
+      pullRequest: pullRequest,
       ackId: 'test',
       pubsub: pubsub,
     );
@@ -131,7 +131,7 @@ void main() {
     await validationService.processPullRequest(
       config: config,
       result: queryResult,
-      messagePullRequest: pullRequest,
+      pullRequest: pullRequest,
       ackId: 'test',
       pubsub: pubsub,
     );
@@ -173,7 +173,7 @@ void main() {
     await validationService.processPullRequest(
       config: config,
       result: queryResult,
-      messagePullRequest: pullRequest,
+      pullRequest: pullRequest,
       ackId: 'test',
       pubsub: pubsub,
     );
@@ -238,7 +238,7 @@ void main() {
 
       final MergeResult result = await validationService.submitPullRequest(
         config: config,
-        messagePullRequest: pullRequest,
+        pullRequest: pullRequest,
       );
 
       expect(result.message, contains('Reland "My first PR!"'));
@@ -263,7 +263,7 @@ void main() {
       await validationService.processPullRequest(
         config: config,
         result: queryResult,
-        messagePullRequest: pullRequest,
+        pullRequest: pullRequest,
         ackId: 'test',
         pubsub: pubsub,
       );
@@ -302,7 +302,7 @@ void main() {
       await validationService.processPullRequest(
         config: config,
         result: queryResult,
-        messagePullRequest: pullRequest,
+        pullRequest: pullRequest,
         ackId: 'test',
         pubsub: pubsub,
       );
@@ -348,7 +348,7 @@ void main() {
       await validationService.processPullRequest(
         config: config,
         result: queryResult,
-        messagePullRequest: pullRequest,
+        pullRequest: pullRequest,
         ackId: 'test',
         pubsub: pubsub,
       );
@@ -379,7 +379,7 @@ void main() {
       );
       final MergeResult result = await validationService.submitPullRequest(
         config: config,
-        messagePullRequest: pullRequest,
+        pullRequest: pullRequest,
       );
 
       expect(result.message, '''
@@ -438,7 +438,7 @@ If you need help, consider asking for advice on the #hackers-new channel on [Dis
 
       final MergeResult result = await validationService.submitPullRequest(
         config: config,
-        messagePullRequest: pullRequest,
+        pullRequest: pullRequest,
       );
 
       expect(result.result, isTrue);
@@ -488,7 +488,7 @@ This is the second line in a paragraph.''');
 
       final MergeResult result = await validationService.submitPullRequest(
         config: config,
-        messagePullRequest: pullRequest,
+        pullRequest: pullRequest,
       );
 
       expect(result.method, SubmitMethod.enqueue);
@@ -522,7 +522,7 @@ This is the second line in a paragraph.''');
 
       final MergeResult result = await validationService.submitPullRequest(
         config: config,
-        messagePullRequest: pullRequest,
+        pullRequest: pullRequest,
       );
 
       expect(result.method, SubmitMethod.merge);
@@ -537,7 +537,7 @@ This is the second line in a paragraph.''');
 
       final MergeResult result = await validationService.submitPullRequest(
         config: config,
-        messagePullRequest: pullRequest,
+        pullRequest: pullRequest,
       );
 
       expect(result.method, SubmitMethod.enqueue);
@@ -552,7 +552,7 @@ This is the second line in a paragraph.''');
 
       final MergeResult result = await validationService.submitPullRequest(
         config: config,
-        messagePullRequest: pullRequest,
+        pullRequest: pullRequest,
       );
 
       expect(result.method, SubmitMethod.enqueue);
@@ -595,7 +595,7 @@ This is the second line in a paragraph.''');
 
       final MergeResult result = await validationService.submitPullRequest(
         config: config,
-        messagePullRequest: pullRequest,
+        pullRequest: pullRequest,
       );
 
       expect(
@@ -650,7 +650,7 @@ This is the second line in a paragraph.''');
 
       final MergeResult result = await validationService.submitPullRequest(
         config: config,
-        messagePullRequest: pullRequest,
+        pullRequest: pullRequest,
       );
 
       expect(
@@ -700,7 +700,7 @@ This is the second line in a paragraph.''');
       await validationService.processPullRequest(
         config: config,
         result: createQueryResult(flutterRequest),
-        messagePullRequest: pullRequest,
+        pullRequest: pullRequest,
         ackId: 'test',
         pubsub: pubsub,
       );

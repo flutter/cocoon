@@ -136,6 +136,33 @@ class FakeGithubService implements GithubService {
   }
 
   @override
+  Future<CheckRun> updateCheckRun({
+    required RepositorySlug slug,
+    required CheckRun checkRun,
+    String? name,
+    String? detailsUrl,
+    String? externalId,
+    DateTime? startedAt,
+    CheckRunStatus status = CheckRunStatus.queued,
+    CheckRunConclusion? conclusion,
+    DateTime? completedAt,
+    CheckRunOutput? output,
+    List<CheckRunAction>? actions,
+  }) async {
+    final Map<String, Object?> json = checkRun.toJson();
+
+    if (conclusion != null) {
+      json['conclusion'] = conclusion;
+    }
+
+    if (status != checkRun.status) {
+      json['status'] = status;
+    }
+
+    return CheckRun.fromJson(json);
+  }
+
+  @override
   Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
     final RepositoryCommit commit = RepositoryCommit.fromJson(jsonDecode(commitMock!) as Map<String, dynamic>);
     return commit;

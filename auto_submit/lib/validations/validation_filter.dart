@@ -23,6 +23,8 @@ abstract class ValidationFilter {
     switch (processMethod) {
       case ProcessMethod.processAutosubmit:
         return PullRequestValidationFilter(config, repositoryConfiguration);
+      case ProcessMethod.processEmergency:
+        return EmergencyValidationFilter(config, repositoryConfiguration);
       case ProcessMethod.processRevert:
         return RevertRequestValidationFilter(config, repositoryConfiguration);
       default:
@@ -54,6 +56,22 @@ class PullRequestValidationFilter implements ValidationFilter {
     }
     validationsToRun.add(Mergeable(config: config));
 
+    return validationsToRun;
+  }
+}
+
+/// Provides validations for applying the `emergency` label.
+class EmergencyValidationFilter implements ValidationFilter {
+  EmergencyValidationFilter(this.config, this.repositoryConfiguration);
+
+  final Config config;
+  final RepositoryConfiguration repositoryConfiguration;
+
+  @override
+  Set<Validation> getValidations() {
+    final Set<Validation> validationsToRun = {};
+    validationsToRun.add(Approval(config: config));
+    validationsToRun.add(Mergeable(config: config));
     return validationsToRun;
   }
 }

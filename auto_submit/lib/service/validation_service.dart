@@ -45,41 +45,36 @@ class ValidationService {
     return QueryResult.fromJson(data);
   }
 
-  Future<(github.PullRequest, List<String>)> getPrWithLabels(github.PullRequest pullRequest) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+  Future<github.PullRequest> getFullPullRequest(github.RepositorySlug slug, int pullRequestNumber) async {
     final GithubService githubService = await config.createGithubService(slug);
-    final github.PullRequest currentPullRequest = await githubService.getPullRequest(slug, pullRequest.number!);
-    final List<String> labelNames = (currentPullRequest.labels as List<github.IssueLabel>)
-        .map<String>((github.IssueLabel labelMap) => labelMap.name)
-        .toList();
-    return (currentPullRequest, labelNames);
+    return githubService.getPullRequest(slug, pullRequestNumber);
   }
 
   /// Merges the commit if the PullRequest passes all the validations.
   Future<MergeResult> submitPullRequest({
     required Config config,
-    required github.PullRequest messagePullRequest,
+    required github.PullRequest pullRequest,
   }) async {
-    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
-    final int number = messagePullRequest.number!;
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final int number = pullRequest.number!;
 
     // Pass an explicit commit message from the PR title otherwise the GitHub API will use the first commit message.
     const String revertPattern = 'Revert "Revert';
     String messagePrefix = '';
 
-    if (messagePullRequest.title!.contains(revertPattern)) {
+    if (pullRequest.title!.contains(revertPattern)) {
       // Cleanup auto-generated revert messages.
       messagePrefix = '''
-${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
+${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
 
 ''';
     }
 
-    final String prBody = _sanitizePrBody(messagePullRequest.body ?? '');
+    final String prBody = _sanitizePrBody(pullRequest.body ?? '');
     final String commitMessage = '$messagePrefix$prBody';
 
-    if (messagePullRequest.isMergeQueueEnabled) {
-      return _enqueuePullRequest(slug, messagePullRequest);
+    if (pullRequest.isMergeQueueEnabled) {
+      return _enqueuePullRequest(slug, pullRequest);
     } else {
       return _mergePullRequest(number, commitMessage, slug);
     }
@@ -88,7 +83,7 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
   Future<MergeResult> _enqueuePullRequest(github.RepositorySlug slug, github.PullRequest restPullRequest) async {
     final graphQlService = await GraphQlService.forRepo(config, slug);
     final isEmergencyPullRequest =
-        restPullRequest.labels?.where((label) => label.name == 'emergency').isNotEmpty ?? false;
+        restPullRequest.labels?.where((label) => label.name == Config.kEmergencyLabel).isNotEmpty ?? false;
 
     try {
       await retryOptions.retry(
@@ -117,7 +112,6 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
             commitMessage: commitMessage,
             slug: slug,
             number: number,
-            // TODO(ricardoamador): make this configurable per repository, https://github.com/flutter/flutter/issues/114557
             mergeMethod: github.MergeMethod.squash,
           );
         },
@@ -131,6 +125,9 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
         return (result: false, message: message, method: SubmitMethod.merge);
       }
     } catch (e) {
+      if ('$e'.contains('Null check operator used')) {
+        rethrow;
+      }
       // Catch graphql client init exceptions.
       final String message = 'Failed to merge ${slug.fullName}/$number with $e';
       log.severe(message);
@@ -287,5 +284,15 @@ extension PullRequestExtension on github.PullRequest {
 
     final slug = base!.repo!.slug();
     return mqEnabledRepos.contains(slug.fullName);
+  }
+
+  /// Extracts label names from the `IssueLabel` list [labels].
+  List<String> get labelNames {
+    final labels = this.labels;
+    if (labels == null) {
+      return const <String>[];
+    }
+
+    return labels.map<String>((github.IssueLabel labelMap) => labelMap.name).toList();
   }
 }

@@ -32,10 +32,17 @@ const String kDefaultBranchName = 'master';
 class Config {
   Config(this._db, this._cache);
 
-  /// Labels autosubmit looks for on pull requests
+  /// When present on a pull request, instructs Cocoon to land it automatically
+  /// as soon as all the required checks pass.
   ///
   /// Keep this in sync with the similar `Config` class in `auto_submit`.
   static const String kAutosubmitLabel = 'autosubmit';
+
+  /// When present on a pull request, allows it to land without passing all the
+  /// checks, and jumps the merge queue.
+  ///
+  /// Keep this in sync with the similar `Config` class in `auto_submit`.
+  static const String kEmergencyLabel = 'emergency';
 
   final DatastoreDB _db;
 
