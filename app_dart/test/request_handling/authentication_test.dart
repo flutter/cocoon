@@ -156,8 +156,7 @@ void main() {
       test('succeeds for allowed non-Google auth users', () async {
         final AllowedAccount account = AllowedAccount(
           key: config.db.emptyKey.append<int>(AllowedAccount, id: 123),
-          email: 'test@gmail.com',
-        );
+        )..email = 'test@gmail.com';
         config.db.values[account.key] = account;
         final TokenInfo token = TokenInfo(
           audience: 'client-id',
