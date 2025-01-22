@@ -185,11 +185,11 @@ void main() {
       // Generate check runs based on the name hash code
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
           .thenAnswer((Invocation invocation) async {
-            return generateCheckRun(
-              invocation.positionalArguments[2].hashCode,
-              name: invocation.positionalArguments[3],
-            );
-          });
+        return generateCheckRun(
+          invocation.positionalArguments[2].hashCode,
+          name: invocation.positionalArguments[3],
+        );
+      });
 
       fakeFusion = FakeFusionTester();
       callbacks = MockCallbacks();
@@ -2103,11 +2103,13 @@ targets:
           ),
         ).thenAnswer((inv) async {
           final CheckRun checkRun = inv.positionalArguments[2];
-          capturedUpdates.add((
-            checkRun.name!,
-            inv.namedArguments[#status],
-            inv.namedArguments[#conclusion],
-          ),);
+          capturedUpdates.add(
+            (
+              checkRun.name!,
+              inv.namedArguments[#status],
+              inv.namedArguments[#conclusion],
+            ),
+          );
         });
 
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
