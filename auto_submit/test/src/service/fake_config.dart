@@ -22,7 +22,6 @@ class FakeConfig extends Config {
     this.githubGraphQLClient,
     this.githubService,
     this.rollerAccountsValue,
-    this.overrideTreeStatusLabelValue,
     this.webhookKey,
     this.kPubsubPullNumberValue,
     this.bigqueryService,
@@ -35,7 +34,6 @@ class FakeConfig extends Config {
   GraphQLClient? githubGraphQLClient;
   GithubService? githubService = FakeGithubService();
   Set<String>? rollerAccountsValue;
-  String? overrideTreeStatusLabelValue;
   String? webhookKey;
   int? kPubsubPullNumberValue;
   BigqueryService? bigqueryService;
@@ -74,9 +72,6 @@ class FakeConfig extends Config {
         'dependabot[bot]',
         'dependabot',
       };
-
-  @override
-  String get overrideTreeStatusLabel => overrideTreeStatusLabelValue ?? 'warning: land on red to fix tree breakage';
 
   @override
   Future<String> getWebhookKey() async {

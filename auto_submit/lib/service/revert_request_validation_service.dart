@@ -57,11 +57,12 @@ class RevertRequestValidationService extends ValidationService {
   ) async {
     // Make sure the pull request still contains the labels.
     final github.PullRequest messagePullRequest = githubPullRequestEvent.pullRequest!;
-    final (currentPullRequest, labelNames) = await getPrWithLabels(messagePullRequest);
-    final RevertProcessMethod revertProcessMethod = await shouldProcess(currentPullRequest, labelNames);
+    final slug = messagePullRequest.base!.repo!.slug();
+    final fullPullRequest = await getFullPullRequest(slug, messagePullRequest.number!);
+    final revertProcessMethod = await shouldProcess(fullPullRequest);
 
-    final GithubPullRequestEvent updatedGithubPullRequestEvent = GithubPullRequestEvent(
-      pullRequest: currentPullRequest,
+    final updatedGithubPullRequestEvent = GithubPullRequestEvent(
+      pullRequest: fullPullRequest,
       action: githubPullRequestEvent.action,
       sender: githubPullRequestEvent.sender,
     );
@@ -80,7 +81,7 @@ class RevertRequestValidationService extends ValidationService {
       case RevertProcessMethod.revertOf:
         await processRevertOfRequest(
           result: await getNewestPullRequestInfo(config, messagePullRequest),
-          githubPullRequestEvent: updatedGithubPullRequestEvent,
+          githubPullRequestEvent: githubPullRequestEvent,
           ackId: ackId,
           pubsub: pubsub,
         );
@@ -126,10 +127,8 @@ class RevertRequestValidationService extends ValidationService {
   }
 
   /// Determine if we should process the incoming pull request webhook event.
-  Future<RevertProcessMethod> shouldProcess(
-    github.PullRequest pullRequest,
-    List<String> labelNames,
-  ) async {
+  Future<RevertProcessMethod> shouldProcess(github.PullRequest pullRequest) async {
+    final labelNames = pullRequest.labelNames;
     // This is the initial revert request state.
     if (pullRequest.state == 'closed' && labelNames.contains(Config.kRevertLabel) && pullRequest.mergedAt != null) {
       return RevertProcessMethod.revert;
@@ -214,14 +213,14 @@ class RevertRequestValidationService extends ValidationService {
     required String ackId,
     required PubSub pubsub,
   }) async {
-    final github.PullRequest messagePullRequest = githubPullRequestEvent.pullRequest!;
-    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    final pullRequest = githubPullRequestEvent.pullRequest!;
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService githubService = await config.createGithubService(slug);
-    final int prNumber = messagePullRequest.number!;
+    final int prNumber = pullRequest.number!;
 
     // If a pull request is currently in the merge queue do not touch it. Let
     // the merge queue merge it, or kick it out of the merge queue.
-    if (messagePullRequest.isMergeQueueEnabled) {
+    if (pullRequest.isMergeQueueEnabled) {
       if (result.repository!.pullRequest!.isInMergeQueue) {
         log.info(
           '${slug.fullName}/$prNumber is already in the merge queue. Skipping.',
@@ -264,15 +263,15 @@ class RevertRequestValidationService extends ValidationService {
       validationsMap[validation.name] = await validation.validate(
         result,
         // this needs to be the newly opened pull request.
-        messagePullRequest,
+        pullRequest,
       );
     }
 
     /// If there is at least one action that requires to remove label do so and add comments for all the failures.
     bool shouldReturn = false;
-    for (MapEntry<String, ValidationResult> result in validationsMap.entries) {
-      if (!result.value.result && result.value.action == Action.REMOVE_LABEL) {
-        final String commmentMessage = result.value.message.isEmpty ? 'Validations Fail.' : result.value.message;
+    for (final MapEntry(key: _, :value) in validationsMap.entries) {
+      if (!value.result && value.action == Action.REMOVE_LABEL) {
+        final String commmentMessage = value.message.isEmpty ? 'Validations Fail.' : value.message;
         final String message = 'auto label is removed for ${slug.fullName}/$prNumber, due to $commmentMessage';
         await githubService.removeLabel(slug, prNumber, Config.kRevertOfLabel);
         await githubService.createComment(slug, prNumber, message);
@@ -291,10 +290,10 @@ class RevertRequestValidationService extends ValidationService {
     }
 
     // If PR has some failures to ignore temporarily do nothing and continue.
-    for (MapEntry<String, ValidationResult> result in validationsMap.entries) {
-      if (!result.value.result && result.value.action == Action.IGNORE_TEMPORARILY) {
+    for (final MapEntry(:key, :value) in validationsMap.entries) {
+      if (!value.result && value.action == Action.IGNORE_TEMPORARILY) {
         log.info(
-          'Temporarily ignoring processing of ${slug.fullName}/$prNumber due to ${result.key} failing validation.',
+          'Temporarily ignoring processing of ${slug.fullName}/$prNumber due to $key failing validation.',
         );
         return;
       }
@@ -303,7 +302,7 @@ class RevertRequestValidationService extends ValidationService {
     // If we got to this point it means we are ready to submit the PR.
     final MergeResult processed = await submitPullRequest(
       config: config,
-      messagePullRequest: messagePullRequest,
+      pullRequest: pullRequest,
     );
 
     if (!processed.result) {
@@ -314,14 +313,14 @@ class RevertRequestValidationService extends ValidationService {
     } else {
       // Need to add the discord notification here.
       final DiscordNotification discordNotification = await discordNotificationClient;
-      final Message discordMessage = craftDiscordRevertMessage(messagePullRequest);
+      final Message discordMessage = craftDiscordRevertMessage(pullRequest);
       discordNotification.notifyDiscordChannelWebhook(jsonEncode(discordMessage.toJson()));
 
       log.info('Pull Request ${slug.fullName}/$prNumber was ${processed.method.pastTenseLabel} successfully!');
       log.info('Attempting to insert a pull request record into the database for $prNumber');
       await insertPullRequestRecord(
         config: config,
-        pullRequest: messagePullRequest,
+        pullRequest: pullRequest,
         pullRequestType: PullRequestChangeType.revert,
       );
     }

@@ -6,6 +6,7 @@
 /// found.
 enum ProcessMethod {
   processAutosubmit,
+  processEmergency,
   processRevert,
   doNotProcess,
 }

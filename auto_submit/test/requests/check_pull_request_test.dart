@@ -55,7 +55,6 @@ void main() {
     const String testSubscription = 'test-sub';
     const String testTopic = 'test-topic';
     const String rollorAuthor = 'engine-flutter-autoroll';
-    const String labelName = 'warning: land on red to fix tree breakage';
     const String cocoonRepo = 'cocoon';
     const String noAutosubmitLabel = 'no_autosubmit';
 
@@ -320,7 +319,10 @@ void main() {
         prNumber: 1,
         repoName: cocoonRepo,
       );
-      githubService.pullRequestData = pullRequest1;
+
+      githubService.usePullRequestList = true;
+      githubService.pullRequestMockList = [pullRequest1, pullRequest2];
+
       // 'octocat' is the pr author from generatePullRequest calls.
       // 'member' is in the review nodes and 'author1' is the pr author.
       githubService.isTeamMemberMockMap['member'] = true;
@@ -418,10 +420,10 @@ void main() {
       assert(pubsub.messagesQueue.isEmpty);
     });
 
-    test('Merges PR with failed tree status if override tree status label is provided', () async {
+    test('Merges PR with failed tree status if the "emergency" label is provided', () async {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
-        labelName: labelName,
+        labelName: Config.kEmergencyLabel,
       );
       // 'member' is in the review nodes and 'author1' is the pr author.
       githubService.isTeamMemberMockMap['member'] = true;
@@ -433,6 +435,37 @@ void main() {
           pullRequest,
         ),
       );
+
+      githubService.checkRunsData = '''{
+  "total_count": 2,
+  "check_runs": [
+    {
+      "id": 1,
+      "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+      "external_id": "",
+      "details_url": "https://example.com",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2018-05-04T01:14:52Z",
+      "name": "mighty_readme",
+      "check_suite": {
+        "id": 5
+      }
+    },
+    {
+      "id": 2,
+      "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+      "external_id": "",
+      "details_url": "https://example.com",
+      "status": "in_progress",
+      "started_at": "2018-05-04T01:14:52Z",
+      "name": "Merge Queue Guard",
+      "check_suite": {
+        "id": 5
+      }
+    }
+  ]
+}''';
 
       checkPullRequest = CheckPullRequest(
         config: config,
@@ -453,18 +486,18 @@ void main() {
       verifyQueries(expectedOptions);
 
       final Map<int, RepositorySlug> expectedMergeRequestMap = {};
-      expectedMergeRequestMap[0] = RepositorySlug(
-        'flutter',
-        'flutter',
-      );
-
-      githubService.mergeRequestMock = PullRequestMerge(
-        merged: true,
-        sha: 'sha1',
-        message: 'Pull request merged successfully',
-      );
+      expectedMergeRequestMap[0] = RepositorySlug('flutter', 'flutter');
 
       githubService.verifyMergePullRequests(expectedMergeRequestMap);
+
+      // Verify that the "Merge Queue Guard" was unlocked.
+      expect(githubService.checkRunUpdates, hasLength(1));
+      final checkRunUpdate = githubService.checkRunUpdates.single;
+      expect(checkRunUpdate.slug, RepositorySlug('flutter', 'flutter'));
+      expect(checkRunUpdate.checkRun.id, 2);
+      expect(checkRunUpdate.checkRun.name, 'Merge Queue Guard');
+      expect(checkRunUpdate.status, CheckRunStatus.completed);
+      expect(checkRunUpdate.conclusion, CheckRunConclusion.success);
 
       assert(pubsub.messagesQueue.isEmpty);
     });
