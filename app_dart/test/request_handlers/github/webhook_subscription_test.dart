@@ -2664,16 +2664,6 @@ void foo() {
       await subscription.cancel();
 
       verify(
-        mockGithubChecksUtil.createCheckRun(
-          any,
-          any,
-          'c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Merge queue check',
-          output: anyNamed('output'),
-        ),
-      ).called(1);
-
-      verify(
         mockGithubChecksUtil.updateCheckRun(
           any,
           any,
@@ -2681,7 +2671,7 @@ void foo() {
           status: CheckRunStatus.completed,
           conclusion: CheckRunConclusion.success,
         ),
-      ).called(2);
+      ).called(1);
 
       expect(
         records,
@@ -2691,8 +2681,6 @@ void foo() {
           'Checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was found on GoB mirror. Scheduling merge group tasks',
           'triggerMergeGroupTargets(flutter/flutter, c9affbbb12aa40cb3afbe94b9ea6b119a256bebf, simulated): Scheduling merge group checks',
-          'Updating ci.yaml validation check for MQ flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'ci.yaml validation check was successful for MQ flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Unlocking Merge Queue Guard for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
         ],
       );

@@ -2572,24 +2572,13 @@ targets:
         ).called(1);
 
         verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
-            .called(2);
+            .called(1);
         final result =
             verify(luci.scheduleMergeGroupBuilds(targets: captureAnyNamed('targets'), commit: anyNamed('commit')));
         expect(result.callCount, 1);
         expect(result.captured[0].map((target) => target.value.name), ['Linux engine_build', 'Mac engine_build']);
 
-        expect(checkRuns, hasLength(2));
-        verify(
-          mockGithubChecksUtil.updateCheckRun(
-            any,
-            Config.flutterSlug,
-            checkRuns[1],
-            status: argThat(equals(CheckRunStatus.completed), named: 'status'),
-            conclusion: argThat(equals(CheckRunConclusion.success), named: 'conclusion'),
-            output: anyNamed('output'),
-          ),
-        ).called(1);
-
+        expect(checkRuns, hasLength(1));
         verifyNever(
           mockGithubChecksUtil.updateCheckRun(
             any,
@@ -2686,24 +2675,13 @@ targets:
           ),
         ).called(1);
         verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
-            .called(2);
+            .called(1);
         final result =
             verify(luci.scheduleMergeGroupBuilds(targets: captureAnyNamed('targets'), commit: anyNamed('commit')));
         expect(result.callCount, 1);
         expect(result.captured[0].map((target) => target.value.name), ['Mac engine_build']);
 
-        expect(checkRuns, hasLength(2));
-        verify(
-          mockGithubChecksUtil.updateCheckRun(
-            any,
-            Config.flutterSlug,
-            checkRuns[1],
-            status: argThat(equals(CheckRunStatus.completed), named: 'status'),
-            conclusion: argThat(equals(CheckRunConclusion.success), named: 'conclusion'),
-            output: anyNamed('output'),
-          ),
-        ).called(1);
-
+        expect(checkRuns, hasLength(1));
         verifyNever(
           mockGithubChecksUtil.updateCheckRun(
             any,
@@ -2713,6 +2691,133 @@ targets:
             conclusion: anyNamed('conclusion'),
             output: anyNamed('output'),
           ),
+        );
+      });
+
+      test('fails the merge queue guard if fails to schedule checks', () async {
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
+            return http.Response(fusionDualCiYaml, 200);
+          } else if (request.url.path.endsWith('.ci.yaml')) {
+            return http.Response(singleCiYaml, 200);
+          }
+          throw Exception('Failed to find ${request.url.path}');
+        });
+        final luci = MockLuciBuildService();
+        when(luci.getAvailableBuilderSet(project: anyNamed('project'), bucket: anyNamed('bucket')))
+            .thenAnswer((inv) async {
+          return {
+            'Mac engine_build',
+            'Linux engine_build',
+          };
+        });
+        when(
+          luci.scheduleMergeGroupBuilds(
+            targets: anyNamed('targets'),
+            commit: anyNamed(
+              'commit',
+            ),
+          ),
+        ).thenThrow('Emulating failure');
+
+        final MockGithubService mockGithubService = MockGithubService();
+        final checkRuns = <CheckRun>[];
+        when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
+            .thenAnswer((inv) async {
+          final slug = inv.positionalArguments[1] as RepositorySlug;
+          final sha = inv.positionalArguments[2];
+          final name = inv.positionalArguments[3];
+          checkRuns.add(createCheckRun(id: 1, owner: slug.owner, repo: slug.name, sha: sha, name: name));
+          return checkRuns.last;
+        });
+        when(mockGithubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+
+        fakeFusion.isFusion = (_, __) => true;
+
+        when(
+          callbacks.initializeDocument(
+            firestoreService: anyNamed('firestoreService'),
+            slug: anyNamed('slug'),
+            sha: anyNamed('sha'),
+            stage: anyNamed('stage'),
+            tasks: anyNamed('tasks'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+          ),
+        ).thenAnswer((_) async => CiStaging());
+
+        scheduler = Scheduler(
+          cache: cache,
+          config: FakeConfig(
+            // tabledataResource: tabledataResource,
+            dbValue: db,
+            githubService: mockGithubService,
+            githubClient: MockGitHub(),
+            firestoreService: mockFirestoreService,
+          ),
+          buildStatusProvider: (_, __) => buildStatusService,
+          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          httpClientProvider: () => httpClient,
+          luciBuildService: luci,
+          fusionTester: fakeFusion,
+          initializeCiStagingDocument: callbacks.initializeDocument,
+        );
+
+        final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
+          json.decode(
+            generateMergeGroupEventString(
+              repository: 'flutter/flutter',
+              action: 'checks_requested',
+              message: 'Implement an amazing feature',
+            ),
+          ),
+        );
+
+        await scheduler.triggerMergeGroupTargets(mergeGroupEvent: mergeGroupEvent);
+        verify(
+          callbacks.initializeDocument(
+            firestoreService: anyNamed('firestoreService'),
+            slug: anyNamed('slug'),
+            sha: argThat(equals('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf'), named: 'sha'),
+            stage: anyNamed('stage'),
+            tasks: argThat(equals(['Linux engine_build', 'Mac engine_build']), named: 'tasks'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+          ),
+        ).called(1);
+        verify(
+          luci.getAvailableBuilderSet(
+            project: argThat(equals('flutter'), named: 'project'),
+            bucket: argThat(equals('prod'), named: 'bucket'),
+          ),
+        ).called(1);
+
+        verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
+            .called(1);
+        final result =
+            verify(luci.scheduleMergeGroupBuilds(targets: captureAnyNamed('targets'), commit: anyNamed('commit')));
+        expect(result.callCount, 1);
+        expect(result.captured[0].map((target) => target.value.name), ['Linux engine_build', 'Mac engine_build']);
+
+        expect(checkRuns, hasLength(1));
+
+        // Expect the merge queue guard to be completed with failure.
+        final mergeQueueGuard = checkRuns.single;
+        expect(mergeQueueGuard.name, 'Merge Queue Guard');
+        expect(
+          verify(
+            await mockGithubChecksUtil.updateCheckRun(
+              any,
+              Config.flutterSlug,
+              mergeQueueGuard,
+              status: captureAnyNamed('status'),
+              conclusion: captureAnyNamed('conclusion'),
+              output: anyNamed('output'),
+            ),
+          ).captured,
+          [
+            CheckRunStatus.completed,
+            CheckRunConclusion.failure,
+          ],
         );
       });
     });
