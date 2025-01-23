@@ -2680,7 +2680,7 @@ void foo() {
           'Processing checks_requested for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'Checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
           'flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was found on GoB mirror. Scheduling merge group tasks',
-          'triggerMergeGroupTargets(flutter/flutter, c9affbbb12aa40cb3afbe94b9ea6b119a256bebf, simulated): Scheduling merge group checks',
+          'triggerMergeGroupTargets(flutter/flutter, c9affbbb12aa40cb3afbe94b9ea6b119a256bebf, simulated): scheduling merge group checks',
           'Unlocking Merge Queue Guard for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
         ],
       );

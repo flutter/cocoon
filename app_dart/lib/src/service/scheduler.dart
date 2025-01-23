@@ -543,7 +543,7 @@ class Scheduler {
 
     final logCrumb = 'triggerMergeGroupTargets($slug, $headSha, ${isFusion ? 'real' : 'simulated'})';
 
-    log.info('$logCrumb: Scheduling merge group checks');
+    log.info('$logCrumb: scheduling merge group checks');
 
     final lock = await lockMergeGroupChecks(slug, headSha);
 
@@ -598,9 +598,9 @@ class Scheduler {
       );
 
       // Do not unlock the merge group guard in successful case - that will be done by staging checks.
-      log.info('$logCrumb: Finished merge group checks');
+      log.info('$logCrumb: successfully scheduled merge group checks');
     } catch (error, stackTrace) {
-      log.warning('$logCrumb: error encountered when scheduling presubmit targets', error, stackTrace);
+      log.warning('$logCrumb: error encountered when scheduling merge group checks', error, stackTrace);
       // If Cocoon/LUCI failed to schedule targets, the PR should be kicked out
       // of the queue. To do that, the merge queue guard must fail as it's the
       // only required GitHub check.
