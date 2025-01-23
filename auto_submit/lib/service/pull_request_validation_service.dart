@@ -174,9 +174,9 @@ class _PullRequestValidationProcessor {
 
     /// If there is at least one action that requires to remove label do so and add comments for all the failures.
     bool shouldReturn = false;
-    for (MapEntry<String, ValidationResult> result in validationsMap.entries) {
-      if (!result.value.result && result.value.action == Action.REMOVE_LABEL) {
-        final String commmentMessage = result.value.message.isEmpty ? 'Validations Fail.' : result.value.message;
+    for (final MapEntry(key: _, :value) in validationsMap.entries) {
+      if (!value.result && value.action == Action.REMOVE_LABEL) {
+        final String commmentMessage = value.message.isEmpty ? 'Validations Fail.' : value.message;
         final String message =
             '${Config.kEmergencyLabel} label is removed for ${slug.fullName}/$prNumber, due to $commmentMessage';
         await githubService.removeLabel(slug, prNumber, Config.kEmergencyLabel);
@@ -192,10 +192,10 @@ class _PullRequestValidationProcessor {
     }
 
     // If PR has some failures to ignore temporarily do nothing and continue.
-    for (MapEntry<String, ValidationResult> result in validationsMap.entries) {
-      if (!result.value.result && result.value.action == Action.IGNORE_TEMPORARILY) {
+    for (final MapEntry(:key, :value) in validationsMap.entries) {
+      if (!value.result && value.action == Action.IGNORE_TEMPORARILY) {
         log.info(
-          'Temporarily ignoring processing of ${slug.fullName}/$prNumber due to ${result.key} failing validation.',
+          'Temporarily ignoring processing of ${slug.fullName}/$prNumber due to $key failing validation.',
         );
         return true;
       }
@@ -255,9 +255,9 @@ class _PullRequestValidationProcessor {
 
     /// If there is at least one action that requires to remove label do so and add comments for all the failures.
     bool shouldReturn = false;
-    for (MapEntry<String, ValidationResult> result in validationsMap.entries) {
-      if (!result.value.result && result.value.action == Action.REMOVE_LABEL) {
-        final String commentMessage = result.value.message.isEmpty ? 'Validations Fail.' : result.value.message;
+    for (final MapEntry(key: _, :value) in validationsMap.entries) {
+      if (!value.result && value.action == Action.REMOVE_LABEL) {
+        final String commentMessage = value.message.isEmpty ? 'Validations Fail.' : value.message;
         await _removeAutosubmitLabel(commentMessage);
         shouldReturn = true;
       }
@@ -273,10 +273,10 @@ class _PullRequestValidationProcessor {
     }
 
     // If PR has some failures to ignore temporarily do nothing and continue.
-    for (MapEntry<String, ValidationResult> result in validationsMap.entries) {
-      if (!result.value.result && result.value.action == Action.IGNORE_TEMPORARILY) {
+    for (final MapEntry(:key, :value) in validationsMap.entries) {
+      if (!value.result && value.action == Action.IGNORE_TEMPORARILY) {
         log.info(
-          'Temporarily ignoring processing of ${slug.fullName}/$prNumber due to ${result.key} failing validation.',
+          'Temporarily ignoring processing of ${slug.fullName}/$prNumber due to $key failing validation.',
         );
         return;
       }

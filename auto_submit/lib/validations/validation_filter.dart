@@ -68,12 +68,10 @@ class EmergencyValidationFilter implements ValidationFilter {
   final RepositoryConfiguration repositoryConfiguration;
 
   @override
-  Set<Validation> getValidations() {
-    final Set<Validation> validationsToRun = {};
-    validationsToRun.add(Approval(config: config));
-    validationsToRun.add(Mergeable(config: config));
-    return validationsToRun;
-  }
+  Set<Validation> getValidations() => {
+        Approval(config: config),
+        Mergeable(config: config),
+      };
 }
 
 /// [RevertRequestValidationFilter] returns a Set of validations that we run on
@@ -85,13 +83,9 @@ class RevertRequestValidationFilter implements ValidationFilter {
   final RepositoryConfiguration repositoryConfiguration;
 
   @override
-  Set<Validation> getValidations() {
-    final Set<Validation> validationsToRun = {};
-
-    validationsToRun.add(Approval(config: config));
-    validationsToRun.add(RequiredCheckRuns(config: config));
-    validationsToRun.add(Mergeable(config: config));
-
-    return validationsToRun;
-  }
+  Set<Validation> getValidations() => {
+        Approval(config: config),
+        RequiredCheckRuns(config: config),
+        Mergeable(config: config),
+      };
 }

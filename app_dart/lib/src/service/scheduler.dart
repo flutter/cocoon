@@ -464,7 +464,9 @@ class Scheduler {
     // Update validate ci.yaml check
     await closeCiYamlCheckRun('PR ${pullRequest.number}', exception, slug, ciValidationCheckRun);
 
-    // The 'lock' will be unlocked later in processCheckRunCompletion after all engine builds are processed.
+    // Normally the lock stays pending until the PR is ready to be enqueued, but
+    // there are situations (see code above) when it needs to be unlocked
+    // immediately.
     if (unlockMergeGroup) {
       await unlockMergeQueueGuard(slug, pullRequest.head!.sha!, lock);
     }
@@ -721,7 +723,13 @@ class Scheduler {
   ///
   /// This removes the merge group from the merge queue without landing it. The
   /// corresponding pull request will have to be fixed and re-enqueued again.
-  Future<void> failGuardForMergeGroup(RepositorySlug slug, String headSha, CheckRun lock) async {
+  Future<void> failGuardForMergeGroup(
+    RepositorySlug slug,
+    String headSha,
+    String summary,
+    String details,
+    CheckRun lock,
+  ) async {
     log.info('Failing merge group guard for merge group $headSha in $slug');
     await githubChecksService.githubChecksUtil.updateCheckRun(
       config,
@@ -729,6 +737,11 @@ class Scheduler {
       lock,
       status: CheckRunStatus.completed,
       conclusion: CheckRunConclusion.failure,
+      output: CheckRunOutput(
+        title: Config.kCiYamlCheckName,
+        summary: summary,
+        text: details,
+      ),
     );
   }
 
@@ -931,7 +944,13 @@ class Scheduler {
       // will hold up all other PRs that are trying to land.
       if (isMergeGroup) {
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
-        await failGuardForMergeGroup(slug, sha, guard);
+        await failGuardForMergeGroup(
+          slug,
+          sha,
+          stagingConclusion.summary,
+          stagingConclusion.details,
+          guard,
+        );
       }
       return false;
     }
@@ -951,7 +970,13 @@ class Scheduler {
       //   let the author sort it out.
       if (isMergeGroup) {
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
-        await failGuardForMergeGroup(slug, sha, guard);
+        await failGuardForMergeGroup(
+          slug,
+          sha,
+          stagingConclusion.summary,
+          stagingConclusion.details,
+          guard,
+        );
       }
       return true;
     }
@@ -987,7 +1012,10 @@ class Scheduler {
   /// Whether the [checkRunEvent] is for a merge group (rather than a pull request).
   bool detectMergeGroup(cocoon_checks.CheckRun checkRun) {
     final headBranch = checkRun.checkSuite?.headBranch;
-    return headBranch?.startsWith('gh-readonly-queue/') ?? false;
+    if (headBranch == null) {
+      return false;
+    }
+    return tryParseGitHubMergeQueueBranch(headBranch).parsed;
   }
 
   Future<void> _closeSuccessfulEngineBuildStage({
@@ -1094,7 +1122,6 @@ class Scheduler {
       throw 'No PR found matching this check_run($id, $name)';
     }
 
-    Object? exception;
     try {
       // Both the author and label should be checked to make sure that no one is
       // attempting to get a pull request without check through.
@@ -1127,18 +1154,14 @@ class Scheduler {
         error,
         backtrace,
       );
-      exception = error;
+      rethrow;
     } catch (error, backtrace) {
       log.warning(
         '$logCrumb: Exception encountered when scheduling presubmit targets for ${pullRequest.number}',
         error,
         backtrace,
       );
-      exception = error;
-    }
-
-    if (exception != null) {
-      throw exception;
+      rethrow;
     }
   }
 

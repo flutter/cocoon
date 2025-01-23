@@ -1010,6 +1010,8 @@ targets:
                 remaining: 1,
                 checkRunGuard: '{}',
                 failed: 0,
+                summary: 'Field missing',
+                details: 'Some details',
               );
             });
 
@@ -1052,6 +1054,8 @@ targets:
                 remaining: 1,
                 checkRunGuard: '{}',
                 failed: 0,
+                summary: 'Internal error',
+                details: 'Some details',
               );
             });
 
@@ -1102,6 +1106,8 @@ targets:
                 remaining: 1,
                 checkRunGuard: '{}',
                 failed: 0,
+                summary: 'OK',
+                details: 'Some details',
               );
             });
 
@@ -1156,6 +1162,8 @@ targets:
                 remaining: 0,
                 checkRunGuard: checkRunFor(name: 'GUARD TEST'),
                 failed: 1,
+                summary: 'OK',
+                details: 'Some details',
               );
             });
 
@@ -1268,6 +1276,8 @@ targets:
                 remaining: 0,
                 checkRunGuard: checkRunFor(name: 'GUARD TEST'),
                 failed: 0,
+                summary: 'OK',
+                details: 'Some details',
               );
             });
 
@@ -1359,6 +1369,8 @@ targets:
                 remaining: 0,
                 checkRunGuard: checkRunFor(name: 'GUARD TEST'),
                 failed: 0,
+                summary: 'Field missing or OK',
+                details: 'Some details',
               );
             });
 
@@ -1459,6 +1471,8 @@ targets:
                   CiStage.fusionEngineBuild => 0,
                   CiStage.fusionTests => 1,
                 },
+                summary: 'Field missing or OK',
+                details: 'Some details',
               );
             });
 
@@ -1591,6 +1605,8 @@ targets:
                 remaining: 0,
                 checkRunGuard: checkRunFor(name: 'GUARD TEST'),
                 failed: 0,
+                summary: 'OK',
+                details: 'Some details',
               );
             });
 

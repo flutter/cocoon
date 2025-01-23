@@ -290,6 +290,6 @@ extension PullRequestExtension on github.PullRequest {
       return const <String>[];
     }
 
-    return labels.map<String>((github.IssueLabel labelMap) => labelMap.name).toList();
+    return labels.map<String>((label) => label.name).toList();
   }
 }
