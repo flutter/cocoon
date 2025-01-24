@@ -184,7 +184,12 @@ void main() {
       mockGithubChecksUtil = MockGithubChecksUtil();
       // Generate check runs based on the name hash code
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
-          .thenAnswer((Invocation invocation) async => generateCheckRun(invocation.positionalArguments[2].hashCode));
+          .thenAnswer((Invocation invocation) async {
+        return generateCheckRun(
+          invocation.positionalArguments[2].hashCode,
+          name: invocation.positionalArguments[3],
+        );
+      });
 
       fakeFusion = FakeFusionTester();
       callbacks = MockCallbacks();
@@ -726,12 +731,12 @@ targets:
           return CheckRun.fromJson(const <String, dynamic>{
             'id': 1,
             'started_at': '2020-05-10T02:49:31Z',
-            'name': Scheduler.kCiYamlCheckName,
+            'name': Config.kCiYamlCheckName,
             'check_suite': <String, dynamic>{'id': 2},
           });
         });
         final Map<String, dynamic> checkRunEventJson = jsonDecode(checkRunString) as Map<String, dynamic>;
-        checkRunEventJson['check_run']['name'] = Scheduler.kCiYamlCheckName;
+        checkRunEventJson['check_run']['name'] = Config.kCiYamlCheckName;
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(checkRunEventJson);
         expect(await scheduler.processCheckRun(checkRunEvent), true);
         verify(
@@ -739,7 +744,7 @@ targets:
             any,
             any,
             any,
-            Scheduler.kCiYamlCheckName,
+            Config.kCiYamlCheckName,
             output: anyNamed('output'),
           ),
         );
@@ -791,12 +796,12 @@ targets:
           return CheckRun.fromJson(const <String, dynamic>{
             'id': 1,
             'started_at': '2020-05-10T02:49:31Z',
-            'name': Scheduler.kCiYamlCheckName,
+            'name': Config.kCiYamlCheckName,
             'check_suite': <String, dynamic>{'id': 2},
           });
         });
         final Map<String, dynamic> checkRunEventJson = jsonDecode(checkRunString) as Map<String, dynamic>;
-        checkRunEventJson['check_run']['name'] = Scheduler.kMergeQueueLockName;
+        checkRunEventJson['check_run']['name'] = Config.kMergeQueueLockName;
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(checkRunEventJson);
         expect(await scheduler.processCheckRun(checkRunEvent), true);
         verifyNever(
@@ -804,7 +809,7 @@ targets:
             any,
             any,
             any,
-            Scheduler.kMergeQueueLockName,
+            Config.kMergeQueueLockName,
             output: anyNamed('output'),
           ),
         );
@@ -1005,6 +1010,8 @@ targets:
                 remaining: 1,
                 checkRunGuard: '{}',
                 failed: 0,
+                summary: 'Field missing',
+                details: 'Some details',
               );
             });
 
@@ -1047,6 +1054,8 @@ targets:
                 remaining: 1,
                 checkRunGuard: '{}',
                 failed: 0,
+                summary: 'Internal error',
+                details: 'Some details',
               );
             });
 
@@ -1097,6 +1106,8 @@ targets:
                 remaining: 1,
                 checkRunGuard: '{}',
                 failed: 0,
+                summary: 'OK',
+                details: 'Some details',
               );
             });
 
@@ -1131,7 +1142,11 @@ targets:
             );
           });
 
-          test('failed tests unlocks but does not schedule more', () async {
+          // The merge guard is not closed until both engine build and tests
+          // complete and are successful.
+          // This behavior is explained here:
+          // https://github.com/flutter/flutter/issues/159898#issuecomment-2597209435
+          test('failed tests neither unlock merge queue guard nor schedule test stage', () async {
             when(
               callbacks.markCheckRunConclusion(
                 firestoreService: anyNamed('firestoreService'),
@@ -1147,6 +1162,8 @@ targets:
                 remaining: 0,
                 checkRunGuard: checkRunFor(name: 'GUARD TEST'),
                 failed: 1,
+                summary: 'OK',
+                details: 'Some details',
               );
             });
 
@@ -1169,21 +1186,16 @@ targets:
               ),
             ).called(1);
 
-            verify(
+            verifyNever(
               mockGithubChecksUtil.updateCheckRun(
                 any,
-                argThat(equals(RepositorySlug('flutter', 'flutter'))),
-                argThat(
-                  predicate<CheckRun>((arg) {
-                    expect(arg.name, 'GUARD TEST');
-                    return true;
-                  }),
-                ),
-                status: argThat(equals(CheckRunStatus.completed), named: 'status'),
-                conclusion: argThat(equals(CheckRunConclusion.failure), named: 'conclusion'),
+                any,
+                any,
+                status: anyNamed('status'),
+                conclusion: anyNamed('conclusion'),
                 output: anyNamed('output'),
               ),
-            ).called(1);
+            );
           });
 
           test('schedules tests after engine stage', () async {
@@ -1264,6 +1276,8 @@ targets:
                 remaining: 0,
                 checkRunGuard: checkRunFor(name: 'GUARD TEST'),
                 failed: 0,
+                summary: 'OK',
+                details: 'Some details',
               );
             });
 
@@ -1289,21 +1303,16 @@ targets:
               ),
             ).called(1);
 
-            verify(
+            verifyNever(
               mockGithubChecksUtil.updateCheckRun(
                 any,
-                argThat(equals(RepositorySlug('flutter', 'flutter'))),
-                argThat(
-                  predicate<CheckRun>((arg) {
-                    expect(arg.name, 'GUARD TEST');
-                    return true;
-                  }),
-                ),
-                status: argThat(equals(CheckRunStatus.completed), named: 'status'),
-                conclusion: argThat(equals(CheckRunConclusion.success), named: 'conclusion'),
+                any,
+                any,
+                status: anyNamed('status'),
+                conclusion: anyNamed('conclusion'),
                 output: anyNamed('output'),
               ),
-            ).called(1);
+            );
 
             final result = verify(
               luci.scheduleTryBuilds(
@@ -1323,39 +1332,11 @@ targets:
           test('tracks test check runs in firestore', () async {
             final githubService = config.githubService = MockGithubService();
             final githubClient = MockGitHub();
-            when(githubService.github).thenReturn(githubClient);
-            when(githubService.searchIssuesAndPRs(any, any, sort: anyNamed('sort'), pages: anyNamed('pages')))
-                .thenAnswer((_) async => [generateIssue(42)]);
-
-            final pullRequest = generatePullRequest();
-            when(githubService.getPullRequest(any, any)).thenAnswer((_) async => pullRequest);
-            when(githubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
-            when(mockGithubChecksUtil.listCheckSuitesForRef(any, any, ref: anyNamed('ref'))).thenAnswer(
-              (_) async => [
-                // From check_run.check_suite.id in [checkRunString].
-                generateCheckSuite(668083231),
-              ],
-            );
-
-            httpClient = MockClient((http.Request request) async {
-              if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
-                return http.Response(fusionCiYaml, 200);
-              } else if (request.url.path.endsWith('.ci.yaml')) {
-                return http.Response(singleCiYaml, 200);
-              }
-              throw Exception('Failed to find ${request.url.path}');
-            });
             final luci = MockLuciBuildService();
-            when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
-                .thenAnswer((inv) async {
-              return [];
-            });
-
             final gitHubChecksService = MockGithubChecksService();
+
+            when(githubService.github).thenReturn(githubClient);
             when(gitHubChecksService.githubChecksUtil).thenReturn(mockGithubChecksUtil);
-            when(gitHubChecksService.findMatchingPullRequest(any, any, any)).thenAnswer((inv) async {
-              return pullRequest;
-            });
 
             scheduler = Scheduler(
               cache: cache,
@@ -1388,6 +1369,8 @@ targets:
                 remaining: 0,
                 checkRunGuard: checkRunFor(name: 'GUARD TEST'),
                 failed: 0,
+                summary: 'Field missing or OK',
+                details: 'Some details',
               );
             });
 
@@ -1425,44 +1408,34 @@ targets:
                 conclusion: argThat(equals('success'), named: 'conclusion'),
               ),
             ).called(1);
+
+            // Because tests completed, and completed successfully, the guard is
+            // unlocked, allowing the PR to land.
+            verify(
+              mockGithubChecksUtil.updateCheckRun(
+                any,
+                argThat(equals(RepositorySlug('flutter', 'flutter'))),
+                argThat(
+                  predicate<CheckRun>((arg) {
+                    expect(arg.name, 'GUARD TEST');
+                    return true;
+                  }),
+                ),
+                status: argThat(equals(CheckRunStatus.completed), named: 'status'),
+                conclusion: argThat(equals(CheckRunConclusion.success), named: 'conclusion'),
+                output: anyNamed('output'),
+              ),
+            ).called(1);
           });
 
           test('does not fail the merge queue guard when a test check run fails', () async {
             final githubService = config.githubService = MockGithubService();
             final githubClient = MockGitHub();
-            when(githubService.github).thenReturn(githubClient);
-            when(githubService.searchIssuesAndPRs(any, any, sort: anyNamed('sort'), pages: anyNamed('pages')))
-                .thenAnswer((_) async => [generateIssue(42)]);
-
-            final pullRequest = generatePullRequest();
-            when(githubService.getPullRequest(any, any)).thenAnswer((_) async => pullRequest);
-            when(githubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
-            when(mockGithubChecksUtil.listCheckSuitesForRef(any, any, ref: anyNamed('ref'))).thenAnswer(
-              (_) async => [
-                // From check_run.check_suite.id in [checkRunString].
-                generateCheckSuite(668083231),
-              ],
-            );
-
-            httpClient = MockClient((http.Request request) async {
-              if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
-                return http.Response(fusionCiYaml, 200);
-              } else if (request.url.path.endsWith('.ci.yaml')) {
-                return http.Response(singleCiYaml, 200);
-              }
-              throw Exception('Failed to find ${request.url.path}');
-            });
             final luci = MockLuciBuildService();
-            when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
-                .thenAnswer((inv) async {
-              return [];
-            });
-
             final gitHubChecksService = MockGithubChecksService();
+
+            when(githubService.github).thenReturn(githubClient);
             when(gitHubChecksService.githubChecksUtil).thenReturn(mockGithubChecksUtil);
-            when(gitHubChecksService.findMatchingPullRequest(any, any, any)).thenAnswer((inv) async {
-              return pullRequest;
-            });
 
             scheduler = Scheduler(
               cache: cache,
@@ -1498,6 +1471,8 @@ targets:
                   CiStage.fusionEngineBuild => 0,
                   CiStage.fusionTests => 1,
                 },
+                summary: 'Field missing or OK',
+                details: 'Some details',
               );
             });
 
@@ -1536,9 +1511,8 @@ targets:
               ),
             ).called(1);
 
-            // Only report failure into the merge queue guard for engine build stage.
-            // Until https://github.com/flutter/flutter/issues/159898 is fixed, the
-            // merge queue guard ignores the `fusionTests` stage.
+            // The test stage completed, but with failures. The merge queue
+            // guard should stay open to prevent the pull request from landing.
             verifyNever(
               mockGithubChecksUtil.updateCheckRun(
                 any,
@@ -1631,6 +1605,8 @@ targets:
                 remaining: 0,
                 checkRunGuard: checkRunFor(name: 'GUARD TEST'),
                 failed: 0,
+                summary: 'OK',
+                details: 'Some details',
               );
             });
 
@@ -1657,21 +1633,16 @@ targets:
               ),
             ).called(1);
 
-            verify(
+            verifyNever(
               mockGithubChecksUtil.updateCheckRun(
                 any,
-                argThat(equals(RepositorySlug('flutter', 'flutter'))),
-                argThat(
-                  predicate<CheckRun>((arg) {
-                    expect(arg.name, 'GUARD TEST');
-                    return true;
-                  }),
-                ),
-                status: argThat(equals(CheckRunStatus.completed), named: 'status'),
-                conclusion: argThat(equals(CheckRunConclusion.success), named: 'conclusion'),
+                any,
+                any,
+                status: anyNamed('status'),
+                conclusion: anyNamed('conclusion'),
                 output: anyNamed('output'),
               ),
-            ).called(1);
+            );
 
             final result = verify(
               luci.scheduleTryBuilds(
@@ -1883,14 +1854,14 @@ targets:
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
           <Object?>[
-            Scheduler.kMergeQueueLockName,
+            Config.kMergeQueueLockName,
             const CheckRunOutput(
-              title: Scheduler.kMergeQueueLockName,
+              title: Config.kMergeQueueLockName,
               summary: Scheduler.kMergeQueueLockDescription,
             ),
-            Scheduler.kCiYamlCheckName,
+            Config.kCiYamlCheckName,
             const CheckRunOutput(
-              title: Scheduler.kCiYamlCheckName,
+              title: Config.kCiYamlCheckName,
               summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
             ),
             'Linux A',
@@ -1912,15 +1883,15 @@ targets:
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
           <Object?>[
-            Scheduler.kMergeQueueLockName,
+            Config.kMergeQueueLockName,
             const CheckRunOutput(
-              title: Scheduler.kMergeQueueLockName,
+              title: Config.kMergeQueueLockName,
               summary: Scheduler.kMergeQueueLockDescription,
             ),
-            Scheduler.kCiYamlCheckName,
+            Config.kCiYamlCheckName,
             // No other targets should be created.
             const CheckRunOutput(
-              title: Scheduler.kCiYamlCheckName,
+              title: Config.kCiYamlCheckName,
               summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
             ),
           ],
@@ -2057,14 +2028,14 @@ targets:
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
           <Object?>[
-            Scheduler.kMergeQueueLockName,
+            Config.kMergeQueueLockName,
             const CheckRunOutput(
-              title: Scheduler.kMergeQueueLockName,
+              title: Config.kMergeQueueLockName,
               summary: Scheduler.kMergeQueueLockDescription,
             ),
-            Scheduler.kCiYamlCheckName,
+            Config.kCiYamlCheckName,
             const CheckRunOutput(
-              title: Scheduler.kCiYamlCheckName,
+              title: Config.kCiYamlCheckName,
               summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
             ),
             'Linux A',
@@ -2085,14 +2056,14 @@ targets:
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
           <Object?>[
-            Scheduler.kMergeQueueLockName,
+            Config.kMergeQueueLockName,
             const CheckRunOutput(
-              title: Scheduler.kMergeQueueLockName,
+              title: Config.kMergeQueueLockName,
               summary: Scheduler.kMergeQueueLockDescription,
             ),
-            Scheduler.kCiYamlCheckName,
+            Config.kCiYamlCheckName,
             const CheckRunOutput(
-              title: Scheduler.kCiYamlCheckName,
+              title: Config.kCiYamlCheckName,
               summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
             ),
             'Linux A',
@@ -2134,23 +2105,44 @@ targets:
           }
           throw Exception('Failed to find ${request.url.path}');
         });
-        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
-        expect(
-          verify(
-            mockGithubChecksUtil.updateCheckRun(
-              any,
-              any,
-              any,
-              status: captureAnyNamed('status'),
-              conclusion: captureAnyNamed('conclusion'),
-              output: anyNamed('output'),
+
+        final capturedUpdates = <(String, CheckRunStatus, CheckRunConclusion)>[];
+
+        when(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            any,
+            any,
+            status: anyNamed('status'),
+            conclusion: anyNamed('conclusion'),
+            output: anyNamed('output'),
+          ),
+        ).thenAnswer((inv) async {
+          final CheckRun checkRun = inv.positionalArguments[2];
+          capturedUpdates.add(
+            (
+              checkRun.name!,
+              inv.namedArguments[#status],
+              inv.namedArguments[#conclusion],
             ),
-          ).captured,
-          <Object?>[
-            CheckRunStatus.completed,
-            CheckRunConclusion.failure,
-            CheckRunStatus.completed,
-            CheckRunConclusion.failure,
+          );
+        });
+
+        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
+
+        expect(
+          capturedUpdates,
+          <(String, CheckRunStatus, CheckRunConclusion)>[
+            (
+              'ci.yaml validation',
+              CheckRunStatus.completed,
+              CheckRunConclusion.failure,
+            ),
+            (
+              'Merge Queue Guard',
+              CheckRunStatus.completed,
+              CheckRunConclusion.success,
+            ),
           ],
         );
       });
@@ -2173,7 +2165,7 @@ targets:
             CheckRunStatus.completed,
             CheckRunConclusion.failure,
             CheckRunStatus.completed,
-            CheckRunConclusion.failure,
+            CheckRunConclusion.success,
           ],
         );
       });
