@@ -255,10 +255,15 @@ class LuciBuildService {
   }
 
   /// Schedules presubmit [targets] on BuildBucket for [pullRequest].
+  ///
+  /// If [flutterPrebuiltEngineVersion] is provided, it should be a SHA string representing a Flutter engine build.
+  /// This will instruct the Luci build infrastructure to use the specified engine version instead of the default
+  /// for these try builds.
   Future<List<Target>> scheduleTryBuilds({
     required List<Target> targets,
     required github.PullRequest pullRequest,
     CheckSuiteEvent? checkSuiteEvent,
+    String? flutterPrebuiltEngineVersion,
   }) async {
     if (targets.isEmpty) {
       return targets;
@@ -329,6 +334,10 @@ class LuciBuildService {
         // When in fusion, we want the recipies to override the engine.realm
         // if some environment variable (FLUTTER_REALM) is set.
         properties['flutter_realm'] = 'flutter_archives_v2';
+      }
+
+      if (flutterPrebuiltEngineVersion != null) {
+        properties['flutter_prebuilt_engine_version'] = flutterPrebuiltEngineVersion;
       }
 
       final List<bbv2.RequestedDimension> requestedDimensions = target.getDimensions();

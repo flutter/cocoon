@@ -492,6 +492,48 @@ void main() {
       expect(dimensions[0].value, 'abc');
     });
 
+    test('schedule try builds includes flutter_prebuilt_engine_version', () async {
+      when(
+        callbacks.initializePrCheckRuns(
+          firestoreService: anyNamed('firestoreService'),
+          pullRequest: anyNamed('pullRequest'),
+          checks: anyNamed('checks'),
+        ),
+      ).thenAnswer((inv) async {
+        return Document(name: '1234-56-7890', fields: {});
+      });
+      final pullRequest = generatePullRequest();
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return bbv2.BatchResponse(
+          responses: <bbv2.BatchResponse_Response>[
+            bbv2.BatchResponse_Response(
+              scheduleBuild: generateBbv2Build(Int64(1)),
+            ),
+          ],
+        );
+      });
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+
+      (service.fusionTester as FakeFusionTester).isFusion = (_, __) => true;
+
+      await service.scheduleTryBuilds(
+        pullRequest: pullRequest,
+        targets: targets,
+        flutterPrebuiltEngineVersion: 'sha1234',
+      );
+
+      final batchRequest = bbv2.BatchRequest().createEmptyInstance();
+      batchRequest.mergeFromProto3Json(pubsub.messages.single);
+      expect(batchRequest.requests.single.scheduleBuild, isNotNull);
+
+      final scheduleBuild = batchRequest.requests.single.scheduleBuild;
+      final properties = scheduleBuild.properties.fields;
+
+      expect(properties, contains('flutter_prebuilt_engine_version'));
+      expect(properties['flutter_prebuilt_engine_version']!.stringValue, 'sha1234');
+    });
+
     test('Schedule builds no-ops when targets list is empty', () async {
       await service.scheduleTryBuilds(
         pullRequest: pullRequest,
