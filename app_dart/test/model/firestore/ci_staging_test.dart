@@ -186,6 +186,8 @@ void main() {
             result: StagingConclusionResult.missing,
             failed: 0,
             checkRunGuard: null,
+            summary: 'Check run "test" not present in engine CI stage',
+            details: 'Change flutter_flutter_1234',
           ),
         );
         verify(docRes.rollback(argThat(predicate((RollbackRequest t) => t.transaction == kTransaction)), kDatabase))
@@ -208,6 +210,7 @@ void main() {
           (_) async => Document(
             name: expectedName,
             fields: {
+              CiStaging.kTotalField: Value(integerValue: '1'),
               CiStaging.kRemainingField: Value(integerValue: '1'),
               CiStaging.kFailedField: Value(integerValue: '0'),
               CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
@@ -234,7 +237,7 @@ void main() {
               predicate((CommitRequest t) {
                 return t.transaction == kTransaction &&
                     t.writes!.length == 1 &&
-                    t.writes!.first.update!.fields!.length == 4 &&
+                    t.writes!.first.update!.fields!.length == 5 &&
                     t.writes!.first.update!.fields!['Linux build_test']!.stringValue == 'mulligan' &&
                     t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '0';
               }),
@@ -263,6 +266,7 @@ void main() {
             fields: {
               CiStaging.kRemainingField: Value(integerValue: '1'),
               CiStaging.kFailedField: Value(integerValue: '0'),
+              CiStaging.kTotalField: Value(integerValue: '1'),
               CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
               'Linux build_test': Value(stringValue: CiStaging.kScheduledValue),
             },
@@ -283,7 +287,19 @@ void main() {
         final result = await future;
         expect(
           result,
-          const StagingConclusion(remaining: 0, result: StagingConclusionResult.ok, failed: 0, checkRunGuard: '{}'),
+          const StagingConclusion(
+            remaining: 0,
+            result: StagingConclusionResult.ok,
+            failed: 0,
+            checkRunGuard: '{}',
+            summary: 'All tests passed',
+            details: '''
+For CI stage engine:
+  Total check runs scheduled: 1
+  Pending: 0
+  Failed: 0
+''',
+          ),
         );
         verify(
           docRes.commit(
@@ -291,7 +307,7 @@ void main() {
               predicate((CommitRequest t) {
                 return t.transaction == kTransaction &&
                     t.writes!.length == 1 &&
-                    t.writes!.first.update!.fields!.length == 4 &&
+                    t.writes!.first.update!.fields!.length == 5 &&
                     t.writes!.first.update!.fields!['Linux build_test']!.stringValue == 'mulligan' &&
                     t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '0';
               }),
@@ -320,6 +336,7 @@ void main() {
             fields: {
               CiStaging.kRemainingField: Value(integerValue: '1'),
               CiStaging.kFailedField: Value(integerValue: '0'),
+              CiStaging.kTotalField: Value(integerValue: '1'),
               CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
               'MacOS build_test': Value(stringValue: CiStaging.kSuccessValue),
             },
@@ -345,6 +362,8 @@ void main() {
             result: StagingConclusionResult.internalError,
             failed: 0,
             checkRunGuard: '{}',
+            summary: 'Not a valid state transition for MacOS build_test',
+            details: 'Attempted to transition the state of check run MacOS build_test from "success" to "mulligan".',
           ),
         );
         verify(
@@ -353,7 +372,7 @@ void main() {
               predicate((CommitRequest t) {
                 return t.transaction == kTransaction &&
                     t.writes!.length == 1 &&
-                    t.writes!.first.update!.fields!.length == 4 &&
+                    t.writes!.first.update!.fields!.length == 5 &&
                     t.writes!.first.update!.fields!['MacOS build_test']!.stringValue == 'mulligan' &&
                     t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '1';
               }),
@@ -382,6 +401,7 @@ void main() {
             fields: {
               CiStaging.kRemainingField: Value(integerValue: '1'),
               CiStaging.kFailedField: Value(integerValue: '1'),
+              CiStaging.kTotalField: Value(integerValue: '1'),
               CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
               'MacOS build_test': Value(stringValue: CiStaging.kFailureValue),
             },
@@ -403,7 +423,19 @@ void main() {
         // Remaining == 1 because our test was already concluded.
         expect(
           result,
-          const StagingConclusion(remaining: 1, result: StagingConclusionResult.ok, failed: 0, checkRunGuard: '{}'),
+          const StagingConclusion(
+            remaining: 1,
+            result: StagingConclusionResult.ok,
+            failed: 0,
+            checkRunGuard: '{}',
+            summary: 'All tests passed',
+            details: '''
+For CI stage engine:
+  Total check runs scheduled: 1
+  Pending: 1
+  Failed: 0
+''',
+          ),
         );
         verify(
           docRes.commit(
@@ -411,7 +443,7 @@ void main() {
               predicate((CommitRequest t) {
                 return t.transaction == kTransaction &&
                     t.writes!.length == 1 &&
-                    t.writes!.first.update!.fields!.length == 4 &&
+                    t.writes!.first.update!.fields!.length == 5 &&
                     t.writes!.first.update!.fields!['MacOS build_test']!.stringValue == CiStaging.kSuccessValue &&
                     t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '1' &&
                     t.writes!.first.update!.fields![CiStaging.kFailedField]!.integerValue == '0';
@@ -441,6 +473,7 @@ void main() {
             fields: {
               CiStaging.kRemainingField: Value(integerValue: '1'),
               CiStaging.kFailedField: Value(integerValue: '1'),
+              CiStaging.kTotalField: Value(integerValue: '1'),
               CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
               'MacOS build_test': Value(stringValue: CiStaging.kFailureValue),
             },
@@ -466,6 +499,8 @@ void main() {
             result: StagingConclusionResult.internalError,
             failed: 1,
             checkRunGuard: '{}',
+            summary: 'Not a valid state transition for MacOS build_test',
+            details: 'Attempted to transition the state of check run MacOS build_test from "failure" to "failure".',
           ),
         );
         verify(
@@ -474,7 +509,7 @@ void main() {
               predicate((CommitRequest t) {
                 return t.transaction == kTransaction &&
                     t.writes!.length == 1 &&
-                    t.writes!.first.update!.fields!.length == 4 &&
+                    t.writes!.first.update!.fields!.length == 5 &&
                     t.writes!.first.update!.fields!['MacOS build_test']!.stringValue == CiStaging.kFailureValue &&
                     t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '1' &&
                     t.writes!.first.update!.fields![CiStaging.kFailedField]!.integerValue == '1';
@@ -504,6 +539,7 @@ void main() {
             fields: {
               CiStaging.kRemainingField: Value(integerValue: '1'),
               CiStaging.kFailedField: Value(integerValue: '0'),
+              CiStaging.kTotalField: Value(integerValue: '1'),
               CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
               'MacOS build_test': Value(stringValue: CiStaging.kSuccessValue),
             },
@@ -524,7 +560,19 @@ void main() {
         final result = await future;
         expect(
           result,
-          const StagingConclusion(remaining: 1, result: StagingConclusionResult.ok, failed: 1, checkRunGuard: '{}'),
+          const StagingConclusion(
+            remaining: 1,
+            result: StagingConclusionResult.ok,
+            failed: 1,
+            checkRunGuard: '{}',
+            summary: 'All tests passed',
+            details: '''
+For CI stage engine:
+  Total check runs scheduled: 1
+  Pending: 1
+  Failed: 1
+''',
+          ),
         );
         verify(
           docRes.commit(
@@ -532,7 +580,7 @@ void main() {
               predicate((CommitRequest t) {
                 return t.transaction == kTransaction &&
                     t.writes!.length == 1 &&
-                    t.writes!.first.update!.fields!.length == 4 &&
+                    t.writes!.first.update!.fields!.length == 5 &&
                     t.writes!.first.update!.fields!['MacOS build_test']!.stringValue == CiStaging.kFailureValue &&
                     t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '1' &&
                     t.writes!.first.update!.fields![CiStaging.kFailedField]!.integerValue == '1';

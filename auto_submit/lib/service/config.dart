@@ -59,10 +59,36 @@ class Config {
   static const String kFlutterGitHubBotKey = 'AUTO_SUBMIT_FLUTTER_GITHUB_TOKEN';
   static const String kTreeStatusDiscordUrl = 'TREE_STATUS_DISCORD_WEBHOOK_URL';
 
-  /// Labels autosubmit looks for on pull requests
+  /// When present on a pull request, instructs Cocoon to submit it
+  /// automatically as soon as all the required checks pass.
   ///
   /// Keep this in sync with the similar `Config` class in `app_dart`.
   static const String kAutosubmitLabel = 'autosubmit';
+
+  /// When present on a pull request, allows it to land without passing all the
+  /// checks, and jumps the merge queue.
+  ///
+  /// Keep this in sync with the similar `Config` class in `app_dart`.
+  static const String kEmergencyLabel = 'emergency';
+
+  /// Validates that CI tasks were successfully created from the .ci.yaml file.
+  ///
+  /// If this check fails, it means Cocoon failed to fully populate the list of
+  /// CI checks and the PR/commit should be treated as failing.
+  static const String kCiYamlCheckName = 'ci.yaml validation';
+
+  /// A required check that stays in pending state until a sufficient subset of
+  /// checks pass.
+  ///
+  /// This check is "required", meaning that it must pass before Github will
+  /// allow a PR to land in the merge queue, or a merge group to land on the
+  /// target branch (main or master).
+  ///
+  /// IMPORTANT: the name of this task - "Merge Queue Guard" - must strictly
+  /// match the name of the required check configured in the repo settings.
+  /// Changing the name here or in the settings alone will break the PR
+  /// workflow.
+  static const String kMergeQueueLockName = 'Merge Queue Guard';
 
   /// GitHub check stale threshold.
   static const int kGitHubCheckStaleThreshold = 2; // hours
@@ -81,9 +107,6 @@ class Config {
   /// it adds this label to signify that it should then validate and merge this
   /// as a revert.
   static const String kRevertOfLabel = 'revert of';
-
-  /// The label which shows the overrideTree    Status.
-  String get overrideTreeStatusLabel => 'warning: land on red to fix tree breakage';
 
   /// Repository Slug data
   /// GitHub repositories that use CI status to determine if pull requests can be submitted.
