@@ -543,25 +543,13 @@ class Scheduler {
 
     final logCrumb = 'triggerMergeGroupTargets($slug, $headSha, ${isFusion ? 'real' : 'simulated'})';
 
-    log.info('$logCrumb: Scheduling merge group checks');
+    log.info('$logCrumb: scheduling merge group checks');
 
     final lock = await lockMergeGroupChecks(slug, headSha);
 
-    final ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
-      config,
-      slug,
-      headSha,
-      'Merge queue check',
-      output: const CheckRunOutput(
-        title: 'Merge queue check',
-        summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
-      ),
-    );
-
     // If the repo is not fusion, it doesn't run anything in the MQ, so just
-    // close the ci.yaml validation and merge group guard.
+    // close the merge group guard.
     if (!isFusion) {
-      await closeCiYamlCheckRun('MQ $slug/$headSha', null, slug, ciValidationCheckRun);
       await unlockMergeQueueGuard(slug, headSha, lock);
       return;
     }
@@ -575,7 +563,6 @@ class Scheduler {
       ),
     };
 
-    Object? exception;
     try {
       // Filter out targets missing builders - we cannot wait to complete the merge group if we will never complete.
       final availableBuilders = await luciBuildService.getAvailableBuilderSet(
@@ -609,16 +596,27 @@ class Scheduler {
         targets: [...availableTargets],
         commit: commit,
       );
-    } catch (e, s) {
-      log.warning('$logCrumb: error encountered when scheduling presubmit targets', e, s);
-      exception = e;
+
+      // Do not unlock the merge group guard in successful case - that will be done by staging checks.
+      log.info('$logCrumb: successfully scheduled merge group checks');
+    } catch (error, stackTrace) {
+      log.warning('$logCrumb: error encountered when scheduling merge group checks', error, stackTrace);
+      // If Cocoon/LUCI failed to schedule targets, the PR should be kicked out
+      // of the queue. To do that, the merge queue guard must fail as it's the
+      // only required GitHub check.
+      await failGuardForMergeGroup(
+        slug,
+        headSha,
+        'Failed to schedule checks for merge group',
+        '''
+$logCrumb
+
+ERROR: $error
+$stackTrace
+''',
+        lock,
+      );
     }
-
-    await closeCiYamlCheckRun('MQ $slug/$headSha', exception, slug, ciValidationCheckRun);
-
-    // Do not unlock the merge group `lock` - that will be done by staging checks.
-
-    log.info('$logCrumb: Finished merge group checks');
   }
 
   Future<List<Target>> getMergeGroupTargetsForStage(
