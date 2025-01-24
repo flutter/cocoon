@@ -101,6 +101,7 @@ class FakeConfig implements Config {
   String? flutterGoldDraftChangeValue;
   String? flutterGoldStalePRValue;
   List<String>? supportedBranchesValue;
+  String? overrideTreeStatusLabelValue;
   Set<gh.RepositorySlug>? supportedReposValue;
   Set<gh.RepositorySlug>? postsubmitSupportedReposValue;
   Duration? githubRequestDelayValue;
@@ -259,6 +260,9 @@ class FakeConfig implements Config {
 
   @override
   Future<GithubService> createDefaultGitHubService() async => githubService!;
+
+  @override
+  Future<String> get overrideTreeStatusLabel async => overrideTreeStatusLabelValue!;
 
   @override
   String get defaultRecipeBundleRef => 'refs/heads/main';

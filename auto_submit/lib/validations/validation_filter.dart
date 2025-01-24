@@ -23,8 +23,6 @@ abstract class ValidationFilter {
     switch (processMethod) {
       case ProcessMethod.processAutosubmit:
         return PullRequestValidationFilter(config, repositoryConfiguration);
-      case ProcessMethod.processEmergency:
-        return EmergencyValidationFilter(config, repositoryConfiguration);
       case ProcessMethod.processRevert:
         return RevertRequestValidationFilter(config, repositoryConfiguration);
       default:
@@ -60,20 +58,6 @@ class PullRequestValidationFilter implements ValidationFilter {
   }
 }
 
-/// Provides validations for applying the `emergency` label.
-class EmergencyValidationFilter implements ValidationFilter {
-  EmergencyValidationFilter(this.config, this.repositoryConfiguration);
-
-  final Config config;
-  final RepositoryConfiguration repositoryConfiguration;
-
-  @override
-  Set<Validation> getValidations() => {
-        Approval(config: config),
-        Mergeable(config: config),
-      };
-}
-
 /// [RevertRequestValidationFilter] returns a Set of validations that we run on
 /// all revert pull requests.
 class RevertRequestValidationFilter implements ValidationFilter {
@@ -83,9 +67,13 @@ class RevertRequestValidationFilter implements ValidationFilter {
   final RepositoryConfiguration repositoryConfiguration;
 
   @override
-  Set<Validation> getValidations() => {
-        Approval(config: config),
-        RequiredCheckRuns(config: config),
-        Mergeable(config: config),
-      };
+  Set<Validation> getValidations() {
+    final Set<Validation> validationsToRun = {};
+
+    validationsToRun.add(Approval(config: config));
+    validationsToRun.add(RequiredCheckRuns(config: config));
+    validationsToRun.add(Mergeable(config: config));
+
+    return validationsToRun;
+  }
 }
