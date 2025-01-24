@@ -6008,6 +6008,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
     required List<_i43.Target>? targets,
     required _i13.PullRequest? pullRequest,
     _i34.CheckSuiteEvent? checkSuiteEvent,
+    String? flutterPrebuiltEngineVersion,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -6017,6 +6018,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
             #targets: targets,
             #pullRequest: pullRequest,
             #checkSuiteEvent: checkSuiteEvent,
+            #flutterPrebuiltEngineVersion: flutterPrebuiltEngineVersion,
           },
         ),
         returnValue: _i20.Future<List<_i43.Target>>.value(<_i43.Target>[]),
