@@ -45,36 +45,41 @@ class ValidationService {
     return QueryResult.fromJson(data);
   }
 
-  Future<github.PullRequest> getFullPullRequest(github.RepositorySlug slug, int pullRequestNumber) async {
+  Future<(github.PullRequest, List<String>)> getPrWithLabels(github.PullRequest pullRequest) async {
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService githubService = await config.createGithubService(slug);
-    return githubService.getPullRequest(slug, pullRequestNumber);
+    final github.PullRequest currentPullRequest = await githubService.getPullRequest(slug, pullRequest.number!);
+    final List<String> labelNames = (currentPullRequest.labels as List<github.IssueLabel>)
+        .map<String>((github.IssueLabel labelMap) => labelMap.name)
+        .toList();
+    return (currentPullRequest, labelNames);
   }
 
   /// Merges the commit if the PullRequest passes all the validations.
   Future<MergeResult> submitPullRequest({
     required Config config,
-    required github.PullRequest pullRequest,
+    required github.PullRequest messagePullRequest,
   }) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final int number = pullRequest.number!;
+    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    final int number = messagePullRequest.number!;
 
     // Pass an explicit commit message from the PR title otherwise the GitHub API will use the first commit message.
     const String revertPattern = 'Revert "Revert';
     String messagePrefix = '';
 
-    if (pullRequest.title!.contains(revertPattern)) {
+    if (messagePullRequest.title!.contains(revertPattern)) {
       // Cleanup auto-generated revert messages.
       messagePrefix = '''
-${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
+${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
 
 ''';
     }
 
-    final String prBody = _sanitizePrBody(pullRequest.body ?? '');
+    final String prBody = _sanitizePrBody(messagePullRequest.body ?? '');
     final String commitMessage = '$messagePrefix$prBody';
 
-    if (pullRequest.isMergeQueueEnabled) {
-      return _enqueuePullRequest(slug, pullRequest);
+    if (messagePullRequest.isMergeQueueEnabled) {
+      return _enqueuePullRequest(slug, messagePullRequest);
     } else {
       return _mergePullRequest(number, commitMessage, slug);
     }
@@ -83,7 +88,7 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
   Future<MergeResult> _enqueuePullRequest(github.RepositorySlug slug, github.PullRequest restPullRequest) async {
     final graphQlService = await GraphQlService.forRepo(config, slug);
     final isEmergencyPullRequest =
-        restPullRequest.labels?.where((label) => label.name == Config.kEmergencyLabel).isNotEmpty ?? false;
+        restPullRequest.labels?.where((label) => label.name == 'emergency').isNotEmpty ?? false;
 
     try {
       await retryOptions.retry(
@@ -112,6 +117,7 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
             commitMessage: commitMessage,
             slug: slug,
             number: number,
+            // TODO(ricardoamador): make this configurable per repository, https://github.com/flutter/flutter/issues/114557
             mergeMethod: github.MergeMethod.squash,
           );
         },
@@ -281,15 +287,5 @@ extension PullRequestExtension on github.PullRequest {
 
     final slug = base!.repo!.slug();
     return mqEnabledRepos.contains(slug.fullName);
-  }
-
-  /// Extracts label names from the `IssueLabel` list [labels].
-  List<String> get labelNames {
-    final labels = this.labels;
-    if (labels == null) {
-      return const <String>[];
-    }
-
-    return labels.map<String>((label) => label.name).toList();
   }
 }

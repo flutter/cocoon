@@ -8,7 +8,6 @@ import 'package:auto_submit/service/github_service.dart';
 import 'package:cocoon_server/testing/mocks.dart';
 import 'package:github/github.dart';
 import 'package:shelf/src/response.dart';
-import 'package:test/test.dart';
 
 /// A fake GithubService implementation.
 class FakeGithubService implements GithubService {
@@ -134,64 +133,6 @@ class FakeGithubService implements GithubService {
       return checkRunsFilteredByName;
     }
     return checkRuns;
-  }
-
-  final List<
-      ({
-        RepositorySlug slug,
-        CheckRun checkRun,
-        String? name,
-        String? detailsUrl,
-        String? externalId,
-        DateTime? startedAt,
-        CheckRunStatus status,
-        CheckRunConclusion? conclusion,
-        DateTime? completedAt,
-        CheckRunOutput? output,
-        List<CheckRunAction>? actions,
-      })> checkRunUpdates = [];
-
-  @override
-  Future<CheckRun> updateCheckRun({
-    required RepositorySlug slug,
-    required CheckRun checkRun,
-    String? name,
-    String? detailsUrl,
-    String? externalId,
-    DateTime? startedAt,
-    CheckRunStatus status = CheckRunStatus.queued,
-    CheckRunConclusion? conclusion,
-    DateTime? completedAt,
-    CheckRunOutput? output,
-    List<CheckRunAction>? actions,
-  }) async {
-    final Map<String, Object?> json = checkRun.toJson();
-
-    checkRunUpdates.add(
-      (
-        slug: slug,
-        checkRun: checkRun,
-        name: name,
-        detailsUrl: detailsUrl,
-        externalId: externalId,
-        startedAt: startedAt,
-        status: status,
-        conclusion: conclusion,
-        completedAt: completedAt,
-        output: output,
-        actions: actions,
-      ),
-    );
-
-    if (conclusion != null) {
-      json['conclusion'] = conclusion.value;
-    }
-
-    if (status != checkRun.status) {
-      json['status'] = status.value;
-    }
-
-    return CheckRun.fromJson(json);
   }
 
   @override
@@ -328,13 +269,10 @@ class FakeGithubService implements GithubService {
   }
 
   void verifyMergePullRequests(Map<int, RepositorySlug> expected) {
-    expect(
-      reason: 'Pull request numbers in mergePullRequest invocations do not match',
-      verifyPullRequestMergeCallMap.keys.toList(),
-      expected.keys.toList(),
-    );
+    assert(verifyPullRequestMergeCallMap.length == expected.length);
     verifyPullRequestMergeCallMap.forEach((key, value) {
-      expect(value, expected[key]);
+      assert(expected.containsKey(key));
+      assert(expected[key] == value);
     });
   }
 

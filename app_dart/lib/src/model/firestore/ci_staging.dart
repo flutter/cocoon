@@ -88,8 +88,7 @@ class CiStaging extends Document {
     required String checkRun,
     required String conclusion,
   }) async {
-    final changeCrumb = '${slug.owner}_${slug.name}_$sha';
-    final logCrumb = 'markConclusion(${changeCrumb}_$stage, $checkRun, $conclusion)';
+    final logCrumb = 'markConclusion(${slug.owner}_${slug.name}_${sha}_$stage, $checkRun, $conclusion)';
 
     // Marking needs to happen while in a transaction to ensure `remaining` is
     // updated correctly. For that to happen correctly; we need to perform a
@@ -111,10 +110,8 @@ class CiStaging extends Document {
 
     var remaining = -1;
     var failed = -1;
-    var total = -1;
     bool valid = false;
     String? checkRunGuard;
-    String? recordedConclusion;
 
     late final Document doc;
 
@@ -149,15 +146,9 @@ class CiStaging extends Document {
       }
       failed = maybeFailed;
 
-      final maybeTotal = int.tryParse(fields[kTotalField]?.integerValue ?? '');
-      if (maybeTotal == null) {
-        throw '$logCrumb: missing field "$kTotalField" for $transaction / ${doc.fields}';
-      }
-      total = maybeTotal;
-
       // We will have check_runs scheduled after the engine was built successfully, so missing the checkRun field
       // is an OK response to have. All fields should have been written at creation time.
-      recordedConclusion = fields[checkRun]?.stringValue;
+      final recordedConclusion = fields[checkRun]?.stringValue;
       if (recordedConclusion == null) {
         log.info('$logCrumb: $checkRun not present in doc for $transaction / $doc');
         await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
@@ -166,8 +157,6 @@ class CiStaging extends Document {
           remaining: remaining,
           checkRunGuard: null,
           failed: failed,
-          summary: 'Check run "$checkRun" not present in $stage CI stage',
-          details: 'Change $changeCrumb',
         );
       }
 
@@ -218,7 +207,7 @@ class CiStaging extends Document {
       fields[checkRun] = Value(stringValue: conclusion);
       fields[kRemainingField] = Value(integerValue: '$remaining');
       fields[kFailedField] = Value(integerValue: '$failed');
-    } on DetailedApiRequestError catch (e, stack) {
+    } on DetailedApiRequestError catch (e) {
       if (e.status == 404) {
         // An attempt to read a document not in firestore should not be retried.
         log.info('$logCrumb: staging document not found for $transaction');
@@ -228,15 +217,6 @@ class CiStaging extends Document {
           remaining: -1,
           checkRunGuard: null,
           failed: failed,
-          summary: 'Internal server error',
-          details: '''
-Staging document not found for CI stage "$stage" for $changeCrumb. Got 404 from
-Firestore.
-
-Error:
-${e.toString()}
-$stack
-''',
         );
       }
       // All other errors should bubble up and be retried.
@@ -259,15 +239,6 @@ $stack
       remaining: remaining,
       checkRunGuard: checkRunGuard,
       failed: failed,
-      summary: valid ? 'All tests passed' : 'Not a valid state transition for $checkRun',
-      details: valid
-          ? '''
-For CI stage $stage:
-  Total check runs scheduled: $total
-  Pending: $remaining
-  Failed: $failed
-'''
-          : 'Attempted to transition the state of check run $checkRun from "$recordedConclusion" to "$conclusion".',
     );
   }
 
@@ -372,16 +343,12 @@ class StagingConclusion {
   final int remaining;
   final String? checkRunGuard;
   final int failed;
-  final String summary;
-  final String details;
 
   const StagingConclusion({
     required this.result,
     required this.remaining,
     required this.checkRunGuard,
     required this.failed,
-    required this.summary,
-    required this.details,
   });
 
   bool get isOk => result == StagingConclusionResult.ok;
@@ -399,21 +366,8 @@ class StagingConclusion {
           other.result == result &&
           other.remaining == remaining &&
           other.checkRunGuard == checkRunGuard &&
-          other.failed == failed &&
-          other.summary == summary &&
-          other.details == details);
+          other.failed == failed);
 
   @override
-  int get hashCode => Object.hashAll([
-        result,
-        remaining,
-        checkRunGuard,
-        failed,
-        summary,
-        details,
-      ]);
-
-  @override
-  String toString() =>
-      'StagingConclusion("$result", "$remaining", "$checkRunGuard", "$failed", "$summary", "$details")';
+  int get hashCode => Object.hashAll([result, remaining, checkRunGuard, failed]);
 }

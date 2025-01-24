@@ -43,34 +43,6 @@ class GithubService {
         .toList();
   }
 
-  Future<CheckRun> updateCheckRun({
-    required RepositorySlug slug,
-    required CheckRun checkRun,
-    String? name,
-    String? detailsUrl,
-    String? externalId,
-    DateTime? startedAt,
-    CheckRunStatus status = CheckRunStatus.queued,
-    CheckRunConclusion? conclusion,
-    DateTime? completedAt,
-    CheckRunOutput? output,
-    List<CheckRunAction>? actions,
-  }) async {
-    return github.checks.checkRuns.updateCheckRun(
-      slug,
-      checkRun,
-      name: name,
-      detailsUrl: detailsUrl,
-      externalId: externalId,
-      startedAt: startedAt,
-      status: status,
-      conclusion: conclusion,
-      completedAt: completedAt,
-      output: output,
-      actions: actions,
-    );
-  }
-
   /// Fetches the specified commit.
   Future<RepositoryCommit> getCommit(
     RepositorySlug slug,

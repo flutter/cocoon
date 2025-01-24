@@ -124,9 +124,10 @@ void main() {
     test('Process revert from closed as "revert"', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name, state: 'closed');
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
+      final List<String> labelNames = ['revert'];
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
-      final RevertProcessMethod revertProcessMethod = await validationService.shouldProcess(pullRequest);
+      final RevertProcessMethod revertProcessMethod = await validationService.shouldProcess(pullRequest, labelNames);
 
       expect(revertProcessMethod, RevertProcessMethod.revert);
     });
@@ -135,9 +136,10 @@ void main() {
       final PullRequest pullRequest =
           generatePullRequest(prNumber: 0, repoName: slug.name, state: 'open', author: config.autosubmitBot);
       final IssueLabel issueLabel = IssueLabel(name: 'revert of');
+      final List<String> labelNames = ['revert of'];
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
-      final RevertProcessMethod revertProcessMethod = await validationService.shouldProcess(pullRequest);
+      final RevertProcessMethod revertProcessMethod = await validationService.shouldProcess(pullRequest, labelNames);
 
       expect(revertProcessMethod, RevertProcessMethod.revertOf);
 
@@ -150,9 +152,10 @@ void main() {
     test('Pull request state is open with revert label is not processed', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name, state: 'open');
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
+      final List<String> labelNames = ['revert'];
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
-      final RevertProcessMethod revertProcessMethod = await validationService.shouldProcess(pullRequest);
+      final RevertProcessMethod revertProcessMethod = await validationService.shouldProcess(pullRequest, labelNames);
 
       expect(revertProcessMethod, RevertProcessMethod.none);
     });
@@ -161,9 +164,10 @@ void main() {
       final PullRequest pullRequest =
           generatePullRequest(prNumber: 0, repoName: slug.name, state: 'closed', author: config.autosubmitBot);
       final IssueLabel issueLabel = IssueLabel(name: 'revert of');
+      final List<String> labelNames = ['revert of'];
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
-      final RevertProcessMethod revertProcessMethod = await validationService.shouldProcess(pullRequest);
+      final RevertProcessMethod revertProcessMethod = await validationService.shouldProcess(pullRequest, labelNames);
 
       expect(revertProcessMethod, RevertProcessMethod.none);
     });
@@ -172,9 +176,10 @@ void main() {
       final PullRequest pullRequest =
           generatePullRequest(prNumber: 0, repoName: slug.name, state: 'open', author: 'octocat');
       final IssueLabel issueLabel = IssueLabel(name: 'revert of');
+      final List<String> labelNames = ['revert of'];
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
-      final RevertProcessMethod revertProcessMethod = await validationService.shouldProcess(pullRequest);
+      final RevertProcessMethod revertProcessMethod = await validationService.shouldProcess(pullRequest, labelNames);
 
       expect(revertProcessMethod, RevertProcessMethod.none);
     });
@@ -187,9 +192,10 @@ void main() {
         mergedAt: null,
       );
       final IssueLabel issueLabel = IssueLabel(name: 'revert');
+      final List<String> labelNames = ['revert'];
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
-      final RevertProcessMethod revertProcessMethod = await validationService.shouldProcess(pullRequest);
+      final RevertProcessMethod revertProcessMethod = await validationService.shouldProcess(pullRequest, labelNames);
 
       expect(revertProcessMethod, RevertProcessMethod.none);
     });
@@ -1326,7 +1332,7 @@ Reason for reverting: comment was added by mistake.''';
 
       final MergeResult result = await validationService.submitPullRequest(
         config: config,
-        pullRequest: pullRequest,
+        messagePullRequest: pullRequest,
       );
 
       expect(result.message, contains('Reland "My first PR!"'));
@@ -1350,7 +1356,7 @@ Reason for reverting: comment was added by mistake.''';
       );
       final MergeResult result = await validationService.submitPullRequest(
         config: config,
-        pullRequest: pullRequest,
+        messagePullRequest: pullRequest,
       );
 
       expect(result.message, '''
@@ -1409,7 +1415,7 @@ If you need help, consider asking for advice on the #hackers-new channel on [Dis
 
       final MergeResult result = await validationService.submitPullRequest(
         config: config,
-        pullRequest: pullRequest,
+        messagePullRequest: pullRequest,
       );
 
       expect(result.result, isTrue);
