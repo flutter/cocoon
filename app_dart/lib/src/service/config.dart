@@ -200,7 +200,7 @@ class Config {
   /// For example, if we have 200 available targets found to be backfilled,
   /// only `backfillerTargetLimit` will be scheduled whereas others wait for
   /// the next API call.
-  int get backfillerTargetLimit => 75;
+  int get backfillerTargetLimit => 100;
 
   /// Upper limit of commit rows to be backfilled in API call.
   ///
