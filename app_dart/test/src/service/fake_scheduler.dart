@@ -10,6 +10,7 @@ import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:cocoon_service/src/service/build_bucket_client.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
+import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
@@ -18,6 +19,7 @@ import 'package:retry/retry.dart';
 
 import '../utilities/entity_generators.dart';
 import 'fake_fusion_tester.dart';
+import 'fake_get_files_changed.dart';
 import 'fake_luci_build_service.dart';
 
 /// Fake for [Scheduler] to use for tests that rely on it.
@@ -26,6 +28,7 @@ class FakeScheduler extends Scheduler {
     this.ciYaml,
     LuciBuildService? luciBuildService,
     BuildBucketClient? buildbucket,
+    GetFilesChanged? getFilesChanged,
     required super.config,
     GithubChecksUtil? githubChecksUtil,
     FusionTester? fusionTester,
@@ -35,6 +38,7 @@ class FakeScheduler extends Scheduler {
             config,
             githubChecksUtil: githubChecksUtil,
           ),
+          getFilesChanged: getFilesChanged ?? FakeGetFilesChanged(),
           luciBuildService: luciBuildService ??
               FakeLuciBuildService(
                 config: config,
@@ -68,7 +72,8 @@ class FakeScheduler extends Scheduler {
   }
 
   @override
-  Future<Commit> generateTotCommit({required String branch, required RepositorySlug slug}) async {
+  Future<Commit> generateTotCommit(
+      {required String branch, required RepositorySlug slug}) async {
     return generateCommit(1);
   }
 
@@ -76,7 +81,8 @@ class FakeScheduler extends Scheduler {
 
   int get cancelPreSubmitTargetsCallCount => cancelPreSubmitTargetsCallCnt;
 
-  void resetCancelPreSubmitTargetsCallCount() => cancelPreSubmitTargetsCallCnt = 0;
+  void resetCancelPreSubmitTargetsCallCount() =>
+      cancelPreSubmitTargetsCallCnt = 0;
 
   @override
   Future<void> cancelPreSubmitTargets({
@@ -91,7 +97,8 @@ class FakeScheduler extends Scheduler {
 
   int get triggerPresubmitTargetsCallCount => triggerPresubmitTargetsCnt;
 
-  void resetTriggerPresubmitTargetsCallCount() => triggerPresubmitTargetsCnt = 0;
+  void resetTriggerPresubmitTargetsCallCount() =>
+      triggerPresubmitTargetsCnt = 0;
 
   @override
   Future<void> triggerPresubmitTargets({

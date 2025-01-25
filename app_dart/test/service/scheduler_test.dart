@@ -38,6 +38,7 @@ import '../src/service/fake_build_bucket_client.dart';
 import '../src/service/fake_build_status_provider.dart';
 import '../src/service/fake_fusion_tester.dart';
 import '../src/service/fake_gerrit_service.dart';
+import '../src/service/fake_get_files_changed.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/utilities/entity_generators.dart';
@@ -134,6 +135,7 @@ void main() {
   late Scheduler scheduler;
   late FakeFusionTester fakeFusion;
   late MockCallbacks callbacks;
+  late FakeGetFilesChanged getFilesChanged;
 
   final PullRequest pullRequest = generatePullRequest(id: 42);
 
@@ -150,17 +152,21 @@ void main() {
   group('Scheduler', () {
     setUp(() {
       final MockTabledataResource tabledataResource = MockTabledataResource();
-      when(tabledataResource.insertAll(any, any, any, any)).thenAnswer((_) async {
+      when(tabledataResource.insertAll(any, any, any, any))
+          .thenAnswer((_) async {
         return TableDataInsertAllResponse();
       });
 
       cache = CacheService(inMemory: true);
+      getFilesChanged = FakeGetFilesChanged();
       db = FakeDatastoreDB();
       mockFirestoreService = MockFirestoreService();
       buildStatusService = FakeBuildStatusService(
         commitStatuses: <CommitStatus>[
           CommitStatus(generateCommit(1), const <Stage>[]),
-          CommitStatus(generateCommit(1, branch: 'main', repo: Config.engineSlug.name), const <Stage>[]),
+          CommitStatus(
+              generateCommit(1, branch: 'main', repo: Config.engineSlug.name),
+              const <Stage>[]),
         ],
       );
       config = FakeConfig(
@@ -183,7 +189,8 @@ void main() {
 
       mockGithubChecksUtil = MockGithubChecksUtil();
       // Generate check runs based on the name hash code
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any,
+              output: anyNamed('output')))
           .thenAnswer((Invocation invocation) async {
         return generateCheckRun(
           invocation.positionalArguments[2].hashCode,
@@ -199,8 +206,10 @@ void main() {
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
         buildStatusProvider: (_, __) => buildStatusService,
-        githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+        githubChecksService:
+            GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
         httpClientProvider: () => httpClient,
+        getFilesChanged: getFilesChanged,
         luciBuildService: FakeLuciBuildService(
           config: config,
           githubChecksUtil: mockGithubChecksUtil,
@@ -212,7 +221,8 @@ void main() {
         markCheckRunConclusion: callbacks.markCheckRunConclusion,
       );
 
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async {
         return CheckRun.fromJson(const <String, dynamic>{
           'id': 1,
           'started_at': '2020-05-10T02:49:31Z',
@@ -233,7 +243,8 @@ void main() {
 
       fakeFusion.isFusion = (_, __) => true;
 
-      final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(pullRequest);
+      final List<Target> presubmitTargets =
+          await scheduler.getPresubmitTargets(pullRequest);
 
       expect(
         [...presubmitTargets.map((Target target) => target.value.name)],
@@ -266,11 +277,14 @@ void main() {
             author: 'Username',
             authorAvatarUrl: 'http://example.org/avatar.jpg',
             branch: branch,
-            key: db.emptyKey.append(Commit, id: 'flutter/$repo/$branch/${shas[index]}'),
+            key: db.emptyKey
+                .append(Commit, id: 'flutter/$repo/$branch/${shas[index]}'),
             message: 'commit message',
             repository: 'flutter/$repo',
             sha: shas[index],
-            timestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(shas[index])).millisecondsSinceEpoch,
+            timestamp:
+                DateTime.fromMillisecondsSinceEpoch(int.parse(shas[index]))
+                    .millisecondsSinceEpoch,
           ),
         );
       }
@@ -304,7 +318,8 @@ void main() {
 
       test('skips scheduling for unsupported repos', () async {
         config.supportedBranchesValue = <String>['master'];
-        await scheduler.addCommits(createCommitList(<String>['1'], repo: 'not-supported'));
+        await scheduler
+            .addCommits(createCommitList(<String>['1'], repo: 'not-supported'));
         expect(db.values.values.whereType<Commit>().length, 0);
       });
 
@@ -322,8 +337,12 @@ void main() {
         final Commit commit = shaToCommit('1');
         db.values[commit.key] = commit;
 
-        db.onCommit = (List<gcloud_db.Model<Object?>> inserts, List<gcloud_db.Key<Object?>> deletes) {
-          if (inserts.whereType<Commit>().where((Commit commit) => commit.sha == '3').isNotEmpty) {
+        db.onCommit = (List<gcloud_db.Model<Object?>> inserts,
+            List<gcloud_db.Key<Object?>> deletes) {
+          if (inserts
+              .whereType<Commit>()
+              .where((Commit commit) => commit.sha == '3')
+              .isNotEmpty) {
             throw StateError('Commit failed');
           }
         };
@@ -333,8 +352,10 @@ void main() {
         // The 2 new commits are scheduled 3 tasks, existing commit has none.
         expect(db.values.values.whereType<Task>().length, 2 * 3);
         // Check commits were added, but 3 was not
-        expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
-        expect(db.values.values.whereType<Commit>().map<String>(toSha), isNot(contains('3')));
+        expect(db.values.values.whereType<Commit>().map<String>(toSha),
+            containsAll(<String>['1', '2', '4']));
+        expect(db.values.values.whereType<Commit>().map<String>(toSha),
+            isNot(contains('3')));
       });
 
       test('skips commits for which task transaction fails', () async {
@@ -351,8 +372,12 @@ void main() {
         final Commit commit = shaToCommit('1');
         db.values[commit.key] = commit;
 
-        db.onCommit = (List<gcloud_db.Model<Object?>> inserts, List<gcloud_db.Key<Object?>> deletes) {
-          if (inserts.whereType<Task>().where((Task task) => task.createTimestamp == 3).isNotEmpty) {
+        db.onCommit = (List<gcloud_db.Model<Object?>> inserts,
+            List<gcloud_db.Key<Object?>> deletes) {
+          if (inserts
+              .whereType<Task>()
+              .where((Task task) => task.createTimestamp == 3)
+              .isNotEmpty) {
             throw StateError('Task failed');
           }
         };
@@ -362,8 +387,10 @@ void main() {
         // The 2 new commits are scheduled 3 tasks, existing commit has none.
         expect(db.values.values.whereType<Task>().length, 2 * 3);
         // Check commits were added, but 3 was not
-        expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
-        expect(db.values.values.whereType<Commit>().map<String>(toSha), isNot(contains('3')));
+        expect(db.values.values.whereType<Commit>().map<String>(toSha),
+            containsAll(<String>['1', '2', '4']));
+        expect(db.values.values.whereType<Commit>().map<String>(toSha),
+            isNot(contains('3')));
       });
 
       test('schedules cocoon based targets', () async {
@@ -380,10 +407,12 @@ void main() {
             commit: anyNamed('commit'),
             toBeScheduled: captureAnyNamed('toBeScheduled'),
           ),
-        ).thenAnswer((_) => Future<List<Tuple<Target, Task, int>>>.value(<Tuple<Target, Task, int>>[]));
+        ).thenAnswer((_) => Future<List<Tuple<Target, Task, int>>>.value(
+            <Tuple<Target, Task, int>>[]));
         buildStatusService = FakeBuildStatusService(
           commitStatuses: <CommitStatus>[
-            CommitStatus(generateCommit(1, repo: 'engine', branch: 'main'), const <Stage>[]),
+            CommitStatus(generateCommit(1, repo: 'engine', branch: 'main'),
+                const <Stage>[]),
           ],
         );
         scheduler = Scheduler(
@@ -391,13 +420,18 @@ void main() {
           config: config,
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: luciBuildService,
           fusionTester: fakeFusion,
         );
 
-        await scheduler.addCommits(createCommitList(<String>['1'], repo: 'engine', branch: 'main'));
+        await scheduler.addCommits(
+            createCommitList(<String>['1'], repo: 'engine', branch: 'main'));
         final List<Object?> captured = verify(
           luciBuildService.schedulePostsubmitBuilds(
             commit: anyNamed('commit'),
@@ -406,17 +440,19 @@ void main() {
         ).captured;
         final List<Object?> toBeScheduled = captured.first as List<Object?>;
         expect(toBeScheduled.length, 2);
-        final Iterable<Tuple<Target, Task, int>> tuples =
-            toBeScheduled.map((dynamic tuple) => tuple as Tuple<Target, Task, int>);
+        final Iterable<Tuple<Target, Task, int>> tuples = toBeScheduled
+            .map((dynamic tuple) => tuple as Tuple<Target, Task, int>);
         final Iterable<String> scheduledTargetNames =
             tuples.map((Tuple<Target, Task, int> tuple) => tuple.second.name!);
         expect(scheduledTargetNames, ['Linux A', 'Linux runIf']);
         // Tasks triggered by cocoon are marked as in progress
         final Iterable<Task> tasks = db.values.values.whereType<Task>();
-        expect(tasks.singleWhere((Task task) => task.name == 'Linux A').status, Task.statusInProgress);
+        expect(tasks.singleWhere((Task task) => task.name == 'Linux A').status,
+            Task.statusInProgress);
       });
 
-      test('schedules cocoon based targets - multiple batch requests', () async {
+      test('schedules cocoon based targets - multiple batch requests',
+          () async {
         when(
           mockFirestoreService.writeViaTransaction(
             captureAny,
@@ -424,7 +460,8 @@ void main() {
         ).thenAnswer((Invocation invocation) {
           return Future<CommitResponse>.value(CommitResponse());
         });
-        final MockBuildBucketClient mockBuildBucketClient = MockBuildBucketClient();
+        final MockBuildBucketClient mockBuildBucketClient =
+            MockBuildBucketClient();
         final FakeLuciBuildService luciBuildService = FakeLuciBuildService(
           config: config,
           buildBucketClient: mockBuildBucketClient,
@@ -432,20 +469,28 @@ void main() {
           githubChecksUtil: mockGithubChecksUtil,
           pubsub: pubsub,
         );
-        when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
+        when(mockGithubChecksUtil.createCheckRun(any, any, any, any,
+                output: anyNamed('output')))
             .thenAnswer((_) async => generateCheckRun(1, name: 'Linux A'));
 
         when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
           return bbv2.ListBuildersResponse(
             builders: [
-              bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'Linux A')),
-              bbv2.BuilderItem(id: bbv2.BuilderID(bucket: 'prod', project: 'flutter', builder: 'Linux runIf')),
+              bbv2.BuilderItem(
+                  id: bbv2.BuilderID(
+                      bucket: 'prod', project: 'flutter', builder: 'Linux A')),
+              bbv2.BuilderItem(
+                  id: bbv2.BuilderID(
+                      bucket: 'prod',
+                      project: 'flutter',
+                      builder: 'Linux runIf')),
             ],
           );
         });
         buildStatusService = FakeBuildStatusService(
           commitStatuses: <CommitStatus>[
-            CommitStatus(generateCommit(1, repo: 'engine', branch: 'main'), const <Stage>[]),
+            CommitStatus(generateCommit(1, repo: 'engine', branch: 'main'),
+                const <Stage>[]),
           ],
         );
         config.batchSizeValue = 1;
@@ -454,13 +499,18 @@ void main() {
           config: config,
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: luciBuildService,
           fusionTester: fakeFusion,
         );
 
-        await scheduler.addCommits(createCommitList(<String>['1'], repo: 'engine', branch: 'main'));
+        await scheduler.addCommits(
+            createCommitList(<String>['1'], repo: 'engine', branch: 'main'));
         expect(pubsub.messages.length, 2);
       });
     });
@@ -487,7 +537,9 @@ void main() {
         expect(commit.authorAvatarUrl, 'dashatar');
         expect(commit.message, 'example message');
 
-        final List<Object?> captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
+        final List<Object?> captured =
+            verify(mockFirestoreService.writeViaTransaction(captureAny))
+                .captured;
         expect(captured.length, 1);
         final List<Write> commitResponse = captured[0] as List<Write>;
         expect(commitResponse.length, 4);
@@ -531,8 +583,11 @@ void main() {
         await scheduler.addPullRequest(mergedPr);
 
         expect(db.values.values.whereType<Commit>().length, 1);
-        expect(db.values.values.whereType<Task>().length, 5, reason: 'removes release_build targets');
-        final captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
+        expect(db.values.values.whereType<Task>().length, 5,
+            reason: 'removes release_build targets');
+        final captured =
+            verify(mockFirestoreService.writeViaTransaction(captureAny))
+                .captured;
         expect(
           captured.first.map((write) => write.update?.name),
           [
@@ -547,7 +602,8 @@ void main() {
         );
       });
 
-      test('guarantees scheduling of tasks against merged release branch PR', () async {
+      test('guarantees scheduling of tasks against merged release branch PR',
+          () async {
         when(
           mockFirestoreService.writeViaTransaction(
             captureAny,
@@ -555,13 +611,18 @@ void main() {
         ).thenAnswer((Invocation invocation) {
           return Future<CommitResponse>.value(CommitResponse());
         });
-        final PullRequest mergedPr = generatePullRequest(branch: 'flutter-3.2-candidate.5');
+        final PullRequest mergedPr =
+            generatePullRequest(branch: 'flutter-3.2-candidate.5');
         await scheduler.addPullRequest(mergedPr);
 
         expect(db.values.values.whereType<Commit>().length, 1);
         expect(db.values.values.whereType<Task>().length, 3);
         // Ensure all tasks have been marked in progress
-        expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusNew), isEmpty);
+        expect(
+            db.values.values
+                .whereType<Task>()
+                .where((Task task) => task.status == Task.statusNew),
+            isEmpty);
       });
 
       test('guarantees scheduling of tasks against merged engine PR', () async {
@@ -581,10 +642,17 @@ void main() {
         expect(db.values.values.whereType<Commit>().length, 1);
         expect(db.values.values.whereType<Task>().length, 3);
         // Ensure all tasks under cocoon scheduler have been marked in progress
-        expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusInProgress).length, 2);
+        expect(
+            db.values.values
+                .whereType<Task>()
+                .where((Task task) => task.status == Task.statusInProgress)
+                .length,
+            2);
       });
 
-      test('Release candidate branch commit filters builders not in default branch', () async {
+      test(
+          'Release candidate branch commit filters builders not in default branch',
+          () async {
         when(
           mockFirestoreService.writeViaTransaction(
             captureAny,
@@ -616,7 +684,11 @@ targets:
           config: config,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           buildStatusProvider: (_, __) => buildStatusService,
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
             config: config,
@@ -639,14 +711,20 @@ targets:
         expect(tasks, hasLength(1));
         expect(tasks.first.name, 'Linux A');
         // Ensure all tasks under cocoon scheduler have been marked in progress
-        expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusInProgress).length, 1);
+        expect(
+            db.values.values
+                .whereType<Task>()
+                .where((Task task) => task.status == Task.statusInProgress)
+                .length,
+            1);
       });
 
       test('does not schedule tasks against non-merged PRs', () async {
         final PullRequest notMergedPr = generatePullRequest(merged: false);
         await scheduler.addPullRequest(notMergedPr);
 
-        expect(db.values.values.whereType<Commit>().map<String>(toSha).length, 0);
+        expect(
+            db.values.values.whereType<Commit>().map<String>(toSha).length, 0);
         expect(db.values.values.whereType<Task>().length, 0);
       });
 
@@ -658,7 +736,8 @@ targets:
         final PullRequest alreadyLandedPr = generatePullRequest(sha: '1');
         await scheduler.addPullRequest(alreadyLandedPr);
 
-        expect(db.values.values.whereType<Commit>().map<String>(toSha).length, 1);
+        expect(
+            db.values.values.whereType<Commit>().map<String>(toSha).length, 1);
         // No tasks should be scheduled as that is done on commit insert.
         expect(db.values.values.whereType<Task>().length, 0);
       });
@@ -690,8 +769,10 @@ targets:
       test('rerequested ci.yaml check retriggers presubmit', () async {
         final MockGithubService mockGithubService = MockGithubService();
         final MockGitHub mockGithubClient = MockGitHub();
-        buildStatusService =
-            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
+        buildStatusService = FakeBuildStatusService(
+            commitStatuses: <CommitStatus>[
+              CommitStatus(generateCommit(1), const <Stage>[])
+            ]);
         config = FakeConfig(
           githubService: mockGithubService,
           firestoreService: mockFirestoreService,
@@ -700,7 +781,11 @@ targets:
           cache: cache,
           config: config,
           buildStatusProvider: (_, __) => buildStatusService,
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
             config: config,
@@ -709,16 +794,20 @@ targets:
           fusionTester: fakeFusion,
         );
         when(mockGithubService.github).thenReturn(mockGithubClient);
-        when(mockGithubService.searchIssuesAndPRs(any, any, sort: anyNamed('sort'), pages: anyNamed('pages')))
+        when(mockGithubService.searchIssuesAndPRs(any, any,
+                sort: anyNamed('sort'), pages: anyNamed('pages')))
             .thenAnswer((_) async => [generateIssue(3)]);
-        when(mockGithubChecksUtil.listCheckSuitesForRef(any, any, ref: anyNamed('ref'))).thenAnswer(
+        when(mockGithubChecksUtil.listCheckSuitesForRef(any, any,
+                ref: anyNamed('ref')))
+            .thenAnswer(
           (_) async => [
             // From check_run.check_suite.id in [checkRunString].
             generateCheckSuite(668083231),
           ],
         );
-        when(mockGithubService.getPullRequest(any, any)).thenAnswer((_) async => generatePullRequest());
-        when(mockGithubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+        when(mockGithubService.getPullRequest(any, any))
+            .thenAnswer((_) async => generatePullRequest());
+        getFilesChanged.cannedFiles = ['abc/def'];
         when(
           mockGithubChecksUtil.createCheckRun(
             any,
@@ -735,9 +824,11 @@ targets:
             'check_suite': <String, dynamic>{'id': 2},
           });
         });
-        final Map<String, dynamic> checkRunEventJson = jsonDecode(checkRunString) as Map<String, dynamic>;
+        final Map<String, dynamic> checkRunEventJson =
+            jsonDecode(checkRunString) as Map<String, dynamic>;
         checkRunEventJson['check_run']['name'] = Config.kCiYamlCheckName;
-        final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(checkRunEventJson);
+        final cocoon_checks.CheckRunEvent checkRunEvent =
+            cocoon_checks.CheckRunEvent.fromJson(checkRunEventJson);
         expect(await scheduler.processCheckRun(checkRunEvent), true);
         verify(
           mockGithubChecksUtil.createCheckRun(
@@ -749,14 +840,17 @@ targets:
           ),
         );
         // Verfies Linux A was created
-        verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
+        verify(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+            .called(1);
       });
 
       test('rerequested merge queue guard check is ignored', () async {
         final MockGithubService mockGithubService = MockGithubService();
         final MockGitHub mockGithubClient = MockGitHub();
-        buildStatusService =
-            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
+        buildStatusService = FakeBuildStatusService(
+            commitStatuses: <CommitStatus>[
+              CommitStatus(generateCommit(1), const <Stage>[])
+            ]);
         config = FakeConfig(
           githubService: mockGithubService,
           firestoreService: mockFirestoreService,
@@ -765,7 +859,11 @@ targets:
           cache: cache,
           config: config,
           buildStatusProvider: (_, __) => buildStatusService,
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
             config: config,
@@ -774,16 +872,20 @@ targets:
           fusionTester: fakeFusion,
         );
         when(mockGithubService.github).thenReturn(mockGithubClient);
-        when(mockGithubService.searchIssuesAndPRs(any, any, sort: anyNamed('sort'), pages: anyNamed('pages')))
+        when(mockGithubService.searchIssuesAndPRs(any, any,
+                sort: anyNamed('sort'), pages: anyNamed('pages')))
             .thenAnswer((_) async => [generateIssue(3)]);
-        when(mockGithubChecksUtil.listCheckSuitesForRef(any, any, ref: anyNamed('ref'))).thenAnswer(
+        when(mockGithubChecksUtil.listCheckSuitesForRef(any, any,
+                ref: anyNamed('ref')))
+            .thenAnswer(
           (_) async => [
             // From check_run.check_suite.id in [checkRunString].
             generateCheckSuite(668083231),
           ],
         );
-        when(mockGithubService.getPullRequest(any, any)).thenAnswer((_) async => generatePullRequest());
-        when(mockGithubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+        when(mockGithubService.getPullRequest(any, any))
+            .thenAnswer((_) async => generatePullRequest());
+        getFilesChanged.cannedFiles = ['abc/def'];
         when(
           mockGithubChecksUtil.createCheckRun(
             any,
@@ -800,9 +902,11 @@ targets:
             'check_suite': <String, dynamic>{'id': 2},
           });
         });
-        final Map<String, dynamic> checkRunEventJson = jsonDecode(checkRunString) as Map<String, dynamic>;
+        final Map<String, dynamic> checkRunEventJson =
+            jsonDecode(checkRunString) as Map<String, dynamic>;
         checkRunEventJson['check_run']['name'] = Config.kMergeQueueLockName;
-        final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(checkRunEventJson);
+        final cocoon_checks.CheckRunEvent checkRunEvent =
+            cocoon_checks.CheckRunEvent.fromJson(checkRunEventJson);
         expect(await scheduler.processCheckRun(checkRunEvent), true);
         verifyNever(
           mockGithubChecksUtil.createCheckRun(
@@ -830,9 +934,11 @@ targets:
           return FakeBuildBucketClient().batch(i.positionalArguments[0]);
         });
 
-        when(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri')))
+        when(mockBuildbucket.scheduleBuild(any,
+                buildBucketUri: anyNamed('buildBucketUri')))
             .thenAnswer((realInvocation) async {
-          final bbv2.ScheduleBuildRequest scheduleBuildRequest = realInvocation.positionalArguments[0];
+          final bbv2.ScheduleBuildRequest scheduleBuildRequest =
+              realInvocation.positionalArguments[0];
           // Ensure this is an attempt to schedule a presubmit build by
           // verifying that bucket == 'try'.
           expect(scheduleBuildRequest.builder.bucket, equals('try'));
@@ -842,7 +948,11 @@ targets:
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           luciBuildService: FakeLuciBuildService(
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -851,14 +961,18 @@ targets:
           fusionTester: fakeFusion,
         );
 
-        final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
+        final cocoon_checks.CheckRunEvent checkRunEvent =
+            cocoon_checks.CheckRunEvent.fromJson(
           jsonDecode(checkRunString) as Map<String, dynamic>,
         );
 
         expect(await scheduler.processCheckRun(checkRunEvent), true);
 
-        verify(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri'))).called(1);
-        verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
+        verify(mockBuildbucket.scheduleBuild(any,
+                buildBucketUri: anyNamed('buildBucketUri')))
+            .called(1);
+        verify(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+            .called(1);
       });
 
       test('rerequested postsubmit check triggers postsubmit build', () async {
@@ -927,9 +1041,11 @@ targets:
         when(mockBuildbucket.batch(any)).thenAnswer((i) async {
           return FakeBuildBucketClient().batch(i.positionalArguments[0]);
         });
-        when(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri')))
+        when(mockBuildbucket.scheduleBuild(any,
+                buildBucketUri: anyNamed('buildBucketUri')))
             .thenAnswer((realInvocation) async {
-          final bbv2.ScheduleBuildRequest scheduleBuildRequest = realInvocation.positionalArguments[0];
+          final bbv2.ScheduleBuildRequest scheduleBuildRequest =
+              realInvocation.positionalArguments[0];
           // Ensure this is an attempt to schedule a postsubmit build by
           // verifying that bucket == 'prod'.
           expect(scheduleBuildRequest.builder.bucket, equals('prod'));
@@ -948,32 +1064,41 @@ targets:
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: luciBuildService,
           fusionTester: fakeFusion,
         );
-        final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
+        final cocoon_checks.CheckRunEvent checkRunEvent =
+            cocoon_checks.CheckRunEvent.fromJson(
           jsonDecode(checkRunString) as Map<String, dynamic>,
         );
         expect(await scheduler.processCheckRun(checkRunEvent), true);
-        verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
+        verify(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+            .called(1);
         expect(pubsub.messages.length, 1);
       });
 
       test('rerequested does not fail on empty pull request list', () async {
-        when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
+        when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+            .thenAnswer((_) async {
           return CheckRun.fromJson(const <String, dynamic>{
             'id': 1,
             'started_at': '2020-05-10T02:49:31Z',
             'check_suite': <String, dynamic>{'id': 2},
           });
         });
-        final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
+        final cocoon_checks.CheckRunEvent checkRunEvent =
+            cocoon_checks.CheckRunEvent.fromJson(
           jsonDecode(checkRunWithEmptyPullRequests) as Map<String, dynamic>,
         );
         expect(await scheduler.processCheckRun(checkRunEvent), true);
-        verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
+        verify(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+            .called(1);
       });
 
       group('completed action', () {
@@ -994,7 +1119,8 @@ targets:
             fakeFusion.isFusion = (_, __) => true;
           });
 
-          test('ignores default check runs that have no side effects', () async {
+          test('ignores default check runs that have no side effects',
+              () async {
             when(
               callbacks.markCheckRunConclusion(
                 firestoreService: anyNamed('firestoreService'),
@@ -1072,7 +1198,8 @@ targets:
                 firestoreService: argThat(isNotNull, named: 'firestoreService'),
                 slug: argThat(equals(Config.flutterSlug), named: 'slug'),
                 sha: '1234',
-                stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
+                stage:
+                    argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
                 checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
                 conclusion: argThat(equals('success'), named: 'conclusion'),
               ),
@@ -1124,7 +1251,8 @@ targets:
                 firestoreService: argThat(isNotNull, named: 'firestoreService'),
                 slug: argThat(equals(Config.flutterSlug), named: 'slug'),
                 sha: '1234',
-                stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
+                stage:
+                    argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
                 checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
                 conclusion: argThat(equals('success'), named: 'conclusion'),
               ),
@@ -1146,7 +1274,9 @@ targets:
           // complete and are successful.
           // This behavior is explained here:
           // https://github.com/flutter/flutter/issues/159898#issuecomment-2597209435
-          test('failed tests neither unlock merge queue guard nor schedule test stage', () async {
+          test(
+              'failed tests neither unlock merge queue guard nor schedule test stage',
+              () async {
             when(
               callbacks.markCheckRunConclusion(
                 firestoreService: anyNamed('firestoreService'),
@@ -1180,7 +1310,8 @@ targets:
                 firestoreService: argThat(isNotNull, named: 'firestoreService'),
                 slug: argThat(equals(Config.flutterSlug), named: 'slug'),
                 sha: '1234',
-                stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
+                stage:
+                    argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
                 checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
                 conclusion: argThat(equals('success'), named: 'conclusion'),
               ),
@@ -1202,13 +1333,17 @@ targets:
             final githubService = config.githubService = MockGithubService();
             final githubClient = MockGitHub();
             when(githubService.github).thenReturn(githubClient);
-            when(githubService.searchIssuesAndPRs(any, any, sort: anyNamed('sort'), pages: anyNamed('pages')))
+            when(githubService.searchIssuesAndPRs(any, any,
+                    sort: anyNamed('sort'), pages: anyNamed('pages')))
                 .thenAnswer((_) async => [generateIssue(42)]);
 
             final pullRequest = generatePullRequest();
-            when(githubService.getPullRequest(any, any)).thenAnswer((_) async => pullRequest);
-            when(githubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
-            when(mockGithubChecksUtil.listCheckSuitesForRef(any, any, ref: anyNamed('ref'))).thenAnswer(
+            when(githubService.getPullRequest(any, any))
+                .thenAnswer((_) async => pullRequest);
+            getFilesChanged.cannedFiles = ['abc/def'];
+            when(mockGithubChecksUtil.listCheckSuitesForRef(any, any,
+                    ref: anyNamed('ref')))
+                .thenAnswer(
               (_) async => [
                 // From check_run.check_suite.id in [checkRunString].
                 generateCheckSuite(668083231),
@@ -1224,14 +1359,18 @@ targets:
               throw Exception('Failed to find ${request.url.path}');
             });
             final luci = MockLuciBuildService();
-            when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
+            when(luci.scheduleTryBuilds(
+                    targets: anyNamed('targets'),
+                    pullRequest: anyNamed('pullRequest')))
                 .thenAnswer((inv) async {
               return [];
             });
 
             final gitHubChecksService = MockGithubChecksService();
-            when(gitHubChecksService.githubChecksUtil).thenReturn(mockGithubChecksUtil);
-            when(gitHubChecksService.findMatchingPullRequest(any, any, any)).thenAnswer((inv) async {
+            when(gitHubChecksService.githubChecksUtil)
+                .thenReturn(mockGithubChecksUtil);
+            when(gitHubChecksService.findMatchingPullRequest(any, any, any))
+                .thenAnswer((inv) async {
               return pullRequest;
             });
 
@@ -1253,6 +1392,7 @@ targets:
               config: config,
               datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
               buildStatusProvider: (_, __) => buildStatusService,
+              getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
               httpClientProvider: () => httpClient,
               luciBuildService: luci,
@@ -1284,20 +1424,24 @@ targets:
             expect(
               await scheduler.processCheckRunCompletion(
                 cocoon_checks.CheckRunEvent.fromJson(
-                  json.decode(checkRunEventFor(test: 'Bar bar', sha: 'testSha')),
+                  json.decode(
+                      checkRunEventFor(test: 'Bar bar', sha: 'testSha')),
                 ),
               ),
               isTrue,
             );
 
-            verify(gitHubChecksService.findMatchingPullRequest(Config.flutterSlug, 'testSha', 668083231)).called(1);
+            verify(gitHubChecksService.findMatchingPullRequest(
+                    Config.flutterSlug, 'testSha', 668083231))
+                .called(1);
 
             verify(
               callbacks.markCheckRunConclusion(
                 firestoreService: argThat(isNotNull, named: 'firestoreService'),
                 slug: argThat(equals(Config.flutterSlug), named: 'slug'),
                 sha: 'testSha',
-                stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
+                stage:
+                    argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
                 checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
                 conclusion: argThat(equals('success'), named: 'conclusion'),
               ),
@@ -1336,13 +1480,15 @@ targets:
             final gitHubChecksService = MockGithubChecksService();
 
             when(githubService.github).thenReturn(githubClient);
-            when(gitHubChecksService.githubChecksUtil).thenReturn(mockGithubChecksUtil);
+            when(gitHubChecksService.githubChecksUtil)
+                .thenReturn(mockGithubChecksUtil);
 
             scheduler = Scheduler(
               cache: cache,
               config: config,
               datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
               buildStatusProvider: (_, __) => buildStatusService,
+              getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
               httpClientProvider: () => httpClient,
               luciBuildService: luci,
@@ -1377,7 +1523,8 @@ targets:
             expect(
               await scheduler.processCheckRunCompletion(
                 cocoon_checks.CheckRunEvent.fromJson(
-                  json.decode(checkRunEventFor(test: 'Bar bar', sha: 'testSha')),
+                  json.decode(
+                      checkRunEventFor(test: 'Bar bar', sha: 'testSha')),
                 ),
               ),
               isTrue,
@@ -1390,7 +1537,8 @@ targets:
                 firestoreService: argThat(isNotNull, named: 'firestoreService'),
                 slug: argThat(equals(Config.flutterSlug), named: 'slug'),
                 sha: 'testSha',
-                stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
+                stage:
+                    argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
                 checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
                 conclusion: argThat(equals('success'), named: 'conclusion'),
               ),
@@ -1421,27 +1569,33 @@ targets:
                     return true;
                   }),
                 ),
-                status: argThat(equals(CheckRunStatus.completed), named: 'status'),
-                conclusion: argThat(equals(CheckRunConclusion.success), named: 'conclusion'),
+                status:
+                    argThat(equals(CheckRunStatus.completed), named: 'status'),
+                conclusion: argThat(equals(CheckRunConclusion.success),
+                    named: 'conclusion'),
                 output: anyNamed('output'),
               ),
             ).called(1);
           });
 
-          test('does not fail the merge queue guard when a test check run fails', () async {
+          test(
+              'does not fail the merge queue guard when a test check run fails',
+              () async {
             final githubService = config.githubService = MockGithubService();
             final githubClient = MockGitHub();
             final luci = MockLuciBuildService();
             final gitHubChecksService = MockGithubChecksService();
 
             when(githubService.github).thenReturn(githubClient);
-            when(gitHubChecksService.githubChecksUtil).thenReturn(mockGithubChecksUtil);
+            when(gitHubChecksService.githubChecksUtil)
+                .thenReturn(mockGithubChecksUtil);
 
             scheduler = Scheduler(
               cache: cache,
               config: config,
               datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
               buildStatusProvider: (_, __) => buildStatusService,
+              getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
               httpClientProvider: () => httpClient,
               luciBuildService: luci,
@@ -1479,7 +1633,8 @@ targets:
             expect(
               await scheduler.processCheckRunCompletion(
                 cocoon_checks.CheckRunEvent.fromJson(
-                  json.decode(checkRunEventFor(test: 'Bar bar', sha: 'testSha')),
+                  json.decode(
+                      checkRunEventFor(test: 'Bar bar', sha: 'testSha')),
                 ),
               ),
               isTrue,
@@ -1492,7 +1647,8 @@ targets:
                 firestoreService: argThat(isNotNull, named: 'firestoreService'),
                 slug: argThat(equals(Config.flutterSlug), named: 'slug'),
                 sha: 'testSha',
-                stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
+                stage:
+                    argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
                 checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
                 conclusion: argThat(equals('success'), named: 'conclusion'),
               ),
@@ -1525,24 +1681,30 @@ targets:
             );
           });
 
-          test('schedules tests after engine stage - with pr caching', () async {
+          test('schedules tests after engine stage - with pr caching',
+              () async {
             final githubService = config.githubService = MockGithubService();
             final githubClient = MockGitHub();
             when(githubService.github).thenReturn(githubClient);
-            when(githubService.searchIssuesAndPRs(any, any, sort: anyNamed('sort'), pages: anyNamed('pages')))
+            when(githubService.searchIssuesAndPRs(any, any,
+                    sort: anyNamed('sort'), pages: anyNamed('pages')))
                 .thenAnswer((_) async => [generateIssue(42)]);
 
             final pullRequest = generatePullRequest();
-            when(githubService.getPullRequest(any, any)).thenAnswer((_) async => pullRequest);
-            when(githubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
-            when(mockGithubChecksUtil.listCheckSuitesForRef(any, any, ref: anyNamed('ref'))).thenAnswer(
+            when(githubService.getPullRequest(any, any))
+                .thenAnswer((_) async => pullRequest);
+            getFilesChanged.cannedFiles = ['abc/def'];
+            when(mockGithubChecksUtil.listCheckSuitesForRef(any, any,
+                    ref: anyNamed('ref')))
+                .thenAnswer(
               (_) async => [
                 // From check_run.check_suite.id in [checkRunString].
                 generateCheckSuite(668083231),
               ],
             );
 
-            when(callbacks.findPullRequestFor(any, any, any)).thenAnswer((inv) async {
+            when(callbacks.findPullRequestFor(any, any, any))
+                .thenAnswer((inv) async {
               return pullRequest;
             });
 
@@ -1555,13 +1717,16 @@ targets:
               throw Exception('Failed to find ${request.url.path}');
             });
             final luci = MockLuciBuildService();
-            when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
+            when(luci.scheduleTryBuilds(
+                    targets: anyNamed('targets'),
+                    pullRequest: anyNamed('pullRequest')))
                 .thenAnswer((inv) async {
               return [];
             });
 
             final gitHubChecksService = MockGithubChecksService();
-            when(gitHubChecksService.githubChecksUtil).thenReturn(mockGithubChecksUtil);
+            when(gitHubChecksService.githubChecksUtil)
+                .thenReturn(mockGithubChecksUtil);
 
             // Cocoon creates a Firestore document to track the tasks in the
             // test stage.
@@ -1582,6 +1747,7 @@ targets:
               datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
               buildStatusProvider: (_, __) => buildStatusService,
               githubChecksService: gitHubChecksService,
+              getFilesChanged: getFilesChanged,
               httpClientProvider: () => httpClient,
               luciBuildService: luci,
               fusionTester: fakeFusion,
@@ -1619,15 +1785,19 @@ targets:
               isTrue,
             );
 
-            verify(callbacks.findPullRequestFor(mockFirestoreService, 1, 'Bar bar')).called(1);
-            verifyNever(gitHubChecksService.findMatchingPullRequest(any, any, any));
+            verify(callbacks.findPullRequestFor(
+                    mockFirestoreService, 1, 'Bar bar'))
+                .called(1);
+            verifyNever(
+                gitHubChecksService.findMatchingPullRequest(any, any, any));
 
             verify(
               callbacks.markCheckRunConclusion(
                 firestoreService: argThat(isNotNull, named: 'firestoreService'),
                 slug: argThat(equals(Config.flutterSlug), named: 'slug'),
                 sha: '1234',
-                stage: argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
+                stage:
+                    argThat(equals(CiStage.fusionEngineBuild), named: 'stage'),
                 checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
                 conclusion: argThat(equals('success'), named: 'conclusion'),
               ),
@@ -1700,7 +1870,8 @@ targets:
           }
           throw Exception('Failed to find ${request.url.path}');
         });
-        final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(pullRequest);
+        final List<Target> presubmitTargets =
+            await scheduler.getPresubmitTargets(pullRequest);
         expect(
           presubmitTargets.map((Target target) => target.value.name).toList(),
           containsAll(<String>['Linux A', 'Linux C']),
@@ -1750,7 +1921,8 @@ targets:
             labels: <IssueLabel>[runAllTests],
             repo: Config.engineSlug.name,
           );
-          final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
+          final List<Target> presubmitTargets =
+              await scheduler.getPresubmitTargets(enginePr);
           expect(
             presubmitTargets.map((Target target) => target.value.name).toList(),
             <String>[
@@ -1770,7 +1942,8 @@ targets:
             labels: <IssueLabel>[runAllTests],
             repo: Config.flutterSlug.name,
           );
-          final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(frameworkPr);
+          final List<Target> presubmitTargets =
+              await scheduler.getPresubmitTargets(frameworkPr);
           expect(
             presubmitTargets.map((Target target) => target.value.name).toList(),
             <String>[
@@ -1790,7 +1963,8 @@ targets:
             labels: <IssueLabel>[],
             repo: Config.engineSlug.name,
           );
-          final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
+          final List<Target> presubmitTargets =
+              await scheduler.getPresubmitTargets(enginePr);
           expect(
             presubmitTargets.map((Target target) => target.value.name).toList(),
             (<String>[
@@ -1821,7 +1995,8 @@ targets:
         });
         expect(
           scheduler.getPresubmitTargets(generatePullRequest(branch: branch)),
-          throwsA(predicate((Exception e) => e.toString().contains('$branch is not enabled'))),
+          throwsA(predicate((Exception e) =>
+              e.toString().contains('$branch is not enabled'))),
         );
       });
 
@@ -1844,14 +2019,16 @@ targets:
           }
           throw Exception('Failed to find ${request.url.path}');
         });
-        final List<Target> targets = await scheduler.getPresubmitTargets(generatePullRequest(branch: branch));
+        final List<Target> targets = await scheduler
+            .getPresubmitTargets(generatePullRequest(branch: branch));
         expect(targets.single.value.name, 'Linux A');
       });
 
       test('triggers expected presubmit build checks', () async {
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
-          verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
+          verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny,
+                  output: captureAnyNamed('output')))
               .captured,
           <Object?>[
             Config.kMergeQueueLockName,
@@ -1862,7 +2039,8 @@ targets:
             Config.kCiYamlCheckName,
             const CheckRunOutput(
               title: Config.kCiYamlCheckName,
-              summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
+              summary:
+                  'If this check is stuck pending, push an empty commit to retrigger the checks',
             ),
             'Linux A',
             null,
@@ -1878,9 +2056,11 @@ targets:
 
         releasePullRequest.user = User(login: 'auto-submit[bot]');
 
-        await scheduler.triggerPresubmitTargets(pullRequest: releasePullRequest);
+        await scheduler.triggerPresubmitTargets(
+            pullRequest: releasePullRequest);
         expect(
-          verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
+          verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny,
+                  output: captureAnyNamed('output')))
               .captured,
           <Object?>[
             Config.kMergeQueueLockName,
@@ -1892,7 +2072,8 @@ targets:
             // No other targets should be created.
             const CheckRunOutput(
               title: Config.kCiYamlCheckName,
-              summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
+              summary:
+                  'If this check is stuck pending, push an empty commit to retrigger the checks',
             ),
           ],
         );
@@ -1907,7 +2088,8 @@ targets:
 
         releasePullRequest.user = User(login: 'auto-submit[bot]');
 
-        await scheduler.triggerPresubmitTargets(pullRequest: releasePullRequest);
+        await scheduler.triggerPresubmitTargets(
+            pullRequest: releasePullRequest);
         expect(
           verify(
             mockGithubChecksUtil.updateCheckRun(
@@ -1930,7 +2112,9 @@ targets:
         );
       });
 
-      test('filters out presubmit targets that do not exist in main and do not filter targets not in main', () async {
+      test(
+          'filters out presubmit targets that do not exist in main and do not filter targets not in main',
+          () async {
         const String singleCiYaml = r'''
 enabled_branches:
   - master
@@ -1975,7 +2159,11 @@ targets:
           config: config,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           buildStatusProvider: (_, __) => buildStatusService,
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
             config: config,
@@ -1997,12 +2185,14 @@ targets:
         );
       });
 
-      test('triggers all presubmit build checks when diff cannot be found', () async {
+      test('triggers all presubmit build checks when diff cannot be found',
+          () async {
         final MockGithubService mockGithubService = MockGithubService();
-        when(mockGithubService.listFiles(pullRequest))
-            .thenThrow(GitHubError(GitHub(), 'Requested Resource was Not Found'));
-        buildStatusService =
-            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
+        getFilesChanged.cannedFiles = null;
+        buildStatusService = FakeBuildStatusService(
+            commitStatuses: <CommitStatus>[
+              CommitStatus(generateCommit(1), const <Stage>[])
+            ]);
         scheduler = Scheduler(
           cache: cache,
           config: FakeConfig(
@@ -2014,7 +2204,11 @@ targets:
           ),
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
             config: config,
@@ -2025,7 +2219,8 @@ targets:
         );
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
-          verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
+          verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny,
+                  output: captureAnyNamed('output')))
               .captured,
           <Object?>[
             Config.kMergeQueueLockName,
@@ -2036,7 +2231,8 @@ targets:
             Config.kCiYamlCheckName,
             const CheckRunOutput(
               title: Config.kCiYamlCheckName,
-              summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
+              summary:
+                  'If this check is stuck pending, push an empty commit to retrigger the checks',
             ),
             'Linux A',
             null,
@@ -2047,13 +2243,16 @@ targets:
         );
       });
 
-      test('triggers all presubmit targets on release branch pull request', () async {
+      test('triggers all presubmit targets on release branch pull request',
+          () async {
         final PullRequest releasePullRequest = generatePullRequest(
           branch: 'flutter-1.24-candidate.1',
         );
-        await scheduler.triggerPresubmitTargets(pullRequest: releasePullRequest);
+        await scheduler.triggerPresubmitTargets(
+            pullRequest: releasePullRequest);
         expect(
-          verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
+          verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny,
+                  output: captureAnyNamed('output')))
               .captured,
           <Object?>[
             Config.kMergeQueueLockName,
@@ -2064,7 +2263,8 @@ targets:
             Config.kCiYamlCheckName,
             const CheckRunOutput(
               title: Config.kCiYamlCheckName,
-              summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
+              summary:
+                  'If this check is stuck pending, push an empty commit to retrigger the checks',
             ),
             'Linux A',
             null,
@@ -2106,7 +2306,8 @@ targets:
           throw Exception('Failed to find ${request.url.path}');
         });
 
-        final capturedUpdates = <(String, CheckRunStatus, CheckRunConclusion)>[];
+        final capturedUpdates =
+            <(String, CheckRunStatus, CheckRunConclusion)>[];
 
         when(
           mockGithubChecksUtil.updateCheckRun(
@@ -2148,7 +2349,8 @@ targets:
       });
 
       test('ci.yaml validation fails on not enabled branch', () async {
-        final PullRequest pullRequest = generatePullRequest(branch: 'not-valid');
+        final PullRequest pullRequest =
+            generatePullRequest(branch: 'not-valid');
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
           verify(
@@ -2170,7 +2372,8 @@ targets:
         );
       });
 
-      test('ci.yaml validation fails with config with unknown dependencies', () async {
+      test('ci.yaml validation fails with config with unknown dependencies',
+          () async {
         httpClient = MockClient((http.Request request) async {
           if (request.url.path.contains('.ci.yaml')) {
             return http.Response(
@@ -2206,14 +2409,20 @@ targets:
 
       test('retries only triggers failed builds only', () async {
         final MockBuildBucketClient mockBuildbucket = MockBuildBucketClient();
-        buildStatusService =
-            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
+        buildStatusService = FakeBuildStatusService(
+            commitStatuses: <CommitStatus>[
+              CommitStatus(generateCommit(1), const <Stage>[])
+            ]);
         final FakePubSub pubsub = FakePubSub();
         scheduler = Scheduler(
           cache: cache,
           config: config,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           buildStatusProvider: (_, __) => buildStatusService,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
@@ -2231,11 +2440,22 @@ targets:
               bbv2.BatchResponse_Response(
                 searchBuilds: bbv2.SearchBuildsResponse(
                   builds: <bbv2.Build>[
-                    generateBbv2Build(Int64(1000), name: 'Linux', bucket: 'try'),
-                    generateBbv2Build(Int64(2000), name: 'Linux Coverage', bucket: 'try'),
-                    generateBbv2Build(Int64(3000), name: 'Mac', bucket: 'try', status: bbv2.Status.SCHEDULED),
-                    generateBbv2Build(Int64(4000), name: 'Windows', bucket: 'try', status: bbv2.Status.STARTED),
-                    generateBbv2Build(Int64(5000), name: 'Linux A', bucket: 'try', status: bbv2.Status.FAILURE),
+                    generateBbv2Build(Int64(1000),
+                        name: 'Linux', bucket: 'try'),
+                    generateBbv2Build(Int64(2000),
+                        name: 'Linux Coverage', bucket: 'try'),
+                    generateBbv2Build(Int64(3000),
+                        name: 'Mac',
+                        bucket: 'try',
+                        status: bbv2.Status.SCHEDULED),
+                    generateBbv2Build(Int64(4000),
+                        name: 'Windows',
+                        bucket: 'try',
+                        status: bbv2.Status.STARTED),
+                    generateBbv2Build(Int64(5000),
+                        name: 'Linux A',
+                        bucket: 'try',
+                        status: bbv2.Status.FAILURE),
                   ],
                 ),
               ),
@@ -2243,49 +2463,62 @@ targets:
           ),
         );
         when(mockBuildbucket.scheduleBuild(any)).thenAnswer(
-          (_) async => generateBbv2Build(Int64(5001), name: 'Linux A', bucket: 'try', status: bbv2.Status.SCHEDULED),
+          (_) async => generateBbv2Build(Int64(5001),
+              name: 'Linux A', bucket: 'try', status: bbv2.Status.SCHEDULED),
         );
         // Only Linux A should be retried
         final Map<String, CheckRun> checkRuns = <String, CheckRun>{
           'Linux': createCheckRun(name: 'Linux', id: 100),
           'Linux Coverage': createCheckRun(name: 'Linux Coverage', id: 200),
-          'Mac': createCheckRun(name: 'Mac', id: 300, status: CheckRunStatus.queued),
-          'Windows': createCheckRun(name: 'Windows', id: 400, status: CheckRunStatus.inProgress),
+          'Mac': createCheckRun(
+              name: 'Mac', id: 300, status: CheckRunStatus.queued),
+          'Windows': createCheckRun(
+              name: 'Windows', id: 400, status: CheckRunStatus.inProgress),
           'Linux A': createCheckRun(name: 'Linux A', id: 500),
         };
         when(mockGithubChecksUtil.allCheckRuns(any, any)).thenAnswer((_) async {
           return checkRuns;
         });
 
-        final CheckSuiteEvent checkSuiteEvent =
-            CheckSuiteEvent.fromJson(jsonDecode(checkSuiteTemplate('rerequested')) as Map<String, dynamic>);
+        final CheckSuiteEvent checkSuiteEvent = CheckSuiteEvent.fromJson(
+            jsonDecode(checkSuiteTemplate('rerequested'))
+                as Map<String, dynamic>);
         await scheduler.retryPresubmitTargets(
           pullRequest: pullRequest,
           checkSuiteEvent: checkSuiteEvent,
         );
 
         expect(pubsub.messages.length, 1);
-        final bbv2.BatchRequest batchRequest = bbv2.BatchRequest().createEmptyInstance();
+        final bbv2.BatchRequest batchRequest =
+            bbv2.BatchRequest().createEmptyInstance();
         batchRequest.mergeFromProto3Json(pubsub.messages.single);
         expect(batchRequest.requests.length, 1);
         // Schedule build should have been sent
         expect(batchRequest.requests.single.scheduleBuild, isNotNull);
-        final bbv2.ScheduleBuildRequest scheduleBuildRequest = batchRequest.requests.single.scheduleBuild;
+        final bbv2.ScheduleBuildRequest scheduleBuildRequest =
+            batchRequest.requests.single.scheduleBuild;
         // Verify expected parameters to schedule build
         expect(scheduleBuildRequest.builder.builder, 'Linux A');
-        expect(scheduleBuildRequest.properties.fields['custom']?.stringValue, 'abc');
+        expect(scheduleBuildRequest.properties.fields['custom']?.stringValue,
+            'abc');
       });
 
       test('pass github_build_label to properties', () async {
         final MockBuildBucketClient mockBuildbucket = MockBuildBucketClient();
-        buildStatusService =
-            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
+        buildStatusService = FakeBuildStatusService(
+            commitStatuses: <CommitStatus>[
+              CommitStatus(generateCommit(1), const <Stage>[])
+            ]);
         final FakePubSub pubsub = FakePubSub();
         scheduler = Scheduler(
           cache: cache,
           config: config,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           buildStatusProvider: (_, __) => buildStatusService,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
@@ -2303,11 +2536,22 @@ targets:
               bbv2.BatchResponse_Response(
                 searchBuilds: bbv2.SearchBuildsResponse(
                   builds: <bbv2.Build>[
-                    generateBbv2Build(Int64(1000), name: 'Linux', bucket: 'try'),
-                    generateBbv2Build(Int64(2000), name: 'Linux Coverage', bucket: 'try'),
-                    generateBbv2Build(Int64(3000), name: 'Mac', bucket: 'try', status: bbv2.Status.SCHEDULED),
-                    generateBbv2Build(Int64(4000), name: 'Windows', bucket: 'try', status: bbv2.Status.STARTED),
-                    generateBbv2Build(Int64(5000), name: 'Linux A', bucket: 'try', status: bbv2.Status.FAILURE),
+                    generateBbv2Build(Int64(1000),
+                        name: 'Linux', bucket: 'try'),
+                    generateBbv2Build(Int64(2000),
+                        name: 'Linux Coverage', bucket: 'try'),
+                    generateBbv2Build(Int64(3000),
+                        name: 'Mac',
+                        bucket: 'try',
+                        status: bbv2.Status.SCHEDULED),
+                    generateBbv2Build(Int64(4000),
+                        name: 'Windows',
+                        bucket: 'try',
+                        status: bbv2.Status.STARTED),
+                    generateBbv2Build(Int64(5000),
+                        name: 'Linux A',
+                        bucket: 'try',
+                        status: bbv2.Status.FAILURE),
                   ],
                 ),
               ),
@@ -2315,61 +2559,86 @@ targets:
           ),
         );
         when(mockBuildbucket.scheduleBuild(any)).thenAnswer(
-          (_) async => generateBbv2Build(Int64(5001), name: 'Linux A', bucket: 'try', status: bbv2.Status.SCHEDULED),
+          (_) async => generateBbv2Build(Int64(5001),
+              name: 'Linux A', bucket: 'try', status: bbv2.Status.SCHEDULED),
         );
         // Only Linux A should be retried
         final Map<String, CheckRun> checkRuns = <String, CheckRun>{
           'Linux': createCheckRun(name: 'Linux', id: 100),
           'Linux Coverage': createCheckRun(name: 'Linux Coverage', id: 200),
-          'Mac': createCheckRun(name: 'Mac', id: 300, status: CheckRunStatus.queued),
-          'Windows': createCheckRun(name: 'Windows', id: 400, status: CheckRunStatus.inProgress),
+          'Mac': createCheckRun(
+              name: 'Mac', id: 300, status: CheckRunStatus.queued),
+          'Windows': createCheckRun(
+              name: 'Windows', id: 400, status: CheckRunStatus.inProgress),
           'Linux A': createCheckRun(name: 'Linux A', id: 500),
         };
         when(mockGithubChecksUtil.allCheckRuns(any, any)).thenAnswer((_) async {
           return checkRuns;
         });
 
-        final CheckSuiteEvent checkSuiteEvent =
-            CheckSuiteEvent.fromJson(jsonDecode(checkSuiteTemplate('rerequested')) as Map<String, dynamic>);
+        final CheckSuiteEvent checkSuiteEvent = CheckSuiteEvent.fromJson(
+            jsonDecode(checkSuiteTemplate('rerequested'))
+                as Map<String, dynamic>);
         await scheduler.retryPresubmitTargets(
           pullRequest: pullRequest,
           checkSuiteEvent: checkSuiteEvent,
         );
 
         expect(pubsub.messages.length, 1);
-        final bbv2.BatchRequest batchRequest = bbv2.BatchRequest().createEmptyInstance();
+        final bbv2.BatchRequest batchRequest =
+            bbv2.BatchRequest().createEmptyInstance();
         batchRequest.mergeFromProto3Json(pubsub.messages.single);
         expect(batchRequest.requests.length, 1);
         // Schedule build should have been sent
         expect(batchRequest.requests.single.scheduleBuild, isNotNull);
-        final bbv2.ScheduleBuildRequest scheduleBuildRequest = batchRequest.requests.single.scheduleBuild;
+        final bbv2.ScheduleBuildRequest scheduleBuildRequest =
+            batchRequest.requests.single.scheduleBuild;
         // Verify expected parameters to schedule build
         expect(scheduleBuildRequest.builder.builder, 'Linux A');
-        expect(scheduleBuildRequest.properties.fields['custom']?.stringValue, 'abc');
+        expect(scheduleBuildRequest.properties.fields['custom']?.stringValue,
+            'abc');
       });
 
       test('triggers only specificed targets', () async {
-        final List<Target> presubmitTargets = <Target>[generateTarget(1), generateTarget(2)];
-        final List<Target> presubmitTriggerTargets = scheduler.filterTargets(presubmitTargets, <String>['Linux 1']);
+        final List<Target> presubmitTargets = <Target>[
+          generateTarget(1),
+          generateTarget(2)
+        ];
+        final List<Target> presubmitTriggerTargets =
+            scheduler.filterTargets(presubmitTargets, <String>['Linux 1']);
         expect(presubmitTriggerTargets.length, 1);
       });
 
-      test('triggers all presubmit targets when trigger list is null', () async {
-        final List<Target> presubmitTargets = <Target>[generateTarget(1), generateTarget(2)];
-        final List<Target> presubmitTriggerTargets = scheduler.filterTargets(presubmitTargets, null);
-        expect(presubmitTriggerTargets.length, 2);
-      });
-
-      test('triggers all presubmit targets when trigger list is empty', () async {
-        final List<Target> presubmitTargets = <Target>[generateTarget(1), generateTarget(2)];
-        final List<Target> presubmitTriggerTargets = scheduler.filterTargets(presubmitTargets, <String>[]);
-        expect(presubmitTriggerTargets.length, 2);
-      });
-
-      test('triggers only targets that are contained in the trigger list', () async {
-        final List<Target> presubmitTargets = <Target>[generateTarget(1), generateTarget(2)];
+      test('triggers all presubmit targets when trigger list is null',
+          () async {
+        final List<Target> presubmitTargets = <Target>[
+          generateTarget(1),
+          generateTarget(2)
+        ];
         final List<Target> presubmitTriggerTargets =
-            scheduler.filterTargets(presubmitTargets, <String>['Linux 1', 'Linux 3']);
+            scheduler.filterTargets(presubmitTargets, null);
+        expect(presubmitTriggerTargets.length, 2);
+      });
+
+      test('triggers all presubmit targets when trigger list is empty',
+          () async {
+        final List<Target> presubmitTargets = <Target>[
+          generateTarget(1),
+          generateTarget(2)
+        ];
+        final List<Target> presubmitTriggerTargets =
+            scheduler.filterTargets(presubmitTargets, <String>[]);
+        expect(presubmitTriggerTargets.length, 2);
+      });
+
+      test('triggers only targets that are contained in the trigger list',
+          () async {
+        final List<Target> presubmitTargets = <Target>[
+          generateTarget(1),
+          generateTarget(2)
+        ];
+        final List<Target> presubmitTriggerTargets = scheduler
+            .filterTargets(presubmitTargets, <String>['Linux 1', 'Linux 3']);
         expect(presubmitTriggerTargets.length, 1);
         expect(presubmitTargets[0].value.name, 'Linux 1');
       });
@@ -2384,21 +2653,25 @@ targets:
           throw Exception('Failed to find ${request.url.path}');
         });
         final luci = MockLuciBuildService();
-        when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
+        when(luci.scheduleTryBuilds(
+                targets: anyNamed('targets'),
+                pullRequest: anyNamed('pullRequest')))
             .thenAnswer((inv) async {
           return [];
         });
         final MockGithubService mockGithubService = MockGithubService();
         final checkRuns = <CheckRun>[];
-        when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
+        when(mockGithubChecksUtil.createCheckRun(any, any, any, any,
+                output: anyNamed('output')))
             .thenAnswer((inv) async {
           final slug = inv.positionalArguments[1] as RepositorySlug;
           final sha = inv.positionalArguments[2];
           final name = inv.positionalArguments[3];
-          checkRuns.add(createCheckRun(id: 1, owner: slug.owner, repo: slug.name, sha: sha, name: name));
+          checkRuns.add(createCheckRun(
+              id: 1, owner: slug.owner, repo: slug.name, sha: sha, name: name));
           return checkRuns.last;
         });
-        when(mockGithubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+        getFilesChanged.cannedFiles = ['abc/def'];
 
         fakeFusion.isFusion = (_, __) => true;
 
@@ -2424,20 +2697,26 @@ targets:
           ),
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: luci,
           fusionTester: fakeFusion,
           initializeCiStagingDocument: callbacks.initializeDocument,
         );
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
-        final results =
-            verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
-                .captured;
+        final results = verify(mockGithubChecksUtil.createCheckRun(
+                any, any, any, captureAny,
+                output: captureAnyNamed('output')))
+            .captured;
         stdout.writeAll(results);
 
-        final result =
-            verify(luci.scheduleTryBuilds(targets: captureAnyNamed('targets'), pullRequest: anyNamed('pullRequest')));
+        final result = verify(luci.scheduleTryBuilds(
+            targets: captureAnyNamed('targets'),
+            pullRequest: anyNamed('pullRequest')));
         expect(result.callCount, 1);
         final captured = result.captured;
         expect(captured[0], hasLength(1));
@@ -2451,7 +2730,8 @@ targets:
             Config.flutterSlug,
             checkRuns[1],
             status: argThat(equals(CheckRunStatus.completed), named: 'status'),
-            conclusion: argThat(equals(CheckRunConclusion.success), named: 'conclusion'),
+            conclusion: argThat(equals(CheckRunConclusion.success),
+                named: 'conclusion'),
             output: anyNamed('output'),
           ),
         ).called(1);
@@ -2489,28 +2769,33 @@ targets:
           throw Exception('Failed to find ${request.url.path}');
         });
         final luci = MockLuciBuildService();
-        when(luci.getAvailableBuilderSet(project: anyNamed('project'), bucket: anyNamed('bucket')))
+        when(luci.getAvailableBuilderSet(
+                project: anyNamed('project'), bucket: anyNamed('bucket')))
             .thenAnswer((inv) async {
           return {
             'Mac engine_build',
             'Linux engine_build',
           };
         });
-        when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
+        when(luci.scheduleTryBuilds(
+                targets: anyNamed('targets'),
+                pullRequest: anyNamed('pullRequest')))
             .thenAnswer((inv) async {
           return [];
         });
         final MockGithubService mockGithubService = MockGithubService();
         final checkRuns = <CheckRun>[];
-        when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
+        when(mockGithubChecksUtil.createCheckRun(any, any, any, any,
+                output: anyNamed('output')))
             .thenAnswer((inv) async {
           final slug = inv.positionalArguments[1] as RepositorySlug;
           final sha = inv.positionalArguments[2];
           final name = inv.positionalArguments[3];
-          checkRuns.add(createCheckRun(id: 1, owner: slug.owner, repo: slug.name, sha: sha, name: name));
+          checkRuns.add(createCheckRun(
+              id: 1, owner: slug.owner, repo: slug.name, sha: sha, name: name));
           return checkRuns.last;
         });
-        when(mockGithubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+        getFilesChanged.cannedFiles = ['abc/def'];
 
         fakeFusion.isFusion = (_, __) => true;
 
@@ -2536,7 +2821,11 @@ targets:
           ),
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: luci,
           fusionTester: fakeFusion,
@@ -2553,14 +2842,17 @@ targets:
           ),
         );
 
-        await scheduler.triggerMergeGroupTargets(mergeGroupEvent: mergeGroupEvent);
+        await scheduler.triggerMergeGroupTargets(
+            mergeGroupEvent: mergeGroupEvent);
         verify(
           callbacks.initializeDocument(
             firestoreService: anyNamed('firestoreService'),
             slug: anyNamed('slug'),
-            sha: argThat(equals('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf'), named: 'sha'),
+            sha: argThat(equals('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf'),
+                named: 'sha'),
             stage: anyNamed('stage'),
-            tasks: argThat(equals(['Linux engine_build', 'Mac engine_build']), named: 'tasks'),
+            tasks: argThat(equals(['Linux engine_build', 'Mac engine_build']),
+                named: 'tasks'),
             checkRunGuard: anyNamed('checkRunGuard'),
           ),
         ).called(1);
@@ -2571,12 +2863,14 @@ targets:
           ),
         ).called(1);
 
-        verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
+        verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny,
+                output: captureAnyNamed('output')))
             .called(1);
-        final result =
-            verify(luci.scheduleMergeGroupBuilds(targets: captureAnyNamed('targets'), commit: anyNamed('commit')));
+        final result = verify(luci.scheduleMergeGroupBuilds(
+            targets: captureAnyNamed('targets'), commit: anyNamed('commit')));
         expect(result.callCount, 1);
-        expect(result.captured[0].map((target) => target.value.name), ['Linux engine_build', 'Mac engine_build']);
+        expect(result.captured[0].map((target) => target.value.name),
+            ['Linux engine_build', 'Mac engine_build']);
 
         expect(checkRuns, hasLength(1));
         verifyNever(
@@ -2601,27 +2895,32 @@ targets:
           throw Exception('Failed to find ${request.url.path}');
         });
         final luci = MockLuciBuildService();
-        when(luci.getAvailableBuilderSet(project: anyNamed('project'), bucket: anyNamed('bucket')))
+        when(luci.getAvailableBuilderSet(
+                project: anyNamed('project'), bucket: anyNamed('bucket')))
             .thenAnswer((inv) async {
           return {
             'Mac engine_build',
           };
         });
-        when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
+        when(luci.scheduleTryBuilds(
+                targets: anyNamed('targets'),
+                pullRequest: anyNamed('pullRequest')))
             .thenAnswer((inv) async {
           return [];
         });
         final MockGithubService mockGithubService = MockGithubService();
         final checkRuns = <CheckRun>[];
-        when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
+        when(mockGithubChecksUtil.createCheckRun(any, any, any, any,
+                output: anyNamed('output')))
             .thenAnswer((inv) async {
           final slug = inv.positionalArguments[1] as RepositorySlug;
           final sha = inv.positionalArguments[2];
           final name = inv.positionalArguments[3];
-          checkRuns.add(createCheckRun(id: 1, owner: slug.owner, repo: slug.name, sha: sha, name: name));
+          checkRuns.add(createCheckRun(
+              id: 1, owner: slug.owner, repo: slug.name, sha: sha, name: name));
           return checkRuns.last;
         });
-        when(mockGithubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+        getFilesChanged.cannedFiles = ['abc/def'];
 
         fakeFusion.isFusion = (_, __) => true;
         when(
@@ -2646,7 +2945,11 @@ targets:
           ),
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: luci,
           fusionTester: fakeFusion,
@@ -2663,23 +2966,27 @@ targets:
           ),
         );
 
-        await scheduler.triggerMergeGroupTargets(mergeGroupEvent: mergeGroupEvent);
+        await scheduler.triggerMergeGroupTargets(
+            mergeGroupEvent: mergeGroupEvent);
         verify(
           callbacks.initializeDocument(
             firestoreService: anyNamed('firestoreService'),
             slug: anyNamed('slug'),
-            sha: argThat(equals('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf'), named: 'sha'),
+            sha: argThat(equals('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf'),
+                named: 'sha'),
             stage: anyNamed('stage'),
             tasks: argThat(equals(['Mac engine_build']), named: 'tasks'),
             checkRunGuard: anyNamed('checkRunGuard'),
           ),
         ).called(1);
-        verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
+        verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny,
+                output: captureAnyNamed('output')))
             .called(1);
-        final result =
-            verify(luci.scheduleMergeGroupBuilds(targets: captureAnyNamed('targets'), commit: anyNamed('commit')));
+        final result = verify(luci.scheduleMergeGroupBuilds(
+            targets: captureAnyNamed('targets'), commit: anyNamed('commit')));
         expect(result.callCount, 1);
-        expect(result.captured[0].map((target) => target.value.name), ['Mac engine_build']);
+        expect(result.captured[0].map((target) => target.value.name),
+            ['Mac engine_build']);
 
         expect(checkRuns, hasLength(1));
         verifyNever(
@@ -2704,7 +3011,8 @@ targets:
           throw Exception('Failed to find ${request.url.path}');
         });
         final luci = MockLuciBuildService();
-        when(luci.getAvailableBuilderSet(project: anyNamed('project'), bucket: anyNamed('bucket')))
+        when(luci.getAvailableBuilderSet(
+                project: anyNamed('project'), bucket: anyNamed('bucket')))
             .thenAnswer((inv) async {
           return {
             'Mac engine_build',
@@ -2722,15 +3030,17 @@ targets:
 
         final MockGithubService mockGithubService = MockGithubService();
         final checkRuns = <CheckRun>[];
-        when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
+        when(mockGithubChecksUtil.createCheckRun(any, any, any, any,
+                output: anyNamed('output')))
             .thenAnswer((inv) async {
           final slug = inv.positionalArguments[1] as RepositorySlug;
           final sha = inv.positionalArguments[2];
           final name = inv.positionalArguments[3];
-          checkRuns.add(createCheckRun(id: 1, owner: slug.owner, repo: slug.name, sha: sha, name: name));
+          checkRuns.add(createCheckRun(
+              id: 1, owner: slug.owner, repo: slug.name, sha: sha, name: name));
           return checkRuns.last;
         });
-        when(mockGithubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+        getFilesChanged.cannedFiles = ['abc/def'];
 
         fakeFusion.isFusion = (_, __) => true;
 
@@ -2756,7 +3066,11 @@ targets:
           ),
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: luci,
           fusionTester: fakeFusion,
@@ -2773,14 +3087,17 @@ targets:
           ),
         );
 
-        await scheduler.triggerMergeGroupTargets(mergeGroupEvent: mergeGroupEvent);
+        await scheduler.triggerMergeGroupTargets(
+            mergeGroupEvent: mergeGroupEvent);
         verify(
           callbacks.initializeDocument(
             firestoreService: anyNamed('firestoreService'),
             slug: anyNamed('slug'),
-            sha: argThat(equals('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf'), named: 'sha'),
+            sha: argThat(equals('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf'),
+                named: 'sha'),
             stage: anyNamed('stage'),
-            tasks: argThat(equals(['Linux engine_build', 'Mac engine_build']), named: 'tasks'),
+            tasks: argThat(equals(['Linux engine_build', 'Mac engine_build']),
+                named: 'tasks'),
             checkRunGuard: anyNamed('checkRunGuard'),
           ),
         ).called(1);
@@ -2791,12 +3108,14 @@ targets:
           ),
         ).called(1);
 
-        verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
+        verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny,
+                output: captureAnyNamed('output')))
             .called(1);
-        final result =
-            verify(luci.scheduleMergeGroupBuilds(targets: captureAnyNamed('targets'), commit: anyNamed('commit')));
+        final result = verify(luci.scheduleMergeGroupBuilds(
+            targets: captureAnyNamed('targets'), commit: anyNamed('commit')));
         expect(result.callCount, 1);
-        expect(result.captured[0].map((target) => target.value.name), ['Linux engine_build', 'Mac engine_build']);
+        expect(result.captured[0].map((target) => target.value.name),
+            ['Linux engine_build', 'Mac engine_build']);
 
         expect(checkRuns, hasLength(1));
 

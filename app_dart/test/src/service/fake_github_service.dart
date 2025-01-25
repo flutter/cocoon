@@ -36,7 +36,8 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<List<PullRequest>> listPullRequests(RepositorySlug slug, String? branch) async {
+  Future<List<PullRequest>> listPullRequests(
+      RepositorySlug slug, String? branch) async {
     return listPullRequestsBranch(branch);
   }
 
@@ -49,16 +50,19 @@ class FakeGithubService implements GithubService {
     return <IssueLabel>[];
   }
 
-  final List<(RepositorySlug slug, int issueNumber, String label)> removedLabels = [];
+  final List<(RepositorySlug slug, int issueNumber, String label)>
+      removedLabels = [];
 
   @override
-  Future<bool> removeLabel(RepositorySlug slug, int issueNumber, String label) async {
+  Future<bool> removeLabel(
+      RepositorySlug slug, int issueNumber, String label) async {
     removedLabels.add(((slug, issueNumber, label)));
     return true;
   }
 
   @override
-  Future<void> assignReviewer(RepositorySlug slug, {int? pullRequestNumber, String? reviewer}) async {}
+  Future<void> assignReviewer(RepositorySlug slug,
+      {int? pullRequestNumber, String? reviewer}) async {}
 
   @override
   Future<Issue> createIssue(
@@ -93,12 +97,16 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<String> getFileContent(RepositorySlug slug, String path, {String? ref}) async {
+  Future<String> getFileContent(RepositorySlug slug, String path,
+      {String? ref}) async {
     return GithubService(github).getFileContent(slug, path, ref: ref);
   }
 
   @override
-  Future<List<String>> listFiles(PullRequest pullRequest) async {
+  Future<List<String>> listFiles(
+    RepositorySlug slug,
+    int pullRequestNumber,
+  ) async {
     return <String>['abc/def'];
   }
 
@@ -108,7 +116,8 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<List<IssueLabel>> getIssueLabels(RepositorySlug slug, int issueNumber) {
+  Future<List<IssueLabel>> getIssueLabels(
+      RepositorySlug slug, int issueNumber) {
     return Future.value(<IssueLabel>[IssueLabel(name: 'override: test')]);
   }
 

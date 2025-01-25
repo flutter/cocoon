@@ -10,6 +10,7 @@ import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/model/appengine/cocoon_config.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:gcloud/db.dart';
 
 import '../test/src/datastore/fake_datastore.dart';
@@ -17,14 +18,20 @@ import '../test/src/datastore/fake_datastore.dart';
 Future<void> main() async {
   final CacheService cache = CacheService(inMemory: false);
   final DatastoreDB dbService = FakeDatastoreDB();
-  final DatastoreService datastoreService = DatastoreService(dbService, defaultMaxEntityGroups);
+  final DatastoreService datastoreService =
+      DatastoreService(dbService, defaultMaxEntityGroups);
   await datastoreService.insert(<CocoonConfig>[
-    CocoonConfig.fake(dbService.emptyKey.append(CocoonConfig, id: 'WebhookKey'), 'fake-secret'),
-    CocoonConfig.fake(dbService.emptyKey.append(CocoonConfig, id: 'FrobWebhookKey'), 'fake-secret'),
+    CocoonConfig.fake(dbService.emptyKey.append(CocoonConfig, id: 'WebhookKey'),
+        'fake-secret'),
+    CocoonConfig.fake(
+        dbService.emptyKey.append(CocoonConfig, id: 'FrobWebhookKey'),
+        'fake-secret'),
   ]);
   final Config config = Config(dbService, cache);
-  final AuthenticationProvider authProvider = AuthenticationProvider(config: config);
-  final AuthenticationProvider swarmingAuthProvider = SwarmingAuthenticationProvider(config: config);
+  final AuthenticationProvider authProvider =
+      AuthenticationProvider(config: config);
+  final AuthenticationProvider swarmingAuthProvider =
+      SwarmingAuthenticationProvider(config: config);
 
   final BuildBucketClient buildBucketClient = BuildBucketClient(
     accessTokenService: AccessTokenService.defaultProvider(config),
@@ -54,6 +61,9 @@ Future<void> main() async {
     cache: cache,
     config: config,
     githubChecksService: githubChecksService,
+    getFilesChanged: GithubApiGetFilesChanged(
+      await config.createDefaultGitHubService(),
+    ),
     luciBuildService: luciBuildService,
     fusionTester: fusionTester,
   );

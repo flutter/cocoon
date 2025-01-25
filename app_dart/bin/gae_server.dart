@@ -9,6 +9,7 @@ import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
+import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
@@ -19,8 +20,10 @@ Future<void> main() async {
 
     final CacheService cache = CacheService(inMemory: false);
     final Config config = Config(dbService, cache);
-    final AuthenticationProvider authProvider = AuthenticationProvider(config: config);
-    final AuthenticationProvider swarmingAuthProvider = SwarmingAuthenticationProvider(config: config);
+    final AuthenticationProvider authProvider =
+        AuthenticationProvider(config: config);
+    final AuthenticationProvider swarmingAuthProvider =
+        SwarmingAuthenticationProvider(config: config);
 
     final BuildBucketClient buildBucketClient = BuildBucketClient(
       accessTokenService: AccessTokenService.defaultProvider(config),
@@ -50,6 +53,9 @@ Future<void> main() async {
       cache: cache,
       config: config,
       githubChecksService: githubChecksService,
+      getFilesChanged: GithubApiGetFilesChanged(
+        await config.createDefaultGitHubService(),
+      ),
       luciBuildService: luciBuildService,
       fusionTester: fusionTester,
     );
