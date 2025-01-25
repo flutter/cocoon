@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart';
 

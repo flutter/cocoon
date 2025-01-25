@@ -235,7 +235,7 @@ Future<List<Target>> getTargetsToRun(
   switch (filesChanged) {
     case InconclusiveFilesChanged(:final pullRequestNumber, :final reason):
       log.info('Running all targets on PR#$pullRequestNumber: $reason');
-      return targets.toList();
+      return [...targets];
     case SuccessfulFilesChanged(:final pullRequestNumber, :final filesChanged):
       final targetsToRun = <Target>[];
       for (final target in targets) {
