@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart' as http;
@@ -26,18 +27,25 @@ const String kCiYamlFusionEnginePath = 'engine/src/flutter/$kCiYamlPath';
 const String kTestOwnerPath = 'TESTOWNERS';
 
 /// Attempts to parse the github merge queue branch into its constituent parts to be returned as a record.
-({bool parsed, String branch, int pullRequestNumber}) tryParseGitHubMergeQueueBranch(String branch) {
+({bool parsed, String branch, int pullRequestNumber})
+    tryParseGitHubMergeQueueBranch(String branch) {
   final match = _githubMqBranch.firstMatch(branch);
   if (match == null) {
     return notGitHubMergeQueueBranch;
   }
 
-  return (parsed: true, branch: match.group(1)!, pullRequestNumber: int.parse(match.group(2)!));
+  return (
+    parsed: true,
+    branch: match.group(1)!,
+    pullRequestNumber: int.parse(match.group(2)!)
+  );
 }
 
-const notGitHubMergeQueueBranch = (parsed: false, branch: '', pullRequestNumber: -1);
+const notGitHubMergeQueueBranch =
+    (parsed: false, branch: '', pullRequestNumber: -1);
 
-final _githubMqBranch = RegExp(r'^gh-readonly-queue\/([^/]+)\/pr-(\d+)-([a-fA-F0-9]+)$');
+final _githubMqBranch =
+    RegExp(r'^gh-readonly-queue\/([^/]+)\/pr-(\d+)-([a-fA-F0-9]+)$');
 
 /// Signature for a function that calculates the backoff duration to wait in
 /// between requests when GitHub responds with an error.
@@ -77,7 +85,8 @@ class FusionTester {
       log.info('isFusionRef: cache hit for $cacheKey = $cacheHit');
       return cacheHit;
     }
-    final isFusion = _isFusionMap[cacheKey] = await _isFusionBasedRefReal(slug, sha, timeout, retryOptions);
+    final isFusion = _isFusionMap[cacheKey] =
+        await _isFusionBasedRefReal(slug, sha, timeout, retryOptions);
     return isFusion;
   }
 
@@ -132,7 +141,8 @@ class FusionTester {
 }
 
 const _githubTimeout = Duration(seconds: 5);
-const _githubRetryOptions = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 3));
+const _githubRetryOptions =
+    RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 3));
 
 /// Get content of [filePath] from GitHub CDN.
 Future<String> githubFileContent(
@@ -143,7 +153,8 @@ Future<String> githubFileContent(
   Duration timeout = _githubTimeout,
   RetryOptions retryOptions = _githubRetryOptions,
 }) async {
-  final Uri githubUrl = Uri.https('raw.githubusercontent.com', '${slug.fullName}/$ref/$filePath');
+  final Uri githubUrl =
+      Uri.https('raw.githubusercontent.com', '${slug.fullName}/$ref/$filePath');
   // git-on-borg has a different path for shas and refs to github
   final String gobRef = (ref.length < 40) ? 'refs/heads/$ref' : ref;
   final Uri gobUrl = Uri.https(
@@ -156,7 +167,8 @@ Future<String> githubFileContent(
   late String content;
   try {
     await retryOptions.retry(
-      () async => content = await getUrl(githubUrl, httpClientProvider, timeout: timeout),
+      () async => content =
+          await getUrl(githubUrl, httpClientProvider, timeout: timeout),
       retryIf: (Exception e) => e is HttpException || e is NotFoundException,
     );
   } catch (e) {
@@ -199,13 +211,6 @@ FutureOr<String> getUrl(
   }
 }
 
-/// Expands globs string to a regex for evaluation.
-Future<RegExp> parseGlob(String glob) async {
-  glob = glob.replaceAll('**', '[A-Za-z0-9_/.]+');
-  glob = glob.replaceAll('*', '[A-Za-z0-9_.]+');
-  return RegExp('^$glob\$');
-}
-
 /// Returns a LUCI [builder] list that covers changed [files].
 ///
 /// [builders]: enabled luci builders.
@@ -233,48 +238,48 @@ Future<RegExp> parseGlob(String glob) async {
 /// [file] is based on repo root: `a/b/c.dart`.
 Future<List<Target>> getTargetsToRun(
   Iterable<Target> targets,
-  List<String?> files,
+  FilesChanged filesChanged,
 ) async {
   log.info('Getting targets to run from diff.');
 
-  // TODO(matanlurey): https://github.com/flutter/flutter/issues/161462.
-  //
-  // As currently implemented, the GitHub REST API returns a
-  // maximum of 30 changed files, meaning that if we get 30 files, there is a
-  // good chance *more* file were changed, we just do not know which ones.
-  //
-  // As a result, it's unsafe to filter out targets based on runIf. It actually
-  // might even be unsafe for smaller amounts of files if the patch diffs are
-  // really big, but for now just using the number of files.
-  if (files.length >= 30) {
-    log.info('Skipping runIf evaluation, file length is >= 30.');
-    return targets.toList();
-  }
-
-  final List<Target> targetsToRun = <Target>[];
-  for (Target target in targets) {
-    final List<String> globs = target.value.runIf;
-    // Handle case where [Target] initializes empty runif
-    if (globs.isEmpty) {
-      targetsToRun.add(target);
-    } else {
-      for (String glob in globs) {
-        // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
-        final RegExp regExp = await parseGlob(glob);
-        if (glob.isEmpty || files.any((String? file) => regExp.hasMatch(file!))) {
+  // If we were not able to determine what files were changed run all targets.
+  switch (filesChanged) {
+    case InconclusiveFilesChanged(:final pullRequestNumber, :final reason):
+      log.info('Running all targets on PR#$pullRequestNumber: $reason');
+      return targets.toList();
+    case SuccessfulFilesChanged(:final pullRequestNumber, :final filesChanged):
+      final targetsToRun = <Target>[];
+      for (final target in targets) {
+        final globs = target.value.runIf;
+        // Handle case where [Target] initializes empty runif
+        if (globs.isEmpty) {
           targetsToRun.add(target);
-          break;
+        } else {
+          for (final glob in globs) {
+            // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
+            final regExp = _convertGlobToRegExp(glob);
+            if (glob.isEmpty ||
+                filesChanged.any((file) => regExp.hasMatch(file))) {
+              targetsToRun.add(target);
+              break;
+            }
+          }
         }
       }
-    }
-  }
 
-  log.info('Collected the following targets to run:');
-  for (var target in targetsToRun) {
-    log.info(target.value.name);
-  }
+      log.info(
+        'Running a subset of targets on PR#$pullRequestNumber: ${targetsToRun.join(', ')}',
+      );
 
-  return targetsToRun;
+      return targetsToRun;
+  }
+}
+
+/// Expands globs string to a regex for evaluation.
+RegExp _convertGlobToRegExp(String glob) {
+  glob = glob.replaceAll('**', '[A-Za-z0-9_/.]+');
+  glob = glob.replaceAll('*', '[A-Za-z0-9_.]+');
+  return RegExp('^$glob\$');
 }
 
 Future<void> insertBigquery(
@@ -312,7 +317,8 @@ List<String> validateOwnership(
 }) {
   final List<String> noOwnerBuilders = <String>[];
   final YamlMap? ciYaml = loadYaml(ciYamlContent) as YamlMap?;
-  final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ciYaml);
+  final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()
+    ..mergeFromProto3Json(ciYaml);
 
   final CiYamlSet ciYamlFromProto = CiYamlSet(
     slug: Config.flutterSlug,
@@ -320,7 +326,8 @@ List<String> validateOwnership(
     yamls: {CiType.any: unCheckedSchedulerConfig},
   );
 
-  final pb.SchedulerConfig schedulerConfig = ciYamlFromProto.configFor(CiType.any);
+  final pb.SchedulerConfig schedulerConfig =
+      ciYamlFromProto.configFor(CiType.any);
 
   for (pb.Target target in schedulerConfig.targets) {
     final String builder = target.name;
