@@ -72,8 +72,7 @@ class FakeScheduler extends Scheduler {
   }
 
   @override
-  Future<Commit> generateTotCommit(
-      {required String branch, required RepositorySlug slug}) async {
+  Future<Commit> generateTotCommit({required String branch, required RepositorySlug slug}) async {
     return generateCommit(1);
   }
 
@@ -81,8 +80,7 @@ class FakeScheduler extends Scheduler {
 
   int get cancelPreSubmitTargetsCallCount => cancelPreSubmitTargetsCallCnt;
 
-  void resetCancelPreSubmitTargetsCallCount() =>
-      cancelPreSubmitTargetsCallCnt = 0;
+  void resetCancelPreSubmitTargetsCallCount() => cancelPreSubmitTargetsCallCnt = 0;
 
   @override
   Future<void> cancelPreSubmitTargets({
@@ -97,8 +95,7 @@ class FakeScheduler extends Scheduler {
 
   int get triggerPresubmitTargetsCallCount => triggerPresubmitTargetsCnt;
 
-  void resetTriggerPresubmitTargetsCallCount() =>
-      triggerPresubmitTargetsCnt = 0;
+  void resetTriggerPresubmitTargetsCallCount() => triggerPresubmitTargetsCnt = 0;
 
   @override
   Future<void> triggerPresubmitTargets({

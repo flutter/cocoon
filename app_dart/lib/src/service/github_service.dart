@@ -13,9 +13,7 @@ class GithubService {
   GithubService(this.github);
 
   final GitHub github;
-  static final Map<String, String> headers = <String, String>{
-    'Accept': 'application/vnd.github.groot-preview+json'
-  };
+  static final Map<String, String> headers = <String, String>{'Accept': 'application/vnd.github.groot-preview+json'};
   static const String kRefsPrefix = 'refs/heads/';
 
   /// Return commits unique to [branch] for the repository [slug].
@@ -50,16 +48,12 @@ class GithubService {
       '/repos/${slug.fullName}/commits',
       params: <String, dynamic>{
         'sha': branch,
-        'since': DateTime.fromMillisecondsSinceEpoch(
-                (lastCommitTimestampMills ?? 0) + 1)
-            .toUtc()
-            .toIso8601String(),
+        'since': DateTime.fromMillisecondsSinceEpoch((lastCommitTimestampMills ?? 0) + 1).toUtc().toIso8601String(),
       },
       pages: pages,
       headers: headers,
     )) {
-      commits.addAll((json.decode(response.body) as List<dynamic>)
-          .cast<Map<String, dynamic>>());
+      commits.addAll((json.decode(response.body) as List<dynamic>).cast<Map<String, dynamic>>());
     }
 
     /// When a release branch is first detected only the most recent commit would be needed.
@@ -96,8 +90,7 @@ class GithubService {
   }
 
   /// List pull requests in the repository.
-  Future<List<PullRequest>> listPullRequests(
-      RepositorySlug slug, String? branch) {
+  Future<List<PullRequest>> listPullRequests(RepositorySlug slug, String? branch) {
     ArgumentError.checkNotNull(slug);
     return github.pullRequests
         .list(
@@ -128,11 +121,9 @@ class GithubService {
     ArgumentError.checkNotNull(title);
 
     final RepositorySlug clientSlug = await _getCurrentUserSlug(slug.name);
-    final GitTree tree = await github.git.createTree(
-        clientSlug, CreateGitTree(entries, baseTree: baseRef.object!.sha));
+    final GitTree tree = await github.git.createTree(clientSlug, CreateGitTree(entries, baseTree: baseRef.object!.sha));
     final CurrentUser currentUser = (await _getCurrentUser())!;
-    final GitCommitUser commitUser =
-        GitCommitUser(currentUser.name, currentUser.email, DateTime.now());
+    final GitCommitUser commitUser = GitCommitUser(currentUser.name, currentUser.email, DateTime.now());
     final GitCommit commit = await github.git.createCommit(
       clientSlug,
       CreateGitCommit(
@@ -143,13 +134,11 @@ class GithubService {
         committer: commitUser,
       ),
     );
-    final GitReference headRef = await github.git.createReference(
-        clientSlug, '$kRefsPrefix${_generateNewRef()}', commit.sha);
+    final GitReference headRef =
+        await github.git.createReference(clientSlug, '$kRefsPrefix${_generateNewRef()}', commit.sha);
     return github.pullRequests.create(
       slug,
-      CreatePullRequest(
-          title, '${clientSlug.owner}:${headRef.ref}', baseRef.ref,
-          body: body),
+      CreatePullRequest(title, '${clientSlug.owner}:${headRef.ref}', baseRef.ref, body: body),
     );
   }
 
@@ -172,8 +161,7 @@ class GithubService {
   }
 
   /// Gets label list for an issue.
-  Future<List<IssueLabel>> getIssueLabels(
-      RepositorySlug slug, int issueNumber) async {
+  Future<List<IssueLabel>> getIssueLabels(RepositorySlug slug, int issueNumber) async {
     return github.issues.listLabelsByIssue(slug, issueNumber).toList();
   }
 
@@ -205,9 +193,7 @@ class GithubService {
     String state = 'open',
   }) {
     ArgumentError.checkNotNull(slug);
-    return github.issues
-        .listByRepo(slug, labels: labels, state: state)
-        .toList();
+    return github.issues.listByRepo(slug, labels: labels, state: state).toList();
   }
 
   /// Removes a label from a pull request.
@@ -238,8 +224,7 @@ class GithubService {
     ArgumentError.checkNotNull(slug);
     ArgumentError.checkNotNull(issueNumber);
     ArgumentError.checkNotNull(assignee);
-    await github.issues
-        .edit(slug, issueNumber, IssueRequest(assignee: assignee));
+    await github.issues.edit(slug, issueNumber, IssueRequest(assignee: assignee));
   }
 
   Future<Issue> createIssue(
@@ -252,8 +237,7 @@ class GithubService {
     ArgumentError.checkNotNull(slug);
     return github.issues.create(
       slug,
-      IssueRequest(
-          title: title, body: body, labels: labels, assignee: assignee),
+      IssueRequest(title: title, body: body, labels: labels, assignee: assignee),
     );
   }
 
@@ -280,9 +264,7 @@ class GithubService {
       body: GitHubJson.encode(labels),
     );
     final List<dynamic> body = jsonDecode(response.body) as List<dynamic>;
-    return body
-        .map((dynamic it) => IssueLabel.fromJson(it as Map<String, dynamic>))
-        .toList();
+    return body.map((dynamic it) => IssueLabel.fromJson(it as Map<String, dynamic>)).toList();
   }
 
   /// Returns changed files for a [PullRequest].
@@ -293,24 +275,18 @@ class GithubService {
     RepositorySlug slug,
     int pullRequestNumber,
   ) async =>
-      github.pullRequests
-          .listFiles(slug, pullRequestNumber)
-          .map((file) => file.filename!)
-          .toList();
+      github.pullRequests.listFiles(slug, pullRequestNumber).map((file) => file.filename!).toList();
 
   /// Gets the file content as UTF8 string of the file specified by the `path`
   /// in the repository.
-  Future<String> getFileContent(RepositorySlug slug, String path,
-      {String? ref}) async {
+  Future<String> getFileContent(RepositorySlug slug, String path, {String? ref}) async {
     ArgumentError.checkNotNull(slug);
     ArgumentError.checkNotNull(path);
-    final RepositoryContents contents =
-        await github.repositories.getContents(slug, path, ref: ref);
+    final RepositoryContents contents = await github.repositories.getContents(slug, path, ref: ref);
     if (!contents.isFile) {
       throw 'The path $path should point to a file, but it is not!';
     }
-    final String content = utf8
-        .decode(base64.decode(contents.file!.content!.replaceAll('\n', '')));
+    final String content = utf8.decode(base64.decode(contents.file!.content!.replaceAll('\n', '')));
     return content;
   }
 
@@ -341,11 +317,9 @@ class GithubService {
   }
 
   String _generateNewRef() {
-    const String chars =
-        'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+    const String chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
     final Random rnd = Random();
-    return String.fromCharCodes(Iterable<int>.generate(
-        10, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
+    return String.fromCharCodes(Iterable<int>.generate(10, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
   }
 
   /// Returns a [List] of [Issue]s that match the given [query].

@@ -18,20 +18,14 @@ import '../test/src/datastore/fake_datastore.dart';
 Future<void> main() async {
   final CacheService cache = CacheService(inMemory: false);
   final DatastoreDB dbService = FakeDatastoreDB();
-  final DatastoreService datastoreService =
-      DatastoreService(dbService, defaultMaxEntityGroups);
+  final DatastoreService datastoreService = DatastoreService(dbService, defaultMaxEntityGroups);
   await datastoreService.insert(<CocoonConfig>[
-    CocoonConfig.fake(dbService.emptyKey.append(CocoonConfig, id: 'WebhookKey'),
-        'fake-secret'),
-    CocoonConfig.fake(
-        dbService.emptyKey.append(CocoonConfig, id: 'FrobWebhookKey'),
-        'fake-secret'),
+    CocoonConfig.fake(dbService.emptyKey.append(CocoonConfig, id: 'WebhookKey'), 'fake-secret'),
+    CocoonConfig.fake(dbService.emptyKey.append(CocoonConfig, id: 'FrobWebhookKey'), 'fake-secret'),
   ]);
   final Config config = Config(dbService, cache);
-  final AuthenticationProvider authProvider =
-      AuthenticationProvider(config: config);
-  final AuthenticationProvider swarmingAuthProvider =
-      SwarmingAuthenticationProvider(config: config);
+  final AuthenticationProvider authProvider = AuthenticationProvider(config: config);
+  final AuthenticationProvider swarmingAuthProvider = SwarmingAuthenticationProvider(config: config);
 
   final BuildBucketClient buildBucketClient = BuildBucketClient(
     accessTokenService: AccessTokenService.defaultProvider(config),

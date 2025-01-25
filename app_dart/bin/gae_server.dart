@@ -20,10 +20,8 @@ Future<void> main() async {
 
     final CacheService cache = CacheService(inMemory: false);
     final Config config = Config(dbService, cache);
-    final AuthenticationProvider authProvider =
-        AuthenticationProvider(config: config);
-    final AuthenticationProvider swarmingAuthProvider =
-        SwarmingAuthenticationProvider(config: config);
+    final AuthenticationProvider authProvider = AuthenticationProvider(config: config);
+    final AuthenticationProvider swarmingAuthProvider = SwarmingAuthenticationProvider(config: config);
 
     final BuildBucketClient buildBucketClient = BuildBucketClient(
       accessTokenService: AccessTokenService.defaultProvider(config),
