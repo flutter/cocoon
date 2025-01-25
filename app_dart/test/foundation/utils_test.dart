@@ -248,11 +248,9 @@ void main() {
         ];
         final List<Target> result = await getTargetsToRun(
           targets,
-          SuccessfulFilesChanged(
+          const InconclusiveFilesChanged(
             pullRequestNumber: 1234,
-            filesChanged: <String>[
-              for (var i = 0; i < 30; i++) 'abc/file_$i.dart',
-            ],
+            reason: 'We gave up',
           ),
         );
         expect(result, targets);

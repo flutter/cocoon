@@ -1826,6 +1826,9 @@ targets:
             labels: <IssueLabel>[],
             repo: Config.engineSlug.name,
           );
+
+          // Assume a file that is not runIf'd was changed.
+          getFilesChanged.cannedFiles = ['README.md'];
           final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
           expect(
             presubmitTargets.map((Target target) => target.value.name).toList(),
@@ -1885,6 +1888,7 @@ targets:
       });
 
       test('triggers expected presubmit build checks', () async {
+        getFilesChanged.cannedFiles = ['README.md'];
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
