@@ -10,6 +10,7 @@ import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/model/appengine/cocoon_config.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:gcloud/db.dart';
 
 import '../test/src/datastore/fake_datastore.dart';
@@ -54,6 +55,9 @@ Future<void> main() async {
     cache: cache,
     config: config,
     githubChecksService: githubChecksService,
+    getFilesChanged: GithubApiGetFilesChanged(
+      await config.createDefaultGitHubService(),
+    ),
     luciBuildService: luciBuildService,
     fusionTester: fusionTester,
   );

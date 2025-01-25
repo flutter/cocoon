@@ -1321,15 +1321,6 @@ class MockConfig extends _i1.Mock implements _i2.Config {
       ) as _i20.Future<String>);
 
   @override
-  _i20.Future<String> get overrideTreeStatusLabel => (super.noSuchMethod(
-        Invocation.getter(#overrideTreeStatusLabel),
-        returnValue: _i20.Future<String>.value(_i32.dummyValue<String>(
-          this,
-          Invocation.getter(#overrideTreeStatusLabel),
-        )),
-      ) as _i20.Future<String>);
-
-  @override
   _i20.Future<String> get githubPublicKey => (super.noSuchMethod(
         Invocation.getter(#githubPublicKey),
         returnValue: _i20.Future<String>.value(_i32.dummyValue<String>(
@@ -3734,10 +3725,17 @@ class MockGithubService extends _i1.Mock implements _i17.GithubService {
       ) as _i20.Future<List<_i13.IssueLabel>>);
 
   @override
-  _i20.Future<List<String>> listFiles(_i13.PullRequest? pullRequest) => (super.noSuchMethod(
+  _i20.Future<List<String>> listFiles(
+    _i13.RepositorySlug? slug,
+    int? pullRequestNumber,
+  ) =>
+      (super.noSuchMethod(
         Invocation.method(
           #listFiles,
-          [pullRequest],
+          [
+            slug,
+            pullRequestNumber,
+          ],
         ),
         returnValue: _i20.Future<List<String>>.value(<String>[]),
       ) as _i20.Future<List<String>>);

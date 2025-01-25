@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart';
 
@@ -271,14 +270,11 @@ class GithubService {
   ///
   /// See more:
   ///   * https://developer.github.com/v3/pulls/#list-pull-requests-files
-  Future<List<String>> listFiles(PullRequest pullRequest) async {
-    final List<PullRequestFile> files =
-        await github.pullRequests.listFiles(pullRequest.base!.repo!.slug(), pullRequest.number!).toList();
-    log.fine('List of files: $files');
-    return files.map((PullRequestFile file) {
-      return file.filename!;
-    }).toList();
-  }
+  Future<List<String>> listFiles(
+    RepositorySlug slug,
+    int pullRequestNumber,
+  ) async =>
+      github.pullRequests.listFiles(slug, pullRequestNumber).map((file) => file.filename!).toList();
 
   /// Gets the file content as UTF8 string of the file specified by the `path`
   /// in the repository.

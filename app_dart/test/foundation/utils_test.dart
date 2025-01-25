@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
+import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart' as http;
@@ -231,8 +232,13 @@ void main() {
         final List<Target> targets = <Target>[
           generateTarget(1, runIf: <String>['cde/']),
         ];
-        final List<String> files = <String>['abc/cde.py', 'cde/fgh.dart'];
-        final List<Target> result = await getTargetsToRun(targets, files);
+        final List<Target> result = await getTargetsToRun(
+          targets,
+          SuccessfulFilesChanged(
+            pullRequestNumber: 1234,
+            filesChanged: const ['abc/cde.py', 'cde/fgh.dart'],
+          ),
+        );
         expect(result.isEmpty, isTrue);
       });
 
@@ -240,26 +246,42 @@ void main() {
         final List<Target> targets = <Target>[
           generateTarget(1, runIf: <String>['cde/']),
         ];
-        final List<String> files = <String>[
-          for (var i = 0; i < 30; i++) 'abc/file_$i.dart',
-        ];
-        final List<Target> result = await getTargetsToRun(targets, files);
+        final List<Target> result = await getTargetsToRun(
+          targets,
+          const InconclusiveFilesChanged(
+            pullRequestNumber: 1234,
+            reason: 'We gave up',
+          ),
+        );
         expect(result, targets);
       });
 
       test('returns builders when run_if is null', () async {
-        final List<String> files = <String>['abc/def.py', 'cde/dgh.dart'];
         final List<Target> targets = <Target>[generateTarget(1)];
-        final List<Target> result = await getTargetsToRun(targets, files);
+        final List<Target> result = await getTargetsToRun(
+          targets,
+          SuccessfulFilesChanged(
+            pullRequestNumber: 12324,
+            filesChanged: const ['abc/def.py', 'cde/dgh.dart'],
+          ),
+        );
         expect(result, targets);
       });
 
       test('returns builders when run_if matches files using full path', () async {
-        final List<String> files = <String>['abc/cde.py', 'cgh/dhj.dart'];
         final List<Target> targets = <Target>[
           generateTarget(1, runIf: <String>['abc/cde.py']),
         ];
-        final List<Target> result = await getTargetsToRun(targets, files);
+        final List<Target> result = await getTargetsToRun(
+          targets,
+          SuccessfulFilesChanged(
+            pullRequestNumber: 1234,
+            filesChanged: const [
+              'abc/cde.py',
+              'cgh/dhj.dart',
+            ],
+          ),
+        );
         expect(result, targets);
       });
 
@@ -267,8 +289,16 @@ void main() {
         final List<Target> targets = <Target>[
           generateTarget(1, runIf: <String>['abc/**']),
         ];
-        final List<String> files = <String>['abc/cdf/hj.dart', 'abc/dej.dart'];
-        final List<Target> result = await getTargetsToRun(targets, files);
+        final List<Target> result = await getTargetsToRun(
+          targets,
+          SuccessfulFilesChanged(
+            pullRequestNumber: 1234,
+            filesChanged: const [
+              'abc/cdf/hj.dart',
+              'abc/dej.dart',
+            ],
+          ),
+        );
         expect(result, targets);
       });
 
@@ -291,11 +321,16 @@ void main() {
             ],
           ),
         ];
-        final List<String> files = <String>[
-          'packages/flutter_localizations/lib/src/l10n/material_es.arb',
-          'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
-        ];
-        final List<Target> result = await getTargetsToRun(targets, files);
+        final List<Target> result = await getTargetsToRun(
+          targets,
+          SuccessfulFilesChanged(
+            pullRequestNumber: 1234,
+            filesChanged: const [
+              'packages/flutter_localizations/lib/src/l10n/material_es.arb',
+              'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
+            ],
+          ),
+        );
         expect(result, targets);
       });
 
@@ -318,12 +353,17 @@ void main() {
             ],
           ),
         ];
-        final List<String> files = <String>[
-          'packages/flutter_localizations/lib/src/l10n/material_es.arb',
-          'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
-          'packages/flutter_localizations/lib/src/l10n/cupertino_cy.arb',
-        ];
-        final List<Target> result = await getTargetsToRun(targets, files);
+        final List<Target> result = await getTargetsToRun(
+          targets,
+          SuccessfulFilesChanged(
+            pullRequestNumber: 1234,
+            filesChanged: const [
+              'packages/flutter_localizations/lib/src/l10n/material_es.arb',
+              'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
+              'packages/flutter_localizations/lib/src/l10n/cupertino_cy.arb',
+            ],
+          ),
+        );
         expect(result, targets);
       });
 
@@ -336,12 +376,17 @@ void main() {
             ],
           ),
         ];
-        final List<String> files = <String>[
-          'packages/flutter_localizations/lib/src/l10n/material_es.arb',
-          'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
-          'packages/flutter_localizations/lib/src/l10n/cupertino_cy.arb',
-        ];
-        final List<Target> result = await getTargetsToRun(targets, files);
+        final List<Target> result = await getTargetsToRun(
+          targets,
+          SuccessfulFilesChanged(
+            pullRequestNumber: 1234,
+            filesChanged: const [
+              'packages/flutter_localizations/lib/src/l10n/material_es.arb',
+              'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
+              'packages/flutter_localizations/lib/src/l10n/cupertino_cy.arb',
+            ],
+          ),
+        );
         expect(result, targets);
       });
 
@@ -354,12 +399,17 @@ void main() {
             ],
           ),
         ];
-        final List<String> files = <String>[
-          'packages/flutter_localizations/lib/src/l10n/material_es.arb',
-          'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
-          'packages/flutter_localizations/lib/src/l10n/cupertino_cy.arb',
-        ];
-        final List<Target> result = await getTargetsToRun(targets, files);
+        final List<Target> result = await getTargetsToRun(
+          targets,
+          SuccessfulFilesChanged(
+            pullRequestNumber: 1234,
+            filesChanged: const [
+              'packages/flutter_localizations/lib/src/l10n/material_es.arb',
+              'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
+              'packages/flutter_localizations/lib/src/l10n/cupertino_cy.arb',
+            ],
+          ),
+        );
         expect(result, targets);
       });
 
@@ -367,11 +417,16 @@ void main() {
         final List<Target> targets = <Target>[
           generateTarget(1, runIf: <String>['abc/**/hj.dart']),
         ];
-        final List<String> files = <String>[
-          'abc/cdf/efg/hj.dart',
-          'abc/dej.dart',
-        ];
-        final List<Target> result = await getTargetsToRun(targets, files);
+        final List<Target> result = await getTargetsToRun(
+          targets,
+          SuccessfulFilesChanged(
+            pullRequestNumber: 1234,
+            filesChanged: const [
+              'abc/cdf/efg/hj.dart',
+              'abc/dej.dart',
+            ],
+          ),
+        );
         expect(result, [targets[0]]);
       });
 
@@ -379,8 +434,16 @@ void main() {
         final List<Target> targets = <Target>[
           generateTarget(1, runIf: <String>['a/b*c/**']),
         ];
-        final List<String> files = <String>['a/baddsc/defg.zz', 'c/d'];
-        final List<Target> result = await getTargetsToRun(targets, files);
+        final List<Target> result = await getTargetsToRun(
+          targets,
+          SuccessfulFilesChanged(
+            pullRequestNumber: 1234,
+            filesChanged: const [
+              'a/baddsc/defg.zz',
+              'c/d',
+            ],
+          ),
+        );
         expect(result, targets);
       });
 
@@ -389,8 +452,15 @@ void main() {
           generateTarget(1, runIf: <String>['a/b/']),
           generateTarget(2, runIf: <String>['a']),
         ];
-        final List<String> files = <String>['a'];
-        final List<Target> result = await getTargetsToRun(targets, files);
+        final List<Target> result = await getTargetsToRun(
+          targets,
+          SuccessfulFilesChanged(
+            pullRequestNumber: 1234,
+            filesChanged: const [
+              'a',
+            ],
+          ),
+        );
         expect(result.length, 1);
         expect(result.single, targets[1]);
       });

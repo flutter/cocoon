@@ -12,6 +12,7 @@ import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
+import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
@@ -39,7 +40,6 @@ import 'config.dart';
 import 'datastore.dart';
 import 'firestore.dart';
 import 'github_checks_service.dart';
-import 'github_service.dart';
 import 'luci_build_service.dart';
 
 /// Scheduler service to validate all commits to supported Flutter repositories.
@@ -55,6 +55,7 @@ class Scheduler {
     required this.githubChecksService,
     required this.luciBuildService,
     required this.fusionTester,
+    required this.getFilesChanged,
     this.datastoreProvider = DatastoreService.defaultProvider,
     this.httpClientProvider = Providers.freshHttpClient,
     this.buildStatusProvider = BuildStatusService.defaultProvider,
@@ -63,6 +64,7 @@ class Scheduler {
     @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
   });
 
+  final GetFilesChanged getFilesChanged;
   final BuildStatusServiceProvider buildStatusProvider;
   final CacheService cache;
   final Config config;
@@ -794,7 +796,10 @@ $stackTrace
   ///
   /// In the case there is an issue getting the diff from GitHub, all targets are returned.
   @visibleForTesting
-  Future<List<Target>> getPresubmitTargets(PullRequest pullRequest, {CiType type = CiType.any}) async {
+  Future<List<Target>> getPresubmitTargets(
+    PullRequest pullRequest, {
+    CiType type = CiType.any,
+  }) async {
     final Commit commit = Commit(
       branch: pullRequest.base!.ref,
       repository: pullRequest.base!.repo!.fullName,
@@ -846,17 +851,11 @@ $stackTrace
     }
 
     // Filter builders based on the PR diff
-    final GithubService githubService = await config.createGithubService(commit.slug);
-    List<String> files = <String>[];
-    try {
-      files = await githubService.listFiles(pullRequest);
-    } on GitHubError catch (error) {
-      log.warning(error);
-      log.warning('Unable to get diff for pullRequest=$pullRequest');
-      log.warning('Running all targets');
-      return presubmitTargets.toList();
-    }
-    return getTargetsToRun(presubmitTargets, files);
+    final filesChanged = await getFilesChanged.get(
+      pullRequest.base!.repo!.slug(),
+      pullRequest.number!,
+    );
+    return getTargetsToRun(presubmitTargets, filesChanged);
   }
 
   static final _allowTestAll = {

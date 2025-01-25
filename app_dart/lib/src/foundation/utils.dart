@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart' as http;
@@ -199,13 +200,6 @@ FutureOr<String> getUrl(
   }
 }
 
-/// Expands globs string to a regex for evaluation.
-Future<RegExp> parseGlob(String glob) async {
-  glob = glob.replaceAll('**', '[A-Za-z0-9_/.]+');
-  glob = glob.replaceAll('*', '[A-Za-z0-9_.]+');
-  return RegExp('^$glob\$');
-}
-
 /// Returns a LUCI [builder] list that covers changed [files].
 ///
 /// [builders]: enabled luci builders.
@@ -233,48 +227,47 @@ Future<RegExp> parseGlob(String glob) async {
 /// [file] is based on repo root: `a/b/c.dart`.
 Future<List<Target>> getTargetsToRun(
   Iterable<Target> targets,
-  List<String?> files,
+  FilesChanged filesChanged,
 ) async {
   log.info('Getting targets to run from diff.');
 
-  // TODO(matanlurey): https://github.com/flutter/flutter/issues/161462.
-  //
-  // As currently implemented, the GitHub REST API returns a
-  // maximum of 30 changed files, meaning that if we get 30 files, there is a
-  // good chance *more* file were changed, we just do not know which ones.
-  //
-  // As a result, it's unsafe to filter out targets based on runIf. It actually
-  // might even be unsafe for smaller amounts of files if the patch diffs are
-  // really big, but for now just using the number of files.
-  if (files.length >= 30) {
-    log.info('Skipping runIf evaluation, file length is >= 30.');
-    return targets.toList();
-  }
-
-  final List<Target> targetsToRun = <Target>[];
-  for (Target target in targets) {
-    final List<String> globs = target.value.runIf;
-    // Handle case where [Target] initializes empty runif
-    if (globs.isEmpty) {
-      targetsToRun.add(target);
-    } else {
-      for (String glob in globs) {
-        // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
-        final RegExp regExp = await parseGlob(glob);
-        if (glob.isEmpty || files.any((String? file) => regExp.hasMatch(file!))) {
+  // If we were not able to determine what files were changed run all targets.
+  switch (filesChanged) {
+    case InconclusiveFilesChanged(:final pullRequestNumber, :final reason):
+      log.info('Running all targets on PR#$pullRequestNumber: $reason');
+      return [...targets];
+    case SuccessfulFilesChanged(:final pullRequestNumber, :final filesChanged):
+      final targetsToRun = <Target>[];
+      for (final target in targets) {
+        final globs = target.value.runIf;
+        // Handle case where [Target] initializes empty runif
+        if (globs.isEmpty) {
           targetsToRun.add(target);
-          break;
+        } else {
+          for (final glob in globs) {
+            // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
+            final regExp = _convertGlobToRegExp(glob);
+            if (glob.isEmpty || filesChanged.any((file) => regExp.hasMatch(file))) {
+              targetsToRun.add(target);
+              break;
+            }
+          }
         }
       }
-    }
-  }
 
-  log.info('Collected the following targets to run:');
-  for (var target in targetsToRun) {
-    log.info(target.value.name);
-  }
+      log.info(
+        'Running a subset of targets on PR#$pullRequestNumber: ${targetsToRun.join(', ')}',
+      );
 
-  return targetsToRun;
+      return targetsToRun;
+  }
+}
+
+/// Expands globs string to a regex for evaluation.
+RegExp _convertGlobToRegExp(String glob) {
+  glob = glob.replaceAll('**', '[A-Za-z0-9_/.]+');
+  glob = glob.replaceAll('*', '[A-Za-z0-9_.]+');
+  return RegExp('^$glob\$');
 }
 
 Future<void> insertBigquery(

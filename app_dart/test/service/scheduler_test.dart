@@ -38,6 +38,7 @@ import '../src/service/fake_build_bucket_client.dart';
 import '../src/service/fake_build_status_provider.dart';
 import '../src/service/fake_fusion_tester.dart';
 import '../src/service/fake_gerrit_service.dart';
+import '../src/service/fake_get_files_changed.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/utilities/entity_generators.dart';
@@ -134,6 +135,7 @@ void main() {
   late Scheduler scheduler;
   late FakeFusionTester fakeFusion;
   late MockCallbacks callbacks;
+  late FakeGetFilesChanged getFilesChanged;
 
   final PullRequest pullRequest = generatePullRequest(id: 42);
 
@@ -155,6 +157,7 @@ void main() {
       });
 
       cache = CacheService(inMemory: true);
+      getFilesChanged = FakeGetFilesChanged();
       db = FakeDatastoreDB();
       mockFirestoreService = MockFirestoreService();
       buildStatusService = FakeBuildStatusService(
@@ -201,6 +204,7 @@ void main() {
         buildStatusProvider: (_, __) => buildStatusService,
         githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
         httpClientProvider: () => httpClient,
+        getFilesChanged: getFilesChanged,
         luciBuildService: FakeLuciBuildService(
           config: config,
           githubChecksUtil: mockGithubChecksUtil,
@@ -391,7 +395,11 @@ void main() {
           config: config,
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: luciBuildService,
           fusionTester: fakeFusion,
@@ -454,7 +462,11 @@ void main() {
           config: config,
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: luciBuildService,
           fusionTester: fakeFusion,
@@ -616,7 +628,11 @@ targets:
           config: config,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           buildStatusProvider: (_, __) => buildStatusService,
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
             config: config,
@@ -700,7 +716,11 @@ targets:
           cache: cache,
           config: config,
           buildStatusProvider: (_, __) => buildStatusService,
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
             config: config,
@@ -718,7 +738,7 @@ targets:
           ],
         );
         when(mockGithubService.getPullRequest(any, any)).thenAnswer((_) async => generatePullRequest());
-        when(mockGithubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+        getFilesChanged.cannedFiles = ['abc/def'];
         when(
           mockGithubChecksUtil.createCheckRun(
             any,
@@ -765,7 +785,11 @@ targets:
           cache: cache,
           config: config,
           buildStatusProvider: (_, __) => buildStatusService,
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
             config: config,
@@ -783,7 +807,7 @@ targets:
           ],
         );
         when(mockGithubService.getPullRequest(any, any)).thenAnswer((_) async => generatePullRequest());
-        when(mockGithubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+        getFilesChanged.cannedFiles = ['abc/def'];
         when(
           mockGithubChecksUtil.createCheckRun(
             any,
@@ -842,7 +866,11 @@ targets:
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           luciBuildService: FakeLuciBuildService(
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -948,7 +976,11 @@ targets:
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: luciBuildService,
           fusionTester: fakeFusion,
@@ -1207,7 +1239,7 @@ targets:
 
             final pullRequest = generatePullRequest();
             when(githubService.getPullRequest(any, any)).thenAnswer((_) async => pullRequest);
-            when(githubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+            getFilesChanged.cannedFiles = ['abc/def'];
             when(mockGithubChecksUtil.listCheckSuitesForRef(any, any, ref: anyNamed('ref'))).thenAnswer(
               (_) async => [
                 // From check_run.check_suite.id in [checkRunString].
@@ -1253,6 +1285,7 @@ targets:
               config: config,
               datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
               buildStatusProvider: (_, __) => buildStatusService,
+              getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
               httpClientProvider: () => httpClient,
               luciBuildService: luci,
@@ -1343,6 +1376,7 @@ targets:
               config: config,
               datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
               buildStatusProvider: (_, __) => buildStatusService,
+              getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
               httpClientProvider: () => httpClient,
               luciBuildService: luci,
@@ -1442,6 +1476,7 @@ targets:
               config: config,
               datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
               buildStatusProvider: (_, __) => buildStatusService,
+              getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
               httpClientProvider: () => httpClient,
               luciBuildService: luci,
@@ -1534,7 +1569,7 @@ targets:
 
             final pullRequest = generatePullRequest();
             when(githubService.getPullRequest(any, any)).thenAnswer((_) async => pullRequest);
-            when(githubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+            getFilesChanged.cannedFiles = ['abc/def'];
             when(mockGithubChecksUtil.listCheckSuitesForRef(any, any, ref: anyNamed('ref'))).thenAnswer(
               (_) async => [
                 // From check_run.check_suite.id in [checkRunString].
@@ -1582,6 +1617,7 @@ targets:
               datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
               buildStatusProvider: (_, __) => buildStatusService,
               githubChecksService: gitHubChecksService,
+              getFilesChanged: getFilesChanged,
               httpClientProvider: () => httpClient,
               luciBuildService: luci,
               fusionTester: fakeFusion,
@@ -1790,6 +1826,9 @@ targets:
             labels: <IssueLabel>[],
             repo: Config.engineSlug.name,
           );
+
+          // Assume a file that is not runIf'd was changed.
+          getFilesChanged.cannedFiles = ['README.md'];
           final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
           expect(
             presubmitTargets.map((Target target) => target.value.name).toList(),
@@ -1849,6 +1888,7 @@ targets:
       });
 
       test('triggers expected presubmit build checks', () async {
+        getFilesChanged.cannedFiles = ['README.md'];
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
@@ -1975,7 +2015,11 @@ targets:
           config: config,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           buildStatusProvider: (_, __) => buildStatusService,
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
             config: config,
@@ -1999,8 +2043,7 @@ targets:
 
       test('triggers all presubmit build checks when diff cannot be found', () async {
         final MockGithubService mockGithubService = MockGithubService();
-        when(mockGithubService.listFiles(pullRequest))
-            .thenThrow(GitHubError(GitHub(), 'Requested Resource was Not Found'));
+        getFilesChanged.cannedFiles = null;
         buildStatusService =
             FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
         scheduler = Scheduler(
@@ -2014,7 +2057,11 @@ targets:
           ),
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
             config: config,
@@ -2213,7 +2260,11 @@ targets:
           cache: cache,
           config: config,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           buildStatusProvider: (_, __) => buildStatusService,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
@@ -2285,7 +2336,11 @@ targets:
           cache: cache,
           config: config,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           buildStatusProvider: (_, __) => buildStatusService,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
@@ -2398,7 +2453,7 @@ targets:
           checkRuns.add(createCheckRun(id: 1, owner: slug.owner, repo: slug.name, sha: sha, name: name));
           return checkRuns.last;
         });
-        when(mockGithubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+        getFilesChanged.cannedFiles = ['abc/def'];
 
         fakeFusion.isFusion = (_, __) => true;
 
@@ -2424,7 +2479,11 @@ targets:
           ),
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: luci,
           fusionTester: fakeFusion,
@@ -2510,7 +2569,7 @@ targets:
           checkRuns.add(createCheckRun(id: 1, owner: slug.owner, repo: slug.name, sha: sha, name: name));
           return checkRuns.last;
         });
-        when(mockGithubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+        getFilesChanged.cannedFiles = ['abc/def'];
 
         fakeFusion.isFusion = (_, __) => true;
 
@@ -2536,7 +2595,11 @@ targets:
           ),
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: luci,
           fusionTester: fakeFusion,
@@ -2621,7 +2684,7 @@ targets:
           checkRuns.add(createCheckRun(id: 1, owner: slug.owner, repo: slug.name, sha: sha, name: name));
           return checkRuns.last;
         });
-        when(mockGithubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+        getFilesChanged.cannedFiles = ['abc/def'];
 
         fakeFusion.isFusion = (_, __) => true;
         when(
@@ -2646,7 +2709,11 @@ targets:
           ),
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: luci,
           fusionTester: fakeFusion,
@@ -2730,7 +2797,7 @@ targets:
           checkRuns.add(createCheckRun(id: 1, owner: slug.owner, repo: slug.name, sha: sha, name: name));
           return checkRuns.last;
         });
-        when(mockGithubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
+        getFilesChanged.cannedFiles = ['abc/def'];
 
         fakeFusion.isFusion = (_, __) => true;
 
@@ -2756,7 +2823,11 @@ targets:
           ),
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
           luciBuildService: luci,
           fusionTester: fakeFusion,

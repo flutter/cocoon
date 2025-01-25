@@ -9,6 +9,7 @@ import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
+import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
@@ -50,6 +51,9 @@ Future<void> main() async {
       cache: cache,
       config: config,
       githubChecksService: githubChecksService,
+      getFilesChanged: GithubApiGetFilesChanged(
+        await config.createDefaultGitHubService(),
+      ),
       luciBuildService: luciBuildService,
       fusionTester: fusionTester,
     );
