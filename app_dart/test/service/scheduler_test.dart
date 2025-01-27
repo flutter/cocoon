@@ -3010,7 +3010,7 @@ targets:
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
           fakeLuciBuildService.flutterPrebuiltEngineVersion,
-          pullRequest.base!.ref,
+          pullRequest.base!.sha,
           reason: 'Should use the base ref for the engine artifacts',
         );
         expect(
