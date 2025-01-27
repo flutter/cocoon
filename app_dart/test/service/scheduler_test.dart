@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server/testing/mocks.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
@@ -27,6 +28,7 @@ import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -2889,6 +2891,132 @@ targets:
             CheckRunStatus.completed,
             CheckRunConclusion.failure,
           ],
+        );
+      });
+    });
+
+    group('framework-only PR optimization', () {
+      late final Logger globalLogger;
+
+      setUpAll(() {
+        globalLogger = log;
+      });
+
+      tearDownAll(() {
+        log = globalLogger;
+      });
+
+      // TODO(matanlurey): Inject this.
+      const allowListedUser = 'matanlurey';
+
+      late MockGithubService mockGithubService;
+      late MockLuciBuildService mockLuciBuildService;
+      late List<String> logs;
+
+      setUp(() {
+        mockGithubService = MockGithubService();
+        mockLuciBuildService = MockLuciBuildService();
+
+        logs = [];
+        log = Logger.detached('logger')
+          ..onRecord.listen((record) {
+            logs.add(record.message);
+          });
+
+        when(mockFirestoreService.documentResource()).thenAnswer((_) async {
+          final resource = MockProjectsDatabasesDocumentsResource();
+          when(
+            resource.createDocument(
+              any,
+              any,
+              any,
+              documentId: argThat(anything, named: 'documentId'),
+              mask_fieldPaths: argThat(anything, named: 'mask_fieldPaths'),
+              $fields: argThat(anything, named: r'$fields'),
+            ),
+          ).thenAnswer((_) async {
+            return Document();
+          });
+          return resource;
+        });
+
+        scheduler = Scheduler(
+          cache: cache,
+          config: FakeConfig(
+            dbValue: db,
+            githubService: mockGithubService,
+            githubClient: MockGitHub(),
+            firestoreService: mockFirestoreService,
+          ),
+          buildStatusProvider: (_, __) => buildStatusService,
+          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
+          httpClientProvider: () => httpClient,
+          luciBuildService: mockLuciBuildService,
+          fusionTester: fakeFusion,
+        );
+      });
+
+      tearDown(() {
+        printOnFailure('LOGGER BUFFER:\n${logs.join('\n')}');
+      });
+
+      test('does not run if running outside of Fusion (legacy releases)', () async {
+        fakeFusion.isFusion = (_, __) => false;
+        getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
+        final pullRequest = generatePullRequest(authorLogin: allowListedUser);
+
+        late final List<Target> scheduledTryBuilds;
+
+        when(
+          mockLuciBuildService.scheduleTryBuilds(
+            targets: argThat(anything, named: 'targets'),
+            pullRequest: pullRequest,
+          ),
+        ).thenAnswer((invocation) async {
+          scheduledTryBuilds = invocation.namedArguments[#targets] as List<Target>;
+          return [];
+        });
+
+        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
+
+        // Verify we don't try writing anything to Firestore (Fusion workflow).
+        verifyZeroInteractions(mockFirestoreService);
+        expect(
+          scheduledTryBuilds.map((t) => t.value.name),
+          ['Linux A'],
+          reason: 'Linux A comes from the legacy .ci.yaml',
+        );
+      });
+
+      test('a non allow-listed user cannot use the optimization', () async {
+        fakeFusion.isFusion = (_, __) => true;
+        getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
+        final pullRequest = generatePullRequest(authorLogin: 'joe-flutter');
+
+        late final List<Target> scheduledTryBuilds;
+        late final String? flutterPrebuiltEngineVersion;
+
+        when(
+          mockLuciBuildService.scheduleTryBuilds(
+            targets: argThat(anything, named: 'targets'),
+            pullRequest: pullRequest,
+            flutterPrebuiltEngineVersion: argThat(anything, named: 'flutterPrebuiltEngineVersion'),
+          ),
+        ).thenAnswer((invocation) async {
+          scheduledTryBuilds = invocation.namedArguments[#targets] as List<Target>;
+          flutterPrebuiltEngineVersion = invocation.namedArguments[#flutterPrebuiltEngineVersion] as String?;
+          return [];
+        });
+
+        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
+        expect(
+          scheduledTryBuilds.map((t) => t.value.name),
+          ['Linux A'],
         );
       });
     });

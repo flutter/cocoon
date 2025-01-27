@@ -417,20 +417,49 @@ class Scheduler {
     log.info('Creating presubmit targets for ${pullRequest.number}');
     Object? exception;
     bool isFusion = false;
-    try {
-      final sha = pullRequest.head!.sha!;
-      isFusion = await fusionTester.isFusionBasedRef(slug, sha);
-      if (!isFusion) {
-        unlockMergeGroup = true;
-      }
+    do {
+      try {
+        final sha = pullRequest.head!.sha!;
+        isFusion = await fusionTester.isFusionBasedRef(slug, sha);
+        if (!isFusion) {
+          unlockMergeGroup = true;
+        }
 
-      // Both the author and label should be checked to make sure that no one is
-      // attempting to get a pull request without check through.
-      if (pullRequest.user!.login == config.autosubmitBot &&
-          pullRequest.labels!.any((element) => element.name == Config.revertOfLabel)) {
-        log.info('Skipping generating the full set of checks for revert request.');
-        unlockMergeGroup = true;
-      } else {
+        // Both the author and label should be checked to make sure that no one is
+        // attempting to get a pull request without check through.
+        if (pullRequest.user!.login == config.autosubmitBot &&
+            pullRequest.labels!.any((element) => element.name == Config.revertOfLabel)) {
+          log.info('Skipping generating the full set of checks for revert request.');
+          unlockMergeGroup = true;
+          break;
+        }
+        // Feature request: skip engine builds and tests in monorepo if the PR only contains framework related
+        // files.
+        // NOTE: This creates an empty staging doc for the engine builds as staging is handled on check_run completion
+        //       events from GitHub. Engine Tests are also skipped, and the base.ref is passed to LUCI to use prod
+        //       binaries.
+        if (isFusion && _isFrameworkOnlyAllowed(pullRequest) && await _isFrameworkOnlyPr(slug, pullRequest.number!)) {
+          final logCrumb = 'triggerPresubmitTargets($slug, $sha){frameworkOnly}';
+          log.info('$logCrumb: FRAMEWORK_ONLY_TESTING_PR');
+
+          await initializeCiStagingDocument(
+            firestoreService: firestoreService,
+            slug: slug,
+            sha: sha,
+            stage: CiStage.fusionEngineBuild,
+            tasks: [],
+            checkRunGuard: '',
+          );
+
+          await _runCiTestingStage(
+            pullRequest: pullRequest,
+            checkRunGuard: '$lock',
+            logCrumb: logCrumb,
+            skipEngine: true,
+            flutterPrebuiltEngineVersion: pullRequest.base!.ref,
+          );
+          break;
+        }
         final presubmitTargets = isFusion
             ? await getTestsForStage(pullRequest, CiStage.fusionEngineBuild)
             : await getPresubmitTargets(pullRequest);
@@ -452,16 +481,16 @@ class Scheduler {
           targets: presubmitTriggerTargets,
           pullRequest: pullRequest,
         );
+      } on FormatException catch (error, backtrace) {
+        log.warning('FormatException encountered when scheduling presubmit targets for ${pullRequest.number}');
+        log.warning(backtrace.toString());
+        exception = error;
+      } catch (error, backtrace) {
+        log.warning('Exception encountered when scheduling presubmit targets for ${pullRequest.number}');
+        log.warning(backtrace.toString());
+        exception = error;
       }
-    } on FormatException catch (error, backtrace) {
-      log.warning('FormatException encountered when scheduling presubmit targets for ${pullRequest.number}');
-      log.warning(backtrace.toString());
-      exception = error;
-    } catch (error, backtrace) {
-      log.warning('Exception encountered when scheduling presubmit targets for ${pullRequest.number}');
-      log.warning(backtrace.toString());
-      exception = error;
-    }
+    } while (false);
 
     // Update validate ci.yaml check
     await closeCiYamlCheckRun('PR ${pullRequest.number}', exception, slug, ciValidationCheckRun);
@@ -475,6 +504,29 @@ class Scheduler {
     log.info(
       'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug $slug}',
     );
+  }
+
+  /// Checks if the framework only path is enabled
+  static bool _isFrameworkOnlyAllowed(PullRequest pullRequest) {
+    return ['jtmcdole', 'matanlurey', 'yjbanov'].contains(pullRequest.user!.login) &&
+        pullRequest.base!.repo!.slug() == Config.flutterSlug;
+  }
+
+  Future<bool> _isFrameworkOnlyPr(RepositorySlug slug, int prNumber) async {
+    final filesChanged = await getFilesChanged.get(slug, prNumber);
+    switch (filesChanged) {
+      case InconclusiveFilesChanged(:final reason):
+        log.warning('Not considering PR#$prNumber as framework-only: $reason');
+        return false;
+      case SuccessfulFilesChanged(:final filesChanged):
+        for (final file in filesChanged) {
+          if (file == 'DEPS' || file.startsWith('engine/')) {
+            log.info('Engine source files or dependencies changed in PR#$prNumber:\n${filesChanged.join('\n')}');
+            return false;
+          }
+        }
+        return true;
+    }
   }
 
   Future<void> closeCiYamlCheckRun(
@@ -1058,10 +1110,10 @@ $stackTrace
   }
 
   /// Returns the presubmit targets for the fusion repo [pullRequest] that should run for the given [stage].
-  Future<List<Target>> getTestsForStage(PullRequest pullRequest, CiStage stage) async {
+  Future<List<Target>> getTestsForStage(PullRequest pullRequest, CiStage stage, {bool skipEngine = false}) async {
     final presubmitTargets = [
       ...await getPresubmitTargets(pullRequest),
-      ...await getPresubmitTargets(pullRequest, type: CiType.fusionEngine),
+      if (!skipEngine) ...await getPresubmitTargets(pullRequest, type: CiType.fusionEngine),
     ].where(
       (Target target) => switch (stage) {
         CiStage.fusionEngineBuild => target.value.properties['release_build'] == 'true',
@@ -1083,6 +1135,57 @@ $stackTrace
     // Unlock the guarding check_run.
     final checkRunGuard = checkRunFromString(mergeQueueGuard);
     await unlockMergeQueueGuard(slug, sha, checkRunGuard);
+  }
+
+  Future<void> _runCiTestingStage({
+    required PullRequest pullRequest,
+    required String checkRunGuard,
+    required String logCrumb,
+    bool skipEngine = false,
+    String? flutterPrebuiltEngineVersion,
+  }) async {
+    try {
+      // Both the author and label should be checked to make sure that no one is
+      // attempting to get a pull request without check through.
+      if (pullRequest.user!.login == config.autosubmitBot &&
+          pullRequest.labels!.any((element) => element.name == Config.revertOfLabel)) {
+        log.info('$logCrumb: skipping generating the full set of checstagest.');
+      } else {
+        // Schedule the tests that would have run in a call to triggerPresubmitTargets - but for both the
+        // engine and the framework.
+        final presubmitTargets = await getTestsForStage(pullRequest, CiStage.fusionTests, skipEngine: skipEngine);
+
+        // Create the document for tracking test check runs.
+        await initializeCiStagingDocument(
+          firestoreService: firestoreService,
+          slug: pullRequest.base!.repo!.slug(),
+          sha: pullRequest.head!.sha!,
+          stage: CiStage.fusionTests,
+          tasks: [...presubmitTargets.map((t) => t.value.name)],
+          checkRunGuard: checkRunGuard,
+        );
+
+        await luciBuildService.scheduleTryBuilds(
+          targets: presubmitTargets,
+          pullRequest: pullRequest,
+          flutterPrebuiltEngineVersion: flutterPrebuiltEngineVersion,
+        );
+      }
+    } on FormatException catch (error, backtrace) {
+      log.warning(
+        '$logCrumb: FormatException encountered when scheduling presubmit targets for ${pullRequest.number}',
+        error,
+        backtrace,
+      );
+      rethrow;
+    } catch (error, backtrace) {
+      log.warning(
+        '$logCrumb: Exception encountered when scheduling presubmit targets for ${pullRequest.number}',
+        error,
+        backtrace,
+      );
+      rethrow;
+    }
   }
 
   Future<void> _proceedToCiTestingStage({
@@ -1119,47 +1222,7 @@ $stackTrace
       throw 'No PR found matching this check_run($id, $name)';
     }
 
-    try {
-      // Both the author and label should be checked to make sure that no one is
-      // attempting to get a pull request without check through.
-      if (pullRequest.user!.login == config.autosubmitBot &&
-          pullRequest.labels!.any((element) => element.name == Config.revertOfLabel)) {
-        log.info('$logCrumb: skipping generating the full set of checks for revert request.');
-      } else {
-        // Schedule the tests that would have run in a call to triggerPresubmitTargets - but for both the
-        // engine and the framework.
-        final presubmitTargets = await getTestsForStage(pullRequest, CiStage.fusionTests);
-
-        // Create the document for tracking test check runs.
-        await initializeCiStagingDocument(
-          firestoreService: firestoreService,
-          slug: slug,
-          sha: sha,
-          stage: CiStage.fusionTests,
-          tasks: [...presubmitTargets.map((t) => t.value.name)],
-          checkRunGuard: '$checkRunGuard',
-        );
-
-        await luciBuildService.scheduleTryBuilds(
-          targets: presubmitTargets,
-          pullRequest: pullRequest,
-        );
-      }
-    } on FormatException catch (error, backtrace) {
-      log.warning(
-        '$logCrumb: FormatException encountered when scheduling presubmit targets for ${pullRequest.number}',
-        error,
-        backtrace,
-      );
-      rethrow;
-    } catch (error, backtrace) {
-      log.warning(
-        '$logCrumb: Exception encountered when scheduling presubmit targets for ${pullRequest.number}',
-        error,
-        backtrace,
-      );
-      rethrow;
-    }
+    await _runCiTestingStage(pullRequest: pullRequest, checkRunGuard: '$checkRunGuard', logCrumb: logCrumb);
   }
 
   Future<StagingConclusion> _recordCurrentCiStage({
