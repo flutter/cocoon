@@ -1154,7 +1154,6 @@ $stackTrace
         // Schedule the tests that would have run in a call to triggerPresubmitTargets - but for both the
         // engine and the framework.
         final presubmitTargets = await getTestsForStage(pullRequest, CiStage.fusionTests, skipEngine: skipEngine);
-
         // Create the document for tracking test check runs.
         await initializeCiStagingDocument(
           firestoreService: firestoreService,

@@ -2910,12 +2910,20 @@ targets:
       const allowListedUser = 'matanlurey';
 
       late MockGithubService mockGithubService;
-      late MockLuciBuildService mockLuciBuildService;
+      late _CapturingFakeLuciBuildService fakeLuciBuildService;
       late List<String> logs;
 
       setUp(() {
         mockGithubService = MockGithubService();
-        mockLuciBuildService = MockLuciBuildService();
+        fakeLuciBuildService = _CapturingFakeLuciBuildService();
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
+            return http.Response(fusionCiYaml, 200);
+          } else if (request.url.path.endsWith('.ci.yaml')) {
+            return http.Response(singleCiYaml, 200);
+          }
+          throw Exception('Failed to find ${request.url.path}');
+        });
 
         logs = [];
         log = Logger.detached('logger')
@@ -2956,9 +2964,9 @@ targets:
           ),
           getFilesChanged: getFilesChanged,
           httpClientProvider: () => httpClient,
-          luciBuildService: mockLuciBuildService,
+          luciBuildService: fakeLuciBuildService,
           fusionTester: fakeFusion,
-        );
+        )..firestoreService = mockFirestoreService;
       });
 
       tearDown(() {
@@ -2970,26 +2978,14 @@ targets:
         getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
         final pullRequest = generatePullRequest(authorLogin: allowListedUser);
 
-        late final List<Target> scheduledTryBuilds;
-
-        when(
-          mockLuciBuildService.scheduleTryBuilds(
-            targets: argThat(anything, named: 'targets'),
-            pullRequest: pullRequest,
-          ),
-        ).thenAnswer((invocation) async {
-          scheduledTryBuilds = invocation.namedArguments[#targets] as List<Target>;
-          return [];
-        });
-
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
 
         // Verify we don't try writing anything to Firestore (Fusion workflow).
         verifyZeroInteractions(mockFirestoreService);
         expect(
-          scheduledTryBuilds.map((t) => t.value.name),
+          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
           ['Linux A'],
-          reason: 'Linux A comes from the legacy .ci.yaml',
+          reason: 'Should ignore the Fusion configuration and engine phases',
         );
       });
 
@@ -2998,29 +2994,51 @@ targets:
         getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
         final pullRequest = generatePullRequest(authorLogin: 'joe-flutter');
 
-        late final List<Target> scheduledTryBuilds;
-        late final String? flutterPrebuiltEngineVersion;
+        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
+        expect(
+          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
+          ['Linux engine_build'],
+          reason: 'Should still run engine phase',
+        );
+      });
 
-        when(
-          mockLuciBuildService.scheduleTryBuilds(
-            targets: argThat(anything, named: 'targets'),
-            pullRequest: pullRequest,
-            flutterPrebuiltEngineVersion: argThat(anything, named: 'flutterPrebuiltEngineVersion'),
-          ),
-        ).thenAnswer((invocation) async {
-          scheduledTryBuilds = invocation.namedArguments[#targets] as List<Target>;
-          flutterPrebuiltEngineVersion = invocation.namedArguments[#flutterPrebuiltEngineVersion] as String?;
-          return [];
-        });
+      test('an allow-listed user can use the optimization', () async {
+        fakeFusion.isFusion = (_, __) => true;
+        getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
+        final pullRequest = generatePullRequest(authorLogin: allowListedUser);
 
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
-          scheduledTryBuilds.map((t) => t.value.name),
+          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
           ['Linux A'],
+          reason: 'Should skip Linux engine_build',
         );
       });
     });
   });
+}
+
+final class _CapturingFakeLuciBuildService extends Fake implements LuciBuildService {
+  late List<Target> scheduledTryBuilds;
+  late String? flutterPrebuiltEngineVersion;
+
+  @override
+  Future<List<Target>> scheduleTryBuilds({
+    required List<Target> targets,
+    required PullRequest pullRequest,
+    CheckSuiteEvent? checkSuiteEvent,
+    String? flutterPrebuiltEngineVersion,
+  }) async {
+    scheduledTryBuilds = targets;
+    this.flutterPrebuiltEngineVersion = flutterPrebuiltEngineVersion;
+    return targets;
+  }
+
+  @override
+  Future<void> cancelBuilds({
+    required PullRequest pullRequest,
+    required String reason,
+  }) async {}
 }
 
 CheckRun createCheckRun({
