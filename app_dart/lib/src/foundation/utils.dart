@@ -256,7 +256,7 @@ Future<List<Target>> getTargetsToRun(
       }
 
       log.info(
-        'Running a subset of targets on PR#$pullRequestNumber: ${targetsToRun.join(', ')}',
+        'Running a subset of targets on PR#$pullRequestNumber: ${targetsToRun.map((t) => t.value.name).join(', ')}',
       );
 
       return targetsToRun;

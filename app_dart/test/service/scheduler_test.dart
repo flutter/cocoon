@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server/testing/mocks.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
@@ -27,6 +28,7 @@ import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -2892,7 +2894,159 @@ targets:
         );
       });
     });
+
+    group('framework-only PR optimization', () {
+      late final Logger globalLogger;
+
+      setUpAll(() {
+        globalLogger = log;
+      });
+
+      tearDownAll(() {
+        log = globalLogger;
+      });
+
+      // TODO(matanlurey): Inject this.
+      const allowListedUser = 'matanlurey';
+
+      late MockGithubService mockGithubService;
+      late _CapturingFakeLuciBuildService fakeLuciBuildService;
+      late List<String> logs;
+
+      setUp(() {
+        mockGithubService = MockGithubService();
+        fakeLuciBuildService = _CapturingFakeLuciBuildService();
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
+            return http.Response(fusionCiYaml, 200);
+          } else if (request.url.path.endsWith('.ci.yaml')) {
+            return http.Response(singleCiYaml, 200);
+          }
+          throw Exception('Failed to find ${request.url.path}');
+        });
+
+        logs = [];
+        log = Logger.detached('logger')
+          ..onRecord.listen((record) {
+            logs.add(record.message);
+          });
+
+        when(mockFirestoreService.documentResource()).thenAnswer((_) async {
+          final resource = MockProjectsDatabasesDocumentsResource();
+          when(
+            resource.createDocument(
+              any,
+              any,
+              any,
+              documentId: argThat(anything, named: 'documentId'),
+              mask_fieldPaths: argThat(anything, named: 'mask_fieldPaths'),
+              $fields: argThat(anything, named: r'$fields'),
+            ),
+          ).thenAnswer((_) async {
+            return Document();
+          });
+          return resource;
+        });
+
+        scheduler = Scheduler(
+          cache: cache,
+          config: FakeConfig(
+            dbValue: db,
+            githubService: mockGithubService,
+            githubClient: MockGitHub(),
+            firestoreService: mockFirestoreService,
+          ),
+          buildStatusProvider: (_, __) => buildStatusService,
+          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
+          httpClientProvider: () => httpClient,
+          luciBuildService: fakeLuciBuildService,
+          fusionTester: fakeFusion,
+        )..firestoreService = mockFirestoreService;
+      });
+
+      tearDown(() {
+        printOnFailure('LOGGER BUFFER:\n${logs.join('\n')}');
+      });
+
+      test('does not run if running outside of Fusion (legacy releases)', () async {
+        fakeFusion.isFusion = (_, __) => false;
+        getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
+        final pullRequest = generatePullRequest(authorLogin: allowListedUser);
+
+        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
+
+        // Verify we don't try writing anything to Firestore (Fusion workflow).
+        verifyZeroInteractions(mockFirestoreService);
+        expect(
+          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
+          ['Linux A'],
+          reason: 'Should ignore the Fusion configuration and engine phases',
+        );
+      });
+
+      test('a non allow-listed user cannot use the optimization', () async {
+        fakeFusion.isFusion = (_, __) => true;
+        getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
+        final pullRequest = generatePullRequest(authorLogin: 'joe-flutter');
+
+        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
+        expect(
+          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
+          ['Linux engine_build'],
+          reason: 'Should still run engine phase',
+        );
+      });
+
+      test('an allow-listed user can use the optimization', () async {
+        fakeFusion.isFusion = (_, __) => true;
+        getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
+        final pullRequest = generatePullRequest(authorLogin: allowListedUser);
+
+        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
+        expect(
+          fakeLuciBuildService.flutterPrebuiltEngineVersion,
+          pullRequest.base!.ref,
+          reason: 'Should use the base ref for the engine artifacts',
+        );
+        expect(
+          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
+          ['Linux A'],
+          reason: 'Should skip Linux engine_build',
+        );
+        // TODO(matanlurey): Refactoring should allow us to verify the first stage
+        // (the engine build) phase was written to Firestore, but as an emtpy tasks
+        // list.
+      });
+    });
   });
+}
+
+final class _CapturingFakeLuciBuildService extends Fake implements LuciBuildService {
+  late List<Target> scheduledTryBuilds;
+  late String? flutterPrebuiltEngineVersion;
+
+  @override
+  Future<List<Target>> scheduleTryBuilds({
+    required List<Target> targets,
+    required PullRequest pullRequest,
+    CheckSuiteEvent? checkSuiteEvent,
+    String? flutterPrebuiltEngineVersion,
+  }) async {
+    scheduledTryBuilds = targets;
+    this.flutterPrebuiltEngineVersion = flutterPrebuiltEngineVersion;
+    return targets;
+  }
+
+  @override
+  Future<void> cancelBuilds({
+    required PullRequest pullRequest,
+    required String reason,
+  }) async {}
 }
 
 CheckRun createCheckRun({

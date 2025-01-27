@@ -19,6 +19,9 @@
 # Android Studio, and the `flutter analyze` command.
 include: package:flutter_lints/flutter.yaml
 
+formatter:
+  page_width: 120
+
 analyzer:
   language:
     strict-casts: false
