@@ -3009,10 +3009,18 @@ targets:
 
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
+          fakeLuciBuildService.flutterPrebuiltEngineVersion,
+          pullRequest.base!.ref,
+          reason: 'Should use the base ref for the engine artifacts',
+        );
+        expect(
           fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
           ['Linux A'],
           reason: 'Should skip Linux engine_build',
         );
+        // TODO(matanlurey): Refactoring should allow us to verify the first stage
+        // (the engine build) phase was written to Firestore, but as an emtpy tasks
+        // list.
       });
     });
   });
