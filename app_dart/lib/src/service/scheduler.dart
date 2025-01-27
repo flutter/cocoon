@@ -1210,7 +1210,7 @@ $stackTrace
       log.warning('$logCrumb: unable to find PR in PrCheckRuns', e, s);
     }
 
-    // We'va failed to find the pull request; try a reverse look it from the check suite.
+    // We've failed to find the pull request; try a reverse look it from the check suite.
     if (pullRequest == null) {
       final int checkSuiteId = checkRun.checkSuite!.id!;
       pullRequest = await githubChecksService.findMatchingPullRequest(slug, sha, checkSuiteId);
