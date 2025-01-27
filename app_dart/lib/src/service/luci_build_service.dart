@@ -338,6 +338,7 @@ class LuciBuildService {
 
       if (flutterPrebuiltEngineVersion != null) {
         properties['flutter_prebuilt_engine_version'] = flutterPrebuiltEngineVersion;
+        properties['flutter_realm'] = '';
       }
 
       final List<bbv2.RequestedDimension> requestedDimensions = target.getDimensions();

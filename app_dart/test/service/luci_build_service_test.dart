@@ -532,6 +532,8 @@ void main() {
 
       expect(properties, contains('flutter_prebuilt_engine_version'));
       expect(properties['flutter_prebuilt_engine_version']!.stringValue, 'sha1234');
+      expect(properties, contains('flutter_realm'));
+      expect(properties['flutter_realm']!.stringValue, '');
     });
 
     test('Schedule builds no-ops when targets list is empty', () async {
