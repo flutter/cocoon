@@ -456,7 +456,7 @@ class Scheduler {
             checkRunGuard: '$lock',
             logCrumb: logCrumb,
             skipEngine: true,
-            flutterPrebuiltEngineVersion: pullRequest.base!.ref,
+            flutterPrebuiltEngineVersion: pullRequest.base!.sha,
           );
           break;
         }
