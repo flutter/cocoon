@@ -214,6 +214,9 @@ class Config {
   /// our API failure when many issues/PRs are created in a short time.
   int get issueAndPRLimit => 2;
 
+  /// Whether to include additional merge queue validation tasks.
+  bool get includeAdditionalMergeQueueValidations => true;
+
   /// Max retries when scheduling builds.
   static const RetryOptions schedulerRetry = RetryOptions(maxAttempts: 3);
 

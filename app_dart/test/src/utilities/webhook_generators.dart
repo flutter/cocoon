@@ -1137,7 +1137,6 @@ String generateMergeGroupEventString({
   required String action,
   required String message,
   required String repository,
-  String senderLogin = 'johndoe',
   String? reason,
 }) {
   return '''
@@ -1285,7 +1284,7 @@ ${reason != null ? '"reason": "$reason",' : ''}
   "updated_at": "2024-07-18T11:54:37Z"
 },
 "sender": {
-  "login": "$senderLogin",
+  "login": "johndoe",
   "id": 1924313,
   "node_id": "MDQ6VXNlcjE5MjQzMTM=",
   "avatar_url": "https://avatars.githubusercontent.com/u/1924313?v=4",

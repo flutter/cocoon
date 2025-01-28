@@ -2912,6 +2912,7 @@ targets:
       });
 
       const allowListedUser = 'matanlurey';
+      late FakeConfig config;
       late MockGithubService mockGithubService;
       late _CapturingFakeLuciBuildService fakeLuciBuildService;
       late List<String> logs;
@@ -2958,14 +2959,15 @@ targets:
           return resource;
         });
 
+        config = FakeConfig(
+          dbValue: db,
+          githubService: mockGithubService,
+          githubClient: MockGitHub(),
+          firestoreService: mockFirestoreService,
+        );
         scheduler = Scheduler(
           cache: cache,
-          config: FakeConfig(
-            dbValue: db,
-            githubService: mockGithubService,
-            githubClient: MockGitHub(),
-            firestoreService: mockFirestoreService,
-          ),
+          config: config,
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
@@ -3049,6 +3051,7 @@ targets:
 
       test('merge queue normally only contains release builders', () async {
         fakeFusion.isFusion = (_, __) => true;
+        config.includeAdditionalMergeQueueValidationsValue = false;
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
           json.decode(
@@ -3074,6 +3077,7 @@ targets:
 
       test('merge queue optionally includes additional validation', () async {
         fakeFusion.isFusion = (_, __) => true;
+        config.includeAdditionalMergeQueueValidationsValue = true;
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
           json.decode(
@@ -3081,7 +3085,6 @@ targets:
               repository: 'flutter/flutter',
               action: 'checks_requested',
               message: 'Implement an amazing feature',
-              senderLogin: allowListedUser,
             ),
           ),
         );

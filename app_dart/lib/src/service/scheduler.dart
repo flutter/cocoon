@@ -618,7 +618,6 @@ class Scheduler {
         slug,
         headSha,
         CiStage.fusionEngineBuild,
-        includeAdditionalMergeQueueValidations: _optInToExperimentalFeatures(mergeGroupEvent.sender!),
       ),
     };
 
@@ -682,9 +681,8 @@ $stackTrace
     String baseRef,
     RepositorySlug slug,
     String headSha,
-    CiStage stage, {
-    bool includeAdditionalMergeQueueValidations = false,
-  }) async {
+    CiStage stage,
+  ) async {
     final mergeGroupTargets = [
       ...await getMergeGroupTargets(baseRef, slug, headSha),
       ...await getMergeGroupTargets(baseRef, slug, headSha, type: CiType.fusionEngine),
@@ -692,7 +690,7 @@ $stackTrace
       (Target target) {
         // Conditionally run additional tasks in the merge queue that would not otherwise run.
         // See https://github.com/flutter/flutter/issues/162329.
-        if (includeAdditionalMergeQueueValidations && target.value.properties['runs_in_merge_queue'] == 'true') {
+        if (config.includeAdditionalMergeQueueValidations && target.value.properties['runs_in_merge_queue'] == 'true') {
           return true;
         }
         return switch (stage) {
@@ -1441,13 +1439,5 @@ $stackTrace
       checkRunJson.remove('conclusion');
     }
     return CheckRun.fromJson(checkRunJson);
-  }
-
-  bool _optInToExperimentalFeatures(User user) {
-    if (experimentalOptInGitHubUsernames.contains(user.login)) {
-      log.info('Recognized ${user.login} as experimental user. Good luck!');
-      return true;
-    }
-    return false;
   }
 }
