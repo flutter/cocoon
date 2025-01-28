@@ -441,7 +441,7 @@ void main() {
   "check_runs": [
     {
       "id": 1,
-      "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+      "head_sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
       "external_id": "",
       "details_url": "https://example.com",
       "status": "completed",
@@ -454,7 +454,7 @@ void main() {
     },
     {
       "id": 2,
-      "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+      "head_sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
       "external_id": "",
       "details_url": "https://example.com",
       "status": "in_progress",

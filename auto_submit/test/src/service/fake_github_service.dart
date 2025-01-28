@@ -127,7 +127,7 @@ class FakeGithubService implements GithubService {
     if (checkName != null) {
       final List<CheckRun> checkRunsFilteredByName = [];
       for (CheckRun checkRun in checkRuns) {
-        if (checkRun.name == checkName) {
+        if (checkRun.name == checkName && checkRun.headSha == ref) {
           checkRunsFilteredByName.add(checkRun);
         }
       }
