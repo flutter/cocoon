@@ -244,6 +244,10 @@ void main() {
         errorLogs[0].message,
         contains('Pull request: https://github.com/flutter/cocoon/0'),
       );
+      expect(
+        errorLogs[0].message,
+        contains('Unexpected invocation of getPullRequest method'),
+      );
 
       // The message failed, so it shouldn't be acked.
       expect(pubsub.messagesQueue, hasLength(1));
