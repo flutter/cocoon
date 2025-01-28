@@ -2455,7 +2455,7 @@ targets:
           checkRuns.add(createCheckRun(id: 1, owner: slug.owner, repo: slug.name, sha: sha, name: name));
           return checkRuns.last;
         });
-        getFilesChanged.cannedFiles = ['abc/def'];
+        getFilesChanged.cannedFiles = ['abc/def', 'engine/src/flutter/FILE'];
 
         fakeFusion.isFusion = (_, __) => true;
 
@@ -2497,8 +2497,12 @@ targets:
                 .captured;
         stdout.writeAll(results);
 
-        final result =
-            verify(luci.scheduleTryBuilds(targets: captureAnyNamed('targets'), pullRequest: anyNamed('pullRequest')));
+        final result = verify(
+          luci.scheduleTryBuilds(
+            targets: captureAnyNamed('targets'),
+            pullRequest: anyNamed('pullRequest'),
+          ),
+        );
         expect(result.callCount, 1);
         final captured = result.captured;
         expect(captured[0], hasLength(1));
@@ -2989,9 +2993,9 @@ targets:
         );
       });
 
-      test('a non allow-listed user cannot use the optimization', () async {
+      test('still runs engine builds (DEPS)', () async {
         fakeFusion.isFusion = (_, __) => true;
-        getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
+        getFilesChanged.cannedFiles = ['DEPS', 'packages/flutter/lib/material.dart'];
         final pullRequest = generatePullRequest(authorLogin: 'joe-flutter');
 
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
@@ -3002,7 +3006,20 @@ targets:
         );
       });
 
-      test('an allow-listed user can use the optimization', () async {
+      test('still runs engine builds (engine/**)', () async {
+        fakeFusion.isFusion = (_, __) => true;
+        getFilesChanged.cannedFiles = ['engine/src/flutter/BUILD.gn', 'packages/flutter/lib/material.dart'];
+        final pullRequest = generatePullRequest(authorLogin: 'joe-flutter');
+
+        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
+        expect(
+          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
+          ['Linux engine_build'],
+          reason: 'Should still run engine phase',
+        );
+      });
+
+      test('skips engine builds', () async {
         fakeFusion.isFusion = (_, __) => true;
         getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
         final pullRequest = generatePullRequest(authorLogin: allowListedUser);
@@ -3018,9 +3035,6 @@ targets:
           ['Linux A'],
           reason: 'Should skip Linux engine_build',
         );
-        // TODO(matanlurey): Refactoring should allow us to verify the first stage
-        // (the engine build) phase was written to Firestore, but as an emtpy tasks
-        // list.
       });
     });
   });
