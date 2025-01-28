@@ -1491,9 +1491,16 @@ targets:
             });
 
             final checkRuns = <CheckRun>[];
-            when(mockGithubChecksUtil.createCheckRun(any, any, any, any,
-                    output: anyNamed('output'), conclusion: anyNamed('conclusion')))
-                .thenAnswer((inv) async {
+            when(
+              mockGithubChecksUtil.createCheckRun(
+                any,
+                any,
+                any,
+                any,
+                output: anyNamed('output'),
+                conclusion: anyNamed('conclusion'),
+              ),
+            ).thenAnswer((inv) async {
               final slug = inv.positionalArguments[1] as RepositorySlug;
               final sha = inv.positionalArguments[2];
               final name = inv.positionalArguments[3];
@@ -1513,10 +1520,16 @@ targets:
               logCrumb: 'test',
             );
 
-            final captured = verify(mockGithubChecksUtil.createCheckRun(
-                    any, RepositorySlug('flutter', 'flutter'), 'abc', 'CI Caught Failure',
-                    output: captureAnyNamed('output'), conclusion: CheckRunConclusion.failure))
-                .captured;
+            final captured = verify(
+              mockGithubChecksUtil.createCheckRun(
+                any,
+                RepositorySlug('flutter', 'flutter'),
+                'abc',
+                'CI Caught Failure',
+                output: captureAnyNamed('output'),
+                conclusion: CheckRunConclusion.failure,
+              ),
+            ).captured;
             expect(captured, hasLength(1));
             expect(captured.first.summary, 'A critical error occurred, preventing further CI testing.');
           });
