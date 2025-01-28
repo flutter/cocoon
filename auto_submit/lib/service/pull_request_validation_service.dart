@@ -112,6 +112,16 @@ class _PullRequestValidationProcessor {
   final github.RepositorySlug slug;
   final int prNumber;
 
+  String get logCrumb => 'PullRequestValidation($slug/pull/$prNumber)';
+
+  void logInfo(Object? message) {
+    log.info('$logCrumb: $message');
+  }
+
+  void logSevere(Object? message) {
+    logSevere('$logCrumb: $message');
+  }
+
   Future<void> process() async {
     final hasEmergencyLabel = pullRequest.labelNames.contains(Config.kEmergencyLabel);
     final hasAutosubmitLabel = pullRequest.labelNames.contains(Config.kAutosubmitLabel);
@@ -133,7 +143,7 @@ class _PullRequestValidationProcessor {
     if (hasAutosubmitLabel) {
       await _processAutosubmit();
     } else {
-      log.info('Ack the processed message : $ackId.');
+      logInfo('Ack the processed message : $ackId.');
       await pubsub.acknowledge('auto-submit-queue-sub', ackId);
     }
   }
@@ -149,6 +159,7 @@ class _PullRequestValidationProcessor {
   /// Returns false, if the processing failed, the "Merge Queue Guard" was not
   /// unlocked, and any further validation should stop.
   Future<bool> _processEmergency() async {
+    logInfo('processing "${Config.kEmergencyLabel}" label');
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
     // filter out validations here
@@ -164,7 +175,7 @@ class _PullRequestValidationProcessor {
     /// Runs all the validation defined in the service.
     /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
     for (Validation validation in validations) {
-      log.info('${slug.fullName}/$prNumber running validation ${validation.name}');
+      logInfo('running validation ${validation.name}');
       final ValidationResult validationResult = await validation.validate(
         result,
         pullRequest,
@@ -181,22 +192,20 @@ class _PullRequestValidationProcessor {
             '${Config.kEmergencyLabel} label is removed for ${slug.fullName}/$prNumber, due to $commmentMessage';
         await githubService.removeLabel(slug, prNumber, Config.kEmergencyLabel);
         await githubService.createComment(slug, prNumber, message);
-        log.info(message);
+        logInfo(message);
         shouldReturn = true;
       }
     }
 
     if (shouldReturn) {
-      log.info('The pr ${slug.fullName}/$prNumber is not eligible for emergency landing.');
+      logInfo('pull request not eligible for emergency landing.');
       return false;
     }
 
     // If PR has some failures to ignore temporarily do nothing and continue.
     for (final MapEntry(:key, :value) in validationsMap.entries) {
       if (!value.result && value.action == Action.IGNORE_TEMPORARILY) {
-        log.info(
-          'Temporarily ignoring processing of ${slug.fullName}/$prNumber due to $key failing validation.',
-        );
+        logInfo('temporarily ignoring processing because $key validation failed.');
         return true;
       }
     }
@@ -211,9 +220,8 @@ class _PullRequestValidationProcessor {
         .singleOrNull;
 
     if (guard == null) {
-      log.severe(
-        'Failed to process the emergency label in ${slug.fullName}/$prNumber. '
-        '"kMergeQueueLockName" check run is missing.',
+      logSevere(
+        'failed to process the emergency label. "${Config.kMergeQueueLockName}" check run is missing.',
       );
       return false;
     }
@@ -225,11 +233,12 @@ class _PullRequestValidationProcessor {
       conclusion: github.CheckRunConclusion.success,
     );
 
-    log.info('Unlocked merge guard for ${slug.fullName}/$prNumber to allow it to land as an emergency.');
+    logInfo('unlocked "${Config.kMergeQueueLockName}", allowing it to land as an emergency.');
     return true;
   }
 
   Future<void> _processAutosubmit() async {
+    logInfo('processing "${Config.kAutosubmitLabel}" label');
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
     // filter out validations here
@@ -245,7 +254,7 @@ class _PullRequestValidationProcessor {
     /// Runs all the validation defined in the service.
     /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
     for (Validation validation in validations) {
-      log.info('${slug.fullName}/$prNumber running validation ${validation.name}');
+      logInfo('running validation ${validation.name}');
       final ValidationResult validationResult = await validation.validate(
         result,
         pullRequest,
@@ -264,20 +273,15 @@ class _PullRequestValidationProcessor {
     }
 
     if (shouldReturn) {
-      log.info(
-        'The pr ${slug.fullName}/$prNumber with message: $ackId should be acknowledged due to validation failure.',
-      );
       await pubsub.acknowledge('auto-submit-queue-sub', ackId);
-      log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
+      logInfo('not feasible to merge; pubsub $ackId is acknowledged.');
       return;
     }
 
     // If PR has some failures to ignore temporarily do nothing and continue.
     for (final MapEntry(:key, :value) in validationsMap.entries) {
       if (!value.result && value.action == Action.IGNORE_TEMPORARILY) {
-        log.info(
-          'Temporarily ignoring processing of ${slug.fullName}/$prNumber due to $key failing validation.',
-        );
+        logInfo('temporarily ignoring processing because $key validation failed.');
         return;
       }
     }
@@ -292,10 +296,10 @@ class _PullRequestValidationProcessor {
       final String message = 'auto label is removed for ${slug.fullName}/$prNumber, ${processed.message}.';
       await githubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
       await githubService.createComment(slug, prNumber, message);
-      log.info(message);
+      logInfo(message);
     } else {
-      log.info('Pull Request ${slug.fullName}/$prNumber was ${processed.method.pastTenseLabel} successfully!');
-      log.info('Attempting to insert a pull request record into the database for $prNumber');
+      logInfo('${processed.method.pastTenseLabel} successfully!');
+      logInfo('Attempting to insert a pull request record into the database for $prNumber');
       await validationService.insertPullRequestRecord(
         config: config,
         pullRequest: pullRequest,
@@ -303,7 +307,7 @@ class _PullRequestValidationProcessor {
       );
     }
 
-    log.info('Ack the processed message : $ackId.');
+    logInfo('Ack the processed message : $ackId.');
     await pubsub.acknowledge('auto-submit-queue-sub', ackId);
   }
 
@@ -312,6 +316,6 @@ class _PullRequestValidationProcessor {
         '${Config.kAutosubmitLabel} label was removed for ${slug.fullName}/$prNumber, because $reason';
     await githubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
     await githubService.createComment(slug, prNumber, message);
-    log.info(message);
+    logInfo(message);
   }
 }

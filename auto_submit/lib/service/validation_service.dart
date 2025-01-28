@@ -145,8 +145,6 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
     // We need the updated time fields for the merged request from github.
     final github.PullRequest currentPullRequest = await gitHubService.getPullRequest(slug, pullRequest.number!);
 
-    log.info('Updated pull request info for ${slug.fullName}/${pullRequest.number}');
-
     // add a record for the pull request into our metrics tracking
     final PullRequestRecord pullRequestRecord = PullRequestRecord(
       organization: currentPullRequest.base!.repo!.slug().owner,
@@ -159,18 +157,15 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
       prLandedTimestamp: currentPullRequest.closedAt!,
     );
 
-    log.info('Created pull request record: ${pullRequestRecord.toString()}');
-
     try {
       final BigqueryService bigqueryService = await config.createBigQueryService();
       await bigqueryService.insertPullRequestRecord(
         projectId: Config.flutterGcpProjectId,
         pullRequestRecord: pullRequestRecord,
       );
-      log.info('Record inserted for pull request ${slug.fullName}/${pullRequest.number} successfully.');
     } on BigQueryException catch (exception) {
       log.severe(
-        'Unable to insert pull request record for pull request ${slug.fullName}/${pullRequest.number} due to: ${exception.toString()}',
+        'Failed to insert pull request record into BigQuery for pull request ${slug.fullName}/${pullRequest.number} due to: $exception',
       );
     }
   }
