@@ -1149,7 +1149,7 @@ $stackTrace
       // attempting to get a pull request without check through.
       if (pullRequest.user!.login == config.autosubmitBot &&
           pullRequest.labels!.any((element) => element.name == Config.revertOfLabel)) {
-        log.info('$logCrumb: skipping generating the full set of changes.');
+        log.info('$logCrumb: skipping generating the full set of checks for revert request.');
       } else {
         // Schedule the tests that would have run in a call to triggerPresubmitTargets - but for both the
         // engine and the framework.
