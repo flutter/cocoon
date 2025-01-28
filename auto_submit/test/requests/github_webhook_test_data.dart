@@ -101,6 +101,7 @@ PullRequest generatePullRequest({
       "number": $prNumber,
       "state": "$state",
       "title": ${jsonEncode(title)},
+      "html_url": "https://github.com/$login/$repoName/pulls/$prNumber",
       "user": {
         "login": "$author",
         "id": 1
@@ -150,6 +151,17 @@ PullRequest generatePullRequest({
             "avatar_url": "https://github.com/images/error/octocat_happy.gif",
             "html_url": "https://github.com/octocat"
           }
+        }
+      },
+      "repo": {
+        "id": 1296269,
+        "name": "$repoName",
+        "full_name": "$login/$repoName",
+        "owner": {
+          "login": "$login",
+          "id": 1,
+          "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+          "html_url": "https://github.com/octocat"
         }
       },
       "author_association": "$authorAssociation",
