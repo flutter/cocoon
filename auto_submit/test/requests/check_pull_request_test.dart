@@ -502,6 +502,66 @@ void main() {
       assert(pubsub.messagesQueue.isEmpty);
     });
 
+    test('Fails gracefully if the "Merge Queue Guard" is missing', () async {
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        labelName: Config.kEmergencyLabel,
+      );
+      // 'member' is in the review nodes and 'author1' is the pr author.
+      githubService.isTeamMemberMockMap['member'] = true;
+      githubService.isTeamMemberMockMap['author1'] = true;
+      githubService.pullRequestData = pullRequest;
+      unawaited(
+        pubsub.publish(
+          testTopic,
+          pullRequest,
+        ),
+      );
+
+      githubService.checkRunsData = '''{
+  "total_count": 2,
+  "check_runs": [
+    {
+      "id": 1,
+      "head_sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+      "external_id": "",
+      "details_url": "https://example.com",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2018-05-04T01:14:52Z",
+      "name": "mighty_readme",
+      "check_suite": {
+        "id": 5
+      }
+    }
+  ]
+}''';
+
+      checkPullRequest = CheckPullRequest(
+        config: config,
+        pubsub: pubsub,
+        cronAuthProvider: auth,
+      );
+
+      flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildFailure,
+        ],
+      );
+
+      await checkPullRequest.get();
+      expectedOptions.add(flutterOption);
+      verifyQueries(expectedOptions);
+
+      // Because Cocon failed to find the merge queue guard, it did not merge
+      // any pull requests, and did not update any check runs.
+      githubService.verifyMergePullRequests({});
+      expect(githubService.checkRunUpdates, isEmpty);
+      assert(pubsub.messagesQueue.isEmpty);
+    });
+
     test('Merges a clean revert PR with in progress tests', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0);
       githubService.pullRequestData = pullRequest;

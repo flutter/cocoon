@@ -119,7 +119,7 @@ class _PullRequestValidationProcessor {
   }
 
   void logSevere(Object? message) {
-    logSevere('$logCrumb: $message');
+    log.severe('$logCrumb: $message');
   }
 
   Future<void> process() async {
