@@ -3035,6 +3035,9 @@ targets:
           ['Linux A'],
           reason: 'Should skip Linux engine_build',
         );
+        // TODO(matanlurey): Refactoring should allow us to verify the first stage
+        // (the engine build) phase was written to Firestore, but as an emtpy tasks
+        // list.
       });
     });
   });
