@@ -205,7 +205,7 @@ class _PullRequestValidationProcessor {
     // as an emergency.
     final guard = (await githubService.getCheckRunsFiltered(
       slug: slug,
-      ref: pullRequest.base!.ref!,
+      ref: pullRequest.head!.sha!,
       checkName: Config.kMergeQueueLockName,
     ))
         .singleOrNull;
