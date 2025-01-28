@@ -1090,7 +1090,7 @@ $stackTrace
 
     log.info('$logCrumb: Stage completed successfully: ${CiStage.fusionEngineBuild}');
 
-    await _proceedToCiTestingStage(
+    await proceedToCiTestingStage(
       checkRun: checkRun,
       mergeQueueGuard: mergeQueueGuard,
       slug: slug,
@@ -1187,7 +1187,8 @@ $stackTrace
     }
   }
 
-  Future<void> _proceedToCiTestingStage({
+  @visibleForTesting
+  Future<void> proceedToCiTestingStage({
     required cocoon_checks.CheckRun checkRun,
     required RepositorySlug slug,
     required String sha,
@@ -1221,7 +1222,40 @@ $stackTrace
       throw 'No PR found matching this check_run($id, $name)';
     }
 
-    await _runCiTestingStage(pullRequest: pullRequest, checkRunGuard: '$checkRunGuard', logCrumb: logCrumb);
+    try {
+      await _runCiTestingStage(pullRequest: pullRequest, checkRunGuard: '$checkRunGuard', logCrumb: logCrumb);
+    } catch (error, stacktrace) {
+      await githubChecksService.githubChecksUtil.createCheckRun(
+        config,
+        slug,
+        pullRequest.head!.sha!,
+        'CI Caught Failure',
+        conclusion: CheckRunConclusion.failure,
+        output: CheckRunOutput(
+          title: 'CI Caught Failure',
+          summary: 'A critical error occurred, preventing further CI testing.',
+          text: '''
+This check run indicates a failure in the CI process that stopped further tests from running.  We need to investigate to determine the root cause.
+
+Possible causes:
+* **Configuration Changes:** The `.ci.yaml` file might have been modified between the creation of this pull request and the start of this test run. This can lead to ci yaml validation errors.
+* **Infrastructure Issues:** Problems with the CI environment itself (e.g., quota) could have caused the failure.
+
+**Error Details:**
+
+```
+$error
+```
+
+Stack trace:
+
+```
+$stacktrace
+```
+''',
+        ),
+      );
+    }
   }
 
   Future<StagingConclusion> _recordCurrentCiStage({

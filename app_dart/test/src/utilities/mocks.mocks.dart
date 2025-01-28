@@ -3403,6 +3403,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i24.GithubChecksUtil {
     String? sha,
     String? name, {
     _i13.CheckRunOutput? output,
+    _i13.CheckRunConclusion? conclusion,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -3413,7 +3414,10 @@ class MockGithubChecksUtil extends _i1.Mock implements _i24.GithubChecksUtil {
             sha,
             name,
           ],
-          {#output: output},
+          {
+            #output: output,
+            #conclusion: conclusion,
+          },
         ),
         returnValue: _i20.Future<_i13.CheckRun>.value(_FakeCheckRun_40(
           this,
@@ -3425,7 +3429,10 @@ class MockGithubChecksUtil extends _i1.Mock implements _i24.GithubChecksUtil {
               sha,
               name,
             ],
-            {#output: output},
+            {
+              #output: output,
+              #conclusion: conclusion,
+            },
           ),
         )),
       ) as _i20.Future<_i13.CheckRun>);

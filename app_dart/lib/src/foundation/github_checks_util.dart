@@ -123,13 +123,15 @@ class GithubChecksUtil {
   ///
   /// The newly created checkrun will be associated in [slug] to [sha] as [name].
   ///
-  /// Optionally, will have [output] to give information to users.
+  /// Optionally, will have [output] to give information to users, or
+  /// initialized with [conclusion].
   Future<github.CheckRun> createCheckRun(
     Config config,
     github.RepositorySlug slug,
     String sha,
     String name, {
     github.CheckRunOutput? output,
+    github.CheckRunConclusion? conclusion,
   }) async {
     const RetryOptions r = RetryOptions(
       maxAttempts: 3,
@@ -143,6 +145,7 @@ class GithubChecksUtil {
           sha,
           name,
           output: output,
+          conclusion: conclusion,
         );
       },
       retryIf: (Exception e) => true,
@@ -158,6 +161,7 @@ class GithubChecksUtil {
     String sha,
     String name, {
     github.CheckRunOutput? output,
+    github.CheckRunConclusion? conclusion,
   }) async {
     final github.GitHub gitHubClient = await config.createGitHubClient(slug: slug);
     return gitHubClient.checks.checkRuns.createCheckRun(
@@ -165,6 +169,7 @@ class GithubChecksUtil {
       name: name,
       headSha: sha,
       output: output,
+      conclusion: conclusion,
     );
   }
 }
