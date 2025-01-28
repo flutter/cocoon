@@ -508,8 +508,10 @@ class Scheduler {
 
   /// Checks if the framework only path is enabled
   static bool _isFrameworkOnlyAllowed(PullRequest pullRequest) {
-    return ['jtmcdole', 'matanlurey', 'yjbanov'].contains(pullRequest.user!.login) &&
-        pullRequest.base!.repo!.slug() == Config.flutterSlug;
+    // An allow-list or flag checking could be done here.
+
+    // Ensure this optimization only runs on flutter/flutter.
+    return pullRequest.base!.repo!.slug() == Config.flutterSlug;
   }
 
   Future<bool> _isFrameworkOnlyPr(RepositorySlug slug, int prNumber) async {
