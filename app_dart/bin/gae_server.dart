@@ -51,9 +51,7 @@ Future<void> main() async {
       cache: cache,
       config: config,
       githubChecksService: githubChecksService,
-      getFilesChanged: GithubApiGetFilesChanged(
-        await config.createDefaultGitHubService(),
-      ),
+      getFilesChanged: GithubApiGetFilesChanged(config),
       luciBuildService: luciBuildService,
       fusionTester: fusionTester,
     );
