@@ -1464,6 +1464,76 @@ targets:
             ).called(1);
           });
 
+          test('creates failure check_run if moving to next phase fails', () async {
+            final githubService = config.githubService = MockGithubService();
+            final githubClient = MockGitHub();
+            final luci = MockLuciBuildService();
+            final gitHubChecksService = MockGithubChecksService();
+
+            when(githubService.github).thenReturn(githubClient);
+            when(gitHubChecksService.githubChecksUtil).thenReturn(mockGithubChecksUtil);
+
+            scheduler = Scheduler(
+              cache: cache,
+              config: config,
+              datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+              buildStatusProvider: (_, __) => buildStatusService,
+              getFilesChanged: getFilesChanged,
+              githubChecksService: gitHubChecksService,
+              httpClientProvider: () => httpClient,
+              luciBuildService: luci,
+              fusionTester: fakeFusion,
+              markCheckRunConclusion: callbacks.markCheckRunConclusion,
+            );
+
+            when(gitHubChecksService.findMatchingPullRequest(any, any, any)).thenAnswer((inv) async {
+              return pullRequest;
+            });
+
+            final checkRuns = <CheckRun>[];
+            when(
+              mockGithubChecksUtil.createCheckRun(
+                any,
+                any,
+                any,
+                any,
+                output: anyNamed('output'),
+                conclusion: anyNamed('conclusion'),
+              ),
+            ).thenAnswer((inv) async {
+              final slug = inv.positionalArguments[1] as RepositorySlug;
+              final sha = inv.positionalArguments[2];
+              final name = inv.positionalArguments[3];
+              checkRuns.add(createCheckRun(id: 1, owner: slug.owner, repo: slug.name, sha: sha, name: name));
+              return checkRuns.last;
+            });
+
+            final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
+              jsonDecode(checkRunString) as Map<String, dynamic>,
+            );
+
+            await scheduler.proceedToCiTestingStage(
+              checkRun: checkRunEvent.checkRun!,
+              slug: RepositorySlug('flutter', 'flutter'),
+              sha: 'abc1234',
+              mergeQueueGuard: checkRunFor(name: 'merge queue guard'),
+              logCrumb: 'test',
+            );
+
+            final captured = verify(
+              mockGithubChecksUtil.createCheckRun(
+                any,
+                RepositorySlug('flutter', 'flutter'),
+                'abc',
+                'CI Caught Failure',
+                output: captureAnyNamed('output'),
+                conclusion: CheckRunConclusion.failure,
+              ),
+            ).captured;
+            expect(captured, hasLength(1));
+            expect(captured.first.summary, 'A critical error occurred, preventing further CI testing.');
+          });
+
           test('does not fail the merge queue guard when a test check run fails', () async {
             final githubService = config.githubService = MockGithubService();
             final githubClient = MockGitHub();
