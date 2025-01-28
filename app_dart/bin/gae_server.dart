@@ -54,6 +54,7 @@ Future<void> main() async {
       getFilesChanged: GithubApiGetFilesChanged(config),
       luciBuildService: luciBuildService,
       fusionTester: fusionTester,
+      experimentalOptInGitHubUsernames: {'matanlurey'},
     );
 
     final BranchService branchService = BranchService(
