@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -33,8 +34,8 @@ abstract interface class GetFilesChanged {
 /// See <https://github.com/flutter/flutter/issues/161462>.
 final class GithubApiGetFilesChanged implements GetFilesChanged {
   /// Creates from [GithubService].
-  const GithubApiGetFilesChanged(this._githubService);
-  final GithubService _githubService;
+  const GithubApiGetFilesChanged(this._config);
+  final Config _config;
 
   @override
   Future<FilesChanged> get(
@@ -43,7 +44,8 @@ final class GithubApiGetFilesChanged implements GetFilesChanged {
   ) async {
     final List<String> files;
     try {
-      files = await _githubService.listFiles(
+      final githubService = await _config.createGithubService(slug);
+      files = await githubService.listFiles(
         slug,
         pullRequestNumber,
       );
