@@ -210,6 +210,8 @@ class _PullRequestValidationProcessor {
       }
     }
 
+    logInfo('unlocking the ${Config.kMergeQueueLockName}');
+
     // At this point all validations passed, and the PR can proceed to landing
     // as an emergency.
     final guard = (await githubService.getCheckRunsFiltered(

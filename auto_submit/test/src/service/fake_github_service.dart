@@ -207,8 +207,10 @@ class FakeGithubService implements GithubService {
       pullRequest = pullRequestMockList.removeAt(0)!;
     } else if (usePullRequestList && pullRequestMockList.isEmpty) {
       throw Exception('List is empty.');
-    } else {
+    } else if (pullRequestMock != null) {
       pullRequest = pullRequestMock!;
+    } else {
+      throw StateError('Unexpected invocation of getPullRequest method');
     }
     return pullRequest;
   }

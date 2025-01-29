@@ -211,6 +211,48 @@ void main() {
       expect(0, pubsub.messagesQueue.length);
     });
 
+    test('Failing messages are logged by do not fail the entire request handler', () async {
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: cocoonRepo,
+      );
+      // 'member' is in the review nodes and 'author1' is the pr author.
+      githubService.isTeamMemberMockMap['member'] = true;
+      githubService.isTeamMemberMockMap['author1'] = true;
+      githubService.pullRequestData = null;
+      unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
+
+      checkPullRequest = CheckPullRequest(
+        config: config,
+        pubsub: pubsub,
+        cronAuthProvider: auth,
+      );
+
+      final List<LogRecord> records = <LogRecord>[];
+      log.onRecord.listen((LogRecord record) => records.add(record));
+
+      // Calling get should not fail despite the failing message inside.
+      await checkPullRequest.get();
+
+      final List<LogRecord> errorLogs = records.where((LogRecord record) => record.level == Level.SEVERE).toList();
+      expect(errorLogs, hasLength(1));
+      expect(
+        errorLogs[0].message,
+        contains('CheckPullRequest(flutter/cocoon/0): failed to process message.'),
+      );
+      expect(
+        errorLogs[0].message,
+        contains('Pull request: https://github.com/flutter/cocoon/0'),
+      );
+      expect(
+        errorLogs[0].message,
+        contains('Unexpected invocation of getPullRequest method'),
+      );
+
+      // The message failed, so it shouldn't be acked.
+      expect(pubsub.messagesQueue, hasLength(1));
+    });
+
     test('Closed PRs are not processed', () async {
       final PullRequest pullRequest1 = generatePullRequest(
         prNumber: 0,
