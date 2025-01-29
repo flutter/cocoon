@@ -3109,6 +3109,27 @@ targets:
         // (the engine build) phase was written to Firestore, but as an emtpy tasks
         // list.
       });
+
+      // Regression test for https://github.com/flutter/flutter/issues/162403.
+      test('engine builds still run for release branches', () async {
+        fakeFusion.isFusion = (_, __) => true;
+        getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
+        final pullRequest = generatePullRequest(
+          branch: 'flutter-3.29-candidate.0',
+        );
+
+        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
+        expect(
+          fakeLuciBuildService.flutterPrebuiltEngineVersion,
+          pullRequest.base!.sha,
+          reason: 'Should use the base ref for the engine artifacts',
+        );
+        expect(
+          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
+          ['Linux engine_build'],
+          reason: 'Should run the engine_build',
+        );
+      });
     });
   });
 }
