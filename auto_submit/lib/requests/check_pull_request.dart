@@ -43,7 +43,7 @@ class CheckPullRequest extends CheckRequest {
     int pubSubPulls,
     int pubSubBatchSize,
   ) async {
-    String crumb = '$CheckPullRequest(root)';
+    final rootCrumb = '$CheckPullRequest(root)';
 
     final Set<int> processingLog = <int>{};
     final List<pub.ReceivedMessage> messageList = await pullMessages(
@@ -52,35 +52,34 @@ class CheckPullRequest extends CheckRequest {
       pubSubBatchSize,
     );
     if (messageList.isEmpty) {
-      log.info('$crumb: No messages are pulled.');
+      log.info('$rootCrumb: No messages are pulled.');
       return Response.ok('No messages are pulled.');
     }
 
-    log.info('$crumb: Processing ${messageList.length} messages');
+    log.info('$rootCrumb: Processing ${messageList.length} messages');
 
     final List<Future<void>> futures = <Future<void>>[];
 
     for (pub.ReceivedMessage message in messageList) {
-      log.info('$crumb: ${message.toJson()}');
+      log.info('$rootCrumb: ${message.toJson()}');
       assert(message.message != null);
       assert(message.message!.data != null);
       final String messageData = message.message!.data!;
 
       final Map<String, dynamic> rawBody =
           json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
-      log.info('$crumb: request raw body = $rawBody');
+      log.info('$rootCrumb: request raw body = $rawBody');
 
       final pullRequest = PullRequest.fromJson(rawBody);
+      final prCrumb = '$CheckPullRequest(${pullRequest.repo?.fullName}/${pullRequest.number})';
 
-      crumb = '$CheckPullRequest(${pullRequest.repo?.fullName}/${pullRequest.number})';
-
-      log.info('$crumb: Processing message ackId: ${message.ackId}');
-      log.info('$crumb: Processing mesageId: ${message.message!.messageId}');
-      log.info('$crumb: Processing PR: ${pullRequest.toJson()}');
+      log.info('$prCrumb: Processing message ackId: ${message.ackId}');
+      log.info('$prCrumb: Processing mesageId: ${message.message!.messageId}');
+      log.info('$prCrumb: Processing PR: ${pullRequest.toJson()}');
 
       if (processingLog.contains(pullRequest.number)) {
         // Ack duplicate.
-        log.info('$crumb: Ack the duplicated message : ${message.ackId!}.');
+        log.info('$prCrumb: Ack the duplicated message : ${message.ackId!}.');
         await pubsub.acknowledge(
           pubSubSubscription,
           message.ackId!,
@@ -89,7 +88,7 @@ class CheckPullRequest extends CheckRequest {
         continue;
       } else {
         final ApproverService approver = approverProvider(config);
-        log.info('$crumb: Checking auto approval of pull request: $rawBody');
+        log.info('$prCrumb: Checking auto approval of pull request: $rawBody');
         await approver.autoApproval(pullRequest);
         processingLog.add(pullRequest.number!);
       }
@@ -101,7 +100,7 @@ class CheckPullRequest extends CheckRequest {
       // be acked, and the failed ones will not, and will be retried by pubsub
       // later according to the retry policy set up in Cocoon.
       Future<void> onError(Object? error, Object? stackTrace) async {
-        log.severe('''$crumb: failed to process message.
+        log.severe('''$prCrumb: failed to process message.
 
 Pull request: https://github.com/${pullRequest.repo?.fullName}/${pullRequest.number}
 Parsed pull request: ${pullRequest.toJson()}
