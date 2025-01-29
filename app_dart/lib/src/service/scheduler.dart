@@ -436,7 +436,7 @@ class Scheduler {
         // Feature request: skip engine builds and tests in monorepo if the PR only contains framework related
         // files.
         // NOTE: This creates an empty staging doc for the engine builds as staging is handled on check_run completion
-        //       events from GitHub. Engine Tests are also skipped, and the base.ref is passed to LUCI to use prod
+        //       events from GitHub. Engine Tests are also skipped, and the base.sha is passed to LUCI to use prod
         //       binaries.
         if (isFusion && _isFrameworkOnlyAllowed(pullRequest) && await _isFrameworkOnlyPr(slug, pullRequest.number!)) {
           final logCrumb = 'triggerPresubmitTargets($slug, $sha){frameworkOnly}';
@@ -508,7 +508,11 @@ class Scheduler {
 
   /// Checks if the framework only path is enabled
   static bool _isFrameworkOnlyAllowed(PullRequest pullRequest) {
-    // An allow-list or flag checking could be done here.
+    // TODO(matanlurey): Debug further why this doesn't work on release branches.
+    if (pullRequest.base?.ref case final branch? when branch != 'master') {
+      log.info('Refusing to skip engine builds for PR#${pullRequest.number} branch: $branch');
+      return false;
+    }
 
     // Ensure this optimization only runs on flutter/flutter.
     return pullRequest.base!.repo!.slug() == Config.flutterSlug;
