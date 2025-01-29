@@ -104,6 +104,7 @@ class FakeConfig implements Config {
   Set<gh.RepositorySlug>? supportedReposValue;
   Set<gh.RepositorySlug>? postsubmitSupportedReposValue;
   Duration? githubRequestDelayValue;
+  bool? includeAdditionalMergeQueueValidationsValue;
 
   @override
   Future<gh.GitHub> createGitHubClient({gh.PullRequest? pullRequest, gh.RepositorySlug? slug}) async => githubClient!;
@@ -156,6 +157,9 @@ class FakeConfig implements Config {
 
   @override
   int get maxRecords => maxRecordsValue!;
+
+  @override
+  bool get includeAdditionalMergeQueueValidations => includeAdditionalMergeQueueValidationsValue ?? false;
 
   @override
   String get flutterGoldPending => flutterGoldPendingValue!;

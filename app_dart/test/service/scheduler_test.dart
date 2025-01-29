@@ -55,6 +55,7 @@ enabled_branches:
 targets:
   - name: Linux A
     properties:
+      runs_in_merge_queue: "true"
       custom: abc
   - name: Linux B
     enabled_branches:
@@ -2969,7 +2970,7 @@ targets:
       });
     });
 
-    group('framework-only PR optimization', () {
+    group('contribution velocity/quality of life enhancements', () {
       late final Logger globalLogger;
 
       setUpAll(() {
@@ -2980,9 +2981,8 @@ targets:
         log = globalLogger;
       });
 
-      // TODO(matanlurey): Inject this.
       const allowListedUser = 'matanlurey';
-
+      late FakeConfig config;
       late MockGithubService mockGithubService;
       late _CapturingFakeLuciBuildService fakeLuciBuildService;
       late List<String> logs;
@@ -3002,7 +3002,14 @@ targets:
         logs = [];
         log = Logger.detached('logger')
           ..onRecord.listen((record) {
-            logs.add(record.message);
+            final buffer = StringBuffer(record.message);
+            if (record.error case final error?) {
+              buffer.writeln('$error');
+              if (record.stackTrace case final trace?) {
+                buffer.writeln('$trace');
+              }
+            }
+            logs.add(buffer.toString());
           });
 
         when(mockFirestoreService.documentResource()).thenAnswer((_) async {
@@ -3022,14 +3029,15 @@ targets:
           return resource;
         });
 
+        config = FakeConfig(
+          dbValue: db,
+          githubService: mockGithubService,
+          githubClient: MockGitHub(),
+          firestoreService: mockFirestoreService,
+        );
         scheduler = Scheduler(
           cache: cache,
-          config: FakeConfig(
-            dbValue: db,
-            githubService: mockGithubService,
-            githubClient: MockGitHub(),
-            firestoreService: mockFirestoreService,
-          ),
+          config: config,
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
@@ -3040,6 +3048,7 @@ targets:
           httpClientProvider: () => httpClient,
           luciBuildService: fakeLuciBuildService,
           fusionTester: fakeFusion,
+          experimentalOptInGitHubUsernames: {allowListedUser},
         )..firestoreService = mockFirestoreService;
       });
 
@@ -3109,6 +3118,61 @@ targets:
         // (the engine build) phase was written to Firestore, but as an emtpy tasks
         // list.
       });
+
+      test('merge queue normally only contains release builders', () async {
+        fakeFusion.isFusion = (_, __) => true;
+        config.includeAdditionalMergeQueueValidationsValue = false;
+
+        final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
+          json.decode(
+            generateMergeGroupEventString(
+              repository: 'flutter/flutter',
+              action: 'checks_requested',
+              message: 'Implement an amazing feature',
+            ),
+          ),
+        );
+
+        fakeLuciBuildService.availbleBuilderSet = {
+          'Linux A',
+          'Linux engine_build',
+        };
+        await scheduler.triggerMergeGroupTargets(mergeGroupEvent: mergeGroupEvent);
+
+        expect(
+          fakeLuciBuildService.scheduledMergeGroupBuilds.map((t) => t.value.name),
+          ['Linux engine_build'],
+        );
+      });
+
+      test('merge queue optionally includes additional validation', () async {
+        fakeFusion.isFusion = (_, __) => true;
+        config.includeAdditionalMergeQueueValidationsValue = true;
+
+        final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
+          json.decode(
+            generateMergeGroupEventString(
+              repository: 'flutter/flutter',
+              action: 'checks_requested',
+              message: 'Implement an amazing feature',
+            ),
+          ),
+        );
+
+        fakeLuciBuildService.availbleBuilderSet = {
+          'Linux A',
+          'Linux engine_build',
+        };
+        await scheduler.triggerMergeGroupTargets(mergeGroupEvent: mergeGroupEvent);
+
+        expect(
+          fakeLuciBuildService.scheduledMergeGroupBuilds.map((t) => t.value.name),
+          [
+            'Linux A',
+            'Linux engine_build',
+          ],
+        );
+      });
     });
   });
 }
@@ -3127,6 +3191,29 @@ final class _CapturingFakeLuciBuildService extends Fake implements LuciBuildServ
     scheduledTryBuilds = targets;
     this.flutterPrebuiltEngineVersion = flutterPrebuiltEngineVersion;
     return targets;
+  }
+
+  late List<Target> scheduledMergeGroupBuilds;
+
+  @override
+  Future<void> scheduleMergeGroupBuilds({
+    required Commit commit,
+    required List<Target> targets,
+  }) async {
+    scheduledMergeGroupBuilds = targets;
+  }
+
+  Set<String>? availbleBuilderSet;
+
+  @override
+  Future<Set<String>> getAvailableBuilderSet({
+    String project = 'flutter',
+    String bucket = 'prod',
+  }) async {
+    if (availbleBuilderSet case final availbleBuilderSet?) {
+      return availbleBuilderSet;
+    }
+    fail('No "availbleBuilderSet" specified.');
   }
 
   @override
