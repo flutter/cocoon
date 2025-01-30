@@ -2613,37 +2613,6 @@ void foo() {
       verify(mockPullRequestLabelProcessor.processLabels()).called(1);
     });
 
-    test('on "pull_request_review/submitted" refreshes pull request info and calls PullRequestLabelProcessor',
-        () async {
-      tester.message = generateGithubWebhookMessage(
-        event: 'pull_request_review',
-        action: 'submitted',
-        number: 123,
-        baseRef: 'master',
-        slug: Config.engineSlug,
-        includeChanges: true,
-      );
-
-      await tester.post(webhook);
-
-      verify(mockPullRequestLabelProcessor.processLabels()).called(1);
-    });
-
-    test('does not call PullRequestLabelProcessor on "pull_request_review/edited"', () async {
-      tester.message = generateGithubWebhookMessage(
-        event: 'pull_request_review',
-        action: 'edited',
-        number: 123,
-        baseRef: 'master',
-        slug: Config.engineSlug,
-        includeChanges: true,
-      );
-
-      await tester.post(webhook);
-
-      verifyNever(mockPullRequestLabelProcessor.processLabels());
-    });
-
     group('PullRequestLabelProcessor.processLabels', () {
       late List<String> logRecords;
       late StreamSubscription<LogRecord> logSubscription;
@@ -2672,18 +2641,6 @@ void foo() {
           ],
         );
 
-        githubService.mockPullRequestReviews = {
-          123: [
-            PullRequestReview(
-              id: 123455,
-              state: 'APPROVED',
-              user: User(
-                login: 'codefu',
-              ),
-            ),
-          ],
-        };
-
         githubService.checkRunsMock = '''{
   "total_count": 2,
   "check_runs": [
@@ -2702,8 +2659,6 @@ void foo() {
   ]
 }''';
 
-        githubService.mockTeamMembers = {'codefu'};
-
         final pullRequestLabelProcessor = PullRequestLabelProcessor(
           config: config,
           githubService: githubService,
@@ -2715,7 +2670,6 @@ void foo() {
         expect(
           logRecords,
           [
-            'PullRequestLabelProcessor(flutter/flutter/pull/123): enough approvals for emergency label: codefu (APPROVED)',
             'PullRequestLabelProcessor(flutter/flutter/pull/123): unlocking the Merge Queue Guard',
             'PullRequestLabelProcessor(flutter/flutter/pull/123): unlocked "Merge Queue Guard", allowing it to land as an emergency.',
           ],
@@ -2732,18 +2686,6 @@ void foo() {
             ),
           ],
         );
-
-        githubService.mockPullRequestReviews = {
-          123: [
-            PullRequestReview(
-              id: 123455,
-              state: 'APPROVED',
-              user: User(
-                login: 'codefu',
-              ),
-            ),
-          ],
-        };
 
         githubService.checkRunsMock = '''{
   "total_count": 2,
@@ -2763,8 +2705,6 @@ void foo() {
   ]
 }''';
 
-        githubService.mockTeamMembers = {'codefu'};
-
         final pullRequestLabelProcessor = PullRequestLabelProcessor(
           config: config,
           githubService: githubService,
@@ -2776,7 +2716,6 @@ void foo() {
         expect(
           logRecords,
           [
-            'PullRequestLabelProcessor(flutter/flutter/pull/123): enough approvals for emergency label: codefu (APPROVED)',
             'PullRequestLabelProcessor(flutter/flutter/pull/123): unlocking the Merge Queue Guard',
             'PullRequestLabelProcessor(flutter/flutter/pull/123): failed to process the emergency label. "Merge Queue Guard" check run is missing.',
           ],
@@ -2798,82 +2737,6 @@ void foo() {
           logRecords,
           [
             'PullRequestLabelProcessor(flutter/flutter/pull/123): no emergency label; moving on.',
-          ],
-        );
-      });
-
-      test('does not effect emergency label on team unapproved PRs', () async {
-        final pullRequest = generatePullRequest(
-          number: 123,
-          labels: [
-            IssueLabel(
-              name: 'emergency',
-            ),
-          ],
-        );
-
-        final pullRequestLabelProcessor = PullRequestLabelProcessor(
-          config: config,
-          githubService: githubService,
-          pullRequest: pullRequest,
-        );
-
-        await pullRequestLabelProcessor.processLabels();
-
-        expect(
-          logRecords,
-          [
-            'PullRequestLabelProcessor(flutter/flutter/pull/123): not enough approvals for emergency label: <no approvals>',
-            'PullRequestLabelProcessor(flutter/flutter/pull/123): No team member approval yet.',
-          ],
-        );
-      });
-
-      test('does not effect emergency label on non-team approved PRs', () async {
-        final pullRequest = generatePullRequest(
-          number: 123,
-          sha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
-          labels: [
-            IssueLabel(
-              name: 'emergency',
-            ),
-          ],
-        );
-
-        githubService.mockPullRequestReviews = {
-          123: [
-            PullRequestReview(
-              id: 123455,
-              state: 'APPROVED',
-              user: User(
-                login: 'abc',
-              ),
-            ),
-            PullRequestReview(
-              id: 123455,
-              state: 'APPROVED',
-              user: User(
-                login: 'def',
-              ),
-            ),
-          ],
-        };
-
-        githubService.mockTeamMembers = {};
-
-        final pullRequestLabelProcessor = PullRequestLabelProcessor(
-          config: config,
-          githubService: githubService,
-          pullRequest: pullRequest,
-        );
-
-        await pullRequestLabelProcessor.processLabels();
-
-        expect(
-          logRecords,
-          [
-            'PullRequestLabelProcessor(flutter/flutter/pull/123): not enough approvals for emergency label: abc (APPROVED, not part of flutter-hackers), def (APPROVED, not part of flutter-hackers)',
-            'PullRequestLabelProcessor(flutter/flutter/pull/123): No team member approval yet.',
           ],
         );
       });

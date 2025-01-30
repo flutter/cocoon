@@ -105,9 +105,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'pull_request':
         await _handlePullRequest(webhook.payload);
         break;
-      case 'pull_request_review':
-        await _handlePullRequestReview(webhook.payload);
-        break;
       case 'merge_group':
         await _handleMergeGroup(webhook.payload);
         break;
@@ -141,29 +138,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
 
     return Body.empty;
-  }
-
-  Future<void> _handlePullRequestReview(String requestJson) async {
-    // pacakge:github doesn't have a wrapper class for pull_request_review, so
-    // we have to operate on JSON directly. Not a big deal, since we only need
-    // to read two properties, but this could be enhanced in the future.
-    final reviewEvent = json.decode(requestJson);
-    final action = reviewEvent['action'] as String;
-    final pr = PullRequest.fromJson(reviewEvent['pull_request']);
-    final crumb = '$GithubWebhookSubscription._handlePullRequestReview(${pr.number})';
-
-    // See the API reference:
-    // https://docs.github.com/en/webhooks/webhook-events-and-payloads?actionType=submitted#pull_request_review
-    log.info('$crumb: processing $action for ${pr.htmlUrl}');
-    switch (action) {
-      case 'submitted':
-        await _processLabels(pr);
-        break;
-      // Ignore the rest of the events.
-      case 'dismissed':
-      case 'edited':
-        break;
-    }
   }
 
   /// Handles a GitHub webhook with the event type "pull_request".
@@ -927,21 +901,13 @@ class PullRequestLabelProcessor {
   Future<void> processLabels() async {
     final hasEmergencyLabel = pullRequest.labels?.any((label) => label.name == Config.kEmergencyLabel) ?? false;
     if (hasEmergencyLabel) {
-      await _processEmergencyLabel();
+      await _unlockMergeQueueGuard();
     } else {
       logInfo('no emergency label; moving on.');
     }
   }
 
-  Future<void> _processEmergencyLabel() async {
-    final hasApprovals = await _computeTeamMemberApproval();
-
-    if (!hasApprovals) {
-      // Do not apply emergency label without an approval from a team member.
-      logInfo('No team member approval yet.');
-      return;
-    }
-
+  Future<void> _unlockMergeQueueGuard() async {
     logInfo('unlocking the ${Config.kMergeQueueLockName}');
 
     // At this point all validations passed, and the PR can proceed to landing
@@ -968,47 +934,5 @@ class PullRequestLabelProcessor {
     );
 
     logInfo('unlocked "${Config.kMergeQueueLockName}", allowing it to land as an emergency.');
-  }
-
-  /// A PR needs at least one team member approval for the emergency label to
-  /// take effect.
-  Future<bool> _computeTeamMemberApproval() async {
-    final reviews = await githubService.listPullRequestReviews(slug, prNumber);
-
-    final approvalLog = <String>[];
-    bool hasSufficientApprovals = false;
-
-    for (final review in reviews) {
-      final reviewer = review.user!;
-
-      if (review.state != 'APPROVED') {
-        approvalLog.add('${reviewer.login} (${review.state})');
-        // Not an approval. Keep looking.
-        continue;
-      }
-
-      final isTeamMember = await githubService.isTeamMember(
-        org: 'flutter',
-        team: 'flutter-hackers',
-        user: reviewer.login!,
-      );
-
-      if (!isTeamMember) {
-        approvalLog.add('${reviewer.login} (${review.state}, not part of flutter-hackers)');
-        // Not a team member. Keep looking.
-        continue;
-      }
-
-      approvalLog.add('${reviewer.login} (${review.state})');
-
-      // Found an approval from a team member
-      hasSufficientApprovals = true;
-    }
-
-    logInfo(
-      '${hasSufficientApprovals ? '' : 'not '}enough approvals for emergency label: '
-      '${approvalLog.isEmpty ? '<no approvals>' : approvalLog.join(', ')}',
-    );
-    return hasSufficientApprovals;
   }
 }
