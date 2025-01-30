@@ -2599,7 +2599,7 @@ void foo() {
       });
     });
 
-    test('on "labeled" refreshes pull request info and calls PullRequestLabelProcessor', () async {
+    test('on "pull_request/labeled" refreshes pull request info and calls PullRequestLabelProcessor', () async {
       tester.message = generateGithubWebhookMessage(
         action: 'labeled',
         number: 123,
@@ -2611,6 +2611,37 @@ void foo() {
       await tester.post(webhook);
 
       verify(mockPullRequestLabelProcessor.processLabels()).called(1);
+    });
+
+    test('on "pull_request_review/submitted" refreshes pull request info and calls PullRequestLabelProcessor',
+        () async {
+      tester.message = generateGithubWebhookMessage(
+        event: 'pull_request_review',
+        action: 'submitted',
+        number: 123,
+        baseRef: 'master',
+        slug: Config.engineSlug,
+        includeChanges: true,
+      );
+
+      await tester.post(webhook);
+
+      verify(mockPullRequestLabelProcessor.processLabels()).called(1);
+    });
+
+    test('does not call PullRequestLabelProcessor on "pull_request_review/edited"', () async {
+      tester.message = generateGithubWebhookMessage(
+        event: 'pull_request_review',
+        action: 'edited',
+        number: 123,
+        baseRef: 'master',
+        slug: Config.engineSlug,
+        includeChanges: true,
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(mockPullRequestLabelProcessor.processLabels());
     });
 
     group('PullRequestLabelProcessor.processLabels', () {

@@ -105,6 +105,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'pull_request':
         await _handlePullRequest(webhook.payload);
         break;
+      case 'pull_request_review':
+        await _handlePullRequestReview(webhook.payload);
+        break;
       case 'merge_group':
         await _handleMergeGroup(webhook.payload);
         break;
@@ -140,6 +143,29 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     return Body.empty;
   }
 
+  Future<void> _handlePullRequestReview(String requestJson) async {
+    // pacakge:github doesn't have a wrapper class for pull_request_review, so
+    // we have to operate on JSON directly. Not a big deal, since we only need
+    // to read two properties, but this could be enhanced in the future.
+    final reviewEvent = json.decode(requestJson);
+    final action = reviewEvent['action'] as String;
+    final pr = PullRequest.fromJson(reviewEvent['pull_request']);
+    final crumb = '$GithubWebhookSubscription._handlePullRequestReview(${pr.number})';
+
+    // See the API reference:
+    // https://docs.github.com/en/webhooks/webhook-events-and-payloads?actionType=submitted#pull_request_review
+    log.info('$crumb: processing $action for ${pr.htmlUrl}');
+    switch (action) {
+      case 'submitted':
+        await _processLabels(pr);
+        break;
+      // Ignore the rest of the events.
+      case 'dismissed':
+      case 'edited':
+        break;
+    }
+  }
+
   /// Handles a GitHub webhook with the event type "pull_request".
   ///
   /// Regarding merged pull request events: the commit must be mirrored to GoB
@@ -149,10 +175,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   /// retried with exponential backoff within that time period. The GoB mirror
   /// should be caught up within that time frame via either the internal
   /// mirroring service or [VacuumGithubCommits].
-  Future<void> _handlePullRequest(
-    String rawRequest,
-  ) async {
-    final PullRequestEvent? pullRequestEvent = await _getPullRequestEvent(rawRequest);
+  Future<void> _handlePullRequest(String rawRequest) async {
+    final PullRequestEvent? pullRequestEvent = _getPullRequestEvent(rawRequest);
     if (pullRequestEvent == null) {
       throw const BadRequestException('Expected pull request event.');
     }
@@ -185,7 +209,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         break;
       case 'labeled':
         log.info('$crumb: PR labels = [${pr.labels?.map((label) => '"${label.name}"').join(', ')}]');
-        await _processLabels(pullRequestEvent);
+        await _processLabels(pullRequestEvent.pullRequest!);
         break;
       case 'synchronize':
         // This indicates the PR has new commits. We need to cancel old jobs
@@ -208,8 +232,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
   }
 
-  Future<void> _processLabels(PullRequestEvent pullRequestEvent) async {
-    final messagePullRequest = pullRequestEvent.pullRequest!;
+  Future<void> _processLabels(PullRequest messagePullRequest) async {
     final slug = messagePullRequest.base!.repo!.slug();
 
     final GithubService githubService = await config.createGithubService(slug);
@@ -358,7 +381,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     // Guard. This can happen when the PR is just created, a new commit is
     // pushed, reopened, etc. In all cases the guard may need to be unlocked if,
     // for example, the "emergency" label is present.
-    await _processLabels(pullRequestEvent);
+    await _processLabels(pullRequestEvent.pullRequest!);
   }
 
   /// Release tooling generates cherrypick pull requests that should be granted an approval.
@@ -820,7 +843,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     return messageTemplate.replaceAll('{{target_branch}}', base).replaceAll('{{default_branch}}', defaultBranch);
   }
 
-  Future<PullRequestEvent?> _getPullRequestEvent(String request) async {
+  PullRequestEvent? _getPullRequestEvent(String request) {
     try {
       return PullRequestEvent.fromJson(json.decode(request) as Map<String, dynamic>);
     } on FormatException {
@@ -904,14 +927,14 @@ class PullRequestLabelProcessor {
   Future<void> processLabels() async {
     final hasEmergencyLabel = pullRequest.labels?.any((label) => label.name == Config.kEmergencyLabel) ?? false;
     if (hasEmergencyLabel) {
-      await processEmergencyLabel();
+      await _processEmergencyLabel();
     } else {
       logInfo('no emergency label; moving on.');
     }
   }
 
-  Future<void> processEmergencyLabel() async {
-    final hasApprovals = await computeTeamMemberApproval();
+  Future<void> _processEmergencyLabel() async {
+    final hasApprovals = await _computeTeamMemberApproval();
 
     if (!hasApprovals) {
       // Do not apply emergency label without an approval from a team member.
@@ -949,7 +972,7 @@ class PullRequestLabelProcessor {
 
   /// A PR needs at least one team member approval for the emergency label to
   /// take effect.
-  Future<bool> computeTeamMemberApproval() async {
+  Future<bool> _computeTeamMemberApproval() async {
     final reviews = await githubService.listPullRequestReviews(slug, prNumber);
 
     final approvalLog = <String>[];
