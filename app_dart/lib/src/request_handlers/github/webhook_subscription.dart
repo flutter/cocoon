@@ -155,11 +155,12 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
     final String? eventAction = pullRequestEvent.action;
     final PullRequest pr = pullRequestEvent.pullRequest!;
+    final crumb = '$GithubWebhookSubscription._handlePullRequest(${pr.number})';
 
     // See the API reference:
     // https://developer.github.com/v3/activity/events/types/#pullrequestevent
     // which unfortunately is a bit light on explanations.
-    log.fine('Processing $eventAction for ${pr.htmlUrl}');
+    log.info('$crumb: processing $eventAction for ${pr.htmlUrl}');
     switch (eventAction) {
       case 'closed':
         await _processPullRequestClosed(pullRequestEvent);
@@ -180,6 +181,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         await _tryReleaseApproval(pullRequestEvent);
         break;
       case 'labeled':
+        log.info('$crumb: PR labels = [${pr.labels?.map((label) => '"${label.name}"').join(', ')}]');
         break;
       case 'synchronize':
         // This indicates the PR has new commits. We need to cancel old jobs

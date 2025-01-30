@@ -685,6 +685,34 @@ void main() {
       );
     });
 
+    test('logs pull_request/labeled events', () async {
+      const int prNumber = 123;
+
+      final records = <String>[];
+      final subscription = log.onRecord.listen((record) {
+        if (record.level >= Level.FINE) {
+          records.add(record.message);
+        }
+      });
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'labeled',
+        number: prNumber,
+      );
+
+      await tester.post(webhook);
+      await subscription.cancel();
+
+      expect(
+        records,
+        containsAll([
+          'Processing pull_request',
+          'GithubWebhookSubscription._handlePullRequest(123): processing labeled for https://github.com/flutter/flutter/pull/123',
+          'GithubWebhookSubscription._handlePullRequest(123): PR labels = ["cla: yes", "framework", "tool"]',
+        ]),
+      );
+    });
+
     group('Auto-roller accounts do not label Framework PR with test label or comment.', () {
       final Set<String> inputs = {
         'skia-flutter-autoroll',
