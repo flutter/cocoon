@@ -3,8 +3,9 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:math';
+import 'dart:math' as math;
 
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart';
 
@@ -156,6 +157,64 @@ class GithubService {
       body: encoder.convert(<String, dynamic>{
         'reviewers': <String?>[reviewer],
       }),
+    );
+  }
+
+  Future<List<PullRequestReview>> listPullRequestReviews(RepositorySlug slug, int prNumber) async {
+    return github.pullRequests.listReviews(slug, prNumber).toList();
+  }
+
+  /// Retrieves check runs with the ref.
+  Future<List<CheckRun>> getCheckRuns(
+    RepositorySlug slug,
+    String ref,
+  ) async {
+    return github.checks.checkRuns.listCheckRunsForRef(slug, ref: ref).toList();
+  }
+
+  Future<List<CheckRun>> getCheckRunsFiltered({
+    required RepositorySlug slug,
+    required String ref,
+    String? checkName,
+    CheckRunStatus? status,
+    CheckRunFilter? filter,
+  }) async {
+    return github.checks.checkRuns
+        .listCheckRunsForRef(
+          slug,
+          ref: ref,
+          checkName: checkName,
+          status: status,
+          filter: filter,
+        )
+        .toList();
+  }
+
+  Future<CheckRun> updateCheckRun({
+    required RepositorySlug slug,
+    required CheckRun checkRun,
+    String? name,
+    String? detailsUrl,
+    String? externalId,
+    DateTime? startedAt,
+    CheckRunStatus status = CheckRunStatus.queued,
+    CheckRunConclusion? conclusion,
+    DateTime? completedAt,
+    CheckRunOutput? output,
+    List<CheckRunAction>? actions,
+  }) async {
+    return github.checks.checkRuns.updateCheckRun(
+      slug,
+      checkRun,
+      name: name,
+      detailsUrl: detailsUrl,
+      externalId: externalId,
+      startedAt: startedAt,
+      status: status,
+      conclusion: conclusion,
+      completedAt: completedAt,
+      output: output,
+      actions: actions,
     );
   }
 
@@ -317,7 +376,7 @@ class GithubService {
 
   String _generateNewRef() {
     const String chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-    final Random rnd = Random();
+    final rnd = math.Random();
     return String.fromCharCodes(Iterable<int>.generate(10, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
   }
 
@@ -349,5 +408,28 @@ class GithubService {
   ///   * https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request
   Future<PullRequest> getPullRequest(RepositorySlug slug, int number) async {
     return github.pullRequests.get(slug, number);
+  }
+
+  /// Check to see if user is a member of team in org.
+  ///
+  /// Note that we catch here as the api returns a 404 if the user has no
+  /// membership in general or is not a member of the team.
+  Future<bool> isTeamMember({
+    required String org,
+    required String team,
+    required String user,
+  }) async {
+    try {
+      final teamMembershipState = await github.organizations.getTeamMembershipByName(org, team, user);
+      return teamMembershipState.isActive;
+    } on GitHubError catch (error, stackTrace) {
+      log.info(
+        'GithubService.isTeamMember: failed to check "$team" membership for user $user. '
+        'Assuming not a member.',
+        error,
+        stackTrace,
+      );
+      return false;
+    }
   }
 }

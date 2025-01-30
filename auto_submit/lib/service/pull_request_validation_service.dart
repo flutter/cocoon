@@ -123,22 +123,7 @@ class _PullRequestValidationProcessor {
   }
 
   Future<void> process() async {
-    final hasEmergencyLabel = pullRequest.labelNames.contains(Config.kEmergencyLabel);
     final hasAutosubmitLabel = pullRequest.labelNames.contains(Config.kAutosubmitLabel);
-
-    if (hasEmergencyLabel) {
-      final didEmergencyProcessCleanly = await _processEmergency();
-      if (!didEmergencyProcessCleanly) {
-        // The emergency label failed to process cleanly. Do not continue processing
-        // the "autosubmit" label, as it may not be safe. The author assumed that
-        // the combination of both labels would cleanly land, and it didn't.
-        if (hasAutosubmitLabel) {
-          await _removeAutosubmitLabel('emergency label processing failed');
-        }
-        await pubsub.acknowledge('auto-submit-queue-sub', ackId);
-        return;
-      }
-    }
 
     if (hasAutosubmitLabel) {
       await _processAutosubmit();
@@ -146,97 +131,6 @@ class _PullRequestValidationProcessor {
       logInfo('Ack the processed message : $ackId.');
       await pubsub.acknowledge('auto-submit-queue-sub', ackId);
     }
-  }
-
-  /// Processes the "emergency" label.
-  ///
-  /// Returns true, if the processing succeeded and the validation should move
-  /// onto the "autosubmit" label. The primary result of a successful processing
-  /// of the "emergency" label is the unlocking of the "Merge Queue Guard" check
-  /// run, which allows the respective PR to be enqueued either manually using
-  /// GitHub UI, or via the "autosubmit" label.
-  ///
-  /// Returns false, if the processing failed, the "Merge Queue Guard" was not
-  /// unlocked, and any further validation should stop.
-  Future<bool> _processEmergency() async {
-    logInfo('processing "${Config.kEmergencyLabel}" label');
-    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
-
-    // filter out validations here
-    final ValidationFilter validationFilter = ValidationFilter(
-      config: config,
-      processMethod: ProcessMethod.processEmergency,
-      repositoryConfiguration: repositoryConfiguration,
-    );
-    final Set<Validation> validations = validationFilter.getValidations();
-
-    final Map<String, ValidationResult> validationsMap = <String, ValidationResult>{};
-
-    /// Runs all the validation defined in the service.
-    /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
-    for (Validation validation in validations) {
-      logInfo('running validation ${validation.name}');
-      final ValidationResult validationResult = await validation.validate(
-        result,
-        pullRequest,
-      );
-      validationsMap[validation.name] = validationResult;
-    }
-
-    /// If there is at least one action that requires to remove label do so and add comments for all the failures.
-    bool shouldReturn = false;
-    for (final MapEntry(key: _, :value) in validationsMap.entries) {
-      if (!value.result && value.action == Action.REMOVE_LABEL) {
-        final String commmentMessage = value.message.isEmpty ? 'Validations Fail.' : value.message;
-        final String message =
-            '${Config.kEmergencyLabel} label is removed for ${slug.fullName}/$prNumber, due to $commmentMessage';
-        await githubService.removeLabel(slug, prNumber, Config.kEmergencyLabel);
-        await githubService.createComment(slug, prNumber, message);
-        logInfo(message);
-        shouldReturn = true;
-      }
-    }
-
-    if (shouldReturn) {
-      logInfo('pull request not eligible for emergency landing.');
-      return false;
-    }
-
-    // If PR has some failures to ignore temporarily do nothing and continue.
-    for (final MapEntry(:key, :value) in validationsMap.entries) {
-      if (!value.result && value.action == Action.IGNORE_TEMPORARILY) {
-        logInfo('temporarily ignoring processing because $key validation failed.');
-        return true;
-      }
-    }
-
-    logInfo('unlocking the ${Config.kMergeQueueLockName}');
-
-    // At this point all validations passed, and the PR can proceed to landing
-    // as an emergency.
-    final guard = (await githubService.getCheckRunsFiltered(
-      slug: slug,
-      ref: pullRequest.head!.sha!,
-      checkName: Config.kMergeQueueLockName,
-    ))
-        .singleOrNull;
-
-    if (guard == null) {
-      logSevere(
-        'failed to process the emergency label. "${Config.kMergeQueueLockName}" check run is missing.',
-      );
-      return false;
-    }
-
-    await githubService.updateCheckRun(
-      slug: slug,
-      checkRun: guard,
-      status: github.CheckRunStatus.completed,
-      conclusion: github.CheckRunConclusion.success,
-    );
-
-    logInfo('unlocked "${Config.kMergeQueueLockName}", allowing it to land as an emergency.');
-    return true;
   }
 
   Future<void> _processAutosubmit() async {

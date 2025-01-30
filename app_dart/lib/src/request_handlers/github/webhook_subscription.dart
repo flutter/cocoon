@@ -71,6 +71,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     this.datastoreProvider = DatastoreService.defaultProvider,
     required this.fusionTester,
     super.authProvider,
+    this.pullRequestLabelProcessorProvider = PullRequestLabelProcessor.new,
     // Gets the initial github events from this sub after the webhook uploads them.
   }) : super(subscriptionName: 'github-webhooks-sub');
 
@@ -86,6 +87,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   final DatastoreServiceProvider datastoreProvider;
 
   final FusionTester fusionTester;
+
+  final PullRequestLabelProcessorProvider pullRequestLabelProcessorProvider;
 
   @override
   Future<Body> post() async {
@@ -182,6 +185,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         break;
       case 'labeled':
         log.info('$crumb: PR labels = [${pr.labels?.map((label) => '"${label.name}"').join(', ')}]');
+        await _processLabels(pullRequestEvent);
         break;
       case 'synchronize':
         // This indicates the PR has new commits. We need to cancel old jobs
@@ -202,6 +206,26 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'unlocked':
         break;
     }
+  }
+
+  Future<void> _processLabels(PullRequestEvent pullRequestEvent) async {
+    final messagePullRequest = pullRequestEvent.pullRequest!;
+    final slug = messagePullRequest.base!.repo!.slug();
+
+    final GithubService githubService = await config.createGithubService(slug);
+
+    // Refesh PR data so that it's the freshest (who know how long the webhook
+    // message has been sitting in the queue?) and so that it contains all the
+    // data needed for decision-making.
+    final latestPullRequest = await githubService.getPullRequest(slug, messagePullRequest.number!);
+
+    final labelProcessor = pullRequestLabelProcessorProvider(
+      config: config,
+      githubService: githubService,
+      pullRequest: latestPullRequest,
+    );
+
+    return labelProcessor.processLabels();
   }
 
   /// Handles a GitHub webhook with the event type "merge_group".
@@ -329,6 +353,12 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
 
     await scheduler.triggerPresubmitTargets(pullRequest: pr);
+
+    // When presubmit targets are scheduled the PR acquires a new Merge Queue
+    // Guard. This can happen when the PR is just created, a new commit is
+    // pushed, reopened, etc. In all cases the guard may need to be unlocked if,
+    // for example, the "emergency" label is present.
+    await _processLabels(pullRequestEvent);
   }
 
   /// Release tooling generates cherrypick pull requests that should be granted an approval.
@@ -838,5 +868,124 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       }
     }
     return true;
+  }
+}
+
+typedef PullRequestLabelProcessorProvider = PullRequestLabelProcessor Function({
+  required Config config,
+  required GithubService githubService,
+  required PullRequest pullRequest,
+});
+
+class PullRequestLabelProcessor {
+  PullRequestLabelProcessor({
+    required this.config,
+    required this.githubService,
+    required this.pullRequest,
+  }) : slug = pullRequest.base!.repo!.slug();
+
+  final Config config;
+  final GithubService githubService;
+  final PullRequest pullRequest;
+  final RepositorySlug slug;
+
+  int get prNumber => pullRequest.number!;
+
+  String get logCrumb => 'PullRequestLabelProcessor($slug/pull/$prNumber)';
+
+  void logInfo(Object? message) {
+    log.info('$logCrumb: $message');
+  }
+
+  void logSevere(Object? message) {
+    log.severe('$logCrumb: $message');
+  }
+
+  Future<void> processLabels() async {
+    final hasEmergencyLabel = pullRequest.labels?.any((label) => label.name == Config.kEmergencyLabel) ?? false;
+    if (hasEmergencyLabel) {
+      await processEmergencyLabel();
+    } else {
+      logInfo('no emergency label; moving on.');
+    }
+  }
+
+  Future<void> processEmergencyLabel() async {
+    final hasApprovals = await computeTeamMemberApproval();
+
+    if (!hasApprovals) {
+      // Do not apply emergency label without an approval from a team member.
+      logInfo('No team member approval yet.');
+      return;
+    }
+
+    logInfo('unlocking the ${Config.kMergeQueueLockName}');
+
+    // At this point all validations passed, and the PR can proceed to landing
+    // as an emergency.
+    final guard = (await githubService.getCheckRunsFiltered(
+      slug: slug,
+      ref: pullRequest.head!.sha!,
+      checkName: Config.kMergeQueueLockName,
+    ))
+        .singleOrNull;
+
+    if (guard == null) {
+      logSevere(
+        'failed to process the emergency label. "${Config.kMergeQueueLockName}" check run is missing.',
+      );
+      return;
+    }
+
+    await githubService.updateCheckRun(
+      slug: slug,
+      checkRun: guard,
+      status: CheckRunStatus.completed,
+      conclusion: CheckRunConclusion.success,
+    );
+
+    logInfo('unlocked "${Config.kMergeQueueLockName}", allowing it to land as an emergency.');
+  }
+
+  /// A PR needs at least one team member approval for the emergency label to
+  /// take effect.
+  Future<bool> computeTeamMemberApproval() async {
+    final reviews = await githubService.listPullRequestReviews(slug, prNumber);
+
+    final approvalLog = <String>[];
+    bool hasSufficientApprovals = false;
+
+    for (final review in reviews) {
+      final reviewer = review.user!;
+
+      if (review.state != 'APPROVED') {
+        approvalLog.add('${reviewer.login} (${review.state})');
+        // Not an approval. Keep looking.
+        continue;
+      }
+
+      final isTeamMember = await githubService.isTeamMember(
+        org: 'flutter',
+        team: 'flutter-hackers',
+        user: reviewer.login!,
+      );
+
+      if (!isTeamMember) {
+        approvalLog.add('${reviewer.login} (${review.state}, not part of flutter-hackers)');
+        // Not a team member. Keep looking.
+        continue;
+      }
+
+      approvalLog.add('${reviewer.login} (${review.state})');
+
+      // Found an approval from a team member
+      hasSufficientApprovals = true;
+    }
+
+    logInfo(
+      '${hasSufficientApprovals ? '' : 'not '}enough approvals for emergency label: '
+      '${approvalLog.isEmpty ? '<no approvals>' : approvalLog.join(', ')}',
+    );
+    return hasSufficientApprovals;
   }
 }

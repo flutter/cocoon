@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
+import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
@@ -88,6 +89,7 @@ Future<AutoRefreshingAuthClient> authClientProviderShim({
     ProjectsDatabasesDocumentsResource,
     BeginTransactionResponse,
     Callbacks,
+    PullRequestLabelProcessor,
   ],
   customMocks: [
     MockSpec<Cache<Uint8List>>(),
