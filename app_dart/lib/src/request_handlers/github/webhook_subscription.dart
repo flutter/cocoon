@@ -206,20 +206,14 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
   }
 
-  Future<void> _processLabels(PullRequest messagePullRequest) async {
-    final slug = messagePullRequest.base!.repo!.slug();
-
+  Future<void> _processLabels(PullRequest pullRequest) async {
+    final slug = pullRequest.base!.repo!.slug();
     final GithubService githubService = await config.createGithubService(slug);
-
-    // Refresh PR data so that it's the freshest (who know how long the webhook
-    // message has been sitting in the queue?) and so that it contains all the
-    // data needed for decision-making.
-    final latestPullRequest = await githubService.getPullRequest(slug, messagePullRequest.number!);
 
     final labelProcessor = pullRequestLabelProcessorProvider(
       config: config,
       githubService: githubService,
-      pullRequest: latestPullRequest,
+      pullRequest: pullRequest,
     );
 
     return labelProcessor.processLabels();
@@ -355,7 +349,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     // Guard. This can happen when the PR is just created, a new commit is
     // pushed, reopened, etc. In all cases the guard may need to be unlocked if,
     // for example, the "emergency" label is present.
-    await _processLabels(pullRequestEvent.pullRequest!);
+    await _processLabels(pr);
   }
 
   /// Release tooling generates cherrypick pull requests that should be granted an approval.
