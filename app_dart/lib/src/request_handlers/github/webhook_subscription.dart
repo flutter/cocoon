@@ -211,7 +211,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
     final GithubService githubService = await config.createGithubService(slug);
 
-    // Refesh PR data so that it's the freshest (who know how long the webhook
+    // Refresh PR data so that it's the freshest (who know how long the webhook
     // message has been sitting in the queue?) and so that it contains all the
     // data needed for decision-making.
     final latestPullRequest = await githubService.getPullRequest(slug, messagePullRequest.number!);
@@ -901,6 +901,12 @@ class PullRequestLabelProcessor {
   Future<void> processLabels() async {
     final hasEmergencyLabel = pullRequest.labels?.any((label) => label.name == Config.kEmergencyLabel) ?? false;
     if (hasEmergencyLabel) {
+      // The merge guard can be unlocked without approval checks because:
+      //
+      // * For manual merges the GitHub repo settings already require minimum
+      //   approvals before the PR can be submitted.
+      // * For `autosubmit` label Cocoon has the [Approval] validation that
+      //   checks approvasl before attempting to merge the PR.
       await _unlockMergeQueueGuard();
     } else {
       logInfo('no emergency label; moving on.');
