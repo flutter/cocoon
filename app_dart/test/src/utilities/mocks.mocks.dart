@@ -847,8 +847,8 @@ class _FakeStagingConclusion_77 extends _i1.SmartFake implements _i28.StagingCon
         );
 }
 
-class _FakeEntry_78<T> extends _i1.SmartFake implements _i29.Entry<T> {
-  _FakeEntry_78(
+class _FakeRepositorySlug_78 extends _i1.SmartFake implements _i13.RepositorySlug {
+  _FakeRepositorySlug_78(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -857,8 +857,18 @@ class _FakeEntry_78<T> extends _i1.SmartFake implements _i29.Entry<T> {
         );
 }
 
-class _FakeCache_79<T> extends _i1.SmartFake implements _i29.Cache<T> {
-  _FakeCache_79(
+class _FakeEntry_79<T> extends _i1.SmartFake implements _i29.Entry<T> {
+  _FakeEntry_79(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeCache_80<T> extends _i1.SmartFake implements _i29.Cache<T> {
+  _FakeCache_80(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -3562,6 +3572,115 @@ class MockGithubService extends _i1.Mock implements _i17.GithubService {
       ) as _i20.Future<void>);
 
   @override
+  _i20.Future<List<_i13.PullRequestReview>> listPullRequestReviews(
+    _i13.RepositorySlug? slug,
+    int? prNumber,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #listPullRequestReviews,
+          [
+            slug,
+            prNumber,
+          ],
+        ),
+        returnValue: _i20.Future<List<_i13.PullRequestReview>>.value(<_i13.PullRequestReview>[]),
+      ) as _i20.Future<List<_i13.PullRequestReview>>);
+
+  @override
+  _i20.Future<List<_i13.CheckRun>> getCheckRuns(
+    _i13.RepositorySlug? slug,
+    String? ref,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getCheckRuns,
+          [
+            slug,
+            ref,
+          ],
+        ),
+        returnValue: _i20.Future<List<_i13.CheckRun>>.value(<_i13.CheckRun>[]),
+      ) as _i20.Future<List<_i13.CheckRun>>);
+
+  @override
+  _i20.Future<List<_i13.CheckRun>> getCheckRunsFiltered({
+    required _i13.RepositorySlug? slug,
+    required String? ref,
+    String? checkName,
+    _i13.CheckRunStatus? status,
+    _i13.CheckRunFilter? filter,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getCheckRunsFiltered,
+          [],
+          {
+            #slug: slug,
+            #ref: ref,
+            #checkName: checkName,
+            #status: status,
+            #filter: filter,
+          },
+        ),
+        returnValue: _i20.Future<List<_i13.CheckRun>>.value(<_i13.CheckRun>[]),
+      ) as _i20.Future<List<_i13.CheckRun>>);
+
+  @override
+  _i20.Future<_i13.CheckRun> updateCheckRun({
+    required _i13.RepositorySlug? slug,
+    required _i13.CheckRun? checkRun,
+    String? name,
+    String? detailsUrl,
+    String? externalId,
+    DateTime? startedAt,
+    _i13.CheckRunStatus? status = _i13.CheckRunStatus.queued,
+    _i13.CheckRunConclusion? conclusion,
+    DateTime? completedAt,
+    _i13.CheckRunOutput? output,
+    List<_i13.CheckRunAction>? actions,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateCheckRun,
+          [],
+          {
+            #slug: slug,
+            #checkRun: checkRun,
+            #name: name,
+            #detailsUrl: detailsUrl,
+            #externalId: externalId,
+            #startedAt: startedAt,
+            #status: status,
+            #conclusion: conclusion,
+            #completedAt: completedAt,
+            #output: output,
+            #actions: actions,
+          },
+        ),
+        returnValue: _i20.Future<_i13.CheckRun>.value(_FakeCheckRun_40(
+          this,
+          Invocation.method(
+            #updateCheckRun,
+            [],
+            {
+              #slug: slug,
+              #checkRun: checkRun,
+              #name: name,
+              #detailsUrl: detailsUrl,
+              #externalId: externalId,
+              #startedAt: startedAt,
+              #status: status,
+              #conclusion: conclusion,
+              #completedAt: completedAt,
+              #output: output,
+              #actions: actions,
+            },
+          ),
+        )),
+      ) as _i20.Future<_i13.CheckRun>);
+
+  @override
   _i20.Future<List<_i13.IssueLabel>> getIssueLabels(
     _i13.RepositorySlug? slug,
     int? issueNumber,
@@ -3861,6 +3980,25 @@ class MockGithubService extends _i1.Mock implements _i17.GithubService {
           ),
         )),
       ) as _i20.Future<_i13.PullRequest>);
+
+  @override
+  _i20.Future<bool> isTeamMember({
+    required String? org,
+    required String? team,
+    required String? user,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #isTeamMember,
+          [],
+          {
+            #org: org,
+            #team: team,
+            #user: user,
+          },
+        ),
+        returnValue: _i20.Future<bool>.value(false),
+      ) as _i20.Future<bool>);
 }
 
 /// A class which mocks [GitService].
@@ -7615,6 +7753,113 @@ class MockCallbacks extends _i1.Mock implements _i47.Callbacks {
       ) as _i20.Future<_i13.PullRequest>);
 }
 
+/// A class which mocks [PullRequestLabelProcessor].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockPullRequestLabelProcessor extends _i1.Mock implements _i15.PullRequestLabelProcessor {
+  MockPullRequestLabelProcessor() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i2.Config get config => (super.noSuchMethod(
+        Invocation.getter(#config),
+        returnValue: _FakeConfig_0(
+          this,
+          Invocation.getter(#config),
+        ),
+      ) as _i2.Config);
+
+  @override
+  _i17.GithubService get githubService => (super.noSuchMethod(
+        Invocation.getter(#githubService),
+        returnValue: _FakeGithubService_20(
+          this,
+          Invocation.getter(#githubService),
+        ),
+      ) as _i17.GithubService);
+
+  @override
+  _i13.PullRequest get pullRequest => (super.noSuchMethod(
+        Invocation.getter(#pullRequest),
+        returnValue: _FakePullRequest_41(
+          this,
+          Invocation.getter(#pullRequest),
+        ),
+      ) as _i13.PullRequest);
+
+  @override
+  _i13.RepositorySlug get slug => (super.noSuchMethod(
+        Invocation.getter(#slug),
+        returnValue: _FakeRepositorySlug_78(
+          this,
+          Invocation.getter(#slug),
+        ),
+      ) as _i13.RepositorySlug);
+
+  @override
+  int get prNumber => (super.noSuchMethod(
+        Invocation.getter(#prNumber),
+        returnValue: 0,
+      ) as int);
+
+  @override
+  String get logCrumb => (super.noSuchMethod(
+        Invocation.getter(#logCrumb),
+        returnValue: _i32.dummyValue<String>(
+          this,
+          Invocation.getter(#logCrumb),
+        ),
+      ) as String);
+
+  @override
+  void logInfo(Object? message) => super.noSuchMethod(
+        Invocation.method(
+          #logInfo,
+          [message],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void logSevere(Object? message) => super.noSuchMethod(
+        Invocation.method(
+          #logSevere,
+          [message],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i20.Future<void> processLabels() => (super.noSuchMethod(
+        Invocation.method(
+          #processLabels,
+          [],
+        ),
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
+
+  @override
+  _i20.Future<void> processEmergencyLabel() => (super.noSuchMethod(
+        Invocation.method(
+          #processEmergencyLabel,
+          [],
+        ),
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
+
+  @override
+  _i20.Future<bool> computeTeamMemberApproval() => (super.noSuchMethod(
+        Invocation.method(
+          #computeTeamMemberApproval,
+          [],
+        ),
+        returnValue: _i20.Future<bool>.value(false),
+      ) as _i20.Future<bool>);
+}
+
 /// A class which mocks [Cache].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -7629,7 +7874,7 @@ class MockCache extends _i1.Mock implements _i29.Cache<_i40.Uint8List> {
           #[],
           [key],
         ),
-        returnValue: _FakeEntry_78<_i40.Uint8List>(
+        returnValue: _FakeEntry_79<_i40.Uint8List>(
           this,
           Invocation.method(
             #[],
@@ -7644,7 +7889,7 @@ class MockCache extends _i1.Mock implements _i29.Cache<_i40.Uint8List> {
           #withPrefix,
           [prefix],
         ),
-        returnValue: _FakeCache_79<_i40.Uint8List>(
+        returnValue: _FakeCache_80<_i40.Uint8List>(
           this,
           Invocation.method(
             #withPrefix,
@@ -7659,7 +7904,7 @@ class MockCache extends _i1.Mock implements _i29.Cache<_i40.Uint8List> {
           #withCodec,
           [codec],
         ),
-        returnValue: _FakeCache_79<S>(
+        returnValue: _FakeCache_80<S>(
           this,
           Invocation.method(
             #withCodec,
@@ -7674,7 +7919,7 @@ class MockCache extends _i1.Mock implements _i29.Cache<_i40.Uint8List> {
           #withTTL,
           [ttl],
         ),
-        returnValue: _FakeCache_79<_i40.Uint8List>(
+        returnValue: _FakeCache_80<_i40.Uint8List>(
           this,
           Invocation.method(
             #withTTL,

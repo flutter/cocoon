@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:math';
+import 'dart:math' as math;
 
 import 'package:github/github.dart';
 import 'package:http/http.dart';
@@ -156,6 +156,60 @@ class GithubService {
       body: encoder.convert(<String, dynamic>{
         'reviewers': <String?>[reviewer],
       }),
+    );
+  }
+
+  /// Retrieves check runs with the ref.
+  Future<List<CheckRun>> getCheckRuns(
+    RepositorySlug slug,
+    String ref,
+  ) {
+    return github.checks.checkRuns.listCheckRunsForRef(slug, ref: ref).toList();
+  }
+
+  Future<List<CheckRun>> getCheckRunsFiltered({
+    required RepositorySlug slug,
+    required String ref,
+    String? checkName,
+    CheckRunStatus? status,
+    CheckRunFilter? filter,
+  }) async {
+    return github.checks.checkRuns
+        .listCheckRunsForRef(
+          slug,
+          ref: ref,
+          checkName: checkName,
+          status: status,
+          filter: filter,
+        )
+        .toList();
+  }
+
+  Future<CheckRun> updateCheckRun({
+    required RepositorySlug slug,
+    required CheckRun checkRun,
+    String? name,
+    String? detailsUrl,
+    String? externalId,
+    DateTime? startedAt,
+    CheckRunStatus status = CheckRunStatus.queued,
+    CheckRunConclusion? conclusion,
+    DateTime? completedAt,
+    CheckRunOutput? output,
+    List<CheckRunAction>? actions,
+  }) async {
+    return github.checks.checkRuns.updateCheckRun(
+      slug,
+      checkRun,
+      name: name,
+      detailsUrl: detailsUrl,
+      externalId: externalId,
+      startedAt: startedAt,
+      status: status,
+      conclusion: conclusion,
+      completedAt: completedAt,
+      output: output,
+      actions: actions,
     );
   }
 
@@ -317,7 +371,7 @@ class GithubService {
 
   String _generateNewRef() {
     const String chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-    final Random rnd = Random();
+    final rnd = math.Random();
     return String.fromCharCodes(Iterable<int>.generate(10, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
   }
 

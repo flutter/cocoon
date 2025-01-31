@@ -71,6 +71,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     this.datastoreProvider = DatastoreService.defaultProvider,
     required this.fusionTester,
     super.authProvider,
+    this.pullRequestLabelProcessorProvider = PullRequestLabelProcessor.new,
     // Gets the initial github events from this sub after the webhook uploads them.
   }) : super(subscriptionName: 'github-webhooks-sub');
 
@@ -86,6 +87,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   final DatastoreServiceProvider datastoreProvider;
 
   final FusionTester fusionTester;
+
+  final PullRequestLabelProcessorProvider pullRequestLabelProcessorProvider;
 
   @override
   Future<Body> post() async {
@@ -146,10 +149,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   /// retried with exponential backoff within that time period. The GoB mirror
   /// should be caught up within that time frame via either the internal
   /// mirroring service or [VacuumGithubCommits].
-  Future<void> _handlePullRequest(
-    String rawRequest,
-  ) async {
-    final PullRequestEvent? pullRequestEvent = await _getPullRequestEvent(rawRequest);
+  Future<void> _handlePullRequest(String rawRequest) async {
+    final PullRequestEvent? pullRequestEvent = _getPullRequestEvent(rawRequest);
     if (pullRequestEvent == null) {
       throw const BadRequestException('Expected pull request event.');
     }
@@ -182,6 +183,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         break;
       case 'labeled':
         log.info('$crumb: PR labels = [${pr.labels?.map((label) => '"${label.name}"').join(', ')}]');
+        await _processLabels(pullRequestEvent.pullRequest!);
         break;
       case 'synchronize':
         // This indicates the PR has new commits. We need to cancel old jobs
@@ -202,6 +204,19 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'unlocked':
         break;
     }
+  }
+
+  Future<void> _processLabels(PullRequest pullRequest) async {
+    final slug = pullRequest.base!.repo!.slug();
+    final GithubService githubService = await config.createGithubService(slug);
+
+    final labelProcessor = pullRequestLabelProcessorProvider(
+      config: config,
+      githubService: githubService,
+      pullRequest: pullRequest,
+    );
+
+    return labelProcessor.processLabels();
   }
 
   /// Handles a GitHub webhook with the event type "merge_group".
@@ -329,6 +344,12 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
 
     await scheduler.triggerPresubmitTargets(pullRequest: pr);
+
+    // When presubmit targets are scheduled the PR acquires a new Merge Queue
+    // Guard. This can happen when the PR is just created, a new commit is
+    // pushed, reopened, etc. In all cases the guard may need to be unlocked if,
+    // for example, the "emergency" label is present.
+    await _processLabels(pr);
   }
 
   /// Release tooling generates cherrypick pull requests that should be granted an approval.
@@ -790,7 +811,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     return messageTemplate.replaceAll('{{target_branch}}', base).replaceAll('{{default_branch}}', defaultBranch);
   }
 
-  Future<PullRequestEvent?> _getPullRequestEvent(String request) async {
+  PullRequestEvent? _getPullRequestEvent(String request) {
     try {
       return PullRequestEvent.fromJson(json.decode(request) as Map<String, dynamic>);
     } on FormatException {
@@ -838,5 +859,81 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       }
     }
     return true;
+  }
+}
+
+typedef PullRequestLabelProcessorProvider = PullRequestLabelProcessor Function({
+  required Config config,
+  required GithubService githubService,
+  required PullRequest pullRequest,
+});
+
+class PullRequestLabelProcessor {
+  PullRequestLabelProcessor({
+    required this.config,
+    required this.githubService,
+    required this.pullRequest,
+  })  : slug = pullRequest.base!.repo!.slug(),
+        prNumber = pullRequest.number!;
+
+  final Config config;
+  final GithubService githubService;
+  final PullRequest pullRequest;
+  final RepositorySlug slug;
+  final int prNumber;
+  late final String logCrumb = '$PullRequestLabelProcessor($slug/pull/$prNumber)';
+
+  void logInfo(Object? message) {
+    log.info('$logCrumb: $message');
+  }
+
+  void logSevere(Object? message) {
+    log.severe('$logCrumb: $message');
+  }
+
+  Future<void> processLabels() async {
+    final hasEmergencyLabel = pullRequest.labels?.any((label) => label.name == Config.kEmergencyLabel) ?? false;
+    if (hasEmergencyLabel) {
+      // The merge guard can be unlocked without approval checks because:
+      //
+      // * For manual merges the GitHub repo settings already require minimum
+      //   approvals before the PR can be submitted.
+      // * For `autosubmit` label Cocoon has the [Approval] validation that
+      //   checks approvasl before attempting to merge the PR.
+      await _unlockMergeQueueGuardForEmergency();
+    } else {
+      logInfo('no emergency label; moving on.');
+    }
+  }
+
+  Future<void> _unlockMergeQueueGuardForEmergency() async {
+    logInfo('attempting to unlock the ${Config.kMergeQueueLockName} for emergency');
+
+    final guard = (await githubService.getCheckRunsFiltered(
+      slug: slug,
+      ref: pullRequest.head!.sha!,
+      checkName: Config.kMergeQueueLockName,
+    ))
+        .singleOrNull;
+
+    if (guard == null) {
+      logSevere(
+        'failed to process the emergency label. "${Config.kMergeQueueLockName}" check run is missing.',
+      );
+      return;
+    }
+
+    await githubService.updateCheckRun(
+      slug: slug,
+      checkRun: guard,
+      status: CheckRunStatus.completed,
+      conclusion: CheckRunConclusion.success,
+      output: const CheckRunOutput(
+        title: Config.kMergeQueueLockName,
+        summary: 'Emergency label applied.',
+      ),
+    );
+
+    logInfo('unlocked "${Config.kMergeQueueLockName}", allowing it to land as an emergency.');
   }
 }

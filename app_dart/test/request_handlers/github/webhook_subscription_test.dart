@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server/testing/mocks.dart';
@@ -12,6 +14,7 @@ import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' hide Branch;
@@ -50,6 +53,7 @@ void main() {
   late MockPullRequestsService pullRequestsService;
   late SubscriptionTester tester;
   late FakeFusionTester fakeFusionTester;
+  late MockPullRequestLabelProcessor mockPullRequestLabelProcessor;
 
   /// Name of an example release base branch name.
   const String kReleaseBaseRef = 'flutter-2.12-candidate.4';
@@ -116,6 +120,7 @@ void main() {
       });
     });
 
+    mockPullRequestLabelProcessor = MockPullRequestLabelProcessor();
     gerritService = FakeGerritService();
     webhook = GithubWebhookSubscription(
       config: config,
@@ -125,6 +130,12 @@ void main() {
       scheduler: scheduler,
       commitService: commitService,
       fusionTester: fakeFusionTester,
+      pullRequestLabelProcessorProvider: ({
+        required Config config,
+        required GithubService githubService,
+        required PullRequest pullRequest,
+      }) =>
+          mockPullRequestLabelProcessor,
     );
   });
 
@@ -2585,6 +2596,149 @@ void foo() {
         when(gitHubClient.repositories).thenReturn(mockRepositoriesService);
 
         await tester.post(webhook);
+      });
+    });
+
+    test('on "pull_request/labeled" refreshes pull request info and calls PullRequestLabelProcessor', () async {
+      tester.message = generateGithubWebhookMessage(
+        action: 'labeled',
+        number: 123,
+        baseRef: 'master',
+        slug: Config.engineSlug,
+        includeChanges: true,
+      );
+
+      await tester.post(webhook);
+
+      verify(mockPullRequestLabelProcessor.processLabels()).called(1);
+    });
+
+    group('PullRequestLabelProcessor.processLabels', () {
+      late List<String> logRecords;
+      late StreamSubscription<LogRecord> logSubscription;
+
+      setUp(() {
+        logRecords = <String>[];
+        logSubscription = log.onRecord.listen((record) {
+          if (record.level >= Level.FINE) {
+            logRecords.add(record.message);
+          }
+        });
+      });
+
+      tearDown(() {
+        logSubscription.cancel();
+      });
+
+      test('applies emergency label on approved PRs', () async {
+        final pullRequest = generatePullRequest(
+          number: 123,
+          sha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
+          labels: [
+            IssueLabel(
+              name: 'emergency',
+            ),
+          ],
+        );
+
+        githubService.checkRunsMock = '''{
+  "total_count": 2,
+  "check_runs": [
+    {
+      "id": 2,
+      "head_sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+      "external_id": "",
+      "details_url": "https://example.com",
+      "status": "in_progress",
+      "started_at": "2018-05-04T01:14:52Z",
+      "name": "Merge Queue Guard",
+      "check_suite": {
+        "id": 5
+      }
+    }
+  ]
+}''';
+
+        final pullRequestLabelProcessor = PullRequestLabelProcessor(
+          config: config,
+          githubService: githubService,
+          pullRequest: pullRequest,
+        );
+
+        await pullRequestLabelProcessor.processLabels();
+
+        expect(
+          logRecords,
+          [
+            'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Merge Queue Guard for emergency',
+            'PullRequestLabelProcessor(flutter/flutter/pull/123): unlocked "Merge Queue Guard", allowing it to land as an emergency.',
+          ],
+        );
+      });
+
+      test('logs and gracefully skips emergency label on missing Merge Queue Guard', () async {
+        final pullRequest = generatePullRequest(
+          number: 123,
+          sha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
+          labels: [
+            IssueLabel(
+              name: 'emergency',
+            ),
+          ],
+        );
+
+        githubService.checkRunsMock = '''{
+  "total_count": 2,
+  "check_runs": [
+    {
+      "id": 2,
+      "head_sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+      "external_id": "",
+      "details_url": "https://example.com",
+      "status": "in_progress",
+      "started_at": "2018-05-04T01:14:52Z",
+      "name": "Not A Guard For Sure",
+      "check_suite": {
+        "id": 5
+      }
+    }
+  ]
+}''';
+
+        final pullRequestLabelProcessor = PullRequestLabelProcessor(
+          config: config,
+          githubService: githubService,
+          pullRequest: pullRequest,
+        );
+
+        await pullRequestLabelProcessor.processLabels();
+
+        expect(
+          logRecords,
+          [
+            'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Merge Queue Guard for emergency',
+            'PullRequestLabelProcessor(flutter/flutter/pull/123): failed to process the emergency label. "Merge Queue Guard" check run is missing.',
+          ],
+        );
+      });
+
+      test('does nothing w.r.t. emergency label when the label is missing', () async {
+        final pullRequest = generatePullRequest(number: 123);
+
+        final pullRequestLabelProcessor = PullRequestLabelProcessor(
+          config: config,
+          githubService: githubService,
+          pullRequest: pullRequest,
+        );
+
+        await pullRequestLabelProcessor.processLabels();
+
+        expect(
+          logRecords,
+          [
+            'PullRequestLabelProcessor(flutter/flutter/pull/123): no emergency label; moving on.',
+          ],
+        );
       });
     });
   });

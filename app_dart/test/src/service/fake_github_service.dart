@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:cocoon_server/testing/mocks.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
@@ -168,5 +170,104 @@ class FakeGithubService implements GithubService {
     int pages = 2,
   }) async {
     return <Issue>[];
+  }
+
+  Map<int, List<PullRequestReview>> mockPullRequestReviews = {};
+
+  String? checkRunsMock;
+
+  @override
+  Future<List<CheckRun>> getCheckRuns(
+    RepositorySlug slug,
+    String ref,
+  ) async {
+    final rawBody = json.decode(checkRunsMock!) as Map<String, dynamic>;
+    final List<dynamic> checkRunsBody = rawBody['check_runs']! as List<dynamic>;
+    final List<CheckRun> checkRuns = <CheckRun>[];
+    if ((checkRunsBody[0] as Map<String, dynamic>).isNotEmpty) {
+      checkRuns.addAll(
+        checkRunsBody.map((dynamic checkRun) => CheckRun.fromJson(checkRun as Map<String, dynamic>)).toList(),
+      );
+    }
+    return checkRuns;
+  }
+
+  @override
+  Future<List<CheckRun>> getCheckRunsFiltered({
+    required RepositorySlug slug,
+    required String ref,
+    String? checkName,
+    CheckRunStatus? status,
+    CheckRunFilter? filter,
+  }) async {
+    final List<CheckRun> checkRuns = await getCheckRuns(slug, ref);
+    if (checkName != null) {
+      final List<CheckRun> checkRunsFilteredByName = [];
+      for (CheckRun checkRun in checkRuns) {
+        if (checkRun.name == checkName && checkRun.headSha == ref) {
+          checkRunsFilteredByName.add(checkRun);
+        }
+      }
+      return checkRunsFilteredByName;
+    }
+    return checkRuns;
+  }
+
+  final List<
+      ({
+        RepositorySlug slug,
+        CheckRun checkRun,
+        String? name,
+        String? detailsUrl,
+        String? externalId,
+        DateTime? startedAt,
+        CheckRunStatus status,
+        CheckRunConclusion? conclusion,
+        DateTime? completedAt,
+        CheckRunOutput? output,
+        List<CheckRunAction>? actions,
+      })> checkRunUpdates = [];
+
+  @override
+  Future<CheckRun> updateCheckRun({
+    required RepositorySlug slug,
+    required CheckRun checkRun,
+    String? name,
+    String? detailsUrl,
+    String? externalId,
+    DateTime? startedAt,
+    CheckRunStatus status = CheckRunStatus.queued,
+    CheckRunConclusion? conclusion,
+    DateTime? completedAt,
+    CheckRunOutput? output,
+    List<CheckRunAction>? actions,
+  }) async {
+    final Map<String, Object?> json = checkRun.toJson();
+
+    checkRunUpdates.add(
+      (
+        slug: slug,
+        checkRun: checkRun,
+        name: name,
+        detailsUrl: detailsUrl,
+        externalId: externalId,
+        startedAt: startedAt,
+        status: status,
+        conclusion: conclusion,
+        completedAt: completedAt,
+        output: output,
+        actions: actions,
+      ),
+    );
+
+    if (conclusion != null) {
+      json['conclusion'] = conclusion.value;
+    }
+
+    if (status != checkRun.status) {
+      json['status'] = status.value;
+    }
+
+    return CheckRun.fromJson(json);
   }
 }
