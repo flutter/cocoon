@@ -882,7 +882,7 @@ class PullRequestLabelProcessor {
 
   int get prNumber => pullRequest.number!;
 
-  String get logCrumb => 'PullRequestLabelProcessor($slug/pull/$prNumber)';
+  String get logCrumb => '$PullRequestLabelProcessor($slug/pull/$prNumber)';
 
   void logInfo(Object? message) {
     log.info('$logCrumb: $message');
