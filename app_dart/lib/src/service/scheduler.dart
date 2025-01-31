@@ -438,7 +438,12 @@ class Scheduler {
         // NOTE: This creates an empty staging doc for the engine builds as staging is handled on check_run completion
         //       events from GitHub. Engine Tests are also skipped, and the base.sha is passed to LUCI to use prod
         //       binaries.
-        if (isFusion && _isFrameworkOnlyAllowed(pullRequest) && await _isFrameworkOnlyPr(slug, pullRequest.number!)) {
+        if (isFusion &&
+            await _applyFrameworkOnlyPrOptimization(
+              slug,
+              prNumber: pullRequest.number!,
+              prBranch: pullRequest.base!.ref!,
+            )) {
           final logCrumb = 'triggerPresubmitTargets($slug, $sha){frameworkOnly}';
           log.info('$logCrumb: FRAMEWORK_ONLY_TESTING_PR');
 
@@ -506,19 +511,30 @@ class Scheduler {
     );
   }
 
-  /// Checks if the framework only path is enabled
-  static bool _isFrameworkOnlyAllowed(PullRequest pullRequest) {
-    // TODO(matanlurey): Debug further why this doesn't work on release branches.
-    if (pullRequest.base?.ref case final branch? when branch != 'master') {
-      log.info('Refusing to skip engine builds for PR#${pullRequest.number} branch: $branch');
+  Future<bool> _applyFrameworkOnlyPrOptimization(
+    RepositorySlug slug, {
+    required int prNumber,
+    required String prBranch,
+  }) async {
+    // The flutter/recipes change that makes this optimization possible
+    // (https://flutter-review.googlesource.com/c/recipes/+/62501) occurred
+    // *after* the branch to flutter-release "flutter-3.29-candidate.0", meaning
+    // that release branch is using an older version of recipes that does not
+    // support this optimization.
+    //
+    // So, to avoid making it impossible to create a release branch, or to
+    // update the existing release branch (i.e. hot fixes), we only apply the
+    // optimization on the "master" branch.
+    //
+    // In theory, many moons from now when maintained release branches are
+    // guaranteed to include the flutter/recipes change we could remove this
+    // check.
+    if (prBranch != Config.defaultBranch(Config.flutterSlug)) {
+      log.info(
+        'Refusing to skip engine builds for PR#$prNumber branch: $prBranch (not ${Config.defaultBranch(Config.flutterSlug)} branch)',
+      );
       return false;
     }
-
-    // Ensure this optimization only runs on flutter/flutter.
-    return pullRequest.base!.repo!.slug() == Config.flutterSlug;
-  }
-
-  Future<bool> _isFrameworkOnlyPr(RepositorySlug slug, int prNumber) async {
     final filesChanged = await getFilesChanged.get(slug, prNumber);
     switch (filesChanged) {
       case InconclusiveFilesChanged(:final reason):
