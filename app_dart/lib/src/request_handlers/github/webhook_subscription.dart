@@ -873,16 +873,15 @@ class PullRequestLabelProcessor {
     required this.config,
     required this.githubService,
     required this.pullRequest,
-  }) : slug = pullRequest.base!.repo!.slug();
+  })  : slug = pullRequest.base!.repo!.slug(),
+        prNumber = pullRequest.number!;
 
   final Config config;
   final GithubService githubService;
   final PullRequest pullRequest;
   final RepositorySlug slug;
-
-  int get prNumber => pullRequest.number!;
-
-  String get logCrumb => '$PullRequestLabelProcessor($slug/pull/$prNumber)';
+  final int prNumber;
+  late final String logCrumb = '$PullRequestLabelProcessor($slug/pull/$prNumber)';
 
   void logInfo(Object? message) {
     log.info('$logCrumb: $message');
@@ -901,17 +900,15 @@ class PullRequestLabelProcessor {
       //   approvals before the PR can be submitted.
       // * For `autosubmit` label Cocoon has the [Approval] validation that
       //   checks approvasl before attempting to merge the PR.
-      await _unlockMergeQueueGuard();
+      await _unlockMergeQueueGuardForEmergency();
     } else {
       logInfo('no emergency label; moving on.');
     }
   }
 
-  Future<void> _unlockMergeQueueGuard() async {
-    logInfo('unlocking the ${Config.kMergeQueueLockName}');
+  Future<void> _unlockMergeQueueGuardForEmergency() async {
+    logInfo('attempting to unlock the ${Config.kMergeQueueLockName} for emergency');
 
-    // At this point all validations passed, and the PR can proceed to landing
-    // as an emergency.
     final guard = (await githubService.getCheckRunsFiltered(
       slug: slug,
       ref: pullRequest.head!.sha!,
@@ -931,6 +928,10 @@ class PullRequestLabelProcessor {
       checkRun: guard,
       status: CheckRunStatus.completed,
       conclusion: CheckRunConclusion.success,
+      output: const CheckRunOutput(
+        title: Config.kMergeQueueLockName,
+        summary: 'Emergency label applied.',
+      ),
     );
 
     logInfo('unlocked "${Config.kMergeQueueLockName}", allowing it to land as an emergency.');

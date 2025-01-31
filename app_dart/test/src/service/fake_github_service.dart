@@ -174,11 +174,6 @@ class FakeGithubService implements GithubService {
 
   Map<int, List<PullRequestReview>> mockPullRequestReviews = {};
 
-  @override
-  Future<List<PullRequestReview>> listPullRequestReviews(RepositorySlug slug, int prNumber) async {
-    return mockPullRequestReviews[prNumber] ?? const [];
-  }
-
   String? checkRunsMock;
 
   @override
@@ -216,13 +211,6 @@ class FakeGithubService implements GithubService {
       return checkRunsFilteredByName;
     }
     return checkRuns;
-  }
-
-  Set<String> mockTeamMembers = <String>{};
-
-  @override
-  Future<bool> isTeamMember({required String org, required String team, required String user}) async {
-    return mockTeamMembers.contains(user);
   }
 
   final List<

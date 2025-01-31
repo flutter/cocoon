@@ -2670,7 +2670,7 @@ void foo() {
         expect(
           logRecords,
           [
-            'PullRequestLabelProcessor(flutter/flutter/pull/123): unlocking the Merge Queue Guard',
+            'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Merge Queue Guard for emergency',
             'PullRequestLabelProcessor(flutter/flutter/pull/123): unlocked "Merge Queue Guard", allowing it to land as an emergency.',
           ],
         );
@@ -2716,7 +2716,7 @@ void foo() {
         expect(
           logRecords,
           [
-            'PullRequestLabelProcessor(flutter/flutter/pull/123): unlocking the Merge Queue Guard',
+            'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Merge Queue Guard for emergency',
             'PullRequestLabelProcessor(flutter/flutter/pull/123): failed to process the emergency label. "Merge Queue Guard" check run is missing.',
           ],
         );
