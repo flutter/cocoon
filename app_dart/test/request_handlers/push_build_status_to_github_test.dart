@@ -112,7 +112,7 @@ void main() {
       });
 
       test('only if pull request is for the default branch', () async {
-        when(pullRequestsService.list(any)).thenAnswer(
+        when(pullRequestsService.list(any, base: anyNamed('base'))).thenAnswer(
           (_) => Stream<PullRequest>.value(
             generatePullRequest(
               id: 1,

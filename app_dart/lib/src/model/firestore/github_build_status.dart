@@ -44,6 +44,8 @@ class GithubBuildStatus extends Document {
 
   static const String statusFailure = 'failure';
 
+  static const String statusNeutral = 'neutral';
+
   int? get prNumber => int.parse(fields![kGithubBuildStatusPrNumberField]!.integerValue!);
 
   /// A serializable form of [slug].
