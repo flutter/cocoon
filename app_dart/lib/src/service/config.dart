@@ -348,7 +348,7 @@ class Config {
   KeyHelper get keyHelper => KeyHelper(applicationContext: context.applicationContext);
 
   /// Default number of commits to return for benchmark dashboard.
-  int /*!*/ get maxRecords => 50;
+  int get maxRecords => 50;
 
   /// Delay between consecutive GitHub deflake request calls.
   Duration get githubRequestDelay => const Duration(seconds: 1);

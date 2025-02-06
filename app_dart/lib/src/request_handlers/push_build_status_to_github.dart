@@ -65,7 +65,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     await for (PullRequest pr in github.pullRequests.list(slug, base: Config.defaultBranch(slug))) {
       // Tree status only affects the default branch - which github should filter for.. but check for a whoopsie.
       if (pr.base!.ref != Config.defaultBranch(slug)) {
-        log.warning('when ask for PRs for ${Config.defaultBranch(slug)} - github returns something else: $pr');
+        log.warning('when asked for PRs for ${Config.defaultBranch(slug)} - github returns something else: $pr');
         continue;
       }
       final GithubBuildStatusUpdate update = await datastore.queryLastStatusUpdate(slug, pr);
