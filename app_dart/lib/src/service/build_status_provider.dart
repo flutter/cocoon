@@ -199,7 +199,7 @@ class BuildStatus {
   factory BuildStatus.success() => const BuildStatus._(GithubBuildStatusUpdate.statusSuccess);
   factory BuildStatus.failure([List<String> failedTasks = const <String>[]]) =>
       BuildStatus._(GithubBuildStatusUpdate.statusFailure, failedTasks);
-  factory BuildStatus.emergency() => const BuildStatus._(GithubBuildStatusUpdate.statusNeutral);
+  factory BuildStatus.neutral() => const BuildStatus._(GithubBuildStatusUpdate.statusNeutral);
 
   final String value;
   final List<String> failedTasks;
