@@ -2786,6 +2786,7 @@ void foo() {
           ),
         ]);
       });
+
       test('does not leave educational comment for non-new emergency PRs', () async {
         final pullRequest = generatePullRequest(
           number: 123,
