@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
+import 'package:logging/logging.dart' show Level;
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
@@ -54,29 +55,41 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
 
   Future<void> _updatePRs(
     RepositorySlug slug,
-    String status,
+    String realStatus,
     DatastoreService datastore,
     FirestoreService firestoreService,
   ) async {
     final GitHub github = await config.createGitHubClient(slug: slug);
     final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
     final List<GithubBuildStatus> githubBuildStatuses = <GithubBuildStatus>[];
-    await for (PullRequest pr in github.pullRequests.list(slug)) {
-      // Tree status is only put on PRs merging into ToT.
+    await for (PullRequest pr in github.pullRequests.list(slug, base: Config.defaultBranch(slug))) {
+      // Tree status only affects the default branch - which github should filter for.. but check for a whoopsie.
       if (pr.base!.ref != Config.defaultBranch(slug)) {
-        log.fine('This PR is not staged to land on ${Config.defaultBranch(slug)}, skipping.');
+        log.warning('when ask for PRs for ${Config.defaultBranch(slug)} - github returns something else: $pr');
         continue;
       }
       final GithubBuildStatusUpdate update = await datastore.queryLastStatusUpdate(slug, pr);
       final GithubBuildStatus githubBuildStatus =
           await firestoreService.queryLastBuildStatus(slug, pr.number!, pr.head!.sha!);
+
+      // Look at the labels on the PR to figure out if we need to turn a failing status into a neutral one.
+      // This will have the side effect of flipping a neutral to (success|failure) if the emergency label is removed.
+      final hasEmergencyLabel = pr.labels?.any((label) => label.name == Config.kEmergencyLabel) ?? false;
+      final status = (realStatus != GithubBuildStatus.statusSuccess && hasEmergencyLabel)
+          ? GithubBuildStatus.statusNeutral
+          : realStatus;
       if (githubBuildStatus.status != status) {
-        log.fine('Updating status of ${slug.fullName}#${pr.number} from ${githubBuildStatus.status} to $status');
+        log.log(
+          hasEmergencyLabel ? Level.WARNING : Level.FINE,
+          'Updating status of ${slug.fullName}#${pr.number} from ${githubBuildStatus.status} to $status',
+        );
         final CreateStatus request = CreateStatus(status);
         request.targetUrl = 'https://flutter-dashboard.appspot.com/#/build?repo=${slug.name}';
         request.context = 'tree-status';
-        if (status != GithubBuildStatus.statusSuccess) {
-          request.description = config.flutterBuildDescription;
+        if (status == GithubBuildStatus.statusNeutral) {
+          request.description = config.flutterTreeStatusEmergency;
+        } else if (status != GithubBuildStatus.statusSuccess) {
+          request.description = config.flutterTreeStatusRed;
         }
         try {
           await github.repositories.createStatus(slug, pr.head!.sha!, request);

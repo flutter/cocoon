@@ -25,6 +25,8 @@ class GithubBuildStatusUpdate extends Model<int> {
 
   static const String statusFailure = 'failure';
 
+  static const String statusNeutral = 'neutral';
+
   @StringProperty(propertyName: 'Repository', required: true)
   String? repository;
 

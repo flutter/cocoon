@@ -7,6 +7,7 @@ import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/request_handlers/push_build_status_to_github.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
+import 'package:cocoon_service/src/service/config.dart' show Config;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
@@ -112,7 +113,7 @@ void main() {
       });
 
       test('only if pull request is for the default branch', () async {
-        when(pullRequestsService.list(any)).thenAnswer(
+        when(pullRequestsService.list(any, base: anyNamed('base'))).thenAnswer(
           (_) => Stream<PullRequest>.value(
             generatePullRequest(
               id: 1,
@@ -173,6 +174,36 @@ void main() {
       final GithubBuildStatus updatedDocument =
           GithubBuildStatus.fromDocument(githubBuildStatus: batchWriteRequest.writes![0].update!);
       expect(updatedDocument.updates, githubBuildStatus!.updates);
+    });
+
+    test('updates github and datastore if status is neutral', () async {
+      when(
+        mockFirestoreService.batchWriteDocuments(
+          captureAny,
+          captureAny,
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<BatchWriteResponse>.value(BatchWriteResponse());
+      });
+      final PullRequest pr =
+          generatePullRequest(id: 1, sha: 'sha1', labels: [IssueLabel(name: Config.kEmergencyLabel)]);
+      when(pullRequestsService.list(any, base: anyNamed('base'))).thenAnswer((_) => Stream<PullRequest>.value(pr));
+      buildStatusService.cumulativeStatus = BuildStatus.failure(const ['all bad']);
+      githubBuildStatus = generateFirestoreGithubBuildStatus(1, status: GithubBuildStatus.statusFailure);
+      final Body body = await tester.get<Body>(handler);
+      expect(body, same(Body.empty));
+      expect(githubBuildStatus!.updates, 1);
+      expect(githubBuildStatus!.updateTimeMillis, isNotNull);
+      expect(githubBuildStatus!.status, BuildStatus.neutral().githubStatus);
+
+      final List<dynamic> captured = verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+      expect(captured.length, 2);
+      final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+      expect(batchWriteRequest.writes!.length, 1);
+      final GithubBuildStatus updatedDocument =
+          GithubBuildStatus.fromDocument(githubBuildStatus: batchWriteRequest.writes![0].update!);
+      expect(updatedDocument.updates, githubBuildStatus!.updates);
+      expect(updatedDocument.status, GithubBuildStatus.statusNeutral);
     });
   });
 }

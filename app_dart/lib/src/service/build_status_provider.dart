@@ -191,10 +191,15 @@ class CommitStatus {
 @immutable
 class BuildStatus {
   const BuildStatus._(this.value, [this.failedTasks = const <String>[]])
-      : assert(value == GithubBuildStatusUpdate.statusSuccess || value == GithubBuildStatusUpdate.statusFailure);
+      : assert(
+          value == GithubBuildStatusUpdate.statusSuccess ||
+              value == GithubBuildStatusUpdate.statusFailure ||
+              value == GithubBuildStatusUpdate.statusNeutral,
+        );
   factory BuildStatus.success() => const BuildStatus._(GithubBuildStatusUpdate.statusSuccess);
   factory BuildStatus.failure([List<String> failedTasks = const <String>[]]) =>
       BuildStatus._(GithubBuildStatusUpdate.statusFailure, failedTasks);
+  factory BuildStatus.neutral() => const BuildStatus._(GithubBuildStatusUpdate.statusNeutral);
 
   final String value;
   final List<String> failedTasks;

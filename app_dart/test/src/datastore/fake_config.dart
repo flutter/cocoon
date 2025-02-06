@@ -221,10 +221,13 @@ class FakeConfig implements Config {
   String get flutterBuild => flutterBuildValue!;
 
   @override
-  String get flutterBuildDescription =>
+  String get flutterTreeStatusRed =>
       flutterBuildDescriptionValue ??
       'Tree is currently broken. Please do not merge this '
           'PR unless it contains a fix for the tree.';
+  @override
+  String get flutterTreeStatusEmergency =>
+      'The tree is currently broken; however, this PR is marked as `emergency` and will be allowed to merge.';
 
   @override
   Logging get loggingService => loggingServiceValue!;

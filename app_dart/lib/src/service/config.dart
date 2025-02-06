@@ -347,18 +347,22 @@ class Config {
 
   KeyHelper get keyHelper => KeyHelper(applicationContext: context.applicationContext);
 
-  // Default number of commits to return for benchmark dashboard.
+  /// Default number of commits to return for benchmark dashboard.
   int /*!*/ get maxRecords => 50;
 
-  // Delay between consecutive GitHub deflake request calls.
+  /// Delay between consecutive GitHub deflake request calls.
   Duration get githubRequestDelay => const Duration(seconds: 1);
 
-  // Repository status context for github status.
+  /// Repository status context for github status.
   String get flutterBuild => 'flutter-build';
 
-  // Repository status description for github status.
-  String get flutterBuildDescription => 'Tree is currently broken. Please do not merge this '
+  /// Repository status description for github status.
+  String get flutterTreeStatusRed => 'Tree is currently broken. Please do not merge this '
       'PR unless it contains a fix for the tree.';
+
+  /// Repository status description for GitHub PRs with the `emergency` label when the tree is red.
+  String get flutterTreeStatusEmergency =>
+      'The tree is currently broken; however, this PR is marked as `emergency` and will be allowed to merge.';
 
   static gh.RepositorySlug get cocoonSlug => gh.RepositorySlug('flutter', 'cocoon');
   static gh.RepositorySlug get engineSlug => gh.RepositorySlug('flutter', 'engine');
