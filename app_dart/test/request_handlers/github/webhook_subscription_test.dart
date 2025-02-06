@@ -2740,6 +2740,92 @@ void foo() {
           ],
         );
       });
+
+      test('leaves educational comment for new emergency PRs', () async {
+        final pullRequest = generatePullRequest(
+          number: 123,
+          sha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
+          labels: [
+            IssueLabel(
+              name: 'emergency',
+            ),
+          ],
+        );
+        githubService.createdComments.clear();
+        githubService.checkRunsMock = '''{
+  "total_count": 2,
+  "check_runs": [
+    {
+      "id": 2,
+      "head_sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+      "external_id": "",
+      "details_url": "https://example.com",
+      "status": "in_progress",
+      "started_at": "2018-05-04T01:14:52Z",
+      "name": "Merge Queue Guard",
+      "check_suite": {
+        "id": 5
+      }
+    }
+  ]
+}''';
+
+        final pullRequestLabelProcessor = PullRequestLabelProcessor(
+          config: config,
+          githubService: githubService,
+          pullRequest: pullRequest,
+        );
+
+        await pullRequestLabelProcessor.processLabels();
+
+        expect(githubService.createdComments, [
+          (
+            RepositorySlug.full('flutter/flutter'),
+            issueNumber: 123,
+            body: PullRequestLabelProcessor.kEmergencyLabelEducation
+          ),
+        ]);
+      });
+
+      test('does not leave educational comment for non-new emergency PRs', () async {
+        final pullRequest = generatePullRequest(
+          number: 123,
+          sha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
+          labels: [
+            IssueLabel(
+              name: 'emergency',
+            ),
+          ],
+        );
+        githubService.createdComments.clear();
+        githubService.checkRunsMock = '''{
+  "total_count": 2,
+  "check_runs": [
+    {
+      "id": 2,
+      "head_sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+      "external_id": "",
+      "details_url": "https://example.com",
+      "status": "completed",
+      "started_at": "2018-05-04T01:14:52Z",
+      "name": "Merge Queue Guard",
+      "check_suite": {
+        "id": 5
+      }
+    }
+  ]
+}''';
+
+        final pullRequestLabelProcessor = PullRequestLabelProcessor(
+          config: config,
+          githubService: githubService,
+          pullRequest: pullRequest,
+        );
+
+        await pullRequestLabelProcessor.processLabels();
+
+        expect(githubService.createdComments, isEmpty);
+      });
     });
   });
 
