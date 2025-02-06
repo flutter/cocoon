@@ -1571,11 +1571,20 @@ class MockConfig extends _i1.Mock implements _i2.Config {
       ) as String);
 
   @override
-  String get flutterBuildDescription => (super.noSuchMethod(
-        Invocation.getter(#flutterBuildDescription),
+  String get flutterTreeStatusRed => (super.noSuchMethod(
+        Invocation.getter(#flutterTreeStatusRed),
         returnValue: _i32.dummyValue<String>(
           this,
-          Invocation.getter(#flutterBuildDescription),
+          Invocation.getter(#flutterTreeStatusRed),
+        ),
+      ) as String);
+
+  @override
+  String get flutterTreeStatusEmergency => (super.noSuchMethod(
+        Invocation.getter(#flutterTreeStatusEmergency),
+        returnValue: _i32.dummyValue<String>(
+          this,
+          Invocation.getter(#flutterTreeStatusEmergency),
         ),
       ) as String);
 
@@ -3572,22 +3581,6 @@ class MockGithubService extends _i1.Mock implements _i17.GithubService {
       ) as _i20.Future<void>);
 
   @override
-  _i20.Future<List<_i13.PullRequestReview>> listPullRequestReviews(
-    _i13.RepositorySlug? slug,
-    int? prNumber,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #listPullRequestReviews,
-          [
-            slug,
-            prNumber,
-          ],
-        ),
-        returnValue: _i20.Future<List<_i13.PullRequestReview>>.value(<_i13.PullRequestReview>[]),
-      ) as _i20.Future<List<_i13.PullRequestReview>>);
-
-  @override
   _i20.Future<List<_i13.CheckRun>> getCheckRuns(
     _i13.RepositorySlug? slug,
     String? ref,
@@ -3980,25 +3973,6 @@ class MockGithubService extends _i1.Mock implements _i17.GithubService {
           ),
         )),
       ) as _i20.Future<_i13.PullRequest>);
-
-  @override
-  _i20.Future<bool> isTeamMember({
-    required String? org,
-    required String? team,
-    required String? user,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #isTeamMember,
-          [],
-          {
-            #org: org,
-            #team: team,
-            #user: user,
-          },
-        ),
-        returnValue: _i20.Future<bool>.value(false),
-      ) as _i20.Future<bool>);
 }
 
 /// A class which mocks [GitService].
@@ -7822,10 +7796,19 @@ class MockPullRequestLabelProcessor extends _i1.Mock implements _i15.PullRequest
       );
 
   @override
-  void logSevere(Object? message) => super.noSuchMethod(
+  void logSevere(
+    Object? message, {
+    Object? error,
+    StackTrace? stackTrace,
+  }) =>
+      super.noSuchMethod(
         Invocation.method(
           #logSevere,
           [message],
+          {
+            #error: error,
+            #stackTrace: stackTrace,
+          },
         ),
         returnValueForMissingStub: null,
       );
@@ -7839,25 +7822,6 @@ class MockPullRequestLabelProcessor extends _i1.Mock implements _i15.PullRequest
         returnValue: _i20.Future<void>.value(),
         returnValueForMissingStub: _i20.Future<void>.value(),
       ) as _i20.Future<void>);
-
-  @override
-  _i20.Future<void> processEmergencyLabel() => (super.noSuchMethod(
-        Invocation.method(
-          #processEmergencyLabel,
-          [],
-        ),
-        returnValue: _i20.Future<void>.value(),
-        returnValueForMissingStub: _i20.Future<void>.value(),
-      ) as _i20.Future<void>);
-
-  @override
-  _i20.Future<bool> computeTeamMemberApproval() => (super.noSuchMethod(
-        Invocation.method(
-          #computeTeamMemberApproval,
-          [],
-        ),
-        returnValue: _i20.Future<bool>.value(false),
-      ) as _i20.Future<bool>);
 }
 
 /// A class which mocks [Cache].

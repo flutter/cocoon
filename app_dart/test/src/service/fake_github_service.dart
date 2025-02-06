@@ -134,12 +134,15 @@ class FakeGithubService implements GithubService {
     return null;
   }
 
+  final List<(RepositorySlug slug, {int? issueNumber, String? body})> createdComments = [];
+
   @override
   Future<IssueComment?> createComment(
     RepositorySlug slug, {
     int? issueNumber,
     String? body,
   }) async {
+    createdComments.add((slug, issueNumber: issueNumber, body: body));
     return null;
   }
 

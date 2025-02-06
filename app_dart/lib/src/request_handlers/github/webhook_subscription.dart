@@ -183,7 +183,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         break;
       case 'labeled':
         log.info('$crumb: PR labels = [${pr.labels?.map((label) => '"${label.name}"').join(', ')}]');
-        await _processLabels(pullRequestEvent.pullRequest!);
+        await _processLabels(pr);
         break;
       case 'synchronize':
         // This indicates the PR has new commits. We need to cancel old jobs
@@ -876,6 +876,14 @@ class PullRequestLabelProcessor {
   })  : slug = pullRequest.base!.repo!.slug(),
         prNumber = pullRequest.number!;
 
+  static const kEmergencyLabelEducation = '''
+Detected the `emergency` label.
+
+If you add the `autosubmit` label, the bot will wait until all presubmits pass but ignore the tree status, allowing fixes for tree breakages while still validating that they don't break any existing presubmits.
+
+The "Merge" button is also unlocked. To bypass presubmits as well as the tree status, press the GitHub "Add to Merge Queue".
+''';
+
   final Config config;
   final GithubService githubService;
   final PullRequest pullRequest;
@@ -887,8 +895,12 @@ class PullRequestLabelProcessor {
     log.info('$logCrumb: $message');
   }
 
-  void logSevere(Object? message) {
-    log.severe('$logCrumb: $message');
+  void logSevere(
+    Object? message, {
+    Object? error,
+    StackTrace? stackTrace,
+  }) {
+    log.severe('$logCrumb: $message', error, stackTrace);
   }
 
   Future<void> processLabels() async {
@@ -935,5 +947,18 @@ class PullRequestLabelProcessor {
     );
 
     logInfo('unlocked "${Config.kMergeQueueLockName}", allowing it to land as an emergency.');
+
+    // Let the developer know what is happening with the MQ when this label is found the first time.
+    if (guard.status != CheckRunStatus.completed) {
+      try {
+        await githubService.createComment(
+          slug,
+          issueNumber: prNumber,
+          body: PullRequestLabelProcessor.kEmergencyLabelEducation,
+        );
+      } catch (e, s) {
+        logSevere('failed to leave educational comment for emergency label.', error: e, stackTrace: s);
+      }
+    }
   }
 }
