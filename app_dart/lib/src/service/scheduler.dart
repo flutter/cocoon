@@ -10,6 +10,7 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
+import 'package:cocoon_service/src/request_handling/exceptions.dart' show InternalServerError;
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
@@ -19,6 +20,8 @@ import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/firestore/v1.dart';
+import 'package:graphql/client.dart';
+import 'package:gql/language.dart' as lang;
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 import 'package:truncate/truncate.dart';
@@ -143,12 +146,69 @@ class Scheduler {
       return;
     }
 
+    final slug = pr.base!.repo!.slug();
     final String fullRepo = pr.base!.repo!.fullName;
     final String? branch = pr.base!.ref;
     final String sha = pr.mergeCommitSha!;
 
     final String id = '$fullRepo/$branch/$sha';
     final Key<String> key = datastore.db.emptyKey.append<String>(Commit, id: id);
+
+    // In non-merge queue cases, the `mergedAt` time for closed pull request was
+    // enough to correctly identify the order of linear history.
+    //
+    // However, in a merge queue, commits can get held up by slower running
+    // tests on commits ahead in the queue. When this occurs, all commits waiting
+    // are merged at the exact same time. This will confuse the dashboard and
+    // backfill scheduler.
+    //
+    // Solution in both cases: use graphql to query the time `committedDate`.
+    // in the merge queue case, this will be when GitHub creates the commit on
+    // the magic `gh-readonly-queue`, entry of which is controlled by GitHub.
+    // This time will be identical to `mergedAt` on non-merge queue trees, so
+    // don't branch.
+    //
+    // We're also going to collect the parent sha. This can future disambiguate
+    // the commit history when queried later.
+    //
+    // See:
+    final graphql = await config.createGitHubGraphQLClient();
+    final result = await graphql.query(
+      QueryOptions(
+        document: lang.parseString(r'''
+query GetFlutterCommitDateAndParent {
+  repository(owner: $sRepoOwner, name: $sRepoName) {
+    object(oid: $sCommitOid) {
+      ... on Commit {
+        committedDate
+        parents(first: 1) {  # Get the first parent (usually the only one)
+          nodes {
+              oid
+          }
+        }
+      }
+    }
+  }
+}'''),
+        fetchPolicy: FetchPolicy.noCache,
+        variables: <String, dynamic>{
+          'sCommitOid': pr.mergeCommitSha!,
+          'sRepoOwner': slug.owner,
+          'sRepoName': slug.name,
+        },
+      ),
+    );
+
+    if (result.hasException) {
+      throw InternalServerError(
+        'Unable to query committedDate for ${pr.mergeCommitSha} / ${slug.fullName}/${pr.number}',
+      );
+    }
+    final timestamp =
+        DateTime.parse(result.data!['data']['repository']['object']['committedDate'] as String).millisecondsSinceEpoch;
+    final parentSha = result.data!['data']['repository']['object']['parents']['nodes'].first['oid'];
+    log.info('${slug.fullName}/${pr.number} ${pr.mergeCommitSha}: timestamp: $timestamp parent: $parentSha');
+
     final Commit mergedCommit = Commit(
       author: pr.user!.login!,
       authorAvatarUrl: pr.user!.avatarUrl!,
@@ -158,11 +218,12 @@ class Scheduler {
       message: truncate(pr.title!, 1490, omission: '...'),
       repository: fullRepo,
       sha: sha,
-      timestamp: pr.mergedAt!.millisecondsSinceEpoch,
+      timestamp: timestamp,
+      parentSha: parentSha,
     );
 
     if (await _commitExistsInDatastore(mergedCommit)) {
-      log.fine('$sha already exists in datastore. Scheduling skipped.');
+      log.info('$sha already exists in datastore. Scheduling skipped.');
       return;
     }
 
