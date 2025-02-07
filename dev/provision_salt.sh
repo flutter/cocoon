@@ -22,14 +22,27 @@ function install_salt() {
   elif [[ "$OS" == 'Linux' ]]; then
     DISTRO="$(lsb_release -is)"
     if [[ "$DISTRO" == 'Ubuntu' ]]; then
-      # Download the SALT client tarball
-      SALT_DEB_PKG="/tmp/salt.deb"
-      curl -L -o "$SALT_DEB_PKG" https://packages.broadcom.com/artifactory/saltproject-deb/pool/salt-api_3006.9_amd64.deb
-      # Uninstall previous package, if any
-      sudo dpkg --remove salt-minion
+      # Uninstall previous SaltStack packages, if any.
+      sudo dpkg --remove salt-minion salt-api salt-common
 
-      # Install our downloaded .deb package
-      sudo dpkg --install "$SALT_DEB_PKG"
+      # Install SaltStack's dependencies.
+      sudo apt install -y dctrl-tools
+
+      # Install SaltStack.
+      declare -a SALT_PACKAGES=(
+        "salt-common_3006.9_amd64.deb"
+        "salt-minion_3006.9_amd64.deb"
+      )
+      for PACKAGE in "${SALT_PACKAGES[@]}"
+      do
+        echo "Installing salt package $PACKAGE..."
+
+        curl -L -o "/tmp/$PACKAGE" "https://packages.broadcom.com/artifactory/saltproject-deb/pool/$PACKAGE"
+        sudo dpkg --install "/tmp/$PACKAGE"
+      done
+
+      # Install m2crypto in SaltStack's python environment (for the x509 module).
+      sudo /opt/saltstack/salt/bin/pip install m2crypto==0.39
     else
       echo "Unsupported Linux distribution: $DISTRO" >&2
       exit 1
