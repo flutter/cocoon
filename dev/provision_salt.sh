@@ -42,7 +42,7 @@ function install_salt() {
       done
 
       # Install m2crypto in SaltStack's python environment (for the x509 module).
-      sudo /opt/saltstack/salt/bin/pip install m2crypto
+      sudo /opt/saltstack/salt/bin/pip install m2crypto==0.39
     else
       echo "Unsupported Linux distribution: $DISTRO" >&2
       exit 1
