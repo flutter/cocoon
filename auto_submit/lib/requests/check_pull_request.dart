@@ -44,7 +44,7 @@ class CheckPullRequest extends CheckRequest {
   ) async {
     final crumb = '$CheckPullRequest(root)';
 
-    final List<pub.ReceivedMessage> messages = await pullMessages(
+    final messages = await pullMessages(
       pubSubSubscription,
       pubSubPulls,
       pubSubBatchSize,
@@ -60,7 +60,7 @@ class CheckPullRequest extends CheckRequest {
     final workItems = await _extractPullRequestFromMessages(pubSubSubscription, messages);
 
     // Process pull requests in parallel.
-    final List<Future<void>> futures = <Future<void>>[];
+    final futures = <Future<void>>[];
     for (final workItem in workItems) {
       futures.add(_processPullRequest(workItem.pullRequest, workItem.ackId));
     }
@@ -109,7 +109,7 @@ class CheckPullRequest extends CheckRequest {
       }
     }
 
-    return workItems.values.toList();
+    return [...workItems.values];
   }
 
   Future<void> _processPullRequest(PullRequest pullRequest, String ackId) async {
