@@ -59,7 +59,7 @@ class Commit extends Document {
   String? get sha => fields![kCommitShaField]!.stringValue!;
 
   /// The SHA1 hash of the parent commit.
-  String? get parentSha => fields![kCommitParentShaField]!.stringValue!;
+  String? get parentSha => fields![kCommitParentShaField]?.stringValue;
 
   /// The GitHub username of the commit author.
   String? get author => fields![kCommitAuthorField]!.stringValue!;

@@ -141,6 +141,7 @@ firestore_commit.Commit generateFirestoreCommit(
   String? message = 'test message',
   String? author = 'author',
   String? avatar = 'avatar',
+  String? parentSha = 'abc',
 }) {
   final firestore_commit.Commit commit = firestore_commit.Commit()
     ..name = sha ?? '$i'
@@ -152,6 +153,7 @@ firestore_commit.Commit generateFirestoreCommit(
       firestore_commit.kCommitAuthorField: Value(stringValue: author),
       firestore_commit.kCommitAvatarField: Value(stringValue: avatar),
       firestore_commit.kCommitShaField: Value(stringValue: sha ?? '$i'),
+      firestore_commit.kCommitParentShaField: Value(stringValue: parentSha ?? '${i - 1}'),
     };
   return commit;
 }

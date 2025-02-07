@@ -16,6 +16,7 @@ import 'package:graphql/client.dart';
 
 import '../request_handling/fake_authentication.dart';
 import '../service/fake_github_service.dart';
+import '../service/fake_graphql_client.dart' show FakeGraphQLClient;
 import 'fake_datastore.dart';
 
 // ignore: must_be_immutable
