@@ -24,10 +24,10 @@ function install_salt() {
     if [[ "$DISTRO" == 'Ubuntu' ]]; then
       # Uninstall previous SaltStack packages, if any.
       sudo dpkg --remove salt-minion salt-api salt-common
-      
+
       # Install SaltStack's dependencies.
       sudo apt install -y dctrl-tools
-      
+
       # Install SaltStack.
       declare -a SALT_PACKAGES=(
         "salt-common_3006.9_amd64.deb"
@@ -36,7 +36,7 @@ function install_salt() {
       for PACKAGE in "${SALT_PACKAGES[@]}"
       do
         echo "Installing salt package $PACKAGE..."
-      
+
         curl -L -o "/tmp/$PACKAGE" "https://packages.broadcom.com/artifactory/saltproject-deb/pool/$PACKAGE"
         sudo dpkg --install "/tmp/$PACKAGE"
       done
