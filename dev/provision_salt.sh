@@ -40,6 +40,9 @@ function install_salt() {
         curl -L -o "/tmp/$PACKAGE" "https://packages.broadcom.com/artifactory/saltproject-deb/pool/$PACKAGE"
         sudo dpkg --install "/tmp/$PACKAGE"
       done
+
+      # Install m2crypto in SaltStack's python environment (for the x509 module).
+      sudo /opt/saltstack/salt/bin/pip install m2crypto
     else
       echo "Unsupported Linux distribution: $DISTRO" >&2
       exit 1
