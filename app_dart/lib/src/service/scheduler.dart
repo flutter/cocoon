@@ -171,11 +171,9 @@ class Scheduler {
     // We're also going to collect the parent sha. This can future disambiguate
     // the commit history when queried later.
     //
-    // See:
+    // See: https://github.com/flutter/flutter/issues/162830
     final graphql = await config.createGitHubGraphQLClient();
-    final result = await graphql.query(
-      QueryOptions(
-        document: lang.parseString(r'''
+    const source = r'''
 query GetFlutterCommitDateAndParent {
   repository(owner: $sRepoOwner, name: $sRepoName) {
     object(oid: $sCommitOid) {
@@ -189,7 +187,10 @@ query GetFlutterCommitDateAndParent {
       }
     }
   }
-}'''),
+}''';
+    final result = await graphql.query(
+      QueryOptions(
+        document: lang.parseString(source),
         fetchPolicy: FetchPolicy.noCache,
         variables: <String, dynamic>{
           'sCommitOid': pr.mergeCommitSha!,
@@ -204,9 +205,9 @@ query GetFlutterCommitDateAndParent {
         'Unable to query committedDate for ${pr.mergeCommitSha} / ${slug.fullName}/${pr.number}',
       );
     }
-    final timestamp =
-        DateTime.parse(result.data!['data']['repository']['object']['committedDate'] as String).millisecondsSinceEpoch;
-    final parentSha = result.data!['data']['repository']['object']['parents']['nodes'].first['oid'];
+    final object = result.data!['data']['repository']['object'];
+    final timestamp = DateTime.parse(object['committedDate'] as String).millisecondsSinceEpoch;
+    final parentSha = object['parents']['nodes'].first['oid'];
     log.info('${slug.fullName}/${pr.number} ${pr.mergeCommitSha}: timestamp: $timestamp parent: $parentSha');
 
     final Commit mergedCommit = Commit(
