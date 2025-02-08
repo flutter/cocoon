@@ -27,7 +27,7 @@ import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:gql/ast.dart';
-import 'package:graphql/client.dart' show MutationOptions, OperationException, QueryOptions, QueryResult;
+import 'package:graphql/client.dart' show MutationOptions, OperationException, QueryOptions;
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:logging/logging.dart';
