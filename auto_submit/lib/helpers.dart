@@ -18,7 +18,7 @@ Future<void> serveHandler(Handler handler) async {
   final int port = listenPort();
 
   final HttpServer server = await serve(
-    handler,
+    LoggingHandler(handler).handle,
     InternetAddress.anyIPv4, // Allows external connections
     port,
   );
@@ -27,6 +27,29 @@ Future<void> serveHandler(Handler handler) async {
   await terminateRequestFuture();
 
   await server.close();
+}
+
+/// Wraps another [Handler], catching and logging uncaught exceptions from it.
+class LoggingHandler {
+  const LoggingHandler(this._delegate);
+
+  final Handler _delegate;
+
+  /// Handles a request.
+  ///
+  /// Tear off this method and pass it to [serve].
+  FutureOr<Response> handle(Request request) async {
+    try {
+      return await _delegate(request);
+    } catch (error, stackTrace) {
+      log.severe(
+        'Uncaught exception in HTTP handler',
+        error,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
 }
 
 /// Returns the port to listen on from environment variable or uses the default
