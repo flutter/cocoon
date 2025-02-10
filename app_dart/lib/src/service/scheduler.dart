@@ -157,19 +157,17 @@ class Scheduler {
     // In non-merge queue cases, the `mergedAt` time for closed pull request was
     // enough to correctly identify the order of linear history.
     //
-    // However, in a merge queue, commits can get held up by slower running
-    // tests on commits ahead in the queue. When this occurs, all commits waiting
-    // are merged at the exact same time. This will confuse the dashboard and
-    // backfill scheduler.
+    // Dates are hard to reason in the merge queue. Commits can get held up in queue
+    // by slower running tests ahead of them. When this occurs, and all tests pass,
+    // these commits will all be "merged at" the same time. Conversely, Auto Submit
+    // bot can queue up multiple commits at once - each generating a `gh-readonly-queue`
+    // branch. When this occurs, they can have the same "committedDate".
     //
-    // Solution in both cases: use graphql to query the time `committedDate`.
-    // in the merge queue case, this will be when GitHub creates the commit on
-    // the magic `gh-readonly-queue`, entry of which is controlled by GitHub.
-    // This time will be identical to `mergedAt` on non-merge queue trees, so
-    // don't branch.
+    // In either case, this will confuse the dashboard and backfill scheduler. Tree status
+    // can be "red" for no apparent reason (red reports followed by green reports).
     //
-    // We're also going to collect the parent sha. This can future disambiguate
-    // the commit history when queried later.
+    // A solution in both cases: use graphql to query the parent sha of the merged commit.
+    // This can be used to disambiguate the commit history when queried later.
     //
     // See: https://github.com/flutter/flutter/issues/162830
     final graphql = await config.createGitHubGraphQLClient();
@@ -178,7 +176,6 @@ query GetFlutterCommitDateAndParent {
   repository(owner: $sRepoOwner, name: $sRepoName) {
     object(oid: $sCommitOid) {
       ... on Commit {
-        committedDate
         parents(first: 1) {  # Get the first parent (usually the only one)
           nodes {
               oid
@@ -206,9 +203,9 @@ query GetFlutterCommitDateAndParent {
       );
     }
     final object = result.data!['data']['repository']['object'];
-    final timestamp = DateTime.parse(object['committedDate'] as String).millisecondsSinceEpoch;
+    final timestamp = pr.mergedAt!.millisecondsSinceEpoch;
     final parentSha = object['parents']['nodes'].first['oid'];
-    log.info('${slug.fullName}/${pr.number} ${pr.mergeCommitSha}: timestamp: $timestamp parent: $parentSha');
+    log.info('${slug.fullName}/${pr.number} ${pr.mergeCommitSha}: mergedAt: $timestamp parent: $parentSha');
 
     final Commit mergedCommit = Commit(
       author: pr.user!.login!,
