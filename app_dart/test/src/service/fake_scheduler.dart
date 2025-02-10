@@ -64,7 +64,6 @@ class FakeScheduler extends Scheduler {
                     'data': {
                       'repository': {
                         'object': {
-                          'committedDate': '2025-02-06T18:40:25Z',
                           'parents': {
                             'nodes': [
                               {'oid': '5944d992ac403612c599d44b9a5eea62ce7ebc8a'},

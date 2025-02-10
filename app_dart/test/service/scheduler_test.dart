@@ -129,8 +129,6 @@ targets:
       - engine/src/flutter/dev/**
 ''';
 
-const kExpectedTimestamp = 1738867225000;
-
 void main() {
   late CacheService cache;
   late FakeConfig config;
@@ -216,7 +214,6 @@ void main() {
                 'data': {
                   'repository': {
                     'object': {
-                      'committedDate': '2025-02-06T18:40:25Z', // see kExpectedTimestamp
                       'parents': {
                         'nodes': [
                           {'oid': '5944d992ac403612c599d44b9a5eea62ce7ebc8a'},
@@ -532,7 +529,7 @@ void main() {
         expect(commit.repository, 'flutter/flutter');
         expect(commit.branch, 'master');
         expect(commit.sha, 'abc');
-        expect(commit.timestamp, kExpectedTimestamp);
+        expect(commit.timestamp, 1);
         expect(commit.author, 'dash');
         expect(commit.authorAvatarUrl, 'dashatar');
         expect(commit.message, 'example message');
@@ -733,7 +730,7 @@ targets:
         expect(commit.repository, 'flutter/flutter');
         expect(commit.branch, '1.26');
         expect(commit.sha, 'abc');
-        expect(commit.timestamp, kExpectedTimestamp);
+        expect(commit.timestamp, 1);
         expect(commit.author, 'dash');
         expect(commit.authorAvatarUrl, 'dashatar');
         expect(commit.message, 'example message');
