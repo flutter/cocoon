@@ -41,6 +41,8 @@ function install_salt() {
         sudo dpkg --install "/tmp/$PACKAGE"
       done
 
+      # Install m2crypto wheel build dependencies.
+      sudo apt install -y libssl-dev gcc swig python3-dev
       # Install m2crypto in SaltStack's python environment (for the x509 module).
       sudo /opt/saltstack/salt/bin/pip install m2crypto==0.39
     else
