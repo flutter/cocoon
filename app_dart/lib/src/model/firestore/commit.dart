@@ -17,6 +17,7 @@ const String kCommitAuthorField = 'author';
 const String kCommitMessageField = 'message';
 const String kCommitRepositoryPathField = 'repositoryPath';
 const String kCommitShaField = 'sha';
+const String kCommitParentShaField = 'parentSha';
 
 /// Commit Json keys.
 const String kCommitAvatar = 'Avatar';
@@ -27,6 +28,7 @@ const String kCommitDocumentName = 'DocumentName';
 const String kCommitMessage = 'Message';
 const String kCommitRepositoryPath = 'RepositoryPath';
 const String kCommitSha = 'Sha';
+const String kCommitParentSha = 'ParentSha';
 
 class Commit extends Document {
   /// Lookup [Commit] from Firestore.
@@ -55,6 +57,9 @@ class Commit extends Document {
 
   /// The SHA1 hash of the commit.
   String? get sha => fields![kCommitShaField]!.stringValue!;
+
+  /// The SHA1 hash of the parent commit.
+  String? get parentSha => fields![kCommitParentShaField]?.stringValue;
 
   /// The GitHub username of the commit author.
   String? get author => fields![kCommitAuthorField]!.stringValue!;
@@ -87,6 +92,7 @@ class Commit extends Document {
       kCommitRepositoryPath: repositoryPath,
       kCommitCreateTimestamp: createTimestamp,
       kCommitSha: sha,
+      kCommitParentSha: parentSha,
       kCommitMessage: message,
       kCommitAuthor: author,
       kCommitAvatar: avatar,
@@ -105,6 +111,7 @@ class Commit extends Document {
       ..write(', $kCommitMessageField: $message')
       ..write(', $kCommitRepositoryPathField: $repositoryPath')
       ..write(', $kCommitShaField: $sha')
+      ..write(', $kCommitParentShaField: $parentSha')
       ..write(')');
     return buf.toString();
   }
@@ -123,6 +130,7 @@ Commit commitToCommitDocument(datastore.Commit commit) {
         kCommitMessageField: Value(stringValue: commit.message),
         kCommitRepositoryPathField: Value(stringValue: commit.repository),
         kCommitShaField: Value(stringValue: commit.sha),
+        kCommitParentShaField: Value(stringValue: commit.parentSha),
       },
     ),
   );

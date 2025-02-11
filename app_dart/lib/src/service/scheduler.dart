@@ -10,6 +10,7 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
+import 'package:cocoon_service/src/request_handling/exceptions.dart' show InternalServerError;
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
@@ -19,6 +20,8 @@ import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/firestore/v1.dart';
+import 'package:gql/language.dart' as lang;
+import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 import 'package:truncate/truncate.dart';
@@ -143,12 +146,67 @@ class Scheduler {
       return;
     }
 
+    final slug = pr.base!.repo!.slug();
     final String fullRepo = pr.base!.repo!.fullName;
     final String? branch = pr.base!.ref;
     final String sha = pr.mergeCommitSha!;
 
     final String id = '$fullRepo/$branch/$sha';
     final Key<String> key = datastore.db.emptyKey.append<String>(Commit, id: id);
+
+    // In non-merge queue cases, the `mergedAt` time for closed pull request was
+    // enough to correctly identify the order of linear history.
+    //
+    // Dates are hard to reason in the merge queue. Commits can get held up in queue
+    // by slower running tests ahead of them. When this occurs, and all tests pass,
+    // these commits will all be "merged at" the same time. Conversely, Auto Submit
+    // bot can queue up multiple commits at once - each generating a `gh-readonly-queue`
+    // branch. When this occurs, they can have the same "committedDate".
+    //
+    // In either case, this will confuse the dashboard and backfill scheduler. Tree status
+    // can be "red" for no apparent reason (red reports followed by green reports).
+    //
+    // A solution in both cases: use graphql to query the parent sha of the merged commit.
+    // This can be used to disambiguate the commit history when queried later.
+    //
+    // See: https://github.com/flutter/flutter/issues/162830
+    final graphql = await config.createGitHubGraphQLClient();
+    const source = r'''
+query GetFlutterCommitDateAndParent {
+  repository(owner: $sRepoOwner, name: $sRepoName) {
+    object(oid: $sCommitOid) {
+      ... on Commit {
+        parents(first: 1) {  # Get the first parent (usually the only one)
+          nodes {
+              oid
+          }
+        }
+      }
+    }
+  }
+}''';
+    final result = await graphql.query(
+      QueryOptions(
+        document: lang.parseString(source),
+        fetchPolicy: FetchPolicy.noCache,
+        variables: <String, dynamic>{
+          'sCommitOid': pr.mergeCommitSha!,
+          'sRepoOwner': slug.owner,
+          'sRepoName': slug.name,
+        },
+      ),
+    );
+
+    if (result.hasException) {
+      throw InternalServerError(
+        'Unable to query committedDate for ${pr.mergeCommitSha} / ${slug.fullName}/${pr.number}',
+      );
+    }
+    final object = result.data!['data']['repository']['object'];
+    final timestamp = pr.mergedAt!.millisecondsSinceEpoch;
+    final parentSha = object['parents']['nodes'].first['oid'];
+    log.info('${slug.fullName}/${pr.number} ${pr.mergeCommitSha}: mergedAt: $timestamp parent: $parentSha');
+
     final Commit mergedCommit = Commit(
       author: pr.user!.login!,
       authorAvatarUrl: pr.user!.avatarUrl!,
@@ -158,11 +216,12 @@ class Scheduler {
       message: truncate(pr.title!, 1490, omission: '...'),
       repository: fullRepo,
       sha: sha,
-      timestamp: pr.mergedAt!.millisecondsSinceEpoch,
+      timestamp: timestamp,
+      parentSha: parentSha,
     );
 
     if (await _commitExistsInDatastore(mergedCommit)) {
-      log.fine('$sha already exists in datastore. Scheduling skipped.');
+      log.info('$sha already exists in datastore. Scheduling skipped.');
       return;
     }
 
