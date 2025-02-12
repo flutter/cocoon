@@ -19,7 +19,6 @@ class Commit extends Model<String> {
   Commit({
     Key<String>? key,
     this.sha,
-    this.parentSha,
     this.timestamp,
     this.author,
     this.authorAvatarUrl,
@@ -62,10 +61,6 @@ class Commit extends Model<String> {
   @StringProperty(propertyName: 'Commit.Sha', required: true)
   String? sha;
 
-  /// The SHA1 hash of the parent commit.
-  @StringProperty(propertyName: 'Commit.ParentSha', required: false)
-  String? parentSha;
-
   /// The GitHub username of the commit author.
   @StringProperty(propertyName: 'Commit.Author.Login')
   String? author;
@@ -96,7 +91,6 @@ class Commit extends Model<String> {
   /// [RepositorySlug] of where this commit exists.
   RepositorySlug get slug => RepositorySlug.full(repository!);
 
-  @StringProperty(propertyName: '')
   @override
   String toString() {
     final StringBuffer buf = StringBuffer()
@@ -106,7 +100,6 @@ class Commit extends Model<String> {
       ..write(', key: ${parentKey == null ? null : key.id}')
       ..write(', timestamp: $timestamp')
       ..write(', sha: $sha')
-      ..write(', parentSha: $parentSha')
       ..write(', author: $author')
       ..write(', authorAvatarUrl: $authorAvatarUrl')
       ..write(', message: ${message?.split("\n").first}')
@@ -136,7 +129,6 @@ class SerializableCommit {
       'CreateTimestamp': commit.timestamp,
       'Commit': <String, dynamic>{
         'Sha': commit.sha,
-        'ParentSha': commit.parentSha,
         'Message': commit.message,
         'Author': <String, dynamic>{
           'Login': commit.author,
