@@ -1,6 +1,7 @@
 module cocoon-tooling
 
-go 1.21
+go 1.23.2
+
 toolchain go1.23.6
 
 require github.com/slsa-framework/slsa-verifier/v2 v2.7.0
