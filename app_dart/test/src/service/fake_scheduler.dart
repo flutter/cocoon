@@ -15,15 +15,11 @@ import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:github/github.dart';
-import 'package:gql/ast.dart' show OperationDefinitionNode;
-import 'package:graphql/client.dart' show MutationOptions, OperationException, QueryOptions;
 import 'package:retry/retry.dart';
 
-import '../datastore/fake_config.dart';
 import '../utilities/entity_generators.dart';
 import 'fake_fusion_tester.dart';
 import 'fake_get_files_changed.dart';
-import 'fake_graphql_client.dart' show FakeGraphQLClient, createFakeQueryResult;
 import 'fake_luci_build_service.dart';
 
 /// Fake for [Scheduler] to use for tests that rely on it.
@@ -50,39 +46,7 @@ class FakeScheduler extends Scheduler {
                 githubChecksUtil: githubChecksUtil,
               ),
           fusionTester: fusionTester ?? FakeFusionTester(),
-        ) {
-    if (config is FakeConfig) {
-      if ((config as FakeConfig).githubGraphQLClient == null) {
-        (config as FakeConfig).githubGraphQLClient = FakeGraphQLClient()
-          ..mutateResultForOptions = ((MutationOptions options) => createFakeQueryResult())
-          ..queryResultForOptions = (QueryOptions options) {
-            if (options.document.definitions.first is OperationDefinitionNode) {
-              final operation = options.document.definitions.first as OperationDefinitionNode;
-              if (operation.name?.value == 'GetFlutterCommitDateAndParent') {
-                return createFakeQueryResult(
-                  data: {
-                    'data': {
-                      'repository': {
-                        'object': {
-                          'parents': {
-                            'nodes': [
-                              {'oid': '5944d992ac403612c599d44b9a5eea62ce7ebc8a'},
-                            ],
-                          },
-                        },
-                      },
-                    },
-                  },
-                );
-              }
-            }
-
-            // if (options.variables['sCommitOid'] ==  1, 'sRepoOwner': flutter, 'sRepoName': flutter)
-            return createFakeQueryResult(data: {}, exception: OperationException());
-          };
-      }
-    }
-  }
+        );
 
   final CiYamlSet _defaultConfig = emptyConfig;
 
