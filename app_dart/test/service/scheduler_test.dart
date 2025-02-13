@@ -26,8 +26,6 @@ import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
-import 'package:gql/ast.dart';
-import 'package:graphql/client.dart' show MutationOptions, OperationException, QueryOptions;
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:logging/logging.dart';
@@ -44,7 +42,6 @@ import '../src/service/fake_fusion_tester.dart';
 import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_get_files_changed.dart';
 import '../src/service/fake_github_service.dart';
-import '../src/service/fake_graphql_client.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
@@ -141,7 +138,6 @@ void main() {
   late FakeFusionTester fakeFusion;
   late MockCallbacks callbacks;
   late FakeGetFilesChanged getFilesChanged;
-  late FakeGraphQLClient githubGraphQLClient;
 
   final PullRequest pullRequest = generatePullRequest(id: 42);
 
@@ -202,35 +198,6 @@ void main() {
 
       fakeFusion = FakeFusionTester();
       callbacks = MockCallbacks();
-
-      githubGraphQLClient = FakeGraphQLClient();
-      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
-      githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
-        if (options.document.definitions.first is OperationDefinitionNode) {
-          final operation = options.document.definitions.first as OperationDefinitionNode;
-          if (operation.name?.value == 'GetFlutterCommitDateAndParent') {
-            return createFakeQueryResult(
-              data: {
-                'data': {
-                  'repository': {
-                    'object': {
-                      'parents': {
-                        'nodes': [
-                          {'oid': '5944d992ac403612c599d44b9a5eea62ce7ebc8a'},
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            );
-          }
-        }
-
-        // if (options.variables['sCommitOid'] ==  1, 'sRepoOwner': flutter, 'sRepoName': flutter)
-        return createFakeQueryResult(data: {}, exception: OperationException());
-      };
-      config.githubGraphQLClient = githubGraphQLClient;
 
       scheduler = Scheduler(
         cache: cache,

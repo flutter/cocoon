@@ -391,7 +391,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     );
 
     if (pr.merged!) {
-      log.info('Pull request ${pr.number} was closed and merged.');
+      log.fine('Pull request ${pr.number} was closed and merged.');
 
       // To avoid polluting the repo with temporary revert branches, delete the
       // branch after the reverted PR is merged.

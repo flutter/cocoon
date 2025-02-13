@@ -59,7 +59,6 @@ void main() {
       kCommitRepositoryPath: commitDocument.repositoryPath,
       kCommitCreateTimestamp: commitDocument.createTimestamp,
       kCommitSha: commitDocument.sha,
-      kCommitParentSha: commitDocument.parentSha,
       kCommitMessage: commitDocument.message,
       kCommitAuthor: commitDocument.author,
       kCommitAvatar: commitDocument.avatar,
