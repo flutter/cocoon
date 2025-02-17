@@ -35,7 +35,7 @@
     "@octokit/webhooks-types": "^7.6.1",
     "@types/jest": "^29.5.13",
     "@types/node": "^22.13.4",
-    "@typescript-eslint/parser": "^7.18.0",
+    "@typescript-eslint/parser": "^8.24.0",
     "@vercel/ncc": "^0.38.3",
     "eslint": "^8.57.0",
     "eslint-plugin-github": "^5.1.7",
