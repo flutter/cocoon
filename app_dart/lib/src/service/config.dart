@@ -74,14 +74,12 @@ class Config {
   /// Relies on the GitHub Checks API being enabled for this repo.
   Set<gh.RepositorySlug> get supportedRepos => <gh.RepositorySlug>{
         cocoonSlug,
-        engineSlug,
         flutterSlug,
         packagesSlug,
       };
 
   /// List of guaranteed scheduling Github repos.
   static Set<gh.RepositorySlug> get guaranteedSchedulingRepos => <gh.RepositorySlug>{
-        engineSlug,
         packagesSlug,
       };
 
@@ -94,17 +92,11 @@ class Config {
 
   /// GitHub repositories that use CI status to determine if pull requests can be submitted.
   static Set<gh.RepositorySlug> reposWithTreeStatus = <gh.RepositorySlug>{
-    engineSlug,
     flutterSlug,
   };
 
   static bool doesSkiaGoldRunOnBranch(gh.RepositorySlug slug, String? branch) {
-    if (slug == engineSlug) {
-      final RegExp releaseRegex = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
-      return defaultBranch(slug) == branch || (branch != null && releaseRegex.hasMatch(branch));
-    } else {
-      return defaultBranch(slug) == branch;
-    }
+    return defaultBranch(slug) == branch;
   }
 
   /// The tip of tree branch for [slug].
@@ -112,7 +104,6 @@ class Config {
     final Map<gh.RepositorySlug, String> defaultBranches = <gh.RepositorySlug, String>{
       cocoonSlug: 'main',
       flutterSlug: 'master',
-      engineSlug: 'main',
       packagesSlug: 'main',
       recipesSlug: 'main',
     };
@@ -365,7 +356,6 @@ class Config {
       'The tree is currently broken; however, this PR is marked as `emergency` and will be allowed to merge.';
 
   static gh.RepositorySlug get cocoonSlug => gh.RepositorySlug('flutter', 'cocoon');
-  static gh.RepositorySlug get engineSlug => gh.RepositorySlug('flutter', 'engine');
   static gh.RepositorySlug get flutterSlug => gh.RepositorySlug('flutter', 'flutter');
   static gh.RepositorySlug get packagesSlug => gh.RepositorySlug('flutter', 'packages');
 

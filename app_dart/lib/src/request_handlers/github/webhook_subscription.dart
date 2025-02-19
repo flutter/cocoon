@@ -27,7 +27,6 @@ const List<String> kNotActuallyATest = <String>[
 
 /// List of repos that require check for tests.
 Set<RepositorySlug> kNeedsTests = <RepositorySlug>{
-  Config.engineSlug,
   Config.flutterSlug,
   Config.packagesSlug,
 };

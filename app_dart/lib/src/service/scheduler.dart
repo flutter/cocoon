@@ -933,7 +933,6 @@ $stackTrace
   }
 
   static final _allowTestAll = {
-    Config.engineSlug,
     Config.flutterSlug,
   };
 
