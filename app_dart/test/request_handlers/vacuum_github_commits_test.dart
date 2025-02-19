@@ -89,7 +89,6 @@ void main() {
         ],
         supportedReposValue: <RepositorySlug>{
           Config.cocoonSlug,
-          Config.engineSlug,
           Config.flutterSlug,
           Config.packagesSlug,
         },
@@ -153,8 +152,7 @@ void main() {
       expect(commit.author, 'Username');
       expect(commit.authorAvatarUrl, 'http://example.org/avatar.jpg');
       expect(commit.message, 'commit message');
-      expect(commits[1].repository, Config.engineSlug.fullName);
-      expect(commits[2].repository, Config.flutterSlug.fullName);
+      expect(commits[1].repository, Config.flutterSlug.fullName);
     });
 
     test('skips commits for which transaction commit fails', () async {
@@ -162,7 +160,7 @@ void main() {
 
       /// This test is simulating an existing branch, which must already
       /// have at least one commit in the datastore.
-      final Commit commit = shaToCommit('1', 'main', Config.engineSlug);
+      final Commit commit = shaToCommit('1', 'master', Config.flutterSlug);
       db.values[commit.key] = commit;
 
       db.onCommit = (List<gcloud_db.Model<dynamic>> inserts, List<gcloud_db.Key<dynamic>> deletes) {
@@ -173,7 +171,7 @@ void main() {
       final Body body = await tester.get<Body>(handler);
 
       /// The +1 is coming from the engine repository and manually added commit on the top of this test.
-      expect(db.values.values.whereType<Commit>().length, 8 + 1); // 2 commits for 4 repos
+      expect(db.values.values.whereType<Commit>().length, 6 + 1); // 2 commits for 3 repos
       expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
       expect(db.values.values.whereType<Commit>().map<int>(toTimestamp), containsAll(<int>[1, 2, 4]));
       expect(await body.serialize().toList(), isEmpty);

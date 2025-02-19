@@ -1453,7 +1453,7 @@ void main() {
         status: firestore.Task.statusFailed,
       );
       firestoreCommit = generateFirestoreCommit(1);
-      totCommit = generateCommit(1, repo: 'engine', branch: 'main');
+      totCommit = generateCommit(1, repo: 'flutter', branch: 'main');
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
       final Task task = generateTask(
@@ -1485,7 +1485,7 @@ void main() {
         expect(properties.containsKey(key), true);
       }
       expect(scheduleBuildRequest.priority, LuciBuildService.kRerunPriority);
-      expect(scheduleBuildRequest.gitilesCommit.project, 'mirrors/engine');
+      expect(scheduleBuildRequest.gitilesCommit.project, 'mirrors/flutter');
       expect(
         scheduleBuildRequest.tags.firstWhere((tag) => tag.key == 'trigger_type').value,
         'auto_retry',

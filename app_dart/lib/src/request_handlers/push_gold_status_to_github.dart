@@ -47,7 +47,6 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     }
 
     await _sendStatusUpdates(datastore, firestoreService, Config.flutterSlug);
-    await _sendStatusUpdates(datastore, firestoreService, Config.engineSlug);
 
     return Body.empty;
   }
@@ -123,17 +122,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       for (Map<String, dynamic> checkRun in checkRuns) {
         log.fine('Check run: $checkRun');
         final String name = checkRun['name'].toLowerCase() as String;
-        if (slug == Config.engineSlug) {
-          if (const <String>[
-            'linux_android_emulator',
-            'linux_host_engine',
-            'linux_web_engine',
-            'mac_host_engine',
-            'mac_unopt',
-          ].any((String shardSubString) => name.contains(shardSubString))) {
-            runsGoldenFileTests = true;
-          }
-        } else if (slug == Config.flutterSlug) {
+        if (slug == Config.flutterSlug) {
           if (const <String>[
             // Framework test shards that run golden file tests
             'framework',
@@ -315,10 +304,6 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   String _getGoldHost(RepositorySlug slug) {
     if (slug == Config.flutterSlug) {
       return 'https://flutter-gold.skia.org';
-    }
-
-    if (slug == Config.engineSlug) {
-      return 'https://flutter-engine-gold.skia.org';
     }
 
     throw Exception('Unknown slug: $slug');
