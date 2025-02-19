@@ -111,10 +111,8 @@ class Config {
   /// Repository Slug data
   /// GitHub repositories that use CI status to determine if pull requests can be submitted.
   static Set<RepositorySlug> reposWithTreeStatus = <RepositorySlug>{
-    engineSlug,
     flutterSlug,
   };
-  static RepositorySlug get engineSlug => RepositorySlug('flutter', 'engine');
   static RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
 
   String get autosubmitBot => 'auto-submit[bot]';

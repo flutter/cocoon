@@ -23,6 +23,7 @@ class CreateBranch extends ApiRequestHandler<Body> {
   final BranchService branchService;
 
   static const String branchParam = 'branch';
+  // Intentionally kept at 'engine' as there may be scripts out there.
   static const String engineShaParam = 'engine';
 
   @override

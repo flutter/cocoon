@@ -19,7 +19,6 @@ import 'common.dart';
 /// List of repositories that have supported .ci.yaml config files.
 final List<SupportedConfig> configs = <SupportedConfig>[
   SupportedConfig(RepositorySlug('flutter', 'cocoon')),
-  SupportedConfig(RepositorySlug('flutter', 'engine')),
   SupportedConfig(RepositorySlug('flutter', 'flutter')),
   SupportedConfig(RepositorySlug('flutter', 'packages')),
 ];

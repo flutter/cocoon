@@ -2789,7 +2789,7 @@ void foo() {
     });
 
     test('does not handle push events for repositories that are not flutter/flutter', () async {
-      tester.message = generatePushMessage('beta', 'flutter', 'engine');
+      tester.message = generatePushMessage('beta', 'flutter', 'packages');
 
       await tester.post(webhook);
 
