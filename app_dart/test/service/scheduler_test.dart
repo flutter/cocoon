@@ -165,7 +165,6 @@ void main() {
       buildStatusService = FakeBuildStatusService(
         commitStatuses: <CommitStatus>[
           CommitStatus(generateCommit(1), const <Stage>[]),
-          CommitStatus(generateCommit(1, branch: 'main', repo: Config.engineSlug.name), const <Stage>[]),
         ],
       );
       config = FakeConfig(
@@ -175,8 +174,8 @@ void main() {
         githubClient: MockGitHub(),
         firestoreService: mockFirestoreService,
         supportedReposValue: <RepositorySlug>{
-          Config.engineSlug,
           Config.flutterSlug,
+          Config.packagesSlug,
         },
       );
       httpClient = MockClient((http.Request request) async {
@@ -389,7 +388,7 @@ void main() {
         ).thenAnswer((_) => Future<List<Tuple<Target, Task, int>>>.value(<Tuple<Target, Task, int>>[]));
         buildStatusService = FakeBuildStatusService(
           commitStatuses: <CommitStatus>[
-            CommitStatus(generateCommit(1, repo: 'engine', branch: 'main'), const <Stage>[]),
+            CommitStatus(generateCommit(1, repo: 'packages', branch: 'main'), const <Stage>[]),
           ],
         );
         scheduler = Scheduler(
@@ -407,7 +406,8 @@ void main() {
           fusionTester: fakeFusion,
         );
 
-        await scheduler.addCommits(createCommitList(<String>['1'], repo: 'engine', branch: 'main'));
+        // This test is testing `GuaranteedPolicy` get scheduled - there's only one now.
+        await scheduler.addCommits(createCommitList(<String>['1'], branch: 'main', repo: 'packages'));
         final List<Object?> captured = verify(
           luciBuildService.schedulePostsubmitBuilds(
             commit: anyNamed('commit'),
@@ -474,7 +474,7 @@ void main() {
           fusionTester: fakeFusion,
         );
 
-        await scheduler.addCommits(createCommitList(<String>['1'], repo: 'engine', branch: 'main'));
+        await scheduler.addCommits(createCommitList(<String>['1'], repo: 'packages', branch: 'main'));
         expect(pubsub.messages.length, 2);
       });
     });
@@ -578,26 +578,6 @@ void main() {
         expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusNew), isEmpty);
       });
 
-      test('guarantees scheduling of tasks against merged engine PR', () async {
-        when(
-          mockFirestoreService.writeViaTransaction(
-            captureAny,
-          ),
-        ).thenAnswer((Invocation invocation) {
-          return Future<CommitResponse>.value(CommitResponse());
-        });
-        final PullRequest mergedPr = generatePullRequest(
-          repo: Config.engineSlug.name,
-          branch: Config.defaultBranch(Config.engineSlug),
-        );
-        await scheduler.addPullRequest(mergedPr);
-
-        expect(db.values.values.whereType<Commit>().length, 1);
-        expect(db.values.values.whereType<Task>().length, 3);
-        // Ensure all tasks under cocoon scheduler have been marked in progress
-        expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusInProgress).length, 2);
-      });
-
       test('Release candidate branch commit filters builders not in default branch', () async {
         when(
           mockFirestoreService.writeViaTransaction(
@@ -616,10 +596,10 @@ targets:
       custom: abc
 ''';
         httpClient = MockClient((http.Request request) async {
-          if (request.url.path == '/flutter/engine/abc/.ci.yaml') {
+          if (request.url.path == '/flutter/flutter/abc/.ci.yaml') {
             return http.Response(totCiYaml, HttpStatus.ok);
           }
-          if (request.url.path == '/flutter/engine/1/.ci.yaml') {
+          if (request.url.path == '/flutter/flutter/1/.ci.yaml') {
             return http.Response(singleCiYaml, HttpStatus.ok);
           }
           print(request.url.path);
@@ -647,7 +627,7 @@ targets:
         );
 
         final PullRequest mergedPr = generatePullRequest(
-          repo: Config.engineSlug.name,
+          repo: Config.flutterSlug.name,
           branch: 'flutter-3.10-candidate.1',
         );
         await scheduler.addPullRequest(mergedPr);
@@ -1854,9 +1834,9 @@ targets:
 
         test('with a specific label in the flutter/engine repo', () async {
           final enginePr = generatePullRequest(
-            branch: Config.defaultBranch(Config.engineSlug),
+            branch: Config.defaultBranch(Config.flutterSlug),
             labels: <IssueLabel>[runAllTests],
-            repo: Config.engineSlug.name,
+            repo: Config.flutterSlug.name,
           );
           final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(enginePr);
           expect(
@@ -1894,9 +1874,9 @@ targets:
 
         test('without a specific label', () async {
           final enginePr = generatePullRequest(
-            branch: Config.defaultBranch(Config.engineSlug),
+            branch: Config.defaultBranch(Config.flutterSlug),
             labels: <IssueLabel>[],
-            repo: Config.engineSlug.name,
+            repo: Config.flutterSlug.name,
           );
 
           // Assume a file that is not runIf'd was changed.
@@ -2073,10 +2053,10 @@ targets:
       custom: abc
 ''';
         httpClient = MockClient((http.Request request) async {
-          if (request.url.path == '/flutter/engine/1/.ci.yaml') {
+          if (request.url.path == '/flutter/flutter/1/.ci.yaml') {
             return http.Response(totCiYaml, HttpStatus.ok);
           }
-          if (request.url.path == '/flutter/engine/abc/.ci.yaml') {
+          if (request.url.path == '/flutter/flutter/abc/.ci.yaml') {
             return http.Response(singleCiYaml, HttpStatus.ok);
           }
           print(request.url.path);
@@ -2103,7 +2083,7 @@ targets:
           fusionTester: fakeFusion,
         );
         final PullRequest pr = generatePullRequest(
-          repo: Config.engineSlug.name,
+          repo: Config.flutterSlug.name,
           branch: 'flutter-3.10-candidate.1',
         );
         final List<Target> targets = await scheduler.getPresubmitTargets(pr);

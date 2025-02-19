@@ -62,11 +62,11 @@ class BranchService {
     final gh.RepositoryCommit engineCommit = await retryOptions.retry(
       () async {
         final GithubService githubService = await config.createDefaultGitHubService();
-        return githubService.github.repositories.getCommit(Config.engineSlug, engineSha);
+        return githubService.github.repositories.getCommit(Config.flutterSlug, engineSha);
       },
       retryIf: (Exception e) => e is gh.GitHubError,
     );
-    log.info('${Config.engineSlug} commit: $engineCommit');
+    log.info('${Config.flutterSlug} commit: $engineCommit');
     final DateTime? branchTime = engineCommit.commit?.committer?.date;
     if (branchTime == null) {
       throw BadRequestException('$engineSha has no commit time');
