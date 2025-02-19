@@ -111,7 +111,6 @@ class DevelopmentCocoonService implements CocoonService {
 
   static const List<String> _repos = <String>[
     'flutter',
-    'engine',
     'cocoon',
   ];
 

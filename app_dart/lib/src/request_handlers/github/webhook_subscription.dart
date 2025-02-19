@@ -441,9 +441,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           if (isFusion) {
             await _applyEngineRepoLabels(gitHubClient, eventAction, pr, files: files);
           }
-        case 'engine':
-          final files = await gitHubClient.pullRequests.listFiles(slug, pr.number!).toList();
-          return _applyEngineRepoLabels(gitHubClient, eventAction, pr, files: files);
         case 'packages':
           return _applyPackageTestChecks(gitHubClient, eventAction, pr);
       }

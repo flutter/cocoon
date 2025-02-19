@@ -382,7 +382,7 @@ void main() {
       final List<ContextNode> contextNodeList = getContextNodeListFromJson(repositoryStatusesWithGoldMock);
       const bool allSuccess = true;
       final Author author = Author(login: 'skia-flutter-autoroll');
-      slug = github.RepositorySlug('flutter', 'engine');
+      slug = github.RepositorySlug('flutter', 'flutter');
 
       final List<String> labelNames = [];
       labelNames.add('Compelling label');
@@ -410,7 +410,7 @@ void main() {
       final List<ContextNode> contextNodeList = getContextNodeListFromJson(repositoryStatusesWithFailedGoldMock);
       const bool allSuccess = true;
       final Author author = Author(login: 'skia-flutter-autoroll');
-      slug = github.RepositorySlug('flutter', 'engine');
+      slug = github.RepositorySlug('flutter', 'flutter');
 
       final List<String> labelNames = [];
       labelNames.add('Compelling label');
@@ -438,7 +438,7 @@ void main() {
       final List<ContextNode> contextNodeList = getContextNodeListFromJson(repositoryStatusesWithFailedGoldMock);
       const bool allSuccess = true;
       final Author author = Author(login: 'ricardoamador');
-      slug = github.RepositorySlug('flutter', 'engine');
+      slug = github.RepositorySlug('flutter', 'flutter');
 
       final List<String> labelNames = [];
       labelNames.add('Compelling label');
@@ -465,8 +465,8 @@ void main() {
     test('Validate that stale PR warnings are only generated for open PRs.', () async {
       final List<ContextNode> contextNodeList = getContextNodeListFromJson(repositoryStatusesWithStaleGoldMock);
       const bool allSuccess = true;
-      final Author author = Author(login: 'skia-flutter-autoroll');
-      slug = github.RepositorySlug('flutter', 'engine');
+      final Author author = Author(login: 'engine-flutter-autoroll');
+      slug = github.RepositorySlug('flutter', 'flutter');
 
       final List<String> labelNames = [];
       labelNames.add('Compelling label');
@@ -746,34 +746,6 @@ void main() {
     });
   });
 
-  group('Validate if an engine roller', () {
-    setUp(() {
-      githubService = FakeGithubService(client: MockGitHub());
-      config = FakeConfig(githubService: githubService);
-      ciSuccessful = CiSuccessful(config: config);
-    });
-
-    test('when it is engine roller', () async {
-      final bool isEngineRoller = ciSuccessful.isToEngineRoller(
-        Author(login: 'engine-flutter-autoroll'),
-        github.RepositorySlug('flutter', 'engine'),
-      );
-      expect(isEngineRoller, true);
-    });
-    test('when it is not from roller', () async {
-      final bool isEngineRoller =
-          ciSuccessful.isToEngineRoller(Author(login: 'testAuthor'), github.RepositorySlug('flutter', 'engine'));
-      expect(isEngineRoller, false);
-    });
-    test('when it is not from engine', () async {
-      final bool isEngineRoller = ciSuccessful.isToEngineRoller(
-        Author(login: 'engine-flutter-autoroll'),
-        github.RepositorySlug('flutter', 'flutter'),
-      );
-      expect(isEngineRoller, false);
-    });
-  });
-
   group('Validate if an engine to framework roller', () {
     setUp(() {
       githubService = FakeGithubService(client: MockGitHub());
@@ -792,13 +764,6 @@ void main() {
       final bool isEngineRoller = ciSuccessful.isEngineToFrameworkRoller(
         Author(login: 'testAuthor'),
         github.RepositorySlug('flutter', 'flutter'),
-      );
-      expect(isEngineRoller, false);
-    });
-    test('when it is not from framework', () async {
-      final bool isEngineRoller = ciSuccessful.isEngineToFrameworkRoller(
-        Author(login: 'engine-flutter-autoroll'),
-        github.RepositorySlug('flutter', 'engine'),
       );
       expect(isEngineRoller, false);
     });

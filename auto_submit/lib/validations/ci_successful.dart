@@ -239,11 +239,7 @@ class CiSuccessful extends Validation {
   /// This includes those rolled PRs from upstream to Engine repo and those
   /// rolled PRs from Engine to Framework.
   bool supportStale(Author author, github.RepositorySlug slug) {
-    return isToEngineRoller(author, slug) || isEngineToFrameworkRoller(author, slug);
-  }
-
-  bool isToEngineRoller(Author author, github.RepositorySlug slug) {
-    return config.rollerAccounts.contains(author.login!) && slug == Config.engineSlug;
+    return isEngineToFrameworkRoller(author, slug);
   }
 
   bool isEngineToFrameworkRoller(Author author, github.RepositorySlug slug) {

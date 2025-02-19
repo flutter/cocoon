@@ -455,7 +455,7 @@ void main() {
         });
         buildStatusService = FakeBuildStatusService(
           commitStatuses: <CommitStatus>[
-            CommitStatus(generateCommit(1, repo: 'engine', branch: 'main'), const <Stage>[]),
+            CommitStatus(generateCommit(1, repo: 'packages', branch: 'main'), const <Stage>[]),
           ],
         );
         config.batchSizeValue = 1;
