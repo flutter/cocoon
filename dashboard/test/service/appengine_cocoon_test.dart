@@ -37,13 +37,13 @@ void main() {
 
     test('should return CocoonResponse<List<CommitStatus>>', () {
       expect(
-        service.fetchCommitStatuses(repo: 'engine'),
+        service.fetchCommitStatuses(repo: 'flutter'),
         const TypeMatcher<Future<CocoonResponse<List<CommitStatus>>>>(),
       );
     });
 
     test('should return expected List<CommitStatus>', () async {
-      final CocoonResponse<List<CommitStatus>> statuses = await service.fetchCommitStatuses(repo: 'engine');
+      final CocoonResponse<List<CommitStatus>> statuses = await service.fetchCommitStatuses(repo: 'flutter');
 
       final CommitStatus expectedStatus = CommitStatus()
         ..branch = 'master'
@@ -83,14 +83,14 @@ void main() {
     test('should have error if given non-200 response', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async => Response('', 404)));
 
-      final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses(repo: 'engine');
+      final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses(repo: 'flutter');
       expect(response.error, isNotNull);
     });
 
     test('should have error if given bad response', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async => Response('bad', 200)));
 
-      final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses(repo: 'engine');
+      final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses(repo: 'flutter');
       expect(response.error, isNotNull);
     });
   });
@@ -108,14 +108,14 @@ void main() {
 
     test('should return CocoonResponse<List<CommitStatus>>', () {
       expect(
-        service.fetchCommitStatusesFirestore(repo: 'engine'),
+        service.fetchCommitStatusesFirestore(repo: 'flutter'),
         const TypeMatcher<Future<CocoonResponse<List<CommitTasksStatus>>>>(),
       );
     });
 
     test('should return expected List<CommitTasksStatus>', () async {
       final CocoonResponse<List<CommitTasksStatus>> statuses =
-          await service.fetchCommitStatusesFirestore(repo: 'engine');
+          await service.fetchCommitStatusesFirestore(repo: 'flutter');
 
       final CommitTasksStatus expectedStatus = CommitTasksStatus()
         ..branch = 'master'
@@ -152,7 +152,7 @@ void main() {
       service = AppEngineCocoonService(client: MockClient((Request request) async => Response('', 404)));
 
       final CocoonResponse<List<CommitTasksStatus>> response =
-          await service.fetchCommitStatusesFirestore(repo: 'engine');
+          await service.fetchCommitStatusesFirestore(repo: 'flutter');
       expect(response.error, isNotNull);
     });
 
@@ -160,7 +160,7 @@ void main() {
       service = AppEngineCocoonService(client: MockClient((Request request) async => Response('bad', 200)));
 
       final CocoonResponse<List<CommitTasksStatus>> response =
-          await service.fetchCommitStatusesFirestore(repo: 'engine');
+          await service.fetchCommitStatusesFirestore(repo: 'flutter');
       expect(response.error, isNotNull);
     });
   });
@@ -178,13 +178,13 @@ void main() {
 
     test('should return CocoonResponse<bool>', () {
       expect(
-        service.fetchTreeBuildStatus(repo: 'engine'),
+        service.fetchTreeBuildStatus(repo: 'flutter'),
         const TypeMatcher<Future<CocoonResponse<BuildStatusResponse>>>(),
       );
     });
 
     test('data should be true when given Succeeded', () async {
-      final CocoonResponse<BuildStatusResponse> treeBuildStatus = await service.fetchTreeBuildStatus(repo: 'engine');
+      final CocoonResponse<BuildStatusResponse> treeBuildStatus = await service.fetchTreeBuildStatus(repo: 'flutter');
 
       expect(treeBuildStatus.data!.buildStatus, EnumBuildStatus.success);
     });
@@ -195,7 +195,7 @@ void main() {
           return Response(jsonBuildStatusFalseResponse, 200);
         }),
       );
-      final CocoonResponse<BuildStatusResponse> treeBuildStatus = await service.fetchTreeBuildStatus(repo: 'engine');
+      final CocoonResponse<BuildStatusResponse> treeBuildStatus = await service.fetchTreeBuildStatus(repo: 'flutter');
 
       expect(treeBuildStatus.data!.buildStatus, EnumBuildStatus.failure);
     });
@@ -203,14 +203,14 @@ void main() {
     test('should have error if given non-200 response', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async => Response('', 404)));
 
-      final CocoonResponse<BuildStatusResponse> response = await service.fetchTreeBuildStatus(repo: 'engine');
+      final CocoonResponse<BuildStatusResponse> response = await service.fetchTreeBuildStatus(repo: 'flutter');
       expect(response.error, isNotNull);
     });
 
     test('should have error if given bad response', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async => Response('bad', 200)));
 
-      final CocoonResponse<BuildStatusResponse> response = await service.fetchTreeBuildStatus(repo: 'engine');
+      final CocoonResponse<BuildStatusResponse> response = await service.fetchTreeBuildStatus(repo: 'flutter');
       expect(response.error, isNotNull);
     });
   });
@@ -231,12 +231,12 @@ void main() {
     });
 
     test('should return true if request succeeds', () async {
-      final CocoonResponse<bool> response = await service.rerunTask(task, 'fakeAccessToken', 'engine');
+      final CocoonResponse<bool> response = await service.rerunTask(task, 'fakeAccessToken', 'flutter');
       expect(response.error, isNull);
     });
 
     test('should set error in response if task key is null', () async {
-      final CocoonResponse<bool> response = await service.rerunTask(task, null, 'engine');
+      final CocoonResponse<bool> response = await service.rerunTask(task, null, 'flutter');
       expect(
         response.error,
         allOf(<Matcher>[
@@ -253,7 +253,7 @@ void main() {
         }),
       );
 
-      final CocoonResponse<bool> response = await service.rerunTask(task, 'fakeAccessToken', 'engine');
+      final CocoonResponse<bool> response = await service.rerunTask(task, 'fakeAccessToken', 'flutter');
       expect(
         response.error,
         allOf(<Matcher>[
@@ -360,7 +360,7 @@ void main() {
       expect(repos.data, <String>[
         'flutter',
         'cocoon',
-        'engine',
+        'packages',
       ]);
     });
 

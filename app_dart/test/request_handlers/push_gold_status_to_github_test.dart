@@ -46,10 +46,8 @@ void main() {
     late PushGoldStatusToGithub handler;
     FakeGraphQLClient githubGraphQLClient;
     List<dynamic> checkRuns = <dynamic>[];
-    List<dynamic> engineCheckRuns = <dynamic>[];
     late MockClient mockHttpClient;
     late RepositorySlug slug;
-    late RepositorySlug engineSlug;
     late RetryOptions retryOptions;
 
     final List<LogRecord> records = <LogRecord>[];
@@ -78,9 +76,6 @@ void main() {
         if (options.variables['sRepoName'] == slug.name) {
           return createGithubQueryResult(checkRuns);
         }
-        if (options.variables['sRepoName'] == engineSlug.name) {
-          return createGithubQueryResult(engineCheckRuns);
-        }
         return createGithubQueryResult(<dynamic>[]);
       };
       config.githubGraphQLClient = githubGraphQLClient;
@@ -108,9 +103,7 @@ void main() {
       );
 
       slug = RepositorySlug('flutter', 'flutter');
-      engineSlug = RepositorySlug('flutter', 'engine');
       checkRuns.clear();
-      engineCheckRuns.clear();
       records.clear();
       log.onRecord.listen((LogRecord record) => records.add(record));
     });
@@ -133,10 +126,8 @@ void main() {
       late MockIssuesService issuesService;
       late MockRepositoriesService repositoriesService;
       List<PullRequest> prsFromGitHub = <PullRequest>[];
-      List<PullRequest> enginePrsFromGitHub = <PullRequest>[];
       GithubGoldStatus? githubGoldStatus;
       GithubGoldStatus? githubGoldStatusNext;
-      GithubGoldStatus? githubGoldStatusEngine;
 
       setUp(() {
         github = MockGitHub();
@@ -145,7 +136,6 @@ void main() {
         repositoriesService = MockRepositoriesService();
         githubGoldStatus = null;
         githubGoldStatusNext = null;
-        githubGoldStatusEngine = null;
 
         when(github.pullRequests).thenReturn(pullRequestsService);
         when(github.issues).thenReturn(issuesService);
@@ -154,11 +144,6 @@ void main() {
         prsFromGitHub.clear();
         when(pullRequestsService.list(slug)).thenAnswer((Invocation _) {
           return Stream<PullRequest>.fromIterable(prsFromGitHub);
-        });
-
-        enginePrsFromGitHub.clear();
-        when(pullRequestsService.list(engineSlug)).thenAnswer((Invocation _) {
-          return Stream<PullRequest>.fromIterable(enginePrsFromGitHub);
         });
 
         when(
@@ -173,14 +158,6 @@ void main() {
         ).thenAnswer((Invocation invocation) {
           return Future<GithubGoldStatus>.value(
             githubGoldStatusNext,
-          );
-        });
-
-        when(
-          mockFirestoreService.queryLastGoldStatus(engineSlug, captureAny),
-        ).thenAnswer((Invocation invocation) {
-          return Future<GithubGoldStatus>.value(
-            githubGoldStatusEngine,
           );
         });
 
@@ -263,17 +240,11 @@ void main() {
         test('if there are no framework or web engine tests for this PR', () async {
           checkRuns = <dynamic>[
             <String, String>{'name': 'tool-test1', 'status': 'completed', 'conclusion': 'success'},
+            <String, String>{'name': 'linux-host1', 'status': 'completed', 'conclusion': 'success'},
           ];
           final PullRequest flutterPr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[flutterPr];
           githubGoldStatus = newGithubGoldStatus(slug, flutterPr, '', '', '');
-
-          engineCheckRuns = <dynamic>[
-            <String, String>{'name': 'linux-host1', 'status': 'completed', 'conclusion': 'success'},
-          ];
-          final PullRequest enginePr = newPullRequest(456, 'def', 'main');
-          enginePrsFromGitHub = <PullRequest>[enginePr];
-          githubGoldStatusEngine = newGithubGoldStatus(engineSlug, enginePr, '', '', '');
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
@@ -290,28 +261,12 @@ void main() {
               ],
             ),
           );
-          verifyNever(
-            issuesService.addLabelsToIssue(
-              engineSlug,
-              enginePr.number!,
-              <String>[
-                kGoldenFileLabel,
-              ],
-            ),
-          );
 
           verifyNever(
             issuesService.createComment(
               slug,
               flutterPr.number!,
               argThat(contains(config.flutterGoldCommentID(flutterPr))),
-            ),
-          );
-          verifyNever(
-            issuesService.createComment(
-              engineSlug,
-              enginePr.number!,
-              argThat(contains(config.flutterGoldCommentID(enginePr))),
             ),
           );
         });
@@ -449,21 +404,9 @@ void main() {
             config.flutterGoldChangesValue!,
           );
 
-          final PullRequest enginePr = newPullRequest(456, 'def', 'main');
-          enginePrsFromGitHub = <PullRequest>[enginePr];
-          githubGoldStatusEngine = newGithubGoldStatus(
-            engineSlug,
-            enginePr,
-            GithubGoldStatusUpdate.statusRunning,
-            'def',
-            config.flutterGoldChangesValue!,
-          );
-
           // Checks complete
           checkRuns = <dynamic>[
             <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
-          ];
-          engineCheckRuns = <dynamic>[
             <String, String>{'name': 'web engine', 'status': 'completed', 'conclusion': 'success'},
           ];
 
@@ -472,10 +415,6 @@ void main() {
             if (request.url.toString() ==
                 'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
               return http.Response(tryjobDigests(pr), HttpStatus.ok);
-            }
-            if (request.url.toString() ==
-                'https://flutter-engine-gold.skia.org/json/v1/changelist_summary/github/${enginePr.number}') {
-              return http.Response(tryjobDigests(enginePr), HttpStatus.ok);
             }
             throw const HttpException('Unexpected http request');
           });
@@ -499,11 +438,6 @@ void main() {
               IssueComment()..body = config.flutterGoldCommentID(pr),
             ),
           );
-          when(issuesService.listCommentsByIssue(engineSlug, enginePr.number!)).thenAnswer(
-            (_) => Stream<IssueComment>.value(
-              IssueComment()..body = config.flutterGoldCommentID(enginePr),
-            ),
-          );
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
@@ -521,15 +455,6 @@ void main() {
               ],
             ),
           );
-          verifyNever(
-            issuesService.addLabelsToIssue(
-              engineSlug,
-              enginePr.number!,
-              <String>[
-                kGoldenFileLabel,
-              ],
-            ),
-          );
 
           verifyNever(
             issuesService.createComment(
@@ -538,77 +463,6 @@ void main() {
               argThat(contains(config.flutterGoldCommentID(pr))),
             ),
           );
-          verifyNever(
-            issuesService.createComment(
-              engineSlug,
-              enginePr.number!,
-              argThat(contains(config.flutterGoldCommentID(enginePr))),
-            ),
-          );
-        });
-
-        test('runs on engine release branches', () async {
-          // New commit
-          final PullRequest pr = newPullRequest(123, 'abc', 'flutter-3.28-candidate.8');
-          enginePrsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(engineSlug, pr, '', '', '');
-          db.values[status.key] = status;
-          githubGoldStatusEngine = newGithubGoldStatus(engineSlug, pr, '', '', '');
-
-          // All checks completed
-          engineCheckRuns = <dynamic>[
-            <String, String>{'name': 'Linux linux_web_engine', 'status': 'completed', 'conclusion': 'success'},
-          ];
-
-          // Change detected by Gold
-          mockHttpClient = MockClient((http.Request request) async {
-            if (request.url.toString() ==
-                'https://flutter-engine-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
-              return http.Response(tryjobDigests(pr), HttpStatus.ok);
-            }
-            throw const HttpException('Unexpected http request');
-          });
-          handler = PushGoldStatusToGithub(
-            config: config,
-            authenticationProvider: auth,
-            datastoreProvider: (DatastoreDB db) {
-              return DatastoreService(
-                config.db,
-                5,
-                retryOptions: retryOptions,
-              );
-            },
-            goldClient: mockHttpClient,
-            ingestionDelay: Duration.zero,
-          );
-
-          // Have not already commented for this commit.
-          when(issuesService.listCommentsByIssue(engineSlug, pr.number!)).thenAnswer(
-            (_) => Stream<IssueComment>.value(
-              IssueComment()..body = 'some other comment',
-            ),
-          );
-
-          final Body body = await tester.get<Body>(handler);
-          expect(body, same(Body.empty));
-
-          verify(
-            issuesService.addLabelsToIssue(
-              engineSlug,
-              pr.number!,
-              <String>[
-                kGoldenFileLabel,
-              ],
-            ),
-          ).called(1);
-
-          verify(
-            issuesService.createComment(
-              engineSlug,
-              pr.number!,
-              argThat(contains(config.flutterGoldCommentID(pr))),
-            ),
-          ).called(1);
         });
 
         test('does nothing for branches not staged to land on main/master', () async {
@@ -867,19 +721,11 @@ void main() {
           githubGoldStatus = newGithubGoldStatus(slug, flutterPr, '', '', '');
           expect(githubGoldStatus!.updates, 0);
 
-          final PullRequest enginePr = newPullRequest(567, 'e-abc', 'main');
-          enginePrsFromGitHub = <PullRequest>[enginePr];
-          final GithubGoldStatusUpdate engineStatus = newStatusUpdate(engineSlug, enginePr, '', '', '');
-          githubGoldStatusEngine = newGithubGoldStatus(engineSlug, enginePr, '', '', '');
-
           db.values[status.key] = status;
-          db.values[engineStatus.key] = engineStatus;
 
           // Checks running
           checkRuns = <dynamic>[
             <String, String>{'name': 'framework', 'status': 'in_progress', 'conclusion': 'neutral'},
-          ];
-          engineCheckRuns = <dynamic>[
             <String, String>{'name': 'Linux linux_web_engine', 'status': 'in_progress', 'conclusion': 'neutral'},
           ];
 
@@ -887,41 +733,23 @@ void main() {
           expect(body, same(Body.empty));
           expect(status.updates, 1);
           expect(status.status, GithubGoldStatusUpdate.statusRunning);
-          expect(engineStatus.updates, 1);
-          expect(engineStatus.status, GithubGoldStatusUpdate.statusRunning);
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           final List<dynamic> captured =
               verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
-          expect(captured.length, 4);
+          expect(captured.length, 2);
           // The first element corresponds to the `status`.
           final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
           expect(batchWriteRequest.writes!.length, 1);
           final GithubGoldStatus updatedDocument =
               GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
           expect(updatedDocument.updates, 1);
-          // The third element corresponds to the `engineStatus`.
-          final BatchWriteRequest batchWriteRequestEngine = captured[2] as BatchWriteRequest;
-          expect(batchWriteRequestEngine.writes!.length, 1);
-          final GithubGoldStatus updatedDocumentEngine =
-              GithubGoldStatus.fromDocument(githubGoldStatus: batchWriteRequest.writes![0].update!);
-          expect(updatedDocumentEngine.updates, 1);
-
           // Should not apply labels or make comments
           verifyNever(
             issuesService.addLabelsToIssue(
               slug,
               flutterPr.number!,
-              <String>[
-                kGoldenFileLabel,
-              ],
-            ),
-          );
-          verifyNever(
-            issuesService.addLabelsToIssue(
-              engineSlug,
-              enginePr.number!,
               <String>[
                 kGoldenFileLabel,
               ],
@@ -933,13 +761,6 @@ void main() {
               slug,
               flutterPr.number!,
               argThat(contains(config.flutterGoldCommentID(flutterPr))),
-            ),
-          );
-          verifyNever(
-            issuesService.createComment(
-              engineSlug,
-              enginePr.number!,
-              argThat(contains(config.flutterGoldCommentID(enginePr))),
             ),
           );
         });
@@ -1825,17 +1646,9 @@ void main() {
         db.values[status.key] = status;
         githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
 
-        final PullRequest enginePr = newPullRequest(456, 'def', 'main');
-        enginePrsFromGitHub = <PullRequest>[enginePr];
-        final GithubGoldStatusUpdate engineStatus = newStatusUpdate(engineSlug, enginePr, '', '', '');
-        db.values[engineStatus.key] = engineStatus;
-        githubGoldStatusEngine = newGithubGoldStatus(engineSlug, enginePr, '', '', '');
-
         // Checks completed
         checkRuns = <dynamic>[
           <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
-        ];
-        engineCheckRuns = <dynamic>[
           <String, String>{'name': 'Linux linux_web_engine', 'status': 'completed', 'conclusion': 'success'},
         ];
 
@@ -1849,8 +1662,6 @@ void main() {
           final PullRequest requestedPr;
           if (prNumber == pr.number) {
             requestedPr = pr;
-          } else if (prNumber == enginePr.number) {
-            requestedPr = enginePr;
           } else {
             throw HttpException('Unexpected http request for PR#$prNumber');
           }
@@ -1876,17 +1687,11 @@ void main() {
             IssueComment()..body = 'some other comment',
           ),
         );
-        when(issuesService.listCommentsByIssue(engineSlug, enginePr.number!)).thenAnswer(
-          (_) => Stream<IssueComment>.value(
-            IssueComment()..body = 'some other comment',
-          ),
-        );
 
         await tester.get<Body>(handler);
 
         expect(goldRequests, <String>[
           'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}',
-          'https://flutter-engine-gold.skia.org/json/v1/changelist_summary/github/${enginePr.number}',
         ]);
       });
       group('updateGithubGoldStatusDocuments', () {

@@ -74,24 +74,18 @@ void main() {
       });
 
       test('queryRecentCommits with slug', () async {
-        for (String repo in <String>['flutter', 'engine']) {
-          final Commit commit = Commit(
-            key: config.db.emptyKey.append(Commit, id: 'flutter/$repo/main/abc'),
-            repository: 'flutter/$repo',
-            sha: 'abc',
-            branch: 'main',
-          );
-          config.db.values[commit.key] = commit;
-        }
+        final Commit commit = Commit(
+          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/main/abc'),
+          repository: 'flutter/flutter',
+          sha: 'abc',
+          branch: 'main',
+        );
+        config.db.values[commit.key] = commit;
+
         // Only retrieves flutter/flutter
-        List<Commit> commits =
-            await datastoreService.queryRecentCommits(slug: Config.flutterSlug, branch: 'main').toList();
+        final commits = await datastoreService.queryRecentCommits(slug: Config.flutterSlug, branch: 'main').toList();
         expect(commits, hasLength(1));
         expect(commits.single.repository, equals('flutter/flutter'));
-        // Only retrieves flutter/engine
-        commits = await datastoreService.queryRecentCommits(branch: 'main', slug: Config.engineSlug).toList();
-        expect(commits, hasLength(1));
-        expect(commits.single.repository, equals('flutter/engine'));
       });
     });
 
@@ -99,23 +93,23 @@ void main() {
       for (String branch in <String>['master', 'main']) {
         final Commit commit = Commit(
           key: config.db.emptyKey.append(Commit, id: 'abc_$branch'),
-          repository: Config.engineSlug.fullName,
+          repository: Config.flutterSlug.fullName,
           sha: 'abc_$branch',
           branch: branch,
         );
         config.db.values[commit.key] = commit;
       }
       // Pull from main, not master
-      final List<Commit> commits = await datastoreService.queryRecentCommits(slug: Config.engineSlug).toList();
+      final List<Commit> commits = await datastoreService.queryRecentCommits(slug: Config.flutterSlug).toList();
       expect(commits, hasLength(1));
-      expect(commits[0].branch, equals('main'));
+      expect(commits[0].branch, equals('master'));
     });
 
     test('queryRecentTasks returns all tasks', () async {
-      const String branch = 'main';
+      const String branch = 'master';
       final Commit commit = Commit(
         key: config.db.emptyKey.append(Commit, id: 'abc_$branch'),
-        repository: Config.engineSlug.fullName,
+        repository: Config.flutterSlug.fullName,
         sha: 'abc_$branch',
         branch: branch,
       );
@@ -131,7 +125,7 @@ void main() {
       config.db.values[commit.key] = commit;
       final List<FullTask> datastoreTasks = await datastoreService
           .queryRecentTasks(
-            slug: Config.engineSlug,
+            slug: Config.flutterSlug,
           )
           .toList();
       expect(datastoreTasks, hasLength(taskNumber));

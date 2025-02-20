@@ -124,7 +124,7 @@ void main() {
     const String sha = 'abc123';
     setUp(() {
       gerritService.branchesValue = <String>[];
-      when(repositories.getCommit(Config.engineSlug, sha)).thenAnswer((_) async => generateGitCommit(5));
+      when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer((_) async => generateGitCommit(5));
     });
 
     test('does not create branch that already exists', () async {
@@ -137,7 +137,7 @@ void main() {
 
     test('throws BadRequest if github commit has no branch time', () async {
       gerritService.commitsValue = <GerritCommit>[];
-      when(repositories.getCommit(Config.engineSlug, sha)).thenAnswer(
+      when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer(
         (_) async => gh.RepositoryCommit(
           commit: gh.GitCommit(
             committer: gh.GitCommitUser(
@@ -156,7 +156,7 @@ void main() {
 
     test('does not create branch if a good branch point cannot be found', () async {
       gerritService.commitsValue = <GerritCommit>[];
-      when(repositories.getCommit(Config.engineSlug, sha)).thenAnswer(
+      when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer(
         (_) async => generateGitCommit(5),
       );
       expect(
@@ -173,7 +173,7 @@ void main() {
 
     test('creates branch when GitHub requires retries', () async {
       int attempts = 0;
-      when(repositories.getCommit(Config.engineSlug, sha)).thenAnswer((_) async {
+      when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer((_) async {
         attempts++;
         if (attempts == 3) {
           return generateGitCommit(5);
@@ -185,7 +185,7 @@ void main() {
 
     test('ensure createDefaultGithubService is called once for each retry', () async {
       int attempts = 0;
-      when(repositories.getCommit(Config.engineSlug, sha)).thenAnswer((_) async {
+      when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer((_) async {
         attempts++;
         if (attempts == 3) {
           return generateGitCommit(5);

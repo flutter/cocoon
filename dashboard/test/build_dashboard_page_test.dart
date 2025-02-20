@@ -566,7 +566,7 @@ void main() {
     final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
     BuildDashboardPage controlledBuildDashboardPage = const BuildDashboardPage(
       queryParameters: {
-        'repo': 'flutter',
+        'repo': 'cocoon',
         'branch': 'flutter-release',
       },
     );
@@ -588,7 +588,7 @@ void main() {
     // simulate a url request, which retriggers a rebuild of the widget
     controlledBuildDashboardPage = const BuildDashboardPage(
       queryParameters: {
-        'repo': 'engine',
+        'repo': 'flutter',
       },
     );
     expect(
@@ -601,7 +601,7 @@ void main() {
     controlledBuildDashboardPage = const BuildDashboardPage(
       queryParameters: {
         'repo': 'cocoon',
-        'branch': 'engine-release',
+        'branch': 'flutter-release',
       },
     );
   });

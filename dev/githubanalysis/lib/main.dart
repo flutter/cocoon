@@ -29,7 +29,6 @@ const String orgName = 'flutter';
 final RepositorySlug issueDatabaseRepo = RepositorySlug(orgName, 'flutter');
 final Set<RepositorySlug> repos = <RepositorySlug>{
   issueDatabaseRepo,
-  RepositorySlug(orgName, 'engine'),
   RepositorySlug(orgName, 'buildroot'),
   RepositorySlug(orgName, 'devtools'),
   RepositorySlug(orgName, 'flutter-intellij'),

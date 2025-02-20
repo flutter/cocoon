@@ -348,18 +348,18 @@ void main() {
         action: 'opened',
         number: issueNumber,
         baseRef: 'master',
-        slug: Config.engineSlug,
+        slug: Config.packagesSlug,
       );
 
       tester.message = pushMessage;
 
-      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+      when(pullRequestsService.listFiles(Config.packagesSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'packages/flutter/blah.dart',
         ),
       );
 
-      when(issuesService.listCommentsByIssue(Config.engineSlug, issueNumber)).thenAnswer(
+      when(issuesService.listCommentsByIssue(Config.packagesSlug, issueNumber)).thenAnswer(
         (_) => Stream<IssueComment>.value(
           IssueComment()..body = 'some other comment',
         ),
@@ -369,7 +369,7 @@ void main() {
 
       verify(
         pullRequestsService.edit(
-          Config.engineSlug,
+          Config.packagesSlug,
           issueNumber,
           base: 'main',
         ),
@@ -377,7 +377,7 @@ void main() {
 
       verify(
         issuesService.createComment(
-          Config.engineSlug,
+          Config.packagesSlug,
           issueNumber,
           argThat(contains('master -> main')),
         ),
@@ -394,19 +394,19 @@ void main() {
         action: 'edited',
         number: issueNumber,
         baseRef: 'master',
-        slug: Config.engineSlug,
+        slug: Config.packagesSlug,
         includeChanges: true,
       );
 
       tester.message = pushMessage;
 
-      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+      when(pullRequestsService.listFiles(Config.packagesSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'packages/flutter/blah.dart',
         ),
       );
 
-      when(issuesService.listCommentsByIssue(Config.engineSlug, issueNumber)).thenAnswer(
+      when(issuesService.listCommentsByIssue(Config.packagesSlug, issueNumber)).thenAnswer(
         (_) => Stream<IssueComment>.value(
           IssueComment()..body = 'some other comment',
         ),
@@ -416,7 +416,7 @@ void main() {
 
       verify(
         pullRequestsService.edit(
-          Config.engineSlug,
+          Config.packagesSlug,
           issueNumber,
           base: 'main',
         ),
@@ -424,7 +424,7 @@ void main() {
 
       verify(
         issuesService.createComment(
-          Config.engineSlug,
+          Config.packagesSlug,
           issueNumber,
           argThat(contains('master -> main')),
         ),
@@ -1501,74 +1501,6 @@ void foo() {
       );
     });
 
-    test('Engine labels PRs, comment if no tests', () async {
-      const int issueNumber = 123;
-
-      tester.message = generateGithubWebhookMessage(
-        action: 'opened',
-        number: issueNumber,
-        slug: Config.engineSlug,
-        baseRef: Config.defaultBranch(Config.engineSlug),
-      );
-      final RepositorySlug slug = RepositorySlug('flutter', 'engine');
-
-      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
-        (_) => Stream<PullRequestFile>.value(
-          PullRequestFile()..filename = 'shell/platform/darwin/ios/framework/Source/boost.mm',
-        ),
-      );
-
-      when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
-        (_) => Stream<IssueComment>.value(
-          IssueComment()..body = 'some other comment',
-        ),
-      );
-
-      await tester.post(webhook);
-
-      verify(
-        issuesService.createComment(
-          slug,
-          issueNumber,
-          argThat(contains(config.missingTestsPullRequestMessageValue)),
-        ),
-      ).called(1);
-    });
-
-    test('Engine labels PRs, comment if no tests for unknown file', () async {
-      const int issueNumber = 123;
-
-      tester.message = generateGithubWebhookMessage(
-        action: 'opened',
-        number: issueNumber,
-        slug: Config.engineSlug,
-        baseRef: Config.defaultBranch(Config.engineSlug),
-      );
-      final RepositorySlug slug = RepositorySlug('flutter', 'engine');
-
-      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
-        (_) => Stream<PullRequestFile>.value(
-          PullRequestFile()..filename = 'foo/bar/baz.madeupextension',
-        ),
-      );
-
-      when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
-        (_) => Stream<IssueComment>.value(
-          IssueComment()..body = 'some other comment',
-        ),
-      );
-
-      await tester.post(webhook);
-
-      verify(
-        issuesService.createComment(
-          slug,
-          issueNumber,
-          argThat(contains(config.missingTestsPullRequestMessageValue)),
-        ),
-      ).called(1);
-    });
-
     group('Auto-roller accounts do not label Engine PR with test label or comment.', () {
       final Set<String> inputs = {
         'engine-flutter-autoroll',
@@ -1583,17 +1515,17 @@ void foo() {
           tester.message = generateGithubWebhookMessage(
             action: 'opened',
             number: issueNumber,
-            slug: Config.engineSlug,
+            slug: Config.flutterSlug,
             login: element,
           );
 
-          when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+          when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
             (_) => Stream<PullRequestFile>.value(
-              PullRequestFile()..filename = 'shell/platform/darwin/ios/framework/Source/boost.mm',
+              PullRequestFile()..filename = 'engine/src/flutter/shell/platform/darwin/ios/framework/Source/boost.mm',
             ),
           );
 
-          when(issuesService.listCommentsByIssue(Config.engineSlug, issueNumber)).thenAnswer(
+          when(issuesService.listCommentsByIssue(Config.flutterSlug, issueNumber)).thenAnswer(
             (_) => Stream<IssueComment>.value(
               IssueComment()..body = 'some other comment',
             ),
@@ -1603,7 +1535,7 @@ void foo() {
 
           verifyNever(
             issuesService.createComment(
-              Config.engineSlug,
+              Config.flutterSlug,
               issueNumber,
               argThat(contains(config.missingTestsPullRequestMessageValue)),
             ),
@@ -1612,56 +1544,23 @@ void foo() {
       }
     });
 
-    test('Engine does not label PR for no tests if on branch', () async {
-      const int issueNumber = 123;
-
-      tester.message = generateGithubWebhookMessage(
-        action: 'opened',
-        number: issueNumber,
-        slug: Config.engineSlug,
-        baseRef: 'flutter-3.12-candidate.1',
-      );
-
-      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
-        (_) => Stream<PullRequestFile>.value(
-          PullRequestFile()..filename = 'shell/platform/darwin/ios/framework/Source/boost.mm',
-        ),
-      );
-
-      when(issuesService.listCommentsByIssue(Config.engineSlug, issueNumber)).thenAnswer(
-        (_) => Stream<IssueComment>.value(
-          IssueComment()..body = 'some other comment',
-        ),
-      );
-
-      await tester.post(webhook);
-
-      verifyNever(
-        issuesService.createComment(
-          Config.engineSlug,
-          issueNumber,
-          argThat(contains(config.missingTestsPullRequestMessageValue)),
-        ),
-      );
-    });
-
     test('Engine does not label PR for no tests if author is skia-flutter-autoroll', () async {
       const int issueNumber = 123;
 
       tester.message = generateGithubWebhookMessage(
         action: 'opened',
         number: issueNumber,
-        slug: Config.engineSlug,
+        slug: Config.flutterSlug,
         login: 'skia-flutter-autoroll',
       );
 
-      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
-          PullRequestFile()..filename = 'shell/platform/darwin/ios/framework/Source/boost.mm',
+          PullRequestFile()..filename = 'engine/src/flutter/shell/platform/darwin/ios/framework/Source/boost.mm',
         ),
       );
 
-      when(issuesService.listCommentsByIssue(Config.engineSlug, issueNumber)).thenAnswer(
+      when(issuesService.listCommentsByIssue(Config.flutterSlug, issueNumber)).thenAnswer(
         (_) => Stream<IssueComment>.value(
           IssueComment()..body = 'some other comment',
         ),
@@ -1671,7 +1570,7 @@ void foo() {
 
       verifyNever(
         issuesService.createComment(
-          Config.engineSlug,
+          Config.flutterSlug,
           issueNumber,
           argThat(contains(config.missingTestsPullRequestMessageValue)),
         ),
@@ -1684,11 +1583,11 @@ void foo() {
       tester.message = generateGithubWebhookMessage(
         action: 'opened',
         number: issueNumber,
-        baseRef: 'main',
-        slug: Config.engineSlug,
+        baseRef: 'master',
+        slug: Config.flutterSlug,
       );
 
-      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'DEPS',
         ),
@@ -1698,7 +1597,7 @@ void foo() {
 
       verifyNever(
         issuesService.addLabelsToIssue(
-          Config.engineSlug,
+          Config.flutterSlug,
           issueNumber,
           any,
         ),
@@ -1706,7 +1605,7 @@ void foo() {
 
       verifyNever(
         issuesService.createComment(
-          Config.engineSlug,
+          Config.flutterSlug,
           issueNumber,
           any,
         ),
@@ -1719,16 +1618,16 @@ void foo() {
       tester.message = generateGithubWebhookMessage(
         action: 'opened',
         number: issueNumber,
-        baseRef: 'main',
-        slug: Config.engineSlug,
+        baseRef: 'master',
+        slug: Config.flutterSlug,
       );
 
-      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
-          PullRequestFile()..filename = 'shell/config.gni',
-          PullRequestFile()..filename = 'shell/BUILD.gn',
-          PullRequestFile()..filename = 'sky/tools/create_ios_framework.py',
-          PullRequestFile()..filename = 'ci/builders/mac_host_engine.json',
+          PullRequestFile()..filename = 'engine/src/flutter/shell/config.gni',
+          PullRequestFile()..filename = 'engine/src/flutter/shell/BUILD.gn',
+          PullRequestFile()..filename = 'engine/src/flutter/sky/tools/create_ios_framework.py',
+          PullRequestFile()..filename = 'engine/src/flutter/ci/builders/mac_host_engine.json',
         ]),
       );
 
@@ -1736,7 +1635,7 @@ void foo() {
 
       verifyNever(
         issuesService.addLabelsToIssue(
-          Config.engineSlug,
+          Config.flutterSlug,
           issueNumber,
           any,
         ),
@@ -1744,7 +1643,7 @@ void foo() {
 
       verifyNever(
         issuesService.createComment(
-          Config.engineSlug,
+          Config.flutterSlug,
           issueNumber,
           any,
         ),
@@ -1757,14 +1656,14 @@ void foo() {
       tester.message = generateGithubWebhookMessage(
         action: 'opened',
         number: issueNumber,
-        baseRef: 'main',
-        slug: Config.engineSlug,
+        baseRef: 'master',
+        slug: Config.flutterSlug,
       );
 
-      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
-          PullRequestFile()..filename = 'ci/licenses_golden/licenses_dart',
-          PullRequestFile()..filename = 'ci/builders/linux_unopt.json',
+          PullRequestFile()..filename = 'engine/src/flutter/ci/licenses_golden/licenses_dart',
+          PullRequestFile()..filename = 'engine/src/flutter/ci/builders/linux_unopt.json',
         ]),
       );
 
@@ -1772,7 +1671,7 @@ void foo() {
 
       verifyNever(
         issuesService.addLabelsToIssue(
-          Config.engineSlug,
+          Config.flutterSlug,
           issueNumber,
           any,
         ),
@@ -1780,7 +1679,7 @@ void foo() {
 
       verifyNever(
         issuesService.createComment(
-          Config.engineSlug,
+          Config.flutterSlug,
           issueNumber,
           any,
         ),
@@ -1791,33 +1690,33 @@ void foo() {
       final List<List<String>> pullRequestFileList = [
         <String>[
           // Java tests.
-          'shell/platform/android/io/flutter/Blah.java',
-          'shell/platform/android/test/io/flutter/BlahTest.java',
+          'engine/src/flutter/shell/platform/android/io/flutter/Blah.java',
+          'engine/src/flutter/shell/platform/android/test/io/flutter/BlahTest.java',
         ],
         <String>[
           // Script tests.
-          'fml/blah.cc',
-          'fml/testing/blah_test.sh',
+          'engine/src/flutter/fml/blah.cc',
+          'engine/src/flutter/fml/testing/blah_test.sh',
         ],
         <String>[
           // cc tests.
-          'fml/blah.cc',
-          'fml/blah_unittests.cc',
+          'engine/src/flutter/fml/blah.cc',
+          'engine/src/flutter/fml/blah_unittests.cc',
         ],
         <String>[
           // cc benchmarks.
-          'fml/blah.cc',
-          'fml/blah_benchmarks.cc',
+          'engine/src/flutter/fml/blah.cc',
+          'engine/src/flutter/fml/blah_benchmarks.cc',
         ],
         <String>[
           // py tests.
-          'tools/font-subset/main.cc',
-          'tools/font-subset/test.py',
+          'engine/src/flutter/tools/font-subset/main.cc',
+          'engine/src/flutter/tools/font-subset/test.py',
         ],
         <String>[
           // scenario app is a test.
-          'scenario_app/project.pbxproj',
-          'scenario_app/Info_Impeller.plist',
+          'engine/src/flutter/testing/scenario_app/project.pbxproj',
+          'engine/src/flutter/testing/scenario_app/Info_Impeller.plist',
         ],
       ];
 
@@ -1825,10 +1724,10 @@ void foo() {
         tester.message = generateGithubWebhookMessage(
           action: 'opened',
           number: issueNumber,
-          slug: Config.engineSlug,
+          slug: Config.flutterSlug,
         );
 
-        when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+        when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
           (_) => Stream<PullRequestFile>.fromIterable(
             pullRequestFileList[issueNumber].map((String filename) => PullRequestFile()..filename = filename),
           ),
@@ -1838,45 +1737,12 @@ void foo() {
 
         verifyNever(
           issuesService.createComment(
-            Config.engineSlug,
+            Config.flutterSlug,
             issueNumber,
             argThat(contains(config.missingTestsPullRequestMessageValue)),
           ),
         );
       }
-    });
-
-    test('Engine labels PRs, no comments if pr is for release branches', () async {
-      const int issueNumber = 123;
-
-      tester.message = generateGithubWebhookMessage(
-        action: 'opened',
-        number: issueNumber,
-        baseRef: kReleaseBaseRef,
-        headRef: kReleaseHeadRef,
-        slug: Config.engineSlug,
-      );
-      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
-        (_) => Stream<PullRequestFile>.value(
-          PullRequestFile()..filename = 'shell/platform/darwin/ios/framework/Source/boost.mm',
-        ),
-      );
-
-      when(issuesService.listCommentsByIssue(Config.engineSlug, issueNumber)).thenAnswer(
-        (_) => Stream<IssueComment>.value(
-          IssueComment()..body = 'some other comment',
-        ),
-      );
-
-      await tester.post(webhook);
-
-      verifyNever(
-        issuesService.createComment(
-          Config.engineSlug,
-          issueNumber,
-          argThat(contains(config.missingTestsPullRequestMessageValue)),
-        ),
-      );
     });
 
     test('bot does not comment for whitespace only changes', () async {
@@ -1885,7 +1751,7 @@ void foo() {
       tester.message = generateGithubWebhookMessage(
         action: 'opened',
         number: issueNumber,
-        slug: Config.engineSlug,
+        slug: Config.flutterSlug,
       );
       const String patch = '''
 @@ -128,7 +128,7 @@
@@ -1895,7 +1761,7 @@ void foo() {
   int baz = 0;
 ''';
 
-      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()
             ..filename = 'flutter/lib/ui/foo.dart'
@@ -1910,7 +1776,7 @@ void foo() {
 
       verifyNever(
         issuesService.createComment(
-          Config.engineSlug,
+          Config.flutterSlug,
           issueNumber,
           argThat(contains(config.missingTestsPullRequestMessageValue)),
         ),
@@ -1923,7 +1789,7 @@ void foo() {
       tester.message = generateGithubWebhookMessage(
         action: 'opened',
         number: issueNumber,
-        slug: Config.engineSlug,
+        slug: Config.flutterSlug,
       );
       const String patch = '''
 @@ -128,7 +128,7 @@
@@ -1937,7 +1803,7 @@ void foo() {
   String baz = '';
 ''';
 
-      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()
             ..filename = 'flutter/lib/ui/foo.dart'
@@ -1952,7 +1818,7 @@ void foo() {
 
       verifyNever(
         issuesService.createComment(
-          Config.engineSlug,
+          Config.flutterSlug,
           issueNumber,
           argThat(contains(config.missingTestsPullRequestMessageValue)),
         ),
@@ -1965,18 +1831,18 @@ void foo() {
       tester.message = generateGithubWebhookMessage(
         action: 'opened',
         number: issueNumber,
-        slug: Config.engineSlug,
+        slug: Config.flutterSlug,
       );
 
-      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()
-            ..filename = 'flutter/lib/ui/foo.dart'
+            ..filename = 'engine/src/flutter/lib/ui/foo.dart'
             ..deletionsCount = 20
             ..additionsCount = 0
             ..changesCount = 20,
           PullRequestFile()
-            ..filename = 'shell/platform/darwin/ios/platform_view_ios.mm'
+            ..filename = 'engine/src/flutter/shell/platform/darwin/ios/platform_view_ios.mm'
             ..deletionsCount = 20
             ..additionsCount = 0
             ..changesCount = 20,
@@ -1988,7 +1854,7 @@ void foo() {
       // The PR here is only deleting code, so no test comment.
       verifyNever(
         issuesService.createComment(
-          Config.engineSlug,
+          Config.flutterSlug,
           issueNumber,
           argThat(contains(config.missingTestsPullRequestMessageValue)),
         ),
@@ -2604,7 +2470,7 @@ void foo() {
         action: 'labeled',
         number: 123,
         baseRef: 'master',
-        slug: Config.engineSlug,
+        slug: Config.flutterSlug,
         includeChanges: true,
       );
 
@@ -2923,7 +2789,7 @@ void foo() {
     });
 
     test('does not handle push events for repositories that are not flutter/flutter', () async {
-      tester.message = generatePushMessage('beta', 'flutter', 'engine');
+      tester.message = generatePushMessage('beta', 'flutter', 'packages');
 
       await tester.post(webhook);
 

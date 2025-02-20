@@ -274,7 +274,6 @@ class FakeConfig implements Config {
       supportedReposValue ??
       <gh.RepositorySlug>{
         Config.flutterSlug,
-        Config.engineSlug,
         Config.cocoonSlug,
         Config.packagesSlug,
       };

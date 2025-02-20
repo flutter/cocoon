@@ -70,7 +70,7 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   @override
   List<Branch> get branches {
     final List<Branch> fakeBranches = <Branch>[];
-    for (String repo in ['flutter', 'engine', 'cocoon']) {
+    for (String repo in ['flutter', 'cocoon']) {
       fakeBranches.add(
         Branch()
           ..repository = repo
@@ -102,7 +102,7 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   String _currentRepo = 'flutter';
 
   @override
-  List<String> get repos => <String>['flutter', 'engine', 'cocoon'];
+  List<String> get repos => <String>['flutter', 'cocoon'];
 
   @override
   Future<void> updateCurrentRepoBranch(String repo, String branch) async {

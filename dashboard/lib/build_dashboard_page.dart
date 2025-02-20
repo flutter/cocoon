@@ -407,7 +407,6 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     return CallbackShortcuts(
       bindings: <ShortcutActivator, VoidCallback>{
         const SingleActivator(LogicalKeyboardKey.arrowUp): () => _updatePage(context, 'flutter', 'master'),
-        const SingleActivator(LogicalKeyboardKey.arrowDown): () => _updatePage(context, 'engine', 'main'),
         const SingleActivator(LogicalKeyboardKey.arrowLeft): () => _updatePage(context, 'cocoon', 'main'),
         const SingleActivator(LogicalKeyboardKey.arrowRight): () => _updatePage(context, 'packages', 'main'),
       },
