@@ -404,7 +404,6 @@ void main() {
             config.flutterGoldChangesValue!,
           );
 
-
           // Checks complete
           checkRuns = <dynamic>[
             <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
