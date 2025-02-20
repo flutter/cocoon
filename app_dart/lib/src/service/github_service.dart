@@ -404,4 +404,19 @@ class GithubService {
   Future<PullRequest> getPullRequest(RepositorySlug slug, int number) async {
     return github.pullRequests.get(slug, number);
   }
+
+  /// Searches a pull request or issue for a comment with [body].
+  Future<bool> commentExists(
+    RepositorySlug slug,
+    int issue,
+    String body,
+  ) async {
+    final Stream<IssueComment> comments = github.issues.listCommentsByIssue(slug, issue);
+    await for (IssueComment comment in comments) {
+      if (comment.body != null && comment.body!.contains(body)) {
+        return true;
+      }
+    }
+    return false;
+  }  
 }

@@ -951,11 +951,13 @@ The "Merge" button is also unlocked. To bypass presubmits as well as the tree st
     // Let the developer know what is happening with the MQ when this label is found the first time.
     if (guard.status != CheckRunStatus.completed) {
       try {
-        await githubService.createComment(
-          slug,
-          issueNumber: prNumber,
-          body: PullRequestLabelProcessor.kEmergencyLabelEducation,
-        );
+        if (!await githubService.commentExists(slug, prNumber, PullRequestLabelProcessor.kEmergencyLabelEducation)) {
+          await githubService.createComment(
+            slug,
+            issueNumber: prNumber,
+            body: PullRequestLabelProcessor.kEmergencyLabelEducation,
+          );
+        }
       } catch (e, s) {
         logSevere('failed to leave educational comment for emergency label.', error: e, stackTrace: s);
       }
