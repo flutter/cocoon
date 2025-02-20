@@ -567,7 +567,7 @@ void main() {
     BuildDashboardPage controlledBuildDashboardPage = const BuildDashboardPage(
       queryParameters: {
         'repo': 'cocoon',
-        'branch': 'engine-release',
+        'branch': 'flutter-release',
       },
     );
 
@@ -601,7 +601,7 @@ void main() {
     controlledBuildDashboardPage = const BuildDashboardPage(
       queryParameters: {
         'repo': 'cocoon',
-        'branch': 'engine-release',
+        'branch': 'flutter-release',
       },
     );
   });

@@ -360,7 +360,7 @@ void main() {
       expect(repos.data, <String>[
         'flutter',
         'cocoon',
-        'flutter',
+        'packages',
       ]);
     });
 
