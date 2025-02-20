@@ -418,5 +418,5 @@ class GithubService {
       }
     }
     return false;
-  }  
+  }
 }
