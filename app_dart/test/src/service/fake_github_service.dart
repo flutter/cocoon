@@ -273,4 +273,13 @@ class FakeGithubService implements GithubService {
 
     return CheckRun.fromJson(json);
   }
+
+  final commentExistsCalls = <({RepositorySlug slug, int issue, String body})>[];
+  bool commentExistsMock = false;
+
+  @override
+  Future<bool> commentExists(RepositorySlug slug, int issue, String body) async {
+    commentExistsCalls.add((slug: slug, issue: issue, body: body));
+    return commentExistsMock;
+  }
 }
