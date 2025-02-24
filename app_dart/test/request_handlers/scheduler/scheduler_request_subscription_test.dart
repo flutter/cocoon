@@ -257,15 +257,14 @@ unknown
 Failed to schedule `Linux A`:
 
 ```
-[error: {
+error: {
   code: 5
   message: builder not found: "Linux A"
 }
-, error: {
+error: {
   code: 5
   message: builder not found: "Linux B"
 }
-]
 ```
 ''');
     checkRun = githubService.checkRunUpdates.last;
@@ -275,15 +274,14 @@ Failed to schedule `Linux A`:
 Failed to schedule `Linux B`:
 
 ```
-[error: {
+error: {
   code: 5
   message: builder not found: "Linux A"
 }
-, error: {
+error: {
   code: 5
   message: builder not found: "Linux B"
 }
-]
 ```
 ''');
   });

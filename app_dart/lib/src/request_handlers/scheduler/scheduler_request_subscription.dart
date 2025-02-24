@@ -70,15 +70,13 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
         () async {
           final requestsToRetry = await _sendBatchRequest(batchRequest);
 
-          // Make a copy of the requests that are passed in as if simply access the list
-          // we make changes for all instances.
-          final requestListCopy = [...requestsToRetry.retries];
+          // Reset the batch requests to retry scheduling of failed entries.
           batchRequest.requests.clear();
-          batchRequest.requests.addAll(requestListCopy);
+          batchRequest.requests.addAll(requestsToRetry.retries);
           errors
             ..clear()
             ..addAll(requestsToRetry.errors);
-          if (requestListCopy.isNotEmpty) {
+          if (requestsToRetry.retries.isNotEmpty) {
             unscheduledWarning = '${requestsToRetry.retries.map((e) => e.scheduleBuild.builder)}';
             throw InternalServerError('Failed to schedule builds: $unscheduledWarning.');
           }
@@ -129,7 +127,7 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
 Failed to schedule `$builder`:
 
 ```
-${errors.isEmpty ? 'unknown' : errors}
+${errors.isEmpty ? 'unknown' : errors.map((t) => t.trim()).join('\n')}
 ```
 ''',
         ),
@@ -156,14 +154,11 @@ ${errors.isEmpty ? 'unknown' : errors}
     log.info('Made ${request.requests.length} and received ${response.responses.length}');
     log.info('Responses: ${response.responses}');
 
-    // By default, retry everything. Then remove requests with a verified response.
-    // THese are the requests in the batch request object. Just requests.
-    final List<bbv2.BatchRequest_Request> retry = request.requests;
-
-    for (bbv2.BatchResponse_Response batchResponseResponse in response.responses) {
+    final retry = <bbv2.BatchRequest_Request>[...request.requests];
+    for (final batchResponseResponse in response.responses) {
       if (batchResponseResponse.hasScheduleBuild()) {
-        retry.remove(
-          retry.firstWhere((element) => batchResponseResponse.scheduleBuild.builder == element.scheduleBuild.builder),
+        retry.removeWhere(
+          (t) => t.scheduleBuild.builder == batchResponseResponse.scheduleBuild.builder,
         );
       } else {
         log.warning('Response does not have schedule build: $batchResponseResponse');
