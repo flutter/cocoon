@@ -27,7 +27,7 @@ void main() {
         generateCheckRun(1, name: 'check 1'),
         generateCheckRun(2, name: 'check 2'),
       ];
-      final pr = generatePullRequest(id: 11252024, repo: 'fluax', headSha: '1234abc');
+      final pr = generatePullRequest(id: 11252024, repo: 'fluax', sha: '1234abc');
 
       late MockProjectsDatabasesDocumentsResource docRes;
 
