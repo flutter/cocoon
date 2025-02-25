@@ -1242,7 +1242,7 @@ targets:
               luci.scheduleTryBuilds(
                 targets: anyNamed('targets'),
                 pullRequest: anyNamed('pullRequest'),
-                flutterPrebuiltEngineVersion: anyNamed('flutterPrebuiltEngineVersion'),
+                engineArtifacts: anyNamed('engineArtifacts'),
               ),
             ).thenAnswer((inv) async {
               return [];
@@ -1338,7 +1338,7 @@ targets:
               luci.scheduleTryBuilds(
                 targets: captureAnyNamed('targets'),
                 pullRequest: captureAnyNamed('pullRequest'),
-                flutterPrebuiltEngineVersion: anyNamed('flutterPrebuiltEngineVersion'),
+                engineArtifacts: anyNamed('engineArtifacts'),
               ),
             );
             expect(result.callCount, 1);
@@ -1582,15 +1582,15 @@ targets:
               return resource;
             });
 
-            String? flutterPrebuiltEngineVersion;
+            EngineArtifacts? engineArtifacts;
             when(
               luci.scheduleTryBuilds(
                 targets: anyNamed('targets'),
                 pullRequest: anyNamed('pullRequest'),
-                flutterPrebuiltEngineVersion: anyNamed('flutterPrebuiltEngineVersion'),
+                engineArtifacts: anyNamed('engineArtifacts'),
               ),
             ).thenAnswer((Invocation i) async {
-              flutterPrebuiltEngineVersion = i.namedArguments[#flutterPrebuiltEngineVersion] as String?;
+              engineArtifacts = i.namedArguments[#engineArtifacts] as EngineArtifacts?;
               return [];
             });
 
@@ -1611,11 +1611,8 @@ targets:
             //
             // See https://github.com/flutter/flutter/issues/164031.
             expect(
-              flutterPrebuiltEngineVersion,
-              allOf([
-                isNotNull,
-                pullRequest.head!.sha,
-              ]),
+              engineArtifacts,
+              EngineArtifacts.builtFromSource(commitSha: pullRequest.head!.sha!),
               reason: 'Should be set to HEAD (i.e. the current SHA), since the engine was built from source.',
             );
           });
@@ -1752,7 +1749,7 @@ targets:
               luci.scheduleTryBuilds(
                 targets: anyNamed('targets'),
                 pullRequest: anyNamed('pullRequest'),
-                flutterPrebuiltEngineVersion: anyNamed('flutterPrebuiltEngineVersion'),
+                engineArtifacts: anyNamed('engineArtifacts'),
               ),
             ).thenAnswer((inv) async {
               return [];
@@ -1847,7 +1844,7 @@ targets:
               luci.scheduleTryBuilds(
                 targets: captureAnyNamed('targets'),
                 pullRequest: captureAnyNamed('pullRequest'),
-                flutterPrebuiltEngineVersion: anyNamed('flutterPrebuiltEngineVersion'),
+                engineArtifacts: anyNamed('engineArtifacts'),
               ),
             );
             expect(result.callCount, 1);
@@ -2607,7 +2604,7 @@ targets:
           luci.scheduleTryBuilds(
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
-            flutterPrebuiltEngineVersion: anyNamed('flutterPrebuiltEngineVersion'),
+            engineArtifacts: anyNamed('engineArtifacts'),
           ),
         ).thenAnswer((inv) async {
           return [];
@@ -2670,7 +2667,7 @@ targets:
           luci.scheduleTryBuilds(
             targets: captureAnyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
-            flutterPrebuiltEngineVersion: anyNamed('flutterPrebuiltEngineVersion'),
+            engineArtifacts: anyNamed('engineArtifacts'),
           ),
         );
         expect(result.callCount, 1);
@@ -2735,7 +2732,7 @@ targets:
           luci.scheduleTryBuilds(
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
-            flutterPrebuiltEngineVersion: anyNamed('flutterPrebuiltEngineVersion'),
+            engineArtifacts: anyNamed('engineArtifacts'),
           ),
         ).thenAnswer((inv) async {
           return [];
@@ -2855,7 +2852,7 @@ targets:
           luci.scheduleTryBuilds(
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
-            flutterPrebuiltEngineVersion: anyNamed('flutterPrebuiltEngineVersion'),
+            engineArtifacts: anyNamed('engineArtifacts'),
           ),
         ).thenAnswer((inv) async {
           return [];
@@ -3222,8 +3219,8 @@ targets:
 
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
-          fakeLuciBuildService.flutterPrebuiltEngineVersion,
-          pullRequest.base!.sha,
+          fakeLuciBuildService.engineArtifacts,
+          EngineArtifacts.useExistingEngine(commitSha: pullRequest.base!.sha!),
           reason: 'Should use the base ref for the engine artifacts',
         );
         expect(
@@ -3246,7 +3243,7 @@ targets:
 
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
-          fakeLuciBuildService.flutterPrebuiltEngineVersion,
+          fakeLuciBuildService.engineArtifacts,
           isNull,
           reason: 'When scheduling engine builds, there is no concept of an engine prebuilt.',
         );
@@ -3262,17 +3259,17 @@ targets:
 
 final class _CapturingFakeLuciBuildService extends Fake implements LuciBuildService {
   List<Target> scheduledTryBuilds = [];
-  String? flutterPrebuiltEngineVersion;
+  EngineArtifacts? engineArtifacts;
 
   @override
   Future<List<Target>> scheduleTryBuilds({
     required List<Target> targets,
     required PullRequest pullRequest,
     CheckSuiteEvent? checkSuiteEvent,
-    String? flutterPrebuiltEngineVersion,
+    EngineArtifacts? engineArtifacts,
   }) async {
     scheduledTryBuilds = targets;
-    this.flutterPrebuiltEngineVersion = flutterPrebuiltEngineVersion;
+    this.engineArtifacts = engineArtifacts;
     return targets;
   }
 

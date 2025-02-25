@@ -520,7 +520,7 @@ void main() {
       await service.scheduleTryBuilds(
         pullRequest: pullRequest,
         targets: targets,
-        flutterPrebuiltEngineVersion: 'sha1234',
+        engineArtifacts: const EngineArtifacts.builtFromSource(commitSha: 'sha1234'),
       );
 
       final batchRequest = bbv2.BatchRequest().createEmptyInstance();

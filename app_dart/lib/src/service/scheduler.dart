@@ -1208,19 +1208,19 @@ $stackTrace
         // *In theory, also engine tests, but engine tests build from the engine
         // from source and rely on remote-build execution (RBE) for builds to
         // fast and cached.
-        final String flutterPrebuiltEngineVersion;
+        final EngineArtifacts engineArtifacts;
         if (skipEngine) {
           // Use the engine that this PR was branched off of.
-          flutterPrebuiltEngineVersion = pullRequest.base!.sha!;
+          engineArtifacts = EngineArtifacts.useExistingEngine(commitSha: pullRequest.base!.sha!);
         } else {
           // Use the engine that was built from source *for* this PR.
-          flutterPrebuiltEngineVersion = pullRequest.head!.sha!;
+          engineArtifacts = EngineArtifacts.builtFromSource(commitSha: pullRequest.head!.sha!);
         }
 
         await luciBuildService.scheduleTryBuilds(
           targets: presubmitTargets,
           pullRequest: pullRequest,
-          flutterPrebuiltEngineVersion: flutterPrebuiltEngineVersion,
+          engineArtifacts: engineArtifacts,
         );
       }
     } on FormatException catch (error, backtrace) {
