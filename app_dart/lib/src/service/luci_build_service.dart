@@ -256,12 +256,14 @@ class LuciBuildService {
 
   /// Schedules presubmit [targets] on BuildBucket for [pullRequest].
   ///
-  /// If [engineArtifacts] is provided, it determines how `FLUTTER_PREBUILT_ENGINE_VERISON` is set.
+  /// If [engineArtifacts] is provided, it determines how `FLUTTER_PREBUILT_ENGINE_VERISON` is set;
+  /// if omitted it is [EngineArtifacts.builtFromSource] when running in the `flutter/flutter` repo,
+  /// and has no effect for other repositories.
   Future<List<Target>> scheduleTryBuilds({
     required List<Target> targets,
     required github.PullRequest pullRequest,
-    CheckSuiteEvent? checkSuiteEvent,
     EngineArtifacts? engineArtifacts,
+    CheckSuiteEvent? checkSuiteEvent,
   }) async {
     if (targets.isEmpty) {
       return targets;
@@ -331,14 +333,11 @@ class LuciBuildService {
         properties['is_fusion'] = 'true';
 
         // Fusion *also* means "this is flutter/flutter", so determine how to specify the engine version and realm.
-        if (engineArtifacts == null) {
-          throw StateError(
-            'Unexpected state for PR#${pullRequest.number}: engineArtifacts not set, but is operating on flutter/flutter isFusion=true.',
-          );
-        }
-
+        engineArtifacts ??= EngineArtifacts.builtFromSource(commitSha: pullRequest.head!.sha!);
         properties['flutter_prebuilt_engine_version'] = engineArtifacts.commitSha;
         properties['flutter_realm'] = engineArtifacts.flutterRealm;
+      } else if (engineArtifacts != null) {
+        throw UnsupportedError('Cannot set engineArtifacts for anything but the flutter/flutter (fusion) repository.');
       }
 
       final List<bbv2.RequestedDimension> requestedDimensions = target.getDimensions();

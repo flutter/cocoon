@@ -842,39 +842,6 @@ $stackTrace
     return presubmitTarget;
   }
 
-  /// Given a pull request event, retry all failed LUCI checks.
-  ///
-  /// 1. Aggregate .ci.yaml and try_builders.json presubmit builds.
-  /// 2. Get failed LUCI builds for this pull request at [commitSha].
-  /// 3. Rerun the failed builds that also have a failed check status.
-  Future<void> retryPresubmitTargets({
-    required PullRequest pullRequest,
-    required CheckSuiteEvent checkSuiteEvent,
-  }) async {
-    final GitHub githubClient = await config.createGitHubClient(pullRequest: pullRequest);
-    final Map<String, CheckRun> checkRuns = await githubChecksService.githubChecksUtil.allCheckRuns(
-      githubClient,
-      checkSuiteEvent,
-    );
-    final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
-    final List<bbv2.Build?> failedBuilds =
-        await luciBuildService.failedBuilds(pullRequest: pullRequest, targets: presubmitTargets);
-    for (bbv2.Build? build in failedBuilds) {
-      final CheckRun checkRun = checkRuns[build!.builder.builder]!;
-
-      if (checkRun.status != CheckRunStatus.completed) {
-        // Check run is still in progress, do not retry.
-        continue;
-      }
-
-      await luciBuildService.scheduleTryBuilds(
-        targets: presubmitTargets.where((Target target) => build.builder.builder == target.value.name).toList(),
-        pullRequest: pullRequest,
-        checkSuiteEvent: checkSuiteEvent,
-      );
-    }
-  }
-
   /// Get LUCI presubmit builders from .ci.yaml.
   ///
   /// Filters targets with runIf, matching them to the diff of [pullRequest].
