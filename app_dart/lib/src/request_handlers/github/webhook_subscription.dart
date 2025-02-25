@@ -157,6 +157,12 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     final PullRequest pr = pullRequestEvent.pullRequest!;
     final crumb = '$GithubWebhookSubscription._handlePullRequest(${pr.number})';
 
+    final slug = pr.base!.repo!.slug();
+    if (!config.supportedRepos.contains(slug)) {
+      log.warning('$crumb: ased to handle unsupported repo $slug for ${pr.htmlUrl}');
+      throw const InternalServerError('Unsupported repository');
+    }
+
     // See the API reference:
     // https://developer.github.com/v3/activity/events/types/#pullrequestevent
     // which unfortunately is a bit light on explanations.
