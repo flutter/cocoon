@@ -25,6 +25,7 @@ class FakeConfig implements Config {
     this.deviceLabServiceAccountValue,
     this.maxTaskRetriesValue,
     this.maxLuciTaskRetriesValue,
+    this.maxFilesChangedForSkippingEnginePhaseValue,
     this.keyHelperValue,
     this.oauthClientIdValue,
     this.githubOAuthTokenValue,
@@ -72,6 +73,7 @@ class FakeConfig implements Config {
   FakeDatastoreDB dbValue;
   ServiceAccountInfo? deviceLabServiceAccountValue;
   int? maxTaskRetriesValue;
+  int? maxFilesChangedForSkippingEnginePhaseValue;
   int? maxLuciTaskRetriesValue;
   int? batchSizeValue;
   FakeKeyHelper? keyHelperValue;
@@ -150,6 +152,9 @@ class FakeConfig implements Config {
 
   @override
   int get batchSize => batchSizeValue ?? 5;
+
+  @override
+  int get maxFilesChangedForSkippingEnginePhase => maxFilesChangedForSkippingEnginePhaseValue!;
 
   @override
   int get maxLuciTaskRetries => maxLuciTaskRetriesValue!;

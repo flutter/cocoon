@@ -309,6 +309,7 @@ github.PullRequest generatePullRequest({
   String sha = 'abc',
   bool merged = true,
   List<github.IssueLabel> labels = const [],
+  int changedFilesCount = 1,
 }) {
   mergedAt ??= DateTime.fromMillisecondsSinceEpoch(1);
   return github.PullRequest(
@@ -340,6 +341,7 @@ github.PullRequest generatePullRequest({
     mergeCommitSha: sha,
     merged: merged,
     labels: labels,
+    changedFilesCount: changedFilesCount,
   );
 }
 

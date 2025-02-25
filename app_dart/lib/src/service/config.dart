@@ -330,6 +330,9 @@ class Config {
     'flutter-dashboard@appspot.gserviceaccount.com',
   };
 
+  /// The maximum [gh.PullRequest.changedFilesCount] to consider a PR for a "framework-only" CI optimization.
+  int get maxFilesChangedForSkippingEnginePhase => 29;
+
   /// Max retries for Luci builder with infra failure.
   int get maxLuciTaskRetries => 2;
 

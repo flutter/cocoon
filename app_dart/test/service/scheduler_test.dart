@@ -2505,6 +2505,7 @@ targets:
           checkRuns.add(createCheckRun(id: 1, owner: slug.owner, repo: slug.name, sha: sha, name: name));
           return checkRuns.last;
         });
+
         getFilesChanged.cannedFiles = ['abc/def', 'engine/src/flutter/FILE'];
 
         fakeFusion.isFusion = (_, __) => true;
@@ -2528,6 +2529,7 @@ targets:
             githubService: mockGithubService,
             githubClient: MockGitHub(),
             firestoreService: mockFirestoreService,
+            maxFilesChangedForSkippingEnginePhaseValue: 0,
           ),
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
@@ -3009,6 +3011,7 @@ targets:
             githubService: mockGithubService,
             githubClient: MockGitHub(),
             firestoreService: mockFirestoreService,
+            maxFilesChangedForSkippingEnginePhaseValue: 29,
           ),
           buildStatusProvider: (_, __) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
@@ -3060,6 +3063,21 @@ targets:
         fakeFusion.isFusion = (_, __) => true;
         getFilesChanged.cannedFiles = ['engine/src/flutter/BUILD.gn', 'packages/flutter/lib/material.dart'];
         final pullRequest = generatePullRequest(authorLogin: 'joe-flutter');
+
+        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
+        expect(
+          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
+          ['Linux engine_build'],
+          reason: 'Should still run engine phase',
+        );
+      });
+
+      test('still runs engine builds (>= 30 files in changedFilesCount)', () async {
+        fakeFusion.isFusion = (_, __) => true;
+        getFilesChanged.cannedFiles = [
+          // Irrelevant, never called.
+        ];
+        final pullRequest = generatePullRequest(authorLogin: 'joe-flutter', changedFilesCount: 30);
 
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
