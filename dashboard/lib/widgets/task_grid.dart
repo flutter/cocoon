@@ -287,6 +287,8 @@ class _TaskGridState extends State<TaskGrid> {
 
   Painter _painterFor(Task task) {
     final Paint backgroundPaint = Paint()..color = Theme.of(context).canvasColor;
+
+    assert(TaskBox.statusColor.containsKey(task.status), 'Unknown or unexpected status: ${task.status}');
     final Paint paint = Paint()
       ..color = TaskBox.statusColor.containsKey(task.status) ? TaskBox.statusColor[task.status]! : Colors.black;
     if (task.isFlaky) {

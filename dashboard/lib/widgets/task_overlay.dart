@@ -219,22 +219,27 @@ class TaskOverlayContents extends StatelessWidget {
         task.startTimestamp == 0 ? now!.difference(createTime) : startTime.difference(createTime);
     final Duration runDuration = task.endTimestamp == 0 ? now!.difference(startTime) : endTime.difference(startTime);
 
-    /// There are 2 possible states for queue time:
-    ///   1. Task is waiting to be scheduled (in queue)
-    ///   2. Task has been scheduled (out of queue)
-    final String queueText = (task.status != TaskBox.statusNew)
-        ? 'Queue time: ${queueDuration.inMinutes} minutes'
-        : 'Queueing for ${queueDuration.inMinutes} minutes';
+    // There are 3 possible states for queue time:
+    //   1. Task is waiting to be scheduled (in queue)
+    //   2. Task has been scheduled (out of queue)
+    //   3. Task will never be scheduled (skipped).
+    final String queueText = switch (task.status) {
+      TaskBox.statusNew => 'Queueing for ${queueDuration.inMinutes} minutes',
+      TaskBox.statusSkipped => 'Not scheduled or skipped',
+      _ => 'Queue time: ${queueDuration.inMinutes} minutes',
+    };
 
-    /// There are 3 possible states for the runtime:
-    ///   1. Task has not run yet (new)
-    ///   2. Task is running (in progress)
-    ///   3. Task ran (other status)
-    final String runText = (task.status == TaskBox.statusInProgress)
-        ? 'Running for ${runDuration.inMinutes} minutes'
-        : (task.status != TaskBox.statusNew)
-            ? 'Run time: ${runDuration.inMinutes} minutes'
-            : '';
+    // There are 4 possible states for the runtime:
+    //   1. Task has not run yet (new)
+    //   2. Task is running (in progress)
+    //   3. Task ran (other status)
+    //   4. Task will never run (skipped)
+    final String runText = switch (task.status) {
+      TaskBox.statusNew => '',
+      TaskBox.statusInProgress => 'Running for ${runDuration.inMinutes} minutes',
+      TaskBox.statusSkipped => '',
+      _ => 'Run time: ${runDuration.inMinutes} minutes',
+    };
 
     final String summaryText = <String>[
       'Attempts: ${task.attempts}',
