@@ -441,6 +441,7 @@ class Scheduler {
         if (isFusion &&
             await _applyFrameworkOnlyPrOptimization(
               slug,
+              changedFilesCount: pullRequest.changedFilesCount!,
               prNumber: pullRequest.number!,
               prBranch: pullRequest.base!.ref!,
             )) {
@@ -513,6 +514,7 @@ class Scheduler {
 
   Future<bool> _applyFrameworkOnlyPrOptimization(
     RepositorySlug slug, {
+    required int changedFilesCount,
     required int prNumber,
     required String prBranch,
   }) async {
@@ -529,21 +531,29 @@ class Scheduler {
     // In theory, many moons from now when maintained release branches are
     // guaranteed to include the flutter/recipes change we could remove this
     // check.
+    final String refuseLogPrefix = 'Refusing to skip engine builds for PR#$prNumber branch';
     if (prBranch != Config.defaultBranch(Config.flutterSlug)) {
       log.info(
-        'Refusing to skip engine builds for PR#$prNumber branch: $prBranch (not ${Config.defaultBranch(Config.flutterSlug)} branch)',
+        '$refuseLogPrefix: $prBranch (not ${Config.defaultBranch(Config.flutterSlug)} branch)',
+      );
+      return false;
+    }
+    if (changedFilesCount > config.maxFilesChangedForSkippingEnginePhase) {
+      log.info(
+        '$refuseLogPrefix: $changedFilesCount > ${config.maxFilesChangedForSkippingEnginePhase}',
       );
       return false;
     }
     final filesChanged = await getFilesChanged.get(slug, prNumber);
     switch (filesChanged) {
       case InconclusiveFilesChanged(:final reason):
-        log.warning('Not considering PR#$prNumber as framework-only: $reason');
+        // We would have hoped to avoid making this call at all (based on changedFilesCount), or we hit an HTTP issue.
+        log.warning('$refuseLogPrefix: $reason');
         return false;
       case SuccessfulFilesChanged(:final filesChanged):
         for (final file in filesChanged) {
           if (file == 'DEPS' || file.startsWith('engine/')) {
-            log.info('Engine source files or dependencies changed in PR#$prNumber:\n${filesChanged.join('\n')}');
+            log.info('$refuseLogPrefix: Engine source files or dependencies changed.\n${filesChanged.join('\n')}');
             return false;
           }
         }
