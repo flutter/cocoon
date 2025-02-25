@@ -2499,7 +2499,7 @@ void foo() {
       test('applies emergency label on approved PRs', () async {
         final pullRequest = generatePullRequest(
           number: 123,
-          headSha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
+          sha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
           labels: [
             IssueLabel(
               name: 'emergency',
@@ -2545,7 +2545,7 @@ void foo() {
       test('logs and gracefully skips emergency label on missing Merge Queue Guard', () async {
         final pullRequest = generatePullRequest(
           number: 123,
-          headSha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
+          sha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
           labels: [
             IssueLabel(
               name: 'emergency',
@@ -2610,7 +2610,7 @@ void foo() {
       test('leaves educational comment for new emergency PRs', () async {
         final pullRequest = generatePullRequest(
           number: 123,
-          headSha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
+          sha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
           labels: [
             IssueLabel(
               name: 'emergency',
@@ -2656,7 +2656,7 @@ void foo() {
       test('leaves only one educational comment for new emergency PRs', () async {
         final pullRequest = generatePullRequest(
           number: 123,
-          headSha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
+          sha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
           labels: [
             IssueLabel(
               name: 'emergency',
@@ -2707,7 +2707,7 @@ void foo() {
       test('does not leave educational comment for non-new emergency PRs', () async {
         final pullRequest = generatePullRequest(
           number: 123,
-          headSha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
+          sha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
           labels: [
             IssueLabel(
               name: 'emergency',

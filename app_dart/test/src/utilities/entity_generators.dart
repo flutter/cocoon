@@ -306,8 +306,7 @@ github.PullRequest generatePullRequest({
   String title = 'example message',
   int number = 123,
   DateTime? mergedAt,
-  String headSha = 'abc',
-  String baseSha = 'def',
+  String sha = 'abc',
   bool merged = true,
   List<github.IssueLabel> labels = const [],
   int changedFilesCount = 1,
@@ -320,7 +319,6 @@ github.PullRequest generatePullRequest({
     mergedAt: mergedAt,
     base: github.PullRequestHead(
       ref: branch,
-      sha: baseSha,
       repo: github.Repository(
         fullName: 'flutter/$repo',
         name: repo,
@@ -329,7 +327,7 @@ github.PullRequest generatePullRequest({
     ),
     head: github.PullRequestHead(
       ref: branch,
-      sha: headSha,
+      sha: sha,
       repo: github.Repository(
         fullName: 'flutter/$repo',
         name: repo,
@@ -340,7 +338,7 @@ github.PullRequest generatePullRequest({
       login: authorLogin,
       avatarUrl: authorAvatar,
     ),
-    mergeCommitSha: headSha,
+    mergeCommitSha: sha,
     merged: merged,
     labels: labels,
     changedFilesCount: changedFilesCount,

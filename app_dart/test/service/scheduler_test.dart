@@ -653,7 +653,7 @@ targets:
         final Commit commit = shaToCommit('1');
         db.values[commit.key] = commit;
 
-        final PullRequest alreadyLandedPr = generatePullRequest(headSha: '1');
+        final PullRequest alreadyLandedPr = generatePullRequest(sha: '1');
         await scheduler.addPullRequest(alreadyLandedPr);
 
         expect(db.values.values.whereType<Commit>().map<String>(toSha).length, 1);
@@ -1238,13 +1238,8 @@ targets:
               throw Exception('Failed to find ${request.url.path}');
             });
             final luci = MockLuciBuildService();
-            when(
-              luci.scheduleTryBuilds(
-                targets: anyNamed('targets'),
-                pullRequest: anyNamed('pullRequest'),
-                flutterPrebuiltEngineVersion: anyNamed('flutterPrebuiltEngineVersion'),
-              ),
-            ).thenAnswer((inv) async {
+            when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
+                .thenAnswer((inv) async {
               return [];
             });
 
@@ -1338,7 +1333,6 @@ targets:
               luci.scheduleTryBuilds(
                 targets: captureAnyNamed('targets'),
                 pullRequest: captureAnyNamed('pullRequest'),
-                flutterPrebuiltEngineVersion: anyNamed('flutterPrebuiltEngineVersion'),
               ),
             );
             expect(result.callCount, 1);
@@ -1520,106 +1514,6 @@ targets:
             expect(captured.first.summary, 'A critical error occurred, preventing further CI testing.');
           });
 
-          // Regression test for https://github.com/flutter/flutter/issues/164031.
-          test('uses the built-from-source engine artifacts', () async {
-            final githubService = config.githubService = MockGithubService();
-            final githubClient = MockGitHub();
-            final luci = MockLuciBuildService();
-            final gitHubChecksService = MockGithubChecksService();
-
-            when(githubService.github).thenReturn(githubClient);
-            when(gitHubChecksService.githubChecksUtil).thenReturn(mockGithubChecksUtil);
-
-            scheduler = Scheduler(
-              cache: cache,
-              config: config,
-              datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-              buildStatusProvider: (_, __) => buildStatusService,
-              getFilesChanged: getFilesChanged,
-              githubChecksService: gitHubChecksService,
-              httpClientProvider: () => httpClient,
-              luciBuildService: luci,
-              fusionTester: fakeFusion,
-              markCheckRunConclusion: callbacks.markCheckRunConclusion,
-            );
-
-            when(gitHubChecksService.findMatchingPullRequest(any, any, any)).thenAnswer((inv) async {
-              return pullRequest;
-            });
-
-            final checkRuns = <CheckRun>[];
-            when(
-              mockGithubChecksUtil.createCheckRun(
-                any,
-                any,
-                any,
-                any,
-                output: anyNamed('output'),
-                conclusion: anyNamed('conclusion'),
-              ),
-            ).thenAnswer((inv) async {
-              final slug = inv.positionalArguments[1] as RepositorySlug;
-              final sha = inv.positionalArguments[2];
-              final name = inv.positionalArguments[3];
-              checkRuns.add(createCheckRun(id: 1, owner: slug.owner, repo: slug.name, sha: sha, name: name));
-              return checkRuns.last;
-            });
-
-            when(mockFirestoreService.documentResource()).thenAnswer((_) async {
-              final resource = MockProjectsDatabasesDocumentsResource();
-              when(
-                resource.createDocument(
-                  any,
-                  any,
-                  any,
-                  documentId: argThat(anything, named: 'documentId'),
-                  mask_fieldPaths: argThat(anything, named: 'mask_fieldPaths'),
-                  $fields: argThat(anything, named: r'$fields'),
-                ),
-              ).thenAnswer((_) async {
-                return Document();
-              });
-              return resource;
-            });
-
-            String? flutterPrebuiltEngineVersion;
-            when(
-              luci.scheduleTryBuilds(
-                targets: anyNamed('targets'),
-                pullRequest: anyNamed('pullRequest'),
-                flutterPrebuiltEngineVersion: anyNamed('flutterPrebuiltEngineVersion'),
-              ),
-            ).thenAnswer((Invocation i) async {
-              flutterPrebuiltEngineVersion = i.namedArguments[#flutterPrebuiltEngineVersion] as String?;
-              return [];
-            });
-
-            final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
-              jsonDecode(checkRunString) as Map<String, dynamic>,
-            );
-
-            await scheduler.proceedToCiTestingStage(
-              checkRun: checkRunEvent.checkRun!,
-              slug: RepositorySlug('flutter', 'flutter'),
-              sha: 'abc1234',
-              mergeQueueGuard: checkRunFor(name: 'merge queue guard'),
-              logCrumb: 'test',
-            );
-
-            // Ensure that we used the HEAD SHA as as FLUTTER_PREBUILT_ENGINE_VERSION,
-            // since the engine was built from source.
-            //
-            // See https://github.com/flutter/flutter/issues/164031.
-            expect(
-              flutterPrebuiltEngineVersion,
-              allOf([
-                isNotNull,
-                pullRequest.head!.sha,
-              ]),
-              reason: 'Should be set to HEAD (i.e. the current SHA), since the engine was built from source.',
-            );
-          });
-
           test('does not fail the merge queue guard when a test check run fails', () async {
             final githubService = config.githubService = MockGithubService();
             final githubClient = MockGitHub();
@@ -1748,13 +1642,8 @@ targets:
               throw Exception('Failed to find ${request.url.path}');
             });
             final luci = MockLuciBuildService();
-            when(
-              luci.scheduleTryBuilds(
-                targets: anyNamed('targets'),
-                pullRequest: anyNamed('pullRequest'),
-                flutterPrebuiltEngineVersion: anyNamed('flutterPrebuiltEngineVersion'),
-              ),
-            ).thenAnswer((inv) async {
+            when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
+                .thenAnswer((inv) async {
               return [];
             });
 
@@ -1847,7 +1736,6 @@ targets:
               luci.scheduleTryBuilds(
                 targets: captureAnyNamed('targets'),
                 pullRequest: captureAnyNamed('pullRequest'),
-                flutterPrebuiltEngineVersion: anyNamed('flutterPrebuiltEngineVersion'),
               ),
             );
             expect(result.callCount, 1);
@@ -2603,13 +2491,8 @@ targets:
           throw Exception('Failed to find ${request.url.path}');
         });
         final luci = MockLuciBuildService();
-        when(
-          luci.scheduleTryBuilds(
-            targets: anyNamed('targets'),
-            pullRequest: anyNamed('pullRequest'),
-            flutterPrebuiltEngineVersion: anyNamed('flutterPrebuiltEngineVersion'),
-          ),
-        ).thenAnswer((inv) async {
+        when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
+            .thenAnswer((inv) async {
           return [];
         });
         final MockGithubService mockGithubService = MockGithubService();
@@ -2670,7 +2553,6 @@ targets:
           luci.scheduleTryBuilds(
             targets: captureAnyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
-            flutterPrebuiltEngineVersion: anyNamed('flutterPrebuiltEngineVersion'),
           ),
         );
         expect(result.callCount, 1);
@@ -2731,13 +2613,8 @@ targets:
             'Linux engine_build',
           };
         });
-        when(
-          luci.scheduleTryBuilds(
-            targets: anyNamed('targets'),
-            pullRequest: anyNamed('pullRequest'),
-            flutterPrebuiltEngineVersion: anyNamed('flutterPrebuiltEngineVersion'),
-          ),
-        ).thenAnswer((inv) async {
+        when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
+            .thenAnswer((inv) async {
           return [];
         });
         final MockGithubService mockGithubService = MockGithubService();
@@ -2851,13 +2728,8 @@ targets:
             'Mac engine_build',
           };
         });
-        when(
-          luci.scheduleTryBuilds(
-            targets: anyNamed('targets'),
-            pullRequest: anyNamed('pullRequest'),
-            flutterPrebuiltEngineVersion: anyNamed('flutterPrebuiltEngineVersion'),
-          ),
-        ).thenAnswer((inv) async {
+        when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
+            .thenAnswer((inv) async {
           return [];
         });
         final MockGithubService mockGithubService = MockGithubService();
@@ -3247,8 +3119,8 @@ targets:
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
           fakeLuciBuildService.flutterPrebuiltEngineVersion,
-          isNull,
-          reason: 'When scheduling engine builds, there is no concept of an engine prebuilt.',
+          pullRequest.base!.sha,
+          reason: 'Should use the base ref for the engine artifacts',
         );
         expect(
           fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
@@ -3261,8 +3133,8 @@ targets:
 }
 
 final class _CapturingFakeLuciBuildService extends Fake implements LuciBuildService {
-  List<Target> scheduledTryBuilds = [];
-  String? flutterPrebuiltEngineVersion;
+  late List<Target> scheduledTryBuilds;
+  late String? flutterPrebuiltEngineVersion;
 
   @override
   Future<List<Target>> scheduleTryBuilds({
