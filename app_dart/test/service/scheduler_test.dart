@@ -3092,7 +3092,6 @@ targets:
       const allowListedUser = 'matanlurey';
 
       late MockGithubService mockGithubService;
-      late MockGithubChecksService mockGithubChecksService;
       late _CapturingFakeLuciBuildService fakeLuciBuildService;
       late List<String> logs;
 
