@@ -7,6 +7,7 @@ import 'dart:math' as math;
 
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter_dashboard/model/branch.pb.dart';
+import 'package:flutter_dashboard/widgets/task_box.dart';
 
 import '../logic/qualified_task.dart';
 import '../model/build_status_response.pb.dart';
@@ -305,36 +306,33 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   static const List<String> _statuses = <String>[
-    'New',
-    'In Progress',
-    'Succeeded',
-    'Succeeded Flaky',
-    'Failed',
-    'Underperformed',
-    'Underperfomed In Progress',
-    'Skipped',
+    TaskBox.statusNew,
+    TaskBox.statusInProgress,
+    TaskBox.statusSucceeded,
+    TaskBox.statusFailed,
+    TaskBox.statusInfraFailure,
+    TaskBox.statusSkipped,
+    TaskBox.statusCancelled,
   ];
 
   static const Map<String, int> _minAttempts = <String, int>{
-    'New': 0,
-    'In Progress': 1,
-    'Succeeded': 1,
-    'Succeeded Flaky': 1,
-    'Failed': 1,
-    'Underperformed': 1,
-    'Underperfomed In Progress': 1,
-    'Skipped': 0,
+    TaskBox.statusNew: 0,
+    TaskBox.statusInProgress: 1,
+    TaskBox.statusSucceeded: 1,
+    TaskBox.statusFailed: 1,
+    TaskBox.statusInfraFailure: 1,
+    TaskBox.statusSkipped: 0,
+    TaskBox.statusCancelled: 1,
   };
 
   static const Map<String, int> _maxAttempts = <String, int>{
-    'New': 0,
-    'In Progress': 1,
-    'Succeeded': 1,
-    'Succeeded Flaky': 2,
-    'Failed': 2,
-    'Underperformed': 2,
-    'Underperfomed In Progress': 2,
-    'Skipped': 0,
+    TaskBox.statusNew: 0,
+    TaskBox.statusInProgress: 1,
+    TaskBox.statusSucceeded: 1,
+    TaskBox.statusFailed: 2,
+    TaskBox.statusInfraFailure: 2,
+    TaskBox.statusSkipped: 0,
+    TaskBox.statusCancelled: 1,
   };
 
   Task _createFakeTask(int commitTimestamp, int index, String stageName, math.Random random) {
@@ -347,24 +345,18 @@ class DevelopmentCocoonService implements CocoonService {
     // the second a 25% chance, and the rest a 0% chance.
     final List<int> statusesProbability = <int>[
       // bigger = more probable
-      math.max(index % 2, 20 - age * 2), // blue
-      math.max(0, 10 - age * 2), // spinny
-      math.min(10 + age * 2, 100), // green
-      math.min(1 + age ~/ 3, 30), // yellow
-      if (index % 15 == 0) // red
+      math.max(index % 2, 20 - age * 2), // TaskBox.statusNew
+      math.max(0, 10 - age * 2), // TaskBox.statusInProgress
+      math.min(10 + age * 2, 100), // TaskBox.statusSucceeded
+      math.min(1 + age ~/ 3, 30), // TaskBox.statusFailed
+      if (index % 15 == 0) // TaskBox.statusInfraFailure
         5
-      else if (index % 25 == 0) // red
+      else if (index % 25 == 0)
         15
       else
         1,
-      1, // orange
-      1, // orange spinny
-      if (index == now.millisecondsSinceEpoch % 20) // white
-        math.max(0, 1000 - age * 20)
-      else if (index == now.millisecondsSinceEpoch % 22)
-        math.max(0, 1000 - age * 10)
-      else
-        0,
+      if (index % 20 == 0) 30,
+      1, // TaskBox.statusCancelled
     ];
     // max is the sum of all the values in statusesProbability.
     final int max = statusesProbability.fold(0, (int c, int p) => c + p);
