@@ -537,110 +537,121 @@ class LuciBuildService {
     final String sha = checkRunEvent.checkRun!.headSha!;
     final String checkName = checkRunEvent.checkRun!.name!;
 
-    final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(
+    final githubCheckRun = await githubChecksUtil.createCheckRun(
       config,
       slug,
       sha,
       checkName,
     );
 
-    final Iterable<bbv2.Build> builds = await getTryBuilds(
-      sha: sha,
-      builderName: checkName,
-    );
-    if (builds.isEmpty) {
-      throw NoBuildFoundException('Unable to find try build.');
-    }
-
-    final bbv2.Build build = builds.first;
-
-    // Assumes that the tags are already defined.
-    final List<bbv2.StringPair> tags = build.tags;
-    final String prString = tags
-        .firstWhere(
-          (element) => element.key == 'buildset' && element.value.startsWith('pr/git'),
-        )
-        .value;
-    final String cipdVersion = tags.firstWhere((element) => element.key == 'cipd_version').value;
-    final String githubLink = tags.firstWhere((element) => element.key == 'github_link').value;
-
-    final String repoName = githubLink.split('/')[4];
-    final String branch = Config.defaultBranch(github.RepositorySlug('flutter', repoName));
-    final int prNumber = int.parse(prString.split('/')[2]);
-
-    final Map<String, dynamic> userData = <String, dynamic>{
-      'check_run_id': githubCheckRun.id,
-      'commit_branch': branch,
-      'commit_sha': sha,
-    };
-
-    final bbv2.Struct propertiesStruct =
-        (build.input.hasProperties()) ? build.input.properties : bbv2.Struct().createEmptyInstance();
-    final Map<String, Object?> properties = propertiesStruct.toProto3Json() as Map<String, Object?>;
-    final GithubService githubService = await config.createGithubService(slug);
-
-    final List<github.IssueLabel> issueLabels = await githubService.getIssueLabels(
-      slug,
-      prNumber,
-    );
-    final List<String>? labels = extractPrefixedLabels(
-      issueLabels: issueLabels,
-      prefix: githubBuildLabelPrefix,
-    );
-
-    if (labels != null && labels.isNotEmpty) {
-      properties[propertiesGithubBuildLabelName] = labels;
-    }
-
-    final isFusion = await fusionTester.isFusionBasedRef(slug, sha);
-    if (isFusion) {
-      properties['is_fusion'] = 'true';
-      if (!properties.containsKey('flutter_prebuilt_engine_version')) {
-        // When in fusion, we want the recipes to override the engine.realm
-        // if some environment variable (FLUTTER_REALM) is set.
-        properties['flutter_realm'] = 'flutter_archives_v2';
-      }
-    }
-
-    final bbv2.ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
-      slug: slug,
-      sha: sha,
-      checkName: checkName,
-      pullRequestNumber: prNumber,
-      cipdVersion: cipdVersion,
-      properties: properties,
-      userData: userData,
-    );
-
-    final bbv2.Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
-    final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
-    await githubChecksUtil.updateCheckRun(
-      config,
-      slug,
-      githubCheckRun,
-      detailsUrl: buildUrl,
-    );
-
-    // Check run created, now record it in firestore so we can figure out which
-    // PR started what check run later (e.g. check_run completed).
     try {
-      final firestore = await config.createFirestoreService();
-      // Find the original pull request.
-      final pullRequest = await findPullRequestFor(firestore, checkRunEvent.checkRun!.id!, checkName);
-
-      final doc = await initializePrCheckRuns(
-        firestoreService: firestore,
-        pullRequest: pullRequest,
-        checks: [githubCheckRun],
+      final Iterable<bbv2.Build> builds = await getTryBuilds(
+        sha: sha,
+        builderName: checkName,
       );
-      log.info('reschedulePresubmitBuildUsingCheckRunEvent: created PrCheckRuns doc ${doc.name}');
-    } catch (e, s) {
-      // We are not going to block on this error. If we cannot find this document
-      // later, we'll fall back to the old github query method.
-      log.warning('reschedulePresubmitBuildUsingCheckRunEvent: error creating PrCheckRuns doc', e, s);
-    }
+      if (builds.isEmpty) {
+        throw NoBuildFoundException('Unable to find try build.');
+      }
 
-    return scheduleBuild;
+      final bbv2.Build build = builds.first;
+
+      // Assumes that the tags are already defined.
+      final List<bbv2.StringPair> tags = build.tags;
+      final String prString = tags
+          .firstWhere(
+            (element) => element.key == 'buildset' && element.value.startsWith('pr/git'),
+          )
+          .value;
+      final String cipdVersion = tags.firstWhere((element) => element.key == 'cipd_version').value;
+      final String githubLink = tags.firstWhere((element) => element.key == 'github_link').value;
+
+      final String repoName = githubLink.split('/')[4];
+      final String branch = Config.defaultBranch(github.RepositorySlug('flutter', repoName));
+      final int prNumber = int.parse(prString.split('/')[2]);
+
+      final Map<String, dynamic> userData = <String, dynamic>{
+        'check_run_id': githubCheckRun.id,
+        'commit_branch': branch,
+        'commit_sha': sha,
+      };
+
+      final bbv2.Struct propertiesStruct =
+          (build.input.hasProperties()) ? build.input.properties : bbv2.Struct().createEmptyInstance();
+      final Map<String, Object?> properties = propertiesStruct.toProto3Json() as Map<String, Object?>;
+      final GithubService githubService = await config.createGithubService(slug);
+
+      final List<github.IssueLabel> issueLabels = await githubService.getIssueLabels(
+        slug,
+        prNumber,
+      );
+      final List<String>? labels = extractPrefixedLabels(
+        issueLabels: issueLabels,
+        prefix: githubBuildLabelPrefix,
+      );
+
+      if (labels != null && labels.isNotEmpty) {
+        properties[propertiesGithubBuildLabelName] = labels;
+      }
+
+      final isFusion = await fusionTester.isFusionBasedRef(slug, sha);
+      if (isFusion) {
+        properties['is_fusion'] = 'true';
+        if (!properties.containsKey('flutter_prebuilt_engine_version')) {
+          // When in fusion, we want the recipes to override the engine.realm
+          // if some environment variable (FLUTTER_REALM) is set.
+          properties['flutter_realm'] = 'flutter_archives_v2';
+        }
+      }
+
+      final bbv2.ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
+        slug: slug,
+        sha: sha,
+        checkName: checkName,
+        pullRequestNumber: prNumber,
+        cipdVersion: cipdVersion,
+        properties: properties,
+        userData: userData,
+      );
+
+      final bbv2.Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
+      final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
+      await githubChecksUtil.updateCheckRun(
+        config,
+        slug,
+        githubCheckRun,
+        detailsUrl: buildUrl,
+      );
+
+      // Check run created, now record it in firestore so we can figure out which
+      // PR started what check run later (e.g. check_run completed).
+      try {
+        final firestore = await config.createFirestoreService();
+        // Find the original pull request.
+        final pullRequest = await findPullRequestFor(firestore, checkRunEvent.checkRun!.id!, checkName);
+
+        final doc = await initializePrCheckRuns(
+          firestoreService: firestore,
+          pullRequest: pullRequest,
+          checks: [githubCheckRun],
+        );
+        log.info('reschedulePresubmitBuildUsingCheckRunEvent: created PrCheckRuns doc ${doc.name}');
+      } catch (e, s) {
+        // We are not going to block on this error. If we cannot find this document
+        // later, we'll fall back to the old github query method.
+        log.warning('reschedulePresubmitBuildUsingCheckRunEvent: error creating PrCheckRuns doc', e, s);
+      }
+      return scheduleBuild;
+    } catch (e) {
+      await githubChecksUtil.updateCheckRun(
+        config,
+        slug,
+        githubCheckRun,
+        status: CheckRunStatus.completed,
+        conclusion: CheckRunConclusion.failure,
+        output: CheckRunOutput(title: 'Re-run failed', summary: 'Error occurred while scheduling re-run:\n$e'),
+      );
+      rethrow;
+    }
   }
 
   /// Collect any label whose name is prefixed by the prefix [String].

@@ -1154,6 +1154,48 @@ void main() {
       final Map<String, bbv2.Value> properties = scheduleBuildRequest.properties.fields;
       expect(properties['overrides'], propertiesStruct.fields['overrides']);
     });
+
+    test('reschedule using checkrun event fails checkrun', () async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+
+      // An empty response should cause an error
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return bbv2.BatchResponse(
+          responses: <bbv2.BatchResponse_Response>[],
+        );
+      });
+      when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBbv2Build(Int64(1)));
+
+      final pushMessage = generateCheckRunEvent(action: 'created', numberOfPullRequests: 1);
+      final Map<String, dynamic> jsonMap = json.decode(pushMessage.data!);
+      final Map<String, dynamic> jsonSubMap = json.decode(jsonMap['2']);
+      final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
+
+      await expectLater(
+        service.reschedulePresubmitBuildUsingCheckRunEvent(
+          checkRunEvent: checkRunEvent,
+        ),
+        throwsA(isA<NoBuildFoundException>()),
+      );
+
+      verifyNever(
+        mockBuildBucketClient.scheduleBuild(
+          captureAny,
+        ),
+      );
+
+      verify(
+        mockGithubChecksUtil.updateCheckRun(
+          any,
+          any,
+          any,
+          status: CheckRunStatus.completed,
+          conclusion: CheckRunConclusion.failure,
+          output: anyNamed('output'),
+        ),
+      ).called(1);
+    });
   });
 
   group('cancelBuilds', () {
