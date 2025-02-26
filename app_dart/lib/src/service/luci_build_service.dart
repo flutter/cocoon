@@ -27,7 +27,6 @@ import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/user_data.dart';
 import '../service/datastore.dart';
 import 'exceptions.dart';
-import 'github_service.dart';
 
 /// Class to interact with LUCI buildbucket to get, trigger
 /// and cancel builds for github repos. It uses [config.luciTryBuilders] to
