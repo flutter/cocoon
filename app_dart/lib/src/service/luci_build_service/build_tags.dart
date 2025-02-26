@@ -1,0 +1,364 @@
+// Copyright 2020 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
+
+/// Valid tags for [bbv2.ScheduleBuildRequest.tags].
+///
+/// Tags are indexed arbitrary string key-value pairs, defined by the user that
+/// has scheduled the build. This class exists in order to ensure we don't
+/// "fat finger" the wrong name, and know exactly what tags we are (and aren't)
+/// sending, statically.
+///
+/// See go/buildbucket#concepts for more details.
+@immutable
+sealed class BuildTag {
+  /// Parses and recognizes expected [BuildTag]s from their string-pair equivalent.
+  factory BuildTag.from(bbv2.StringPair pair) {
+    switch (pair.key) {
+      case UserAgentBuildTag._keyName:
+        return UserAgentBuildTag(value: pair.value);
+      case BuildSetBuildTag._keyName:
+        if (_parsePresubmitRef.matchAsPrefix(pair.value) case final match?) {
+          final commitSha = match.group(1)!;
+          return ByPresubmitCommitBuildSetBuildTag(commitSha: commitSha);
+        }
+        if (_parsePostsubmitRef.matchAsPrefix(pair.value) case final match?) {
+          final commitSha = match.group(1)!;
+          return ByPostsubmitCommitBuildSetBuildTag(commitSha: commitSha);
+        }
+        if (_parseCommitGittiles.matchAsPrefix(pair.value) case final match?) {
+          final slugName = match.group(1)!;
+          final commitSha = match.group(2)!;
+          return ByCommitMirroredBuildSetBuildTag(commitSha: commitSha, slugName: slugName);
+        }
+      case GitHubPullRequestBuildTag._keyName:
+        if (_parseGithubPullRequest.matchAsPrefix(pair.value) case final match?) {
+          final slugOwner = match.group(1)!;
+          final slugName = match.group(2)!;
+          final prNumber = int.tryParse(match.group(3)!);
+          if (prNumber == null) {
+            break;
+          }
+          return GitHubPullRequestBuildTag(
+            slugOwner: slugOwner,
+            slugName: slugName,
+            pullRequestNumber: prNumber,
+          );
+        }
+      case GitHubCheckRunIdBuildTag._keyName:
+        if (int.tryParse(pair.value) case final checkRunId?) {
+          return GitHubCheckRunIdBuildTag(checkRunId: checkRunId);
+        }
+      case SchedulerJobIdBuildTag._keyName:
+        if (_parseSchedulerJobId.matchAsPrefix(pair.value) case final match?) {
+          final targetName = match.group(1)!;
+          return SchedulerJobIdBuildTag(targetName: targetName);
+        }
+      case CurrentAttemptBuildTag._keyName:
+        if (int.tryParse(pair.value) case final currentAttempt? when currentAttempt >= 1) {
+          return CurrentAttemptBuildTag(attemptNumber: currentAttempt);
+        }
+      case CipdVersionBuildTag._keyName:
+        if (_parseCipdVersion.matchAsPrefix(pair.value) case final match?) {
+          final baseRef = match.group(1)!;
+          return CipdVersionBuildTag(baseRef: baseRef);
+        }
+      case InMergeQueueBuildTag._keyName when pair.value == 'true':
+        return InMergeQueueBuildTag();
+      case TriggerTypeBuildTag._keyName:
+        final matchingTag = TriggerTypeBuildTag.values.firstWhereOrNull((v) => v._value == pair.value);
+        if (matchingTag != null) {
+          return matchingTag;
+        }
+      case TriggerdByBuildTag._keyName:
+        return TriggerdByBuildTag(email: pair.value);
+    }
+    return UnknownBuildTag(key: pair.key, value: pair.value);
+  }
+
+  static final _parsePresubmitRef = RegExp(r'sha/git/(.*)');
+  static final _parsePostsubmitRef = RegExp(r'commit/git/(.*)');
+  static final _parseCommitGittiles = RegExp(r'commit/gitiles/flutter.googlesource.com/mirrors/(.*)/+/(.*)');
+  static final _parseGithubPullRequest = RegExp(r'https://github.com/(.*)/(.*)/pull/(.*)');
+  static final _parseSchedulerJobId = RegExp(r'flutter/(.*)');
+  static final _parseCipdVersion = RegExp(r'refs/heads/(.*)');
+
+  // The class is immutable, but not every instance is const.
+  // ignore: prefer_const_constructors_in_immutables
+  BuildTag();
+
+  /// The key of the build tag.
+  String get _key;
+
+  /// The value of the build tag.
+  String get _value;
+
+  @override
+  @nonVirtual
+  int get hashCode => Object.hash(_key, _value);
+
+  @override
+  @nonVirtual
+  bool operator ==(Object other) {
+    return other is BuildTag && _key == other._key && _value == other._value;
+  }
+
+  /// Returns the [bbv2.StringPair] representation of the tag.
+  @nonVirtual
+  bbv2.StringPair toStringPair() {
+    return bbv2.StringPair(key: _key, value: _value);
+  }
+
+  @override
+  @nonVirtual
+  String toString() {
+    return '$runtimeType {$_key -> $_value}';
+  }
+}
+
+/// A default implementation of a [BuildTag] if not recognized by [BuildTag.from].
+final class UnknownBuildTag extends BuildTag {
+  @visibleForTesting
+  UnknownBuildTag({required this.key, required this.value});
+
+  /// Key name.
+  final String key;
+
+  @override
+  String get _key => key;
+
+  /// Value of the string pair.
+  final String value;
+
+  @override
+  String get _value => value;
+}
+
+/// A user-agent, describing the client.
+final class UserAgentBuildTag extends BuildTag {
+  static final flutterCocoon = UserAgentBuildTag(value: 'flutter-cocoon');
+
+  UserAgentBuildTag({required this.value});
+
+  @override
+  String get _key => _keyName;
+  static const _keyName = 'user_agent';
+
+  /// Value of the user-agent.
+  final String value;
+
+  @override
+  String get _value => value;
+}
+
+/// Groups builds together, i.e. by a (Gerrit) CL, (GitHub) PR or (Git) commit.
+sealed class BuildSetBuildTag extends BuildTag {
+  @override
+  String get _key => _keyName;
+  static const _keyName = 'buildset';
+}
+
+/// A [BuildSetBuildTag] for _presubmit_ git commit SHAs.
+final class ByPresubmitCommitBuildSetBuildTag extends BuildSetBuildTag {
+  ByPresubmitCommitBuildSetBuildTag({required this.commitSha});
+
+  /// Which presubmit commit SHA this buildset is connected to.
+  final String commitSha;
+
+  @override
+  String get _value => 'sha/git/$commitSha';
+}
+
+/// A [BuildSetBuildTag] for _postsubmit_ git commit SHAs.
+final class ByPostsubmitCommitBuildSetBuildTag extends BuildSetBuildTag {
+  ByPostsubmitCommitBuildSetBuildTag({required this.commitSha});
+
+  /// Which postsubmit commit SHA this buildset is connected to.
+  final String commitSha;
+
+  @override
+  String get _value => 'commit/git/$commitSha';
+}
+
+/// A [BuildSetBuildTag] for git commit SHAs viewable through `gittiles`.
+///
+/// This is used for `flutter.googlesource.com/mirrors`.
+final class ByCommitMirroredBuildSetBuildTag extends BuildSetBuildTag {
+  ByCommitMirroredBuildSetBuildTag({required this.commitSha, required this.slugName}) {
+    // If this is wrong in production it's probably not worth crashing.
+    assert(
+      _validMirrors.contains(slugName),
+      'Unsupported flutter.googlesource.com/mirrors repository: $slugName.',
+    );
+  }
+
+  /// Will need to be updated if https://flutter.googlesource.com/mirrors is updated.
+  static const _validMirrors = {
+    'cocoon',
+    'engine',
+    'flaux',
+    'flutter',
+    'packages',
+    'plugins',
+  };
+
+  /// Which commit SHA this buildset is connected to.
+  final String commitSha;
+
+  /// Which repository in `flutter.googlesource.com/mirrors` this commit is for.
+  final String slugName;
+
+  @override
+  String get _value => 'commit/gitiles/flutter.googlesource.com/mirrors/$slugName/+/$commitSha';
+}
+
+/// A link back to the GitHub PR for this build.
+final class GitHubPullRequestBuildTag extends BuildTag {
+  GitHubPullRequestBuildTag({
+    required this.slugOwner,
+    required this.slugName,
+    required this.pullRequestNumber,
+  });
+
+  /// Which repository in `https://github.com/{owner}`.
+  final String slugOwner;
+
+  /// Which repository in `https://github.com/{owner}/{slugName}`.
+  final String slugName;
+
+  /// Pull request number.
+  final int pullRequestNumber;
+
+  @override
+  String get _key => _keyName;
+  static const _keyName = 'github_link';
+
+  @override
+  String get _value => 'https://github.com/$slugOwner/$slugName/pull/$pullRequestNumber';
+}
+
+/// A link back to the GitHub checkRun for this build.
+final class GitHubCheckRunIdBuildTag extends BuildTag {
+  GitHubCheckRunIdBuildTag({required this.checkRunId});
+
+  /// ID of the checkRun.
+  final int checkRunId;
+
+  @override
+  String get _key => _keyName;
+  static const _keyName = 'github_checkrun';
+
+  @override
+  String get _value => '$checkRunId';
+}
+
+/// A build tag that specifies the ID of the scheduling job.
+///
+/// For Flutter, this is always `flutter/{Build Target}`.
+final class SchedulerJobIdBuildTag extends BuildTag {
+  SchedulerJobIdBuildTag({
+    required this.targetName,
+  });
+
+  /// The name of the target defined in `.ci.yaml`.
+  final String targetName;
+
+  @override
+  String get _key => _keyName;
+  static const _keyName = 'scheduler_job_id';
+
+  @override
+  String get _value => 'flutter/$targetName';
+}
+
+/// A build tag that specifies what [attemptNumber] this build is.
+final class CurrentAttemptBuildTag extends BuildTag {
+  CurrentAttemptBuildTag({required this.attemptNumber}) {
+    if (attemptNumber < 1) {
+      throw RangeError.value(attemptNumber, 'attemptNumber', 'Must be at least 1');
+    }
+  }
+
+  /// Which attempt at building this is (starting at 1, and incrementing for each reschedule).
+  final int attemptNumber;
+
+  @override
+  String get _key => _keyName;
+  static const _keyName = 'current_attempt';
+
+  @override
+  String get _value => '$attemptNumber';
+}
+
+/// A version of the executable package to fetch, default is refs/heads/main.
+///
+/// See https://chromium.googlesource.com/infra/luci/luci-go/+/HEAD/lucicfg/doc/README.md#luci.executable.
+final class CipdVersionBuildTag extends BuildTag {
+  static final main = CipdVersionBuildTag(baseRef: 'main');
+
+  CipdVersionBuildTag({required this.baseRef});
+
+  /// Which baseRef to use for CIPD downloads.
+  ///
+  /// Defaults to `main`.
+  final String baseRef;
+
+  @override
+  String get _key => _keyName;
+  static const _keyName = 'cipd_version';
+
+  @override
+  String get _value => 'refs/heads/$baseRef';
+}
+
+/// Specifies that this build is from the merge queue.
+final class InMergeQueueBuildTag extends BuildTag {
+  InMergeQueueBuildTag();
+
+  @override
+  String get _key => _keyName;
+  static const _keyName = 'in_merge_queue';
+
+  @override
+  String get _value => 'true';
+}
+
+/// How a build is triggered.
+enum TriggerTypeBuildTag implements BuildTag {
+  autoRetry('auto_retry'),
+  checkRunManualRetry('check_run_manual_retry'),
+  manualRetry('manual_retry');
+
+  const TriggerTypeBuildTag(this._value);
+
+  @override
+  String get _key => _keyName;
+  static const _keyName = 'trigger_type';
+
+  @override
+  final String _value;
+
+  @override
+  bbv2.StringPair toStringPair() {
+    return bbv2.StringPair(key: _key, value: _value);
+  }
+}
+
+/// Who triggered a rerun.
+final class TriggerdByBuildTag extends BuildTag {
+  TriggerdByBuildTag({required this.email});
+
+  @override
+  String get _key => _keyName;
+  static const _keyName = 'triggered_by';
+
+  @override
+  String get _value => email;
+
+  /// The email address of the triggering user.
+  final String email;
+}
