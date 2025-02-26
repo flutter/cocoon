@@ -108,4 +108,19 @@ class PrCheckRuns extends Document {
     log.info('findDocumentFor($filterMap): found: $docs');
     return PrCheckRuns.fromDocument(docs.first).pullRequest;
   }
+
+  /// Retrieve the [PullRequest] for a given [sha] or throw an error.
+  static Future<PullRequest?> findPullRequestForSha(
+    FirestoreService firestoreService,
+    String sha,
+  ) async {
+    final filterMap = <String, Object>{
+      'sha =': sha,
+    };
+    log.info('findPullRequestForSha($filterMap): finding prCheckRuns document');
+    final docs = await firestoreService.query(kCollectionId, filterMap);
+    log.info('findPullRequestForSha($filterMap): found: $docs');
+    if (docs.isEmpty) return null;
+    return PrCheckRuns.fromDocument(docs.first).pullRequest;
+  }
 }

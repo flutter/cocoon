@@ -1526,6 +1526,12 @@ class MockConfig extends _i1.Mock implements _i2.Config {
       ) as String);
 
   @override
+  int get maxFilesChangedForSkippingEnginePhase => (super.noSuchMethod(
+        Invocation.getter(#maxFilesChangedForSkippingEnginePhase),
+        returnValue: 0,
+      ) as int);
+
+  @override
   int get maxLuciTaskRetries => (super.noSuchMethod(
         Invocation.getter(#maxLuciTaskRetries),
         returnValue: 0,
@@ -3973,6 +3979,24 @@ class MockGithubService extends _i1.Mock implements _i17.GithubService {
           ),
         )),
       ) as _i20.Future<_i13.PullRequest>);
+
+  @override
+  _i20.Future<bool> commentExists(
+    _i13.RepositorySlug? slug,
+    int? issue,
+    String? body,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #commentExists,
+          [
+            slug,
+            issue,
+            body,
+          ],
+        ),
+        returnValue: _i20.Future<bool>.value(false),
+      ) as _i20.Future<bool>);
 }
 
 /// A class which mocks [GitService].
@@ -6124,7 +6148,6 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
   _i20.Future<List<_i43.Target>> scheduleTryBuilds({
     required List<_i43.Target>? targets,
     required _i13.PullRequest? pullRequest,
-    _i34.CheckSuiteEvent? checkSuiteEvent,
     String? flutterPrebuiltEngineVersion,
   }) =>
       (super.noSuchMethod(
@@ -6134,7 +6157,6 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
           {
             #targets: targets,
             #pullRequest: pullRequest,
-            #checkSuiteEvent: checkSuiteEvent,
             #flutterPrebuiltEngineVersion: flutterPrebuiltEngineVersion,
           },
         ),
@@ -6223,24 +6245,6 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
               #rescheduleAttempt: rescheduleAttempt,
               #userDataMap: userDataMap,
             },
-          ),
-        )),
-      ) as _i20.Future<_i8.Build>);
-
-  @override
-  _i20.Future<_i8.Build> reschedulePresubmitBuildUsingCheckRunEvent({required _i44.CheckRunEvent? checkRunEvent}) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #reschedulePresubmitBuildUsingCheckRunEvent,
-          [],
-          {#checkRunEvent: checkRunEvent},
-        ),
-        returnValue: _i20.Future<_i8.Build>.value(_FakeBuild_7(
-          this,
-          Invocation.method(
-            #reschedulePresubmitBuildUsingCheckRunEvent,
-            [],
-            {#checkRunEvent: checkRunEvent},
           ),
         )),
       ) as _i20.Future<_i8.Build>);
@@ -7725,6 +7729,22 @@ class MockCallbacks extends _i1.Mock implements _i47.Callbacks {
           ),
         )),
       ) as _i20.Future<_i13.PullRequest>);
+
+  @override
+  _i20.Future<_i13.PullRequest?> findPullRequestForSha(
+    _i15.FirestoreService? firestoreService,
+    String? sha,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #findPullRequestForSha,
+          [
+            firestoreService,
+            sha,
+          ],
+        ),
+        returnValue: _i20.Future<_i13.PullRequest?>.value(),
+      ) as _i20.Future<_i13.PullRequest?>);
 }
 
 /// A class which mocks [PullRequestLabelProcessor].

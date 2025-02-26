@@ -826,49 +826,62 @@ targets:
       test('rerequested presubmit check triggers presubmit build', () async {
         // Note that we're not inserting any commits into the db, because
         // only postsubmit commits are stored in the datastore.
-        config = FakeConfig(dbValue: db);
         db = FakeDatastoreDB();
+        config = FakeConfig(dbValue: db, firestoreService: mockFirestoreService);
+        buildStatusService =
+            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
 
-        // Set up mock buildbucket to validate which bucket is requested.
-        final MockBuildBucketClient mockBuildbucket = MockBuildBucketClient();
-
-        when(mockBuildbucket.batch(any)).thenAnswer((i) async {
-          return FakeBuildBucketClient().batch(i.positionalArguments[0]);
+        when(callbacks.findPullRequestForSha(any, any)).thenAnswer((inv) async {
+          return pullRequest;
         });
 
-        when(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri')))
-            .thenAnswer((realInvocation) async {
-          final bbv2.ScheduleBuildRequest scheduleBuildRequest = realInvocation.positionalArguments[0];
-          // Ensure this is an attempt to schedule a presubmit build by
-          // verifying that bucket == 'try'.
-          expect(scheduleBuildRequest.builder.bucket, equals('try'));
-          return bbv2.Build(builder: bbv2.BuilderID(), id: Int64());
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
+            return http.Response(fusionCiYaml, 200);
+          } else if (request.url.path.endsWith('.ci.yaml')) {
+            return http.Response(singleCiYaml, 200);
+          }
+          throw Exception('Failed to find ${request.url.path}');
+        });
+
+        final luci = MockLuciBuildService();
+        when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
+            .thenAnswer((inv) async {
+          return [];
         });
 
         scheduler = Scheduler(
           cache: cache,
           config: config,
+          buildStatusProvider: (_, __) => buildStatusService,
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
-          luciBuildService: FakeLuciBuildService(
-            config: config,
-            githubChecksUtil: mockGithubChecksUtil,
-            buildBucketClient: mockBuildbucket,
-          ),
+          luciBuildService: luci,
           fusionTester: fakeFusion,
+          findPullRequestForSha: callbacks.findPullRequestForSha,
+          httpClientProvider: () => httpClient,
         );
 
-        final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
-          jsonDecode(checkRunString) as Map<String, dynamic>,
-        );
+        final checkrun = jsonDecode(checkRunString) as Map<String, dynamic>;
+        checkrun['name'] = checkrun['check_run']['name'] = 'Linux A';
+        final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(checkrun);
 
         expect(await scheduler.processCheckRun(checkRunEvent), true);
 
-        verify(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri'))).called(1);
-        verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
+        verify(callbacks.findPullRequestForSha(any, checkRunEvent.checkRun!.headSha)).called(1);
+        final captured = verify(
+          luci.scheduleTryBuilds(
+            targets: captureAnyNamed('targets'),
+            pullRequest: captureAnyNamed('pullRequest'),
+          ),
+        ).captured;
+
+        expect(captured, hasLength(2));
+        expect(captured[0].first.value.name, 'Linux A');
+        expect(captured[1], pullRequest);
       });
 
       test('rerequested postsubmit check triggers postsubmit build', () async {
@@ -983,11 +996,29 @@ targets:
             'check_suite': <String, dynamic>{'id': 2},
           });
         });
+        when(callbacks.findPullRequestForSha(any, any)).thenAnswer((inv) async {
+          return null;
+        });
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           jsonDecode(checkRunWithEmptyPullRequests) as Map<String, dynamic>,
         );
+
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          buildStatusProvider: (_, __) => buildStatusService,
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
+          luciBuildService: FakeLuciBuildService(config: config),
+          fusionTester: fakeFusion,
+          findPullRequestForSha: callbacks.findPullRequestForSha,
+          httpClientProvider: () => httpClient,
+        );
         expect(await scheduler.processCheckRun(checkRunEvent), true);
-        verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
+        verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
       });
 
       group('completed action', () {

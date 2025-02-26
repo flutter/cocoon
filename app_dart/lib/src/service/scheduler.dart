@@ -61,6 +61,7 @@ class Scheduler {
     @visibleForTesting this.markCheckRunConclusion = CiStaging.markConclusion,
     @visibleForTesting this.initializeCiStagingDocument = CiStaging.initializeDocument,
     @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
+    @visibleForTesting this.findPullRequestForSha = PrCheckRuns.findPullRequestForSha,
   });
 
   final GetFilesChanged getFilesChanged;
@@ -98,6 +99,8 @@ class Scheduler {
     int checkRunId,
     String checkRunName,
   ) findPullRequestFor;
+
+  final Future<PullRequest?> Function(FirestoreService firestoreService, String sha) findPullRequestForSha;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
@@ -1345,9 +1348,23 @@ $stacktrace
             }
 
             if (commit == null) {
-              log.fine('Rescheduling presubmit build.');
-              // Does not do anything with the returned build oddly.
-              await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent: checkRunEvent);
+              log.fine('Rescheduling presubmit build for ${checkRunEvent.checkRun?.name}');
+              final pullRequest = await findPullRequestForSha(
+                await config.createFirestoreService(),
+                checkRunEvent.checkRun!.headSha!,
+              );
+              if (pullRequest == null) {
+                log.warning('Asked to reschedule presubmits for unknown sha/PR: ${checkRunEvent.checkRun!.headSha!}');
+                return true;
+              }
+              final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
+
+              await luciBuildService.scheduleTryBuilds(
+                targets: [
+                  presubmitTargets.firstWhere((Target target) => checkRunEvent.checkRun!.name == target.value.name),
+                ],
+                pullRequest: pullRequest,
+              );
             } else {
               log.fine('Rescheduling postsubmit build.');
               firestoreService = await config.createFirestoreService();

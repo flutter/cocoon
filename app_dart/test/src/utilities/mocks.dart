@@ -139,4 +139,10 @@ abstract class Callbacks {
     int checkRunId,
     String checkRunName,
   );
+
+  /// See [PrCheckRuns.findPullRequestForSha]
+  Future<PullRequest?> findPullRequestForSha(
+    FirestoreService firestoreService,
+    String sha,
+  );
 }
