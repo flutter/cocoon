@@ -159,7 +159,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
     final slug = pr.base!.repo!.slug();
     if (!config.supportedRepos.contains(slug)) {
-      log.warning('$crumb: ased to handle unsupported repo $slug for ${pr.htmlUrl}');
+      log.warning('$crumb: asked to handle unsupported repo $slug for ${pr.htmlUrl}');
       throw const InternalServerError('Unsupported repository');
     }
 
