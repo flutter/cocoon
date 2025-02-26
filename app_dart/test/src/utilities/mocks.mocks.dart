@@ -1526,6 +1526,12 @@ class MockConfig extends _i1.Mock implements _i2.Config {
       ) as String);
 
   @override
+  int get maxFilesChangedForSkippingEnginePhase => (super.noSuchMethod(
+        Invocation.getter(#maxFilesChangedForSkippingEnginePhase),
+        returnValue: 0,
+      ) as int);
+
+  @override
   int get maxLuciTaskRetries => (super.noSuchMethod(
         Invocation.getter(#maxLuciTaskRetries),
         returnValue: 0,
@@ -3973,6 +3979,24 @@ class MockGithubService extends _i1.Mock implements _i17.GithubService {
           ),
         )),
       ) as _i20.Future<_i13.PullRequest>);
+
+  @override
+  _i20.Future<bool> commentExists(
+    _i13.RepositorySlug? slug,
+    int? issue,
+    String? body,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #commentExists,
+          [
+            slug,
+            issue,
+            body,
+          ],
+        ),
+        returnValue: _i20.Future<bool>.value(false),
+      ) as _i20.Future<bool>);
 }
 
 /// A class which mocks [GitService].
@@ -6125,7 +6149,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
     required List<_i43.Target>? targets,
     required _i13.PullRequest? pullRequest,
     _i34.CheckSuiteEvent? checkSuiteEvent,
-    String? flutterPrebuiltEngineVersion,
+    _i15.EngineArtifacts? engineArtifacts,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -6135,7 +6159,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
             #targets: targets,
             #pullRequest: pullRequest,
             #checkSuiteEvent: checkSuiteEvent,
-            #flutterPrebuiltEngineVersion: flutterPrebuiltEngineVersion,
+            #engineArtifacts: engineArtifacts,
           },
         ),
         returnValue: _i20.Future<List<_i43.Target>>.value(<_i43.Target>[]),

@@ -461,8 +461,9 @@ class Scheduler {
             pullRequest: pullRequest,
             checkRunGuard: '$lock',
             logCrumb: logCrumb,
+
+            // The if-branch already skips the engine build phase.
             skipEngine: true,
-            flutterPrebuiltEngineVersion: pullRequest.base!.sha,
           );
           break;
         }
@@ -841,39 +842,6 @@ $stackTrace
     return presubmitTarget;
   }
 
-  /// Given a pull request event, retry all failed LUCI checks.
-  ///
-  /// 1. Aggregate .ci.yaml and try_builders.json presubmit builds.
-  /// 2. Get failed LUCI builds for this pull request at [commitSha].
-  /// 3. Rerun the failed builds that also have a failed check status.
-  Future<void> retryPresubmitTargets({
-    required PullRequest pullRequest,
-    required CheckSuiteEvent checkSuiteEvent,
-  }) async {
-    final GitHub githubClient = await config.createGitHubClient(pullRequest: pullRequest);
-    final Map<String, CheckRun> checkRuns = await githubChecksService.githubChecksUtil.allCheckRuns(
-      githubClient,
-      checkSuiteEvent,
-    );
-    final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
-    final List<bbv2.Build?> failedBuilds =
-        await luciBuildService.failedBuilds(pullRequest: pullRequest, targets: presubmitTargets);
-    for (bbv2.Build? build in failedBuilds) {
-      final CheckRun checkRun = checkRuns[build!.builder.builder]!;
-
-      if (checkRun.status != CheckRunStatus.completed) {
-        // Check run is still in progress, do not retry.
-        continue;
-      }
-
-      await luciBuildService.scheduleTryBuilds(
-        targets: presubmitTargets.where((Target target) => build.builder.builder == target.value.name).toList(),
-        pullRequest: pullRequest,
-        checkSuiteEvent: checkSuiteEvent,
-      );
-    }
-  }
-
   /// Get LUCI presubmit builders from .ci.yaml.
   ///
   /// Filters targets with runIf, matching them to the diff of [pullRequest].
@@ -1168,12 +1136,16 @@ $stackTrace
     await unlockMergeQueueGuard(slug, sha, checkRunGuard);
   }
 
+  /// Fetches, and schedules, tests that execute _after_ the engine is built.
+  ///
+  /// If [skipEngine] is `true`, engine tests are not scheduled (it is
+  /// assumed that the engine has not changed in [pullRequest] so there are no
+  /// need to run them at this PR).
   Future<void> _runCiTestingStage({
     required PullRequest pullRequest,
     required String checkRunGuard,
     required String logCrumb,
     bool skipEngine = false,
-    String? flutterPrebuiltEngineVersion,
   }) async {
     try {
       // Both the author and label should be checked to make sure that no one is
@@ -1185,6 +1157,7 @@ $stackTrace
         // Schedule the tests that would have run in a call to triggerPresubmitTargets - but for both the
         // engine and the framework.
         final presubmitTargets = await getTestsForStage(pullRequest, CiStage.fusionTests, skipEngine: skipEngine);
+
         // Create the document for tracking test check runs.
         await initializeCiStagingDocument(
           firestoreService: firestoreService,
@@ -1195,10 +1168,26 @@ $stackTrace
           checkRunGuard: checkRunGuard,
         );
 
+        // Here is where it gets fun: how do framework tests* know what engine
+        // artifacts to fetch and use on CI? For presubmits on flutter/flutter;
+        // see https://github.com/flutter/flutter/issues/164031.
+        //
+        // *In theory, also engine tests, but engine tests build from the engine
+        // from source and rely on remote-build execution (RBE) for builds to
+        // fast and cached.
+        final EngineArtifacts engineArtifacts;
+        if (skipEngine) {
+          // Use the engine that this PR was branched off of.
+          engineArtifacts = EngineArtifacts.useExistingEngine(commitSha: pullRequest.base!.sha!);
+        } else {
+          // Use the engine that was built from source *for* this PR.
+          engineArtifacts = EngineArtifacts.builtFromSource(commitSha: pullRequest.head!.sha!);
+        }
+
         await luciBuildService.scheduleTryBuilds(
           targets: presubmitTargets,
           pullRequest: pullRequest,
-          flutterPrebuiltEngineVersion: flutterPrebuiltEngineVersion,
+          engineArtifacts: engineArtifacts,
         );
       }
     } on FormatException catch (error, backtrace) {

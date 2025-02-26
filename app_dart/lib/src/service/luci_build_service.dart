@@ -256,14 +256,14 @@ class LuciBuildService {
 
   /// Schedules presubmit [targets] on BuildBucket for [pullRequest].
   ///
-  /// If [flutterPrebuiltEngineVersion] is provided, it should be a SHA string representing a Flutter engine build.
-  /// This will instruct the Luci build infrastructure to use the specified engine version instead of the default
-  /// for these try builds.
+  /// If [engineArtifacts] is provided, it determines how `FLUTTER_PREBUILT_ENGINE_VERISON` is set;
+  /// if omitted it is [EngineArtifacts.builtFromSource] when running in the `flutter/flutter` repo,
+  /// and has no effect for other repositories.
   Future<List<Target>> scheduleTryBuilds({
     required List<Target> targets,
     required github.PullRequest pullRequest,
+    EngineArtifacts? engineArtifacts,
     CheckSuiteEvent? checkSuiteEvent,
-    String? flutterPrebuiltEngineVersion,
   }) async {
     if (targets.isEmpty) {
       return targets;
@@ -331,14 +331,13 @@ class LuciBuildService {
 
       if (isFusion) {
         properties['is_fusion'] = 'true';
-        // When in fusion, we want the recipies to override the engine.realm
-        // if some environment variable (FLUTTER_REALM) is set.
-        properties['flutter_realm'] = 'flutter_archives_v2';
-      }
 
-      if (flutterPrebuiltEngineVersion != null) {
-        properties['flutter_prebuilt_engine_version'] = flutterPrebuiltEngineVersion;
-        properties['flutter_realm'] = '';
+        // Fusion *also* means "this is flutter/flutter", so determine how to specify the engine version and realm.
+        engineArtifacts ??= EngineArtifacts.builtFromSource(commitSha: pullRequest.head!.sha!);
+        properties['flutter_prebuilt_engine_version'] = engineArtifacts.commitSha;
+        properties['flutter_realm'] = engineArtifacts.flutterRealm;
+      } else if (engineArtifacts != null) {
+        throw UnsupportedError('Cannot set engineArtifacts for anything but the flutter/flutter (fusion) repository.');
       }
 
       final List<bbv2.RequestedDimension> requestedDimensions = target.getDimensions();
@@ -1409,5 +1408,34 @@ class LuciBuildService {
       entry.value = value;
     }
     tags.add(entry);
+  }
+}
+
+/// Determines how CI should download and use engine artifacts for framework tests.
+@immutable
+final class EngineArtifacts {
+  const EngineArtifacts.builtFromSource({required this.commitSha}) : flutterRealm = _kProductionArtifacts;
+  static const _kProductionArtifacts = '';
+
+  const EngineArtifacts.useExistingEngine({required this.commitSha}) : flutterRealm = _kBuildFromSourceArtifacts;
+  static const _kBuildFromSourceArtifacts = 'flutter_archives_v2';
+
+  /// What SHA to provide to `FLUTTER_PREBUILT_ENGINE_VERSION`.
+  final String commitSha;
+
+  /// Which storage upload bucket this artifact belongs to.
+  final String flutterRealm;
+
+  @override
+  bool operator ==(Object other) {
+    return other is EngineArtifacts && commitSha == other.commitSha && flutterRealm == other.flutterRealm;
+  }
+
+  @override
+  int get hashCode => Object.hash(commitSha, flutterRealm);
+
+  @override
+  String toString() {
+    return 'EngineArtifacts.${flutterRealm == _kProductionArtifacts ? 'builtFromSource' : 'useExistingEngine'}(commitSha: $commitSha)';
   }
 }
