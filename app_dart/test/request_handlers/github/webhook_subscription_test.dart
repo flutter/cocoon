@@ -11,6 +11,7 @@ import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' hide CheckRun;
 import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
+import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
@@ -520,6 +521,47 @@ void main() {
       );
 
       await tester.post(webhook);
+
+      verifyNever(
+        pullRequestsService.edit(
+          Config.flutterSlug,
+          issueNumber,
+          base: kDefaultBranchName,
+        ),
+      );
+
+      verifyNever(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.wrongBaseBranchPullRequestMessage)),
+        ),
+      );
+    });
+
+    test('Does nothing against non supported repository', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        baseRef: 'master',
+        slug: RepositorySlug.full('flutter/engine'),
+      );
+
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'packages/flutter/blah.dart',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(Config.flutterSlug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      expect(tester.post(webhook), throwsA(isA<InternalServerError>()));
 
       verifyNever(
         pullRequestsService.edit(
