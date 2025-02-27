@@ -117,7 +117,7 @@ void main() {
           builderName: 'Linux Coverage',
           build: _fakeBuild,
           userDataMap: userData,
-          rescheduleAttempt: 1,
+          nextAttempt: 1,
         ),
       ).thenAnswer(
         (_) async => Build(
@@ -161,7 +161,7 @@ void main() {
           builderName: 'Linux Coverage',
           build: _fakeBuild,
           userDataMap: userData,
-          rescheduleAttempt: 1,
+          nextAttempt: 1,
         ),
       ).thenAnswer(
         (_) async => Build(

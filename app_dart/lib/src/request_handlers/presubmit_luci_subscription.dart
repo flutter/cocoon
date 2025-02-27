@@ -119,7 +119,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
           await luciBuildService.rescheduleBuild(
             builderName: builderName,
             build: build,
-            rescheduleAttempt: currentAttempt + 1,
+            nextAttempt: currentAttempt + 1,
             userDataMap: userDataMap,
           );
         }
@@ -137,12 +137,15 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     return Body.empty;
   }
 
-  /// Returns current reschedule attempt.
+  /// Returns the current reschedule attempt.
   ///
-  /// It returns 1 if this is the first run, and +1 with each reschedule.
+  /// It returns 1 if this is the first run.
   static int _nextAttempt(Iterable<BuildTag> buildTags) {
     final attempt = buildTags.whereType<CurrentAttemptBuildTag>().firstOrNull;
-    return attempt?.attemptNumber ?? 1;
+    if (attempt == null) {
+      return 1;
+    }
+    return attempt.attemptNumber;
   }
 
   Future<int> _getMaxAttempt(

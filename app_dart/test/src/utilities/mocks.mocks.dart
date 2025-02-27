@@ -6211,7 +6211,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
   _i20.Future<_i8.Build> rescheduleBuild({
     required String? builderName,
     required _i8.Build? build,
-    required int? rescheduleAttempt,
+    required int? nextAttempt,
     required Map<String, dynamic>? userDataMap,
   }) =>
       (super.noSuchMethod(
@@ -6221,7 +6221,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
           {
             #builderName: builderName,
             #build: build,
-            #rescheduleAttempt: rescheduleAttempt,
+            #nextAttempt: nextAttempt,
             #userDataMap: userDataMap,
           },
         ),
@@ -6233,7 +6233,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
             {
               #builderName: builderName,
               #build: build,
-              #rescheduleAttempt: rescheduleAttempt,
+              #nextAttempt: nextAttempt,
               #userDataMap: userDataMap,
             },
           ),
