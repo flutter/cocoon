@@ -846,8 +846,13 @@ targets:
         });
 
         final luci = MockLuciBuildService();
-        when(luci.scheduleTryBuilds(targets: anyNamed('targets'), pullRequest: anyNamed('pullRequest')))
-            .thenAnswer((inv) async {
+        when(
+          luci.scheduleTryBuilds(
+            targets: anyNamed('targets'),
+            pullRequest: anyNamed('pullRequest'),
+            engineArtifacts: anyNamed('engineArtifacts'),
+          ),
+        ).thenAnswer((inv) async {
           return [];
         });
 
@@ -877,6 +882,7 @@ targets:
           luci.scheduleTryBuilds(
             targets: captureAnyNamed('targets'),
             pullRequest: captureAnyNamed('pullRequest'),
+            engineArtifacts: anyNamed('engineArtifacts'),
           ),
         ).captured;
 

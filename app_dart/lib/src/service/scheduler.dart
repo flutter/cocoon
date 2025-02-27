@@ -466,12 +466,12 @@ class Scheduler {
             logCrumb: logCrumb,
 
             // The if-branch already skips the engine build phase.
-            skipEngine: true,
+            testsToRun: _FlutterRepoTestsToRun.frameworkTestsOnly,
           );
           break;
         }
         final presubmitTargets = isFusion
-            ? await getTestsForStage(pullRequest, CiStage.fusionEngineBuild)
+            ? await _getTestsForStage(pullRequest, CiStage.fusionEngineBuild)
             : await getPresubmitTargets(pullRequest);
         final presubmitTriggerTargets = filterTargets(presubmitTargets, builderTriggerList);
 
@@ -1121,7 +1121,7 @@ $stackTrace
   }
 
   /// Returns the presubmit targets for the fusion repo [pullRequest] that should run for the given [stage].
-  Future<List<Target>> getTestsForStage(PullRequest pullRequest, CiStage stage, {bool skipEngine = false}) async {
+  Future<List<Target>> _getTestsForStage(PullRequest pullRequest, CiStage stage, {bool skipEngine = false}) async {
     final presubmitTargets = [
       ...await getPresubmitTargets(pullRequest),
       if (!skipEngine) ...await getPresubmitTargets(pullRequest, type: CiType.fusionEngine),
@@ -1148,16 +1148,12 @@ $stackTrace
     await unlockMergeQueueGuard(slug, sha, checkRunGuard);
   }
 
-  /// Fetches, and schedules, tests that execute _after_ the engine is built.
-  ///
-  /// If [skipEngine] is `true`, engine tests are not scheduled (it is
-  /// assumed that the engine has not changed in [pullRequest] so there are no
-  /// need to run them at this PR).
+  /// Schedules post-engine build tests (i.e. engine tests, and framework tests).
   Future<void> _runCiTestingStage({
     required PullRequest pullRequest,
     required String checkRunGuard,
     required String logCrumb,
-    bool skipEngine = false,
+    required _FlutterRepoTestsToRun testsToRun,
   }) async {
     try {
       // Both the author and label should be checked to make sure that no one is
@@ -1168,7 +1164,11 @@ $stackTrace
       } else {
         // Schedule the tests that would have run in a call to triggerPresubmitTargets - but for both the
         // engine and the framework.
-        final presubmitTargets = await getTestsForStage(pullRequest, CiStage.fusionTests, skipEngine: skipEngine);
+        final presubmitTargets = await _getTestsForStage(
+          pullRequest,
+          CiStage.fusionTests,
+          skipEngine: testsToRun == _FlutterRepoTestsToRun.frameworkTestsOnly,
+        );
 
         // Create the document for tracking test check runs.
         await initializeCiStagingDocument(
@@ -1188,7 +1188,7 @@ $stackTrace
         // from source and rely on remote-build execution (RBE) for builds to
         // fast and cached.
         final EngineArtifacts engineArtifacts;
-        if (skipEngine) {
+        if (testsToRun == _FlutterRepoTestsToRun.frameworkTestsOnly) {
           // Use the engine that this PR was branched off of.
           engineArtifacts = EngineArtifacts.usingExistingEngine(commitSha: pullRequest.base!.sha!);
         } else {
@@ -1255,7 +1255,12 @@ $stackTrace
     }
 
     try {
-      await _runCiTestingStage(pullRequest: pullRequest, checkRunGuard: '$checkRunGuard', logCrumb: logCrumb);
+      await _runCiTestingStage(
+        pullRequest: pullRequest,
+        checkRunGuard: '$checkRunGuard',
+        logCrumb: logCrumb,
+        testsToRun: _FlutterRepoTestsToRun.engineTestsAndFrameworkTests,
+      );
     } catch (error, stacktrace) {
       await githubChecksService.githubChecksUtil.createCheckRun(
         config,
@@ -1526,4 +1531,13 @@ $stacktrace
     }
     return CheckRun.fromJson(checkRunJson);
   }
+}
+
+/// Describes in `flutter/flutter` which tests to schedule.
+enum _FlutterRepoTestsToRun {
+  /// Run tests _of_ the engine, and tests in the framework (that use an engine).
+  engineTestsAndFrameworkTests,
+
+  /// Run only tests in the framework (that use an engine), skpping engine tests.
+  frameworkTestsOnly;
 }
