@@ -12,6 +12,7 @@ import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
+import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
@@ -61,6 +62,7 @@ class Scheduler {
     @visibleForTesting this.markCheckRunConclusion = CiStaging.markConclusion,
     @visibleForTesting this.initializeCiStagingDocument = CiStaging.initializeDocument,
     @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
+    @visibleForTesting this.findPullRequestForSha = PrCheckRuns.findPullRequestForSha,
   });
 
   final GetFilesChanged getFilesChanged;
@@ -98,6 +100,8 @@ class Scheduler {
     int checkRunId,
     String checkRunName,
   ) findPullRequestFor;
+
+  final Future<PullRequest?> Function(FirestoreService firestoreService, String sha) findPullRequestForSha;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
@@ -473,6 +477,7 @@ class Scheduler {
 
         // When running presubmits for a fusion PR; create a new staging document to track tasks needed
         // to complete before we can schedule more tests (i.e. build engine artifacts before testing against them).
+        final EngineArtifacts engineArtifacts;
         if (isFusion) {
           await initializeCiStagingDocument(
             firestoreService: firestoreService,
@@ -482,10 +487,18 @@ class Scheduler {
             tasks: [...presubmitTriggerTargets.map((t) => t.value.name)],
             checkRunGuard: '$lock',
           );
+          engineArtifacts = const EngineArtifacts.noFrameworkTests(
+            reason: 'This is the engine phase of the build',
+          );
+        } else {
+          engineArtifacts = const EngineArtifacts.noFrameworkTests(
+            reason: 'This is not the flutter/flutter repository',
+          );
         }
         await luciBuildService.scheduleTryBuilds(
           targets: presubmitTriggerTargets,
           pullRequest: pullRequest,
+          engineArtifacts: engineArtifacts,
         );
       } on FormatException catch (error, backtrace) {
         log.warning('FormatException encountered when scheduling presubmit targets for ${pullRequest.number}');
@@ -1177,7 +1190,7 @@ $stackTrace
         final EngineArtifacts engineArtifacts;
         if (skipEngine) {
           // Use the engine that this PR was branched off of.
-          engineArtifacts = EngineArtifacts.useExistingEngine(commitSha: pullRequest.base!.sha!);
+          engineArtifacts = EngineArtifacts.usingExistingEngine(commitSha: pullRequest.base!.sha!);
         } else {
           // Use the engine that was built from source *for* this PR.
           engineArtifacts = EngineArtifacts.builtFromSource(commitSha: pullRequest.head!.sha!);
@@ -1367,9 +1380,40 @@ $stacktrace
             }
 
             if (commit == null) {
-              log.fine('Rescheduling presubmit build.');
-              // Does not do anything with the returned build oddly.
-              await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent: checkRunEvent);
+              log.fine('Rescheduling presubmit build for ${checkRunEvent.checkRun?.name}');
+              final pullRequest = await findPullRequestForSha(
+                await config.createFirestoreService(),
+                checkRunEvent.checkRun!.headSha!,
+              );
+              if (pullRequest == null) {
+                log.warning('Asked to reschedule presubmits for unknown sha/PR: ${checkRunEvent.checkRun!.headSha!}');
+                return true;
+              }
+              final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
+
+              final EngineArtifacts engineArtifacts;
+              if (await fusionTester.isFusionBasedRef(slug, sha)) {
+                if (await _applyFrameworkOnlyPrOptimization(
+                  slug,
+                  changedFilesCount: pullRequest.changedFilesCount!,
+                  prNumber: pullRequest.number!,
+                  prBranch: pullRequest.base!.ref!,
+                )) {
+                  engineArtifacts = EngineArtifacts.usingExistingEngine(commitSha: pullRequest.base!.sha!);
+                } else {
+                  engineArtifacts = EngineArtifacts.builtFromSource(commitSha: pullRequest.head!.sha!);
+                }
+              } else {
+                engineArtifacts = const EngineArtifacts.noFrameworkTests(reason: 'Not flutter/flutter');
+              }
+
+              await luciBuildService.scheduleTryBuilds(
+                targets: [
+                  presubmitTargets.firstWhere((Target target) => checkRunEvent.checkRun!.name == target.value.name),
+                ],
+                pullRequest: pullRequest,
+                engineArtifacts: engineArtifacts,
+              );
             } else {
               log.fine('Rescheduling postsubmit build.');
               firestoreService = await config.createFirestoreService();

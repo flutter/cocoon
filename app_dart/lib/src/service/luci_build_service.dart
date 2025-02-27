@@ -10,11 +10,11 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
+import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:collection/collection.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/github.dart';
-import 'package:github/hooks.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
 
@@ -28,7 +28,6 @@ import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/user_data.dart';
 import '../service/datastore.dart';
 import 'exceptions.dart';
-import 'github_service.dart';
 
 /// Class to interact with LUCI buildbucket to get, trigger
 /// and cancel builds for github repos. It uses [config.luciTryBuilders] to
@@ -256,14 +255,13 @@ class LuciBuildService {
 
   /// Schedules presubmit [targets] on BuildBucket for [pullRequest].
   ///
-  /// If [engineArtifacts] is provided, it determines how `FLUTTER_PREBUILT_ENGINE_VERISON` is set;
-  /// if omitted it is [EngineArtifacts.builtFromSource] when running in the `flutter/flutter` repo,
-  /// and has no effect for other repositories.
+  /// [engineArtifacts] determines how framework tests download and use the Flutter engine by
+  /// providing `FLUTTER_PREBUILT_ENGINE_VERISON` if set. For builds that are not running
+  /// framework tests, provide [EngineArtifacts.noFrameworkTests].
   Future<List<Target>> scheduleTryBuilds({
     required List<Target> targets,
     required github.PullRequest pullRequest,
-    EngineArtifacts? engineArtifacts,
-    CheckSuiteEvent? checkSuiteEvent,
+    required EngineArtifacts engineArtifacts,
   }) async {
     if (targets.isEmpty) {
       return targets;
@@ -333,11 +331,22 @@ class LuciBuildService {
         properties['is_fusion'] = 'true';
 
         // Fusion *also* means "this is flutter/flutter", so determine how to specify the engine version and realm.
-        engineArtifacts ??= EngineArtifacts.builtFromSource(commitSha: pullRequest.head!.sha!);
-        properties['flutter_prebuilt_engine_version'] = engineArtifacts.commitSha;
-        properties['flutter_realm'] = engineArtifacts.flutterRealm;
-      } else if (engineArtifacts != null) {
-        throw UnsupportedError('Cannot set engineArtifacts for anything but the flutter/flutter (fusion) repository.');
+        switch (engineArtifacts) {
+          case SpecifiedEngineArtifacts(:final commitSha, :final flutterRealm):
+            properties['flutter_prebuilt_engine_version'] = commitSha;
+            properties['flutter_realm'] = flutterRealm;
+          case UnnecessaryEngineArtifacts(:final reason):
+            log.fine(
+              'No engineArtifacts were specified for PR#${pullRequest.number} (${pullRequest.head!.sha}): $reason.',
+            );
+        }
+      } else if (engineArtifacts is! UnnecessaryEngineArtifacts) {
+        // This is an error case, as we're setting artifacts for a PR that will never use them.
+        log.warning(
+          'Unexpected engineArtifacts were specified for PR#${pullRequest.number} (${pullRequest.head!.sha})',
+          null,
+          StackTrace.current,
+        );
       }
 
       final List<bbv2.RequestedDimension> requestedDimensions = target.getDimensions();
@@ -523,123 +532,6 @@ class LuciBuildService {
     }
 
     return buildBucketClient.scheduleBuild(request);
-  }
-
-  /// Sends presubmit [ScheduleBuildRequest] for a pull request using [checkRunEvent].
-  ///
-  /// Returns the [bbv2.Build] returned by scheduleBuildRequest.
-  Future<bbv2.Build> reschedulePresubmitBuildUsingCheckRunEvent({
-    required cocoon_checks.CheckRunEvent checkRunEvent,
-  }) async {
-    final github.RepositorySlug slug = checkRunEvent.repository!.slug();
-
-    final String sha = checkRunEvent.checkRun!.headSha!;
-    final String checkName = checkRunEvent.checkRun!.name!;
-
-    final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(
-      config,
-      slug,
-      sha,
-      checkName,
-    );
-
-    final Iterable<bbv2.Build> builds = await getTryBuilds(
-      sha: sha,
-      builderName: checkName,
-    );
-    if (builds.isEmpty) {
-      throw NoBuildFoundException('Unable to find try build.');
-    }
-
-    final bbv2.Build build = builds.first;
-
-    // Assumes that the tags are already defined.
-    final List<bbv2.StringPair> tags = build.tags;
-    final String prString = tags
-        .firstWhere(
-          (element) => element.key == 'buildset' && element.value.startsWith('pr/git'),
-        )
-        .value;
-    final String cipdVersion = tags.firstWhere((element) => element.key == 'cipd_version').value;
-    final String githubLink = tags.firstWhere((element) => element.key == 'github_link').value;
-
-    final String repoName = githubLink.split('/')[4];
-    final String branch = Config.defaultBranch(github.RepositorySlug('flutter', repoName));
-    final int prNumber = int.parse(prString.split('/')[2]);
-
-    final Map<String, dynamic> userData = <String, dynamic>{
-      'check_run_id': githubCheckRun.id,
-      'commit_branch': branch,
-      'commit_sha': sha,
-    };
-
-    final bbv2.Struct propertiesStruct =
-        (build.input.hasProperties()) ? build.input.properties : bbv2.Struct().createEmptyInstance();
-    final Map<String, Object?> properties = propertiesStruct.toProto3Json() as Map<String, Object?>;
-    final GithubService githubService = await config.createGithubService(slug);
-
-    final List<github.IssueLabel> issueLabels = await githubService.getIssueLabels(
-      slug,
-      prNumber,
-    );
-    final List<String>? labels = extractPrefixedLabels(
-      issueLabels: issueLabels,
-      prefix: githubBuildLabelPrefix,
-    );
-
-    if (labels != null && labels.isNotEmpty) {
-      properties[propertiesGithubBuildLabelName] = labels;
-    }
-
-    final isFusion = await fusionTester.isFusionBasedRef(slug, sha);
-    if (isFusion) {
-      properties['is_fusion'] = 'true';
-      if (!properties.containsKey('flutter_prebuilt_engine_version')) {
-        // When in fusion, we want the recipes to override the engine.realm
-        // if some environment variable (FLUTTER_REALM) is set.
-        properties['flutter_realm'] = 'flutter_archives_v2';
-      }
-    }
-
-    final bbv2.ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
-      slug: slug,
-      sha: sha,
-      checkName: checkName,
-      pullRequestNumber: prNumber,
-      cipdVersion: cipdVersion,
-      properties: properties,
-      userData: userData,
-    );
-
-    final bbv2.Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
-    final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
-    await githubChecksUtil.updateCheckRun(
-      config,
-      slug,
-      githubCheckRun,
-      detailsUrl: buildUrl,
-    );
-
-    // Check run created, now record it in firestore so we can figure out which
-    // PR started what check run later (e.g. check_run completed).
-    try {
-      final firestore = await config.createFirestoreService();
-      // Find the original pull request.
-      final pullRequest = await findPullRequestFor(firestore, checkRunEvent.checkRun!.id!, checkName);
-
-      final doc = await initializePrCheckRuns(
-        firestoreService: firestore,
-        pullRequest: pullRequest,
-        checks: [githubCheckRun],
-      );
-      log.info('reschedulePresubmitBuildUsingCheckRunEvent: created PrCheckRuns doc ${doc.name}');
-    } catch (e, s) {
-      // We are not going to block on this error. If we cannot find this document
-      // later, we'll fall back to the old github query method.
-      log.warning('reschedulePresubmitBuildUsingCheckRunEvent: error creating PrCheckRuns doc', e, s);
-    }
-
-    return scheduleBuild;
   }
 
   /// Collect any label whose name is prefixed by the prefix [String].
@@ -1408,34 +1300,5 @@ class LuciBuildService {
       entry.value = value;
     }
     tags.add(entry);
-  }
-}
-
-/// Determines how CI should download and use engine artifacts for framework tests.
-@immutable
-final class EngineArtifacts {
-  const EngineArtifacts.builtFromSource({required this.commitSha}) : flutterRealm = _kProductionArtifacts;
-  static const _kProductionArtifacts = '';
-
-  const EngineArtifacts.useExistingEngine({required this.commitSha}) : flutterRealm = _kBuildFromSourceArtifacts;
-  static const _kBuildFromSourceArtifacts = 'flutter_archives_v2';
-
-  /// What SHA to provide to `FLUTTER_PREBUILT_ENGINE_VERSION`.
-  final String commitSha;
-
-  /// Which storage upload bucket this artifact belongs to.
-  final String flutterRealm;
-
-  @override
-  bool operator ==(Object other) {
-    return other is EngineArtifacts && commitSha == other.commitSha && flutterRealm == other.flutterRealm;
-  }
-
-  @override
-  int get hashCode => Object.hash(commitSha, flutterRealm);
-
-  @override
-  String toString() {
-    return 'EngineArtifacts.${flutterRealm == _kProductionArtifacts ? 'builtFromSource' : 'useExistingEngine'}(commitSha: $commitSha)';
   }
 }

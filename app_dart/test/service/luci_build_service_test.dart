@@ -16,6 +16,7 @@ import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
+import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/datastore.dart';
 import 'package:github/github.dart';
@@ -460,7 +461,7 @@ void main() {
       final List<Target> scheduledTargets = await service.scheduleTryBuilds(
         pullRequest: pullRequest,
         targets: targets,
-        engineArtifacts: EngineArtifacts.useExistingEngine(commitSha: pullRequest.base!.sha!),
+        engineArtifacts: EngineArtifacts.usingExistingEngine(commitSha: pullRequest.base!.sha!),
       );
 
       final result = verify(
@@ -539,6 +540,7 @@ void main() {
       final List<Target> scheduledTargets = await service.scheduleTryBuilds(
         pullRequest: pullRequest,
         targets: targets,
+        engineArtifacts: EngineArtifacts.builtFromSource(commitSha: pullRequest.head!.sha!),
       );
       final Iterable<String> scheduledTargetNames = scheduledTargets.map((Target target) => target.value.name);
       expect(scheduledTargetNames, <String>['Linux 1']);
@@ -626,13 +628,14 @@ void main() {
       expect(properties, contains('flutter_prebuilt_engine_version'));
       expect(properties['flutter_prebuilt_engine_version']!.stringValue, 'sha1234');
       expect(properties, contains('flutter_realm'));
-      expect(properties['flutter_realm']!.stringValue, '');
+      expect(properties['flutter_realm']!.stringValue, 'flutter_archives_v2');
     });
 
     test('Schedule builds no-ops when targets list is empty', () async {
       await service.scheduleTryBuilds(
         pullRequest: pullRequest,
         targets: <Target>[],
+        engineArtifacts: const EngineArtifacts.noFrameworkTests(reason: 'Just a test'),
       );
       verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
     });
@@ -1169,83 +1172,6 @@ void main() {
         pubsub: pubsub,
         fusionTester: FakeFusionTester(),
       );
-    });
-
-    test('reschedule using checkrun event', () async {
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
-          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
-
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return bbv2.BatchResponse(
-          responses: <bbv2.BatchResponse_Response>[
-            bbv2.BatchResponse_Response(
-              searchBuilds: bbv2.SearchBuildsResponse(
-                builds: <bbv2.Build>[
-                  generateBbv2Build(
-                    Int64(1),
-                    name: 'Linux',
-                    status: bbv2.Status.ENDED_MASK,
-                    tags: <bbv2.StringPair>[
-                      bbv2.StringPair(key: 'buildset', value: 'pr/git/123'),
-                      bbv2.StringPair(
-                        key: 'cipd_version',
-                        value: 'refs/heads/main',
-                      ),
-                      bbv2.StringPair(
-                        key: 'github_link',
-                        value: 'https://github.com/flutter/flutter/pull/1',
-                      ),
-                    ],
-                    input: bbv2.Build_Input(
-                      properties: bbv2.Struct(
-                        fields: {'test': bbv2.Value(stringValue: 'abc')},
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      });
-      when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBbv2Build(Int64(1)));
-
-      final pushMessage = generateCheckRunEvent(action: 'created', numberOfPullRequests: 1);
-      final Map<String, dynamic> jsonMap = json.decode(pushMessage.data!);
-      final Map<String, dynamic> jsonSubMap = json.decode(jsonMap['2']);
-      final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
-
-      await service.reschedulePresubmitBuildUsingCheckRunEvent(
-        checkRunEvent: checkRunEvent,
-      );
-
-      final List<dynamic> captured = verify(
-        mockBuildBucketClient.scheduleBuild(
-          captureAny,
-        ),
-      ).captured;
-      expect(captured.length, 1);
-
-      final bbv2.ScheduleBuildRequest scheduleBuildRequest = captured[0] as bbv2.ScheduleBuildRequest;
-
-      final Map<String, dynamic> userData = UserData.decodeUserDataBytes(scheduleBuildRequest.notify.userData);
-
-      expect(userData, <String, dynamic>{
-        'check_run_id': 1,
-        'commit_branch': 'master',
-        'commit_sha': 'ec26c3e57ca3a959ca5aad62de7213c562f8c821',
-        'repo_owner': 'flutter',
-        'repo_name': 'flutter',
-        'user_agent': 'flutter-cocoon',
-      });
-
-      final Map<String, dynamic> expectedProperties = {};
-      expectedProperties['overrides'] = ['override: test'];
-      final bbv2.Struct propertiesStruct = bbv2.Struct().createEmptyInstance();
-      propertiesStruct.mergeFromProto3Json(expectedProperties);
-
-      final Map<String, bbv2.Value> properties = scheduleBuildRequest.properties.fields;
-      expect(properties['overrides'], propertiesStruct.fields['overrides']);
     });
   });
 

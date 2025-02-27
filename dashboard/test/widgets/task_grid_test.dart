@@ -716,7 +716,6 @@ void main() {
               ..name = '5'
               ..builderName = '5'
               ..status = TaskBox.statusInProgress,
-            Task()..status = 'Invalid value',
           ],
         ),
       CommitStatus()
@@ -753,7 +752,6 @@ void main() {
               ..builderName = '5'
               ..attempts = 2
               ..status = TaskBox.statusInProgress,
-            Task()..status = 'Invalid value',
           ],
         ),
       CommitStatus()
@@ -790,7 +788,6 @@ void main() {
               ..builderName = '5'
               ..isFlaky = true
               ..status = TaskBox.statusInProgress,
-            Task()..status = 'Invalid value',
           ],
         ),
       CommitStatus()
@@ -832,7 +829,6 @@ void main() {
               ..attempts = 2
               ..isFlaky = true
               ..status = TaskBox.statusInProgress,
-            Task()..status = 'Invalid value',
           ],
         ),
     ];

@@ -199,6 +199,7 @@ void main() {
       ..stageName = StageName.luci
       ..name = 'Tasky McTaskFace'
       ..isFlaky = false
+      ..status = TaskBox.statusSucceeded
       ..createTimestamp = int64FromDateTime(createTime)
       ..startTimestamp = int64FromDateTime(startTime)
       ..endTimestamp = int64FromDateTime(finishTime);
@@ -413,6 +414,7 @@ void main() {
       ..stageName = StageName.luci
       ..name = 'Tasky McTaskFace'
       ..reservedForAgentId = 'Agenty McAgentFace'
+      ..status = TaskBox.statusSucceeded
       ..isFlaky = false;
 
     final FakeBuildState buildState = FakeBuildState(rerunTaskResult: true);
@@ -451,6 +453,7 @@ void main() {
       ..stageName = StageName.luci
       ..name = 'Tasky McTaskFace'
       ..reservedForAgentId = 'Agenty McAgentFace'
+      ..status = TaskBox.statusSucceeded
       ..isFlaky = false;
 
     final FakeBuildState buildState = FakeBuildState(rerunTaskResult: true);
