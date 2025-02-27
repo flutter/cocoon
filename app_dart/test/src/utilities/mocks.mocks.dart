@@ -3216,15 +3216,6 @@ class MockGithubChecksService extends _i1.Mock implements _i15.GithubChecksServi
       ) as bool);
 
   @override
-  int currentAttempt(List<_i8.StringPair>? tags) => (super.noSuchMethod(
-        Invocation.method(
-          #currentAttempt,
-          [tags],
-        ),
-        returnValue: 0,
-      ) as int);
-
-  @override
   String getGithubSummary(String? summary) => (super.noSuchMethod(
         Invocation.method(
           #getGithubSummary,
