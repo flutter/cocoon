@@ -4,9 +4,9 @@
 
 import 'dart:async';
 
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
+import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
@@ -171,23 +171,14 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       documentName: taskDocumentName,
     );
 
-    final List<bbv2.StringPair> tags = <bbv2.StringPair>[
-      bbv2.StringPair(
-        key: 'triggered_by',
-        value: email,
-      ),
-      bbv2.StringPair(
-        key: 'trigger_type',
-        value: 'manual_retry',
-      ),
-    ];
-
     final bool isRerunning = await luciBuildService.checkRerunBuilder(
       commit: commit,
       task: task,
       target: target,
       datastore: datastore,
-      tags: tags,
+      tags: [
+        TriggerdByBuildTag(email: email),
+      ],
       ignoreChecks: ignoreChecks,
       firestoreService: firestoreService,
       taskDocument: taskDocument,

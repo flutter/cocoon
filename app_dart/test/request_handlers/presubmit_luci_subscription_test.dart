@@ -5,6 +5,7 @@
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/testing/mocks.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -127,7 +128,6 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
-    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 1);
 
     const Map<String, dynamic> userDataMap = {
       'repo_owner': 'flutter',
@@ -149,26 +149,12 @@ void main() {
       builder: 'Linux A',
     );
 
-    when(
-      mockLuciBuildService.rescheduleBuild(
-        build: buildsPubSub.build,
-        builderName: 'Linux Coverage',
-        rescheduleAttempt: 0,
-        userDataMap: userDataMap,
-      ),
-    ).thenAnswer(
-      (_) async => bbv2.Build(
-        id: Int64(8905920700440101120),
-        builder: bbv2.BuilderID(bucket: 'luci.flutter.prod', project: 'flutter', builder: 'Linux Coverage'),
-      ),
-    );
-
     await tester.post(handler);
     verifyNever(
       mockLuciBuildService.rescheduleBuild(
         build: buildsPubSub.build,
         builderName: 'Linux Coverage',
-        rescheduleAttempt: 0,
+        nextAttempt: 0,
         userDataMap: userDataMap,
       ),
     );
@@ -193,7 +179,6 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
-    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 0);
 
     const Map<String, dynamic> userDataMap = {
       'repo_owner': 'flutter',
@@ -205,38 +190,11 @@ void main() {
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
-      builder: 'Linux B',
+      builder: 'Linux presubmit_max_attempts=2',
       userData: userDataMap,
     );
-
-    final bbv2.BuildsV2PubSub buildsPubSub = createBuild(
-      Int64(1),
-      status: bbv2.Status.SUCCESS,
-      builder: 'Linux A',
-    );
-
-    when(
-      mockLuciBuildService.rescheduleBuild(
-        build: buildsPubSub.build,
-        builderName: 'Linux Coverage',
-        rescheduleAttempt: 1,
-        userDataMap: userDataMap,
-      ),
-    ).thenAnswer(
-      (_) async => bbv2.Build(
-        id: Int64(8905920700440101120),
-        builder: bbv2.BuilderID(bucket: 'luci.flutter.prod', project: 'flutter', builder: 'Linux B'),
-      ),
-    );
     await tester.post(handler);
-    verifyNever(
-      mockLuciBuildService.rescheduleBuild(
-        build: buildsPubSub.build,
-        builderName: 'Linux Coverage',
-        rescheduleAttempt: 1,
-        userDataMap: userDataMap,
-      ),
-    );
+
     verify(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
@@ -259,7 +217,6 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
-    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 0);
 
     const Map<String, dynamic> userDataMap = {
       'repo_owner': 'flutter',
@@ -273,14 +230,17 @@ void main() {
       status: bbv2.Status.INFRA_FAILURE,
       builder: 'Linux A',
       userData: userDataMap,
-      extraTags: [bbv2.StringPair(key: LuciBuildService.kMergeQueueKey, value: 'true')],
+      // Merge queue should get extra requeues by default, even without presubmit_max_attempts > 1.
+      extraTags: [
+        InMergeQueueBuildTag().toStringPair(),
+      ],
     );
 
     when(
       mockLuciBuildService.rescheduleBuild(
         build: anyNamed('build'),
         builderName: anyNamed('builderName'),
-        rescheduleAttempt: anyNamed('rescheduleAttempt'),
+        nextAttempt: anyNamed('nextAttempt'),
         userDataMap: anyNamed('userDataMap'),
       ),
     ).thenAnswer(
@@ -305,7 +265,7 @@ void main() {
       mockLuciBuildService.rescheduleBuild(
         build: anyNamed('build'),
         builderName: 'Linux A',
-        rescheduleAttempt: 1,
+        nextAttempt: 2,
         userDataMap: anyNamed('userDataMap'),
       ),
     ).called(1);
@@ -331,7 +291,7 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
-    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 1);
+    // when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 1);
 
     const Map<String, dynamic> userDataMap = {
       'repo_owner': 'flutter',
@@ -359,7 +319,7 @@ void main() {
         build: buildsPubSub.build,
         builderName: 'Linux C',
         userDataMap: userDataMap,
-        rescheduleAttempt: 1,
+        nextAttempt: 1,
       ),
     );
     verify(
@@ -385,7 +345,7 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
-    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 1);
+    //  when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 1);
 
     final Map<String, dynamic> userDataMap = {
       'repo_owner': 'flutter',
@@ -413,7 +373,7 @@ void main() {
         build: buildsPubSub.build,
         builderName: 'Linux C',
         userDataMap: userDataMap,
-        rescheduleAttempt: 1,
+        nextAttempt: 1,
       ),
     );
     verify(
@@ -438,7 +398,6 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
-    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 0);
 
     const Map<String, dynamic> userDataMap = {
       'repo_owner': 'flutter',
@@ -450,7 +409,7 @@ void main() {
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
-      builder: 'Linux A',
+      builder: 'Linux presubmit_max_attempts=2',
       userData: userDataMap,
     );
 
@@ -458,7 +417,7 @@ void main() {
       mockLuciBuildService.rescheduleBuild(
         build: captureAnyNamed('build'),
         builderName: anyNamed('builderName'),
-        rescheduleAttempt: anyNamed('rescheduleAttempt'),
+        nextAttempt: anyNamed('nextAttempt'),
         userDataMap: anyNamed('userDataMap'),
       ),
     ).thenAnswer((_) async {
@@ -484,7 +443,7 @@ void main() {
       mockLuciBuildService.rescheduleBuild(
         build: captureAnyNamed('build'),
         builderName: anyNamed('builderName'),
-        rescheduleAttempt: anyNamed('rescheduleAttempt'),
+        nextAttempt: anyNamed('nextAttempt'),
         userDataMap: anyNamed('userDataMap'),
       ),
     ).captured[0];

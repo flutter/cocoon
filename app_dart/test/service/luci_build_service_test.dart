@@ -1332,7 +1332,7 @@ void main() {
       final build = await service.rescheduleBuild(
         builderName: 'mybuild',
         build: rescheduleBuild.build,
-        rescheduleAttempt: 2,
+        nextAttempt: 2,
         userDataMap: {},
       );
       expect(build.id, Int64(1));
@@ -1365,7 +1365,7 @@ void main() {
       final build = await service.rescheduleBuild(
         builderName: 'mybuild',
         build: rescheduleBuild.build,
-        rescheduleAttempt: 2,
+        nextAttempt: 2,
         userDataMap: {},
       );
       expect(build.id, Int64(1));
