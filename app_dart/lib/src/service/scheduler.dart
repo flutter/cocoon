@@ -14,6 +14,7 @@ import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
+import 'package:collection/collection.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
@@ -1412,10 +1413,18 @@ $stacktrace
                 engineArtifacts = const EngineArtifacts.noFrameworkTests(reason: 'Not flutter/flutter');
               }
 
+              final target = presubmitTargets.firstWhereOrNull(
+                (target) => checkRunEvent.checkRun!.name == target.value.name,
+              );
+              if (target == null) {
+                // TODO(matanlurey): Revisit why this is coming up null, it's just mitigation for https://github.com/flutter/flutter/issues/164342 until then.
+                log.warning(
+                  'Could not reschedule checkRun "${checkRunEvent.checkRun!.name}", not found in list of presubmit targets: ${presubmitTargets.map((t) => t.value.name).toList()}',
+                );
+                return true;
+              }
               await luciBuildService.scheduleTryBuilds(
-                targets: [
-                  presubmitTargets.firstWhere((Target target) => checkRunEvent.checkRun!.name == target.value.name),
-                ],
+                targets: [target],
                 pullRequest: pullRequest,
                 engineArtifacts: engineArtifacts,
               );
