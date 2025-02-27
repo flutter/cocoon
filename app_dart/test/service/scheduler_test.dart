@@ -3130,7 +3130,7 @@ targets:
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
           fakeLuciBuildService.engineArtifacts,
-          isNull,
+          isA<UnnecessaryEngineArtifacts>(),
           reason: 'When scheduling engine builds, there is no concept of an engine prebuilt.',
         );
         expect(

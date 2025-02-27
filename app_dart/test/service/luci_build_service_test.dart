@@ -426,7 +426,7 @@ void main() {
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
         'is_fusion': bbv2.Value(stringValue: 'true'),
         'flutter_prebuilt_engine_version': bbv2.Value(stringValue: 'abc'),
-        'flutter_realm': bbv2.Value(stringValue: ''),
+        'flutter_realm': bbv2.Value(stringValue: 'flutter_archives_v2'), // presubmit builds
       });
       expect(dimensions.length, 1);
       expect(dimensions[0].key, 'os');
@@ -517,7 +517,7 @@ void main() {
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
         'is_fusion': bbv2.Value(stringValue: 'true'),
         'flutter_prebuilt_engine_version': bbv2.Value(stringValue: 'def'),
-        'flutter_realm': bbv2.Value(stringValue: 'flutter_archives_v2'),
+        'flutter_realm': bbv2.Value(stringValue: ''),
       });
       expect(dimensions.length, 1);
       expect(dimensions[0].key, 'os');
