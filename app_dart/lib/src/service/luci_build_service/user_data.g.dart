@@ -8,9 +8,7 @@ part of 'user_data.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-BuildBucketPubSubUserData _$BuildBucketPubSubUserDataFromJson(
-        Map<String, dynamic> json) =>
-    $checkedCreate(
+BuildBucketPubSubUserData _$BuildBucketPubSubUserDataFromJson(Map<String, dynamic> json) => $checkedCreate(
       'BuildBucketPubSubUserData',
       json,
       ($checkedConvert) {
@@ -22,9 +20,8 @@ BuildBucketPubSubUserData _$BuildBucketPubSubUserDataFromJson(
           repoOwner: $checkedConvert('repo_owner', (v) => v as String),
           repoName: $checkedConvert('repo_name', (v) => v as String),
           userAgent: $checkedConvert('user_agent', (v) => v as String),
-          firestoreTaskDocumentName: $checkedConvert(
-              'firestore_task_document_name',
-              (v) => FirestoreTaskDocumentName._parse(v as String?)),
+          firestoreTaskDocumentName:
+              $checkedConvert('firestore_task_document_name', (v) => FirestoreTaskDocumentName._parse(v as String?)),
         );
         return val;
       },
@@ -40,8 +37,7 @@ BuildBucketPubSubUserData _$BuildBucketPubSubUserDataFromJson(
       },
     );
 
-Map<String, dynamic> _$BuildBucketPubSubUserDataToJson(
-    BuildBucketPubSubUserData instance) {
+Map<String, dynamic> _$BuildBucketPubSubUserDataToJson(BuildBucketPubSubUserData instance) {
   final val = <String, dynamic>{
     'check_run_id': instance.checkRunId,
     'builder_name': instance.builderName,
@@ -58,7 +54,6 @@ Map<String, dynamic> _$BuildBucketPubSubUserDataToJson(
     }
   }
 
-  writeNotNull('firestore_task_document_name',
-      FirestoreTaskDocumentName._toJson(instance.firestoreTaskDocumentName));
+  writeNotNull('firestore_task_document_name', FirestoreTaskDocumentName._toJson(instance.firestoreTaskDocumentName));
   return val;
 }
