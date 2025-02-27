@@ -48,7 +48,7 @@ void main() {
       expect(
         set.buildTags,
         unorderedEquals([
-          TriggerTypeBuildTag.checkRunManualRetry,
+          TriggerTypeBuildTag.autoRetry,
           GitHubCheckRunIdBuildTag(checkRunId: 1234),
         ]),
       );
