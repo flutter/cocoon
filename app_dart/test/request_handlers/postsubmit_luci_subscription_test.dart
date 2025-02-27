@@ -144,7 +144,6 @@ void main() {
 
   test('updates task based on message', () async {
     firestoreTask = generateFirestoreTask(1, attempts: 2, name: 'Linux A');
-    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
       4507531199512576,
@@ -449,7 +448,6 @@ void main() {
         slug: anyNamed('slug'),
       ),
     ).thenAnswer((_) async => true);
-    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822', repo: 'packages');
     final Task task = generateTask(
       4507531199512576,
@@ -496,7 +494,6 @@ void main() {
         slug: anyNamed('slug'),
       ),
     ).thenAnswer((_) async => true);
-    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
       4507531199512576,
@@ -542,7 +539,6 @@ void main() {
         slug: anyNamed('slug'),
       ),
     ).thenAnswer((_) async => true);
-    when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 2);
     firestoreTask = generateFirestoreTask(1, attempts: 2, name: 'Linux flutter');
 
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');

@@ -11,6 +11,7 @@ import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
+import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -73,13 +74,12 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     build.mergeFromBuffer(ZLibCodec().decode(buildsPubSub.buildLargeFields));
 
     final String builderName = build.builder.builder;
+    final buildTags = BuildTag.mapFrom(build.tags);
 
-    final List<bbv2.StringPair> tags = build.tags;
-
-    log.info('Available tags: $tags');
+    log.info('Available tags: $buildTags');
 
     // Skip status update if we can not get the sha tag.
-    if (tags.where((element) => element.key == 'buildset').isEmpty) {
+    if (buildTags.whereType<BuildSetBuildTag>().isEmpty) {
       log.warning('Buildset tag not included, skipping Status Updates');
       return Body.empty;
     }
@@ -106,12 +106,12 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
 
       bool rescheduled = false;
       if (githubChecksService.taskFailed(build.status)) {
-        final int currentAttempt = githubChecksService.currentAttempt(tags);
+        final int currentAttempt = _nextAttempt(buildTags);
         final int maxAttempt = await _getMaxAttempt(
           userDataMap,
           slug,
           builderName,
-          tags,
+          buildTags,
         );
         if (currentAttempt < maxAttempt) {
           rescheduled = true;
@@ -137,11 +137,19 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     return Body.empty;
   }
 
+  /// Returns current reschedule attempt.
+  ///
+  /// It returns 1 if this is the first run, and +1 with each reschedule.
+  static int _nextAttempt(Iterable<BuildTag> buildTags) {
+    final attempt = buildTags.whereType<CurrentAttemptBuildTag>().firstOrNull;
+    return attempt?.attemptNumber ?? 1;
+  }
+
   Future<int> _getMaxAttempt(
     Map<String, dynamic> userData,
     RepositorySlug slug,
     String builderName,
-    List<bbv2.StringPair> tags,
+    Iterable<BuildTag> tags,
   ) async {
     final Commit commit = Commit(
       branch: userData['commit_branch'] as String,
@@ -178,9 +186,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     final Map<String, Object> properties = target.getProperties();
     if (!properties.containsKey('presubmit_max_attempts')) {
       // Give any test in the merge queue another try... its expensive otherwise.
-      return tags.any((pair) => pair.key == LuciBuildService.kMergeQueueKey)
-          ? LuciBuildService.kMergeQueueMaxRetries
-          : 1;
+      return tags.contains(InMergeQueueBuildTag()) ? LuciBuildService.kMergeQueueMaxRetries : 1;
     }
     return properties['presubmit_max_attempts'] as int;
   }
