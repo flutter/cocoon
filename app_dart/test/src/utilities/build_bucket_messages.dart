@@ -28,7 +28,6 @@ PushMessage createPushMessage(
     number: number,
     status: status,
     userData: userData,
-    addBuildSet: addBuildSet,
     extraTags: extraTags,
   );
 
@@ -47,7 +46,6 @@ bbv2.PubSubCallBack createPubSubCallBack(
   int number = 259942,
   bbv2.Status? status = bbv2.Status.SCHEDULED,
   Map<String, dynamic>? userData = const {},
-  bool? addBuildSet = true,
   List<bbv2.StringPair> extraTags = const [],
 }) {
   // this contains BuildsV2PubSub and UserData (List<int>).
@@ -58,7 +56,6 @@ bbv2.PubSubCallBack createPubSubCallBack(
     builder: builder,
     number: number,
     status: status,
-    addBuildSet: addBuildSet,
     extraTags: extraTags,
   );
   final List<int>? userDataBytes = UserData.encodeUserDataToBytes(userData!);
@@ -72,7 +69,6 @@ bbv2.BuildsV2PubSub createBuild(
   String? builder = 'Windows Engine Drone',
   int number = 259942,
   bbv2.Status? status = bbv2.Status.SCHEDULED,
-  bool? addBuildSet = true,
   List<bbv2.StringPair> extraTags = const [],
 }) {
   final bbv2.BuildsV2PubSub build = bbv2.BuildsV2PubSub().createEmptyInstance();
@@ -85,7 +81,6 @@ bbv2.BuildsV2PubSub createBuild(
         builder: builder,
         number: number,
         status: status,
-        addBuildSet: addBuildSet,
       ),
     ) as Map<String, dynamic>,
   );
@@ -102,7 +97,6 @@ String createBuildString(
   String? builder = 'Windows Engine Drone',
   int number = 259942,
   bbv2.Status? status = bbv2.Status.SCHEDULED,
-  bool? addBuildSet = true,
 }) {
   return '''
   {

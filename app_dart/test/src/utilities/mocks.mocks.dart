@@ -3216,15 +3216,6 @@ class MockGithubChecksService extends _i1.Mock implements _i15.GithubChecksServi
       ) as bool);
 
   @override
-  int currentAttempt(List<_i8.StringPair>? tags) => (super.noSuchMethod(
-        Invocation.method(
-          #currentAttempt,
-          [tags],
-        ),
-        returnValue: 0,
-      ) as int);
-
-  @override
   String getGithubSummary(String? summary) => (super.noSuchMethod(
         Invocation.method(
           #getGithubSummary,
@@ -6220,7 +6211,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
   _i20.Future<_i8.Build> rescheduleBuild({
     required String? builderName,
     required _i8.Build? build,
-    required int? rescheduleAttempt,
+    required int? nextAttempt,
     required Map<String, dynamic>? userDataMap,
   }) =>
       (super.noSuchMethod(
@@ -6230,7 +6221,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
           {
             #builderName: builderName,
             #build: build,
-            #rescheduleAttempt: rescheduleAttempt,
+            #nextAttempt: nextAttempt,
             #userDataMap: userDataMap,
           },
         ),
@@ -6242,7 +6233,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
             {
               #builderName: builderName,
               #build: build,
-              #rescheduleAttempt: rescheduleAttempt,
+              #nextAttempt: nextAttempt,
               #userDataMap: userDataMap,
             },
           ),

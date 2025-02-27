@@ -129,21 +129,6 @@ class GithubChecksService {
     return (checkRunStatus == github.CheckRunStatus.completed) && failedStatesSet.contains(conclusion);
   }
 
-  /// Returns current reschedule attempt.
-  ///
-  /// It returns 1 if this is the first run, and +1 with each reschedule.
-  int currentAttempt(final List<bbv2.StringPair> tags) {
-    final bbv2.StringPair attempt = tags.firstWhere(
-      (element) => element.key == 'current_attempt',
-      orElse: () => bbv2.StringPair().createEmptyInstance(),
-    );
-    if (!attempt.hasKey()) {
-      return 1;
-    } else {
-      return int.parse(attempt.value);
-    }
-  }
-
   /// Appends triage wiki page to `summaryMarkdown` from LUCI build so that people can easily
   /// reference from github check run page.
   String getGithubSummary(String? summary) {

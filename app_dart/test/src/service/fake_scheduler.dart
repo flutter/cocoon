@@ -252,6 +252,10 @@ final examplePresubmitRescheduleConfig = CiYamlSet(
           postsubmit: true,
           properties: {'presubmit_retry': '1'},
         ),
+        pb.Target(
+          name: 'Linux presubmit_max_attempts=2',
+          properties: {'presubmit_max_attempts': '2'},
+        ),
       ],
     ),
   },

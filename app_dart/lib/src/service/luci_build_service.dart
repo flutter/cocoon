@@ -496,7 +496,7 @@ class LuciBuildService {
   Future<bbv2.Build> rescheduleBuild({
     required String builderName,
     required bbv2.Build build,
-    required int rescheduleAttempt,
+    required int nextAttempt,
     required Map<String, dynamic> userDataMap,
   }) async {
     final List<bbv2.StringPair> tags = build.tags;
@@ -504,7 +504,7 @@ class LuciBuildService {
     _setTagValue(
       tags,
       key: 'current_attempt',
-      value: rescheduleAttempt.toString(),
+      value: '$nextAttempt',
     );
 
     final request = bbv2.ScheduleBuildRequest(

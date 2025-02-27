@@ -16,6 +16,12 @@ import 'package:meta/meta.dart';
 /// See go/buildbucket#concepts for more details.
 @immutable
 sealed class BuildTag {
+  /// Converts all [pairs] to a [BuildTag].
+  static List<BuildTag> listFrom(Iterable<bbv2.StringPair> pairs) {
+    // TODO(matanlurey): Use BuildTagSet instead after https://github.com/flutter/cocoon/pull/4268.
+    return pairs.map(BuildTag.from).toList();
+  }
+
   /// Parses and recognizes expected [BuildTag]s from their string-pair equivalent.
   factory BuildTag.from(bbv2.StringPair pair) {
     switch (pair.key) {
