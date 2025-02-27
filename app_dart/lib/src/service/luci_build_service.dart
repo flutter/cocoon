@@ -10,6 +10,7 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
+import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
 import 'package:collection/collection.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' as github;
@@ -1147,7 +1148,7 @@ class LuciBuildService {
     required DatastoreService datastore,
     required firestore.Task taskDocument,
     required FirestoreService firestoreService,
-    List<bbv2.StringPair>? tags,
+    Iterable<BuildTag> tags = const [],
     bool ignoreChecks = false,
   }) async {
     if (ignoreChecks == false && await _shouldRerunBuilderFirestore(taskDocument, firestoreService) == false) {
@@ -1155,18 +1156,9 @@ class LuciBuildService {
     }
 
     log.info('Rerun builder: ${target.value.name} for commit ${commit.sha}');
-    tags ??= <bbv2.StringPair>[];
-    final bbv2.StringPair? triggerTag = tags.singleWhereOrNull(
-      (element) => element.key == 'trigger_type' && element.value == 'auto_retry',
-    );
-    if (triggerTag == null) {
-      tags.add(
-        bbv2.StringPair(
-          key: 'trigger_type',
-          value: 'auto_retry',
-        ),
-      );
-    }
+
+    final buildTags = BuildTagSet(tags);
+    buildTags.add(TriggerTypeBuildTag.autoRetry);
 
     try {
       final int newAttempt = await _updateTaskStatusInDatabaseForRetry(
@@ -1175,12 +1167,7 @@ class LuciBuildService {
         firestoreService = firestoreService,
         datastore = datastore,
       );
-      tags.add(
-        bbv2.StringPair(
-          key: 'current_attempt',
-          value: newAttempt.toString(),
-        ),
-      );
+      buildTags.add(CurrentAttemptBuildTag(attemptNumber: newAttempt));
     } catch (error) {
       log.severe(
         'updating task ${taskDocument.taskName} of commit ${taskDocument.commitSha} failure: $error. Skipping rescheduling.',
@@ -1199,7 +1186,7 @@ class LuciBuildService {
             task: task,
             priority: kRerunPriority,
             properties: Config.defaultProperties,
-            tags: tags,
+            tags: buildTags.toStringPairs(),
           ),
         ),
       ],
