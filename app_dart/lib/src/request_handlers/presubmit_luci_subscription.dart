@@ -74,7 +74,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     build.mergeFromBuffer(ZLibCodec().decode(buildsPubSub.buildLargeFields));
 
     final String builderName = build.builder.builder;
-    final buildTags = BuildTag.mapFrom(build.tags);
+    final buildTags = BuildTag.listFrom(build.tags);
 
     log.info('Available tags: $buildTags');
 
