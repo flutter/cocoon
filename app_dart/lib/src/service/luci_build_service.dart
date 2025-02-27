@@ -504,7 +504,7 @@ class LuciBuildService {
     _setTagValue(
       tags,
       key: 'current_attempt',
-      value: nextAttempt.toString(),
+      value: '$nextAttempt',
     );
 
     final request = bbv2.ScheduleBuildRequest(
