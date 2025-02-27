@@ -26,7 +26,7 @@ import 'package:cocoon_service/src/model/firestore/commit.dart' as _i41;
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart' as _i23;
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart' as _i22;
 import 'package:cocoon_service/src/model/firestore/task.dart' as _i42;
-import 'package:cocoon_service/src/model/github/checks.dart' as _i44;
+import 'package:cocoon_service/src/model/github/checks.dart' as _i45;
 import 'package:cocoon_service/src/service/access_token_provider.dart' as _i30;
 import 'package:cocoon_service/src/service/bigquery.dart' as _i16;
 import 'package:cocoon_service/src/service/commit_service.dart' as _i33;
@@ -34,8 +34,9 @@ import 'package:cocoon_service/src/service/config.dart' as _i2;
 import 'package:cocoon_service/src/service/datastore.dart' as _i9;
 import 'package:cocoon_service/src/service/gerrit_service.dart' as _i6;
 import 'package:cocoon_service/src/service/github_service.dart' as _i17;
-import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart' as _i46;
-import 'package:fixnum/fixnum.dart' as _i45;
+import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart' as _i47;
+import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart' as _i44;
+import 'package:fixnum/fixnum.dart' as _i46;
 import 'package:gcloud/db.dart' as _i11;
 import 'package:github/github.dart' as _i13;
 import 'package:github/hooks.dart' as _i34;
@@ -48,11 +49,11 @@ import 'package:http/http.dart' as _i7;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i32;
 import 'package:neat_cache/neat_cache.dart' as _i29;
-import 'package:process/process.dart' as _i47;
+import 'package:process/process.dart' as _i48;
 import 'package:retry/retry.dart' as _i31;
 
 import '../../service/cache_service_test.dart' as _i39;
-import 'mocks.dart' as _i48;
+import 'mocks.dart' as _i49;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -6140,7 +6141,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
   _i20.Future<List<_i43.Target>> scheduleTryBuilds({
     required List<_i43.Target>? targets,
     required _i13.PullRequest? pullRequest,
-    String? flutterPrebuiltEngineVersion,
+    required _i44.EngineArtifacts? engineArtifacts,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -6149,7 +6150,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
           {
             #targets: targets,
             #pullRequest: pullRequest,
-            #flutterPrebuiltEngineVersion: flutterPrebuiltEngineVersion,
+            #engineArtifacts: engineArtifacts,
           },
         ),
         returnValue: _i20.Future<List<_i43.Target>>.value(<_i43.Target>[]),
@@ -6257,7 +6258,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
 
   @override
   _i20.Future<void> reschedulePostsubmitBuildUsingCheckRunEvent(
-    _i44.CheckRunEvent? checkRunEvent, {
+    _i45.CheckRunEvent? checkRunEvent, {
     required _i36.Commit? commit,
     required _i37.Task? task,
     required _i43.Target? target,
@@ -6284,7 +6285,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
 
   @override
   _i20.Future<_i8.Build> getBuildById(
-    _i45.Int64? id, {
+    _i46.Int64? id, {
     _i8.BuildMask? buildMask,
   }) =>
       (super.noSuchMethod(
@@ -6383,7 +6384,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
     required _i9.DatastoreService? datastore,
     required _i42.Task? taskDocument,
     required _i15.FirestoreService? firestoreService,
-    Iterable<_i46.BuildTag>? tags = const [],
+    Iterable<_i47.BuildTag>? tags = const [],
     bool? ignoreChecks = false,
   }) =>
       (super.noSuchMethod(
@@ -6408,7 +6409,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
 /// A class which mocks [ProcessManager].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockProcessManager extends _i1.Mock implements _i47.ProcessManager {
+class MockProcessManager extends _i1.Mock implements _i48.ProcessManager {
   MockProcessManager() {
     _i1.throwOnMissingStub(this);
   }
@@ -7581,7 +7582,7 @@ class MockBeginTransactionResponse extends _i1.Mock implements _i21.BeginTransac
 /// A class which mocks [Callbacks].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCallbacks extends _i1.Mock implements _i48.Callbacks {
+class MockCallbacks extends _i1.Mock implements _i49.Callbacks {
   MockCallbacks() {
     _i1.throwOnMissingStub(this);
   }

@@ -12,6 +12,7 @@ import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
+import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
@@ -463,18 +464,20 @@ class Scheduler {
             pullRequest: pullRequest,
             checkRunGuard: '$lock',
             logCrumb: logCrumb,
-            skipEngine: true,
-            flutterPrebuiltEngineVersion: pullRequest.base!.sha,
+
+            // The if-branch already skips the engine build phase.
+            testsToRun: _FlutterRepoTestsToRun.frameworkTestsOnly,
           );
           break;
         }
         final presubmitTargets = isFusion
-            ? await getTestsForStage(pullRequest, CiStage.fusionEngineBuild)
+            ? await _getTestsForStage(pullRequest, CiStage.fusionEngineBuild)
             : await getPresubmitTargets(pullRequest);
         final presubmitTriggerTargets = filterTargets(presubmitTargets, builderTriggerList);
 
         // When running presubmits for a fusion PR; create a new staging document to track tasks needed
         // to complete before we can schedule more tests (i.e. build engine artifacts before testing against them).
+        final EngineArtifacts engineArtifacts;
         if (isFusion) {
           await initializeCiStagingDocument(
             firestoreService: firestoreService,
@@ -484,10 +487,18 @@ class Scheduler {
             tasks: [...presubmitTriggerTargets.map((t) => t.value.name)],
             checkRunGuard: '$lock',
           );
+          engineArtifacts = const EngineArtifacts.noFrameworkTests(
+            reason: 'This is the engine phase of the build',
+          );
+        } else {
+          engineArtifacts = const EngineArtifacts.noFrameworkTests(
+            reason: 'This is not the flutter/flutter repository',
+          );
         }
         await luciBuildService.scheduleTryBuilds(
           targets: presubmitTriggerTargets,
           pullRequest: pullRequest,
+          engineArtifacts: engineArtifacts,
         );
       } on FormatException catch (error, backtrace) {
         log.warning('FormatException encountered when scheduling presubmit targets for ${pullRequest.number}');
@@ -1110,7 +1121,7 @@ $stackTrace
   }
 
   /// Returns the presubmit targets for the fusion repo [pullRequest] that should run for the given [stage].
-  Future<List<Target>> getTestsForStage(PullRequest pullRequest, CiStage stage, {bool skipEngine = false}) async {
+  Future<List<Target>> _getTestsForStage(PullRequest pullRequest, CiStage stage, {bool skipEngine = false}) async {
     final presubmitTargets = [
       ...await getPresubmitTargets(pullRequest),
       if (!skipEngine) ...await getPresubmitTargets(pullRequest, type: CiType.fusionEngine),
@@ -1137,12 +1148,12 @@ $stackTrace
     await unlockMergeQueueGuard(slug, sha, checkRunGuard);
   }
 
+  /// Schedules post-engine build tests (i.e. engine tests, and framework tests).
   Future<void> _runCiTestingStage({
     required PullRequest pullRequest,
     required String checkRunGuard,
     required String logCrumb,
-    bool skipEngine = false,
-    String? flutterPrebuiltEngineVersion,
+    required _FlutterRepoTestsToRun testsToRun,
   }) async {
     try {
       // Both the author and label should be checked to make sure that no one is
@@ -1153,7 +1164,12 @@ $stackTrace
       } else {
         // Schedule the tests that would have run in a call to triggerPresubmitTargets - but for both the
         // engine and the framework.
-        final presubmitTargets = await getTestsForStage(pullRequest, CiStage.fusionTests, skipEngine: skipEngine);
+        final presubmitTargets = await _getTestsForStage(
+          pullRequest,
+          CiStage.fusionTests,
+          skipEngine: testsToRun == _FlutterRepoTestsToRun.frameworkTestsOnly,
+        );
+
         // Create the document for tracking test check runs.
         await initializeCiStagingDocument(
           firestoreService: firestoreService,
@@ -1164,10 +1180,26 @@ $stackTrace
           checkRunGuard: checkRunGuard,
         );
 
+        // Here is where it gets fun: how do framework tests* know what engine
+        // artifacts to fetch and use on CI? For presubmits on flutter/flutter;
+        // see https://github.com/flutter/flutter/issues/164031.
+        //
+        // *In theory, also engine tests, but engine tests build from the engine
+        // from source and rely on remote-build execution (RBE) for builds to
+        // fast and cached.
+        final EngineArtifacts engineArtifacts;
+        if (testsToRun == _FlutterRepoTestsToRun.frameworkTestsOnly) {
+          // Use the engine that this PR was branched off of.
+          engineArtifacts = EngineArtifacts.usingExistingEngine(commitSha: pullRequest.base!.sha!);
+        } else {
+          // Use the engine that was built from source *for* this PR.
+          engineArtifacts = EngineArtifacts.builtFromSource(commitSha: pullRequest.head!.sha!);
+        }
+
         await luciBuildService.scheduleTryBuilds(
           targets: presubmitTargets,
           pullRequest: pullRequest,
-          flutterPrebuiltEngineVersion: flutterPrebuiltEngineVersion,
+          engineArtifacts: engineArtifacts,
         );
       }
     } on FormatException catch (error, backtrace) {
@@ -1223,7 +1255,12 @@ $stackTrace
     }
 
     try {
-      await _runCiTestingStage(pullRequest: pullRequest, checkRunGuard: '$checkRunGuard', logCrumb: logCrumb);
+      await _runCiTestingStage(
+        pullRequest: pullRequest,
+        checkRunGuard: '$checkRunGuard',
+        logCrumb: logCrumb,
+        testsToRun: _FlutterRepoTestsToRun.engineTestsAndFrameworkTests,
+      );
     } catch (error, stacktrace) {
       await githubChecksService.githubChecksUtil.createCheckRun(
         config,
@@ -1359,11 +1396,28 @@ $stacktrace
               }
               final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
 
+              final EngineArtifacts engineArtifacts;
+              if (await fusionTester.isFusionBasedRef(slug, sha)) {
+                if (await _applyFrameworkOnlyPrOptimization(
+                  slug,
+                  changedFilesCount: pullRequest.changedFilesCount!,
+                  prNumber: pullRequest.number!,
+                  prBranch: pullRequest.base!.ref!,
+                )) {
+                  engineArtifacts = EngineArtifacts.usingExistingEngine(commitSha: pullRequest.base!.sha!);
+                } else {
+                  engineArtifacts = EngineArtifacts.builtFromSource(commitSha: pullRequest.head!.sha!);
+                }
+              } else {
+                engineArtifacts = const EngineArtifacts.noFrameworkTests(reason: 'Not flutter/flutter');
+              }
+
               await luciBuildService.scheduleTryBuilds(
                 targets: [
                   presubmitTargets.firstWhere((Target target) => checkRunEvent.checkRun!.name == target.value.name),
                 ],
                 pullRequest: pullRequest,
+                engineArtifacts: engineArtifacts,
               );
             } else {
               log.fine('Rescheduling postsubmit build.');
@@ -1477,4 +1531,13 @@ $stacktrace
     }
     return CheckRun.fromJson(checkRunJson);
   }
+}
+
+/// Describes in `flutter/flutter` which tests to schedule.
+enum _FlutterRepoTestsToRun {
+  /// Run tests _of_ the engine, and tests in the framework (that use an engine).
+  engineTestsAndFrameworkTests,
+
+  /// Run only tests in the framework (that use an engine), skpping engine tests.
+  frameworkTestsOnly;
 }

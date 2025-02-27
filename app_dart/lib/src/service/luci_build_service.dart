@@ -11,6 +11,7 @@ import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
+import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:collection/collection.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' as github;
@@ -255,13 +256,13 @@ class LuciBuildService {
 
   /// Schedules presubmit [targets] on BuildBucket for [pullRequest].
   ///
-  /// If [flutterPrebuiltEngineVersion] is provided, it should be a SHA string representing a Flutter engine build.
-  /// This will instruct the Luci build infrastructure to use the specified engine version instead of the default
-  /// for these try builds.
+  /// [engineArtifacts] determines how framework tests download and use the Flutter engine by
+  /// providing `FLUTTER_PREBUILT_ENGINE_VERISON` if set. For builds that are not running
+  /// framework tests, provide [EngineArtifacts.noFrameworkTests].
   Future<List<Target>> scheduleTryBuilds({
     required List<Target> targets,
     required github.PullRequest pullRequest,
-    String? flutterPrebuiltEngineVersion,
+    required EngineArtifacts engineArtifacts,
   }) async {
     if (targets.isEmpty) {
       return targets;
@@ -329,14 +330,24 @@ class LuciBuildService {
 
       if (isFusion) {
         properties['is_fusion'] = 'true';
-        // When in fusion, we want the recipies to override the engine.realm
-        // if some environment variable (FLUTTER_REALM) is set.
-        properties['flutter_realm'] = 'flutter_archives_v2';
-      }
 
-      if (flutterPrebuiltEngineVersion != null) {
-        properties['flutter_prebuilt_engine_version'] = flutterPrebuiltEngineVersion;
-        properties['flutter_realm'] = '';
+        // Fusion *also* means "this is flutter/flutter", so determine how to specify the engine version and realm.
+        switch (engineArtifacts) {
+          case SpecifiedEngineArtifacts(:final commitSha, :final flutterRealm):
+            properties['flutter_prebuilt_engine_version'] = commitSha;
+            properties['flutter_realm'] = flutterRealm;
+          case UnnecessaryEngineArtifacts(:final reason):
+            log.fine(
+              'No engineArtifacts were specified for PR#${pullRequest.number} (${pullRequest.head!.sha}): $reason.',
+            );
+        }
+      } else if (engineArtifacts is! UnnecessaryEngineArtifacts) {
+        // This is an error case, as we're setting artifacts for a PR that will never use them.
+        log.warning(
+          'Unexpected engineArtifacts were specified for PR#${pullRequest.number} (${pullRequest.head!.sha})',
+          null,
+          StackTrace.current,
+        );
       }
 
       final List<bbv2.RequestedDimension> requestedDimensions = target.getDimensions();

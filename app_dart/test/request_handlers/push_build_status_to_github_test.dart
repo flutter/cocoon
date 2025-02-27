@@ -127,7 +127,7 @@ void main() {
       });
 
       test('if status has not changed since last update', () async {
-        final PullRequest pr = generatePullRequest(id: 1, sha: 'sha1');
+        final PullRequest pr = generatePullRequest(id: 1, headSha: 'sha1');
         when(pullRequestsService.list(any, base: anyNamed('base'))).thenAnswer((_) => Stream<PullRequest>.value(pr));
         buildStatusService.cumulativeStatus = BuildStatus.success();
         githubBuildStatus = generateFirestoreGithubBuildStatus(1);
@@ -137,7 +137,7 @@ void main() {
       });
 
       test('if there is no pr found for a targeted branch', () async {
-        final PullRequest pr = generatePullRequest(id: 1, sha: 'sha1', branch: 'test_branch');
+        final PullRequest pr = generatePullRequest(id: 1, headSha: 'sha1', branch: 'test_branch');
         when(pullRequestsService.list(any, base: anyNamed('base'))).thenAnswer((_) => Stream<PullRequest>.value(pr));
         buildStatusService.cumulativeStatus = BuildStatus.success();
         githubBuildStatus = generateFirestoreGithubBuildStatus(1, status: GithubBuildStatus.statusFailure);
@@ -157,7 +157,7 @@ void main() {
       ).thenAnswer((Invocation invocation) {
         return Future<BatchWriteResponse>.value(BatchWriteResponse());
       });
-      final PullRequest pr = generatePullRequest(id: 1, sha: 'sha1');
+      final PullRequest pr = generatePullRequest(id: 1, headSha: 'sha1');
       when(pullRequestsService.list(any, base: anyNamed('base'))).thenAnswer((_) => Stream<PullRequest>.value(pr));
       buildStatusService.cumulativeStatus = BuildStatus.success();
       githubBuildStatus = generateFirestoreGithubBuildStatus(1, status: GithubBuildStatus.statusFailure);
@@ -186,7 +186,7 @@ void main() {
         return Future<BatchWriteResponse>.value(BatchWriteResponse());
       });
       final PullRequest pr =
-          generatePullRequest(id: 1, sha: 'sha1', labels: [IssueLabel(name: Config.kEmergencyLabel)]);
+          generatePullRequest(id: 1, headSha: 'sha1', labels: [IssueLabel(name: Config.kEmergencyLabel)]);
       when(pullRequestsService.list(any, base: anyNamed('base'))).thenAnswer((_) => Stream<PullRequest>.value(pr));
       buildStatusService.cumulativeStatus = BuildStatus.failure(const ['all bad']);
       githubBuildStatus = generateFirestoreGithubBuildStatus(1, status: GithubBuildStatus.statusFailure);
