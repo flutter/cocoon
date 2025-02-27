@@ -6,6 +6,41 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
+/// A set of [BuildTag]s where only a single tag with each key is permitted.
+final class BuildTagSet {
+  /// Creates a new set, optionally with the provided initial entries.
+  ///
+  /// If the iterable is non-empty and contains multiple tags with the same
+  /// key, the last item in the iterable is stored and the remaining are
+  /// discarded.
+  factory BuildTagSet([Iterable<BuildTag> buildTags = const []]) {
+    return BuildTagSet._({
+      for (final tag in buildTags) tag._key: tag,
+    });
+  }
+
+  BuildTagSet._(this._buildTagsByKey);
+  final Map<String, BuildTag> _buildTagsByKey;
+
+  /// Adds [buildTag] to the set.
+  ///
+  /// If a previous build tag exited with the same key, it is replaced.
+  void add(BuildTag buildTag) {
+    _buildTagsByKey[buildTag._key] = buildTag;
+  }
+
+  /// Creates a copy of the current state of the set.
+  BuildTagSet clone() => BuildTagSet._({..._buildTagsByKey});
+
+  /// Each [BuildTag] in the set.
+  Iterable<BuildTag> get buildTags => _buildTagsByKey.values;
+
+  /// Returns a copy of the build tags as a list of [bbv2.StringPair]s.
+  List<bbv2.StringPair> toStringPairs() {
+    return buildTags.map((e) => e.toStringPair()).toList();
+  }
+}
+
 /// Valid tags for [bbv2.ScheduleBuildRequest.tags].
 ///
 /// Tags are indexed arbitrary string key-value pairs, defined by the user that

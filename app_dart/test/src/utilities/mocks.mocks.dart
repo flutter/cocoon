@@ -34,6 +34,7 @@ import 'package:cocoon_service/src/service/config.dart' as _i2;
 import 'package:cocoon_service/src/service/datastore.dart' as _i9;
 import 'package:cocoon_service/src/service/gerrit_service.dart' as _i6;
 import 'package:cocoon_service/src/service/github_service.dart' as _i17;
+import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart' as _i46;
 import 'package:fixnum/fixnum.dart' as _i45;
 import 'package:gcloud/db.dart' as _i11;
 import 'package:github/github.dart' as _i13;
@@ -47,11 +48,11 @@ import 'package:http/http.dart' as _i7;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i32;
 import 'package:neat_cache/neat_cache.dart' as _i29;
-import 'package:process/process.dart' as _i46;
+import 'package:process/process.dart' as _i47;
 import 'package:retry/retry.dart' as _i31;
 
 import '../../service/cache_service_test.dart' as _i39;
-import 'mocks.dart' as _i47;
+import 'mocks.dart' as _i48;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -6382,7 +6383,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
     required _i9.DatastoreService? datastore,
     required _i42.Task? taskDocument,
     required _i15.FirestoreService? firestoreService,
-    List<_i8.StringPair>? tags,
+    Iterable<_i46.BuildTag>? tags = const [],
     bool? ignoreChecks = false,
   }) =>
       (super.noSuchMethod(
@@ -6407,7 +6408,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
 /// A class which mocks [ProcessManager].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockProcessManager extends _i1.Mock implements _i46.ProcessManager {
+class MockProcessManager extends _i1.Mock implements _i47.ProcessManager {
   MockProcessManager() {
     _i1.throwOnMissingStub(this);
   }
@@ -7580,7 +7581,7 @@ class MockBeginTransactionResponse extends _i1.Mock implements _i21.BeginTransac
 /// A class which mocks [Callbacks].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCallbacks extends _i1.Mock implements _i47.Callbacks {
+class MockCallbacks extends _i1.Mock implements _i48.Callbacks {
   MockCallbacks() {
     _i1.throwOnMissingStub(this);
   }
