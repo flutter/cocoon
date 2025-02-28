@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:github/github.dart' show CheckSuite, PullRequest, User, Repository;
 import 'package:github/hooks.dart' show HookEvent;
 import 'package:json_annotation/json_annotation.dart';
@@ -28,6 +30,11 @@ class CheckRunEvent extends HookEvent {
   Repository? repository;
 
   Map<String, dynamic> toJson() => _$CheckRunEventToJson(this);
+
+  @override
+  String toString() {
+    return 'CheckRunEvent ${const JsonEncoder.withIndent('  ').convert(toJson())}';
+  }
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
@@ -51,6 +58,11 @@ class CheckRun {
   final List<PullRequest>? pullRequests;
 
   Map<String, dynamic> toJson() => _$CheckRunToJson(this);
+
+  @override
+  String toString() {
+    return 'CheckRun ${const JsonEncoder.withIndent('  ').convert(toJson())}';
+  }
 }
 
 /// Data model for a `merge_group` event.
@@ -98,6 +110,11 @@ class MergeGroupEvent extends HookEvent {
   User? sender;
 
   Map<String, dynamic> toJson() => _$MergeGroupEventToJson(this);
+
+  @override
+  String toString() {
+    return 'MergeGroupEvent ${const JsonEncoder.withIndent('  ').convert(toJson())}';
+  }
 }
 
 /// Data model for a `merge_group`.
@@ -133,6 +150,11 @@ class MergeGroup {
   final HeadCommit headCommit;
 
   Map<String, dynamic> toJson() => _$MergeGroupToJson(this);
+
+  @override
+  String toString() {
+    return 'MergeGroup ${const JsonEncoder.withIndent('  ').convert(toJson())}';
+  }
 }
 
 /// Data model for `merge_group.head_commit`.
@@ -162,4 +184,9 @@ class HeadCommit {
   final String message;
 
   Map<String, dynamic> toJson() => _$HeadCommitToJson(this);
+
+  @override
+  String toString() {
+    return 'HeadCommit ${const JsonEncoder.withIndent('  ').convert(toJson())}';
+  }
 }
