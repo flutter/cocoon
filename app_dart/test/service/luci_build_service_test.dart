@@ -144,6 +144,7 @@ void main() {
       final Iterable<bbv2.Build> builds = await service.getTryBuildsByPullRequest(
         pullRequest: PullRequest(
           id: 998,
+          number: 1234,
           base: PullRequestHead(repo: Repository(fullName: 'flutter/cocoon')),
         ),
       );
