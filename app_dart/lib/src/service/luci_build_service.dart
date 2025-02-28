@@ -116,23 +116,17 @@ class LuciBuildService {
   /// Returns a list of BuildBucket [Build]s for a given Github [sha],
   /// and [builderName].
   Future<Iterable<bbv2.Build>> getTryBuilds({
+    // TODO(matanlurey): Make this private and rewrite tests to test the public API instead.
     required String sha,
     String? builderName,
   }) async {
-    final List<bbv2.StringPair> tags = [
-      bbv2.StringPair(
-        key: 'buildset',
-        value: 'sha/git/$sha',
-      ),
-      bbv2.StringPair(
-        key: 'user_agent',
-        value: 'flutter-cocoon',
-      ),
-    ];
     return getBuilds(
       builderName: builderName,
       bucket: 'try',
-      tags: tags,
+      tags: BuildTagSet([
+        ByPresubmitCommitBuildSetBuildTag(commitSha: sha),
+        UserAgentBuildTag.flutterCocoon,
+      ]),
     );
   }
 
@@ -143,24 +137,17 @@ class LuciBuildService {
     required github.PullRequest pullRequest,
   }) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final List<bbv2.StringPair> tags = [
-      bbv2.StringPair(
-        key: 'buildset',
-        value: 'pr/git/${pullRequest.number}',
-      ),
-      bbv2.StringPair(
-        key: 'github_link',
-        value: 'https://github.com/${slug.fullName}/pull/${pullRequest.number}',
-      ),
-      bbv2.StringPair(
-        key: 'user_agent',
-        value: 'flutter-cocoon',
-      ),
-    ];
     return getBuilds(
       builderName: null,
       bucket: 'try',
-      tags: tags,
+      tags: BuildTagSet([
+        GitHubPullRequestBuildTag(
+          pullRequestNumber: pullRequest.number!,
+          slugOwner: slug.owner,
+          slugName: slug.name,
+        ),
+        UserAgentBuildTag.flutterCocoon,
+      ]),
     );
   }
 
@@ -172,26 +159,17 @@ class LuciBuildService {
     String? builderName,
     String? sha,
   }) async {
-    final List<bbv2.StringPair> tags = [
-      if (sha != null)
-        // Unlike try tasks, which use the "sha/git/" prefix, prod tasks use the
-        // "commit/git/" prefix.
-        bbv2.StringPair(
-          key: 'buildset',
-          value: 'commit/git/$sha',
-        ),
-
-      // Only process jobs automatically kicked off by Cocoon. For example, we
-      // do not want to cancel or retry manually started jobs.
-      bbv2.StringPair(
-        key: 'user_agent',
-        value: 'flutter-cocoon',
-      ),
-    ];
     return getBuilds(
       builderName: builderName,
       bucket: 'prod',
-      tags: tags,
+      tags: BuildTagSet([
+        if (sha != null) ByPostsubmitCommitBuildSetBuildTag(commitSha: sha),
+
+        // We only want to process (and eventually cancel or retry) jobs started
+        // by Cocoon; for example, we do not want to cancel or retry manually
+        // started jobs.
+        UserAgentBuildTag.flutterCocoon,
+      ]),
     );
   }
 
@@ -202,7 +180,7 @@ class LuciBuildService {
   Future<Iterable<bbv2.Build>> getBuilds({
     required String? builderName,
     required String bucket,
-    required List<bbv2.StringPair> tags,
+    required BuildTagSet tags,
   }) async {
     final bbv2.FieldMask fieldMask = bbv2.FieldMask(
       paths: {
@@ -222,7 +200,7 @@ class LuciBuildService {
         bucket: bucket,
         builder: builderName,
       ),
-      tags: tags,
+      tags: tags.toStringPairs(),
     );
 
     final bbv2.SearchBuildsRequest searchBuildsRequest = bbv2.SearchBuildsRequest(

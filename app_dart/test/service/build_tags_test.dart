@@ -27,21 +27,6 @@ void main() {
       );
     });
 
-    test('creates an initial set of "last wins" tags', () {
-      final set = BuildTagSet([
-        TriggerTypeBuildTag.autoRetry,
-        GitHubCheckRunIdBuildTag(checkRunId: 1234),
-        TriggerTypeBuildTag.checkRunManualRetry,
-      ]);
-      expect(
-        set.buildTags,
-        unorderedEquals([
-          TriggerTypeBuildTag.checkRunManualRetry,
-          GitHubCheckRunIdBuildTag(checkRunId: 1234),
-        ]),
-      );
-    });
-
     test('adds a new tag', () {
       final set = BuildTagSet([TriggerTypeBuildTag.autoRetry]);
       set.add(GitHubCheckRunIdBuildTag(checkRunId: 1234));
@@ -54,12 +39,13 @@ void main() {
       );
     });
 
-    test('adds a new tag replacing an existing one', () {
+    test('adds a new tag does not replace an existing one', () {
       final set = BuildTagSet([TriggerTypeBuildTag.autoRetry]);
       set.add(TriggerTypeBuildTag.manualRetry);
       expect(
         set.buildTags,
         unorderedEquals([
+          TriggerTypeBuildTag.autoRetry,
           TriggerTypeBuildTag.manualRetry,
         ]),
       );
@@ -72,8 +58,8 @@ void main() {
       a.add(TriggerTypeBuildTag.checkRunManualRetry);
       b.add(TriggerTypeBuildTag.manualRetry);
 
-      expect(a.buildTags, unorderedEquals([TriggerTypeBuildTag.checkRunManualRetry]));
-      expect(b.buildTags, unorderedEquals([TriggerTypeBuildTag.manualRetry]));
+      expect(a.buildTags, unorderedEquals([TriggerTypeBuildTag.autoRetry, TriggerTypeBuildTag.checkRunManualRetry]));
+      expect(b.buildTags, unorderedEquals([TriggerTypeBuildTag.autoRetry, TriggerTypeBuildTag.manualRetry]));
     });
 
     test('creates string pairs', () {

@@ -6,34 +6,37 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
-/// A set of [BuildTag]s where only a single tag with each key is permitted.
+/// A collection of [BuildTag]s.
 final class BuildTagSet {
   /// Creates a new set, optionally with the provided initial entries.
-  ///
-  /// If the iterable is non-empty and contains multiple tags with the same
-  /// key, the last item in the iterable is stored and the remaining are
-  /// discarded.
   factory BuildTagSet([Iterable<BuildTag> buildTags = const []]) {
-    return BuildTagSet._({
-      for (final tag in buildTags) tag._key: tag,
-    });
+    return BuildTagSet._([...buildTags]);
   }
 
-  BuildTagSet._(this._buildTagsByKey);
-  final Map<String, BuildTag> _buildTagsByKey;
+  /// Creates a new set, parsing the providing [stringPairs] into [BuildTag]s.
+  factory BuildTagSet.fromStringPairs(Iterable<bbv2.StringPair> stringPairs) {
+    return BuildTagSet(stringPairs.map(BuildTag.from));
+  }
+
+  BuildTagSet._(this._buildTags);
+  final List<BuildTag> _buildTags;
 
   /// Adds [buildTag] to the set.
-  ///
-  /// If a previous build tag exited with the same key, it is replaced.
   void add(BuildTag buildTag) {
-    _buildTagsByKey[buildTag._key] = buildTag;
+    _buildTags.add(buildTag);
   }
 
+  /// Returns whether at least one build tag of type [T] exists in the set.
+  bool contains<T extends BuildTag>() => buildTags.whereType<T>().isNotEmpty;
+
+  /// Returns the first build tag of type [T], or `null` if none exists.
+  T? getTagOf<T extends BuildTag>() => buildTags.whereType<T>().firstOrNull;
+
   /// Creates a copy of the current state of the set.
-  BuildTagSet clone() => BuildTagSet._({..._buildTagsByKey});
+  BuildTagSet clone() => BuildTagSet._([..._buildTags]);
 
   /// Each [BuildTag] in the set.
-  Iterable<BuildTag> get buildTags => _buildTagsByKey.values;
+  Iterable<BuildTag> get buildTags => _buildTags;
 
   /// Returns a copy of the build tags as a list of [bbv2.StringPair]s.
   List<bbv2.StringPair> toStringPairs() {
@@ -51,12 +54,6 @@ final class BuildTagSet {
 /// See go/buildbucket#concepts for more details.
 @immutable
 sealed class BuildTag {
-  /// Converts all [pairs] to a [BuildTag].
-  static List<BuildTag> listFrom(Iterable<bbv2.StringPair> pairs) {
-    // TODO(matanlurey): Use BuildTagSet instead after https://github.com/flutter/cocoon/pull/4268.
-    return pairs.map(BuildTag.from).toList();
-  }
-
   /// Parses and recognizes expected [BuildTag]s from their string-pair equivalent.
   factory BuildTag.from(bbv2.StringPair pair) {
     switch (pair.key) {
