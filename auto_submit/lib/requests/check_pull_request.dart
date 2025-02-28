@@ -62,7 +62,7 @@ class CheckPullRequest extends CheckRequest {
     // Process pull requests in parallel.
     final futures = <Future<void>>[];
     for (final workItem in workItems) {
-      futures.add(_processPullRequest(workItem.pullRequest, workItem.ackId));
+      futures.add(_processPullRequest(workItem.pullRequest, workItem.ackId, pubSubSubscription));
     }
     await Future.wait(futures);
 
@@ -112,7 +112,7 @@ class CheckPullRequest extends CheckRequest {
     return [...workItems.values];
   }
 
-  Future<void> _processPullRequest(PullRequest pullRequest, String ackId) async {
+  Future<void> _processPullRequest(PullRequest pullRequest, String ackId, String pubSubSubscription) async {
     final crumb = '$CheckPullRequest(${pullRequest.repo?.fullName}/${pullRequest.number})';
     log.info('$crumb: Processing PR: ${pullRequest.toJson()}');
 
@@ -120,7 +120,7 @@ class CheckPullRequest extends CheckRequest {
       final approver = approverProvider(config);
       await approver.autoApproval(pullRequest);
 
-      final validationService = PullRequestValidationService(config);
+      final validationService = PullRequestValidationService(config, subscription: pubSubSubscription);
       await validationService.processMessage(pullRequest, ackId, pubsub);
     } catch (error, stackTrace) {
       // Log at severe level but do not rethrow. Because this loop processes a

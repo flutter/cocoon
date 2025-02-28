@@ -48,8 +48,11 @@ class FakePubSub extends PubSub {
     return PullResponse(receivedMessages: receivedMessages);
   }
 
+  final acks = <({String subscription, String ackId})>[];
+
   @override
   Future<void> acknowledge(String subscription, String ackId) async {
+    acks.add((subscription: subscription, ackId: ackId));
     if (messagesQueue.isNotEmpty) {
       messagesQueue.removeAt(messagesQueue.length - 1);
     }

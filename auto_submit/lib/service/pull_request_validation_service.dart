@@ -18,12 +18,13 @@ import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
 
 class PullRequestValidationService extends ValidationService {
-  PullRequestValidationService(Config config, {RetryOptions? retryOptions})
+  PullRequestValidationService(Config config, {RetryOptions? retryOptions, required this.subscription})
       : super(config, retryOptions: retryOptions) {
     /// Validates a PR marked with the reverts label.
     approverService = ApproverService(config);
   }
 
+  String subscription;
   ApproverService? approverService;
 
   /// Processes a pub/sub message associated with PullRequest event.
@@ -40,7 +41,7 @@ class PullRequestValidationService extends ValidationService {
       );
     } else {
       log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
-      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+      await pubsub.acknowledge(subscription, ackId);
     }
   }
 
@@ -70,7 +71,7 @@ class PullRequestValidationService extends ValidationService {
         log.info(
           '${slug.fullName}/$prNumber is already in the merge queue. Skipping.',
         );
-        await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
+        await pubsub.acknowledge(subscription, ackId);
         return;
       }
     }
@@ -83,6 +84,7 @@ class PullRequestValidationService extends ValidationService {
       pullRequest: pullRequest,
       ackId: ackId,
       pubsub: pubsub,
+      subscription: subscription,
     );
     await processor.process();
   }
@@ -99,6 +101,7 @@ class _PullRequestValidationProcessor {
     required this.pullRequest,
     required this.ackId,
     required this.pubsub,
+    required this.subscription,
   })  : slug = pullRequest.base!.repo!.slug(),
         prNumber = pullRequest.number!;
 
@@ -111,6 +114,8 @@ class _PullRequestValidationProcessor {
   final PubSub pubsub;
   final github.RepositorySlug slug;
   final int prNumber;
+
+  String subscription;
 
   String get logCrumb => 'PullRequestValidation($slug/pull/$prNumber)';
 
@@ -129,7 +134,7 @@ class _PullRequestValidationProcessor {
       await _processAutosubmit();
     } else {
       logInfo('Ack the processed message : $ackId.');
-      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+      await pubsub.acknowledge(subscription, ackId);
     }
   }
 
@@ -169,7 +174,7 @@ class _PullRequestValidationProcessor {
     }
 
     if (shouldReturn) {
-      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+      await pubsub.acknowledge(subscription, ackId);
       logInfo('not feasible to merge; pubsub $ackId is acknowledged.');
       return;
     }
@@ -204,7 +209,7 @@ class _PullRequestValidationProcessor {
     }
 
     logInfo('Ack the processed message : $ackId.');
-    await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+    await pubsub.acknowledge(subscription, ackId);
   }
 
   Future<void> _removeAutosubmitLabel(String reason) async {
