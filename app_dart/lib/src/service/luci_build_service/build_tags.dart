@@ -7,21 +7,21 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 /// A collection of [BuildTag]s.
-final class BuildTagSet {
+final class BuildTags {
   /// Creates a new set, optionally with the provided initial entries.
-  factory BuildTagSet([Iterable<BuildTag> buildTags = const []]) {
-    return BuildTagSet._([...buildTags]);
+  factory BuildTags([Iterable<BuildTag> buildTags = const []]) {
+    return BuildTags._([...buildTags]);
   }
 
   /// Creates a new set, parsing the providing [stringPairs] into [BuildTag]s.
-  factory BuildTagSet.fromStringPairs(Iterable<bbv2.StringPair> stringPairs) {
-    return BuildTagSet(stringPairs.map(BuildTag.from));
+  factory BuildTags.fromStringPairs(Iterable<bbv2.StringPair> stringPairs) {
+    return BuildTags(stringPairs.map(BuildTag.from));
   }
 
-  BuildTagSet._(this._buildTags);
+  BuildTags._(this._buildTags);
   final List<BuildTag> _buildTags;
 
-  /// Adds [buildTag] to the set.
+  /// Adds [buildTag].
   void add(BuildTag buildTag) {
     _buildTags.add(buildTag);
   }
@@ -33,7 +33,7 @@ final class BuildTagSet {
   T? getTagOf<T extends BuildTag>() => buildTags.whereType<T>().firstOrNull;
 
   /// Creates a copy of the current state of the set.
-  BuildTagSet clone() => BuildTagSet._([..._buildTags]);
+  BuildTags clone() => BuildTags._([..._buildTags]);
 
   /// Each [BuildTag] in the set.
   Iterable<BuildTag> get buildTags => _buildTags;

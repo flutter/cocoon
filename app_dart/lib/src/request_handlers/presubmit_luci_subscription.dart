@@ -74,7 +74,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     build.mergeFromBuffer(ZLibCodec().decode(buildsPubSub.buildLargeFields));
 
     final String builderName = build.builder.builder;
-    final tagSet = BuildTagSet.fromStringPairs(build.tags);
+    final tagSet = BuildTags.fromStringPairs(build.tags);
 
     log.info('Available tags: $tagSet');
 
@@ -140,7 +140,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   /// Returns the current reschedule attempt.
   ///
   /// It returns 1 if this is the first run.
-  static int _nextAttempt(BuildTagSet buildTags) {
+  static int _nextAttempt(BuildTags buildTags) {
     final attempt = buildTags.getTagOf<CurrentAttemptBuildTag>();
     if (attempt == null) {
       return 1;
@@ -152,7 +152,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     Map<String, dynamic> userData,
     RepositorySlug slug,
     String builderName,
-    BuildTagSet tags,
+    BuildTags tags,
   ) async {
     final Commit commit = Commit(
       branch: userData['commit_branch'] as String,

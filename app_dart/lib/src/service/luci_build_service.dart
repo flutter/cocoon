@@ -123,7 +123,7 @@ class LuciBuildService {
     return getBuilds(
       builderName: builderName,
       bucket: 'try',
-      tags: BuildTagSet([
+      tags: BuildTags([
         ByPresubmitCommitBuildSetBuildTag(commitSha: sha),
         UserAgentBuildTag.flutterCocoon,
       ]),
@@ -140,7 +140,7 @@ class LuciBuildService {
     return getBuilds(
       builderName: null,
       bucket: 'try',
-      tags: BuildTagSet([
+      tags: BuildTags([
         GitHubPullRequestBuildTag(
           pullRequestNumber: pullRequest.number!,
           slugOwner: slug.owner,
@@ -162,7 +162,7 @@ class LuciBuildService {
     return getBuilds(
       builderName: builderName,
       bucket: 'prod',
-      tags: BuildTagSet([
+      tags: BuildTags([
         if (sha != null) ByPostsubmitCommitBuildSetBuildTag(commitSha: sha),
 
         // We only want to process (and eventually cancel or retry) jobs started
@@ -180,7 +180,7 @@ class LuciBuildService {
   Future<Iterable<bbv2.Build>> getBuilds({
     required String? builderName,
     required String bucket,
-    required BuildTagSet tags,
+    required BuildTags tags,
   }) async {
     final bbv2.FieldMask fieldMask = bbv2.FieldMask(
       paths: {
@@ -1146,7 +1146,7 @@ class LuciBuildService {
 
     log.info('Rerun builder: ${target.value.name} for commit ${commit.sha}');
 
-    final buildTags = BuildTagSet(tags);
+    final buildTags = BuildTags(tags);
     buildTags.add(TriggerTypeBuildTag.autoRetry);
 
     try {
