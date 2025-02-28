@@ -287,13 +287,6 @@ class LuciBuildService {
         'commit_branch': pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
       };
 
-      final List<bbv2.StringPair> tags = [
-        bbv2.StringPair(
-          key: 'github_checkrun',
-          value: checkRun.id.toString(),
-        ),
-      ];
-
       final Map<String, Object> properties = target.getProperties();
       properties.putIfAbsent(
         'git_branch',
@@ -348,7 +341,9 @@ class LuciBuildService {
             cipdVersion: cipdVersion,
             userData: userData,
             properties: properties,
-            tags: BuildTags.fromStringPairs(tags),
+            tags: BuildTags([
+              GitHubCheckRunIdBuildTag(checkRunId: checkRun.id!),
+            ]),
             dimensions: requestedDimensions,
           ),
         ),
@@ -1002,34 +997,6 @@ class LuciBuildService {
     log.info(
       'Creating merge group schedule builder for ${target.value.name} on commit ${commit.sha}',
     );
-    final tags = <bbv2.StringPair>[];
-    tags.addAll([
-      bbv2.StringPair(
-        key: 'buildset',
-        value: 'commit/git/${commit.sha}',
-      ),
-      bbv2.StringPair(
-        key: 'buildset',
-        value: 'commit/gitiles/flutter.googlesource.com/mirrors/${commit.slug.name}/+/${commit.sha}',
-      ),
-      bbv2.StringPair(
-        key: 'user_agent',
-        value: 'flutter-cocoon',
-      ),
-      bbv2.StringPair(
-        key: 'scheduler_job_id',
-        value: 'flutter/${target.value.name}',
-      ),
-      bbv2.StringPair(
-        key: 'current_attempt',
-        value: '1',
-      ),
-      bbv2.StringPair(
-        key: kMergeQueueKey,
-        value: 'true',
-      ),
-    ]);
-
     log.info(
       'Scheduling builder: ${target.value.name} for commit ${commit.sha}',
     );
@@ -1082,7 +1049,14 @@ class LuciBuildService {
         pubsubTopic: 'projects/flutter-dashboard/topics/build-bucket-presubmit',
         userData: UserData.encodeUserDataToBytes(rawUserData),
       ),
-      tags: tags,
+      tags: BuildTags([
+        ByPostsubmitCommitBuildSetBuildTag(commitSha: commit.sha!),
+        ByCommitMirroredBuildSetBuildTag(commitSha: commit.sha!, slugName: commit.slug.name),
+        UserAgentBuildTag.flutterCocoon,
+        SchedulerJobIdBuildTag(targetName: target.value.name),
+        CurrentAttemptBuildTag(attemptNumber: 1),
+        InMergeQueueBuildTag(),
+      ]).toStringPairs(),
       properties: propertiesStruct,
       priority: priority,
     );
