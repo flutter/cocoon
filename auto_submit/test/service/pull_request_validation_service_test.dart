@@ -49,6 +49,7 @@ void main() {
     validationService = PullRequestValidationService(
       config,
       retryOptions: const RetryOptions(delayFactor: Duration.zero, maxDelay: Duration.zero, maxAttempts: 1),
+      subscription: 'test-sub',
     );
     slug = RepositorySlug('flutter', 'cocoon');
 
@@ -710,6 +711,7 @@ This is the second line in a paragraph.''');
         logs,
         contains('[INFO] auto_submit: flutter/flutter/0 is already in the merge queue. Skipping.'),
       );
+      expect(pubsub.acks, contains((subscription: 'test-sub', ackId: 'test')));
       assert(pubsub.messagesQueue.isEmpty);
     });
   });
