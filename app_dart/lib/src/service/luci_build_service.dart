@@ -11,6 +11,7 @@ import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
+import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:collection/collection.dart';
 import 'package:fixnum/fixnum.dart';
@@ -248,16 +249,22 @@ class LuciBuildService {
 
     // final bbv2.BatchRequest batchRequest = bbv2.BatchRequest().createEmptyInstance();
     final List<bbv2.BatchRequest_Request> batchRequestList = [];
-    final List<String> branches = await gerritService.branches(
-      'flutter-review.googlesource.com',
-      'recipes',
-      filterRegex: 'flutter-.*|fuchsia.*',
-    );
-    log.info('Available release branches: $branches');
-
     final String sha = pullRequest.head!.sha!;
-    String cipdVersion = 'refs/heads/${pullRequest.base!.ref!}';
-    cipdVersion = branches.contains(cipdVersion) ? cipdVersion : config.defaultRecipeBundleRef;
+    final CipdVersion cipdVersion;
+    {
+      final CipdVersion proposedVersion = CipdVersion(branch: pullRequest.base!.ref!);
+      final List<String> branches = await gerritService.branches(
+        'flutter-review.googlesource.com',
+        'recipes',
+        filterRegex: 'flutter-.*|fuchsia.*',
+      );
+      if (branches.contains(proposedVersion.version)) {
+        cipdVersion = proposedVersion;
+      } else {
+        log.warning('Falling back to default recipe, could not find "${proposedVersion.version}" in $branches.');
+        cipdVersion = config.defaultRecipeBundleRef;
+      }
+    }
 
     final isFusion = await fusionTester.isFusionBasedRef(pullRequest.base!.repo!.slug(), sha);
 
@@ -341,7 +348,7 @@ class LuciBuildService {
             cipdVersion: cipdVersion,
             userData: userData,
             properties: properties,
-            tags: tags,
+            tags: BuildTags.fromStringPairs(tags),
             dimensions: requestedDimensions,
           ),
         ),
@@ -787,9 +794,9 @@ class LuciBuildService {
     required String sha,
     required String checkName,
     required int pullRequestNumber,
-    required String cipdVersion,
+    required CipdVersion cipdVersion,
     Map<String, Object?>? properties,
-    List<bbv2.StringPair>? tags,
+    BuildTags? tags,
     Map<String, dynamic>? userData,
     List<bbv2.RequestedDimension>? dimensions,
   }) {
@@ -819,7 +826,9 @@ class LuciBuildService {
     scheduleBuildRequest.mask = buildMask;
 
     // Set the executable.
-    final bbv2.Executable executable = bbv2.Executable(cipdVersion: cipdVersion);
+    final bbv2.Executable executable = bbv2.Executable(
+      cipdVersion: cipdVersion.version,
+    );
     scheduleBuildRequest.exe = executable;
 
     // Add the dimensions to the instance.
@@ -832,46 +841,25 @@ class LuciBuildService {
     notificationConfig.userData = UserData.encodeUserDataToBytes(processedUserData)!;
     scheduleBuildRequest.notify = notificationConfig;
 
-    // Add tags to the instance.
-    final List<bbv2.StringPair> processTags = tags ?? <bbv2.StringPair>[];
-    processTags.add(
-      bbv2.StringPair(
-        key: 'buildset',
-        value: 'pr/git/$pullRequestNumber',
+    // If we received initial tags, create a defensive copy, otherwise create an empty list.
+    tags = tags?.clone() ?? BuildTags();
+    tags.addAll([
+      ByPresubmitCommitBuildSetBuildTag(commitSha: sha),
+      UserAgentBuildTag.flutterCocoon,
+      GitHubPullRequestBuildTag(
+        slugOwner: slug.owner,
+        slugName: slug.name,
+        pullRequestNumber: pullRequestNumber,
       ),
-    );
-    processTags.add(
-      bbv2.StringPair(
-        key: 'buildset',
-        value: 'sha/git/$sha',
-      ),
-    );
-    processTags.add(
-      bbv2.StringPair(
-        key: 'user_agent',
-        value: 'flutter-cocoon',
-      ),
-    );
-    processTags.add(
-      bbv2.StringPair(
-        key: 'github_link',
-        value: 'https://github.com/${slug.owner}/${slug.name}/pull/$pullRequestNumber',
-      ),
-    );
-    processTags.add(
-      bbv2.StringPair(
-        key: 'cipd_version',
-        value: cipdVersion,
-      ),
-    );
-    final List<bbv2.StringPair> instanceTags = scheduleBuildRequest.tags;
-    instanceTags.addAll(processTags);
+      CipdVersionBuildTag(cipdVersion),
+    ]);
+    scheduleBuildRequest.tags.addAll(tags.toStringPairs());
 
     properties ??= {};
     properties['git_url'] = 'https://github.com/${slug.owner}/${slug.name}';
     properties['git_ref'] = 'refs/pull/$pullRequestNumber/head';
     properties['git_repo'] = slug.name;
-    properties['exe_cipd_version'] = cipdVersion;
+    properties['exe_cipd_version'] = cipdVersion.version;
 
     final bbv2.Struct propertiesStruct = bbv2.Struct.create();
     propertiesStruct.mergeFromProto3Json(properties);

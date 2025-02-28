@@ -4,6 +4,7 @@
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
+import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -371,20 +372,10 @@ void main() {
   group('CipdVersionBuildTag', () {
     test('can be produced', () {
       expect(
-        CipdVersionBuildTag(baseRef: 'foo-bar').toStringPair(),
+        CipdVersionBuildTag(const CipdVersion(branch: 'foo-bar')).toStringPair(),
         bbv2.StringPair(
           key: 'cipd_version',
           value: 'refs/heads/foo-bar',
-        ),
-      );
-    });
-
-    test('defaults to main', () {
-      expect(
-        CipdVersionBuildTag.main.toStringPair(),
-        bbv2.StringPair(
-          key: 'cipd_version',
-          value: 'refs/heads/main',
         ),
       );
     });
@@ -398,7 +389,7 @@ void main() {
       );
       expect(
         tag,
-        CipdVersionBuildTag(baseRef: 'foo-bar'),
+        CipdVersionBuildTag(const CipdVersion(branch: 'foo-bar')),
       );
     });
 

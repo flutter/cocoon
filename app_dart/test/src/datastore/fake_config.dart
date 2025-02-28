@@ -10,6 +10,7 @@ import 'package:cocoon_service/src/model/appengine/branch.dart';
 import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
+import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart';
 import 'package:github/github.dart' as gh;
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
@@ -269,7 +270,7 @@ class FakeConfig implements Config {
   Future<GithubService> createDefaultGitHubService() async => githubService!;
 
   @override
-  String get defaultRecipeBundleRef => 'refs/heads/main';
+  CipdVersion get defaultRecipeBundleRef => const CipdVersion(branch: 'main');
 
   @override
   Future<List<String>> get releaseAccounts async => <String>['dart-flutter-releaser'];
