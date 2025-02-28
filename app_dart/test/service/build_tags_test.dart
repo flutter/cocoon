@@ -7,14 +7,14 @@ import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('BuildTagSet', () {
+  group('BuildTags', () {
     test('creates an empty set', () {
-      final set = BuildTagSet();
+      final set = BuildTags();
       expect(set.buildTags, isEmpty);
     });
 
     test('creates an initial set', () {
-      final set = BuildTagSet([
+      final set = BuildTags([
         TriggerTypeBuildTag.autoRetry,
         GitHubCheckRunIdBuildTag(checkRunId: 1234),
       ]);
@@ -27,23 +27,8 @@ void main() {
       );
     });
 
-    test('creates an initial set of "last wins" tags', () {
-      final set = BuildTagSet([
-        TriggerTypeBuildTag.autoRetry,
-        GitHubCheckRunIdBuildTag(checkRunId: 1234),
-        TriggerTypeBuildTag.checkRunManualRetry,
-      ]);
-      expect(
-        set.buildTags,
-        unorderedEquals([
-          TriggerTypeBuildTag.checkRunManualRetry,
-          GitHubCheckRunIdBuildTag(checkRunId: 1234),
-        ]),
-      );
-    });
-
     test('adds a new tag', () {
-      final set = BuildTagSet([TriggerTypeBuildTag.autoRetry]);
+      final set = BuildTags([TriggerTypeBuildTag.autoRetry]);
       set.add(GitHubCheckRunIdBuildTag(checkRunId: 1234));
       expect(
         set.buildTags,
@@ -54,30 +39,31 @@ void main() {
       );
     });
 
-    test('adds a new tag replacing an existing one', () {
-      final set = BuildTagSet([TriggerTypeBuildTag.autoRetry]);
+    test('adds a new tag does not replace an existing one', () {
+      final set = BuildTags([TriggerTypeBuildTag.autoRetry]);
       set.add(TriggerTypeBuildTag.manualRetry);
       expect(
         set.buildTags,
         unorderedEquals([
+          TriggerTypeBuildTag.autoRetry,
           TriggerTypeBuildTag.manualRetry,
         ]),
       );
     });
 
     test('clones a set', () {
-      final a = BuildTagSet([TriggerTypeBuildTag.autoRetry]);
+      final a = BuildTags([TriggerTypeBuildTag.autoRetry]);
       final b = a.clone();
 
       a.add(TriggerTypeBuildTag.checkRunManualRetry);
       b.add(TriggerTypeBuildTag.manualRetry);
 
-      expect(a.buildTags, unorderedEquals([TriggerTypeBuildTag.checkRunManualRetry]));
-      expect(b.buildTags, unorderedEquals([TriggerTypeBuildTag.manualRetry]));
+      expect(a.buildTags, unorderedEquals([TriggerTypeBuildTag.autoRetry, TriggerTypeBuildTag.checkRunManualRetry]));
+      expect(b.buildTags, unorderedEquals([TriggerTypeBuildTag.autoRetry, TriggerTypeBuildTag.manualRetry]));
     });
 
     test('creates string pairs', () {
-      final set = BuildTagSet([TriggerTypeBuildTag.autoRetry]);
+      final set = BuildTags([TriggerTypeBuildTag.autoRetry]);
       expect(
         set.toStringPairs(),
         unorderedEquals([

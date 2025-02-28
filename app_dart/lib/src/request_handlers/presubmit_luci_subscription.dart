@@ -74,12 +74,12 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     build.mergeFromBuffer(ZLibCodec().decode(buildsPubSub.buildLargeFields));
 
     final String builderName = build.builder.builder;
-    final buildTags = BuildTag.listFrom(build.tags);
+    final tagSet = BuildTags.fromStringPairs(build.tags);
 
-    log.info('Available tags: $buildTags');
+    log.info('Available tags: $tagSet');
 
     // Skip status update if we can not get the sha tag.
-    if (buildTags.whereType<BuildSetBuildTag>().isEmpty) {
+    if (tagSet.buildTags.whereType<BuildSetBuildTag>().isEmpty) {
       log.warning('Buildset tag not included, skipping Status Updates');
       return Body.empty;
     }
@@ -106,12 +106,12 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
 
       bool rescheduled = false;
       if (githubChecksService.taskFailed(build.status)) {
-        final int currentAttempt = _nextAttempt(buildTags);
+        final int currentAttempt = _nextAttempt(tagSet);
         final int maxAttempt = await _getMaxAttempt(
           userDataMap,
           slug,
           builderName,
-          buildTags,
+          tagSet,
         );
         if (currentAttempt < maxAttempt) {
           rescheduled = true;
@@ -140,8 +140,8 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   /// Returns the current reschedule attempt.
   ///
   /// It returns 1 if this is the first run.
-  static int _nextAttempt(Iterable<BuildTag> buildTags) {
-    final attempt = buildTags.whereType<CurrentAttemptBuildTag>().firstOrNull;
+  static int _nextAttempt(BuildTags buildTags) {
+    final attempt = buildTags.getTagOf<CurrentAttemptBuildTag>();
     if (attempt == null) {
       return 1;
     }
@@ -152,7 +152,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     Map<String, dynamic> userData,
     RepositorySlug slug,
     String builderName,
-    Iterable<BuildTag> tags,
+    BuildTags tags,
   ) async {
     final Commit commit = Commit(
       branch: userData['commit_branch'] as String,
@@ -189,7 +189,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     final Map<String, Object> properties = target.getProperties();
     if (!properties.containsKey('presubmit_max_attempts')) {
       // Give any test in the merge queue another try... its expensive otherwise.
-      return tags.contains(InMergeQueueBuildTag()) ? LuciBuildService.kMergeQueueMaxRetries : 1;
+      return tags.contains<InMergeQueueBuildTag>() ? LuciBuildService.kMergeQueueMaxRetries : 1;
     }
     return properties['presubmit_max_attempts'] as int;
   }
