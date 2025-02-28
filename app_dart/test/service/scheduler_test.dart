@@ -755,6 +755,93 @@ targets:
         verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
       });
 
+      test('rerequested fusion (engine) ci.yaml check retriggers presubmit', () async {
+        final MockGithubService mockGithubService = MockGithubService();
+        final MockGitHub mockGithubClient = MockGitHub();
+        buildStatusService = FakeBuildStatusService(
+          commitStatuses: <CommitStatus>[
+            CommitStatus(generateCommit(1), const <Stage>[]),
+          ],
+        );
+        config = FakeConfig(
+          githubService: mockGithubService,
+          firestoreService: mockFirestoreService,
+        );
+
+        final pullRequest = generatePullRequest();
+
+        // Enable fusion (modern flutter/flutter merged)
+        fakeFusion.isFusion = (_, __) => true;
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
+            return http.Response(fusionCiYaml, 200);
+          } else if (request.url.path.endsWith('.ci.yaml')) {
+            return http.Response(singleCiYaml, 200);
+          }
+          throw Exception('Failed to find ${request.url.path}');
+        });
+        config.maxFilesChangedForSkippingEnginePhaseValue = 0;
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          buildStatusProvider: (_, __) => buildStatusService,
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
+          httpClientProvider: () => httpClient,
+          luciBuildService: FakeLuciBuildService(
+            config: config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          fusionTester: fakeFusion,
+          findPullRequestForSha: (_, sha) async {
+            return pullRequest;
+          },
+        );
+        when(mockGithubService.github).thenReturn(mockGithubClient);
+        when(mockGithubService.searchIssuesAndPRs(any, any, sort: anyNamed('sort'), pages: anyNamed('pages')))
+            .thenAnswer((_) async => [generateIssue(3)]);
+        when(mockGithubChecksUtil.listCheckSuitesForRef(any, any, ref: anyNamed('ref'))).thenAnswer(
+          (_) async => [
+            // From check_run.check_suite.id in [checkRunString].
+            generateCheckSuite(668083231),
+          ],
+        );
+        when(mockGithubService.getPullRequest(any, any)).thenAnswer((_) async => pullRequest);
+        getFilesChanged.cannedFiles = ['abc/def'];
+        when(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            any,
+            output: anyNamed('output'),
+          ),
+        ).thenAnswer((_) async {
+          return CheckRun.fromJson(const <String, dynamic>{
+            'id': 1,
+            'started_at': '2020-05-10T02:49:31Z',
+            'name': 'Linux engine_build',
+            'check_suite': <String, dynamic>{'id': 2},
+          });
+        });
+        final Map<String, dynamic> checkRunEventJson = jsonDecode(checkRunString) as Map<String, dynamic>;
+        checkRunEventJson['check_run']['name'] = 'Linux engine_build';
+        final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(checkRunEventJson);
+        expect(await scheduler.processCheckRun(checkRunEvent), true);
+        verify(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            'Linux engine_build',
+            output: anyNamed('output'),
+          ),
+        );
+      });
+
       test('rerequested merge queue guard check is ignored', () async {
         final MockGithubService mockGithubService = MockGithubService();
         final MockGitHub mockGithubClient = MockGitHub();
