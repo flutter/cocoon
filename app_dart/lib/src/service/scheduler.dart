@@ -416,7 +416,7 @@ class Scheduler {
     // revert bots.
     bool unlockMergeGroup = false;
 
-    final ciValidationCheckRun = await createCiYamlCheckRun(pullRequest, slug);
+    final ciValidationCheckRun = await _createCiYamlCheckRun(pullRequest, slug);
 
     log.info('Creating presubmit targets for ${pullRequest.number}');
     Object? exception;
@@ -610,7 +610,7 @@ class Scheduler {
     }
   }
 
-  Future<CheckRun> createCiYamlCheckRun(PullRequest pullRequest, RepositorySlug slug) async {
+  Future<CheckRun> _createCiYamlCheckRun(PullRequest pullRequest, RepositorySlug slug) async {
     log.info('Creating ciYaml validation check run for ${pullRequest.number}');
     final CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
       config,
@@ -1395,10 +1395,18 @@ $stacktrace
                 log.warning('Asked to reschedule presubmits for unknown sha/PR: ${checkRunEvent.checkRun!.headSha!}');
                 return true;
               }
-              final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
 
+              final isFusion = await fusionTester.isFusionBasedRef(slug, sha);
+              final List<Target> presubmitTargets;
               final EngineArtifacts engineArtifacts;
-              if (await fusionTester.isFusionBasedRef(slug, sha)) {
+              if (isFusion) {
+                // Fusion repos have presubmits split across two .ci.yaml files.
+                // /ci.yaml
+                // /engine/src/flutter/.ci.yaml
+                presubmitTargets = [
+                  ...await getPresubmitTargets(pullRequest),
+                  ...await getPresubmitTargets(pullRequest, type: CiType.fusionEngine),
+                ];
                 if (await _applyFrameworkOnlyPrOptimization(
                   slug,
                   changedFilesCount: pullRequest.changedFilesCount!,
@@ -1410,6 +1418,7 @@ $stacktrace
                   engineArtifacts = EngineArtifacts.builtFromSource(commitSha: pullRequest.head!.sha!);
                 }
               } else {
+                presubmitTargets = await getPresubmitTargets(pullRequest);
                 engineArtifacts = const EngineArtifacts.noFrameworkTests(reason: 'Not flutter/flutter');
               }
 
