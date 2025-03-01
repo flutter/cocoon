@@ -9,6 +9,7 @@ import 'package:appengine/appengine.dart';
 import 'package:cocoon_server/access_client_provider.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -176,7 +177,7 @@ class Config {
 
   // Default recipe bundle used when the PR's base branch name does not exist in
   // the recipes GoB project.
-  String get defaultRecipeBundleRef => 'refs/heads/main';
+  CipdVersion get defaultRecipeBundleRef => const CipdVersion(branch: 'main');
 
   DatastoreDB get db => _db;
 

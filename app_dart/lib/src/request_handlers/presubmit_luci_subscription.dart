@@ -141,7 +141,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   ///
   /// It returns 1 if this is the first run.
   static int _nextAttempt(BuildTags buildTags) {
-    final attempt = buildTags.getTagOf<CurrentAttemptBuildTag>();
+    final attempt = buildTags.getTagOfType<CurrentAttemptBuildTag>();
     if (attempt == null) {
       return 1;
     }
@@ -189,7 +189,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     final Map<String, Object> properties = target.getProperties();
     if (!properties.containsKey('presubmit_max_attempts')) {
       // Give any test in the merge queue another try... its expensive otherwise.
-      return tags.contains<InMergeQueueBuildTag>() ? LuciBuildService.kMergeQueueMaxRetries : 1;
+      return tags.containsType<InMergeQueueBuildTag>() ? LuciBuildService.kMergeQueueMaxRetries : 1;
     }
     return properties['presubmit_max_attempts'] as int;
   }

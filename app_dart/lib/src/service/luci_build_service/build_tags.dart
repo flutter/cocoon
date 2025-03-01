@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
@@ -26,11 +27,16 @@ final class BuildTags {
     _buildTags.add(buildTag);
   }
 
+  /// Adds multiple [buildTags].
+  void addAll(Iterable<BuildTag> buildTags) {
+    _buildTags.addAll(buildTags);
+  }
+
   /// Returns whether at least one build tag of type [T] exists in the set.
-  bool contains<T extends BuildTag>() => buildTags.whereType<T>().isNotEmpty;
+  bool containsType<T extends BuildTag>() => buildTags.whereType<T>().isNotEmpty;
 
   /// Returns the first build tag of type [T], or `null` if none exists.
-  T? getTagOf<T extends BuildTag>() => buildTags.whereType<T>().firstOrNull;
+  T? getTagOfType<T extends BuildTag>() => buildTags.whereType<T>().firstOrNull;
 
   /// Creates a copy of the current state of the set.
   BuildTags clone() => BuildTags._([..._buildTags]);
@@ -103,7 +109,7 @@ sealed class BuildTag {
       case CipdVersionBuildTag._keyName:
         if (_parseCipdVersion.matchAsPrefix(pair.value) case final match?) {
           final baseRef = match.group(1)!;
-          return CipdVersionBuildTag(baseRef: baseRef);
+          return CipdVersionBuildTag(CipdVersion(branch: baseRef));
         }
       case InMergeQueueBuildTag._keyName when pair.value == 'true':
         return InMergeQueueBuildTag();
@@ -300,14 +306,8 @@ final class CurrentAttemptBuildTag extends BuildTag {
 /// See https://chromium.googlesource.com/infra/luci/luci-go/+/HEAD/lucicfg/doc/README.md#luci.executable.
 final class CipdVersionBuildTag extends BuildTag {
   static const _keyName = 'cipd_version';
-  static final main = CipdVersionBuildTag(baseRef: 'main');
 
-  CipdVersionBuildTag({required this.baseRef}) : super(_keyName, 'refs/heads/$baseRef');
-
-  /// Which baseRef to use for CIPD downloads.
-  ///
-  /// Defaults to `main`.
-  final String baseRef;
+  CipdVersionBuildTag(CipdVersion cipdVersion) : super(_keyName, cipdVersion.version);
 }
 
 /// Specifies that this build is from the merge queue.
