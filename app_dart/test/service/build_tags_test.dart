@@ -72,6 +72,61 @@ void main() {
         ]),
       );
     });
+
+    test('replace existing', () {
+      final set = BuildTags([TriggerTypeBuildTag.autoRetry]);
+      expect(
+        set.replaceIfExisting(TriggerTypeBuildTag.manualRetry),
+        TriggerTypeBuildTag.autoRetry,
+        reason: 'Returns the existing tag that was just removed',
+      );
+      expect(set.buildTags, [TriggerTypeBuildTag.manualRetry]);
+    });
+
+    test('replace existing but there is no existing', () {
+      final set = BuildTags([TriggerTypeBuildTag.autoRetry]);
+      expect(
+        set.replaceIfExisting(TriggerdByBuildTag(email: 'foo@bar.com')),
+        isNull,
+        reason: 'Nothing was removed',
+      );
+      expect(
+        set.buildTags,
+        unorderedEquals([
+          TriggerTypeBuildTag.autoRetry,
+          TriggerdByBuildTag(email: 'foo@bar.com'),
+        ]),
+      );
+    });
+
+    test('add if absent', () {
+      final set = BuildTags([TriggerTypeBuildTag.autoRetry]);
+      expect(
+        set.addIfAbsent(TriggerdByBuildTag(email: 'foo@bar.com')),
+        TriggerdByBuildTag(email: 'foo@bar.com'),
+        reason: 'Was just added',
+      );
+      expect(
+        set.buildTags,
+        unorderedEquals([
+          TriggerTypeBuildTag.autoRetry,
+          TriggerdByBuildTag(email: 'foo@bar.com'),
+        ]),
+      );
+    });
+
+    test('add if absent does not add if existing', () {
+      final set = BuildTags([TriggerTypeBuildTag.autoRetry]);
+      expect(
+        set.addIfAbsent(TriggerTypeBuildTag.manualRetry),
+        TriggerTypeBuildTag.autoRetry,
+        reason: 'Was not added',
+      );
+      expect(
+        set.buildTags,
+        unorderedEquals([TriggerTypeBuildTag.autoRetry]),
+      );
+    });
   });
 
   group('UserAgentBuildTag', () {
