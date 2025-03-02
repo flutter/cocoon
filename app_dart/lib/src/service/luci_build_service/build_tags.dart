@@ -27,9 +27,34 @@ final class BuildTags {
     _buildTags.add(buildTag);
   }
 
+  /// Adds [buildTag] if there is no existing build tag with a matching key.
+  ///
+  /// Returns the build tag that exists at the end of this operation.
+  T addIfAbsent<T extends BuildTag>(T buildTag) {
+    final index = _buildTags.indexWhere((e) => e._key == buildTag._key);
+    if (index == -1) {
+      _buildTags.add(buildTag);
+      return buildTag;
+    }
+    return _buildTags[index] as T;
+  }
+
   /// Adds multiple [buildTags].
   void addAll(Iterable<BuildTag> buildTags) {
     _buildTags.addAll(buildTags);
+  }
+
+  /// Replaces an existing build tag with a matching key with [buildTag].
+  ///
+  /// Returns `true` if there was an existing value with a matching key.
+  bool addOrReplace(BuildTag buildTag) {
+    final index = _buildTags.indexWhere((e) => e._key == buildTag._key);
+    if (index == -1) {
+      _buildTags.add(buildTag);
+      return false;
+    }
+    _buildTags[index] = buildTag;
+    return true;
   }
 
   /// Returns whether at least one build tag of type [T] exists in the set.

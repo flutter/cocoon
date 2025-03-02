@@ -13,7 +13,7 @@ import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
 import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
-import 'package:collection/collection.dart';
+import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/github.dart';
@@ -491,17 +491,12 @@ class LuciBuildService {
     required int nextAttempt,
     required Map<String, dynamic> userDataMap,
   }) async {
-    final List<bbv2.StringPair> tags = build.tags;
-    // need to replace the current_attempt
-    _setTagValue(
-      tags,
-      key: 'current_attempt',
-      value: '$nextAttempt',
-    );
+    final tags = BuildTags.fromStringPairs(build.tags);
+    tags.addOrReplace(CurrentAttemptBuildTag(attemptNumber: nextAttempt));
 
     final request = bbv2.ScheduleBuildRequest(
       builder: build.builder,
-      tags: tags,
+      tags: tags.toStringPairs(),
       properties: build.input.properties,
       notify: bbv2.NotificationConfig(
         pubsubTopic: 'projects/flutter-dashboard/topics/build-bucket-presubmit',
@@ -549,12 +544,12 @@ class LuciBuildService {
     // get it as a struct first and convert it.
     final bbv2.Struct propertiesStruct = build.input.properties;
     final Map<String, Object?> properties = propertiesStruct.toProto3Json() as Map<String, Object?>;
-    final List<bbv2.StringPair> tags = build.tags;
+    final tags = BuildTags.fromStringPairs(build.tags);
 
     log.info('input ${build.input} properties $properties');
     log.info('input ${build.input} tags $tags');
 
-    _setTagValue(tags, key: 'trigger_type', value: 'check_run_manual_retry');
+    tags.addOrReplace(TriggerTypeBuildTag.checkRunManualRetry);
 
     try {
       final int newAttempt = await _updateTaskStatusInDatabaseForRetry(
@@ -563,7 +558,7 @@ class LuciBuildService {
         firestoreService = firestoreService,
         datastore = datastore,
       );
-      _setTagValue(tags, key: 'current_attempt', value: newAttempt.toString());
+      tags.addOrReplace(CurrentAttemptBuildTag(attemptNumber: newAttempt));
     } catch (error) {
       log.severe(
         'updating task ${taskDocument.taskName} of commit ${taskDocument.commitSha} failure: $error. Skipping rescheduling.',
@@ -872,22 +867,15 @@ class LuciBuildService {
     required Target target,
     required Task task,
     Map<String, Object?>? properties,
-    List<bbv2.StringPair>? tags,
+    BuildTags? tags,
     int priority = kDefaultPriority,
   }) async {
     log.info(
       'Creating postsubmit schedule builder for ${target.value.name} on commit ${commit.sha}',
     );
-    tags ??= [];
-    tags.addAll([
-      bbv2.StringPair(
-        key: 'buildset',
-        value: 'commit/git/${commit.sha}',
-      ),
-      bbv2.StringPair(
-        key: 'buildset',
-        value: 'commit/gitiles/flutter.googlesource.com/mirrors/${commit.slug.name}/+/${commit.sha}',
-      ),
+    tags ??= BuildTags([
+      ByPostsubmitCommitBuildSetBuildTag(commitSha: commit.sha!),
+      ByCommitMirroredBuildSetBuildTag(commitSha: commit.sha!, slugName: commit.slug.name),
     ]);
 
     final String commitKey = task.parentKey!.id.toString();
@@ -913,32 +901,16 @@ class LuciBuildService {
       );
     }
 
-    tags.add(
-      bbv2.StringPair(
-        key: 'user_agent',
-        value: 'flutter-cocoon',
-      ),
-    );
-    // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
-    tags.add(
-      bbv2.StringPair(
-        key: 'scheduler_job_id',
-        value: 'flutter/${target.value.name}',
-      ),
-    );
-    // Default attempt is the initial attempt, which is 1.
-    final bbv2.StringPair? attemptTag = tags.singleWhereOrNull((tag) => tag.key == 'current_attempt');
-    if (attemptTag == null) {
-      tags.add(
-        bbv2.StringPair(
-          key: 'current_attempt',
-          value: '1',
-        ),
-      );
-    }
+    tags.addOrReplace(UserAgentBuildTag.flutterCocoon);
+    tags.addOrReplace(SchedulerJobIdBuildTag(targetName: target.value.name));
+    final currentAttempt = tags.addIfAbsent(CurrentAttemptBuildTag(attemptNumber: 1));
 
-    final String currentAttemptStr = tags.firstWhere((tag) => tag.key == 'current_attempt').value;
-    rawUserData['firestore_task_document_name'] = '${commit.sha}_${task.name}_$currentAttemptStr';
+    final firestoreTask = FirestoreTaskDocumentName(
+      commitSha: commit.sha!,
+      taskName: task.name!,
+      currentAttempt: currentAttempt.attemptNumber,
+    );
+    rawUserData['firestore_task_document_name'] = firestoreTask.toString();
 
     final Map<String, Object?> processedProperties = target.getProperties().cast<String, Object?>();
     processedProperties.addAll(properties ?? <String, Object?>{});
@@ -981,7 +953,7 @@ class LuciBuildService {
         pubsubTopic: 'projects/flutter-dashboard/topics/build-bucket-postsubmit',
         userData: UserData.encodeUserDataToBytes(rawUserData),
       ),
-      tags: tags,
+      tags: tags.toStringPairs(),
       properties: propertiesStruct,
       priority: priority,
     );
@@ -1137,7 +1109,7 @@ class LuciBuildService {
             task: task,
             priority: kRerunPriority,
             properties: Config.defaultProperties,
-            tags: buildTags.toStringPairs(),
+            tags: buildTags,
           ),
         ),
       ],
@@ -1206,26 +1178,5 @@ class LuciBuildService {
     );
     final firestore_commit.Commit latestCommit = commitList.single;
     return latestCommit.sha == currentCommit.sha;
-  }
-
-  /// Sets the given key-value pair in [tags], replacing any existing entry with
-  /// the same key.
-  void _setTagValue(
-    List<bbv2.StringPair> tags, {
-    required String key,
-    required String value,
-  }) {
-    bbv2.StringPair entry;
-    final (int, bbv2.StringPair)? record = tags.indexed.firstWhereOrNull((element) => element.$2.key == key);
-    if (record == null) {
-      entry = bbv2.StringPair(
-        key: key,
-        value: value,
-      );
-    } else {
-      entry = tags.removeAt(record.$1);
-      entry.value = value;
-    }
-    tags.add(entry);
   }
 }
