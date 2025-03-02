@@ -46,16 +46,15 @@ final class BuildTags {
 
   /// Replaces an existing build tag with a matching key with [buildTag].
   ///
-  /// Returns the existing tag that was replaced, or `null` if not replaced.
-  T? replaceIfExisting<T extends BuildTag>(T buildTag) {
+  /// Returns `true` if there was an existing value with a matching key.
+  bool addOrReplace(BuildTag buildTag) {
     final index = _buildTags.indexWhere((e) => e._key == buildTag._key);
     if (index == -1) {
       _buildTags.add(buildTag);
-      return null;
+      return false;
     }
-    final existing = _buildTags[index];
     _buildTags[index] = buildTag;
-    return existing as T;
+    return true;
   }
 
   /// Returns whether at least one build tag of type [T] exists in the set.

@@ -492,7 +492,7 @@ class LuciBuildService {
     required Map<String, dynamic> userDataMap,
   }) async {
     final tags = BuildTags.fromStringPairs(build.tags);
-    tags.replaceIfExisting(CurrentAttemptBuildTag(attemptNumber: nextAttempt));
+    tags.addOrReplace(CurrentAttemptBuildTag(attemptNumber: nextAttempt));
 
     final request = bbv2.ScheduleBuildRequest(
       builder: build.builder,
@@ -549,7 +549,7 @@ class LuciBuildService {
     log.info('input ${build.input} properties $properties');
     log.info('input ${build.input} tags $tags');
 
-    tags.replaceIfExisting(TriggerTypeBuildTag.checkRunManualRetry);
+    tags.addOrReplace(TriggerTypeBuildTag.checkRunManualRetry);
 
     try {
       final int newAttempt = await _updateTaskStatusInDatabaseForRetry(
@@ -558,7 +558,7 @@ class LuciBuildService {
         firestoreService = firestoreService,
         datastore = datastore,
       );
-      tags.replaceIfExisting(CurrentAttemptBuildTag(attemptNumber: newAttempt));
+      tags.addOrReplace(CurrentAttemptBuildTag(attemptNumber: newAttempt));
     } catch (error) {
       log.severe(
         'updating task ${taskDocument.taskName} of commit ${taskDocument.commitSha} failure: $error. Skipping rescheduling.',
@@ -901,8 +901,8 @@ class LuciBuildService {
       );
     }
 
-    tags.replaceIfExisting(UserAgentBuildTag.flutterCocoon);
-    tags.replaceIfExisting(SchedulerJobIdBuildTag(targetName: target.value.name));
+    tags.addOrReplace(UserAgentBuildTag.flutterCocoon);
+    tags.addOrReplace(SchedulerJobIdBuildTag(targetName: target.value.name));
     final currentAttempt = tags.addIfAbsent(CurrentAttemptBuildTag(attemptNumber: 1));
 
     final firestoreTask = FirestoreTaskDocumentName(

@@ -76,8 +76,8 @@ void main() {
     test('replace existing', () {
       final set = BuildTags([TriggerTypeBuildTag.autoRetry]);
       expect(
-        set.replaceIfExisting(TriggerTypeBuildTag.manualRetry),
-        TriggerTypeBuildTag.autoRetry,
+        set.addOrReplace(TriggerTypeBuildTag.manualRetry),
+        isTrue,
         reason: 'Returns the existing tag that was just removed',
       );
       expect(set.buildTags, [TriggerTypeBuildTag.manualRetry]);
@@ -86,8 +86,8 @@ void main() {
     test('replace existing but there is no existing', () {
       final set = BuildTags([TriggerTypeBuildTag.autoRetry]);
       expect(
-        set.replaceIfExisting(TriggerdByBuildTag(email: 'foo@bar.com')),
-        isNull,
+        set.addOrReplace(TriggerdByBuildTag(email: 'foo@bar.com')),
+        isFalse,
         reason: 'Nothing was removed',
       );
       expect(
