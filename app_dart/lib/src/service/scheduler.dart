@@ -131,7 +131,7 @@ class Scheduler {
     final List<Commit> newCommits = await _getMissingCommits(commits);
     log.fine('Found ${newCommits.length} new commits on GitHub');
     for (Commit commit in newCommits) {
-      await _addCommit(commit);
+      await addCommit(commit);
     }
   }
 
@@ -164,23 +164,22 @@ class Scheduler {
       sha: sha,
       timestamp: pr.mergedAt!.millisecondsSinceEpoch,
     );
-
-    if (await _commitExistsInDatastore(mergedCommit)) {
-      log.fine('$sha already exists in datastore. Scheduling skipped.');
-      return;
-    }
-
-    log.fine('Scheduling $sha via GitHub webhook');
-    await _addCommit(mergedCommit);
+    await addCommit(mergedCommit);
   }
 
   /// Processes postsubmit tasks.
-  Future<void> _addCommit(Commit commit) async {
-    if (!config.supportedRepos.contains(commit.slug)) {
-      log.fine('Skipping ${commit.id} as repo is not supported');
-      return;
+  Future<bool> addCommit(Commit commit) async {
+    if (!await _commitExistsInDatastore(commit)) {
+      log.warning('${commit.sha} already exists in datastore. Scheduling skipped.');
+      return false;
     }
 
+    if (!config.supportedRepos.contains(commit.slug)) {
+      log.fine('Skipping ${commit.id} as repo is not supported');
+      return false;
+    }
+
+    log.info('Scheduling postsubmit tasks for ${commit.sha}');
     final CiYamlSet ciYaml = await getCiYaml(commit);
 
     final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
@@ -240,6 +239,7 @@ class Scheduler {
     log.info('Immediately scheduled tasks for $commit: ${toBeScheduled.map((t) => '"${t.second.name}"').join(', ')}');
     await _batchScheduleBuilds(commit, toBeScheduled);
     await _uploadToBigQuery(commit);
+    return true;
   }
 
   /// Schedule all builds in batch requests instead of a single request.

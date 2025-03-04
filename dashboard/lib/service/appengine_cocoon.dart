@@ -251,14 +251,14 @@ class AppEngineCocoonService implements CocoonService {
       return const CocoonResponse<bool>.error('Sign in to trigger reruns');
     }
     final http.Response response = await _client.post(
-      apiEndpoint('/api/schedule-postsubmit-commits'),
+      apiEndpoint('/api/schedule-postsubmits-for-commit'),
       headers: <String, String>{
         'X-Flutter-IdToken': idToken,
       },
       body: jsonEncode(<String, String>{
-        'Repo': repo,
-        'Branch': branch,
-        'Commit': commit.sha,
+        'repo': repo,
+        'branch': branch,
+        'commit': commit.sha,
       }),
     );
     if (response.statusCode == HttpStatus.ok) {
