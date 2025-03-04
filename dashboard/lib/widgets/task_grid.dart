@@ -23,13 +23,20 @@ import 'task_overlay.dart';
 ///
 /// If there's no data for [TaskGrid], it shows [CircularProgressIndicator].
 class TaskGridContainer extends StatelessWidget {
-  const TaskGridContainer({super.key, this.filter, this.useAnimatedLoading = false});
+  const TaskGridContainer({
+    super.key,
+    this.filter,
+    this.useAnimatedLoading = false,
+    this.schedulePostsubmitBuildForReleaseBranch,
+  });
 
   /// A notifier to hold a [TaskGridFilter] object to control the visibility of various
   /// rows and columns of the task grid. This filter may be updated dynamically through
   /// this notifier from elsewhere if the user starts editing the filter parameters in
   /// the settings dialog.
   final TaskGridFilter? filter;
+
+  final Future<void> Function(Commit commit)? schedulePostsubmitBuildForReleaseBranch;
 
   final bool useAnimatedLoading;
 
@@ -60,6 +67,7 @@ class TaskGridContainer extends StatelessWidget {
           commitStatuses: commitStatuses,
           filter: filter,
           useAnimatedLoading: useAnimatedLoading,
+          schedulePostsubmitBuildForReleaseBranch: schedulePostsubmitBuildForReleaseBranch,
         );
       },
     );
@@ -77,6 +85,7 @@ class TaskGrid extends StatefulWidget {
     // it's asking for trouble because the tests can (and do) describe a mutually inconsistent state.
     required this.buildState,
     required this.commitStatuses,
+    this.schedulePostsubmitBuildForReleaseBranch,
     this.filter,
     this.useAnimatedLoading = false,
   });
@@ -86,6 +95,8 @@ class TaskGrid extends StatefulWidget {
 
   /// Reference to the build state to perform actions on [TaskMatrix], like rerunning tasks.
   final BuildState buildState;
+
+  final Future<void> Function(Commit commit)? schedulePostsubmitBuildForReleaseBranch;
 
   final bool useAnimatedLoading;
 
@@ -276,7 +287,15 @@ class _TaskGridState extends State<TaskGrid> {
       ...rows.map<List<LatticeCell>>(
         (_Row row) => <LatticeCell>[
           LatticeCell(
-            builder: (BuildContext context) => CommitBox(commit: row.commit),
+            builder: (BuildContext context) => CommitBox(
+              commit: row.commit,
+              schedulePostsubmitBuild: () {
+                if (widget.schedulePostsubmitBuildForReleaseBranch case final schedule?) {
+                  return () => schedule(row.commit);
+                }
+                return null;
+              }(),
+            ),
           ),
           ...tasks.map<LatticeCell>((QualifiedTask task) => row.cells[task] ?? const LatticeCell()),
         ],

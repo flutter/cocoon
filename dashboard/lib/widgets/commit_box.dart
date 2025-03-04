@@ -24,10 +24,14 @@ class CommitBox extends StatefulWidget {
   const CommitBox({
     super.key,
     required this.commit,
+    this.schedulePostsubmitBuild,
   });
 
   /// The commit being shown
   final Commit commit;
+
+  /// Whether to provide a 'schedule build' button'.
+  final Future<void> Function()? schedulePostsubmitBuild;
 
   @override
   CommitBoxState createState() => CommitBoxState();
@@ -53,6 +57,7 @@ class CommitBoxState extends State<CommitBox> {
         parentContext: context,
         commit: widget.commit,
         closeCallback: _closeOverlay,
+        schedulePostsubmitBuild: widget.schedulePostsubmitBuild,
       ),
     );
 
@@ -72,6 +77,7 @@ class CommitOverlayContents extends StatelessWidget {
     required this.parentContext,
     required this.commit,
     required this.closeCallback,
+    required this.schedulePostsubmitBuild,
   });
 
   /// The parent context that has the size of the whole screen
@@ -85,6 +91,9 @@ class CommitOverlayContents extends StatelessWidget {
   /// On a click that is outside the area of the overlay (the rest of the screen),
   /// this callback is called closing the overlay.
   final void Function() closeCallback;
+
+  /// This callback schedules a post-submit build.
+  final Future<void> Function()? schedulePostsubmitBuild;
 
   @override
   Widget build(BuildContext context) {
@@ -156,6 +165,19 @@ class CommitOverlayContents extends StatelessWidget {
                             ),
                           ),
                           SelectableText(commit.author),
+                          Tooltip(
+                            key: ValueKey('schedulePostsubmit'),
+                            message: schedulePostsubmitBuild == null
+                                ? 'Only enabled for release branches'
+                                : ''
+                                    'For release branches, the post-submit artifacts are not '
+                                    'immediately available and must be manually scheduled.',
+                            child: TextButton.icon(
+                              label: Text('Schedule post-submit'),
+                              icon: const Icon(Icons.hardware),
+                              onPressed: schedulePostsubmitBuild,
+                            ),
+                          ),
                         ],
                       ),
                     ),

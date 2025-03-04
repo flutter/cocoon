@@ -95,10 +95,15 @@ void main() {
     for (final TaskGridFilter filter in filters) {
       expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Good task')), true);
       expect(
-          filter.matchesTask(QualifiedTask.fromTask(Task()
-            ..builderName = 'Bringup task'
-            ..isFlaky = true)),
-          true);
+        filter.matchesTask(
+          QualifiedTask.fromTask(
+            Task()
+              ..builderName = 'Bringup task'
+              ..isFlaky = true,
+          ),
+        ),
+        true,
+      );
     }
   });
 
@@ -109,10 +114,15 @@ void main() {
     for (final TaskGridFilter filter in filters) {
       expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Good task')), true);
       expect(
-          filter.matchesTask(QualifiedTask.fromTask(Task()
-            ..builderName = 'Bringup task'
-            ..isFlaky = true)),
-          false);
+        filter.matchesTask(
+          QualifiedTask.fromTask(
+            Task()
+              ..builderName = 'Bringup task'
+              ..isFlaky = true,
+          ),
+        ),
+        false,
+      );
     }
   });
 

@@ -9,11 +9,14 @@ import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/build_dashboard_page.dart';
 import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:flutter_dashboard/model/build_status_response.pb.dart';
+import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
+import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/service/dev_cocoon.dart';
 import 'package:flutter_dashboard/service/google_authentication.dart';
 import 'package:flutter_dashboard/state/build.dart';
+import 'package:flutter_dashboard/widgets/commit_box.dart';
 import 'package:flutter_dashboard/widgets/error_brook_watcher.dart';
 import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
@@ -681,5 +684,174 @@ void main() {
       dialogContainer,
       paints..rrect(color: Colors.grey[800]!.withAlpha(0xe0)),
     );
+  });
+
+  group('schedulePostsubmitsForCommit', () {
+    final commit = Commit(
+      author: 'foo@bar.com',
+      sha: 'abcdefghijkl1234567890',
+    );
+
+    late MockCocoonService cocoonService;
+    late FakeBuildState buildState;
+    late bool isAuthenticatd;
+
+    setUp(() {
+      cocoonService = MockCocoonService();
+      throwOnMissingStub(cocoonService);
+
+      when(fakeAuthService.isAuthenticated).thenAnswer((_) => isAuthenticatd);
+      when(fakeAuthService.idToken).thenAnswer((_) async => '1234567890');
+
+      buildState = FakeBuildState(
+        authService: fakeAuthService,
+        cocoonService: cocoonService,
+        statuses: [
+          CommitStatus(
+            commit: commit,
+            tasks: [
+              Task(
+                stageName: 'A',
+                name: 'Task',
+                builderName: 'Builder',
+                status: TaskBox.statusNew,
+              ),
+            ],
+          ),
+        ],
+      );
+    });
+
+    testWidgets('is disabled if signed out', (WidgetTester tester) async {
+      isAuthenticatd = false;
+      configureView(tester.view);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(useMaterial3: false),
+          home: ValueProvider<BuildState>(
+            value: buildState,
+            child: ValueProvider<GoogleSignInService>(
+              value: buildState.authService,
+              child: BuildDashboardPage(
+                queryParameters: {
+                  'repo': 'flutter',
+                  'branch': 'flutter-release',
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Click a commit to open the commit box.
+      await tester.tap(find.byType(CommitBox));
+      await tester.pump();
+
+      // Find the schedule button.
+      final tooltip = tester.firstWidget(find.byKey(ValueKey('schedulePostsubmit'))) as Tooltip;
+      expect(tooltip.message, contains('Only enabled for release branches'));
+    });
+
+    testWidgets('is disabled on flutter/flutter master', (WidgetTester tester) async {
+      isAuthenticatd = true;
+      configureView(tester.view);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(useMaterial3: false),
+          home: ValueProvider<BuildState>(
+            value: buildState,
+            child: ValueProvider<GoogleSignInService>(
+              value: buildState.authService,
+              child: BuildDashboardPage(
+                queryParameters: {
+                  'repo': 'flutter',
+                  'branch': 'master',
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Click a commit to open the commit box.
+      await tester.tap(find.byType(CommitBox));
+      await tester.pump();
+
+      // Find the schedule button.
+      final tooltip = tester.firstWidget(find.byKey(ValueKey('schedulePostsubmit'))) as Tooltip;
+      expect(tooltip.message, contains('Only enabled for release branches'));
+    });
+
+    testWidgets('is disabled on flutter/cocoon non-master', (WidgetTester tester) async {
+      isAuthenticatd = true;
+      configureView(tester.view);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(useMaterial3: false),
+          home: ValueProvider<BuildState>(
+            value: buildState,
+            child: ValueProvider<GoogleSignInService>(
+              value: buildState.authService,
+              child: BuildDashboardPage(
+                queryParameters: {
+                  'repo': 'cocoon',
+                  'branch': 'flutter-release',
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Click a commit to open the commit box.
+      await tester.tap(find.byType(CommitBox));
+      await tester.pump();
+
+      // Find the schedule button.
+      final tooltip = tester.firstWidget(find.byKey(ValueKey('schedulePostsubmit'))) as Tooltip;
+      expect(tooltip.message, contains('Only enabled for release branches'));
+    });
+
+    testWidgets('is enabled if signed in, on flutter/flutter, on non-master', (WidgetTester tester) async {
+      isAuthenticatd = true;
+      configureView(tester.view);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(useMaterial3: false),
+          home: ValueProvider<BuildState>(
+            value: buildState,
+            child: ValueProvider<GoogleSignInService>(
+              value: buildState.authService,
+              child: BuildDashboardPage(
+                queryParameters: {
+                  'repo': 'flutter',
+                  'branch': 'flutter-release',
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Click a commit to open the commit box.
+      await tester.tap(find.byType(CommitBox));
+      await tester.pump();
+
+      // Find the schedule button and press it.
+      when(
+        cocoonService.schedulePostsubmitsForCommit(
+          commit,
+          idToken: '1234567890',
+          branch: 'flutter-release',
+          repo: 'flutter',
+        ),
+      ).thenAnswer((_) async => CocoonResponse.data(null));
+      final tooltip = tester.firstWidget(find.byKey(ValueKey('schedulePostsubmit'))) as Tooltip;
+      await tester.tap(find.byWidget(tooltip.child!));
+    });
   });
 }

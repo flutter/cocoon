@@ -86,8 +86,13 @@ class DevelopmentCocoonService implements CocoonService {
     String? branch,
     required String repo,
   }) async {
-    final CocoonResponse<List<CommitStatus>> data =
-        CocoonResponse<List<CommitStatus>>.data(_createFakeCommitStatuses(lastCommitStatus, repo));
+    final CocoonResponse<List<CommitStatus>> data = CocoonResponse<List<CommitStatus>>.data(
+      _createFakeCommitStatuses(
+        lastCommitStatus,
+        repo,
+        branch: branch,
+      ),
+    );
     if (_pausedStatus == null || _pausedStatus!.isComplete) {
       _pausedStatus = _PausedCommitStatus(data);
     } else {
@@ -166,19 +171,41 @@ class DevelopmentCocoonService implements CocoonService {
     );
   }
 
+  @override
+  Future<CocoonResponse<void>> schedulePostsubmitsForCommit(
+    Commit commit, {
+    required String idToken,
+    required String branch,
+    required String repo,
+  }) async {
+    return const CocoonResponse<void>.error(
+      'Unable to schedule against fake data. Try building the app to use prod data.',
+    );
+  }
+
   static const int _commitGap = 2 * 60 * 1000; // 2 minutes between commits
 
-  List<CommitStatus> _createFakeCommitStatuses(CommitStatus? lastCommitStatus, String repo) {
+  List<CommitStatus> _createFakeCommitStatuses(
+    CommitStatus? lastCommitStatus,
+    String repo, {
+    String? branch,
+  }) {
+    branch ??= defaultBranches[repo]!;
     final int baseTimestamp =
         lastCommitStatus != null ? (lastCommitStatus.commit.timestamp.toInt()) : now.millisecondsSinceEpoch;
-
     final List<CommitStatus> result = <CommitStatus>[];
     for (int index = 0; index < 25; index += 1) {
       final int commitTimestamp = baseTimestamp - ((index + 1) * _commitGap);
       final math.Random random = math.Random(commitTimestamp);
-      final Commit commit = _createFakeCommit(commitTimestamp, random, repo, _commits[index]);
+      final Commit commit = _createFakeCommit(
+        commitTimestamp,
+        random,
+        repo,
+        _commits[index],
+        branch,
+      );
       final CommitStatus status = CommitStatus()
-        ..branch = defaultBranches[repo]!
+        ..branch = branch
         ..commit = commit
         ..tasks.addAll(_createFakeTasks(commitTimestamp, commit, random));
       result.add(status);
@@ -274,7 +301,7 @@ class DevelopmentCocoonService implements CocoonService {
     '792aa82143bb12e97f396cb2a462ad617dbd22bc',
   ];
 
-  Commit _createFakeCommit(int commitTimestamp, math.Random random, String repo, String commitSha) {
+  Commit _createFakeCommit(int commitTimestamp, math.Random random, String repo, String commitSha, String branch) {
     final int author = random.nextInt(_authors.length);
     final int message = commitTimestamp % 37 + author;
     final int messageInc = _messagePrimes[message % _messagePrimes.length];
@@ -286,7 +313,7 @@ class DevelopmentCocoonService implements CocoonService {
       ..repository = 'flutter/$repo'
       ..sha = commitSha
       ..timestamp = Int64(commitTimestamp)
-      ..branch = 'master';
+      ..branch = branch;
   }
 
   static const Map<String, int> _repoTaskCount = <String, int>{
