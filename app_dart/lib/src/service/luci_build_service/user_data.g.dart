@@ -8,11 +8,11 @@ part of 'user_data.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-BuildBucketPubSubUserData _$BuildBucketPubSubUserDataFromJson(Map<String, dynamic> json) => $checkedCreate(
-      'BuildBucketPubSubUserData',
+PresubmitUserData _$PresubmitUserDataFromJson(Map<String, dynamic> json) => $checkedCreate(
+      'PresubmitUserData',
       json,
       ($checkedConvert) {
-        final val = BuildBucketPubSubUserData(
+        final val = PresubmitUserData(
           checkRunId: $checkedConvert('check_run_id', (v) => v as int),
           builderName: $checkedConvert('builder_name', (v) => v as String),
           commitSha: $checkedConvert('commit_sha', (v) => v as String),
@@ -37,7 +37,7 @@ BuildBucketPubSubUserData _$BuildBucketPubSubUserDataFromJson(Map<String, dynami
       },
     );
 
-Map<String, dynamic> _$BuildBucketPubSubUserDataToJson(BuildBucketPubSubUserData instance) {
+Map<String, dynamic> _$PresubmitUserDataToJson(PresubmitUserData instance) {
   final val = <String, dynamic>{
     'check_run_id': instance.checkRunId,
     'builder_name': instance.builderName,

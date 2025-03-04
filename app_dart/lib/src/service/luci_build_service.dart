@@ -27,7 +27,6 @@ import '../model/ci_yaml/target.dart';
 import '../model/firestore/commit.dart' as firestore_commit;
 import '../model/firestore/task.dart' as firestore;
 import '../model/github/checks.dart' as cocoon_checks;
-import '../model/luci/user_data.dart';
 import '../service/datastore.dart';
 import 'exceptions.dart';
 
@@ -485,11 +484,11 @@ class LuciBuildService {
   /// are also preserved.
   ///
   /// The [currentAttempt] is used to track the number of current build attempt.
-  Future<bbv2.Build> rescheduleBuild({
+  Future<bbv2.Build> reschedulePresubmitBuild({
     required String builderName,
     required bbv2.Build build,
     required int nextAttempt,
-    required Map<String, dynamic> userDataMap,
+    required PresubmitUserData userData,
   }) async {
     final tags = BuildTags.fromStringPairs(build.tags);
     tags.addOrReplace(CurrentAttemptBuildTag(attemptNumber: nextAttempt));
@@ -500,7 +499,7 @@ class LuciBuildService {
       properties: build.input.properties,
       notify: bbv2.NotificationConfig(
         pubsubTopic: 'projects/flutter-dashboard/topics/build-bucket-presubmit',
-        userData: UserData.encodeUserDataToBytes(userDataMap),
+        userData: userData.toBytes(),
       ),
     );
     if (build.input.hasGitilesCommit()) {

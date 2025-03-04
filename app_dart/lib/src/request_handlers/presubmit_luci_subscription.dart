@@ -11,6 +11,7 @@ import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
+import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -90,49 +91,37 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       return Body.empty;
     }
 
-    Map<String, dynamic> userDataMap = <String, dynamic>{};
-    try {
-      userDataMap = json.decode(String.fromCharCodes(pubSubCallBack.userData));
-      log.info('User data was not base64 encoded.');
-    } on FormatException {
-      userDataMap = UserData.decodeUserDataBytes(pubSubCallBack.userData);
-      log.info('Decoding base64 encoded user data.');
-    }
+    final userData = PresubmitUserData.fromBytes(pubSubCallBack.userData);
+    final slug = RepositorySlug(userData.repoOwner, userData.repoName);
 
-    if (userDataMap.containsKey('repo_owner') && userDataMap.containsKey('repo_name')) {
-      final RepositorySlug slug =
-          RepositorySlug(userDataMap['repo_owner'] as String, userDataMap['repo_name'] as String);
-
-      bool rescheduled = false;
-      if (githubChecksService.taskFailed(build.status)) {
-        final int currentAttempt = _nextAttempt(tagSet);
-        final int maxAttempt = await _getMaxAttempt(
-          userDataMap,
-          slug,
-          builderName,
-          tagSet,
-        );
-        if (currentAttempt < maxAttempt) {
-          rescheduled = true;
-          log.info('Rerunning failed task: $builderName');
-          await luciBuildService.rescheduleBuild(
-            builderName: builderName,
-            build: build,
-            nextAttempt: currentAttempt + 1,
-            userDataMap: userDataMap,
-          );
-        }
-      }
-      await githubChecksService.updateCheckStatus(
-        build: build,
-        userDataMap: userDataMap,
-        luciBuildService: luciBuildService,
-        slug: slug,
-        rescheduled: rescheduled,
+    var rescheduled = false;
+    if (githubChecksService.taskFailed(build.status)) {
+      final int currentAttempt = _nextAttempt(tagSet);
+      final int maxAttempt = await _getMaxAttempt(
+        slug,
+        builderName,
+        tagSet,
+        commitBranch: userData.commitBranch,
+        commitSha: userData.commitSha,
       );
-    } else {
-      log.info('This repo does not support checks API');
+      if (currentAttempt < maxAttempt) {
+        rescheduled = true;
+        log.info('Rerunning failed task: $builderName');
+        await luciBuildService.reschedulePresubmitBuild(
+          builderName: builderName,
+          build: build,
+          nextAttempt: currentAttempt + 1,
+          userData: userData,
+        );
+      }
     }
+    await githubChecksService.updateCheckStatus(
+      build: build,
+      checkRunId: userData.checkRunId,
+      luciBuildService: luciBuildService,
+      slug: slug,
+      rescheduled: rescheduled,
+    );
     return Body.empty;
   }
 
@@ -148,15 +137,16 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   }
 
   Future<int> _getMaxAttempt(
-    Map<String, dynamic> userData,
     RepositorySlug slug,
     String builderName,
-    BuildTags tags,
-  ) async {
-    final Commit commit = Commit(
-      branch: userData['commit_branch'] as String,
+    BuildTags tags, {
+    required String commitBranch,
+    required String commitSha,
+  }) async {
+    final commit = Commit(
+      branch: commitBranch,
       repository: slug.fullName,
-      sha: userData['commit_sha'] as String,
+      sha: commitSha,
     );
     late CiYamlSet ciYaml;
     try {

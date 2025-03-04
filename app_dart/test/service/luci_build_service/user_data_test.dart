@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
+import 'package:cocoon_service/src/service/luci_build_service/presubmit_user_data.dart';
 import 'package:test/test.dart';
 
 void main() {
   test('should encode to JSON', () {
-    const userData = BuildBucketPubSubUserData(
+    const userData = PresubmitUserData(
       checkRunId: 1234,
       builderName: 'Linux_foo',
       commitSha: 'abc123',
@@ -28,7 +28,7 @@ void main() {
   });
 
   test('should encode to JSON including firestoreTaskDocumentName', () {
-    final userData = BuildBucketPubSubUserData(
+    final userData = PresubmitUserData(
       checkRunId: 1234,
       builderName: 'Linux_foo',
       commitSha: 'abc123',
@@ -56,7 +56,7 @@ void main() {
 
   test('should decode from JSON', () {
     expect(
-      BuildBucketPubSubUserData.fromJson(const {
+      PresubmitUserData.fromJson(const {
         'check_run_id': 1234,
         'builder_name': 'Linux_foo',
         'commit_sha': 'abc123',
@@ -65,7 +65,7 @@ void main() {
         'repo_name': 'repo-name',
         'user_agent': 'UserData Test',
       }),
-      const BuildBucketPubSubUserData(
+      const PresubmitUserData(
         checkRunId: 1234,
         builderName: 'Linux_foo',
         commitSha: 'abc123',
@@ -79,7 +79,7 @@ void main() {
 
   test('should decode from JSON including firestoreTaskDocumentName', () {
     expect(
-      BuildBucketPubSubUserData.fromJson(const {
+      PresubmitUserData.fromJson(const {
         'check_run_id': 1234,
         'builder_name': 'Linux_foo',
         'commit_sha': 'abc123',
@@ -89,7 +89,7 @@ void main() {
         'user_agent': 'UserData Test',
         'firestore_task_document_name': 'abc123_Linux_foo_1',
       }),
-      BuildBucketPubSubUserData(
+      PresubmitUserData(
         checkRunId: 1234,
         builderName: 'Linux_foo',
         commitSha: 'abc123',
@@ -108,7 +108,7 @@ void main() {
 
   test('should gracefully fail decoding if the format is invalid', () {
     expect(
-      () => BuildBucketPubSubUserData.fromJson(const {
+      () => PresubmitUserData.fromJson(const {
         'check_run_id': 1234,
         'builder_nameMALFORRMED': 'Linux_foo',
         'commit_sha': 'abc123',
@@ -123,7 +123,7 @@ void main() {
 
   test('should gracefully fail decoding if the firestoreTaskDocumentName format is invalid', () {
     expect(
-      () => BuildBucketPubSubUserData.fromJson(const {
+      () => PresubmitUserData.fromJson(const {
         'check_run_id': 1234,
         'builder_name': 'Linux_foo',
         'commit_sha': 'abc123',

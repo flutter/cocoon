@@ -151,7 +151,7 @@ void main() {
 
     await tester.post(handler);
     verifyNever(
-      mockLuciBuildService.rescheduleBuild(
+      mockLuciBuildService.reschedulePresubmitBuild(
         build: buildsPubSub.build,
         builderName: 'Linux Coverage',
         nextAttempt: 0,
@@ -237,7 +237,7 @@ void main() {
     );
 
     when(
-      mockLuciBuildService.rescheduleBuild(
+      mockLuciBuildService.reschedulePresubmitBuild(
         build: anyNamed('build'),
         builderName: anyNamed('builderName'),
         nextAttempt: anyNamed('nextAttempt'),
@@ -262,7 +262,7 @@ void main() {
 
     await tester.post(luciHandler);
     verify(
-      mockLuciBuildService.rescheduleBuild(
+      mockLuciBuildService.reschedulePresubmitBuild(
         build: anyNamed('build'),
         builderName: 'Linux A',
         nextAttempt: 2,
@@ -315,7 +315,7 @@ void main() {
 
     await tester.post(handler);
     verifyNever(
-      mockLuciBuildService.rescheduleBuild(
+      mockLuciBuildService.reschedulePresubmitBuild(
         build: buildsPubSub.build,
         builderName: 'Linux C',
         userDataMap: userDataMap,
@@ -369,7 +369,7 @@ void main() {
 
     await tester.post(handler);
     verifyNever(
-      mockLuciBuildService.rescheduleBuild(
+      mockLuciBuildService.reschedulePresubmitBuild(
         build: buildsPubSub.build,
         builderName: 'Linux C',
         userDataMap: userDataMap,
@@ -414,7 +414,7 @@ void main() {
     );
 
     when(
-      mockLuciBuildService.rescheduleBuild(
+      mockLuciBuildService.reschedulePresubmitBuild(
         build: captureAnyNamed('build'),
         builderName: anyNamed('builderName'),
         nextAttempt: anyNamed('nextAttempt'),
@@ -440,7 +440,7 @@ void main() {
     await tester.post(luciHandler);
 
     final bbv2.Build build = verify(
-      mockLuciBuildService.rescheduleBuild(
+      mockLuciBuildService.reschedulePresubmitBuild(
         build: captureAnyNamed('build'),
         builderName: anyNamed('builderName'),
         nextAttempt: anyNamed('nextAttempt'),

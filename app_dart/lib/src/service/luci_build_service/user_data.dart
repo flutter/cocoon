@@ -16,8 +16,8 @@ part 'user_data.g.dart';
 /// See https://chromium.googlesource.com/infra/luci/luci-go/+/main/buildbucket/proto/notification.proto#41.
 @JsonSerializable(includeIfNull: false, checked: true)
 @immutable
-final class BuildBucketPubSubUserData {
-  const BuildBucketPubSubUserData({
+final class PresubmitUserData {
+  const PresubmitUserData({
     required this.checkRunId,
     required this.builderName,
     required this.commitSha,
@@ -31,9 +31,9 @@ final class BuildBucketPubSubUserData {
   /// Decodes [BuildBucketPubSubUserData] from a JSON-encoded [object].
   ///
   /// Throws a [FormatException] if the data is not in the expected format.
-  factory BuildBucketPubSubUserData.fromJson(Map<String, Object?> object) {
+  factory PresubmitUserData.fromJson(Map<String, Object?> object) {
     try {
-      return _$BuildBucketPubSubUserDataFromJson(object);
+      return _$PresubmitUserDataFromJson(object);
     } on CheckedFromJsonException catch (e) {
       throw FormatException('Invalid UserData object: ${e.message}.\n${e.innerStack}', object.toString());
     }
@@ -41,8 +41,8 @@ final class BuildBucketPubSubUserData {
 
   /// Decodes [BuildBucketPubSubUserData] from a UTF-8 JSON string as [bytes].
   ///
-  ///
-  factory BuildBucketPubSubUserData.fromBytes(List<int> bytes) {
+  /// Throws a [FormatException] if the data is not in the expected format.
+  factory PresubmitUserData.fromBytes(List<int> bytes) {
     Map<String, Object?> jsonObject;
     try {
       jsonObject = json.decode(utf8.decode(bytes));
@@ -53,7 +53,7 @@ final class BuildBucketPubSubUserData {
       final base64Decoded = base64.decode(encodedBytes);
       jsonObject = json.decode(String.fromCharCodes(base64Decoded));
     }
-    return BuildBucketPubSubUserData.fromJson(jsonObject);
+    return PresubmitUserData.fromJson(jsonObject);
   }
 
   /// Which GitHub check run this build reports status to.
@@ -108,7 +108,7 @@ final class BuildBucketPubSubUserData {
 
   @override
   bool operator ==(Object other) {
-    return other is BuildBucketPubSubUserData &&
+    return other is PresubmitUserData &&
         checkRunId == other.checkRunId &&
         builderName == other.builderName &&
         commitSha == other.commitSha &&
@@ -120,7 +120,7 @@ final class BuildBucketPubSubUserData {
   }
 
   /// Returns a JSON representation of this object.
-  Map<String, Object?> toJson() => _$BuildBucketPubSubUserDataToJson(this);
+  Map<String, Object?> toJson() => _$PresubmitUserDataToJson(this);
 
   /// Returns a byte-encoded representation of this object.
   Uint8List toBytes() {
@@ -129,7 +129,7 @@ final class BuildBucketPubSubUserData {
 
   @override
   String toString() {
-    return 'BuildBucketPubSubUserData ${const JsonEncoder.withIndent('  ').convert(toJson())}';
+    return 'PresubmitUserData ${const JsonEncoder.withIndent('  ').convert(toJson())}';
   }
 }
 

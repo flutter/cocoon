@@ -113,7 +113,7 @@ void main() {
         'user_login': 'engine-flutter-autoroll',
       };
       when(
-        mockLuciBuildService.rescheduleBuild(
+        mockLuciBuildService.reschedulePresubmitBuild(
           builderName: 'Linux Coverage',
           build: _fakeBuild,
           userDataMap: userData,
@@ -157,7 +157,7 @@ void main() {
         'user_login': 'test-account',
       };
       when(
-        mockLuciBuildService.rescheduleBuild(
+        mockLuciBuildService.reschedulePresubmitBuild(
           builderName: 'Linux Coverage',
           build: _fakeBuild,
           userDataMap: userData,
