@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
@@ -43,6 +44,11 @@ class CocoonFileComparator extends LocalFileComparator {
 
     if (!result.passed && result.diffPercent > _kGoldenDiffTolerance) {
       final String error = await generateFailureOutput(result, golden, basedir);
+      if (Platform.environment.containsKey('LUCI_CONTEXT')) {
+        log('$golden has failed. For your convenience CI provides it as a base64 encoded image below. #[IMAGE]:');
+        log(base64Encode(imageBytes));
+        log('#[/IMAGE]');
+      }
       throw FlutterError(error);
     }
     if (!result.passed) {
