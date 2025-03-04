@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/ci_yaml.dart';
-import 'package:cocoon_service/src/model/luci/user_data.dart';
+import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
@@ -60,22 +60,8 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     pubSubCallBack.mergeFromProto3Json(jsonDecode(message.data!) as Map<String, dynamic>);
     final bbv2.BuildsV2PubSub buildsPubSub = pubSubCallBack.buildPubsub;
 
-    Map<String, dynamic> userDataMap = <String, dynamic>{};
-    try {
-      userDataMap = json.decode(String.fromCharCodes(pubSubCallBack.userData));
-      log.info('User data was not base64 encoded.');
-    } on FormatException {
-      userDataMap = UserData.decodeUserDataBytes(pubSubCallBack.userData);
-      log.info('Decoding base64 encoded user data.');
-    }
-
-    // collect userData
-    if (userDataMap.isEmpty) {
-      log.info('User data is empty');
-      return Body.empty;
-    }
-
-    log.fine('userData=$userDataMap');
+    final userData = BuildBucketPubSubUserData.fromBytes(pubSubCallBack.userData);
+    log.fine('userData=$userData');
 
     if (!buildsPubSub.hasBuild()) {
       log.warning('No build was found in message.');
