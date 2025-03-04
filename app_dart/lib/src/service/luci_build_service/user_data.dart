@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
@@ -42,7 +43,17 @@ final class BuildBucketPubSubUserData {
   ///
   ///
   factory BuildBucketPubSubUserData.fromBytes(List<int> bytes) {
-    // TODO(matanlurey): Remove legacy cases. https://github.com/flutter/flutter/issues/164568.
+    Map<String, Object?> jsonObject;
+    try {
+      jsonObject = json.decode(utf8.decode(bytes));
+    } on FormatException {
+      // TODO(matanlurey): Remove legacy cases. https://github.com/flutter/flutter/issues/164568.
+      log.warning('Expected JSON encoding. See https://github.com/flutter/flutter/issues/164568.');
+      final encodedBytes = String.fromCharCodes(bytes);
+      final base64Decoded = base64.decode(encodedBytes);
+      jsonObject = json.decode(String.fromCharCodes(base64Decoded));
+    }
+    return BuildBucketPubSubUserData.fromJson(jsonObject);
   }
 
   /// Which GitHub check run this build reports status to.
