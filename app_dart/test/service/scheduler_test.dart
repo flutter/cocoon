@@ -20,6 +20,7 @@ import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
+import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
@@ -386,7 +387,7 @@ void main() {
             commit: anyNamed('commit'),
             toBeScheduled: captureAnyNamed('toBeScheduled'),
           ),
-        ).thenAnswer((_) => Future<List<Tuple<Target, Task, int>>>.value(<Tuple<Target, Task, int>>[]));
+        ).thenAnswer((_) async => []);
         buildStatusService = FakeBuildStatusService(
           commitStatuses: <CommitStatus>[
             CommitStatus(generateCommit(1, repo: 'packages', branch: 'main'), const <Stage>[]),
@@ -417,10 +418,8 @@ void main() {
         ).captured;
         final List<Object?> toBeScheduled = captured.first as List<Object?>;
         expect(toBeScheduled.length, 2);
-        final Iterable<Tuple<Target, Task, int>> tuples =
-            toBeScheduled.map((dynamic tuple) => tuple as Tuple<Target, Task, int>);
-        final Iterable<String> scheduledTargetNames =
-            tuples.map((Tuple<Target, Task, int> tuple) => tuple.second.name!);
+        final Iterable<PendingTask> tuples = toBeScheduled.map((dynamic tuple) => tuple as PendingTask);
+        final Iterable<String> scheduledTargetNames = tuples.map((PendingTask tuple) => tuple.task.name!);
         expect(scheduledTargetNames, ['Linux A', 'Linux runIf']);
         // Tasks triggered by cocoon are marked as in progress
         final Iterable<Task> tasks = db.values.values.whereType<Task>();

@@ -37,6 +37,7 @@ import 'package:cocoon_service/src/service/github_service.dart' as _i17;
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart' as _i44;
 import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart' as _i35;
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart' as _i46;
+import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart' as _i49;
 import 'package:fixnum/fixnum.dart' as _i48;
 import 'package:gcloud/db.dart' as _i11;
 import 'package:github/github.dart' as _i13;
@@ -50,11 +51,11 @@ import 'package:http/http.dart' as _i7;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i32;
 import 'package:neat_cache/neat_cache.dart' as _i29;
-import 'package:process/process.dart' as _i49;
+import 'package:process/process.dart' as _i50;
 import 'package:retry/retry.dart' as _i31;
 
 import '../../service/cache_service_test.dart' as _i40;
-import 'mocks.dart' as _i50;
+import 'mocks.dart' as _i51;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -6323,9 +6324,9 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
       ) as _i20.Future<Set<String>>);
 
   @override
-  _i20.Future<List<_i15.Tuple<_i45.Target, _i38.Task, int>>> schedulePostsubmitBuilds({
+  _i20.Future<List<_i49.PendingTask>> schedulePostsubmitBuilds({
     required _i37.Commit? commit,
-    required List<_i15.Tuple<_i45.Target, _i38.Task, int>>? toBeScheduled,
+    required List<_i49.PendingTask>? toBeScheduled,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -6336,9 +6337,8 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
             #toBeScheduled: toBeScheduled,
           },
         ),
-        returnValue: _i20.Future<List<_i15.Tuple<_i45.Target, _i38.Task, int>>>.value(
-            <_i15.Tuple<_i45.Target, _i38.Task, int>>[]),
-      ) as _i20.Future<List<_i15.Tuple<_i45.Target, _i38.Task, int>>>);
+        returnValue: _i20.Future<List<_i49.PendingTask>>.value(<_i49.PendingTask>[]),
+      ) as _i20.Future<List<_i49.PendingTask>>);
 
   @override
   _i20.Future<void> scheduleMergeGroupBuilds({
@@ -6410,7 +6410,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
 /// A class which mocks [ProcessManager].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockProcessManager extends _i1.Mock implements _i49.ProcessManager {
+class MockProcessManager extends _i1.Mock implements _i50.ProcessManager {
   MockProcessManager() {
     _i1.throwOnMissingStub(this);
   }
@@ -7583,7 +7583,7 @@ class MockBeginTransactionResponse extends _i1.Mock implements _i21.BeginTransac
 /// A class which mocks [Callbacks].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCallbacks extends _i1.Mock implements _i50.Callbacks {
+class MockCallbacks extends _i1.Mock implements _i51.Callbacks {
   MockCallbacks() {
     _i1.throwOnMissingStub(this);
   }

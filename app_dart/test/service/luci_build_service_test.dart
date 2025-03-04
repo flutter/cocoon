@@ -17,6 +17,7 @@ import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
+import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/datastore.dart';
 import 'package:github/github.dart';
@@ -688,8 +689,8 @@ void main() {
           ],
         );
       });
-      final Tuple<Target, Task, int> toBeScheduled = Tuple<Target, Task, int>(
-        generateTarget(
+      final PendingTask toBeScheduled = PendingTask(
+        target: generateTarget(
           1,
           properties: <String, String>{
             'recipe': 'devicelab/devicelab',
@@ -697,12 +698,12 @@ void main() {
           },
           slug: Config.packagesSlug,
         ),
-        generateTask(1),
-        LuciBuildService.kDefaultPriority,
+        task: generateTask(1),
+        priority: LuciBuildService.kDefaultPriority,
       );
       await service.schedulePostsubmitBuilds(
         commit: commit,
-        toBeScheduled: <Tuple<Target, Task, int>>[
+        toBeScheduled: <PendingTask>[
           toBeScheduled,
         ],
       );
@@ -786,8 +787,8 @@ void main() {
           ],
         );
       });
-      final Tuple<Target, Task, int> toBeScheduled = Tuple<Target, Task, int>(
-        generateTarget(
+      final PendingTask toBeScheduled = PendingTask(
+        target: generateTarget(
           1,
           properties: <String, String>{
             'recipe': 'devicelab/devicelab',
@@ -795,12 +796,12 @@ void main() {
           },
           slug: Config.packagesSlug,
         ),
-        generateTask(1),
-        LuciBuildService.kDefaultPriority,
+        task: generateTask(1),
+        priority: LuciBuildService.kDefaultPriority,
       );
       await service.schedulePostsubmitBuilds(
         commit: commit,
-        toBeScheduled: <Tuple<Target, Task, int>>[
+        toBeScheduled: <PendingTask>[
           toBeScheduled,
         ],
       );
@@ -878,20 +879,20 @@ void main() {
           ],
         );
       });
-      final Tuple<Target, Task, int> toBeScheduled = Tuple<Target, Task, int>(
-        generateTarget(
+      final PendingTask toBeScheduled = PendingTask(
+        target: generateTarget(
           1,
           properties: <String, String>{
             'os': 'debian-10.12',
           },
           slug: RepositorySlug('flutter', 'packages'),
         ),
-        generateTask(1),
-        LuciBuildService.kDefaultPriority,
+        task: generateTask(1),
+        priority: LuciBuildService.kDefaultPriority,
       );
       await service.schedulePostsubmitBuilds(
         commit: commit,
-        toBeScheduled: <Tuple<Target, Task, int>>[
+        toBeScheduled: <PendingTask>[
           toBeScheduled,
         ],
       );
@@ -931,24 +932,24 @@ void main() {
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         throw const BuildBucketException(1, 'error');
       });
-      final Tuple<Target, Task, int> toBeScheduled = Tuple<Target, Task, int>(
-        generateTarget(
+      final PendingTask toBeScheduled = PendingTask(
+        target: generateTarget(
           1,
           properties: <String, String>{
             'os': 'debian-10.12',
           },
           slug: RepositorySlug('flutter', 'packages'),
         ),
-        generateTask(1),
-        LuciBuildService.kDefaultPriority,
+        task: generateTask(1),
+        priority: LuciBuildService.kDefaultPriority,
       );
-      final List<Tuple<Target, Task, int>> results = await service.schedulePostsubmitBuilds(
+      final List<PendingTask> results = await service.schedulePostsubmitBuilds(
         commit: commit,
-        toBeScheduled: <Tuple<Target, Task, int>>[
+        toBeScheduled: <PendingTask>[
           toBeScheduled,
         ],
       );
-      expect(results, <Tuple<Target, Task, int>>[
+      expect(results, <PendingTask>[
         toBeScheduled,
       ]);
     });
@@ -1060,8 +1061,8 @@ void main() {
           ],
         );
       });
-      final Tuple<Target, Task, int> toBeScheduled = Tuple<Target, Task, int>(
-        generateTarget(
+      final PendingTask toBeScheduled = PendingTask(
+        target: generateTarget(
           1,
           properties: <String, String>{
             'os': 'debian-10.12',
@@ -1069,12 +1070,12 @@ void main() {
           bringup: true,
           slug: Config.packagesSlug,
         ),
-        generateTask(1, parent: commit),
-        LuciBuildService.kDefaultPriority,
+        task: generateTask(1, parent: commit),
+        priority: LuciBuildService.kDefaultPriority,
       );
       await service.schedulePostsubmitBuilds(
         commit: commit,
-        toBeScheduled: <Tuple<Target, Task, int>>[
+        toBeScheduled: <PendingTask>[
           toBeScheduled,
         ],
       );
@@ -1121,29 +1122,29 @@ void main() {
           ],
         );
       });
-      final Tuple<Target, Task, int> toBeScheduled1 = Tuple<Target, Task, int>(
-        generateTarget(
+      final PendingTask toBeScheduled1 = PendingTask(
+        target: generateTarget(
           1,
           properties: <String, String>{
             'os': 'debian-10.12',
           },
         ),
-        generateTask(1),
-        LuciBuildService.kDefaultPriority,
+        task: generateTask(1),
+        priority: LuciBuildService.kDefaultPriority,
       );
-      final Tuple<Target, Task, int> toBeScheduled2 = Tuple<Target, Task, int>(
-        generateTarget(
+      final PendingTask toBeScheduled2 = PendingTask(
+        target: generateTarget(
           2,
           properties: <String, String>{
             'os': 'debian-10.12',
           },
         ),
-        generateTask(1),
-        LuciBuildService.kDefaultPriority,
+        task: generateTask(1),
+        priority: LuciBuildService.kDefaultPriority,
       );
       await service.schedulePostsubmitBuilds(
         commit: commit,
-        toBeScheduled: <Tuple<Target, Task, int>>[
+        toBeScheduled: <PendingTask>[
           toBeScheduled1,
           toBeScheduled2,
         ],

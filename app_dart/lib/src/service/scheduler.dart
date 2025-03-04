@@ -13,6 +13,7 @@ import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
+import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:collection/collection.dart';
 import 'package:gcloud/db.dart';
@@ -194,7 +195,7 @@ class Scheduler {
 
     final List<Task> tasks = [...targetsToTasks(commit, initialTargets)];
 
-    final List<Tuple<Target, Task, int>> toBeScheduled = <Tuple<Target, Task, int>>[];
+    final List<PendingTask> toBeScheduled = <PendingTask>[];
     for (Target target in initialTargets) {
       final Task task = tasks.singleWhere((Task task) => task.name == target.value.name);
       SchedulerPolicy policy = target.schedulerPolicy;
@@ -206,7 +207,7 @@ class Scheduler {
       if (priority != null) {
         // Mark task as in progress to ensure it isn't scheduled over
         task.status = Task.statusInProgress;
-        toBeScheduled.add(Tuple<Target, Task, int>(target, task, priority));
+        toBeScheduled.add(PendingTask(target: target, task: task, priority: priority));
       }
     }
 
@@ -237,7 +238,7 @@ class Scheduler {
       log.warning('Failed to add to Firestore: $error');
     }
 
-    log.info('Immediately scheduled tasks for $commit: ${toBeScheduled.map((t) => '"${t.second.name}"').join(', ')}');
+    log.info('Immediately scheduled tasks for $commit: ${toBeScheduled.map((t) => '"${t.task.name}"').join(', ')}');
     await _batchScheduleBuilds(commit, toBeScheduled);
     await _uploadToBigQuery(commit);
   }
@@ -245,14 +246,14 @@ class Scheduler {
   /// Schedule all builds in batch requests instead of a single request.
   ///
   /// Each batch request contains [Config.batchSize] builds to be scheduled.
-  Future<void> _batchScheduleBuilds(Commit commit, List<Tuple<Target, Task, int>> toBeScheduled) async {
+  Future<void> _batchScheduleBuilds(Commit commit, List<PendingTask> toBeScheduled) async {
     final batchLog = StringBuffer(
       'Scheduling ${toBeScheduled.length} tasks in batches for ${commit.sha} as follows:\n',
     );
     final List<Future<void>> futures = <Future<void>>[];
     for (int i = 0; i < toBeScheduled.length; i += config.batchSize) {
       final batch = toBeScheduled.sublist(i, min(i + config.batchSize, toBeScheduled.length));
-      batchLog.writeln('  - ${batch.map((t) => '"${t.second.name}"').join(', ')}');
+      batchLog.writeln('  - ${batch.map((t) => '"${t.task.name}"').join(', ')}');
       futures.add(
         luciBuildService.schedulePostsubmitBuilds(
           commit: commit,
