@@ -42,7 +42,7 @@ void main() {
 
   void configureView(TestFlutterView view) {
     // device pixel ratio of 1.0 works well on web app and emulator
-    // If `no`t set, flutter test uses a Pixel 4 device pixel ratio of roughly 2.75, which doesn't quite work
+    // If not set, flutter test uses a Pixel 4 device pixel ratio of roughly 2.75, which doesn't quite work
     // I am using the default settings of Pixel 4 in this test, as referenced in the link below
     // https://android.googlesource.com/platform/external/qemu/+/b5b78438ae9ff3b90aafdab0f4f25585affc22fb/android/avd/hardware-properties.ini
     view.devicePixelRatio = 1.0;
