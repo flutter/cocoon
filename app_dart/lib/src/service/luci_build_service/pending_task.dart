@@ -39,6 +39,6 @@ final class PendingTask {
 
   @override
   String toString() {
-    return 'PendingTask <${task.builderName}: $priority>';
+    return 'PendingTask <${task.builderName} | $target | $priority>';
   }
 }

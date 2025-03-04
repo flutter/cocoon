@@ -164,12 +164,12 @@ class BatchBackfiller extends RequestHandler {
     try {
       await retryOptions.retry(
         () async {
-          final List<List<PendingTask>> tupleLists =
+          final List<List<PendingTask>> pendingTasks =
               await Future.wait<List<PendingTask>>(backfillRequestList(backfill));
-          if (tupleLists.any((List<PendingTask> tupleList) => tupleList.isNotEmpty)) {
-            final int nonEmptyListLenght = tupleLists.where((element) => element.isNotEmpty).toList().length;
+          if (pendingTasks.any((List<PendingTask> tupleList) => tupleList.isNotEmpty)) {
+            final int nonEmptyListLenght = pendingTasks.where((element) => element.isNotEmpty).toList().length;
             log.info('Backfill fails and retry backfilling $nonEmptyListLenght targets.');
-            backfill = _updateBackfill(backfill, tupleLists);
+            backfill = _updateBackfill(backfill, pendingTasks);
             throw InternalServerError('Failed to backfill ${backfill.length} targets.');
           }
         },
