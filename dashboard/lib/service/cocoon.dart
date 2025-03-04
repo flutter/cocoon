@@ -4,6 +4,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dashboard/model/branch.pb.dart';
+import 'package:flutter_dashboard/model/commit.pb.dart';
 
 import '../model/build_status_response.pb.dart';
 import '../model/commit_status.pb.dart';
@@ -69,6 +70,14 @@ abstract class CocoonService {
 
   /// Force update Cocoon to get the latest commits.
   Future<bool> vacuumGitHubCommits(String idToken);
+
+  /// Tell Cocoon to manually schedule (or reschedule) post-submits for the given commit.
+  Future<CocoonResponse<void>> schedulePostsubmitsForCommit(
+    Commit commit, {
+    required String idToken,
+    required String branch,
+    required String repo,
+  });
 }
 
 /// Wrapper class for data this state serves.

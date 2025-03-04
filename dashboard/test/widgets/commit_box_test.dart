@@ -86,6 +86,52 @@ void main() {
     expect(find.text(shortSha), findsNothing);
   });
 
+  testWidgets('CommitBox shows disabled button with a helpful tooltip', (WidgetTester tester) async {
+    await tester.pumpWidget(basicApp);
+
+    // Open the overlay
+    await tester.tap(find.byType(CommitBox));
+    await tester.pump();
+
+    // Find the schedule button.
+    final tooltip = tester.firstWidget(find.byKey(ValueKey('schedulePostsubmit'))) as Tooltip;
+    expect(tooltip.message, contains('Only enabled for release branches'));
+    final button = tooltip.child as TextButton;
+    expect(button.onPressed, isNull, reason: 'Should be disabled');
+  });
+
+  testWidgets('CommitBox shows enabled button that schedules post-submits', (WidgetTester tester) async {
+    var scheduled = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(useMaterial3: false),
+        home: Material(
+          child: CommitBox(
+            commit: Commit(
+              author: 'foo@bar.com',
+              message: 'commit message\n\nreview comments',
+              sha: 'ShaShankRedemption',
+            ),
+            schedulePostsubmitBuild: () async {
+              scheduled++;
+            },
+          ),
+        ),
+      ),
+    );
+
+    // Open the overlay
+    await tester.tap(find.byType(CommitBox));
+    await tester.pump();
+
+    // Find the schedule button.
+    final tooltip = tester.firstWidget(find.byKey(ValueKey('schedulePostsubmit'))) as Tooltip;
+    expect(tooltip.message, contains('For release branches, the post-submit artifacts are not'));
+    final button = tooltip.child as TextButton;
+    await tester.tap(find.byWidget(button));
+    expect(scheduled, 1, reason: 'Should have been scheduled once');
+  });
+
   testWidgets('tapping sha in CommitBox redirects to GitHub', (WidgetTester tester) async {
     final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
     UrlLauncherPlatform.instance = urlLauncher;

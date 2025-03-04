@@ -240,6 +240,33 @@ class AppEngineCocoonService implements CocoonService {
     return CocoonResponse<bool>.error('HTTP Code: ${response.statusCode}, ${response.body}');
   }
 
+  @override
+  Future<CocoonResponse<void>> schedulePostsubmitsForCommit(
+    Commit commit, {
+    required String idToken,
+    required String branch,
+    required String repo,
+  }) async {
+    if (idToken.isEmpty) {
+      return const CocoonResponse<bool>.error('Sign in to trigger reruns');
+    }
+    final http.Response response = await _client.post(
+      apiEndpoint('/api/schedule-postsubmit-commits'),
+      headers: <String, String>{
+        'X-Flutter-IdToken': idToken,
+      },
+      body: jsonEncode(<String, String>{
+        'Repo': repo,
+        'Branch': branch,
+        'Commit': commit.sha,
+      }),
+    );
+    if (response.statusCode == HttpStatus.ok) {
+      return const CocoonResponse<void>.data(null);
+    }
+    return CocoonResponse<void>.error('HTTP Code: ${response.statusCode}, ${response.body}');
+  }
+
   /// Construct the API endpoint based on the priority of using a local endpoint
   /// before falling back to the production endpoint.
   ///

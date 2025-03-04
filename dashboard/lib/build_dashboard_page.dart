@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app_icons/flutter_app_icons.dart';
 import 'package:flutter_dashboard/model/branch.pb.dart';
+import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:provider/provider.dart';
 import 'package:truncate/truncate.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -467,6 +468,20 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                     child: TaskGridContainer(
                       filter: _filter,
                       useAnimatedLoading: true,
+                      schedulePostsubmitBuildForReleaseBranch: () {
+                        if (!buildState.authService.isAuthenticated) {
+                          return null;
+                        }
+                        if (buildState.currentRepo != 'flutter') {
+                          return null;
+                        }
+                        if (buildState.currentBranch == 'master') {
+                          return null;
+                        }
+                        return (commit) {
+                          return _schedulePostsubmitBuildForReleaseBranch(context: context, commit: commit);
+                        };
+                      }(),
                     ),
                   ),
                   if (_settingsBasis != null) _settingsDialog(context, buildState),
@@ -478,5 +493,28 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _schedulePostsubmitBuildForReleaseBranch({
+    required BuildContext context,
+    required Commit commit,
+  }) async {
+    final buildState = Provider.of<BuildState>(context, listen: false);
+    final response = await buildState.cocoonService.schedulePostsubmitsForCommit(
+      commit,
+      idToken: await buildState.authService.idToken,
+      branch: buildState.currentBranch,
+      repo: buildState.currentRepo,
+    );
+    if (!context.mounted) {
+      return;
+    }
+    final SnackBar snackBar;
+    if (response.error case final error?) {
+      snackBar = SnackBar(content: Text('Failed to schedule: $error.'));
+    } else {
+      snackBar = SnackBar(content: Text('Scheduled post-submits for commit ${commit.sha}.'));
+    }
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 }
