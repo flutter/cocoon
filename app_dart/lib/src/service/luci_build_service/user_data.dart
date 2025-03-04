@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
@@ -26,12 +27,22 @@ final class BuildBucketPubSubUserData {
     this.firestoreTaskDocumentName,
   });
 
+  /// Decodes [BuildBucketPubSubUserData] from a JSON-encoded [object].
+  ///
+  /// Throws a [FormatException] if the data is not in the expected format.
   factory BuildBucketPubSubUserData.fromJson(Map<String, Object?> object) {
     try {
       return _$BuildBucketPubSubUserDataFromJson(object);
     } on CheckedFromJsonException catch (e) {
       throw FormatException('Invalid UserData object: ${e.message}.\n${e.innerStack}', object.toString());
     }
+  }
+
+  /// Decodes [BuildBucketPubSubUserData] from a UTF-8 JSON string as [bytes].
+  ///
+  ///
+  factory BuildBucketPubSubUserData.fromBytes(List<int> bytes) {
+    // TODO(matanlurey): Remove legacy cases. https://github.com/flutter/flutter/issues/164568.
   }
 
   /// Which GitHub check run this build reports status to.
@@ -99,6 +110,11 @@ final class BuildBucketPubSubUserData {
 
   /// Returns a JSON representation of this object.
   Map<String, Object?> toJson() => _$BuildBucketPubSubUserDataToJson(this);
+
+  /// Returns a byte-encoded representation of this object.
+  Uint8List toBytes() {
+    return utf8.encode(json.encode(toJson()));
+  }
 
   @override
   String toString() {
