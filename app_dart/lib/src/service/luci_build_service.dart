@@ -486,7 +486,7 @@ class LuciBuildService {
   /// are also preserved.
   ///
   /// The [currentAttempt] is used to track the number of current build attempt.
-  Future<bbv2.Build> rescheduleBuild({
+  Future<bbv2.Build> reschedulePresubmitBuild({
     required String builderName,
     required bbv2.Build build,
     required int nextAttempt,

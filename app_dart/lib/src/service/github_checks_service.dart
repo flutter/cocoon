@@ -44,25 +44,11 @@ class GithubChecksService {
   ///   https://docs.github.com/en/rest/reference/checks#update-a-check-run
   Future<bool> updateCheckStatus({
     required bbv2.Build build,
-    required Map<String, dynamic> userDataMap,
     required LuciBuildService luciBuildService,
     required github.RepositorySlug slug,
+    required int checkRunId,
     bool rescheduled = false,
   }) async {
-    if (userDataMap.isEmpty) {
-      return false;
-    }
-
-    if (!userDataMap.containsKey('check_run_id') ||
-        !userDataMap.containsKey('repo_owner') ||
-        !userDataMap.containsKey('repo_name')) {
-      log.severe(
-        'UserData did not contain check_run_id,'
-        'repo_owner, or repo_name: $userDataMap',
-      );
-      return false;
-    }
-
     github.CheckRunStatus status = statusForResult(build.status);
     log.info('status for build ${build.id} is ${status.value}');
 
@@ -70,7 +56,7 @@ class GithubChecksService {
     // Instead of making an API call to get the details of each check run, we
     // generate the check run with only necessary info.
     final github.CheckRun checkRun = github.CheckRun.fromJson({
-      'id': userDataMap['check_run_id'] as int?,
+      'id': checkRunId,
       'status': status,
       'check_suite': const {'id': null},
       'started_at': build.startTime.toDateTime().toString(),

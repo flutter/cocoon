@@ -108,15 +108,16 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       if (githubChecksService.taskFailed(build.status)) {
         final int currentAttempt = _nextAttempt(tagSet);
         final int maxAttempt = await _getMaxAttempt(
-          userDataMap,
           slug,
           builderName,
           tagSet,
+          commitBranch: userDataMap['commit_branch'],
+          commitSha: userDataMap['commit_sha'],
         );
         if (currentAttempt < maxAttempt) {
           rescheduled = true;
           log.info('Rerunning failed task: $builderName');
-          await luciBuildService.rescheduleBuild(
+          await luciBuildService.reschedulePresubmitBuild(
             builderName: builderName,
             build: build,
             nextAttempt: currentAttempt + 1,
@@ -125,8 +126,8 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
         }
       }
       await githubChecksService.updateCheckStatus(
+        checkRunId: userDataMap['check_run_id'],
         build: build,
-        userDataMap: userDataMap,
         luciBuildService: luciBuildService,
         slug: slug,
         rescheduled: rescheduled,
@@ -149,17 +150,18 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   }
 
   Future<int> _getMaxAttempt(
-    Map<String, dynamic> userData,
     RepositorySlug slug,
     String builderName,
-    BuildTags tags,
-  ) async {
-    final Commit commit = Commit(
-      branch: userData['commit_branch'] as String,
+    BuildTags tags, {
+    required String commitBranch,
+    required String commitSha,
+  }) async {
+    final commit = Commit(
+      branch: commitBranch,
       repository: slug.fullName,
-      sha: userData['commit_sha'] as String,
+      sha: commitSha,
     );
-    late CiYamlSet ciYaml;
+    final CiYamlSet ciYaml;
     try {
       if (commit.branch == Config.defaultBranch(commit.slug)) {
         ciYaml = await scheduler.getCiYaml(commit, validate: true);

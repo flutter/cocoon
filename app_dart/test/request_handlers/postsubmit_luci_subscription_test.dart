@@ -54,7 +54,7 @@ void main() {
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
       ),
@@ -443,7 +443,7 @@ void main() {
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
       ),
@@ -463,6 +463,7 @@ void main() {
       'commit_key': '${task.key.parent?.id}',
       'firestore_commit_document_name': commit.sha,
       'firestore_task_document_name': taskDocumentName,
+      'check_run_id': 1,
     };
 
     tester.message = createPushMessage(
@@ -476,7 +477,7 @@ void main() {
     verify(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
       ),
@@ -489,7 +490,7 @@ void main() {
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
       ),
@@ -522,7 +523,7 @@ void main() {
     verifyNever(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
       ),
@@ -534,7 +535,7 @@ void main() {
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
       ),
@@ -569,7 +570,7 @@ void main() {
     verifyNever(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
       ),
