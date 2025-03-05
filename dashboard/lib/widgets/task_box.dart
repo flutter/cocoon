@@ -5,9 +5,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-typedef ShowSnackBarCallback
-    = ScaffoldFeatureController<SnackBar, SnackBarClosedReason> Function(
-        SnackBar snackBar);
+typedef ShowSnackBarCallback =
+    ScaffoldFeatureController<SnackBar, SnackBarClosedReason> Function(
+      SnackBar snackBar,
+    );
 
 class TaskBox extends StatelessWidget {
   const TaskBox({super.key, this.cellSize, required this.child});
@@ -58,18 +59,12 @@ class TaskBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = cellSize ?? (kIsWeb ? _kWebCellSize : _kDefaultCellSize);
-    return _TaskBox(
-      size: TaskBox.maybeOf(context) ?? size,
-      child: child,
-    );
+    return _TaskBox(size: TaskBox.maybeOf(context) ?? size, child: child);
   }
 }
 
 class _TaskBox extends InheritedWidget {
-  const _TaskBox({
-    required this.size,
-    required super.child,
-  });
+  const _TaskBox({required this.size, required super.child});
 
   final double size;
 

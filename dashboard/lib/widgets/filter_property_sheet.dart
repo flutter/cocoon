@@ -77,13 +77,13 @@ abstract class ValueFilterProperty<T> extends ValueListenable<T>
 
 /// A class used to represent a Regular Expression property in the filter object.
 class RegExpFilterProperty extends ValueFilterProperty<String?> {
-  RegExpFilterProperty(
-      {required super.fieldName,
-      super.label,
-      String? value,
-      bool caseSensitive = true})
-      : _value = value,
-        _caseSensitive = caseSensitive;
+  RegExpFilterProperty({
+    required super.fieldName,
+    super.label,
+    String? value,
+    bool caseSensitive = true,
+  }) : _value = value,
+       _caseSensitive = caseSensitive;
 
   String? _value;
   final bool _caseSensitive;
@@ -131,10 +131,16 @@ class RegExpFilterProperty extends ValueFilterProperty<String?> {
   /// The value of this property as a [RegExp] object, useful for matching its pattern
   /// against candidate values in the list being filtered.
   RegExp? _regExp;
-  RegExp? get regExp => _regExp ??=
-      _value == null ? null : RegExp(_value!, caseSensitive: _caseSensitive);
-  set regExp(RegExp? newRegExp) => value =
-      newRegExp == null || newRegExp.pattern == '' ? null : newRegExp.pattern;
+  RegExp? get regExp =>
+      _regExp ??=
+          _value == null
+              ? null
+              : RegExp(_value!, caseSensitive: _caseSensitive);
+  set regExp(RegExp? newRegExp) =>
+      value =
+          newRegExp == null || newRegExp.pattern == ''
+              ? null
+              : newRegExp.pattern;
 
   /// True iff the value, interpreted as a regular expression, matches the candidate [String].
   bool matches(String candidate) => regExp?.hasMatch(candidate) ?? true;
@@ -143,8 +149,8 @@ class RegExpFilterProperty extends ValueFilterProperty<String?> {
 /// A class used to represent a boolean property in the filter object.
 class BoolFilterProperty extends ValueFilterProperty<bool?> {
   BoolFilterProperty({required super.fieldName, super.label, bool value = true})
-      : _value = value,
-        _defaultValue = value;
+    : _value = value,
+      _defaultValue = value;
 
   bool? _value;
   final bool? _defaultValue;

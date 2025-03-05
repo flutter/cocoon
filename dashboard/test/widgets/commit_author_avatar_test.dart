@@ -8,8 +8,9 @@ import 'package:flutter_dashboard/widgets/commit_author_avatar.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('Authors with same initial have differently coloured avatars',
-      (WidgetTester tester) async {
+  testWidgets('Authors with same initial have differently coloured avatars', (
+    WidgetTester tester,
+  ) async {
     final commit1 = Commit()..author = 'Mike';
     final commit2 = Commit()..author = 'Michael';
 
@@ -17,12 +18,8 @@ void main() {
       MaterialApp(
         home: Column(
           children: <Widget>[
-            CommitAuthorAvatar(
-              commit: commit1,
-            ),
-            CommitAuthorAvatar(
-              commit: commit2,
-            ),
+            CommitAuthorAvatar(commit: commit1),
+            CommitAuthorAvatar(commit: commit2),
           ],
         ),
       ),

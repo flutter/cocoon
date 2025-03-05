@@ -23,14 +23,18 @@ const String _dartInternalUrl = 'https://ci.chromium.org/p/dart-internal';
 
 @immutable
 class QualifiedTask {
-  const QualifiedTask(
-      {this.stage, this.task, this.pool, this.isBringup = false});
+  const QualifiedTask({
+    this.stage,
+    this.task,
+    this.pool,
+    this.isBringup = false,
+  });
 
   QualifiedTask.fromTask(Task task)
-      : stage = task.stageName,
-        task = task.builderName,
-        pool = task.isFlaky ? 'luci.flutter.staging' : 'luci.flutter.prod',
-        isBringup = task.isFlaky;
+    : stage = task.stageName,
+      task = task.builderName,
+      pool = task.isFlaky ? 'luci.flutter.staging' : 'luci.flutter.prod',
+      isBringup = task.isFlaky;
 
   final String? pool;
   final String? stage;

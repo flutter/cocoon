@@ -4,7 +4,8 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' as io
+import 'dart:io'
+    as io
     show
         Process,
         ProcessResult,
@@ -136,13 +137,13 @@ class _FakeProcess implements io.Process {
     this._stdout,
     this._completer,
     bool outputFollowsExit,
-  )   : exitCode = Future<void>.delayed(duration).then((void value) {
-          if (_completer != null) {
-            return _completer.future.then((void _) => _exitCode);
-          }
-          return _exitCode;
-        }),
-        stdin = stdin ?? IOSink(StreamController<List<int>>().sink) {
+  ) : exitCode = Future<void>.delayed(duration).then((void value) {
+        if (_completer != null) {
+          return _completer.future.then((void _) => _exitCode);
+        }
+        return _exitCode;
+      }),
+      stdin = stdin ?? IOSink(StreamController<List<int>>().sink) {
     if (_stderr == '') {
       stderr = const Stream<List<int>>.empty();
     } else if (outputFollowsExit) {
@@ -264,11 +265,16 @@ abstract class FakeProcessManager implements ProcessManager {
     Encoding? encoding,
   ) {
     _pid += 1;
-    final fakeCommand =
-        findCommand(command, workingDirectory, environment, encoding);
+    final fakeCommand = findCommand(
+      command,
+      workingDirectory,
+      environment,
+      encoding,
+    );
     if (fakeCommand.exception != null) {
       assert(
-          fakeCommand.exception is Exception || fakeCommand.exception is Error);
+        fakeCommand.exception is Exception || fakeCommand.exception is Error,
+      );
       throw fakeCommand.exception!; // ignore: only_throw_errors
     }
     if (fakeCommand.onRun != null) {
@@ -295,8 +301,12 @@ abstract class FakeProcessManager implements ProcessManager {
     bool runInShell = false, // ignored
     io.ProcessStartMode mode = io.ProcessStartMode.normal, // ignored
   }) {
-    final process = _runCommand(command.cast<String>(), workingDirectory,
-        environment, io.systemEncoding);
+    final process = _runCommand(
+      command.cast<String>(),
+      workingDirectory,
+      environment,
+      io.systemEncoding,
+    );
     if (process._completer != null) {
       _fakeRunningProcesses[process.pid] = process;
       process.exitCode.whenComplete(() {
@@ -317,7 +327,11 @@ abstract class FakeProcessManager implements ProcessManager {
     Encoding? stderrEncoding = io.systemEncoding,
   }) async {
     final process = _runCommand(
-        command.cast<String>(), workingDirectory, environment, stdoutEncoding);
+      command.cast<String>(),
+      workingDirectory,
+      environment,
+      stdoutEncoding,
+    );
     await process.exitCode;
     return io.ProcessResult(
       process.pid,
@@ -342,7 +356,11 @@ abstract class FakeProcessManager implements ProcessManager {
     Encoding? stderrEncoding = io.systemEncoding, // actual encoder is ignored
   }) {
     final process = _runCommand(
-        command.cast<String>(), workingDirectory, environment, stdoutEncoding);
+      command.cast<String>(),
+      workingDirectory,
+      environment,
+      stdoutEncoding,
+    );
     return io.ProcessResult(
       process.pid,
       process._exitCode,
@@ -366,7 +384,7 @@ abstract class FakeProcessManager implements ProcessManager {
       return false;
     }
     if (fakeProcess._completer != null) {
-      fakeProcess._completer!.complete();
+      fakeProcess._completer.complete();
     }
     return true;
   }

@@ -24,22 +24,20 @@ void main() {
     const longNames = <String>['Michael', 'Thomas', 'Peter', 'Volkert'];
 
     Widget buildAuthors({required List<String> names, ThemeData? theme}) {
-      final List<Widget> avatars = names
-          .map(
-            (String name) => CommitAuthorAvatar(
-              commit: Commit()..author = name,
-            ),
-          )
-          .toList();
+      final List<Widget> avatars =
+          names
+              .map(
+                (String name) =>
+                    CommitAuthorAvatar(commit: Commit()..author = name),
+              )
+              .toList();
 
       return MaterialApp(
         theme: theme ?? ThemeData.light(),
         home: Scaffold(
           body: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Wrap(children: avatars),
-            ],
+            children: <Widget>[Wrap(children: avatars)],
           ),
         ),
       );
@@ -47,37 +45,25 @@ void main() {
 
     testWidgets('dark theme', (WidgetTester tester) async {
       await tester.pumpWidget(
-        buildAuthors(
-          theme: ThemeData.dark(),
-          names: generateInitials(),
-        ),
+        buildAuthors(theme: ThemeData.dark(), names: generateInitials()),
       );
       await expectLater(tester, meetsGuideline(textContrastGuideline));
     });
 
     testWidgets('light theme', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        buildAuthors(
-          names: generateInitials(),
-        ),
-      );
+      await tester.pumpWidget(buildAuthors(names: generateInitials()));
       await expectLater(tester, meetsGuideline(textContrastGuideline));
     });
 
     testWidgets('long names, dark theme', (WidgetTester tester) async {
       await tester.pumpWidget(
-        buildAuthors(
-          theme: ThemeData.dark(),
-          names: longNames,
-        ),
+        buildAuthors(theme: ThemeData.dark(), names: longNames),
       );
       await expectLater(tester, meetsGuideline(textContrastGuideline));
     });
 
     testWidgets('long names, light theme', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        buildAuthors(names: longNames),
-      );
+      await tester.pumpWidget(buildAuthors(names: longNames));
       await expectLater(tester, meetsGuideline(textContrastGuideline));
     });
   });

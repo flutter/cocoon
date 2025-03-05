@@ -21,9 +21,7 @@ Future<void> main(List<String> args) async {
     io.exit(1);
   }
   final inputFile = args[0];
-  final result = await VerificationService(
-    binaryPath: inputFile,
-    logger: logger,
-  ).run();
+  final result =
+      await VerificationService(binaryPath: inputFile, logger: logger).run();
   io.exit(result == VerificationResult.codesignedAndNotarized ? 0 : 1);
 }

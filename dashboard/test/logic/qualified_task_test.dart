@@ -9,10 +9,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('QualifiedTask.sourceConfigurationUrl for luci', () {
-    final luciTask = Task()
-      ..stageName = 'chromebot'
-      ..name = 'abc'
-      ..builderName = 'def';
+    final luciTask =
+        Task()
+          ..stageName = 'chromebot'
+          ..name = 'abc'
+          ..builderName = 'def';
 
     expect(
       QualifiedTask.fromTask(luciTask).sourceConfigurationUrl,
@@ -23,8 +24,10 @@ void main() {
   test('QualifiedTask.sourceConfigurationUrl for google test', () {
     final googleTestTask = Task()..stageName = 'google_internal';
 
-    expect(QualifiedTask.fromTask(googleTestTask).sourceConfigurationUrl,
-        'https://flutter-rob.corp.google.com');
+    expect(
+      QualifiedTask.fromTask(googleTestTask).sourceConfigurationUrl,
+      'https://flutter-rob.corp.google.com',
+    );
   });
 
   test('QualifiedTask.sourceConfigurationUrl for dart-internal', () {
@@ -40,7 +43,9 @@ void main() {
     expect(const QualifiedTask(stage: 'luci', task: 'abc').isLuci, true);
     expect(const QualifiedTask(stage: 'chromebot', task: 'abc').isLuci, true);
     expect(const QualifiedTask(stage: 'cocoon', task: 'abc').isLuci, true);
-    expect(const QualifiedTask(stage: 'google_internal', task: 'abc').isLuci,
-        false);
+    expect(
+      const QualifiedTask(stage: 'google_internal', task: 'abc').isLuci,
+      false,
+    );
   });
 }

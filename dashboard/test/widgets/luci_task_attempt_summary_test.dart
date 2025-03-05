@@ -13,32 +13,31 @@ import '../utils/fake_url_launcher.dart';
 
 void main() {
   group('LuciTaskAttemptSummary', () {
-    testWidgets('shows nothing for 0 attempts - when buildNumberList is empty',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Column(
-            children: <Widget>[
-              LuciTaskAttemptSummary(
-                task: Task()..buildNumberList = '',
-              ),
-            ],
+    testWidgets(
+      'shows nothing for 0 attempts - when buildNumberList is empty',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Column(
+              children: <Widget>[
+                LuciTaskAttemptSummary(task: Task()..buildNumberList = ''),
+              ],
+            ),
           ),
-        ),
-      );
+        );
 
-      expect(find.byType(ElevatedButton), findsNothing);
-    });
+        expect(find.byType(ElevatedButton), findsNothing);
+      },
+    );
 
-    testWidgets('shows only 1 button for 1 attempt',
-        (WidgetTester tester) async {
+    testWidgets('shows only 1 button for 1 attempt', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Column(
             children: <Widget>[
-              LuciTaskAttemptSummary(
-                task: Task()..buildNumberList = '123',
-              ),
+              LuciTaskAttemptSummary(task: Task()..buildNumberList = '123'),
             ],
           ),
         ),
@@ -48,15 +47,14 @@ void main() {
       expect(find.text('OPEN LOG FOR BUILD #123'), findsOneWidget);
     });
 
-    testWidgets('shows multiple buttons for multiple attempts',
-        (WidgetTester tester) async {
+    testWidgets('shows multiple buttons for multiple attempts', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Column(
             children: <Widget>[
-              LuciTaskAttemptSummary(
-                task: Task()..buildNumberList = '123,456',
-              ),
+              LuciTaskAttemptSummary(task: Task()..buildNumberList = '123,456'),
             ],
           ),
         ),
@@ -76,10 +74,11 @@ void main() {
           home: Column(
             children: <Widget>[
               LuciTaskAttemptSummary(
-                task: Task()
-                  ..key = (RootKey()..child = (Key()..name = 'loggylog'))
-                  ..buildNumberList = '123'
-                  ..builderName = 'Linux',
+                task:
+                    Task()
+                      ..key = (RootKey()..child = (Key()..name = 'loggylog'))
+                      ..buildNumberList = '123'
+                      ..builderName = 'Linux',
               ),
             ],
           ),
@@ -90,40 +89,48 @@ void main() {
       await tester.pump();
 
       expect(urlLauncher.launches, isNotEmpty);
-      expect(urlLauncher.launches.single,
-          'https://ci.chromium.org/p/flutter/builders/prod/Linux/123');
-    });
-
-    testWidgets('opens expected luci log url for when there are multiple tasks',
-        (WidgetTester tester) async {
-      final urlLauncher = FakeUrlLauncher();
-      UrlLauncherPlatform.instance = urlLauncher;
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Column(
-            children: <Widget>[
-              LuciTaskAttemptSummary(
-                task: Task()
-                  ..key = (RootKey()..child = (Key()..name = 'loggylog'))
-                  ..buildNumberList = '123,456'
-                  ..builderName = 'Linux',
-              ),
-            ],
-          ),
-        ),
+      expect(
+        urlLauncher.launches.single,
+        'https://ci.chromium.org/p/flutter/builders/prod/Linux/123',
       );
-
-      await tester.tap(find.text('OPEN LOG FOR BUILD #456'));
-      await tester.pump();
-
-      expect(urlLauncher.launches, isNotEmpty);
-      expect(urlLauncher.launches.single,
-          '${LuciTaskAttemptSummary.luciProdLogBase}/prod/Linux/456');
     });
 
-    testWidgets('opens expected dart-internal log url',
-        (WidgetTester tester) async {
+    testWidgets(
+      'opens expected luci log url for when there are multiple tasks',
+      (WidgetTester tester) async {
+        final urlLauncher = FakeUrlLauncher();
+        UrlLauncherPlatform.instance = urlLauncher;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Column(
+              children: <Widget>[
+                LuciTaskAttemptSummary(
+                  task:
+                      Task()
+                        ..key = (RootKey()..child = (Key()..name = 'loggylog'))
+                        ..buildNumberList = '123,456'
+                        ..builderName = 'Linux',
+                ),
+              ],
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('OPEN LOG FOR BUILD #456'));
+        await tester.pump();
+
+        expect(urlLauncher.launches, isNotEmpty);
+        expect(
+          urlLauncher.launches.single,
+          '${LuciTaskAttemptSummary.luciProdLogBase}/prod/Linux/456',
+        );
+      },
+    );
+
+    testWidgets('opens expected dart-internal log url', (
+      WidgetTester tester,
+    ) async {
       final urlLauncher = FakeUrlLauncher();
       UrlLauncherPlatform.instance = urlLauncher;
 
@@ -132,12 +139,14 @@ void main() {
           home: Column(
             children: <Widget>[
               LuciTaskAttemptSummary(
-                task: Task()
-                  ..key =
-                      (RootKey()..child = (Key()..name = 'dart-internal-log'))
-                  ..buildNumberList = '123'
-                  ..builderName = 'Linux'
-                  ..stageName = 'dart-internal',
+                task:
+                    Task()
+                      ..key =
+                          (RootKey()
+                            ..child = (Key()..name = 'dart-internal-log'))
+                      ..buildNumberList = '123'
+                      ..builderName = 'Linux'
+                      ..stageName = 'dart-internal',
               ),
             ],
           ),
@@ -148,8 +157,10 @@ void main() {
       await tester.pump();
 
       expect(urlLauncher.launches, isNotEmpty);
-      expect(urlLauncher.launches.single,
-          '${LuciTaskAttemptSummary.dartInternalLogBase}/flutter/Linux/123');
+      expect(
+        urlLauncher.launches.single,
+        '${LuciTaskAttemptSummary.dartInternalLogBase}/flutter/Linux/123',
+      );
     });
   });
 }

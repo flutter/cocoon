@@ -46,9 +46,7 @@ void main([List<String> args = const <String>[]]) async {
     useProductionService = false;
   }
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FlutterError.onError = (errorDetails) {
     FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
   };
@@ -58,13 +56,16 @@ void main([List<String> args = const <String>[]]) async {
     return true;
   };
   final authService = GoogleSignInService();
-  final cocoonService =
-      CocoonService(useProductionService: useProductionService);
+  final cocoonService = CocoonService(
+    useProductionService: useProductionService,
+  );
   runApp(
     StateProvider(
       signInService: authService,
-      buildState:
-          BuildState(authService: authService, cocoonService: cocoonService),
+      buildState: BuildState(
+        authService: authService,
+        cocoonService: cocoonService,
+      ),
       child: Now(child: const MyApp()),
     ),
   );
@@ -92,8 +93,8 @@ class MyApp extends StatelessWidget {
         darkTheme: ThemeData.dark(),
         initialRoute: BuildDashboardPage.routeName,
         routes: <String, WidgetBuilder>{
-          BuildDashboardPage.routeName: (BuildContext context) =>
-              const BuildDashboardPage(),
+          BuildDashboardPage.routeName:
+              (BuildContext context) => const BuildDashboardPage(),
         },
         onGenerateRoute: (RouteSettings settings) {
           final uriData = Uri.parse(settings.name!);

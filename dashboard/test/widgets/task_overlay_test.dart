@@ -45,9 +45,10 @@ class TestGrid extends StatelessWidget {
         buildState: buildState,
         commitStatuses: <CommitStatus>[
           CommitStatus()
-            ..commit = (Commit()
-              ..author = 'Fats Domino'
-              ..sha = '24e8c0a2')
+            ..commit =
+                (Commit()
+                  ..author = 'Fats Domino'
+                  ..sha = '24e8c0a2')
             ..tasks.addAll(<Task>[task]),
         ],
       ),
@@ -75,18 +76,21 @@ void main() {
   testWidgets('TaskOverlay shows on click', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
 
-    final expectedTask = Task()
-      ..attempts = 3
-      ..stageName = StageName.luci
-      ..name = 'Tasky McTaskFace'
-      ..reservedForAgentId = 'Agenty McAgentFace'
-      ..isFlaky = false // As opposed to the next test.
-      ..status = TaskBox.statusFailed
-      ..createTimestamp = int64FromDateTime(createTime)
-      ..startTimestamp = int64FromDateTime(startTime)
-      ..endTimestamp = int64FromDateTime(finishTime);
+    final expectedTask =
+        Task()
+          ..attempts = 3
+          ..stageName = StageName.luci
+          ..name = 'Tasky McTaskFace'
+          ..reservedForAgentId = 'Agenty McAgentFace'
+          ..isFlaky =
+              false // As opposed to the next test.
+          ..status = TaskBox.statusFailed
+          ..createTimestamp = int64FromDateTime(createTime)
+          ..startTimestamp = int64FromDateTime(startTime)
+          ..endTimestamp = int64FromDateTime(finishTime);
 
-    final expectedTaskInfoString = 'Attempts: ${expectedTask.attempts}\n'
+    final expectedTaskInfoString =
+        'Attempts: ${expectedTask.attempts}\n'
         'Run time: 40 minutes\n'
         'Queue time: 2 minutes';
 
@@ -98,10 +102,7 @@ void main() {
           child: MaterialApp(
             theme: ThemeData(useMaterial3: false),
             home: Scaffold(
-              body: TestGrid(
-                buildState: buildState,
-                task: expectedTask,
-              ),
+              body: TestGrid(buildState: buildState, task: expectedTask),
             ),
           ),
         ),
@@ -113,8 +114,10 @@ void main() {
     expect(find.text(expectedTaskInfoString), findsNothing);
     expect(find.text(expectedTask.reservedForAgentId), findsNothing);
 
-    await expectGoldenMatches(find.byType(MaterialApp),
-        'task_overlay_test.normal_overlay_closed.png');
+    await expectGoldenMatches(
+      find.byType(MaterialApp),
+      'task_overlay_test.normal_overlay_closed.png',
+    );
 
     await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
@@ -123,7 +126,9 @@ void main() {
     expect(find.text(expectedTaskInfoString), findsOneWidget);
 
     await expectGoldenMatches(
-        find.byType(MaterialApp), 'task_overlay_test.normal_overlay_open.png');
+      find.byType(MaterialApp),
+      'task_overlay_test.normal_overlay_open.png',
+    );
 
     // Since the overlay positions itself below the middle of the widget,
     // it is safe to click the widget to close it again.
@@ -134,24 +139,30 @@ void main() {
     expect(find.text(expectedTaskInfoString), findsNothing);
     expect(find.text(expectedTask.reservedForAgentId), findsNothing);
 
-    await expectGoldenMatches(find.byType(MaterialApp),
-        'task_overlay_test.normal_overlay_closed.png');
+    await expectGoldenMatches(
+      find.byType(MaterialApp),
+      'task_overlay_test.normal_overlay_closed.png',
+    );
   });
 
-  testWidgets('TaskOverlay shows when flaky is true',
-      (WidgetTester tester) async {
+  testWidgets('TaskOverlay shows when flaky is true', (
+    WidgetTester tester,
+  ) async {
     await precacheTaskIcons(tester);
-    final flakyTask = Task()
-      ..attempts = 3
-      ..stageName = StageName.luci
-      ..name = 'Tasky McTaskFace'
-      ..isFlaky = true // This is the point of this test.
-      ..status = TaskBox.statusFailed
-      ..createTimestamp = int64FromDateTime(createTime)
-      ..startTimestamp = int64FromDateTime(startTime)
-      ..endTimestamp = int64FromDateTime(finishTime);
+    final flakyTask =
+        Task()
+          ..attempts = 3
+          ..stageName = StageName.luci
+          ..name = 'Tasky McTaskFace'
+          ..isFlaky =
+              true // This is the point of this test.
+          ..status = TaskBox.statusFailed
+          ..createTimestamp = int64FromDateTime(createTime)
+          ..startTimestamp = int64FromDateTime(startTime)
+          ..endTimestamp = int64FromDateTime(finishTime);
 
-    final flakyTaskInfoString = 'Attempts: ${flakyTask.attempts}\n'
+    final flakyTaskInfoString =
+        'Attempts: ${flakyTask.attempts}\n'
         'Run time: 40 minutes\n'
         'Queue time: 2 minutes\n'
         'Flaky: true';
@@ -182,7 +193,9 @@ void main() {
     expect(find.text(flakyTask.reservedForAgentId), findsNothing);
 
     await expectGoldenMatches(
-        find.byType(MaterialApp), 'task_overlay_test.flaky_overlay_closed.png');
+      find.byType(MaterialApp),
+      'task_overlay_test.flaky_overlay_closed.png',
+    );
 
     await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
@@ -191,27 +204,32 @@ void main() {
     expect(find.text(flakyTaskInfoString), findsOneWidget);
 
     await expectGoldenMatches(
-        find.byType(MaterialApp), 'task_overlay_test.flaky_overlay_open.png');
+      find.byType(MaterialApp),
+      'task_overlay_test.flaky_overlay_open.png',
+    );
   });
 
-  testWidgets('TaskOverlay computes durations correctly for completed task',
-      (WidgetTester tester) async {
+  testWidgets('TaskOverlay computes durations correctly for completed task', (
+    WidgetTester tester,
+  ) async {
     /// Create a queue time of 2 minutes, run time of 8 minutes
     final createTime = nowTime.subtract(const Duration(minutes: 11));
     final startTime = nowTime.subtract(const Duration(minutes: 9));
     final finishTime = nowTime.subtract(const Duration(minutes: 1));
 
-    final timeTask = Task()
-      ..attempts = 1
-      ..stageName = StageName.luci
-      ..name = 'Tasky McTaskFace'
-      ..isFlaky = false
-      ..status = TaskBox.statusSucceeded
-      ..createTimestamp = int64FromDateTime(createTime)
-      ..startTimestamp = int64FromDateTime(startTime)
-      ..endTimestamp = int64FromDateTime(finishTime);
+    final timeTask =
+        Task()
+          ..attempts = 1
+          ..stageName = StageName.luci
+          ..name = 'Tasky McTaskFace'
+          ..isFlaky = false
+          ..status = TaskBox.statusSucceeded
+          ..createTimestamp = int64FromDateTime(createTime)
+          ..startTimestamp = int64FromDateTime(startTime)
+          ..endTimestamp = int64FromDateTime(finishTime);
 
-    final timeTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
+    final timeTaskInfoString =
+        'Attempts: ${timeTask.attempts}\n'
         'Run time: 8 minutes\n'
         'Queue time: 2 minutes';
 
@@ -222,10 +240,7 @@ void main() {
           cellSize: _cellSize,
           child: MaterialApp(
             home: Scaffold(
-              body: TestGrid(
-                buildState: buildState,
-                task: timeTask,
-              ),
+              body: TestGrid(buildState: buildState, task: timeTask),
             ),
           ),
         ),
@@ -241,22 +256,25 @@ void main() {
     expect(find.text(timeTaskInfoString), findsOneWidget);
   });
 
-  testWidgets('TaskOverlay computes durations correctly for running task',
-      (WidgetTester tester) async {
+  testWidgets('TaskOverlay computes durations correctly for running task', (
+    WidgetTester tester,
+  ) async {
     /// Create a queue time of 2 minutes, running time of 9 minutes
     final createTime = nowTime.subtract(const Duration(minutes: 11));
     final startTime = nowTime.subtract(const Duration(minutes: 9));
 
-    final timeTask = Task()
-      ..attempts = 1
-      ..stageName = StageName.luci
-      ..name = 'Tasky McTaskFace'
-      ..status = TaskBox.statusInProgress
-      ..isFlaky = false
-      ..createTimestamp = int64FromDateTime(createTime)
-      ..startTimestamp = int64FromDateTime(startTime);
+    final timeTask =
+        Task()
+          ..attempts = 1
+          ..stageName = StageName.luci
+          ..name = 'Tasky McTaskFace'
+          ..status = TaskBox.statusInProgress
+          ..isFlaky = false
+          ..createTimestamp = int64FromDateTime(createTime)
+          ..startTimestamp = int64FromDateTime(startTime);
 
-    final timeTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
+    final timeTaskInfoString =
+        'Attempts: ${timeTask.attempts}\n'
         'Running for 9 minutes\n'
         'Queue time: 2 minutes';
 
@@ -267,10 +285,7 @@ void main() {
           cellSize: _cellSize,
           child: MaterialApp(
             home: Scaffold(
-              body: TestGrid(
-                buildState: buildState,
-                task: timeTask,
-              ),
+              body: TestGrid(buildState: buildState, task: timeTask),
             ),
           ),
         ),
@@ -286,20 +301,23 @@ void main() {
     expect(find.text(timeTaskInfoString), findsOneWidget);
   });
 
-  testWidgets('TaskOverlay computes durations correctly for queueing task',
-      (WidgetTester tester) async {
+  testWidgets('TaskOverlay computes durations correctly for queueing task', (
+    WidgetTester tester,
+  ) async {
     /// Create a queue time of 2 minutes
     final createTime = nowTime.subtract(const Duration(minutes: 2));
 
-    final timeTask = Task()
-      ..attempts = 1
-      ..stageName = StageName.luci
-      ..name = 'Tasky McTaskFace'
-      ..status = TaskBox.statusNew
-      ..isFlaky = false
-      ..createTimestamp = int64FromDateTime(createTime);
+    final timeTask =
+        Task()
+          ..attempts = 1
+          ..stageName = StageName.luci
+          ..name = 'Tasky McTaskFace'
+          ..status = TaskBox.statusNew
+          ..isFlaky = false
+          ..createTimestamp = int64FromDateTime(createTime);
 
-    final timeTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
+    final timeTaskInfoString =
+        'Attempts: ${timeTask.attempts}\n'
         'Queueing for 2 minutes';
 
     await tester.pumpWidget(
@@ -309,10 +327,7 @@ void main() {
           cellSize: _cellSize,
           child: MaterialApp(
             home: Scaffold(
-              body: TestGrid(
-                buildState: buildState,
-                task: timeTask,
-              ),
+              body: TestGrid(buildState: buildState, task: timeTask),
             ),
           ),
         ),
@@ -328,8 +343,9 @@ void main() {
     expect(find.text(timeTaskInfoString), findsOneWidget);
   });
 
-  testWidgets('TaskOverlay shows the right message for nondevicelab tasks',
-      (WidgetTester tester) async {
+  testWidgets('TaskOverlay shows the right message for nondevicelab tasks', (
+    WidgetTester tester,
+  ) async {
     await precacheTaskIcons(tester);
     await tester.pumpWidget(
       Now.fixed(
@@ -341,9 +357,10 @@ void main() {
             home: Scaffold(
               body: TestGrid(
                 buildState: buildState,
-                task: Task()
-                  ..stageName = 'luci'
-                  ..status = TaskBox.statusSucceeded,
+                task:
+                    Task()
+                      ..stageName = 'luci'
+                      ..status = TaskBox.statusSucceeded,
               ),
             ),
           ),
@@ -353,17 +370,22 @@ void main() {
     await tester.pump();
 
     await expectGoldenMatches(
-        find.byType(MaterialApp), 'task_overlay_test.nondevicelab_closed.png');
+      find.byType(MaterialApp),
+      'task_overlay_test.nondevicelab_closed.png',
+    );
 
     await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
     await expectGoldenMatches(
-        find.byType(MaterialApp), 'task_overlay_test.nondevicelab_open.png');
+      find.byType(MaterialApp),
+      'task_overlay_test.nondevicelab_open.png',
+    );
   });
 
-  testWidgets('TaskOverlay shows TaskAttemptSummary for Luci tasks',
-      (WidgetTester tester) async {
+  testWidgets('TaskOverlay shows TaskAttemptSummary for Luci tasks', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
@@ -373,10 +395,11 @@ void main() {
             home: Scaffold(
               body: TestGrid(
                 buildState: buildState,
-                task: Task()
-                  ..stageName = 'chromebot'
-                  ..status = TaskBox.statusSucceeded
-                  ..buildNumberList = '123',
+                task:
+                    Task()
+                      ..stageName = 'chromebot'
+                      ..status = TaskBox.statusSucceeded
+                      ..buildNumberList = '123',
               ),
             ),
           ),
@@ -392,8 +415,9 @@ void main() {
     expect(find.byType(LuciTaskAttemptSummary), findsOneWidget);
   });
 
-  testWidgets('TaskOverlay shows TaskAttemptSummary for dart-internal tasks',
-      (WidgetTester tester) async {
+  testWidgets('TaskOverlay shows TaskAttemptSummary for dart-internal tasks', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
@@ -403,10 +427,11 @@ void main() {
             home: Scaffold(
               body: TestGrid(
                 buildState: buildState,
-                task: Task()
-                  ..stageName = 'dart-internal'
-                  ..status = TaskBox.statusSucceeded
-                  ..buildNumberList = '123',
+                task:
+                    Task()
+                      ..stageName = 'dart-internal'
+                      ..status = TaskBox.statusSucceeded
+                      ..buildNumberList = '123',
               ),
             ),
           ),
@@ -422,15 +447,17 @@ void main() {
     expect(find.byType(LuciTaskAttemptSummary), findsOneWidget);
   });
 
-  testWidgets('TaskOverlay: RERUN button disabled when user !isAuthenticated',
-      (WidgetTester tester) async {
-    final expectedTask = Task()
-      ..attempts = 3
-      ..stageName = StageName.luci
-      ..name = 'Tasky McTaskFace'
-      ..reservedForAgentId = 'Agenty McAgentFace'
-      ..status = TaskBox.statusSucceeded
-      ..isFlaky = false;
+  testWidgets('TaskOverlay: RERUN button disabled when user !isAuthenticated', (
+    WidgetTester tester,
+  ) async {
+    final expectedTask =
+        Task()
+          ..attempts = 3
+          ..stageName = StageName.luci
+          ..name = 'Tasky McTaskFace'
+          ..reservedForAgentId = 'Agenty McAgentFace'
+          ..status = TaskBox.statusSucceeded
+          ..isFlaky = false;
 
     final buildState = FakeBuildState(rerunTaskResult: true);
     when(buildState.authService.isAuthenticated).thenReturn(false);
@@ -442,10 +469,7 @@ void main() {
           cellSize: _cellSize,
           child: MaterialApp(
             home: Scaffold(
-              body: TestGrid(
-                buildState: buildState,
-                task: expectedTask,
-              ),
+              body: TestGrid(buildState: buildState, task: expectedTask),
             ),
           ),
         ),
@@ -456,24 +480,30 @@ void main() {
     await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
-    final rerun = tester
-        .element(find.text('RERUN'))
-        .findAncestorWidgetOfExactType<ProgressButton>();
+    final rerun =
+        tester
+            .element(find.text('RERUN'))
+            .findAncestorWidgetOfExactType<ProgressButton>();
 
     expect(rerun, isNotNull, reason: 'The rerun button should exist.');
-    expect(rerun!.onPressed, isNull,
-        reason: 'The rerun button should be disabled.');
+    expect(
+      rerun!.onPressed,
+      isNull,
+      reason: 'The rerun button should be disabled.',
+    );
   });
 
-  testWidgets('TaskOverlay: successful rerun shows success snackbar message',
-      (WidgetTester tester) async {
-    final expectedTask = Task()
-      ..attempts = 3
-      ..stageName = StageName.luci
-      ..name = 'Tasky McTaskFace'
-      ..reservedForAgentId = 'Agenty McAgentFace'
-      ..status = TaskBox.statusSucceeded
-      ..isFlaky = false;
+  testWidgets('TaskOverlay: successful rerun shows success snackbar message', (
+    WidgetTester tester,
+  ) async {
+    final expectedTask =
+        Task()
+          ..attempts = 3
+          ..stageName = StageName.luci
+          ..name = 'Tasky McTaskFace'
+          ..reservedForAgentId = 'Agenty McAgentFace'
+          ..status = TaskBox.statusSucceeded
+          ..isFlaky = false;
 
     final buildState = FakeBuildState(rerunTaskResult: true);
     when(buildState.authService.isAuthenticated).thenReturn(true);
@@ -485,10 +515,7 @@ void main() {
           cellSize: _cellSize,
           child: MaterialApp(
             home: Scaffold(
-              body: TestGrid(
-                buildState: buildState,
-                task: expectedTask,
-              ),
+              body: TestGrid(buildState: buildState, task: expectedTask),
             ),
           ),
         ),
@@ -518,15 +545,17 @@ void main() {
     expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
   });
 
-  testWidgets('failed rerun shows errorBrook snackbar message',
-      (WidgetTester tester) async {
-    final expectedTask = Task()
-      ..attempts = 3
-      ..stageName = StageName.luci
-      ..name = 'Tasky McTaskFace'
-      ..reservedForAgentId = 'Agenty McAgentFace'
-      ..isFlaky = false
-      ..status = TaskBox.statusNew;
+  testWidgets('failed rerun shows errorBrook snackbar message', (
+    WidgetTester tester,
+  ) async {
+    final expectedTask =
+        Task()
+          ..attempts = 3
+          ..stageName = StageName.luci
+          ..name = 'Tasky McTaskFace'
+          ..reservedForAgentId = 'Agenty McAgentFace'
+          ..isFlaky = false
+          ..status = TaskBox.statusNew;
 
     final buildState = FakeBuildState(rerunTaskResult: false);
     when(buildState.authService.isAuthenticated).thenReturn(true);
@@ -542,10 +571,7 @@ void main() {
               child: Scaffold(
                 body: ErrorBrookWatcher(
                   errors: buildState.errors,
-                  child: TestGrid(
-                    buildState: buildState,
-                    task: expectedTask,
-                  ),
+                  child: TestGrid(buildState: buildState, task: expectedTask),
                 ),
               ),
             ),
@@ -568,8 +594,9 @@ void main() {
     expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
 
     // Snackbar message should go away after its duration
-    await tester
-        .pump(ErrorBrookWatcher.errorSnackbarDuration); // wait the duration
+    await tester.pump(
+      ErrorBrookWatcher.errorSnackbarDuration,
+    ); // wait the duration
     await tester.pump(); // schedule animation
     await tester.pump(const Duration(milliseconds: 1500)); // close animation
 

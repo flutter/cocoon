@@ -32,10 +32,7 @@ class FakeInserter extends StatelessWidget {
     return StateProvider(
       signInService: fakeAuthService,
       buildState: FakeBuildState(authService: fakeAuthService),
-      child: Now.fixed(
-        dateTime: DateTime.utc(2000),
-        child: child!,
-      ),
+      child: Now.fixed(dateTime: DateTime.utc(2000), child: child!),
     );
   }
 }

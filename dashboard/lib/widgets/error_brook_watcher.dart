@@ -13,11 +13,7 @@ import '../logic/brooks.dart';
 /// The [errors] brook is watched and any messages sent to that brook
 /// are displayed as [SnackBar]s on the nearest [Scaffold].
 class ErrorBrookWatcher extends StatefulWidget {
-  const ErrorBrookWatcher({
-    super.key,
-    this.errors,
-    this.child,
-  });
+  const ErrorBrookWatcher({super.key, this.errors, this.child});
 
   final Brook<String>? errors;
 

@@ -13,10 +13,7 @@ import 'optional_image.dart';
 /// with the author's first name and a color arbitrarily but deterministically generated
 /// from the avatar's name.
 class CommitAuthorAvatar extends StatelessWidget {
-  const CommitAuthorAvatar({
-    super.key,
-    this.commit,
-  });
+  const CommitAuthorAvatar({super.key, this.commit});
 
   final Commit? commit;
 
@@ -43,9 +40,11 @@ class CommitAuthorAvatar extends StatelessWidget {
       child: Text(
         authorInitial,
         style: TextStyle(
-            color: authorColor.computeLuminance() > 0.25
-                ? Colors.black
-                : Colors.white),
+          color:
+              authorColor.computeLuminance() > 0.25
+                  ? Colors.black
+                  : Colors.white,
+        ),
       ),
     );
 

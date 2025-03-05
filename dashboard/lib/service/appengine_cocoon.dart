@@ -29,7 +29,7 @@ class AppEngineCocoonService implements CocoonService {
   ///
   /// If a [client] is not specified, a new [http.Client] instance is created.
   AppEngineCocoonService({http.Client? client})
-      : _client = client ?? http.Client();
+    : _client = client ?? http.Client();
 
   /// Branch on flutter/flutter to default requests for.
   final String _defaultBranch = 'master';
@@ -76,15 +76,18 @@ class AppEngineCocoonService implements CocoonService {
       'branch': branch ?? _defaultBranch,
       'repo': repo,
     };
-    final getStatusUrl =
-        apiEndpoint('/api/public/get-status', queryParameters: queryParameters);
+    final getStatusUrl = apiEndpoint(
+      '/api/public/get-status',
+      queryParameters: queryParameters,
+    );
 
     /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
     final response = await _client.get(getStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
       return CocoonResponse<List<CommitStatus>>.error(
-          '/api/public/get-status returned ${response.statusCode}');
+        '/api/public/get-status returned ${response.statusCode}',
+      );
     }
 
     try {
@@ -109,8 +112,10 @@ class AppEngineCocoonService implements CocoonService {
       'branch': branch ?? _defaultBranch,
       'repo': repo,
     };
-    final getStatusUrl = apiEndpoint('/api/public/get-status-firestore',
-        queryParameters: queryParameters);
+    final getStatusUrl = apiEndpoint(
+      '/api/public/get-status-firestore',
+      queryParameters: queryParameters,
+    );
 
     /// This endpoint returns JSON [List<CommitTasksStatus>]
     final response = await _client.get(getStatusUrl);
@@ -140,7 +145,8 @@ class AppEngineCocoonService implements CocoonService {
 
     if (response.statusCode != HttpStatus.ok) {
       return CocoonResponse<List<String>>.error(
-          '$getReposUrl returned ${response.statusCode}');
+        '$getReposUrl returned ${response.statusCode}',
+      );
     }
 
     List<String> repos;
@@ -148,7 +154,8 @@ class AppEngineCocoonService implements CocoonService {
       repos = List<String>.from(jsonDecode(response.body) as List<dynamic>);
     } on FormatException {
       return CocoonResponse<List<String>>.error(
-          '$getReposUrl had a malformed response');
+        '$getReposUrl had a malformed response',
+      );
     }
     return CocoonResponse<List<String>>.data(repos);
   }
@@ -162,15 +169,18 @@ class AppEngineCocoonService implements CocoonService {
       'branch': branch ?? _defaultBranch,
       'repo': repo,
     };
-    final getBuildStatusUrl = apiEndpoint('/api/public/build-status',
-        queryParameters: queryParameters);
+    final getBuildStatusUrl = apiEndpoint(
+      '/api/public/build-status',
+      queryParameters: queryParameters,
+    );
 
     /// This endpoint returns JSON {AnticipatedBuildStatus: [BuildStatus]}
     final response = await _client.get(getBuildStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
       return CocoonResponse<BuildStatusResponse>.error(
-          '/api/public/build-status returned ${response.statusCode}');
+        '/api/public/build-status returned ${response.statusCode}',
+      );
     }
 
     BuildStatusResponse protoResponse;
@@ -178,7 +188,8 @@ class AppEngineCocoonService implements CocoonService {
       protoResponse = BuildStatusResponse.fromJson(response.body);
     } on FormatException {
       return const CocoonResponse<BuildStatusResponse>.error(
-          '/api/public/build-status had a malformed response');
+        '/api/public/build-status had a malformed response',
+      );
     }
     return CocoonResponse<BuildStatusResponse>.data(protoResponse);
   }
@@ -192,7 +203,8 @@ class AppEngineCocoonService implements CocoonService {
 
     if (response.statusCode != HttpStatus.ok) {
       return CocoonResponse<List<Branch>>.error(
-          '/api/public/get-release-branches returned ${response.statusCode}');
+        '/api/public/get-release-branches returned ${response.statusCode}',
+      );
     }
 
     try {
@@ -216,16 +228,17 @@ class AppEngineCocoonService implements CocoonService {
     final refreshGitHubCommitsUrl = apiEndpoint('/api/vacuum-github-commits');
     final response = await _client.get(
       refreshGitHubCommitsUrl,
-      headers: <String, String>{
-        'X-Flutter-IdToken': idToken,
-      },
+      headers: <String, String>{'X-Flutter-IdToken': idToken},
     );
     return response.statusCode == HttpStatus.ok;
   }
 
   @override
   Future<CocoonResponse<bool>> rerunTask(
-      Task task, String? idToken, String repo) async {
+    Task task,
+    String? idToken,
+    String repo,
+  ) async {
     if (idToken == null || idToken.isEmpty) {
       return const CocoonResponse<bool>.error('Sign in to trigger reruns');
     }
@@ -237,9 +250,7 @@ class AppEngineCocoonService implements CocoonService {
     final postResetTaskUrl = apiEndpoint('/api/reset-prod-task');
     final response = await _client.post(
       postResetTaskUrl,
-      headers: <String, String>{
-        'X-Flutter-IdToken': idToken,
-      },
+      headers: <String, String>{'X-Flutter-IdToken': idToken},
       body: jsonEncode(<String, String>{
         'Key': task.key.child.name,
         'Repo': repo,
@@ -251,7 +262,8 @@ class AppEngineCocoonService implements CocoonService {
     }
 
     return CocoonResponse<bool>.error(
-        'HTTP Code: ${response.statusCode}, ${response.body}');
+      'HTTP Code: ${response.statusCode}, ${response.body}',
+    );
   }
 
   @override
@@ -266,9 +278,7 @@ class AppEngineCocoonService implements CocoonService {
     }
     final response = await _client.post(
       apiEndpoint('/api/schedule-postsubmit-commits'),
-      headers: <String, String>{
-        'X-Flutter-IdToken': idToken,
-      },
+      headers: <String, String>{'X-Flutter-IdToken': idToken},
       body: jsonEncode(<String, String>{
         'Repo': repo,
         'Branch': branch,
@@ -279,7 +289,8 @@ class AppEngineCocoonService implements CocoonService {
       return const CocoonResponse<void>.data(null);
     }
     return CocoonResponse<void>.error(
-        'HTTP Code: ${response.statusCode}, ${response.body}');
+      'HTTP Code: ${response.statusCode}, ${response.body}',
+    );
   }
 
   /// Construct the API endpoint based on the priority of using a local endpoint
@@ -295,19 +306,19 @@ class AppEngineCocoonService implements CocoonService {
   ///
   /// [queryParameters] are appended to the url and are url encoded.
   @visibleForTesting
-  Uri apiEndpoint(
-    String urlSuffix, {
-    Map<String, String?>? queryParameters,
-  }) {
+  Uri apiEndpoint(String urlSuffix, {Map<String, String?>? queryParameters}) {
     if (kIsWeb) {
-      return Uri.base
-          .replace(path: urlSuffix, queryParameters: queryParameters);
+      return Uri.base.replace(
+        path: urlSuffix,
+        queryParameters: queryParameters,
+      );
     }
     return Uri.https(_baseApiUrl, urlSuffix, queryParameters);
   }
 
   List<CommitStatus> _commitStatusesFromJson(
-      List<dynamic>? jsonCommitStatuses) {
+    List<dynamic>? jsonCommitStatuses,
+  ) {
     assert(jsonCommitStatuses != null);
 
     final statuses = <CommitStatus>[];
@@ -327,7 +338,8 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   List<CommitTasksStatus> _commitStatusesFromJsonFirestore(
-      List<dynamic>? jsonCommitStatuses) {
+    List<dynamic>? jsonCommitStatuses,
+  ) {
     assert(jsonCommitStatuses != null);
     // TODO(chillers): Remove adapter code to just use proto fromJson method. https://github.com/flutter/cocoon/issues/441
 
@@ -362,15 +374,17 @@ class AppEngineCocoonService implements CocoonService {
     final Map<String, dynamic> commit = checklist['Commit'];
     final Map<String, dynamic> author = commit['Author'];
 
-    final result = Commit()
-      ..key =
-          (RootKey()..child = (Key()..name = jsonChecklist['Key'] as String))
-      ..timestamp = Int64() + checklist['CreateTimestamp']!
-      ..sha = commit['Sha'] as String
-      ..author = author['Login'] as String
-      ..authorAvatarUrl = author['avatar_url'] as String
-      ..repository = checklist['FlutterRepositoryPath'] as String
-      ..branch = checklist['Branch'] as String;
+    final result =
+        Commit()
+          ..key =
+              (RootKey()
+                ..child = (Key()..name = jsonChecklist['Key'] as String))
+          ..timestamp = Int64() + checklist['CreateTimestamp']!
+          ..sha = commit['Sha'] as String
+          ..author = author['Login'] as String
+          ..authorAvatarUrl = author['avatar_url'] as String
+          ..repository = checklist['FlutterRepositoryPath'] as String
+          ..branch = checklist['Branch'] as String;
     if (commit['Message'] != null) {
       result.message = commit['Message'] as String;
     }
@@ -378,14 +392,15 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   CommitDocument _commitFromJsonFirestore(Map<String, dynamic> jsonCommit) {
-    final result = CommitDocument()
-      ..documentName = jsonCommit[kCommitDocumentName]
-      ..createTimestamp = Int64(jsonCommit[kCommitCreateTimestamp] as int)
-      ..sha = jsonCommit[kCommitSha] as String
-      ..author = jsonCommit[kCommitAuthor] as String
-      ..avatar = jsonCommit[kCommitAvatar] as String
-      ..repositoryPath = jsonCommit[kCommitRepositoryPath] as String
-      ..branch = jsonCommit[kCommitBranch] as String;
+    final result =
+        CommitDocument()
+          ..documentName = jsonCommit[kCommitDocumentName]
+          ..createTimestamp = Int64(jsonCommit[kCommitCreateTimestamp] as int)
+          ..sha = jsonCommit[kCommitSha] as String
+          ..author = jsonCommit[kCommitAuthor] as String
+          ..avatar = jsonCommit[kCommitAvatar] as String
+          ..repositoryPath = jsonCommit[kCommitRepositoryPath] as String
+          ..branch = jsonCommit[kCommitBranch] as String;
     if (jsonCommit[kCommitMessage] != null) {
       result.message = jsonCommit[kCommitMessage] as String;
     }
@@ -427,21 +442,22 @@ class AppEngineCocoonService implements CocoonService {
     final objectRequiredCapabilities =
         taskData['RequiredCapabilities'] as List<dynamic>?;
 
-    final task = Task()
-      ..key = (RootKey()..child = (Key()..name = json['Key'] as String))
-      ..createTimestamp = Int64(taskData['CreateTimestamp'] as int)
-      ..startTimestamp = Int64(taskData['StartTimestamp'] as int)
-      ..endTimestamp = Int64(taskData['EndTimestamp'] as int)
-      ..name = taskData['Name'] as String
-      ..attempts = taskData['Attempts'] as int
-      ..isFlaky = taskData['Flaky'] as bool
-      ..timeoutInMinutes = taskData['TimeoutInMinutes'] as int
-      ..reason = taskData['Reason'] as String
-      ..requiredCapabilities.add(objectRequiredCapabilities.toString())
-      ..reservedForAgentId = taskData['ReservedForAgentID'] as String
-      ..stageName = taskData['StageName'] as String
-      ..status = taskData['Status'] as String
-      ..isTestFlaky = taskData['TestFlaky'] as bool? ?? false;
+    final task =
+        Task()
+          ..key = (RootKey()..child = (Key()..name = json['Key'] as String))
+          ..createTimestamp = Int64(taskData['CreateTimestamp'] as int)
+          ..startTimestamp = Int64(taskData['StartTimestamp'] as int)
+          ..endTimestamp = Int64(taskData['EndTimestamp'] as int)
+          ..name = taskData['Name'] as String
+          ..attempts = taskData['Attempts'] as int
+          ..isFlaky = taskData['Flaky'] as bool
+          ..timeoutInMinutes = taskData['TimeoutInMinutes'] as int
+          ..reason = taskData['Reason'] as String
+          ..requiredCapabilities.add(objectRequiredCapabilities.toString())
+          ..reservedForAgentId = taskData['ReservedForAgentID'] as String
+          ..stageName = taskData['StageName'] as String
+          ..status = taskData['Status'] as String
+          ..isTestFlaky = taskData['TestFlaky'] as bool? ?? false;
 
     task
       ..buildNumberList = taskData['BuildNumberList'] as String? ?? ''
@@ -452,18 +468,19 @@ class AppEngineCocoonService implements CocoonService {
 
   TaskDocument _taskFromJsonFirestore(Map<String, dynamic> taskModelData) {
     final Map<String, dynamic> taskData = taskModelData['Task'];
-    final task = TaskDocument()
-      ..createTimestamp = Int64(taskData[kTaskCreateTimestamp] as int)
-      ..startTimestamp = Int64(taskData[kTaskStartTimestamp] as int)
-      ..endTimestamp = Int64(taskData[kTaskEndTimestamp] as int)
-      ..documentName = taskData[kTaskDocumentName] as String
-      ..taskName = taskData[kTaskTaskName] as String
-      ..attempts = taskData[kTaskAttempts] as int
-      ..bringup = taskData[kTaskBringup] as bool
-      ..status = taskData[kTaskStatus] as String
-      ..testFlaky = taskData[kTaskTestFlaky] as bool? ?? false
-      ..buildList = taskModelData[kTaskBuildList] as String
-      ..commitSha = taskData[kTaskCommitSha] as String;
+    final task =
+        TaskDocument()
+          ..createTimestamp = Int64(taskData[kTaskCreateTimestamp] as int)
+          ..startTimestamp = Int64(taskData[kTaskStartTimestamp] as int)
+          ..endTimestamp = Int64(taskData[kTaskEndTimestamp] as int)
+          ..documentName = taskData[kTaskDocumentName] as String
+          ..taskName = taskData[kTaskTaskName] as String
+          ..attempts = taskData[kTaskAttempts] as int
+          ..bringup = taskData[kTaskBringup] as bool
+          ..status = taskData[kTaskStatus] as String
+          ..testFlaky = taskData[kTaskTestFlaky] as bool? ?? false
+          ..buildList = taskModelData[kTaskBuildList] as String
+          ..commitSha = taskData[kTaskCommitSha] as String;
     if (taskData[kTaskBuildNumber] != null) {
       task.buildNumber = taskData[kTaskBuildNumber] as int;
     }

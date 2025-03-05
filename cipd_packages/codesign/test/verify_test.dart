@@ -74,16 +74,13 @@ $binaryPath: explicit requirement satisfied
     final result = await service.run();
     expect(processManager, hasNoRemainingExpectations);
     expect(result, VerificationResult.codesignedAndNotarized);
-    expect(
-      service.present(),
-      '''
+    expect(service.present(), '''
 Authority:      Developer ID Application: Dev Shop ABC (ABCC0VV123)
 Time stamp:     Jan 9, 2023 at 9:39:07 AM
 Format:         Mach-O thin (x86_64)
 Signature size: 8979
 Notarization:   true
-''',
-    );
+''');
   });
 
   test('detects codesigned but not notarized binary', () async {
@@ -127,16 +124,13 @@ test-requirement: code failed to satisfy specified code requirement(s)
     final result = await service.run();
     expect(processManager, hasNoRemainingExpectations);
     expect(result, VerificationResult.codesignedOnly);
-    expect(
-      service.present(),
-      '''
+    expect(service.present(), '''
 Authority:      Developer ID Application: Dev Shop ABC (ABCC0VV123)
 Time stamp:     Jan 9, 2023 at 9:39:07 AM
 Format:         Mach-O thin (x86_64)
 Signature size: 8979
 Notarization:   false
-''',
-    );
+''');
   });
 
   test('detects unsigned binary', () async {

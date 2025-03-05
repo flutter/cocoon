@@ -29,9 +29,12 @@ Future<void> expectGoldenMatches(
       goldenFileKey,
     ),
   );
-  return expectLater(actual, matchesGoldenFile(goldenPath),
-      reason: reason,
-      skip: skip is String || skip == true || !Platform.isLinux);
+  return expectLater(
+    actual,
+    matchesGoldenFile(goldenPath),
+    reason: reason,
+    skip: skip is String || skip == true || !Platform.isLinux,
+  );
 }
 
 class CocoonFileComparator extends LocalFileComparator {
@@ -47,15 +50,19 @@ class CocoonFileComparator extends LocalFileComparator {
     if (!result.passed && result.diffPercent > _kGoldenDiffTolerance) {
       final error = await generateFailureOutput(result, golden, basedir);
       if (Platform.environment.containsKey('LUCI_CONTEXT')) {
-        log('$golden has failed. For your convenience CI provides it as a base64 encoded image below. #[IMAGE]:');
+        log(
+          '$golden has failed. For your convenience CI provides it as a base64 encoded image below. #[IMAGE]:',
+        );
         log(base64Encode(imageBytes));
         log('#[/IMAGE]');
       }
       throw FlutterError(error);
     }
     if (!result.passed) {
-      log('A tolerable difference of ${result.diffPercent * 100}% was found when '
-          'comparing $golden.');
+      log(
+        'A tolerable difference of ${result.diffPercent * 100}% was found when '
+        'comparing $golden.',
+      );
     }
     return result.passed || result.diffPercent <= _kGoldenDiffTolerance;
   }

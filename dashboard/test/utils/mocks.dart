@@ -11,13 +11,11 @@ import 'package:mockito/annotations.dart';
 
 export 'mocks.mocks.dart';
 
-@GenerateMocks(
-  <Type>[
-    Client,
-    CocoonService,
-    BuildState,
-    GoogleSignIn,
-    GoogleSignInService,
-  ],
-)
+@GenerateMocks(<Type>[
+  Client,
+  CocoonService,
+  BuildState,
+  GoogleSignIn,
+  GoogleSignInService,
+])
 void main() {}

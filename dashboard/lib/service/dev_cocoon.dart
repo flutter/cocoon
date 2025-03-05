@@ -20,8 +20,8 @@ import 'cocoon.dart';
 
 class _PausedCommitStatus {
   _PausedCommitStatus(CocoonResponse<List<CommitStatus>> status)
-      : _completer = Completer<CocoonResponse<List<CommitStatus>>>(),
-        _pausedStatus = status;
+    : _completer = Completer<CocoonResponse<List<CommitStatus>>>(),
+      _pausedStatus = status;
 
   final Completer<CocoonResponse<List<CommitStatus>>> _completer;
   CocoonResponse<List<CommitStatus>>? _pausedStatus;
@@ -47,7 +47,7 @@ class _PausedCommitStatus {
 /// This creates fake data that mimicks what production will send.
 class DevelopmentCocoonService implements CocoonService {
   DevelopmentCocoonService(this.now, {this.simulateLoadingDelays = false})
-      : _random = math.Random(now.millisecondsSinceEpoch);
+    : _random = math.Random(now.millisecondsSinceEpoch);
 
   final math.Random _random;
 
@@ -87,11 +87,7 @@ class DevelopmentCocoonService implements CocoonService {
     required String repo,
   }) async {
     final data = CocoonResponse<List<CommitStatus>>.data(
-      _createFakeCommitStatuses(
-        lastCommitStatus,
-        repo,
-        branch: branch,
-      ),
+      _createFakeCommitStatuses(lastCommitStatus, repo, branch: branch),
     );
     if (_pausedStatus == null || _pausedStatus!.isComplete) {
       _pausedStatus = _PausedCommitStatus(data);
@@ -115,10 +111,7 @@ class DevelopmentCocoonService implements CocoonService {
     return _pausedStatus!.future;
   }
 
-  static const List<String> _repos = <String>[
-    'flutter',
-    'cocoon',
-  ];
+  static const List<String> _repos = <String>['flutter', 'cocoon'];
 
   @override
   Future<CocoonResponse<List<String>>> fetchRepos() async {
@@ -131,9 +124,10 @@ class DevelopmentCocoonService implements CocoonService {
     required String repo,
   }) async {
     final failed = _random.nextBool();
-    final response = BuildStatusResponse()
-      ..buildStatus =
-          failed ? EnumBuildStatus.failure : EnumBuildStatus.success;
+    final response =
+        BuildStatusResponse()
+          ..buildStatus =
+              failed ? EnumBuildStatus.failure : EnumBuildStatus.success;
     if (failed) {
       response.failingTasks.addAll(<String>['failed_task_1', 'failed_task_2']);
     }
@@ -167,7 +161,10 @@ class DevelopmentCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<bool>> rerunTask(
-      Task task, String? accessToken, String repo) async {
+    Task task,
+    String? accessToken,
+    String repo,
+  ) async {
     return const CocoonResponse<bool>.error(
       'Unable to retry against fake data. Try building the app to use prod data.',
     );
@@ -193,9 +190,10 @@ class DevelopmentCocoonService implements CocoonService {
     String? branch,
   }) {
     branch ??= defaultBranches[repo]!;
-    final baseTimestamp = lastCommitStatus != null
-        ? (lastCommitStatus.commit.timestamp.toInt())
-        : now.millisecondsSinceEpoch;
+    final baseTimestamp =
+        lastCommitStatus != null
+            ? (lastCommitStatus.commit.timestamp.toInt())
+            : now.millisecondsSinceEpoch;
     final result = <CommitStatus>[];
     for (var index = 0; index < 25; index += 1) {
       final commitTimestamp = baseTimestamp - ((index + 1) * _commitGap);
@@ -207,10 +205,11 @@ class DevelopmentCocoonService implements CocoonService {
         _commits[index],
         branch,
       );
-      final status = CommitStatus()
-        ..branch = branch
-        ..commit = commit
-        ..tasks.addAll(_createFakeTasks(commitTimestamp, commit, random));
+      final status =
+          CommitStatus()
+            ..branch = branch
+            ..commit = commit
+            ..tasks.addAll(_createFakeTasks(commitTimestamp, commit, random));
       result.add(status);
     }
     return result;
@@ -222,7 +221,7 @@ class DevelopmentCocoonService implements CocoonService {
     'charlie',
     'dobb',
     'eli',
-    'fred'
+    'fred',
   ];
   final List<int> _messagePrimes = <int>[3, 11, 17, 23, 31, 41, 47, 67, 79];
   final List<String> _words = <String>[
@@ -232,7 +231,7 @@ class DevelopmentCocoonService implements CocoonService {
     'developer',
     'blocker',
     'intermittent',
-    'format'
+    'format',
   ];
   final List<String> _commits = <String>[
     '2d22b5e85f986f3fa2cf1bfaf085905c2182c270',
@@ -319,8 +318,13 @@ class DevelopmentCocoonService implements CocoonService {
     '792aa82143bb12e97f396cb2a462ad617dbd22bc',
   ];
 
-  Commit _createFakeCommit(int commitTimestamp, math.Random random, String repo,
-      String commitSha, String branch) {
+  Commit _createFakeCommit(
+    int commitTimestamp,
+    math.Random random,
+    String repo,
+    String commitSha,
+    String branch,
+  ) {
     final author = random.nextInt(_authors.length);
     final message = commitTimestamp % 37 + author;
     final messageInc = _messagePrimes[message % _messagePrimes.length];
@@ -330,8 +334,9 @@ class DevelopmentCocoonService implements CocoonService {
       ..authorAvatarUrl =
           'https://avatars2.githubusercontent.com/u/${2148558 + author}?v=4'
       ..message = List<String>.generate(
-              6, (int i) => _words[(message + i * messageInc) % _words.length])
-          .join(' ')
+        6,
+        (int i) => _words[(message + i * messageInc) % _words.length],
+      ).join(' ')
       ..repository = 'flutter/$repo'
       ..sha = commitSha
       ..timestamp = Int64(commitTimestamp)
@@ -345,10 +350,14 @@ class DevelopmentCocoonService implements CocoonService {
   };
 
   List<Task> _createFakeTasks(
-      int commitTimestamp, Commit commit, math.Random random) {
+    int commitTimestamp,
+    Commit commit,
+    math.Random random,
+  ) {
     if (_repoTaskCount.containsKey(commit.repository) == false) {
       throw Exception(
-          'Add ${commit.repository} to _repoTaskCount in DevCocoonService');
+        'Add ${commit.repository} to _repoTaskCount in DevCocoonService',
+      );
     }
     return List<Task>.generate(
       _repoTaskCount[commit.repository]!,
@@ -387,7 +396,11 @@ class DevelopmentCocoonService implements CocoonService {
   };
 
   Task _createFakeTask(
-      int commitTimestamp, int index, String stageName, math.Random random) {
+    int commitTimestamp,
+    int index,
+    String stageName,
+    math.Random random,
+  ) {
     final age = (now.millisecondsSinceEpoch - commitTimestamp) ~/ _commitGap;
     assert(age >= 0);
     // The [statusesProbability] list is an list of proportional
@@ -430,20 +443,22 @@ class DevelopmentCocoonService implements CocoonService {
     final maxAttempts = _maxAttempts[status]!;
     final attempts =
         minAttempts + random.nextInt(maxAttempts - minAttempts + 1);
-    final task = Task()
-      ..createTimestamp = Int64(commitTimestamp + index)
-      ..startTimestamp = Int64(commitTimestamp + (index * 1000 * 60))
-      ..endTimestamp =
-          Int64(commitTimestamp + (index * 1000 * 60) + (index * 1000 * 60))
-      ..name = 'Linux_android $index'
-      ..builderName = 'Linux_android $index'
-      ..attempts = attempts
-      ..isFlaky = index == now.millisecondsSinceEpoch % 13
-      ..requiredCapabilities.add('[linux/android]')
-      ..reservedForAgentId = 'linux1'
-      ..stageName = stageName
-      ..status = status
-      ..isTestFlaky = index == now.millisecondsSinceEpoch % 17;
+    final task =
+        Task()
+          ..createTimestamp = Int64(commitTimestamp + index)
+          ..startTimestamp = Int64(commitTimestamp + (index * 1000 * 60))
+          ..endTimestamp = Int64(
+            commitTimestamp + (index * 1000 * 60) + (index * 1000 * 60),
+          )
+          ..name = 'Linux_android $index'
+          ..builderName = 'Linux_android $index'
+          ..attempts = attempts
+          ..isFlaky = index == now.millisecondsSinceEpoch % 13
+          ..requiredCapabilities.add('[linux/android]')
+          ..reservedForAgentId = 'linux1'
+          ..stageName = stageName
+          ..status = status
+          ..isTestFlaky = index == now.millisecondsSinceEpoch % 17;
 
     return task;
   }

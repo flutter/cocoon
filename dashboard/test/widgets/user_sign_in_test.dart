@@ -16,13 +16,7 @@ import '../utils/mocks.dart';
 
 final Widget testApp = MaterialApp(
   theme: ThemeData(useMaterial3: false),
-  home: Scaffold(
-    appBar: AppBar(
-      actions: const <Widget>[
-        UserSignIn(),
-      ],
-    ),
-  ),
+  home: Scaffold(appBar: AppBar(actions: const <Widget>[UserSignIn()])),
 );
 
 void main() {
@@ -36,8 +30,9 @@ void main() {
     clearInteractions(mockAuthService);
   });
 
-  testWidgets('SignInButton shows sign in when not authenticated',
-      (WidgetTester tester) async {
+  testWidgets('SignInButton shows sign in when not authenticated', (
+    WidgetTester tester,
+  ) async {
     when(mockAuthService.isAuthenticated).thenReturn(false);
     when(mockAuthService.user).thenReturn(null);
 
@@ -53,11 +48,14 @@ void main() {
     expect(find.text('SIGN IN'), findsOneWidget);
     expect(find.text('test@flutter.dev'), findsNothing);
     await expectGoldenMatches(
-        find.byType(Overlay), 'sign_in_button.not_authenticated.png');
+      find.byType(Overlay),
+      'sign_in_button.not_authenticated.png',
+    );
   });
 
-  testWidgets('SignInButton calls sign in on tap when not authenticated',
-      (WidgetTester tester) async {
+  testWidgets('SignInButton calls sign in on tap when not authenticated', (
+    WidgetTester tester,
+  ) async {
     when(mockAuthService.isAuthenticated).thenReturn(false);
     when(mockAuthService.user).thenReturn(null);
 
@@ -77,8 +75,9 @@ void main() {
     verify(mockAuthService.signIn()).called(1);
   });
 
-  testWidgets('SignInButton shows avatar when authenticated',
-      (WidgetTester tester) async {
+  testWidgets('SignInButton shows avatar when authenticated', (
+    WidgetTester tester,
+  ) async {
     when(mockAuthService.isAuthenticated).thenReturn(true);
 
     final GoogleSignInAccount user = FakeGoogleSignInAccount();
@@ -100,8 +99,9 @@ void main() {
     // await expectGoldenMatches(find.byType(Overlay), 'sign_in_button.authenticated.png');
   });
 
-  testWidgets('SignInButton calls sign out on tap when authenticated',
-      (WidgetTester tester) async {
+  testWidgets('SignInButton calls sign out on tap when authenticated', (
+    WidgetTester tester,
+  ) async {
     when(mockAuthService.isAuthenticated).thenReturn(true);
 
     final GoogleSignInAccount user = FakeGoogleSignInAccount();

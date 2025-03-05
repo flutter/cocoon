@@ -27,8 +27,10 @@ abstract class CocoonService {
     if (useProductionService) {
       return AppEngineCocoonService();
     }
-    return DevelopmentCocoonService(DateTime.now(),
-        simulateLoadingDelays: true);
+    return DevelopmentCocoonService(
+      DateTime.now(),
+      simulateLoadingDelays: true,
+    );
   }
 
   /// Gets build information on the most recent commits.
@@ -68,7 +70,10 @@ abstract class CocoonService {
   /// Will not rerun tasks that are outside of devicelab.
 
   Future<CocoonResponse<bool>> rerunTask(
-      Task task, String? idToken, String repo);
+    Task task,
+    String? idToken,
+    String repo,
+  );
 
   /// Force update Cocoon to get the latest commits.
   Future<bool> vacuumGitHubCommits(String idToken);

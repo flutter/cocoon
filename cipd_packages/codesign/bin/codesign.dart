@@ -87,7 +87,8 @@ Future<void> main(List<String> args) async {
     )
     ..addOption(
       kCodesignCertNameOption,
-      help: 'The name of the codesign certificate to be used when codesigning.'
+      help:
+          'The name of the codesign certificate to be used when codesigning.'
           'the name of the certificate for flutter, for example, is: FLUTTER.IO LLC',
     )
     ..addOption(
@@ -144,8 +145,9 @@ Future<void> main(List<String> args) async {
   }
 
   const FileSystem fileSystem = LocalFileSystem();
-  final rootDirectory =
-      fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
+  final rootDirectory = fileSystem.systemTempDirectory.createTempSync(
+    'conductor_codesign',
+  );
   const ProcessManager processManager = LocalProcessManager();
 
   return FileCodesignVisitor(

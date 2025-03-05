@@ -19,10 +19,7 @@ import '../service/google_authentication.dart';
 
 /// State for the Flutter Build Dashboard.
 class BuildState extends ChangeNotifier {
-  BuildState({
-    required this.cocoonService,
-    required this.authService,
-  }) {
+  BuildState({required this.cocoonService, required this.authService}) {
     authService.addListener(notifyListeners);
   }
 
@@ -173,7 +170,9 @@ class BuildState extends ChangeNotifier {
       () async {
         final queriedRepoBranch = '$currentRepo/$currentBranch';
         final response = await cocoonService.fetchCommitStatuses(
-            branch: currentBranch, repo: currentRepo);
+          branch: currentBranch,
+          repo: currentRepo,
+        );
         if (!_active) {
           return null;
         }
@@ -208,7 +207,8 @@ class BuildState extends ChangeNotifier {
           _failingTasks = response.data!.failingTasks;
           if (_isTreeBuilding == false) {
             unawaited(
-                flutterAppIconsPlugin.setIcon(icon: 'favicon-failure.png'));
+              flutterAppIconsPlugin.setIcon(icon: 'favicon-failure.png'),
+            );
           } else {
             unawaited(flutterAppIconsPlugin.setIcon(icon: 'favicon.png'));
           }
@@ -284,14 +284,10 @@ class BuildState extends ChangeNotifier {
     /// there will be no subset of remaining statuses. Instead, it will give
     /// a list with a null generated [CommitStatus]. Therefore we manually
     /// return an empty list.
-    final remainingStatuses = (firstIndex < lastIndex)
-        ? _statuses
-            .getRange(
-              firstIndex,
-              lastIndex,
-            )
-            .toList()
-        : <CommitStatus>[];
+    final remainingStatuses =
+        (firstIndex < lastIndex)
+            ? _statuses.getRange(firstIndex, lastIndex).toList()
+            : <CommitStatus>[];
 
     mergedStatuses.addAll(remainingStatuses);
 
@@ -372,8 +368,9 @@ class BuildState extends ChangeNotifier {
     if (!authService.isAuthenticated) {
       return false;
     }
-    final successful =
-        await cocoonService.vacuumGitHubCommits(await authService.idToken);
+    final successful = await cocoonService.vacuumGitHubCommits(
+      await authService.idToken,
+    );
     if (!successful) {
       _errors.send(errorMessageRefreshGitHubCommits);
       await authService.clearUser();
@@ -386,7 +383,10 @@ class BuildState extends ChangeNotifier {
       return false;
     }
     final response = await cocoonService.rerunTask(
-        task, await authService.idToken, _currentRepo);
+      task,
+      await authService.idToken,
+      _currentRepo,
+    );
     if (response.error != null) {
       _errors.send('$errorMessageRerunTasks: ${response.error}');
       await authService.clearUser();

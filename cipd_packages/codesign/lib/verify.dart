@@ -10,11 +10,7 @@ import 'package:process/process.dart';
 const String kNotNotarizedMessage =
     'test-requirement: code failed to satisfy specified code requirement(s)';
 
-enum VerificationResult {
-  unsigned,
-  codesignedOnly,
-  codesignedAndNotarized,
-}
+enum VerificationResult { unsigned, codesignedOnly, codesignedAndNotarized }
 
 class VerificationService {
   VerificationService({
@@ -90,7 +86,8 @@ ${result.stderr}
       return;
     }
     throw UnimplementedError(
-        'Failed parsing the output of `${command.join(' ')}`:\n\n$stderr');
+      'Failed parsing the output of `${command.join(' ')}`:\n\n$stderr',
+    );
   }
 
   String present() {
@@ -122,12 +119,7 @@ Notarization:   $_notarizationStatus
   /// Sealed Resources=none
   /// Internal requirements count=1 size=164
   Future<bool> _codesignDisplay() async {
-    final command = <String>[
-      'codesign',
-      '--display',
-      '-vv',
-      binaryPath,
-    ];
+    final command = <String>['codesign', '--display', '-vv', binaryPath];
     final result = await pm.run(command);
 
     if (result.exitCode == 1) {

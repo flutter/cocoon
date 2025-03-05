@@ -19,9 +19,7 @@ enum _SignInButtonAction { logout }
 /// If logged in, it will display the user's avatar. Clicking it opens a dropdown for logging out.
 /// Otherwise, a sign in button will show.
 class UserSignIn extends StatelessWidget {
-  const UserSignIn({
-    super.key,
-  });
+  const UserSignIn({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,13 +32,13 @@ class UserSignIn extends StatelessWidget {
         if (authService.user != null) {
           return PopupMenuButton<_SignInButtonAction>(
             offset: const Offset(0, 50),
-            itemBuilder: (BuildContext context) =>
-                <PopupMenuEntry<_SignInButtonAction>>[
-              const PopupMenuItem<_SignInButtonAction>(
-                value: _SignInButtonAction.logout,
-                child: Text('Log out'),
-              ),
-            ],
+            itemBuilder:
+                (BuildContext context) => <PopupMenuEntry<_SignInButtonAction>>[
+                  const PopupMenuItem<_SignInButtonAction>(
+                    value: _SignInButtonAction.logout,
+                    child: Text('Log out'),
+                  ),
+                ],
             onSelected: (_SignInButtonAction value) {
               switch (value) {
                 case _SignInButtonAction.logout:
@@ -58,9 +56,7 @@ class UserSignIn extends StatelessWidget {
                     child: Text(authService.user!.email),
                   );
                 }
-                return GoogleUserCircleAvatar(
-                  identity: authService.user!,
-                );
+                return GoogleUserCircleAvatar(identity: authService.user!);
               },
             ),
           );

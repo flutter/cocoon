@@ -18,12 +18,7 @@ typedef LatticeTapCallback = void Function(Offset? offset);
 /// A cell in a [LatticeScrollView].
 @immutable
 class LatticeCell extends _LatticeCell {
-  const LatticeCell({
-    super.painter,
-    this.builder,
-    super.onTap,
-    this.taskName,
-  });
+  const LatticeCell({super.painter, this.builder, super.onTap, this.taskName});
 
   final WidgetBuilder? builder;
 
@@ -77,32 +72,36 @@ class LatticeScrollView extends StatelessWidget {
         physics: horizontalPhysics,
         scrollBehavior: _MouseDragScrollBehavior.instance,
         viewportBuilder:
-            (BuildContext context, ViewportOffset horizontalOffset) =>
-                NotificationListener<OverscrollNotification>(
-          onNotification: (notification) =>
-              notification.metrics.axisDirection != AxisDirection.right &&
-              notification.metrics.axisDirection != AxisDirection.left,
-          child: Scrollbar(
-            thumbVisibility: true,
-            controller: verticalController,
-            child: Scrollable(
-              dragStartBehavior: dragStartBehavior,
-              axisDirection: AxisDirection.down,
-              controller: verticalController,
-              physics: verticalPhysics,
-              scrollBehavior: _MouseDragScrollBehavior.instance,
-              viewportBuilder:
-                  (BuildContext context, ViewportOffset verticalOffset) =>
-                      _LatticeBody(
-                textDirection: textDirection,
-                horizontalOffset: horizontalOffset,
-                verticalOffset: verticalOffset,
-                cells: cells,
-                cellSize: Size.square(TaskBox.of(context)),
+            (
+              BuildContext context,
+              ViewportOffset horizontalOffset,
+            ) => NotificationListener<OverscrollNotification>(
+              onNotification:
+                  (notification) =>
+                      notification.metrics.axisDirection !=
+                          AxisDirection.right &&
+                      notification.metrics.axisDirection != AxisDirection.left,
+              child: Scrollbar(
+                thumbVisibility: true,
+                controller: verticalController,
+                child: Scrollable(
+                  dragStartBehavior: dragStartBehavior,
+                  axisDirection: AxisDirection.down,
+                  controller: verticalController,
+                  physics: verticalPhysics,
+                  scrollBehavior: _MouseDragScrollBehavior.instance,
+                  viewportBuilder:
+                      (BuildContext context, ViewportOffset verticalOffset) =>
+                          _LatticeBody(
+                            textDirection: textDirection,
+                            horizontalOffset: horizontalOffset,
+                            verticalOffset: verticalOffset,
+                            cells: cells,
+                            cellSize: Size.square(TaskBox.of(context)),
+                          ),
+                ),
               ),
             ),
-          ),
-        ),
       ),
     );
   }
@@ -142,7 +141,9 @@ class _LatticeBody extends RenderObjectWidget {
 
   @override
   void updateRenderObject(
-      BuildContext context, _RenderLatticeBody renderObject) {
+    BuildContext context,
+    _RenderLatticeBody renderObject,
+  ) {
     renderObject
       ..textDirection = textDirection
       ..horizontalOffset = horizontalOffset
@@ -186,7 +187,10 @@ class _LatticeBodyElement extends RenderObjectElement
 
   @override
   RenderBox? updateLatticeChild(
-      _Coordinate coordinate, LatticeCell cell, RenderBox? oldChild) {
+    _Coordinate coordinate,
+    LatticeCell cell,
+    RenderBox? oldChild,
+  ) {
     Widget? newWidget;
     Element? newElement;
     owner!.buildScope(this, () {
@@ -197,8 +201,9 @@ class _LatticeBodyElement extends RenderObjectElement
         newWidget = ErrorWidget.builder(
           _debugReportException(
             FlutterErrorDetails(
-              context:
-                  ErrorDescription('building cell $coordinate for $widget'),
+              context: ErrorDescription(
+                'building cell $coordinate for $widget',
+              ),
               exception: exception,
               stack: stack,
               library: 'Flutter Dashboard',
@@ -231,7 +236,8 @@ class _LatticeBodyElement extends RenderObjectElement
           _debugReportException(
             FlutterErrorDetails(
               context: ErrorDescription(
-                  'building widget $newWidget at cell $coordinate for $widget'),
+                'building widget $newWidget at cell $coordinate for $widget',
+              ),
               exception: e,
               stack: stack,
               library: 'Flutter Dashboard',
@@ -282,9 +288,16 @@ class _LatticeBodyElement extends RenderObjectElement
 
   @override
   void moveRenderObjectChild(
-      RenderObject child, _Coordinate? oldSlot, _Coordinate? newSlot) {
+    RenderObject child,
+    _Coordinate? oldSlot,
+    _Coordinate? newSlot,
+  ) {
     renderObject.placeChild(
-        oldSlot, newSlot, child as RenderBox?, child as RenderBox);
+      oldSlot,
+      newSlot,
+      child as RenderBox?,
+      child as RenderBox,
+    );
   }
 
   @override
@@ -307,13 +320,13 @@ class _LatticeBodyElement extends RenderObjectElement
 
   @override
   List<DiagnosticsNode> debugDescribeChildren() {
-    final children = _newChildrenByCoordinate.values
-        .whereType<Element>()
-        .toList()
-      ..sort(_compareChildren);
+    final children =
+        _newChildrenByCoordinate.values.whereType<Element>().toList()
+          ..sort(_compareChildren);
     return children.map((Element? child) {
       return child!.toDiagnosticsNode(
-          name: child.slot != null ? '${child.slot}' : '(lost)');
+        name: child.slot != null ? '${child.slot}' : '(lost)',
+      );
     }).toList();
   }
 }
@@ -361,10 +374,7 @@ class _LatticeParentData extends ParentData {
 @immutable
 @_public
 class _LatticeCell {
-  const _LatticeCell({
-    this.painter,
-    this.onTap,
-  });
+  const _LatticeCell({this.painter, this.onTap});
 
   static const _LatticeCell empty = _LatticeCell();
 
@@ -381,7 +391,10 @@ abstract class _LatticeDelegate {
   const _LatticeDelegate();
   void beginLayout();
   RenderBox? updateLatticeChild(
-      _Coordinate coordinate, covariant _LatticeCell cell, RenderBox? oldChild);
+    _Coordinate coordinate,
+    covariant _LatticeCell cell,
+    RenderBox? oldChild,
+  );
   void endLayout();
 }
 
@@ -394,13 +407,13 @@ class _RenderLatticeBody extends RenderBox {
     required List<List<_LatticeCell>> cells,
     required Size cellSize,
     required _LatticeDelegate delegate,
-  })  : assert(!cellSize.isEmpty),
-        _textDirection = textDirection,
-        _horizontalOffset = horizontalOffset,
-        _verticalOffset = verticalOffset,
-        _cells = cells,
-        _cellSize = cellSize,
-        _delegate = delegate {
+  }) : assert(!cellSize.isEmpty),
+       _textDirection = textDirection,
+       _horizontalOffset = horizontalOffset,
+       _verticalOffset = verticalOffset,
+       _cells = cells,
+       _cellSize = cellSize,
+       _delegate = delegate {
     _handleOffsetChange();
     _recomputeCellDimensions();
   }
@@ -461,8 +474,10 @@ class _RenderLatticeBody extends RenderBox {
   }
 
   void _recomputeCellDimensions() {
-    _cellWidthCount = cells.fold<int>(0,
-        (int current, List<_LatticeCell> row) => math.max(current, row.length));
+    _cellWidthCount = cells.fold<int>(
+      0,
+      (int current, List<_LatticeCell> row) => math.max(current, row.length),
+    );
     _cellHeightCount = cells.length;
     _handleOffsetChange();
   }
@@ -518,8 +533,12 @@ class _RenderLatticeBody extends RenderBox {
   final Map<_Coordinate?, RenderBox> _childrenByCoordinate =
       <_Coordinate?, RenderBox>{};
 
-  void placeChild(_Coordinate? oldCoordinate, _Coordinate? newCoordinate,
-      RenderBox? oldChild, RenderBox newChild) {
+  void placeChild(
+    _Coordinate? oldCoordinate,
+    _Coordinate? newCoordinate,
+    RenderBox? oldChild,
+    RenderBox newChild,
+  ) {
     if (oldChild == newChild) {
       return;
     }
@@ -559,9 +578,10 @@ class _RenderLatticeBody extends RenderBox {
     super.attach(owner);
     _horizontalOffset.addListener(_handleOffsetChange);
     _verticalOffset.addListener(_handleOffsetChange);
-    _tap = TapGestureRecognizer(debugOwner: this)
-      ..onTapDown = _handleTapDown
-      ..onTapUp = _handleTapUp;
+    _tap =
+        TapGestureRecognizer(debugOwner: this)
+          ..onTapDown = _handleTapDown
+          ..onTapUp = _handleTapUp;
     for (final child in _childrenByCoordinate.values) {
       child.attach(owner);
     }
@@ -649,9 +669,11 @@ class _RenderLatticeBody extends RenderBox {
     final firstX = scrollOffset.dx ~/ cellSize.width;
     final lastX = ((scrollOffset.dx + size.width) / cellSize.width).ceil() - 1;
     final firstY = scrollOffset.dy ~/ cellSize.height;
-    final lastY = math.min(
-            ((scrollOffset.dy + size.height) / cellSize.height).ceil(),
-            _cellHeightCount) -
+    final lastY =
+        math.min(
+          ((scrollOffset.dy + size.height) / cellSize.height).ceil(),
+          _cellHeightCount,
+        ) -
         1;
     if (scrollOffset != _scrollOffset) {
       _scrollOffset = scrollOffset;
@@ -681,7 +703,8 @@ class _RenderLatticeBody extends RenderBox {
     for (var y = 0; y < _cellHeightCount; y += 1) {
       for (var x = 0; x < _cellWidthCount; x += 1) {
         final here = _Coordinate(x, y);
-        final visible = (x == 0 || x >= _firstX!) &&
+        final visible =
+            (x == 0 || x >= _firstX!) &&
             x <= _lastX! &&
             (y == 0 || y >= _firstY!) &&
             y <= _lastY!;
@@ -691,7 +714,10 @@ class _RenderLatticeBody extends RenderBox {
           RenderBox? child;
           invokeLayoutCallback<BoxConstraints>((BoxConstraints constraints) {
             child = delegate.updateLatticeChild(
-                here, cell, _childrenByCoordinate[here]);
+              here,
+              cell,
+              _childrenByCoordinate[here],
+            );
           });
           assert(child != null);
           assert(child!.parent == this);
@@ -808,11 +834,7 @@ class _RenderLatticeBody extends RenderBox {
       // duration and curve. (If duration is Duration.zero, use jumpTo
       // on the offsets, otherwise use animateTo.)
     }
-    super.showOnScreen(
-      rect: rect,
-      duration: duration,
-      curve: curve,
-    );
+    super.showOnScreen(rect: rect, duration: duration, curve: curve);
   }
 
   _Coordinate? _offsetToCoordinate(Offset? position) {
@@ -820,7 +842,9 @@ class _RenderLatticeBody extends RenderBox {
     switch (textDirection) {
       case TextDirection.rtl:
         absolute = Offset(
-            position!.dx - _scrollOffset!.dx, position.dy + _scrollOffset!.dy);
+          position!.dx - _scrollOffset!.dx,
+          position.dy + _scrollOffset!.dy,
+        );
         break;
       case TextDirection.ltr:
         absolute = position! + _scrollOffset!;
@@ -922,7 +946,7 @@ class _MouseDragScrollBehavior extends MaterialScrollBehavior {
 
   @override
   Set<PointerDeviceKind> get dragDevices => <PointerDeviceKind>{
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-      };
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+  };
 }

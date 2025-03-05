@@ -12,10 +12,7 @@ import '../model/task.pb.dart';
 /// Currently shows a button that links to each individual log
 /// for a Task.
 class LuciTaskAttemptSummary extends StatelessWidget {
-  const LuciTaskAttemptSummary({
-    super.key,
-    required this.task,
-  });
+  const LuciTaskAttemptSummary({super.key, required this.task});
 
   /// The task to show information from.
   final Task task;
@@ -30,9 +27,10 @@ class LuciTaskAttemptSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final buildNumberList = task.buildNumberList.isEmpty
-        ? <String>[]
-        : task.buildNumberList.split(',');
+    final buildNumberList =
+        task.buildNumberList.isEmpty
+            ? <String>[]
+            : task.buildNumberList.split(',');
     return ListBody(
       children: List<Widget>.generate(buildNumberList.length, (int i) {
         return ElevatedButton(
@@ -40,7 +38,8 @@ class LuciTaskAttemptSummary extends StatelessWidget {
           onPressed: () {
             if (task.stageName == 'dart-internal') {
               launchUrl(
-                  _dartInternalLogUrl(task.builderName, buildNumberList[i]));
+                _dartInternalLogUrl(task.builderName, buildNumberList[i]),
+              );
             } else {
               launchUrl(_luciProdLogUrl(task.builderName, buildNumberList[i]));
             }

@@ -34,9 +34,7 @@ class DashboardNavigationDrawer extends StatelessWidget {
               selected: currentRoute == link.route,
             ),
           ),
-          const AboutListTile(
-            icon: FlutterLogo(),
-          ),
+          const AboutListTile(icon: FlutterLogo()),
         ],
       ),
     );

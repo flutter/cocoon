@@ -33,14 +33,12 @@ Future<void> unzip({
   required Directory outDir,
   required ProcessManager processManager,
 }) async {
-  await processManager.run(
-    <String>[
-      'unzip',
-      inputZip.absolute.path,
-      '-d',
-      outDir.absolute.path,
-    ],
-  );
+  await processManager.run(<String>[
+    'unzip',
+    inputZip.absolute.path,
+    '-d',
+    outDir.absolute.path,
+  ]);
   outDir.listSync(recursive: true).forEach((entity) {
     if (entity.basename.toLowerCase() == '.ds_store') {
       try {
@@ -53,7 +51,8 @@ Future<void> unzip({
     }
   });
   log.info(
-      'The downloaded file is unzipped from ${inputZip.absolute.path} to ${outDir.absolute.path}');
+    'The downloaded file is unzipped from ${inputZip.absolute.path} to ${outDir.absolute.path}',
+  );
 }
 
 Future<void> zip({
@@ -61,31 +60,26 @@ Future<void> zip({
   required String outputZipPath,
   required ProcessManager processManager,
 }) async {
-  await processManager.run(
-    <String>[
-      'zip',
-      '--symlinks',
-      '--recurse-paths',
-      outputZipPath,
-      // use '.' so that the full absolute path is not encoded into the zip file
-      '.',
-      '--include',
-      '*',
-    ],
-    workingDirectory: inputDir.absolute.path,
-  );
+  await processManager.run(<String>[
+    'zip',
+    '--symlinks',
+    '--recurse-paths',
+    outputZipPath,
+    // use '.' so that the full absolute path is not encoded into the zip file
+    '.',
+    '--include',
+    '*',
+  ], workingDirectory: inputDir.absolute.path);
 }
 
 /// Check mime-type of file at [filePath] to determine if it is a directory.
 FileType getFileType(String filePath, ProcessManager processManager) {
-  final result = processManager.runSync(
-    <String>[
-      'file',
-      '--mime-type',
-      '-b', // is binary
-      filePath,
-    ],
-  );
+  final result = processManager.runSync(<String>[
+    'file',
+    '--mime-type',
+    '-b', // is binary
+    filePath,
+  ]);
   final output = result.stdout as String;
   return FileType.fromMimeType(output);
 }
@@ -114,8 +108,10 @@ String? getValueFromArgs(
   if (allowNull) {
     return null;
   }
-  throw CodesignException('Expected either the CLI arg --$name '
-      'to be provided!');
+  throw CodesignException(
+    'Expected either the CLI arg --$name '
+    'to be provided!',
+  );
 }
 
 String joinEntitlementPaths(String entitlementParentPath, String pathToJoin) {

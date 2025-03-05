@@ -37,24 +37,24 @@ void main() {
   });
 
   testWidgets(
-      'TaskGridContainer shows loading indicator when statuses is empty',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: ValueProvider<BuildState>(
-          value: FakeBuildState(),
-          child: const Material(
-            child: TaskGridContainer(),
+    'TaskGridContainer shows loading indicator when statuses is empty',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ValueProvider<BuildState>(
+            value: FakeBuildState(),
+            child: const Material(child: TaskGridContainer()),
           ),
         ),
-      ),
-    );
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    expect(find.byType(LatticeScrollView), findsNothing);
-  });
+      );
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(LatticeScrollView), findsNothing);
+    },
+  );
 
-  testWidgets('TaskGridContainer with DevelopmentCocoonService',
-      (WidgetTester tester) async {
+  testWidgets('TaskGridContainer with DevelopmentCocoonService', (
+    WidgetTester tester,
+  ) async {
     await precacheTaskIcons(tester);
     final service = DevelopmentCocoonService(DateTime.utc(2020));
     final buildState = BuildState(
@@ -98,14 +98,18 @@ void main() {
     }
 
     await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.dev.origin.png');
+      find.byType(TaskGrid),
+      'task_grid_test.dev.origin.png',
+    );
 
     // Check if the LOADING... indicator appears.
     service.paused = true;
     await tester.drag(find.byType(TaskGrid), const Offset(0.0, -5000.0));
     await tester.pumpAndSettle();
     await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.dev.scroll_y.png');
+      find.byType(TaskGrid),
+      'task_grid_test.dev.scroll_y.png',
+    );
     service.paused = false;
     await tester.pumpAndSettle();
 
@@ -114,7 +118,9 @@ void main() {
     await tester.drag(find.byType(TaskGrid), const Offset(-5000.0, 0.0));
     await tester.pumpAndSettle();
     await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.dev.scroll_x.png');
+      find.byType(TaskGrid),
+      'task_grid_test.dev.scroll_x.png',
+    );
     service.paused = false;
     await tester.pumpAndSettle();
 
@@ -122,8 +128,9 @@ void main() {
     buildState.dispose();
   });
 
-  testWidgets('TaskGridContainer supports mouse drag',
-      (WidgetTester tester) async {
+  testWidgets('TaskGridContainer supports mouse drag', (
+    WidgetTester tester,
+  ) async {
     await precacheTaskIcons(tester);
     final service = DevelopmentCocoonService(DateTime.utc(2020));
     final buildState = BuildState(
@@ -167,7 +174,9 @@ void main() {
     }
 
     await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.dev.origin.png');
+      find.byType(TaskGrid),
+      'task_grid_test.dev.origin.png',
+    );
 
     // Check if the LOADING... indicator appears.
     service.paused = true;
@@ -183,7 +192,9 @@ void main() {
 
     await tester.pumpAndSettle();
     await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.dev.mouse_scroll_y.png');
+      find.byType(TaskGrid),
+      'task_grid_test.dev.mouse_scroll_y.png',
+    );
 
     await gesture.removePointer();
     service.paused = false;
@@ -205,7 +216,9 @@ void main() {
 
     await tester.pumpAndSettle();
     await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.dev.mouse_scroll_x.png');
+      find.byType(TaskGrid),
+      'task_grid_test.dev.mouse_scroll_x.png',
+    );
 
     service.paused = false;
     await gesture.removePointer();
@@ -214,8 +227,9 @@ void main() {
     buildState.dispose();
   });
 
-  testWidgets('TaskGridContainer with DevelopmentCocoonService - dark',
-      (WidgetTester tester) async {
+  testWidgets('TaskGridContainer with DevelopmentCocoonService - dark', (
+    WidgetTester tester,
+  ) async {
     await precacheTaskIcons(tester);
     final service = DevelopmentCocoonService(DateTime.utc(2020));
     final buildState = BuildState(
@@ -259,14 +273,18 @@ void main() {
     }
 
     await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.dev.origin.dark.png');
+      find.byType(TaskGrid),
+      'task_grid_test.dev.origin.dark.png',
+    );
 
     // Check if the LOADING... indicator appears.
     service.paused = true;
     await tester.drag(find.byType(TaskGrid), const Offset(0.0, -5000.0));
     await tester.pumpAndSettle();
     await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.dev.scroll_y.dark.png');
+      find.byType(TaskGrid),
+      'task_grid_test.dev.scroll_y.dark.png',
+    );
     service.paused = false;
     await tester.pumpAndSettle();
 
@@ -275,7 +293,9 @@ void main() {
     await tester.drag(find.byType(TaskGrid), const Offset(-5000.0, 0.0));
     await tester.pumpAndSettle();
     await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.dev.scroll_x.dark.png');
+      find.byType(TaskGrid),
+      'task_grid_test.dev.scroll_x.dark.png',
+    );
     service.paused = false;
     await tester.pumpAndSettle();
 
@@ -284,7 +304,11 @@ void main() {
   });
 
   Future<void> testGrid(
-      WidgetTester tester, TaskGridFilter? filter, int rows, int cols) async {
+    WidgetTester tester,
+    TaskGridFilter? filter,
+    int rows,
+    int cols,
+  ) async {
     final buildState = BuildState(
       cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
       authService: MockGoogleSignInService(),
@@ -299,9 +323,7 @@ void main() {
           theme: ThemeData.dark(),
           home: ValueProvider<BuildState>(
             value: buildState,
-            child: Material(
-              child: TaskGridContainer(filter: filter),
-            ),
+            child: Material(child: TaskGridContainer(filter: filter)),
           ),
         ),
       ),
@@ -309,8 +331,9 @@ void main() {
     await tester.pump();
 
     expect(find.byType(LatticeScrollView), findsOneWidget);
-    final lattice = find.byType(LatticeScrollView).evaluate().first.widget
-        as LatticeScrollView;
+    final lattice =
+        find.byType(LatticeScrollView).evaluate().first.widget
+            as LatticeScrollView;
 
     expect(lattice.cells.length, rows);
     for (final row in lattice.cells) {
@@ -328,24 +351,38 @@ void main() {
     await testGrid(tester, TaskGridFilter.fromMap(null), 27, 100);
 
     // QualifiedTask (column) filters
-    await testGrid(tester,
-        TaskGridFilter()..taskFilter = RegExp('Linux_android 2'), 27, 12);
+    await testGrid(
+      tester,
+      TaskGridFilter()..taskFilter = RegExp('Linux_android 2'),
+      27,
+      12,
+    );
 
     // CommitStatus (row) filters
     await testGrid(
-        tester, TaskGridFilter()..authorFilter = RegExp('bob'), 8, 100);
+      tester,
+      TaskGridFilter()..authorFilter = RegExp('bob'),
+      8,
+      100,
+    );
     await testGrid(
-        tester, TaskGridFilter()..messageFilter = RegExp('developer'), 18, 100);
+      tester,
+      TaskGridFilter()..messageFilter = RegExp('developer'),
+      18,
+      100,
+    );
     await testGrid(
-        tester,
-        TaskGridFilter()
-          ..hashFilter = RegExp('2d22b5e85f986f3fa2cf1bfaf085905c2182c270'),
-        4,
-        100);
+      tester,
+      TaskGridFilter()
+        ..hashFilter = RegExp('2d22b5e85f986f3fa2cf1bfaf085905c2182c270'),
+      4,
+      100,
+    );
   });
 
-  testWidgets('Skipped tasks do not break the grid',
-      (WidgetTester tester) async {
+  testWidgets('Skipped tasks do not break the grid', (
+    WidgetTester tester,
+  ) async {
     await precacheTaskIcons(tester);
     // Matrix Diagram:
     //
@@ -360,37 +397,31 @@ void main() {
     final statusesWithSkips = <CommitStatus>[
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(
-          <Task>[
-            Task()
-              ..stageName = 'A'
-              ..name = '1'
-              ..builderName = '1'
-              ..status = TaskBox.statusSucceeded,
-          ],
-        ),
+        ..tasks.addAll(<Task>[
+          Task()
+            ..stageName = 'A'
+            ..name = '1'
+            ..builderName = '1'
+            ..status = TaskBox.statusSucceeded,
+        ]),
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(
-          <Task>[
-            Task()
-              ..stageName = 'A'
-              ..name = '2'
-              ..builderName = '2'
-              ..status = TaskBox.statusSucceeded,
-          ],
-        ),
+        ..tasks.addAll(<Task>[
+          Task()
+            ..stageName = 'A'
+            ..name = '2'
+            ..builderName = '2'
+            ..status = TaskBox.statusSucceeded,
+        ]),
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(
-          <Task>[
-            Task()
-              ..stageName = 'A'
-              ..name = '3'
-              ..builderName = '3'
-              ..status = TaskBox.statusSucceeded,
-          ],
-        ),
+        ..tasks.addAll(<Task>[
+          Task()
+            ..stageName = 'A'
+            ..name = '3'
+            ..builderName = '3'
+            ..status = TaskBox.statusSucceeded,
+        ]),
     ];
 
     await tester.pumpWidget(
@@ -406,11 +437,14 @@ void main() {
     );
 
     await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.withSkips.png');
+      find.byType(TaskGrid),
+      'task_grid_test.withSkips.png',
+    );
   });
 
-  testWidgets('Cocoon and LUCI tasks share the same column',
-      (WidgetTester tester) async {
+  testWidgets('Cocoon and LUCI tasks share the same column', (
+    WidgetTester tester,
+  ) async {
     await precacheTaskIcons(tester);
     // Matrix Diagram:
     //
@@ -423,26 +457,22 @@ void main() {
     final statuses = <CommitStatus>[
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(
-          <Task>[
-            Task()
-              ..stageName = StageName.cocoon
-              ..name = '1'
-              ..builderName = '1'
-              ..status = TaskBox.statusSucceeded,
-          ],
-        ),
+        ..tasks.addAll(<Task>[
+          Task()
+            ..stageName = StageName.cocoon
+            ..name = '1'
+            ..builderName = '1'
+            ..status = TaskBox.statusSucceeded,
+        ]),
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(
-          <Task>[
-            Task()
-              ..stageName = StageName.luci
-              ..name = '1'
-              ..builderName = '1'
-              ..status = TaskBox.statusSucceeded,
-          ],
-        ),
+        ..tasks.addAll(<Task>[
+          Task()
+            ..stageName = StageName.luci
+            ..name = '1'
+            ..builderName = '1'
+            ..status = TaskBox.statusSucceeded,
+        ]),
     ];
 
     await tester.pumpWidget(
@@ -457,8 +487,9 @@ void main() {
     );
 
     expect(find.byType(LatticeScrollView), findsOneWidget);
-    final lattice = find.byType(LatticeScrollView).evaluate().first.widget
-        as LatticeScrollView;
+    final lattice =
+        find.byType(LatticeScrollView).evaluate().first.widget
+            as LatticeScrollView;
 
     // Rows (task icon, two commits, load more row)
     expect(lattice.cells.length, 4);
@@ -467,25 +498,24 @@ void main() {
     expect(lattice.cells[1].length, 2);
   });
 
-  testWidgets('TaskGrid creates a task icon row and they line up',
-      (WidgetTester tester) async {
+  testWidgets('TaskGrid creates a task icon row and they line up', (
+    WidgetTester tester,
+  ) async {
     final commitStatuses = <CommitStatus>[
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(
-          <Task>[
-            Task()
-              ..name = 'Task Name'
-              ..builderName = 'Task Name'
-              ..stageName = 'Stage Nome 1'
-              ..status = TaskBox.statusSucceeded,
-            Task()
-              ..name = 'Task Name'
-              ..builderName = 'Task Name'
-              ..stageName = 'Stage Nome 2'
-              ..status = TaskBox.statusFailed,
-          ],
-        ),
+        ..tasks.addAll(<Task>[
+          Task()
+            ..name = 'Task Name'
+            ..builderName = 'Task Name'
+            ..stageName = 'Stage Nome 1'
+            ..status = TaskBox.statusSucceeded,
+          Task()
+            ..name = 'Task Name'
+            ..builderName = 'Task Name'
+            ..stageName = 'Stage Nome 2'
+            ..status = TaskBox.statusFailed,
+        ]),
     ];
 
     await tester.pumpWidget(
@@ -500,8 +530,10 @@ void main() {
     );
 
     expect(find.byType(TaskIcon), findsNWidgets(2));
-    expect(tester.getTopLeft(find.byType(TaskIcon).at(0)).dy,
-        tester.getTopLeft(find.byType(TaskIcon).at(1)).dy);
+    expect(
+      tester.getTopLeft(find.byType(TaskIcon).at(0)).dy,
+      tester.getTopLeft(find.byType(TaskIcon).at(1)).dy,
+    );
   });
 
   testWidgets('TaskGrid honors moreStatusesExist', (WidgetTester tester) async {
@@ -509,15 +541,13 @@ void main() {
     final commitStatuses = <CommitStatus>[
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(
-          <Task>[
-            Task()
-              ..name = 'Task Name'
-              ..name = 'Task Name'
-              ..stageName = 'Stage Nome'
-              ..status = TaskBox.statusSucceeded,
-          ],
-        ),
+        ..tasks.addAll(<Task>[
+          Task()
+            ..name = 'Task Name'
+            ..name = 'Task Name'
+            ..stageName = 'Stage Nome'
+            ..status = TaskBox.statusSucceeded,
+        ]),
     ];
 
     await tester.pumpWidget(
@@ -533,7 +563,9 @@ void main() {
     );
 
     await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.withoutL.png');
+      find.byType(TaskGrid),
+      'task_grid_test.withoutL.png',
+    );
 
     await tester.pumpWidget(
       MaterialApp(
@@ -548,11 +580,14 @@ void main() {
     );
 
     await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.withL.png');
+      find.byType(TaskGrid),
+      'task_grid_test.withL.png',
+    );
   });
 
-  testWidgets('TaskGrid shows icon for rerun tasks',
-      (WidgetTester tester) async {
+  testWidgets('TaskGrid shows icon for rerun tasks', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Material(
@@ -564,14 +599,12 @@ void main() {
             commitStatuses: <CommitStatus>[
               CommitStatus()
                 ..commit = (Commit()..author = 'Cast')
-                ..tasks.addAll(
-                  <Task>[
-                    Task()
-                      ..stageName = 'A'
-                      ..status = 'Succeeded'
-                      ..attempts = 2,
-                  ],
-                ),
+                ..tasks.addAll(<Task>[
+                  Task()
+                    ..stageName = 'A'
+                    ..status = 'Succeeded'
+                    ..attempts = 2,
+                ]),
             ],
           ),
         ),
@@ -589,14 +622,12 @@ void main() {
             commitStatuses: <CommitStatus>[
               CommitStatus()
                 ..commit = (Commit()..author = 'Cast')
-                ..tasks.addAll(
-                  <Task>[
-                    Task()
-                      ..stageName = 'A'
-                      ..status = 'Succeeded'
-                      ..attempts = 1,
-                  ],
-                ),
+                ..tasks.addAll(<Task>[
+                  Task()
+                    ..stageName = 'A'
+                    ..status = 'Succeeded'
+                    ..attempts = 1,
+                ]),
             ],
           ),
         ),
@@ -605,8 +636,9 @@ void main() {
     expect(find.byIcon(Icons.priority_high), findsNothing);
   });
 
-  testWidgets('TaskGrid shows icon for isTestFlaky tasks',
-      (WidgetTester tester) async {
+  testWidgets('TaskGrid shows icon for isTestFlaky tasks', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Material(
@@ -618,15 +650,13 @@ void main() {
             commitStatuses: <CommitStatus>[
               CommitStatus()
                 ..commit = (Commit()..author = 'Cast')
-                ..tasks.addAll(
-                  <Task>[
-                    Task()
-                      ..stageName = 'A'
-                      ..status = 'Succeeded'
-                      ..attempts = 1
-                      ..isTestFlaky = true,
-                  ],
-                ),
+                ..tasks.addAll(<Task>[
+                  Task()
+                    ..stageName = 'A'
+                    ..status = 'Succeeded'
+                    ..attempts = 1
+                    ..isTestFlaky = true,
+                ]),
             ],
           ),
         ),
@@ -644,15 +674,13 @@ void main() {
             commitStatuses: <CommitStatus>[
               CommitStatus()
                 ..commit = (Commit()..author = 'Cast')
-                ..tasks.addAll(
-                  <Task>[
-                    Task()
-                      ..stageName = 'A'
-                      ..status = 'Succeeded'
-                      ..attempts = 1
-                      ..isTestFlaky = false,
-                  ],
-                ),
+                ..tasks.addAll(<Task>[
+                  Task()
+                    ..stageName = 'A'
+                    ..status = 'Succeeded'
+                    ..attempts = 1
+                    ..isTestFlaky = false,
+                ]),
             ],
           ),
         ),
@@ -662,213 +690,204 @@ void main() {
   });
 
   testWidgets(
-      'TaskGrid shows icon for isTestFlaky tasks with multiple attempts',
-      (WidgetTester tester) async {
-    final taskA3 = Task()
-      ..stageName = 'A'
-      ..builderName = '1'
-      ..name = 'A'
-      ..status = TaskBox.statusSucceeded
-      ..attempts = 3
-      ..isTestFlaky = true;
+    'TaskGrid shows icon for isTestFlaky tasks with multiple attempts',
+    (WidgetTester tester) async {
+      final taskA3 =
+          Task()
+            ..stageName = 'A'
+            ..builderName = '1'
+            ..name = 'A'
+            ..status = TaskBox.statusSucceeded
+            ..attempts = 3
+            ..isTestFlaky = true;
 
-    final taskB1 = Task()
-      ..stageName = 'B'
-      ..builderName = '2'
-      ..name = 'B'
-      ..status = TaskBox.statusSucceeded
-      ..attempts = 1
-      ..isTestFlaky = false;
+      final taskB1 =
+          Task()
+            ..stageName = 'B'
+            ..builderName = '2'
+            ..name = 'B'
+            ..status = TaskBox.statusSucceeded
+            ..attempts = 1
+            ..isTestFlaky = false;
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Material(
-          child: TaskGrid(
-            buildState: FakeBuildState(
-              authService: MockGoogleSignInService(),
-              cocoonService: MockCocoonService(),
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Material(
+            child: TaskGrid(
+              buildState: FakeBuildState(
+                authService: MockGoogleSignInService(),
+                cocoonService: MockCocoonService(),
+              ),
+              commitStatuses: <CommitStatus>[
+                CommitStatus()
+                  ..commit = (Commit()..author = 'Cast')
+                  ..tasks.addAll(<Task>[taskA3]),
+                CommitStatus()
+                  ..commit = (Commit()..author = 'Cast')
+                  ..tasks.addAll(<Task>[taskB1]),
+              ],
             ),
-            commitStatuses: <CommitStatus>[
-              CommitStatus()
-                ..commit = (Commit()..author = 'Cast')
-                ..tasks.addAll(
-                  <Task>[
-                    taskA3,
-                  ],
-                ),
-              CommitStatus()
-                ..commit = (Commit()..author = 'Cast')
-                ..tasks.addAll(
-                  <Task>[taskB1],
-                ),
-            ],
           ),
         ),
-      ),
-    );
-    expect(find.byIcon(Icons.priority_high), findsNWidgets(1));
+      );
+      expect(find.byIcon(Icons.priority_high), findsNWidgets(1));
 
-    // check the order of the items. The flaky should be to the left and first.
-    expect(find.byType(TaskGrid).first, findsAtLeastNWidgets(1));
+      // check the order of the items. The flaky should be to the left and first.
+      expect(find.byType(TaskGrid).first, findsAtLeastNWidgets(1));
 
-    final latticeScrollView =
-        tester.firstWidget(find.byType(LatticeScrollView)) as LatticeScrollView;
-    final cells = latticeScrollView.cells;
-    final myCells = cells.first;
-    expect(myCells.length, 3);
-    myCells.removeAt(0); // the first element is the github author box.
-    expect(myCells[0].taskName, 'A');
-    expect(myCells[1].taskName, 'B');
-  });
+      final latticeScrollView =
+          tester.firstWidget(find.byType(LatticeScrollView))
+              as LatticeScrollView;
+      final cells = latticeScrollView.cells;
+      final myCells = cells.first;
+      expect(myCells.length, 3);
+      myCells.removeAt(0); // the first element is the github author box.
+      expect(myCells[0].taskName, 'A');
+      expect(myCells[1].taskName, 'B');
+    },
+  );
 
-  testWidgets('TaskGrid can handle all the various different statuses',
-      (WidgetTester tester) async {
+  testWidgets('TaskGrid can handle all the various different statuses', (
+    WidgetTester tester,
+  ) async {
     await precacheTaskIcons(tester);
     final statuses = <CommitStatus>[
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(
-          <Task>[
-            Task()
-              ..stageName = 'A'
-              ..name = '1'
-              ..builderName = '1'
-              ..status = TaskBox.statusFailed,
-            Task()
-              ..stageName = 'A'
-              ..name = '2'
-              ..builderName = '2'
-              ..status = TaskBox.statusNew,
-            Task()
-              ..stageName = 'A'
-              ..name = '3'
-              ..builderName = '3'
-              ..status = TaskBox.statusSkipped,
-            Task()
-              ..stageName = 'A'
-              ..name = '4'
-              ..builderName = '4'
-              ..status = TaskBox.statusSucceeded,
-            Task()
-              ..stageName = 'A'
-              ..name = '5'
-              ..builderName = '5'
-              ..status = TaskBox.statusInProgress,
-          ],
-        ),
+        ..tasks.addAll(<Task>[
+          Task()
+            ..stageName = 'A'
+            ..name = '1'
+            ..builderName = '1'
+            ..status = TaskBox.statusFailed,
+          Task()
+            ..stageName = 'A'
+            ..name = '2'
+            ..builderName = '2'
+            ..status = TaskBox.statusNew,
+          Task()
+            ..stageName = 'A'
+            ..name = '3'
+            ..builderName = '3'
+            ..status = TaskBox.statusSkipped,
+          Task()
+            ..stageName = 'A'
+            ..name = '4'
+            ..builderName = '4'
+            ..status = TaskBox.statusSucceeded,
+          Task()
+            ..stageName = 'A'
+            ..name = '5'
+            ..builderName = '5'
+            ..status = TaskBox.statusInProgress,
+        ]),
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(
-          <Task>[
-            Task()
-              ..stageName = 'A'
-              ..name = '1'
-              ..builderName = '1'
-              ..attempts = 2
-              ..status = TaskBox.statusFailed,
-            Task()
-              ..stageName = 'A'
-              ..name = '2'
-              ..builderName = '2'
-              ..attempts = 2
-              ..status = TaskBox.statusNew,
-            Task()
-              ..stageName = 'A'
-              ..name = '3'
-              ..builderName = '3'
-              ..attempts = 2
-              ..status = TaskBox.statusSkipped,
-            Task()
-              ..stageName = 'A'
-              ..name = '4'
-              ..builderName = '4'
-              ..attempts = 2
-              ..status = TaskBox.statusSucceeded,
-            Task()
-              ..stageName = 'A'
-              ..name = '5'
-              ..builderName = '5'
-              ..attempts = 2
-              ..status = TaskBox.statusInProgress,
-          ],
-        ),
+        ..tasks.addAll(<Task>[
+          Task()
+            ..stageName = 'A'
+            ..name = '1'
+            ..builderName = '1'
+            ..attempts = 2
+            ..status = TaskBox.statusFailed,
+          Task()
+            ..stageName = 'A'
+            ..name = '2'
+            ..builderName = '2'
+            ..attempts = 2
+            ..status = TaskBox.statusNew,
+          Task()
+            ..stageName = 'A'
+            ..name = '3'
+            ..builderName = '3'
+            ..attempts = 2
+            ..status = TaskBox.statusSkipped,
+          Task()
+            ..stageName = 'A'
+            ..name = '4'
+            ..builderName = '4'
+            ..attempts = 2
+            ..status = TaskBox.statusSucceeded,
+          Task()
+            ..stageName = 'A'
+            ..name = '5'
+            ..builderName = '5'
+            ..attempts = 2
+            ..status = TaskBox.statusInProgress,
+        ]),
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(
-          <Task>[
-            Task()
-              ..stageName = 'A'
-              ..name = '1'
-              ..builderName = '1'
-              ..isFlaky = true
-              ..status = TaskBox.statusFailed,
-            Task()
-              ..stageName = 'A'
-              ..name = '2'
-              ..builderName = '2'
-              ..isFlaky = true
-              ..status = TaskBox.statusNew,
-            Task()
-              ..stageName = 'A'
-              ..name = '3'
-              ..builderName = '3'
-              ..isFlaky = true
-              ..status = TaskBox.statusSkipped,
-            Task()
-              ..stageName = 'A'
-              ..name = '4'
-              ..builderName = '4'
-              ..isFlaky = true
-              ..status = TaskBox.statusSucceeded,
-            Task()
-              ..stageName = 'A'
-              ..name = '5'
-              ..builderName = '5'
-              ..isFlaky = true
-              ..status = TaskBox.statusInProgress,
-          ],
-        ),
+        ..tasks.addAll(<Task>[
+          Task()
+            ..stageName = 'A'
+            ..name = '1'
+            ..builderName = '1'
+            ..isFlaky = true
+            ..status = TaskBox.statusFailed,
+          Task()
+            ..stageName = 'A'
+            ..name = '2'
+            ..builderName = '2'
+            ..isFlaky = true
+            ..status = TaskBox.statusNew,
+          Task()
+            ..stageName = 'A'
+            ..name = '3'
+            ..builderName = '3'
+            ..isFlaky = true
+            ..status = TaskBox.statusSkipped,
+          Task()
+            ..stageName = 'A'
+            ..name = '4'
+            ..builderName = '4'
+            ..isFlaky = true
+            ..status = TaskBox.statusSucceeded,
+          Task()
+            ..stageName = 'A'
+            ..name = '5'
+            ..builderName = '5'
+            ..isFlaky = true
+            ..status = TaskBox.statusInProgress,
+        ]),
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(
-          <Task>[
-            Task()
-              ..stageName = 'A'
-              ..name = '1'
-              ..builderName = '1'
-              ..attempts = 2
-              ..isFlaky = true
-              ..status = TaskBox.statusFailed,
-            Task()
-              ..stageName = 'A'
-              ..name = '2'
-              ..builderName = '2'
-              ..attempts = 2
-              ..isFlaky = true
-              ..status = TaskBox.statusNew,
-            Task()
-              ..stageName = 'A'
-              ..name = '3'
-              ..builderName = '3'
-              ..attempts = 2
-              ..isFlaky = true
-              ..status = TaskBox.statusSkipped,
-            Task()
-              ..stageName = 'A'
-              ..name = '4'
-              ..builderName = '4'
-              ..attempts = 2
-              ..isFlaky = true
-              ..status = TaskBox.statusSucceeded,
-            Task()
-              ..stageName = 'A'
-              ..name = '5'
-              ..builderName = '5'
-              ..attempts = 2
-              ..isFlaky = true
-              ..status = TaskBox.statusInProgress,
-          ],
-        ),
+        ..tasks.addAll(<Task>[
+          Task()
+            ..stageName = 'A'
+            ..name = '1'
+            ..builderName = '1'
+            ..attempts = 2
+            ..isFlaky = true
+            ..status = TaskBox.statusFailed,
+          Task()
+            ..stageName = 'A'
+            ..name = '2'
+            ..builderName = '2'
+            ..attempts = 2
+            ..isFlaky = true
+            ..status = TaskBox.statusNew,
+          Task()
+            ..stageName = 'A'
+            ..name = '3'
+            ..builderName = '3'
+            ..attempts = 2
+            ..isFlaky = true
+            ..status = TaskBox.statusSkipped,
+          Task()
+            ..stageName = 'A'
+            ..name = '4'
+            ..builderName = '4'
+            ..attempts = 2
+            ..isFlaky = true
+            ..status = TaskBox.statusSucceeded,
+          Task()
+            ..stageName = 'A'
+            ..name = '5'
+            ..builderName = '5'
+            ..attempts = 2
+            ..isFlaky = true
+            ..status = TaskBox.statusInProgress,
+        ]),
     ];
 
     await tester.pumpWidget(
@@ -890,20 +909,26 @@ void main() {
     );
 
     await expectGoldenMatches(
-        find.byType(TaskGrid), 'task_grid_test.differentTypes.png');
+      find.byType(TaskGrid),
+      'task_grid_test.differentTypes.png',
+    );
   });
 
   // Table Driven Approach to ensure every message does show the corresponding color
   TaskBox.statusColor.forEach((String message, Color color) {
-    testWidgets('Is the color $color when given the message $message',
-        (WidgetTester tester) async {
+    testWidgets('Is the color $color when given the message $message', (
+      WidgetTester tester,
+    ) async {
       await expectTaskBoxColorWithMessage(tester, message, color);
     });
   });
 }
 
 Future<void> expectTaskBoxColorWithMessage(
-    WidgetTester tester, String message, Color expectedColor) async {
+  WidgetTester tester,
+  String message,
+  Color expectedColor,
+) async {
   const double cellSize = 18;
   const cellPixelSize = cellSize * 3.0;
   const cellPixelArea = cellPixelSize * cellPixelSize;
@@ -923,9 +948,7 @@ Future<void> expectTaskBoxColorWithMessage(
                 commitStatuses: <CommitStatus>[
                   CommitStatus()
                     ..commit = (Commit()..author = 'Mathilda')
-                    ..tasks.addAll(
-                      <Task>[Task()..status = message],
-                    ),
+                    ..tasks.addAll(<Task>[Task()..status = message]),
                 ],
               ),
             ),
@@ -934,16 +957,17 @@ Future<void> expectTaskBoxColorWithMessage(
       ),
     ),
   );
-  final renderObject = tester.renderObject(find.byType(TaskGrid)).parent
-      as RenderRepaintBoundary?;
+  final renderObject =
+      tester.renderObject(find.byType(TaskGrid)).parent
+          as RenderRepaintBoundary?;
   final pixels = await tester.runAsync<ByteData?>(() async {
     return (await renderObject!.toImage()).toByteData();
   });
   expect(pixels!.lengthInBytes, (cellPixelArea * 4).round());
   const padding = 4.0;
   final rgba = pixels.getUint32(
-      (((cellPixelSize * (cellSize + padding)) + cellSize + padding).ceil()) *
-          4);
+    (((cellPixelSize * (cellSize + padding)) + cellSize + padding).ceil()) * 4,
+  );
   final actualColor = Color((rgba >> 8) | (rgba << 24) & 0xFFFFFFFF);
   expect(actualColor, isSameColorAs(expectedColor));
 }

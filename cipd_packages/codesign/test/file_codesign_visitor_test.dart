@@ -35,8 +35,9 @@ void main() {
 
   setUp(() {
     fileSystem = MemoryFileSystem.test();
-    rootDirectory =
-        fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
+    rootDirectory = fileSystem.systemTempDirectory.createTempSync(
+      'conductor_codesign',
+    );
     processManager = FakeProcessManager.list(<FakeCommand>[]);
     records.clear();
     log.onRecord.listen(records.add);
@@ -62,32 +63,20 @@ void main() {
     });
 
     test('lacking password file throws exception', () async {
-      expect(
-        () async {
-          await codesignVisitor.readPassword(appSpecificPasswordFilePath);
-        },
-        throwsA(
-          isA<CodesignException>(),
-        ),
-      );
+      expect(() async {
+        await codesignVisitor.readPassword(appSpecificPasswordFilePath);
+      }, throwsA(isA<CodesignException>()));
     });
 
     test('providing correctly formatted password returns normally', () async {
       fileSystem.file(appSpecificPasswordFilePath)
         ..createSync(recursive: true, exclusive: true)
-        ..writeAsStringSync(
-          '123',
-          mode: FileMode.write,
-          encoding: utf8,
-        );
+        ..writeAsStringSync('123', mode: FileMode.write, encoding: utf8);
 
-      expect(
-        () async {
-          await codesignVisitor.readPassword(appSpecificPasswordFilePath);
-          await fileSystem.file(appSpecificPasswordFilePath).delete();
-        },
-        returnsNormally,
-      );
+      expect(() async {
+        await codesignVisitor.readPassword(appSpecificPasswordFilePath);
+        await fileSystem.file(appSpecificPasswordFilePath).delete();
+      }, returnsNormally);
     });
   });
 
@@ -97,8 +86,10 @@ void main() {
     });
 
     test('concat with slash', () async {
-      expect(joinEntitlementPaths(randomString, randomString),
-          '$randomString/$randomString');
+      expect(
+        joinEntitlementPaths(randomString, randomString),
+        '$randomString/$randomString',
+      );
     });
   });
 
@@ -136,13 +127,18 @@ void main() {
             '-d',
             '${rootDirectory.absolute.path}/single_artifact',
           ],
-          onRun: () => fileSystem
-            ..file('${rootDirectory.path}/single_artifact/entitlements.txt')
-                .createSync(recursive: true)
-            ..file('${rootDirectory.path}/single_artifact/without_entitlements.txt')
-                .createSync(recursive: true)
-            ..file('${rootDirectory.path}/single_artifact/unsigned_binaries.txt')
-                .createSync(recursive: true),
+          onRun:
+              () =>
+                  fileSystem
+                    ..file(
+                      '${rootDirectory.path}/single_artifact/entitlements.txt',
+                    ).createSync(recursive: true)
+                    ..file(
+                      '${rootDirectory.path}/single_artifact/without_entitlements.txt',
+                    ).createSync(recursive: true)
+                    ..file(
+                      '${rootDirectory.path}/single_artifact/unsigned_binaries.txt',
+                    ).createSync(recursive: true),
         ),
         FakeCommand(
           command: <String>[
@@ -189,10 +185,11 @@ void main() {
       ]);
 
       await codesignVisitor.processRemoteZip();
-      final messages = records
-          .where((LogRecord record) => record.level == Level.INFO)
-          .map((LogRecord record) => record.message)
-          .toSet();
+      final messages =
+          records
+              .where((LogRecord record) => record.level == Level.INFO)
+              .map((LogRecord record) => record.message)
+              .toSet();
       expect(
         messages,
         contains(
@@ -202,16 +199,11 @@ void main() {
       expect(
         messages,
         contains(
-            'Visiting directory ${rootDirectory.absolute.path}/single_artifact'),
+          'Visiting directory ${rootDirectory.absolute.path}/single_artifact',
+        ),
       );
-      expect(
-        messages,
-        contains('parsed binaries with entitlements are {}'),
-      );
-      expect(
-        messages,
-        contains('parsed binaries without entitlements are {}'),
-      );
+      expect(messages, contains('parsed binaries with entitlements are {}'));
+      expect(messages, contains('parsed binaries without entitlements are {}'));
       expect(
         messages,
         contains(
@@ -250,8 +242,10 @@ void main() {
         inputZipPath: inputZipPath,
         outputZipPath: outputZipPath,
         notarizationTimerDuration: Duration.zero,
-        retryOptions:
-            const RetryOptions(maxAttempts: 3, delayFactor: Duration.zero),
+        retryOptions: const RetryOptions(
+          maxAttempts: 3,
+          delayFactor: Duration.zero,
+        ),
       );
       codesignVisitor.directoriesVisited.clear();
       codesignVisitor.appSpecificPassword = randomString;
@@ -261,12 +255,15 @@ void main() {
 
     test('visitDirectory correctly list files', () async {
       fileSystem
-        ..file('${rootDirectory.path}/remote_zip_0/file_a')
-            .createSync(recursive: true)
-        ..file('${rootDirectory.path}/remote_zip_0/file_b')
-            .createSync(recursive: true)
-        ..file('${rootDirectory.path}/remote_zip_0/file_c')
-            .createSync(recursive: true);
+        ..file(
+          '${rootDirectory.path}/remote_zip_0/file_a',
+        ).createSync(recursive: true)
+        ..file(
+          '${rootDirectory.path}/remote_zip_0/file_b',
+        ).createSync(recursive: true)
+        ..file(
+          '${rootDirectory.path}/remote_zip_0/file_c',
+        ).createSync(recursive: true);
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
           command: <String>[
@@ -296,34 +293,47 @@ void main() {
           stdout: 'other_files',
         ),
       ]);
-      final testDirectory =
-          fileSystem.directory('${rootDirectory.path}/remote_zip_0');
+      final testDirectory = fileSystem.directory(
+        '${rootDirectory.path}/remote_zip_0',
+      );
       await codesignVisitor.visitDirectory(
         directory: testDirectory,
         parentVirtualPath: 'a.zip',
       );
-      final messages = records
-          .where((LogRecord record) => record.level == Level.INFO)
-          .map((LogRecord record) => record.message)
-          .toList();
-      expect(messages,
-          contains('Visiting directory ${rootDirectory.path}/remote_zip_0'));
+      final messages =
+          records
+              .where((LogRecord record) => record.level == Level.INFO)
+              .map((LogRecord record) => record.message)
+              .toList();
       expect(
-          messages, contains('Child file of directory remote_zip_0 is file_a'));
+        messages,
+        contains('Visiting directory ${rootDirectory.path}/remote_zip_0'),
+      );
       expect(
-          messages, contains('Child file of directory remote_zip_0 is file_b'));
+        messages,
+        contains('Child file of directory remote_zip_0 is file_a'),
+      );
       expect(
-          messages, contains('Child file of directory remote_zip_0 is file_c'));
+        messages,
+        contains('Child file of directory remote_zip_0 is file_b'),
+      );
+      expect(
+        messages,
+        contains('Child file of directory remote_zip_0 is file_c'),
+      );
     });
 
     test('visitDirectory recursively visits directory', () async {
       fileSystem
-        ..file('${rootDirectory.path}/remote_zip_1/file_a')
-            .createSync(recursive: true)
-        ..file('${rootDirectory.path}/remote_zip_1/folder_a/file_b')
-            .createSync(recursive: true);
-      final testDirectory =
-          fileSystem.directory('${rootDirectory.path}/remote_zip_1');
+        ..file(
+          '${rootDirectory.path}/remote_zip_1/file_a',
+        ).createSync(recursive: true)
+        ..file(
+          '${rootDirectory.path}/remote_zip_1/folder_a/file_b',
+        ).createSync(recursive: true);
+      final testDirectory = fileSystem.directory(
+        '${rootDirectory.path}/remote_zip_1',
+      );
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
           command: <String>[
@@ -348,18 +358,25 @@ void main() {
         directory: testDirectory,
         parentVirtualPath: '',
       );
-      final messages = records
-          .where((LogRecord record) => record.level == Level.INFO)
-          .map((LogRecord record) => record.message)
-          .toList();
-      expect(messages,
-          contains('Visiting directory ${rootDirectory.path}/remote_zip_1'));
+      final messages =
+          records
+              .where((LogRecord record) => record.level == Level.INFO)
+              .map((LogRecord record) => record.message)
+              .toList();
       expect(
-          messages,
-          contains(
-              'Visiting directory ${rootDirectory.path}/remote_zip_1/folder_a'));
+        messages,
+        contains('Visiting directory ${rootDirectory.path}/remote_zip_1'),
+      );
       expect(
-          messages, contains('Child file of directory remote_zip_1 is file_a'));
+        messages,
+        contains(
+          'Visiting directory ${rootDirectory.path}/remote_zip_1/folder_a',
+        ),
+      );
+      expect(
+        messages,
+        contains('Child file of directory remote_zip_1 is file_a'),
+      );
       expect(messages, contains('Child file of directory folder_a is file_b'));
     });
 
@@ -374,11 +391,15 @@ void main() {
             '-d',
             '${rootDirectory.absolute.path}/embedded_zip_${zipFileName.hashCode}',
           ],
-          onRun: () => fileSystem
-            ..file('${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}/file_1')
-                .createSync(recursive: true)
-            ..file('${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}/file_2')
-                .createSync(recursive: true),
+          onRun:
+              () =>
+                  fileSystem
+                    ..file(
+                      '${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}/file_1',
+                    ).createSync(recursive: true)
+                    ..file(
+                      '${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}/file_2',
+                    ).createSync(recursive: true),
         ),
         FakeCommand(
           command: <String>[
@@ -408,9 +429,10 @@ void main() {
             '--include',
             '*',
           ],
-          onRun: () => fileSystem
-              .file('${rootDirectory.path}/remote_zip_2/zip_1')
-              .createSync(recursive: true),
+          onRun:
+              () => fileSystem
+                  .file('${rootDirectory.path}/remote_zip_2/zip_1')
+                  .createSync(recursive: true),
         ),
       ]);
 
@@ -418,10 +440,11 @@ void main() {
         zipEntity: fileSystem.file('${rootDirectory.path}/remote_zip_2/zip_1'),
         parentVirtualPath: 'a.zip',
       );
-      final messages = records
-          .where((LogRecord record) => record.level == Level.INFO)
-          .map((LogRecord record) => record.message)
-          .toList();
+      final messages =
+          records
+              .where((LogRecord record) => record.level == Level.INFO)
+              .map((LogRecord record) => record.message)
+              .toList();
       expect(
         messages,
         contains(
@@ -429,17 +452,23 @@ void main() {
         ),
       );
       expect(
-          messages,
-          contains(
-              'Visiting directory ${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}'));
+        messages,
+        contains(
+          'Visiting directory ${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}',
+        ),
+      );
       expect(
-          messages,
-          contains(
-              'Child file of directory embedded_zip_${zipFileName.hashCode} is file_1'));
+        messages,
+        contains(
+          'Child file of directory embedded_zip_${zipFileName.hashCode} is file_1',
+        ),
+      );
       expect(
-          messages,
-          contains(
-              'Child file of directory embedded_zip_${zipFileName.hashCode} is file_2'));
+        messages,
+        contains(
+          'Child file of directory embedded_zip_${zipFileName.hashCode} is file_2',
+        ),
+      );
     });
 
     test('visit zip inside a directory', () async {
@@ -462,10 +491,12 @@ void main() {
             '-d',
             '${rootDirectory.absolute.path}/embedded_zip_${zipFileName.hashCode}',
           ],
-          onRun: () => fileSystem
-              .directory(
-                  '${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}')
-              .createSync(recursive: true),
+          onRun:
+              () => fileSystem
+                  .directory(
+                    '${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}',
+                  )
+                  .createSync(recursive: true),
         ),
         FakeCommand(
           command: <String>[
@@ -484,18 +515,23 @@ void main() {
         directory: fileSystem.directory('${rootDirectory.path}/remote_zip_4'),
         parentVirtualPath: 'a.zip',
       );
-      final messages = records
-          .where((LogRecord record) => record.level == Level.INFO)
-          .map((LogRecord record) => record.message)
-          .toList();
+      final messages =
+          records
+              .where((LogRecord record) => record.level == Level.INFO)
+              .map((LogRecord record) => record.message)
+              .toList();
       expect(
-          messages,
-          contains(
-              'Visiting directory ${rootDirectory.absolute.path}/remote_zip_4'));
+        messages,
+        contains(
+          'Visiting directory ${rootDirectory.absolute.path}/remote_zip_4',
+        ),
+      );
       expect(
-          messages,
-          contains(
-              'Visiting directory ${rootDirectory.absolute.path}/remote_zip_4/folder_1'));
+        messages,
+        contains(
+          'Visiting directory ${rootDirectory.absolute.path}/remote_zip_4/folder_1',
+        ),
+      );
       expect(
         messages,
         contains(
@@ -505,7 +541,8 @@ void main() {
       expect(
         messages,
         contains(
-            'Visiting directory ${rootDirectory.absolute.path}/embedded_zip_${zipFileName.hashCode}'),
+          'Visiting directory ${rootDirectory.absolute.path}/embedded_zip_${zipFileName.hashCode}',
+        ),
       );
     });
 
@@ -535,24 +572,27 @@ void main() {
       ]);
 
       await codesignVisitor.visitDirectory(
-        directory:
-            fileSystem.directory('${rootDirectory.path}/parent_1/child_1'),
+        directory: fileSystem.directory(
+          '${rootDirectory.path}/parent_1/child_1',
+        ),
         parentVirtualPath: 'a.zip',
       );
-      var warnings = records
-          .where((LogRecord record) => record.level == Level.WARNING)
-          .map((LogRecord record) => record.message)
-          .toList();
+      var warnings =
+          records
+              .where((LogRecord record) => record.level == Level.WARNING)
+              .map((LogRecord record) => record.message)
+              .toList();
       expect(warnings, isEmpty);
 
       await codesignVisitor.visitDirectory(
         directory: fileSystem.directory('${rootDirectory.path}/parent_1'),
         parentVirtualPath: 'a.zip',
       );
-      warnings = records
-          .where((LogRecord record) => record.level == Level.WARNING)
-          .map((LogRecord record) => record.message)
-          .toList();
+      warnings =
+          records
+              .where((LogRecord record) => record.level == Level.WARNING)
+              .map((LogRecord record) => record.message)
+              .toList();
       expect(
         warnings,
         contains(
@@ -563,14 +603,18 @@ void main() {
 
     test('visitDirectory skips file or directory that is a symlink', () async {
       fileSystem
-        ..file('${rootDirectory.path}/remote_zip_5/target_dir/file_b')
-            .createSync(recursive: true)
-        ..directory('${rootDirectory.path}/remote_zip_5/symlink_dir')
-            .createSync(recursive: true)
-        ..link('${rootDirectory.path}/remote_zip_5/symlink_dir/file_a')
-            .createSync('${rootDirectory.path}/remote_zip_5/target_dir/file_b')
-        ..link('${rootDirectory.path}/remote_zip_5/symlink_dir_2')
-            .createSync('${rootDirectory.path}/remote_zip_5/target_dir');
+        ..file(
+          '${rootDirectory.path}/remote_zip_5/target_dir/file_b',
+        ).createSync(recursive: true)
+        ..directory(
+          '${rootDirectory.path}/remote_zip_5/symlink_dir',
+        ).createSync(recursive: true)
+        ..link(
+          '${rootDirectory.path}/remote_zip_5/symlink_dir/file_a',
+        ).createSync('${rootDirectory.path}/remote_zip_5/target_dir/file_b')
+        ..link(
+          '${rootDirectory.path}/remote_zip_5/symlink_dir_2',
+        ).createSync('${rootDirectory.path}/remote_zip_5/target_dir');
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
           command: <String>[
@@ -582,54 +626,69 @@ void main() {
           stdout: 'other_files',
         ),
       ]);
-      final testDirectory =
-          fileSystem.directory('${rootDirectory.path}/remote_zip_5');
+      final testDirectory = fileSystem.directory(
+        '${rootDirectory.path}/remote_zip_5',
+      );
       await codesignVisitor.visitDirectory(
         directory: testDirectory,
         parentVirtualPath: 'a.zip',
       );
-      final messages = records
-          .where((LogRecord record) => record.level == Level.INFO)
-          .map((LogRecord record) => record.message)
-          .toSet();
-      expect(
-          messages,
-          contains(
-              'Visiting directory ${rootDirectory.path}/remote_zip_5/target_dir'));
-      expect(
-          messages, contains('Child file of directory target_dir is file_b'));
-
-      // Skip code signing a file that is a symlink.
-      expect(
-          messages,
-          contains(
-              'Visiting directory ${rootDirectory.path}/remote_zip_5/symlink_dir'));
+      final messages =
+          records
+              .where((LogRecord record) => record.level == Level.INFO)
+              .map((LogRecord record) => record.message)
+              .toSet();
       expect(
         messages,
         contains(
-            'current file or direcotry ${rootDirectory.path}/remote_zip_5/symlink_dir/file_a is a symlink to '
-            '${rootDirectory.path}/remote_zip_5/target_dir/file_b, codesign is therefore skipped for the current file or directory.'),
+          'Visiting directory ${rootDirectory.path}/remote_zip_5/target_dir',
+        ),
       );
-      expect(messages,
-          isNot(contains('Child file of directory symlink_dir is file_a')));
+      expect(
+        messages,
+        contains('Child file of directory target_dir is file_b'),
+      );
+
+      // Skip code signing a file that is a symlink.
+      expect(
+        messages,
+        contains(
+          'Visiting directory ${rootDirectory.path}/remote_zip_5/symlink_dir',
+        ),
+      );
+      expect(
+        messages,
+        contains(
+          'current file or direcotry ${rootDirectory.path}/remote_zip_5/symlink_dir/file_a is a symlink to '
+          '${rootDirectory.path}/remote_zip_5/target_dir/file_b, codesign is therefore skipped for the current file or directory.',
+        ),
+      );
+      expect(
+        messages,
+        isNot(contains('Child file of directory symlink_dir is file_a')),
+      );
 
       // Skip code signing a directory that is a symlink.
       expect(
         messages,
         contains(
-            'current file or direcotry ${rootDirectory.path}/remote_zip_5/symlink_dir_2 is a symlink to '
-            '${rootDirectory.path}/remote_zip_5/target_dir, codesign is therefore skipped for the current file or directory.'),
+          'current file or direcotry ${rootDirectory.path}/remote_zip_5/symlink_dir_2 is a symlink to '
+          '${rootDirectory.path}/remote_zip_5/target_dir, codesign is therefore skipped for the current file or directory.',
+        ),
       );
     });
 
     test('visitDirectory codesigns framework bundle', () async {
       fileSystem
-        ..file('${rootDirectory.path}/remote_zip_6/non_bundle/file_a')
-            .createSync(recursive: true)
-        ..file('${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework/file_b')
-            .createSync(recursive: true);
-      final testDirectory =
-          fileSystem.directory('${rootDirectory.path}/remote_zip_6');
+        ..file(
+          '${rootDirectory.path}/remote_zip_6/non_bundle/file_a',
+        ).createSync(recursive: true)
+        ..file(
+          '${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework/file_b',
+        ).createSync(recursive: true);
+      final testDirectory = fileSystem.directory(
+        '${rootDirectory.path}/remote_zip_6',
+      );
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
           command: <String>[
@@ -682,18 +741,22 @@ void main() {
         directory: testDirectory,
         parentVirtualPath: '',
       );
-      final messages = records
-          .where((LogRecord record) => record.level == Level.INFO)
-          .map((LogRecord record) => record.message)
-          .toSet();
-      expect(
-          messages,
-          contains(
-              'Visiting directory ${rootDirectory.path}/remote_zip_6/non_bundle'));
+      final messages =
+          records
+              .where((LogRecord record) => record.level == Level.INFO)
+              .map((LogRecord record) => record.message)
+              .toSet();
       expect(
         messages,
         contains(
-            'Visiting directory ${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework'),
+          'Visiting directory ${rootDirectory.path}/remote_zip_6/non_bundle',
+        ),
+      );
+      expect(
+        messages,
+        contains(
+          'Visiting directory ${rootDirectory.path}/remote_zip_6/bundle.xcframework/bundle.framework',
+        ),
       );
       expect(
         messages,
@@ -729,18 +792,22 @@ void main() {
       codesignVisitor.codesignTeamId = randomString;
       codesignVisitor.withEntitlementsFiles = <String>{'root/folder_a/file_a'};
       codesignVisitor.withoutEntitlementsFiles = <String>{
-        'root/folder_b/file_b'
+        'root/folder_b/file_b',
       };
       codesignVisitor.unsignedBinaryFiles = <String>{'root/folder_c/file_c'};
       fileSystem
-        ..file('${rootDirectory.path}/remote_zip_6/folder_a/file_a')
-            .createSync(recursive: true)
-        ..file('${rootDirectory.path}/remote_zip_6/folder_b/file_b')
-            .createSync(recursive: true)
-        ..file('${rootDirectory.path}/remote_zip_6/folder_c/file_c')
-            .createSync(recursive: true);
-      final testDirectory =
-          fileSystem.directory('${rootDirectory.path}/remote_zip_6');
+        ..file(
+          '${rootDirectory.path}/remote_zip_6/folder_a/file_a',
+        ).createSync(recursive: true)
+        ..file(
+          '${rootDirectory.path}/remote_zip_6/folder_b/file_b',
+        ).createSync(recursive: true)
+        ..file(
+          '${rootDirectory.path}/remote_zip_6/folder_c/file_c',
+        ).createSync(recursive: true);
+      final testDirectory = fileSystem.directory(
+        '${rootDirectory.path}/remote_zip_6',
+      );
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
           command: <String>[
@@ -802,36 +869,50 @@ void main() {
         directory: testDirectory,
         parentVirtualPath: 'root',
       );
-      final messages = records
-          .where((LogRecord record) => record.level == Level.INFO)
-          .map((LogRecord record) => record.message)
-          .toList();
+      final messages =
+          records
+              .where((LogRecord record) => record.level == Level.INFO)
+              .map((LogRecord record) => record.message)
+              .toList();
       expect(
-          messages,
-          contains(
-              'Signing file at path ${rootDirectory.absolute.path}/remote_zip_6/folder_a/file_a'));
+        messages,
+        contains(
+          'Signing file at path ${rootDirectory.absolute.path}/remote_zip_6/folder_a/file_a',
+        ),
+      );
       expect(
-          messages,
-          contains(
-              'The virtual entitlement path associated with file is root/folder_a/file_a'));
+        messages,
+        contains(
+          'The virtual entitlement path associated with file is root/folder_a/file_a',
+        ),
+      );
       expect(
-          messages, contains('The decision to sign with entitlement is true'));
-
-      expect(
-          messages,
-          contains(
-              'Signing file at path ${rootDirectory.absolute.path}/remote_zip_6/folder_b/file_b'));
-      expect(
-          messages,
-          contains(
-              'The virtual entitlement path associated with file is root/folder_b/file_b'));
-      expect(
-          messages, contains('The decision to sign with entitlement is false'));
+        messages,
+        contains('The decision to sign with entitlement is true'),
+      );
 
       expect(
         messages,
         contains(
-            'Not signing file at path ${rootDirectory.absolute.path}/remote_zip_6/folder_c/file_c'),
+          'Signing file at path ${rootDirectory.absolute.path}/remote_zip_6/folder_b/file_b',
+        ),
+      );
+      expect(
+        messages,
+        contains(
+          'The virtual entitlement path associated with file is root/folder_b/file_b',
+        ),
+      );
+      expect(
+        messages,
+        contains('The decision to sign with entitlement is false'),
+      );
+
+      expect(
+        messages,
+        contains(
+          'Not signing file at path ${rootDirectory.absolute.path}/remote_zip_6/folder_c/file_c',
+        ),
       );
     });
   });
@@ -858,7 +939,8 @@ void main() {
 
     test('correctly store file paths', () async {
       fileSystem.file(
-          '${rootDirectory.absolute.path}/test_entitlement/entitlements.txt')
+          '${rootDirectory.absolute.path}/test_entitlement/entitlements.txt',
+        )
         ..createSync(recursive: true)
         ..writeAsStringSync(
           '''file_a
@@ -869,7 +951,8 @@ file_c''',
         );
 
       fileSystem.file(
-          '${rootDirectory.absolute.path}/test_entitlement/without_entitlements.txt')
+          '${rootDirectory.absolute.path}/test_entitlement/without_entitlements.txt',
+        )
         ..createSync(recursive: true)
         ..writeAsStringSync(
           '''file_d
@@ -879,7 +962,8 @@ file_e''',
         );
 
       fileSystem.file(
-          '${rootDirectory.absolute.path}/test_entitlement/unsigned_binaries.txt')
+          '${rootDirectory.absolute.path}/test_entitlement/unsigned_binaries.txt',
+        )
         ..createSync(recursive: true)
         ..writeAsStringSync(
           '''file_f
@@ -902,34 +986,22 @@ file_g''',
       expect(fileWithEntitlements.length, 3);
       expect(
         fileWithEntitlements,
-        containsAll(<String>[
-          'file_a',
-          'file_b',
-          'file_c',
-        ]),
+        containsAll(<String>['file_a', 'file_b', 'file_c']),
       );
       expect(fileWithoutEntitlements.length, 2);
       expect(
         fileWithoutEntitlements,
-        containsAll(<String>[
-          'file_d',
-          'file_e',
-        ]),
+        containsAll(<String>['file_d', 'file_e']),
       );
 
       expect(fileUnsigned.length, 2);
-      expect(
-        fileUnsigned,
-        containsAll(<String>[
-          'file_f',
-          'file_g',
-        ]),
-      );
+      expect(fileUnsigned, containsAll(<String>['file_f', 'file_g']));
     });
 
     test('log warnings when configuration file is missing', () async {
       fileSystem.file(
-          '${rootDirectory.absolute.path}/test_entitlement_2/entitlements.txt')
+          '${rootDirectory.absolute.path}/test_entitlement_2/entitlements.txt',
+        )
         ..createSync(recursive: true)
         ..writeAsStringSync(
           '''file_a
@@ -940,35 +1012,35 @@ file_c''',
         );
 
       final fileWithEntitlements = await codesignVisitor.parseCodesignConfig(
-        fileSystem
-            .directory('${rootDirectory.absolute.path}/test_entitlement_2'),
+        fileSystem.directory(
+          '${rootDirectory.absolute.path}/test_entitlement_2',
+        ),
         cs.CodesignType.withEntitlements,
       );
       expect(fileWithEntitlements.length, 3);
       expect(
         fileWithEntitlements,
-        containsAll(<String>[
-          'file_a',
-          'file_b',
-          'file_c',
-        ]),
+        containsAll(<String>['file_a', 'file_b', 'file_c']),
       );
       await codesignVisitor.parseCodesignConfig(
-        fileSystem
-            .directory('${rootDirectory.absolute.path}/test_entitlement_2'),
+        fileSystem.directory(
+          '${rootDirectory.absolute.path}/test_entitlement_2',
+        ),
         cs.CodesignType.withoutEntitlements,
       );
-      final messages = records
-          .where((LogRecord record) => record.level == Level.WARNING)
-          .map((LogRecord record) => record.message)
-          .toList();
+      final messages =
+          records
+              .where((LogRecord record) => record.level == Level.WARNING)
+              .map((LogRecord record) => record.message)
+              .toList();
       expect(
         messages,
         contains(
-            '${rootDirectory.absolute.path}/test_entitlement_2/without_entitlements.txt not found. '
-            'by default, system will assume there is no without_entitlements.txt file. '
-            'As a result, no binary will be codesigned.'
-            'if this is not intended, please provide them along with the engine artifacts.'),
+          '${rootDirectory.absolute.path}/test_entitlement_2/without_entitlements.txt not found. '
+          'by default, system will assume there is no without_entitlements.txt file. '
+          'As a result, no binary will be codesigned.'
+          'if this is not intended, please provide them along with the engine artifacts.',
+        ),
       );
     });
   });
@@ -985,8 +1057,10 @@ file_c''',
         codesignTeamIDFilePath: codesignTeamIDFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
-        retryOptions:
-            const RetryOptions(maxAttempts: 3, delayFactor: Duration.zero),
+        retryOptions: const RetryOptions(
+          maxAttempts: 3,
+          delayFactor: Duration.zero,
+        ),
       );
       codesignVisitor.directoriesVisited.clear();
       codesignVisitor.appSpecificPassword = fakePassword;
@@ -1017,10 +1091,7 @@ status: Accepted''',
         ),
       ]);
 
-      expect(
-        codesignVisitor.checkNotaryJobFinished(uuid),
-        true,
-      );
+      expect(codesignVisitor.checkNotaryJobFinished(uuid), true);
     });
 
     test('wrong format (such as altool) check throws exception', () async {
@@ -1049,9 +1120,7 @@ Status Message: Package Invalid''',
 
       expect(
         () => codesignVisitor.checkNotaryJobFinished(uuid),
-        throwsA(
-          isA<CodesignException>(),
-        ),
+        throwsA(isA<CodesignException>()),
       );
     });
 
@@ -1077,10 +1146,7 @@ status: In Progress''',
         ),
       ]);
 
-      expect(
-        codesignVisitor.checkNotaryJobFinished(uuid),
-        false,
-      );
+      expect(codesignVisitor.checkNotaryJobFinished(uuid), false);
     });
 
     test('invalid status check throws exception', () async {
@@ -1107,9 +1173,7 @@ status: Invalid''',
 
       expect(
         () => codesignVisitor.checkNotaryJobFinished(uuid),
-        throwsA(
-          isA<CodesignException>(),
-        ),
+        throwsA(isA<CodesignException>()),
       );
     });
 
@@ -1159,14 +1223,12 @@ status: Invalid''',
         fileSystem.file('${rootDirectory.absolute.path}/temp'),
       );
       expect(uuid, '2efe2717-52ef-43a5-96dc-0797e4ca1041');
-      final messages = records
-          .where((LogRecord record) => record.level == Level.WARNING)
-          .map((LogRecord record) => record.message)
-          .toList();
-      expect(
-        messages,
-        contains('Failed to upload to the notary service'),
-      );
+      final messages =
+          records
+              .where((LogRecord record) => record.level == Level.WARNING)
+              .map((LogRecord record) => record.message)
+              .toList();
+      expect(messages, contains('Failed to upload to the notary service'));
     });
 
     test('upload notary throws exception if exit code is unnormal', () async {
@@ -1198,9 +1260,7 @@ status: Invalid''',
         () async => codesignVisitor.uploadZipToNotary(
           fileSystem.file('${rootDirectory.absolute.path}/temp'),
         ),
-        throwsA(
-          isA<CodesignException>(),
-        ),
+        throwsA(isA<CodesignException>()),
       );
     });
 
@@ -1267,16 +1327,11 @@ status: Invalid''',
         () => codesignVisitor.uploadZipToNotary(
           fileSystem.file('${rootDirectory.absolute.path}/temp'),
         ),
-        throwsA(
-          isA<CodesignException>(),
-        ),
+        throwsA(isA<CodesignException>()),
       );
       final messages =
           records.map((LogRecord record) => record.message).toList();
-      expect(
-        messages,
-        contains('Failed to upload to the notary service'),
-      );
+      expect(messages, contains('Failed to upload to the notary service'));
     });
   });
 
@@ -1319,11 +1374,15 @@ status: Invalid''',
             '-d',
             '${rootDirectory.absolute.path}/single_artifact',
           ],
-          onRun: () => fileSystem
-            ..file('${rootDirectory.path}/single_artifact/entitlements.txt')
-                .createSync(recursive: true)
-            ..file('${rootDirectory.path}/single_artifact/without_entitlements.txt')
-                .createSync(recursive: true),
+          onRun:
+              () =>
+                  fileSystem
+                    ..file(
+                      '${rootDirectory.path}/single_artifact/entitlements.txt',
+                    ).createSync(recursive: true)
+                    ..file(
+                      '${rootDirectory.path}/single_artifact/without_entitlements.txt',
+                    ).createSync(recursive: true),
         ),
         FakeCommand(
           command: <String>[
@@ -1369,15 +1428,17 @@ status: Invalid''',
         ),
       ]);
       await codesignVisitor.validateAll();
-      final messages = records
-          .where((LogRecord record) => record.level == Level.INFO)
-          .map((LogRecord record) => record.message)
-          .toList();
+      final messages =
+          records
+              .where((LogRecord record) => record.level == Level.INFO)
+              .map((LogRecord record) => record.message)
+              .toList();
       expect(
         messages,
         contains(
-            'code signing dry run has completed, this is a quick sanity check without'
-            'going through the notary service. To run the full codesign process, use --no-dryrun flag.'),
+          'code signing dry run has completed, this is a quick sanity check without'
+          'going through the notary service. To run the full codesign process, use --no-dryrun flag.',
+        ),
       );
     });
 
@@ -1390,11 +1451,15 @@ status: Invalid''',
             '-d',
             '${rootDirectory.absolute.path}/single_artifact',
           ],
-          onRun: () => fileSystem
-            ..file('${rootDirectory.path}/single_artifact/entitlements.txt')
-                .createSync(recursive: true)
-            ..file('${rootDirectory.path}/single_artifact/without_entitlements.txt')
-                .createSync(recursive: true),
+          onRun:
+              () =>
+                  fileSystem
+                    ..file(
+                      '${rootDirectory.path}/single_artifact/entitlements.txt',
+                    ).createSync(recursive: true)
+                    ..file(
+                      '${rootDirectory.path}/single_artifact/without_entitlements.txt',
+                    ).createSync(recursive: true),
         ),
         FakeCommand(
           command: <String>[
@@ -1458,23 +1523,26 @@ status: Invalid''',
       codesignVisitor.codesignTeamId = fakeTeamID;
       codesignVisitor.directoriesVisited.clear();
       await codesignVisitor.validateAll();
-      final messages = records
-          .where((LogRecord record) => record.level == Level.INFO)
-          .map((LogRecord record) => record.message)
-          .toSet();
+      final messages =
+          records
+              .where((LogRecord record) => record.level == Level.INFO)
+              .map((LogRecord record) => record.message)
+              .toSet();
       expect(
         messages,
         contains(
-            'Codesign completed. Codesigned zip is located at ${codesignVisitor.outputZipPath}.'
-            'If you have uploaded the artifacts back to google cloud storage, please delete'
-            ' the folder ${codesignVisitor.outputZipPath} and ${codesignVisitor.inputZipPath}.'),
+          'Codesign completed. Codesigned zip is located at ${codesignVisitor.outputZipPath}.'
+          'If you have uploaded the artifacts back to google cloud storage, please delete'
+          ' the folder ${codesignVisitor.outputZipPath} and ${codesignVisitor.inputZipPath}.',
+        ),
       );
       expect(
         messages,
         isNot(
           contains(
-              'code signing dry run has completed, this is a quick sanity check without'
-              'going through the notary service. To run the full codesign process, use --no-dryrun flag.'),
+            'code signing dry run has completed, this is a quick sanity check without'
+            'going through the notary service. To run the full codesign process, use --no-dryrun flag.',
+          ),
         ),
       );
     });

@@ -30,10 +30,7 @@ void main() {
     testWidgets('lists all pages', (WidgetTester tester) async {
       configureView(tester.view);
       await tester.pumpWidget(
-        const MaterialApp(
-          title: 'Test',
-          home: DashboardNavigationDrawer(),
-        ),
+        const MaterialApp(title: 'Test', home: DashboardNavigationDrawer()),
       );
 
       expect(find.text('Build'), findsOneWidget);
@@ -45,8 +42,9 @@ void main() {
       expect(find.text('About Test'), findsOneWidget);
     });
 
-    testWidgets('build navigates to build Flutter route',
-        (WidgetTester tester) async {
+    testWidgets('build navigates to build Flutter route', (
+      WidgetTester tester,
+    ) async {
       configureView(tester.view);
       final navigatorObserver = MockNavigatorObserver();
       await tester.pumpWidget(
@@ -67,19 +65,21 @@ void main() {
       await tester.tap(find.text('Build'));
       await tester.pumpAndSettle();
 
-      verify(navigatorObserver.didReplace(
-              newRoute: anyNamed('newRoute'), oldRoute: anyNamed('oldRoute')))
-          .called(1);
+      verify(
+        navigatorObserver.didReplace(
+          newRoute: anyNamed('newRoute'),
+          oldRoute: anyNamed('oldRoute'),
+        ),
+      ).called(1);
       expect(find.text('i am build'), findsOneWidget);
     });
 
-    testWidgets('skia perf links opens skia perf url',
-        (WidgetTester tester) async {
+    testWidgets('skia perf links opens skia perf url', (
+      WidgetTester tester,
+    ) async {
       configureView(tester.view);
       await tester.pumpWidget(
-        const MaterialApp(
-          home: DashboardNavigationDrawer(),
-        ),
+        const MaterialApp(home: DashboardNavigationDrawer()),
       );
 
       const skiaPerfText = 'Engine Benchmarks';
@@ -89,16 +89,17 @@ void main() {
 
       expect(urlLauncher.launches, isNotEmpty);
       expect(
-          urlLauncher.launches.single, 'https://flutter-engine-perf.skia.org/');
+        urlLauncher.launches.single,
+        'https://flutter-engine-perf.skia.org/',
+      );
     });
 
-    testWidgets('source code opens github cocoon url',
-        (WidgetTester tester) async {
+    testWidgets('source code opens github cocoon url', (
+      WidgetTester tester,
+    ) async {
       configureView(tester.view);
       await tester.pumpWidget(
-        const MaterialApp(
-          home: DashboardNavigationDrawer(),
-        ),
+        const MaterialApp(home: DashboardNavigationDrawer()),
       );
 
       expect(find.text('Source Code'), findsOneWidget);
@@ -114,16 +115,22 @@ void main() {
       await tester.pumpWidget(const FakeInserter(child: MyApp()));
 
       void test({required bool isHome}) {
-        final build = tester.widget(find.ancestor(
-            of: find.text('Build'),
-            matching: find.byType(ListTile))) as ListTile;
+        final build =
+            tester.widget(
+                  find.ancestor(
+                    of: find.text('Build'),
+                    matching: find.byType(ListTile),
+                  ),
+                )
+                as ListTile;
         expect(build.selected, !isHome);
       }
 
       await tester.tap(find.byIcon(Icons.menu));
       await tester.pump(); // start animation of drawer opening
-      await tester
-          .pump(const Duration(seconds: 1)); // end animation of drawer opening
+      await tester.pump(
+        const Duration(seconds: 1),
+      ); // end animation of drawer opening
       test(isHome: false);
 
       await tester.tap(find.text('Build'));
@@ -132,8 +139,9 @@ void main() {
 
       await tester.tap(find.byIcon(Icons.menu));
       await tester.pump(); // start animation of drawer opening
-      await tester
-          .pump(const Duration(seconds: 1)); // end animation of drawer opening
+      await tester.pump(
+        const Duration(seconds: 1),
+      ); // end animation of drawer opening
       test(isHome: false);
     });
   });

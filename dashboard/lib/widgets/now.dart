@@ -10,21 +10,11 @@ import 'package:flutter/widgets.dart';
 /// ticks once per second.
 class Now extends InheritedNotifier<ValueNotifier<DateTime?>> {
   /// For production.
-  Now({
-    super.key,
-    required super.child,
-  }) : super(
-          notifier: _Clock(),
-        );
+  Now({super.key, required super.child}) : super(notifier: _Clock());
 
   /// For tests.
-  Now.fixed({
-    super.key,
-    required DateTime dateTime,
-    required super.child,
-  }) : super(
-          notifier: ValueNotifier<DateTime>(dateTime),
-        );
+  Now.fixed({super.key, required DateTime dateTime, required super.child})
+    : super(notifier: ValueNotifier<DateTime>(dateTime));
 
   static DateTime? of(BuildContext context) {
     final now = context.dependOnInheritedWidgetOfExactType<Now>()!;
@@ -77,7 +67,8 @@ class _Clock extends ValueNotifier<DateTime?> {
     // By scheduling a new tick each time, we also ensure that we skip past any seconds that
     // we were too busy to service without increasing the load on the device.
     _timer = Timer(
-        Duration(milliseconds: 1000 - (value!.millisecondsSinceEpoch % 1000)),
-        _tick);
+      Duration(milliseconds: 1000 - (value!.millisecondsSinceEpoch % 1000)),
+      _tick,
+    );
   }
 }

@@ -16,10 +16,7 @@ import 'task_box.dart';
 /// icon based on [qualifiedTask.stage], defaulting to [Icons.help] if
 /// it can't be mapped. On tap, shows the task.
 class TaskIcon extends StatelessWidget {
-  const TaskIcon({
-    super.key,
-    required this.qualifiedTask,
-  });
+  const TaskIcon({super.key, required this.qualifiedTask});
 
   /// [Task] to get information from.
   final QualifiedTask qualifiedTask;
@@ -35,18 +32,12 @@ class TaskIcon extends StatelessWidget {
     final blendFilter = brightness == Brightness.dark ? Colors.white : null;
 
     if (qualifiedTask.isGoogleTest) {
-      return Image.asset(
-        'assets/googleLogo.png',
-        color: blendFilter,
-      );
+      return Image.asset('assets/googleLogo.png', color: blendFilter);
     }
 
     if (qualifiedTask.task == null ||
         !(qualifiedTask.isLuci || qualifiedTask.isDartInternal)) {
-      return Icon(
-        Icons.help,
-        color: blendFilter,
-      );
+      return Icon(Icons.help, color: blendFilter);
     }
 
     final matchedName = qualifiedTask.task!.toLowerCase();
@@ -54,65 +45,42 @@ class TaskIcon extends StatelessWidget {
         matchedName.contains('_web') || matchedName.contains('web_');
     final isToolTest =
         matchedName.contains('_tool') || matchedName.contains('tool_');
-    final isAndroidTest = matchedName.contains('_android') ||
+    final isAndroidTest =
+        matchedName.contains('_android') ||
         matchedName.contains('_mokey') ||
         matchedName.contains('_pixel_7pro');
 
     if (matchedName.contains('_fuchsia')) {
       return Padding(
         padding: const EdgeInsets.all(2.0),
-        child: Image.asset(
-          'assets/fuchsia.png',
-          color: blendFilter,
-        ),
+        child: Image.asset('assets/fuchsia.png', color: blendFilter),
       );
     } else if (isWebTest && !isToolTest) {
       return Padding(
         padding: const EdgeInsets.all(2.0),
-        child: Image.asset(
-          'assets/chromium.png',
-          color: blendFilter,
-        ),
+        child: Image.asset('assets/chromium.png', color: blendFilter),
       );
     } else if (isAndroidTest) {
-      return Icon(
-        Icons.android,
-        color: blendFilter,
-      );
+      return Icon(Icons.android, color: blendFilter);
     } else if (matchedName.startsWith('linux')) {
       return Padding(
         padding: const EdgeInsets.all(2.0),
-        child: Image.asset(
-          'assets/linux.png',
-          color: blendFilter,
-        ),
+        child: Image.asset('assets/linux.png', color: blendFilter),
       );
     } else if (matchedName.startsWith('mac')) {
       if (matchedName.contains('_ios')) {
-        return Icon(
-          Icons.phone_iphone,
-          color: blendFilter,
-        );
+        return Icon(Icons.phone_iphone, color: blendFilter);
       } else {
         return Padding(
           padding: const EdgeInsets.all(2.0),
-          child: Image.asset(
-            'assets/apple.png',
-            color: blendFilter,
-          ),
+          child: Image.asset('assets/apple.png', color: blendFilter),
         );
       }
     } else if (matchedName.startsWith('win')) {
-      return Image.asset(
-        'assets/windows.png',
-        color: blendFilter,
-      );
+      return Image.asset('assets/windows.png', color: blendFilter);
     }
 
-    return Icon(
-      Icons.help,
-      color: blendFilter,
-    );
+    return Icon(Icons.help, color: blendFilter);
   }
 
   @override
@@ -128,10 +96,7 @@ class TaskIcon extends StatelessWidget {
         },
         child: Tooltip(
           message: '${qualifiedTask.task} (${qualifiedTask.stage})',
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: icon,
-          ),
+          child: Align(alignment: Alignment.bottomCenter, child: icon),
         ),
       ),
     );

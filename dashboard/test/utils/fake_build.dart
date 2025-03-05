@@ -23,8 +23,8 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
     this.statuses = const <CommitStatus>[],
     this.moreStatusesExist = true,
     this.rerunTaskResult = false,
-  })  : authService = authService ?? MockGoogleSignInService(),
-        cocoonService = cocoonService ?? MockCocoonService();
+  }) : authService = authService ?? MockGoogleSignInService(),
+       cocoonService = cocoonService ?? MockCocoonService();
 
   @override
   late GoogleSignInService authService;
@@ -76,16 +76,14 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
           ..repository = repo
           ..branch = defaultBranches[repo]!,
       );
-      fakeBranches.addAll(
-        <Branch>[
-          Branch()
-            ..repository = repo
-            ..branch = '$repo-release',
-          Branch()
-            ..repository = repo
-            ..branch = '$repo-release-very-long-name-that-should-be-truncated',
-        ],
-      );
+      fakeBranches.addAll(<Branch>[
+        Branch()
+          ..repository = repo
+          ..branch = '$repo-release',
+        Branch()
+          ..repository = repo
+          ..branch = '$repo-release-very-long-name-that-should-be-truncated',
+      ]);
     }
     return fakeBranches;
   }

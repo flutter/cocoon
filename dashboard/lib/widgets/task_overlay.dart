@@ -143,8 +143,10 @@ class TaskOverlayEntry extends StatelessWidget {
         Positioned(
           // Move this overlay to be where the parent is
           child: CustomSingleChildLayout(
-            delegate: TaskOverlayEntryPositionDelegate(position,
-                cellSize: TaskBox.of(context)),
+            delegate: TaskOverlayEntryPositionDelegate(
+              position,
+              cellSize: TaskBox.of(context),
+            ),
             child: TaskOverlayContents(
               showSnackBarCallback: showSnackBarCallback,
               buildState: buildState,
@@ -205,10 +207,16 @@ class TaskOverlayContents extends StatelessWidget {
   static const Map<String, Icon> statusIcon = <String, Icon>{
     TaskBox.statusFailed: Icon(Icons.clear, color: Colors.red, size: 32),
     TaskBox.statusNew: Icon(Icons.new_releases, color: Colors.blue, size: 32),
-    TaskBox.statusInProgress:
-        Icon(Icons.autorenew, color: Colors.blue, size: 32),
-    TaskBox.statusSucceeded:
-        Icon(Icons.check_circle, color: Colors.green, size: 32),
+    TaskBox.statusInProgress: Icon(
+      Icons.autorenew,
+      color: Colors.blue,
+      size: 32,
+    ),
+    TaskBox.statusSucceeded: Icon(
+      Icons.check_circle,
+      color: Colors.green,
+      size: 32,
+    ),
   };
 
   @override
@@ -216,19 +224,24 @@ class TaskOverlayContents extends StatelessWidget {
     final qualifiedTask = QualifiedTask.fromTask(task);
 
     final now = Now.of(context);
-    final createTime =
-        DateTime.fromMillisecondsSinceEpoch(task.createTimestamp.toInt());
-    final startTime =
-        DateTime.fromMillisecondsSinceEpoch(task.startTimestamp.toInt());
-    final endTime =
-        DateTime.fromMillisecondsSinceEpoch(task.endTimestamp.toInt());
+    final createTime = DateTime.fromMillisecondsSinceEpoch(
+      task.createTimestamp.toInt(),
+    );
+    final startTime = DateTime.fromMillisecondsSinceEpoch(
+      task.startTimestamp.toInt(),
+    );
+    final endTime = DateTime.fromMillisecondsSinceEpoch(
+      task.endTimestamp.toInt(),
+    );
 
-    final queueDuration = task.startTimestamp == 0
-        ? now!.difference(createTime)
-        : startTime.difference(createTime);
-    final runDuration = task.endTimestamp == 0
-        ? now!.difference(startTime)
-        : endTime.difference(startTime);
+    final queueDuration =
+        task.startTimestamp == 0
+            ? now!.difference(createTime)
+            : startTime.difference(createTime);
+    final runDuration =
+        task.endTimestamp == 0
+            ? now!.difference(startTime)
+            : endTime.difference(startTime);
 
     // There are 3 possible states for queue time:
     //   1. Task is waiting to be scheduled (in queue)
@@ -277,7 +290,10 @@ class TaskOverlayContents extends StatelessWidget {
                       message: task.status,
                       child: Padding(
                         padding: const EdgeInsets.only(
-                            left: 8.0, top: 10.0, right: 12.0),
+                          left: 8.0,
+                          top: 10.0,
+                          right: 12.0,
+                        ),
                         child: statusIcon[task.status],
                       ),
                     ),
@@ -314,11 +330,12 @@ class TaskOverlayContents extends StatelessWidget {
                           final isAuthenticated =
                               buildState.authService.isAuthenticated;
                           return ProgressButton(
-                            onPressed: isAuthenticated
-                                ? () {
-                                    return _rerunTask(task);
-                                  }
-                                : null,
+                            onPressed:
+                                isAuthenticated
+                                    ? () {
+                                      return _rerunTask(task);
+                                    }
+                                    : null,
                             child: child,
                           );
                         },
