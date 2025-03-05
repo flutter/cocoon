@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:core';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
@@ -22,6 +23,7 @@ import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/datastore.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
+import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -316,9 +318,10 @@ void main() {
     });
   });
 
-  group('scheduleBuilds', () {
+  group('scheduleTryBuilds', () {
     late MockFirestoreService firestoreService;
     late MockCallbacks callbacks;
+    late FakeGerritService gerritService;
 
     setUp(() {
       firestoreService = MockFirestoreService();
@@ -332,12 +335,13 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       mockGithubChecksUtil = MockGithubChecksUtil();
       pubsub = FakePubSub();
+      gerritService = FakeGerritService(branchesValue: <String>['master']);
       service = LuciBuildService(
         config: config,
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
-        gerritService: FakeGerritService(branchesValue: <String>['master']),
+        gerritService: gerritService,
         pubsub: pubsub,
         initializePrCheckRuns: callbacks.initializePrCheckRuns,
         fusionTester: FakeFusionTester(),
@@ -524,6 +528,95 @@ void main() {
       expect(dimensions.length, 1);
       expect(dimensions[0].key, 'os');
       expect(dimensions[0].value, 'abc');
+    });
+
+    group('CIPD', () {
+      late List<String> logs;
+
+      setUp(() {
+        logs = [];
+        log = Logger.detached('luci_build_service_test.scheduleTryBuilds.CIPD');
+        log.onRecord.listen((r) {
+          logs.add(r.message);
+          if (r.stackTrace case final stackTrace?) {
+            printOnFailure('$stackTrace');
+          }
+        });
+
+        when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer(
+          (_) async => generateCheckRun(1, name: 'Linux 1'),
+        );
+        when(
+          callbacks.initializePrCheckRuns(
+            firestoreService: anyNamed('firestoreService'),
+            pullRequest: anyNamed('pullRequest'),
+            checks: anyNamed('checks'),
+          ),
+        ).thenAnswer((inv) async {
+          return Document(name: '1234-56-7890', fields: {});
+        });
+      });
+
+      tearDown(() {
+        printOnFailure(logs.join('\n'));
+      });
+
+      test('uses the default recipe without warning outside of flutter/flutter', () async {
+        (service.fusionTester as FakeFusionTester).isFusion = (_, __) => false;
+        await service.scheduleTryBuilds(
+          pullRequest: generatePullRequest(repo: 'packages'),
+          targets: targets,
+          engineArtifacts: const EngineArtifacts.noFrameworkTests(reason: 'Not flutter/flutter'),
+        );
+
+        expect(logs, isNot(contains(contains('Falling back to default recipe'))));
+
+        final scheduleBuild = pubsub.messages.first['requests'].first['scheduleBuild'] as Map<String, Object?>;
+        expect(scheduleBuild['properties'], containsPair('exe_cipd_version', 'refs/heads/main'));
+      });
+
+      test('uses the default recipe without warning when using flutter/flutter master', () async {
+        (service.fusionTester as FakeFusionTester).isFusion = (_, __) => true;
+        await service.scheduleTryBuilds(
+          pullRequest: generatePullRequest(repo: 'flutter', branch: 'master'),
+          targets: targets,
+          engineArtifacts: const EngineArtifacts.builtFromSource(commitSha: 'abc123'),
+        );
+
+        expect(logs, isNot(contains(contains('Falling back to default recipe'))));
+
+        final scheduleBuild = pubsub.messages.first['requests'].first['scheduleBuild'] as Map<String, Object?>;
+        expect(scheduleBuild['properties'], containsPair('exe_cipd_version', 'refs/heads/main'));
+      });
+
+      test('fallsback to the default recipe if the branch is not found on gerrit', () async {
+        (service.fusionTester as FakeFusionTester).isFusion = (_, __) => true;
+        await service.scheduleTryBuilds(
+          pullRequest: generatePullRequest(repo: 'flutter', branch: '3.7.0-19.0.pre'),
+          targets: targets,
+          engineArtifacts: const EngineArtifacts.builtFromSource(commitSha: 'abc123'),
+        );
+
+        expect(logs, contains(contains('Falling back to default recipe')));
+
+        final scheduleBuild = pubsub.messages.first['requests'].first['scheduleBuild'] as Map<String, Object?>;
+        expect(scheduleBuild['properties'], containsPair('exe_cipd_version', 'refs/heads/main'));
+      });
+
+      test('uses the CIPD branch if the branch is found on gerrit', () async {
+        (service.fusionTester as FakeFusionTester).isFusion = (_, __) => true;
+        gerritService.branchesValue = ['refs/heads/master', 'refs/heads/3.7.0-19.0.pre'];
+        await service.scheduleTryBuilds(
+          pullRequest: generatePullRequest(repo: 'flutter', branch: '3.7.0-19.0.pre'),
+          targets: targets,
+          engineArtifacts: const EngineArtifacts.builtFromSource(commitSha: 'abc123'),
+        );
+
+        expect(logs, isNot(contains(contains('Falling back to default recipe'))));
+
+        final scheduleBuild = pubsub.messages.first['requests'].first['scheduleBuild'] as Map<String, Object?>;
+        expect(scheduleBuild['properties'], containsPair('exe_cipd_version', 'refs/heads/3.7.0-19.0.pre'));
+      });
     });
 
     test('schedule try builds with github build labels successfully', () async {
