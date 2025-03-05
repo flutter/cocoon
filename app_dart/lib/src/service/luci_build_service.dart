@@ -248,33 +248,40 @@ class LuciBuildService {
       return targets;
     }
 
-    // final bbv2.BatchRequest batchRequest = bbv2.BatchRequest().createEmptyInstance();
-    final List<bbv2.BatchRequest_Request> batchRequestList = [];
-    final String sha = pullRequest.head!.sha!;
+    final batchRequestList = <bbv2.BatchRequest_Request>[];
+    final commitSha = pullRequest.head!.sha!;
+    final isFusion = await fusionTester.isFusionBasedRef(pullRequest.base!.repo!.slug(), commitSha);
     final CipdVersion cipdVersion;
     {
-      final CipdVersion proposedVersion = CipdVersion(branch: pullRequest.base!.ref!);
-      final List<String> branches = await gerritService.branches(
-        'flutter-review.googlesource.com',
-        'recipes',
-        filterRegex: 'flutter-.*|fuchsia.*',
-      );
-      if (branches.contains(proposedVersion.version)) {
-        cipdVersion = proposedVersion;
+      final baseRef = pullRequest.base!.ref!;
+
+      // If this isn't flutter/flutter *OR* it's flutter/flutter master, use the default CIPD recipe.
+      // We don't create CIPD recipes for other repositories (see https://github.com/flutter/flutter/issues/164592).
+      if (!isFusion || Config.defaultBranch(pullRequest.base!.repo!.slug()) == baseRef) {
+        cipdVersion = CipdVersion.defaultRecipe;
       } else {
-        log.warning('Falling back to default recipe, could not find "${proposedVersion.version}" in $branches.');
-        cipdVersion = config.defaultRecipeBundleRef;
+        final CipdVersion proposedVersion = CipdVersion(branch: pullRequest.base!.ref!);
+        final List<String> branches = await gerritService.branches(
+          'flutter-review.googlesource.com',
+          'recipes',
+          // TODO(matanlurey): Remove fuchsia.* (https://github.com/flutter/flutter/issues/164593).
+          filterRegex: 'flutter-.*|fuchsia.*',
+        );
+        if (branches.contains(proposedVersion.version)) {
+          cipdVersion = proposedVersion;
+        } else {
+          log.warning('Falling back to default recipe, could not find "${proposedVersion.version}" in $branches.');
+          cipdVersion = config.defaultRecipeBundleRef;
+        }
       }
     }
-
-    final isFusion = await fusionTester.isFusionBasedRef(pullRequest.base!.repo!.slug(), sha);
 
     final checkRuns = <github.CheckRun>[];
     for (Target target in targets) {
       final checkRun = await githubChecksUtil.createCheckRun(
         config,
         target.slug,
-        sha,
+        commitSha,
         target.value.name,
       );
       checkRuns.add(checkRun);
@@ -284,7 +291,7 @@ class LuciBuildService {
       final Map<String, dynamic> userData = <String, dynamic>{
         'builder_name': target.value.name,
         'check_run_id': checkRun.id,
-        'commit_sha': sha,
+        'commit_sha': commitSha,
         'commit_branch': pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
       };
 
