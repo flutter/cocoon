@@ -155,7 +155,6 @@ void main() {
     final Map<String, dynamic> userDataMap = {
       'task_key': '${task.key.id}',
       'commit_key': '${task.key.parent?.id}',
-      'firestore_commit_document_name': commit.sha,
       'firestore_task_document_name': taskDocumentName,
     };
 
@@ -208,7 +207,6 @@ void main() {
     final Map<String, dynamic> userDataMap = {
       'task_key': '${task.key.id}',
       'commit_key': '${task.key.parent?.id}',
-      'firestore_commit_document_name': commit.sha,
       'firestore_task_document_name': taskDocumentName,
     };
 
@@ -241,7 +239,6 @@ void main() {
     final Map<String, dynamic> userDataMap = {
       'task_key': '${task.key.id}',
       'commit_key': '${task.key.parent?.id}',
-      'firestore_commit_document_name': commit.sha,
       'firestore_task_document_name': taskDocumentName,
     };
 
@@ -274,7 +271,6 @@ void main() {
     final Map<String, dynamic> userDataMap = {
       'task_key': '${task.key.id}',
       'commit_key': '${task.key.parent?.id}',
-      'firestore_commit_document_name': commit.sha,
       'firestore_task_document_name': taskDocumentName,
     };
 
@@ -321,7 +317,6 @@ void main() {
     final Map<String, dynamic> userDataMap = {
       'task_key': '${task.key.id}',
       'commit_key': '${task.key.parent?.id}',
-      'firestore_commit_document_name': commit.sha,
       'firestore_task_document_name': taskDocumentName,
     };
 
@@ -367,7 +362,6 @@ void main() {
     final Map<String, dynamic> userDataMap = {
       'task_key': '${task.key.id}',
       'commit_key': '${task.key.parent?.id}',
-      'firestore_commit_document_name': commit.sha,
       'firestore_task_document_name': taskDocumentName,
     };
 
@@ -413,7 +407,6 @@ void main() {
     final Map<String, dynamic> userDataMap = {
       'task_key': '${task.key.id}',
       'commit_key': '${task.key.parent?.id}',
-      'firestore_commit_document_name': commit.sha,
       'firestore_task_document_name': taskDocumentName,
     };
 
@@ -461,7 +454,6 @@ void main() {
     final Map<String, dynamic> userDataMap = {
       'task_key': '${task.key.id}',
       'commit_key': '${task.key.parent?.id}',
-      'firestore_commit_document_name': commit.sha,
       'firestore_task_document_name': taskDocumentName,
       'check_run_id': 1,
     };
@@ -508,7 +500,6 @@ void main() {
     final Map<String, dynamic> userDataMap = {
       'task_key': '${task.key.id}',
       'commit_key': '${task.key.parent?.id}',
-      'firestore_commit_document_name': commit.sha,
       'firestore_task_document_name': taskDocumentName,
     };
 
@@ -555,7 +546,6 @@ void main() {
     final Map<String, dynamic> userDataMap = {
       'task_key': '${task.key.id}',
       'commit_key': '${task.key.parent?.id}',
-      'firestore_commit_document_name': commit.sha,
       'firestore_task_document_name': taskDocumentName,
     };
 
