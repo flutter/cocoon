@@ -76,8 +76,9 @@ Future<void> verifyNoTrailingSpaces(
             .add('${file.path}:${index + 1}: trailing U+0009 tab character');
       }
     }
-    if (lines.isNotEmpty && lines.last == '')
+    if (lines.isNotEmpty && lines.last == '') {
       problems.add('${file.path}:${lines.length}: trailing blank line');
+    }
   }
   if (problems.isNotEmpty) exitWithError(problems);
 }
@@ -146,10 +147,12 @@ Stream<File> _allFiles(String workingDirectory, String? extension,
     pending.remove(entity);
     if (path.extension(entity.path) == '.tmpl') continue;
     if (entity is File) {
-      if (!gitFileNamesSet.contains(path.canonicalize(entity.absolute.path)))
+      if (!gitFileNamesSet.contains(path.canonicalize(entity.absolute.path))) {
         continue;
-      if (path.basename(entity.path) == 'flutter_export_environment.sh')
+      }
+      if (path.basename(entity.path) == 'flutter_export_environment.sh') {
         continue;
+      }
       if (path.basename(entity.path) == 'gradlew.bat') continue;
       if (path.basename(entity.path) == '.DS_Store') continue;
       if (extension == null || path.extension(entity.path) == '.$extension') {

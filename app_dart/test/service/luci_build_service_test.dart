@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:core';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
@@ -23,6 +24,7 @@ import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/datastore.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
+import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -319,9 +321,10 @@ void main() {
     });
   });
 
-  group('scheduleBuilds', () {
+  group('scheduleTryBuilds', () {
     late MockFirestoreService firestoreService;
     late MockCallbacks callbacks;
+    late FakeGerritService gerritService;
 
     setUp(() {
       firestoreService = MockFirestoreService();
@@ -335,12 +338,13 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       mockGithubChecksUtil = MockGithubChecksUtil();
       pubsub = FakePubSub();
+      gerritService = FakeGerritService(branchesValue: <String>['master']);
       service = LuciBuildService(
         config: config,
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
-        gerritService: FakeGerritService(branchesValue: <String>['master']),
+        gerritService: gerritService,
         pubsub: pubsub,
         initializePrCheckRuns: callbacks.initializePrCheckRuns,
         fusionTester: FakeFusionTester(),
@@ -548,6 +552,325 @@ void main() {
       expect(dimensions[0].key, 'os');
       expect(dimensions[0].value, 'abc');
     });
+
+    group('CIPD', () {
+      late List<String> logs;
+
+      setUp(() {
+        logs = [];
+        log = Logger.detached('luci_build_service_test.scheduleTryBuilds.CIPD');
+        log.onRecord.listen((r) {
+          logs.add(r.message);
+          if (r.stackTrace case final stackTrace?) {
+            printOnFailure('$stackTrace');
+          }
+        });
+
+        when(
+          mockGithubChecksUtil.createCheckRun(any, any, any, any),
+        ).thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+        when(
+          callbacks.initializePrCheckRuns(
+            firestoreService: anyNamed('firestoreService'),
+            pullRequest: anyNamed('pullRequest'),
+            checks: anyNamed('checks'),
+          ),
+        ).thenAnswer((inv) async {
+          return Document(name: '1234-56-7890', fields: {});
+        });
+      });
+
+      tearDown(() {
+        printOnFailure(logs.join('\n'));
+      });
+
+      test(
+        'uses the default recipe without warning outside of flutter/flutter',
+        () async {
+          (service.fusionTester as FakeFusionTester).isFusion = (_, _) => false;
+          await service.scheduleTryBuilds(
+            pullRequest: generatePullRequest(repo: 'packages'),
+            targets: targets,
+            engineArtifacts: const EngineArtifacts.noFrameworkTests(
+              reason: 'Not flutter/flutter',
+            ),
+          );
+
+          expect(
+            logs,
+            isNot(contains(contains('Falling back to default recipe'))),
+          );
+
+          final scheduleBuild =
+              pubsub.messages.first['requests'].first['scheduleBuild']
+                  as Map<String, Object?>;
+          expect(
+            scheduleBuild['properties'],
+            containsPair('exe_cipd_version', 'refs/heads/main'),
+          );
+        },
+      );
+
+      test(
+        'uses the default recipe without warning when using flutter/flutter master',
+        () async {
+          (service.fusionTester as FakeFusionTester).isFusion = (_, _) => true;
+          await service.scheduleTryBuilds(
+            pullRequest: generatePullRequest(repo: 'flutter', branch: 'master'),
+            targets: targets,
+            engineArtifacts: const EngineArtifacts.builtFromSource(
+              commitSha: 'abc123',
+            ),
+          );
+
+          expect(
+            logs,
+            isNot(contains(contains('Falling back to default recipe'))),
+          );
+
+          final scheduleBuild =
+              pubsub.messages.first['requests'].first['scheduleBuild']
+                  as Map<String, Object?>;
+          expect(
+            scheduleBuild['properties'],
+            containsPair('exe_cipd_version', 'refs/heads/main'),
+          );
+        },
+      );
+
+      test(
+        'fallsback to the default recipe if the branch is not found on gerrit',
+        () async {
+          (service.fusionTester as FakeFusionTester).isFusion = (_, _) => true;
+          await service.scheduleTryBuilds(
+            pullRequest: generatePullRequest(
+              repo: 'flutter',
+              branch: '3.7.0-19.0.pre',
+            ),
+            targets: targets,
+            engineArtifacts: const EngineArtifacts.builtFromSource(
+              commitSha: 'abc123',
+            ),
+          );
+
+          expect(logs, contains(contains('Falling back to default recipe')));
+
+          final scheduleBuild =
+              pubsub.messages.first['requests'].first['scheduleBuild']
+                  as Map<String, Object?>;
+          expect(
+            scheduleBuild['properties'],
+            containsPair('exe_cipd_version', 'refs/heads/main'),
+          );
+        },
+      );
+
+      test('uses the CIPD branch if the branch is found on gerrit', () async {
+        (service.fusionTester as FakeFusionTester).isFusion = (_, _) => true;
+        gerritService.branchesValue = [
+          'refs/heads/master',
+          'refs/heads/3.7.0-19.0.pre',
+        ];
+        await service.scheduleTryBuilds(
+          pullRequest: generatePullRequest(
+            repo: 'flutter',
+            branch: '3.7.0-19.0.pre',
+          ),
+          targets: targets,
+          engineArtifacts: const EngineArtifacts.builtFromSource(
+            commitSha: 'abc123',
+          ),
+        );
+
+        expect(
+          logs,
+          isNot(contains(contains('Falling back to default recipe'))),
+        );
+
+        final scheduleBuild =
+            pubsub.messages.first['requests'].first['scheduleBuild']
+                as Map<String, Object?>;
+        expect(
+          scheduleBuild['properties'],
+          containsPair('exe_cipd_version', 'refs/heads/3.7.0-19.0.pre'),
+        );
+      });
+    });
+
+    test('schedule try builds with github build labels successfully', () async {
+      final pullRequest = generatePullRequest();
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return bbv2.BatchResponse(
+          responses: <bbv2.BatchResponse_Response>[
+            bbv2.BatchResponse_Response(
+              scheduleBuild: generateBbv2Build(Int64(1)),
+            ),
+          ],
+        );
+      });
+      when(
+        mockGithubChecksUtil.createCheckRun(any, any, any, any),
+      ).thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+      final scheduledTargets = await service.scheduleTryBuilds(
+        pullRequest: pullRequest,
+        targets: targets,
+        engineArtifacts: EngineArtifacts.builtFromSource(
+          commitSha: pullRequest.head!.sha!,
+        ),
+      );
+      final scheduledTargetNames = scheduledTargets.map(
+        (Target target) => target.value.name,
+      );
+      expect(scheduledTargetNames, <String>['Linux 1']);
+
+      final batchRequest = bbv2.BatchRequest().createEmptyInstance();
+      batchRequest.mergeFromProto3Json(pubsub.messages.single);
+      expect(batchRequest.requests.single.scheduleBuild, isNotNull);
+
+      final scheduleBuild = batchRequest.requests.single.scheduleBuild;
+      expect(scheduleBuild.builder.bucket, 'try');
+      expect(scheduleBuild.builder.builder, 'Linux 1');
+      expect(
+        scheduleBuild.notify.pubsubTopic,
+        'projects/flutter-dashboard/topics/build-bucket-presubmit',
+      );
+
+      final userDataMap = UserData.decodeUserDataBytes(
+        scheduleBuild.notify.userData,
+      );
+
+      expect(userDataMap, <String, dynamic>{
+        'repo_owner': 'flutter',
+        'repo_name': 'flutter',
+        'user_agent': 'flutter-cocoon',
+        'check_run_id': 1,
+        'commit_sha': 'abc',
+        'commit_branch': 'master',
+        'builder_name': 'Linux 1',
+      });
+
+      final properties = scheduleBuild.properties.fields;
+      final dimensions = scheduleBuild.dimensions;
+      expect(properties, <String, bbv2.Value>{
+        'os': bbv2.Value(stringValue: 'abc'),
+        'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
+        'bringup': bbv2.Value(boolValue: false),
+        'git_branch': bbv2.Value(stringValue: 'master'),
+        'git_url': bbv2.Value(
+          stringValue: 'https://github.com/flutter/flutter',
+        ),
+        'git_ref': bbv2.Value(stringValue: 'refs/pull/123/head'),
+        'git_repo': bbv2.Value(stringValue: 'flutter'),
+        'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
+        'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
+      });
+      expect(dimensions.length, 1);
+      expect(dimensions[0].key, 'os');
+      expect(dimensions[0].value, 'abc');
+    });
+
+    test(
+      'schedule try builds includes flutter_prebuilt_engine_version',
+      () async {
+        when(
+          callbacks.initializePrCheckRuns(
+            firestoreService: anyNamed('firestoreService'),
+            pullRequest: anyNamed('pullRequest'),
+            checks: anyNamed('checks'),
+          ),
+        ).thenAnswer((inv) async {
+          return Document(name: '1234-56-7890', fields: {});
+        });
+        final pullRequest = generatePullRequest();
+        when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+          return bbv2.BatchResponse(
+            responses: <bbv2.BatchResponse_Response>[
+              bbv2.BatchResponse_Response(
+                scheduleBuild: generateBbv2Build(Int64(1)),
+              ),
+            ],
+          );
+        });
+        when(
+          mockGithubChecksUtil.createCheckRun(any, any, any, any),
+        ).thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+
+        (service.fusionTester as FakeFusionTester).isFusion = (_, _) => true;
+
+        final scheduledTargets = await service.scheduleTryBuilds(
+          pullRequest: pullRequest,
+          targets: targets,
+          engineArtifacts: EngineArtifacts.usingExistingEngine(
+            commitSha: pullRequest.base!.sha!,
+          ),
+        );
+
+        final result = verify(
+          callbacks.initializePrCheckRuns(
+            firestoreService: anyNamed('firestoreService'),
+            pullRequest: argThat(equals(pullRequest), named: 'pullRequest'),
+            checks: captureAnyNamed('checks'),
+          ),
+        )..called(1);
+        final checkRuns = result.captured.first as List<CheckRun>;
+        expect(checkRuns, hasLength(1));
+        expect(checkRuns.first.id, 1);
+        expect(checkRuns.first.name, 'Linux 1');
+
+        final scheduledTargetNames = scheduledTargets.map(
+          (Target target) => target.value.name,
+        );
+        expect(scheduledTargetNames, <String>['Linux 1']);
+
+        final batchRequest = bbv2.BatchRequest().createEmptyInstance();
+        batchRequest.mergeFromProto3Json(pubsub.messages.single);
+        expect(batchRequest.requests.single.scheduleBuild, isNotNull);
+
+        final scheduleBuild = batchRequest.requests.single.scheduleBuild;
+        expect(scheduleBuild.builder.bucket, 'try');
+        expect(scheduleBuild.builder.builder, 'Linux 1');
+        expect(
+          scheduleBuild.notify.pubsubTopic,
+          'projects/flutter-dashboard/topics/build-bucket-presubmit',
+        );
+
+        final userDataMap = UserData.decodeUserDataBytes(
+          scheduleBuild.notify.userData,
+        );
+
+        expect(userDataMap, <String, dynamic>{
+          'repo_owner': 'flutter',
+          'repo_name': 'flutter',
+          'user_agent': 'flutter-cocoon',
+          'check_run_id': 1,
+          'commit_sha': 'abc',
+          'commit_branch': 'master',
+          'builder_name': 'Linux 1',
+        });
+
+        final properties = scheduleBuild.properties.fields;
+        final dimensions = scheduleBuild.dimensions;
+        expect(properties, <String, bbv2.Value>{
+          'os': bbv2.Value(stringValue: 'abc'),
+          'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
+          'bringup': bbv2.Value(boolValue: false),
+          'git_branch': bbv2.Value(stringValue: 'master'),
+          'git_url': bbv2.Value(
+            stringValue: 'https://github.com/flutter/flutter',
+          ),
+          'git_ref': bbv2.Value(stringValue: 'refs/pull/123/head'),
+          'git_repo': bbv2.Value(stringValue: 'flutter'),
+          'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
+          'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
+          'is_fusion': bbv2.Value(stringValue: 'true'),
+          'flutter_prebuilt_engine_version': bbv2.Value(stringValue: 'def'),
+          'flutter_realm': bbv2.Value(stringValue: ''),
+        });
+        expect(dimensions.length, 1);
+        expect(dimensions[0].key, 'os');
+        expect(dimensions[0].value, 'abc');
+      },
+    );
 
     test('schedule try builds with github build labels successfully', () async {
       final pullRequest = generatePullRequest();

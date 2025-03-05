@@ -18,7 +18,10 @@ Mode mode = Mode.full;
 final Completer<void> aborter = Completer<void>();
 
 Future<void> rateLimit(
-    final GitHub github, final String status, final String next) async {
+  final GitHub github,
+  final String status,
+  final String next,
+) async {
   if (mode == Mode.aborted) {
     throw Abort();
   }
@@ -27,11 +30,12 @@ Future<void> rateLimit(
   );
   if (github.rateLimitRemaining != null &&
       github.rateLimitRemaining! < minApiPoints) {
-    Duration delay = github.rateLimitReset!.difference(DateTime.now());
+    var delay = github.rateLimitReset!.difference(DateTime.now());
     if (delay > Duration.zero) {
       delay += clockSkew;
       print(
-          '\nWaiting until ${DateTime.now().add(delay).toLocal()} to continue with $next...');
+        '\nWaiting until ${DateTime.now().add(delay).toLocal()} to continue with $next...',
+      );
       await Future.any<void>(<Future<void>>[
         Future<void>.delayed(delay),
         aborter.future,
@@ -42,8 +46,10 @@ Future<void> rateLimit(
 }
 
 void verifyStringSanity(
-    final String value, final Set<String> disallowedSubstrings) {
-  for (final String substring in disallowedSubstrings) {
+  final String value,
+  final Set<String> disallowedSubstrings,
+) {
+  for (final substring in disallowedSubstrings) {
     if (value.contains(substring)) {
       throw FormatException('Found "$disallowedSubstrings" in "$value".');
     }

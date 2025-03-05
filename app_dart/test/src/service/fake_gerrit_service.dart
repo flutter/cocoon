@@ -26,7 +26,7 @@ class FakeGerritService extends GerritService {
       );
 
   List<String> branchesValue;
-  static const List<String> _defaultBranches = <String>['main'];
+  static const List<String> _defaultBranches = <String>['refs/heads/master'];
 
   List<GerritCommit>? commitsValue;
   final List<GerritCommit> _defaultCommits = <GerritCommit>[

@@ -11,6 +11,9 @@ import 'package:meta/meta.dart';
 final class CipdVersion {
   const CipdVersion({required String branch}) : version = 'refs/heads/$branch';
 
+  /// The default recipe to use
+  static const defaultRecipe = CipdVersion(branch: 'main');
+
   /// The version string, in the format, `refs/head/{{branch}}`.
   final String version;
 

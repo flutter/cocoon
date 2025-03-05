@@ -20,10 +20,10 @@ typedef PopulateCacheCallback = Future<String> Function();
 const String cacheSeparator = ':';
 
 File cacheFileFor(final Directory cacheDirectory, final List<String> key) {
-  for (final String k in key) {
+  for (final k in key) {
     verifyStringSanity(k, const <String>{'\x00', '/', cacheSeparator});
   }
-  final String cacheName = key.join(cacheSeparator);
+  final cacheName = key.join(cacheSeparator);
   return File('${cacheDirectory.path}/$cacheName');
 }
 
@@ -47,10 +47,9 @@ Future<String> loadFromCache(
   final DateTime? cacheEpoch,
   final PopulateCacheCallback callback,
 ) async {
-  final File cacheFile = cacheFileFor(cacheDirectory, key);
-  final RandomAccessFile cacheFileContents =
-      await cacheFile.open(mode: FileMode.append);
-  bool firstWait = true;
+  final cacheFile = cacheFileFor(cacheDirectory, key);
+  final cacheFileContents = await cacheFile.open(mode: FileMode.append);
+  var firstWait = true;
   while (true) {
     try {
       await cacheFileContents.lock();
@@ -69,17 +68,21 @@ Future<String> loadFromCache(
   }
   try {
     await cacheFileContents.setPosition(0);
-    final String cacheData = utf8
-        .decode(await cacheFileContents.read(await cacheFileContents.length()));
-    final int firstLineBreak = cacheData.indexOf('\n');
-    bool needsReplacing = true;
+    final cacheData = utf8.decode(
+      await cacheFileContents.read(await cacheFileContents.length()),
+    );
+    final firstLineBreak = cacheData.indexOf('\n');
+    var needsReplacing = true;
     if (cacheEpoch != null) {
       if (firstLineBreak > 0) {
-        final int? cacheTimeInMilliseconds =
-            int.tryParse(cacheData.substring(0, firstLineBreak), radix: 10);
+        final cacheTimeInMilliseconds = int.tryParse(
+          cacheData.substring(0, firstLineBreak),
+          radix: 10,
+        );
         if (cacheTimeInMilliseconds != null) {
-          final DateTime cacheTime =
-              DateTime.fromMillisecondsSinceEpoch(cacheTimeInMilliseconds);
+          final cacheTime = DateTime.fromMillisecondsSinceEpoch(
+            cacheTimeInMilliseconds,
+          );
           if (cacheTime.isAfter(cacheEpoch)) {
             needsReplacing = false;
           }
@@ -96,8 +99,9 @@ Future<String> loadFromCache(
       }
       await cacheFileContents.truncate(0);
       await cacheFileContents.setPosition(0);
-      await cacheFileContents
-          .writeString('${DateTime.now().millisecondsSinceEpoch}\n');
+      await cacheFileContents.writeString(
+        '${DateTime.now().millisecondsSinceEpoch}\n',
+      );
       await cacheFileContents.writeString(data);
       return data;
     }

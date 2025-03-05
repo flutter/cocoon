@@ -29,23 +29,25 @@ class FileReader {
   int _position = 0;
 
   static Future<FileReader> open(File file) async {
-    final Uint8List bytes = await file.readAsBytes();
+    final bytes = await file.readAsBytes();
     return FileReader(
-        bytes.buffer.asByteData(bytes.offsetInBytes, bytes.length));
+      bytes.buffer.asByteData(bytes.offsetInBytes, bytes.length),
+    );
   }
 
   void _readType(int expected) {
-    final int type = _buffer.getUint8(_position);
+    final type = _buffer.getUint8(_position);
     _position += 1;
     if (expected != type) {
       throw FormatException(
-          'expected $expected but got $type at byte ${_position - 1}');
+        'expected $expected but got $type at byte ${_position - 1}',
+      );
     }
   }
 
   T? readNullOr<T>(Reader<T> reader) {
     _readType(_typeNullable);
-    final int result = _buffer.getUint8(_position);
+    final result = _buffer.getUint8(_position);
     _position += 1;
     if (result == 0) {
       return null;
@@ -55,23 +57,24 @@ class FileReader {
 
   bool readBool() {
     _readType(_typeBool);
-    final int result = _buffer.getUint8(_position);
+    final result = _buffer.getUint8(_position);
     _position += 1;
     return result != 0x00;
   }
 
   int readInt() {
     _readType(_typeInt);
-    final int result = _buffer.getInt64(_position, _endianness);
+    final result = _buffer.getInt64(_position, _endianness);
     _position += 8;
     return result;
   }
 
   String readString() {
     _readType(_typeString);
-    final int length = readInt();
-    final String result = utf8.decode(
-        _buffer.buffer.asUint8List(_buffer.offsetInBytes + _position, length));
+    final length = readInt();
+    final result = utf8.decode(
+      _buffer.buffer.asUint8List(_buffer.offsetInBytes + _position, length),
+    );
     _position += length;
     return result;
   }
@@ -84,9 +87,9 @@ class FileReader {
   Reader<Set<T>> readerForSet<T>(Reader<T> reader) {
     return () {
       _readType(_typeSet);
-      final int count = readInt();
-      final Set<T> result = <T>{};
-      for (int index = 0; index < count; index += 1) {
+      final count = readInt();
+      final result = <T>{};
+      for (var index = 0; index < count; index += 1) {
         result.add(reader());
       }
       return result;
@@ -98,12 +101,14 @@ class FileReader {
   }
 
   Reader<Map<K, V>> readerForMap<K, V>(
-      Reader<K> keyReader, Reader<V> valueReader) {
+    Reader<K> keyReader,
+    Reader<V> valueReader,
+  ) {
     return () {
       _readType(_typeMap);
-      final int count = readInt();
-      final Map<K, V> result = <K, V>{};
-      for (int index = 0; index < count; index += 1) {
+      final count = readInt();
+      final result = <K, V>{};
+      for (var index = 0; index < count; index += 1) {
         result[keyReader()] = valueReader();
       }
       return result;
@@ -125,7 +130,8 @@ class FileReader {
     _readType(_typeEnd);
     if (_position != _buffer.lengthInBytes) {
       throw StateError(
-          'read failed; position=$_position, expected ${_buffer.lengthInBytes}');
+        'read failed; position=$_position, expected ${_buffer.lengthInBytes}',
+      );
     }
   }
 }
@@ -190,7 +196,9 @@ class FileWriter {
   }
 
   Writer<Map<K, V>> writerForMap<K, V>(
-      Writer<K> keyWriter, Writer<V> valueWriter) {
+    Writer<K> keyWriter,
+    Writer<V> valueWriter,
+  ) {
     return (Map<K, V> value) {
       _writeType(_typeMap);
       writeInt(value.length);
@@ -202,7 +210,10 @@ class FileWriter {
   }
 
   void writeMap<K, V>(
-      Writer<K> keyWriter, Writer<V> valueWriter, Map<K, V> value) {
+    Writer<K> keyWriter,
+    Writer<V> valueWriter,
+    Map<K, V> value,
+  ) {
     writerForMap<K, V>(keyWriter, valueWriter)(value);
   }
 
@@ -215,7 +226,7 @@ class FileWriter {
 
   Future<void> write(File file) async {
     _writeType(_typeEnd);
-    final File temp = File('${file.path}.\$\$\$');
+    final temp = File('${file.path}.\$\$\$');
     await temp.writeAsBytes(_buffer.takeBytes());
     if (file.existsSync()) {
       await file.delete();
@@ -225,7 +236,7 @@ class FileWriter {
 
   ByteData serialize() {
     _writeType(_typeEnd);
-    final int length = _buffer.length;
+    final length = _buffer.length;
     return _buffer.takeBytes().buffer.asByteData(0, length);
   }
 }

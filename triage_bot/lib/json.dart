@@ -24,9 +24,9 @@ class Json {
 
   // (This differs from "real" JSON in that we don't allow duplicate keys.)
   factory Json.map(Map<dynamic, dynamic> input) {
-    final Map<String, Json> values = <String, Json>{};
+    final values = <String, Json>{};
     input.forEach((dynamic key, dynamic value) {
-      final String name = key.toString();
+      final name = key.toString();
       assert(!values.containsKey(name), 'Json.map keys must be unique strings');
       values[name] = Json._wrap(value);
     });
@@ -83,13 +83,13 @@ class Json {
   Type get valueType => _value.runtimeType;
 
   Map<String, dynamic> toMap() {
-    final Map<String, dynamic> values = <String, dynamic>{};
+    final values = <String, dynamic>{};
     if (_value is Map) {
-      _value.forEach((String key, Json value) {
-        values[key] = value.unwrap();
+      _value.forEach((Object? key, Object? value) {
+        values[key as String] = (value as Json).unwrap();
       });
     } else if (_value is List) {
-      for (int index = 0; index < (_value as List<dynamic>).length; index += 1)
+      for (var index = 0; index < _value.length; index += 1)
         values[index.toString()] = _value[index].unwrap();
     } else {
       values['0'] = unwrap();
@@ -99,8 +99,7 @@ class Json {
 
   List<dynamic> toList() {
     if (_value is Map)
-      return (_value as Map<String, Json>)
-          .values
+      return (_value as Map<String, Json>).values
           .map<dynamic>((Json value) => value.unwrap())
           .toList();
     if (_value is List) {
@@ -154,7 +153,7 @@ class Json {
   @override
   dynamic noSuchMethod(Invocation invocation) {
     if (invocation.isGetter) {
-      final String name = _symbolName(invocation.memberName);
+      final name = _symbolName(invocation.memberName);
       if (_value is Map) {
         if ((_value as Map<String, Json>).containsKey(name)) {
           return this[name];
@@ -172,7 +171,7 @@ class Json {
   String _symbolName(Symbol symbol, {bool stripEquals = false}) {
     // WARNING: Assumes a fixed format for Symbol.toString which is *not*
     // guaranteed anywhere.
-    final String s = '$symbol';
+    final s = '$symbol';
     return s.substring(8, s.length - (2 + (stripEquals ? 1 : 0)));
   }
 
