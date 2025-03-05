@@ -890,7 +890,6 @@ class LuciBuildService {
     final Map<String, dynamic> rawUserData = <String, dynamic>{
       'commit_key': commitKey,
       'task_key': taskKey,
-      'firestore_commit_document_name': commit.sha,
     };
 
     // Creates post submit checkrun only for unflaky targets from [config.postsubmitSupportedRepos].
