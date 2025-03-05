@@ -2,40 +2,35 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server/testing/mocks.dart';
 import 'package:cocoon_service/src/model/gerrit/commit.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:github/github.dart' as gh;
+import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
-import '../request_handlers/check_flaky_builders_test_data.dart';
-import '../src/datastore/fake_datastore.dart';
 import '../src/service/fake_gerrit_service.dart';
-import '../src/service/fake_github_service.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/matchers.dart';
 import '../src/utilities/mocks.mocks.dart';
 
 void main() {
   late MockConfig config;
-  late FakeDatastoreDB db;
   late BranchService branchService;
   late FakeGerritService gerritService;
-  late FakeGithubService githubService;
-  late MockRepositoriesService repositories;
-  late MockGitHub github;
+  late MockGithubService githubService;
+  late List<String> logs;
 
   setUp(() {
-    db = FakeDatastoreDB();
-    github = MockGitHub();
-    githubService = FakeGithubService(client: github);
-    repositories = MockRepositoriesService();
-    when(github.repositories).thenReturn(repositories);
+    githubService = MockGithubService();
+
     config = MockConfig();
+    when(config.createDefaultGitHubService()).thenAnswer((_) async => githubService);
     gerritService = FakeGerritService();
     branchService = BranchService(
       config: config,
@@ -43,88 +38,108 @@ void main() {
       retryOptions: const RetryOptions(maxDelay: Duration.zero),
     );
 
-    when(config.createDefaultGitHubService()).thenAnswer((_) async => githubService);
-    when(config.db).thenReturn(db);
+    // TODO(matanlurey): Refactor into test appliance. See https://github.com/flutter/flutter/issues/164652.
+    logs = [];
+    log = Logger.detached('branch_service_test');
+    log.onRecord.listen((r) {
+      final buffer = StringBuffer(r.message);
+      if (r.error != null) {
+        buffer.writeln(r.error);
+      }
+      if (r.stackTrace != null) {
+        buffer.writeln(r.stackTrace);
+      }
+      logs.add('$buffer');
+    });
   });
 
-  group('retrieve latest release branches', () {
-    late MockRepositoriesService mockRepositoriesService;
+  tearDown(() {
+    printOnFailure(logs.join('\n'));
+  });
+
+  group('getReleaseBranches', () {
+    late Map<String, String> simulateGitubFileContent;
 
     setUp(() {
-      mockRepositoriesService = MockRepositoriesService();
-      when(githubService.github.repositories).thenReturn(mockRepositoriesService);
-    });
+      simulateGitubFileContent = {};
 
-    test('return empty when branch version file does not exist', () async {
-      final gh.Branch candidateBranch = generateBranch(3, name: 'flutter-3.4-candidate.5', sha: '789dev');
-      when(mockRepositoriesService.listBranches(any)).thenAnswer((_) => Stream.value(candidateBranch));
-      when(mockRepositoriesService.getContents(any, any)).thenThrow(gh.GitHubError(github, '404 file not found'));
-      final List<Map<String, String>> result =
-          await branchService.getReleaseBranches(githubService: githubService, slug: Config.cocoonSlug);
-      final betaBranch = result.singleWhere((Map<String, String> branch) => branch['name'] == 'beta');
-      expect(betaBranch['branch']?.isEmpty, isTrue);
-      final stableBranch = result.singleWhere((Map<String, String> branch) => branch['name'] == 'stable');
-      expect(stableBranch['branch']?.isEmpty, isTrue);
-    });
-
-    test('return beta, stable, and latest candidate branches', () async {
-      final gh.Branch stableBranch = generateBranch(1, name: 'flutter-2.13-candidate.0', sha: '123stable');
-      final gh.Branch betaBranch = generateBranch(2, name: 'flutter-3.2-candidate.5', sha: '456beta');
-      final gh.Branch candidateBranch = generateBranch(3, name: 'flutter-3.4-candidate.5', sha: '789dev');
-      final gh.Branch candidateBranchOne = generateBranch(4, name: 'flutter-3.3-candidate.9', sha: 'lagerZValue');
-      final gh.Branch candidateBranchTwo =
-          generateBranch(5, name: 'flutter-2.15-candidate.99', sha: 'superLargeYZvalue');
-      final gh.Branch candidateBranchThree = generateBranch(6, name: 'flutter-0.5-candidate.0', sha: 'someZeroValues');
-      final gh.Branch candidateCherrypickBranch =
-          generateBranch(6, name: 'cherry-picks-flutter-3.11-candidate.3', sha: 'bad');
-
+      when(config.releaseCandidateBranchPath).thenReturn('bin/internal/release-candidate-branch.version');
       when(
-        mockRepositoriesService.getContents(
-          Config.flutterSlug,
+        githubService.getFileContent(
+          // Required because RepositorySlug does not implement operator==.
+          argThat(isA<gh.RepositorySlug>().having((s) => s.fullName, 'fullName', 'flutter/flutter')),
           'bin/internal/release-candidate-branch.version',
-          ref: 'beta',
+          ref: anyNamed('ref'),
         ),
-      ).thenAnswer(
-        (_) async => gh.RepositoryContents(file: gh.GitHubFile(content: gitHubEncode('flutter-3.2-candidate.5\n'))),
-      );
+      ).thenAnswer((i) async {
+        final ref = i.namedArguments[#ref] as String;
+        final result = simulateGitubFileContent[ref];
 
-      when(
-        mockRepositoriesService.getContents(
-          Config.flutterSlug,
-          'bin/internal/release-candidate-branch.version',
-          ref: 'stable',
-        ),
-      ).thenAnswer(
-        (_) async => gh.RepositoryContents(file: gh.GitHubFile(content: gitHubEncode('flutter-2.13-candidate.0\n'))),
-      );
-
-      when(mockRepositoriesService.listBranches(any)).thenAnswer((Invocation invocation) {
-        return Stream.fromIterable([
-          candidateBranch,
-          candidateBranchOne,
-          stableBranch,
-          betaBranch,
-          candidateBranchTwo,
-          candidateBranchThree,
-          candidateCherrypickBranch,
-        ]);
+        // The error in the actual implementation is not well defined.
+        if (result == null) {
+          throw StateError('Not found: $ref');
+        }
+        return result;
       });
-      final List<Map<String, String>> result =
-          await branchService.getReleaseBranches(githubService: githubService, slug: Config.flutterSlug);
-      expect(result.length, 4);
-      expect(result[1]['branch'], 'flutter-2.13-candidate.0');
-      expect(result[1]['name'], 'stable');
-      final devBranch = result.singleWhere((Map<String, String> branch) => branch['name'] == 'dev');
-      expect(devBranch['branch'], 'flutter-3.4-candidate.5');
+    });
+
+    test('always returns master branch, even if config.releaseBranches is empty', () async {
+      when(config.releaseBranches).thenReturn([]);
+
+      final releaseBranches = await branchService.getReleaseBranches(slug: Config.flutterSlug);
+      expect(releaseBranches, [const ReleaseBranch(channel: 'master', reference: 'HEAD')]);
+    });
+
+    test('returns additional branches by fetching and reading config.releaseCandidateBranchPath', () async {
+      when(config.releaseBranches).thenReturn(['stable', 'beta']);
+      simulateGitubFileContent = {
+        'stable': 'flutter-3.29-candidate.0',
+        'beta': 'flutter-3.30-candidate.0',
+      };
+
+      final releaseBranches = await branchService.getReleaseBranches(slug: Config.flutterSlug);
+      expect(
+        releaseBranches,
+        unorderedEquals([
+          const ReleaseBranch(channel: 'master', reference: 'HEAD'),
+          const ReleaseBranch(channel: 'stable', reference: 'flutter-3.29-candidate.0'),
+          const ReleaseBranch(channel: 'beta', reference: 'flutter-3.30-candidate.0'),
+        ]),
+      );
+    });
+
+    test('omits branches that fail to fetch or reading config.releaseCandidateBranchPath', () async {
+      when(config.releaseBranches).thenReturn(['stable', 'beta-will-be-missing']);
+      simulateGitubFileContent = {
+        'stable': 'flutter-3.29-candidate.0',
+      };
+
+      final releaseBranches = await branchService.getReleaseBranches(slug: Config.flutterSlug);
+      expect(
+        releaseBranches,
+        unorderedEquals([
+          const ReleaseBranch(channel: 'master', reference: 'HEAD'),
+          const ReleaseBranch(channel: 'stable', reference: 'flutter-3.29-candidate.0'),
+        ]),
+      );
+      expect(logs, contains(contains('Could not resolve release branch for "beta-will-be-missing"')));
     });
   });
 
   group('branchFlutterRecipes', () {
     const String branch = 'flutter-2.13-candidate.0';
     const String sha = 'abc123';
+    late MockRepositoriesService repositories;
+
     setUp(() {
       gerritService.branchesValue = <String>[];
+
+      repositories = MockRepositoriesService();
       when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer((_) async => generateGitCommit(5));
+
+      final mockGithub = MockGitHub();
+      when(mockGithub.repositories).thenReturn(repositories);
+      when(githubService.github).thenReturn(mockGithub);
     });
 
     test('does not create branch that already exists', () async {
@@ -148,6 +163,7 @@ void main() {
           ),
         ),
       );
+
       expect(
         () async => branchService.branchFlutterRecipes(branch, sha),
         throwsExceptionWith<BadRequestException>('$sha has no commit time'),
@@ -159,6 +175,7 @@ void main() {
       when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer(
         (_) async => generateGitCommit(5),
       );
+
       expect(
         () async => branchService.branchFlutterRecipes(branch, sha),
         throwsExceptionWith<InternalServerError>(
@@ -172,7 +189,7 @@ void main() {
     });
 
     test('creates branch when GitHub requires retries', () async {
-      int attempts = 0;
+      var attempts = 0;
       when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer((_) async {
         attempts++;
         if (attempts == 3) {
@@ -184,7 +201,7 @@ void main() {
     });
 
     test('ensure createDefaultGithubService is called once for each retry', () async {
-      int attempts = 0;
+      var attempts = 0;
       when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer((_) async {
         attempts++;
         if (attempts == 3) {

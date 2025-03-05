@@ -20,6 +20,7 @@ import '../service/fake_github_service.dart';
 import 'fake_datastore.dart';
 
 // ignore: must_be_immutable
+// TODO(matanlurey): Make this *not* a mess. See https://github.com/flutter/flutter/issues/164646.
 class FakeConfig implements Config {
   FakeConfig({
     this.githubClient,
@@ -54,6 +55,8 @@ class FakeConfig implements Config {
     this.flutterGoldFollowUpAlertValue,
     this.flutterGoldDraftChangeValue,
     this.flutterGoldStalePRValue,
+    this.releaseBranchesValue,
+    this.releaseCandidateBranchPathValue,
     this.postsubmitSupportedReposValue,
     this.supportedBranchesValue,
     this.supportedReposValue,
@@ -90,6 +93,8 @@ class FakeConfig implements Config {
   String? flutterBuildDescriptionValue;
   Logging? loggingServiceValue;
   String? waitingForTreeToGoGreenLabelNameValue;
+  List<String>? releaseBranchesValue;
+  String? releaseCandidateBranchPathValue;
   Set<String>? rollerAccountsValue;
   int? maxRecordsValue;
   int? backfillerTargetLimitValue;
@@ -271,6 +276,12 @@ class FakeConfig implements Config {
 
   @override
   CipdVersion get defaultRecipeBundleRef => const CipdVersion(branch: 'main');
+
+  @override
+  List<String> get releaseBranches => releaseBranchesValue!;
+
+  @override
+  String get releaseCandidateBranchPath => releaseCandidateBranchPathValue!;
 
   @override
   Future<List<String>> get releaseAccounts async => <String>['dart-flutter-releaser'];
