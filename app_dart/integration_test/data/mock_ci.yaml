@@ -1,0 +1,177 @@
+# Describes the targets run in continuous integration environment.
+#
+# Flutter infra uses this file to generate a checklist of tasks to be performed
+# for every commit.
+#
+# More information at:
+#  * https://github.com/flutter/cocoon/blob/main/CI_YAML.md
+enabled_branches:
+  - main
+
+platform_properties:
+  linux:
+    properties:
+      os: Linux
+      device_type: "none"
+  mac:
+    properties:
+      os: "Mac-13|Mac-14"
+      cpu: x86
+  mac_arm64:
+    properties:
+      os: "Mac-13|Mac-14"
+      cpu: arm64
+  windows:
+    properties:
+      os: Windows
+      device_type: "none"
+
+targets:
+  - name: Linux Cocoon
+    recipe: cocoon/cocoon
+    properties:
+      add_recipes_cq: "true"
+    runIf:
+      - .ci.yaml
+      - analyze/**
+      - app_dart/**
+      - auto_submit/**
+      - cipd_packages/**
+      - cloud_build/**
+      - dashboard/**
+      - dev/**
+      - licenses/**
+      - packages/**
+      - test_utilities/**
+      - tooling/**
+      - CI_YAML.md
+
+  - name: Linux device_doctor
+    recipe: cocoon/cipd
+    properties:
+      script: cipd_packages/device_doctor/tool/build.sh
+      cipd_name: flutter/device_doctor/linux-amd64
+    runIf:
+      - cipd_packages/device_doctor/**
+      - .ci.yaml
+
+  - name: Mac device_doctor
+    recipe: cocoon/cipd
+    properties:
+      script: cipd_packages/device_doctor/tool/build.sh
+      cipd_name: flutter/device_doctor/mac-amd64
+      device_type: none
+    runIf:
+      - cipd_packages/device_doctor/**
+      - .ci.yaml
+
+  - name: Mac_arm64 device_doctor
+    recipe: cocoon/cipd
+    properties:
+      script: cipd_packages/device_doctor/tool/build.sh
+      cipd_name: flutter/device_doctor/mac-arm64
+      device_type: none
+    runIf:
+      - cipd_packages/device_doctor/**
+      - .ci.yaml
+
+  - name: Windows device_doctor
+    recipe: cocoon/cipd
+    properties:
+      script: cipd_packages\device_doctor\tool\build.bat
+      cipd_name: flutter/device_doctor/windows-amd64
+    runIf:
+      - cipd_packages/device_doctor/**
+      - .ci.yaml
+
+  - name: Linux doxygen
+    recipe: cocoon/cipd
+    properties:
+      script: cipd_packages/doxygen/tool/build.sh
+      cipd_name: flutter/doxygen/linux-amd64
+      dependencies: >-
+        [
+          {"dependency": "cmake", "version": "build_id:8787856497187628321"}
+        ]
+    runIf:
+      - cipd_packages/doxygen/**
+      - .ci.yaml
+
+  - name: Mac codesign
+    recipe: cocoon/cipd
+    properties:
+      script: cipd_packages/codesign/tool/build.sh
+      cipd_name: flutter/codesign/mac-amd64
+      device_type: none
+    runIf:
+      - cipd_packages/codesign/**
+      - .ci.yaml
+
+  - name: Mac_arm64 codesign
+    recipe: cocoon/cipd
+    properties:
+      script: cipd_packages/codesign/tool/build.sh
+      cipd_name: flutter/codesign/mac-arm64
+      device_type: none
+    runIf:
+      - cipd_packages/codesign/**
+      - .ci.yaml
+
+  - name: Mac ruby
+    recipe: cocoon/cipd
+    # TODO(matanlurey): Get help fixing this or delete it. https://github.com/flutter/flutter/issues/164665
+    bringup: true
+    timeout: 60
+    properties:
+      script: cipd_packages/ruby/tools/build.sh
+      cipd_name: flutter/ruby/mac-amd64
+      device_os: iOS
+      contexts: >-
+        [
+          "osx_sdk_devicelab"
+        ]
+      $flutter/osx_sdk : >-
+        {
+          "sdk_version": "15a240d"
+        }
+    runIf:
+      - cipd_packages/ruby/**
+      - .ci.yaml
+
+  - name: Mac_arm64 ruby
+    recipe: cocoon/cipd
+    # TODO(matanlurey): Get help fixing this or delete it. https://github.com/flutter/flutter/issues/164665
+    bringup: true
+    timeout: 60
+    properties:
+      script: cipd_packages/ruby/tools/build.sh
+      cipd_name: flutter/ruby/mac-arm64
+      device_os: iOS
+      contexts: >-
+        [
+          "osx_sdk_devicelab"
+        ]
+      $flutter/osx_sdk : >-
+        {
+          "sdk_version": "15a240d"
+        }
+    runIf:
+      - cipd_packages/ruby/**
+      - .ci.yaml
+
+  - name: Linux ktlint
+    recipe: cocoon/cipd
+    timeout: 60
+    properties:
+      script: cipd_packages/ktlint/tools/build.sh
+      cipd_name: flutter/ktlint/linux-amd64
+    runIf:
+      - cipd_packages/ktlint/**
+      - .ci.yaml
+
+  - name: Linux ci_yaml roller
+    recipe: infra/ci_yaml
+    properties:
+      backfill: "false"
+    runIf:
+      - .ci.yaml

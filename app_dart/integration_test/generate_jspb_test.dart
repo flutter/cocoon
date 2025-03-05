@@ -11,12 +11,17 @@ import 'common.dart';
 /// Validates `bin/generate_jspb.dart` which is used in the ci.yaml roller script.
 Future<void> main() async {
   test('validate cocoon ci.yaml generates jspb', () async {
-    final ProcessResult generateResult =
-        Process.runSync('dart', <String>['run', 'bin/generate_jspb.dart', '../.ci.yaml']);
+    final ProcessResult generateResult = Process.runSync('dart', <String>[
+      'run',
+      'bin/generate_jspb.dart',
+      'integration_test/data/mock_ci.yaml',
+    ]);
     if (generateResult.exitCode != 0) {
-      fail('generate_jspb.dart failed with exit code ${generateResult.exitCode}\n'
-          'stderr: ${generateResult.stderr}\n'
-          'stdout: ${generateResult.stdout}');
+      fail(
+        'generate_jspb.dart failed with exit code ${generateResult.exitCode}\n'
+        'stderr: ${generateResult.stderr}\n'
+        'stdout: ${generateResult.stdout}',
+      );
     }
 
     // Update expectations file
