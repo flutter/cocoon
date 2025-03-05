@@ -189,8 +189,8 @@ class AppEngineCocoonService implements CocoonService {
       for (final Map<String, dynamic> jsonBranch in jsonResponse) {
         branches.add(
           Branch()
-            ..branch = jsonBranch['branch']!
-            ..channel = jsonBranch['name']!,
+            ..branch = jsonBranch['reference']!
+            ..channel = jsonBranch['channel']!,
         );
       }
       return CocoonResponse<List<Branch>>.data(branches);
