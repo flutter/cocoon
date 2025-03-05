@@ -47,24 +47,6 @@ void main() {
   });
 
   group('updateCheckStatus', () {
-    test('Userdata is empty', () async {
-      final bool success = await githubChecksService.updateCheckStatus(
-        build: _fakeBuild,
-        userDataMap: {},
-        luciBuildService: mockLuciBuildService,
-        slug: slug,
-      );
-      expect(success, isFalse);
-    });
-    test('Userdata does not contain check_run_id', () async {
-      final bool success = await githubChecksService.updateCheckStatus(
-        build: _fakeBuild,
-        userDataMap: {'repo_name': 'flutter/flutter'},
-        luciBuildService: mockLuciBuildService,
-        slug: slug,
-      );
-      expect(success, isFalse);
-    });
     test('Userdata contain check_run_id', () async {
       when(mockGithubChecksUtil.getCheckRun(any, any, any)).thenAnswer((_) async => checkRun);
       when(
@@ -79,14 +61,9 @@ void main() {
           summaryMarkdown: 'test summary',
         ),
       );
-      final userData = {
-        'check_run_id': 123,
-        'repo_owner': 'flutter',
-        'repo_name': 'cocoon',
-      };
       await githubChecksService.updateCheckStatus(
         build: _fakeBuild,
-        userDataMap: userData,
+        checkRunId: 123,
         luciBuildService: mockLuciBuildService,
         slug: slug,
       );
@@ -113,7 +90,7 @@ void main() {
         'user_login': 'engine-flutter-autoroll',
       };
       when(
-        mockLuciBuildService.rescheduleBuild(
+        mockLuciBuildService.reschedulePresubmitBuild(
           builderName: 'Linux Coverage',
           build: _fakeBuild,
           userDataMap: userData,
@@ -128,7 +105,7 @@ void main() {
       expect(checkRun.status, github.CheckRunStatus.completed);
       await githubChecksService.updateCheckStatus(
         build: _fakeBuild,
-        userDataMap: userData,
+        checkRunId: 1,
         luciBuildService: mockLuciBuildService,
         slug: slug,
         rescheduled: true,
@@ -157,7 +134,7 @@ void main() {
         'user_login': 'test-account',
       };
       when(
-        mockLuciBuildService.rescheduleBuild(
+        mockLuciBuildService.reschedulePresubmitBuild(
           builderName: 'Linux Coverage',
           build: _fakeBuild,
           userDataMap: userData,
@@ -183,7 +160,7 @@ void main() {
       );
       await githubChecksService.updateCheckStatus(
         build: _fakeBuild,
-        userDataMap: userData,
+        checkRunId: 1,
         luciBuildService: mockLuciBuildService,
         slug: slug,
       );

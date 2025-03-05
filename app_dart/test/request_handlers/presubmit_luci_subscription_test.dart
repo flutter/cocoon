@@ -76,7 +76,7 @@ void main() {
     verifyNever(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
       ),
@@ -87,7 +87,7 @@ void main() {
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
       ),
@@ -98,6 +98,7 @@ void main() {
     const Map<String, dynamic> userDataMap = {
       'repo_owner': 'flutter',
       'repo_name': 'cocoon',
+      'check_run_id': 1,
     };
 
     tester.message = createPushMessage(
@@ -111,7 +112,7 @@ void main() {
     verify(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
       ),
@@ -122,7 +123,7 @@ void main() {
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
       ),
@@ -134,6 +135,7 @@ void main() {
       'commit_branch': 'main',
       'commit_sha': 'abc',
       'repo_name': 'flutter',
+      'check_run_id': 1,
     };
 
     tester.message = createPushMessage(
@@ -151,7 +153,7 @@ void main() {
 
     await tester.post(handler);
     verifyNever(
-      mockLuciBuildService.rescheduleBuild(
+      mockLuciBuildService.reschedulePresubmitBuild(
         build: buildsPubSub.build,
         builderName: 'Linux Coverage',
         nextAttempt: 0,
@@ -161,7 +163,7 @@ void main() {
     verify(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
       ),
@@ -172,7 +174,7 @@ void main() {
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
         rescheduled: true,
@@ -185,6 +187,7 @@ void main() {
       'commit_branch': 'main',
       'commit_sha': 'abc',
       'repo_name': 'flutter',
+      'check_run_id': 1,
     };
 
     tester.message = createPushMessage(
@@ -198,7 +201,7 @@ void main() {
     verify(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
         rescheduled: true,
@@ -210,7 +213,7 @@ void main() {
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
         rescheduled: true,
@@ -223,6 +226,7 @@ void main() {
       'commit_branch': 'main',
       'commit_sha': 'abc',
       'repo_name': 'flutter',
+      'check_run_id': 1,
     };
 
     tester.message = createPushMessage(
@@ -237,7 +241,7 @@ void main() {
     );
 
     when(
-      mockLuciBuildService.rescheduleBuild(
+      mockLuciBuildService.reschedulePresubmitBuild(
         build: anyNamed('build'),
         builderName: anyNamed('builderName'),
         nextAttempt: anyNamed('nextAttempt'),
@@ -262,7 +266,7 @@ void main() {
 
     await tester.post(luciHandler);
     verify(
-      mockLuciBuildService.rescheduleBuild(
+      mockLuciBuildService.reschedulePresubmitBuild(
         build: anyNamed('build'),
         builderName: 'Linux A',
         nextAttempt: 2,
@@ -272,7 +276,7 @@ void main() {
     verify(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
         rescheduled: true,
@@ -284,7 +288,7 @@ void main() {
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
         rescheduled: false,
@@ -298,6 +302,7 @@ void main() {
       'commit_branch': 'main',
       'commit_sha': 'abc',
       'repo_name': 'flutter',
+      'check_run_id': 1,
     };
 
     tester.message = createPushMessage(
@@ -315,7 +320,7 @@ void main() {
 
     await tester.post(handler);
     verifyNever(
-      mockLuciBuildService.rescheduleBuild(
+      mockLuciBuildService.reschedulePresubmitBuild(
         build: buildsPubSub.build,
         builderName: 'Linux C',
         userDataMap: userDataMap,
@@ -325,7 +330,7 @@ void main() {
     verify(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
         rescheduled: false,
@@ -338,7 +343,7 @@ void main() {
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
         rescheduled: false,
@@ -352,6 +357,7 @@ void main() {
       'commit_branch': Config.defaultBranch(Config.flutterSlug),
       'commit_sha': 'abc',
       'repo_name': 'flutter',
+      'check_run_id': 1,
     };
 
     tester.message = createPushMessage(
@@ -369,7 +375,7 @@ void main() {
 
     await tester.post(handler);
     verifyNever(
-      mockLuciBuildService.rescheduleBuild(
+      mockLuciBuildService.reschedulePresubmitBuild(
         build: buildsPubSub.build,
         builderName: 'Linux C',
         userDataMap: userDataMap,
@@ -379,7 +385,7 @@ void main() {
     verify(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
         rescheduled: false,
@@ -391,7 +397,7 @@ void main() {
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
-        userDataMap: anyNamed('userDataMap'),
+        checkRunId: anyNamed('checkRunId'),
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
         rescheduled: anyNamed('rescheduled'),
@@ -404,6 +410,7 @@ void main() {
       'commit_branch': 'main',
       'commit_sha': 'abc',
       'repo_name': 'flutter',
+      'check_run_id': 1,
     };
 
     tester.message = createPushMessage(
@@ -414,7 +421,7 @@ void main() {
     );
 
     when(
-      mockLuciBuildService.rescheduleBuild(
+      mockLuciBuildService.reschedulePresubmitBuild(
         build: captureAnyNamed('build'),
         builderName: anyNamed('builderName'),
         nextAttempt: anyNamed('nextAttempt'),
@@ -440,7 +447,7 @@ void main() {
     await tester.post(luciHandler);
 
     final bbv2.Build build = verify(
-      mockLuciBuildService.rescheduleBuild(
+      mockLuciBuildService.reschedulePresubmitBuild(
         build: captureAnyNamed('build'),
         builderName: anyNamed('builderName'),
         nextAttempt: anyNamed('nextAttempt'),

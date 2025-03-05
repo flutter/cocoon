@@ -3190,9 +3190,9 @@ class MockGithubChecksService extends _i1.Mock implements _i15.GithubChecksServi
   @override
   _i20.Future<bool> updateCheckStatus({
     required _i8.Build? build,
-    required Map<String, dynamic>? userDataMap,
     required _i15.LuciBuildService? luciBuildService,
     required _i13.RepositorySlug? slug,
+    required int? checkRunId,
     bool? rescheduled = false,
   }) =>
       (super.noSuchMethod(
@@ -3201,9 +3201,9 @@ class MockGithubChecksService extends _i1.Mock implements _i15.GithubChecksServi
           [],
           {
             #build: build,
-            #userDataMap: userDataMap,
             #luciBuildService: luciBuildService,
             #slug: slug,
+            #checkRunId: checkRunId,
             #rescheduled: rescheduled,
           },
         ),
@@ -6212,7 +6212,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
       ) as _i20.Future<List<_i8.Build?>>);
 
   @override
-  _i20.Future<_i8.Build> rescheduleBuild({
+  _i20.Future<_i8.Build> reschedulePresubmitBuild({
     required String? builderName,
     required _i8.Build? build,
     required int? nextAttempt,
@@ -6220,7 +6220,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #rescheduleBuild,
+          #reschedulePresubmitBuild,
           [],
           {
             #builderName: builderName,
@@ -6232,7 +6232,7 @@ class MockLuciBuildService extends _i1.Mock implements _i15.LuciBuildService {
         returnValue: _i20.Future<_i8.Build>.value(_FakeBuild_7(
           this,
           Invocation.method(
-            #rescheduleBuild,
+            #reschedulePresubmitBuild,
             [],
             {
               #builderName: builderName,

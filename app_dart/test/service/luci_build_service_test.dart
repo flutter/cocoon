@@ -1331,7 +1331,7 @@ void main() {
 
     test('Reschedule an existing build', () async {
       when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBbv2Build(Int64(1)));
-      final build = await service.rescheduleBuild(
+      final build = await service.reschedulePresubmitBuild(
         builderName: 'mybuild',
         build: rescheduleBuild.build,
         nextAttempt: 2,
@@ -1364,7 +1364,7 @@ void main() {
         ref: 'refs/heads/gh-readonly-queue/master/pr-160690-021b2b36275342ad94a1ef44f9748b1e6153b0a3',
         id: '3dc695d1ad9a76a56420efc09fd66abd501fc691',
       );
-      final build = await service.rescheduleBuild(
+      final build = await service.reschedulePresubmitBuild(
         builderName: 'mybuild',
         build: rescheduleBuild.build,
         nextAttempt: 2,
