@@ -51,7 +51,8 @@ class MockApproverService extends _i1.Mock implements _i3.ApproverService {
       ) as _i2.Config);
 
   @override
-  _i4.Future<Set<String>> getAutoApprovalAccounts(_i5.RepositorySlug? slug) => (super.noSuchMethod(
+  _i4.Future<Set<String>> getAutoApprovalAccounts(_i5.RepositorySlug? slug) =>
+      (super.noSuchMethod(
         Invocation.method(
           #getAutoApprovalAccounts,
           [slug],
@@ -60,7 +61,8 @@ class MockApproverService extends _i1.Mock implements _i3.ApproverService {
       ) as _i4.Future<Set<String>>);
 
   @override
-  _i4.Future<void> autoApproval(_i5.PullRequest? pullRequest) => (super.noSuchMethod(
+  _i4.Future<void> autoApproval(_i5.PullRequest? pullRequest) =>
+      (super.noSuchMethod(
         Invocation.method(
           #autoApproval,
           [pullRequest],

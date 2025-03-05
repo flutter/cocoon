@@ -18,15 +18,17 @@ import '../widgets/filter_property_sheet.dart';
 class TaskGridFilter extends FilterPropertySource {
   TaskGridFilter();
 
-  factory TaskGridFilter.fromMap(Map<String, String>? valueMap) => TaskGridFilter()..applyMap(valueMap);
+  factory TaskGridFilter.fromMap(Map<String, String>? valueMap) =>
+      TaskGridFilter()..applyMap(valueMap);
 
   /// True iff all of the properties of the filter are set to their default values.
-  bool get isDefault =>
-      _allProperties.values.toList().every((ValueFilterProperty<dynamic> element) => element.isDefault);
+  bool get isDefault => _allProperties.values
+      .toList()
+      .every((ValueFilterProperty<dynamic> element) => element.isDefault);
 
   /// Sets all properties of this filter to their default values.
   void reset() {
-    for (final ValueFilterProperty<dynamic> property in _allProperties.values) {
+    for (final property in _allProperties.values) {
       property.reset();
     }
   }
@@ -35,7 +37,7 @@ class TaskGridFilter extends FilterPropertySource {
   /// made. All keys in the [valueMap] must match one of the field names of the filter properties.
   void applyMap(Map<String, String>? valueMap) {
     if (valueMap != null) {
-      for (final MapEntry<String, String> mapEntry in valueMap.entries) {
+      for (final mapEntry in valueMap.entries) {
         if (_allProperties.containsKey(mapEntry.key)) {
           _allProperties[mapEntry.key]!.stringValue = mapEntry.value;
         }
@@ -43,36 +45,45 @@ class TaskGridFilter extends FilterPropertySource {
     }
   }
 
-  final RegExpFilterProperty _taskProperty =
-      RegExpFilterProperty(fieldName: 'taskFilter', label: 'Task Name', caseSensitive: false);
-  final RegExpFilterProperty _authorProperty =
-      RegExpFilterProperty(fieldName: 'authorFilter', label: 'Commit Author', caseSensitive: false);
-  final RegExpFilterProperty _messageProperty =
-      RegExpFilterProperty(fieldName: 'messageFilter', label: 'Commit Message', caseSensitive: false);
-  final RegExpFilterProperty _hashProperty = RegExpFilterProperty(fieldName: 'hashFilter', label: 'Commit Hash');
-  final BoolFilterProperty _macProperty = BoolFilterProperty(fieldName: 'showMac', label: 'Mac');
-  final BoolFilterProperty _windowsPorperty = BoolFilterProperty(fieldName: 'showWindows', label: 'Windows');
-  final BoolFilterProperty _iosProperty = BoolFilterProperty(fieldName: 'showiOS', label: 'iOS');
-  final BoolFilterProperty _linuxPorperty = BoolFilterProperty(fieldName: 'showLinux', label: 'Linux');
-  final BoolFilterProperty _androidProperty = BoolFilterProperty(fieldName: 'showAndroid', label: 'Android');
-  final BoolFilterProperty _bringUpProperty =
-      BoolFilterProperty(fieldName: 'showBringup', label: 'Bring Up', value: false);
+  final RegExpFilterProperty _taskProperty = RegExpFilterProperty(
+      fieldName: 'taskFilter', label: 'Task Name', caseSensitive: false);
+  final RegExpFilterProperty _authorProperty = RegExpFilterProperty(
+      fieldName: 'authorFilter', label: 'Commit Author', caseSensitive: false);
+  final RegExpFilterProperty _messageProperty = RegExpFilterProperty(
+      fieldName: 'messageFilter',
+      label: 'Commit Message',
+      caseSensitive: false);
+  final RegExpFilterProperty _hashProperty =
+      RegExpFilterProperty(fieldName: 'hashFilter', label: 'Commit Hash');
+  final BoolFilterProperty _macProperty =
+      BoolFilterProperty(fieldName: 'showMac', label: 'Mac');
+  final BoolFilterProperty _windowsPorperty =
+      BoolFilterProperty(fieldName: 'showWindows', label: 'Windows');
+  final BoolFilterProperty _iosProperty =
+      BoolFilterProperty(fieldName: 'showiOS', label: 'iOS');
+  final BoolFilterProperty _linuxPorperty =
+      BoolFilterProperty(fieldName: 'showLinux', label: 'Linux');
+  final BoolFilterProperty _androidProperty =
+      BoolFilterProperty(fieldName: 'showAndroid', label: 'Android');
+  final BoolFilterProperty _bringUpProperty = BoolFilterProperty(
+      fieldName: 'showBringup', label: 'Bring Up', value: false);
 
   // [_allProperties] is a LinkedHashMap so we can trust its iteration order
   LinkedHashMap<String, ValueFilterProperty<dynamic>>? _allPropertiesMap;
 
   LinkedHashMap<String, ValueFilterProperty<dynamic>> get _allProperties =>
       (_allPropertiesMap ??= (<String, ValueFilterProperty<dynamic>>{}
-        ..[_taskProperty.fieldName] = _taskProperty
-        ..[_authorProperty.fieldName] = _authorProperty
-        ..[_messageProperty.fieldName] = _messageProperty
-        ..[_hashProperty.fieldName] = _hashProperty
-        ..[_macProperty.fieldName] = _macProperty
-        ..[_windowsPorperty.fieldName] = _windowsPorperty
-        ..[_iosProperty.fieldName] = _iosProperty
-        ..[_linuxPorperty.fieldName] = _linuxPorperty
-        ..[_androidProperty.fieldName] = _androidProperty
-        ..[_bringUpProperty.fieldName] = _bringUpProperty) as LinkedHashMap<String, ValueFilterProperty<dynamic>>?)!;
+            ..[_taskProperty.fieldName] = _taskProperty
+            ..[_authorProperty.fieldName] = _authorProperty
+            ..[_messageProperty.fieldName] = _messageProperty
+            ..[_hashProperty.fieldName] = _hashProperty
+            ..[_macProperty.fieldName] = _macProperty
+            ..[_windowsPorperty.fieldName] = _windowsPorperty
+            ..[_iosProperty.fieldName] = _iosProperty
+            ..[_linuxPorperty.fieldName] = _linuxPorperty
+            ..[_androidProperty.fieldName] = _androidProperty
+            ..[_bringUpProperty.fieldName] = _bringUpProperty)
+          as LinkedHashMap<String, ValueFilterProperty<dynamic>>?)!;
 
   /// The [taskFilter] property is a regular expression that must match the name of the
   /// task in the grid. This property will filter out columns on the build dashboard.
@@ -167,22 +178,24 @@ class TaskGridFilter extends FilterPropertySource {
       return false;
     }
 
-    if ((!_allProperties['showBringup']?.value) && qualifiedTask.isBringup) {
+    if ((_allProperties['showBringup']?.value == false) &&
+        qualifiedTask.isBringup) {
       return false;
     }
 
     final bool showAndroid = _allProperties['showAndroid']?.value ?? false;
-    final LinkedHashMap<String, bool> orderedOSFilter = LinkedHashMap<String, bool>.of({
-      'ios': _allProperties['showiOS']?.value ?? false,
+    final orderedOSFilter = LinkedHashMap<String, bool>.of({
+      'ios': _allProperties['showiOS']?.value as bool? ?? false,
       'android': showAndroid,
       'mokey': showAndroid,
       'pixel_7pro': showAndroid,
-      'mac': _allProperties['showMac']?.value ?? false,
-      'windows': _allProperties['showWindows']?.value ?? false,
-      'linux': _allProperties['showLinux']?.value ?? false,
+      'mac': _allProperties['showMac']?.value as bool? ?? false,
+      'windows': _allProperties['showWindows']?.value as bool? ?? false,
+      'linux': _allProperties['showLinux']?.value as bool? ?? false,
     });
     return orderedOSFilter.entries
-            .firstWhereOrNull((MapEntry<String, bool> os) => qualifiedTask.task!.toLowerCase().contains(os.key))
+            .firstWhereOrNull((MapEntry<String, bool> os) =>
+                qualifiedTask.task!.toLowerCase().contains(os.key))
             ?.value ??
         true; // Unrecognized stages always pass.
   }
@@ -225,8 +238,10 @@ class TaskGridFilter extends FilterPropertySource {
   /// include only non-default filter values separated by the URL parameter separator (`&`).
   /// The string will not include the leading `?` character used to introduce URL parameters
   /// in case this string must be mixed with other query parameters.
-  String get queryParameters =>
-      toMap().entries.map<String>((MapEntry<String?, String> e) => '${e.key}=${e.value}').join('&');
+  String get queryParameters => toMap()
+      .entries
+      .map<String>((MapEntry<String?, String> e) => '${e.key}=${e.value}')
+      .join('&');
 
   List<FilterPropertyNode>? _layout;
 
@@ -262,7 +277,8 @@ class TaskGridFilter extends FilterPropertySource {
 
   // [_allProperties] is a LinkedHashMap so we can trust its iteration order
   @override
-  int get hashCode => Object.hashAll(_allProperties.values.map((ValueFilterProperty<dynamic> e) => e.value));
+  int get hashCode => Object.hashAll(
+      _allProperties.values.map((ValueFilterProperty<dynamic> e) => e.value));
 
   @override
   bool operator ==(Object other) {
@@ -271,7 +287,8 @@ class TaskGridFilter extends FilterPropertySource {
     }
     return other is TaskGridFilter &&
         _allProperties.values.every(
-          (ValueFilterProperty<dynamic> element) => element.value == other._allProperties[element.fieldName]!.value,
+          (ValueFilterProperty<dynamic> element) =>
+              element.value == other._allProperties[element.fieldName]!.value,
         );
   }
 
@@ -279,7 +296,7 @@ class TaskGridFilter extends FilterPropertySource {
 
   void notifyListeners() {
     if (_listeners != null) {
-      for (final VoidCallback listener in _listeners!) {
+      for (final listener in _listeners!) {
         listener();
       }
     }
@@ -289,7 +306,7 @@ class TaskGridFilter extends FilterPropertySource {
   void addListener(VoidCallback listener) {
     if (_listeners == null) {
       _listeners = <VoidCallback>[];
-      for (final ValueFilterProperty<dynamic> property in _allProperties.values) {
+      for (final property in _allProperties.values) {
         property.addListener(notifyListeners);
       }
     }

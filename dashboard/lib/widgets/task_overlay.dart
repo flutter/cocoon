@@ -31,11 +31,12 @@ class TaskOverlayEntryPositionDelegate extends SingleChildLayoutDelegate {
     required double cellSize,
     required Offset target,
   }) {
-    const double margin = 10.0;
-    final double verticalOffset = cellSize * .9;
+    const margin = 10.0;
+    final verticalOffset = cellSize * .9;
 
     // VERTICAL DIRECTION
-    final bool fitsBelow = target.dy + verticalOffset + childSize.height <= size.height - margin;
+    final fitsBelow =
+        target.dy + verticalOffset + childSize.height <= size.height - margin;
     double y;
     if (fitsBelow) {
       y = math.min(target.dy + verticalOffset, size.height - margin);
@@ -48,8 +49,8 @@ class TaskOverlayEntryPositionDelegate extends SingleChildLayoutDelegate {
     if (size.width - margin * 2.0 < childSize.width) {
       x = (size.width - childSize.width) / 2.0;
     } else {
-      final double normalizedTargetX = (target.dx).clamp(margin, size.width - margin);
-      final double edge = normalizedTargetX + childSize.width;
+      final normalizedTargetX = target.dx.clamp(margin, size.width - margin);
+      final edge = normalizedTargetX + childSize.width;
       // Position the box as close to the left edge of the full size
       // without going over the margin.
       if (edge > size.width) {
@@ -142,7 +143,8 @@ class TaskOverlayEntry extends StatelessWidget {
         Positioned(
           // Move this overlay to be where the parent is
           child: CustomSingleChildLayout(
-            delegate: TaskOverlayEntryPositionDelegate(position, cellSize: TaskBox.of(context)),
+            delegate: TaskOverlayEntryPositionDelegate(position,
+                cellSize: TaskBox.of(context)),
             child: TaskOverlayContents(
               showSnackBarCallback: showSnackBarCallback,
               buildState: buildState,
@@ -193,7 +195,8 @@ class TaskOverlayContents extends StatelessWidget {
   @visibleForTesting
   static const String rerunErrorMessage = 'Failed to rerun task.';
   @visibleForTesting
-  static const String rerunSuccessMessage = 'Devicelab is rerunning the task. This can take a minute to propagate.';
+  static const String rerunSuccessMessage =
+      'Devicelab is rerunning the task. This can take a minute to propagate.';
   @visibleForTesting
   static const Duration rerunSnackBarDuration = Duration(seconds: 15);
 
@@ -202,28 +205,36 @@ class TaskOverlayContents extends StatelessWidget {
   static const Map<String, Icon> statusIcon = <String, Icon>{
     TaskBox.statusFailed: Icon(Icons.clear, color: Colors.red, size: 32),
     TaskBox.statusNew: Icon(Icons.new_releases, color: Colors.blue, size: 32),
-    TaskBox.statusInProgress: Icon(Icons.autorenew, color: Colors.blue, size: 32),
-    TaskBox.statusSucceeded: Icon(Icons.check_circle, color: Colors.green, size: 32),
+    TaskBox.statusInProgress:
+        Icon(Icons.autorenew, color: Colors.blue, size: 32),
+    TaskBox.statusSucceeded:
+        Icon(Icons.check_circle, color: Colors.green, size: 32),
   };
 
   @override
   Widget build(BuildContext context) {
-    final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
+    final qualifiedTask = QualifiedTask.fromTask(task);
 
-    final DateTime? now = Now.of(context);
-    final DateTime createTime = DateTime.fromMillisecondsSinceEpoch(task.createTimestamp.toInt());
-    final DateTime startTime = DateTime.fromMillisecondsSinceEpoch(task.startTimestamp.toInt());
-    final DateTime endTime = DateTime.fromMillisecondsSinceEpoch(task.endTimestamp.toInt());
+    final now = Now.of(context);
+    final createTime =
+        DateTime.fromMillisecondsSinceEpoch(task.createTimestamp.toInt());
+    final startTime =
+        DateTime.fromMillisecondsSinceEpoch(task.startTimestamp.toInt());
+    final endTime =
+        DateTime.fromMillisecondsSinceEpoch(task.endTimestamp.toInt());
 
-    final Duration queueDuration =
-        task.startTimestamp == 0 ? now!.difference(createTime) : startTime.difference(createTime);
-    final Duration runDuration = task.endTimestamp == 0 ? now!.difference(startTime) : endTime.difference(startTime);
+    final queueDuration = task.startTimestamp == 0
+        ? now!.difference(createTime)
+        : startTime.difference(createTime);
+    final runDuration = task.endTimestamp == 0
+        ? now!.difference(startTime)
+        : endTime.difference(startTime);
 
     // There are 3 possible states for queue time:
     //   1. Task is waiting to be scheduled (in queue)
     //   2. Task has been scheduled (out of queue)
     //   3. Task will never be scheduled (skipped).
-    final String queueText = switch (task.status) {
+    final queueText = switch (task.status) {
       TaskBox.statusNew => 'Queueing for ${queueDuration.inMinutes} minutes',
       TaskBox.statusSkipped => 'Not scheduled or skipped',
       _ => 'Queue time: ${queueDuration.inMinutes} minutes',
@@ -234,14 +245,15 @@ class TaskOverlayContents extends StatelessWidget {
     //   2. Task is running (in progress)
     //   3. Task ran (other status)
     //   4. Task will never run (skipped)
-    final String runText = switch (task.status) {
+    final runText = switch (task.status) {
       TaskBox.statusNew => '',
-      TaskBox.statusInProgress => 'Running for ${runDuration.inMinutes} minutes',
+      TaskBox.statusInProgress =>
+        'Running for ${runDuration.inMinutes} minutes',
       TaskBox.statusSkipped => '',
       _ => 'Run time: ${runDuration.inMinutes} minutes',
     };
 
-    final String summaryText = <String>[
+    final summaryText = <String>[
       'Attempts: ${task.attempts}',
       if (runText.isNotEmpty) runText,
       queueText,
@@ -264,7 +276,8 @@ class TaskOverlayContents extends StatelessWidget {
                     Tooltip(
                       message: task.status,
                       child: Padding(
-                        padding: const EdgeInsets.only(left: 8.0, top: 10.0, right: 12.0),
+                        padding: const EdgeInsets.only(
+                            left: 8.0, top: 10.0, right: 12.0),
                         child: statusIcon[task.status],
                       ),
                     ),
@@ -279,7 +292,8 @@ class TaskOverlayContents extends StatelessWidget {
                             summaryText,
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
-                          if (QualifiedTask.fromTask(task).isLuci || QualifiedTask.fromTask(task).isDartInternal)
+                          if (QualifiedTask.fromTask(task).isLuci ||
+                              QualifiedTask.fromTask(task).isDartInternal)
                             LuciTaskAttemptSummary(task: task),
                         ],
                       ),
@@ -297,7 +311,8 @@ class TaskOverlayContents extends StatelessWidget {
                       child: AnimatedBuilder(
                         animation: buildState,
                         builder: (context, child) {
-                          final bool isAuthenticated = buildState.authService.isAuthenticated;
+                          final isAuthenticated =
+                              buildState.authService.isAuthenticated;
                           return ProgressButton(
                             onPressed: isAuthenticated
                                 ? () {
@@ -320,7 +335,7 @@ class TaskOverlayContents extends StatelessWidget {
   }
 
   Future<void> _rerunTask(Task task) async {
-    final bool rerunResponse = await buildState.rerunTask(task);
+    final rerunResponse = await buildState.rerunTask(task);
     if (rerunResponse) {
       showSnackBarCallback(
         const SnackBar(

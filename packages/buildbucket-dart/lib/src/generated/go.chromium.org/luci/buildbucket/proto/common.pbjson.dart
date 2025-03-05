@@ -29,10 +29,10 @@ const Status$json = {
 };
 
 /// Descriptor for `Status`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List statusDescriptor =
-    $convert.base64Decode('CgZTdGF0dXMSFgoSU1RBVFVTX1VOU1BFQ0lGSUVEEAASDQoJU0NIRURVTEVEEAESCwoHU1RBUl'
-        'RFRBACEg4KCkVOREVEX01BU0sQBBILCgdTVUNDRVNTEAwSCwoHRkFJTFVSRRAUEhEKDUlORlJB'
-        'X0ZBSUxVUkUQJBIMCghDQU5DRUxFRBBE');
+final $typed_data.Uint8List statusDescriptor = $convert.base64Decode(
+    'CgZTdGF0dXMSFgoSU1RBVFVTX1VOU1BFQ0lGSUVEEAASDQoJU0NIRURVTEVEEAESCwoHU1RBUl'
+    'RFRBACEg4KCkVOREVEX01BU0sQBBILCgdTVUNDRVNTEAwSCwoHRkFJTFVSRRAUEhEKDUlORlJB'
+    'X0ZBSUxVUkUQJBIMCghDQU5DRUxFRBBE');
 
 @$core.Deprecated('Use trinaryDescriptor instead')
 const Trinary$json = {
@@ -45,8 +45,8 @@ const Trinary$json = {
 };
 
 /// Descriptor for `Trinary`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List trinaryDescriptor =
-    $convert.base64Decode('CgdUcmluYXJ5EgkKBVVOU0VUEAASBwoDWUVTEAESBgoCTk8QAg==');
+final $typed_data.Uint8List trinaryDescriptor = $convert
+    .base64Decode('CgdUcmluYXJ5EgkKBVVOU0VUEAASBwoDWUVTEAESBgoCTk8QAg==');
 
 @$core.Deprecated('Use compressionDescriptor instead')
 const Compression$json = {
@@ -73,10 +73,10 @@ const Executable$json = {
 };
 
 /// Descriptor for `Executable`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List executableDescriptor =
-    $convert.base64Decode('CgpFeGVjdXRhYmxlEiEKDGNpcGRfcGFja2FnZRgBIAEoCVILY2lwZFBhY2thZ2USIQoMY2lwZF'
-        '92ZXJzaW9uGAIgASgJUgtjaXBkVmVyc2lvbhIQCgNjbWQYAyADKAlSA2NtZBIYCgd3cmFwcGVy'
-        'GAQgAygJUgd3cmFwcGVy');
+final $typed_data.Uint8List executableDescriptor = $convert.base64Decode(
+    'CgpFeGVjdXRhYmxlEiEKDGNpcGRfcGFja2FnZRgBIAEoCVILY2lwZFBhY2thZ2USIQoMY2lwZF'
+    '92ZXJzaW9uGAIgASgJUgtjaXBkVmVyc2lvbhIQCgNjbWQYAyADKAlSA2NtZBIYCgd3cmFwcGVy'
+    'GAQgAygJUgd3cmFwcGVy');
 
 @$core.Deprecated('Use statusDetailsDescriptor instead')
 const StatusDetails$json = {
@@ -90,7 +90,14 @@ const StatusDetails$json = {
       '6': '.buildbucket.v2.StatusDetails.ResourceExhaustion',
       '10': 'resourceExhaustion'
     },
-    {'1': 'timeout', '3': 4, '4': 1, '5': 11, '6': '.buildbucket.v2.StatusDetails.Timeout', '10': 'timeout'},
+    {
+      '1': 'timeout',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.buildbucket.v2.StatusDetails.Timeout',
+      '10': 'timeout'
+    },
   ],
   '3': [StatusDetails_ResourceExhaustion$json, StatusDetails_Timeout$json],
   '9': [
@@ -110,12 +117,12 @@ const StatusDetails_Timeout$json = {
 };
 
 /// Descriptor for `StatusDetails`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List statusDetailsDescriptor =
-    $convert.base64Decode('Cg1TdGF0dXNEZXRhaWxzEmEKE3Jlc291cmNlX2V4aGF1c3Rpb24YAyABKAsyMC5idWlsZGJ1Y2'
-        'tldC52Mi5TdGF0dXNEZXRhaWxzLlJlc291cmNlRXhoYXVzdGlvblIScmVzb3VyY2VFeGhhdXN0'
-        'aW9uEj8KB3RpbWVvdXQYBCABKAsyJS5idWlsZGJ1Y2tldC52Mi5TdGF0dXNEZXRhaWxzLlRpbW'
-        'VvdXRSB3RpbWVvdXQaFAoSUmVzb3VyY2VFeGhhdXN0aW9uGgkKB1RpbWVvdXRKBAgBEAJKBAgC'
-        'EAM=');
+final $typed_data.Uint8List statusDetailsDescriptor = $convert.base64Decode(
+    'Cg1TdGF0dXNEZXRhaWxzEmEKE3Jlc291cmNlX2V4aGF1c3Rpb24YAyABKAsyMC5idWlsZGJ1Y2'
+    'tldC52Mi5TdGF0dXNEZXRhaWxzLlJlc291cmNlRXhoYXVzdGlvblIScmVzb3VyY2VFeGhhdXN0'
+    'aW9uEj8KB3RpbWVvdXQYBCABKAsyJS5idWlsZGJ1Y2tldC52Mi5TdGF0dXNEZXRhaWxzLlRpbW'
+    'VvdXRSB3RpbWVvdXQaFAoSUmVzb3VyY2VFeGhhdXN0aW9uGgkKB1RpbWVvdXRKBAgBEAJKBAgC'
+    'EAM=');
 
 @$core.Deprecated('Use logDescriptor instead')
 const Log$json = {
@@ -128,9 +135,9 @@ const Log$json = {
 };
 
 /// Descriptor for `Log`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List logDescriptor =
-    $convert.base64Decode('CgNMb2cSEgoEbmFtZRgBIAEoCVIEbmFtZRIZCgh2aWV3X3VybBgCIAEoCVIHdmlld1VybBIQCg'
-        'N1cmwYAyABKAlSA3VybA==');
+final $typed_data.Uint8List logDescriptor = $convert.base64Decode(
+    'CgNMb2cSEgoEbmFtZRgBIAEoCVIEbmFtZRIZCgh2aWV3X3VybBgCIAEoCVIHdmlld1VybBIQCg'
+    'N1cmwYAyABKAlSA3VybA==');
 
 @$core.Deprecated('Use gerritChangeDescriptor instead')
 const GerritChange$json = {
@@ -144,10 +151,10 @@ const GerritChange$json = {
 };
 
 /// Descriptor for `GerritChange`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List gerritChangeDescriptor =
-    $convert.base64Decode('CgxHZXJyaXRDaGFuZ2USEgoEaG9zdBgBIAEoCVIEaG9zdBIYCgdwcm9qZWN0GAIgASgJUgdwcm'
-        '9qZWN0EhYKBmNoYW5nZRgDIAEoA1IGY2hhbmdlEhoKCHBhdGNoc2V0GAQgASgDUghwYXRjaHNl'
-        'dA==');
+final $typed_data.Uint8List gerritChangeDescriptor = $convert.base64Decode(
+    'CgxHZXJyaXRDaGFuZ2USEgoEaG9zdBgBIAEoCVIEaG9zdBIYCgdwcm9qZWN0GAIgASgJUgdwcm'
+    '9qZWN0EhYKBmNoYW5nZRgDIAEoA1IGY2hhbmdlEhoKCHBhdGNoc2V0GAQgASgDUghwYXRjaHNl'
+    'dA==');
 
 @$core.Deprecated('Use gitilesCommitDescriptor instead')
 const GitilesCommit$json = {
@@ -162,10 +169,10 @@ const GitilesCommit$json = {
 };
 
 /// Descriptor for `GitilesCommit`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List gitilesCommitDescriptor =
-    $convert.base64Decode('Cg1HaXRpbGVzQ29tbWl0EhIKBGhvc3QYASABKAlSBGhvc3QSGAoHcHJvamVjdBgCIAEoCVIHcH'
-        'JvamVjdBIOCgJpZBgDIAEoCVICaWQSEAoDcmVmGAQgASgJUgNyZWYSGgoIcG9zaXRpb24YBSAB'
-        'KA1SCHBvc2l0aW9u');
+final $typed_data.Uint8List gitilesCommitDescriptor = $convert.base64Decode(
+    'Cg1HaXRpbGVzQ29tbWl0EhIKBGhvc3QYASABKAlSBGhvc3QSGAoHcHJvamVjdBgCIAEoCVIHcH'
+    'JvamVjdBIOCgJpZBgDIAEoCVICaWQSEAoDcmVmGAQgASgJUgNyZWYSGgoIcG9zaXRpb24YBSAB'
+    'KA1SCHBvc2l0aW9u');
 
 @$core.Deprecated('Use stringPairDescriptor instead')
 const StringPair$json = {
@@ -177,23 +184,37 @@ const StringPair$json = {
 };
 
 /// Descriptor for `StringPair`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List stringPairDescriptor =
-    $convert.base64Decode('CgpTdHJpbmdQYWlyEhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZQ==');
+final $typed_data.Uint8List stringPairDescriptor = $convert.base64Decode(
+    'CgpTdHJpbmdQYWlyEhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZQ==');
 
 @$core.Deprecated('Use timeRangeDescriptor instead')
 const TimeRange$json = {
   '1': 'TimeRange',
   '2': [
-    {'1': 'start_time', '3': 1, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'startTime'},
-    {'1': 'end_time', '3': 2, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'endTime'},
+    {
+      '1': 'start_time',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'startTime'
+    },
+    {
+      '1': 'end_time',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'endTime'
+    },
   ],
 };
 
 /// Descriptor for `TimeRange`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List timeRangeDescriptor =
-    $convert.base64Decode('CglUaW1lUmFuZ2USOQoKc3RhcnRfdGltZRgBIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3'
-        'RhbXBSCXN0YXJ0VGltZRI1CghlbmRfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1l'
-        'c3RhbXBSB2VuZFRpbWU=');
+final $typed_data.Uint8List timeRangeDescriptor = $convert.base64Decode(
+    'CglUaW1lUmFuZ2USOQoKc3RhcnRfdGltZRgBIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3'
+    'RhbXBSCXN0YXJ0VGltZRI1CghlbmRfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1l'
+    'c3RhbXBSB2VuZFRpbWU=');
 
 @$core.Deprecated('Use requestedDimensionDescriptor instead')
 const RequestedDimension$json = {
@@ -201,15 +222,22 @@ const RequestedDimension$json = {
   '2': [
     {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
     {'1': 'value', '3': 2, '4': 1, '5': 9, '10': 'value'},
-    {'1': 'expiration', '3': 3, '4': 1, '5': 11, '6': '.google.protobuf.Duration', '10': 'expiration'},
+    {
+      '1': 'expiration',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Duration',
+      '10': 'expiration'
+    },
   ],
 };
 
 /// Descriptor for `RequestedDimension`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List requestedDimensionDescriptor =
-    $convert.base64Decode('ChJSZXF1ZXN0ZWREaW1lbnNpb24SEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBX'
-        'ZhbHVlEjkKCmV4cGlyYXRpb24YAyABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb25SCmV4'
-        'cGlyYXRpb24=');
+final $typed_data.Uint8List requestedDimensionDescriptor = $convert.base64Decode(
+    'ChJSZXF1ZXN0ZWREaW1lbnNpb24SEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBX'
+    'ZhbHVlEjkKCmV4cGlyYXRpb24YAyABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb25SCmV4'
+    'cGlyYXRpb24=');
 
 @$core.Deprecated('Use cacheEntryDescriptor instead')
 const CacheEntry$json = {
@@ -217,16 +245,23 @@ const CacheEntry$json = {
   '2': [
     {'1': 'name', '3': 1, '4': 1, '5': 9, '10': 'name'},
     {'1': 'path', '3': 2, '4': 1, '5': 9, '10': 'path'},
-    {'1': 'wait_for_warm_cache', '3': 3, '4': 1, '5': 11, '6': '.google.protobuf.Duration', '10': 'waitForWarmCache'},
+    {
+      '1': 'wait_for_warm_cache',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Duration',
+      '10': 'waitForWarmCache'
+    },
     {'1': 'env_var', '3': 4, '4': 1, '5': 9, '10': 'envVar'},
   ],
 };
 
 /// Descriptor for `CacheEntry`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List cacheEntryDescriptor =
-    $convert.base64Decode('CgpDYWNoZUVudHJ5EhIKBG5hbWUYASABKAlSBG5hbWUSEgoEcGF0aBgCIAEoCVIEcGF0aBJICh'
-        'N3YWl0X2Zvcl93YXJtX2NhY2hlGAMgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uUhB3'
-        'YWl0Rm9yV2FybUNhY2hlEhcKB2Vudl92YXIYBCABKAlSBmVudlZhcg==');
+final $typed_data.Uint8List cacheEntryDescriptor = $convert.base64Decode(
+    'CgpDYWNoZUVudHJ5EhIKBG5hbWUYASABKAlSBG5hbWUSEgoEcGF0aBgCIAEoCVIEcGF0aBJICh'
+    'N3YWl0X2Zvcl93YXJtX2NhY2hlGAMgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uUhB3'
+    'YWl0Rm9yV2FybUNhY2hlEhcKB2Vudl92YXIYBCABKAlSBmVudlZhcg==');
 
 @$core.Deprecated('Use healthStatusDescriptor instead')
 const HealthStatus$json = {
@@ -242,13 +277,45 @@ const HealthStatus$json = {
       '10': 'healthMetrics'
     },
     {'1': 'description', '3': 3, '4': 1, '5': 9, '10': 'description'},
-    {'1': 'doc_links', '3': 4, '4': 3, '5': 11, '6': '.buildbucket.v2.HealthStatus.DocLinksEntry', '10': 'docLinks'},
-    {'1': 'data_links', '3': 5, '4': 3, '5': 11, '6': '.buildbucket.v2.HealthStatus.DataLinksEntry', '10': 'dataLinks'},
+    {
+      '1': 'doc_links',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.buildbucket.v2.HealthStatus.DocLinksEntry',
+      '10': 'docLinks'
+    },
+    {
+      '1': 'data_links',
+      '3': 5,
+      '4': 3,
+      '5': 11,
+      '6': '.buildbucket.v2.HealthStatus.DataLinksEntry',
+      '10': 'dataLinks'
+    },
     {'1': 'reporter', '3': 6, '4': 1, '5': 9, '8': {}, '10': 'reporter'},
-    {'1': 'reported_time', '3': 7, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '8': {}, '10': 'reportedTime'},
-    {'1': 'contact_team_email', '3': 8, '4': 1, '5': 9, '10': 'contactTeamEmail'},
+    {
+      '1': 'reported_time',
+      '3': 7,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '8': {},
+      '10': 'reportedTime'
+    },
+    {
+      '1': 'contact_team_email',
+      '3': 8,
+      '4': 1,
+      '5': 9,
+      '10': 'contactTeamEmail'
+    },
   ],
-  '3': [HealthStatus_HealthMetricsEntry$json, HealthStatus_DocLinksEntry$json, HealthStatus_DataLinksEntry$json],
+  '3': [
+    HealthStatus_HealthMetricsEntry$json,
+    HealthStatus_DocLinksEntry$json,
+    HealthStatus_DataLinksEntry$json
+  ],
 };
 
 @$core.Deprecated('Use healthStatusDescriptor instead')
@@ -282,16 +349,16 @@ const HealthStatus_DataLinksEntry$json = {
 };
 
 /// Descriptor for `HealthStatus`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List healthStatusDescriptor =
-    $convert.base64Decode('CgxIZWFsdGhTdGF0dXMSIQoMaGVhbHRoX3Njb3JlGAEgASgDUgtoZWFsdGhTY29yZRJWCg5oZW'
-        'FsdGhfbWV0cmljcxgCIAMoCzIvLmJ1aWxkYnVja2V0LnYyLkhlYWx0aFN0YXR1cy5IZWFsdGhN'
-        'ZXRyaWNzRW50cnlSDWhlYWx0aE1ldHJpY3MSIAoLZGVzY3JpcHRpb24YAyABKAlSC2Rlc2NyaX'
-        'B0aW9uEkcKCWRvY19saW5rcxgEIAMoCzIqLmJ1aWxkYnVja2V0LnYyLkhlYWx0aFN0YXR1cy5E'
-        'b2NMaW5rc0VudHJ5Ughkb2NMaW5rcxJKCgpkYXRhX2xpbmtzGAUgAygLMisuYnVpbGRidWNrZX'
-        'QudjIuSGVhbHRoU3RhdHVzLkRhdGFMaW5rc0VudHJ5UglkYXRhTGlua3MSHwoIcmVwb3J0ZXIY'
-        'BiABKAlCA+BBA1IIcmVwb3J0ZXISRAoNcmVwb3J0ZWRfdGltZRgHIAEoCzIaLmdvb2dsZS5wcm'
-        '90b2J1Zi5UaW1lc3RhbXBCA+BBA1IMcmVwb3J0ZWRUaW1lEiwKEmNvbnRhY3RfdGVhbV9lbWFp'
-        'bBgIIAEoCVIQY29udGFjdFRlYW1FbWFpbBpAChJIZWFsdGhNZXRyaWNzRW50cnkSEAoDa2V5GA'
-        'EgASgJUgNrZXkSFAoFdmFsdWUYAiABKAJSBXZhbHVlOgI4ARo7Cg1Eb2NMaW5rc0VudHJ5EhAK'
-        'A2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAEaPAoORGF0YUxpbmtzRW'
-        '50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4AQ==');
+final $typed_data.Uint8List healthStatusDescriptor = $convert.base64Decode(
+    'CgxIZWFsdGhTdGF0dXMSIQoMaGVhbHRoX3Njb3JlGAEgASgDUgtoZWFsdGhTY29yZRJWCg5oZW'
+    'FsdGhfbWV0cmljcxgCIAMoCzIvLmJ1aWxkYnVja2V0LnYyLkhlYWx0aFN0YXR1cy5IZWFsdGhN'
+    'ZXRyaWNzRW50cnlSDWhlYWx0aE1ldHJpY3MSIAoLZGVzY3JpcHRpb24YAyABKAlSC2Rlc2NyaX'
+    'B0aW9uEkcKCWRvY19saW5rcxgEIAMoCzIqLmJ1aWxkYnVja2V0LnYyLkhlYWx0aFN0YXR1cy5E'
+    'b2NMaW5rc0VudHJ5Ughkb2NMaW5rcxJKCgpkYXRhX2xpbmtzGAUgAygLMisuYnVpbGRidWNrZX'
+    'QudjIuSGVhbHRoU3RhdHVzLkRhdGFMaW5rc0VudHJ5UglkYXRhTGlua3MSHwoIcmVwb3J0ZXIY'
+    'BiABKAlCA+BBA1IIcmVwb3J0ZXISRAoNcmVwb3J0ZWRfdGltZRgHIAEoCzIaLmdvb2dsZS5wcm'
+    '90b2J1Zi5UaW1lc3RhbXBCA+BBA1IMcmVwb3J0ZWRUaW1lEiwKEmNvbnRhY3RfdGVhbV9lbWFp'
+    'bBgIIAEoCVIQY29udGFjdFRlYW1FbWFpbBpAChJIZWFsdGhNZXRyaWNzRW50cnkSEAoDa2V5GA'
+    'EgASgJUgNrZXkSFAoFdmFsdWUYAiABKAJSBXZhbHVlOgI4ARo7Cg1Eb2NMaW5rc0VudHJ5EhAK'
+    'A2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAEaPAoORGF0YUxpbmtzRW'
+    '50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4AQ==');

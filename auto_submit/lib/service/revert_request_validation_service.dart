@@ -4,29 +4,28 @@
 
 import 'dart:convert';
 
-import 'package:auto_submit/action/git_cli_revert_method.dart';
-import 'package:auto_submit/action/revert_method.dart';
-import 'package:auto_submit/configuration/repository_configuration.dart';
-import 'package:auto_submit/model/auto_submit_query_result.dart';
-import 'package:auto_submit/model/discord_message.dart';
-import 'package:auto_submit/model/pull_request_data_types.dart';
-import 'package:auto_submit/request_handling/pubsub.dart';
-import 'package:auto_submit/requests/github_pull_request_event.dart';
-import 'package:auto_submit/revert/revert_discord_message.dart';
-import 'package:auto_submit/revert/revert_info_collection.dart';
-import 'package:auto_submit/service/approver_service.dart';
-import 'package:auto_submit/service/config.dart';
-import 'package:auto_submit/service/discord_notification.dart';
-import 'package:auto_submit/service/github_service.dart';
-import 'package:auto_submit/service/validation_service.dart';
-import 'package:auto_submit/validations/validation.dart';
-import 'package:auto_submit/validations/validation_filter.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
+import '../action/git_cli_revert_method.dart';
+import '../action/revert_method.dart';
+import '../model/auto_submit_query_result.dart';
+import '../model/discord_message.dart';
+import '../model/pull_request_data_types.dart';
+import '../request_handling/pubsub.dart';
+import '../requests/github_pull_request_event.dart';
+import '../revert/revert_discord_message.dart';
+import '../revert/revert_info_collection.dart';
+import '../validations/validation.dart';
+import '../validations/validation_filter.dart';
+import 'approver_service.dart';
+import 'config.dart';
+import 'discord_notification.dart';
+import 'github_service.dart';
 import 'process_method.dart';
+import 'validation_service.dart';
 
 enum RevertProcessMethod { revert, revertOf, none }
 
@@ -56,9 +55,12 @@ class RevertRequestValidationService extends ValidationService {
     PubSub pubsub,
   ) async {
     // Make sure the pull request still contains the labels.
-    final github.PullRequest messagePullRequest = githubPullRequestEvent.pullRequest!;
+    final messagePullRequest = githubPullRequestEvent.pullRequest!;
     final slug = messagePullRequest.base!.repo!.slug();
-    final fullPullRequest = await getFullPullRequest(slug, messagePullRequest.number!);
+    final fullPullRequest = await getFullPullRequest(
+      slug,
+      messagePullRequest.number!,
+    );
     final revertProcessMethod = await shouldProcess(fullPullRequest);
 
     final updatedGithubPullRequestEvent = GithubPullRequestEvent(
@@ -88,7 +90,9 @@ class RevertRequestValidationService extends ValidationService {
         break;
       // Do not process.
       case RevertProcessMethod.none:
-        log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
+        log.info(
+          'Should not process ${messagePullRequest.toJson()}, and ack the message.',
+        );
         await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
         break;
     }
@@ -103,7 +107,10 @@ class RevertRequestValidationService extends ValidationService {
     return DateTime.now().difference(pullRequest.mergedAt!).inHours <= 24;
   }
 
-  final RegExp regExp = RegExp(r'\s*[R|r]eason\s+for\s+[R|r]evert:?\s+([\S|\s]{1,400})', multiLine: true);
+  final RegExp regExp = RegExp(
+    r'\s*[R|r]eason\s+for\s+[R|r]evert:?\s+([\S|\s]{1,400})',
+    multiLine: true,
+  );
 
   /// Determine whether or not the original pull request to be reverted has a reason
   /// why the issue is being reverted.
@@ -112,11 +119,18 @@ class RevertRequestValidationService extends ValidationService {
     github.RepositorySlug slug,
     int issueNumber,
   ) async {
-    final List<github.IssueComment> pullRequestComments = await githubService.getIssueComments(slug, issueNumber);
-    log.info('Found ${pullRequestComments.length} comments for issue ${slug.fullName}/$issueNumber');
-    for (github.IssueComment prComment in pullRequestComments) {
-      final String? commentBody = prComment.body;
-      log.info('Processing comment on ${slug.fullName}/$issueNumber: $commentBody');
+    final pullRequestComments = await githubService.getIssueComments(
+      slug,
+      issueNumber,
+    );
+    log.info(
+      'Found ${pullRequestComments.length} comments for issue ${slug.fullName}/$issueNumber',
+    );
+    for (var prComment in pullRequestComments) {
+      final commentBody = prComment.body;
+      log.info(
+        'Processing comment on ${slug.fullName}/$issueNumber: $commentBody',
+      );
       if (commentBody != null && regExp.hasMatch(commentBody)) {
         final matches = regExp.allMatches(commentBody);
         final Match m = matches.first;
@@ -127,10 +141,14 @@ class RevertRequestValidationService extends ValidationService {
   }
 
   /// Determine if we should process the incoming pull request webhook event.
-  Future<RevertProcessMethod> shouldProcess(github.PullRequest pullRequest) async {
+  Future<RevertProcessMethod> shouldProcess(
+    github.PullRequest pullRequest,
+  ) async {
     final labelNames = pullRequest.labelNames;
     // This is the initial revert request state.
-    if (pullRequest.state == 'closed' && labelNames.contains(Config.kRevertLabel) && pullRequest.mergedAt != null) {
+    if (pullRequest.state == 'closed' &&
+        labelNames.contains(Config.kRevertLabel) &&
+        pullRequest.mergedAt != null) {
       return RevertProcessMethod.revert;
     } else if (pullRequest.state == 'open' &&
         labelNames.contains(Config.kRevertOfLabel) &&
@@ -149,31 +167,57 @@ class RevertRequestValidationService extends ValidationService {
     required String ackId,
     required PubSub pubsub,
   }) async {
-    final github.PullRequest messagePullRequest = githubPullRequestEvent.pullRequest!;
-    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
-    final GithubService githubService = await config.createGithubService(slug);
-    final String sender = githubPullRequestEvent.sender!.login!;
+    final messagePullRequest = githubPullRequestEvent.pullRequest!;
+    final slug = messagePullRequest.base!.repo!.slug();
+    final githubService = await config.createGithubService(slug);
+    final sender = githubPullRequestEvent.sender!.login!;
 
     if (!isWithinTimeLimit(messagePullRequest)) {
-      final String message = '''Time to revert pull request ${slug.fullName}/${messagePullRequest.number} has elapsed.
+      final message =
+          '''Time to revert pull request ${slug.fullName}/${messagePullRequest.number} has elapsed.
           You need to open the revert manually and process as a regular pull request.''';
       log.info(message);
-      await githubService.createComment(slug, messagePullRequest.number!, message);
-      await githubService.removeLabel(slug, messagePullRequest.number!, Config.kRevertLabel);
-      log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
+      await githubService.createComment(
+        slug,
+        messagePullRequest.number!,
+        message,
+      );
+      await githubService.removeLabel(
+        slug,
+        messagePullRequest.number!,
+        Config.kRevertLabel,
+      );
+      log.info(
+        'Should not process ${messagePullRequest.toJson()}, and ack the message.',
+      );
       await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
       return;
     }
 
-    final String? revertReason = await getReasonForRevert(githubService, slug, messagePullRequest.number!);
+    final revertReason = await getReasonForRevert(
+      githubService,
+      slug,
+      messagePullRequest.number!,
+    );
     if (revertReason == null) {
-      final String message = '''A reason for requesting a revert of ${slug.fullName}/${messagePullRequest.number} could
+      final message =
+          '''A reason for requesting a revert of ${slug.fullName}/${messagePullRequest.number} could
       not be found or the reason was not properly formatted. Begin a comment with **'Reason for revert:'** to tell the bot why
       this issue is being reverted.''';
       log.info(message);
-      await githubService.createComment(slug, messagePullRequest.number!, message);
-      await githubService.removeLabel(slug, messagePullRequest.number!, Config.kRevertLabel);
-      log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
+      await githubService.createComment(
+        slug,
+        messagePullRequest.number!,
+        message,
+      );
+      await githubService.removeLabel(
+        slug,
+        messagePullRequest.number!,
+        Config.kRevertLabel,
+      );
+      log.info(
+        'Should not process ${messagePullRequest.toJson()}, and ack the message.',
+      );
       await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
       return;
     }
@@ -181,24 +225,45 @@ class RevertRequestValidationService extends ValidationService {
     // Attempt to create the new revert pull request.
     try {
       // This is the autosubmit query result pull request from graphql.
-      final github.PullRequest pullRequest =
-          await revertMethod!.createRevert(config, sender, revertReason, messagePullRequest) as github.PullRequest;
-      log.info('Created revert pull request ${slug.fullName}/${pullRequest.number}.');
+      final pullRequest = await revertMethod!.createRevert(
+        config,
+        sender,
+        revertReason,
+        messagePullRequest,
+      ) as github.PullRequest;
+      log.info(
+        'Created revert pull request ${slug.fullName}/${pullRequest.number}.',
+      );
       // This will come through this service again for processing.
-      await githubService.addLabels(slug, pullRequest.number!, [Config.kRevertOfLabel]);
+      await githubService.addLabels(slug, pullRequest.number!, [
+        Config.kRevertOfLabel,
+      ]);
       log.info('Assigning new revert issue to $sender');
       await githubService.addAssignee(slug, pullRequest.number!, [sender]);
       // TODO (ricardoamador) create a better solution than this to stop processing
       // the revert requests. Maybe change the label after the revert has occurred.
       // For some reason we get duplicate events even though we ack the message.
-      await githubService.removeLabel(slug, messagePullRequest.number!, Config.kRevertLabel);
+      await githubService.removeLabel(
+        slug,
+        messagePullRequest.number!,
+        Config.kRevertLabel,
+      );
       // Notify the discord tree channel that the revert issue has been created
       // and will be processed.
     } catch (e) {
-      final String message = 'Unable to create the revert pull request due to ${e.toString()}';
+      final message =
+          'Unable to create the revert pull request due to ${e.toString()}';
       log.severe(message);
-      await githubService.createComment(slug, messagePullRequest.number!, message);
-      await githubService.removeLabel(slug, messagePullRequest.number!, Config.kRevertLabel);
+      await githubService.createComment(
+        slug,
+        messagePullRequest.number!,
+        message,
+      );
+      await githubService.removeLabel(
+        slug,
+        messagePullRequest.number!,
+        Config.kRevertLabel,
+      );
     } finally {
       await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
     }
@@ -214,9 +279,9 @@ class RevertRequestValidationService extends ValidationService {
     required PubSub pubsub,
   }) async {
     final pullRequest = githubPullRequestEvent.pullRequest!;
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final GithubService githubService = await config.createGithubService(slug);
-    final int prNumber = pullRequest.number!;
+    final slug = pullRequest.base!.repo!.slug();
+    final githubService = await config.createGithubService(slug);
+    final prNumber = pullRequest.number!;
 
     // If a pull request is currently in the merge queue do not touch it. Let
     // the merge queue merge it, or kick it out of the merge queue.
@@ -232,7 +297,9 @@ class RevertRequestValidationService extends ValidationService {
 
     // Check to make sure the repository allows review-less revert pull requests
     // so that we can reassign if needed otherwise autoapprove the pull request.
-    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
+    final repositoryConfiguration = await config.getRepositoryConfiguration(
+      slug,
+    );
     if (!repositoryConfiguration.supportNoReviewReverts) {
       await githubService.removeLabel(slug, prNumber, Config.kRevertOfLabel);
       await githubService.createComment(
@@ -252,14 +319,16 @@ class RevertRequestValidationService extends ValidationService {
       repositoryConfiguration: repositoryConfiguration,
     );
 
-    final Set<Validation> validations = validationFilter!.getValidations();
+    final validations = validationFilter!.getValidations();
 
-    final Map<String, ValidationResult> validationsMap = <String, ValidationResult>{};
+    final validationsMap = <String, ValidationResult>{};
 
     /// Runs all the validation defined in the service.
     /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
-    for (Validation validation in validations) {
-      log.info('${slug.fullName}/$prNumber running validation ${validation.name}');
+    for (var validation in validations) {
+      log.info(
+        '${slug.fullName}/$prNumber running validation ${validation.name}',
+      );
       validationsMap[validation.name] = await validation.validate(
         result,
         // this needs to be the newly opened pull request.
@@ -268,11 +337,13 @@ class RevertRequestValidationService extends ValidationService {
     }
 
     /// If there is at least one action that requires to remove label do so and add comments for all the failures.
-    bool shouldReturn = false;
+    var shouldReturn = false;
     for (final MapEntry(key: _, :value) in validationsMap.entries) {
       if (!value.result && value.action == Action.REMOVE_LABEL) {
-        final String commmentMessage = value.message.isEmpty ? 'Validations Fail.' : value.message;
-        final String message = 'auto label is removed for ${slug.fullName}/$prNumber, due to $commmentMessage';
+        final commmentMessage =
+            value.message.isEmpty ? 'Validations Fail.' : value.message;
+        final message =
+            'auto label is removed for ${slug.fullName}/$prNumber, due to $commmentMessage';
         await githubService.removeLabel(slug, prNumber, Config.kRevertOfLabel);
         await githubService.createComment(slug, prNumber, message);
         log.info(message);
@@ -284,7 +355,9 @@ class RevertRequestValidationService extends ValidationService {
       log.info(
         'The pr ${slug.fullName}/$prNumber with message: $ackId should be acknowledged due to validation failure.',
       );
-      log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
+      log.info(
+        'The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.',
+      );
       await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
       return;
     }
@@ -300,24 +373,31 @@ class RevertRequestValidationService extends ValidationService {
     }
 
     // If we got to this point it means we are ready to submit the PR.
-    final MergeResult processed = await submitPullRequest(
+    final processed = await submitPullRequest(
       config: config,
       pullRequest: pullRequest,
     );
 
     if (!processed.result) {
-      final String message = 'auto label is removed for ${slug.fullName}/$prNumber, ${processed.message}.';
+      final message =
+          'auto label is removed for ${slug.fullName}/$prNumber, ${processed.message}.';
       await githubService.removeLabel(slug, prNumber, Config.kRevertOfLabel);
       await githubService.createComment(slug, prNumber, message);
       log.info(message);
     } else {
       // Need to add the discord notification here.
-      final DiscordNotification discordNotification = await discordNotificationClient;
+      final discordNotification = await discordNotificationClient;
       final Message discordMessage = craftDiscordRevertMessage(pullRequest);
-      discordNotification.notifyDiscordChannelWebhook(jsonEncode(discordMessage.toJson()));
+      await discordNotification.notifyDiscordChannelWebhook(
+        jsonEncode(discordMessage.toJson()),
+      );
 
-      log.info('Pull Request ${slug.fullName}/$prNumber was ${processed.method.pastTenseLabel} successfully!');
-      log.info('Attempting to insert a pull request record into the database for $prNumber');
+      log.info(
+        'Pull Request ${slug.fullName}/$prNumber was ${processed.method.pastTenseLabel} successfully!',
+      );
+      log.info(
+        'Attempting to insert a pull request record into the database for $prNumber',
+      );
       await insertPullRequestRecord(
         config: config,
         pullRequest: pullRequest,
@@ -340,22 +420,30 @@ class RevertRequestValidationService extends ValidationService {
     return discordNotification!;
   }
 
-  RevertDiscordMessage craftDiscordRevertMessage(github.PullRequest messagePullRequest) {
-    const String githubPrefix = 'https://github.com';
-    final RevertInfoCollection revertInfoCollection = RevertInfoCollection();
-    final String prBody = messagePullRequest.body!;
+  RevertDiscordMessage craftDiscordRevertMessage(
+    github.PullRequest messagePullRequest,
+  ) {
+    const githubPrefix = 'https://github.com';
+    final revertInfoCollection = RevertInfoCollection();
+    final prBody = messagePullRequest.body!;
     // Reverts ${slug.fullName}#$prToRevertNumber'
-    final String? githubFormattedPrLink = revertInfoCollection.extractOriginalPrLink(prBody);
-    final List<String> prLinkSplit = githubFormattedPrLink!.split('#');
-    final int originalPrNumber = int.parse(prLinkSplit.elementAt(1));
-    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
-    final int revertPrNumber = messagePullRequest.number!;
-    final String githubFormattedRevertPrLink = '${slug.fullName}#$revertPrNumber';
+    final githubFormattedPrLink = revertInfoCollection.extractOriginalPrLink(
+      prBody,
+    );
+    final prLinkSplit = githubFormattedPrLink!.split('#');
+    final originalPrNumber = int.parse(prLinkSplit.elementAt(1));
+    final slug = messagePullRequest.base!.repo!.slug();
+    final revertPrNumber = messagePullRequest.number!;
+    final githubFormattedRevertPrLink = '${slug.fullName}#$revertPrNumber';
     // https://github.com/flutter/flutter/pull
-    final String constructedOriginalPrUrl = '$githubPrefix/${slug.fullName}/pull/$originalPrNumber';
-    final String constructedRevertPrUrl = '$githubPrefix/${slug.fullName}/pull/$revertPrNumber';
-    final String? initiatingAuthor = revertInfoCollection.extractInitiatingAuthor(prBody);
-    final String? revertReason = revertInfoCollection.extractRevertReason(prBody);
+    final constructedOriginalPrUrl =
+        '$githubPrefix/${slug.fullName}/pull/$originalPrNumber';
+    final constructedRevertPrUrl =
+        '$githubPrefix/${slug.fullName}/pull/$revertPrNumber';
+    final initiatingAuthor = revertInfoCollection.extractInitiatingAuthor(
+      prBody,
+    );
+    final revertReason = revertInfoCollection.extractRevertReason(prBody);
     return RevertDiscordMessage.generateMessage(
       constructedOriginalPrUrl,
       githubFormattedPrLink,

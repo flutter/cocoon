@@ -36,24 +36,27 @@ class TaskGridContainer extends StatelessWidget {
   /// the settings dialog.
   final TaskGridFilter? filter;
 
-  final Future<void> Function(Commit commit)? schedulePostsubmitBuildForReleaseBranch;
+  final Future<void> Function(Commit commit)?
+      schedulePostsubmitBuildForReleaseBranch;
 
   final bool useAnimatedLoading;
 
   @visibleForTesting
-  static const String errorFetchCommitStatus = 'An error occurred fetching commit statuses';
+  static const String errorFetchCommitStatus =
+      'An error occurred fetching commit statuses';
   @visibleForTesting
-  static const String errorFetchTreeStatus = 'An error occurred fetching tree build status';
+  static const String errorFetchTreeStatus =
+      'An error occurred fetching tree build status';
   @visibleForTesting
   static const Duration errorSnackbarDuration = Duration(seconds: 8);
 
   @override
   Widget build(BuildContext context) {
-    final BuildState buildState = Provider.of<BuildState>(context);
+    final buildState = Provider.of<BuildState>(context);
     return AnimatedBuilder(
       animation: buildState,
       builder: (BuildContext context, Widget? child) {
-        final List<CommitStatus> commitStatuses = buildState.statuses;
+        final commitStatuses = buildState.statuses;
 
         // Assume if there is no data that it is loading.
         if (commitStatuses.isEmpty) {
@@ -67,7 +70,8 @@ class TaskGridContainer extends StatelessWidget {
           commitStatuses: commitStatuses,
           filter: filter,
           useAnimatedLoading: useAnimatedLoading,
-          schedulePostsubmitBuildForReleaseBranch: schedulePostsubmitBuildForReleaseBranch,
+          schedulePostsubmitBuildForReleaseBranch:
+              schedulePostsubmitBuildForReleaseBranch,
         );
       },
     );
@@ -96,7 +100,8 @@ class TaskGrid extends StatefulWidget {
   /// Reference to the build state to perform actions on [TaskMatrix], like rerunning tasks.
   final BuildState buildState;
 
-  final Future<void> Function(Commit commit)? schedulePostsubmitBuildForReleaseBranch;
+  final Future<void> Function(Commit commit)?
+      schedulePostsubmitBuildForReleaseBranch;
 
   final bool useAnimatedLoading;
 
@@ -206,28 +211,31 @@ class _TaskGridState extends State<TaskGrid> {
   // matrix. If you've scrolled down several thousand rows, you don't want to have to
   // rebuild the entire matrix each time you load another 25 rows.
   List<List<LatticeCell>> _processCommitStatuses(TaskGrid taskGrid) {
-    TaskGridFilter? filter = taskGrid.filter;
+    var filter = taskGrid.filter;
     filter ??= TaskGridFilter();
     // 1: PREPARE ROWS
-    final List<CommitStatus> filteredStatuses =
-        taskGrid.commitStatuses.where((CommitStatus commitStatus) => filter!.matchesCommit(commitStatus)).toList();
-    final List<_Row> rows =
-        filteredStatuses.map<_Row>((CommitStatus commitStatus) => _Row(commitStatus.commit)).toList();
+    final filteredStatuses = taskGrid.commitStatuses
+        .where(
+            (CommitStatus commitStatus) => filter!.matchesCommit(commitStatus))
+        .toList();
+    final rows = filteredStatuses
+        .map<_Row>((CommitStatus commitStatus) => _Row(commitStatus.commit))
+        .toList();
     // 2: WALK ALL TASKS
-    final Map<QualifiedTask, double> scores = <QualifiedTask, double>{};
-    final Map<QualifiedTask, Task> taskLookupMap = <QualifiedTask, Task>{};
+    final scores = <QualifiedTask, double>{};
+    final taskLookupMap = <QualifiedTask, Task>{};
 
-    int commitCount = 0;
-    for (final CommitStatus status in filteredStatuses) {
+    var commitCount = 0;
+    for (final status in filteredStatuses) {
       commitCount += 1;
-      for (final Task task in status.tasks) {
-        final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
+      for (final task in status.tasks) {
+        final qualifiedTask = QualifiedTask.fromTask(task);
         if (!filter.matchesTask(qualifiedTask)) {
           continue;
         }
         taskLookupMap[qualifiedTask] = task;
         if (commitCount <= 25) {
-          String weightStatus = task.status;
+          var weightStatus = task.status;
           if (task.isFlaky || task.isTestFlaky) {
             // Flaky tasks should be shown after failures and reruns as they take up infra capacity.
             weightStatus += ' - Flaky';
@@ -236,7 +244,7 @@ class _TaskGridState extends State<TaskGrid> {
             weightStatus += ' - Rerun';
           }
           // Make the score relative to how long ago it was run.
-          final double score = _statusScores.containsKey(weightStatus)
+          final score = _statusScores.containsKey(weightStatus)
               ? _statusScores[weightStatus]! / commitCount
               : _statusScores['Unknown']! / commitCount;
           scores.update(
@@ -261,9 +269,9 @@ class _TaskGridState extends State<TaskGrid> {
       }
     }
     // 3: SORT
-    final List<QualifiedTask> tasks = scores.keys.toList()
+    final tasks = scores.keys.toList()
       ..sort((QualifiedTask a, QualifiedTask b) {
-        final int scoreComparison = scores[b]!.compareTo(scores[a]!);
+        final scoreComparison = scores[b]!.compareTo(scores[a]!);
         if (scoreComparison != 0) {
           return scoreComparison;
         }
@@ -280,8 +288,9 @@ class _TaskGridState extends State<TaskGrid> {
       <LatticeCell>[
         const LatticeCell(),
         ...tasks.map<LatticeCell>(
-          (QualifiedTask task) =>
-              LatticeCell(builder: (BuildContext context) => TaskIcon(qualifiedTask: task), taskName: task.stage),
+          (QualifiedTask task) => LatticeCell(
+              builder: (BuildContext context) => TaskIcon(qualifiedTask: task),
+              taskName: task.stage),
         ),
       ],
       ...rows.map<List<LatticeCell>>(
@@ -290,26 +299,32 @@ class _TaskGridState extends State<TaskGrid> {
             builder: (BuildContext context) => CommitBox(
               commit: row.commit,
               schedulePostsubmitBuild: () {
-                if (widget.schedulePostsubmitBuildForReleaseBranch case final schedule?) {
+                if (widget.schedulePostsubmitBuildForReleaseBranch
+                    case final schedule?) {
                   return () => schedule(row.commit);
                 }
                 return null;
               }(),
             ),
           ),
-          ...tasks.map<LatticeCell>((QualifiedTask task) => row.cells[task] ?? const LatticeCell()),
+          ...tasks.map<LatticeCell>(
+              (QualifiedTask task) => row.cells[task] ?? const LatticeCell()),
         ],
       ),
-      if (widget.buildState.moreStatusesExist) _generateLoadingRow(tasks.length),
+      if (widget.buildState.moreStatusesExist)
+        _generateLoadingRow(tasks.length),
     ];
   }
 
   Painter _painterFor(Task task) {
-    final Paint backgroundPaint = Paint()..color = Theme.of(context).canvasColor;
+    final backgroundPaint = Paint()..color = Theme.of(context).canvasColor;
 
-    assert(TaskBox.statusColor.containsKey(task.status), 'Unknown or unexpected status: ${task.status}');
-    final Paint paint = Paint()
-      ..color = TaskBox.statusColor.containsKey(task.status) ? TaskBox.statusColor[task.status]! : Colors.black;
+    assert(TaskBox.statusColor.containsKey(task.status),
+        'Unknown or unexpected status: ${task.status}');
+    final paint = Paint()
+      ..color = TaskBox.statusColor.containsKey(task.status)
+          ? TaskBox.statusColor[task.status]!
+          : Colors.black;
     if (task.isFlaky) {
       paint.style = PaintingStyle.stroke;
       paint.strokeWidth = 2.0;
@@ -320,7 +335,8 @@ class _TaskGridState extends State<TaskGrid> {
     return (Canvas canvas, Rect rect) {
       canvas.drawRect(rect.deflate(2.0), paint);
       if (task.attempts > 1 || task.isTestFlaky) {
-        canvas.drawCircle(rect.center, (rect.shortestSide / 2.0) - 6.0, backgroundPaint);
+        canvas.drawCircle(
+            rect.center, (rect.shortestSide / 2.0) - 6.0, backgroundPaint);
       }
     };
   }
@@ -338,7 +354,7 @@ class _TaskGridState extends State<TaskGrid> {
   }
 
   static final List<String> _loadingMessage =
-      'LOADING...'.runes.map<String>((int codepoint) => String.fromCharCode(codepoint)).toList();
+      'LOADING...'.runes.map<String>(String.fromCharCode).toList();
 
   List<LatticeCell> _generateLoadingRow(int length) {
     return <LatticeCell>[
@@ -358,7 +374,8 @@ class _TaskGridState extends State<TaskGrid> {
       for (int index = 0; index < max(length, _loadingMessage.length); index++)
         LatticeCell(
           builder: (BuildContext context) {
-            widget.buildState.fetchMoreCommitStatuses(); // This is safe to call many times.
+            widget.buildState
+                .fetchMoreCommitStatuses(); // This is safe to call many times.
             return Text(
               _loadingMessage[index % _loadingMessage.length],
               style: TextStyle(
@@ -380,7 +397,8 @@ class _TaskGridState extends State<TaskGrid> {
       _taskOverlay = OverlayEntry(
         builder: (BuildContext context) => TaskOverlayEntry(
           position: (this.context.findRenderObject() as RenderBox)
-              .localToGlobal(localPosition!, ancestor: Overlay.of(context).context.findRenderObject()),
+              .localToGlobal(localPosition!,
+                  ancestor: Overlay.of(context).context.findRenderObject()),
           task: task,
           showSnackBarCallback: ScaffoldMessenger.of(context).showSnackBar,
           closeCallback: _closeOverlay,

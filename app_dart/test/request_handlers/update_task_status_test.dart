@@ -27,14 +27,14 @@ void main() {
     late ApiRequestHandlerTester tester;
     late MockFirestoreService mockFirestoreService;
     late UpdateTaskStatus handler;
-    final FakeTabledataResource tabledataResourceApi = FakeTabledataResource();
+    final tabledataResourceApi = FakeTabledataResource();
     late Commit commit;
-    const String commitSha = '78cbfbff4267643bb1913bc820f5ce8a3e591b40';
-    const int taskId = 4506830800027648;
+    const commitSha = '78cbfbff4267643bb1913bc820f5ce8a3e591b40';
+    const taskId = 4506830800027648;
 
     setUp(() {
       mockFirestoreService = MockFirestoreService();
-      final FakeDatastoreDB datastoreDB = FakeDatastoreDB();
+      final datastoreDB = FakeDatastoreDB();
       config = FakeConfig(
         dbValue: datastoreDB,
         tabledataResource: tabledataResourceApi,
@@ -48,7 +48,10 @@ void main() {
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
       commit = Commit(
-        key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/master/$commitSha'),
+        key: config.db.emptyKey.append(
+          Commit,
+          id: 'flutter/flutter/master/$commitSha',
+        ),
         repository: Config.flutterSlug.fullName,
         sha: commitSha,
         timestamp: 123,
@@ -56,26 +59,30 @@ void main() {
     });
 
     test('TestFlaky is false when not injected', () async {
-      final firestore.Task firestoreTask1 = generateFirestoreTask(1, name: 'linux_integration_ui_ios', attempts: 1);
-      final firestore.Task firestoreTask2 = generateFirestoreTask(2, name: 'linux_integration_ui_ios', attempts: 2);
-      when(
-        mockFirestoreService.queryCommitTasks(
-          captureAny,
-        ),
-      ).thenAnswer((Invocation invocation) {
-        return Future<List<firestore.Task>>.value(
-          <firestore.Task>[firestoreTask1, firestoreTask2],
-        );
+      final firestoreTask1 = generateFirestoreTask(
+        1,
+        name: 'linux_integration_ui_ios',
+        attempts: 1,
+      );
+      final firestoreTask2 = generateFirestoreTask(
+        2,
+        name: 'linux_integration_ui_ios',
+        attempts: 2,
+      );
+      when(mockFirestoreService.queryCommitTasks(captureAny)).thenAnswer((
+        Invocation invocation,
+      ) {
+        return Future<List<firestore.Task>>.value(<firestore.Task>[
+          firestoreTask1,
+          firestoreTask2,
+        ]);
       });
       when(
-        mockFirestoreService.batchWriteDocuments(
-          captureAny,
-          captureAny,
-        ),
+        mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
       ).thenAnswer((Invocation invocation) {
         return Future<BatchWriteResponse>.value(BatchWriteResponse());
       });
-      final Task task = Task(
+      final task = Task(
         key: commit.key.append(Task, id: taskId),
         name: 'integration_ui_ios',
         builderName: 'linux_integration_ui_ios',
@@ -100,26 +107,30 @@ void main() {
     });
 
     test('TestFlaky is true when injected', () async {
-      final firestore.Task firestoreTask1 = generateFirestoreTask(1, name: 'linux_integration_ui_ios', attempts: 1);
-      final firestore.Task firestoreTask2 = generateFirestoreTask(2, name: 'linux_integration_ui_ios', attempts: 2);
-      when(
-        mockFirestoreService.queryCommitTasks(
-          captureAny,
-        ),
-      ).thenAnswer((Invocation invocation) {
-        return Future<List<firestore.Task>>.value(
-          <firestore.Task>[firestoreTask1, firestoreTask2],
-        );
+      final firestoreTask1 = generateFirestoreTask(
+        1,
+        name: 'linux_integration_ui_ios',
+        attempts: 1,
+      );
+      final firestoreTask2 = generateFirestoreTask(
+        2,
+        name: 'linux_integration_ui_ios',
+        attempts: 2,
+      );
+      when(mockFirestoreService.queryCommitTasks(captureAny)).thenAnswer((
+        Invocation invocation,
+      ) {
+        return Future<List<firestore.Task>>.value(<firestore.Task>[
+          firestoreTask1,
+          firestoreTask2,
+        ]);
       });
       when(
-        mockFirestoreService.batchWriteDocuments(
-          captureAny,
-          captureAny,
-        ),
+        mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
       ).thenAnswer((Invocation invocation) {
         return Future<BatchWriteResponse>.value(BatchWriteResponse());
       });
-      final Task task = Task(
+      final task = Task(
         key: commit.key.append(Task, id: taskId),
         name: 'integration_ui_ios',
         builderName: 'linux_integration_ui_ios',
@@ -144,26 +155,30 @@ void main() {
     });
 
     test('task name requests can update tasks', () async {
-      final firestore.Task firestoreTask1 = generateFirestoreTask(1, name: 'linux_integration_ui_ios', attempts: 1);
-      final firestore.Task firestoreTask2 = generateFirestoreTask(2, name: 'linux_integration_ui_ios', attempts: 2);
-      when(
-        mockFirestoreService.queryCommitTasks(
-          captureAny,
-        ),
-      ).thenAnswer((Invocation invocation) {
-        return Future<List<firestore.Task>>.value(
-          <firestore.Task>[firestoreTask1, firestoreTask2],
-        );
+      final firestoreTask1 = generateFirestoreTask(
+        1,
+        name: 'linux_integration_ui_ios',
+        attempts: 1,
+      );
+      final firestoreTask2 = generateFirestoreTask(
+        2,
+        name: 'linux_integration_ui_ios',
+        attempts: 2,
+      );
+      when(mockFirestoreService.queryCommitTasks(captureAny)).thenAnswer((
+        Invocation invocation,
+      ) {
+        return Future<List<firestore.Task>>.value(<firestore.Task>[
+          firestoreTask1,
+          firestoreTask2,
+        ]);
       });
       when(
-        mockFirestoreService.batchWriteDocuments(
-          captureAny,
-          captureAny,
-        ),
+        mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
       ).thenAnswer((Invocation invocation) {
         return Future<BatchWriteResponse>.value(BatchWriteResponse());
       });
-      final Task task = Task(
+      final task = Task(
         key: commit.key.append(Task, id: taskId),
         name: 'integration_ui_ios',
         builderName: 'linux_integration_ui_ios',
@@ -189,38 +204,45 @@ void main() {
       expect(firestoreTask2.attempts, 2);
     });
 
-    test('task name requests when task does not exists returns exception', () async {
-      tester.requestData = <String, dynamic>{
-        UpdateTaskStatus.gitBranchParam: 'master',
-        UpdateTaskStatus.gitShaParam: commitSha,
-        UpdateTaskStatus.newStatusParam: 'Failed',
-        UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
-      };
-      expect(tester.post(handler), throwsA(isA<KeyNotFoundException>()));
-    });
+    test(
+      'task name requests when task does not exists returns exception',
+      () async {
+        tester.requestData = <String, dynamic>{
+          UpdateTaskStatus.gitBranchParam: 'master',
+          UpdateTaskStatus.gitShaParam: commitSha,
+          UpdateTaskStatus.newStatusParam: 'Failed',
+          UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
+        };
+        expect(tester.post(handler), throwsA(isA<KeyNotFoundException>()));
+      },
+    );
 
     test('task name request updates when input has whitespace', () async {
-      final firestore.Task firestoreTask1 = generateFirestoreTask(1, name: 'linux_integration_ui_ios', attempts: 1);
-      final firestore.Task firestoreTask2 = generateFirestoreTask(2, name: 'linux_integration_ui_ios', attempts: 2);
-      when(
-        mockFirestoreService.queryCommitTasks(
-          captureAny,
-        ),
-      ).thenAnswer((Invocation invocation) {
-        return Future<List<firestore.Task>>.value(
-          <firestore.Task>[firestoreTask1, firestoreTask2],
-        );
+      final firestoreTask1 = generateFirestoreTask(
+        1,
+        name: 'linux_integration_ui_ios',
+        attempts: 1,
+      );
+      final firestoreTask2 = generateFirestoreTask(
+        2,
+        name: 'linux_integration_ui_ios',
+        attempts: 2,
+      );
+      when(mockFirestoreService.queryCommitTasks(captureAny)).thenAnswer((
+        Invocation invocation,
+      ) {
+        return Future<List<firestore.Task>>.value(<firestore.Task>[
+          firestoreTask1,
+          firestoreTask2,
+        ]);
       });
       when(
-        mockFirestoreService.batchWriteDocuments(
-          captureAny,
-          captureAny,
-        ),
+        mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
       ).thenAnswer((Invocation invocation) {
         return Future<BatchWriteResponse>.value(BatchWriteResponse());
       });
       config.db.values[commit.key] = commit;
-      final Task cocoonTask = Task(
+      final cocoonTask = Task(
         key: commit.key.append(Task, id: taskId),
         name: 'integration_ui_ios',
         attempts: 0,
@@ -229,7 +251,7 @@ void main() {
         status: Task.statusNew,
       );
       config.db.values[cocoonTask.key] = cocoonTask;
-      final Task luciTask = Task(
+      final luciTask = Task(
         key: commit.key.append(Task, id: taskId),
         name: 'integration_ui_ios',
         builderName: 'linux_integration_ui_ios',
@@ -239,9 +261,9 @@ void main() {
         commitKey: commit.key,
       );
       config.db.values[luciTask.key] = luciTask;
-      const int asciiLF = 10;
-      final List<int> branchChars = List<int>.from('master'.codeUnits)..add(asciiLF);
-      final List<int> shaChars = List<int>.from(commitSha.codeUnits)..add(asciiLF);
+      const asciiLF = 10;
+      final branchChars = List<int>.from('master'.codeUnits)..add(asciiLF);
+      final shaChars = List<int>.from(commitSha.codeUnits)..add(asciiLF);
       tester.requestData = <String, dynamic>{
         UpdateTaskStatus.gitBranchParam: String.fromCharCodes(branchChars),
         UpdateTaskStatus.gitShaParam: String.fromCharCodes(shaChars),

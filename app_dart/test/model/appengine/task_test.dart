@@ -17,7 +17,7 @@ import '../../src/utilities/entity_generators.dart';
 void main() {
   group('Task', () {
     test('byAttempts comparator', () {
-      final List<Task> tasks = <Task>[
+      final tasks = <Task>[
         generateTask(1, attempts: 5),
         generateTask(2, attempts: 9),
         generateTask(3, attempts: 3),
@@ -33,11 +33,11 @@ void main() {
   });
 
   group('buildBucketBuild', () {
-    final DateTime startTimeDateTime = DateTime(2023, 1, 1, 0, 0, 0);
-    final bbv2.Timestamp startTimestamp = bbv2.Timestamp.fromDateTime(startTimeDateTime);
+    final startTimeDateTime = DateTime(2023, 1, 1, 0, 0, 0);
+    final startTimestamp = bbv2.Timestamp.fromDateTime(startTimeDateTime);
 
-    final DateTime endTimeDateTime = DateTime(2023, 1, 1, 0, 14, 23);
-    final bbv2.Timestamp endTimestamp = bbv2.Timestamp.fromDateTime(endTimeDateTime);
+    final endTimeDateTime = DateTime(2023, 1, 1, 0, 14, 23);
+    final endTimestamp = bbv2.Timestamp.fromDateTime(endTimeDateTime);
 
     late FakeConfig config;
     late Commit commit;
@@ -52,8 +52,12 @@ void main() {
     });
 
     test('fromBuildBucketBuild', () async {
-      final bbv2.Build fakeBuild = bbv2.Build(
-        builder: bbv2.BuilderID(project: 'flutter', bucket: 'good-bucket', builder: 'great-builder'),
+      final fakeBuild = bbv2.Build(
+        builder: bbv2.BuilderID(
+          project: 'flutter',
+          bucket: 'good-bucket',
+          builder: 'great-builder',
+        ),
         number: 12345,
         id: Int64(1234567890),
         status: bbv2.Status.SUCCESS,
@@ -69,7 +73,10 @@ void main() {
         ),
       );
 
-      final Task t = await Task.fromBuildbucketBuild(fakeBuild, DatastoreService(config.db, 5));
+      final t = await Task.fromBuildbucketBuild(
+        fakeBuild,
+        DatastoreService(config.db, 5),
+      );
       expect(t.buildNumber, 12345);
       expect(t.builderName, 'great-builder');
       expect(t.startTimestamp, startTimeDateTime.millisecondsSinceEpoch);
@@ -83,8 +90,12 @@ void main() {
     });
 
     test('updateFromBuildBucketBuild', () {
-      final bbv2.Build fakeBuild = bbv2.Build(
-        builder: bbv2.BuilderID(project: 'okay-project', bucket: 'good-bucket', builder: 'great-builder'),
+      final fakeBuild = bbv2.Build(
+        builder: bbv2.BuilderID(
+          project: 'okay-project',
+          bucket: 'good-bucket',
+          builder: 'great-builder',
+        ),
         number: 12345,
         id: Int64(1234567890),
         status: bbv2.Status.SUCCESS,
@@ -100,7 +111,7 @@ void main() {
         ),
       );
 
-      final Task task = Task(
+      final task = Task(
         attempts: 1,
         buildNumber: 1234,
         buildNumberList: '1234',
@@ -122,7 +133,7 @@ void main() {
 
       task.updateFromBuildbucketBuild(fakeBuild);
 
-      final Task expectedUpdatedTask = Task(
+      final expectedUpdatedTask = Task(
         attempts: 2,
         buildNumber: 12345,
         buildNumberList: '1234,12345',
@@ -162,7 +173,7 @@ void main() {
     });
 
     test('look up by id', () async {
-      final Task task = await Task.fromDatastore(
+      final task = await Task.fromDatastore(
         datastore: DatastoreService(config.db, 5),
         commitKey: commit.key,
         id: '${expectedTask.id}',
@@ -182,7 +193,7 @@ void main() {
     });
 
     test('look up by name', () async {
-      final Task task = await Task.fromDatastore(
+      final task = await Task.fromDatastore(
         datastore: DatastoreService(config.db, 5),
         commitKey: commit.key,
         name: expectedTask.name,
@@ -208,26 +219,29 @@ void main() {
       }
     });
 
-    test('look up by name fails if multiple Tasks with the same name are found', () async {
-      final DatastoreService datastore = DatastoreService(config.db, 5);
-      final String taskName = expectedTask.name!;
-      final Task duplicatedTask = generateTask(2, parent: commit, name: taskName);
-      config.db.values[duplicatedTask.key] = duplicatedTask;
-      try {
-        await Task.fromDatastore(
-          datastore: datastore,
-          commitKey: commit.key,
-          name: taskName,
-        );
-      } catch (e) {
-        expect(e, isA<InternalServerError>());
-        expect(
-          e.toString(),
-          equals(
-            'HTTP 500: Expected to find 1 task for $taskName, but found 2',
-          ),
-        );
-      }
-    });
+    test(
+      'look up by name fails if multiple Tasks with the same name are found',
+      () async {
+        final datastore = DatastoreService(config.db, 5);
+        final taskName = expectedTask.name!;
+        final duplicatedTask = generateTask(2, parent: commit, name: taskName);
+        config.db.values[duplicatedTask.key] = duplicatedTask;
+        try {
+          await Task.fromDatastore(
+            datastore: datastore,
+            commitKey: commit.key,
+            name: taskName,
+          );
+        } catch (e) {
+          expect(e, isA<InternalServerError>());
+          expect(
+            e.toString(),
+            equals(
+              'HTTP 500: Expected to find 1 task for $taskName, but found 2',
+            ),
+          );
+        }
+      },
+    );
   });
 }

@@ -25,7 +25,7 @@ class UserSignIn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final GoogleSignInService authService = Provider.of<GoogleSignInService>(context);
+    final authService = Provider.of<GoogleSignInService>(context);
 
     // Listen to the changes of `authService` to re-render.
     return AnimatedBuilder(
@@ -34,7 +34,8 @@ class UserSignIn extends StatelessWidget {
         if (authService.user != null) {
           return PopupMenuButton<_SignInButtonAction>(
             offset: const Offset(0, 50),
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<_SignInButtonAction>>[
+            itemBuilder: (BuildContext context) =>
+                <PopupMenuEntry<_SignInButtonAction>>[
               const PopupMenuItem<_SignInButtonAction>(
                 value: _SignInButtonAction.logout,
                 child: Text('Log out'),
@@ -50,7 +51,8 @@ class UserSignIn extends StatelessWidget {
             iconSize: Scaffold.of(context).appBarMaxHeight,
             icon: Builder(
               builder: (BuildContext context) {
-                if (!kIsWeb && Platform.environment.containsKey('FLUTTER_TEST')) {
+                if (!kIsWeb &&
+                    Platform.environment.containsKey('FLUTTER_TEST')) {
                   return Padding(
                     padding: const EdgeInsets.only(right: 10.0, top: 20.0),
                     child: Text(authService.user!.email),

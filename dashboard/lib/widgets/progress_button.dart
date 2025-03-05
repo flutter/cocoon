@@ -63,7 +63,8 @@ class _ProgressButtonState extends State<ProgressButton> {
         ElevatedButton(
           onPressed: _busy // dartfmt will soon require this new formatting
               ? null
-              : widget.onPressed != null // dartfmt will soon require this new formatting
+              : widget.onPressed !=
+                      null // dartfmt will soon require this new formatting
                   ? _handlePressed
                   : null,
           child: widget.child,

@@ -10,13 +10,13 @@ import 'package:test/test.dart';
 void main() {
   group('Testing git command locally', () {
     test('Checkout locally.', () async {
-      String executable = 'ls';
+      var executable = 'ls';
       if (Platform.isWindows) {
         executable = 'dir';
       }
 
-      final CliCommand cliCommand = CliCommand();
-      final ProcessResult processResult = await cliCommand.runCliCommand(
+      final cliCommand = CliCommand();
+      final processResult = await cliCommand.runCliCommand(
         executable: executable,
         arguments: [],
       );

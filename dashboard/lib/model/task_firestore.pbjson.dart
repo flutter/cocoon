@@ -33,12 +33,12 @@ const TaskDocument$json = {
 };
 
 /// Descriptor for `TaskDocument`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List taskDocumentDescriptor =
-    $convert.base64Decode('CgxUYXNrRG9jdW1lbnQSIwoNZG9jdW1lbnRfbmFtZRgBIAEoCVIMZG9jdW1lbnROYW1lEikKEG'
-        'NyZWF0ZV90aW1lc3RhbXAYAiABKANSD2NyZWF0ZVRpbWVzdGFtcBInCg9zdGFydF90aW1lc3Rh'
-        'bXAYAyABKANSDnN0YXJ0VGltZXN0YW1wEiMKDWVuZF90aW1lc3RhbXAYBCABKANSDGVuZFRpbW'
-        'VzdGFtcBIbCgl0YXNrX25hbWUYBSABKAlSCHRhc2tOYW1lEhoKCGF0dGVtcHRzGAYgASgFUghh'
-        'dHRlbXB0cxIYCgdicmluZ3VwGAcgASgIUgdicmluZ3VwEh0KCnRlc3RfZmxha3kYCCABKAhSCX'
-        'Rlc3RGbGFreRIhCgxidWlsZF9udW1iZXIYCSABKAVSC2J1aWxkTnVtYmVyEhYKBnN0YXR1cxgK'
-        'IAEoCVIGc3RhdHVzEh0KCmJ1aWxkX2xpc3QYCyABKAlSCWJ1aWxkTGlzdBIdCgpjb21taXRfc2'
-        'hhGAwgASgJUgljb21taXRTaGE=');
+final $typed_data.Uint8List taskDocumentDescriptor = $convert.base64Decode(
+    'CgxUYXNrRG9jdW1lbnQSIwoNZG9jdW1lbnRfbmFtZRgBIAEoCVIMZG9jdW1lbnROYW1lEikKEG'
+    'NyZWF0ZV90aW1lc3RhbXAYAiABKANSD2NyZWF0ZVRpbWVzdGFtcBInCg9zdGFydF90aW1lc3Rh'
+    'bXAYAyABKANSDnN0YXJ0VGltZXN0YW1wEiMKDWVuZF90aW1lc3RhbXAYBCABKANSDGVuZFRpbW'
+    'VzdGFtcBIbCgl0YXNrX25hbWUYBSABKAlSCHRhc2tOYW1lEhoKCGF0dGVtcHRzGAYgASgFUghh'
+    'dHRlbXB0cxIYCgdicmluZ3VwGAcgASgIUgdicmluZ3VwEh0KCnRlc3RfZmxha3kYCCABKAhSCX'
+    'Rlc3RGbGFreRIhCgxidWlsZF9udW1iZXIYCSABKAVSC2J1aWxkTnVtYmVyEhYKBnN0YXR1cxgK'
+    'IAEoCVIGc3RhdHVzEh0KCmJ1aWxkX2xpc3QYCyABKAlSCWJ1aWxkTGlzdBIdCgpjb21taXRfc2'
+    'hhGAwgASgJUgljb21taXRTaGE=');

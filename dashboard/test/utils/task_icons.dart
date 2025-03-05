@@ -13,17 +13,19 @@ import 'package:path/path.dart' as path;
 Future<void> precacheTaskIcons(WidgetTester tester) async {
   // Depending on how we're invoked, Platform.script.path will have extra parts
   // after app_flutter. Just trim them off.
-  final List<String> pathParts = path.split(Platform.script.path);
+  final pathParts = path.split(Platform.script.path);
   while (pathParts.last != 'dashboard') {
     pathParts.removeLast();
   }
 
-  final String assetPath = path.joinAll(<String>[...pathParts, 'assets']);
-  final List<String> assets =
-      Directory(assetPath).listSync().map((FileSystemEntity entity) => path.basename(entity.path)).toList();
+  final assetPath = path.joinAll(<String>[...pathParts, 'assets']);
+  final assets = Directory(assetPath)
+      .listSync()
+      .map((FileSystemEntity entity) => path.basename(entity.path))
+      .toList();
   await tester.pumpWidget(const SizedBox());
   await tester.runAsync(() async {
-    for (final String asset in assets) {
+    for (final asset in assets) {
       final ImageProvider provider = ExactAssetImage('assets/$asset');
       await provider.evict();
       await precacheImage(

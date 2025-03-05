@@ -17,18 +17,21 @@ enum Mode { full, abbreviated, aborted }
 Mode mode = Mode.full;
 final Completer<void> aborter = Completer<void>();
 
-Future<void> rateLimit(final GitHub github, final String status, final String next) async {
+Future<void> rateLimit(
+    final GitHub github, final String status, final String next) async {
   if (mode == Mode.aborted) {
     throw Abort();
   }
   stdout.write(
     '$status${github.rateLimitRemaining != null ? ". Rate limits: ${github.rateLimitRemaining}/${github.rateLimitLimit} per hour" : ""}.\x1B[K\r',
   );
-  if (github.rateLimitRemaining != null && github.rateLimitRemaining! < minApiPoints) {
+  if (github.rateLimitRemaining != null &&
+      github.rateLimitRemaining! < minApiPoints) {
     Duration delay = github.rateLimitReset!.difference(DateTime.now());
     if (delay > Duration.zero) {
       delay += clockSkew;
-      print('\nWaiting until ${DateTime.now().add(delay).toLocal()} to continue with $next...');
+      print(
+          '\nWaiting until ${DateTime.now().add(delay).toLocal()} to continue with $next...');
       await Future.any<void>(<Future<void>>[
         Future<void>.delayed(delay),
         aborter.future,
@@ -38,7 +41,8 @@ Future<void> rateLimit(final GitHub github, final String status, final String ne
   }
 }
 
-void verifyStringSanity(final String value, final Set<String> disallowedSubstrings) {
+void verifyStringSanity(
+    final String value, final Set<String> disallowedSubstrings) {
   for (final String substring in disallowedSubstrings) {
     if (value.contains(substring)) {
       throw FormatException('Found "$disallowedSubstrings" in "$value".');

@@ -35,7 +35,7 @@ import 'utils/task_icons.dart';
 void main() {
   late MockGoogleSignInService fakeAuthService;
 
-  final Type dropdownButtonType = DropdownButton<String>(
+  final dropdownButtonType = DropdownButton<String>(
     onChanged: (_) {},
     items: const <DropdownMenuItem<String>>[],
   ).runtimeType;
@@ -60,10 +60,12 @@ void main() {
 
   testWidgets('shows sign in button', (WidgetTester tester) async {
     configureView(tester.view);
-    final MockCocoonService fakeCocoonService = MockCocoonService();
+    final fakeCocoonService = MockCocoonService();
     throwOnMissingStub(fakeCocoonService);
-    when(fakeCocoonService.fetchFlutterBranches()).thenAnswer((_) => Completer<CocoonResponse<List<Branch>>>().future);
-    when(fakeCocoonService.fetchRepos()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
+    when(fakeCocoonService.fetchFlutterBranches())
+        .thenAnswer((_) => Completer<CocoonResponse<List<Branch>>>().future);
+    when(fakeCocoonService.fetchRepos())
+        .thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
     when(
       fakeCocoonService.fetchCommitStatuses(
         branch: anyNamed('branch'),
@@ -75,9 +77,10 @@ void main() {
         branch: anyNamed('branch'),
         repo: anyNamed('repo'),
       ),
-    ).thenAnswer((_) => Completer<CocoonResponse<BuildStatusResponse>>().future);
+    ).thenAnswer(
+        (_) => Completer<CocoonResponse<BuildStatusResponse>>().future);
 
-    final BuildState buildState = BuildState(
+    final buildState = BuildState(
       cocoonService: fakeCocoonService,
       authService: fakeAuthService,
     );
@@ -102,7 +105,8 @@ void main() {
 
   testWidgets('shows settings button', (WidgetTester tester) async {
     configureView(tester.view);
-    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -122,7 +126,8 @@ void main() {
 
   testWidgets('shows infra ticket queue button', (WidgetTester tester) async {
     configureView(tester.view);
-    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -142,7 +147,8 @@ void main() {
 
   testWidgets('shows file a bug button', (WidgetTester tester) async {
     configureView(tester.view);
-    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -162,7 +168,8 @@ void main() {
 
   testWidgets('shows key button & legend', (WidgetTester tester) async {
     configureView(tester.view);
-    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -182,16 +189,19 @@ void main() {
     await tester.tap(find.byIcon(Icons.info_outline));
     await tester.pump();
 
-    for (final String status in TaskBox.statusColor.keys) {
+    for (final status in TaskBox.statusColor.keys) {
       expect(find.text(status), findsOneWidget);
     }
     expect(find.text('Flaky'), findsOneWidget);
     expect(find.text('Ran more than once'), findsOneWidget);
   });
 
-  testWidgets('shows branch and repo dropdown button when screen is decently large', (WidgetTester tester) async {
+  testWidgets(
+      'shows branch and repo dropdown button when screen is decently large',
+      (WidgetTester tester) async {
     configureView(tester.view);
-    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -209,15 +219,26 @@ void main() {
     expect(find.byType(dropdownButtonType), findsNWidgets(2));
 
     expect(find.text('repo: '), findsOneWidget);
-    expect((tester.widget(find.byKey(const Key('repo dropdown'))) as DropdownButton).value, equals('flutter'));
+    expect(
+        (tester.widget(find.byKey(const Key('repo dropdown')))
+                as DropdownButton)
+            .value,
+        equals('flutter'));
 
     expect(find.text('branch: '), findsOneWidget);
-    expect((tester.widget(find.byKey(const Key('branch dropdown'))) as DropdownButton).value, equals('master'));
+    expect(
+        (tester.widget(find.byKey(const Key('branch dropdown')))
+                as DropdownButton)
+            .value,
+        equals('master'));
   });
 
-  testWidgets('shows enabled Refresh GitHub Commits button when isAuthenticated', (WidgetTester tester) async {
+  testWidgets(
+      'shows enabled Refresh GitHub Commits button when isAuthenticated',
+      (WidgetTester tester) async {
     configureView(tester.view);
-    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -237,18 +258,24 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1)); // Finish the menu animation.
 
-    final Finder labelFinder = find.text('Refresh GitHub Commits');
+    final labelFinder = find.text('Refresh GitHub Commits');
 
     expect(labelFinder, findsOneWidget);
 
-    final TextButton button = tester.element(labelFinder).findAncestorWidgetOfExactType<TextButton>()!;
+    final button = tester
+        .element(labelFinder)
+        .findAncestorWidgetOfExactType<TextButton>()!;
 
-    expect(button.onPressed, isNotNull, reason: 'The button should have a non-null onPressed attribute.');
+    expect(button.onPressed, isNotNull,
+        reason: 'The button should have a non-null onPressed attribute.');
   });
 
-  testWidgets('shows disabled Refresh GitHub Commits button when !isAuthenticated', (WidgetTester tester) async {
+  testWidgets(
+      'shows disabled Refresh GitHub Commits button when !isAuthenticated',
+      (WidgetTester tester) async {
     configureView(tester.view);
-    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..authService = fakeAuthService;
     when(fakeAuthService.isAuthenticated).thenReturn(false);
 
     await tester.pumpWidget(
@@ -269,13 +296,17 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1)); // Finish the menu animation.
 
-    final Finder labelFinder = find.text('Refresh GitHub Commits');
-    final TextButton button = tester.element(labelFinder).findAncestorWidgetOfExactType<TextButton>()!;
+    final labelFinder = find.text('Refresh GitHub Commits');
+    final button = tester
+        .element(labelFinder)
+        .findAncestorWidgetOfExactType<TextButton>()!;
 
-    expect(button.onPressed, isNull, reason: 'The button should have a null onPressed attribute.');
+    expect(button.onPressed, isNull,
+        reason: 'The button should have a null onPressed attribute.');
   });
 
-  testWidgets('shows loading when fetch tree status is null', (WidgetTester tester) async {
+  testWidgets('shows loading when fetch tree status is null',
+      (WidgetTester tester) async {
     configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()
       ..isTreeBuilding = null
@@ -296,12 +327,13 @@ void main() {
 
     expect(find.text('Loading...'), findsOneWidget);
 
-    final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
+    final appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
     expect(appbarWidget.backgroundColor, Colors.grey[850]);
     expect(tester, meetsGuideline(textContrastGuideline));
   });
 
-  testWidgets('shows loading when fetch tree status is null, dark mode', (WidgetTester tester) async {
+  testWidgets('shows loading when fetch tree status is null, dark mode',
+      (WidgetTester tester) async {
     configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()
       ..isTreeBuilding = null
@@ -322,12 +354,13 @@ void main() {
 
     expect(find.text('Loading...'), findsOneWidget);
 
-    final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
+    final appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
     expect(appbarWidget.backgroundColor, Colors.grey[850]);
     expect(tester, meetsGuideline(textContrastGuideline));
   });
 
-  testWidgets('shows tree closed when fetch tree status is false', (WidgetTester tester) async {
+  testWidgets('shows tree closed when fetch tree status is false',
+      (WidgetTester tester) async {
     configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()
       ..isTreeBuilding = false
@@ -347,17 +380,19 @@ void main() {
     );
 
     // Verify the "Tree is Closed" message is wrapped in a [Tooltip].
-    final Finder tooltipFinder = find.byWidgetPredicate((Widget widget) {
-      return widget is Tooltip && (widget.message?.contains('Tree is Closed') ?? false);
+    final tooltipFinder = find.byWidgetPredicate((Widget widget) {
+      return widget is Tooltip &&
+          (widget.message?.contains('Tree is Closed') ?? false);
     });
     expect(tooltipFinder, findsOneWidget);
 
-    final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
+    final appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
     expect(appbarWidget.backgroundColor, Colors.red);
     expect(tester, meetsGuideline(textContrastGuideline));
   });
 
-  testWidgets('shows tree closed when fetch tree status is false, dark mode', (WidgetTester tester) async {
+  testWidgets('shows tree closed when fetch tree status is false, dark mode',
+      (WidgetTester tester) async {
     configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()
       ..isTreeBuilding = false
@@ -377,17 +412,19 @@ void main() {
     );
 
     // Verify the "Tree is Closed" message is wrapped in a [Tooltip].
-    final Finder tooltipFinder = find.byWidgetPredicate((Widget widget) {
-      return widget is Tooltip && (widget.message?.contains('Tree is Closed') ?? false);
+    final tooltipFinder = find.byWidgetPredicate((Widget widget) {
+      return widget is Tooltip &&
+          (widget.message?.contains('Tree is Closed') ?? false);
     });
     expect(tooltipFinder, findsOneWidget);
 
-    final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
+    final appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
     expect(appbarWidget.backgroundColor, Colors.red[800]);
     expect(tester, meetsGuideline(textContrastGuideline));
   });
 
-  testWidgets('shows tree open when fetch tree status is true', (WidgetTester tester) async {
+  testWidgets('shows tree open when fetch tree status is true',
+      (WidgetTester tester) async {
     configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()
       ..isTreeBuilding = true
@@ -408,12 +445,13 @@ void main() {
 
     expect(find.text('Tree is Open'), findsOneWidget);
 
-    final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
+    final appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
     expect(appbarWidget.backgroundColor, Colors.green);
     expect(tester, meetsGuideline(textContrastGuideline));
   });
 
-  testWidgets('shows tree open when fetch tree status is true, dark mode', (WidgetTester tester) async {
+  testWidgets('shows tree open when fetch tree status is true, dark mode',
+      (WidgetTester tester) async {
     configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()
       ..isTreeBuilding = true
@@ -434,15 +472,16 @@ void main() {
 
     expect(find.text('Tree is Open'), findsOneWidget);
 
-    final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
+    final appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
     expect(appbarWidget.backgroundColor, Colors.green[800]);
     expect(tester, meetsGuideline(textContrastGuideline));
   });
 
-  testWidgets('show error snackbar when error occurs', (WidgetTester tester) async {
+  testWidgets('show error snackbar when error occurs',
+      (WidgetTester tester) async {
     configureView(tester.view);
     String? lastError;
-    final FakeBuildState buildState = FakeBuildState()
+    final buildState = FakeBuildState()
       ..errors.addListener((String message) => lastError = message)
       ..authService = fakeAuthService;
 
@@ -472,22 +511,25 @@ void main() {
     );
     await tester.pump();
 
-    await tester.pump(const Duration(milliseconds: 750)); // open animation for snackbar
+    await tester
+        .pump(const Duration(milliseconds: 750)); // open animation for snackbar
 
     expect(find.text(lastError!), findsOneWidget);
 
     // Snackbar message should go away after its duration
-    await tester.pump(ErrorBrookWatcher.errorSnackbarDuration); // wait the duration
+    await tester
+        .pump(ErrorBrookWatcher.errorSnackbarDuration); // wait the duration
     await tester.pump(); // schedule animation
     await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
     expect(find.text(lastError!), findsNothing);
   });
 
-  testWidgets('TaskGridContainer with default Settings property sheet', (WidgetTester tester) async {
+  testWidgets('TaskGridContainer with default Settings property sheet',
+      (WidgetTester tester) async {
     configureView(tester.view);
     await precacheTaskIcons(tester);
-    final BuildState buildState = BuildState(
+    final buildState = BuildState(
       cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
       authService: fakeAuthService,
     );
@@ -517,17 +559,20 @@ void main() {
     await tester.tap(find.byIcon(Icons.settings));
     await tester.pump();
 
-    await expectGoldenMatches(find.byType(BuildDashboardPage), 'build_dashboard.defaultPropertySheet.png');
+    await expectGoldenMatches(find.byType(BuildDashboardPage),
+        'build_dashboard.defaultPropertySheet.png');
     expect(tester, meetsGuideline(textContrastGuideline));
 
     await tester.pumpWidget(Container());
     buildState.dispose();
   });
 
-  testWidgets('TaskGridContainer with default Settings property sheet, dark mode', (WidgetTester tester) async {
+  testWidgets(
+      'TaskGridContainer with default Settings property sheet, dark mode',
+      (WidgetTester tester) async {
     configureView(tester.view);
     await precacheTaskIcons(tester);
-    final BuildState buildState = BuildState(
+    final buildState = BuildState(
       cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
       authService: fakeAuthService,
     );
@@ -557,17 +602,20 @@ void main() {
     await tester.tap(find.byIcon(Icons.settings));
     await tester.pump();
 
-    await expectGoldenMatches(find.byType(BuildDashboardPage), 'build_dashboard.defaultPropertySheet.dark.png');
+    await expectGoldenMatches(find.byType(BuildDashboardPage),
+        'build_dashboard.defaultPropertySheet.dark.png');
     expect(tester, meetsGuideline(textContrastGuideline));
 
     await tester.pumpWidget(Container());
     buildState.dispose();
   });
 
-  testWidgets('ensure smooth transition between invalid states', (WidgetTester tester) async {
+  testWidgets('ensure smooth transition between invalid states',
+      (WidgetTester tester) async {
     configureView(tester.view);
-    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
-    BuildDashboardPage controlledBuildDashboardPage = const BuildDashboardPage(
+    final BuildState fakeBuildState = FakeBuildState()
+      ..authService = fakeAuthService;
+    var controlledBuildDashboardPage = const BuildDashboardPage(
       queryParameters: {
         'repo': 'cocoon',
         'branch': 'flutter-release',
@@ -595,10 +643,13 @@ void main() {
       },
     );
     expect(
-      (tester.widget(find.byKey(const Key('branch dropdown'))) as DropdownButton).value,
+      (tester.widget(find.byKey(const Key('branch dropdown')))
+              as DropdownButton)
+          .value,
       equals('flutter-release'),
     ); //invalid state: engine + flutter-release
-    await tester.pump(); //an invalid state will generate delayed network responses
+    await tester
+        .pump(); //an invalid state will generate delayed network responses
 
     //if a delayed network request come in, from a previous invalid state: cocoon + engine - release, no exceptions should be raised
     controlledBuildDashboardPage = const BuildDashboardPage(
@@ -609,11 +660,14 @@ void main() {
     );
   });
 
-  testWidgets('shows branch and repo dropdown button in settings when screen is small', (WidgetTester tester) async {
+  testWidgets(
+      'shows branch and repo dropdown button in settings when screen is small',
+      (WidgetTester tester) async {
     tester.view.physicalSize = const Size(500, 500);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
-    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -636,12 +690,13 @@ void main() {
     expect(find.byType(dropdownButtonType), findsNWidgets(2));
   });
 
-  testWidgets('Settings dialog default background color', (WidgetTester tester) async {
+  testWidgets('Settings dialog default background color',
+      (WidgetTester tester) async {
     configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()
       ..isTreeBuilding = true
       ..authService = fakeAuthService;
-    const String dialogText = 'Refresh GitHub Commits';
+    const dialogText = 'Refresh GitHub Commits';
     ThemeData theme;
     Widget buildDashboard({required Brightness brightness}) {
       theme = ThemeData(useMaterial3: false, brightness: brightness);
@@ -662,7 +717,7 @@ void main() {
     await tester.tap(find.byIcon(Icons.settings));
     await tester.pump();
 
-    Finder dialogContainer = find.ancestor(
+    var dialogContainer = find.ancestor(
       of: find.text(dialogText),
       matching: find.byType(Container),
     );
@@ -733,7 +788,7 @@ void main() {
             value: buildState,
             child: ValueProvider<GoogleSignInService>(
               value: buildState.authService,
-              child: BuildDashboardPage(
+              child: const BuildDashboardPage(
                 queryParameters: {
                   'repo': 'flutter',
                   'branch': 'flutter-release',
@@ -749,11 +804,14 @@ void main() {
       await tester.pump();
 
       // Find the schedule button.
-      final tooltip = tester.firstWidget(find.byKey(ValueKey('schedulePostsubmit'))) as Tooltip;
+      final tooltip =
+          tester.firstWidget(find.byKey(const ValueKey('schedulePostsubmit')))
+              as Tooltip;
       expect(tooltip.message, contains('Only enabled for release branches'));
     });
 
-    testWidgets('is disabled on flutter/flutter master', (WidgetTester tester) async {
+    testWidgets('is disabled on flutter/flutter master',
+        (WidgetTester tester) async {
       isAuthenticatd = true;
       configureView(tester.view);
 
@@ -764,7 +822,7 @@ void main() {
             value: buildState,
             child: ValueProvider<GoogleSignInService>(
               value: buildState.authService,
-              child: BuildDashboardPage(
+              child: const BuildDashboardPage(
                 queryParameters: {
                   'repo': 'flutter',
                   'branch': 'master',
@@ -780,11 +838,14 @@ void main() {
       await tester.pump();
 
       // Find the schedule button.
-      final tooltip = tester.firstWidget(find.byKey(ValueKey('schedulePostsubmit'))) as Tooltip;
+      final tooltip =
+          tester.firstWidget(find.byKey(const ValueKey('schedulePostsubmit')))
+              as Tooltip;
       expect(tooltip.message, contains('Only enabled for release branches'));
     });
 
-    testWidgets('is disabled on flutter/cocoon non-master', (WidgetTester tester) async {
+    testWidgets('is disabled on flutter/cocoon non-master',
+        (WidgetTester tester) async {
       isAuthenticatd = true;
       configureView(tester.view);
 
@@ -795,7 +856,7 @@ void main() {
             value: buildState,
             child: ValueProvider<GoogleSignInService>(
               value: buildState.authService,
-              child: BuildDashboardPage(
+              child: const BuildDashboardPage(
                 queryParameters: {
                   'repo': 'cocoon',
                   'branch': 'flutter-release',
@@ -811,11 +872,14 @@ void main() {
       await tester.pump();
 
       // Find the schedule button.
-      final tooltip = tester.firstWidget(find.byKey(ValueKey('schedulePostsubmit'))) as Tooltip;
+      final tooltip =
+          tester.firstWidget(find.byKey(const ValueKey('schedulePostsubmit')))
+              as Tooltip;
       expect(tooltip.message, contains('Only enabled for release branches'));
     });
 
-    testWidgets('is enabled if signed in, on flutter/flutter, on non-master', (WidgetTester tester) async {
+    testWidgets('is enabled if signed in, on flutter/flutter, on non-master',
+        (WidgetTester tester) async {
       isAuthenticatd = true;
       configureView(tester.view);
 
@@ -826,7 +890,7 @@ void main() {
             value: buildState,
             child: ValueProvider<GoogleSignInService>(
               value: buildState.authService,
-              child: BuildDashboardPage(
+              child: const BuildDashboardPage(
                 queryParameters: {
                   'repo': 'flutter',
                   'branch': 'flutter-release',
@@ -849,8 +913,10 @@ void main() {
           branch: 'flutter-release',
           repo: 'flutter',
         ),
-      ).thenAnswer((_) async => CocoonResponse.data(null));
-      final tooltip = tester.firstWidget(find.byKey(ValueKey('schedulePostsubmit'))) as Tooltip;
+      ).thenAnswer((_) async => const CocoonResponse.data(null));
+      final tooltip =
+          tester.firstWidget(find.byKey(const ValueKey('schedulePostsubmit')))
+              as Tooltip;
       await tester.tap(find.byWidget(tooltip.child!));
     });
   });

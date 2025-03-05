@@ -23,12 +23,16 @@ class DiagnoseCommand extends Command<bool> {
 
   final ProcessManager processManager;
 
+  @override
   final String name = 'diagnose';
-  final String description = 'Diagnose whether attached iOS devices have errors.';
+  @override
+  final String description =
+      'Diagnose whether attached iOS devices have errors.';
 
+  @override
   Future<bool> run() async {
-    final List<String> command = <String>['xcrun', 'xcdevice', 'list'];
-    final io.ProcessResult result = await processManager.run(
+    final command = <String>['xcrun', 'xcdevice', 'list'];
+    final result = await processManager.run(
       command,
     );
     if (result.exitCode != 0) {
@@ -37,15 +41,16 @@ class DiagnoseCommand extends Command<bool> {
       );
       return false;
     }
-    final String stdout = result.stdout as String;
+    final stdout = result.stdout as String;
     logger.info(stdout);
-    final Iterable<XCDevice> devices = XCDevice.parseJson(stdout);
-    final Iterable<XCDevice> devicesWithErrors = devices.where((XCDevice device) => device.hasError);
+    final devices = XCDevice.parseJson(stdout);
+    final devicesWithErrors =
+        devices.where((XCDevice device) => device.hasError);
 
     if (devicesWithErrors.isNotEmpty) {
       logger.severe('Found devices with errors!');
 
-      for (final XCDevice device in devicesWithErrors) {
+      for (final device in devicesWithErrors) {
         logger.severe('${device.name}: ${device.error}');
       }
       return false;
@@ -65,13 +70,15 @@ class RecoverCommand extends Command<bool> {
     argParser
       ..addOption(
         'cocoon-root',
-        help: 'Path to the root of the Cocoon repo. This is used to find the Build dashboard macos project, which is '
+        help:
+            'Path to the root of the Cocoon repo. This is used to find the Build dashboard macos project, which is '
             'then used to open Xcode.',
         mandatory: true,
       )
       ..addOption(
         'timeout',
-        help: 'Integer number of seconds to allow Xcode to run before killing it.',
+        help:
+            'Integer number of seconds to allow Xcode to run before killing it.',
         defaultsTo: '300',
       );
   }
@@ -81,16 +88,19 @@ class RecoverCommand extends Command<bool> {
   final FileSystem fs;
   final Platform platform;
 
+  @override
   final String name = 'recover';
-  final String description = 'Open Xcode UI to allow it to sync debug symbols from the iPhone';
+  @override
+  final String description =
+      'Open Xcode UI to allow it to sync debug symbols from the iPhone';
 
   /// Xcode Project workspace file for the build dashboard Flutter app.
   ///
   /// Should be located at //cocoon/dashboard/ios/Runner.xcodeproj/project.xcworkspace.
   Directory get dashboardXcWorkspace {
     final String cocoonRootPath = argResults!['cocoon-root'];
-    final Directory cocoonRoot = fs.directory(cocoonRootPath);
-    final Directory dashboardXcWorkspace = cocoonRoot
+    final cocoonRoot = fs.directory(cocoonRootPath);
+    final dashboardXcWorkspace = cocoonRoot
         .childDirectory('dashboard')
         .childDirectory('ios')
         .childDirectory('Runner.xcodeproj')
@@ -108,9 +118,10 @@ class RecoverCommand extends Command<bool> {
 
   @override
   Future<bool> run() async {
-    final int? timeoutSeconds = int.tryParse(argResults!['timeout']);
+    final timeoutSeconds = int.tryParse(argResults!['timeout']);
     if (timeoutSeconds == null) {
-      throw ArgumentError('Could not parse an integer from the option --timeout="${argResults!['timeout']}"');
+      throw ArgumentError(
+          'Could not parse an integer from the option --timeout="${argResults!['timeout']}"');
     }
 
     _deleteSymbols();
@@ -118,28 +129,31 @@ class RecoverCommand extends Command<bool> {
     // Prompt Xcode to first setup without opening the app.
     // This will return very quickly if there is no work to do.
     logger.info('Running Xcode first launch...');
-    final io.ProcessResult runFirstLaunchResult = await processManager.run(<String>[
+    final runFirstLaunchResult = await processManager.run(<String>[
       'xcrun',
       'xcodebuild',
       '-runFirstLaunch',
     ]);
     final String runFirstLaunchStdout = runFirstLaunchResult.stdout.trim();
     if (runFirstLaunchStdout.isNotEmpty) {
-      logger.info('stdout from `xcodebuild -runFirstLaunch`:\n$runFirstLaunchStdout\n');
+      logger.info(
+          'stdout from `xcodebuild -runFirstLaunch`:\n$runFirstLaunchStdout\n');
     }
     final String runFirstLaunchStderr = runFirstLaunchResult.stderr.trim();
     if (runFirstLaunchStderr.isNotEmpty) {
-      logger.info('stderr from `xcodebuild -runFirstLaunch`:\n$runFirstLaunchStderr\n');
+      logger.info(
+          'stderr from `xcodebuild -runFirstLaunch`:\n$runFirstLaunchStderr\n');
     }
-    final int runFirstLaunchCode = runFirstLaunchResult.exitCode;
+    final runFirstLaunchCode = runFirstLaunchResult.exitCode;
     if (runFirstLaunchCode != 0) {
-      logger.info('Failed running `xcodebuild -runFirstLaunch` with code $runFirstLaunchCode!');
+      logger.info(
+          'Failed running `xcodebuild -runFirstLaunch` with code $runFirstLaunchCode!');
       return false;
     }
 
-    final Duration timeout = Duration(seconds: timeoutSeconds);
+    final timeout = Duration(seconds: timeoutSeconds);
     logger.info('Launching Xcode...');
-    final Future<io.ProcessResult> xcodeFuture = processManager.run(<String>[
+    final xcodeFuture = processManager.run(<String>[
       'open',
       '-n', // Opens a new instance of the application even if one is already running
       '-F', // Opens the application "fresh," without restoring windows
@@ -167,7 +181,7 @@ class RecoverCommand extends Command<bool> {
     logger.info('Waiting for $timeoutSeconds seconds');
     await Future.delayed(timeout);
     logger.info('Waited for $timeoutSeconds seconds, now killing Xcode');
-    final io.ProcessResult result = await processManager.run(<String>['killall', '-9', 'Xcode']);
+    final result = await processManager.run(<String>['killall', '-9', 'Xcode']);
 
     if (result.exitCode != 0) {
       logger.severe('Failed killing Xcode!');
@@ -180,14 +194,16 @@ class RecoverCommand extends Command<bool> {
   /// Xcode will regenerate this folder and symbols for connected devices
   /// when Xcode is opened.
   void _deleteSymbols() {
-    final String? home = platform.environment['HOME'];
+    final home = platform.environment['HOME'];
     if (home == null) {
       logger.warning('\$HOME path was not found');
       return;
     }
-    final Directory deviceSupportDirectory = fs.directory('$home/Library/Developer/Xcode/iOS DeviceSupport');
+    final deviceSupportDirectory =
+        fs.directory('$home/Library/Developer/Xcode/iOS DeviceSupport');
     if (!deviceSupportDirectory.existsSync()) {
-      logger.warning('iOS Device Support directory was not found at ${deviceSupportDirectory.path}');
+      logger.warning(
+          'iOS Device Support directory was not found at ${deviceSupportDirectory.path}');
       return;
     }
     logger.info('Deleting iOS DeviceSupport...');
@@ -212,19 +228,20 @@ class XCDevice {
     required this.name,
   });
 
-  static const String _debugSymbolDescriptionPattern = r' is busy: Fetching debug symbols for ';
+  static const String _debugSymbolDescriptionPattern =
+      r' is busy: Fetching debug symbols for ';
   static final RegExp _preparingPhoneForDevelopmentPattern = RegExp(
     r'Preparing .* for development\. Xcode will continue when .* is finished\.',
   );
 
   /// Parse subset of JSON from `parseJson` associated with a particular XCDevice.
   factory XCDevice.fromMap(Map<String, Object?> map) {
-    final Map<String, Object?>? error = map['error'] as Map<String, Object?>?;
+    final error = map['error'] as Map<String, Object?>?;
     // We should only specifically pattern match on known fatal errors, and
     // ignore the rest.
-    bool validError = false;
+    var validError = false;
     if (error != null) {
-      final String description = error['description'] as String;
+      final description = error['description'] as String;
       if (description.contains(_debugSymbolDescriptionPattern) ||
           _preparingPhoneForDevelopmentPattern.hasMatch(description)) {
         validError = true;
@@ -245,7 +262,7 @@ class XCDevice {
 
   /// Parse the complete output of `xcrun xcdevice list`.
   static Iterable<XCDevice> parseJson(String jsonString) {
-    final List<Object?> devices = json.decode(jsonString) as List<Object?>;
+    final devices = json.decode(jsonString) as List<Object?>;
     return devices.map<XCDevice>((Object? obj) {
       return XCDevice.fromMap(obj as Map<String, Object?>);
     });

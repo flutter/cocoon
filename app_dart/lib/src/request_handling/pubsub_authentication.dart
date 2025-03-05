@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:googleapis/oauth2/v2.dart';
-import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
@@ -45,9 +44,9 @@ class PubsubAuthenticationProvider extends AuthenticationProvider {
   /// unauthenticated.
   @override
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
-    final String? idToken = request.headers.value(HttpHeaders.authorizationHeader);
+    final idToken = request.headers.value(HttpHeaders.authorizationHeader);
 
-    final ClientContext clientContext = clientContextProvider();
+    final clientContext = clientContextProvider();
 
     log.fine('Authenticating as pubsub message');
     return authenticateIdToken(idToken, clientContext: clientContext);
@@ -61,11 +60,11 @@ class PubsubAuthenticationProvider extends AuthenticationProvider {
     if (idToken == null || !idToken.startsWith(kBearerTokenPrefix)) {
       throw const Unauthenticated('${HttpHeaders.authorizationHeader} is null');
     }
-    final Client client = httpClientProvider();
-    final Oauth2Api oauth2api = Oauth2Api(client);
+    final client = httpClientProvider();
+    final oauth2api = Oauth2Api(client);
 
     // Get token from Google oauth
-    final Tokeninfo info = await oauth2api.tokeninfo(
+    final info = await oauth2api.tokeninfo(
       idToken: idToken.substring(kBearerTokenPrefix.length),
     );
     if (info.expiresIn == null || info.expiresIn! < 1) {
@@ -75,6 +74,8 @@ class PubsubAuthenticationProvider extends AuthenticationProvider {
     if (Config.allowedPubsubServiceAccounts.contains(info.email)) {
       return AuthenticatedContext(clientContext: clientContext);
     }
-    throw Unauthenticated('${info.email} is not in allowedPubsubServiceAccounts');
+    throw Unauthenticated(
+      '${info.email} is not in allowedPubsubServiceAccounts',
+    );
   }
 }

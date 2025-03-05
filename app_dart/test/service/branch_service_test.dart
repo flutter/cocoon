@@ -43,7 +43,9 @@ void main() {
       retryOptions: const RetryOptions(maxDelay: Duration.zero),
     );
 
-    when(config.createDefaultGitHubService()).thenAnswer((_) async => githubService);
+    when(
+      config.createDefaultGitHubService(),
+    ).thenAnswer((_) async => githubService);
     when(config.db).thenReturn(db);
   });
 
@@ -52,31 +54,73 @@ void main() {
 
     setUp(() {
       mockRepositoriesService = MockRepositoriesService();
-      when(githubService.github.repositories).thenReturn(mockRepositoriesService);
+      when(
+        githubService.github.repositories,
+      ).thenReturn(mockRepositoriesService);
     });
 
     test('return empty when branch version file does not exist', () async {
-      final gh.Branch candidateBranch = generateBranch(3, name: 'flutter-3.4-candidate.5', sha: '789dev');
-      when(mockRepositoriesService.listBranches(any)).thenAnswer((_) => Stream.value(candidateBranch));
-      when(mockRepositoriesService.getContents(any, any)).thenThrow(gh.GitHubError(github, '404 file not found'));
-      final List<Map<String, String>> result =
-          await branchService.getReleaseBranches(githubService: githubService, slug: Config.cocoonSlug);
-      final betaBranch = result.singleWhere((Map<String, String> branch) => branch['name'] == 'beta');
+      final candidateBranch = generateBranch(
+        3,
+        name: 'flutter-3.4-candidate.5',
+        sha: '789dev',
+      );
+      when(
+        mockRepositoriesService.listBranches(any),
+      ).thenAnswer((_) => Stream.value(candidateBranch));
+      when(
+        mockRepositoriesService.getContents(any, any),
+      ).thenThrow(gh.GitHubError(github, '404 file not found'));
+      final result = await branchService.getReleaseBranches(
+        githubService: githubService,
+        slug: Config.cocoonSlug,
+      );
+      final betaBranch = result.singleWhere(
+        (Map<String, String> branch) => branch['name'] == 'beta',
+      );
       expect(betaBranch['branch']?.isEmpty, isTrue);
-      final stableBranch = result.singleWhere((Map<String, String> branch) => branch['name'] == 'stable');
+      final stableBranch = result.singleWhere(
+        (Map<String, String> branch) => branch['name'] == 'stable',
+      );
       expect(stableBranch['branch']?.isEmpty, isTrue);
     });
 
     test('return beta, stable, and latest candidate branches', () async {
-      final gh.Branch stableBranch = generateBranch(1, name: 'flutter-2.13-candidate.0', sha: '123stable');
-      final gh.Branch betaBranch = generateBranch(2, name: 'flutter-3.2-candidate.5', sha: '456beta');
-      final gh.Branch candidateBranch = generateBranch(3, name: 'flutter-3.4-candidate.5', sha: '789dev');
-      final gh.Branch candidateBranchOne = generateBranch(4, name: 'flutter-3.3-candidate.9', sha: 'lagerZValue');
-      final gh.Branch candidateBranchTwo =
-          generateBranch(5, name: 'flutter-2.15-candidate.99', sha: 'superLargeYZvalue');
-      final gh.Branch candidateBranchThree = generateBranch(6, name: 'flutter-0.5-candidate.0', sha: 'someZeroValues');
-      final gh.Branch candidateCherrypickBranch =
-          generateBranch(6, name: 'cherry-picks-flutter-3.11-candidate.3', sha: 'bad');
+      final stableBranch = generateBranch(
+        1,
+        name: 'flutter-2.13-candidate.0',
+        sha: '123stable',
+      );
+      final betaBranch = generateBranch(
+        2,
+        name: 'flutter-3.2-candidate.5',
+        sha: '456beta',
+      );
+      final candidateBranch = generateBranch(
+        3,
+        name: 'flutter-3.4-candidate.5',
+        sha: '789dev',
+      );
+      final candidateBranchOne = generateBranch(
+        4,
+        name: 'flutter-3.3-candidate.9',
+        sha: 'lagerZValue',
+      );
+      final candidateBranchTwo = generateBranch(
+        5,
+        name: 'flutter-2.15-candidate.99',
+        sha: 'superLargeYZvalue',
+      );
+      final candidateBranchThree = generateBranch(
+        6,
+        name: 'flutter-0.5-candidate.0',
+        sha: 'someZeroValues',
+      );
+      final candidateCherrypickBranch = generateBranch(
+        6,
+        name: 'cherry-picks-flutter-3.11-candidate.3',
+        sha: 'bad',
+      );
 
       when(
         mockRepositoriesService.getContents(
@@ -85,7 +129,11 @@ void main() {
           ref: 'beta',
         ),
       ).thenAnswer(
-        (_) async => gh.RepositoryContents(file: gh.GitHubFile(content: gitHubEncode('flutter-3.2-candidate.5\n'))),
+        (_) async => gh.RepositoryContents(
+          file: gh.GitHubFile(
+            content: gitHubEncode('flutter-3.2-candidate.5\n'),
+          ),
+        ),
       );
 
       when(
@@ -95,10 +143,16 @@ void main() {
           ref: 'stable',
         ),
       ).thenAnswer(
-        (_) async => gh.RepositoryContents(file: gh.GitHubFile(content: gitHubEncode('flutter-2.13-candidate.0\n'))),
+        (_) async => gh.RepositoryContents(
+          file: gh.GitHubFile(
+            content: gitHubEncode('flutter-2.13-candidate.0\n'),
+          ),
+        ),
       );
 
-      when(mockRepositoriesService.listBranches(any)).thenAnswer((Invocation invocation) {
+      when(mockRepositoriesService.listBranches(any)).thenAnswer((
+        Invocation invocation,
+      ) {
         return Stream.fromIterable([
           candidateBranch,
           candidateBranchOne,
@@ -109,22 +163,28 @@ void main() {
           candidateCherrypickBranch,
         ]);
       });
-      final List<Map<String, String>> result =
-          await branchService.getReleaseBranches(githubService: githubService, slug: Config.flutterSlug);
+      final result = await branchService.getReleaseBranches(
+        githubService: githubService,
+        slug: Config.flutterSlug,
+      );
       expect(result.length, 4);
       expect(result[1]['branch'], 'flutter-2.13-candidate.0');
       expect(result[1]['name'], 'stable');
-      final devBranch = result.singleWhere((Map<String, String> branch) => branch['name'] == 'dev');
+      final devBranch = result.singleWhere(
+        (Map<String, String> branch) => branch['name'] == 'dev',
+      );
       expect(devBranch['branch'], 'flutter-3.4-candidate.5');
     });
   });
 
   group('branchFlutterRecipes', () {
-    const String branch = 'flutter-2.13-candidate.0';
-    const String sha = 'abc123';
+    const branch = 'flutter-2.13-candidate.0';
+    const sha = 'abc123';
     setUp(() {
       gerritService.branchesValue = <String>[];
-      when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer((_) async => generateGitCommit(5));
+      when(
+        repositories.getCommit(Config.flutterSlug, sha),
+      ).thenAnswer((_) async => generateGitCommit(5));
     });
 
     test('does not create branch that already exists', () async {
@@ -140,11 +200,7 @@ void main() {
       when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer(
         (_) async => gh.RepositoryCommit(
           commit: gh.GitCommit(
-            committer: gh.GitCommitUser(
-              'dash',
-              'dash@flutter.dev',
-              null,
-            ),
+            committer: gh.GitCommitUser('dash', 'dash@flutter.dev', null),
           ),
         ),
       );
@@ -154,26 +210,31 @@ void main() {
       );
     });
 
-    test('does not create branch if a good branch point cannot be found', () async {
-      gerritService.commitsValue = <GerritCommit>[];
-      when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer(
-        (_) async => generateGitCommit(5),
-      );
-      expect(
-        () async => branchService.branchFlutterRecipes(branch, sha),
-        throwsExceptionWith<InternalServerError>(
-          'HTTP 500: Failed to find a revision to flutter/recipes for $branch before 1969-12-31',
-        ),
-      );
-    });
+    test(
+      'does not create branch if a good branch point cannot be found',
+      () async {
+        gerritService.commitsValue = <GerritCommit>[];
+        when(
+          repositories.getCommit(Config.flutterSlug, sha),
+        ).thenAnswer((_) async => generateGitCommit(5));
+        expect(
+          () async => branchService.branchFlutterRecipes(branch, sha),
+          throwsExceptionWith<InternalServerError>(
+            'HTTP 500: Failed to find a revision to flutter/recipes for $branch before 1969-12-31',
+          ),
+        );
+      },
+    );
 
     test('creates branch', () async {
       await branchService.branchFlutterRecipes(branch, sha);
     });
 
     test('creates branch when GitHub requires retries', () async {
-      int attempts = 0;
-      when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer((_) async {
+      var attempts = 0;
+      when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer((
+        _,
+      ) async {
         attempts++;
         if (attempts == 3) {
           return generateGitCommit(5);
@@ -183,19 +244,24 @@ void main() {
       await branchService.branchFlutterRecipes(branch, sha);
     });
 
-    test('ensure createDefaultGithubService is called once for each retry', () async {
-      int attempts = 0;
-      when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer((_) async {
-        attempts++;
-        if (attempts == 3) {
-          return generateGitCommit(5);
-        }
-        throw gh.GitHubError(MockGitHub(), 'Failed to get commit');
-      });
-      await branchService.branchFlutterRecipes(branch, sha);
+    test(
+      'ensure createDefaultGithubService is called once for each retry',
+      () async {
+        var attempts = 0;
+        when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer((
+          _,
+        ) async {
+          attempts++;
+          if (attempts == 3) {
+            return generateGitCommit(5);
+          }
+          throw gh.GitHubError(MockGitHub(), 'Failed to get commit');
+        });
+        await branchService.branchFlutterRecipes(branch, sha);
 
-      verify(config.createDefaultGitHubService()).called(attempts);
-    });
+        verify(config.createDefaultGitHubService()).called(attempts);
+      },
+    );
 
     test('creates branch when there is a similar branch', () async {
       gerritService.branchesValue = <String>['$branch-similar'];

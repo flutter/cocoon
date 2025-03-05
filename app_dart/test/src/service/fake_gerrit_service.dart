@@ -14,14 +14,16 @@ import '../utilities/entity_generators.dart';
 
 /// Fake [GerritService] for use in tests.
 class FakeGerritService extends GerritService {
-  FakeGerritService({
-    this.branchesValue = _defaultBranches,
-    this.commitsValue,
-  }) : super(
-          config: FakeConfig(),
-          httpClient:
-              MockClient((_) => throw const InternalServerError('FakeGerritService tried to make an http request')),
-        );
+  FakeGerritService({this.branchesValue = _defaultBranches, this.commitsValue})
+    : super(
+        config: FakeConfig(),
+        httpClient: MockClient(
+          (_) =>
+              throw const InternalServerError(
+                'FakeGerritService tried to make an http request',
+              ),
+        ),
+      );
 
   List<String> branchesValue;
   static const List<String> _defaultBranches = <String>['main'];
@@ -34,16 +36,30 @@ class FakeGerritService extends GerritService {
   ];
 
   @override
-  Future<List<String>> branches(String repo, String project, {String? filterRegex}) async => branchesValue;
+  Future<List<String>> branches(
+    String repo,
+    String project, {
+    String? filterRegex,
+  }) async => branchesValue;
 
   @override
-  Future<Iterable<GerritCommit>> commits(RepositorySlug slug, String branch) async => commitsValue ?? _defaultCommits;
+  Future<Iterable<GerritCommit>> commits(
+    RepositorySlug slug,
+    String branch,
+  ) async => commitsValue ?? _defaultCommits;
 
   @override
-  Future<void> createBranch(RepositorySlug slug, String branchName, String revision) async => Future.value(null);
+  Future<void> createBranch(
+    RepositorySlug slug,
+    String branchName,
+    String revision,
+  ) async => Future.value(null);
 
   @override
-  Future<GerritCommit?> findMirroredCommit(RepositorySlug slug, String sha) async {
+  Future<GerritCommit?> findMirroredCommit(
+    RepositorySlug slug,
+    String sha,
+  ) async {
     final commits = await this.commits(slug, '');
     return commits.firstWhereOrNull((commit) => commit.commit == sha);
   }

@@ -30,14 +30,16 @@ class FileReader {
 
   static Future<FileReader> open(File file) async {
     final Uint8List bytes = await file.readAsBytes();
-    return FileReader(bytes.buffer.asByteData(bytes.offsetInBytes, bytes.length));
+    return FileReader(
+        bytes.buffer.asByteData(bytes.offsetInBytes, bytes.length));
   }
 
   void _readType(int expected) {
     final int type = _buffer.getUint8(_position);
     _position += 1;
     if (expected != type) {
-      throw FormatException('expected $expected but got $type at byte ${_position - 1}');
+      throw FormatException(
+          'expected $expected but got $type at byte ${_position - 1}');
     }
   }
 
@@ -68,7 +70,8 @@ class FileReader {
   String readString() {
     _readType(_typeString);
     final int length = readInt();
-    final String result = utf8.decode(_buffer.buffer.asUint8List(_buffer.offsetInBytes + _position, length));
+    final String result = utf8.decode(
+        _buffer.buffer.asUint8List(_buffer.offsetInBytes + _position, length));
     _position += length;
     return result;
   }
@@ -94,7 +97,8 @@ class FileReader {
     return readerForSet<T>(reader)();
   }
 
-  Reader<Map<K, V>> readerForMap<K, V>(Reader<K> keyReader, Reader<V> valueReader) {
+  Reader<Map<K, V>> readerForMap<K, V>(
+      Reader<K> keyReader, Reader<V> valueReader) {
     return () {
       _readType(_typeMap);
       final int count = readInt();
@@ -120,7 +124,8 @@ class FileReader {
   void close() {
     _readType(_typeEnd);
     if (_position != _buffer.lengthInBytes) {
-      throw StateError('read failed; position=$_position, expected ${_buffer.lengthInBytes}');
+      throw StateError(
+          'read failed; position=$_position, expected ${_buffer.lengthInBytes}');
     }
   }
 }
@@ -145,8 +150,8 @@ class FileWriter {
     }
   }
 
+  // ignore: avoid_positional_boolean_parameters
   void writeBool(bool value) {
-    // ignore: avoid_positional_boolean_parameters
     _writeType(_typeBool);
     _buffer.addByte(value ? 0x01 : 0x00);
   }
@@ -184,7 +189,8 @@ class FileWriter {
     writerForSet<T>(writer)(value);
   }
 
-  Writer<Map<K, V>> writerForMap<K, V>(Writer<K> keyWriter, Writer<V> valueWriter) {
+  Writer<Map<K, V>> writerForMap<K, V>(
+      Writer<K> keyWriter, Writer<V> valueWriter) {
     return (Map<K, V> value) {
       _writeType(_typeMap);
       writeInt(value.length);
@@ -195,7 +201,8 @@ class FileWriter {
     };
   }
 
-  void writeMap<K, V>(Writer<K> keyWriter, Writer<V> valueWriter, Map<K, V> value) {
+  void writeMap<K, V>(
+      Writer<K> keyWriter, Writer<V> valueWriter, Map<K, V> value) {
     writerForMap<K, V>(keyWriter, valueWriter)(value);
   }
 

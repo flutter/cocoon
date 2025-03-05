@@ -14,15 +14,15 @@ void main() {
   group('Testing git commands', () {
     late CliCommand cliCommand;
     late GitCli gitCli;
-    final String workingDirectory = '${Directory.current.path}/test/repository';
-    final String fullRepoCheckoutPath = '$workingDirectory/test_repo';
-    final RepositorySlug slug = RepositorySlug('flutter', 'test_repo');
+    final workingDirectory = '${Directory.current.path}/test/repository';
+    final fullRepoCheckoutPath = '$workingDirectory/test_repo';
+    final slug = RepositorySlug('flutter', 'test_repo');
 
     late ProcessResult initProcessResult;
 
     setUp(() async {
       cliCommand = CliCommand();
-      final Directory directory = Directory(workingDirectory);
+      final directory = Directory(workingDirectory);
       directory.createSync();
       gitCli = GitCli(GitAccessMethod.SSH, cliCommand);
       initProcessResult = await cliCommand.runCliCommand(
@@ -52,7 +52,7 @@ void main() {
     test('createBranch()', () async {
       validateInit();
 
-      final ProcessResult branchProcessResult = await gitCli.createBranch(
+      final branchProcessResult = await gitCli.createBranch(
         newBranchName: 'test_branch',
         workingDirectory: fullRepoCheckoutPath,
         useCheckout: true,
@@ -60,12 +60,13 @@ void main() {
       expect(branchProcessResult, isNotNull);
       expect(branchProcessResult.exitCode, isZero);
 
-      final ProcessResult processResult = await cliCommand.runCliCommand(
+      final processResult = await cliCommand.runCliCommand(
         executable: 'git',
         arguments: ['status'],
         workingDirectory: fullRepoCheckoutPath,
       );
-      expect((processResult.stdout as String).contains('On branch test_branch'), isTrue);
+      expect((processResult.stdout as String).contains('On branch test_branch'),
+          isTrue);
     });
 
     tearDown(() async {

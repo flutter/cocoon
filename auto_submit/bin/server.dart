@@ -27,13 +27,13 @@ Future<void> main() async {
     useLoggingPackageAdaptor();
 
     final cache = Cache.inMemoryCacheProvider(kCacheSize);
-    final Config config = Config(
+    final config = Config(
       cacheProvider: cache,
       secretManager: CloudSecretManager(),
     );
-    const CronAuthProvider authProvider = CronAuthProvider();
+    const authProvider = CronAuthProvider();
 
-    final Router router = Router()
+    final router = Router()
       ..post(
         '/webhook',
         GithubWebhook(

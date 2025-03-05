@@ -32,7 +32,7 @@ class TaskIcon extends StatelessWidget {
     // This only works in the CanvasKit implementation currently, not in DOM. If
     // this needs to run in the DOM implementation, it will need to include
     // different assets.
-    final Color? blendFilter = brightness == Brightness.dark ? Colors.white : null;
+    final blendFilter = brightness == Brightness.dark ? Colors.white : null;
 
     if (qualifiedTask.isGoogleTest) {
       return Image.asset(
@@ -41,18 +41,22 @@ class TaskIcon extends StatelessWidget {
       );
     }
 
-    if (qualifiedTask.task == null || !(qualifiedTask.isLuci || qualifiedTask.isDartInternal)) {
+    if (qualifiedTask.task == null ||
+        !(qualifiedTask.isLuci || qualifiedTask.isDartInternal)) {
       return Icon(
         Icons.help,
         color: blendFilter,
       );
     }
 
-    final String matchedName = qualifiedTask.task!.toLowerCase();
-    final bool isWebTest = matchedName.contains('_web') || matchedName.contains('web_');
-    final bool isToolTest = matchedName.contains('_tool') || matchedName.contains('tool_');
-    final bool isAndroidTest =
-        matchedName.contains('_android') || matchedName.contains('_mokey') || matchedName.contains('_pixel_7pro');
+    final matchedName = qualifiedTask.task!.toLowerCase();
+    final isWebTest =
+        matchedName.contains('_web') || matchedName.contains('web_');
+    final isToolTest =
+        matchedName.contains('_tool') || matchedName.contains('tool_');
+    final isAndroidTest = matchedName.contains('_android') ||
+        matchedName.contains('_mokey') ||
+        matchedName.contains('_pixel_7pro');
 
     if (matchedName.contains('_fuchsia')) {
       return Padding(
@@ -113,8 +117,8 @@ class TaskIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Brightness brightness = Theme.of(context).brightness;
-    final Widget icon = stageIconForBrightness(brightness);
+    final brightness = Theme.of(context).brightness;
+    final icon = stageIconForBrightness(brightness);
 
     return IconTheme.merge(
       data: IconThemeData(size: TaskBox.of(context) - 5),

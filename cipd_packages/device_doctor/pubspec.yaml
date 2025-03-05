@@ -3,14 +3,16 @@ description: A Dart tool to check device healthiness and implement recovery mech
 version: 1.0.1
 
 environment:
-  sdk: ^3.1.0
+  sdk: ^3.7.0
 
 dependencies:
   analyzer: 6.11.0
   args: 2.6.0
+  file: any
   logging: 1.2.0
   meta: 1.16.0
   path: 1.9.1
+  platform: any
   process: 5.0.3
   retry: 3.1.2
   yaml: 3.1.2

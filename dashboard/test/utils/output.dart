@@ -23,8 +23,8 @@ Future<void> checkOutput({
   List<String> output = const <String>[],
 }) =>
     TestAsyncUtils.guard(() async {
-      final DebugPrintCallback originalDebugPrint = debugPrint;
-      final List<String> log = <String>[];
+      final originalDebugPrint = debugPrint;
+      final log = <String>[];
       debugPrint = (String? message, {int? wrapWidth}) {
         log.addAll(message!.split('\n'));
       };

@@ -22,16 +22,18 @@ void main() {
 
     test('succeeded', () async {
       final Process proc = FakeProcess(0);
-      when(pm.start(any, workingDirectory: anyNamed('workingDirectory'))).thenAnswer((_) => Future.value(proc));
+      when(pm.start(any, workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(proc));
 
-      final HealthCheckResult res = await closeIosDialog(pm: pm);
+      final res = await closeIosDialog(pm: pm);
 
       expect(res.succeeded, isTrue);
     });
 
     test('succeeded with code signing overwrite', () async {
       final Process proc = FakeProcess(0);
-      when(pm.start(any, workingDirectory: anyNamed('workingDirectory'))).thenAnswer((_) => Future.value(proc));
+      when(pm.start(any, workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(proc));
       final platform.Platform pl = platform.FakePlatform(
         environment: <String, String>{
           'FLUTTER_XCODE_CODE_SIGN_STYLE': 'Manual',
@@ -40,28 +42,30 @@ void main() {
         },
       );
 
-      final HealthCheckResult res = await closeIosDialog(pm: pm, pl: pl);
+      final res = await closeIosDialog(pm: pm, pl: pl);
 
       expect(res.succeeded, isTrue);
     });
 
     test('failed', () async {
       final Process proc = FakeProcess(123);
-      when(pm.start(any, workingDirectory: anyNamed('workingDirectory'))).thenAnswer((_) => Future.value(proc));
+      when(pm.start(any, workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(proc));
 
       expect(
         closeIosDialog(pm: pm),
-        throwsA(TypeMatcher<BuildFailedError>()),
+        throwsA(const TypeMatcher<BuildFailedException>()),
       );
     });
 
     test('tool is not found', () async {
       final Process proc = FakeProcess(123);
-      when(pm.start(any, workingDirectory: anyNamed('workingDirectory'))).thenAnswer((_) => Future.value(proc));
+      when(pm.start(any, workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(proc));
 
       expect(
         closeIosDialog(pm: pm, infraDialog: 'abc'),
-        throwsA(TypeMatcher<BuildFailedError>()),
+        throwsA(const TypeMatcher<BuildFailedException>()),
       );
     });
   });
@@ -74,35 +78,44 @@ void main() {
     });
 
     test('with no device', () async {
-      final Map<String, Map<String, dynamic>> healthcheckMap = await healthcheck(deviceChecks);
+      final healthcheckMap = await healthcheck(deviceChecks);
       expect(healthcheckMap, <String, Map<String, dynamic>>{
-        kAttachedDeviceHealthcheckKey: <String, dynamic>{'status': false, 'details': kAttachedDeviceHealthcheckValue},
+        kAttachedDeviceHealthcheckKey: <String, dynamic>{
+          'status': false,
+          'details': kAttachedDeviceHealthcheckValue
+        },
       });
     });
 
     test('with failed check', () async {
-      final List<HealthCheckResult> healthChecks = <HealthCheckResult>[
+      final healthChecks = <HealthCheckResult>[
         HealthCheckResult.success('check1'),
         HealthCheckResult.failure('check2', 'abc'),
       ];
       deviceChecks['device1'] = healthChecks;
-      final Map<String, Map<String, dynamic>> healthcheckMap = await healthcheck(deviceChecks);
+      final healthcheckMap = await healthcheck(deviceChecks);
       expect(healthcheckMap, <String, Map<String, dynamic>>{
-        kAttachedDeviceHealthcheckKey: <String, dynamic>{'status': true, 'details': null},
+        kAttachedDeviceHealthcheckKey: <String, dynamic>{
+          'status': true,
+          'details': null
+        },
         'check1': <String, dynamic>{'status': true, 'details': null},
         'check2': <String, dynamic>{'status': false, 'details': 'abc'},
       });
     });
 
     test('without failed check', () async {
-      final List<HealthCheckResult> healthChecks = <HealthCheckResult>[
+      final healthChecks = <HealthCheckResult>[
         HealthCheckResult.success('check1'),
         HealthCheckResult.success('check2'),
       ];
       deviceChecks['device1'] = healthChecks;
-      final Map<String, Map<String, dynamic>> healthcheckMap = await healthcheck(deviceChecks);
+      final healthcheckMap = await healthcheck(deviceChecks);
       expect(healthcheckMap, <String, Map<String, dynamic>>{
-        kAttachedDeviceHealthcheckKey: <String, dynamic>{'status': true, 'details': null},
+        kAttachedDeviceHealthcheckKey: <String, dynamic>{
+          'status': true,
+          'details': null
+        },
         'check1': <String, dynamic>{'status': true, 'details': null},
         'check2': <String, dynamic>{'status': true, 'details': null},
       });

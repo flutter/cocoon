@@ -29,11 +29,11 @@ const String kBatteryTemperatureCheckKey = 'battery_temperature';
 const List<String> kM1BrewBinPaths = ['/opt/homebrew/bin', '/usr/local/bin'];
 
 void fail(String message) {
-  throw BuildFailedError(message);
+  throw BuildFailedException(message);
 }
 
-class BuildFailedError extends Error {
-  BuildFailedError(this.message);
+class BuildFailedException implements Exception {
+  BuildFailedException(this.message);
 
   final String message;
 
@@ -53,11 +53,13 @@ Directory dir(
   String? part7,
   String? part8,
 ]) {
-  return Directory(path.join(thePath, part2, part3, part4, part5, part6, part7, part8));
+  return Directory(
+      path.join(thePath, part2, part3, part4, part5, part6, part7, part8));
 }
 
-Future<dynamic> inDirectory(dynamic directory, Future<dynamic> action()) async {
-  final String previousCwd = path.current;
+Future<dynamic> inDirectory(
+    dynamic directory, Future<dynamic> Function() action) async {
+  final previousCwd = path.current;
   try {
     cd(directory);
     return await action();
@@ -76,7 +78,9 @@ void cd(dynamic directory) {
     throw 'Unsupported type ${directory.runtimeType} of $directory';
   }
 
-  if (!d.existsSync()) throw 'Cannot cd into directory that does not exist: $directory';
+  if (!d.existsSync()) {
+    throw 'Cannot cd into directory that does not exist: $directory';
+  }
 }
 
 /// Starts a process for an executable command, and returns the processes.
@@ -89,8 +93,8 @@ Future<Process> startProcess(
 }) async {
   late Process proc;
   try {
-    proc = await processManager!
-        .start(<String>[executable]..addAll(arguments), environment: env, workingDirectory: path.current);
+    proc = await processManager!.start(<String>[executable, ...arguments],
+        environment: env, workingDirectory: path.current);
   } catch (error) {
     fail(error.toString());
   }
@@ -108,15 +112,17 @@ Future<String> eval(
   bool silent = false,
   ProcessManager? processManager = const LocalProcessManager(),
 }) async {
-  final Process proc =
-      await startProcess(executable, arguments, env: env, silent: silent, processManager: processManager);
+  final proc = await startProcess(executable, arguments,
+      env: env, silent: silent, processManager: processManager);
   proc.stderr.listen((List<int> data) {
     stderr.add(data);
   });
-  final String output = await utf8.decodeStream(proc.stdout);
-  final int exitCode = await proc.exitCode;
+  final output = await utf8.decodeStream(proc.stdout);
+  final exitCode = await proc.exitCode;
 
-  if (exitCode != 0 && !canFail) fail('Executable $executable failed with exit code $exitCode.');
+  if (exitCode != 0 && !canFail) {
+    fail('Executable $executable failed with exit code $exitCode.');
+  }
 
   return output.trimRight();
 }
@@ -151,13 +157,13 @@ Future<String> getMacBinaryPath(
   String name, {
   ProcessManager processManager = const LocalProcessManager(),
 }) async {
-  final Map<String, String> env = Map.of(Platform.environment);
+  final env = Map<String, String>.of(Platform.environment);
   String? path = env['PATH'] ?? '';
-  final String additionalPaths = kM1BrewBinPaths.join(':');
+  final additionalPaths = kM1BrewBinPaths.join(':');
   path = '$path:$additionalPaths';
   env['PATH'] = path;
-  final String binaryPath =
-      await eval('which', <String>[name], canFail: true, processManager: processManager, env: env);
+  final binaryPath = await eval('which', <String>[name],
+      canFail: true, processManager: processManager, env: env);
   // Throws exception when the binary doesn't exist in either location.
   if (binaryPath.isEmpty) {
     fail('$name not found.');

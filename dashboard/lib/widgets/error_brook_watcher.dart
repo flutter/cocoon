@@ -53,7 +53,7 @@ class _ErrorBrookWatcherState extends State<ErrorBrookWatcher> {
   }
 
   void _showErrorSnackbar(String error) {
-    final Row snackbarContent = Row(
+    final snackbarContent = Row(
       children: <Widget>[
         const Icon(Icons.error),
         const SizedBox(width: 10),

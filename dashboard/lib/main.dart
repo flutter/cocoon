@@ -32,7 +32,7 @@ Usage: cocoon [--use-production-service | --no-use-production-service]
 }
 
 void main([List<String> args = const <String>[]]) async {
-  bool useProductionService = kReleaseMode;
+  var useProductionService = kReleaseMode;
   if (args.contains('--help')) {
     usage();
     if (!kIsWeb) {
@@ -57,12 +57,14 @@ void main([List<String> args = const <String>[]]) async {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
   };
-  final GoogleSignInService authService = GoogleSignInService();
-  final CocoonService cocoonService = CocoonService(useProductionService: useProductionService);
+  final authService = GoogleSignInService();
+  final cocoonService =
+      CocoonService(useProductionService: useProductionService);
   runApp(
     StateProvider(
       signInService: authService,
-      buildState: BuildState(authService: authService, cocoonService: cocoonService),
+      buildState:
+          BuildState(authService: authService, cocoonService: cocoonService),
       child: Now(child: const MyApp()),
     ),
   );
@@ -78,7 +80,8 @@ class MyApp extends StatelessWidget {
         title: 'Flutter Build Dashboard — Cocoon',
         shortcuts: <ShortcutActivator, Intent>{
           ...WidgetsApp.defaultShortcuts,
-          const SingleActivator(LogicalKeyboardKey.select): const ActivateIntent(),
+          const SingleActivator(LogicalKeyboardKey.select):
+              const ActivateIntent(),
         },
         theme: ThemeData(
           useMaterial3: false,
@@ -89,10 +92,11 @@ class MyApp extends StatelessWidget {
         darkTheme: ThemeData.dark(),
         initialRoute: BuildDashboardPage.routeName,
         routes: <String, WidgetBuilder>{
-          BuildDashboardPage.routeName: (BuildContext context) => const BuildDashboardPage(),
+          BuildDashboardPage.routeName: (BuildContext context) =>
+              const BuildDashboardPage(),
         },
         onGenerateRoute: (RouteSettings settings) {
-          final Uri uriData = Uri.parse(settings.name!);
+          final uriData = Uri.parse(settings.name!);
           if (uriData.path == BuildDashboardPage.routeName) {
             return MaterialPageRoute<void>(
               settings: RouteSettings(name: uriData.toString()),

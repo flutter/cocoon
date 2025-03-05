@@ -70,9 +70,11 @@ void main() {
 
   test('roundtrip Map', () {
     final FileWriter writer = FileWriter();
-    writer.writeMap(writer.writeString, writer.writeInt, <String, int>{'a': 1, 'b': 2, 'c': 3});
+    writer.writeMap(writer.writeString, writer.writeInt,
+        <String, int>{'a': 1, 'b': 2, 'c': 3});
     final FileReader reader = FileReader(writer.serialize());
-    expect(reader.readMap(reader.readString, reader.readInt), <String, int>{'c': 3, 'b': 2, 'a': 1});
+    expect(reader.readMap(reader.readString, reader.readInt),
+        <String, int>{'c': 3, 'b': 2, 'a': 1});
     reader.close();
   });
 }

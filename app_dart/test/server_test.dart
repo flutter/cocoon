@@ -18,13 +18,14 @@ import 'src/service/fake_scheduler.dart';
 void main() {
   test('verify server can be created', () {
     createServer(
-      config: FakeConfig(
-        webhookKeyValue: 'fake-secret',
-      ),
+      config: FakeConfig(webhookKeyValue: 'fake-secret'),
       cache: CacheService(inMemory: true),
       authProvider: FakeAuthenticationProvider(),
       swarmingAuthProvider: FakeAuthenticationProvider(),
-      branchService: BranchService(config: FakeConfig(), gerritService: FakeGerritService()),
+      branchService: BranchService(
+        config: FakeConfig(),
+        gerritService: FakeGerritService(),
+      ),
       buildBucketClient: FakeBuildBucketClient(),
       luciBuildService: FakeLuciBuildService(config: FakeConfig()),
       githubChecksService: GithubChecksService(FakeConfig()),

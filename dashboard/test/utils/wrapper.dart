@@ -20,7 +20,7 @@ class FakeInserter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final MockGoogleSignInService fakeAuthService = MockGoogleSignInService();
+    final fakeAuthService = MockGoogleSignInService();
     if (signedIn) {
       when(fakeAuthService.isAuthenticated).thenReturn(true);
       when(fakeAuthService.user).thenReturn(FakeGoogleSignInAccount());

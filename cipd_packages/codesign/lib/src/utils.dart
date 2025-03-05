@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:args/args.dart';
 import 'package:file/file.dart';
 import 'package:process/process.dart';
@@ -54,7 +52,8 @@ Future<void> unzip({
       }
     }
   });
-  log.info('The downloaded file is unzipped from ${inputZip.absolute.path} to ${outDir.absolute.path}');
+  log.info(
+      'The downloaded file is unzipped from ${inputZip.absolute.path} to ${outDir.absolute.path}');
 }
 
 Future<void> zip({
@@ -79,7 +78,7 @@ Future<void> zip({
 
 /// Check mime-type of file at [filePath] to determine if it is a directory.
 FileType getFileType(String filePath, ProcessManager processManager) {
-  final ProcessResult result = processManager.runSync(
+  final result = processManager.runSync(
     <String>[
       'file',
       '--mime-type',
@@ -87,7 +86,7 @@ FileType getFileType(String filePath, ProcessManager processManager) {
       filePath,
     ],
   );
-  final String output = result.stdout as String;
+  final output = result.stdout as String;
   return FileType.fromMimeType(output);
 }
 
@@ -108,7 +107,7 @@ String? getValueFromArgs(
   ArgResults argResults, {
   bool allowNull = false,
 }) {
-  final String? argValue = argResults[name] as String?;
+  final argValue = argResults[name] as String?;
   if (argValue != null) {
     return argValue;
   }

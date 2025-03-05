@@ -2,14 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io' as io;
-
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:logging/logging.dart';
 import 'package:process/process.dart';
 
-const String kNotNotarizedMessage = 'test-requirement: code failed to satisfy specified code requirement(s)';
+const String kNotNotarizedMessage =
+    'test-requirement: code failed to satisfy specified code requirement(s)';
 
 enum VerificationResult {
   unsigned,
@@ -55,11 +54,13 @@ class VerificationService {
     }
     await _notarization();
     logger.info(present());
-    return _notarizationStatus! ? VerificationResult.codesignedAndNotarized : VerificationResult.codesignedOnly;
+    return _notarizationStatus!
+        ? VerificationResult.codesignedAndNotarized
+        : VerificationResult.codesignedOnly;
   }
 
   Future<void> _notarization() async {
-    final List<String> command = <String>[
+    final command = <String>[
       'codesign',
       '--verify',
       '-v',
@@ -68,10 +69,11 @@ class VerificationService {
       '--check-notarization',
       binaryPath,
     ];
-    final io.ProcessResult result = await pm.run(command);
+    final result = await pm.run(command);
 
     // This usually means it does not satisfy notarization requirement
-    if (result.exitCode == 3 && (result.stderr as String).contains(kNotNotarizedMessage)) {
+    if (result.exitCode == 3 &&
+        (result.stderr as String).contains(kNotNotarizedMessage)) {
       _notarizationStatus = false;
       return;
     }
@@ -82,12 +84,13 @@ Command `${command.join(' ')}` failed with code ${result.exitCode}
 ${result.stderr}
 ''');
     }
-    final String stderr = result.stderr as String;
+    final stderr = result.stderr as String;
     if (stderr.contains('explicit requirement satisfied')) {
       _notarizationStatus = true;
       return;
     }
-    throw UnimplementedError('Failed parsing the output of `${command.join(' ')}`:\n\n$stderr');
+    throw UnimplementedError(
+        'Failed parsing the output of `${command.join(' ')}`:\n\n$stderr');
   }
 
   String present() {
@@ -119,13 +122,13 @@ Notarization:   $_notarizationStatus
   /// Sealed Resources=none
   /// Internal requirements count=1 size=164
   Future<bool> _codesignDisplay() async {
-    final List<String> command = <String>[
+    final command = <String>[
       'codesign',
       '--display',
       '-vv',
       binaryPath,
     ];
-    final io.ProcessResult result = await pm.run(command);
+    final result = await pm.run(command);
 
     if (result.exitCode == 1) {
       logger.severe('''
@@ -141,13 +144,13 @@ codesign --display -vv $binaryPath
       );
     }
 
-    final List<String> lines = result.stderr.toString().trim().split('\n');
-    for (final String line in lines) {
+    final lines = result.stderr.toString().trim().split('\n');
+    for (final line in lines) {
       if (line.trim().isEmpty) {
         continue;
       }
-      final List<String> segments = line.split('=');
-      final String name = segments.first;
+      final segments = line.split('=');
+      final name = segments.first;
 
       switch (name) {
         case 'Executable':

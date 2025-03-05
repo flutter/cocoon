@@ -19,7 +19,8 @@ import 'package:flutter_dashboard/service/cocoon.dart' as _i3;
 import 'package:flutter_dashboard/service/google_authentication.dart' as _i4;
 import 'package:flutter_dashboard/state/build.dart' as _i16;
 import 'package:google_sign_in/google_sign_in.dart' as _i18;
-import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart' as _i19;
+import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart'
+    as _i19;
 import 'package:http/http.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i8;
@@ -47,7 +48,8 @@ class _FakeResponse_0 extends _i1.SmartFake implements _i2.Response {
         );
 }
 
-class _FakeStreamedResponse_1 extends _i1.SmartFake implements _i2.StreamedResponse {
+class _FakeStreamedResponse_1 extends _i1.SmartFake
+    implements _i2.StreamedResponse {
   _FakeStreamedResponse_1(
     Object parent,
     Invocation parentInvocation,
@@ -57,7 +59,8 @@ class _FakeStreamedResponse_1 extends _i1.SmartFake implements _i2.StreamedRespo
         );
 }
 
-class _FakeCocoonResponse_2<T> extends _i1.SmartFake implements _i3.CocoonResponse<T> {
+class _FakeCocoonResponse_2<T> extends _i1.SmartFake
+    implements _i3.CocoonResponse<T> {
   _FakeCocoonResponse_2(
     Object parent,
     Invocation parentInvocation,
@@ -77,7 +80,8 @@ class _FakeCocoonService_3 extends _i1.SmartFake implements _i3.CocoonService {
         );
 }
 
-class _FakeGoogleSignInService_4 extends _i1.SmartFake implements _i4.GoogleSignInService {
+class _FakeGoogleSignInService_4 extends _i1.SmartFake
+    implements _i4.GoogleSignInService {
   _FakeGoogleSignInService_4(
     Object parent,
     Invocation parentInvocation,
@@ -307,12 +311,14 @@ class MockClient extends _i1.Mock implements _i2.Client {
       ) as _i6.Future<_i9.Uint8List>);
 
   @override
-  _i6.Future<_i2.StreamedResponse> send(_i2.BaseRequest? request) => (super.noSuchMethod(
+  _i6.Future<_i2.StreamedResponse> send(_i2.BaseRequest? request) =>
+      (super.noSuchMethod(
         Invocation.method(
           #send,
           [request],
         ),
-        returnValue: _i6.Future<_i2.StreamedResponse>.value(_FakeStreamedResponse_1(
+        returnValue:
+            _i6.Future<_i2.StreamedResponse>.value(_FakeStreamedResponse_1(
           this,
           Invocation.method(
             #send,
@@ -355,8 +361,9 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
             #repo: repo,
           },
         ),
-        returnValue: _i6.Future<_i3.CocoonResponse<List<_i10.CommitStatus>>>.value(
-            _FakeCocoonResponse_2<List<_i10.CommitStatus>>(
+        returnValue:
+            _i6.Future<_i3.CocoonResponse<List<_i10.CommitStatus>>>.value(
+                _FakeCocoonResponse_2<List<_i10.CommitStatus>>(
           this,
           Invocation.method(
             #fetchCommitStatuses,
@@ -371,71 +378,77 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
       ) as _i6.Future<_i3.CocoonResponse<List<_i10.CommitStatus>>>);
 
   @override
-  _i6.Future<_i3.CocoonResponse<List<_i11.CommitTasksStatus>>> fetchCommitStatusesFirestore({
+  _i6.Future<_i3.CocoonResponse<List<_i11.CommitTasksStatus>>>
+      fetchCommitStatusesFirestore({
     _i10.CommitStatus? lastCommitStatus,
     String? branch,
     required String? repo,
   }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #fetchCommitStatusesFirestore,
-          [],
-          {
-            #lastCommitStatus: lastCommitStatus,
-            #branch: branch,
-            #repo: repo,
-          },
-        ),
-        returnValue: _i6.Future<_i3.CocoonResponse<List<_i11.CommitTasksStatus>>>.value(
-            _FakeCocoonResponse_2<List<_i11.CommitTasksStatus>>(
-          this,
-          Invocation.method(
-            #fetchCommitStatusesFirestore,
-            [],
-            {
-              #lastCommitStatus: lastCommitStatus,
-              #branch: branch,
-              #repo: repo,
-            },
-          ),
-        )),
-      ) as _i6.Future<_i3.CocoonResponse<List<_i11.CommitTasksStatus>>>);
+          (super.noSuchMethod(
+            Invocation.method(
+              #fetchCommitStatusesFirestore,
+              [],
+              {
+                #lastCommitStatus: lastCommitStatus,
+                #branch: branch,
+                #repo: repo,
+              },
+            ),
+            returnValue: _i6
+                .Future<_i3.CocoonResponse<List<_i11.CommitTasksStatus>>>.value(
+                _FakeCocoonResponse_2<List<_i11.CommitTasksStatus>>(
+              this,
+              Invocation.method(
+                #fetchCommitStatusesFirestore,
+                [],
+                {
+                  #lastCommitStatus: lastCommitStatus,
+                  #branch: branch,
+                  #repo: repo,
+                },
+              ),
+            )),
+          ) as _i6.Future<_i3.CocoonResponse<List<_i11.CommitTasksStatus>>>);
 
   @override
-  _i6.Future<_i3.CocoonResponse<_i12.BuildStatusResponse>> fetchTreeBuildStatus({
+  _i6.Future<_i3.CocoonResponse<_i12.BuildStatusResponse>>
+      fetchTreeBuildStatus({
     String? branch,
     required String? repo,
   }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #fetchTreeBuildStatus,
-          [],
-          {
-            #branch: branch,
-            #repo: repo,
-          },
-        ),
-        returnValue: _i6.Future<_i3.CocoonResponse<_i12.BuildStatusResponse>>.value(
-            _FakeCocoonResponse_2<_i12.BuildStatusResponse>(
-          this,
-          Invocation.method(
-            #fetchTreeBuildStatus,
-            [],
-            {
-              #branch: branch,
-              #repo: repo,
-            },
-          ),
-        )),
-      ) as _i6.Future<_i3.CocoonResponse<_i12.BuildStatusResponse>>);
+          (super.noSuchMethod(
+            Invocation.method(
+              #fetchTreeBuildStatus,
+              [],
+              {
+                #branch: branch,
+                #repo: repo,
+              },
+            ),
+            returnValue:
+                _i6.Future<_i3.CocoonResponse<_i12.BuildStatusResponse>>.value(
+                    _FakeCocoonResponse_2<_i12.BuildStatusResponse>(
+              this,
+              Invocation.method(
+                #fetchTreeBuildStatus,
+                [],
+                {
+                  #branch: branch,
+                  #repo: repo,
+                },
+              ),
+            )),
+          ) as _i6.Future<_i3.CocoonResponse<_i12.BuildStatusResponse>>);
 
   @override
-  _i6.Future<_i3.CocoonResponse<List<_i13.Branch>>> fetchFlutterBranches() => (super.noSuchMethod(
+  _i6.Future<_i3.CocoonResponse<List<_i13.Branch>>> fetchFlutterBranches() =>
+      (super.noSuchMethod(
         Invocation.method(
           #fetchFlutterBranches,
           [],
         ),
-        returnValue: _i6.Future<_i3.CocoonResponse<List<_i13.Branch>>>.value(_FakeCocoonResponse_2<List<_i13.Branch>>(
+        returnValue: _i6.Future<_i3.CocoonResponse<List<_i13.Branch>>>.value(
+            _FakeCocoonResponse_2<List<_i13.Branch>>(
           this,
           Invocation.method(
             #fetchFlutterBranches,
@@ -445,12 +458,14 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
       ) as _i6.Future<_i3.CocoonResponse<List<_i13.Branch>>>);
 
   @override
-  _i6.Future<_i3.CocoonResponse<List<String>>> fetchRepos() => (super.noSuchMethod(
+  _i6.Future<_i3.CocoonResponse<List<String>>> fetchRepos() =>
+      (super.noSuchMethod(
         Invocation.method(
           #fetchRepos,
           [],
         ),
-        returnValue: _i6.Future<_i3.CocoonResponse<List<String>>>.value(_FakeCocoonResponse_2<List<String>>(
+        returnValue: _i6.Future<_i3.CocoonResponse<List<String>>>.value(
+            _FakeCocoonResponse_2<List<String>>(
           this,
           Invocation.method(
             #fetchRepos,
@@ -474,7 +489,8 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
             repo,
           ],
         ),
-        returnValue: _i6.Future<_i3.CocoonResponse<bool>>.value(_FakeCocoonResponse_2<bool>(
+        returnValue: _i6.Future<_i3.CocoonResponse<bool>>.value(
+            _FakeCocoonResponse_2<bool>(
           this,
           Invocation.method(
             #rerunTask,
@@ -513,7 +529,8 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
             #repo: repo,
           },
         ),
-        returnValue: _i6.Future<_i3.CocoonResponse<void>>.value(_FakeCocoonResponse_2<void>(
+        returnValue: _i6.Future<_i3.CocoonResponse<void>>.value(
+            _FakeCocoonResponse_2<void>(
           this,
           Invocation.method(
             #schedulePostsubmitsForCommit,
@@ -742,7 +759,8 @@ class MockGoogleSignIn extends _i1.Mock implements _i18.GoogleSignIn {
       ) as bool);
 
   @override
-  _i6.Stream<_i18.GoogleSignInAccount?> get onCurrentUserChanged => (super.noSuchMethod(
+  _i6.Stream<_i18.GoogleSignInAccount?> get onCurrentUserChanged =>
+      (super.noSuchMethod(
         Invocation.getter(#onCurrentUserChanged),
         returnValue: _i6.Stream<_i18.GoogleSignInAccount?>.empty(),
       ) as _i6.Stream<_i18.GoogleSignInAccount?>);
@@ -827,7 +845,8 @@ class MockGoogleSignIn extends _i1.Mock implements _i18.GoogleSignIn {
 /// A class which mocks [GoogleSignInService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockGoogleSignInService extends _i1.Mock implements _i4.GoogleSignInService {
+class MockGoogleSignInService extends _i1.Mock
+    implements _i4.GoogleSignInService {
   MockGoogleSignInService() {
     _i1.throwOnMissingStub(this);
   }

@@ -16,6 +16,7 @@ class Message {
   @JsonKey(name: 'avatar_url', includeIfNull: false)
   String? avatarUrl;
 
-  factory Message.fromJson(Map<String, dynamic> input) => _$MessageFromJson(input);
+  factory Message.fromJson(Map<String, dynamic> input) =>
+      _$MessageFromJson(input);
   Map<String, dynamic> toJson() => _$MessageToJson(this);
 }

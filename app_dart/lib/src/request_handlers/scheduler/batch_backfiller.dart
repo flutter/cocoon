@@ -3,21 +3,19 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_server/logging.dart';
-import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
-import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
-import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
-import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
-import 'package:retry/retry.dart';
 
+import '../../../cocoon_service.dart';
+import '../../model/appengine/task.dart';
 import '../../model/ci_yaml/ci_yaml.dart';
 import '../../model/ci_yaml/target.dart';
+import '../../model/firestore/task.dart' as firestore;
 import '../../request_handling/exceptions.dart';
+import '../../service/datastore.dart';
+import '../../service/luci_build_service/pending_task.dart';
+import '../../service/scheduler/policy.dart';
 
 /// Cron request handler for scheduling targets when capacity becomes available.
 ///
@@ -28,7 +26,8 @@ class BatchBackfiller extends RequestHandler {
   const BatchBackfiller({
     required super.config,
     required this.scheduler,
-    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting
+    this.datastoreProvider = DatastoreService.defaultProvider,
   });
 
   final DatastoreServiceProvider datastoreProvider;
@@ -36,9 +35,9 @@ class BatchBackfiller extends RequestHandler {
 
   @override
   Future<Body> get() async {
-    final List<Future<void>> futures = <Future<void>>[];
+    final futures = <Future<void>>[];
 
-    for (RepositorySlug slug in config.supportedRepos) {
+    for (var slug in config.supportedRepos) {
       futures.add(backfillRepository(slug));
     }
 
@@ -49,13 +48,18 @@ class BatchBackfiller extends RequestHandler {
   }
 
   Future<void> backfillRepository(RepositorySlug slug) async {
-    final DatastoreService datastore = datastoreProvider(config.db);
-    final List<FullTask> tasks =
-        await (datastore.queryRecentTasks(slug: slug, commitLimit: config.backfillerCommitLimit)).toList();
+    final datastore = datastoreProvider(config.db);
+    final tasks =
+        await datastore
+            .queryRecentTasks(
+              slug: slug,
+              commitLimit: config.backfillerCommitLimit,
+            )
+            .toList();
 
     // Construct Task columns to scan for backfilling
-    final Map<String, List<FullTask>> taskMap = <String, List<FullTask>>{};
-    for (FullTask fullTask in tasks) {
+    final taskMap = <String, List<FullTask>>{};
+    for (var fullTask in tasks) {
       if (taskMap.containsKey(fullTask.task.name)) {
         taskMap[fullTask.task.name]!.add(fullTask);
       } else {
@@ -64,29 +68,37 @@ class BatchBackfiller extends RequestHandler {
     }
 
     // Check if should be scheduled (there is no yellow runs). Run the most recent gray.
-    List<Tuple<Target, FullTask, int>> backfill = <Tuple<Target, FullTask, int>>[];
-    for (List<FullTask> taskColumn in taskMap.values) {
-      final FullTask task = taskColumn.first;
+    var backfill = <Tuple<Target, FullTask, int>>[];
+    for (var taskColumn in taskMap.values) {
+      final task = taskColumn.first;
 
-      final CiYamlSet ciYaml = await scheduler.getCiYaml(task.commit);
+      final ciYaml = await scheduler.getCiYaml(task.commit);
       final ciYamlTargets = [
         ...ciYaml.backfillTargets(),
-        if (ciYaml.isFusion) ...ciYaml.backfillTargets(type: CiType.fusionEngine),
+        if (ciYaml.isFusion)
+          ...ciYaml.backfillTargets(type: CiType.fusionEngine),
       ];
 
       // Skips scheduling if the task is not in TOT commit anymore.
-      final bool taskInToT = ciYamlTargets.map((Target target) => target.value.name).toList().contains(task.task.name);
+      final taskInToT = ciYamlTargets
+          .map((Target target) => target.value.name)
+          .toList()
+          .contains(task.task.name);
       if (!taskInToT) {
         continue;
       }
-      final Target target = ciYamlTargets.singleWhere((target) => target.value.name == task.task.name);
+      final target = ciYamlTargets.singleWhere(
+        (target) => target.value.name == task.task.name,
+      );
       if (target.schedulerPolicy is! BatchPolicy) {
         continue;
       }
-      final FullTask? backfillTask = _backfillTask(target, taskColumn);
-      final int? priority = backfillPriority(taskColumn.map((e) => e.task).toList());
+      final backfillTask = _backfillTask(target, taskColumn);
+      final priority = backfillPriority(taskColumn.map((e) => e.task).toList());
       if (priority != null && backfillTask != null) {
-        backfill.add(Tuple<Target, FullTask, int>(target, backfillTask, priority));
+        backfill.add(
+          Tuple<Target, FullTask, int>(target, backfillTask, priority),
+        );
       }
     }
 
@@ -94,10 +106,17 @@ class BatchBackfiller extends RequestHandler {
     backfill = getFilteredBackfill(backfill);
 
     log.fine('Backfilling ${backfill.length} builds');
-    log.fine(backfill.map<String>((Tuple<Target, FullTask, int> tuple) => tuple.first.value.name));
+    log.fine(
+      backfill.map<String>(
+        (Tuple<Target, FullTask, int> tuple) => tuple.first.value.name,
+      ),
+    );
 
     // Update tasks status as in progress to avoid duplicate scheduling.
-    final List<Task> backfillTasks = backfill.map((Tuple<Target, FullTask, int> tuple) => tuple.second.task).toList();
+    final backfillTasks =
+        backfill
+            .map((Tuple<Target, FullTask, int> tuple) => tuple.second.task)
+            .toList();
     try {
       await datastore.withTransaction<void>((Transaction transaction) async {
         transaction.queueMutations(inserts: backfillTasks);
@@ -110,7 +129,9 @@ class BatchBackfiller extends RequestHandler {
       try {
         await updateTaskDocuments(backfillTasks);
       } catch (error) {
-        log.warning('Failed to update batch backfilled task documents in Firestore: $error');
+        log.warning(
+          'Failed to update batch backfilled task documents in Firestore: $error',
+        );
       }
 
       // Schedule all builds asynchronously.
@@ -126,9 +147,9 @@ class BatchBackfiller extends RequestHandler {
     if (tasks.isEmpty) {
       return;
     }
-    final List<firestore.Task> taskDocuments = tasks.map((e) => firestore.taskToDocument(e)).toList();
-    final List<Write> writes = documentsToWrites(taskDocuments, exists: true);
-    final FirestoreService firestoreService = await config.createFirestoreService();
+    final taskDocuments = tasks.map(firestore.taskToDocument).toList();
+    final writes = documentsToWrites(taskDocuments, exists: true);
+    final firestoreService = await config.createFirestoreService();
     await firestoreService.writeViaTransaction(writes);
   }
 
@@ -137,46 +158,74 @@ class BatchBackfiller extends RequestHandler {
   /// High priority targets will be guranteed to get back filled first. If more targets
   /// than [config.backfillerTargetLimit], pick the limited number of targets after a
   /// shuffle. This is to make sure all targets are picked with the same chance.
-  List<Tuple<Target, FullTask, int>> getFilteredBackfill(List<Tuple<Target, FullTask, int>> backfill) {
+  List<Tuple<Target, FullTask, int>> getFilteredBackfill(
+    List<Tuple<Target, FullTask, int>> backfill,
+  ) {
     if (backfill.length <= config.backfillerTargetLimit) {
       return backfill;
     }
-    final List<Tuple<Target, FullTask, int>> filteredBackfill = <Tuple<Target, FullTask, int>>[];
-    final List<Tuple<Target, FullTask, int>> highPriorityBackfill =
-        backfill.where((element) => element.third == LuciBuildService.kRerunPriority).toList();
-    final List<Tuple<Target, FullTask, int>> normalPriorityBackfill =
-        backfill.where((element) => element.third != LuciBuildService.kRerunPriority).toList();
+    final filteredBackfill = <Tuple<Target, FullTask, int>>[];
+    final highPriorityBackfill =
+        backfill
+            .where(
+              (element) => element.third == LuciBuildService.kRerunPriority,
+            )
+            .toList();
+    final normalPriorityBackfill =
+        backfill
+            .where(
+              (element) => element.third != LuciBuildService.kRerunPriority,
+            )
+            .toList();
     if (highPriorityBackfill.length >= config.backfillerTargetLimit) {
       highPriorityBackfill.shuffle();
-      filteredBackfill.addAll(highPriorityBackfill.sublist(0, config.backfillerTargetLimit));
+      filteredBackfill.addAll(
+        highPriorityBackfill.sublist(0, config.backfillerTargetLimit),
+      );
     } else {
       filteredBackfill.addAll(highPriorityBackfill);
       normalPriorityBackfill.shuffle();
-      filteredBackfill
-          .addAll(normalPriorityBackfill.sublist(0, config.backfillerTargetLimit - highPriorityBackfill.length));
+      filteredBackfill.addAll(
+        normalPriorityBackfill.sublist(
+          0,
+          config.backfillerTargetLimit - highPriorityBackfill.length,
+        ),
+      );
     }
     return filteredBackfill;
   }
 
   /// Schedules tasks with retry when hitting pub/sub server errors.
-  Future<void> _scheduleWithRetries(List<Tuple<Target, FullTask, int>> backfill) async {
-    const RetryOptions retryOptions = Config.schedulerRetry;
+  Future<void> _scheduleWithRetries(
+    List<Tuple<Target, FullTask, int>> backfill,
+  ) async {
+    const retryOptions = Config.schedulerRetry;
     try {
-      await retryOptions.retry(
-        () async {
-          final List<List<PendingTask>> pendingTasks =
-              await Future.wait<List<PendingTask>>(backfillRequestList(backfill));
-          if (pendingTasks.any((List<PendingTask> tupleList) => tupleList.isNotEmpty)) {
-            final int nonEmptyListLenght = pendingTasks.where((element) => element.isNotEmpty).toList().length;
-            log.info('Backfill fails and retry backfilling $nonEmptyListLenght targets.');
-            backfill = _updateBackfill(backfill, pendingTasks);
-            throw InternalServerError('Failed to backfill ${backfill.length} targets.');
-          }
-        },
-        retryIf: (Exception e) => e is InternalServerError,
-      );
+      await retryOptions.retry(() async {
+        final pendingTasks = await Future.wait<List<PendingTask>>(
+          backfillRequestList(backfill),
+        );
+        if (pendingTasks.any(
+          (List<PendingTask> tupleList) => tupleList.isNotEmpty,
+        )) {
+          final nonEmptyListLenght =
+              pendingTasks
+                  .where((element) => element.isNotEmpty)
+                  .toList()
+                  .length;
+          log.info(
+            'Backfill fails and retry backfilling $nonEmptyListLenght targets.',
+          );
+          backfill = _updateBackfill(backfill, pendingTasks);
+          throw InternalServerError(
+            'Failed to backfill ${backfill.length} targets.',
+          );
+        }
+      }, retryIf: (Exception e) => e is InternalServerError);
     } catch (error) {
-      log.severe('Failed to backfill ${backfill.length} targets due to error: $error');
+      log.severe(
+        'Failed to backfill ${backfill.length} targets due to error: $error',
+      );
     }
   }
 
@@ -189,8 +238,8 @@ class BatchBackfiller extends RequestHandler {
     List<Tuple<Target, FullTask, int>> backfill,
     List<List<PendingTask>> tupleLists,
   ) {
-    final List<Tuple<Target, FullTask, int>> updatedBackfill = <Tuple<Target, FullTask, int>>[];
-    for (int i = 0; i < tupleLists.length; i++) {
+    final updatedBackfill = <Tuple<Target, FullTask, int>>[];
+    for (var i = 0; i < tupleLists.length; i++) {
       if (tupleLists[i].isNotEmpty) {
         updatedBackfill.add(backfill[i]);
       }
@@ -199,11 +248,13 @@ class BatchBackfiller extends RequestHandler {
   }
 
   /// Creates a list of backfill requests.
-  List<Future<List<PendingTask>>> backfillRequestList(List<Tuple<Target, FullTask, int>> backfill) {
-    final List<Future<List<PendingTask>>> futures = <Future<List<PendingTask>>>[];
-    for (Tuple<Target, FullTask, int> tuple in backfill) {
+  List<Future<List<PendingTask>>> backfillRequestList(
+    List<Tuple<Target, FullTask, int>> backfill,
+  ) {
+    final futures = <Future<List<PendingTask>>>[];
+    for (var tuple in backfill) {
       // TODO(chillers): The backfill priority is always going to be low. If this is a ToT task, we should run it at the default priority.
-      final PendingTask toBeScheduled = PendingTask(
+      final toBeScheduled = PendingTask(
         target: tuple.first,
         task: tuple.second.task,
         priority: tuple.third,
@@ -246,14 +297,21 @@ class BatchBackfiller extends RequestHandler {
   ///
   /// Otherwise, returns null indicating nothing should be backfilled.
   FullTask? _backfillTask(Target target, List<FullTask> tasks) {
-    final List<FullTask> relevantTasks = tasks.where((FullTask task) => task.task.name == target.value.name).toList();
-    if (relevantTasks.any((FullTask task) => task.task.status == Task.statusInProgress)) {
+    final relevantTasks =
+        tasks
+            .where((FullTask task) => task.task.name == target.value.name)
+            .toList();
+    if (relevantTasks.any(
+      (FullTask task) => task.task.status == Task.statusInProgress,
+    )) {
       // Don't schedule more builds where there is already a running task
       return null;
     }
 
-    final List<FullTask> backfillTask =
-        relevantTasks.where((FullTask task) => task.task.status == Task.statusNew).toList();
+    final backfillTask =
+        relevantTasks
+            .where((FullTask task) => task.task.status == Task.statusNew)
+            .toList();
     if (backfillTask.isEmpty) {
       return null;
     }

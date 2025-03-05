@@ -2,15 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/configuration/repository_configuration.dart';
-import 'package:auto_submit/service/config.dart';
-import 'package:auto_submit/service/process_method.dart';
-import 'package:auto_submit/validations/approval.dart';
-import 'package:auto_submit/validations/ci_successful.dart';
-import 'package:auto_submit/validations/empty_checks.dart';
-import 'package:auto_submit/validations/mergeable.dart';
-import 'package:auto_submit/validations/required_check_runs.dart';
-import 'package:auto_submit/validations/validation.dart';
+import '../configuration/repository_configuration.dart';
+import '../service/config.dart';
+import '../service/process_method.dart';
+import 'approval.dart';
+import 'ci_successful.dart';
+import 'empty_checks.dart';
+import 'mergeable.dart';
+import 'required_check_runs.dart';
+import 'validation.dart';
 
 /// The [ValidationFilter] allows us to pick and choose and the validations to
 /// run on a particular type of pull request.
@@ -45,7 +45,7 @@ class PullRequestValidationFilter implements ValidationFilter {
 
   @override
   Set<Validation> getValidations() {
-    final Set<Validation> validationsToRun = {};
+    final validationsToRun = <Validation>{};
 
     validationsToRun.add(Approval(config: config));
     // If we are running ci then we need to check the checkRuns and make sure

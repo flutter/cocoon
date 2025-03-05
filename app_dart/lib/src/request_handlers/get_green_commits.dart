@@ -4,18 +4,17 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/appengine/stage.dart';
-import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
+import '../model/appengine/commit.dart';
+import '../model/appengine/stage.dart';
+import '../model/appengine/task.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
-import '../service/firestore.dart';
 
 /// Returns [List<String>] of the commit shas that had all passing tests.
 ///
@@ -37,9 +36,11 @@ import '../service/firestore.dart';
 class GetGreenCommits extends RequestHandler<Body> {
   const GetGreenCommits({
     required super.config,
-    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting
+    this.datastoreProvider = DatastoreService.defaultProvider,
     @visibleForTesting BuildStatusServiceProvider? buildStatusProvider,
-  }) : buildStatusProvider = buildStatusProvider ?? BuildStatusService.defaultProvider;
+  }) : buildStatusProvider =
+           buildStatusProvider ?? BuildStatusService.defaultProvider;
 
   final DatastoreServiceProvider datastoreProvider;
   final BuildStatusServiceProvider buildStatusProvider;
@@ -49,23 +50,27 @@ class GetGreenCommits extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final String repoName = request!.uri.queryParameters[kRepoParam] ?? Config.flutterSlug.name;
-    final RepositorySlug slug = RepositorySlug('flutter', repoName);
-    final String branch = request!.uri.queryParameters[kBranchParam] ?? Config.defaultBranch(slug);
-    final DatastoreService datastore = datastoreProvider(config.db);
-    final FirestoreService firestoreService = await config.createFirestoreService();
-    final BuildStatusService buildStatusService = buildStatusProvider(datastore, firestoreService);
-    final int commitNumber = config.commitNumber;
+    final repoName =
+        request!.uri.queryParameters[kRepoParam] ?? Config.flutterSlug.name;
+    final slug = RepositorySlug('flutter', repoName);
+    final branch =
+        request!.uri.queryParameters[kBranchParam] ??
+        Config.defaultBranch(slug);
+    final datastore = datastoreProvider(config.db);
+    final firestoreService = await config.createFirestoreService();
+    final buildStatusService = buildStatusProvider(datastore, firestoreService);
+    final commitNumber = config.commitNumber;
 
-    final List<String?> greenCommits = await buildStatusService
-        .retrieveCommitStatus(
-          limit: commitNumber,
-          branch: branch,
-          slug: slug,
-        )
-        .where((CommitStatus status) => everyNonFlakyTaskSucceed(status))
-        .map<String?>((CommitStatus status) => status.commit.sha)
-        .toList();
+    final greenCommits =
+        await buildStatusService
+            .retrieveCommitStatus(
+              limit: commitNumber,
+              branch: branch,
+              slug: slug,
+            )
+            .where(everyNonFlakyTaskSucceed)
+            .map<String?>((CommitStatus status) => status.commit.sha)
+            .toList();
 
     return Body.forJson(greenCommits);
   }
@@ -74,7 +79,9 @@ class GetGreenCommits extends RequestHandler<Body> {
     return status.stages.every(
       (Stage stage) => stage.tasks
           .where((Task task) => !task.isFlaky!)
-          .every((Task nonFlakyTask) => nonFlakyTask.status == Task.statusSucceeded),
+          .every(
+            (Task nonFlakyTask) => nonFlakyTask.status == Task.statusSucceeded,
+          ),
     );
   }
 }

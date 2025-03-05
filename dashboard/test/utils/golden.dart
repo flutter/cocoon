@@ -20,16 +20,18 @@ Future<void> expectGoldenMatches(
   dynamic actual,
   String goldenFileKey, {
   String? reason,
-  dynamic skip = false, // true or a String
+  Object? skip = false, // true or a String
 }) {
-  final String goldenPath = path.join('goldens', goldenFileKey);
+  final goldenPath = path.join('goldens', goldenFileKey);
   goldenFileComparator = CocoonFileComparator(
     path.join(
       (goldenFileComparator as LocalFileComparator).basedir.toString(),
       goldenFileKey,
     ),
   );
-  return expectLater(actual, matchesGoldenFile(goldenPath), reason: reason, skip: skip || !Platform.isLinux);
+  return expectLater(actual, matchesGoldenFile(goldenPath),
+      reason: reason,
+      skip: skip is String || skip == true || !Platform.isLinux);
 }
 
 class CocoonFileComparator extends LocalFileComparator {
@@ -37,13 +39,13 @@ class CocoonFileComparator extends LocalFileComparator {
 
   @override
   Future<bool> compare(Uint8List imageBytes, Uri golden) async {
-    final ComparisonResult result = await GoldenFileComparator.compareLists(
+    final result = await GoldenFileComparator.compareLists(
       imageBytes,
       await getGoldenBytes(golden),
     );
 
     if (!result.passed && result.diffPercent > _kGoldenDiffTolerance) {
-      final String error = await generateFailureOutput(result, golden, basedir);
+      final error = await generateFailureOutput(result, golden, basedir);
       if (Platform.environment.containsKey('LUCI_CONTEXT')) {
         log('$golden has failed. For your convenience CI provides it as a base64 encoded image below. #[IMAGE]:');
         log(base64Encode(imageBytes));

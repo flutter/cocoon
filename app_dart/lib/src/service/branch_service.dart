@@ -5,14 +5,13 @@
 import 'dart:async';
 
 import 'package:cocoon_server/logging.dart';
-import 'package:cocoon_service/src/service/config.dart';
-import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart' as gh;
 import 'package:retry/retry.dart';
 
-import '../model/gerrit/commit.dart';
 import '../request_handling/exceptions.dart';
+import 'config.dart';
 import 'gerrit_service.dart';
+import 'github_service.dart';
 
 class RetryException implements Exception {}
 
@@ -45,43 +44,46 @@ class BranchService {
   /// Generally, this should work. However, some edge cases may require CPs. Such as when commits land in a
   /// short timespan, and require the release manager to CP onto the recipes branch (in the case of reverts).
   Future<void> branchFlutterRecipes(String branch, String engineSha) async {
-    final gh.RepositorySlug recipesSlug = gh.RepositorySlug('flutter', 'recipes');
+    final recipesSlug = gh.RepositorySlug('flutter', 'recipes');
     if ((await gerritService.branches(
       '${recipesSlug.owner}-review.googlesource.com',
       recipesSlug.name,
       filterRegex: branch,
-    ))
-        .contains(branch)) {
+    )).contains(branch)) {
       // subString is a regex, and can return multiple matches
       log.warning('$branch already exists for $recipesSlug');
       throw BadRequestException('$branch already exists');
     }
-    final Iterable<GerritCommit> recipeCommits =
-        await gerritService.commits(recipesSlug, Config.defaultBranch(recipesSlug));
-    log.info('$recipesSlug commits: $recipeCommits');
-    final gh.RepositoryCommit engineCommit = await retryOptions.retry(
-      () async {
-        final GithubService githubService = await config.createDefaultGitHubService();
-        return githubService.github.repositories.getCommit(Config.flutterSlug, engineSha);
-      },
-      retryIf: (Exception e) => e is gh.GitHubError,
+    final recipeCommits = await gerritService.commits(
+      recipesSlug,
+      Config.defaultBranch(recipesSlug),
     );
+    log.info('$recipesSlug commits: $recipeCommits');
+    final engineCommit = await retryOptions.retry(() async {
+      final githubService = await config.createDefaultGitHubService();
+      return githubService.github.repositories.getCommit(
+        Config.flutterSlug,
+        engineSha,
+      );
+    }, retryIf: (Exception e) => e is gh.GitHubError);
     log.info('${Config.flutterSlug} commit: $engineCommit');
-    final DateTime? branchTime = engineCommit.commit?.committer?.date;
+    final branchTime = engineCommit.commit?.committer?.date;
     if (branchTime == null) {
       throw BadRequestException('$engineSha has no commit time');
     }
     log.info('Searching for a recipe commit before $branchTime');
-    for (GerritCommit recipeCommit in recipeCommits) {
-      final DateTime? recipeTime = recipeCommit.author?.time;
+    for (var recipeCommit in recipeCommits) {
+      final recipeTime = recipeCommit.author?.time;
 
       if (recipeTime != null && recipeTime.isBefore(branchTime)) {
-        final String revision = recipeCommit.commit!;
+        final revision = recipeCommit.commit!;
         return gerritService.createBranch(recipesSlug, branch, revision);
       }
     }
 
-    throw InternalServerError('Failed to find a revision to flutter/recipes for $branch before $branchTime');
+    throw InternalServerError(
+      'Failed to find a revision to flutter/recipes for $branch before $branchTime',
+    );
   }
 
   /// Returns a Map that contains the latest google3 roll, beta, and stable branches.
@@ -92,40 +94,29 @@ class BranchService {
     required GithubService githubService,
     required gh.RepositorySlug slug,
   }) async {
-    final List<gh.Branch> branches = await githubService.github.repositories.listBranches(slug).toList();
-    final String latestCandidateBranch = await _getLatestCandidateBranch(
+    final branches =
+        await githubService.github.repositories.listBranches(slug).toList();
+    final latestCandidateBranch = await _getLatestCandidateBranch(
       github: githubService.github,
       slug: slug,
       branches: branches,
     );
 
-    final String betaName = await _getBranchNameFromFile(
+    final betaName = await _getBranchNameFromFile(
       githubService: githubService,
       slug: slug,
       branchName: 'beta',
     );
-    final String stableName = await _getBranchNameFromFile(
+    final stableName = await _getBranchNameFromFile(
       githubService: githubService,
       slug: slug,
       branchName: 'stable',
     );
     return <Map<String, String>>[
-      {
-        'branch': Config.defaultBranch(slug),
-        'name': 'HEAD',
-      },
-      {
-        'branch': stableName,
-        'name': 'stable',
-      },
-      {
-        'branch': betaName,
-        'name': 'beta',
-      },
-      {
-        'branch': latestCandidateBranch,
-        'name': 'dev',
-      },
+      {'branch': Config.defaultBranch(slug), 'name': 'HEAD'},
+      {'branch': stableName, 'name': 'stable'},
+      {'branch': betaName, 'name': 'beta'},
+      {'branch': latestCandidateBranch, 'name': 'dev'},
     ];
   }
 
@@ -142,9 +133,9 @@ class BranchService {
         )
         .then((String value) => value.trim())
         .onError((e, _) {
-      log.severe('Could not fetch release version file: $e');
-      return '';
-    });
+          log.severe('Could not fetch release version file: $e');
+          return '';
+        });
   }
 
   /// Retrieve the latest canidate branch from all candidate branches.
@@ -153,19 +144,26 @@ class BranchService {
     required gh.RepositorySlug slug,
     required List<gh.Branch> branches,
   }) async {
-    final RegExp candidateBranchName = RegExp(r'^flutter-\d+\.\d+-candidate\.\d+$');
-    final List<gh.Branch> devBranches = branches.where((gh.Branch b) => candidateBranchName.hasMatch(b.name!)).toList();
-    devBranches.sort((b, a) => (_versionSum(a.name!)).compareTo(_versionSum(b.name!)));
-    final String devBranchName = devBranches.take(1).single.name!;
+    final candidateBranchName = RegExp(r'^flutter-\d+\.\d+-candidate\.\d+$');
+    final devBranches =
+        branches
+            .where((gh.Branch b) => candidateBranchName.hasMatch(b.name!))
+            .toList();
+    devBranches.sort(
+      (b, a) => _versionSum(a.name!).compareTo(_versionSum(b.name!)),
+    );
+    final devBranchName = devBranches.take(1).single.name!;
     return devBranchName;
   }
 
   /// Helper function to convert candidate branch versions to numbers for comparison.
   int _versionSum(String tagOrBranchName) {
-    final List<String> digits = tagOrBranchName.replaceAll(r'flutter|candidate', '0').split(RegExp(r'\.|\-'));
-    int versionSum = 0;
-    for (String digit in digits) {
-      final int? d = int.tryParse(digit);
+    final digits = tagOrBranchName
+        .replaceAll(r'flutter|candidate', '0')
+        .split(RegExp(r'\.|\-'));
+    var versionSum = 0;
+    for (var digit in digits) {
+      final d = int.tryParse(digit);
       if (d == null) {
         continue;
       }

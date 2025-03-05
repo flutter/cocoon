@@ -4,11 +4,11 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/ci_yaml.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
+import '../../ci_yaml.dart';
 import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
@@ -38,19 +38,18 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final RepositorySlug slug = Config.flutterSlug;
-    final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
-    final BigqueryService bigquery = await config.createBigQueryService();
+    final slug = Config.flutterSlug;
+    final gitHub = config.createGithubServiceWithToken(
+      await config.githubOAuthToken,
+    );
+    final bigquery = await config.createBigQueryService();
 
-    CiYamlSet? localCiYaml = ciYaml;
+    var localCiYaml = ciYaml;
     if (localCiYaml == null) {
-      final YamlMap? ci = loadYaml(
-        await gitHub.getFileContent(
-          slug,
-          kCiYamlPath,
-        ),
-      ) as YamlMap?;
-      final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
+      final ci =
+          loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
+      final unCheckedSchedulerConfig =
+          pb.SchedulerConfig()..mergeFromProto3Json(ci);
       localCiYaml = CiYamlSet(
         slug: slug,
         branch: Config.defaultBranch(slug),
@@ -58,11 +57,19 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
       );
     }
 
-    final List<BuilderStatistic> prodBuilderStatisticList =
-        await bigquery.listBuilderStatistic(kBigQueryProjectId, bucket: 'prod');
-    final List<BuilderStatistic> stagingBuilderStatisticList =
-        await bigquery.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging');
-    final Map<String?, Issue> nameToExistingIssue = await getExistingIssues(gitHub, slug, state: 'open');
+    final prodBuilderStatisticList = await bigquery.listBuilderStatistic(
+      kBigQueryProjectId,
+      bucket: 'prod',
+    );
+    final stagingBuilderStatisticList = await bigquery.listBuilderStatistic(
+      kBigQueryProjectId,
+      bucket: 'staging',
+    );
+    final nameToExistingIssue = await getExistingIssues(
+      gitHub,
+      slug,
+      state: 'open',
+    );
     await _updateExistingFlakyIssue(
       gitHub,
       slug,
@@ -71,12 +78,11 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
       stagingBuilderStatisticList: stagingBuilderStatisticList,
       nameToExistingIssue: nameToExistingIssue,
     );
-    return Body.forJson(const <String, dynamic>{
-      'Status': 'success',
-    });
+    return Body.forJson(const <String, dynamic>{'Status': 'success'});
   }
 
-  double get _threshold => double.parse(request!.uri.queryParameters[kThresholdKey]!);
+  double get _threshold =>
+      double.parse(request!.uri.queryParameters[kThresholdKey]!);
 
   /// Adds an update comment and adjusts the labels of the existing issue based
   /// on the latest statistics.
@@ -92,34 +98,54 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     required Issue existingIssue,
     required CiYamlSet ciYaml,
   }) async {
-    if (DateTime.now().difference(existingIssue.createdAt!) < const Duration(days: kFreshPeriodForOpenFlake)) {
+    if (DateTime.now().difference(existingIssue.createdAt!) <
+        const Duration(days: kFreshPeriodForOpenFlake)) {
       return;
     }
-    final threshold = ciYaml.getFirstPostsubmitTarget(statistic.name)?.flakinessThreshold ?? _threshold;
-    final IssueUpdateBuilder updateBuilder =
-        IssueUpdateBuilder(statistic: statistic, threshold: threshold, existingIssue: existingIssue, bucket: bucket);
-    await gitHub.createComment(slug, issueNumber: existingIssue.number, body: updateBuilder.issueUpdateComment);
+    final threshold =
+        ciYaml.getFirstPostsubmitTarget(statistic.name)?.flakinessThreshold ??
+        _threshold;
+    final updateBuilder = IssueUpdateBuilder(
+      statistic: statistic,
+      threshold: threshold,
+      existingIssue: existingIssue,
+      bucket: bucket,
+    );
+    await gitHub.createComment(
+      slug,
+      issueNumber: existingIssue.number,
+      body: updateBuilder.issueUpdateComment,
+    );
     // No need to bump priority and reassign if this is already marked as `bringup: true`.
     if (bringup) {
       return;
     }
-    await gitHub.replaceLabelsForIssue(slug, issueNumber: existingIssue.number, labels: updateBuilder.issueLabels);
+    await gitHub.replaceLabelsForIssue(
+      slug,
+      issueNumber: existingIssue.number,
+      labels: updateBuilder.issueLabels,
+    );
     if (existingIssue.assignee == null && !updateBuilder.isBelow) {
-      final String testOwnerContent = await gitHub.getFileContent(
+      final testOwnerContent = await gitHub.getFileContent(
         slug,
         kTestOwnerPath,
       );
 
-      final pb.SchedulerConfig schedulerConfig = ciYaml.configFor(CiType.any);
-      final List<pb.Target> targets = schedulerConfig.targets;
+      final schedulerConfig = ciYaml.configFor(CiType.any);
+      final targets = schedulerConfig.targets;
 
-      final String? testOwner = getTestOwnership(
-        targets.singleWhere((element) => element.name == statistic.name),
-        getTypeForBuilder(statistic.name, ciYaml),
-        testOwnerContent,
-      ).owner;
+      final testOwner =
+          getTestOwnership(
+            targets.singleWhere((element) => element.name == statistic.name),
+            getTypeForBuilder(statistic.name, ciYaml),
+            testOwnerContent,
+          ).owner;
       if (testOwner != null) {
-        await gitHub.assignIssue(slug, issueNumber: existingIssue.number, assignee: testOwner);
+        await gitHub.assignIssue(
+          slug,
+          issueNumber: existingIssue.number,
+          assignee: testOwner,
+        );
       }
     }
   }
@@ -133,9 +159,9 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     required List<BuilderStatistic> stagingBuilderStatisticList,
     required Map<String?, Issue> nameToExistingIssue,
   }) async {
-    final Map<String, bool> builderFlakyMap = <String, bool>{};
-    final Map<String, bool> ignoreFlakyMap = <String, bool>{};
-    for (Target target in ciYaml.postsubmitTargets()) {
+    final builderFlakyMap = <String, bool>{};
+    final ignoreFlakyMap = <String, bool>{};
+    for (var target in ciYaml.postsubmitTargets()) {
       builderFlakyMap[target.value.name] = target.value.bringup;
       if (target.getIgnoreFlakiness()) {
         ignoreFlakyMap[target.value.name] = true;
@@ -146,7 +172,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     // Update an existing flaky bug with both prod and staging stats if the builder is with `bringup: true`. When a builder
     // is newly identified as flaky, there is a gap between the builder is marked as `bringup: true` and the flaky bug is filed.
     // For this case, there will be builds still running in `prod` pool, and we need to append `prod` stats as well.
-    for (final BuilderStatistic statistic in prodBuilderStatisticList) {
+    for (final statistic in prodBuilderStatisticList) {
       if (nameToExistingIssue.containsKey(statistic.name) &&
           builderFlakyMap.containsKey(statistic.name) &&
           !ignoreFlakyMap.containsKey(statistic.name)) {
@@ -162,7 +188,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
       }
     }
     // For all staging builder stats, updates any existing flaky bug.
-    for (final BuilderStatistic statistic in stagingBuilderStatisticList) {
+    for (final statistic in stagingBuilderStatisticList) {
       if (nameToExistingIssue.containsKey(statistic.name) &&
           builderFlakyMap[statistic.name] == true &&
           !ignoreFlakyMap.containsKey(statistic.name)) {

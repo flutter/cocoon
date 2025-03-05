@@ -28,9 +28,9 @@ const Key$json = {
 };
 
 /// Descriptor for `Key`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List keyDescriptor =
-    $convert.base64Decode('CgNLZXkSEgoEdHlwZRgBIAEoCVIEdHlwZRISCgN1aWQYAiABKANIAFIDdWlkEhQKBG5hbWUYAy'
-        'ABKAlIAFIEbmFtZRIhCgVjaGlsZBgEIAEoCzILLmNvY29vbi5LZXlSBWNoaWxkQgQKAmlk');
+final $typed_data.Uint8List keyDescriptor = $convert.base64Decode(
+    'CgNLZXkSEgoEdHlwZRgBIAEoCVIEdHlwZRISCgN1aWQYAiABKANIAFIDdWlkEhQKBG5hbWUYAy'
+    'ABKAlIAFIEbmFtZRIhCgVjaGlsZBgEIAEoCzILLmNvY29vbi5LZXlSBWNoaWxkQgQKAmlk');
 
 @$core.Deprecated('Use rootKeyDescriptor instead')
 const RootKey$json = {
@@ -42,6 +42,6 @@ const RootKey$json = {
 };
 
 /// Descriptor for `RootKey`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List rootKeyDescriptor =
-    $convert.base64Decode('CgdSb290S2V5EhwKCW5hbWVzcGFjZRgBIAEoCVIJbmFtZXNwYWNlEiEKBWNoaWxkGAIgASgLMg'
-        'suY29jb29uLktleVIFY2hpbGQ=');
+final $typed_data.Uint8List rootKeyDescriptor = $convert.base64Decode(
+    'CgdSb290S2V5EhwKCW5hbWVzcGFjZRgBIAEoCVIJbmFtZXNwYWNlEiEKBWNoaWxkGAIgASgLMg'
+    'suY29jb29uLktleVIFY2hpbGQ=');

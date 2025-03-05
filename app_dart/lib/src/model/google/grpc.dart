@@ -20,7 +20,8 @@ class GrpcStatus extends JsonBody {
   const GrpcStatus({required this.code, this.message, this.details});
 
   /// Creates a [Status] from JSON.
-  static GrpcStatus fromJson(Map<String, dynamic> json) => _$GrpcStatusFromJson(json);
+  static GrpcStatus fromJson(Map<String, dynamic> json) =>
+      _$GrpcStatusFromJson(json);
 
   /// The status code, which should be an enum value of [google.rpc.Code][].
   final int code;

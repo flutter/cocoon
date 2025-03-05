@@ -10,18 +10,18 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('Author avatars meet guidelines for theme brightness', () {
     List<String> generateInitials() {
-      final List<String> names = <String>[];
+      final names = <String>[];
 
-      for (int i = 65; i <= 90; i++) {
+      for (var i = 65; i <= 90; i++) {
         names.add(String.fromCharCode(i));
       }
-      for (int i = 0; i <= 9; i++) {
+      for (var i = 0; i <= 9; i++) {
         names.add(i.toString());
       }
       return names;
     }
 
-    const List<String> longNames = <String>['Michael', 'Thomas', 'Peter', 'Volkert'];
+    const longNames = <String>['Michael', 'Thomas', 'Peter', 'Volkert'];
 
     Widget buildAuthors({required List<String> names, ThemeData? theme}) {
       final List<Widget> avatars = names

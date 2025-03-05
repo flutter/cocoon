@@ -17,14 +17,28 @@ import 'dart:typed_data' as $typed_data;
 const CommitTasksStatus$json = {
   '1': 'CommitTasksStatus',
   '2': [
-    {'1': 'commit', '3': 1, '4': 1, '5': 11, '6': '.dashboard.CommitDocument', '10': 'commit'},
-    {'1': 'tasks', '3': 2, '4': 3, '5': 11, '6': '.dashboard.TaskDocument', '10': 'tasks'},
+    {
+      '1': 'commit',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.dashboard.CommitDocument',
+      '10': 'commit'
+    },
+    {
+      '1': 'tasks',
+      '3': 2,
+      '4': 3,
+      '5': 11,
+      '6': '.dashboard.TaskDocument',
+      '10': 'tasks'
+    },
     {'1': 'branch', '3': 3, '4': 1, '5': 9, '10': 'branch'},
   ],
 };
 
 /// Descriptor for `CommitTasksStatus`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List commitTasksStatusDescriptor =
-    $convert.base64Decode('ChFDb21taXRUYXNrc1N0YXR1cxIxCgZjb21taXQYASABKAsyGS5kYXNoYm9hcmQuQ29tbWl0RG'
-        '9jdW1lbnRSBmNvbW1pdBItCgV0YXNrcxgCIAMoCzIXLmRhc2hib2FyZC5UYXNrRG9jdW1lbnRS'
-        'BXRhc2tzEhYKBmJyYW5jaBgDIAEoCVIGYnJhbmNo');
+final $typed_data.Uint8List commitTasksStatusDescriptor = $convert.base64Decode(
+    'ChFDb21taXRUYXNrc1N0YXR1cxIxCgZjb21taXQYASABKAsyGS5kYXNoYm9hcmQuQ29tbWl0RG'
+    '9jdW1lbnRSBmNvbW1pdBItCgV0YXNrcxgCIAMoCzIXLmRhc2hib2FyZC5UYXNrRG9jdW1lbnRS'
+    'BXRhc2tzEhYKBmJyYW5jaBgDIAEoCVIGYnJhbmNo');

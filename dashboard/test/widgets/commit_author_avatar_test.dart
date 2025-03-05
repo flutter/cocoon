@@ -8,9 +8,10 @@ import 'package:flutter_dashboard/widgets/commit_author_avatar.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('Authors with same initial have differently coloured avatars', (WidgetTester tester) async {
-    final Commit commit1 = Commit()..author = 'Mike';
-    final Commit commit2 = Commit()..author = 'Michael';
+  testWidgets('Authors with same initial have differently coloured avatars',
+      (WidgetTester tester) async {
+    final commit1 = Commit()..author = 'Mike';
+    final commit2 = Commit()..author = 'Michael';
 
     await tester.pumpWidget(
       MaterialApp(
@@ -28,7 +29,8 @@ void main() {
     );
 
     expect(find.text('M'), findsNWidgets(2));
-    final List<CircleAvatar> avatars = tester.widgetList<CircleAvatar>(find.byType(CircleAvatar)).toList();
+    final avatars =
+        tester.widgetList<CircleAvatar>(find.byType(CircleAvatar)).toList();
     expect(avatars, hasLength(2));
     expect(avatars.first.backgroundColor, isNot(avatars.last.backgroundColor));
   });

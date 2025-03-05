@@ -10,7 +10,8 @@ import 'user_sign_in.dart';
 ///
 /// The [actions] will always have a [UserSignIn] added.
 class CocoonAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CocoonAppBar({super.key, this.title, this.actions, this.backgroundColor});
+  const CocoonAppBar(
+      {super.key, this.title, this.actions, this.backgroundColor});
 
   final Widget? title;
 

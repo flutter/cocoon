@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:github/github.dart' as github;
 
+import '../model/auto_submit_query_result.dart';
 import '../service/config.dart';
 
 /// GitHub PR state constants.
@@ -28,7 +28,8 @@ abstract class Validation {
 
   /// Returns [ValidationResult] after using a [QueryResult] and [PullRequest] to validate
   /// a given PR state.
-  Future<ValidationResult> validate(QueryResult result, github.PullRequest messagePullRequest);
+  Future<ValidationResult> validate(
+      QueryResult result, github.PullRequest messagePullRequest);
 
   String get name;
 }

@@ -48,7 +48,8 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
   /// This is guaranteed to be non-null. If the request was unauthenticated,
   /// the request will be denied.
   @protected
-  AuthenticatedContext get authContext => getValue<AuthenticatedContext>(ApiKey.authContext)!;
+  AuthenticatedContext get authContext =>
+      getValue<AuthenticatedContext>(ApiKey.authContext)!;
 
   /// The [PushMessage] from this [HttpRequest].
   @protected
@@ -60,11 +61,11 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
     Future<void> Function(HttpStatusException)? onError,
   }) async {
     AuthenticatedContext authContext;
-    final AuthenticationProvider auth = authProvider ?? PubsubAuthenticationProvider(config: config);
+    final auth = authProvider ?? PubsubAuthenticationProvider(config: config);
     try {
       authContext = await auth.authenticate(request);
     } on Unauthenticated catch (error) {
-      final HttpResponse response = request.response;
+      final response = request.response;
       response
         ..statusCode = HttpStatus.unauthorized
         ..write(error.message);
@@ -77,7 +78,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
     try {
       body = await request.expand<int>((List<int> chunk) => chunk).toList();
     } catch (error) {
-      final HttpResponse response = request.response;
+      final response = request.response;
       response
         ..statusCode = HttpStatus.internalServerError
         ..write('$error');
@@ -90,10 +91,10 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
     PubSubPushMessage? pubSubPushMessage;
     if (body.isNotEmpty) {
       try {
-        final Map<String, dynamic> json = jsonDecode(utf8.decode(body)) as Map<String, dynamic>;
+        final json = jsonDecode(utf8.decode(body)) as Map<String, dynamic>;
         pubSubPushMessage = PubSubPushMessage.fromJson(json);
       } catch (error) {
-        final HttpResponse response = request.response;
+        final response = request.response;
         response
           ..statusCode = HttpStatus.internalServerError
           ..write('$error');
@@ -109,25 +110,26 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
 
     log.finer(pubSubPushMessage.toString());
 
-    final String messageId = pubSubPushMessage.message!.messageId!;
+    final messageId = pubSubPushMessage.message!.messageId!;
 
-    final Uint8List? messageLock = await cache.getOrCreate(
+    final messageLock = await cache.getOrCreate(
       subscriptionName,
       messageId,
       createFn: null,
     );
     if (messageLock != null) {
       // No-op - There's already a write lock for this message
-      final HttpResponse response = request.response
-        ..statusCode = HttpStatus.ok
-        ..write('$messageId was already processed');
+      final response =
+          request.response
+            ..statusCode = HttpStatus.ok
+            ..write('$messageId was already processed');
       await response.flush();
       await response.close();
       return;
     }
 
     // Create a write lock in the cache to ensure requests are only processed once
-    final Uint8List lockValue = Uint8List.fromList('l'.codeUnits);
+    final lockValue = Uint8List.fromList('l'.codeUnits);
     await cache.set(
       subscriptionName,
       messageId,
@@ -140,7 +142,9 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
       () async => super.service(
         request,
         onError: (HttpStatusException exception) async {
-          log.warning('Failed to process $message. (${exception.statusCode}) ${exception.message}');
+          log.warning(
+            'Failed to process $message. (${exception.statusCode}) ${exception.message}',
+          );
           await cache.purge(subscriptionName, messageId);
           log.info('Purged write lock from cache');
         },
@@ -157,5 +161,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
 class PubSubKey<T> extends RequestKey<T> {
   const PubSubKey._(super.name);
 
-  static const PubSubKey<PushMessage> message = PubSubKey<PushMessage>._('message');
+  static const PubSubKey<PushMessage> message = PubSubKey<PushMessage>._(
+    'message',
+  );
 }

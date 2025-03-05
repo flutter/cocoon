@@ -5,9 +5,9 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cocoon_service/protos.dart';
 import 'package:meta/meta.dart';
 
+import '../../protos.dart';
 import '../request_handling/body.dart';
 import 'get_build_status.dart';
 
@@ -48,16 +48,19 @@ class GetBuildStatusBadge extends GetBuildStatus {
   @override
   Future<Body> get() async {
     // Set HTTP content-type so SVG is viewable.
-    final HttpResponse response = request!.response;
+    final response = request!.response;
     response.headers.contentType = ContentType.parse('image/svg+xml');
-    final BuildStatusResponse buildStatusResponse = await super.createResponse();
+    final buildStatusResponse = await super.createResponse();
     return Body.forString(generateSVG(buildStatusResponse));
   }
 
   String generateSVG(BuildStatusResponse response) {
-    final bool passing = response.failingTasks.isEmpty;
+    final passing = response.failingTasks.isEmpty;
     return template
-        .replaceAll('{{ STATUS }}', passing ? 'passing' : '${response.failingTasks.length} failures')
+        .replaceAll(
+          '{{ STATUS }}',
+          passing ? 'passing' : '${response.failingTasks.length} failures',
+        )
         .replaceAll('{{ COLOR }}', passing ? green : red);
   }
 }

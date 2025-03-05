@@ -5,14 +5,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app_icons/flutter_app_icons.dart';
-import 'package:flutter_dashboard/model/branch.pb.dart';
-import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:provider/provider.dart';
 import 'package:truncate/truncate.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'dashboard_navigation_drawer.dart';
 import 'logic/task_grid_filter.dart';
+import 'model/branch.pb.dart';
+import 'model/commit.pb.dart';
 import 'service/cocoon.dart';
 import 'state/build.dart';
 import 'widgets/app_bar.dart';
@@ -88,7 +88,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   ///
   /// This enables bookmarking state specific values, like [repo].
   void _updateNavigation(BuildContext context) {
-    Map<String, String> queryParameters = <String, String>{};
+    var queryParameters = <String, String>{};
     if (widget.queryParameters != null) {
       queryParameters.addAll(widget.queryParameters!);
     }
@@ -100,7 +100,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
 
     queryParameters['branch'] = branch!;
 
-    final Uri uri = Uri(
+    final uri = Uri(
       path: BuildDashboardPage.routeName,
       queryParameters: queryParameters,
     );
@@ -120,8 +120,9 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   }
 
   Widget _settingsDialog(BuildContext context, BuildState buildState) {
-    final ThemeData theme = Theme.of(context);
-    final Color backgroundColor = theme.brightness == Brightness.dark ? Colors.grey[800]! : Colors.white;
+    final theme = Theme.of(context);
+    final backgroundColor =
+        theme.brightness == Brightness.dark ? Colors.grey[800]! : Colors.white;
     return Center(
       child: Container(
         decoration: BoxDecoration(
@@ -136,13 +137,17 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
               height: 360,
               child: ListView(
                 children: <Widget>[
-                  if (_smallScreen) ..._buildRepositorySelectionWidgets(context, buildState),
+                  if (_smallScreen)
+                    ..._buildRepositorySelectionWidgets(context, buildState),
                   AnimatedBuilder(
                     animation: buildState,
                     builder: (context, child) {
-                      final bool isAuthenticated = buildState.authService.isAuthenticated;
+                      final isAuthenticated =
+                          buildState.authService.isAuthenticated;
                       return TextButton(
-                        onPressed: isAuthenticated ? buildState.refreshGitHubCommits : null,
+                        onPressed: isAuthenticated
+                            ? buildState.refreshGitHubCommits
+                            : null,
                         child: child!,
                       );
                     },
@@ -150,7 +155,8 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                   ),
                   Row(
                     children: [
-                      Expanded(child: Center(child: FilterPropertySheet(_filter))),
+                      Expanded(
+                          child: Center(child: FilterPropertySheet(_filter))),
                     ],
                   ),
                   Row(
@@ -158,11 +164,14 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       TextButton(
-                        onPressed: _filter!.isDefault ? null : () => _filter!.reset(),
+                        onPressed:
+                            _filter!.isDefault ? null : () => _filter!.reset(),
                         child: const Text('Defaults'),
                       ),
                       TextButton(
-                        onPressed: _filter == _settingsBasis ? null : () => _updateNavigation(context),
+                        onPressed: _filter == _settingsBasis
+                            ? null
+                            : () => _updateNavigation(context),
                         child: const Text('Apply'),
                       ),
                       TextButton(
@@ -187,8 +196,9 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   }
 
   /// List of widgets for selecting slug and branch for configuring the build view.
-  List<Widget> _buildRepositorySelectionWidgets(BuildContext context, BuildState buildState) {
-    final ThemeData theme = Theme.of(context);
+  List<Widget> _buildRepositorySelectionWidgets(
+      BuildContext context, BuildState buildState) {
+    final theme = Theme.of(context);
     return <Widget>[
       const Padding(
         padding: EdgeInsets.only(top: 22, left: 5, right: 5),
@@ -274,7 +284,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           ...buildState.branches
               .where((Branch b) => b.branch != buildState.currentBranch)
               .map<DropdownMenuItem<String>>((Branch b) {
-            final String branchPrefix = (b.channel != 'HEAD') ? '${b.channel}: ' : '';
+            final branchPrefix = (b.channel != 'HEAD') ? '${b.channel}: ' : '';
             return DropdownMenuItem<String>(
               value: b.branch,
               child: Padding(
@@ -294,7 +304,8 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     ];
   }
 
-  PopupMenuItem<String> _getTaskKeyEntry({required Widget box, required String description}) {
+  PopupMenuItem<String> _getTaskKeyEntry(
+      {required Widget box, required String description}) {
     return PopupMenuItem<String>(
       value: description,
       child: Wrap(
@@ -310,9 +321,9 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   }
 
   List<PopupMenuEntry<String>> _getTaskKey(bool isDark) {
-    final List<PopupMenuEntry<String>> key = <PopupMenuEntry<String>>[];
+    final key = <PopupMenuEntry<String>>[];
 
-    for (final String status in TaskBox.statusColor.keys) {
+    for (final status in TaskBox.statusColor.keys) {
       key.add(
         _getTaskKeyEntry(
           box: Container(color: TaskBox.statusColor[status]),
@@ -385,31 +396,35 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final MediaQueryData queryData = MediaQuery.of(context);
-    final double devicePixelRatio = queryData.devicePixelRatio;
-    _smallScreen = queryData.size.width * devicePixelRatio < screenWidthThreshold;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final queryData = MediaQuery.of(context);
+    final devicePixelRatio = queryData.devicePixelRatio;
+    _smallScreen =
+        queryData.size.width * devicePixelRatio < screenWidthThreshold;
 
     /// Color of [AppBar] based on [buildState.isTreeBuilding].
-    final Map<bool?, Color?> colorTable = <bool?, Color?>{
+    final colorTable = <bool?, Color?>{
       null: Colors.grey[850],
       false: isDark ? Colors.red[800] : Colors.red,
       true: isDark ? Colors.green[800] : Colors.green,
     };
 
-    final Uri flutterIssueUrl = Uri.parse(
+    final flutterIssueUrl = Uri.parse(
       'https://github.com/flutter/flutter/issues/new?assignees=&labels=team-infra&projects=&template=6_infrastructure.yml',
     );
-    final Uri flutterInfraTicketQueue = Uri.parse(
+    final flutterInfraTicketQueue = Uri.parse(
       'https://github.com/orgs/flutter/projects/81',
     );
-    final BuildState buildState = Provider.of<BuildState>(context);
+    final buildState = Provider.of<BuildState>(context);
     buildState.updateCurrentRepoBranch(repo!, branch!);
     return CallbackShortcuts(
       bindings: <ShortcutActivator, VoidCallback>{
-        const SingleActivator(LogicalKeyboardKey.arrowUp): () => _updatePage(context, 'flutter', 'master'),
-        const SingleActivator(LogicalKeyboardKey.arrowLeft): () => _updatePage(context, 'cocoon', 'main'),
-        const SingleActivator(LogicalKeyboardKey.arrowRight): () => _updatePage(context, 'packages', 'main'),
+        const SingleActivator(LogicalKeyboardKey.arrowUp): () =>
+            _updatePage(context, 'flutter', 'master'),
+        const SingleActivator(LogicalKeyboardKey.arrowLeft): () =>
+            _updatePage(context, 'cocoon', 'main'),
+        const SingleActivator(LogicalKeyboardKey.arrowRight): () =>
+            _updatePage(context, 'packages', 'main'),
       },
       child: Focus(
         autofocus: true,
@@ -425,7 +440,8 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
               ),
               backgroundColor: colorTable[buildState.isTreeBuilding],
               actions: <Widget>[
-                if (!_smallScreen) ..._buildRepositorySelectionWidgets(context, buildState),
+                if (!_smallScreen)
+                  ..._buildRepositorySelectionWidgets(context, buildState),
                 IconButton(
                   tooltip: 'Infra Ticket Queue',
                   icon: const Icon(Icons.queue),
@@ -456,7 +472,8 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                 IconButton(
                   tooltip: 'Settings',
                   icon: const Icon(Icons.settings),
-                  onPressed: _settingsBasis == null ? () => _showSettingsDialog() : null,
+                  onPressed:
+                      _settingsBasis == null ? _showSettingsDialog : null,
                 ),
               ],
             ),
@@ -479,12 +496,14 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                           return null;
                         }
                         return (commit) {
-                          return _schedulePostsubmitBuildForReleaseBranch(context: context, commit: commit);
+                          return _schedulePostsubmitBuildForReleaseBranch(
+                              context: context, commit: commit);
                         };
                       }(),
                     ),
                   ),
-                  if (_settingsBasis != null) _settingsDialog(context, buildState),
+                  if (_settingsBasis != null)
+                    _settingsDialog(context, buildState),
                 ],
               ),
             ),
@@ -500,7 +519,8 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     required Commit commit,
   }) async {
     final buildState = Provider.of<BuildState>(context, listen: false);
-    final response = await buildState.cocoonService.schedulePostsubmitsForCommit(
+    final response =
+        await buildState.cocoonService.schedulePostsubmitsForCommit(
       commit,
       idToken: await buildState.authService.idToken,
       branch: buildState.currentBranch,
@@ -513,7 +533,8 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     if (response.error case final error?) {
       snackBar = SnackBar(content: Text('Failed to schedule: $error.'));
     } else {
-      snackBar = SnackBar(content: Text('Scheduled post-submits for commit ${commit.sha}.'));
+      snackBar = SnackBar(
+          content: Text('Scheduled post-submits for commit ${commit.sha}.'));
     }
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }

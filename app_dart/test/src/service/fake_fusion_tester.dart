@@ -7,10 +7,7 @@ import 'package:github/src/common/model/repos.dart';
 import 'package:retry/retry.dart';
 
 class FakeFusionTester implements FusionTester {
-  bool Function(
-    RepositorySlug slug,
-    String ref,
-  ) isFusion = (_, __) => false;
+  bool Function(RepositorySlug slug, String ref) isFusion = (_, _) => false;
 
   @override
   Future<bool> isFusionBasedRef(

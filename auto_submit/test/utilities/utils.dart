@@ -14,9 +14,12 @@ const String title = 'some_title';
 class StatusHelper {
   const StatusHelper(this.name, this.state);
 
-  static const StatusHelper flutterBuildSuccess = StatusHelper('tree-status', 'SUCCESS');
-  static const StatusHelper flutterBuildFailure = StatusHelper('tree-status', 'FAILURE');
-  static const StatusHelper otherStatusFailure = StatusHelper('other status', 'FAILURE');
+  static const StatusHelper flutterBuildSuccess =
+      StatusHelper('tree-status', 'SUCCESS');
+  static const StatusHelper flutterBuildFailure =
+      StatusHelper('tree-status', 'FAILURE');
+  static const StatusHelper otherStatusFailure =
+      StatusHelper('other status', 'FAILURE');
 
   final String name;
   final String state;
@@ -32,10 +35,15 @@ class PullRequestHelper {
     this.title = 'some_title',
     this.mergeableState = MergeableState.MERGEABLE,
     this.reviews = const <PullRequestReviewHelper>[
-      PullRequestReviewHelper(authorName: 'member', state: ReviewState.APPROVED, memberType: MemberType.MEMBER),
+      PullRequestReviewHelper(
+          authorName: 'member',
+          state: ReviewState.APPROVED,
+          memberType: MemberType.MEMBER),
     ],
     this.lastCommitHash = 'oid',
-    this.lastCommitStatuses = const <StatusHelper>[StatusHelper.flutterBuildSuccess],
+    this.lastCommitStatuses = const <StatusHelper>[
+      StatusHelper.flutterBuildSuccess
+    ],
     this.lastCommitMessage = '',
     this.dateTime,
     this.mergedAt,
@@ -66,13 +74,17 @@ class PullRequestHelper {
       'number': prNumber,
       'title': title,
       'mergeable': mergeableState.name,
-      'mergedAt': (mergedAt ?? DateTime.now().subtract(const Duration(hours: 12))).toUtc().toIso8601String(),
+      'mergedAt':
+          (mergedAt ?? DateTime.now().subtract(const Duration(hours: 12)))
+              .toUtc()
+              .toIso8601String(),
       'isInMergeQueue': isInMergeQueue,
       'reviews': <String, dynamic>{
         'nodes': reviews.map((PullRequestReviewHelper review) {
           return <String, dynamic>{
             'author': <String, dynamic>{'login': review.authorName},
-            'authorAssociation': review.memberType.toString().replaceFirst('MemberType.', ''),
+            'authorAssociation':
+                review.memberType.toString().replaceFirst('MemberType.', ''),
             'state': review.state.toString().replaceFirst('ReviewState.', ''),
           };
         }).toList(),
@@ -82,7 +94,10 @@ class PullRequestHelper {
           <String, dynamic>{
             'commit': <String, dynamic>{
               'oid': lastCommitHash,
-              'pushedDate': (dateTime ?? DateTime.now().add(const Duration(hours: -2))).toUtc().toIso8601String(),
+              'pushedDate':
+                  (dateTime ?? DateTime.now().add(const Duration(hours: -2)))
+                      .toUtc()
+                      .toIso8601String(),
               'message': lastCommitMessage,
               'status': <String, dynamic>{
                 'contexts': lastCommitStatuses != null

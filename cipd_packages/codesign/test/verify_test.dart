@@ -11,7 +11,7 @@ import 'package:test/test.dart';
 import 'src/fake_process_manager.dart';
 
 void main() {
-  const String binaryPath = '/path/to/binary';
+  const binaryPath = '/path/to/binary';
 
   late FakeProcessManager processManager;
   late FileSystem fs;
@@ -71,7 +71,7 @@ $binaryPath: explicit requirement satisfied
 ''',
       ),
     ]);
-    final VerificationResult result = await service.run();
+    final result = await service.run();
     expect(processManager, hasNoRemainingExpectations);
     expect(result, VerificationResult.codesignedAndNotarized);
     expect(
@@ -124,7 +124,7 @@ test-requirement: code failed to satisfy specified code requirement(s)
         exitCode: 3,
       ),
     ]);
-    final VerificationResult result = await service.run();
+    final result = await service.run();
     expect(processManager, hasNoRemainingExpectations);
     expect(result, VerificationResult.codesignedOnly);
     expect(
@@ -147,7 +147,7 @@ Notarization:   false
         exitCode: 1,
       ),
     ]);
-    final VerificationResult result = await service.run();
+    final result = await service.run();
     expect(processManager, hasNoRemainingExpectations);
     expect(result, VerificationResult.unsigned);
     expect(

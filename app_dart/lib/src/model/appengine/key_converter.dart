@@ -13,7 +13,9 @@ class StringKeyConverter implements JsonConverter<Key<String>?, String> {
 
   @override
   Key<String>? fromJson(String? json) =>
-      (json == null || json.isEmpty) ? null : KeyHelper().decode(json) as Key<String>;
+      (json == null || json.isEmpty)
+          ? null
+          : KeyHelper().decode(json) as Key<String>;
 
   @override
   String toJson(Key<String>? key) => key == null ? '' : KeyHelper().encode(key);

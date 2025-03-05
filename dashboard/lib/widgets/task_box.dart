@@ -5,7 +5,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-typedef ShowSnackBarCallback = ScaffoldFeatureController<SnackBar, SnackBarClosedReason> Function(SnackBar snackBar);
+typedef ShowSnackBarCallback
+    = ScaffoldFeatureController<SnackBar, SnackBarClosedReason> Function(
+        SnackBar snackBar);
 
 class TaskBox extends StatelessWidget {
   const TaskBox({super.key, this.cellSize, required this.child});
@@ -44,7 +46,7 @@ class TaskBox extends StatelessWidget {
   /// Returns the cell size of the nearest task box, or null if there is no
   /// nearest task box.
   static double? maybeOf(BuildContext context) {
-    final _TaskBox? box = context.dependOnInheritedWidgetOfExactType<_TaskBox>();
+    final box = context.dependOnInheritedWidgetOfExactType<_TaskBox>();
     return box?.size;
   }
 
@@ -55,7 +57,7 @@ class TaskBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double size = cellSize ?? (kIsWeb ? _kWebCellSize : _kDefaultCellSize);
+    final size = cellSize ?? (kIsWeb ? _kWebCellSize : _kDefaultCellSize);
     return _TaskBox(
       size: TaskBox.maybeOf(context) ?? size,
       child: child,
@@ -72,5 +74,6 @@ class _TaskBox extends InheritedWidget {
   final double size;
 
   @override
-  bool updateShouldNotify(covariant _TaskBox oldWidget) => size != oldWidget.size;
+  bool updateShouldNotify(covariant _TaskBox oldWidget) =>
+      size != oldWidget.size;
 }

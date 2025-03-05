@@ -36,8 +36,8 @@ class BrookSink<T> extends Brook<T> {
   BrookSink();
 
   void send(T event) {
-    final List<BrookCallback<T>> frozenListeners = _listeners.toList();
-    for (final BrookCallback<T> listener in frozenListeners) {
+    final frozenListeners = _listeners.toList();
+    for (final listener in frozenListeners) {
       try {
         if (_listeners.contains(listener)) {
           listener(event);

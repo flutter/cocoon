@@ -5,15 +5,15 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:auto_submit/requests/check_request.dart';
-import 'package:auto_submit/service/approver_service.dart';
-import 'package:auto_submit/service/pull_request_validation_service.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/pubsub/v1.dart' as pub;
 import 'package:shelf/shelf.dart';
 
 import '../request_handling/pubsub.dart';
+import '../service/approver_service.dart';
+import '../service/pull_request_validation_service.dart';
+import 'check_request.dart';
 
 /// Handler for processing pull requests with 'autosubmit' label.
 ///
@@ -57,26 +57,29 @@ class CheckPullRequest extends CheckRequest {
       return Response.ok('$crumb: nothing to do, exiting.');
     }
 
-    final workItems = await _extractPullRequestFromMessages(pubSubSubscription, messages);
+    final workItems =
+        await _extractPullRequestFromMessages(pubSubSubscription, messages);
 
     // Process pull requests in parallel.
     final futures = <Future<void>>[];
     for (final workItem in workItems) {
-      futures.add(_processPullRequest(workItem.pullRequest, workItem.ackId, pubSubSubscription));
+      futures.add(_processPullRequest(
+          workItem.pullRequest, workItem.ackId, pubSubSubscription));
     }
     await Future.wait(futures);
 
     return Response.ok('Finished processing changes');
   }
 
-  Future<List<({PullRequest pullRequest, String ackId})>> _extractPullRequestFromMessages(
+  Future<List<({PullRequest pullRequest, String ackId})>>
+      _extractPullRequestFromMessages(
     String pubSubSubscription,
     List<pub.ReceivedMessage> messages,
   ) async {
     final crumb = '$CheckPullRequest(root)';
     final workItems = <int, ({PullRequest pullRequest, String ackId})>{};
 
-    for (pub.ReceivedMessage message in messages) {
+    for (var message in messages) {
       assert(message.message != null);
       assert(message.message!.data != null);
       log.info(
@@ -105,22 +108,26 @@ class CheckPullRequest extends CheckRequest {
         await pubsub.acknowledge(pubSubSubscription, message.ackId!);
         continue;
       } else {
-        workItems[pullRequest.number!] = (pullRequest: pullRequest, ackId: message.ackId!);
+        workItems[pullRequest.number!] =
+            (pullRequest: pullRequest, ackId: message.ackId!);
       }
     }
 
     return [...workItems.values];
   }
 
-  Future<void> _processPullRequest(PullRequest pullRequest, String ackId, String pubSubSubscription) async {
-    final crumb = '$CheckPullRequest(${pullRequest.repo?.fullName}/${pullRequest.number})';
+  Future<void> _processPullRequest(
+      PullRequest pullRequest, String ackId, String pubSubSubscription) async {
+    final crumb =
+        '$CheckPullRequest(${pullRequest.repo?.fullName}/${pullRequest.number})';
     log.info('$crumb: Processing PR: ${pullRequest.toJson()}');
 
     try {
       final approver = approverProvider(config);
       await approver.autoApproval(pullRequest);
 
-      final validationService = PullRequestValidationService(config, subscription: pubSubSubscription);
+      final validationService = PullRequestValidationService(config,
+          subscription: pubSubSubscription);
       await validationService.processMessage(pullRequest, ackId, pubsub);
     } catch (error, stackTrace) {
       // Log at severe level but do not rethrow. Because this loop processes a

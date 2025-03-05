@@ -29,16 +29,16 @@ class FakeGithubService implements GithubService {
   final List<(RepositorySlug, String)> deletedBranches = [];
 
   @override
-  Future<bool> deleteBranch(
-    RepositorySlug slug,
-    String branchName,
-  ) async {
+  Future<bool> deleteBranch(RepositorySlug slug, String branchName) async {
     deletedBranches.add((slug, branchName));
     return true;
   }
 
   @override
-  Future<List<PullRequest>> listPullRequests(RepositorySlug slug, String? branch) async {
+  Future<List<PullRequest>> listPullRequests(
+    RepositorySlug slug,
+    String? branch,
+  ) async {
     return listPullRequestsBranch(branch);
   }
 
@@ -51,16 +51,25 @@ class FakeGithubService implements GithubService {
     return <IssueLabel>[];
   }
 
-  final List<(RepositorySlug slug, int issueNumber, String label)> removedLabels = [];
+  final List<(RepositorySlug slug, int issueNumber, String label)>
+  removedLabels = [];
 
   @override
-  Future<bool> removeLabel(RepositorySlug slug, int issueNumber, String label) async {
-    removedLabels.add(((slug, issueNumber, label)));
+  Future<bool> removeLabel(
+    RepositorySlug slug,
+    int issueNumber,
+    String label,
+  ) async {
+    removedLabels.add((slug, issueNumber, label));
     return true;
   }
 
   @override
-  Future<void> assignReviewer(RepositorySlug slug, {int? pullRequestNumber, String? reviewer}) async {}
+  Future<void> assignReviewer(
+    RepositorySlug slug, {
+    int? pullRequestNumber,
+    String? reviewer,
+  }) async {}
 
   @override
   Future<Issue> createIssue(
@@ -95,7 +104,11 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<String> getFileContent(RepositorySlug slug, String path, {String? ref}) async {
+  Future<String> getFileContent(
+    RepositorySlug slug,
+    String path, {
+    String? ref,
+  }) async {
     return GithubService(github).getFileContent(slug, path, ref: ref);
   }
 
@@ -113,7 +126,10 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<List<IssueLabel>> getIssueLabels(RepositorySlug slug, int issueNumber) {
+  Future<List<IssueLabel>> getIssueLabels(
+    RepositorySlug slug,
+    int issueNumber,
+  ) {
     return Future.value(<IssueLabel>[IssueLabel(name: 'override: test')]);
   }
 
@@ -127,14 +143,12 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<Issue>? getIssue(
-    RepositorySlug slug, {
-    int? issueNumber,
-  }) {
+  Future<Issue>? getIssue(RepositorySlug slug, {int? issueNumber}) {
     return null;
   }
 
-  final List<(RepositorySlug slug, {int? issueNumber, String? body})> createdComments = [];
+  final List<(RepositorySlug slug, {int? issueNumber, String? body})>
+  createdComments = [];
 
   @override
   Future<IssueComment?> createComment(
@@ -180,16 +194,18 @@ class FakeGithubService implements GithubService {
   String? checkRunsMock;
 
   @override
-  Future<List<CheckRun>> getCheckRuns(
-    RepositorySlug slug,
-    String ref,
-  ) async {
+  Future<List<CheckRun>> getCheckRuns(RepositorySlug slug, String ref) async {
     final rawBody = json.decode(checkRunsMock!) as Map<String, dynamic>;
-    final List<dynamic> checkRunsBody = rawBody['check_runs']! as List<dynamic>;
-    final List<CheckRun> checkRuns = <CheckRun>[];
+    final checkRunsBody = rawBody['check_runs']! as List<dynamic>;
+    final checkRuns = <CheckRun>[];
     if ((checkRunsBody[0] as Map<String, dynamic>).isNotEmpty) {
       checkRuns.addAll(
-        checkRunsBody.map((dynamic checkRun) => CheckRun.fromJson(checkRun as Map<String, dynamic>)).toList(),
+        checkRunsBody
+            .map(
+              (dynamic checkRun) =>
+                  CheckRun.fromJson(checkRun as Map<String, dynamic>),
+            )
+            .toList(),
       );
     }
     return checkRuns;
@@ -203,10 +219,10 @@ class FakeGithubService implements GithubService {
     CheckRunStatus? status,
     CheckRunFilter? filter,
   }) async {
-    final List<CheckRun> checkRuns = await getCheckRuns(slug, ref);
+    final checkRuns = await getCheckRuns(slug, ref);
     if (checkName != null) {
-      final List<CheckRun> checkRunsFilteredByName = [];
-      for (CheckRun checkRun in checkRuns) {
+      final checkRunsFilteredByName = <CheckRun>[];
+      for (var checkRun in checkRuns) {
         if (checkRun.name == checkName && checkRun.headSha == ref) {
           checkRunsFilteredByName.add(checkRun);
         }
@@ -217,19 +233,21 @@ class FakeGithubService implements GithubService {
   }
 
   final List<
-      ({
-        RepositorySlug slug,
-        CheckRun checkRun,
-        String? name,
-        String? detailsUrl,
-        String? externalId,
-        DateTime? startedAt,
-        CheckRunStatus status,
-        CheckRunConclusion? conclusion,
-        DateTime? completedAt,
-        CheckRunOutput? output,
-        List<CheckRunAction>? actions,
-      })> checkRunUpdates = [];
+    ({
+      RepositorySlug slug,
+      CheckRun checkRun,
+      String? name,
+      String? detailsUrl,
+      String? externalId,
+      DateTime? startedAt,
+      CheckRunStatus status,
+      CheckRunConclusion? conclusion,
+      DateTime? completedAt,
+      CheckRunOutput? output,
+      List<CheckRunAction>? actions,
+    })
+  >
+  checkRunUpdates = [];
 
   @override
   Future<CheckRun> updateCheckRun({
@@ -247,21 +265,19 @@ class FakeGithubService implements GithubService {
   }) async {
     final Map<String, Object?> json = checkRun.toJson();
 
-    checkRunUpdates.add(
-      (
-        slug: slug,
-        checkRun: checkRun,
-        name: name,
-        detailsUrl: detailsUrl,
-        externalId: externalId,
-        startedAt: startedAt,
-        status: status,
-        conclusion: conclusion,
-        completedAt: completedAt,
-        output: output,
-        actions: actions,
-      ),
-    );
+    checkRunUpdates.add((
+      slug: slug,
+      checkRun: checkRun,
+      name: name,
+      detailsUrl: detailsUrl,
+      externalId: externalId,
+      startedAt: startedAt,
+      status: status,
+      conclusion: conclusion,
+      completedAt: completedAt,
+      output: output,
+      actions: actions,
+    ));
 
     if (conclusion != null) {
       json['conclusion'] = conclusion.value;
@@ -274,11 +290,16 @@ class FakeGithubService implements GithubService {
     return CheckRun.fromJson(json);
   }
 
-  final commentExistsCalls = <({RepositorySlug slug, int issue, String body})>[];
+  final commentExistsCalls =
+      <({RepositorySlug slug, int issue, String body})>[];
   bool commentExistsMock = false;
 
   @override
-  Future<bool> commentExists(RepositorySlug slug, int issue, String body) async {
+  Future<bool> commentExists(
+    RepositorySlug slug,
+    int issue,
+    String body,
+  ) async {
     commentExistsCalls.add((slug: slug, issue: issue, body: body));
     return commentExistsMock;
   }

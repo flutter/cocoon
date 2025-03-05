@@ -15,13 +15,13 @@ import '../utils/fake_url_launcher.dart';
 import '../utils/golden.dart';
 
 void main() {
-  final Commit expectedCommit = Commit()
+  final expectedCommit = Commit()
     ..author = 'AuthoryMcAuthor Face'
     ..authorAvatarUrl = 'https://avatars2.githubusercontent.com/u/2148558?v=4'
     ..message = 'commit message\n\nreview comments'
     ..repository = 'flutter/cocoon'
     ..sha = 'ShaShankRedemption';
-  final String shortSha = expectedCommit.sha.substring(0, 7);
+  final shortSha = expectedCommit.sha.substring(0, 7);
   final Widget basicApp = MaterialApp(
     theme: ThemeData(useMaterial3: false),
     home: Material(
@@ -41,7 +41,8 @@ void main() {
     FlutterAppIconsPlatform.instance = FakeFlutterAppIcons();
   });
 
-  testWidgets('CommitBox shows information correctly', (WidgetTester tester) async {
+  testWidgets('CommitBox shows information correctly',
+      (WidgetTester tester) async {
     await tester.pumpWidget(basicApp);
     await expectGoldenMatches(find.byType(Overlay), 'commit_box_test.idle.png');
   });
@@ -61,7 +62,8 @@ void main() {
     await expectGoldenMatches(find.byType(Overlay), 'commit_box_test.open.png');
   });
 
-  testWidgets('CommitBox overlay shows first line of commit message', (WidgetTester tester) async {
+  testWidgets('CommitBox overlay shows first line of commit message',
+      (WidgetTester tester) async {
     await tester.pumpWidget(basicApp);
     await tester.tap(find.byType(CommitBox));
     await tester.pump();
@@ -70,7 +72,8 @@ void main() {
     expect(find.text('commit message'), findsOneWidget);
   });
 
-  testWidgets('CommitBox closes overlay on click out', (WidgetTester tester) async {
+  testWidgets('CommitBox closes overlay on click out',
+      (WidgetTester tester) async {
     await tester.pumpWidget(basicApp);
 
     // Open the overlay
@@ -86,7 +89,8 @@ void main() {
     expect(find.text(shortSha), findsNothing);
   });
 
-  testWidgets('CommitBox shows disabled button with a helpful tooltip', (WidgetTester tester) async {
+  testWidgets('CommitBox shows disabled button with a helpful tooltip',
+      (WidgetTester tester) async {
     await tester.pumpWidget(basicApp);
 
     // Open the overlay
@@ -94,13 +98,16 @@ void main() {
     await tester.pump();
 
     // Find the schedule button.
-    final tooltip = tester.firstWidget(find.byKey(ValueKey('schedulePostsubmit'))) as Tooltip;
+    final tooltip =
+        tester.firstWidget(find.byKey(const ValueKey('schedulePostsubmit')))
+            as Tooltip;
     expect(tooltip.message, contains('Only enabled for release branches'));
     final button = tooltip.child as TextButton;
     expect(button.onPressed, isNull, reason: 'Should be disabled');
   });
 
-  testWidgets('CommitBox shows enabled button that schedules post-submits', (WidgetTester tester) async {
+  testWidgets('CommitBox shows enabled button that schedules post-submits',
+      (WidgetTester tester) async {
     var scheduled = 0;
     await tester.pumpWidget(
       MaterialApp(
@@ -125,15 +132,19 @@ void main() {
     await tester.pump();
 
     // Find the schedule button.
-    final tooltip = tester.firstWidget(find.byKey(ValueKey('schedulePostsubmit'))) as Tooltip;
-    expect(tooltip.message, contains('For release branches, the post-submit artifacts are not'));
+    final tooltip =
+        tester.firstWidget(find.byKey(const ValueKey('schedulePostsubmit')))
+            as Tooltip;
+    expect(tooltip.message,
+        contains('For release branches, the post-submit artifacts are not'));
     final button = tooltip.child as TextButton;
     await tester.tap(find.byWidget(button));
     expect(scheduled, 1, reason: 'Should have been scheduled once');
   });
 
-  testWidgets('tapping sha in CommitBox redirects to GitHub', (WidgetTester tester) async {
-    final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
+  testWidgets('tapping sha in CommitBox redirects to GitHub',
+      (WidgetTester tester) async {
+    final urlLauncher = FakeUrlLauncher();
     UrlLauncherPlatform.instance = urlLauncher;
 
     await tester.pumpWidget(basicApp);
@@ -147,11 +158,13 @@ void main() {
     await tester.pump();
 
     expect(urlLauncher.launches, isNotEmpty);
-    expect(urlLauncher.launches.single, 'https://github.com/${expectedCommit.repository}/commit/${expectedCommit.sha}');
+    expect(urlLauncher.launches.single,
+        'https://github.com/${expectedCommit.repository}/commit/${expectedCommit.sha}');
   });
 
-  testWidgets('clicking copy icon in CommitBox adds sha to clipboard', (WidgetTester tester) async {
-    final List<MethodCall> log = <MethodCall>[];
+  testWidgets('clicking copy icon in CommitBox adds sha to clipboard',
+      (WidgetTester tester) async {
+    final log = <MethodCall>[];
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
       SystemChannels.platform,
       (MethodCall methodCall) async => log.add(methodCall),
@@ -167,8 +180,10 @@ void main() {
     await tester.tap(find.byIcon(Icons.copy));
     await tester.pump();
 
-    expect((log.last.arguments as Object) as Map<String, dynamic>, <String, String>{
-      'text': expectedCommit.sha,
-    });
+    expect(
+        (log.last.arguments as Object) as Map<String, dynamic>,
+        <String, String>{
+          'text': expectedCommit.sha,
+        });
   });
 }

@@ -12,7 +12,9 @@ import 'package:meta/meta.dart';
 @immutable
 class Json {
   factory Json(dynamic input) {
-    if (input is Json) return Json._wrap(input._value);
+    if (input is Json) {
+      return Json._wrap(input._value);
+    }
     return Json._wrap(input);
   }
 
@@ -38,27 +40,46 @@ class Json {
   const Json._raw(this._value);
 
   factory Json._wrap(dynamic value) {
-    if (value == null) return const Json._raw(null);
-    if (value is num) return Json._raw(value.toDouble());
-    if (value is List) return Json.list(value);
-    if (value is Map) return Json.map(value);
-    if (value == true) return const Json._raw(true);
-    if (value == false) return const Json._raw(false);
-    if (value is Json) return value;
+    if (value == null) {
+      return const Json._raw(null);
+    }
+    if (value is num) {
+      return Json._raw(value.toDouble());
+    }
+    if (value is List) {
+      return Json.list(value);
+    }
+    if (value is Map) {
+      return Json.map(value);
+    }
+    if (value == true) {
+      return const Json._raw(true);
+    }
+    if (value == false) {
+      return const Json._raw(false);
+    }
+    if (value is Json) {
+      return value;
+    }
     return Json._raw(value.toString());
   }
 
   final dynamic _value;
 
   dynamic unwrap() {
-    if (_value is Map) return toMap();
-    if (_value is List) return toList();
+    if (_value is Map) {
+      return toMap();
+    }
+    if (_value is List) {
+      return toList();
+    }
     return _value;
   }
 
   bool get isMap => _value is Map;
   bool get isList => _value is List;
-  bool get isScalar => _value == null || _value is num || _value is bool || _value is String;
+  bool get isScalar =>
+      _value == null || _value is num || _value is bool || _value is String;
   Type get valueType => _value.runtimeType;
 
   Map<String, dynamic> toMap() {
@@ -78,8 +99,15 @@ class Json {
 
   List<dynamic> toList() {
     if (_value is Map)
-      return (_value as Map<String, Json>).values.map<dynamic>((Json value) => value.unwrap()).toList();
-    if (_value is List) return (_value as List<Json>).map<dynamic>((Json value) => value.unwrap()).toList();
+      return (_value as Map<String, Json>)
+          .values
+          .map<dynamic>((Json value) => value.unwrap())
+          .toList();
+    if (_value is List) {
+      return (_value as List<Json>)
+          .map<dynamic>((Json value) => value.unwrap())
+          .toList();
+    }
     return <dynamic>[unwrap()];
   }
 
@@ -89,8 +117,12 @@ class Json {
   }
 
   Iterable<Json> asIterable() {
-    if (_value is Map) return (_value as Map<String, Json>).values.toList();
-    if (_value is List) return _value as List<Json>;
+    if (_value is Map) {
+      return (_value as Map<String, Json>).values.toList();
+    }
+    if (_value is List) {
+      return _value as List<Json>;
+    }
     return const <Json>[];
   }
 
@@ -124,12 +156,15 @@ class Json {
     if (invocation.isGetter) {
       final String name = _symbolName(invocation.memberName);
       if (_value is Map) {
-        if ((_value as Map<String, Json>).containsKey(name)) return this[name];
+        if ((_value as Map<String, Json>).containsKey(name)) {
+          return this[name];
+        }
         return const Json._raw(null);
       }
     }
     if (invocation.isSetter)
-      return this[_symbolName(invocation.memberName, stripEquals: true)] = invocation.positionalArguments[0];
+      return this[_symbolName(invocation.memberName, stripEquals: true)] =
+          invocation.positionalArguments[0];
     return super.noSuchMethod(invocation);
   }
 
@@ -142,83 +177,115 @@ class Json {
   }
 
   bool operator <(Object other) {
-    if (other is Json) return _value < other._value as bool;
+    if (other is Json) {
+      return _value < other._value as bool;
+    }
     return _value < other as bool;
   }
 
   bool operator <=(Object other) {
-    if (other is Json) return _value <= other._value as bool;
+    if (other is Json) {
+      return _value <= other._value as bool;
+    }
     return _value <= other as bool;
   }
 
   bool operator >(Object other) {
-    if (other is Json) return _value > other._value as bool;
+    if (other is Json) {
+      return _value > other._value as bool;
+    }
     return _value > other as bool;
   }
 
   bool operator >=(Object other) {
-    if (other is Json) return _value >= other._value as bool;
+    if (other is Json) {
+      return _value >= other._value as bool;
+    }
     return _value >= other as bool;
   }
 
   dynamic operator -(Object other) {
-    if (other is Json) return _value - other._value;
+    if (other is Json) {
+      return _value - other._value;
+    }
     return _value - other;
   }
 
   dynamic operator +(Object other) {
-    if (other is Json) return _value + other._value;
+    if (other is Json) {
+      return _value + other._value;
+    }
     return _value + other;
   }
 
   dynamic operator /(Object other) {
-    if (other is Json) return _value / other._value;
+    if (other is Json) {
+      return _value / other._value;
+    }
     return _value / other;
   }
 
   dynamic operator ~/(Object other) {
-    if (other is Json) return _value ~/ other._value;
+    if (other is Json) {
+      return _value ~/ other._value;
+    }
     return _value ~/ other;
   }
 
   dynamic operator *(Object other) {
-    if (other is Json) return _value * other._value;
+    if (other is Json) {
+      return _value * other._value;
+    }
     return _value * other;
   }
 
   dynamic operator %(Object other) {
-    if (other is Json) return _value % other._value;
+    if (other is Json) {
+      return _value % other._value;
+    }
     return _value % other;
   }
 
   dynamic operator |(Object other) {
-    if (other is Json) return _value.toInt() | other._value.toInt();
+    if (other is Json) {
+      return _value.toInt() | other._value.toInt();
+    }
     return _value.toInt() | other;
   }
 
   dynamic operator ^(Object other) {
-    if (other is Json) return _value.toInt() ^ other._value.toInt();
+    if (other is Json) {
+      return _value.toInt() ^ other._value.toInt();
+    }
     return _value.toInt() ^ other;
   }
 
   dynamic operator &(Object other) {
-    if (other is Json) return _value.toInt() & other._value.toInt();
+    if (other is Json) {
+      return _value.toInt() & other._value.toInt();
+    }
     return _value.toInt() & other;
   }
 
   dynamic operator <<(Object other) {
-    if (other is Json) return _value.toInt() << other._value.toInt();
+    if (other is Json) {
+      return _value.toInt() << other._value.toInt();
+    }
     return _value.toInt() << other;
   }
 
   dynamic operator >>(Object other) {
-    if (other is Json) return _value.toInt() >> other._value.toInt();
+    if (other is Json) {
+      return _value.toInt() >> other._value.toInt();
+    }
     return _value.toInt() >> other;
   }
 
   @override
   bool operator ==(Object other) {
-    if (other is Json) return _value == other._value;
+    if (other is Json) {
+      return _value == other._value;
+    }
     return _value == other;
   }
 

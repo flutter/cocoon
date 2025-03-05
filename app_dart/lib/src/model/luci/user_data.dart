@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:typed_data';
 
 /// Small utility methods to create a single place where we are encoding and
 /// decoding strings from buildbucket. This prevents us missing decoding in
@@ -15,8 +14,8 @@ class UserData {
 
   static Map<String, dynamic> decodeUserDataString(String encoded) {
     // it was already json here for some reason
-    final Uint8List bytes = base64.decode(encoded);
-    final String rawJson = String.fromCharCodes(bytes);
+    final bytes = base64.decode(encoded);
+    final rawJson = String.fromCharCodes(bytes);
     if (rawJson.isEmpty) {
       return <String, dynamic>{};
     }

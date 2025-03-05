@@ -6,16 +6,16 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:fixnum/fixnum.dart';
-import 'package:flutter_dashboard/model/branch.pb.dart';
-import 'package:flutter_dashboard/widgets/task_box.dart';
 
 import '../logic/qualified_task.dart';
+import '../model/branch.pb.dart';
 import '../model/build_status_response.pb.dart';
 import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
 import '../model/commit_tasks_status.pb.dart';
 import '../model/key.pb.dart';
 import '../model/task.pb.dart';
+import '../widgets/task_box.dart';
 import 'cocoon.dart';
 
 class _PausedCommitStatus {
@@ -86,7 +86,7 @@ class DevelopmentCocoonService implements CocoonService {
     String? branch,
     required String repo,
   }) async {
-    final CocoonResponse<List<CommitStatus>> data = CocoonResponse<List<CommitStatus>>.data(
+    final data = CocoonResponse<List<CommitStatus>>.data(
       _createFakeCommitStatuses(
         lastCommitStatus,
         repo,
@@ -101,7 +101,7 @@ class DevelopmentCocoonService implements CocoonService {
 
     if (!_paused) {
       if (simulateLoadingDelays) {
-        final _PausedCommitStatus? delayedStatus = _pausedStatus;
+        final delayedStatus = _pausedStatus;
         Future<void>.delayed(const Duration(seconds: 2), () {
           if (!_paused && !delayedStatus!.isComplete) {
             delayedStatus.complete();
@@ -130,9 +130,10 @@ class DevelopmentCocoonService implements CocoonService {
     String? branch,
     required String repo,
   }) async {
-    final bool failed = _random.nextBool();
-    final BuildStatusResponse response = BuildStatusResponse()
-      ..buildStatus = failed ? EnumBuildStatus.failure : EnumBuildStatus.success;
+    final failed = _random.nextBool();
+    final response = BuildStatusResponse()
+      ..buildStatus =
+          failed ? EnumBuildStatus.failure : EnumBuildStatus.success;
     if (failed) {
       response.failingTasks.addAll(<String>['failed_task_1', 'failed_task_2']);
     }
@@ -142,7 +143,7 @@ class DevelopmentCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<List<Branch>>> fetchFlutterBranches() async {
-    final List<Branch> fakeBranches = <Branch>[
+    final fakeBranches = <Branch>[
       Branch()
         ..channel = 'HEAD'
         ..branch = 'master',
@@ -165,7 +166,8 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<bool>> rerunTask(Task task, String? accessToken, String repo) async {
+  Future<CocoonResponse<bool>> rerunTask(
+      Task task, String? accessToken, String repo) async {
     return const CocoonResponse<bool>.error(
       'Unable to retry against fake data. Try building the app to use prod data.',
     );
@@ -191,20 +193,21 @@ class DevelopmentCocoonService implements CocoonService {
     String? branch,
   }) {
     branch ??= defaultBranches[repo]!;
-    final int baseTimestamp =
-        lastCommitStatus != null ? (lastCommitStatus.commit.timestamp.toInt()) : now.millisecondsSinceEpoch;
-    final List<CommitStatus> result = <CommitStatus>[];
-    for (int index = 0; index < 25; index += 1) {
-      final int commitTimestamp = baseTimestamp - ((index + 1) * _commitGap);
-      final math.Random random = math.Random(commitTimestamp);
-      final Commit commit = _createFakeCommit(
+    final baseTimestamp = lastCommitStatus != null
+        ? (lastCommitStatus.commit.timestamp.toInt())
+        : now.millisecondsSinceEpoch;
+    final result = <CommitStatus>[];
+    for (var index = 0; index < 25; index += 1) {
+      final commitTimestamp = baseTimestamp - ((index + 1) * _commitGap);
+      final random = math.Random(commitTimestamp);
+      final commit = _createFakeCommit(
         commitTimestamp,
         random,
         repo,
         _commits[index],
         branch,
       );
-      final CommitStatus status = CommitStatus()
+      final status = CommitStatus()
         ..branch = branch
         ..commit = commit
         ..tasks.addAll(_createFakeTasks(commitTimestamp, commit, random));
@@ -213,9 +216,24 @@ class DevelopmentCocoonService implements CocoonService {
     return result;
   }
 
-  final List<String> _authors = <String>['alice', 'bob', 'charlie', 'dobb', 'eli', 'fred'];
+  final List<String> _authors = <String>[
+    'alice',
+    'bob',
+    'charlie',
+    'dobb',
+    'eli',
+    'fred'
+  ];
   final List<int> _messagePrimes = <int>[3, 11, 17, 23, 31, 41, 47, 67, 79];
-  final List<String> _words = <String>['fixes', 'issue', 'crash', 'developer', 'blocker', 'intermittent', 'format'];
+  final List<String> _words = <String>[
+    'fixes',
+    'issue',
+    'crash',
+    'developer',
+    'blocker',
+    'intermittent',
+    'format'
+  ];
   final List<String> _commits = <String>[
     '2d22b5e85f986f3fa2cf1bfaf085905c2182c270',
     '2fd76f920a38e4384248173d05ee482d5aeaf4c5',
@@ -301,15 +319,19 @@ class DevelopmentCocoonService implements CocoonService {
     '792aa82143bb12e97f396cb2a462ad617dbd22bc',
   ];
 
-  Commit _createFakeCommit(int commitTimestamp, math.Random random, String repo, String commitSha, String branch) {
-    final int author = random.nextInt(_authors.length);
-    final int message = commitTimestamp % 37 + author;
-    final int messageInc = _messagePrimes[message % _messagePrimes.length];
+  Commit _createFakeCommit(int commitTimestamp, math.Random random, String repo,
+      String commitSha, String branch) {
+    final author = random.nextInt(_authors.length);
+    final message = commitTimestamp % 37 + author;
+    final messageInc = _messagePrimes[message % _messagePrimes.length];
     return Commit()
       ..key = (RootKey()..child = (Key()..name = '$commitTimestamp'))
       ..author = _authors[author]
-      ..authorAvatarUrl = 'https://avatars2.githubusercontent.com/u/${2148558 + author}?v=4'
-      ..message = List<String>.generate(6, (int i) => _words[(message + i * messageInc) % _words.length]).join(' ')
+      ..authorAvatarUrl =
+          'https://avatars2.githubusercontent.com/u/${2148558 + author}?v=4'
+      ..message = List<String>.generate(
+              6, (int i) => _words[(message + i * messageInc) % _words.length])
+          .join(' ')
       ..repository = 'flutter/$repo'
       ..sha = commitSha
       ..timestamp = Int64(commitTimestamp)
@@ -322,9 +344,11 @@ class DevelopmentCocoonService implements CocoonService {
     'flutter/engine': 20,
   };
 
-  List<Task> _createFakeTasks(int commitTimestamp, Commit commit, math.Random random) {
+  List<Task> _createFakeTasks(
+      int commitTimestamp, Commit commit, math.Random random) {
     if (_repoTaskCount.containsKey(commit.repository) == false) {
-      throw Exception('Add ${commit.repository} to _repoTaskCount in DevCocoonService');
+      throw Exception(
+          'Add ${commit.repository} to _repoTaskCount in DevCocoonService');
     }
     return List<Task>.generate(
       _repoTaskCount[commit.repository]!,
@@ -362,15 +386,16 @@ class DevelopmentCocoonService implements CocoonService {
     TaskBox.statusCancelled: 1,
   };
 
-  Task _createFakeTask(int commitTimestamp, int index, String stageName, math.Random random) {
-    final int age = (now.millisecondsSinceEpoch - commitTimestamp) ~/ _commitGap;
+  Task _createFakeTask(
+      int commitTimestamp, int index, String stageName, math.Random random) {
+    final age = (now.millisecondsSinceEpoch - commitTimestamp) ~/ _commitGap;
     assert(age >= 0);
     // The [statusesProbability] list is an list of proportional
     // weights to give each of the values in _statuses when randomly
     // determining the status. So e.g. if one is 150, another 50, and
     // the rest 0, then the first has a 75% chance of being picked,
     // the second a 25% chance, and the rest a 0% chance.
-    final List<int> statusesProbability = <int>[
+    final statusesProbability = <int>[
       // bigger = more probable
       math.max(index % 2, 20 - age * 2), // TaskBox.statusNew
       math.max(0, 10 - age * 2), // TaskBox.statusInProgress
@@ -386,28 +411,30 @@ class DevelopmentCocoonService implements CocoonService {
       1, // TaskBox.statusCancelled
     ];
     // max is the sum of all the values in statusesProbability.
-    final int max = statusesProbability.fold(0, (int c, int p) => c + p);
+    final max = statusesProbability.fold(0, (int c, int p) => c + p);
     // weightedIndex is the random number in the range 0 <= weightedIndex < max.
-    int weightedIndex = random.nextInt(max);
+    var weightedIndex = random.nextInt(max);
     // statusIndex is the actual index into _statuses that corresponds
     // to the randomly selected weightedIndex. So if
     // statusesProbability is 10,20,30 and weightedIndex is 15, then
     // the statusIndex will be 1 (corresponding to the second entry,
     // the one with weight 20, since lists are zero-indexed).
-    int statusIndex = 0;
+    var statusIndex = 0;
     while (weightedIndex > statusesProbability[statusIndex]) {
       weightedIndex -= statusesProbability[statusIndex];
       statusIndex += 1;
     }
     // Finally we get the actual status using statusIndex as an index into _statuses.
-    final String status = _statuses[statusIndex];
-    final int minAttempts = _minAttempts[status]!;
-    final int maxAttempts = _maxAttempts[status]!;
-    final int attempts = minAttempts + random.nextInt(maxAttempts - minAttempts + 1);
-    final Task task = Task()
+    final status = _statuses[statusIndex];
+    final minAttempts = _minAttempts[status]!;
+    final maxAttempts = _maxAttempts[status]!;
+    final attempts =
+        minAttempts + random.nextInt(maxAttempts - minAttempts + 1);
+    final task = Task()
       ..createTimestamp = Int64(commitTimestamp + index)
       ..startTimestamp = Int64(commitTimestamp + (index * 1000 * 60))
-      ..endTimestamp = Int64(commitTimestamp + (index * 1000 * 60) + (index * 1000 * 60))
+      ..endTimestamp =
+          Int64(commitTimestamp + (index * 1000 * 60) + (index * 1000 * 60))
       ..name = 'Linux_android $index'
       ..builderName = 'Linux_android $index'
       ..attempts = attempts

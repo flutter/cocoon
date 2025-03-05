@@ -4,10 +4,8 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/src/request_handling/request_handler.dart';
-import 'package:github/github.dart';
-
 import '../request_handling/body.dart';
+import '../request_handling/request_handler.dart';
 import '../service/branch_service.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
@@ -39,10 +37,12 @@ class GetReleaseBranches extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final GitHub github = await config.createGitHubClient(slug: Config.flutterSlug);
-    final GithubService githubService = GithubService(github);
-    final List<Map<String, String>> branchNames =
-        await branchService.getReleaseBranches(githubService: githubService, slug: Config.flutterSlug);
+    final github = await config.createGitHubClient(slug: Config.flutterSlug);
+    final githubService = GithubService(github);
+    final branchNames = await branchService.getReleaseBranches(
+      githubService: githubService,
+      slug: Config.flutterSlug,
+    );
     return Body.forJson(branchNames);
   }
 }

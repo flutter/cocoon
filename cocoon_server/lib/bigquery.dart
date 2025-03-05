@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:googleapis/bigquery/v2.dart';
-import 'package:http/http.dart';
 
 import 'access_client_provider.dart';
 import 'big_query_pull_request_record.dart';
@@ -40,7 +39,7 @@ class BigqueryService {
 
   /// Return a [TabledataResource] with an authenticated [client]
   Future<TabledataResource> defaultTabledata() async {
-    final Client client = await accessClientProvider.createAccessClient(
+    final client = await accessClientProvider.createAccessClient(
       scopes: const <String>[BigqueryApi.bigqueryScope],
     );
     return BigqueryApi(client).tabledata;
@@ -48,7 +47,7 @@ class BigqueryService {
 
   /// Return a [JobsResource] with an authenticated [client]
   Future<JobsResource> defaultJobs() async {
-    final Client client = await accessClientProvider.createAccessClient(
+    final client = await accessClientProvider.createAccessClient(
       scopes: const <String>[BigqueryApi.bigqueryScope],
     );
     return BigqueryApi(client).jobs;
@@ -59,9 +58,9 @@ class BigqueryService {
     required String projectId,
     required PullRequestRecord pullRequestRecord,
   }) async {
-    final JobsResource jobsResource = await defaultJobs();
+    final jobsResource = await defaultJobs();
 
-    final QueryRequest queryRequest = QueryRequest(
+    final queryRequest = QueryRequest(
       query: _insertPullRequestDml,
       queryParameters: <QueryParameter>[
         _createIntegerQueryParameter(
@@ -100,14 +99,15 @@ class BigqueryService {
       useLegacySql: false,
     );
 
-    final QueryResponse queryResponse = await jobsResource.query(queryRequest, projectId);
+    final queryResponse = await jobsResource.query(queryRequest, projectId);
     if (!queryResponse.jobComplete!) {
       throw BigQueryException(
         'Insert pull request $pullRequestRecord did not complete.',
       );
     }
 
-    if (queryResponse.numDmlAffectedRows != null && int.parse(queryResponse.numDmlAffectedRows!) != 1) {
+    if (queryResponse.numDmlAffectedRows != null &&
+        int.parse(queryResponse.numDmlAffectedRows!) != 1) {
       throw BigQueryException(
         'There was an error inserting $pullRequestRecord into the table.',
       );

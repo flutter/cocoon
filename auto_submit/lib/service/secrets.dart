@@ -6,8 +6,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
-import 'package:auto_submit/service/config.dart';
 import 'package:googleapis/secretmanager/v1.dart';
+
+import 'config.dart';
 
 /// Access secrets for Google Cloud projects.
 ///
@@ -24,27 +25,30 @@ abstract class SecretManager {
 class CloudSecretManager implements SecretManager {
   CloudSecretManager();
 
-  final String projectId = Platform.environment['APPLICATION_ID'] ?? Config.flutterGcpProjectId;
+  final String projectId =
+      Platform.environment['APPLICATION_ID'] ?? Config.flutterGcpProjectId;
 
   @override
   Future<String> get(
     String key, {
     String? fields,
   }) async {
-    final SecretManagerApi api = SecretManagerApi(authClientService);
-    final SecretPayload? payload = (await api.projects.secrets.versions.access(
+    final api = SecretManagerApi(authClientService);
+    final payload = (await api.projects.secrets.versions.access(
       'projects/$projectId/secrets/$key/versions/latest',
       $fields: fields,
     ))
         .payload;
     if (payload?.data == null) {
-      throw SecretManagerException('Failed to find secret for $key with \$fields=$fields');
+      throw SecretManagerException(
+          'Failed to find secret for $key with \$fields=$fields');
     }
     return String.fromCharCodes(base64Decode(payload!.data!));
   }
 
   @override
-  void put(String key, [String? value]) => throw UnimplementedError('put is only supported for local runs');
+  void put(String key, [String? value]) =>
+      throw UnimplementedError('put is only supported for local runs');
 }
 
 /// Local instance of [SecretManager] for use in testing.
@@ -59,7 +63,8 @@ class LocalSecretManager implements SecretManager {
       return Platform.environment[key]!;
     }
 
-    throw Exception('Failed to find $key in environment. Try adding it to the environment variables');
+    throw Exception(
+        'Failed to find $key in environment. Try adding it to the environment variables');
   }
 
   @override

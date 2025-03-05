@@ -1,7 +1,7 @@
 name: githubanalysis
 
 environment:
-  sdk: ^3.1.0
+  sdk: ^3.7.0
 
 dependencies:
   github: ^9.9.0

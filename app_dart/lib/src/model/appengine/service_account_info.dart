@@ -34,7 +34,8 @@ class ServiceAccountInfo {
   });
 
   /// Create a new [ServiceAccountInfo] object from its JSON representation.
-  factory ServiceAccountInfo.fromJson(Map<String, dynamic> json) => _$ServiceAccountInfoFromJson(json);
+  factory ServiceAccountInfo.fromJson(Map<String, dynamic> json) =>
+      _$ServiceAccountInfoFromJson(json);
 
   @JsonKey(name: 'type')
   final String? type;
@@ -71,6 +72,10 @@ class ServiceAccountInfo {
 
   /// Returns this object in its [ServiceAccountCredentials] form.
   ServiceAccountCredentials asServiceAccountCredentials() {
-    return ServiceAccountCredentials(email!, ClientId(clientId!, null), privateKey!);
+    return ServiceAccountCredentials(
+      email!,
+      ClientId(clientId!, null),
+      privateKey!,
+    );
   }
 }

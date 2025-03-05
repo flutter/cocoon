@@ -90,12 +90,12 @@ class RevertInfoCollection {
 
   String? _extract(String startTag, String endTag, String text) {
     String? match;
-    String pattern = '$startTag([\\S\\s]*)$endTag';
+    var pattern = '$startTag([\\S\\s]*)$endTag';
     pattern = pattern.replaceAll('<', '\\<');
     pattern = pattern.replaceAll('>', '\\>');
     pattern = pattern.replaceAll('-', '\\-');
     pattern = pattern.replaceAll('!', '\\!');
-    final RegExp regExp = RegExp(
+    final regExp = RegExp(
       pattern,
       multiLine: true,
     );
@@ -104,13 +104,14 @@ class RevertInfoCollection {
       final Match m = matches.first;
       match = m.group(1);
     }
-    final String foundMatch = match!.trim();
+    final foundMatch = match!.trim();
     // Explicit assignment for debugging.
     // Each entry we are interested in is of the form 'key: value' where value
     // is a block of text that contain links. We want to preserve the link so we
     // take text after the first colon ':' to avoid destroying information with
     // a split.
-    final String matchedText = foundMatch.substring(foundMatch.indexOf(':') + 1).trim();
+    final matchedText =
+        foundMatch.substring(foundMatch.indexOf(':') + 1).trim();
     return matchedText;
   }
 }

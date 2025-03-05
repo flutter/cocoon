@@ -21,21 +21,26 @@ class LuciTaskAttemptSummary extends StatelessWidget {
   final Task task;
 
   @visibleForTesting
-  static const String luciProdLogBase = 'https://ci.chromium.org/p/flutter/builders';
+  static const String luciProdLogBase =
+      'https://ci.chromium.org/p/flutter/builders';
 
   @visibleForTesting
-  static const String dartInternalLogBase = 'https://ci.chromium.org/p/dart-internal/builders';
+  static const String dartInternalLogBase =
+      'https://ci.chromium.org/p/dart-internal/builders';
 
   @override
   Widget build(BuildContext context) {
-    final List<String> buildNumberList = task.buildNumberList.isEmpty ? <String>[] : task.buildNumberList.split(',');
+    final buildNumberList = task.buildNumberList.isEmpty
+        ? <String>[]
+        : task.buildNumberList.split(',');
     return ListBody(
       children: List<Widget>.generate(buildNumberList.length, (int i) {
         return ElevatedButton(
           child: Text('OPEN LOG FOR BUILD #${buildNumberList[i]}'),
           onPressed: () {
             if (task.stageName == 'dart-internal') {
-              launchUrl(_dartInternalLogUrl(task.builderName, buildNumberList[i]));
+              launchUrl(
+                  _dartInternalLogUrl(task.builderName, buildNumberList[i]));
             } else {
               launchUrl(_luciProdLogUrl(task.builderName, buildNumberList[i]));
             }
@@ -46,7 +51,7 @@ class LuciTaskAttemptSummary extends StatelessWidget {
   }
 
   Uri _luciProdLogUrl(String builderName, String buildNumber) {
-    final String pool = task.isFlaky ? 'staging' : 'prod';
+    final pool = task.isFlaky ? 'staging' : 'prod';
     return Uri.parse('$luciProdLogBase/$pool/$builderName/$buildNumber');
   }
 

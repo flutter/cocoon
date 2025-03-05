@@ -18,9 +18,10 @@ class TeamRoster {
     required final String orgName,
     required final DateTime cacheEpoch,
   }) async {
-    final Map<String?, Map<String, User>> roster = <String?, Map<String, User>>{};
-    final String teamsData =
-        await loadFromCache(cache, github, <String>['org', orgName, 'teams'], cacheEpoch, () async {
+    final Map<String?, Map<String, User>> roster =
+        <String?, Map<String, User>>{};
+    final String teamsData = await loadFromCache(
+        cache, github, <String>['org', orgName, 'teams'], cacheEpoch, () async {
       final StringBuffer cacheData = StringBuffer();
       await for (final Team team in github.organizations.listTeams(orgName)) {
         verifyStringSanity(team.name!, const <String>{'\n', ' '});
@@ -50,26 +51,31 @@ class TeamRoster {
       final List<String> components = teamLine.split(' ');
       final String teamName = components[0];
       final int teamId = int.parse(components[1]);
-      final String teamData =
-          await loadFromCache(cache, github, <String>['team', orgName, '$teamId'], cacheEpoch, () async {
+      final String teamData = await loadFromCache(
+          cache, github, <String>['team', orgName, '$teamId'], cacheEpoch,
+          () async {
         final StringBuffer cacheData = StringBuffer();
-        await for (final TeamMember member in github.organizations.listTeamMembers(teamId)) {
+        await for (final TeamMember member
+            in github.organizations.listTeamMembers(teamId)) {
           verifyStringSanity(member.login!, const <String>{'\n', ' '});
           verifyStringSanity(member.htmlUrl!, const <String>{'\n', ' '});
           verifyStringSanity(member.avatarUrl!, const <String>{'\n', ' '});
-          cacheData.writeln('${member.login} ${member.id!} ${member.siteAdmin} ${member.htmlUrl} ${member.avatarUrl}');
+          cacheData.writeln(
+              '${member.login} ${member.id!} ${member.siteAdmin} ${member.htmlUrl} ${member.avatarUrl}');
         }
         return cacheData.toString().trimRight();
       });
       roster[teamName] = parseTeamData(teamData);
     }
-    final String teamData = await loadFromCache(cache, github, <String>['org', orgName, 'users'], cacheEpoch, () async {
+    final String teamData = await loadFromCache(
+        cache, github, <String>['org', orgName, 'users'], cacheEpoch, () async {
       final StringBuffer cacheData = StringBuffer();
       await for (final User member in github.organizations.listUsers(orgName)) {
         verifyStringSanity(member.login!, const <String>{'\n', ' '});
         verifyStringSanity(member.htmlUrl!, const <String>{'\n', ' '});
         verifyStringSanity(member.avatarUrl!, const <String>{'\n', ' '});
-        cacheData.writeln('${member.login} ${member.id!} ${member.siteAdmin} ${member.htmlUrl} ${member.avatarUrl}');
+        cacheData.writeln(
+            '${member.login} ${member.id!} ${member.siteAdmin} ${member.htmlUrl} ${member.avatarUrl}');
       }
       return cacheData.toString().trimRight();
     });

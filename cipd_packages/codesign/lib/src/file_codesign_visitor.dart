@@ -58,7 +58,8 @@ class FileCodesignVisitor {
     ),
     this.notarizationTimerDuration = const Duration(seconds: 5),
   }) {
-    entitlementsPlist = rootDirectory.childFile('Entitlements.plist')..writeAsStringSync(_entitlementsFileContents);
+    entitlementsPlist = rootDirectory.childFile('Entitlements.plist')
+      ..writeAsStringSync(_entitlementsFileContents);
   }
 
   /// Temp [Directory] to download/extract files to.
@@ -127,7 +128,8 @@ class FileCodesignVisitor {
     </dict>
 </plist>
 ''';
-  static final RegExp _notarytoolStatusCheckPattern = RegExp(r'[ ]*status: ([a-zA-z ]+)');
+  static final RegExp _notarytoolStatusCheckPattern =
+      RegExp(r'[ ]*status: ([a-zA-z ]+)');
   static final RegExp _notarytoolRequestPattern = RegExp(r'id: ([a-z0-9-]+)');
 
   static final String fixItInstructions = '''
@@ -185,7 +187,8 @@ configuration files, please delete or update these file paths accordingly.
         'If you have uploaded the artifacts back to google cloud storage, please delete'
         ' the folder $outputZipPath and $inputZipPath.');
     if (dryrun) {
-      log.info('code signing dry run has completed, this is a quick sanity check without'
+      log.info(
+          'code signing dry run has completed, this is a quick sanity check without'
           'going through the notary service. To run the full codesign process, use --no-dryrun flag.');
     }
   }
@@ -198,10 +201,10 @@ configuration files, please delete or update these file paths accordingly.
   /// Returns null as result if [dryrun] is true.
   Future<String?> processRemoteZip() async {
     // download the zip file
-    final File originalFile = rootDirectory.fileSystem.file(inputZipPath);
+    final originalFile = rootDirectory.fileSystem.file(inputZipPath);
 
     // This is the starting directory of the unzipped artifact.
-    final Directory parentDirectory = rootDirectory.childDirectory('single_artifact');
+    final parentDirectory = rootDirectory.childDirectory('single_artifact');
 
     await unzip(
       inputZip: originalFile,
@@ -210,11 +213,15 @@ configuration files, please delete or update these file paths accordingly.
     );
 
     // Read codesigning configuration files.
-    withEntitlementsFiles = await parseCodesignConfig(parentDirectory, CodesignType.withEntitlements);
-    withoutEntitlementsFiles = await parseCodesignConfig(parentDirectory, CodesignType.withoutEntitlements);
-    unsignedBinaryFiles = await parseCodesignConfig(parentDirectory, CodesignType.unsigned);
+    withEntitlementsFiles = await parseCodesignConfig(
+        parentDirectory, CodesignType.withEntitlements);
+    withoutEntitlementsFiles = await parseCodesignConfig(
+        parentDirectory, CodesignType.withoutEntitlements);
+    unsignedBinaryFiles =
+        await parseCodesignConfig(parentDirectory, CodesignType.unsigned);
     log.info('parsed binaries with entitlements are $withEntitlementsFiles');
-    log.info('parsed binaries without entitlements are $withoutEntitlementsFiles');
+    log.info(
+        'parsed binaries without entitlements are $withoutEntitlementsFiles');
     log.info('parsed binaries without codesigning $unsignedBinaryFiles');
 
     // recursively visit extracted files
@@ -252,25 +259,28 @@ configuration files, please delete or update these file paths accordingly.
 
     await cleanupCodesignConfig(directory);
 
-    final Set<String> ignoredFiles = Set.from(CodesignType.values.map((CodesignType type) => type.filename));
-    final List<FileSystemEntity> entities = await directory.list(followLinks: false).toList();
-    for (FileSystemEntity entity in entities) {
+    final ignoredFiles = Set<String>.from(
+        CodesignType.values.map((CodesignType type) => type.filename));
+    final entities = await directory.list(followLinks: false).toList();
+    for (var entity in entities) {
       if (entity is io.Link) {
-        log.info('current file or direcotry ${entity.path} is a symlink to ${(entity as io.Link).targetSync()}, '
+        log.info(
+            'current file or direcotry ${entity.path} is a symlink to ${(entity as io.Link).targetSync()}, '
             'codesign is therefore skipped for the current file or directory.');
         continue;
       }
       if (entity is io.Directory) {
         await visitDirectory(
           directory: directory.childDirectory(entity.basename),
-          parentVirtualPath: joinEntitlementPaths(parentVirtualPath, entity.basename),
+          parentVirtualPath:
+              joinEntitlementPaths(parentVirtualPath, entity.basename),
         );
         continue;
       }
       if (ignoredFiles.contains(entity.basename)) {
         continue;
       }
-      final FileType childType = getFileType(
+      final childType = getFileType(
         entity.absolute.path,
         processManager,
       );
@@ -280,12 +290,15 @@ configuration files, please delete or update these file paths accordingly.
           parentVirtualPath: parentVirtualPath,
         );
       } else if (childType == FileType.binary) {
-        await visitBinaryFile(binaryFile: entity as File, parentVirtualPath: parentVirtualPath);
+        await visitBinaryFile(
+            binaryFile: entity as File, parentVirtualPath: parentVirtualPath);
       }
-      log.info('Child file of directory ${directory.basename} is ${entity.basename}');
+      log.info(
+          'Child file of directory ${directory.basename} is ${entity.basename}');
     }
-    final String directoryExtension = directory.basename.split('.').last;
-    if (directoryExtension == 'framework' || directoryExtension == 'xcframework') {
+    final directoryExtension = directory.basename.split('.').last;
+    if (directoryExtension == 'framework' ||
+        directoryExtension == 'xcframework') {
       await codesignAtPath(binaryOrBundlePath: directory.absolute.path);
     }
   }
@@ -295,9 +308,11 @@ configuration files, please delete or update these file paths accordingly.
     required FileSystemEntity zipEntity,
     required String parentVirtualPath,
   }) async {
-    log.info('This embedded file is ${zipEntity.path} and parentVirtualPath is $parentVirtualPath');
-    final String currentFileName = zipEntity.basename;
-    final Directory newDir = rootDirectory.childDirectory('embedded_zip_${zipEntity.absolute.path.hashCode}');
+    log.info(
+        'This embedded file is ${zipEntity.path} and parentVirtualPath is $parentVirtualPath');
+    final currentFileName = zipEntity.basename;
+    final newDir = rootDirectory
+        .childDirectory('embedded_zip_${zipEntity.absolute.path.hashCode}');
     await unzip(
       inputZip: zipEntity,
       outDir: newDir,
@@ -305,7 +320,8 @@ configuration files, please delete or update these file paths accordingly.
     );
 
     // the virtual file path is advanced by the name of the embedded zip
-    final String currentZipEntitlementPath = joinEntitlementPaths(parentVirtualPath, currentFileName);
+    final currentZipEntitlementPath =
+        joinEntitlementPaths(parentVirtualPath, currentFileName);
     await visitDirectory(
       directory: newDir,
       parentVirtualPath: currentZipEntitlementPath,
@@ -329,8 +345,9 @@ configuration files, please delete or update these file paths accordingly.
     required File binaryFile,
     required String parentVirtualPath,
   }) async {
-    final String currentFileName = binaryFile.basename;
-    final String currentFilePath = joinEntitlementPaths(parentVirtualPath, currentFileName);
+    final currentFileName = binaryFile.basename;
+    final currentFilePath =
+        joinEntitlementPaths(parentVirtualPath, currentFileName);
 
     if (!withEntitlementsFiles.contains(currentFilePath) &&
         !withoutEntitlementsFiles.contains(currentFilePath) &&
@@ -349,20 +366,24 @@ configuration files, please delete or update these file paths accordingly.
       return;
     }
     log.info('Signing file at path ${binaryFile.absolute.path}');
-    log.info('The virtual entitlement path associated with file is $currentFilePath');
-    log.info('The decision to sign with entitlement is ${withEntitlementsFiles.contains(currentFilePath)}');
+    log.info(
+        'The virtual entitlement path associated with file is $currentFilePath');
+    log.info(
+        'The decision to sign with entitlement is ${withEntitlementsFiles.contains(currentFilePath)}');
     fileConsumed.add(currentFilePath);
     if (dryrun) {
       return;
     }
-    await codesignAtPath(binaryOrBundlePath: binaryFile.absolute.path, currentFilePath: currentFilePath);
+    await codesignAtPath(
+        binaryOrBundlePath: binaryFile.absolute.path,
+        currentFilePath: currentFilePath);
   }
 
   Future<void> codesignAtPath({
     required String binaryOrBundlePath,
     String? currentFilePath,
   }) async {
-    final List<String> args = <String>[
+    final args = <String>[
       '/usr/bin/codesign',
       '--keychain',
       'build.keychain', // specify the keychain to look for cert
@@ -372,7 +393,8 @@ configuration files, please delete or update these file paths accordingly.
       binaryOrBundlePath,
       '--timestamp', // add a secure timestamp
       '--options=runtime', // hardened runtime
-      if (currentFilePath != '' && withEntitlementsFiles.contains(currentFilePath)) ...<String>[
+      if (currentFilePath != '' &&
+          withEntitlementsFiles.contains(currentFilePath)) ...<String>[
         '--entitlements',
         entitlementsPlist.absolute.path,
       ],
@@ -380,7 +402,7 @@ configuration files, please delete or update these file paths accordingly.
 
     await retryOptions.retry(() async {
       log.info('Executing: ${args.join(' ')}\n');
-      final io.ProcessResult result = await processManager.run(args);
+      final result = await processManager.run(args);
       if (result.exitCode == 0) {
         return;
       }
@@ -398,9 +420,9 @@ configuration files, please delete or update these file paths accordingly.
   /// Context: https://github.com/flutter/flutter/issues/126705. This is a temporary workaround.
   /// Once flutter tools is ready we can remove this logic.
   Future<void> cleanupCodesignConfig(Directory parent) async {
-    final Iterable<String> pathsToDelete =
-        CodesignType.values.map((CodesignType type) => fileSystem.path.join(parent.path, type.filename));
-    for (String metadataPath in pathsToDelete) {
+    final pathsToDelete = CodesignType.values.map((CodesignType type) =>
+        fileSystem.path.join(parent.path, type.filename));
+    for (var metadataPath in pathsToDelete) {
       if (await fileSystem.file(metadataPath).exists()) {
         log.warning('cleaning up codesign metadata at $metadataPath.');
         await fileSystem.file(metadataPath).delete();
@@ -412,8 +434,10 @@ configuration files, please delete or update these file paths accordingly.
   ///
   /// Parse and store codesign configurations detailed in configuration files.
   /// File paths of entitlement files and non entitlement files will be parsed and stored in [withEntitlementsFiles].
-  Future<Set<String>> parseCodesignConfig(Directory parent, CodesignType codesignType) async {
-    final String codesignConfigPath = fileSystem.path.join(parent.path, codesignType.filename);
+  Future<Set<String>> parseCodesignConfig(
+      Directory parent, CodesignType codesignType) async {
+    final codesignConfigPath =
+        fileSystem.path.join(parent.path, codesignType.filename);
     if (!(await fileSystem.file(codesignConfigPath).exists())) {
       log.warning('$codesignConfigPath not found. '
           'by default, system will assume there is no ${codesignType.filename} file. '
@@ -422,9 +446,10 @@ configuration files, please delete or update these file paths accordingly.
       return <String>{};
     }
 
-    final Set<String> fileWithEntitlements = <String>{};
+    final fileWithEntitlements = <String>{};
 
-    fileWithEntitlements.addAll(await fileSystem.file(codesignConfigPath).readAsLines());
+    fileWithEntitlements
+        .addAll(await fileSystem.file(codesignConfigPath).readAsLines());
     // TODO(xilaizhang) : add back metadata information after https://github.com/flutter/flutter/issues/126705
     // is resolved.
     await fileSystem.file(codesignConfigPath).delete();
@@ -437,11 +462,11 @@ configuration files, please delete or update these file paths accordingly.
   /// The apple notarization service will unzip the artifact, validate all
   /// binaries are properly codesigned, and notarize the entire archive.
   Future<void> notarize(File file) async {
-    final Completer<void> completer = Completer<void>();
-    final String uuid = await uploadZipToNotary(file);
+    final completer = Completer<void>();
+    final uuid = await uploadZipToNotary(file);
 
     Future<void> callback(Timer timer) async {
-      final bool notaryFinished = checkNotaryJobFinished(uuid);
+      final notaryFinished = checkNotaryJobFinished(uuid);
       if (notaryFinished) {
         timer.cancel();
         log.info('successfully notarized ${file.path}');
@@ -463,7 +488,7 @@ configuration files, please delete or update these file paths accordingly.
   /// false means that the job is still pending. If the notarization fails, this
   /// function will throw a [ConductorException].
   bool checkNotaryJobFinished(String uuid) {
-    final List<String> args = <String>[
+    final args = <String>[
       'xcrun',
       'notarytool',
       'info',
@@ -476,15 +501,17 @@ configuration files, please delete or update these file paths accordingly.
       codesignTeamId,
     ];
 
-    String argsWithoutCredentials = args.join(' ');
+    var argsWithoutCredentials = args.join(' ');
     for (var key in redactedCredentials.keys) {
-      argsWithoutCredentials = argsWithoutCredentials.replaceAll(key, redactedCredentials[key]!);
+      argsWithoutCredentials =
+          argsWithoutCredentials.replaceAll(key, redactedCredentials[key]!);
     }
     log.info('checking notary info: $argsWithoutCredentials');
-    final io.ProcessResult result = processManager.runSync(args);
-    final String combinedOutput = (result.stdout as String) + (result.stderr as String);
+    final result = processManager.runSync(args);
+    final combinedOutput =
+        (result.stdout as String) + (result.stderr as String);
 
-    final RegExpMatch? match = _notarytoolStatusCheckPattern.firstMatch(combinedOutput);
+    final match = _notarytoolStatusCheckPattern.firstMatch(combinedOutput);
 
     if (match == null) {
       throw CodesignException(
@@ -492,7 +519,7 @@ configuration files, please delete or update these file paths accordingly.
       );
     }
 
-    final String status = match.group(1)!;
+    final status = match.group(1)!;
 
     if (status == 'Accepted') {
       return true;
@@ -501,14 +528,15 @@ configuration files, please delete or update these file paths accordingly.
       log.info('job $uuid still pending');
       return false;
     }
-    throw CodesignException('Notarization failed with: $status\n$combinedOutput');
+    throw CodesignException(
+        'Notarization failed with: $status\n$combinedOutput');
   }
 
   /// Upload artifact to Apple notary service and return the tracking request UUID.
   Future<String> uploadZipToNotary(File localFile) {
     return retryOptions.retry(
       () async {
-        final List<String> args = <String>[
+        final args = <String>[
           'xcrun',
           'notarytool',
           'submit',
@@ -522,28 +550,31 @@ configuration files, please delete or update these file paths accordingly.
           '--verbose',
         ];
 
-        String argsWithoutCredentials = args.join(' ');
+        var argsWithoutCredentials = args.join(' ');
         for (var key in redactedCredentials.keys) {
-          argsWithoutCredentials = argsWithoutCredentials.replaceAll(key, redactedCredentials[key]!);
+          argsWithoutCredentials =
+              argsWithoutCredentials.replaceAll(key, redactedCredentials[key]!);
         }
         log.info('uploading to notary: $argsWithoutCredentials');
-        final io.ProcessResult result = processManager.runSync(args);
+        final result = processManager.runSync(args);
         if (result.exitCode != 0) {
           throw CodesignException(
             'Command "$argsWithoutCredentials" failed with exit code ${result.exitCode}\nStdout: ${result.stdout}\nStderr: ${result.stderr}',
           );
         }
 
-        final String combinedOutput = (result.stdout as String) + (result.stderr as String);
-        final RegExpMatch? match = _notarytoolRequestPattern.firstMatch(combinedOutput);
+        final combinedOutput =
+            (result.stdout as String) + (result.stderr as String);
+        final match = _notarytoolRequestPattern.firstMatch(combinedOutput);
 
         if (match == null) {
           log.warning('Failed to upload to the notary service');
           log.warning('$argsWithoutCredentials\n$combinedOutput');
-          throw CodesignException('Failed to upload to the notary service\n$combinedOutput');
+          throw CodesignException(
+              'Failed to upload to the notary service\n$combinedOutput');
         }
 
-        final String requestUuid = match.group(1)!;
+        final requestUuid = match.group(1)!;
         log.info('RequestUUID for ${localFile.path} is: $requestUuid');
         return requestUuid;
       },

@@ -5,14 +5,14 @@
 import 'dart:convert';
 import 'dart:core';
 
-import 'package:cocoon_service/ci_yaml.dart';
-import 'package:cocoon_service/src/request_handlers/test_ownership.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 
+import '../../ci_yaml.dart';
 import '../../protos.dart' as pb;
 import '../service/bigquery.dart';
 import '../service/github_service.dart';
+import 'test_ownership.dart';
 
 // String constants.
 const String kFlakeLabel = 'c: flake';
@@ -44,7 +44,8 @@ const String kCiYamlTargetTagsFramework = 'framework';
 const String kCiYamlTargetTagsHostonly = 'hostonly';
 
 const String kMasterRefs = 'heads/master';
-const String kModifyMode = '100644'; // This is equivalent to mode: `-rw-r--r--`.
+const String kModifyMode =
+    '100644'; // This is equivalent to mode: `-rw-r--r--`.
 const String kModifyType = 'blob';
 
 const int kSuccessBuildNumberLimit = 3;
@@ -53,9 +54,12 @@ const double kDefaultFlakyRatioThreshold = 0.02;
 const int kGracePeriodForClosedFlake = 15; // days
 
 const String _commitPrefix = 'https://github.com/flutter/flutter/commit/';
-const String _buildDashboardPrefix = 'https://flutter-dashboard.appspot.com/#/build';
-const String _prodBuildPrefix = 'https://ci.chromium.org/ui/p/flutter/builders/prod/';
-const String _stagingBuildPrefix = 'https://ci.chromium.org/ui/p/flutter/builders/staging/';
+const String _buildDashboardPrefix =
+    'https://flutter-dashboard.appspot.com/#/build';
+const String _prodBuildPrefix =
+    'https://ci.chromium.org/ui/p/flutter/builders/prod/';
+const String _stagingBuildPrefix =
+    'https://ci.chromium.org/ui/p/flutter/builders/staging/';
 const String _flakeRecordPrefix =
     'https://data.corp.google.com/sites/flutter_infra_metrics_datasite/flutter_check_test_flakiness_status_dashboard/?p=BUILDER_NAME:';
 
@@ -111,11 +115,8 @@ Please follow https://github.com/flutter/flutter/blob/master/docs/infra/Reducing
   }
 
   List<String> get issueLabels {
-    final List<String> labels = <String>[
-      kFlakeLabel,
-      kP0Label,
-    ];
-    final String? teamLabel = getTeamLabelFromTeam(ownership.team);
+    final labels = <String>[kFlakeLabel, kP0Label];
+    final teamLabel = getTeamLabelFromTeam(ownership.team);
     if (teamLabel != null && teamLabel.isNotEmpty == true) {
       labels.add(teamLabel);
     }
@@ -143,7 +144,10 @@ class IssueUpdateBuilder {
   String get bucketString => bucket.toString().split('.').last;
 
   List<String> get issueLabels {
-    final List<String> existingLabels = existingIssue.labels.map<String>((IssueLabel label) => label.name).toList();
+    final existingLabels =
+        existingIssue.labels
+            .map<String>((IssueLabel label) => label.name)
+            .toList();
     // Update the priority.
     if (!existingLabels.contains(kP0Label) && !isBelow) {
       existingLabels.add(kP0Label);
@@ -155,7 +159,7 @@ class IssueUpdateBuilder {
   }
 
   String get issueUpdateComment {
-    String result =
+    var result =
         '[$bucketString pool] flaky ratio for the past (up to) 100 commits between ${statistic.fromDate} and ${statistic.toDate} is ${_formatRate(statistic.flakyRate)}%. Flaky number: ${statistic.flakyNumber}; total number: ${statistic.totalNumber}.\n';
     if (statistic.flakyRate > 0.0) {
       result += '''
@@ -185,7 +189,8 @@ class PullRequestBuilder {
   final Issue issue;
 
   String get pullRequestTitle => 'Marks ${statistic.name} to be flaky';
-  String get pullRequestBody => '${_buildHiddenMetaTags(name: statistic.name)}Issue link: ${issue.htmlUrl}\n';
+  String get pullRequestBody =>
+      '${_buildHiddenMetaTags(name: statistic.name)}Issue link: ${issue.htmlUrl}\n';
   String? get pullRequestReviewer => ownership.owner;
 }
 
@@ -205,7 +210,7 @@ class DeflakePullRequestBuilder {
 
   String get pullRequestTitle => 'Marks $name to be unflaky';
   String get pullRequestBody {
-    String body = _buildHiddenMetaTags(name: name);
+    var body = _buildHiddenMetaTags(name: name);
     if (issue != null) {
       body +=
           'The issue ${issue!.htmlUrl} has been closed, and the test has been passing for [$recordNumber consecutive runs](${Uri.encodeFull('$_flakeRecordPrefix"$name"')}).\n';
@@ -223,29 +228,48 @@ class DeflakePullRequestBuilder {
 // TESTOWNER Regex
 
 const String kOwnerGroupName = 'owners';
-final RegExp devicelabTestOwners =
-    RegExp('## Linux Android DeviceLab tests\n(?<$kOwnerGroupName>.+)## Host only framework tests', dotAll: true);
-final RegExp frameworkHostOnlyTestOwners =
-    RegExp('## Host only framework tests\n(?<$kOwnerGroupName>.+)## Firebase tests', dotAll: true);
-final RegExp firebaselabTestOwners = RegExp('## Firebase tests\n(?<$kOwnerGroupName>.+)## Shards tests', dotAll: true);
-final RegExp shardTestOwners = RegExp('## Shards tests\n(?<$kOwnerGroupName>.+)', dotAll: true);
+final RegExp devicelabTestOwners = RegExp(
+  '## Linux Android DeviceLab tests\n(?<$kOwnerGroupName>.+)## Host only framework tests',
+  dotAll: true,
+);
+final RegExp frameworkHostOnlyTestOwners = RegExp(
+  '## Host only framework tests\n(?<$kOwnerGroupName>.+)## Firebase tests',
+  dotAll: true,
+);
+final RegExp firebaselabTestOwners = RegExp(
+  '## Firebase tests\n(?<$kOwnerGroupName>.+)## Shards tests',
+  dotAll: true,
+);
+final RegExp shardTestOwners = RegExp(
+  '## Shards tests\n(?<$kOwnerGroupName>.+)',
+  dotAll: true,
+);
 
 // Utils methods
 
 /// Gets the existing flaky issues.
 ///
 /// The state can be 'open', 'closed', or 'all'.
-Future<Map<String?, Issue>> getExistingIssues(GithubService gitHub, RepositorySlug slug, {String state = 'all'}) async {
-  final Map<String?, Issue> nameToExistingIssue = <String?, Issue>{};
-  for (final Issue issue in await gitHub.listIssues(slug, state: state, labels: <String>[kFlakeLabel])) {
+Future<Map<String?, Issue>> getExistingIssues(
+  GithubService gitHub,
+  RepositorySlug slug, {
+  String state = 'all',
+}) async {
+  final nameToExistingIssue = <String?, Issue>{};
+  for (final issue in await gitHub.listIssues(
+    slug,
+    state: state,
+    labels: <String>[kFlakeLabel],
+  )) {
     if (issue.htmlUrl.contains('pull') == true) {
       // For some reason, this github api may also return pull requests.
       continue;
     }
-    final Map<String, dynamic>? metaTags = retrieveMetaTagsFromContent(issue.body);
+    final metaTags = retrieveMetaTagsFromContent(issue.body);
     if (metaTags != null) {
-      final String? name = metaTags['name'] as String?;
-      if (!nameToExistingIssue.containsKey(name) || _isOtherIssueMoreImportant(nameToExistingIssue[name]!, issue)) {
+      final name = metaTags['name'] as String?;
+      if (!nameToExistingIssue.containsKey(name) ||
+          _isOtherIssueMoreImportant(nameToExistingIssue[name]!, issue)) {
         nameToExistingIssue[name] = issue;
       }
     }
@@ -254,14 +278,17 @@ Future<Map<String?, Issue>> getExistingIssues(GithubService gitHub, RepositorySl
 }
 
 /// Gets the existing open pull requests that make tests flaky.
-Future<Map<String?, PullRequest>> getExistingPRs(GithubService gitHub, RepositorySlug slug) async {
-  final Map<String?, PullRequest> nameToExistingPRs = <String?, PullRequest>{};
-  for (final PullRequest pr in await gitHub.listPullRequests(slug, null)) {
+Future<Map<String?, PullRequest>> getExistingPRs(
+  GithubService gitHub,
+  RepositorySlug slug,
+) async {
+  final nameToExistingPRs = <String?, PullRequest>{};
+  for (final pr in await gitHub.listPullRequests(slug, null)) {
     try {
       if (pr.body == null) {
         continue;
       }
-      final Map<String, dynamic>? metaTags = retrieveMetaTagsFromContent(pr.body!);
+      final metaTags = retrieveMetaTagsFromContent(pr.body!);
       if (metaTags != null) {
         nameToExistingPRs[metaTags['name'] as String] = pr;
       }
@@ -280,7 +307,7 @@ Future<Issue> fileFlakyIssue({
   double threshold = kDefaultFlakyRatioThreshold,
   bool bringup = false,
 }) async {
-  final IssueBuilder issueBuilder = IssueBuilder(
+  final issueBuilder = IssueBuilder(
     statistic: builderDetail.statistic,
     ownership: builderDetail.ownership,
     threshold: kDefaultFlakyRatioThreshold,
@@ -296,27 +323,39 @@ Future<Issue> fileFlakyIssue({
 }
 
 /// Looks up the owner of a builder in TESTOWNERS file.
-TestOwnership getTestOwnership(pb.Target target, BuilderType type, String testOwnersContent) {
-  final TestOwner testOwner = TestOwner(type);
+TestOwnership getTestOwnership(
+  pb.Target target,
+  BuilderType type,
+  String testOwnersContent,
+) {
+  final testOwner = TestOwner(type);
   return testOwner.getTestOwnership(target, testOwnersContent);
 }
 
 /// Gets the [BuilderType] of the builder by looking up the information in the
 /// ci.yaml.
-BuilderType getTypeForBuilder(String? targetName, CiYamlSet ciYaml, {bool unfilteredTargets = false}) {
-  final List<String>? tags = _getTags(targetName, ciYaml, unfilteredTargets: unfilteredTargets);
+BuilderType getTypeForBuilder(
+  String? targetName,
+  CiYamlSet ciYaml, {
+  bool unfilteredTargets = false,
+}) {
+  final tags = _getTags(
+    targetName,
+    ciYaml,
+    unfilteredTargets: unfilteredTargets,
+  );
   if (tags == null || tags.isEmpty) {
     return BuilderType.unknown;
   }
 
-  bool hasFrameworkTag = false;
-  bool hasHostOnlyTag = false;
+  var hasFrameworkTag = false;
+  var hasHostOnlyTag = false;
   // If tags contain 'shard', it must be a shard test.
   // If tags contain 'devicelab', it must be a devicelab test.
   // If tags contain 'firebaselab`, it must be a firebase tests.
   // Otherwise, it is framework host only test if its tags contain both
   // 'framework' and 'hostonly'.
-  for (String tag in tags) {
+  for (var tag in tags) {
     if (tag == kCiYamlTargetTagsFirebaselab) {
       return BuilderType.firebaselab;
     } else if (tag == kCiYamlTargetTagsShard) {
@@ -329,11 +368,17 @@ BuilderType getTypeForBuilder(String? targetName, CiYamlSet ciYaml, {bool unfilt
       hasHostOnlyTag = true;
     }
   }
-  return hasFrameworkTag && hasHostOnlyTag ? BuilderType.frameworkHostOnly : BuilderType.unknown;
+  return hasFrameworkTag && hasHostOnlyTag
+      ? BuilderType.frameworkHostOnly
+      : BuilderType.unknown;
 }
 
-List<String>? _getTags(String? targetName, CiYamlSet ciYaml, {bool unfilteredTargets = false}) {
-  final Set<Target> allUniqueTargets = {};
+List<String>? _getTags(
+  String? targetName,
+  CiYamlSet ciYaml, {
+  bool unfilteredTargets = false,
+}) {
+  final allUniqueTargets = <Target>{};
   if (!unfilteredTargets) {
     allUniqueTargets.addAll(ciYaml.presubmitTargets());
     allUniqueTargets.addAll(ciYaml.postsubmitTargets());
@@ -341,7 +386,9 @@ List<String>? _getTags(String? targetName, CiYamlSet ciYaml, {bool unfilteredTar
     allUniqueTargets.addAll(ciYaml.targets(type: CiType.any));
   }
 
-  final Target? target = allUniqueTargets.firstWhereOrNull((element) => element.value.name == targetName);
+  final target = allUniqueTargets.firstWhereOrNull(
+    (element) => element.value.name == targetName,
+  );
   return target?.tags;
 }
 
@@ -368,8 +415,10 @@ String _buildHiddenMetaTags({String? name}) {
 ''';
 }
 
-final RegExp _issueHiddenMetaTagsRegex =
-    RegExp(r'<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY\.(?<meta>.+)-->', dotAll: true);
+final RegExp _issueHiddenMetaTagsRegex = RegExp(
+  r'<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY\.(?<meta>.+)-->',
+  dotAll: true,
+);
 
 /// Checks whether the github content contains meta tags and returns the meta
 /// tags if it does.
@@ -378,7 +427,7 @@ final RegExp _issueHiddenMetaTagsRegex =
 /// contain the meta tags. Using this method is a reliable way to check whether
 /// a issue or pull request is generated by this script.
 Map<String, dynamic>? retrieveMetaTagsFromContent(String content) {
-  final RegExpMatch? match = _issueHiddenMetaTagsRegex.firstMatch(content);
+  final match = _issueHiddenMetaTagsRegex.firstMatch(content);
   if (match == null) {
     return null;
   }
@@ -387,11 +436,24 @@ Map<String, dynamic>? retrieveMetaTagsFromContent(String content) {
 
 String _formatRate(double rate) => (rate * 100).toStringAsFixed(2);
 
-String _issueBuildLinks({String? builder, required List<String> builds, Bucket bucket = Bucket.prod}) {
-  return builds.map((String build) => _issueBuildLink(builder: builder, build: build, bucket: bucket)).join('\n');
+String _issueBuildLinks({
+  String? builder,
+  required List<String> builds,
+  Bucket bucket = Bucket.prod,
+}) {
+  return builds
+      .map(
+        (String build) =>
+            _issueBuildLink(builder: builder, build: build, bucket: bucket),
+      )
+      .join('\n');
 }
 
-String _issueSummary(BuilderStatistic statistic, double threshold, bool bringup) {
+String _issueSummary(
+  BuilderStatistic statistic,
+  double threshold,
+  bool bringup,
+) {
   final String summary;
   if (bringup) {
     summary =
@@ -403,8 +465,13 @@ String _issueSummary(BuilderStatistic statistic, double threshold, bool bringup)
   return summary;
 }
 
-String _issueBuildLink({String? builder, String? build, Bucket bucket = Bucket.prod}) {
-  final String buildPrefix = bucket == Bucket.staging ? _stagingBuildPrefix : _prodBuildPrefix;
+String _issueBuildLink({
+  String? builder,
+  String? build,
+  Bucket bucket = Bucket.prod,
+}) {
+  final buildPrefix =
+      bucket == Bucket.staging ? _stagingBuildPrefix : _prodBuildPrefix;
   return Uri.encodeFull('$buildPrefix$builder/$build');
 }
 
@@ -427,18 +494,9 @@ String? getTeamLabelFromTeam(Team? team) {
   };
 }
 
-enum BuilderType {
-  devicelab,
-  frameworkHostOnly,
-  shard,
-  firebaselab,
-  unknown,
-}
+enum BuilderType { devicelab, frameworkHostOnly, shard, firebaselab, unknown }
 
-enum Bucket {
-  prod,
-  staging,
-}
+enum Bucket { prod, staging }
 
 enum Team {
   framework,
@@ -454,10 +512,7 @@ enum Team {
 }
 
 class TestOwnership {
-  TestOwnership(
-    this.owner,
-    this.team,
-  );
+  TestOwnership(this.owner, this.team);
   String? owner;
   Team? team;
 }

@@ -57,7 +57,8 @@ bool issueIsOpen(final FullIssue issue) {
 
 // Temporary workaround for https://github.com/SpinlockLabs/github.dart/issues/401
 bool issueIsClosed(final FullIssue issue) {
-  return issue.metadata.isClosed || issue.metadata.state.toUpperCase() == 'CLOSED';
+  return issue.metadata.isClosed ||
+      issue.metadata.state.toUpperCase() == 'CLOSED';
 }
 
 Future<int> full(final Directory cache, final GitHub github) async {
@@ -77,12 +78,17 @@ Future<int> full(final Directory cache, final GitHub github) async {
         .split('\n')
         .where((final String name) => !name.endsWith(' (DO NOT ADD)'))
         .toSet();
-    final Set<String> expectedExmembers = (await exmembersFile.readAsString()).trimRight().split('\n').toSet();
+    final Set<String> expectedExmembers =
+        (await exmembersFile.readAsString()).trimRight().split('\n').toSet();
     try {
-      Set<String> canon(final Set<String> set) => set.map<String>((final String s) => s.toLowerCase()).toSet();
-      final Set<String> unexpectedMembers = canon(currentMembers).difference(canon(expectedMembers));
-      final Set<String> memberExmembers = canon(expectedExmembers).intersection(canon(currentMembers));
-      final Set<String> missingMembers = canon(expectedMembers).difference(canon(currentMembers));
+      Set<String> canon(final Set<String> set) =>
+          set.map<String>((final String s) => s.toLowerCase()).toSet();
+      final Set<String> unexpectedMembers =
+          canon(currentMembers).difference(canon(expectedMembers));
+      final Set<String> memberExmembers =
+          canon(expectedExmembers).intersection(canon(currentMembers));
+      final Set<String> missingMembers =
+          canon(expectedMembers).difference(canon(currentMembers));
       if (unexpectedMembers.isNotEmpty) {
         print(
           'WARNING: The following users are currently members of $primaryTeam but not expected: ${unexpectedMembers.join(', ')}',
@@ -108,10 +114,12 @@ Future<int> full(final Directory cache, final GitHub github) async {
         return 1;
       }
     }
-    for (final String? teamName in roster.teams.keys.where((final String? team) => team != null)) {
+    for (final String? teamName
+        in roster.teams.keys.where((final String? team) => team != null)) {
       for (final String userName in roster.teams[teamName]!.keys) {
         if (!roster.teams[null]!.containsKey(userName)) {
-          print('WARNING: user $userName is in $teamName but not in organization.');
+          print(
+              'WARNING: user $userName is in $teamName but not in organization.');
         }
       }
     }
@@ -119,10 +127,12 @@ Future<int> full(final Directory cache, final GitHub github) async {
     // FETCH ACTIVITY
     print('');
     print('Fetching issues...');
-    final Map<String, Map<int, FullIssue>> issues = <String, Map<int, FullIssue>>{};
+    final Map<String, Map<int, FullIssue>> issues =
+        <String, Map<int, FullIssue>>{};
     try {
       for (final RepositorySlug repo in repos) {
-        await fetchAllIssues(github, cache, repo, issueMaxAge, issues[repo.fullName] = <int, FullIssue>{});
+        await fetchAllIssues(github, cache, repo, issueMaxAge,
+            issues[repo.fullName] = <int, FullIssue>{});
       }
       print('Updating issues...');
       for (final RepositorySlug repo in repos) {
@@ -181,7 +191,8 @@ Future<int> full(final Directory cache, final GitHub github) async {
         forUser(issue.metadata.user).pullRequests.add(issue.metadata.createdAt);
       } else {
         forUser(issue.metadata.user).issues.add(issue.metadata.createdAt);
-        increment<String?>(forUser(issue.metadata.user).priorityCount, foundPriorities, issue.priority);
+        increment<String?>(forUser(issue.metadata.user).priorityCount,
+            foundPriorities, issue.priority);
       }
       if (!issue.isPullRequest && (issue.metadata.closedBy != null)) {
         forUser(issue.metadata.closedBy).closures.add(issue.metadata.closedAt);
@@ -196,17 +207,21 @@ Future<int> full(final Directory cache, final GitHub github) async {
       }
       for (final Reaction reaction in issue.reactions) {
         forUser(reaction.user).reactions.add(reaction.createdAt);
-        increment(forUser(reaction.user).reactionCount, reactionKinds, reaction.content!);
+        increment(forUser(reaction.user).reactionCount, reactionKinds,
+            reaction.content!);
       }
     }
     DateTime? earliest;
     DateTime? latest;
-    void considerTimes(final UserActivity activity, final List<DateTime?> times) {
+    void considerTimes(
+        final UserActivity activity, final List<DateTime?> times) {
       for (final DateTime? time in times) {
-        if (activity.earliest == null || (time != null && time.isBefore(activity.earliest!))) {
+        if (activity.earliest == null ||
+            (time != null && time.isBefore(activity.earliest!))) {
           activity.earliest = time;
         }
-        if (activity.latest == null || (time != null && time.isAfter(activity.latest!))) {
+        if (activity.latest == null ||
+            (time != null && time.isAfter(activity.latest!))) {
           activity.latest = time;
         }
         if (earliest == null || (time != null && time.isBefore(earliest!))) {
@@ -237,7 +252,8 @@ Future<int> full(final Directory cache, final GitHub github) async {
     );
     int usersWithMoreThanOneDayActive = 0;
     for (final String user in activityMetrics.keys.toList()
-      ..sort((final String a, final String b) => activityMetrics[b]!.total - activityMetrics[a]!.total)) {
+      ..sort((final String a, final String b) =>
+          activityMetrics[b]!.total - activityMetrics[a]!.total)) {
       verifyStringSanity(user, csvSpecials);
       final UserActivity activity = activityMetrics[user]!;
       if (activity.daysActive > 0) {
@@ -257,11 +273,13 @@ Future<int> full(final Directory cache, final GitHub github) async {
     }
     await File('${output.path}/users.csv').writeAsString(summary.toString());
     print('Total participants: ${activityMetrics.length}');
-    print('Participants with more than one day of activity: $usersWithMoreThanOneDayActive');
+    print(
+        'Participants with more than one day of activity: $usersWithMoreThanOneDayActive');
     print('User activity results stored in: ${output.path}/users.csv');
 
     // ANALYZE PRIORITIES
-    final Map<String, PriorityResults> priorityAnalysis = <String, PriorityResults>{};
+    final Map<String, PriorityResults> priorityAnalysis =
+        <String, PriorityResults>{};
     for (final String priority in priorities) {
       priorityAnalysis[priority] = PriorityResults();
     }
@@ -273,8 +291,10 @@ Future<int> full(final Directory cache, final GitHub github) async {
         .values
         .where((final FullIssue issue) => issue.isValid && issue.isPullRequest)
         .toList();
-    for (final FullIssue issue in primaryIssues.where((final FullIssue issue) => issue.priority != null)) {
-      final PriorityResults priorityResults = priorityAnalysis[issue.priority!]!;
+    for (final FullIssue issue in primaryIssues
+        .where((final FullIssue issue) => issue.priority != null)) {
+      final PriorityResults priorityResults =
+          priorityAnalysis[issue.priority!]!;
       final bool teamIssue = allMembers.contains(issue.metadata.user!.login);
       priorityResults.total += 1;
       if (teamIssue) {
@@ -286,12 +306,14 @@ Future<int> full(final Directory cache, final GitHub github) async {
         priorityResults.open += 1;
       } else {
         priorityResults.closed += 1;
-        if (issue.metadata.closedAt == null || issue.metadata.createdAt == null) {
+        if (issue.metadata.closedAt == null ||
+            issue.metadata.createdAt == null) {
           print(
             'WARNING: bogus open/close timeline data in ${issue.issueNumber}: opened at ${issue.metadata.createdAt}, closed at ${issue.metadata.closedAt}, state: ${issue.metadata.state}',
           );
         } else {
-          final Duration timeOpen = issue.metadata.closedAt!.difference(issue.metadata.createdAt!);
+          final Duration timeOpen =
+              issue.metadata.closedAt!.difference(issue.metadata.createdAt!);
           priorityResults.timeOpen.add(timeOpen);
         }
         if (teamIssue) {
@@ -329,11 +351,15 @@ Future<int> full(final Directory cache, final GitHub github) async {
             '${entry.timeOpen[(entry.timeOpen.length * 0.05).floor()].inMilliseconds / Duration.millisecondsPerDay},',
           );
         if (entry.timeOpen.length > 1) {
-          final Duration median1 = entry.timeOpen[(entry.timeOpen.length / 2.0).floor()];
-          final Duration median2 = entry.timeOpen[(entry.timeOpen.length / 2.0).ceil()];
-          summary.write('${(median1.inMilliseconds + median2.inMilliseconds) / (2.0 * Duration.millisecondsPerDay)},');
+          final Duration median1 =
+              entry.timeOpen[(entry.timeOpen.length / 2.0).floor()];
+          final Duration median2 =
+              entry.timeOpen[(entry.timeOpen.length / 2.0).ceil()];
+          summary.write(
+              '${(median1.inMilliseconds + median2.inMilliseconds) / (2.0 * Duration.millisecondsPerDay)},');
         } else {
-          summary.write('${(entry.timeOpen.first.inMilliseconds) / Duration.millisecondsPerDay},');
+          summary.write(
+              '${(entry.timeOpen.first.inMilliseconds) / Duration.millisecondsPerDay},');
         }
         summary
           ..write(
@@ -345,7 +371,8 @@ Future<int> full(final Directory cache, final GitHub github) async {
       }
       summary.writeln();
     }
-    await File('${output.path}/priorities.csv').writeAsString(summary.toString());
+    await File('${output.path}/priorities.csv')
+        .writeAsString(summary.toString());
     print('Priority results stored in: ${output.path}/priorities.csv');
 
     // PRINT ISSUE DATA
@@ -356,7 +383,8 @@ Future<int> full(final Directory cache, final GitHub github) async {
       ..writeln(
         'repository,issue,state,createdAt,createdBy,closedAt,closedBy,timeOpen,updatedAt,priority,labelCount,commentCount,${sortedReactionKinds.join(',')},daysToTwentyVotes,isNewFeature,isProposal,isPendingAutoclosure,isFiledByTeam,isFiledByExMember,',
       );
-    for (final FullIssue issue in allIssues.where((final FullIssue issue) => !issue.isPullRequest)) {
+    for (final FullIssue issue
+        in allIssues.where((final FullIssue issue) => !issue.isPullRequest)) {
       verifyStringSanity(issue.metadata.state, csvSpecials);
       summary.write(
         '${issue.repo.fullName},${issue.issueNumber},${issue.metadata.state},${issue.metadata.createdAt},${issue.metadata.user!.login},${issue.metadata.closedAt},${issue.metadata.closedBy?.login ?? (issue.isValid && issueIsClosed(issue) ? "<unknown>" : "")},${issue.isValid && issueIsClosed(issue) ? issue.metadata.closedAt!.difference(issue.metadata.createdAt!).inMilliseconds / Duration.millisecondsPerDay : ""},${issue.metadata.updatedAt},${issue.priority ?? ""},${issue.labels.length},${issue.comments.length}',
@@ -376,7 +404,9 @@ Future<int> full(final Directory cache, final GitHub github) async {
         if (reaction.content == '+1') {
           count += 1;
           if (count >= 20) {
-            daysToTwentyVotes = reaction.createdAt!.difference(issue.metadata.createdAt!).inDays;
+            daysToTwentyVotes = reaction.createdAt!
+                .difference(issue.metadata.createdAt!)
+                .inDays;
             break;
           }
         }
@@ -391,7 +421,11 @@ Future<int> full(final Directory cache, final GitHub github) async {
         ..writeln();
       if ((daysToTwentyVotes == null || daysToTwentyVotes > 60) &&
           issue.labels.contains('new feature') &&
-          (issueIsOpen(issue) || issue.metadata.closedAt!.difference(issue.metadata.createdAt!).inDays > 60)) {
+          (issueIsOpen(issue) ||
+              issue.metadata.closedAt!
+                      .difference(issue.metadata.createdAt!)
+                      .inDays >
+                  60)) {
         if (issueIsOpen(issue)) {
           deadCount += 1;
         } else {
@@ -401,24 +435,30 @@ Future<int> full(final Directory cache, final GitHub github) async {
     }
     await File('${output.path}/issues.csv').writeAsString(summary.toString());
     print('Issue summaries stored in: ${output.path}/issues.csv');
-    print('$deadCount issues would be closed; $zombieCount issues would not have been fixed.');
+    print(
+        '$deadCount issues would be closed; $zombieCount issues would not have been fixed.');
 
     // COLLECT CLOSE TIME PERCENTILES
     int maxDaysToClose = 0;
-    final Map<int, Map<String?, int>> closureTimeHistogramClosed = <int, Map<String?, int>>{};
+    final Map<int, Map<String?, int>> closureTimeHistogramClosed =
+        <int, Map<String?, int>>{};
     final Map<String?, int> closureTimeTotalsClosed = <String?, int>{
       null: 0,
       for (final String priority in priorities) priority: 0,
     };
     for (final FullIssue issue in primaryIssues.where(issueIsClosed)) {
-      final int timeOpen = issue.metadata.closedAt!.difference(issue.metadata.createdAt!).inDays;
+      final int timeOpen =
+          issue.metadata.closedAt!.difference(issue.metadata.createdAt!).inDays;
       final String? priority = issue.priority;
-      closureTimeHistogramClosed.putIfAbsent(timeOpen, () => <String?, int>{}).update(
+      closureTimeHistogramClosed
+          .putIfAbsent(timeOpen, () => <String?, int>{})
+          .update(
             priority,
             (final int value) => value + 1,
             ifAbsent: () => 1,
           );
-      closureTimeTotalsClosed[priority] = closureTimeTotalsClosed[priority]! + 1;
+      closureTimeTotalsClosed[priority] =
+          closureTimeTotalsClosed[priority]! + 1;
       if (timeOpen > maxDaysToClose) {
         maxDaysToClose = timeOpen;
       }
@@ -439,12 +479,14 @@ Future<int> full(final Directory cache, final GitHub github) async {
       for (int day = 0; day <= maxDaysToClose; day += 1) {
         if (closureTimeHistogramClosed.containsKey(day)) {
           if (closureTimeHistogramClosed[day]!.containsKey(null)) {
-            closureTimeCumulativeSum[null] = closureTimeCumulativeSum[null]! + closureTimeHistogramClosed[day]![null]!;
+            closureTimeCumulativeSum[null] = closureTimeCumulativeSum[null]! +
+                closureTimeHistogramClosed[day]![null]!;
           }
           for (final String priority in priorities) {
             if (closureTimeHistogramClosed[day]!.containsKey(priority)) {
               closureTimeCumulativeSum[priority] =
-                  closureTimeCumulativeSum[priority]! + closureTimeHistogramClosed[day]![priority]!;
+                  closureTimeCumulativeSum[priority]! +
+                      closureTimeHistogramClosed[day]![priority]!;
             }
           }
         }
@@ -454,20 +496,25 @@ Future<int> full(final Directory cache, final GitHub github) async {
             summary.write(',${closureTimeCumulativeSum[priority]}');
           }
         }
-        summary.write(',${100.0 * closureTimeCumulativeSum[null]! / closureTimeTotalsClosed[null]!}%');
+        summary.write(
+            ',${100.0 * closureTimeCumulativeSum[null]! / closureTimeTotalsClosed[null]!}%');
         for (final String priority in priorities) {
           if (closureTimeTotalsClosed[priority]! > 0) {
-            summary.write(',${100.0 * closureTimeCumulativeSum[priority]! / closureTimeTotalsClosed[priority]!}%');
+            summary.write(
+                ',${100.0 * closureTimeCumulativeSum[priority]! / closureTimeTotalsClosed[priority]!}%');
           }
         }
         summary.writeln();
       }
     }
-    await File('${output.path}/priority-percentiles.csv').writeAsString(summary.toString());
-    print('Priority percentiles stored in: ${output.path}/priority-percentiles.csv');
+    await File('${output.path}/priority-percentiles.csv')
+        .writeAsString(summary.toString());
+    print(
+        'Priority percentiles stored in: ${output.path}/priority-percentiles.csv');
 
     // COLLECT CLOSE TIME PERCENTILES OF ALL BUGS
-    final Map<int, Map<String?, int>> closureTimeHistogramAll = <int, Map<String?, int>>{};
+    final Map<int, Map<String?, int>> closureTimeHistogramAll =
+        <int, Map<String?, int>>{};
     final Map<String?, int> closureTimeTotalsAll = <String?, int>{
       null: 0,
       for (final String priority in priorities) priority: 0,
@@ -476,9 +523,13 @@ Future<int> full(final Directory cache, final GitHub github) async {
       final String? priority = issue.priority;
       closureTimeTotalsAll[priority] = closureTimeTotalsAll[priority]! + 1;
       final int timeOpen = issueIsClosed(issue)
-          ? issue.metadata.closedAt!.difference(issue.metadata.createdAt!).inDays
+          ? issue.metadata.closedAt!
+              .difference(issue.metadata.createdAt!)
+              .inDays
           : maxDaysToClose + 1;
-      closureTimeHistogramAll.putIfAbsent(timeOpen, () => <String?, int>{}).update(
+      closureTimeHistogramAll
+          .putIfAbsent(timeOpen, () => <String?, int>{})
+          .update(
             priority,
             (final int value) => value + 1,
             ifAbsent: () => 1,
@@ -500,12 +551,14 @@ Future<int> full(final Directory cache, final GitHub github) async {
       for (int day = 0; day <= maxDaysToClose + 1; day += 1) {
         if (closureTimeHistogramAll.containsKey(day)) {
           if (closureTimeHistogramAll[day]!.containsKey(null)) {
-            closureTimeCumulativeSum[null] = closureTimeCumulativeSum[null]! + closureTimeHistogramAll[day]![null]!;
+            closureTimeCumulativeSum[null] = closureTimeCumulativeSum[null]! +
+                closureTimeHistogramAll[day]![null]!;
           }
           for (final String priority in priorities) {
             if (closureTimeHistogramAll[day]!.containsKey(priority)) {
               closureTimeCumulativeSum[priority] =
-                  closureTimeCumulativeSum[priority]! + closureTimeHistogramAll[day]![priority]!;
+                  closureTimeCumulativeSum[priority]! +
+                      closureTimeHistogramAll[day]![priority]!;
             }
           }
         }
@@ -515,17 +568,21 @@ Future<int> full(final Directory cache, final GitHub github) async {
             summary.write(',${closureTimeCumulativeSum[priority]}');
           }
         }
-        summary.write(',${100.0 * closureTimeCumulativeSum[null]! / closureTimeTotalsAll[null]!}%');
+        summary.write(
+            ',${100.0 * closureTimeCumulativeSum[null]! / closureTimeTotalsAll[null]!}%');
         for (final String priority in priorities) {
           if (closureTimeTotalsAll[priority]! > 0) {
-            summary.write(',${100.0 * closureTimeCumulativeSum[priority]! / closureTimeTotalsAll[priority]!}%');
+            summary.write(
+                ',${100.0 * closureTimeCumulativeSum[priority]! / closureTimeTotalsAll[priority]!}%');
           }
         }
         summary.writeln();
       }
     }
-    await File('${output.path}/priority-percentiles-all.csv').writeAsString(summary.toString());
-    print('Priority percentiles stored in: ${output.path}/priority-percentiles-all.csv');
+    await File('${output.path}/priority-percentiles-all.csv')
+        .writeAsString(summary.toString());
+    print(
+        'Priority percentiles stored in: ${output.path}/priority-percentiles-all.csv');
 
     // PRINT PR DATA
     summary
@@ -533,7 +590,8 @@ Future<int> full(final Directory cache, final GitHub github) async {
       ..writeln(
         'repository,pr,user,state,createdAt,closedAt,timeOpen,updatedAt,labelCount,commentCount,${sortedReactionKinds.join(',')}',
       );
-    for (final FullIssue issue in allIssues.where((final FullIssue issue) => issue.isPullRequest)) {
+    for (final FullIssue issue
+        in allIssues.where((final FullIssue issue) => issue.isPullRequest)) {
       verifyStringSanity(issue.metadata.state, csvSpecials);
       summary.write(
         '${issue.repo.fullName},${issue.issueNumber},${issue.metadata.user!.login},${issue.metadata.state},${issue.metadata.createdAt},${issue.metadata.closedAt},${issueIsClosed(issue) ? issue.metadata.closedAt!.difference(issue.metadata.createdAt!).inMilliseconds / Duration.millisecondsPerDay : ""},${issue.metadata.updatedAt},${issue.labels.length},${issue.comments.length}',
@@ -553,7 +611,10 @@ Future<int> full(final Directory cache, final GitHub github) async {
     print('PR summaries stored in: ${output.path}/prs.csv');
 
     // PRINT USERS
-    final List<String> teamNames = roster.teams.keys.where((final String? name) => name != null).cast<String>().toList()
+    final List<String> teamNames = roster.teams.keys
+        .where((final String? name) => name != null)
+        .cast<String>()
+        .toList()
       ..sort();
     final List<String> userNames = roster.teams[null]!.keys.toList()..sort();
     summary
@@ -583,7 +644,8 @@ Future<int> full(final Directory cache, final GitHub github) async {
       final List<WeekActivity> weeks = List<WeekActivity>.generate(
         1 + (latest!.millisecondsSinceEpoch ~/ window) - firstWeekStart,
         (final int index) => WeekActivity(
-          DateTime.fromMillisecondsSinceEpoch((index + firstWeekStart) * window),
+          DateTime.fromMillisecondsSinceEpoch(
+              (index + firstWeekStart) * window),
           reactionKinds,
           priorities,
         ),
@@ -604,7 +666,9 @@ Future<int> full(final Directory cache, final GitHub github) async {
         } else {
           forWeek(issue.metadata.createdAt)!.issues += 1;
           forWeek(issue.metadata.createdAt)!.priorityCount[issue.priority] =
-              forWeek(issue.metadata.createdAt)!.priorityCount[issue.priority]! + 1;
+              forWeek(issue.metadata.createdAt)!
+                      .priorityCount[issue.priority]! +
+                  1;
           if (issueIsOpen(issue)) {
             forWeek(issue.metadata.createdAt)!.remainingIssues += 1;
           }
@@ -615,7 +679,8 @@ Future<int> full(final Directory cache, final GitHub github) async {
             forWeek(issue.metadata.closedAt)?.selfClosures += 1;
           }
         }
-        forWeek(issue.metadata.createdAt)?.characters += issue.metadata.body.length;
+        forWeek(issue.metadata.createdAt)?.characters +=
+            issue.metadata.body.length;
         for (final IssueComment comment in issue.comments) {
           forWeek(comment.createdAt)!.comments += 1;
           forWeek(comment.createdAt)!.characters += comment.body!.length;
@@ -623,7 +688,8 @@ Future<int> full(final Directory cache, final GitHub github) async {
         for (final Reaction reaction in issue.reactions) {
           forWeek(reaction.createdAt)!.reactions += 1;
           forWeek(reaction.createdAt)!.reactionCount[reaction.content!] =
-              forWeek(reaction.createdAt)!.reactionCount[reaction.content!]! + 1;
+              forWeek(reaction.createdAt)!.reactionCount[reaction.content!]! +
+                  1;
         }
       }
       if (weeks.isNotEmpty) {
@@ -659,18 +725,21 @@ Future<int> full(final Directory cache, final GitHub github) async {
     final DateTime now = DateTime.now();
     for (final FullIssue issue in primaryIssues) {
       for (final IssueLabel label in issue.metadata.labels) {
-        final LabelData data = labels.putIfAbsent(label.name, () => LabelData(label.name))
-          ..all += 1
-          ..issues += 1;
+        final LabelData data =
+            labels.putIfAbsent(label.name, () => LabelData(label.name))
+              ..all += 1
+              ..issues += 1;
         if (issueIsOpen(issue)) {
           data.open += 1;
         }
         if (issueIsClosed(issue)) {
           data.closed += 1;
         }
-        if (now.difference(issue.metadata.updatedAt!) < const Duration(days: 52 * 7)) {
+        if (now.difference(issue.metadata.updatedAt!) <
+            const Duration(days: 52 * 7)) {
           data.issuesUpdated52 += 1;
-          if (now.difference(issue.metadata.updatedAt!) < const Duration(days: 12 * 7)) {
+          if (now.difference(issue.metadata.updatedAt!) <
+              const Duration(days: 12 * 7)) {
             data.issuesUpdated12 += 1;
           }
         }
@@ -678,12 +747,15 @@ Future<int> full(final Directory cache, final GitHub github) async {
     }
     for (final FullIssue issue in primaryPRs) {
       for (final IssueLabel label in issue.metadata.labels) {
-        final LabelData data = labels.putIfAbsent(label.name, () => LabelData(label.name))
-          ..all += 1
-          ..prs += 1;
-        if (now.difference(issue.metadata.updatedAt!) < const Duration(days: 52 * 7)) {
+        final LabelData data =
+            labels.putIfAbsent(label.name, () => LabelData(label.name))
+              ..all += 1
+              ..prs += 1;
+        if (now.difference(issue.metadata.updatedAt!) <
+            const Duration(days: 52 * 7)) {
           data.prsUpdated52 += 1;
-          if (now.difference(issue.metadata.updatedAt!) < const Duration(days: 12 * 7)) {
+          if (now.difference(issue.metadata.updatedAt!) <
+              const Duration(days: 12 * 7)) {
             data.prsUpdated12 += 1;
           }
         }
@@ -732,7 +804,8 @@ class LabelData {
 }
 
 class WeekActivity {
-  WeekActivity(this.start, final Set<String> reactionKinds, final List<String> priorities) {
+  WeekActivity(this.start, final Set<String> reactionKinds,
+      final List<String> priorities) {
     priorityCount[null] = 0;
     for (final String priority in priorities) {
       priorityCount[priority] = 0;
@@ -772,13 +845,20 @@ class UserActivity {
   DateTime? earliest;
   DateTime? latest;
 
-  int get total => issues.length + comments.length + closures.length + pullRequests.length + reactions.length;
+  int get total =>
+      issues.length +
+      comments.length +
+      closures.length +
+      pullRequests.length +
+      reactions.length;
   double get density => (earliest == null || latest == null)
       ? double.nan
-      : total / (latest!.millisecondsSinceEpoch - earliest!.millisecondsSinceEpoch);
+      : total /
+          (latest!.millisecondsSinceEpoch - earliest!.millisecondsSinceEpoch);
   double get daysActive => (earliest == null || latest == null)
       ? double.nan
-      : (latest!.millisecondsSinceEpoch - earliest!.millisecondsSinceEpoch) / Duration.millisecondsPerDay;
+      : (latest!.millisecondsSinceEpoch - earliest!.millisecondsSinceEpoch) /
+          Duration.millisecondsPerDay;
 }
 
 class PriorityResults {
@@ -839,13 +919,15 @@ Future<int> main(final List<String> arguments) async {
     final List<String> parts = argument.split(':');
     if (parts.isNotEmpty && parts[0] == 'issue') {
       if (parts.length != 4) {
-        print('Not sure what to do with "$argument" (format for issue is issue:org:repo:number).');
+        print(
+            'Not sure what to do with "$argument" (format for issue is issue:org:repo:number).');
         exit(1);
       }
       final RepositorySlug repo = RepositorySlug(parts[1], parts[2]);
       final int? issueNumber = int.tryParse(parts[3], radix: 10);
       if (issueNumber == null) {
-        print('Not sure what to do with "$argument" (fourth component is not a number).');
+        print(
+            'Not sure what to do with "$argument" (fourth component is not a number).');
         exit(1);
       }
       final FullIssue issue = await FullIssue.load(
@@ -856,11 +938,16 @@ Future<int> main(final List<String> arguments) async {
         cacheEpoch: DateTime.now().subtract(const Duration(hours: 24)),
       );
       final StringBuffer summary = StringBuffer();
-      final List<int> thumbs =
-          List<int>.filled(issue.reactions.last.createdAt!.difference(issue.metadata.createdAt!).inDays + 1, 0);
+      final List<int> thumbs = List<int>.filled(
+          issue.reactions.last.createdAt!
+                  .difference(issue.metadata.createdAt!)
+                  .inDays +
+              1,
+          0);
       for (final Reaction reaction in issue.reactions) {
         if (reaction.content == '+1') {
-          final int day = reaction.createdAt!.difference(issue.metadata.createdAt!).inDays;
+          final int day =
+              reaction.createdAt!.difference(issue.metadata.createdAt!).inDays;
           thumbs[day] = thumbs[day] + 1;
         }
       }
@@ -870,7 +957,8 @@ Future<int> main(final List<String> arguments) async {
         sum += thumbs[day];
         summary.writeln('$day,${thumbs[day]},$sum');
       }
-      await File('${output.path}/issue:${repo.owner}:${repo.name}:$issueNumber:thumbs:history.csv')
+      await File(
+              '${output.path}/issue:${repo.owner}:${repo.name}:$issueNumber:thumbs:history.csv')
           .writeAsString(summary.toString());
     }
   }

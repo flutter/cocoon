@@ -45,9 +45,10 @@ void main() {
       expect(find.text('About Test'), findsOneWidget);
     });
 
-    testWidgets('build navigates to build Flutter route', (WidgetTester tester) async {
+    testWidgets('build navigates to build Flutter route',
+        (WidgetTester tester) async {
       configureView(tester.view);
-      final MockNavigatorObserver navigatorObserver = MockNavigatorObserver();
+      final navigatorObserver = MockNavigatorObserver();
       await tester.pumpWidget(
         MaterialApp(
           home: const DashboardNavigationDrawer(),
@@ -66,11 +67,14 @@ void main() {
       await tester.tap(find.text('Build'));
       await tester.pumpAndSettle();
 
-      verify(navigatorObserver.didReplace(newRoute: anyNamed('newRoute'), oldRoute: anyNamed('oldRoute'))).called(1);
+      verify(navigatorObserver.didReplace(
+              newRoute: anyNamed('newRoute'), oldRoute: anyNamed('oldRoute')))
+          .called(1);
       expect(find.text('i am build'), findsOneWidget);
     });
 
-    testWidgets('skia perf links opens skia perf url', (WidgetTester tester) async {
+    testWidgets('skia perf links opens skia perf url',
+        (WidgetTester tester) async {
       configureView(tester.view);
       await tester.pumpWidget(
         const MaterialApp(
@@ -78,16 +82,18 @@ void main() {
         ),
       );
 
-      const String skiaPerfText = 'Engine Benchmarks';
+      const skiaPerfText = 'Engine Benchmarks';
       expect(find.text(skiaPerfText), findsOneWidget);
       await tester.tap(find.text(skiaPerfText));
       await tester.pump();
 
       expect(urlLauncher.launches, isNotEmpty);
-      expect(urlLauncher.launches.single, 'https://flutter-engine-perf.skia.org/');
+      expect(
+          urlLauncher.launches.single, 'https://flutter-engine-perf.skia.org/');
     });
 
-    testWidgets('source code opens github cocoon url', (WidgetTester tester) async {
+    testWidgets('source code opens github cocoon url',
+        (WidgetTester tester) async {
       configureView(tester.view);
       await tester.pumpWidget(
         const MaterialApp(
@@ -108,13 +114,16 @@ void main() {
       await tester.pumpWidget(const FakeInserter(child: MyApp()));
 
       void test({required bool isHome}) {
-        final ListTile build = tester.widget(find.ancestor(of: find.text('Build'), matching: find.byType(ListTile)));
+        final build = tester.widget(find.ancestor(
+            of: find.text('Build'),
+            matching: find.byType(ListTile))) as ListTile;
         expect(build.selected, !isHome);
       }
 
       await tester.tap(find.byIcon(Icons.menu));
       await tester.pump(); // start animation of drawer opening
-      await tester.pump(const Duration(seconds: 1)); // end animation of drawer opening
+      await tester
+          .pump(const Duration(seconds: 1)); // end animation of drawer opening
       test(isHome: false);
 
       await tester.tap(find.text('Build'));
@@ -123,7 +132,8 @@ void main() {
 
       await tester.tap(find.byIcon(Icons.menu));
       await tester.pump(); // start animation of drawer opening
-      await tester.pump(const Duration(seconds: 1)); // end animation of drawer opening
+      await tester
+          .pump(const Duration(seconds: 1)); // end animation of drawer opening
       test(isHome: false);
     });
   });

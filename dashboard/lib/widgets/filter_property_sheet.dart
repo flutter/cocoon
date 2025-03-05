@@ -30,7 +30,8 @@ abstract mixin class FilterPropertyNode {
 /// predicates for filtering data in a dashboard or other list.
 ///
 /// @see [RegExpFilterProperty], [BoolFilterProperty]
-abstract class ValueFilterProperty<T> extends ValueListenable<T> with FilterPropertyNode {
+abstract class ValueFilterProperty<T> extends ValueListenable<T>
+    with FilterPropertyNode {
   ValueFilterProperty({required this.fieldName, this.label});
 
   /// The name of the field represented by this property, used to import and export
@@ -67,7 +68,7 @@ abstract class ValueFilterProperty<T> extends ValueListenable<T> with FilterProp
   /// Notify all listeners that the value of the property has changed.
   void notifyListeners() {
     if (_listeners != null) {
-      for (final VoidCallback listener in _listeners!) {
+      for (final listener in _listeners!) {
         listener();
       }
     }
@@ -76,7 +77,11 @@ abstract class ValueFilterProperty<T> extends ValueListenable<T> with FilterProp
 
 /// A class used to represent a Regular Expression property in the filter object.
 class RegExpFilterProperty extends ValueFilterProperty<String?> {
-  RegExpFilterProperty({required super.fieldName, super.label, String? value, bool caseSensitive = true})
+  RegExpFilterProperty(
+      {required super.fieldName,
+      super.label,
+      String? value,
+      bool caseSensitive = true})
       : _value = value,
         _caseSensitive = caseSensitive;
 
@@ -126,8 +131,10 @@ class RegExpFilterProperty extends ValueFilterProperty<String?> {
   /// The value of this property as a [RegExp] object, useful for matching its pattern
   /// against candidate values in the list being filtered.
   RegExp? _regExp;
-  RegExp? get regExp => _regExp ??= _value == null ? null : RegExp(_value!, caseSensitive: _caseSensitive);
-  set regExp(RegExp? newRegExp) => value = newRegExp == null || newRegExp.pattern == '' ? null : newRegExp.pattern;
+  RegExp? get regExp => _regExp ??=
+      _value == null ? null : RegExp(_value!, caseSensitive: _caseSensitive);
+  set regExp(RegExp? newRegExp) => value =
+      newRegExp == null || newRegExp.pattern == '' ? null : newRegExp.pattern;
 
   /// True iff the value, interpreted as a regular expression, matches the candidate [String].
   bool matches(String candidate) => regExp?.hasMatch(candidate) ?? true;
@@ -322,7 +329,8 @@ class FilterPropertySheetState extends State<FilterPropertySheet> {
             0: IntrinsicColumnWidth(),
             1: FixedColumnWidth(300.0),
           },
-          children: widget.propertySource!.sheetLayout.map(_makeTableRow).toList(),
+          children:
+              widget.propertySource!.sheetLayout.map(_makeTableRow).toList(),
         ),
       ],
     );

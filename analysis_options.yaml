@@ -1,36 +1,24 @@
 # Specify analysis options for all of flutter/cocoon
 #
-# Until there are meta linter rules, each desired lint must be explicitly enabled.
-# See: https://github.com/dart-lang/linter/issues/288
-#
-# For a list of lints, see: http://dart-lang.github.io/linter/lints/
-# See the configuration guide for more
-# https://github.com/dart-lang/sdk/tree/master/pkg/analyzer#configuring-the-analyzer
-#
-# There are other similar analysis options files in the flutter repos,
-# which should be kept in sync with this file:
-#
-#   - analysis_options.yaml (this file)
-#   - packages/flutter/lib/analysis_options_user.yaml
-#   - https://github.com/flutter/packages/blob/main/analysis_options.yaml
-#   - https://github.com/flutter/engine/blob/main/analysis_options.yaml
-#
-# This file contains the analysis options used by Flutter tools, such as IntelliJ,
-# Android Studio, and the `flutter analyze` command.
-include: package:flutter_lints/flutter.yaml
-
-formatter:
-  page_width: 120
+# For a list of lints, see: http://dart-lang.github.io/linter/lints/.
+# For guidelines on configuring static analysis, see: https://dart.dev/tools/analysis.
+include: package:dart_flutter_team_lints/analysis_options.yaml
 
 analyzer:
-  language:
-    strict-casts: false
-    strict-raw-types: true
   errors:
-    # treat missing required parameters as a warning (not a hint)
-    missing_required_param: warning
-    # allow having TODOs in the code
-    todo: ignore
+    # TODO(matanlurey): Ignore for now, we have a lot of pre-existing violations.
+    avoid_dynamic_calls: ignore
+    argument_type_not_assignable: ignore
+    comment_references: ignore
+    inference_failure_on_collection_literal: ignore
+    inference_failure_on_function_invocation: ignore
+    inference_failure_on_function_return_type: ignore
+    inference_failure_on_instance_creation: ignore
+    inference_failure_on_untyped_parameter: ignore
+    invalid_assignment: ignore
+    lines_longer_than_80_chars: ignore
+    only_throw_errors: ignore
+    return_of_invalid_type: ignore
   exclude:
     - ".dart_tool/**"
     - "**/*.g.dart"
@@ -41,14 +29,3 @@ analyzer:
     - "**/*.pbenum.dart"
     - "lib/generated_plugin_registrant.dart"
     - "test/**/mocks.mocks.dart"
-
-linter:
-  rules:
-    use_super_parameters: true
-    prefer_final_fields: true
-    prefer_final_locals: true
-    prefer_single_quotes: true
-    require_trailing_commas: true
-    unawaited_futures: true
-    unnecessary_await_in_return: true
-    directives_ordering: true
