@@ -392,14 +392,14 @@ class LuciBuildService {
     );
 
     final Iterable<bbv2.Build> builds = await getTryBuildsByPullRequest(pullRequest: pullRequest);
-    log.info('Found ${builds.length} builds.');
 
     if (builds.isEmpty) {
-      log.warning(
+      log.info(
         'No builds were found for pull request ${pullRequest.base!.repo!.fullName}.',
       );
       return;
     }
+    log.info('Found ${builds.length} builds.');
 
     final List<bbv2.BatchRequest_Request> requests = <bbv2.BatchRequest_Request>[];
     for (bbv2.Build build in builds) {
