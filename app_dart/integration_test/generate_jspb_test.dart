@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -26,7 +27,9 @@ Future<void> main() async {
 
     // Update expectations file
     final File jspbExpectationsFile = File('integration_test/data/cocoon_config.json');
-    jspbExpectationsFile.writeAsStringSync(generateResult.stdout as String);
+    jspbExpectationsFile.writeAsStringSync(
+      '${const JsonEncoder.withIndent('  ').convert(jsonDecode(generateResult.stdout as String))}\n',
+    );
 
     expectNoDiff(jspbExpectationsFile.path);
   });
