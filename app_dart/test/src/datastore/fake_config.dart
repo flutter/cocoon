@@ -119,8 +119,7 @@ class FakeConfig implements Config {
   Future<gh.GitHub> createGitHubClient({
     gh.PullRequest? pullRequest,
     gh.RepositorySlug? slug,
-  }) async =>
-      githubClient!;
+  }) async => githubClient!;
 
   @override
   gh.GitHub createGitHubClientWithToken(String token) => githubClient!;
@@ -303,8 +302,9 @@ class FakeConfig implements Config {
   String get releaseCandidateBranchPath => releaseCandidateBranchPathValue!;
 
   @override
-  Future<List<String>> get releaseAccounts async =>
-      <String>['dart-flutter-releaser'];
+  Future<List<String>> get releaseAccounts async => <String>[
+    'dart-flutter-releaser',
+  ];
 
   @override
   Set<gh.RepositorySlug> get supportedRepos =>

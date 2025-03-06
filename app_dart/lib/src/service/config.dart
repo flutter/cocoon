@@ -185,7 +185,8 @@ class Config {
   List<String> get releaseBranches => const ['stable', 'beta', 'staging'];
 
   /// What file, in `flutter/flutter`, defines the releaes candidate branch.
-  String get releaseCandidateBranchPath => 'bin/internal/release-candidate-branch.version';
+  String get releaseCandidateBranchPath =>
+      'bin/internal/release-candidate-branch.version';
 
   DatastoreDB get db => _db;
 
