@@ -13,30 +13,31 @@ import 'utils.dart';
 ///
 /// The `swarming` user auto login is required for Flutter desktop tests which need to run
 /// GUI application on Mac.
-Future<HealthCheckResult> userAutoLoginCheck(
-    {ProcessManager? processManager}) async {
+Future<HealthCheckResult> userAutoLoginCheck({
+  ProcessManager? processManager,
+}) async {
   HealthCheckResult healthCheckResult;
   try {
-    final user = await eval(
-      'defaults',
-      <String>[
-        'read',
-        '/Library/Preferences/com.apple.loginwindow',
-        'autoLoginUser'
-      ],
-      processManager: processManager,
-    );
+    final user = await eval('defaults', <String>[
+      'read',
+      '/Library/Preferences/com.apple.loginwindow',
+      'autoLoginUser',
+    ], processManager: processManager);
     // User `swarming` is expected setup for Mac bot auto login.
     if (user == 'swarming') {
       healthCheckResult = HealthCheckResult.success(kUserAutoLoginCheckKey);
     } else {
       healthCheckResult = HealthCheckResult.failure(
-          kUserAutoLoginCheckKey, 'swarming user is not setup for auto login');
+        kUserAutoLoginCheckKey,
+        'swarming user is not setup for auto login',
+      );
     }
     // ignore: avoid_catching_errors
   } on BuildFailedException catch (error) {
-    healthCheckResult =
-        HealthCheckResult.failure(kUserAutoLoginCheckKey, error.toString());
+    healthCheckResult = HealthCheckResult.failure(
+      kUserAutoLoginCheckKey,
+      error.toString(),
+    );
   }
   return healthCheckResult;
 }

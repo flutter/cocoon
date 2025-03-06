@@ -19,7 +19,8 @@ void main() {
 
     test('with multiple matched lines', () async {
       pattern = 'abc';
-      from = 'abc\n'
+      from =
+          'abc\n'
           'def\n'
           'abcd';
       expect(grep(pattern, from: from), equals(<String>['abc', 'abcd']));
@@ -39,12 +40,18 @@ void main() {
       sb.writeln('abc');
       output = <List<int>>[utf8.encode(sb.toString())];
       final Process process = FakeProcess(123, out: output);
-      when(processManager.start(any,
-              workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
+      when(
+        processManager.start(
+          any,
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => Future.value(process));
 
-      final proc = await startProcess('abc', <String>['a', 'b', 'c'],
-          processManager: processManager);
+      final proc = await startProcess('abc', <String>[
+        'a',
+        'b',
+        'c',
+      ], processManager: processManager);
       expect(proc, process);
     });
   });
@@ -63,11 +70,17 @@ void main() {
       sb.writeln('abc');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
-      when(processManager.start(any,
-              workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
-      final result = await eval('abc', <String>['a', 'b', 'c'],
-          processManager: processManager);
+      when(
+        processManager.start(
+          any,
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => Future.value(process));
+      final result = await eval('abc', <String>[
+        'a',
+        'b',
+        'c',
+      ], processManager: processManager);
       expect('$result\n', sb.toString());
     });
 
@@ -96,33 +109,43 @@ void main() {
       const path = '/abc/def/ideviceinstaller';
       output = <List<int>>[utf8.encode(path)];
       final Process process = FakeProcess(0, out: output);
-      when(processManager.start(<String>['which', 'ideviceinstaller'],
-              workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
+      when(
+        processManager.start(<String>[
+          'which',
+          'ideviceinstaller',
+        ], workingDirectory: anyNamed('workingDirectory')),
+      ).thenAnswer((_) => Future.value(process));
 
-      final result = await getMacBinaryPath('ideviceinstaller',
-          processManager: processManager);
+      final result = await getMacBinaryPath(
+        'ideviceinstaller',
+        processManager: processManager,
+      );
       expect(result, path);
     });
 
-    test('throws exception when binary does not exist in any location',
-        () async {
-      final Process processM1 = FakeProcess(1, out: <List<int>>[]);
-      final Process processDefault = FakeProcess(1, out: <List<int>>[]);
-      when(processManager.start(<String>['which', 'ideviceinstaller'],
-              workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(processDefault));
-      when(
-        processManager.start(
-          <String>['which', 'ideviceinstaller'],
-          workingDirectory: anyNamed('workingDirectory'),
-        ),
-      ).thenAnswer((_) => Future.value(processM1));
+    test(
+      'throws exception when binary does not exist in any location',
+      () async {
+        final Process processM1 = FakeProcess(1, out: <List<int>>[]);
+        final Process processDefault = FakeProcess(1, out: <List<int>>[]);
+        when(
+          processManager.start(<String>[
+            'which',
+            'ideviceinstaller',
+          ], workingDirectory: anyNamed('workingDirectory')),
+        ).thenAnswer((_) => Future.value(processDefault));
+        when(
+          processManager.start(<String>[
+            'which',
+            'ideviceinstaller',
+          ], workingDirectory: anyNamed('workingDirectory')),
+        ).thenAnswer((_) => Future.value(processM1));
 
-      expect(
-        getMacBinaryPath('ideviceinstaller', processManager: processManager),
-        throwsA(const TypeMatcher<BuildFailedException>()),
-      );
-    });
+        expect(
+          getMacBinaryPath('ideviceinstaller', processManager: processManager),
+          throwsA(const TypeMatcher<BuildFailedException>()),
+        );
+      },
+    );
   });
 }

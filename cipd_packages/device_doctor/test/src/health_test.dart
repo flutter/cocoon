@@ -22,8 +22,9 @@ void main() {
 
     test('succeeded', () async {
       final Process proc = FakeProcess(0);
-      when(pm.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(proc));
+      when(
+        pm.start(any, workingDirectory: anyNamed('workingDirectory')),
+      ).thenAnswer((_) => Future.value(proc));
 
       final res = await closeIosDialog(pm: pm);
 
@@ -32,8 +33,9 @@ void main() {
 
     test('succeeded with code signing overwrite', () async {
       final Process proc = FakeProcess(0);
-      when(pm.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(proc));
+      when(
+        pm.start(any, workingDirectory: anyNamed('workingDirectory')),
+      ).thenAnswer((_) => Future.value(proc));
       final platform.Platform pl = platform.FakePlatform(
         environment: <String, String>{
           'FLUTTER_XCODE_CODE_SIGN_STYLE': 'Manual',
@@ -49,8 +51,9 @@ void main() {
 
     test('failed', () async {
       final Process proc = FakeProcess(123);
-      when(pm.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(proc));
+      when(
+        pm.start(any, workingDirectory: anyNamed('workingDirectory')),
+      ).thenAnswer((_) => Future.value(proc));
 
       expect(
         closeIosDialog(pm: pm),
@@ -60,8 +63,9 @@ void main() {
 
     test('tool is not found', () async {
       final Process proc = FakeProcess(123);
-      when(pm.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(proc));
+      when(
+        pm.start(any, workingDirectory: anyNamed('workingDirectory')),
+      ).thenAnswer((_) => Future.value(proc));
 
       expect(
         closeIosDialog(pm: pm, infraDialog: 'abc'),
@@ -82,7 +86,7 @@ void main() {
       expect(healthcheckMap, <String, Map<String, dynamic>>{
         kAttachedDeviceHealthcheckKey: <String, dynamic>{
           'status': false,
-          'details': kAttachedDeviceHealthcheckValue
+          'details': kAttachedDeviceHealthcheckValue,
         },
       });
     });
@@ -97,7 +101,7 @@ void main() {
       expect(healthcheckMap, <String, Map<String, dynamic>>{
         kAttachedDeviceHealthcheckKey: <String, dynamic>{
           'status': true,
-          'details': null
+          'details': null,
         },
         'check1': <String, dynamic>{'status': true, 'details': null},
         'check2': <String, dynamic>{'status': false, 'details': 'abc'},
@@ -114,7 +118,7 @@ void main() {
       expect(healthcheckMap, <String, Map<String, dynamic>>{
         kAttachedDeviceHealthcheckKey: <String, dynamic>{
           'status': true,
-          'details': null
+          'details': null,
         },
         'check1': <String, dynamic>{'status': true, 'details': null},
         'check2': <String, dynamic>{'status': true, 'details': null},

@@ -29,8 +29,9 @@ Future<void> run(List<String> arguments) async {
     return true;
   }());
   if (!assertsEnabled) {
-    exitWithError(
-        <String>['The analyze.dart script must be run with --enable-asserts.']);
+    exitWithError(<String>[
+      'The analyze.dart script must be run with --enable-asserts.',
+    ]);
   }
 
   print('Trailing spaces...');
@@ -49,31 +50,39 @@ Future<void> verifyNoTrailingSpaces(
   String workingDirectory, {
   int minimumMatches = 100,
 }) async {
-  final files = await _allFiles(workingDirectory, null,
-          minimumMatches: minimumMatches)
-      .where((File file) => path.basename(file.path) != 'serviceaccount.enc')
-      .where((File file) => path.basename(file.path) != 'Ahem.ttf')
-      .where((File file) => path.extension(file.path) != '.snapshot')
-      .where((File file) => path.extension(file.path) != '.png')
-      .where((File file) => path.extension(file.path) != '.jpg')
-      .where((File file) => path.extension(file.path) != '.ico')
-      .where((File file) => path.extension(file.path) != '.jar')
-      .where((File file) => path.extension(file.path) != '.swp')
-      .where((File file) => path.extension(file.path) != '.zip')
-      .where((File file) => !path.basename(file.path).endsWith('pbserver.dart'))
-      .where((File file) => !path.basename(file.path).endsWith('pb.dart'))
-      .where((File file) => !path.basename(file.path).endsWith('pbenum.dart'))
-      .toList();
+  final files =
+      await _allFiles(workingDirectory, null, minimumMatches: minimumMatches)
+          .where(
+            (File file) => path.basename(file.path) != 'serviceaccount.enc',
+          )
+          .where((File file) => path.basename(file.path) != 'Ahem.ttf')
+          .where((File file) => path.extension(file.path) != '.snapshot')
+          .where((File file) => path.extension(file.path) != '.png')
+          .where((File file) => path.extension(file.path) != '.jpg')
+          .where((File file) => path.extension(file.path) != '.ico')
+          .where((File file) => path.extension(file.path) != '.jar')
+          .where((File file) => path.extension(file.path) != '.swp')
+          .where((File file) => path.extension(file.path) != '.zip')
+          .where(
+            (File file) => !path.basename(file.path).endsWith('pbserver.dart'),
+          )
+          .where((File file) => !path.basename(file.path).endsWith('pb.dart'))
+          .where(
+            (File file) => !path.basename(file.path).endsWith('pbenum.dart'),
+          )
+          .toList();
   final problems = <String>[];
   for (final file in files) {
     final lines = file.readAsLinesSync();
     for (var index = 0; index < lines.length; index += 1) {
       if (lines[index].endsWith(' ')) {
-        problems
-            .add('${file.path}:${index + 1}: trailing U+0020 space character');
+        problems.add(
+          '${file.path}:${index + 1}: trailing U+0020 space character',
+        );
       } else if (lines[index].endsWith('\t')) {
-        problems
-            .add('${file.path}:${index + 1}: trailing U+0009 tab character');
+        problems.add(
+          '${file.path}:${index + 1}: trailing U+0009 tab character',
+        );
       }
     }
     if (lines.isNotEmpty && lines.last == '') {
@@ -86,13 +95,17 @@ Future<void> verifyNoTrailingSpaces(
 Future<void> verifyProtos(Directory workingDirectory) async {
   final errors = <String>[];
   final protos =
-      await _allFiles(workingDirectory.path, 'proto', minimumMatches: 1)
-          .toList();
+      await _allFiles(
+        workingDirectory.path,
+        'proto',
+        minimumMatches: 1,
+      ).toList();
   for (final proto in protos) {
     final content = proto.readAsStringSync();
     if (!content.contains(RegExp(r'package\ \w+;'))) {
       errors.add(
-          '${proto.path} requires a package (https://protobuf.dev/programming-guides/proto2/#packages)');
+        '${proto.path} requires a package (https://protobuf.dev/programming-guides/proto2/#packages)',
+      );
     }
   }
 
@@ -106,8 +119,10 @@ Future<void> verifyProtos(Directory workingDirectory) async {
 
 // UTILITY FUNCTIONS
 
-Future<List<File>> _gitFiles(String workingDirectory,
-    {bool runSilently = true}) async {
+Future<List<File>> _gitFiles(
+  String workingDirectory, {
+  bool runSilently = true,
+}) async {
   final evalResult = await _evalCommand(
     'git',
     <String>['ls-files', '-z'],
@@ -128,18 +143,27 @@ Future<List<File>> _gitFiles(String workingDirectory,
   filenames.removeLast();
   return filenames
       .map<File>(
-          (String filename) => fs.file(path.join(workingDirectory, filename)))
+        (String filename) => fs.file(path.join(workingDirectory, filename)),
+      )
       .toList();
 }
 
-Stream<File> _allFiles(String workingDirectory, String? extension,
-    {required int minimumMatches}) async* {
+Stream<File> _allFiles(
+  String workingDirectory,
+  String? extension, {
+  required int minimumMatches,
+}) async* {
   final gitFileNamesSet = <String>{};
-  gitFileNamesSet.addAll((await _gitFiles(workingDirectory))
-      .map((File f) => path.canonicalize(f.absolute.path)));
+  gitFileNamesSet.addAll(
+    (await _gitFiles(
+      workingDirectory,
+    )).map((File f) => path.canonicalize(f.absolute.path)),
+  );
 
-  assert(extension == null || !extension.startsWith('.'),
-      'Extension argument should not start with a period.');
+  assert(
+    extension == null || !extension.startsWith('.'),
+    'Extension argument should not start with a period.',
+  );
   final pending = <FileSystemEntity>{fs.directory(workingDirectory)};
   var matches = 0;
   while (pending.isNotEmpty) {
@@ -177,11 +201,7 @@ Stream<File> _allFiles(String workingDirectory, String? extension,
 }
 
 class EvalResult {
-  EvalResult({
-    required this.stdout,
-    required this.stderr,
-    this.exitCode = 0,
-  });
+  EvalResult({required this.stdout, required this.stderr, this.exitCode = 0});
 
   final String stdout;
   final String stderr;
@@ -217,15 +237,18 @@ Future<EvalResult> _evalCommand(
   final exitCode = await process.exitCode;
   final result = EvalResult(
     stdout: utf8.decode(
-        (await savedStdout).expand<int>((List<int> ints) => ints).toList()),
+      (await savedStdout).expand<int>((List<int> ints) => ints).toList(),
+    ),
     stderr: utf8.decode(
-        (await savedStderr).expand<int>((List<int> ints) => ints).toList()),
+      (await savedStderr).expand<int>((List<int> ints) => ints).toList(),
+    ),
     exitCode: exitCode,
   );
 
   if (!runSilently) {
     print(
-        'ELAPSED TIME: ${time.elapsed} for $commandDescription in $relativeWorkingDir');
+      'ELAPSED TIME: ${time.elapsed} for $commandDescription in $relativeWorkingDir',
+    );
   }
 
   if (exitCode != 0 && !allowNonZeroExit) {
@@ -272,12 +295,10 @@ Future<void> _checkForNewExecutables() async {
   // 0b001001001
   const executableBitMask = 0x49;
   final files = await _gitFiles(cocoonRoot.path);
-  final relativePaths = files.map<String>((File file) {
-    return path.relative(
-      file.path,
-      from: cocoonRoot.path,
-    );
-  }).toList();
+  final relativePaths =
+      files.map<String>((File file) {
+        return path.relative(file.path, from: cocoonRoot.path);
+      }).toList();
   for (var allowed in kExecutableAllowlist) {
     if (!relativePaths.contains(allowed)) {
       throw Exception(
@@ -289,24 +310,23 @@ Future<void> _checkForNewExecutables() async {
   var unexpectedExecutableCount = 0;
   var unexpectedShebangShellCount = 0;
   for (final file in files) {
-    final relativePath = path.relative(
-      file.path,
-      from: cocoonRoot.path,
-    );
+    final relativePath = path.relative(file.path, from: cocoonRoot.path);
     final stat = file.statSync();
     final isExecutable = stat.mode & executableBitMask != 0x0;
     final inAllowList = kExecutableAllowlist.contains(relativePath);
     if (isExecutable && !inAllowList) {
       unexpectedExecutableCount += 1;
       print(
-          '$relativePath is executable: ${(stat.mode & 0x1FF).toRadixString(2)}');
+        '$relativePath is executable: ${(stat.mode & 0x1FF).toRadixString(2)}',
+      );
     }
     if (inAllowList && file.path.endsWith('.sh')) {
       final shebang = file.readAsLinesSync().first;
       if (!shebang.startsWith(RegExp(kShebangRegex))) {
         unexpectedShebangShellCount += 1;
         print(
-            "$relativePath has the initial line of $shebang, which doesn't match '$kShebangRegex'");
+          "$relativePath has the initial line of $shebang, which doesn't match '$kShebangRegex'",
+        );
       }
     }
   }

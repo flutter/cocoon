@@ -32,9 +32,7 @@ class DiagnoseCommand extends Command<bool> {
   @override
   Future<bool> run() async {
     final command = <String>['xcrun', 'xcdevice', 'list'];
-    final result = await processManager.run(
-      command,
-    );
+    final result = await processManager.run(command);
     if (result.exitCode != 0) {
       logger.severe(
         '$command failed with exit code ${result.exitCode}\n${result.stderr}',
@@ -44,8 +42,9 @@ class DiagnoseCommand extends Command<bool> {
     final stdout = result.stdout as String;
     logger.info(stdout);
     final devices = XCDevice.parseJson(stdout);
-    final devicesWithErrors =
-        devices.where((XCDevice device) => device.hasError);
+    final devicesWithErrors = devices.where(
+      (XCDevice device) => device.hasError,
+    );
 
     if (devicesWithErrors.isNotEmpty) {
       logger.severe('Found devices with errors!');
@@ -100,12 +99,13 @@ class RecoverCommand extends Command<bool> {
   Directory get dashboardXcWorkspace {
     final String cocoonRootPath = argResults!['cocoon-root'];
     final cocoonRoot = fs.directory(cocoonRootPath);
-    final dashboardXcWorkspace = cocoonRoot
-        .childDirectory('dashboard')
-        .childDirectory('ios')
-        .childDirectory('Runner.xcodeproj')
-        .childDirectory('project.xcworkspace')
-        .absolute;
+    final dashboardXcWorkspace =
+        cocoonRoot
+            .childDirectory('dashboard')
+            .childDirectory('ios')
+            .childDirectory('Runner.xcodeproj')
+            .childDirectory('project.xcworkspace')
+            .absolute;
     if (!dashboardXcWorkspace.existsSync()) {
       throw StateError(
         'You provided the --cocoon-root option with "$cocoonRootPath", and the device doctor tried to '
@@ -121,7 +121,8 @@ class RecoverCommand extends Command<bool> {
     final timeoutSeconds = int.tryParse(argResults!['timeout']);
     if (timeoutSeconds == null) {
       throw ArgumentError(
-          'Could not parse an integer from the option --timeout="${argResults!['timeout']}"');
+        'Could not parse an integer from the option --timeout="${argResults!['timeout']}"',
+      );
     }
 
     _deleteSymbols();
@@ -137,17 +138,20 @@ class RecoverCommand extends Command<bool> {
     final String runFirstLaunchStdout = runFirstLaunchResult.stdout.trim();
     if (runFirstLaunchStdout.isNotEmpty) {
       logger.info(
-          'stdout from `xcodebuild -runFirstLaunch`:\n$runFirstLaunchStdout\n');
+        'stdout from `xcodebuild -runFirstLaunch`:\n$runFirstLaunchStdout\n',
+      );
     }
     final String runFirstLaunchStderr = runFirstLaunchResult.stderr.trim();
     if (runFirstLaunchStderr.isNotEmpty) {
       logger.info(
-          'stderr from `xcodebuild -runFirstLaunch`:\n$runFirstLaunchStderr\n');
+        'stderr from `xcodebuild -runFirstLaunch`:\n$runFirstLaunchStderr\n',
+      );
     }
     final runFirstLaunchCode = runFirstLaunchResult.exitCode;
     if (runFirstLaunchCode != 0) {
       logger.info(
-          'Failed running `xcodebuild -runFirstLaunch` with code $runFirstLaunchCode!');
+        'Failed running `xcodebuild -runFirstLaunch` with code $runFirstLaunchCode!',
+      );
       return false;
     }
 
@@ -199,11 +203,13 @@ class RecoverCommand extends Command<bool> {
       logger.warning('\$HOME path was not found');
       return;
     }
-    final deviceSupportDirectory =
-        fs.directory('$home/Library/Developer/Xcode/iOS DeviceSupport');
+    final deviceSupportDirectory = fs.directory(
+      '$home/Library/Developer/Xcode/iOS DeviceSupport',
+    );
     if (!deviceSupportDirectory.existsSync()) {
       logger.warning(
-          'iOS Device Support directory was not found at ${deviceSupportDirectory.path}');
+        'iOS Device Support directory was not found at ${deviceSupportDirectory.path}',
+      );
       return;
     }
     logger.info('Deleting iOS DeviceSupport...');
@@ -223,10 +229,7 @@ class RecoverCommand extends Command<bool> {
 /// recommended to make all fields nullable in case a different version of Xcode
 /// does not implement it.
 class XCDevice {
-  const XCDevice._({
-    required this.error,
-    required this.name,
-  });
+  const XCDevice._({required this.error, required this.name});
 
   static const String _debugSymbolDescriptionPattern =
       r' is busy: Fetching debug symbols for ';

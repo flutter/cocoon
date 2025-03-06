@@ -18,12 +18,13 @@ Future<void> main(List<String> args) async {
     stdout.writeln(record.toString());
   });
 
-  final runner = CommandRunner<bool>(
-    'ios-debug-symbol-doctor',
-    'Tool for diagnosing and recovering from iOS debug symbols not synched with the host by Xcode',
-  )
-    ..addCommand(DiagnoseCommand())
-    ..addCommand(RecoverCommand());
+  final runner =
+      CommandRunner<bool>(
+          'ios-debug-symbol-doctor',
+          'Tool for diagnosing and recovering from iOS debug symbols not synched with the host by Xcode',
+        )
+        ..addCommand(DiagnoseCommand())
+        ..addCommand(RecoverCommand());
 
   final success = await runner.run(args);
   exit(success == true ? 0 : 1);

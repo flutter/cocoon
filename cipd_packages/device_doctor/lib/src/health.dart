@@ -38,11 +38,14 @@ Future<HealthCheckResult> closeIosDialog({
     // signing config if one exists in the environment.
     if (pl.environment['FLUTTER_XCODE_CODE_SIGN_STYLE'] != null) {
       command.add(
-          "CODE_SIGN_STYLE=${pl.environment['FLUTTER_XCODE_CODE_SIGN_STYLE']}");
+        "CODE_SIGN_STYLE=${pl.environment['FLUTTER_XCODE_CODE_SIGN_STYLE']}",
+      );
       command.add(
-          "DEVELOPMENT_TEAM=${pl.environment['FLUTTER_XCODE_DEVELOPMENT_TEAM']}");
+        "DEVELOPMENT_TEAM=${pl.environment['FLUTTER_XCODE_DEVELOPMENT_TEAM']}",
+      );
       command.add(
-          "PROVISIONING_PROFILE_SPECIFIER=${pl.environment['FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER']}");
+        "PROVISIONING_PROFILE_SPECIFIER=${pl.environment['FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER']}",
+      );
     }
     final proc = await pm.start(command, workingDirectory: dialogDir.path);
     final exitCode = await proc.exitCode;
@@ -58,8 +61,8 @@ class HealthCheckResult {
   HealthCheckResult.success(this.name, [this.details]) : succeeded = true;
   HealthCheckResult.failure(this.name, this.details) : succeeded = false;
   HealthCheckResult.error(this.name, dynamic error, dynamic stackTrace)
-      : succeeded = false,
-        details = 'ERROR: $error\n${stackTrace ?? ''}';
+    : succeeded = false,
+      details = 'ERROR: $error\n${stackTrace ?? ''}';
 
   final String name;
   final bool succeeded;
@@ -82,7 +85,8 @@ class HealthCheckResult {
 
 /// Check healthiness for discovered devices.
 Future<Map<String, Map<String, dynamic>>> healthcheck(
-    Map<String, List<HealthCheckResult>> deviceChecks) async {
+  Map<String, List<HealthCheckResult>> deviceChecks,
+) async {
   final healthcheckMap = <String, Map<String, dynamic>>{};
   if (deviceChecks.isEmpty) {
     healthcheckMap[kAttachedDeviceHealthcheckKey] = <String, dynamic>{
@@ -92,7 +96,7 @@ Future<Map<String, Map<String, dynamic>>> healthcheck(
   } else {
     healthcheckMap[kAttachedDeviceHealthcheckKey] = <String, dynamic>{
       'status': true,
-      'details': null
+      'details': null,
     };
   }
   for (var deviceID in deviceChecks.keys) {

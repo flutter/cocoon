@@ -54,11 +54,14 @@ Directory dir(
   String? part8,
 ]) {
   return Directory(
-      path.join(thePath, part2, part3, part4, part5, part6, part7, part8));
+    path.join(thePath, part2, part3, part4, part5, part6, part7, part8),
+  );
 }
 
 Future<dynamic> inDirectory(
-    dynamic directory, Future<dynamic> Function() action) async {
+  dynamic directory,
+  Future<dynamic> Function() action,
+) async {
   final previousCwd = path.current;
   try {
     cd(directory);
@@ -93,8 +96,11 @@ Future<Process> startProcess(
 }) async {
   late Process proc;
   try {
-    proc = await processManager!.start(<String>[executable, ...arguments],
-        environment: env, workingDirectory: path.current);
+    proc = await processManager!.start(
+      <String>[executable, ...arguments],
+      environment: env,
+      workingDirectory: path.current,
+    );
   } catch (error) {
     fail(error.toString());
   }
@@ -112,8 +118,13 @@ Future<String> eval(
   bool silent = false,
   ProcessManager? processManager = const LocalProcessManager(),
 }) async {
-  final proc = await startProcess(executable, arguments,
-      env: env, silent: silent, processManager: processManager);
+  final proc = await startProcess(
+    executable,
+    arguments,
+    env: env,
+    silent: silent,
+    processManager: processManager,
+  );
   proc.stderr.listen((List<int> data) {
     stderr.add(data);
   });
@@ -162,8 +173,13 @@ Future<String> getMacBinaryPath(
   final additionalPaths = kM1BrewBinPaths.join(':');
   path = '$path:$additionalPaths';
   env['PATH'] = path;
-  final binaryPath = await eval('which', <String>[name],
-      canFail: true, processManager: processManager, env: env);
+  final binaryPath = await eval(
+    'which',
+    <String>[name],
+    canFail: true,
+    processManager: processManager,
+    env: env,
+  );
   // Throws exception when the binary doesn't exist in either location.
   if (binaryPath.isEmpty) {
     fail('$name not found.');

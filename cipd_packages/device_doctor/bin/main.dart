@@ -16,7 +16,7 @@ const List<String> supportedOptions = <String>[
   'healthcheck',
   'prepare',
   'recovery',
-  'properties'
+  'properties',
 ];
 const List<String> supportedDeviceOS = <String>['ios', 'android'];
 const String defaultOutputPath = '.output';
@@ -73,7 +73,7 @@ Future<void> main(List<String> args) async {
       allowed: supportedDeviceOS,
       allowedHelp: {
         'android': 'Available for linux, mac, and windows.',
-        'ios': 'Available for mac.'
+        'ios': 'Available for mac.',
       },
     );
 

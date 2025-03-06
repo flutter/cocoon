@@ -28,7 +28,10 @@ class MockProcessManager extends Mock implements ProcessManager {
   }) {
     return super.noSuchMethod(
       Invocation.method(
-          #start, [command], {#workingDirectory: workingDirectory}),
+        #start,
+        [command],
+        {#workingDirectory: workingDirectory},
+      ),
       returnValue: Future<Process>.value(FakeProcess(0)),
     );
   }
@@ -43,8 +46,10 @@ class MockProcessManager extends Mock implements ProcessManager {
     covariant Encoding? stdoutEncoding = systemEncoding,
     covariant Encoding? stderrEncoding = systemEncoding,
   }) {
-    return super.noSuchMethod(Invocation.method(#runSync, [command]),
-        returnValue: ProcessResult(1, 0, 'abc', 'def'));
+    return super.noSuchMethod(
+      Invocation.method(#runSync, [command]),
+      returnValue: ProcessResult(1, 0, 'abc', 'def'),
+    );
   }
 
   @override
@@ -57,8 +62,10 @@ class MockProcessManager extends Mock implements ProcessManager {
     covariant Encoding? stdoutEncoding = systemEncoding,
     covariant Encoding? stderrEncoding = systemEncoding,
   }) {
-    return super.noSuchMethod(Invocation.method(#run, [command]),
-        returnValue: Future.value(ProcessResult(1, 0, 'abc', 'def')));
+    return super.noSuchMethod(
+      Invocation.method(#run, [command]),
+      returnValue: Future.value(ProcessResult(1, 0, 'abc', 'def')),
+    );
   }
 }
 
@@ -71,9 +78,9 @@ class FakeProcess extends Fake implements Process {
     List<List<int>>? out = const [
       <int>[1, 2, 3],
     ],
-  })  : _exitCode = exitCode,
-        _err = err,
-        _out = out;
+  }) : _exitCode = exitCode,
+       _err = err,
+       _out = out;
 
   final int _exitCode;
   final List<List<int>>? _err;
@@ -116,8 +123,13 @@ class TestLogger implements Logger {
   final Map<Level, List<String>> logs = <Level, List<String>>{};
 
   @override
-  void log(Level logLevel, Object? message,
-      [Object? error, StackTrace? stackTrace, Zone? zone]) {
+  void log(
+    Level logLevel,
+    Object? message, [
+    Object? error,
+    StackTrace? stackTrace,
+    Zone? zone,
+  ]) {
     logs[logLevel] ??= <String>[];
     logs[logLevel]!.add(message.toString());
   }
