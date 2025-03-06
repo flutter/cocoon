@@ -1338,8 +1338,8 @@ void main() {
         action: 'created',
         numberOfPullRequests: 1,
       );
-      final Map<String, dynamic> jsonMap = json.decode(pushMessage.data!);
-      final Map<String, dynamic> jsonSubMap = json.decode(jsonMap['2']);
+      final jsonMap = json.decode(pushMessage.data!) as Map<String, dynamic>;
+      final jsonSubMap = json.decode(jsonMap['2']) as Map<String, dynamic>;
       final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
 
       expect(
@@ -1392,8 +1392,8 @@ void main() {
         action: 'created',
         numberOfPullRequests: 1,
       );
-      final Map<String, dynamic> jsonMap = json.decode(pushMessage.data!);
-      final Map<String, dynamic> jsonSubMap = json.decode(jsonMap['2']);
+      final jsonMap = json.decode(pushMessage.data!) as Map<String, dynamic>;
+      final jsonSubMap = json.decode(jsonMap['2']) as Map<String, dynamic>;
       final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
 
       final taskDocument = generateFirestoreTask(0);
@@ -1710,7 +1710,7 @@ void main() {
           verify(mockBuildBucketClient.scheduleBuild(captureAny)).captured;
       expect(captured.length, 1);
 
-      final bbv2.ScheduleBuildRequest scheduleBuildRequest = captured[0];
+      final scheduleBuildRequest = captured[0] as bbv2.ScheduleBuildRequest;
       expect(scheduleBuildRequest, isNotNull);
       expect(scheduleBuildRequest.hasGitilesCommit(), isFalse);
       final tags = scheduleBuildRequest.tags;
@@ -1746,7 +1746,7 @@ void main() {
           verify(mockBuildBucketClient.scheduleBuild(captureAny)).captured;
       expect(captured.length, 1);
 
-      final bbv2.ScheduleBuildRequest scheduleBuildRequest = captured[0];
+      final scheduleBuildRequest = captured[0] as bbv2.ScheduleBuildRequest;
       expect(scheduleBuildRequest, isNotNull);
       expect(scheduleBuildRequest.hasGitilesCommit(), isTrue);
       final tags = scheduleBuildRequest.tags;

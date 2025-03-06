@@ -1209,8 +1209,9 @@ targets:
             buildBucketUri: anyNamed('buildBucketUri'),
           ),
         ).thenAnswer((realInvocation) async {
-          final bbv2.ScheduleBuildRequest scheduleBuildRequest =
-              realInvocation.positionalArguments[0];
+          final scheduleBuildRequest =
+              realInvocation.positionalArguments[0]
+                  as bbv2.ScheduleBuildRequest;
           // Ensure this is an attempt to schedule a postsubmit build by
           // verifying that bucket == 'prod'.
           expect(scheduleBuildRequest.builder.bucket, equals('prod'));
@@ -1724,7 +1725,7 @@ targets:
                 conclusion: anyNamed('conclusion'),
               ),
             ).thenAnswer((inv) async {
-              final CiStage stage = inv.namedArguments[#stage];
+              final stage = inv.namedArguments[#stage] as CiStage;
               return StagingConclusion(
                 result: switch (stage) {
                   CiStage.fusionEngineBuild => StagingConclusionResult.missing,
@@ -2041,7 +2042,7 @@ targets:
                   conclusion: anyNamed('conclusion'),
                 ),
               ).thenAnswer((inv) async {
-                final CiStage stage = inv.namedArguments[#stage];
+                final stage = inv.namedArguments[#stage] as CiStage;
                 return StagingConclusion(
                   result: switch (stage) {
                     CiStage.fusionEngineBuild =>
@@ -2822,7 +2823,7 @@ targets:
             output: anyNamed('output'),
           ),
         ).thenAnswer((inv) async {
-          final CheckRun checkRun = inv.positionalArguments[2];
+          final checkRun = inv.positionalArguments[2] as CheckRun;
           capturedUpdates.add((
             checkRun.name!,
             inv.namedArguments[#status],

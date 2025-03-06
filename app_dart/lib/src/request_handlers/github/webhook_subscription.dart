@@ -117,11 +117,11 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         break;
       case 'push':
         final event = jsonDecode(webhook.payload) as Map<String, dynamic>;
-        final String branch =
-            event['ref'].split(
+        final branch =
+            (event['ref'] as String).split(
               '/',
             )[2]; // Eg: refs/heads/beta would return beta.
-        final String repository = event['repository']['name'];
+        final repository = event['repository']['name'] as String;
         // If the branch is beta/stable, then a commit wasn't created through a PR,
         // meaning the commit needs to be added to the datastore here instead.
         if (repository == 'flutter' &&

@@ -65,7 +65,9 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
 
     var userDataMap = <String, dynamic>{};
     try {
-      userDataMap = json.decode(String.fromCharCodes(pubSubCallBack.userData));
+      userDataMap =
+          json.decode(String.fromCharCodes(pubSubCallBack.userData))
+              as Map<String, dynamic>;
       log.info('User data was not base64 encoded.');
     } on FormatException {
       userDataMap = UserData.decodeUserDataBytes(pubSubCallBack.userData);

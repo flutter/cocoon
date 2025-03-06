@@ -45,8 +45,8 @@ class CommitService {
   Future<void> handlePushGithubRequest(Map<String, dynamic> pushEvent) async {
     final datastore = datastoreProvider(config.db);
     final slug = RepositorySlug.full(pushEvent['repository']['full_name']);
-    final String sha = pushEvent['head_commit']['id'];
-    final String branch = pushEvent['ref'].split('/')[2];
+    final sha = pushEvent['head_commit']['id'] as String;
+    final branch = pushEvent['ref'].split('/')[2] as String;
     final id = '${slug.fullName}/$branch/$sha';
     final key = datastore.db.emptyKey.append<String>(Commit, id: id);
     final commit = Commit(
