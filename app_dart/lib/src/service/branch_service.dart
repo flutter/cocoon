@@ -99,7 +99,7 @@ interface class BranchService {
   }) async {
     final results = [
       // Always include master -> HEAD.
-      ReleaseBranch(channel: Config.defaultBranch(slug), reference: 'HEAD'),
+      ReleaseBranch(channel: Config.defaultBranch(slug), reference: 'master'),
     ];
 
     // And then for each of these channels, lookup
