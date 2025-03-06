@@ -119,6 +119,8 @@ targets:
 
   - name: Mac ruby
     recipe: cocoon/cipd
+    # TODO(matanlurey): Get help fixing this or delete it. https://github.com/flutter/flutter/issues/164665
+    bringup: true
     timeout: 60
     properties:
       script: cipd_packages/ruby/tools/build.sh
@@ -138,6 +140,8 @@ targets:
 
   - name: Mac_arm64 ruby
     recipe: cocoon/cipd
+    # TODO(matanlurey): Get help fixing this or delete it. https://github.com/flutter/flutter/issues/164665
+    bringup: true
     timeout: 60
     properties:
       script: cipd_packages/ruby/tools/build.sh
