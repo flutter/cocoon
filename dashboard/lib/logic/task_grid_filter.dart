@@ -206,7 +206,8 @@ class TaskGridFilter extends FilterPropertySource {
       return false;
     }
 
-    final bool showAndroid = _allProperties['showAndroid']?.value ?? false;
+    final showAndroid =
+        (_allProperties['showAndroid']?.value as bool?) ?? false;
     final orderedOSFilter = LinkedHashMap<String, bool>.of({
       'ios': _allProperties['showiOS']?.value as bool? ?? false,
       'android': showAndroid,

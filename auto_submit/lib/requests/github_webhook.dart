@@ -67,7 +67,7 @@ class GithubWebhook extends RequestHandler {
     final pullRequest = PullRequest.fromJson(
       body[GithubWebhook.pullRequest] as Map<String, dynamic>,
     );
-    final String action = body[GithubWebhook.action];
+    final action = body[GithubWebhook.action] as String;
     final sender = User.fromJson(
       body[GithubWebhook.sender] as Map<String, dynamic>,
     );

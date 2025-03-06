@@ -91,7 +91,7 @@ class AppEngineCocoonService implements CocoonService {
     }
 
     try {
-      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+      final jsonResponse = jsonDecode(response.body) as Map<String, dynamic>;
       return CocoonResponse<List<CommitStatus>>.data(
         _commitStatusesFromJson(jsonResponse['Statuses']),
       );
@@ -127,7 +127,7 @@ class AppEngineCocoonService implements CocoonService {
     }
 
     try {
-      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+      final jsonResponse = jsonDecode(response.body) as Map<String, dynamic>;
       return CocoonResponse<List<CommitTasksStatus>>.data(
         _commitStatusesFromJsonFirestore(jsonResponse['Statuses']),
       );
@@ -208,13 +208,13 @@ class AppEngineCocoonService implements CocoonService {
     }
 
     try {
-      final List<dynamic> jsonResponse = jsonDecode(response.body);
+      final jsonResponse = jsonDecode(response.body) as List<dynamic>;
       final branches = <Branch>[];
       for (final jsonBranch in jsonResponse.cast<Map<String, dynamic>>()) {
         branches.add(
           Branch()
-            ..branch = jsonBranch['reference']!
-            ..channel = jsonBranch['channel']!,
+            ..branch = jsonBranch['reference']! as String
+            ..channel = jsonBranch['channel']! as String,
         );
       }
       return CocoonResponse<List<Branch>>.data(branches);
@@ -325,7 +325,7 @@ class AppEngineCocoonService implements CocoonService {
 
     for (final jsonCommitStatus
         in jsonCommitStatuses!.cast<Map<String, dynamic>>()) {
-      final Map<String, dynamic> checklist = jsonCommitStatus['Checklist'];
+      final checklist = jsonCommitStatus['Checklist'] as Map<String, dynamic>;
       statuses.add(
         CommitStatus()
           ..commit = _commitFromJson(checklist)
@@ -346,7 +346,7 @@ class AppEngineCocoonService implements CocoonService {
     final statuses = <CommitTasksStatus>[];
     for (final jsonCommitStatus
         in jsonCommitStatuses!.cast<Map<String, dynamic>>()) {
-      final Map<String, dynamic> jsonCommit = jsonCommitStatus['Commit'];
+      final jsonCommit = jsonCommitStatus['Commit'] as Map<String, dynamic>;
 
       statuses.add(
         CommitTasksStatus()
@@ -360,7 +360,7 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   String? _branchFromJson(Map<String, dynamic> jsonChecklist) {
-    final Map<String, dynamic> checklist = jsonChecklist['Checklist'];
+    final checklist = jsonChecklist['Checklist'] as Map<String, dynamic>;
     return checklist['Branch'] as String?;
   }
 
@@ -369,10 +369,9 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   Commit _commitFromJson(Map<String, dynamic> jsonChecklist) {
-    final Map<String, dynamic> checklist = jsonChecklist['Checklist'];
-
-    final Map<String, dynamic> commit = checklist['Commit'];
-    final Map<String, dynamic> author = commit['Author'];
+    final checklist = jsonChecklist['Checklist'] as Map<String, dynamic>;
+    final commit = checklist['Commit'] as Map<String, dynamic>;
+    final author = commit['Author'] as Map<String, dynamic>;
 
     final result =
         Commit()
@@ -394,7 +393,7 @@ class AppEngineCocoonService implements CocoonService {
   CommitDocument _commitFromJsonFirestore(Map<String, dynamic> jsonCommit) {
     final result =
         CommitDocument()
-          ..documentName = jsonCommit[kCommitDocumentName]
+          ..documentName = jsonCommit[kCommitDocumentName] as String
           ..createTimestamp = Int64(jsonCommit[kCommitCreateTimestamp] as int)
           ..sha = jsonCommit[kCommitSha] as String
           ..author = jsonCommit[kCommitAuthor] as String
@@ -438,7 +437,7 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   Task _taskFromJson(Map<String, dynamic> json) {
-    final Map<String, dynamic> taskData = json['Task'];
+    final taskData = json['Task'] as Map<String, dynamic>;
     final objectRequiredCapabilities =
         taskData['RequiredCapabilities'] as List<dynamic>?;
 
@@ -467,7 +466,7 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   TaskDocument _taskFromJsonFirestore(Map<String, dynamic> taskModelData) {
-    final Map<String, dynamic> taskData = taskModelData['Task'];
+    final taskData = taskModelData['Task'] as Map<String, dynamic>;
     final task =
         TaskDocument()
           ..createTimestamp = Int64(taskData[kTaskCreateTimestamp] as int)

@@ -701,7 +701,7 @@ class Engine {
           return;
         }
         if (payload.action.toString() == 'closed') {
-          final int number = payload.issue.number.toInt();
+          final number = payload.issue.number.toInt() as int;
           _issues.remove(number);
           _pendingCleanupIssues.remove(number);
           if (number == _selfTestIssue) {
@@ -758,7 +758,7 @@ class Engine {
   // the data in a change event. This will be approximate until we can actually
   // scan the issue properly in _updateStoreInBackground.
   IssueStats? _updateIssueFromWebhook(String user, dynamic data, DateTime now) {
-    final int number = data.number.toInt();
+    final number = data.number.toInt() as int;
     if (number > _highestKnownIssue) {
       _highestKnownIssue = number;
     }

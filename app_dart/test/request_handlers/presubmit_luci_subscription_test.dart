@@ -451,15 +451,16 @@ void main() {
 
     await tester.post(luciHandler);
 
-    final bbv2.Build build =
+    final build =
         verify(
-          mockLuciBuildService.reschedulePresubmitBuild(
-            build: captureAnyNamed('build'),
-            builderName: anyNamed('builderName'),
-            nextAttempt: anyNamed('nextAttempt'),
-            userDataMap: anyNamed('userDataMap'),
-          ),
-        ).captured[0];
+              mockLuciBuildService.reschedulePresubmitBuild(
+                build: captureAnyNamed('build'),
+                builderName: anyNamed('builderName'),
+                nextAttempt: anyNamed('nextAttempt'),
+                userDataMap: anyNamed('userDataMap'),
+              ),
+            ).captured[0]
+            as bbv2.Build;
 
     // Check that the build.input.properties extracted from build_large_fields
     // contains the git_ref property encoded in the test data.

@@ -95,7 +95,8 @@ class RepositoryConfiguration {
     final dynamic yamlDoc = loadYaml(yaml);
 
     final autoApprovalAccounts = <String>{};
-    final YamlList? yamlAutoApprovalAccounts = yamlDoc[autoApprovalAccountsKey];
+    final yamlAutoApprovalAccounts =
+        yamlDoc[autoApprovalAccountsKey] as YamlList?;
     if (yamlAutoApprovalAccounts != null) {
       for (var element in yamlAutoApprovalAccounts.nodes) {
         autoApprovalAccounts.add(element.value as String);
@@ -107,8 +108,8 @@ class RepositoryConfiguration {
     }
 
     final requiredCheckRunsOnRevert = <String>{};
-    final YamlList? yamlRequiredCheckRuns =
-        yamlDoc[requiredCheckRunsOnRevertKey];
+    final yamlRequiredCheckRuns =
+        yamlDoc[requiredCheckRunsOnRevertKey] as YamlList?;
     if (yamlRequiredCheckRuns != null) {
       for (var element in yamlRequiredCheckRuns.nodes) {
         requiredCheckRunsOnRevert.add(element.value as String);
