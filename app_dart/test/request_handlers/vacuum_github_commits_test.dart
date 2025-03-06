@@ -77,6 +77,13 @@ void main() {
       final githubService = FakeGithubService();
       final tabledataResourceApi = MockTabledataResource();
       mockFirestoreService = MockFirestoreService();
+      when(
+        mockFirestoreService.queryRecentTasksByName(
+          name: anyNamed('name'),
+          limit: anyNamed('limit'),
+        ),
+      ).thenAnswer((_) async => []);
+
       when(tabledataResourceApi.insertAll(any, any, any, any)).thenAnswer((
         _,
       ) async {

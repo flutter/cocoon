@@ -165,7 +165,15 @@ void main() {
       cache = CacheService(inMemory: true);
       getFilesChanged = FakeGetFilesChanged();
       db = FakeDatastoreDB();
+
       mockFirestoreService = MockFirestoreService();
+      when(
+        mockFirestoreService.queryRecentTasksByName(
+          name: anyNamed('name'),
+          limit: anyNamed('limit'),
+        ),
+      ).thenAnswer((_) async => []);
+
       buildStatusService = FakeBuildStatusService(
         commitStatuses: <CommitStatus>[
           CommitStatus(generateCommit(1), const <Stage>[]),

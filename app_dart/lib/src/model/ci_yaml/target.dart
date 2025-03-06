@@ -96,12 +96,12 @@ class Target {
   /// All targets except from [Config.guaranteedSchedulingRepos] run with [BatchPolicy] to reduce queue time.
   SchedulerPolicy get schedulerPolicy {
     if (value.scheduler != pb.SchedulerSystem.cocoon) {
-      return OmitPolicy();
+      return const OmitPolicy();
     }
     if (Config.guaranteedSchedulingRepos.contains(slug)) {
-      return GuaranteedPolicy();
+      return const GuaranteedPolicy();
     }
-    return BatchPolicy();
+    return const BatchPolicy();
   }
 
   /// Get the tags from the defined properties in the ci.

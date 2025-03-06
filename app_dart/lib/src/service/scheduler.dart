@@ -215,7 +215,7 @@ class Scheduler {
     }
 
     final tasks = <Task>[...targetsToTasks(commit, initialTargets)];
-
+    final firestoreService = await config.createFirestoreService();
     final toBeScheduled = <PendingTask>[];
     for (var target in initialTargets) {
       final task = tasks.singleWhere(
@@ -224,11 +224,13 @@ class Scheduler {
       var policy = target.schedulerPolicy;
       // Release branches should run every task
       if (Config.defaultBranch(commit.slug) != commit.branch) {
-        policy = GuaranteedPolicy();
+        policy = const GuaranteedPolicy();
       }
       final priority = await policy.triggerPriority(
-        task: task,
-        datastore: datastore,
+        task.name!,
+        recentTasks: await firestoreService.queryRecentTasksByName(
+          name: task.name!,
+        ),
       );
       if (priority != null) {
         // Mark task as in progress to ensure it isn't scheduled over
@@ -268,7 +270,6 @@ class Scheduler {
       ...taskDocuments,
       commitDocument,
     ], exists: false);
-    final firestoreService = await config.createFirestoreService();
     // TODO(keyonghan): remove try catch logic after validated to work.
     try {
       await firestoreService.writeViaTransaction(writes);
