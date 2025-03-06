@@ -31,15 +31,15 @@ PresubmitUserData _$PresubmitUserDataFromJson(Map<String, dynamic> json) =>
         'builderName': 'builder_name',
         'commitSha': 'commit_sha',
         'commitBranch': 'commit_branch',
-        'userAgent': 'user_agent',
+        'userAgent': 'user_agent'
       },
     );
 
 Map<String, dynamic> _$PresubmitUserDataToJson(PresubmitUserData instance) =>
     <String, dynamic>{
-      'check_run_id': instance.checkRunId,
       'repo_owner': instance.repoOwner,
       'repo_name': instance.repoName,
+      'check_run_id': instance.checkRunId,
       'builder_name': instance.builderName,
       'commit_sha': instance.commitSha,
       'commit_branch': instance.commitBranch,
@@ -52,15 +52,14 @@ PostsubmitUserData _$PostsubmitUserDataFromJson(Map<String, dynamic> json) =>
       json,
       ($checkedConvert) {
         final val = PostsubmitUserData(
-          checkRunId: $checkedConvert('check_run_id', (v) => v as int),
+          checkRunId: $checkedConvert('check_run_id', (v) => v as int?),
           repoName: $checkedConvert('repo_name', (v) => v as String),
           repoOwner: $checkedConvert('repo_owner', (v) => v as String),
           taskKey: $checkedConvert('task_key', (v) => v as String),
           commitKey: $checkedConvert('commit_key', (v) => v as String),
           firestoreTaskDocumentName: $checkedConvert(
-            'firestore_task_document_name',
-            (v) => FirestoreTaskDocumentName._parse(v as String),
-          ),
+              'firestore_task_document_name',
+              (v) => FirestoreTaskDocumentName._parse(v as String)),
         );
         return val;
       },
@@ -70,17 +69,14 @@ PostsubmitUserData _$PostsubmitUserDataFromJson(Map<String, dynamic> json) =>
         'repoOwner': 'repo_owner',
         'taskKey': 'task_key',
         'commitKey': 'commit_key',
-        'firestoreTaskDocumentName': 'firestore_task_document_name',
+        'firestoreTaskDocumentName': 'firestore_task_document_name'
       },
     );
 
 Map<String, dynamic> _$PostsubmitUserDataToJson(PostsubmitUserData instance) {
   final val = <String, dynamic>{
-    'check_run_id': instance.checkRunId,
     'repo_owner': instance.repoOwner,
     'repo_name': instance.repoName,
-    'task_key': instance.taskKey,
-    'commit_key': instance.commitKey,
   };
 
   void writeNotNull(String key, dynamic value) {
@@ -89,9 +85,10 @@ Map<String, dynamic> _$PostsubmitUserDataToJson(PostsubmitUserData instance) {
     }
   }
 
-  writeNotNull(
-    'firestore_task_document_name',
-    FirestoreTaskDocumentName._toJson(instance.firestoreTaskDocumentName),
-  );
+  writeNotNull('check_run_id', instance.checkRunId);
+  val['task_key'] = instance.taskKey;
+  val['commit_key'] = instance.commitKey;
+  writeNotNull('firestore_task_document_name',
+      FirestoreTaskDocumentName._toJson(instance.firestoreTaskDocumentName));
   return val;
 }
