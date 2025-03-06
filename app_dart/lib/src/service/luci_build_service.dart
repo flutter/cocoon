@@ -263,7 +263,6 @@ class LuciBuildService {
         final branches = await gerritService.branches(
           'flutter-review.googlesource.com',
           'recipes',
-          // TODO(matanlurey): Remove fuchsia.* (https://github.com/flutter/flutter/issues/164593).
           filterRegex: 'flutter-.*|fuchsia.*',
         );
         if (branches.contains(proposedVersion.version)) {
