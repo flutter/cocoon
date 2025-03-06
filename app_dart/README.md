@@ -60,7 +60,7 @@ To update the Protocol Buffer generated code:
 2. Format
 
    ```shell
-   dart format --set-exit-if-changed --line-length=120 .
+   dart format .
    ```
 
 3. Remove the unused generated files:
