@@ -9,17 +9,13 @@ part of 'branch_service.dart';
 // **************************************************************************
 
 ReleaseBranch _$ReleaseBranchFromJson(Map<String, dynamic> json) =>
-    $checkedCreate(
-      'ReleaseBranch',
-      json,
-      ($checkedConvert) {
-        final val = ReleaseBranch(
-          channel: $checkedConvert('channel', (v) => v as String),
-          reference: $checkedConvert('reference', (v) => v as String),
-        );
-        return val;
-      },
-    );
+    $checkedCreate('ReleaseBranch', json, ($checkedConvert) {
+      final val = ReleaseBranch(
+        channel: $checkedConvert('channel', (v) => v as String),
+        reference: $checkedConvert('reference', (v) => v as String),
+      );
+      return val;
+    });
 
 Map<String, dynamic> _$ReleaseBranchToJson(ReleaseBranch instance) =>
     <String, dynamic>{

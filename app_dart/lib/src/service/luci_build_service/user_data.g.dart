@@ -31,7 +31,7 @@ PresubmitUserData _$PresubmitUserDataFromJson(Map<String, dynamic> json) =>
         'builderName': 'builder_name',
         'commitSha': 'commit_sha',
         'commitBranch': 'commit_branch',
-        'userAgent': 'user_agent'
+        'userAgent': 'user_agent',
       },
     );
 
@@ -58,8 +58,9 @@ PostsubmitUserData _$PostsubmitUserDataFromJson(Map<String, dynamic> json) =>
           taskKey: $checkedConvert('task_key', (v) => v as String),
           commitKey: $checkedConvert('commit_key', (v) => v as String),
           firestoreTaskDocumentName: $checkedConvert(
-              'firestore_task_document_name',
-              (v) => FirestoreTaskDocumentName._parse(v as String)),
+            'firestore_task_document_name',
+            (v) => FirestoreTaskDocumentName._parse(v as String),
+          ),
         );
         return val;
       },
@@ -69,7 +70,7 @@ PostsubmitUserData _$PostsubmitUserDataFromJson(Map<String, dynamic> json) =>
         'repoOwner': 'repo_owner',
         'taskKey': 'task_key',
         'commitKey': 'commit_key',
-        'firestoreTaskDocumentName': 'firestore_task_document_name'
+        'firestoreTaskDocumentName': 'firestore_task_document_name',
       },
     );
 
@@ -88,7 +89,9 @@ Map<String, dynamic> _$PostsubmitUserDataToJson(PostsubmitUserData instance) {
   writeNotNull('check_run_id', instance.checkRunId);
   val['task_key'] = instance.taskKey;
   val['commit_key'] = instance.commitKey;
-  writeNotNull('firestore_task_document_name',
-      FirestoreTaskDocumentName._toJson(instance.firestoreTaskDocumentName));
+  writeNotNull(
+    'firestore_task_document_name',
+    FirestoreTaskDocumentName._toJson(instance.firestoreTaskDocumentName),
+  );
   return val;
 }
