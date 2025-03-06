@@ -19,8 +19,8 @@ class SubscriptionTester extends RequestHandlerTester {
     super.request,
     FakeAuthenticatedContext? context,
     PushMessage? message,
-  })  : context = context ?? FakeAuthenticatedContext(),
-        message = message ?? const PushMessage();
+  }) : context = context ?? FakeAuthenticatedContext(),
+       message = message ?? const PushMessage();
 
   FakeAuthenticatedContext context;
   PushMessage message;

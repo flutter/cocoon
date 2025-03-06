@@ -14,13 +14,28 @@ import 'task.pb.dart' as $1;
 
 class CommitStatus extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'CommitStatus',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'CommitStatus',
       createEmptyInstance: create)
-    ..aOM<$0.Commit>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'commit',
+    ..aOM<$0.Commit>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'commit',
         subBuilder: $0.Commit.create)
-    ..pc<$1.Task>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'tasks', $pb.PbFieldType.PM,
+    ..pc<$1.Task>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'tasks',
+        $pb.PbFieldType.PM,
         subBuilder: $1.Task.create)
-    ..aOS(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'branch')
+    ..aOS(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'branch')
     ..hasRequiredFields = false;
 
   CommitStatus._() : super();
@@ -41,9 +56,11 @@ class CommitStatus extends $pb.GeneratedMessage {
     }
     return _result;
   }
-  factory CommitStatus.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory CommitStatus.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory CommitStatus.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory CommitStatus.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
@@ -53,14 +70,17 @@ class CommitStatus extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   CommitStatus copyWith(void Function(CommitStatus) updates) =>
-      super.copyWith((message) => updates(message as CommitStatus)) as CommitStatus; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as CommitStatus))
+          as CommitStatus; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static CommitStatus create() => CommitStatus._();
   CommitStatus createEmptyInstance() => create();
-  static $pb.PbList<CommitStatus> createRepeated() => $pb.PbList<CommitStatus>();
+  static $pb.PbList<CommitStatus> createRepeated() =>
+      $pb.PbList<CommitStatus>();
   @$core.pragma('dart2js:noInline')
-  static CommitStatus getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CommitStatus>(create);
+  static CommitStatus getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<CommitStatus>(create);
   static CommitStatus? _defaultInstance;
 
   @$pb.TagNumber(1)

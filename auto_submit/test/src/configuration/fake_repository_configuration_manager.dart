@@ -8,7 +8,8 @@ import 'package:auto_submit/service/config.dart';
 import 'package:github/src/common/model/repos.dart';
 import 'package:neat_cache/neat_cache.dart';
 
-class FakeRepositoryConfigurationManager implements RepositoryConfigurationManager {
+class FakeRepositoryConfigurationManager
+    implements RepositoryConfigurationManager {
   FakeRepositoryConfigurationManager(this.config, this.cache);
 
   String? yamlConfig;
@@ -24,7 +25,9 @@ class FakeRepositoryConfigurationManager implements RepositoryConfigurationManag
   late RepositoryConfiguration? mergedRepositoryConfigurationMock;
 
   @override
-  Future<RepositoryConfiguration> readRepositoryConfiguration(RepositorySlug slug) async {
+  Future<RepositoryConfiguration> readRepositoryConfiguration(
+    RepositorySlug slug,
+  ) async {
     return repositoryConfigurationMock!;
   }
 

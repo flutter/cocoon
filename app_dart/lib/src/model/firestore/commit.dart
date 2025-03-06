@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 
+import '../../../cocoon_service.dart';
 import '../../service/firestore.dart';
 import '../appengine/commit.dart' as datastore;
 
@@ -36,14 +36,12 @@ class Commit extends Document {
     required FirestoreService firestoreService,
     required String documentName,
   }) async {
-    final Document document = await firestoreService.getDocument(documentName);
+    final document = await firestoreService.getDocument(documentName);
     return Commit.fromDocument(commitDocument: document);
   }
 
   /// Create [Commit] from a Commit Document.
-  static Commit fromDocument({
-    required Document commitDocument,
-  }) {
+  static Commit fromDocument({required Document commitDocument}) {
     return Commit()
       ..fields = commitDocument.fields!
       ..name = commitDocument.name!;
@@ -51,7 +49,8 @@ class Commit extends Document {
 
   /// The timestamp (in milliseconds since the Epoch) of when the commit
   /// landed.
-  int? get createTimestamp => int.parse(fields![kCommitCreateTimestampField]!.integerValue!);
+  int? get createTimestamp =>
+      int.parse(fields![kCommitCreateTimestampField]!.integerValue!);
 
   /// The SHA1 hash of the commit.
   String? get sha => fields![kCommitShaField]!.stringValue!;
@@ -73,7 +72,8 @@ class Commit extends Document {
   /// A serializable form of [slug].
   ///
   /// This will be of the form `<org>/<repo>`. e.g. `flutter/flutter`.
-  String? get repositoryPath => fields![kCommitRepositoryPathField]!.stringValue!;
+  String? get repositoryPath =>
+      fields![kCommitRepositoryPathField]!.stringValue!;
 
   /// The branch of the commit.
   String? get branch => fields![kCommitBranchField]!.stringValue!;
@@ -96,16 +96,17 @@ class Commit extends Document {
 
   @override
   String toString() {
-    final StringBuffer buf = StringBuffer()
-      ..write('$runtimeType(')
-      ..write(', $kCommitCreateTimestampField: $createTimestamp')
-      ..write(', $kCommitAuthorField: $author')
-      ..write(', $kCommitAvatarField: $avatar')
-      ..write(', $kCommitBranchField: $branch')
-      ..write(', $kCommitMessageField: $message')
-      ..write(', $kCommitRepositoryPathField: $repositoryPath')
-      ..write(', $kCommitShaField: $sha')
-      ..write(')');
+    final buf =
+        StringBuffer()
+          ..write('$runtimeType(')
+          ..write(', $kCommitCreateTimestampField: $createTimestamp')
+          ..write(', $kCommitAuthorField: $author')
+          ..write(', $kCommitAvatarField: $avatar')
+          ..write(', $kCommitBranchField: $branch')
+          ..write(', $kCommitMessageField: $message')
+          ..write(', $kCommitRepositoryPathField: $repositoryPath')
+          ..write(', $kCommitShaField: $sha')
+          ..write(')');
     return buf.toString();
   }
 }
@@ -118,7 +119,9 @@ Commit commitToCommitDocument(datastore.Commit commit) {
       fields: <String, Value>{
         kCommitAvatarField: Value(stringValue: commit.authorAvatarUrl),
         kCommitBranchField: Value(stringValue: commit.branch),
-        kCommitCreateTimestampField: Value(integerValue: commit.timestamp.toString()),
+        kCommitCreateTimestampField: Value(
+          integerValue: commit.timestamp.toString(),
+        ),
         kCommitAuthorField: Value(stringValue: commit.author),
         kCommitMessageField: Value(stringValue: commit.message),
         kCommitRepositoryPathField: Value(stringValue: commit.repository),

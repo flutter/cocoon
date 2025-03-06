@@ -15,7 +15,13 @@ void main() {
     expect(Json.parse('true').toScalar(), true);
     expect(Json.parse('false').toScalar(), false);
     expect(Json.parse('[1, 2, 3]').toList(), <double>[1.0, 2.0, 3.0]);
-    expect(Json.parse('{"1": 2, "3": 4}').toMap(), <String, double>{'1': 2.0, '3': 4.0});
-    expect((Json.parse('{"a": {"b": {"c": "d"}}}') as dynamic).a.b.c.toString(), 'd');
+    expect(Json.parse('{"1": 2, "3": 4}').toMap(), <String, double>{
+      '1': 2.0,
+      '3': 4.0,
+    });
+    expect(
+      (Json.parse('{"a": {"b": {"c": "d"}}}') as dynamic).a.b.c.toString(),
+      'd',
+    );
   });
 }

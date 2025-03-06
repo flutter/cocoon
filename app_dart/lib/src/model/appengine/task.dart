@@ -53,10 +53,7 @@ class Task extends Model<int> {
   }
 
   /// Construct [Task] from a [Target].
-  factory Task.fromTarget({
-    required Commit commit,
-    required Target target,
-  }) {
+  factory Task.fromTarget({required Commit commit, required Target target}) {
     return Task(
       attempts: 1,
       builderName: target.value.name,
@@ -81,11 +78,14 @@ class Task extends Model<int> {
     if (name.isEmpty) {
       throw const BadRequestException('task name is null');
     }
-    final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey)..filter('name =', name);
-    final List<Task> tasks = await query.run().toList();
+    final query = datastore.db.query<Task>(ancestorKey: commitKey)
+      ..filter('name =', name);
+    final tasks = await query.run().toList();
     if (tasks.length != 1) {
       log.severe('Found ${tasks.length} entries for builder $name');
-      throw InternalServerError('Expected to find 1 task for $name, but found ${tasks.length}');
+      throw InternalServerError(
+        'Expected to find 1 task for $name, but found ${tasks.length}',
+      );
     }
     return tasks.single;
   }
@@ -100,7 +100,7 @@ class Task extends Model<int> {
     required int id,
   }) {
     log.fine('Looking up key...');
-    final Key<int> key = Key<int>(commitKey, Task, id);
+    final key = Key<int>(commitKey, Task, id);
     return datastore.lookupByValue<Task>(key);
   }
 
@@ -138,26 +138,26 @@ class Task extends Model<int> {
   }) async {
     log.fine('Creating task from buildbucket result: ${build.toString()}');
     // Example: Getting "flutter" from "mirrors/flutter".
-    final String repository = build.input.gitilesCommit.project.split('/')[1];
+    final repository = build.input.gitilesCommit.project.split('/')[1];
     log.fine('Repository: $repository');
 
     // Example: Getting "stable" from "refs/heads/stable".
-    final String branch = build.input.gitilesCommit.ref.split('/')[2];
+    final branch = build.input.gitilesCommit.ref.split('/')[2];
     log.fine('Branch: $branch');
 
-    final String hash = build.input.gitilesCommit.id;
+    final hash = build.input.gitilesCommit.id;
     log.fine('Hash: $hash');
 
-    final RepositorySlug slug = RepositorySlug('flutter', repository);
+    final slug = RepositorySlug('flutter', repository);
     log.fine('Slug: ${slug.toString()}');
 
-    final int startTime = build.startTime.toDateTime().millisecondsSinceEpoch;
-    final int endTime = build.endTime.toDateTime().millisecondsSinceEpoch;
+    final startTime = build.startTime.toDateTime().millisecondsSinceEpoch;
+    final endTime = build.endTime.toDateTime().millisecondsSinceEpoch;
     log.fine('Start/end time (ms): $startTime, $endTime');
 
-    final String id = '${slug.fullName}/$branch/$hash';
-    final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
-    final Commit commit = await datastore.db.lookupValue<Commit>(commitKey);
+    final id = '${slug.fullName}/$branch/$hash';
+    final commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
+    final commit = await datastore.db.lookupValue<Commit>(commitKey);
     final task = Task(
       attempts: 1,
       buildNumber: build.number,
@@ -390,7 +390,7 @@ class Task extends Model<int> {
     if (buildNumberList == null) {
       buildNumberList = '$buildNumber';
     } else {
-      final Set<String> buildNumberSet = buildNumberList!.split(',').toSet();
+      final buildNumberSet = buildNumberList!.split(',').toSet();
       buildNumberSet.add(buildNumber.toString());
       buildNumberList = buildNumberSet.join(',');
     }
@@ -412,36 +412,37 @@ class Task extends Model<int> {
 
   @override
   String toString() {
-    final StringBuffer buf = StringBuffer()
-      ..write('$runtimeType(')
-      ..write('id: $id')
-      ..write(', parentKey: ${parentKey?.id}')
-      ..write(', key: ${parentKey == null ? null : key.id}')
-      ..write(', commitKey: ${commitKey?.id}')
-      ..write(', createTimestamp: $createTimestamp')
-      ..write(', startTimestamp: $startTimestamp')
-      ..write(', endTimestamp: $endTimestamp')
-      ..write(', name: $name')
-      ..write(', attempts: $attempts')
-      ..write(', isFlaky: $isFlaky')
-      ..write(', isTestRunFlaky: $isTestFlaky')
-      ..write(', timeoutInMinutes: $timeoutInMinutes')
-      ..write(', reason: $reason')
-      ..write(', requiredCapabilities: $requiredCapabilities')
-      ..write(', reservedForAgentId: $reservedForAgentId')
-      ..write(', stageName: $stageName')
-      ..write(', status: $status')
-      ..write(', buildNumber: $buildNumber')
-      ..write(', buildNumberList: $buildNumberList')
-      ..write(', builderName: $builderName')
-      ..write(', luciBucket: $luciBucket')
-      ..write(')');
+    final buf =
+        StringBuffer()
+          ..write('$runtimeType(')
+          ..write('id: $id')
+          ..write(', parentKey: ${parentKey?.id}')
+          ..write(', key: ${parentKey == null ? null : key.id}')
+          ..write(', commitKey: ${commitKey?.id}')
+          ..write(', createTimestamp: $createTimestamp')
+          ..write(', startTimestamp: $startTimestamp')
+          ..write(', endTimestamp: $endTimestamp')
+          ..write(', name: $name')
+          ..write(', attempts: $attempts')
+          ..write(', isFlaky: $isFlaky')
+          ..write(', isTestRunFlaky: $isTestFlaky')
+          ..write(', timeoutInMinutes: $timeoutInMinutes')
+          ..write(', reason: $reason')
+          ..write(', requiredCapabilities: $requiredCapabilities')
+          ..write(', reservedForAgentId: $reservedForAgentId')
+          ..write(', stageName: $stageName')
+          ..write(', status: $status')
+          ..write(', buildNumber: $buildNumber')
+          ..write(', buildNumberList: $buildNumberList')
+          ..write(', builderName: $builderName')
+          ..write(', luciBucket: $luciBucket')
+          ..write(')');
     return buf.toString();
   }
 }
 
-Iterable<Task> targetsToTasks(Commit commit, List<Target> targets) =>
-    targets.map((Target target) => Task.fromTarget(commit: commit, target: target));
+Iterable<Task> targetsToTasks(Commit commit, List<Target> targets) => targets
+    .map((Target target) => Task.fromTarget(commit: commit, target: target));
 
 /// The serialized representation of a [Task].
 // TODO(tvolkert): Directly serialize [Task] once frontends migrate to new serialization format.

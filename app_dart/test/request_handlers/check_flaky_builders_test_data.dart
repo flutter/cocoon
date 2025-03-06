@@ -7,7 +7,8 @@ import 'dart:convert';
 import 'package:cocoon_service/src/service/bigquery.dart';
 
 const int existingIssueNumber = 85578;
-const String existingIssueURL = 'https://github.com/flutter/flutter/issues/$existingIssueNumber';
+const String existingIssueURL =
+    'https://github.com/flutter/flutter/issues/$existingIssueNumber';
 
 const String ciYamlContent = '''
 # Describes the targets run in continuous integration environment.
@@ -164,38 +165,41 @@ https://flutter-dashboard.appspot.com/#/build?taskFilter=Mac_android%20android_s
 Please follow https://github.com/flutter/flutter/blob/master/docs/infra/Reducing-Test-Flakiness.md#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
 
-final List<BuilderRecord> semanticsIntegrationTestRecordsAllPassed = <BuilderRecord>[
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-];
+final List<BuilderRecord> semanticsIntegrationTestRecordsAllPassed =
+    <BuilderRecord>[
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+    ];
 
-final List<BuilderRecord> semanticsIntegrationTestRecordsFlaky = <BuilderRecord>[
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: true, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-];
+final List<BuilderRecord> semanticsIntegrationTestRecordsFlaky =
+    <BuilderRecord>[
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: true, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+    ];
 
-final List<BuilderRecord> semanticsIntegrationTestRecordsFailed = <BuilderRecord>[
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: true),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
-];
+final List<BuilderRecord> semanticsIntegrationTestRecordsFailed =
+    <BuilderRecord>[
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: true),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+      BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+    ];
 
 const String expectedSemanticsIntegrationTestOwner = 'HansMuller';
 const List<String> expectedSemanticsIntegrationTestLabels = <String>[
@@ -206,7 +210,8 @@ const List<String> expectedSemanticsIntegrationTestLabels = <String>[
 const String expectedSemanticsIntegrationTestTreeSha = 'abcdefg';
 const int expectedSemanticsIntegrationTestPRNumber = 123;
 
-const String expectedSemanticsIntegrationTestBuilderName = 'Mac_android android_semantics_integration_test';
+const String expectedSemanticsIntegrationTestBuilderName =
+    'Mac_android android_semantics_integration_test';
 const String expectedSemanticsIntegrationTestCiYamlContent = '''
 # Describes the targets run in continuous integration environment.
 #
@@ -268,7 +273,8 @@ The test has been passing for [8 consecutive runs](https://data.corp.google.com/
 This test can be marked as unflaky.
 ''';
 
-final List<BuilderStatistic> stagingSemanticsIntegrationTestResponse = <BuilderStatistic>[
+final List<BuilderStatistic>
+stagingSemanticsIntegrationTestResponse = <BuilderStatistic>[
   BuilderStatistic(
     name: 'Mac_android android_semantics_integration_test',
     flakyRate: 0.5,
@@ -295,6 +301,6 @@ final List<BuilderStatistic> stagingSemanticsIntegrationTestResponse = <BuilderS
 
 String gitHubEncode(String source) {
   final List<int> utf8Characters = utf8.encode(source);
-  final String base64encoded = base64Encode(utf8Characters);
+  final base64encoded = base64Encode(utf8Characters);
   return base64encoded;
 }

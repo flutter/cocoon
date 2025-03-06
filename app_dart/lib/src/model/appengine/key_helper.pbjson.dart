@@ -13,7 +13,14 @@ import 'dart:typed_data' as $typed_data;
 const Path$json = {
   '1': 'Path',
   '2': [
-    {'1': 'element', '3': 1, '4': 3, '5': 10, '6': '.Path.Element', '10': 'element'},
+    {
+      '1': 'element',
+      '3': 1,
+      '4': 3,
+      '5': 10,
+      '6': '.Path.Element',
+      '10': 'element'
+    },
   ],
   '3': [Path_Element$json],
 };

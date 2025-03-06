@@ -4,10 +4,10 @@
 
 import 'dart:convert';
 
-import 'package:cocoon_service/src/model/common/json_converters.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../request_handling/body.dart';
+import '../common/json_converters.dart';
 
 part 'commit.g.dart';
 
@@ -25,7 +25,8 @@ class GerritCommit extends JsonBody {
     this.message,
   });
 
-  static GerritCommit fromJson(Map<String, dynamic> json) => _$GerritCommitFromJson(json);
+  static GerritCommit fromJson(Map<String, dynamic> json) =>
+      _$GerritCommitFromJson(json);
 
   final String? commit;
   final String? tree;
@@ -46,13 +47,10 @@ class GerritCommit extends JsonBody {
 ///   * https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#git-person-info
 @JsonSerializable()
 class GerritUser extends JsonBody {
-  const GerritUser({
-    this.name,
-    this.email,
-    this.time,
-  });
+  const GerritUser({this.name, this.email, this.time});
 
-  static GerritUser fromJson(Map<String, dynamic> json) => _$GerritUserFromJson(json);
+  static GerritUser fromJson(Map<String, dynamic> json) =>
+      _$GerritUserFromJson(json);
 
   final String? name;
   final String? email;

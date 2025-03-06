@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/server/authenticated_request_handler.dart';
-import 'package:auto_submit/service/approver_service.dart';
 import 'package:googleapis/pubsub/v1.dart' as pub;
 import 'package:shelf/shelf.dart';
 
 import '../request_handling/pubsub.dart';
+import '../server/authenticated_request_handler.dart';
+import '../service/approver_service.dart';
 
 abstract class CheckRequest extends AuthenticatedRequestHandler {
   const CheckRequest({
@@ -32,18 +32,15 @@ abstract class CheckRequest extends AuthenticatedRequestHandler {
     int pulls,
     int batchSize,
   ) async {
-    final Map<String, pub.ReceivedMessage> messageMap = <String, pub.ReceivedMessage>{};
-    for (int i = 0; i < pulls; i++) {
-      final pub.PullResponse pullResponse = await pubsub.pull(
-        subscription,
-        batchSize,
-      );
-      final List<pub.ReceivedMessage>? receivedMessages = pullResponse.receivedMessages;
+    final messageMap = <String, pub.ReceivedMessage>{};
+    for (var i = 0; i < pulls; i++) {
+      final pullResponse = await pubsub.pull(subscription, batchSize);
+      final receivedMessages = pullResponse.receivedMessages;
       if (receivedMessages == null) {
         continue;
       }
-      for (pub.ReceivedMessage message in receivedMessages) {
-        final String messageId = message.message!.messageId!;
+      for (var message in receivedMessages) {
+        final messageId = message.message!.messageId!;
         messageMap[messageId] = message;
       }
     }

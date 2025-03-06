@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import '../../protos.dart' as pb;
+import 'flaky_handler_utils.dart';
 
 abstract class TestOwner {
   factory TestOwner(BuilderType builderType) {
@@ -21,10 +21,7 @@ abstract class TestOwner {
     }
   }
 
-  TestOwnership getTestOwnership(
-    pb.Target target,
-    String testOwnersContent,
-  );
+  TestOwnership getTestOwnership(pb.Target target, String testOwnersContent);
 }
 
 Team teamFromString(String teamString) {
@@ -43,7 +40,7 @@ Team teamFromString(String teamString) {
 
 String getTestNameFromTargetName(String targetName) {
   // The builder names is in the format '<platform> <test name>'.
-  final List<String> words = targetName.split(' ');
+  final words = targetName.split(' ');
   return words.length < 2 ? words[0] : words[1];
 }
 
@@ -51,13 +48,10 @@ class DeviceLabTestOwner implements TestOwner {
   DeviceLabTestOwner();
 
   @override
-  TestOwnership getTestOwnership(
-    pb.Target target,
-    String testOwnersContent,
-  ) {
+  TestOwnership getTestOwnership(pb.Target target, String testOwnersContent) {
     String? owner;
     Team? team;
-    final String? testName = target.properties['task_name'];
+    final testName = target.properties['task_name'];
     if (testName == null) {
       throw FormatException(
         'The field "task_name" is required in the target properties for any '
@@ -72,20 +66,26 @@ class DeviceLabTestOwner implements TestOwner {
     }
     // The format looks like this:
     //   /dev/devicelab/bin/tasks/dart_plugin_registry_test.dart @stuartmorgan @flutter/plugin
-    final RegExpMatch? match = devicelabTestOwners.firstMatch(testOwnersContent);
+    final match = devicelabTestOwners.firstMatch(testOwnersContent);
     if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-      final List<String> lines = match
-          .namedGroup(kOwnerGroupName)!
-          .split('\n')
-          .where((String line) => line.isNotEmpty && !line.startsWith('#'))
-          .toList();
+      final lines =
+          match
+              .namedGroup(kOwnerGroupName)!
+              .split('\n')
+              .where((String line) => line.isNotEmpty && !line.startsWith('#'))
+              .toList();
 
-      for (final String line in lines) {
-        final List<String> words = line.trim().split(' ');
+      for (final line in lines) {
+        final words = line.trim().split(' ');
         // e.g. words = ['/xxx/xxx/xxx_test.dart', '@stuartmorgan' '@flutter/tool']
         if (words[0].endsWith('$testName.dart')) {
           owner = words[1].substring(1); // Strip out the lead '@'
-          team = words.length < 3 ? Team.unknown : teamFromString(words[2].substring(1)); // Strip out the lead '@'
+          team =
+              words.length < 3
+                  ? Team.unknown
+                  : teamFromString(
+                    words[2].substring(1),
+                  ); // Strip out the lead '@'
           break;
         }
       }
@@ -97,26 +97,32 @@ class DeviceLabTestOwner implements TestOwner {
 
 class ShardTestOwner implements TestOwner {
   @override
-  TestOwnership getTestOwnership(
-    pb.Target target,
-    String testOwnersContent,
-  ) {
+  TestOwnership getTestOwnership(pb.Target target, String testOwnersContent) {
     // The format looks like this:
     //   # build_tests @zanderso @flutter/tool
-    final String testName = getTestNameFromTargetName(target.name);
+    final testName = getTestNameFromTargetName(target.name);
     String? owner;
     Team? team;
-    final RegExpMatch? match = shardTestOwners.firstMatch(testOwnersContent);
+    final match = shardTestOwners.firstMatch(testOwnersContent);
     if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-      final List<String> lines =
-          match.namedGroup(kOwnerGroupName)!.split('\n').where((String line) => line.contains('@')).toList();
+      final lines =
+          match
+              .namedGroup(kOwnerGroupName)!
+              .split('\n')
+              .where((String line) => line.contains('@'))
+              .toList();
 
-      for (final String line in lines) {
-        final List<String> words = line.trim().split(' ');
+      for (final line in lines) {
+        final words = line.trim().split(' ');
         // e.g. words = ['#', 'build_test', '@zanderso' '@flutter/tool']
         if (testName.contains(words[1])) {
           owner = words[2].substring(1); // Strip out the lead '@'
-          team = words.length < 4 ? Team.unknown : teamFromString(words[3].substring(1)); // Strip out the lead '@'
+          team =
+              words.length < 4
+                  ? Team.unknown
+                  : teamFromString(
+                    words[3].substring(1),
+                  ); // Strip out the lead '@'
           break;
         }
       }
@@ -128,21 +134,22 @@ class ShardTestOwner implements TestOwner {
 
 class FrameworkHostOnlyTestOwner implements TestOwner {
   @override
-  TestOwnership getTestOwnership(
-    pb.Target target,
-    String testOwnersContent,
-  ) {
-    final String testName = getTestNameFromTargetName(target.name);
+  TestOwnership getTestOwnership(pb.Target target, String testOwnersContent) {
+    final testName = getTestNameFromTargetName(target.name);
     String? owner;
     Team? team;
     // The format looks like this:
     //   # Linux analyze
     //   /dev/bots/analyze.dart @HansMuller @flutter/framework
-    final RegExpMatch? match = frameworkHostOnlyTestOwners.firstMatch(testOwnersContent);
+    final match = frameworkHostOnlyTestOwners.firstMatch(testOwnersContent);
     if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-      final List<String> lines =
-          match.namedGroup(kOwnerGroupName)!.split('\n').where((String line) => line.isNotEmpty).toList();
-      int index = 0;
+      final lines =
+          match
+              .namedGroup(kOwnerGroupName)!
+              .split('\n')
+              .where((String line) => line.isNotEmpty)
+              .toList();
+      var index = 0;
       while (index < lines.length) {
         if (lines[index].startsWith('#')) {
           // Multiple tests can share same test file and ownership.
@@ -150,21 +157,24 @@ class FrameworkHostOnlyTestOwner implements TestOwner {
           //   # Linux docs_test
           //   # Linux docs_public
           //   /dev/bots/docs.sh @HansMuller @flutter/framework
-          bool isTestDefined = false;
+          var isTestDefined = false;
           while (lines[index].startsWith('#') && index + 1 < lines.length) {
-            final List<String> commentWords = lines[index].trim().split(' ');
+            final commentWords = lines[index].trim().split(' ');
             if (testName.contains(commentWords[2])) {
               isTestDefined = true;
             }
             index += 1;
           }
           if (isTestDefined) {
-            final List<String> ownerWords = lines[index].trim().split(' ');
+            final ownerWords = lines[index].trim().split(' ');
             // e.g. ownerWords = ['/xxx/xxx/xxx_test.dart', '@HansMuller' '@flutter/framework']
             owner = ownerWords[1].substring(1); // Strip out the lead '@'
-            team = ownerWords.length < 3
-                ? Team.unknown
-                : teamFromString(ownerWords[2].substring(1)); // Strip out the lead '@'
+            team =
+                ownerWords.length < 3
+                    ? Team.unknown
+                    : teamFromString(
+                      ownerWords[2].substring(1),
+                    ); // Strip out the lead '@'
             break;
           }
         }
@@ -178,30 +188,33 @@ class FrameworkHostOnlyTestOwner implements TestOwner {
 
 class FirebaseLabTestOwner implements TestOwner {
   @override
-  TestOwnership getTestOwnership(
-    pb.Target target,
-    String testOwnersContent,
-  ) {
-    final String testName = getTestNameFromTargetName(target.name);
+  TestOwnership getTestOwnership(pb.Target target, String testOwnersContent) {
+    final testName = getTestNameFromTargetName(target.name);
     String? owner;
     Team? team;
 
     // The format looks like this for builder `Linux firebase_abstrac_method_smoke_test`:
     //   /dev/integration_tests/abstrac_method_smoke_test @blasten @flutter/android
-    final RegExpMatch? match = firebaselabTestOwners.firstMatch(testOwnersContent);
+    final match = firebaselabTestOwners.firstMatch(testOwnersContent);
     if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-      final List<String> lines = match
-          .namedGroup(kOwnerGroupName)!
-          .split('\n')
-          .where((String line) => line.isNotEmpty && !line.startsWith('#'))
-          .toList();
+      final lines =
+          match
+              .namedGroup(kOwnerGroupName)!
+              .split('\n')
+              .where((String line) => line.isNotEmpty && !line.startsWith('#'))
+              .toList();
 
-      for (final String line in lines) {
-        final List<String> words = line.trim().split(' ');
-        final List<String> dirs = words[0].split('/').toList();
+      for (final line in lines) {
+        final words = line.trim().split(' ');
+        final dirs = words[0].split('/').toList();
         if (testName.contains(dirs.last)) {
           owner = words[1].substring(1); // Strip out the lead '@'
-          team = words.length < 3 ? Team.unknown : teamFromString(words[2].substring(1)); // Strip out the lead '@'
+          team =
+              words.length < 3
+                  ? Team.unknown
+                  : teamFromString(
+                    words[2].substring(1),
+                  ); // Strip out the lead '@'
           break;
         }
       }
@@ -213,10 +226,7 @@ class FirebaseLabTestOwner implements TestOwner {
 
 class UnknownTestOwner implements TestOwner {
   @override
-  TestOwnership getTestOwnership(
-    pb.Target target,
-    String testOwnersContent,
-  ) {
+  TestOwnership getTestOwnership(pb.Target target, String testOwnersContent) {
     return TestOwnership(null, Team.unknown);
   }
 }

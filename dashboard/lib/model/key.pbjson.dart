@@ -36,5 +36,5 @@ const RootKey$json = {
 };
 
 /// Descriptor for `RootKey`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List rootKeyDescriptor = $convert
-    .base64Decode('CgdSb290S2V5EhwKCW5hbWVzcGFjZRgBIAEoCVIJbmFtZXNwYWNlEhoKBWNoaWxkGAIgASgLMgQuS2V5UgVjaGlsZA==');
+final $typed_data.Uint8List rootKeyDescriptor = $convert.base64Decode(
+    'CgdSb290S2V5EhwKCW5hbWVzcGFjZRgBIAEoCVIJbmFtZXNwYWNlEhoKBWNoaWxkGAIgASgLMgQuS2V5UgVjaGlsZA==');

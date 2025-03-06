@@ -23,14 +23,17 @@ void main() {
     DatastoreService datastoreService;
     late MockFirestoreService mockFirestoreService;
 
-    final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+    final slug = RepositorySlug('flutter', 'flutter');
 
     setUp(() {
       db = FakeDatastoreDB();
       mockFirestoreService = MockFirestoreService();
       config = FakeConfig(dbValue: db, firestoreService: mockFirestoreService);
       datastoreService = DatastoreService(config.db, 5);
-      buildStatusService = BuildStatusService.defaultProvider(datastoreService, mockFirestoreService);
+      buildStatusService = BuildStatusService.defaultProvider(
+        datastoreService,
+        mockFirestoreService,
+      );
     });
 
     group('calculateStatus', () {
@@ -50,29 +53,21 @@ void main() {
             branch: captureAnyNamed('branch'),
           ),
         ).thenAnswer((Invocation invocation) {
-          return Future<List<Commit>>.value(
-            commits,
-          );
+          return Future<List<Commit>>.value(commits);
         });
-        when(
-          mockFirestoreService.queryCommitTasks(
-            captureAny,
-          ),
-        ).thenAnswer((Invocation invocation) {
+        when(mockFirestoreService.queryCommitTasks(captureAny)).thenAnswer((
+          Invocation invocation,
+        ) {
           if (row == 0) {
             row++;
-            return Future<List<Task>>.value(
-              tasks1,
-            );
+            return Future<List<Task>>.value(tasks1);
           } else {
-            return Future<List<Task>>.value(
-              tasks2,
-            );
+            return Future<List<Task>>.value(tasks2);
           }
         });
       });
       test('returns failure if there are no commits', () async {
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
+        final status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.failure(const <String>[]));
       });
 
@@ -82,26 +77,31 @@ void main() {
           generateFirestoreTask(1, status: Task.statusSucceeded),
           generateFirestoreTask(2, status: Task.statusSucceeded),
         ];
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
+        final status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.success());
       });
 
-      test('returns success if top commit is all green followed by red commit', () async {
-        commits = <Commit>[
-          generateFirestoreCommit(1),
-          generateFirestoreCommit(2),
-        ];
-        tasks1 = <Task>[
-          generateFirestoreTask(1, status: Task.statusSucceeded),
-          generateFirestoreTask(2, status: Task.statusSucceeded),
-        ];
-        tasks2 = <Task>[
-          generateFirestoreTask(1, status: Task.statusSucceeded),
-          generateFirestoreTask(2, status: Task.statusFailed),
-        ];
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
-        expect(status, BuildStatus.success());
-      });
+      test(
+        'returns success if top commit is all green followed by red commit',
+        () async {
+          commits = <Commit>[
+            generateFirestoreCommit(1),
+            generateFirestoreCommit(2),
+          ];
+          tasks1 = <Task>[
+            generateFirestoreTask(1, status: Task.statusSucceeded),
+            generateFirestoreTask(2, status: Task.statusSucceeded),
+          ];
+          tasks2 = <Task>[
+            generateFirestoreTask(1, status: Task.statusSucceeded),
+            generateFirestoreTask(2, status: Task.statusFailed),
+          ];
+          final status = await buildStatusService.calculateCumulativeStatus(
+            slug,
+          );
+          expect(status, BuildStatus.success());
+        },
+      );
 
       test('returns failure if last commit contains any red tasks', () async {
         commits = <Commit>[generateFirestoreCommit(1)];
@@ -109,34 +109,44 @@ void main() {
           generateFirestoreTask(1, status: Task.statusSucceeded),
           generateFirestoreTask(2, status: Task.statusFailed),
         ];
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
+        final status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.failure(const <String>['task2']));
       });
 
-      test('returns failure if last commit contains any canceled tasks', () async {
-        commits = <Commit>[generateFirestoreCommit(1)];
-        tasks1 = <Task>[
-          generateFirestoreTask(1, status: Task.statusSucceeded),
-          generateFirestoreTask(2, status: Task.statusCancelled),
-        ];
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
-        expect(status, BuildStatus.failure(const <String>['task2']));
-      });
+      test(
+        'returns failure if last commit contains any canceled tasks',
+        () async {
+          commits = <Commit>[generateFirestoreCommit(1)];
+          tasks1 = <Task>[
+            generateFirestoreTask(1, status: Task.statusSucceeded),
+            generateFirestoreTask(2, status: Task.statusCancelled),
+          ];
+          final status = await buildStatusService.calculateCumulativeStatus(
+            slug,
+          );
+          expect(status, BuildStatus.failure(const <String>['task2']));
+        },
+      );
 
-      test('ensure failed task do not have duplicates when last consecutive commits contains red tasks', () async {
-        commits = <Commit>[
-          generateFirestoreCommit(1),
-          generateFirestoreCommit(2),
-        ];
-        tasks1 = <Task>[
-          generateFirestoreTask(1, status: Task.statusSucceeded),
-          generateFirestoreTask(2, status: Task.statusFailed),
-        ];
-        tasks2 = tasks1;
+      test(
+        'ensure failed task do not have duplicates when last consecutive commits contains red tasks',
+        () async {
+          commits = <Commit>[
+            generateFirestoreCommit(1),
+            generateFirestoreCommit(2),
+          ];
+          tasks1 = <Task>[
+            generateFirestoreTask(1, status: Task.statusSucceeded),
+            generateFirestoreTask(2, status: Task.statusFailed),
+          ];
+          tasks2 = tasks1;
 
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
-        expect(status, BuildStatus.failure(const <String>['task2']));
-      });
+          final status = await buildStatusService.calculateCumulativeStatus(
+            slug,
+          );
+          expect(status, BuildStatus.failure(const <String>['task2']));
+        },
+      );
 
       test('ignores failures on flaky commits', () async {
         commits = <Commit>[generateFirestoreCommit(1)];
@@ -144,43 +154,53 @@ void main() {
           generateFirestoreTask(1, status: Task.statusSucceeded),
           generateFirestoreTask(2, status: Task.statusFailed, bringup: true),
         ];
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
+        final status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.success());
       });
 
-      test('returns success if partial green, and all unfinished tasks were last green', () async {
-        commits = <Commit>[
-          generateFirestoreCommit(1),
-          generateFirestoreCommit(2),
-        ];
-        tasks1 = <Task>[
-          generateFirestoreTask(1, status: Task.statusInProgress),
-          generateFirestoreTask(2, status: Task.statusSucceeded),
-        ];
-        tasks2 = <Task>[
-          generateFirestoreTask(1, status: Task.statusSucceeded),
-          generateFirestoreTask(2, status: Task.statusSucceeded),
-        ];
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
-        expect(status, BuildStatus.success());
-      });
+      test(
+        'returns success if partial green, and all unfinished tasks were last green',
+        () async {
+          commits = <Commit>[
+            generateFirestoreCommit(1),
+            generateFirestoreCommit(2),
+          ];
+          tasks1 = <Task>[
+            generateFirestoreTask(1, status: Task.statusInProgress),
+            generateFirestoreTask(2, status: Task.statusSucceeded),
+          ];
+          tasks2 = <Task>[
+            generateFirestoreTask(1, status: Task.statusSucceeded),
+            generateFirestoreTask(2, status: Task.statusSucceeded),
+          ];
+          final status = await buildStatusService.calculateCumulativeStatus(
+            slug,
+          );
+          expect(status, BuildStatus.success());
+        },
+      );
 
-      test('returns failure if partial green, and any unfinished task was last red', () async {
-        commits = <Commit>[
-          generateFirestoreCommit(1),
-          generateFirestoreCommit(2),
-        ];
-        tasks1 = <Task>[
-          generateFirestoreTask(1, status: Task.statusSucceeded),
-          generateFirestoreTask(2, status: Task.statusInProgress),
-        ];
-        tasks2 = <Task>[
-          generateFirestoreTask(1, status: Task.statusSucceeded),
-          generateFirestoreTask(2, status: Task.statusFailed),
-        ];
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
-        expect(status, BuildStatus.failure(const <String>['task2']));
-      });
+      test(
+        'returns failure if partial green, and any unfinished task was last red',
+        () async {
+          commits = <Commit>[
+            generateFirestoreCommit(1),
+            generateFirestoreCommit(2),
+          ];
+          tasks1 = <Task>[
+            generateFirestoreTask(1, status: Task.statusSucceeded),
+            generateFirestoreTask(2, status: Task.statusInProgress),
+          ];
+          tasks2 = <Task>[
+            generateFirestoreTask(1, status: Task.statusSucceeded),
+            generateFirestoreTask(2, status: Task.statusFailed),
+          ];
+          final status = await buildStatusService.calculateCumulativeStatus(
+            slug,
+          );
+          expect(status, BuildStatus.failure(const <String>['task2']));
+        },
+      );
 
       test('returns failure when green but a task is rerunning', () async {
         commits = <Commit>[
@@ -195,7 +215,7 @@ void main() {
           generateFirestoreTask(1, status: Task.statusSucceeded),
           generateFirestoreTask(2, status: Task.statusSucceeded),
         ];
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
+        final status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.failure(const <String>['task2']));
       });
 
@@ -212,7 +232,7 @@ void main() {
           generateFirestoreTask(1, status: Task.statusSucceeded),
           generateFirestoreTask(2, status: Task.statusSucceeded),
         ];
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
+        final status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.failure(const <String>['task2']));
       });
 
@@ -229,7 +249,7 @@ void main() {
           generateFirestoreTask(1, status: Task.statusSucceeded),
           generateFirestoreTask(2, status: Task.statusFailed),
         ];
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
+        final status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.success());
       });
     });

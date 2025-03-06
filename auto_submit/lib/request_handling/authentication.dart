@@ -33,8 +33,8 @@ class CronAuthProvider {
   /// This will throw an [Unauthenticated] exception if the request is
   /// unauthenticated.
   Future<bool> authenticate(Request request) async {
-    final Map<String, String> reqHeader = request.headers;
-    final bool isCron = reqHeader['X-Appengine-Cron'] == 'true';
+    final reqHeader = request.headers;
+    final isCron = reqHeader['X-Appengine-Cron'] == 'true';
     if (isCron) {
       // Authenticate cron requests
       return true;

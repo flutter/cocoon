@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-library buildbucket;
-
 export 'src/generated/go.chromium.org/luci/buildbucket/proto/build.pb.dart'
     show
         Build,
@@ -54,8 +52,14 @@ export 'src/generated/go.chromium.org/luci/buildbucket/proto/builds_service.pb.d
         BuildRange,
         GetBuildStatusRequest;
 export 'src/generated/go.chromium.org/luci/buildbucket/proto/builder_service.pb.dart'
-    show GetBuilderRequest, ListBuildersRequest, ListBuildersResponse, BuilderMask, BuilderMask_BuilderMaskType;
-export 'src/generated/go.chromium.org/luci/buildbucket/proto/task.pb.dart' show Task, TaskID;
+    show
+        GetBuilderRequest,
+        ListBuildersRequest,
+        ListBuildersResponse,
+        BuilderMask,
+        BuilderMask_BuilderMaskType;
+export 'src/generated/go.chromium.org/luci/buildbucket/proto/task.pb.dart'
+    show Task, TaskID;
 export 'src/generated/go.chromium.org/luci/buildbucket/proto/builder_common.pb.dart'
     show BuilderID, BuilderItem, BuilderMetadata;
 export 'src/generated/go.chromium.org/luci/buildbucket/proto/common.pb.dart'
@@ -80,20 +84,39 @@ export 'src/generated/go.chromium.org/luci/buildbucket/proto/notification.pb.dar
 
 // resultsDb
 export 'src/generated/go.chromium.org/luci/resultdb/sink/proto/v1/test_result.pb.dart'
-    show TestResult, TestResultFile, TestResultFile_Format, Artifact, Artifact_Body;
+    show
+        TestResult,
+        TestResultFile,
+        TestResultFile_Format,
+        Artifact,
+        Artifact_Body;
 export 'src/generated/go.chromium.org/luci/resultdb/sink/proto/v1/sink.pb.dart'
-    show ReportTestResultsRequest, ReportTestResultsResponse, ReportInvocationLevelArtifactsRequest;
+    show
+        ReportTestResultsRequest,
+        ReportTestResultsResponse,
+        ReportInvocationLevelArtifactsRequest;
 export 'src/generated/go.chromium.org/luci/resultdb/sink/proto/v1/location_tag.pb.dart'
     show LocationTags, LocationTags_Dir, LocationTags_File, LocationTags_Repo;
 export 'src/generated/go.chromium.org/luci/resultdb/proto/v1/test_metadata.pb.dart'
     show TestMetadata, TestLocation, TestMetadataDetail, IssueTrackerComponent;
-export 'src/generated/go.chromium.org/luci/resultdb/proto/v1/test_result.pb.dart' show TestStatus, TestExoneration;
+export 'src/generated/go.chromium.org/luci/resultdb/proto/v1/test_result.pb.dart'
+    show TestStatus, TestExoneration;
 
-export 'src/generated/google/protobuf/struct.pb.dart' show Struct, Value, Value_Kind, NullValue, ListValue;
+export 'src/generated/google/protobuf/struct.pb.dart'
+    show Struct, Value, Value_Kind, NullValue, ListValue;
 export 'src/generated/google/protobuf/any.pb.dart' show Any;
 export 'src/generated/google/protobuf/duration.pb.dart' show Duration;
 export 'src/generated/google/protobuf/empty.pb.dart' show Empty;
 export 'src/generated/google/protobuf/timestamp.pb.dart' show Timestamp;
 export 'src/generated/google/protobuf/wrappers.pb.dart'
-    show DoubleValue, FloatValue, Int32Value, Int64Value, BoolValue, BytesValue, UInt32Value, UInt64Value, StringValue;
+    show
+        DoubleValue,
+        FloatValue,
+        Int32Value,
+        Int64Value,
+        BoolValue,
+        BytesValue,
+        UInt32Value,
+        UInt64Value,
+        StringValue;
 export 'src/generated/google/protobuf/field_mask.pb.dart' show FieldMask;

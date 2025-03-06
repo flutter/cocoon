@@ -53,12 +53,13 @@ class CommitBoxState extends State<CommitBox> {
 
   void _handleTap() {
     _commitOverlay = OverlayEntry(
-      builder: (_) => CommitOverlayContents(
-        parentContext: context,
-        commit: widget.commit,
-        closeCallback: _closeOverlay,
-        schedulePostsubmitBuild: widget.schedulePostsubmitBuild,
-      ),
+      builder:
+          (_) => CommitOverlayContents(
+            parentContext: context,
+            commit: widget.commit,
+            closeCallback: _closeOverlay,
+            schedulePostsubmitBuild: widget.schedulePostsubmitBuild,
+          ),
     );
 
     Overlay.of(context).insert(_commitOverlay!);
@@ -97,9 +98,9 @@ class CommitOverlayContents extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final RenderBox renderBox = parentContext.findRenderObject() as RenderBox;
-    final Offset offsetLeft = renderBox.localToGlobal(Offset.zero);
+    final theme = Theme.of(context);
+    final renderBox = parentContext.findRenderObject() as RenderBox;
+    final offsetLeft = renderBox.localToGlobal(Offset.zero);
     return Stack(
       children: <Widget>[
         // This is the area a user can click (the rest of the screen) to close the overlay.
@@ -143,11 +144,12 @@ class CommitOverlayContents extends StatelessWidget {
                                   ),
                                   IconButton(
                                     icon: const Icon(Icons.copy),
-                                    onPressed: () => unawaited(
-                                      Clipboard.setData(
-                                        ClipboardData(text: commit.sha),
-                                      ),
-                                    ),
+                                    onPressed:
+                                        () => unawaited(
+                                          Clipboard.setData(
+                                            ClipboardData(text: commit.sha),
+                                          ),
+                                        ),
                                   ),
                                 ],
                               ),
@@ -161,19 +163,22 @@ class CommitOverlayContents extends StatelessWidget {
                                 color: theme.textTheme.bodySmall!.color,
                               ),
                               duration: kThemeChangeDuration,
-                              child: SelectableText(commit.message.split('\n').first),
+                              child: SelectableText(
+                                commit.message.split('\n').first,
+                              ),
                             ),
                           ),
                           SelectableText(commit.author),
                           Tooltip(
-                            key: ValueKey('schedulePostsubmit'),
-                            message: schedulePostsubmitBuild == null
-                                ? 'Only enabled for release branches'
-                                : ''
-                                    'For release branches, the post-submit artifacts are not '
-                                    'immediately available and must be manually scheduled.',
+                            key: const ValueKey('schedulePostsubmit'),
+                            message:
+                                schedulePostsubmitBuild == null
+                                    ? 'Only enabled for release branches'
+                                    : ''
+                                        'For release branches, the post-submit artifacts are not '
+                                        'immediately available and must be manually scheduled.',
                             child: TextButton.icon(
-                              label: Text('Schedule post-submit'),
+                              label: const Text('Schedule post-submit'),
                               icon: const Icon(Icons.hardware),
                               onPressed: schedulePostsubmitBuild,
                             ),
@@ -192,17 +197,14 @@ class CommitOverlayContents extends StatelessWidget {
   }
 
   Future<void> _openGithub() async {
-    final String githubUrl = 'https://github.com/${commit.repository}/commit/${commit.sha}';
+    final githubUrl =
+        'https://github.com/${commit.repository}/commit/${commit.sha}';
     await launchUrl(Uri.parse(githubUrl));
   }
 }
 
 class Hyperlink extends StatefulWidget {
-  const Hyperlink({
-    super.key,
-    required this.text,
-    this.onPressed,
-  });
+  const Hyperlink({super.key, required this.text, this.onPressed});
 
   final String text;
   final VoidCallback? onPressed;
@@ -216,7 +218,7 @@ class HyperlinkState extends State<Hyperlink> {
 
   @override
   Widget build(BuildContext context) {
-    final TextStyle defaultStyle = DefaultTextStyle.of(context).style;
+    final defaultStyle = DefaultTextStyle.of(context).style;
     return MouseRegion(
       onEnter: (PointerEnterEvent _) => setState(() => hover = true),
       onExit: (PointerExitEvent _) => setState(() => hover = false),

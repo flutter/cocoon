@@ -49,14 +49,20 @@ class TestResultPredicate extends $pb.GeneratedMessage {
   factory TestResultPredicate.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory TestResultPredicate.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TestResultPredicate.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TestResultPredicate',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TestResultPredicate',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'testIdRegexp')
-    ..aOM<VariantPredicate>(2, _omitFieldNames ? '' : 'variant', subBuilder: VariantPredicate.create)
-    ..e<TestResultPredicate_Expectancy>(3, _omitFieldNames ? '' : 'expectancy', $pb.PbFieldType.OE,
+    ..aOM<VariantPredicate>(2, _omitFieldNames ? '' : 'variant',
+        subBuilder: VariantPredicate.create)
+    ..e<TestResultPredicate_Expectancy>(
+        3, _omitFieldNames ? '' : 'expectancy', $pb.PbFieldType.OE,
         defaultOrMaker: TestResultPredicate_Expectancy.ALL,
         valueOf: TestResultPredicate_Expectancy.valueOf,
         enumValues: TestResultPredicate_Expectancy.values)
@@ -71,17 +77,19 @@ class TestResultPredicate extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   TestResultPredicate copyWith(void Function(TestResultPredicate) updates) =>
-      super.copyWith((message) => updates(message as TestResultPredicate)) as TestResultPredicate;
+      super.copyWith((message) => updates(message as TestResultPredicate))
+          as TestResultPredicate;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static TestResultPredicate create() => TestResultPredicate._();
   TestResultPredicate createEmptyInstance() => create();
-  static $pb.PbList<TestResultPredicate> createRepeated() => $pb.PbList<TestResultPredicate>();
+  static $pb.PbList<TestResultPredicate> createRepeated() =>
+      $pb.PbList<TestResultPredicate>();
   @$core.pragma('dart2js:noInline')
-  static TestResultPredicate getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TestResultPredicate>(create);
+  static TestResultPredicate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TestResultPredicate>(create);
   static TestResultPredicate? _defaultInstance;
 
   /// A test result must have a test id matching this regular expression
@@ -166,34 +174,43 @@ class TestExonerationPredicate extends $pb.GeneratedMessage {
   factory TestExonerationPredicate.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory TestExonerationPredicate.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TestExonerationPredicate.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TestExonerationPredicate',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TestExonerationPredicate',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'testIdRegexp')
-    ..aOM<VariantPredicate>(2, _omitFieldNames ? '' : 'variant', subBuilder: VariantPredicate.create)
+    ..aOM<VariantPredicate>(2, _omitFieldNames ? '' : 'variant',
+        subBuilder: VariantPredicate.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  TestExonerationPredicate clone() => TestExonerationPredicate()..mergeFromMessage(this);
+  TestExonerationPredicate clone() =>
+      TestExonerationPredicate()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  TestExonerationPredicate copyWith(void Function(TestExonerationPredicate) updates) =>
-      super.copyWith((message) => updates(message as TestExonerationPredicate)) as TestExonerationPredicate;
+  TestExonerationPredicate copyWith(
+          void Function(TestExonerationPredicate) updates) =>
+      super.copyWith((message) => updates(message as TestExonerationPredicate))
+          as TestExonerationPredicate;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static TestExonerationPredicate create() => TestExonerationPredicate._();
   TestExonerationPredicate createEmptyInstance() => create();
-  static $pb.PbList<TestExonerationPredicate> createRepeated() => $pb.PbList<TestExonerationPredicate>();
+  static $pb.PbList<TestExonerationPredicate> createRepeated() =>
+      $pb.PbList<TestExonerationPredicate>();
   @$core.pragma('dart2js:noInline')
-  static TestExonerationPredicate getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TestExonerationPredicate>(create);
+  static TestExonerationPredicate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TestExonerationPredicate>(create);
   static TestExonerationPredicate? _defaultInstance;
 
   /// A test exoneration must have a test id matching this regular expression
@@ -247,19 +264,26 @@ class VariantPredicate extends $pb.GeneratedMessage {
   factory VariantPredicate.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory VariantPredicate.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory VariantPredicate.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static const $core.Map<$core.int, VariantPredicate_Predicate> _VariantPredicate_PredicateByTag = {
+  static const $core.Map<$core.int, VariantPredicate_Predicate>
+      _VariantPredicate_PredicateByTag = {
     1: VariantPredicate_Predicate.equals,
     2: VariantPredicate_Predicate.contains,
     0: VariantPredicate_Predicate.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'VariantPredicate',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'VariantPredicate',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..oo(0, [1, 2])
-    ..aOM<$0.Variant>(1, _omitFieldNames ? '' : 'equals', subBuilder: $0.Variant.create)
-    ..aOM<$0.Variant>(2, _omitFieldNames ? '' : 'contains', subBuilder: $0.Variant.create)
+    ..aOM<$0.Variant>(1, _omitFieldNames ? '' : 'equals',
+        subBuilder: $0.Variant.create)
+    ..aOM<$0.Variant>(2, _omitFieldNames ? '' : 'contains',
+        subBuilder: $0.Variant.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -270,20 +294,23 @@ class VariantPredicate extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   VariantPredicate copyWith(void Function(VariantPredicate) updates) =>
-      super.copyWith((message) => updates(message as VariantPredicate)) as VariantPredicate;
+      super.copyWith((message) => updates(message as VariantPredicate))
+          as VariantPredicate;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static VariantPredicate create() => VariantPredicate._();
   VariantPredicate createEmptyInstance() => create();
-  static $pb.PbList<VariantPredicate> createRepeated() => $pb.PbList<VariantPredicate>();
+  static $pb.PbList<VariantPredicate> createRepeated() =>
+      $pb.PbList<VariantPredicate>();
   @$core.pragma('dart2js:noInline')
-  static VariantPredicate getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<VariantPredicate>(create);
+  static VariantPredicate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<VariantPredicate>(create);
   static VariantPredicate? _defaultInstance;
 
-  VariantPredicate_Predicate whichPredicate() => _VariantPredicate_PredicateByTag[$_whichOneof(0)]!;
+  VariantPredicate_Predicate whichPredicate() =>
+      _VariantPredicate_PredicateByTag[$_whichOneof(0)]!;
   void clearPredicate() => clearField($_whichOneof(0));
 
   /// A variant must be equal this definition exactly.
@@ -340,8 +367,11 @@ class ArtifactPredicate_EdgeTypeSet extends $pb.GeneratedMessage {
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ArtifactPredicate.EdgeTypeSet',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ArtifactPredicate.EdgeTypeSet',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'includedInvocations')
     ..aOB(2, _omitFieldNames ? '' : 'testResults')
     ..hasRequiredFields = false;
@@ -349,22 +379,28 @@ class ArtifactPredicate_EdgeTypeSet extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  ArtifactPredicate_EdgeTypeSet clone() => ArtifactPredicate_EdgeTypeSet()..mergeFromMessage(this);
+  ArtifactPredicate_EdgeTypeSet clone() =>
+      ArtifactPredicate_EdgeTypeSet()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  ArtifactPredicate_EdgeTypeSet copyWith(void Function(ArtifactPredicate_EdgeTypeSet) updates) =>
-      super.copyWith((message) => updates(message as ArtifactPredicate_EdgeTypeSet)) as ArtifactPredicate_EdgeTypeSet;
+  ArtifactPredicate_EdgeTypeSet copyWith(
+          void Function(ArtifactPredicate_EdgeTypeSet) updates) =>
+      super.copyWith(
+              (message) => updates(message as ArtifactPredicate_EdgeTypeSet))
+          as ArtifactPredicate_EdgeTypeSet;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static ArtifactPredicate_EdgeTypeSet create() => ArtifactPredicate_EdgeTypeSet._();
+  static ArtifactPredicate_EdgeTypeSet create() =>
+      ArtifactPredicate_EdgeTypeSet._();
   ArtifactPredicate_EdgeTypeSet createEmptyInstance() => create();
-  static $pb.PbList<ArtifactPredicate_EdgeTypeSet> createRepeated() => $pb.PbList<ArtifactPredicate_EdgeTypeSet>();
+  static $pb.PbList<ArtifactPredicate_EdgeTypeSet> createRepeated() =>
+      $pb.PbList<ArtifactPredicate_EdgeTypeSet>();
   @$core.pragma('dart2js:noInline')
-  static ArtifactPredicate_EdgeTypeSet getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ArtifactPredicate_EdgeTypeSet>(create);
+  static ArtifactPredicate_EdgeTypeSet getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ArtifactPredicate_EdgeTypeSet>(create);
   static ArtifactPredicate_EdgeTypeSet? _defaultInstance;
 
   /// The edges represented by Invocation.included_invocations field.
@@ -421,14 +457,20 @@ class ArtifactPredicate extends $pb.GeneratedMessage {
   factory ArtifactPredicate.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory ArtifactPredicate.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory ArtifactPredicate.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ArtifactPredicate',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
-    ..aOM<ArtifactPredicate_EdgeTypeSet>(1, _omitFieldNames ? '' : 'followEdges',
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ArtifactPredicate',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
+    ..aOM<ArtifactPredicate_EdgeTypeSet>(
+        1, _omitFieldNames ? '' : 'followEdges',
         subBuilder: ArtifactPredicate_EdgeTypeSet.create)
-    ..aOM<TestResultPredicate>(2, _omitFieldNames ? '' : 'testResultPredicate', subBuilder: TestResultPredicate.create)
+    ..aOM<TestResultPredicate>(2, _omitFieldNames ? '' : 'testResultPredicate',
+        subBuilder: TestResultPredicate.create)
     ..aOS(3, _omitFieldNames ? '' : 'contentTypeRegexp')
     ..aOS(4, _omitFieldNames ? '' : 'artifactIdRegexp')
     ..hasRequiredFields = false;
@@ -441,17 +483,19 @@ class ArtifactPredicate extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   ArtifactPredicate copyWith(void Function(ArtifactPredicate) updates) =>
-      super.copyWith((message) => updates(message as ArtifactPredicate)) as ArtifactPredicate;
+      super.copyWith((message) => updates(message as ArtifactPredicate))
+          as ArtifactPredicate;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static ArtifactPredicate create() => ArtifactPredicate._();
   ArtifactPredicate createEmptyInstance() => create();
-  static $pb.PbList<ArtifactPredicate> createRepeated() => $pb.PbList<ArtifactPredicate>();
+  static $pb.PbList<ArtifactPredicate> createRepeated() =>
+      $pb.PbList<ArtifactPredicate>();
   @$core.pragma('dart2js:noInline')
-  static ArtifactPredicate getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ArtifactPredicate>(create);
+  static ArtifactPredicate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ArtifactPredicate>(create);
   static ArtifactPredicate? _defaultInstance;
 
   ///  Specifies which edges to follow when retrieving directly/indirectly
@@ -540,33 +584,41 @@ class TestMetadataPredicate extends $pb.GeneratedMessage {
   factory TestMetadataPredicate.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory TestMetadataPredicate.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TestMetadataPredicate.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TestMetadataPredicate',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TestMetadataPredicate',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..pPS(1, _omitFieldNames ? '' : 'testIds')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  TestMetadataPredicate clone() => TestMetadataPredicate()..mergeFromMessage(this);
+  TestMetadataPredicate clone() =>
+      TestMetadataPredicate()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  TestMetadataPredicate copyWith(void Function(TestMetadataPredicate) updates) =>
-      super.copyWith((message) => updates(message as TestMetadataPredicate)) as TestMetadataPredicate;
+  TestMetadataPredicate copyWith(
+          void Function(TestMetadataPredicate) updates) =>
+      super.copyWith((message) => updates(message as TestMetadataPredicate))
+          as TestMetadataPredicate;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static TestMetadataPredicate create() => TestMetadataPredicate._();
   TestMetadataPredicate createEmptyInstance() => create();
-  static $pb.PbList<TestMetadataPredicate> createRepeated() => $pb.PbList<TestMetadataPredicate>();
+  static $pb.PbList<TestMetadataPredicate> createRepeated() =>
+      $pb.PbList<TestMetadataPredicate>();
   @$core.pragma('dart2js:noInline')
-  static TestMetadataPredicate getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TestMetadataPredicate>(create);
+  static TestMetadataPredicate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TestMetadataPredicate>(create);
   static TestMetadataPredicate? _defaultInstance;
 
   /// A test metadata must have the test id in this list.
@@ -575,4 +627,5 @@ class TestMetadataPredicate extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

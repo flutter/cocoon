@@ -4,10 +4,7 @@
 
 /// There are two ways to clone the repository which will be configurable in the
 /// repository configuration in .github.
-enum GitAccessMethod {
-  SSH,
-  HTTP,
-}
+enum GitAccessMethod { SSH, HTTP }
 
 /// Wrapper class to create a revert branch that is comprised of the prefix
 /// revert_ and the commit sha so the branch is easily identifiable.

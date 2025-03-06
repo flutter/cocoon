@@ -14,9 +14,33 @@ const Branch$json = {
   '1': 'Branch',
   '2': [
     {'1': 'branch', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'branch', '17': true},
-    {'1': 'repository', '3': 2, '4': 1, '5': 9, '9': 1, '10': 'repository', '17': true},
-    {'1': 'channel', '3': 3, '4': 1, '5': 9, '9': 2, '10': 'channel', '17': true},
-    {'1': 'lastActivity', '3': 4, '4': 1, '5': 3, '9': 3, '10': 'lastActivity', '17': true},
+    {
+      '1': 'repository',
+      '3': 2,
+      '4': 1,
+      '5': 9,
+      '9': 1,
+      '10': 'repository',
+      '17': true
+    },
+    {
+      '1': 'channel',
+      '3': 3,
+      '4': 1,
+      '5': 9,
+      '9': 2,
+      '10': 'channel',
+      '17': true
+    },
+    {
+      '1': 'lastActivity',
+      '3': 4,
+      '4': 1,
+      '5': 3,
+      '9': 3,
+      '10': 'lastActivity',
+      '17': true
+    },
   ],
   '8': [
     {'1': '_branch'},

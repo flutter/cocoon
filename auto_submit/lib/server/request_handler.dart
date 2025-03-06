@@ -12,9 +12,7 @@ import '../service/config.dart';
 
 @immutable
 abstract class RequestHandler {
-  const RequestHandler({
-    required this.config,
-  });
+  const RequestHandler({required this.config});
 
   final Config config;
 

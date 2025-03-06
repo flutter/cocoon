@@ -29,11 +29,15 @@ class FailureReason_Error extends $pb.GeneratedMessage {
   factory FailureReason_Error.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory FailureReason_Error.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory FailureReason_Error.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'FailureReason.Error',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'FailureReason.Error',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'message')
     ..hasRequiredFields = false;
 
@@ -45,17 +49,19 @@ class FailureReason_Error extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   FailureReason_Error copyWith(void Function(FailureReason_Error) updates) =>
-      super.copyWith((message) => updates(message as FailureReason_Error)) as FailureReason_Error;
+      super.copyWith((message) => updates(message as FailureReason_Error))
+          as FailureReason_Error;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static FailureReason_Error create() => FailureReason_Error._();
   FailureReason_Error createEmptyInstance() => create();
-  static $pb.PbList<FailureReason_Error> createRepeated() => $pb.PbList<FailureReason_Error>();
+  static $pb.PbList<FailureReason_Error> createRepeated() =>
+      $pb.PbList<FailureReason_Error>();
   @$core.pragma('dart2js:noInline')
-  static FailureReason_Error getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<FailureReason_Error>(create);
+  static FailureReason_Error getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<FailureReason_Error>(create);
   static FailureReason_Error? _defaultInstance;
 
   ///  The error message. This should only be the error message and
@@ -102,17 +108,24 @@ class FailureReason extends $pb.GeneratedMessage {
     return $result;
   }
   FailureReason._() : super();
-  factory FailureReason.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory FailureReason.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory FailureReason.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory FailureReason.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'FailureReason',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'FailureReason',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'primaryErrorMessage')
-    ..pc<FailureReason_Error>(2, _omitFieldNames ? '' : 'errors', $pb.PbFieldType.PM,
+    ..pc<FailureReason_Error>(
+        2, _omitFieldNames ? '' : 'errors', $pb.PbFieldType.PM,
         subBuilder: FailureReason_Error.create)
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'truncatedErrorsCount', $pb.PbFieldType.O3)
+    ..a<$core.int>(
+        3, _omitFieldNames ? '' : 'truncatedErrorsCount', $pb.PbFieldType.O3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -123,16 +136,19 @@ class FailureReason extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   FailureReason copyWith(void Function(FailureReason) updates) =>
-      super.copyWith((message) => updates(message as FailureReason)) as FailureReason;
+      super.copyWith((message) => updates(message as FailureReason))
+          as FailureReason;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static FailureReason create() => FailureReason._();
   FailureReason createEmptyInstance() => create();
-  static $pb.PbList<FailureReason> createRepeated() => $pb.PbList<FailureReason>();
+  static $pb.PbList<FailureReason> createRepeated() =>
+      $pb.PbList<FailureReason>();
   @$core.pragma('dart2js:noInline')
-  static FailureReason getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<FailureReason>(create);
+  static FailureReason getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<FailureReason>(create);
   static FailureReason? _defaultInstance;
 
   ///  The error message that ultimately caused the test to fail. This should
@@ -191,4 +207,5 @@ class FailureReason extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

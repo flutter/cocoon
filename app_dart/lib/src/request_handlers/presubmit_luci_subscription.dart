@@ -7,21 +7,21 @@ import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
-import 'package:cocoon_service/src/model/luci/user_data.dart';
-import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
-import 'package:cocoon_service/src/service/github_checks_service.dart';
-import 'package:cocoon_service/src/service/luci_build_service.dart';
-import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
-import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
+import '../model/luci/user_data.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
+import '../request_handling/subscription_handler.dart';
 import '../service/config.dart';
+import '../service/github_checks_service.dart';
+import '../service/luci_build_service.dart';
+import '../service/luci_build_service/build_tags.dart';
+import '../service/scheduler.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
 ///
@@ -58,22 +58,24 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       return Body.empty;
     }
 
-    final bbv2.PubSubCallBack pubSubCallBack = bbv2.PubSubCallBack();
-    pubSubCallBack.mergeFromProto3Json(jsonDecode(message.data!) as Map<String, dynamic>);
+    final pubSubCallBack = bbv2.PubSubCallBack();
+    pubSubCallBack.mergeFromProto3Json(
+      jsonDecode(message.data!) as Map<String, dynamic>,
+    );
 
-    final bbv2.BuildsV2PubSub buildsPubSub = pubSubCallBack.buildPubsub;
+    final buildsPubSub = pubSubCallBack.buildPubsub;
 
     if (!buildsPubSub.hasBuild()) {
       log.info('no build information in message');
       return Body.empty;
     }
 
-    final bbv2.Build build = buildsPubSub.build;
+    final build = buildsPubSub.build;
 
     // Add build fields that are stored in a separate compressed buffer.
     build.mergeFromBuffer(ZLibCodec().decode(buildsPubSub.buildLargeFields));
 
-    final String builderName = build.builder.builder;
+    final builderName = build.builder.builder;
     final tagSet = BuildTags.fromStringPairs(build.tags);
 
     log.info('Available tags: $tagSet');
@@ -91,7 +93,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       return Body.empty;
     }
 
-    Map<String, dynamic> userDataMap = <String, dynamic>{};
+    var userDataMap = <String, dynamic>{};
     try {
       userDataMap = json.decode(String.fromCharCodes(pubSubCallBack.userData));
       log.info('User data was not base64 encoded.');
@@ -100,14 +102,17 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       log.info('Decoding base64 encoded user data.');
     }
 
-    if (userDataMap.containsKey('repo_owner') && userDataMap.containsKey('repo_name')) {
-      final RepositorySlug slug =
-          RepositorySlug(userDataMap['repo_owner'] as String, userDataMap['repo_name'] as String);
+    if (userDataMap.containsKey('repo_owner') &&
+        userDataMap.containsKey('repo_name')) {
+      final slug = RepositorySlug(
+        userDataMap['repo_owner'] as String,
+        userDataMap['repo_name'] as String,
+      );
 
-      bool rescheduled = false;
+      var rescheduled = false;
       if (githubChecksService.taskFailed(build.status)) {
-        final int currentAttempt = _nextAttempt(tagSet);
-        final int maxAttempt = await _getMaxAttempt(
+        final currentAttempt = _nextAttempt(tagSet);
+        final maxAttempt = await _getMaxAttempt(
           slug,
           builderName,
           tagSet,
@@ -176,22 +181,30 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
 
     final targets = [
       ...ciYaml.presubmitTargets(),
-      if (ciYaml.isFusion) ...ciYaml.presubmitTargets(type: CiType.fusionEngine),
+      if (ciYaml.isFusion)
+        ...ciYaml.presubmitTargets(type: CiType.fusionEngine),
     ];
     // Do not block on the target not found.
     if (!targets.any((element) => element.value.name == builderName)) {
       // do not reschedule
-      log.warning('Did not find builder with name: $builderName in ciYaml for ${commit.sha}');
-      final List<String> availableBuilderList = ciYaml.presubmitTargets().map((Target e) => e.value.name).toList();
+      log.warning(
+        'Did not find builder with name: $builderName in ciYaml for ${commit.sha}',
+      );
+      final availableBuilderList =
+          ciYaml.presubmitTargets().map((Target e) => e.value.name).toList();
       log.warning('ciYaml presubmit targets found: $availableBuilderList');
       return 1;
     }
 
-    final target = targets.singleWhere((element) => element.value.name == builderName);
-    final Map<String, Object> properties = target.getProperties();
+    final target = targets.singleWhere(
+      (element) => element.value.name == builderName,
+    );
+    final properties = target.getProperties();
     if (!properties.containsKey('presubmit_max_attempts')) {
       // Give any test in the merge queue another try... its expensive otherwise.
-      return tags.containsType<InMergeQueueBuildTag>() ? LuciBuildService.kMergeQueueMaxRetries : 1;
+      return tags.containsType<InMergeQueueBuildTag>()
+          ? LuciBuildService.kMergeQueueMaxRetries
+          : 1;
     }
     return properties['presubmit_max_attempts'] as int;
   }

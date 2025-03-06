@@ -28,9 +28,9 @@ late bool _ignoreVersion;
 /// were passed as arguments. If they were, also set [_gcloudProjectId]
 /// and [_gcloudProjectVersion] accordingly.
 bool _getArgs(ArgParser argParser, List<String> arguments) {
-  final ArgResults args = argParser.parse(arguments);
+  final args = argParser.parse(arguments);
 
-  final bool printHelpMessage = args[helpFlag] as bool;
+  final printHelpMessage = args[helpFlag] as bool;
   if (printHelpMessage) {
     return false;
   }
@@ -63,17 +63,20 @@ Future<bool> _checkDependencies() async {
   }
 
   stdout.writeln('Checking Flutter version via flutter --version');
-  final ProcessResult result = await Process.run('flutter', <String>['--version']);
-  final String flutterVersionOutput = result.stdout as String;
+  final result = await Process.run('flutter', <String>['--version']);
+  final flutterVersionOutput = result.stdout as String;
 
   // This makes an assumption that only the framework will have its version
   // printed out with the date in YYYY-MM-DD format.
-  final RegExp dateRegExp = RegExp(r'([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))');
-  final String flutterVersionDateRaw = dateRegExp.allMatches(flutterVersionOutput).first.group(0)!;
+  final dateRegExp = RegExp(
+    r'([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))',
+  );
+  final flutterVersionDateRaw =
+      dateRegExp.allMatches(flutterVersionOutput).first.group(0)!;
 
-  final DateTime flutterVersionDate = DateTime.parse(flutterVersionDateRaw);
-  final DateTime now = DateTime.now();
-  final Duration lastUpdateToFlutter = now.difference(flutterVersionDate);
+  final flutterVersionDate = DateTime.parse(flutterVersionDateRaw);
+  final now = DateTime.now();
+  final lastUpdateToFlutter = now.difference(flutterVersionDate);
 
   return lastUpdateToFlutter.inDays < 21;
 }
@@ -85,20 +88,17 @@ Future<bool> _deployToAppEngine() async {
 
   /// The Google Cloud deployment command is an interactive process. It will
   /// print out what it is about to do, and ask for confirmation (Y/n).
-  final Process process = await Process.start(
-    'gcloud',
-    <String>[
-      'app',
-      'deploy',
-      '--project',
-      _gcloudProjectId!,
-      '--version',
-      _gcloudProjectVersion!,
-      '--no-promote',
-      '--no-stop-previous-version',
-      '--quiet',
-    ],
-  );
+  final process = await Process.start('gcloud', <String>[
+    'app',
+    'deploy',
+    '--project',
+    _gcloudProjectId!,
+    '--version',
+    _gcloudProjectVersion!,
+    '--no-promote',
+    '--no-stop-previous-version',
+    '--quiet',
+  ]);
 
   /// Let this user confirm the details before Google Cloud sends for deployment.
   unawaited(stdin.pipe(process.stdin));
@@ -111,7 +111,7 @@ Future<bool> _deployToAppEngine() async {
 
 /// Run [args] in bash shell and validate it finshes with exit code 0.
 Future<void> shellCommand(List<String> args) async {
-  final ProcessResult result = await Process.run(
+  final result = await Process.run(
     'bash',
     args,
     workingDirectory: workspaceDirectory,
@@ -126,23 +126,31 @@ Future<void> shellCommand(List<String> args) async {
 }
 
 Future<void> main(List<String> arguments) async {
-  final ArgParser argParser = ArgParser()
-    ..addOption(gcloudProjectIdFlag, abbr: gcloudProjectIdAbbrFlag)
-    ..addOption(gcloudProjectVersionFlag, abbr: gcloudProjectVersionAbbrFlag)
-    ..addFlag(ignoreVersionFlag)
-    ..addFlag(helpFlag);
+  final argParser =
+      ArgParser()
+        ..addOption(gcloudProjectIdFlag, abbr: gcloudProjectIdAbbrFlag)
+        ..addOption(
+          gcloudProjectVersionFlag,
+          abbr: gcloudProjectVersionAbbrFlag,
+        )
+        ..addFlag(ignoreVersionFlag)
+        ..addFlag(helpFlag);
 
   if (!_getArgs(argParser, arguments)) {
-    stdout.write('Required flags:\n'
-        '--$gcloudProjectIdFlag gcp-id\n'
-        '--$gcloudProjectVersionFlag version\n\n'
-        'Optional flags:\n'
-        '--$ignoreVersionFlag\tForce deploy with current Flutter version\n');
+    stdout.write(
+      'Required flags:\n'
+      '--$gcloudProjectIdFlag gcp-id\n'
+      '--$gcloudProjectVersionFlag version\n\n'
+      'Optional flags:\n'
+      '--$ignoreVersionFlag\tForce deploy with current Flutter version\n',
+    );
     exit(1);
   }
 
   if (!await _checkDependencies()) {
-    stderr.writeln('Update Flutter to a version on master from the past 3 weeks to deploy Cocoon');
+    stderr.writeln(
+      'Update Flutter to a version on master from the past 3 weeks to deploy Cocoon',
+    );
     exit(1);
   }
 

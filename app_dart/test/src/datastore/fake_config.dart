@@ -31,8 +31,10 @@ class FakeConfig implements Config {
     this.keyHelperValue,
     this.oauthClientIdValue,
     this.githubOAuthTokenValue,
-    this.mergeConflictPullRequestMessageValue = 'default mergeConflictPullRequestMessageValue',
-    this.missingTestsPullRequestMessageValue = 'default missingTestsPullRequestMessageValue',
+    this.mergeConflictPullRequestMessageValue =
+        'default mergeConflictPullRequestMessageValue',
+    this.missingTestsPullRequestMessageValue =
+        'default missingTestsPullRequestMessageValue',
     this.wrongBaseBranchPullRequestMessageValue,
     this.wrongHeadBranchPullRequestMessageValue,
     this.releaseBranchPullRequestMessageValue,
@@ -114,16 +116,21 @@ class FakeConfig implements Config {
   Duration? githubRequestDelayValue;
 
   @override
-  Future<gh.GitHub> createGitHubClient({gh.PullRequest? pullRequest, gh.RepositorySlug? slug}) async => githubClient!;
+  Future<gh.GitHub> createGitHubClient({
+    gh.PullRequest? pullRequest,
+    gh.RepositorySlug? slug,
+  }) async => githubClient!;
 
   @override
   gh.GitHub createGitHubClientWithToken(String token) => githubClient!;
 
   @override
-  Future<GraphQLClient> createGitHubGraphQLClient() async => githubGraphQLClient!;
+  Future<GraphQLClient> createGitHubGraphQLClient() async =>
+      githubGraphQLClient!;
 
   @override
-  Future<TabledataResource> createTabledataResourceApi() async => tabledataResource!;
+  Future<TabledataResource> createTabledataResourceApi() async =>
+      tabledataResource!;
 
   @override
   Future<BigqueryService> createBigQueryService() async => bigqueryService!;
@@ -132,7 +139,8 @@ class FakeConfig implements Config {
   Future<FirestoreService> createFirestoreService() async => firestoreService!;
 
   @override
-  Future<GithubService> createGithubService(gh.RepositorySlug slug) async => githubService ?? FakeGithubService();
+  Future<GithubService> createGithubService(gh.RepositorySlug slug) async =>
+      githubService ?? FakeGithubService();
 
   @override
   GithubService createGithubServiceWithToken(String token) => githubService!;
@@ -160,7 +168,8 @@ class FakeConfig implements Config {
   int get batchSize => batchSizeValue ?? 5;
 
   @override
-  int get maxFilesChangedForSkippingEnginePhase => maxFilesChangedForSkippingEnginePhaseValue!;
+  int get maxFilesChangedForSkippingEnginePhase =>
+      maxFilesChangedForSkippingEnginePhaseValue!;
 
   @override
   int get maxLuciTaskRetries => maxLuciTaskRetriesValue!;
@@ -190,10 +199,12 @@ class FakeConfig implements Config {
   String flutterGoldFollowUpAlert(String url) => flutterGoldFollowUpAlertValue!;
 
   @override
-  String flutterGoldAlertConstant(gh.RepositorySlug slug) => flutterGoldAlertConstantValue!;
+  String flutterGoldAlertConstant(gh.RepositorySlug slug) =>
+      flutterGoldAlertConstantValue!;
 
   @override
-  String flutterGoldCommentID(gh.PullRequest pr) => 'PR ${pr.number}, at ${pr.head!.sha}';
+  String flutterGoldCommentID(gh.PullRequest pr) =>
+      'PR ${pr.number}, at ${pr.head!.sha}';
 
   @override
   Future<String> get frobWebhookKey async => 'frob-webhook-key';
@@ -211,19 +222,24 @@ class FakeConfig implements Config {
   Future<String> get githubOAuthToken async => githubOAuthTokenValue ?? 'token';
 
   @override
-  String get mergeConflictPullRequestMessage => mergeConflictPullRequestMessageValue;
+  String get mergeConflictPullRequestMessage =>
+      mergeConflictPullRequestMessageValue;
 
   @override
-  String get missingTestsPullRequestMessage => missingTestsPullRequestMessageValue;
+  String get missingTestsPullRequestMessage =>
+      missingTestsPullRequestMessageValue;
 
   @override
-  String get wrongBaseBranchPullRequestMessage => wrongBaseBranchPullRequestMessageValue!;
+  String get wrongBaseBranchPullRequestMessage =>
+      wrongBaseBranchPullRequestMessageValue!;
 
   @override
-  String wrongHeadBranchPullRequestMessage(String branch) => wrongHeadBranchPullRequestMessageValue!;
+  String wrongHeadBranchPullRequestMessage(String branch) =>
+      wrongHeadBranchPullRequestMessageValue!;
 
   @override
-  String get releaseBranchPullRequestMessage => releaseBranchPullRequestMessageValue!;
+  String get releaseBranchPullRequestMessage =>
+      releaseBranchPullRequestMessageValue!;
 
   @override
   Future<String> get webhookKey async => webhookKeyValue!;
@@ -244,7 +260,8 @@ class FakeConfig implements Config {
   Logging get loggingService => loggingServiceValue!;
 
   @override
-  String get waitingForTreeToGoGreenLabelName => waitingForTreeToGoGreenLabelNameValue!;
+  String get waitingForTreeToGoGreenLabelName =>
+      waitingForTreeToGoGreenLabelNameValue!;
 
   @override
   Set<String> get rollerAccounts => rollerAccountsValue!;
@@ -263,7 +280,8 @@ class FakeConfig implements Config {
   Future<String> get githubAppId => throw UnimplementedError();
 
   @override
-  Future<Map<String, dynamic>> get githubAppInstallations => throw UnimplementedError();
+  Future<Map<String, dynamic>> get githubAppInstallations =>
+      throw UnimplementedError();
 
   @override
   Future<String> get githubPrivateKey => throw UnimplementedError();
@@ -284,7 +302,9 @@ class FakeConfig implements Config {
   String get releaseCandidateBranchPath => releaseCandidateBranchPathValue!;
 
   @override
-  Future<List<String>> get releaseAccounts async => <String>['dart-flutter-releaser'];
+  Future<List<String>> get releaseAccounts async => <String>[
+    'dart-flutter-releaser',
+  ];
 
   @override
   Set<gh.RepositorySlug> get supportedRepos =>
@@ -302,14 +322,13 @@ class FakeConfig implements Config {
   @override
   Future<Iterable<Branch>> getBranches(gh.RepositorySlug slug) async {
     if (supportedBranchesValue == null) {
-      throw Exception('Test must set suportedBranchesValue to be able to use Config.getBranches');
+      throw Exception(
+        'Test must set suportedBranchesValue to be able to use Config.getBranches',
+      );
     }
     return supportedBranchesValue!.map(
       (String branch) => Branch(
-        key: db.emptyKey.append<String>(
-          Branch,
-          id: '${slug.fullName}/$branch',
-        ),
+        key: db.emptyKey.append<String>(Branch, id: '${slug.fullName}/$branch'),
       ),
     );
   }

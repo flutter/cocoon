@@ -44,7 +44,7 @@ void main() {
 
     test('succeeds for App Engine cronjobs', () async {
       request.headers.set('X-Appengine-Cron', 'true');
-      final AuthenticatedContext result = await auth.authenticate(request);
+      final result = await auth.authenticate(request);
       expect(result.clientContext, same(clientContext));
     });
 
@@ -60,7 +60,12 @@ void main() {
       });
 
       test('auth succeeds with authenticated header', () async {
-        httpClient = MockClient((_) async => http.Response('{"aud": "client-id", "hd": "google.com"}', HttpStatus.ok));
+        httpClient = MockClient(
+          (_) async => http.Response(
+            '{"aud": "client-id", "hd": "google.com"}',
+            HttpStatus.ok,
+          ),
+        );
         auth = AuthenticationProvider(
           config: config,
           clientContextProvider: () => clientContext,
@@ -68,7 +73,7 @@ void main() {
         );
         config.oauthClientIdValue = 'client-id';
         request.headers.add('X-Flutter-IdToken', 'authenticated');
-        final AuthenticatedContext result = await auth.authenticate(request);
+        final result = await auth.authenticate(request);
         expect(result.clientContext, same(clientContext));
         expect(result, isNotNull);
       });
@@ -77,63 +82,62 @@ void main() {
         config.oauthClientIdValue = 'client-id';
         request.headers.add('X-Flutter-IdToken', 'authenticated');
         await expectLater(
-          auth.authenticateToken(
-            token,
-            clientContext: FakeClientContext(),
-          ),
+          auth.authenticateToken(token, clientContext: FakeClientContext()),
           throwsA(isA<Unauthenticated>()),
         );
       });
 
       test('fails if tokenInfo returns invalid JSON', () async {
-        httpClient = MockClient((_) async => http.Response('Not JSON!', HttpStatus.ok));
-        final List<LogRecord> records = <LogRecord>[];
-        log.onRecord.listen((LogRecord record) => records.add(record));
-        await expectLater(auth.tokenInfo(request), throwsA(isA<InternalServerError>()));
+        httpClient = MockClient(
+          (_) async => http.Response('Not JSON!', HttpStatus.ok),
+        );
+        final records = <LogRecord>[];
+        log.onRecord.listen(records.add);
+        await expectLater(
+          auth.tokenInfo(request),
+          throwsA(isA<InternalServerError>()),
+        );
         expect(records, isEmpty);
       });
 
       test('fails if token verification yields forged token', () async {
-        final TokenInfo token = TokenInfo(
+        final token = TokenInfo(
           audience: 'forgery',
           email: 'abc@abc.com',
           issued: DateTime.now(),
         );
         config.oauthClientIdValue = 'expected-client-id';
         await expectLater(
-          auth.authenticateToken(
-            token,
-            clientContext: FakeClientContext(),
-          ),
+          auth.authenticateToken(token, clientContext: FakeClientContext()),
           throwsA(isA<Unauthenticated>()),
         );
       });
 
-      test('allows different aud for gcloud tokens with google accounts', () async {
-        final TokenInfo token = TokenInfo(
-          audience: 'different',
-          email: 'abc@google.com',
-          issued: DateTime.now(),
-        );
-        config.oauthClientIdValue = 'expected-client-id';
-        await expectLater(
-          auth.authenticateToken(
-            token,
-            clientContext: FakeClientContext(),
-          ),
-          throwsA(isA<Unauthenticated>()),
-        );
-      });
+      test(
+        'allows different aud for gcloud tokens with google accounts',
+        () async {
+          final token = TokenInfo(
+            audience: 'different',
+            email: 'abc@google.com',
+            issued: DateTime.now(),
+          );
+          config.oauthClientIdValue = 'expected-client-id';
+          await expectLater(
+            auth.authenticateToken(token, clientContext: FakeClientContext()),
+            throwsA(isA<Unauthenticated>()),
+          );
+        },
+      );
 
       test('succeeds for google.com auth user', () async {
-        final TokenInfo token = TokenInfo(
+        final token = TokenInfo(
           audience: 'client-id',
           hostedDomain: 'google.com',
           email: 'abc@google.com',
           issued: DateTime.now(),
         );
         config.oauthClientIdValue = 'client-id';
-        final AuthenticatedContext result = await auth.authenticateToken(
+        final result = await auth.authenticateToken(
           token,
           clientContext: clientContext,
         );
@@ -141,30 +145,34 @@ void main() {
       });
 
       test('fails for non-allowed non-Google auth users', () async {
-        final TokenInfo token =
-            TokenInfo(audience: 'client-id', hostedDomain: 'gmail.com', email: 'abc@gmail.com', issued: DateTime.now());
+        final token = TokenInfo(
+          audience: 'client-id',
+          hostedDomain: 'gmail.com',
+          email: 'abc@gmail.com',
+          issued: DateTime.now(),
+        );
         config.oauthClientIdValue = 'client-id';
         await expectLater(
-          auth.authenticateToken(
-            token,
-            clientContext: FakeClientContext(),
-          ),
+          auth.authenticateToken(token, clientContext: FakeClientContext()),
           throwsA(isA<Unauthenticated>()),
         );
       });
 
       test('succeeds for allowed non-Google auth users', () async {
-        final AllowedAccount account = AllowedAccount(
+        final account = AllowedAccount(
           key: config.db.emptyKey.append<int>(AllowedAccount, id: 123),
         )..email = 'test@gmail.com';
         config.db.values[account.key] = account;
-        final TokenInfo token = TokenInfo(
+        final token = TokenInfo(
           audience: 'client-id',
           email: 'test@gmail.com',
           issued: DateTime.now(),
         );
         config.oauthClientIdValue = 'client-id';
-        final AuthenticatedContext result = await auth.authenticateToken(token, clientContext: clientContext);
+        final result = await auth.authenticateToken(
+          token,
+          clientContext: clientContext,
+        );
         expect(result.clientContext, same(clientContext));
       });
     });

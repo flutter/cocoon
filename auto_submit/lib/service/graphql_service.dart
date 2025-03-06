@@ -19,7 +19,10 @@ class GraphQlService {
   //                only need the "owner" (i.e. the Github org or user). Making it
   //                slug-specific makes it awkward to use for org operations and cross-repo
   //                operations.
-  static Future<GraphQlService> forRepo(Config config, github.RepositorySlug slug) async {
+  static Future<GraphQlService> forRepo(
+    Config config,
+    github.RepositorySlug slug,
+  ) async {
     final client = await config.createGitHubGraphQLClient(slug);
     return GraphQlService._(client);
   }
@@ -33,7 +36,7 @@ class GraphQlService {
     required DocumentNode documentNode,
     required Map<String, dynamic> variables,
   }) async {
-    final QueryResult queryResult = await _client.query(
+    final queryResult = await _client.query(
       QueryOptions(
         document: documentNode,
         fetchPolicy: FetchPolicy.noCache,
@@ -54,7 +57,7 @@ class GraphQlService {
     required DocumentNode documentNode,
     required Map<String, dynamic> variables,
   }) async {
-    final QueryResult queryResult = await _client.mutate(
+    final queryResult = await _client.mutate(
       MutationOptions(
         document: documentNode,
         fetchPolicy: FetchPolicy.noCache,
@@ -73,14 +76,17 @@ class GraphQlService {
   ///
   /// The REST pull request ID is not the same as the GraphQL ID, and GraphQL
   /// mutations only accept the GraphQL variant.
-  Future<String> getPullRequestId(github.RepositorySlug slug, int pullRequestNumber) async {
+  Future<String> getPullRequestId(
+    github.RepositorySlug slug,
+    int pullRequestNumber,
+  ) async {
     final queryPullRequest = FindPullRequestNodeIdQuery(
       repositoryOwner: slug.owner,
       repositoryName: slug.name,
       pullRequestNumber: pullRequestNumber,
     );
 
-    final Map<String, dynamic> graphQlPullRequest = await queryGraphQL(
+    final graphQlPullRequest = await queryGraphQL(
       documentNode: queryPullRequest.documentNode,
       variables: queryPullRequest.variables,
     );
@@ -93,7 +99,11 @@ class GraphQlService {
   /// Assumes merge queue is enabled in the respective repository, and that the
   /// pull request is in a state that allows it to proceed onto the merge queue
   /// (e.g. all required checks pass).
-  Future<void> enqueuePullRequest(github.RepositorySlug slug, int pullRequestNumber, bool jump) async {
+  Future<void> enqueuePullRequest(
+    github.RepositorySlug slug,
+    int pullRequestNumber,
+    bool jump,
+  ) async {
     final enqueueMutation = EnqueuePullRequestMutation(
       id: await getPullRequestId(slug, pullRequestNumber),
       jump: jump,

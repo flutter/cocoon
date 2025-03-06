@@ -6,10 +6,10 @@ import 'package:auto_submit/model/pull_request_data_types.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final List<String> expectedNames = ['change', 'revert'];
+  final expectedNames = <String>['change', 'revert'];
 
   test('Expected string value for enum is returned.', () {
-    for (PullRequestChangeType prChangeType in PullRequestChangeType.values) {
+    for (var prChangeType in PullRequestChangeType.values) {
       assert(expectedNames.contains(prChangeType.name));
     }
     expect(PullRequestChangeType.values.length, 2);

@@ -16,7 +16,10 @@ class FakeMergeable extends Mergeable {
   String get name => 'FakeMergeable';
 
   @override
-  Future<ValidationResult> validate(QueryResult result, github.PullRequest messagePullRequest) async {
+  Future<ValidationResult> validate(
+    QueryResult result,
+    github.PullRequest messagePullRequest,
+  ) async {
     return validationResult ?? ValidationResult(true, Action.REMOVE_LABEL, '');
   }
 }

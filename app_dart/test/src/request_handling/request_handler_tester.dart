@@ -12,10 +12,7 @@ import 'package:meta/meta.dart';
 import 'fake_http.dart';
 
 class RequestHandlerTester {
-  RequestHandlerTester({
-    FakeHttpRequest? request,
-    this.httpClient,
-  }) {
+  RequestHandlerTester({FakeHttpRequest? request, this.httpClient}) {
     this.request = request ?? FakeHttpRequest();
   }
 

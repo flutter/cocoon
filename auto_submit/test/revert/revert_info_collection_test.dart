@@ -14,40 +14,57 @@ void main() {
   });
 
   test('extract reverts link', () {
-    const String expected = 'flutter/cocoon#3460';
-    expect(revertInfoCollection!.extractOriginalPrLink(sampleRevertBody), expected);
+    const expected = 'flutter/cocoon#3460';
+    expect(
+      revertInfoCollection!.extractOriginalPrLink(sampleRevertBody),
+      expected,
+    );
   });
 
   test('extract initiating author', () {
-    const String expected = 'yusuf-goog';
-    expect(revertInfoCollection!.extractInitiatingAuthor(sampleRevertBody), expected);
+    const expected = 'yusuf-goog';
+    expect(
+      revertInfoCollection!.extractInitiatingAuthor(sampleRevertBody),
+      expected,
+    );
   });
 
   test('extract revert reason', () {
-    const String expected = 'comment was added by mistake.';
-    expect(revertInfoCollection!.extractRevertReason(sampleRevertBody), expected);
+    const expected = 'comment was added by mistake.';
+    expect(
+      revertInfoCollection!.extractRevertReason(sampleRevertBody),
+      expected,
+    );
   });
 
   test('extract original pr author', () {
-    const String expected = 'ricardoamador';
-    expect(revertInfoCollection!.extractOriginalPrAuthor(sampleRevertBody), expected);
+    const expected = 'ricardoamador';
+    expect(
+      revertInfoCollection!.extractOriginalPrAuthor(sampleRevertBody),
+      expected,
+    );
   });
 
   test('extract original pr reviewers', () {
-    const String expected = '{keyonghan}';
+    const expected = '{keyonghan}';
     expect(revertInfoCollection!.extractReviewers(sampleRevertBody), expected);
   });
 
   test('extract the original revert info', () {
-    const String expected = 'A long winded description about this change is revolutionary.';
-    final String? description = revertInfoCollection!.extractRevertBody(sampleRevertBody);
+    const expected =
+        'A long winded description about this change is revolutionary.';
+    final description = revertInfoCollection!.extractRevertBody(
+      sampleRevertBody,
+    );
     expect(description!.contains(expected), isTrue);
   });
 
   test('extract reason with link', () {
-    const String expected =
+    const expected =
         'Broke engine post-submit, see https://logs.chromium.org/logs/flutter/buildbucket/cr-buildbucket/8753367119442265873/+/u/test:_Android_Unit_Tests__API_28_/stdout.';
-    final String? reasonForRevert = revertInfoCollection!.extractRevertReason(sampleRevertBodyWithTrailingLink);
+    final reasonForRevert = revertInfoCollection!.extractRevertReason(
+      sampleRevertBodyWithTrailingLink,
+    );
     expect(reasonForRevert, expected);
   });
 }

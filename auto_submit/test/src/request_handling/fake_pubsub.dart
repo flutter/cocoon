@@ -18,26 +18,33 @@ class FakePubSub extends PubSub {
 
   @override
   Future<void> publish(String topicName, dynamic json) async {
-    final String messageData = jsonEncode(json);
+    final messageData = jsonEncode(json);
     final List<int> messageBytes = utf8.encode(messageData);
-    final String messageBase64 = base64Encode(messageBytes);
+    final messageBase64 = base64Encode(messageBytes);
     messagesQueue.add(messageBase64);
   }
 
   @override
   Future<PullResponse> pull(String subscription, int maxMessages) async {
     // The list will be empty if there are no more messages available in the backlog.
-    final List<ReceivedMessage> receivedMessages = <ReceivedMessage>[];
+    final receivedMessages = <ReceivedMessage>[];
     iteration++;
     if (messagesQueue.isNotEmpty) {
-      int i = iteration * messageSize;
+      var i = iteration * messageSize;
       // Returns only allowed max number of messages. The number should not be greater than
       // `maxMessages`, the available messages, and the number allowed in each call. The
       // last number is to mock real `pull` API call.
-      while (i < min(min(maxMessages, messagesQueue.length), (iteration + 1) * messageSize)) {
+      while (i <
+          min(
+            min(maxMessages, messagesQueue.length),
+            (iteration + 1) * messageSize,
+          )) {
         receivedMessages.add(
           ReceivedMessage(
-            message: PubsubMessage(data: messagesQueue[i] as String, messageId: '$i'),
+            message: PubsubMessage(
+              data: messagesQueue[i] as String,
+              messageId: '$i',
+            ),
             ackId: 'ackId_$i',
           ),
         );

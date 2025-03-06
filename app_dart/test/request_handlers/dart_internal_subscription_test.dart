@@ -26,7 +26,7 @@ import '../src/utilities/mocks.dart';
 
 void main() {
   // Omit the timestamps for expect purposes.
-  const String buildJson = '''
+  const buildJson = '''
 {
   "id": "8766855135863637953",
   "builder": {
@@ -46,7 +46,7 @@ void main() {
 }
 ''';
 
-  const String buildMessageJson = '''
+  const buildMessageJson = '''
 {
   "build": {
     "id": "8766855135863637953",
@@ -77,14 +77,14 @@ void main() {
   late Commit commit;
 
   // ignore: unused_local_variable
-  const String project = 'dart-internal';
-  const String bucket = 'flutter';
-  const String builder = 'Linux packaging_release_builder';
-  const int buildNumber = 123456;
+  const project = 'dart-internal';
+  const bucket = 'flutter';
+  const builder = 'Linux packaging_release_builder';
+  const buildNumber = 123456;
   // ignore: unused_local_variable
-  final Int64 buildId = Int64(8766855135863637953);
-  const String fakeHash = 'HASH12345';
-  const String fakeBranch = 'test-branch';
+  final buildId = Int64(8766855135863637953);
+  const fakeHash = 'HASH12345';
+  const fakeBranch = 'test-branch';
 
   setUp(() async {
     mockFirestoreService = MockFirestoreService();
@@ -99,9 +99,7 @@ void main() {
     );
     request = FakeHttpRequest();
 
-    tester = SubscriptionTester(
-      request: request,
-    );
+    tester = SubscriptionTester(request: request);
 
     commit = generateCommit(
       1,
@@ -114,29 +112,27 @@ void main() {
 
     // final bbv2.PubSubCallBack pubSubCallBackTest = bbv2.PubSubCallBack();
     // pubSubCallBackTest.mergeFromProto3Json(jsonDecode(message));
-    final bbv2.Build build = bbv2.Build().createEmptyInstance();
+    final build = bbv2.Build().createEmptyInstance();
     build.mergeFromProto3Json(jsonDecode(buildJson) as Map<String, dynamic>);
 
-    const PushMessage pushMessage = PushMessage(data: buildJson, messageId: '798274983');
+    const pushMessage = PushMessage(data: buildJson, messageId: '798274983');
     tester.message = pushMessage;
 
     when(
       buildBucketClient.getBuild(
         any,
-        buildBucketUri: 'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds',
+        buildBucketUri:
+            'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds',
       ),
     ).thenAnswer((_) => Future<bbv2.Build>.value(build));
 
-    final List<Commit> datastoreCommit = <Commit>[commit];
+    final datastoreCommit = <Commit>[commit];
     await config.db.commit(inserts: datastoreCommit);
   });
 
   test('creates a new task successfully', () async {
     when(
-      mockFirestoreService.batchWriteDocuments(
-        captureAny,
-        captureAny,
-      ),
+      mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
     ).thenAnswer((Invocation invocation) {
       return Future<BatchWriteResponse>.value(BatchWriteResponse());
     });
@@ -144,9 +140,7 @@ void main() {
 
     await tester.post(handler);
 
-    verify(
-      buildBucketClient.getBuild(any),
-    ).called(1);
+    verify(buildBucketClient.getBuild(any)).called(1);
 
     // This is used for testing to pull the data out of the "datastore" so that
     // we can verify what was saved.
@@ -162,18 +156,12 @@ void main() {
     });
 
     // Ensure the task has the correct parent and commit key
-    expect(
-      commitInDb.id,
-      equals(taskInDb.commitKey?.id),
-    );
+    expect(commitInDb.id, equals(taskInDb.commitKey?.id));
 
-    expect(
-      commitInDb.id,
-      equals(taskInDb.parentKey?.id),
-    );
+    expect(commitInDb.id, equals(taskInDb.parentKey?.id));
 
     // Ensure the task in the db is exactly what we expect
-    final Task expectedTask = Task(
+    final expectedTask = Task(
       attempts: 1,
       buildNumber: buildNumber,
       buildNumberList: buildNumber.toString(),
@@ -190,31 +178,29 @@ void main() {
       reservedForAgentId: '',
     );
 
-    expect(
-      taskInDb.toString(),
-      equals(expectedTask.toString()),
-    );
+    expect(taskInDb.toString(), equals(expectedTask.toString()));
 
-    final List<dynamic> captured = verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+    final captured =
+        verify(
+          mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+        ).captured;
     expect(captured.length, 2);
-    final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+    final batchWriteRequest = captured[0] as BatchWriteRequest;
     expect(batchWriteRequest.writes!.length, 1);
-    final firestore.Task insertedTaskDocument =
-        firestore.Task.fromDocument(taskDocument: batchWriteRequest.writes![0].update!);
+    final insertedTaskDocument = firestore.Task.fromDocument(
+      taskDocument: batchWriteRequest.writes![0].update!,
+    );
     expect(insertedTaskDocument.taskName, expectedTask.name);
   });
 
   test('updates an existing task successfully', () async {
     when(
-      mockFirestoreService.batchWriteDocuments(
-        captureAny,
-        captureAny,
-      ),
+      mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
     ).thenAnswer((Invocation invocation) {
       return Future<BatchWriteResponse>.value(BatchWriteResponse());
     });
-    const int existingTaskId = 123;
-    final Task fakeTask = Task(
+    const existingTaskId = 123;
+    final fakeTask = Task(
       attempts: 1,
       buildNumber: existingTaskId,
       buildNumberList: existingTaskId.toString(),
@@ -230,21 +216,23 @@ void main() {
       requiredCapabilities: [],
       reservedForAgentId: '',
     );
-    final List<Task> datastoreCommit = <Task>[fakeTask];
+    final datastoreCommit = <Task>[fakeTask];
     await config.db.commit(inserts: datastoreCommit);
 
-    const PushMessage pushMessage = PushMessage(data: buildMessageJson, messageId: '798274983');
+    const pushMessage = PushMessage(
+      data: buildMessageJson,
+      messageId: '798274983',
+    );
     tester.message = pushMessage;
 
     await tester.post(handler);
 
-    verify(
-      buildBucketClient.getBuild(any),
-    ).called(1);
+    verify(buildBucketClient.getBuild(any)).called(1);
 
     // This is used for testing to pull the data out of the "datastore" so that
     // we can verify what was saved.
-    final String expectedBuilderList = '${existingTaskId.toString()},${buildNumber.toString()}';
+    final expectedBuilderList =
+        '${existingTaskId.toString()},${buildNumber.toString()}';
     late Task taskInDb;
     late Commit commitInDb;
     config.db.values.forEach((k, v) {
@@ -257,18 +245,12 @@ void main() {
     });
 
     // Ensure the task has the correct parent and commit key
-    expect(
-      commitInDb.id,
-      equals(taskInDb.commitKey?.id),
-    );
+    expect(commitInDb.id, equals(taskInDb.commitKey?.id));
 
-    expect(
-      commitInDb.id,
-      equals(taskInDb.parentKey?.id),
-    );
+    expect(commitInDb.id, equals(taskInDb.parentKey?.id));
 
     // Ensure the task in the db is exactly what we expect
-    final Task expectedTask = Task(
+    final expectedTask = Task(
       attempts: 2,
       buildNumber: buildNumber,
       buildNumberList: expectedBuilderList,
@@ -285,17 +267,18 @@ void main() {
       reservedForAgentId: '',
     );
 
-    expect(
-      taskInDb.toString(),
-      equals(expectedTask.toString()),
-    );
+    expect(taskInDb.toString(), equals(expectedTask.toString()));
 
-    final List<dynamic> captured = verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+    final captured =
+        verify(
+          mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+        ).captured;
     expect(captured.length, 2);
-    final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+    final batchWriteRequest = captured[0] as BatchWriteRequest;
     expect(batchWriteRequest.writes!.length, 1);
-    final firestore.Task insertedTaskDocument =
-        firestore.Task.fromDocument(taskDocument: batchWriteRequest.writes![0].update!);
+    final insertedTaskDocument = firestore.Task.fromDocument(
+      taskDocument: batchWriteRequest.writes![0].update!,
+    );
     expect(insertedTaskDocument.status, expectedTask.status);
   });
 
@@ -306,7 +289,7 @@ void main() {
 
   // // TODO create a construction method for this to simplify testing.
   test('ignores message not from flutter bucket', () async {
-    const String dartMessage = '''
+    const dartMessage = '''
 {
   "build": {
     "id": "8766855135863637953",
@@ -328,13 +311,13 @@ void main() {
 }
 ''';
 
-    const PushMessage pushMessage = PushMessage(data: dartMessage, messageId: '798274983');
+    const pushMessage = PushMessage(data: dartMessage, messageId: '798274983');
     tester.message = pushMessage;
     expect(await tester.post(handler), equals(Body.empty));
   });
 
   test('ignores message not from dart-internal project', () async {
-    const String unsupportedProjectMessage = '''
+    const unsupportedProjectMessage = '''
 {
   "build": {
     "id": "8766855135863637953",
@@ -356,13 +339,16 @@ void main() {
 }
 ''';
 
-    const PushMessage pushMessage = PushMessage(data: unsupportedProjectMessage, messageId: '798274983');
+    const pushMessage = PushMessage(
+      data: unsupportedProjectMessage,
+      messageId: '798274983',
+    );
     tester.message = pushMessage;
     expect(await tester.post(handler), equals(Body.empty));
   });
 
   test('ignores message not from an accepted builder', () async {
-    const String unknownBuilderMessage = '''
+    const unknownBuilderMessage = '''
 {
   "build": {
     "id": "8766855135863637953",
@@ -384,7 +370,10 @@ void main() {
 }
 ''';
 
-    const PushMessage pushMessage = PushMessage(data: unknownBuilderMessage, messageId: '798274983');
+    const pushMessage = PushMessage(
+      data: unknownBuilderMessage,
+      messageId: '798274983',
+    );
     tester.message = pushMessage;
     expect(await tester.post(handler), equals(Body.empty));
   });

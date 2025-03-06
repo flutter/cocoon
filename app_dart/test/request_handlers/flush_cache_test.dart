@@ -34,7 +34,7 @@ void main() {
     });
 
     test('cache is empty when given an existing config key', () async {
-      const String cacheKey = 'test';
+      const cacheKey = 'test';
       await cache.set(
         Config.configCacheName,
         cacheKey,
@@ -48,7 +48,14 @@ void main() {
       );
       await tester.get(handler);
 
-      expect(await cache.getOrCreate(Config.configCacheName, cacheKey, createFn: null), null);
+      expect(
+        await cache.getOrCreate(
+          Config.configCacheName,
+          cacheKey,
+          createFn: null,
+        ),
+        null,
+      );
     });
 
     test('raises error if cache key not passed', () async {
@@ -57,9 +64,7 @@ void main() {
 
     test('raises error if cache key does not exist', () async {
       tester.request = FakeHttpRequest(
-        queryParametersValue: <String, String>{
-          FlushCache.cacheKeyParam: 'abc',
-        },
+        queryParametersValue: <String, String>{FlushCache.cacheKeyParam: 'abc'},
       );
       expect(tester.get(handler), throwsA(isA<NotFoundException>()));
     });

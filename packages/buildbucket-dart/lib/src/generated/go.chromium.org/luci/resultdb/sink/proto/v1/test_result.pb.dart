@@ -86,13 +86,18 @@ class TestResult extends $pb.GeneratedMessage {
     return $result;
   }
   TestResult._() : super();
-  factory TestResult.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TestResult.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory TestResult.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TestResult.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TestResult',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TestResult',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'testId')
     ..aOS(2, _omitFieldNames ? '' : 'resultId')
     ..aOB(3, _omitFieldNames ? '' : 'expected')
@@ -101,9 +106,12 @@ class TestResult extends $pb.GeneratedMessage {
         valueOf: $6.TestStatus.valueOf,
         enumValues: $6.TestStatus.values)
     ..aOS(5, _omitFieldNames ? '' : 'summaryHtml')
-    ..aOM<$0.Timestamp>(6, _omitFieldNames ? '' : 'startTime', subBuilder: $0.Timestamp.create)
-    ..aOM<$1.Duration>(7, _omitFieldNames ? '' : 'duration', subBuilder: $1.Duration.create)
-    ..pc<$2.StringPair>(8, _omitFieldNames ? '' : 'tags', $pb.PbFieldType.PM, subBuilder: $2.StringPair.create)
+    ..aOM<$0.Timestamp>(6, _omitFieldNames ? '' : 'startTime',
+        subBuilder: $0.Timestamp.create)
+    ..aOM<$1.Duration>(7, _omitFieldNames ? '' : 'duration',
+        subBuilder: $1.Duration.create)
+    ..pc<$2.StringPair>(8, _omitFieldNames ? '' : 'tags', $pb.PbFieldType.PM,
+        subBuilder: $2.StringPair.create)
     ..m<$core.String, Artifact>(9, _omitFieldNames ? '' : 'artifacts',
         entryClassName: 'TestResult.ArtifactsEntry',
         keyFieldType: $pb.PbFieldType.OS,
@@ -111,10 +119,14 @@ class TestResult extends $pb.GeneratedMessage {
         valueCreator: Artifact.create,
         valueDefaultOrMaker: Artifact.getDefault,
         packageName: const $pb.PackageName('luci.resultsink.v1'))
-    ..aOM<$3.TestMetadata>(11, _omitFieldNames ? '' : 'testMetadata', subBuilder: $3.TestMetadata.create)
-    ..aOM<$4.FailureReason>(12, _omitFieldNames ? '' : 'failureReason', subBuilder: $4.FailureReason.create)
-    ..aOM<$2.Variant>(13, _omitFieldNames ? '' : 'variant', subBuilder: $2.Variant.create)
-    ..aOM<$5.Struct>(14, _omitFieldNames ? '' : 'properties', subBuilder: $5.Struct.create)
+    ..aOM<$3.TestMetadata>(11, _omitFieldNames ? '' : 'testMetadata',
+        subBuilder: $3.TestMetadata.create)
+    ..aOM<$4.FailureReason>(12, _omitFieldNames ? '' : 'failureReason',
+        subBuilder: $4.FailureReason.create)
+    ..aOM<$2.Variant>(13, _omitFieldNames ? '' : 'variant',
+        subBuilder: $2.Variant.create)
+    ..aOM<$5.Struct>(14, _omitFieldNames ? '' : 'properties',
+        subBuilder: $5.Struct.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -134,7 +146,8 @@ class TestResult extends $pb.GeneratedMessage {
   TestResult createEmptyInstance() => create();
   static $pb.PbList<TestResult> createRepeated() => $pb.PbList<TestResult>();
   @$core.pragma('dart2js:noInline')
-  static TestResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TestResult>(create);
+  static TestResult getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TestResult>(create);
   static TestResult? _defaultInstance;
 
   /// Equivalent of luci.resultdb.v1.TestResult.TestId.
@@ -341,9 +354,11 @@ class Artifact extends $pb.GeneratedMessage {
     return $result;
   }
   Artifact._() : super();
-  factory Artifact.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Artifact.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Artifact.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Artifact.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
   static const $core.Map<$core.int, Artifact_Body> _Artifact_BodyByTag = {
@@ -352,11 +367,15 @@ class Artifact extends $pb.GeneratedMessage {
     4: Artifact_Body.gcsUri,
     0: Artifact_Body.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Artifact',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Artifact',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'),
+      createEmptyInstance: create)
     ..oo(0, [1, 2, 4])
     ..aOS(1, _omitFieldNames ? '' : 'filePath')
-    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'contents', $pb.PbFieldType.OY)
+    ..a<$core.List<$core.int>>(
+        2, _omitFieldNames ? '' : 'contents', $pb.PbFieldType.OY)
     ..aOS(3, _omitFieldNames ? '' : 'contentType')
     ..aOS(4, _omitFieldNames ? '' : 'gcsUri')
     ..hasRequiredFields = false;
@@ -378,7 +397,8 @@ class Artifact extends $pb.GeneratedMessage {
   Artifact createEmptyInstance() => create();
   static $pb.PbList<Artifact> createRepeated() => $pb.PbList<Artifact>();
   @$core.pragma('dart2js:noInline')
-  static Artifact getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Artifact>(create);
+  static Artifact getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Artifact>(create);
   static Artifact? _defaultInstance;
 
   Artifact_Body whichBody() => _Artifact_BodyByTag[$_whichOneof(0)]!;
@@ -456,15 +476,21 @@ class TestResultFile extends $pb.GeneratedMessage {
     return $result;
   }
   TestResultFile._() : super();
-  factory TestResultFile.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TestResultFile.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory TestResultFile.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TestResultFile.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TestResultFile',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TestResultFile',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultsink.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'path')
-    ..e<TestResultFile_Format>(2, _omitFieldNames ? '' : 'format', $pb.PbFieldType.OE,
+    ..e<TestResultFile_Format>(
+        2, _omitFieldNames ? '' : 'format', $pb.PbFieldType.OE,
         defaultOrMaker: TestResultFile_Format.LUCI,
         valueOf: TestResultFile_Format.valueOf,
         enumValues: TestResultFile_Format.values)
@@ -478,16 +504,19 @@ class TestResultFile extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   TestResultFile copyWith(void Function(TestResultFile) updates) =>
-      super.copyWith((message) => updates(message as TestResultFile)) as TestResultFile;
+      super.copyWith((message) => updates(message as TestResultFile))
+          as TestResultFile;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static TestResultFile create() => TestResultFile._();
   TestResultFile createEmptyInstance() => create();
-  static $pb.PbList<TestResultFile> createRepeated() => $pb.PbList<TestResultFile>();
+  static $pb.PbList<TestResultFile> createRepeated() =>
+      $pb.PbList<TestResultFile>();
   @$core.pragma('dart2js:noInline')
-  static TestResultFile getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TestResultFile>(create);
+  static TestResultFile getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TestResultFile>(create);
   static TestResultFile? _defaultInstance;
 
   /// Absolute OS-native path to the results file on the same machine as the
@@ -519,4 +548,5 @@ class TestResultFile extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

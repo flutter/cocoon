@@ -69,13 +69,17 @@ class TaskDocument extends $pb.GeneratedMessage {
     return $result;
   }
   TaskDocument._() : super();
-  factory TaskDocument.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TaskDocument.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory TaskDocument.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TaskDocument.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TaskDocument',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'dashboard'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TaskDocument',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'dashboard'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'documentName')
     ..aInt64(2, _omitFieldNames ? '' : 'createTimestamp')
     ..aInt64(3, _omitFieldNames ? '' : 'startTimestamp')
@@ -98,16 +102,19 @@ class TaskDocument extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   TaskDocument copyWith(void Function(TaskDocument) updates) =>
-      super.copyWith((message) => updates(message as TaskDocument)) as TaskDocument;
+      super.copyWith((message) => updates(message as TaskDocument))
+          as TaskDocument;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static TaskDocument create() => TaskDocument._();
   TaskDocument createEmptyInstance() => create();
-  static $pb.PbList<TaskDocument> createRepeated() => $pb.PbList<TaskDocument>();
+  static $pb.PbList<TaskDocument> createRepeated() =>
+      $pb.PbList<TaskDocument>();
   @$core.pragma('dart2js:noInline')
-  static TaskDocument getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TaskDocument>(create);
+  static TaskDocument getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TaskDocument>(create);
   static TaskDocument? _defaultInstance;
 
   /// Next ID: 13
@@ -257,4 +264,5 @@ class TaskDocument extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

@@ -30,7 +30,9 @@ void main() {
     githubService = MockGithubService();
 
     config = MockConfig();
-    when(config.createDefaultGitHubService()).thenAnswer((_) async => githubService);
+    when(
+      config.createDefaultGitHubService(),
+    ).thenAnswer((_) async => githubService);
     gerritService = FakeGerritService();
     branchService = BranchService(
       config: config,
@@ -63,11 +65,19 @@ void main() {
     setUp(() {
       simulateGitubFileContent = {};
 
-      when(config.releaseCandidateBranchPath).thenReturn('bin/internal/release-candidate-branch.version');
+      when(
+        config.releaseCandidateBranchPath,
+      ).thenReturn('bin/internal/release-candidate-branch.version');
       when(
         githubService.getFileContent(
           // Required because RepositorySlug does not implement operator==.
-          argThat(isA<gh.RepositorySlug>().having((s) => s.fullName, 'fullName', 'flutter/flutter')),
+          argThat(
+            isA<gh.RepositorySlug>().having(
+              (s) => s.fullName,
+              'fullName',
+              'flutter/flutter',
+            ),
+          ),
           'bin/internal/release-candidate-branch.version',
           ref: anyNamed('ref'),
         ),
@@ -83,59 +93,94 @@ void main() {
       });
     });
 
-    test('always returns master branch, even if config.releaseBranches is empty', () async {
-      when(config.releaseBranches).thenReturn([]);
+    test(
+      'always returns master branch, even if config.releaseBranches is empty',
+      () async {
+        when(config.releaseBranches).thenReturn([]);
 
-      final releaseBranches = await branchService.getReleaseBranches(slug: Config.flutterSlug);
-      expect(releaseBranches, [const ReleaseBranch(channel: 'master', reference: 'HEAD')]);
-    });
-
-    test('returns additional branches by fetching and reading config.releaseCandidateBranchPath', () async {
-      when(config.releaseBranches).thenReturn(['stable', 'beta']);
-      simulateGitubFileContent = {
-        'stable': 'flutter-3.29-candidate.0',
-        'beta': 'flutter-3.30-candidate.0',
-      };
-
-      final releaseBranches = await branchService.getReleaseBranches(slug: Config.flutterSlug);
-      expect(
-        releaseBranches,
-        unorderedEquals([
+        final releaseBranches = await branchService.getReleaseBranches(
+          slug: Config.flutterSlug,
+        );
+        expect(releaseBranches, [
           const ReleaseBranch(channel: 'master', reference: 'HEAD'),
-          const ReleaseBranch(channel: 'stable', reference: 'flutter-3.29-candidate.0'),
-          const ReleaseBranch(channel: 'beta', reference: 'flutter-3.30-candidate.0'),
-        ]),
-      );
-    });
+        ]);
+      },
+    );
 
-    test('omits branches that fail to fetch or reading config.releaseCandidateBranchPath', () async {
-      when(config.releaseBranches).thenReturn(['stable', 'beta-will-be-missing']);
-      simulateGitubFileContent = {
-        'stable': 'flutter-3.29-candidate.0',
-      };
+    test(
+      'returns additional branches by fetching and reading config.releaseCandidateBranchPath',
+      () async {
+        when(config.releaseBranches).thenReturn(['stable', 'beta']);
+        simulateGitubFileContent = {
+          'stable': 'flutter-3.29-candidate.0',
+          'beta': 'flutter-3.30-candidate.0',
+        };
 
-      final releaseBranches = await branchService.getReleaseBranches(slug: Config.flutterSlug);
-      expect(
-        releaseBranches,
-        unorderedEquals([
-          const ReleaseBranch(channel: 'master', reference: 'HEAD'),
-          const ReleaseBranch(channel: 'stable', reference: 'flutter-3.29-candidate.0'),
-        ]),
-      );
-      expect(logs, contains(contains('Could not resolve release branch for "beta-will-be-missing"')));
-    });
+        final releaseBranches = await branchService.getReleaseBranches(
+          slug: Config.flutterSlug,
+        );
+        expect(
+          releaseBranches,
+          unorderedEquals([
+            const ReleaseBranch(channel: 'master', reference: 'HEAD'),
+            const ReleaseBranch(
+              channel: 'stable',
+              reference: 'flutter-3.29-candidate.0',
+            ),
+            const ReleaseBranch(
+              channel: 'beta',
+              reference: 'flutter-3.30-candidate.0',
+            ),
+          ]),
+        );
+      },
+    );
+
+    test(
+      'omits branches that fail to fetch or reading config.releaseCandidateBranchPath',
+      () async {
+        when(
+          config.releaseBranches,
+        ).thenReturn(['stable', 'beta-will-be-missing']);
+        simulateGitubFileContent = {'stable': 'flutter-3.29-candidate.0'};
+
+        final releaseBranches = await branchService.getReleaseBranches(
+          slug: Config.flutterSlug,
+        );
+        expect(
+          releaseBranches,
+          unorderedEquals([
+            const ReleaseBranch(channel: 'master', reference: 'HEAD'),
+            const ReleaseBranch(
+              channel: 'stable',
+              reference: 'flutter-3.29-candidate.0',
+            ),
+          ]),
+        );
+        expect(
+          logs,
+          contains(
+            contains(
+              'Could not resolve release branch for "beta-will-be-missing"',
+            ),
+          ),
+        );
+      },
+    );
   });
 
   group('branchFlutterRecipes', () {
-    const String branch = 'flutter-2.13-candidate.0';
-    const String sha = 'abc123';
+    const branch = 'flutter-2.13-candidate.0';
+    const sha = 'abc123';
     late MockRepositoriesService repositories;
 
     setUp(() {
       gerritService.branchesValue = <String>[];
 
       repositories = MockRepositoriesService();
-      when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer((_) async => generateGitCommit(5));
+      when(
+        repositories.getCommit(Config.flutterSlug, sha),
+      ).thenAnswer((_) async => generateGitCommit(5));
 
       final mockGithub = MockGitHub();
       when(mockGithub.repositories).thenReturn(repositories);
@@ -155,11 +200,7 @@ void main() {
       when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer(
         (_) async => gh.RepositoryCommit(
           commit: gh.GitCommit(
-            committer: gh.GitCommitUser(
-              'dash',
-              'dash@flutter.dev',
-              null,
-            ),
+            committer: gh.GitCommitUser('dash', 'dash@flutter.dev', null),
           ),
         ),
       );
@@ -170,19 +211,22 @@ void main() {
       );
     });
 
-    test('does not create branch if a good branch point cannot be found', () async {
-      gerritService.commitsValue = <GerritCommit>[];
-      when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer(
-        (_) async => generateGitCommit(5),
-      );
+    test(
+      'does not create branch if a good branch point cannot be found',
+      () async {
+        gerritService.commitsValue = <GerritCommit>[];
+        when(
+          repositories.getCommit(Config.flutterSlug, sha),
+        ).thenAnswer((_) async => generateGitCommit(5));
 
-      expect(
-        () async => branchService.branchFlutterRecipes(branch, sha),
-        throwsExceptionWith<InternalServerError>(
-          'HTTP 500: Failed to find a revision to flutter/recipes for $branch before 1969-12-31',
-        ),
-      );
-    });
+        expect(
+          () async => branchService.branchFlutterRecipes(branch, sha),
+          throwsExceptionWith<InternalServerError>(
+            'HTTP 500: Failed to find a revision to flutter/recipes for $branch before 1969-12-31',
+          ),
+        );
+      },
+    );
 
     test('creates branch', () async {
       await branchService.branchFlutterRecipes(branch, sha);
@@ -190,7 +234,9 @@ void main() {
 
     test('creates branch when GitHub requires retries', () async {
       var attempts = 0;
-      when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer((_) async {
+      when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer((
+        _,
+      ) async {
         attempts++;
         if (attempts == 3) {
           return generateGitCommit(5);
@@ -200,19 +246,24 @@ void main() {
       await branchService.branchFlutterRecipes(branch, sha);
     });
 
-    test('ensure createDefaultGithubService is called once for each retry', () async {
-      var attempts = 0;
-      when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer((_) async {
-        attempts++;
-        if (attempts == 3) {
-          return generateGitCommit(5);
-        }
-        throw gh.GitHubError(MockGitHub(), 'Failed to get commit');
-      });
-      await branchService.branchFlutterRecipes(branch, sha);
+    test(
+      'ensure createDefaultGithubService is called once for each retry',
+      () async {
+        var attempts = 0;
+        when(repositories.getCommit(Config.flutterSlug, sha)).thenAnswer((
+          _,
+        ) async {
+          attempts++;
+          if (attempts == 3) {
+            return generateGitCommit(5);
+          }
+          throw gh.GitHubError(MockGitHub(), 'Failed to get commit');
+        });
+        await branchService.branchFlutterRecipes(branch, sha);
 
-      verify(config.createDefaultGitHubService()).called(attempts);
-    });
+        verify(config.createDefaultGitHubService()).called(attempts);
+      },
+    );
 
     test('creates branch when there is a similar branch', () async {
       gerritService.branchesValue = <String>['$branch-similar'];

@@ -37,10 +37,7 @@ class Commit extends Model<String> {
     required String gitBranch,
     required String sha,
   }) {
-    return db.emptyKey.append(
-      Commit,
-      id: '${slug.fullName}/$gitBranch/$sha',
-    );
+    return db.emptyKey.append(Commit, id: '${slug.fullName}/$gitBranch/$sha');
   }
 
   /// Lookup [Commit] from Datastore.
@@ -93,19 +90,20 @@ class Commit extends Model<String> {
 
   @override
   String toString() {
-    final StringBuffer buf = StringBuffer()
-      ..write('$runtimeType(')
-      ..write('id: $id')
-      ..write(', parentKey: ${parentKey?.id}')
-      ..write(', key: ${parentKey == null ? null : key.id}')
-      ..write(', timestamp: $timestamp')
-      ..write(', sha: $sha')
-      ..write(', author: $author')
-      ..write(', authorAvatarUrl: $authorAvatarUrl')
-      ..write(', message: ${message?.split("\n").first}')
-      ..write(', repository: $repository')
-      ..write(', branch: $branch')
-      ..write(')');
+    final buf =
+        StringBuffer()
+          ..write('$runtimeType(')
+          ..write('id: $id')
+          ..write(', parentKey: ${parentKey?.id}')
+          ..write(', key: ${parentKey == null ? null : key.id}')
+          ..write(', timestamp: $timestamp')
+          ..write(', sha: $sha')
+          ..write(', author: $author')
+          ..write(', authorAvatarUrl: $authorAvatarUrl')
+          ..write(', message: ${message?.split("\n").first}')
+          ..write(', repository: $repository')
+          ..write(', branch: $branch')
+          ..write(')');
     return buf.toString();
   }
 }

@@ -8,7 +8,7 @@ import 'package:codesign/verify.dart';
 import 'package:logging/logging.dart';
 
 Future<void> main(List<String> args) async {
-  final Logger logger = Logger('root');
+  final logger = Logger('root');
   logger.onRecord.listen((LogRecord record) {
     io.stdout.writeln(record.message);
   });
@@ -21,9 +21,7 @@ Future<void> main(List<String> args) async {
     io.exit(1);
   }
   final inputFile = args[0];
-  final VerificationResult result = await VerificationService(
-    binaryPath: inputFile,
-    logger: logger,
-  ).run();
+  final result =
+      await VerificationService(binaryPath: inputFile, logger: logger).run();
   io.exit(result == VerificationResult.codesignedAndNotarized ? 0 : 1);
 }

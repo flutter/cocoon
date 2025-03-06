@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:args/args.dart';
 import 'package:file/file.dart';
 import 'package:process/process.dart';
@@ -35,14 +33,12 @@ Future<void> unzip({
   required Directory outDir,
   required ProcessManager processManager,
 }) async {
-  await processManager.run(
-    <String>[
-      'unzip',
-      inputZip.absolute.path,
-      '-d',
-      outDir.absolute.path,
-    ],
-  );
+  await processManager.run(<String>[
+    'unzip',
+    inputZip.absolute.path,
+    '-d',
+    outDir.absolute.path,
+  ]);
   outDir.listSync(recursive: true).forEach((entity) {
     if (entity.basename.toLowerCase() == '.ds_store') {
       try {
@@ -54,7 +50,9 @@ Future<void> unzip({
       }
     }
   });
-  log.info('The downloaded file is unzipped from ${inputZip.absolute.path} to ${outDir.absolute.path}');
+  log.info(
+    'The downloaded file is unzipped from ${inputZip.absolute.path} to ${outDir.absolute.path}',
+  );
 }
 
 Future<void> zip({
@@ -62,32 +60,27 @@ Future<void> zip({
   required String outputZipPath,
   required ProcessManager processManager,
 }) async {
-  await processManager.run(
-    <String>[
-      'zip',
-      '--symlinks',
-      '--recurse-paths',
-      outputZipPath,
-      // use '.' so that the full absolute path is not encoded into the zip file
-      '.',
-      '--include',
-      '*',
-    ],
-    workingDirectory: inputDir.absolute.path,
-  );
+  await processManager.run(<String>[
+    'zip',
+    '--symlinks',
+    '--recurse-paths',
+    outputZipPath,
+    // use '.' so that the full absolute path is not encoded into the zip file
+    '.',
+    '--include',
+    '*',
+  ], workingDirectory: inputDir.absolute.path);
 }
 
 /// Check mime-type of file at [filePath] to determine if it is a directory.
 FileType getFileType(String filePath, ProcessManager processManager) {
-  final ProcessResult result = processManager.runSync(
-    <String>[
-      'file',
-      '--mime-type',
-      '-b', // is binary
-      filePath,
-    ],
-  );
-  final String output = result.stdout as String;
+  final result = processManager.runSync(<String>[
+    'file',
+    '--mime-type',
+    '-b', // is binary
+    filePath,
+  ]);
+  final output = result.stdout as String;
   return FileType.fromMimeType(output);
 }
 
@@ -108,15 +101,17 @@ String? getValueFromArgs(
   ArgResults argResults, {
   bool allowNull = false,
 }) {
-  final String? argValue = argResults[name] as String?;
+  final argValue = argResults[name] as String?;
   if (argValue != null) {
     return argValue;
   }
   if (allowNull) {
     return null;
   }
-  throw CodesignException('Expected either the CLI arg --$name '
-      'to be provided!');
+  throw CodesignException(
+    'Expected either the CLI arg --$name '
+    'to be provided!',
+  );
 }
 
 String joinEntitlementPaths(String entitlementParentPath, String pathToJoin) {

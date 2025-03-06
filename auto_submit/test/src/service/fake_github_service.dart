@@ -100,16 +100,18 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<List<CheckRun>> getCheckRuns(
-    RepositorySlug slug,
-    String ref,
-  ) async {
+  Future<List<CheckRun>> getCheckRuns(RepositorySlug slug, String ref) async {
     final rawBody = json.decode(checkRunsMock!) as Map<String, dynamic>;
-    final List<dynamic> checkRunsBody = rawBody['check_runs']! as List<dynamic>;
-    final List<CheckRun> checkRuns = <CheckRun>[];
+    final checkRunsBody = rawBody['check_runs']! as List<dynamic>;
+    final checkRuns = <CheckRun>[];
     if ((checkRunsBody[0] as Map<String, dynamic>).isNotEmpty) {
       checkRuns.addAll(
-        checkRunsBody.map((dynamic checkRun) => CheckRun.fromJson(checkRun as Map<String, dynamic>)).toList(),
+        checkRunsBody
+            .map(
+              (dynamic checkRun) =>
+                  CheckRun.fromJson(checkRun as Map<String, dynamic>),
+            )
+            .toList(),
       );
     }
     return checkRuns;
@@ -123,10 +125,10 @@ class FakeGithubService implements GithubService {
     CheckRunStatus? status,
     CheckRunFilter? filter,
   }) async {
-    final List<CheckRun> checkRuns = await getCheckRuns(slug, ref);
+    final checkRuns = await getCheckRuns(slug, ref);
     if (checkName != null) {
-      final List<CheckRun> checkRunsFilteredByName = [];
-      for (CheckRun checkRun in checkRuns) {
+      final checkRunsFilteredByName = <CheckRun>[];
+      for (var checkRun in checkRuns) {
         if (checkRun.name == checkName && checkRun.headSha == ref) {
           checkRunsFilteredByName.add(checkRun);
         }
@@ -137,19 +139,21 @@ class FakeGithubService implements GithubService {
   }
 
   final List<
-      ({
-        RepositorySlug slug,
-        CheckRun checkRun,
-        String? name,
-        String? detailsUrl,
-        String? externalId,
-        DateTime? startedAt,
-        CheckRunStatus status,
-        CheckRunConclusion? conclusion,
-        DateTime? completedAt,
-        CheckRunOutput? output,
-        List<CheckRunAction>? actions,
-      })> checkRunUpdates = [];
+    ({
+      RepositorySlug slug,
+      CheckRun checkRun,
+      String? name,
+      String? detailsUrl,
+      String? externalId,
+      DateTime? startedAt,
+      CheckRunStatus status,
+      CheckRunConclusion? conclusion,
+      DateTime? completedAt,
+      CheckRunOutput? output,
+      List<CheckRunAction>? actions,
+    })
+  >
+  checkRunUpdates = [];
 
   @override
   Future<CheckRun> updateCheckRun({
@@ -167,21 +171,19 @@ class FakeGithubService implements GithubService {
   }) async {
     final Map<String, Object?> json = checkRun.toJson();
 
-    checkRunUpdates.add(
-      (
-        slug: slug,
-        checkRun: checkRun,
-        name: name,
-        detailsUrl: detailsUrl,
-        externalId: externalId,
-        startedAt: startedAt,
-        status: status,
-        conclusion: conclusion,
-        completedAt: completedAt,
-        output: output,
-        actions: actions,
-      ),
-    );
+    checkRunUpdates.add((
+      slug: slug,
+      checkRun: checkRun,
+      name: name,
+      detailsUrl: detailsUrl,
+      externalId: externalId,
+      startedAt: startedAt,
+      status: status,
+      conclusion: conclusion,
+      completedAt: completedAt,
+      output: output,
+      actions: actions,
+    ));
 
     if (conclusion != null) {
       json['conclusion'] = conclusion.value;
@@ -196,12 +198,17 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
-    final RepositoryCommit commit = RepositoryCommit.fromJson(jsonDecode(commitMock!) as Map<String, dynamic>);
+    final commit = RepositoryCommit.fromJson(
+      jsonDecode(commitMock!) as Map<String, dynamic>,
+    );
     return commit;
   }
 
   @override
-  Future<PullRequest> getPullRequest(RepositorySlug slug, int pullRequestNumber) async {
+  Future<PullRequest> getPullRequest(
+    RepositorySlug slug,
+    int pullRequestNumber,
+  ) async {
     PullRequest pullRequest;
     if (usePullRequestList && pullRequestMockList.isNotEmpty) {
       pullRequest = pullRequestMockList.removeAt(0)!;
@@ -216,39 +223,62 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<GitHubComparison> compareTwoCommits(RepositorySlug slug, String refBase, String refHead) async {
-    final GitHubComparison githubComparison =
-        GitHubComparison.fromJson(jsonDecode(compareTwoCommitsMock!) as Map<String, dynamic>);
+  Future<GitHubComparison> compareTwoCommits(
+    RepositorySlug slug,
+    String refBase,
+    String refHead,
+  ) async {
+    final githubComparison = GitHubComparison.fromJson(
+      jsonDecode(compareTwoCommitsMock!) as Map<String, dynamic>,
+    );
     return githubComparison;
   }
 
   @override
-  Future<bool> removeLabel(RepositorySlug slug, int issueNumber, String label) async {
+  Future<bool> removeLabel(
+    RepositorySlug slug,
+    int issueNumber,
+    String label,
+  ) async {
     labelRemoved = true;
     return labelRemoved;
   }
 
   @override
-  Future<List<IssueLabel>> addLabels(RepositorySlug slug, int issueNumber, List<String> labels) async {
-    final List<IssueLabel> labelsAdded = [];
-    for (String labelName in labels) {
+  Future<List<IssueLabel>> addLabels(
+    RepositorySlug slug,
+    int issueNumber,
+    List<String> labels,
+  ) async {
+    final labelsAdded = <IssueLabel>[];
+    for (var labelName in labels) {
       labelsAdded.add(IssueLabel(name: labelName));
     }
     return labelsAdded;
   }
 
   @override
-  Future<IssueComment> createComment(RepositorySlug slug, int number, String commentBody) async {
+  Future<IssueComment> createComment(
+    RepositorySlug slug,
+    int number,
+    String commentBody,
+  ) async {
     if (useRealComment) {
       issueComment = IssueComment(id: number, body: commentBody);
     } else {
-      issueComment = IssueComment.fromJson(jsonDecode(createCommentMock!) as Map<String, dynamic>);
+      issueComment = IssueComment.fromJson(
+        jsonDecode(createCommentMock!) as Map<String, dynamic>,
+      );
     }
     return issueComment!;
   }
 
   @override
-  Future<bool> updateBranch(RepositorySlug slug, int number, String headSha) async {
+  Future<bool> updateBranch(
+    RepositorySlug slug,
+    int number,
+    String headSha,
+  ) async {
     return true;
   }
 
@@ -259,7 +289,10 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<List<PullRequestFile>> getPullRequestFiles(RepositorySlug slug, PullRequest pullRequest) async {
+  Future<List<PullRequestFile>> getPullRequestFiles(
+    RepositorySlug slug,
+    PullRequest pullRequest,
+  ) async {
     String pullRequestData;
 
     if (usePullRequestFilesList && pullRequestFilesMockList.isNotEmpty) {
@@ -270,12 +303,12 @@ class FakeGithubService implements GithubService {
       pullRequestData = pullRequestFilesJsonMock as String;
     }
 
-    final List<PullRequestFile> pullRequestFileList = [];
+    final pullRequestFileList = <PullRequestFile>[];
 
     final dynamic parsedList = jsonDecode(pullRequestData);
 
-    for (dynamic d in parsedList) {
-      final PullRequestFile file = PullRequestFile.fromJson(d as Map<String, dynamic>);
+    for (dynamic d in parsedList as Iterable) {
+      final file = PullRequestFile.fromJson(d as Map<String, dynamic>);
       pullRequestFileList.add(file);
     }
 
@@ -299,7 +332,10 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<Issue> getIssue({required RepositorySlug slug, required int issueNumber}) async {
+  Future<Issue> getIssue({
+    required RepositorySlug slug,
+    required int issueNumber,
+  }) async {
     return githubIssueMock!;
   }
 
@@ -331,7 +367,8 @@ class FakeGithubService implements GithubService {
 
   void verifyMergePullRequests(Map<int, RepositorySlug> expected) {
     expect(
-      reason: 'Pull request numbers in mergePullRequest invocations do not match',
+      reason:
+          'Pull request numbers in mergePullRequest invocations do not match',
       verifyPullRequestMergeCallMap.keys.toList(),
       expected.keys.toList(),
     );
@@ -345,7 +382,11 @@ class FakeGithubService implements GithubService {
   List<String> fileContentsMockList = [];
 
   @override
-  Future<String> getFileContents(RepositorySlug slug, String path, {String? ref}) async {
+  Future<String> getFileContents(
+    RepositorySlug slug,
+    String path, {
+    String? ref,
+  }) async {
     if (throwExceptionFileContents) {
       throw 'Contents do not point to a file.';
     }
@@ -379,11 +420,7 @@ class FakeGithubService implements GithubService {
   Map<String, bool> isTeamMemberMockMap = <String, bool>{};
 
   @override
-  Future<bool> isTeamMember(
-    String team,
-    String user,
-    String org,
-  ) async {
+  Future<bool> isTeamMember(String team, String user, String org) async {
     if (!isTeamMemberMockMap.containsKey(user)) {
       return false;
     }
@@ -422,10 +459,7 @@ class FakeGithubService implements GithubService {
   set branchMock(String data) => branchMock = data;
 
   @override
-  Future<Branch> getBranch(
-    RepositorySlug slug,
-    String branchName,
-  ) async {
+  Future<Branch> getBranch(RepositorySlug slug, String branchName) async {
     return Branch.fromJson(json.decode(branchMockData!));
   }
 
@@ -455,10 +489,7 @@ class FakeGithubService implements GithubService {
   bool deleteBranchMock = true;
 
   @override
-  Future<bool> deleteBranch(
-    RepositorySlug slug,
-    String branchName,
-  ) async {
+  Future<bool> deleteBranch(RepositorySlug slug, String branchName) async {
     deletedBranches.add((slug, branchName));
     return deleteBranchMock;
   }

@@ -4,10 +4,10 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
+import '../../cocoon_service.dart';
 import '../../protos.dart' show BuildStatusResponse, EnumBuildStatus;
 import '../service/build_status_provider.dart';
 import '../service/datastore.dart';
@@ -18,8 +18,10 @@ class GetBuildStatus extends RequestHandler<Body> {
     required super.config,
     @visibleForTesting DatastoreServiceProvider? datastoreProvider,
     @visibleForTesting BuildStatusServiceProvider? buildStatusProvider,
-  })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
-        buildStatusProvider = buildStatusProvider ?? BuildStatusService.defaultProvider;
+  }) : datastoreProvider =
+           datastoreProvider ?? DatastoreService.defaultProvider,
+       buildStatusProvider =
+           buildStatusProvider ?? BuildStatusService.defaultProvider;
   final DatastoreServiceProvider datastoreProvider;
   final BuildStatusServiceProvider buildStatusProvider;
 
@@ -27,19 +29,20 @@ class GetBuildStatus extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final BuildStatusResponse response = await createResponse();
+    final response = await createResponse();
     return Body.forJson(response.writeToJsonMap());
   }
 
   Future<BuildStatusResponse> createResponse() async {
-    final DatastoreService datastore = datastoreProvider(config.db);
-    final FirestoreService firestoreService = await config.createFirestoreService();
-    final BuildStatusService buildStatusService = buildStatusProvider(datastore, firestoreService);
-    final String repoName = request!.uri.queryParameters[kRepoParam] ?? 'flutter';
-    final RepositorySlug slug = RepositorySlug('flutter', repoName);
-    final BuildStatus status = (await buildStatusService.calculateCumulativeStatus(slug))!;
+    final datastore = datastoreProvider(config.db);
+    final firestoreService = await config.createFirestoreService();
+    final buildStatusService = buildStatusProvider(datastore, firestoreService);
+    final repoName = request!.uri.queryParameters[kRepoParam] ?? 'flutter';
+    final slug = RepositorySlug('flutter', repoName);
+    final status = (await buildStatusService.calculateCumulativeStatus(slug))!;
     return BuildStatusResponse()
-      ..buildStatus = status.succeeded ? EnumBuildStatus.success : EnumBuildStatus.failure
+      ..buildStatus =
+          status.succeeded ? EnumBuildStatus.success : EnumBuildStatus.failure
       ..failingTasks.addAll(status.failedTasks);
   }
 }

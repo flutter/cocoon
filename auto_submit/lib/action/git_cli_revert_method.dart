@@ -4,19 +4,19 @@
 
 import 'dart:io';
 
-import 'package:auto_submit/action/revert_method.dart';
-import 'package:auto_submit/configuration/repository_configuration.dart';
-import 'package:auto_submit/git/cli_command.dart';
-import 'package:auto_submit/git/git_cli.dart';
-import 'package:auto_submit/git/git_repository_manager.dart';
-import 'package:auto_submit/git/utilities.dart';
-import 'package:auto_submit/requests/exceptions.dart';
-import 'package:auto_submit/revert/revert_issue_body_formatter.dart';
-import 'package:auto_submit/service/config.dart';
-import 'package:auto_submit/service/github_service.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
+
+import '../git/cli_command.dart';
+import '../git/git_cli.dart';
+import '../git/git_repository_manager.dart';
+import '../git/utilities.dart';
+import '../requests/exceptions.dart';
+import '../revert/revert_issue_body_formatter.dart';
+import '../service/config.dart';
+import '../service/github_service.dart';
+import 'revert_method.dart';
 
 class GitCliRevertMethod implements RevertMethod {
   @override
@@ -26,15 +26,17 @@ class GitCliRevertMethod implements RevertMethod {
     String reasonForRevert,
     github.PullRequest pullRequestToRevert,
   ) async {
-    final github.RepositorySlug slug = pullRequestToRevert.base!.repo!.slug();
-    final String commitSha = pullRequestToRevert.mergeCommitSha!;
+    final slug = pullRequestToRevert.base!.repo!.slug();
+    final commitSha = pullRequestToRevert.mergeCommitSha!;
     // we will need to collect the pr number after the revert request is generated.
 
-    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
-    final String baseBranch = repositoryConfiguration.defaultBranch;
+    final repositoryConfiguration = await config.getRepositoryConfiguration(
+      slug,
+    );
+    final baseBranch = repositoryConfiguration.defaultBranch;
 
-    final String cloneToDirectory = '${slug.name}_$commitSha';
-    final GitRepositoryManager gitRepositoryManager = GitRepositoryManager(
+    final cloneToDirectory = '${slug.name}_$commitSha';
+    final gitRepositoryManager = GitRepositoryManager(
       slug: slug,
       workingDirectory: Directory.current.path,
       cloneToDirectory: cloneToDirectory,
@@ -45,47 +47,58 @@ class GitCliRevertMethod implements RevertMethod {
     try {
       await gitRepositoryManager.cloneRepository();
       await gitRepositoryManager.setupConfig();
-      await gitRepositoryManager.revertCommit(baseBranch, commitSha, slug, await config.generateGithubToken(slug));
+      await gitRepositoryManager.revertCommit(
+        baseBranch,
+        commitSha,
+        slug,
+        await config.generateGithubToken(slug),
+      );
     } finally {
       await gitRepositoryManager.deleteRepository();
     }
 
-    final GitRevertBranchName gitRevertBranchName = GitRevertBranchName(commitSha);
-    final GithubService githubService = await config.createGithubService(slug);
+    final gitRevertBranchName = GitRevertBranchName(commitSha);
+    final githubService = await config.createGithubService(slug);
 
-    const RetryOptions retryOptions =
-        RetryOptions(delayFactor: Duration(seconds: 1), maxDelay: Duration(seconds: 1), maxAttempts: 4);
+    const retryOptions = RetryOptions(
+      delayFactor: Duration(seconds: 1),
+      maxDelay: Duration(seconds: 1),
+      maxAttempts: 4,
+    );
 
     github.Branch? branch;
     // Attempt a few times to get the branch name. This may not be needed.
     // Let the exception bubble up from here.
-    await retryOptions.retry(
-      () async {
-        branch = await githubService.getBranch(slug, gitRevertBranchName.branch);
-      },
-      retryIf: (Exception e) => e is NotFoundException,
-    );
+    await retryOptions.retry(() async {
+      branch = await githubService.getBranch(slug, gitRevertBranchName.branch);
+    }, retryIf: (Exception e) => e is NotFoundException);
 
     log.info(
       'found branch ${slug.fullName}/${branch!.name}, safe to create revert request of ${pullRequestToRevert.number!}.',
     );
 
-    final Set<String> prToRevertReviewers =
-        await getOriginalPrReviewers(githubService, slug, pullRequestToRevert.number!);
+    final prToRevertReviewers = await getOriginalPrReviewers(
+      githubService,
+      slug,
+      pullRequestToRevert.number!,
+    );
 
-    final RevertIssueBodyFormatter formatter = RevertIssueBodyFormatter(
-      slug: slug,
-      prToRevertNumber: pullRequestToRevert.number!,
-      initiatingAuthor: initiatingAuthor,
-      revertReason: reasonForRevert,
-      prToRevertAuthor: pullRequestToRevert.user!.login,
-      prToRevertReviewers: prToRevertReviewers,
-      prToRevertTitle: pullRequestToRevert.title,
-      prToRevertBody: pullRequestToRevert.body,
-    ).format;
+    final formatter =
+        RevertIssueBodyFormatter(
+          slug: slug,
+          prToRevertNumber: pullRequestToRevert.number!,
+          initiatingAuthor: initiatingAuthor,
+          revertReason: reasonForRevert,
+          prToRevertAuthor: pullRequestToRevert.user!.login,
+          prToRevertReviewers: prToRevertReviewers,
+          prToRevertTitle: pullRequestToRevert.title,
+          prToRevertBody: pullRequestToRevert.body,
+        ).format;
 
-    log.info('Attempting to create pull request with ${slug.fullName}/${gitRevertBranchName.branch}.');
-    final github.PullRequest revertPullRequest = await githubService.createPullRequest(
+    log.info(
+      'Attempting to create pull request with ${slug.fullName}/${gitRevertBranchName.branch}.',
+    );
+    final revertPullRequest = await githubService.createPullRequest(
       slug: slug,
       title: formatter.revertPrTitle,
       head: gitRevertBranchName.branch,
@@ -94,7 +107,9 @@ class GitCliRevertMethod implements RevertMethod {
       body: formatter.revertPrBody,
     );
 
-    log.info('pull request number is: ${slug.fullName}/${revertPullRequest.number}');
+    log.info(
+      'pull request number is: ${slug.fullName}/${revertPullRequest.number}',
+    );
 
     return revertPullRequest;
   }
@@ -108,10 +123,13 @@ class GitCliRevertMethod implements RevertMethod {
     github.RepositorySlug slug,
     int prNumber,
   ) async {
-    final List<github.PullRequestReview> pullRequestReviews = await githubService.getPullRequestReviews(slug, prNumber);
-    final List<github.PullRequestReview> reversedPullRequestReviews = pullRequestReviews.reversed.toList();
-    final Set<String> approvers = {};
-    for (github.PullRequestReview review in reversedPullRequestReviews) {
+    final pullRequestReviews = await githubService.getPullRequestReviews(
+      slug,
+      prNumber,
+    );
+    final reversedPullRequestReviews = pullRequestReviews.reversed.toList();
+    final approvers = <String>{};
+    for (var review in reversedPullRequestReviews) {
       if (review.state == 'APPROVED') {
         approvers.add(review.user!.login!);
       }

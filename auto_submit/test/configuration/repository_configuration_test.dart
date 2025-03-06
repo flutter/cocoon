@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 
 void main() {
   test('Parse config from yaml', () {
-    const String sampleConfig = '''
+    const sampleConfig = '''
       default_branch: main
       auto_approval_accounts:
         - dependabot[bot]
@@ -22,17 +22,22 @@ void main() {
         - Google-testing
     ''';
 
-    final RepositoryConfiguration repositoryConfiguration = RepositoryConfiguration.fromYaml(sampleConfig);
+    final repositoryConfiguration = RepositoryConfiguration.fromYaml(
+      sampleConfig,
+    );
     expect(repositoryConfiguration.defaultBranch, 'main');
     expect(repositoryConfiguration.autoApprovalAccounts.isNotEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty, isTrue);
+    expect(
+      repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty,
+      isTrue,
+    );
   });
 
   test('Parse config from yaml excluding auto approval accounts', () {
-    const String sampleConfig = '''
+    const sampleConfig = '''
       default_branch: main
       approving_reviews: 2
       approval_group: flutter-hackers
@@ -43,17 +48,22 @@ void main() {
         - “Google-testing”
     ''';
 
-    final RepositoryConfiguration repositoryConfiguration = RepositoryConfiguration.fromYaml(sampleConfig);
+    final repositoryConfiguration = RepositoryConfiguration.fromYaml(
+      sampleConfig,
+    );
     expect(repositoryConfiguration.defaultBranch, 'main');
     expect(repositoryConfiguration.autoApprovalAccounts.isEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty, isTrue);
+    expect(
+      repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty,
+      isTrue,
+    );
   });
 
   test('Parse config from yaml with empty auto_approval_accounts field', () {
-    const String sampleConfig = '''
+    const sampleConfig = '''
       auto_approval_accounts:
       approving_reviews: 2
       approval_group: flutter-hackers
@@ -64,7 +74,9 @@ void main() {
         - “Google-testing”
     ''';
 
-    final RepositoryConfiguration repositoryConfiguration = RepositoryConfiguration.fromYaml(sampleConfig);
+    final repositoryConfiguration = RepositoryConfiguration.fromYaml(
+      sampleConfig,
+    );
     // We will get the default branch later as it does not need to be added to
     // the initial configuration.
     repositoryConfiguration.defaultBranch = 'main';
@@ -75,18 +87,23 @@ void main() {
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty, isTrue);
+    expect(
+      repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty,
+      isTrue,
+    );
   });
 
   test('Parse minimal configuration', () {
-    const String sampleConfig = '''
+    const sampleConfig = '''
       approval_group: flutter-hackers
       issues_repository:
         owner: flutter
         repo: flutter
     ''';
 
-    final RepositoryConfiguration repositoryConfiguration = RepositoryConfiguration.fromYaml(sampleConfig);
+    final repositoryConfiguration = RepositoryConfiguration.fromYaml(
+      sampleConfig,
+    );
     repositoryConfiguration.defaultBranch = 'master';
 
     expect(repositoryConfiguration.defaultBranch, 'master');

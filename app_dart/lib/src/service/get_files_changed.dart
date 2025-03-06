@@ -2,10 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/service/config.dart';
-import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
+
+import 'config.dart';
+import 'github_service.dart';
 
 /// Provides the ability to query a PR for the files changed.
 ///
@@ -18,10 +19,7 @@ abstract interface class GetFilesChanged {
   /// There are two possible outcomes:
   /// - [InconclusiveFilesChanged] an error state that is non-fatal;
   /// - [SuccessfulFilesChanged] a success state, see [SuccessfulFilesChanged.filesChanged].
-  Future<FilesChanged> get(
-    RepositorySlug slug,
-    int pullRequestNumber,
-  );
+  Future<FilesChanged> get(RepositorySlug slug, int pullRequestNumber);
 }
 
 /// Uses []"List pull requests files"](https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests-files).
@@ -38,17 +36,11 @@ final class GithubApiGetFilesChanged implements GetFilesChanged {
   final Config _config;
 
   @override
-  Future<FilesChanged> get(
-    RepositorySlug slug,
-    int pullRequestNumber,
-  ) async {
+  Future<FilesChanged> get(RepositorySlug slug, int pullRequestNumber) async {
     final List<String> files;
     try {
       final githubService = await _config.createGithubService(slug);
-      files = await githubService.listFiles(
-        slug,
-        pullRequestNumber,
-      );
+      files = await githubService.listFiles(slug, pullRequestNumber);
     } on GitHubError catch (e) {
       return InconclusiveFilesChanged(
         pullRequestNumber: pullRequestNumber,

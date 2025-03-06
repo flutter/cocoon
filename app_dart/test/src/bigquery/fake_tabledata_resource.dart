@@ -36,14 +36,17 @@ class FakeTabledataResource implements TabledataResource {
     String? pageToken,
     String? $fields,
   }) async {
-    final List<Map<String, Object>> tableRowList = <Map<String, Object>>[];
-    for (TableDataInsertAllRequestRows tableDataInsertAllRequestRows in rows!) {
+    final tableRowList = <Map<String, Object>>[];
+    for (var tableDataInsertAllRequestRows in rows!) {
       final dynamic value = tableDataInsertAllRequestRows.json;
-      final List<Map<String, Object?>> tableCellList = <Map<String, Object?>>[];
+      final tableCellList = <Map<String, Object?>>[];
       tableCellList.add(<String, Object?>{'v': value});
       tableRowList.add(<String, Object>{'f': tableCellList});
     }
 
-    return TableDataList.fromJson(<String, Object>{'totalRows': rows!.length.toString(), 'rows': tableRowList});
+    return TableDataList.fromJson(<String, Object>{
+      'totalRows': rows!.length.toString(),
+      'rows': tableRowList,
+    });
   }
 }

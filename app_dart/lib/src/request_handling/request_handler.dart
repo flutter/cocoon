@@ -6,10 +6,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
-import 'package:cocoon_service/cocoon_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
+import '../../cocoon_service.dart';
 import 'exceptions.dart';
 
 /// A class that services HTTP requests and returns HTTP responses.
@@ -21,9 +21,7 @@ import 'exceptions.dart';
 
 abstract class RequestHandler<T extends Body> {
   /// Creates a new [RequestHandler].
-  const RequestHandler({
-    required this.config,
-  });
+  const RequestHandler({required this.config});
 
   /// The global configuration of this AppEngine server.
   final Config config;
@@ -39,7 +37,7 @@ abstract class RequestHandler<T extends Body> {
   }) {
     return runZoned<Future<void>>(
       () async {
-        final HttpResponse response = request.response;
+        final response = request.response;
         try {
           try {
             T body;
@@ -86,7 +84,10 @@ abstract class RequestHandler<T extends Body> {
   /// [body].
   ///
   /// Returns a future that completes when [response] has been closed.
-  Future<void> _respond({int status = HttpStatus.ok, Body body = Body.empty}) async {
+  Future<void> _respond({
+    int status = HttpStatus.ok,
+    Body body = Body.empty,
+  }) async {
     response!.statusCode = status;
     await response!.addStream(body.serialize().cast<List<int>>());
     await response!.flush();
@@ -104,9 +105,11 @@ abstract class RequestHandler<T extends Body> {
   /// throw a [StateError].
   @protected
   U? getValue<U>(RequestKey<U> key, {bool allowNull = false}) {
-    final U? value = Zone.current[key] as U?;
+    final value = Zone.current[key] as U?;
     if (!allowNull && value == null) {
-      throw StateError('Attempt to access ${key.name} while not in a request context');
+      throw StateError(
+        'Attempt to access ${key.name} while not in a request context',
+      );
     }
     return value;
   }
@@ -145,10 +148,8 @@ abstract class RequestHandler<T extends Body> {
 
   /// The package:http Client to use for googleapis requests.
   @protected
-  http.Client? get httpClient => getValue<http.Client>(
-        RequestKey.httpClient,
-        allowNull: true,
-      );
+  http.Client? get httpClient =>
+      getValue<http.Client>(RequestKey.httpClient, allowNull: true);
 }
 
 /// A key that can be used to index a value within the request context.
@@ -161,9 +162,15 @@ class RequestKey<T> {
 
   final String name;
 
-  static const RequestKey<HttpRequest> request = RequestKey<HttpRequest>('request');
-  static const RequestKey<HttpResponse> response = RequestKey<HttpResponse>('response');
-  static const RequestKey<http.Client> httpClient = RequestKey<http.Client>('httpClient');
+  static const RequestKey<HttpRequest> request = RequestKey<HttpRequest>(
+    'request',
+  );
+  static const RequestKey<HttpResponse> response = RequestKey<HttpResponse>(
+    'response',
+  );
+  static const RequestKey<http.Client> httpClient = RequestKey<http.Client>(
+    'httpClient',
+  );
 
   @override
   String toString() => '$runtimeType($name)';

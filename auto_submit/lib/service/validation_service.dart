@@ -2,42 +2,45 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/exception/retryable_exception.dart';
-import 'package:auto_submit/model/auto_submit_query_result.dart';
-import 'package:auto_submit/model/pull_request_data_types.dart';
-import 'package:auto_submit/requests/graphql_queries.dart';
-import 'package:auto_submit/service/config.dart';
-import 'package:auto_submit/service/github_service.dart';
-import 'package:auto_submit/service/graphql_service.dart';
 import 'package:cocoon_server/big_query_pull_request_record.dart';
 import 'package:cocoon_server/bigquery.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
 
+import '../exception/retryable_exception.dart';
+import '../model/auto_submit_query_result.dart';
+import '../model/pull_request_data_types.dart';
+import '../requests/graphql_queries.dart';
+import 'config.dart';
+import 'graphql_service.dart';
+
 /// Class containing common methods to each of the pull request type validation
 /// services.
 class ValidationService {
   ValidationService(this.config, {RetryOptions? retryOptions})
-      : retryOptions = retryOptions ?? Config.mergeRetryOptions;
+    : retryOptions = retryOptions ?? Config.mergeRetryOptions;
 
   final Config config;
   final RetryOptions retryOptions;
 
   /// Fetch the most up to date info for the current pull request from github.
-  Future<QueryResult> getNewestPullRequestInfo(Config config, github.PullRequest pullRequest) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final int? prNumber = pullRequest.number;
+  Future<QueryResult> getNewestPullRequestInfo(
+    Config config,
+    github.PullRequest pullRequest,
+  ) async {
+    final slug = pullRequest.base!.repo!.slug();
+    final prNumber = pullRequest.number;
 
-    final GraphQlService graphQlService = await GraphQlService.forRepo(config, slug);
+    final graphQlService = await GraphQlService.forRepo(config, slug);
 
-    final FindPullRequestsWithReviewsQuery findPullRequestsWithReviewsQuery = FindPullRequestsWithReviewsQuery(
+    final findPullRequestsWithReviewsQuery = FindPullRequestsWithReviewsQuery(
       repositoryOwner: slug.owner,
       repositoryName: slug.name,
       pullRequestNumber: prNumber!,
     );
 
-    final Map<String, dynamic> data = await graphQlService.queryGraphQL(
+    final data = await graphQlService.queryGraphQL(
       documentNode: findPullRequestsWithReviewsQuery.documentNode,
       variables: findPullRequestsWithReviewsQuery.variables,
     );
@@ -45,8 +48,11 @@ class ValidationService {
     return QueryResult.fromJson(data);
   }
 
-  Future<github.PullRequest> getFullPullRequest(github.RepositorySlug slug, int pullRequestNumber) async {
-    final GithubService githubService = await config.createGithubService(slug);
+  Future<github.PullRequest> getFullPullRequest(
+    github.RepositorySlug slug,
+    int pullRequestNumber,
+  ) async {
+    final githubService = await config.createGithubService(slug);
     return githubService.getPullRequest(slug, pullRequestNumber);
   }
 
@@ -55,12 +61,12 @@ class ValidationService {
     required Config config,
     required github.PullRequest pullRequest,
   }) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final int number = pullRequest.number!;
+    final slug = pullRequest.base!.repo!.slug();
+    final number = pullRequest.number!;
 
     // Pass an explicit commit message from the PR title otherwise the GitHub API will use the first commit message.
-    const String revertPattern = 'Revert "Revert';
-    String messagePrefix = '';
+    const revertPattern = 'Revert "Revert';
+    var messagePrefix = '';
 
     if (pullRequest.title!.contains(revertPattern)) {
       // Cleanup auto-generated revert messages.
@@ -70,8 +76,8 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
 ''';
     }
 
-    final String prBody = _sanitizePrBody(pullRequest.body ?? '');
-    final String commitMessage = '$messagePrefix$prBody';
+    final prBody = _sanitizePrBody(pullRequest.body ?? '');
+    final commitMessage = '$messagePrefix$prBody';
 
     if (pullRequest.isMergeQueueEnabled) {
       return _enqueuePullRequest(slug, pullRequest);
@@ -80,53 +86,67 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
     }
   }
 
-  Future<MergeResult> _enqueuePullRequest(github.RepositorySlug slug, github.PullRequest restPullRequest) async {
+  Future<MergeResult> _enqueuePullRequest(
+    github.RepositorySlug slug,
+    github.PullRequest restPullRequest,
+  ) async {
     final graphQlService = await GraphQlService.forRepo(config, slug);
     final isEmergencyPullRequest =
-        restPullRequest.labels?.where((label) => label.name == Config.kEmergencyLabel).isNotEmpty ?? false;
+        restPullRequest.labels
+            ?.where((label) => label.name == Config.kEmergencyLabel)
+            .isNotEmpty ??
+        false;
 
     try {
-      await retryOptions.retry(
-        () async {
-          await graphQlService.enqueuePullRequest(slug, restPullRequest.number!, isEmergencyPullRequest);
-        },
-        retryIf: (Exception e) => e is RetryableException,
-      );
+      await retryOptions.retry(() async {
+        await graphQlService.enqueuePullRequest(
+          slug,
+          restPullRequest.number!,
+          isEmergencyPullRequest,
+        );
+      }, retryIf: (Exception e) => e is RetryableException);
     } catch (e) {
-      final message = 'Failed to enqueue ${slug.fullName}/${restPullRequest.number} with $e';
+      final message =
+          'Failed to enqueue ${slug.fullName}/${restPullRequest.number} with $e';
       log.severe(message);
       return (result: false, message: message, method: SubmitMethod.enqueue);
     }
 
-    return (result: true, message: restPullRequest.title!, method: SubmitMethod.enqueue);
+    return (
+      result: true,
+      message: restPullRequest.title!,
+      method: SubmitMethod.enqueue,
+    );
   }
 
-  Future<MergeResult> _mergePullRequest(int number, String commitMessage, github.RepositorySlug slug) async {
+  Future<MergeResult> _mergePullRequest(
+    int number,
+    String commitMessage,
+    github.RepositorySlug slug,
+  ) async {
     try {
       github.PullRequestMerge? result;
 
-      await retryOptions.retry(
-        () async {
-          result = await _processMergeInternal(
-            config: config,
-            commitMessage: commitMessage,
-            slug: slug,
-            number: number,
-            mergeMethod: github.MergeMethod.squash,
-          );
-        },
-        retryIf: (Exception e) => e is RetryableException,
-      );
+      await retryOptions.retry(() async {
+        result = await _processMergeInternal(
+          config: config,
+          commitMessage: commitMessage,
+          slug: slug,
+          number: number,
+          mergeMethod: github.MergeMethod.squash,
+        );
+      }, retryIf: (Exception e) => e is RetryableException);
 
-      final bool merged = result?.merged ?? false;
+      final merged = result?.merged ?? false;
       if (result != null && !merged) {
-        final String message = 'Failed to merge ${slug.fullName}/$number with ${result?.message}';
+        final message =
+            'Failed to merge ${slug.fullName}/$number with ${result?.message}';
         log.severe(message);
         return (result: false, message: message, method: SubmitMethod.merge);
       }
     } catch (e) {
       // Catch graphql client init exceptions.
-      final String message = 'Failed to merge ${slug.fullName}/$number with $e';
+      final message = 'Failed to merge ${slug.fullName}/$number with $e';
       log.severe(message);
       return (result: false, message: message, method: SubmitMethod.merge);
     }
@@ -140,13 +160,16 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
     required github.PullRequest pullRequest,
     required PullRequestChangeType pullRequestType,
   }) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final GithubService gitHubService = await config.createGithubService(slug);
+    final slug = pullRequest.base!.repo!.slug();
+    final gitHubService = await config.createGithubService(slug);
     // We need the updated time fields for the merged request from github.
-    final github.PullRequest currentPullRequest = await gitHubService.getPullRequest(slug, pullRequest.number!);
+    final currentPullRequest = await gitHubService.getPullRequest(
+      slug,
+      pullRequest.number!,
+    );
 
     // add a record for the pull request into our metrics tracking
-    final PullRequestRecord pullRequestRecord = PullRequestRecord(
+    final pullRequestRecord = PullRequestRecord(
       organization: currentPullRequest.base!.repo!.slug().owner,
       repository: currentPullRequest.base!.repo!.slug().name,
       author: currentPullRequest.user!.login,
@@ -158,7 +181,7 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
     );
 
     try {
-      final BigqueryService bigqueryService = await config.createBigQueryService();
+      final bigqueryService = await config.createBigQueryService();
       await bigqueryService.insertPullRequestRecord(
         projectId: Config.flutterGcpProjectId,
         pullRequestRecord: pullRequestRecord,
@@ -209,8 +232,8 @@ Future<github.PullRequestMerge> _processMergeInternal({
   // This is retryable so to guard against token expiration we get a fresh
   // client each time.
   log.info('Attempting to merge ${slug.fullName}/$number.');
-  final GithubService gitHubService = await config.createGithubService(slug);
-  final github.PullRequestMerge pullRequestMerge = await gitHubService.mergePullRequest(
+  final gitHubService = await config.createGithubService(slug);
+  final pullRequestMerge = await gitHubService.mergePullRequest(
     slug,
     number,
     commitMessage: commitMessage,
@@ -219,7 +242,9 @@ Future<github.PullRequestMerge> _processMergeInternal({
   );
 
   if (pullRequestMerge.merged != true) {
-    throw RetryableException('Pull request ${slug.fullName}/$number could not be merged: ${pullRequestMerge.message}');
+    throw RetryableException(
+      'Pull request ${slug.fullName}/$number could not be merged: ${pullRequestMerge.message}',
+    );
   }
 
   return pullRequestMerge;
@@ -233,7 +258,7 @@ final RegExp _kDiscordPattern = RegExp(r'#hackers-new');
 
 String _sanitizePrBody(String rawPrBody) {
   final buffer = StringBuffer();
-  bool lastLineWasEmpty = false;
+  var lastLineWasEmpty = false;
   for (final line in rawPrBody.split('\n')) {
     if (_kCheckboxPattern.hasMatch(line) ||
         _kCommentPattern.hasMatch(line) ||
@@ -260,9 +285,7 @@ String _sanitizePrBody(String rawPrBody) {
 ///
 /// This variable is read-write to allow tests to choose which repos they want
 /// to test in which mode.
-List<String> mqEnabledRepos = const <String>[
-  'flutter/flutter',
-];
+List<String> mqEnabledRepos = const <String>['flutter/flutter'];
 
 /// Convenience extension so one can just do `pullRequest.isMergeQueueEnabled`.
 extension PullRequestExtension on github.PullRequest {

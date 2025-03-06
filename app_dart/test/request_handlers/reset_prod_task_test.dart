@@ -30,14 +30,16 @@ void main() {
     late ApiRequestHandlerTester tester;
     late Commit commit;
     late Task task;
-    final firestore.Task firestoreTask = generateFirestoreTask(1, attempts: 1);
+    final firestoreTask = generateFirestoreTask(1, attempts: 1);
 
     setUp(() {
-      final FakeDatastoreDB datastoreDB = FakeDatastoreDB();
+      final datastoreDB = FakeDatastoreDB();
       clientContext = FakeClientContext();
       mockFirestoreService = MockFirestoreService();
       clientContext.isDevelopmentEnvironment = false;
-      keyHelper = FakeKeyHelper(applicationContext: clientContext.applicationContext);
+      keyHelper = FakeKeyHelper(
+        applicationContext: clientContext.applicationContext,
+      );
       config = FakeConfig(
         dbValue: datastoreDB,
         keyHelperValue: keyHelper,
@@ -46,17 +48,18 @@ void main() {
         ],
         firestoreService: mockFirestoreService,
       );
-      final FakeAuthenticatedContext authContext = FakeAuthenticatedContext(clientContext: clientContext);
+      final authContext = FakeAuthenticatedContext(
+        clientContext: clientContext,
+      );
       tester = ApiRequestHandlerTester(context: authContext);
       mockLuciBuildService = MockLuciBuildService();
       handler = ResetProdTask(
         config: config,
-        authenticationProvider: FakeAuthenticationProvider(clientContext: clientContext),
-        luciBuildService: mockLuciBuildService,
-        scheduler: FakeScheduler(
-          config: config,
-          ciYaml: exampleConfig,
+        authenticationProvider: FakeAuthenticationProvider(
+          clientContext: clientContext,
         ),
+        luciBuildService: mockLuciBuildService,
+        scheduler: FakeScheduler(config: config, ciYaml: exampleConfig),
       );
       commit = generateCommit(1);
       task = generateTask(
@@ -69,14 +72,10 @@ void main() {
         'Key': config.keyHelper.encode(task.key),
       };
 
-      when(
-        mockFirestoreService.getDocument(
-          captureAny,
-        ),
-      ).thenAnswer((Invocation invocation) {
-        return Future<Document>.value(
-          firestoreTask,
-        );
+      when(mockFirestoreService.getDocument(captureAny)).thenAnswer((
+        Invocation invocation,
+      ) {
+        return Future<Document>.value(firestoreTask);
       });
 
       when(
@@ -97,9 +96,10 @@ void main() {
       config.db.values[commit.key] = commit;
       expect(await tester.post(handler), Body.empty);
 
-      final List<dynamic> captured = verify(mockFirestoreService.getDocument(captureAny)).captured;
+      final captured =
+          verify(mockFirestoreService.getDocument(captureAny)).captured;
       expect(captured.length, 1);
-      final String documentName = captured[0] as String;
+      final documentName = captured[0] as String;
       expect(
         documentName,
         '$kDatabase/documents/${firestore.kTaskCollectionId}/${commit.sha}_${task.name}_${task.attempts}',
@@ -143,8 +143,18 @@ void main() {
     });
 
     test('Rerun all failed tasks when task name is all', () async {
-      final Task taskA = generateTask(2, name: 'Linux A', parent: commit, status: Task.statusFailed);
-      final Task taskB = generateTask(3, name: 'Mac A', parent: commit, status: Task.statusFailed);
+      final taskA = generateTask(
+        2,
+        name: 'Linux A',
+        parent: commit,
+        status: Task.statusFailed,
+      );
+      final taskB = generateTask(
+        3,
+        name: 'Mac A',
+        parent: commit,
+        status: Task.statusFailed,
+      );
       config.db.values[taskA.key] = taskA;
       config.db.values[taskB.key] = taskB;
       config.db.values[commit.key] = commit;
@@ -169,7 +179,12 @@ void main() {
     });
 
     test('Rerun all runs nothing when everything is passed', () async {
-      final Task task = generateTask(2, name: 'Windows A', parent: commit, status: Task.statusSucceeded);
+      final task = generateTask(
+        2,
+        name: 'Windows A',
+        parent: commit,
+        status: Task.statusSucceeded,
+      );
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
       tester.requestData = <String, dynamic>{
@@ -197,11 +212,14 @@ void main() {
       expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
     });
 
-    test('Re-schedule existing task even though taskName is missing in the task', () async {
-      config.db.values[task.key] = task;
-      config.db.values[commit.key] = commit;
-      expect(await tester.post(handler), Body.empty);
-    });
+    test(
+      'Re-schedule existing task even though taskName is missing in the task',
+      () async {
+        config.db.values[task.key] = task;
+        config.db.values[commit.key] = commit;
+        expect(await tester.post(handler), Body.empty);
+      },
+    );
 
     test('Fails if task is not rerun', () async {
       when(

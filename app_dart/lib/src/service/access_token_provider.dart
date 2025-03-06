@@ -25,9 +25,11 @@ class AccessTokenService {
 
   /// Returns an OAuth 2.0 access token for the device lab service account.
   Future<AccessToken> createAccessToken() async {
-    final http.Client httpClient = http.Client();
+    final httpClient = http.Client();
     try {
-      final AccessCredentials credentials = await obtainAccessCredentialsViaMetadataServer(httpClient);
+      final credentials = await obtainAccessCredentialsViaMetadataServer(
+        httpClient,
+      );
       return credentials.accessToken;
     } finally {
       httpClient.close();

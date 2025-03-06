@@ -21,7 +21,7 @@ pushd "$1" > /dev/null
 
 flutter packages get
 flutter analyze --no-fatal-infos
-dart format --set-exit-if-changed --line-length=120 . lib/ test/
+dart format --set-exit-if-changed .
 flutter test --test-randomize-ordering-seed=random --reporter expanded
 
 popd > /dev/null

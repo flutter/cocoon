@@ -10,10 +10,7 @@ void main() {
     final object = CheckRunEvent(action: 'Amazing');
     expect(
       object.toString(),
-      stringContainsInOrder([
-        'CheckRunEvent',
-        '"action": "Amazing"',
-      ]),
+      stringContainsInOrder(['CheckRunEvent', '"action": "Amazing"']),
     );
   });
 
@@ -21,10 +18,7 @@ void main() {
     const object = CheckRun(conclusion: 'Amazing');
     expect(
       object.toString(),
-      stringContainsInOrder([
-        'CheckRun',
-        '"conclusion": "Amazing"',
-      ]),
+      stringContainsInOrder(['CheckRun', '"conclusion": "Amazing"']),
     );
   });
 

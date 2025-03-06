@@ -5,8 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:device_doctor/src/device.dart';
-import 'package:device_doctor/src/health.dart';
 import 'package:device_doctor/src/ios_device.dart';
 import 'package:device_doctor/src/utils.dart';
 import 'package:file/src/backends/memory/memory_file_system.dart';
@@ -23,38 +21,45 @@ void main() {
     Process process;
 
     setUp(() {
-      deviceDiscovery = FakeIosDeviceDiscovery(MemoryFileSystem().file('output'));
+      deviceDiscovery = FakeIosDeviceDiscovery(
+        MemoryFileSystem().file('output'),
+      );
       processManager = MockProcessManager();
     });
 
     test('deviceDiscovery', () async {
       deviceDiscovery.outputs = <dynamic>[''];
       expect(await deviceDiscovery.discoverDevices(), isEmpty);
-      final StringBuffer sb = StringBuffer();
+      final sb = StringBuffer();
       sb.writeln('abcdefg');
       deviceDiscovery.outputs = <dynamic>[sb.toString()];
-      final List<Device> devices = await deviceDiscovery.discoverDevices();
+      final devices = await deviceDiscovery.discoverDevices();
       expect(devices.length, equals(1));
       expect(devices[0].deviceId, equals('abcdefg'));
     });
 
     test('checkDevices without device', () async {
       deviceDiscovery.outputs = <dynamic>[''];
-      final Map<String, List<HealthCheckResult>> results = await deviceDiscovery.checkDevices();
+      final results = await deviceDiscovery.checkDevices();
       await expectLater(results.keys.length, 0);
     });
 
     test('checkDevices with device', () async {
       process = FakeProcess(0, out: <List<int>>[]);
-      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
+      when(
+        processManager.start(
+          any,
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => Future.value(process));
       deviceDiscovery.outputs = <dynamic>['abcdefg'];
-      final Map<String, List<HealthCheckResult>> results =
-          await deviceDiscovery.checkDevices(processManager: processManager);
+      final results = await deviceDiscovery.checkDevices(
+        processManager: processManager,
+      );
       expect(results['ios-device-abcdefg'], isNotNull);
       expect(results.keys.length, equals(1));
       expect(results.keys.toList()[0], 'ios-device-abcdefg');
-      final List<HealthCheckResult> healthCheckResults = results['ios-device-abcdefg']!;
+      final healthCheckResults = results['ios-device-abcdefg']!;
       expect(healthCheckResults.length, 7);
       expect(healthCheckResults[0].name, kDeviceAccessCheckKey);
       expect(healthCheckResults[0].succeeded, true);
@@ -86,75 +91,114 @@ void main() {
 
     test('Keychain unlock check - success', () async {
       process = FakeProcess(0);
-      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
-      final HealthCheckResult healthCheckResult =
-          await deviceDiscovery.keychainUnlockCheck(processManager: processManager);
+      when(
+        processManager.start(
+          any,
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => Future.value(process));
+      final healthCheckResult = await deviceDiscovery.keychainUnlockCheck(
+        processManager: processManager,
+      );
       expect(healthCheckResult.succeeded, true);
     });
 
     test('Keychain unlock check - exception', () async {
       process = FakeProcess(1);
-      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
-      final HealthCheckResult healthCheckResult =
-          await deviceDiscovery.keychainUnlockCheck(processManager: processManager);
+      when(
+        processManager.start(
+          any,
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => Future.value(process));
+      final healthCheckResult = await deviceDiscovery.keychainUnlockCheck(
+        processManager: processManager,
+      );
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kKeychainUnlockCheckKey);
-      expect(healthCheckResult.details, 'Executable ${kUnlockLoginKeychain} failed with exit code 1.');
+      expect(
+        healthCheckResult.details,
+        'Executable $kUnlockLoginKeychain failed with exit code 1.',
+      );
     });
 
     test('Cert check - success', () async {
-      final StringBuffer sb = StringBuffer();
+      final sb = StringBuffer();
       sb.writeln('1) abcdefg "Apple Development: Flutter Devicelab (hijklmn)"');
       sb.writeln('1 valid identities found');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
-      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
-      final HealthCheckResult healthCheckResult = await deviceDiscovery.certCheck(processManager: processManager);
+      when(
+        processManager.start(
+          any,
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => Future.value(process));
+      final healthCheckResult = await deviceDiscovery.certCheck(
+        processManager: processManager,
+      );
       expect(healthCheckResult.succeeded, true);
     });
 
     test('Cert check - failure without target certificate', () async {
-      final StringBuffer sb = StringBuffer();
+      final sb = StringBuffer();
       sb.writeln('abcdefg');
       sb.writeln('hijklmn');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
-      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
-      final HealthCheckResult healthCheckResult = await deviceDiscovery.certCheck(processManager: processManager);
+      when(
+        processManager.start(
+          any,
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => Future.value(process));
+      final healthCheckResult = await deviceDiscovery.certCheck(
+        processManager: processManager,
+      );
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kCertCheckKey);
       expect(healthCheckResult.details, sb.toString().trim());
     });
 
     test('Cert check - failure with multiple certificates', () async {
-      final StringBuffer sb = StringBuffer();
+      final sb = StringBuffer();
       sb.writeln('1) abcdefg "Apple Development: Flutter Devicelab (hijklmn)"');
 
       sb.writeln('1) opqrst "uvwxyz"');
       sb.writeln('2 valid identities found');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
-      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
-      final HealthCheckResult healthCheckResult = await deviceDiscovery.certCheck(processManager: processManager);
+      when(
+        processManager.start(
+          any,
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => Future.value(process));
+      final healthCheckResult = await deviceDiscovery.certCheck(
+        processManager: processManager,
+      );
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kCertCheckKey);
       expect(healthCheckResult.details, sb.toString().trim());
     });
 
     test('Cert check - failure with revoked certificates', () async {
-      final StringBuffer sb = StringBuffer();
-      sb.writeln('1) abcdefg "Apple Development: Flutter Devicelab (hijklmn)" (CSSMERR_TP_CERT_REVOKED)');
+      final sb = StringBuffer();
+      sb.writeln(
+        '1) abcdefg "Apple Development: Flutter Devicelab (hijklmn)" (CSSMERR_TP_CERT_REVOKED)',
+      );
       sb.writeln('1 valid identities found');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
-      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
-      final HealthCheckResult healthCheckResult = await deviceDiscovery.certCheck(processManager: processManager);
+      when(
+        processManager.start(
+          any,
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => Future.value(process));
+      final healthCheckResult = await deviceDiscovery.certCheck(
+        processManager: processManager,
+      );
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kCertCheckKey);
       expect(healthCheckResult.details, sb.toString().trim());
@@ -162,33 +206,54 @@ void main() {
 
     test('Cert check - exception', () async {
       process = FakeProcess(1);
-      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
-      final HealthCheckResult healthCheckResult = await deviceDiscovery.certCheck(processManager: processManager);
+      when(
+        processManager.start(
+          any,
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => Future.value(process));
+      final healthCheckResult = await deviceDiscovery.certCheck(
+        processManager: processManager,
+      );
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kCertCheckKey);
-      expect(healthCheckResult.details, 'Executable security failed with exit code 1.');
+      expect(
+        healthCheckResult.details,
+        'Executable security failed with exit code 1.',
+      );
     });
 
     test('Device pair check - success', () async {
-      final StringBuffer sb = StringBuffer();
+      final sb = StringBuffer();
       sb.writeln('SUCCESS: Validated pairing with device abcdefg-hijklmn');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
-      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
-      final HealthCheckResult healthCheckResult = await deviceDiscovery.devicePairCheck(processManager: processManager);
+      when(
+        processManager.start(
+          any,
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => Future.value(process));
+      final healthCheckResult = await deviceDiscovery.devicePairCheck(
+        processManager: processManager,
+      );
       expect(healthCheckResult.succeeded, true);
     });
 
     test('Device pair check - failure', () async {
-      final StringBuffer sb = StringBuffer();
+      final sb = StringBuffer();
       sb.writeln('abcdefg');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
-      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
-      final HealthCheckResult healthCheckResult = await deviceDiscovery.devicePairCheck(processManager: processManager);
+      when(
+        processManager.start(
+          any,
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => Future.value(process));
+      final healthCheckResult = await deviceDiscovery.devicePairCheck(
+        processManager: processManager,
+      );
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kDevicePairCheckKey);
       expect(healthCheckResult.details, sb.toString().trim());
@@ -196,12 +261,21 @@ void main() {
 
     test('Device pair check - exception', () async {
       process = FakeProcess(1);
-      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
-      final HealthCheckResult healthCheckResult = await deviceDiscovery.devicePairCheck(processManager: processManager);
+      when(
+        processManager.start(
+          any,
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => Future.value(process));
+      final healthCheckResult = await deviceDiscovery.devicePairCheck(
+        processManager: processManager,
+      );
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kDevicePairCheckKey);
-      expect(healthCheckResult.details, 'Executable idevicepair failed with exit code 1.');
+      expect(
+        healthCheckResult.details,
+        'Executable idevicepair failed with exit code 1.',
+      );
     });
 
     group('Device provisioning profile check', () {
@@ -210,12 +284,12 @@ void main() {
       List<List<int>> lsOutput;
       List<List<int>> securityOutput;
       test('success', () async {
-        const String fileName = 'abcdefg';
+        const fileName = 'abcdefg';
         lsOutput = <List<int>>[utf8.encode(fileName)];
         lsProcess = FakeProcess(0, out: lsOutput);
 
-        const String deviceID = 'deviceId';
-        const String profileContent = '''<array>
+        const deviceID = 'deviceId';
+        const profileContent = '''<array>
         <string>test1</string>
         <string>$deviceID</string>
         <string>test2</string>
@@ -224,33 +298,39 @@ void main() {
         securityOutput = <List<int>>[utf8.encode(profileContent)];
         securityProcess = FakeProcess(0, out: securityOutput);
 
-        final String? homeDir = Platform.environment['HOME'];
+        final homeDir = Platform.environment['HOME'];
         when(
-          processManager.start(
-            <Object>['ls', '$homeDir/Library/MobileDevice/Provisioning\ Profiles'],
-            workingDirectory: anyNamed('workingDirectory'),
-          ),
+          processManager.start(<Object>[
+            'ls',
+            '$homeDir/Library/MobileDevice/Provisioning Profiles',
+          ], workingDirectory: anyNamed('workingDirectory')),
         ).thenAnswer((_) => Future.value(lsProcess));
         when(
-          processManager.start(
-            <Object>['security', 'cms', '-D', '-i', '$homeDir/Library/MobileDevice/Provisioning\ Profiles/$fileName'],
-            workingDirectory: anyNamed('workingDirectory'),
-          ),
+          processManager.start(<Object>[
+            'security',
+            'cms',
+            '-D',
+            '-i',
+            '$homeDir/Library/MobileDevice/Provisioning Profiles/$fileName',
+          ], workingDirectory: anyNamed('workingDirectory')),
         ).thenAnswer((_) => Future.value(securityProcess));
 
-        final HealthCheckResult healthCheckResult =
-            await deviceDiscovery.deviceProvisioningProfileCheck(deviceID, processManager: processManager);
+        final healthCheckResult = await deviceDiscovery
+            .deviceProvisioningProfileCheck(
+              deviceID,
+              processManager: processManager,
+            );
         expect(healthCheckResult.succeeded, true);
         expect(healthCheckResult.name, kDeviceProvisioningProfileCheckKey);
       });
 
       test('deviceId does not exist', () async {
-        const String fileName = 'abcdefg';
+        const fileName = 'abcdefg';
         lsOutput = <List<int>>[utf8.encode(fileName)];
         lsProcess = FakeProcess(0, out: lsOutput);
 
-        const String deviceID = 'deviceId';
-        const String profileContent = '''<array>
+        const deviceID = 'deviceId';
+        const profileContent = '''<array>
         <string>test1</string>
         <string>test2</string>
         </array>
@@ -258,25 +338,34 @@ void main() {
         securityOutput = <List<int>>[utf8.encode(profileContent)];
         securityProcess = FakeProcess(0, out: securityOutput);
 
-        final String? homeDir = Platform.environment['HOME'];
+        final homeDir = Platform.environment['HOME'];
         when(
-          processManager.start(
-            <Object>['ls', '$homeDir/Library/MobileDevice/Provisioning\ Profiles'],
-            workingDirectory: anyNamed('workingDirectory'),
-          ),
+          processManager.start(<Object>[
+            'ls',
+            '$homeDir/Library/MobileDevice/Provisioning Profiles',
+          ], workingDirectory: anyNamed('workingDirectory')),
         ).thenAnswer((_) => Future.value(lsProcess));
         when(
-          processManager.start(
-            <Object>['security', 'cms', '-D', '-i', '$homeDir/Library/MobileDevice/Provisioning\ Profiles/$fileName'],
-            workingDirectory: anyNamed('workingDirectory'),
-          ),
+          processManager.start(<Object>[
+            'security',
+            'cms',
+            '-D',
+            '-i',
+            '$homeDir/Library/MobileDevice/Provisioning Profiles/$fileName',
+          ], workingDirectory: anyNamed('workingDirectory')),
         ).thenAnswer((_) => Future.value(securityProcess));
 
-        final HealthCheckResult healthCheckResult =
-            await deviceDiscovery.deviceProvisioningProfileCheck(deviceID, processManager: processManager);
+        final healthCheckResult = await deviceDiscovery
+            .deviceProvisioningProfileCheck(
+              deviceID,
+              processManager: processManager,
+            );
         expect(healthCheckResult.succeeded, false);
         expect(healthCheckResult.name, kDeviceProvisioningProfileCheckKey);
-        expect(healthCheckResult.details, 'device does not exist in the provisioning profile');
+        expect(
+          healthCheckResult.details,
+          'device does not exist in the provisioning profile',
+        );
       });
     });
 
@@ -284,40 +373,51 @@ void main() {
       Process process;
       List<List<int>> output;
       test('battery level is okay', () async {
-        const String batteryLevel = '100';
+        const batteryLevel = '100';
         output = <List<int>>[utf8.encode(batteryLevel)];
         process = FakeProcess(0, out: output);
 
         when(
-          processManager.start(
-            <Object>['ideviceinfo', '-q', 'com.apple.mobile.battery', '-k', 'BatteryCurrentCapacity'],
-            workingDirectory: anyNamed('workingDirectory'),
-          ),
+          processManager.start(<Object>[
+            'ideviceinfo',
+            '-q',
+            'com.apple.mobile.battery',
+            '-k',
+            'BatteryCurrentCapacity',
+          ], workingDirectory: anyNamed('workingDirectory')),
         ).thenAnswer((_) => Future.value(process));
 
-        final HealthCheckResult healthCheckResult =
-            await deviceDiscovery.batteryLevelCheck(processManager: processManager);
+        final healthCheckResult = await deviceDiscovery.batteryLevelCheck(
+          processManager: processManager,
+        );
         expect(healthCheckResult.succeeded, true);
         expect(healthCheckResult.name, kBatteryLevelCheckKey);
       });
 
       test('battery level is below minLevel', () async {
-        const String batteryLevel = '10';
+        const batteryLevel = '10';
         output = <List<int>>[utf8.encode(batteryLevel)];
         process = FakeProcess(0, out: output);
 
         when(
-          processManager.start(
-            <Object>['ideviceinfo', '-q', 'com.apple.mobile.battery', '-k', 'BatteryCurrentCapacity'],
-            workingDirectory: anyNamed('workingDirectory'),
-          ),
+          processManager.start(<Object>[
+            'ideviceinfo',
+            '-q',
+            'com.apple.mobile.battery',
+            '-k',
+            'BatteryCurrentCapacity',
+          ], workingDirectory: anyNamed('workingDirectory')),
         ).thenAnswer((_) => Future.value(process));
 
-        final HealthCheckResult healthCheckResult =
-            await deviceDiscovery.batteryLevelCheck(processManager: processManager);
+        final healthCheckResult = await deviceDiscovery.batteryLevelCheck(
+          processManager: processManager,
+        );
         expect(healthCheckResult.succeeded, false);
         expect(healthCheckResult.name, kBatteryLevelCheckKey);
-        expect(healthCheckResult.details, 'Battery level ($batteryLevel) is below 15');
+        expect(
+          healthCheckResult.details,
+          'Battery level ($batteryLevel) is below 15',
+        );
       });
     });
   });
@@ -336,145 +436,253 @@ void main() {
     });
     test('device restart - success', () async {
       idevicediagnosticsPath = '/abc/def/idevicediagnostics';
-      whichProcess = FakeProcess(0, out: <List<int>>[utf8.encode(idevicediagnosticsPath)]);
+      whichProcess = FakeProcess(
+        0,
+        out: <List<int>>[utf8.encode(idevicediagnosticsPath)],
+      );
       when(
-        processManager.start(<String>['which', 'idevicediagnostics'], workingDirectory: anyNamed('workingDirectory')),
+        processManager.start(<String>[
+          'which',
+          'idevicediagnostics',
+        ], workingDirectory: anyNamed('workingDirectory')),
       ).thenAnswer((_) => Future.value(whichProcess));
       process = FakeProcess(0);
-      device = IosDevice(deviceId: 'abc');
+      device = const IosDevice(deviceId: 'abc');
       when(
-        processManager
-            .start(<Object>[idevicediagnosticsPath, 'restart'], workingDirectory: anyNamed('workingDirectory')),
+        processManager.start(<Object>[
+          idevicediagnosticsPath,
+          'restart',
+        ], workingDirectory: anyNamed('workingDirectory')),
       ).thenAnswer((_) => Future.value(process));
-      final bool result = await device.restart_device(processManager: processManager);
+      final result = await device.restartDevice(processManager: processManager);
       expect(result, isTrue);
     });
 
     test('device restart - failure', () async {
       idevicediagnosticsPath = '/abc/def/idevicediagnostics';
-      whichProcess = FakeProcess(0, out: <List<int>>[utf8.encode(idevicediagnosticsPath)]);
+      whichProcess = FakeProcess(
+        0,
+        out: <List<int>>[utf8.encode(idevicediagnosticsPath)],
+      );
       when(
-        processManager.start(<String>['which', 'idevicediagnostics'], workingDirectory: anyNamed('workingDirectory')),
+        processManager.start(<String>[
+          'which',
+          'idevicediagnostics',
+        ], workingDirectory: anyNamed('workingDirectory')),
       ).thenAnswer((_) => Future.value(whichProcess));
       process = FakeProcess(1);
-      device = IosDevice(deviceId: 'abc');
+      device = const IosDevice(deviceId: 'abc');
       when(
-        processManager
-            .start(<Object>[idevicediagnosticsPath, 'restart'], workingDirectory: anyNamed('workingDirectory')),
+        processManager.start(<Object>[
+          idevicediagnosticsPath,
+          'restart',
+        ], workingDirectory: anyNamed('workingDirectory')),
       ).thenAnswer((_) => Future.value(process));
-      final bool result = await device.restart_device(processManager: processManager);
+      final result = await device.restartDevice(processManager: processManager);
       expect(result, isFalse);
     });
 
     test('device restart - skip 32 bit phone', () async {
-      device = IosDevice(deviceId: '822ef7958bba573829d85eef4df6cbdd86593730');
-      final bool result = await device.restart_device(processManager: processManager);
+      device = const IosDevice(
+        deviceId: '822ef7958bba573829d85eef4df6cbdd86593730',
+      );
+      final result = await device.restartDevice(processManager: processManager);
       expect(result, isTrue);
     });
 
     test('list applications - failure', () async {
-      device = IosDevice(deviceId: '822ef7958bba573829d85eef4df6cbdd86593730');
+      device = const IosDevice(
+        deviceId: '822ef7958bba573829d85eef4df6cbdd86593730',
+      );
       process = FakeProcess(1);
       ideviceinstallerPath = '/abc/def/ideviceinstaller';
-      whichProcess = FakeProcess(0, out: <List<int>>[utf8.encode(ideviceinstallerPath)]);
-      when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(whichProcess));
-      when(processManager.start(<Object>[ideviceinstallerPath, '-l'], workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
+      whichProcess = FakeProcess(
+        0,
+        out: <List<int>>[utf8.encode(ideviceinstallerPath)],
+      );
+      when(
+        processManager.start(<String>[
+          'which',
+          'ideviceinstaller',
+        ], workingDirectory: anyNamed('workingDirectory')),
+      ).thenAnswer((_) => Future.value(whichProcess));
+      when(
+        processManager.start(<Object>[
+          ideviceinstallerPath,
+          '-l',
+        ], workingDirectory: anyNamed('workingDirectory')),
+      ).thenAnswer((_) => Future.value(process));
 
-      final bool result = await device.uninstall_applications(processManager: processManager);
+      final result = await device.uninstallApplications(
+        processManager: processManager,
+      );
       expect(result, isFalse);
     });
 
     test('uninstall applications - no device is available', () async {
       ideviceinstallerPath = '/abc/def/ideviceinstaller';
-      device = IosDevice(deviceId: '822ef7958bba573829d85eef4df6cbdd86593730');
+      device = const IosDevice(
+        deviceId: '822ef7958bba573829d85eef4df6cbdd86593730',
+      );
       output = '''No device found.
         ''';
       process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
-      whichProcess = FakeProcess(0, out: <List<int>>[utf8.encode(ideviceinstallerPath)]);
-      when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(whichProcess));
-      when(processManager.start(<Object>[ideviceinstallerPath, '-l'], workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
-      final bool result = await device.uninstall_applications(processManager: processManager);
+      whichProcess = FakeProcess(
+        0,
+        out: <List<int>>[utf8.encode(ideviceinstallerPath)],
+      );
+      when(
+        processManager.start(<String>[
+          'which',
+          'ideviceinstaller',
+        ], workingDirectory: anyNamed('workingDirectory')),
+      ).thenAnswer((_) => Future.value(whichProcess));
+      when(
+        processManager.start(<Object>[
+          ideviceinstallerPath,
+          '-l',
+        ], workingDirectory: anyNamed('workingDirectory')),
+      ).thenAnswer((_) => Future.value(process));
+      final result = await device.uninstallApplications(
+        processManager: processManager,
+      );
       expect(result, isTrue);
     });
 
     test('uninstall applications - no application exist', () async {
       ideviceinstallerPath = '/abc/def/ideviceinstaller';
-      device = IosDevice(deviceId: '822ef7958bba573829d85eef4df6cbdd86593730');
+      device = const IosDevice(
+        deviceId: '822ef7958bba573829d85eef4df6cbdd86593730',
+      );
       output = '''CFBundleIdentifier, CFBundleVersion, CFBundleDisplayName
         ''';
       process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
-      whichProcess = FakeProcess(0, out: <List<int>>[utf8.encode(ideviceinstallerPath)]);
-      when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(whichProcess));
-      when(processManager.start(<Object>[ideviceinstallerPath, '-l'], workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
+      whichProcess = FakeProcess(
+        0,
+        out: <List<int>>[utf8.encode(ideviceinstallerPath)],
+      );
+      when(
+        processManager.start(<String>[
+          'which',
+          'ideviceinstaller',
+        ], workingDirectory: anyNamed('workingDirectory')),
+      ).thenAnswer((_) => Future.value(whichProcess));
+      when(
+        processManager.start(<Object>[
+          ideviceinstallerPath,
+          '-l',
+        ], workingDirectory: anyNamed('workingDirectory')),
+      ).thenAnswer((_) => Future.value(process));
 
-      final bool result = await device.uninstall_applications(processManager: processManager);
+      final result = await device.uninstallApplications(
+        processManager: processManager,
+      );
       expect(result, isTrue);
     });
 
-    test('uninstall applications - applications exist with exception', () async {
-      ideviceinstallerPath = '/abc/def/ideviceinstaller';
-      device = IosDevice(deviceId: '822ef7958bba573829d85eef4df6cbdd86593730');
-      whichProcess = FakeProcess(0, out: <List<int>>[utf8.encode(ideviceinstallerPath)]);
-      output = '''CFBundleIdentifier, CFBundleVersion, CFBundleDisplayName
+    test(
+      'uninstall applications - applications exist with exception',
+      () async {
+        ideviceinstallerPath = '/abc/def/ideviceinstaller';
+        device = const IosDevice(
+          deviceId: '822ef7958bba573829d85eef4df6cbdd86593730',
+        );
+        whichProcess = FakeProcess(
+          0,
+          out: <List<int>>[utf8.encode(ideviceinstallerPath)],
+        );
+        output = '''CFBundleIdentifier, CFBundleVersion, CFBundleDisplayName
         abc, def, ghi
         jkl, mno, pqr
         ''';
-      process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
-      Process process_uninstall = FakeProcess(1);
-      when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(whichProcess));
-      when(processManager.start(<Object>[ideviceinstallerPath, '-l'], workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
-      when(
-        processManager
-            .start(<Object>[ideviceinstallerPath, '-U', 'abc'], workingDirectory: anyNamed('workingDirectory')),
-      ).thenAnswer((_) => Future.value(process_uninstall));
-      when(
-        processManager
-            .start(<Object>[ideviceinstallerPath, '-U', 'jkl'], workingDirectory: anyNamed('workingDirectory')),
-      ).thenAnswer((_) => Future.value(process_uninstall));
+        process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
+        Process processUninstall = FakeProcess(1);
+        when(
+          processManager.start(<String>[
+            'which',
+            'ideviceinstaller',
+          ], workingDirectory: anyNamed('workingDirectory')),
+        ).thenAnswer((_) => Future.value(whichProcess));
+        when(
+          processManager.start(<Object>[
+            ideviceinstallerPath,
+            '-l',
+          ], workingDirectory: anyNamed('workingDirectory')),
+        ).thenAnswer((_) => Future.value(process));
+        when(
+          processManager.start(<Object>[
+            ideviceinstallerPath,
+            '-U',
+            'abc',
+          ], workingDirectory: anyNamed('workingDirectory')),
+        ).thenAnswer((_) => Future.value(processUninstall));
+        when(
+          processManager.start(<Object>[
+            ideviceinstallerPath,
+            '-U',
+            'jkl',
+          ], workingDirectory: anyNamed('workingDirectory')),
+        ).thenAnswer((_) => Future.value(processUninstall));
 
-      output = '''CFBundleIdentifier, CFBundleVersion, CFBundleDisplayName
+        output = '''CFBundleIdentifier, CFBundleVersion, CFBundleDisplayName
         abc, def, ghi
         jkl, mno, pqr
         ''';
-      process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
-      process_uninstall = FakeProcess(1);
+        process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
+        processUninstall = FakeProcess(1);
 
-      final bool result = await device.uninstall_applications(processManager: processManager);
-      expect(result, isFalse);
-    });
+        final result = await device.uninstallApplications(
+          processManager: processManager,
+        );
+        expect(result, isFalse);
+      },
+    );
 
     test('uninstall applications - applications exist', () async {
       ideviceinstallerPath = '/abc/def/ideviceinstaller';
-      device = IosDevice(deviceId: '822ef7958bba573829d85eef4df6cbdd86593730');
-      whichProcess = FakeProcess(0, out: <List<int>>[utf8.encode(ideviceinstallerPath)]);
+      device = const IosDevice(
+        deviceId: '822ef7958bba573829d85eef4df6cbdd86593730',
+      );
+      whichProcess = FakeProcess(
+        0,
+        out: <List<int>>[utf8.encode(ideviceinstallerPath)],
+      );
       output = '''CFBundleIdentifier, CFBundleVersion, CFBundleDisplayName
         abc, def, ghi
         jkl, mno, pqr
         ''';
       process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
-      final Process process_uninstall = FakeProcess(0);
-      when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(whichProcess));
-      when(processManager.start(<Object>[ideviceinstallerPath, '-l'], workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
+      final Process processUninstall = FakeProcess(0);
       when(
-        processManager
-            .start(<Object>[ideviceinstallerPath, '-U', 'abc'], workingDirectory: anyNamed('workingDirectory')),
-      ).thenAnswer((_) => Future.value(process_uninstall));
+        processManager.start(<String>[
+          'which',
+          'ideviceinstaller',
+        ], workingDirectory: anyNamed('workingDirectory')),
+      ).thenAnswer((_) => Future.value(whichProcess));
       when(
-        processManager
-            .start(<Object>[ideviceinstallerPath, '-U', 'jkl'], workingDirectory: anyNamed('workingDirectory')),
-      ).thenAnswer((_) => Future.value(process_uninstall));
+        processManager.start(<Object>[
+          ideviceinstallerPath,
+          '-l',
+        ], workingDirectory: anyNamed('workingDirectory')),
+      ).thenAnswer((_) => Future.value(process));
+      when(
+        processManager.start(<Object>[
+          ideviceinstallerPath,
+          '-U',
+          'abc',
+        ], workingDirectory: anyNamed('workingDirectory')),
+      ).thenAnswer((_) => Future.value(processUninstall));
+      when(
+        processManager.start(<Object>[
+          ideviceinstallerPath,
+          '-U',
+          'jkl',
+        ], workingDirectory: anyNamed('workingDirectory')),
+      ).thenAnswer((_) => Future.value(processUninstall));
 
-      final bool result = await device.uninstall_applications(processManager: processManager);
+      final result = await device.uninstallApplications(
+        processManager: processManager,
+      );
       expect(result, isTrue);
     });
   });
@@ -492,12 +700,25 @@ void main() {
 
     test('success', () async {
       processIdeviceID = FakeProcess(0, out: <List<int>>[utf8.encode('abc')]);
-      processWhichIdeviceID = FakeProcess(0, out: <List<int>>[utf8.encode('/test/idevice_id')]);
-      when(processManager.start(<String>['which', 'idevice_id'], workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(processWhichIdeviceID));
-      when(processManager.start(<String>['/test/idevice_id', '-l'], workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(processIdeviceID));
-      final String deviceId = await deviceDiscovery.deviceListOutput(processManager: processManager);
+      processWhichIdeviceID = FakeProcess(
+        0,
+        out: <List<int>>[utf8.encode('/test/idevice_id')],
+      );
+      when(
+        processManager.start(<String>[
+          'which',
+          'idevice_id',
+        ], workingDirectory: anyNamed('workingDirectory')),
+      ).thenAnswer((_) => Future.value(processWhichIdeviceID));
+      when(
+        processManager.start(<String>[
+          '/test/idevice_id',
+          '-l',
+        ], workingDirectory: anyNamed('workingDirectory')),
+      ).thenAnswer((_) => Future.value(processIdeviceID));
+      final deviceId = await deviceDiscovery.deviceListOutput(
+        processManager: processManager,
+      );
       expect(deviceId, 'abc');
     });
   });

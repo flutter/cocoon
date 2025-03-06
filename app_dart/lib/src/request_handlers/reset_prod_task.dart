@@ -5,9 +5,6 @@
 import 'dart:async';
 
 import 'package:cocoon_server/logging.dart';
-import 'package:cocoon_service/src/service/luci_build_service.dart';
-import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
-import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -18,13 +15,15 @@ import '../model/appengine/task.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/firestore/task.dart' as firestore;
-import '../model/google/token_info.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/firestore.dart';
+import '../service/luci_build_service.dart';
+import '../service/luci_build_service/build_tags.dart';
+import '../service/scheduler.dart';
 
 /// Reruns a postsubmit LUCI build.
 ///
@@ -37,7 +36,8 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     required this.luciBuildService,
     required this.scheduler,
     @visibleForTesting DatastoreServiceProvider? datastoreProvider,
-  }) : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider;
+  }) : datastoreProvider =
+           datastoreProvider ?? DatastoreService.defaultProvider;
 
   final DatastoreServiceProvider datastoreProvider;
   final LuciBuildService luciBuildService;
@@ -58,17 +58,17 @@ class ResetProdTask extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> post() async {
-    final DatastoreService datastore = datastoreProvider(config.db);
-    final FirestoreService firestoreService = await config.createFirestoreService();
-    final String? encodedKey = requestData![taskKeyParam] as String?;
-    String? branch = requestData![branchParam] as String?;
-    final String owner = requestData![ownerParam] as String? ?? 'flutter';
-    final String? repo = requestData![repoParam] as String?;
-    final String? sha = requestData![commitShaParam] as String?;
-    final TokenInfo token = await tokenInfo(request!);
-    final String? taskName = requestData![taskParam] as String?;
+    final datastore = datastoreProvider(config.db);
+    final firestoreService = await config.createFirestoreService();
+    final encodedKey = requestData![taskKeyParam] as String?;
+    var branch = requestData![branchParam] as String?;
+    final owner = requestData![ownerParam] as String? ?? 'flutter';
+    final repo = requestData![repoParam] as String?;
+    final sha = requestData![commitShaParam] as String?;
+    final token = await tokenInfo(request!);
+    final taskName = requestData![taskParam] as String?;
     // When Frontend is switched to Firstore, the task document name will be passed over.
-    final String? taskDocumentName = requestData![taskDocumentNameParam] as String?;
+    final taskDocumentName = requestData![taskDocumentNameParam] as String?;
 
     RepositorySlug? slug;
     if (encodedKey != null && encodedKey.isNotEmpty) {
@@ -82,16 +82,19 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     }
 
     if (taskName == 'all') {
-      log.info('Attempting to reset all failed prod tasks for $sha in $repo...');
-      final Key<String> commitKey = Commit.createKey(
+      log.info(
+        'Attempting to reset all failed prod tasks for $sha in $repo...',
+      );
+      final commitKey = Commit.createKey(
         db: datastore.db,
         slug: slug!,
         gitBranch: branch!,
         sha: sha!,
       );
-      final List<Task> tasks = await datastore.db.query<Task>(ancestorKey: commitKey).run().toList();
-      final List<Future<void>> futures = <Future<void>>[];
-      for (final Task task in tasks) {
+      final tasks =
+          await datastore.db.query<Task>(ancestorKey: commitKey).run().toList();
+      final futures = <Future<void>>[];
+      for (final task in tasks) {
         if (!Task.taskFailStatusSet.contains(task.status)) continue;
         log.info('Resetting failed task ${task.name}');
         futures.add(
@@ -108,7 +111,9 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       }
       await Future.wait(futures);
     } else {
-      log.info('Attempting to reset prod task "$taskName" for $sha in $repo...');
+      log.info(
+        'Attempting to reset prod task "$taskName" for $sha in $repo...',
+      );
       await rerun(
         datastore: datastore,
         firestoreService: firestoreService,
@@ -141,7 +146,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     bool ignoreChecks = false,
   }) async {
     // Prepares Datastore task.
-    final Task task = await _getTaskFromNamedParams(
+    final task = await _getTaskFromNamedParams(
       datastore: datastore,
       encodedKey: encodedKey,
       branch: branch,
@@ -149,36 +154,38 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       sha: sha,
       slug: slug,
     );
-    final Commit commit = await _getCommitFromTask(datastore, task);
+    final commit = await _getCommitFromTask(datastore, task);
     sha ??= commit.id!.split('/').last;
     taskName ??= task.name;
 
-    final CiYamlSet ciYaml = await scheduler.getCiYaml(commit);
+    final ciYaml = await scheduler.getCiYaml(commit);
     final targets = [
       ...ciYaml.postsubmitTargets(),
-      if (ciYaml.isFusion) ...ciYaml.postsubmitTargets(type: CiType.fusionEngine),
+      if (ciYaml.isFusion)
+        ...ciYaml.postsubmitTargets(type: CiType.fusionEngine),
     ];
-    final Target target = targets.singleWhere((Target target) => target.value.name == task.name);
+    final target = targets.singleWhere(
+      (Target target) => target.value.name == task.name,
+    );
 
     // Prepares Firestore task.
     firestore.Task? taskDocument;
     if (taskDocumentName == null) {
-      final int currentAttempt = task.attempts!;
-      taskDocumentName = '$kDatabase/documents/${firestore.kTaskCollectionId}/${sha}_${taskName}_$currentAttempt';
+      final currentAttempt = task.attempts!;
+      taskDocumentName =
+          '$kDatabase/documents/${firestore.kTaskCollectionId}/${sha}_${taskName}_$currentAttempt';
     }
     taskDocument = await firestore.Task.fromFirestore(
       firestoreService: firestoreService,
       documentName: taskDocumentName,
     );
 
-    final bool isRerunning = await luciBuildService.checkRerunBuilder(
+    final isRerunning = await luciBuildService.checkRerunBuilder(
       commit: commit,
       task: task,
       target: target,
       datastore: datastore,
-      tags: [
-        TriggerdByBuildTag(email: email),
-      ],
+      tags: [TriggerdByBuildTag(email: email)],
       ignoreChecks: ignoreChecks,
       firestoreService: firestoreService,
       taskDocument: taskDocument,
@@ -204,10 +211,10 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     RepositorySlug? slug,
   }) async {
     if (encodedKey != null && encodedKey.isNotEmpty) {
-      final Key<int> key = config.keyHelper.decode(encodedKey) as Key<int>;
+      final key = config.keyHelper.decode(encodedKey) as Key<int>;
       return datastore.lookupByValue<Task>(key);
     }
-    final Key<String> commitKey = Commit.createKey(
+    final commitKey = Commit.createKey(
       db: datastore.db,
       slug: slug!,
       gitBranch: branch!,
@@ -221,7 +228,12 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   }
 
   /// Returns the [Commit] associated with [Task].
-  Future<Commit> _getCommitFromTask(DatastoreService datastore, Task task) async {
-    return (await datastore.lookupByKey<Commit>(<Key<dynamic>>[task.parentKey!])).single!;
+  Future<Commit> _getCommitFromTask(
+    DatastoreService datastore,
+    Task task,
+  ) async {
+    return (await datastore.lookupByKey<Commit>(<Key<dynamic>>[
+      task.parentKey!,
+    ])).single!;
   }
 }

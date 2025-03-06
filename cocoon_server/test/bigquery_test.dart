@@ -23,13 +23,18 @@ void main() {
   });
 
   test('Insert pull request record is successful.', () async {
-    when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
+    when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((
+      Invocation invocation,
+    ) {
       return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(insertDeleteUpdateSuccessResponse) as Map<dynamic, dynamic>),
+        QueryResponse.fromJson(
+          jsonDecode(insertDeleteUpdateSuccessResponse)
+              as Map<dynamic, dynamic>,
+        ),
       );
     });
 
-    final PullRequestRecord pullRequestRecord = PullRequestRecord(
+    final pullRequestRecord = PullRequestRecord(
       prCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456789),
       prLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567890),
       organization: 'flutter',
@@ -40,7 +45,7 @@ void main() {
       prRequestType: 'merge',
     );
 
-    bool hasError = false;
+    var hasError = false;
     try {
       await service.insertPullRequestRecord(
         projectId: expectedProjectId,
@@ -52,46 +57,61 @@ void main() {
     expect(hasError, isFalse);
   });
 
-  test('Insert pull request record handles unsuccessful job complete error.', () async {
-    when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
-      return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(errorResponse) as Map<dynamic, dynamic>),
-      );
-    });
+  test(
+    'Insert pull request record handles unsuccessful job complete error.',
+    () async {
+      when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((
+        Invocation invocation,
+      ) {
+        return Future<QueryResponse>.value(
+          QueryResponse.fromJson(
+            jsonDecode(errorResponse) as Map<dynamic, dynamic>,
+          ),
+        );
+      });
 
-    bool hasError = false;
-    final PullRequestRecord pullRequestRecord = PullRequestRecord(
-      prCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456789),
-      prLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567890),
-      organization: 'flutter',
-      repository: 'cocoon',
-      author: 'ricardoamador',
-      prNumber: 345,
-      prCommit: 'ade456',
-      prRequestType: 'merge',
-    );
-
-    try {
-      await service.insertPullRequestRecord(
-        projectId: expectedProjectId,
-        pullRequestRecord: pullRequestRecord,
+      var hasError = false;
+      final pullRequestRecord = PullRequestRecord(
+        prCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456789),
+        prLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567890),
+        organization: 'flutter',
+        repository: 'cocoon',
+        author: 'ricardoamador',
+        prNumber: 345,
+        prCommit: 'ade456',
+        prRequestType: 'merge',
       );
-    } on BigQueryException catch (exception) {
-      expect(exception.cause, 'Insert pull request $pullRequestRecord did not complete.');
-      hasError = true;
-    }
-    expect(hasError, isTrue);
-  });
+
+      try {
+        await service.insertPullRequestRecord(
+          projectId: expectedProjectId,
+          pullRequestRecord: pullRequestRecord,
+        );
+      } on BigQueryException catch (exception) {
+        expect(
+          exception.cause,
+          'Insert pull request $pullRequestRecord did not complete.',
+        );
+        hasError = true;
+      }
+      expect(hasError, isTrue);
+    },
+  );
 
   test('Insert pull request fails when multiple rows are returned.', () async {
-    when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
+    when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((
+      Invocation invocation,
+    ) {
       return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(selectPullRequestTooManyRowsResponse) as Map<dynamic, dynamic>),
+        QueryResponse.fromJson(
+          jsonDecode(selectPullRequestTooManyRowsResponse)
+              as Map<dynamic, dynamic>,
+        ),
       );
     });
 
-    bool hasError = false;
-    final PullRequestRecord pullRequestRecord = PullRequestRecord(
+    var hasError = false;
+    final pullRequestRecord = PullRequestRecord(
       prCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456789),
       prLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567890),
       organization: 'flutter',
@@ -108,7 +128,10 @@ void main() {
         pullRequestRecord: pullRequestRecord,
       );
     } on BigQueryException catch (exception) {
-      expect(exception.cause, 'There was an error inserting $pullRequestRecord into the table.');
+      expect(
+        exception.cause,
+        'There was an error inserting $pullRequestRecord into the table.',
+      );
       hasError = true;
     }
     expect(hasError, isTrue);

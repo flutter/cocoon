@@ -21,17 +21,16 @@ typedef AsyncVoidCallback = Future<void> Function();
 Future<void> checkOutput({
   required AsyncVoidCallback block,
   List<String> output = const <String>[],
-}) =>
-    TestAsyncUtils.guard(() async {
-      final DebugPrintCallback originalDebugPrint = debugPrint;
-      final List<String> log = <String>[];
-      debugPrint = (String? message, {int? wrapWidth}) {
-        log.addAll(message!.split('\n'));
-      };
-      try {
-        await block();
-      } finally {
-        debugPrint = originalDebugPrint;
-      }
-      expect(log, output);
-    });
+}) => TestAsyncUtils.guard(() async {
+  final originalDebugPrint = debugPrint;
+  final log = <String>[];
+  debugPrint = (String? message, {int? wrapWidth}) {
+    log.addAll(message!.split('\n'));
+  };
+  try {
+    await block();
+  } finally {
+    debugPrint = originalDebugPrint;
+  }
+  expect(log, output);
+});

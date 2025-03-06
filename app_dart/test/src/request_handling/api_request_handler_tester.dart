@@ -17,8 +17,8 @@ class ApiRequestHandlerTester extends RequestHandlerTester {
     super.request,
     FakeAuthenticatedContext? context,
     Map<String, dynamic>? requestData,
-  })  : context = context ?? FakeAuthenticatedContext(),
-        requestData = requestData ?? <String, dynamic>{};
+  }) : context = context ?? FakeAuthenticatedContext(),
+       requestData = requestData ?? <String, dynamic>{};
 
   FakeAuthenticatedContext context;
   Map<String, dynamic> requestData;

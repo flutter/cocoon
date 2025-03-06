@@ -30,25 +30,23 @@ class Branch extends Model<String> {
 
   @override
   String toString() {
-    final StringBuffer buf = StringBuffer()
-      ..write('$runtimeType(')
-      ..write('id: $id')
-      ..write(', key: ${parentKey == null ? null : key.id}')
-      ..write(', branch: $name')
-      ..write(', channel: $channel')
-      ..write(', repository: $repository')
-      ..write(', lastActivity: $lastActivity')
-      ..write(')');
+    final buf =
+        StringBuffer()
+          ..write('$runtimeType(')
+          ..write('id: $id')
+          ..write(', key: ${parentKey == null ? null : key.id}')
+          ..write(', branch: $name')
+          ..write(', channel: $channel')
+          ..write(', repository: $repository')
+          ..write(', lastActivity: $lastActivity')
+          ..write(')');
     return buf.toString();
   }
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'id': id,
-      'branch': <String, dynamic>{
-        'branch': name,
-        'repository': repository,
-      },
+      'branch': <String, dynamic>{'branch': name, 'repository': repository},
     };
   }
 }

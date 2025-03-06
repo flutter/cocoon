@@ -10,12 +10,12 @@ sealed class EngineArtifacts {
   const EngineArtifacts();
 
   /// This build does not run framework tests in `flutter/flutter` and does not need an engine.
-  const factory EngineArtifacts.noFrameworkTests({required String reason}) = UnnecessaryEngineArtifacts._;
+  const factory EngineArtifacts.noFrameworkTests({required String reason}) =
+      UnnecessaryEngineArtifacts._;
 
   /// This build should use engine artifacts built during pre-submit (i.e. from source) for [commitSha].
-  const factory EngineArtifacts.builtFromSource({
-    required String commitSha,
-  }) = SpecifiedEngineArtifacts._builtFromSourceUsingSha;
+  const factory EngineArtifacts.builtFromSource({required String commitSha}) =
+      SpecifiedEngineArtifacts._builtFromSourceUsingSha;
 
   /// This build should use engine artifacts built during post-submiut for [commitSha].
   const factory EngineArtifacts.usingExistingEngine({

@@ -12,7 +12,7 @@ import 'common.dart';
 /// Validates `bin/generate_jspb.dart` which is used in the ci.yaml roller script.
 Future<void> main() async {
   test('validate cocoon ci.yaml generates jspb', () async {
-    final ProcessResult generateResult = Process.runSync('dart', <String>[
+    final generateResult = Process.runSync('dart', <String>[
       'run',
       'bin/generate_jspb.dart',
       'integration_test/data/mock_ci.yaml',
@@ -26,7 +26,9 @@ Future<void> main() async {
     }
 
     // Update expectations file
-    final File jspbExpectationsFile = File('integration_test/data/cocoon_config.json');
+    final jspbExpectationsFile = File(
+      'integration_test/data/cocoon_config.json',
+    );
     jspbExpectationsFile.writeAsStringSync(
       '${const JsonEncoder.withIndent('  ').convert(jsonDecode(generateResult.stdout as String))}\n',
     );

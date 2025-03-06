@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:cocoon_service/src/request_handling/authentication.dart' show AuthenticatedContext;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/request_handling/pubsub_authentication.dart';
 import 'package:cocoon_service/src/service/config.dart';
@@ -35,7 +34,7 @@ void main() {
       );
     });
 
-    for (String allowedAccount in Config.allowedPubsubServiceAccounts) {
+    for (var allowedAccount in Config.allowedPubsubServiceAccounts) {
       test('auth succeeds for $allowedAccount', () async {
         httpClient = MockClient(
           (_) async => http.Response(
@@ -54,7 +53,7 @@ void main() {
 
         request.headers.add(HttpHeaders.authorizationHeader, 'Bearer token');
 
-        final AuthenticatedContext result = await auth.authenticate(request);
+        final result = await auth.authenticate(request);
         expect(result.clientContext, same(clientContext));
       });
     }
@@ -128,10 +127,7 @@ void main() {
 }
 
 /// Return Google's OAuth response.
-String _generateTokenResponse(
-  String email, {
-  int expiresIn = 123,
-}) {
+String _generateTokenResponse(String email, {int expiresIn = 123}) {
   return '''{
             "issued_to": "456",
             "audience": "https://flutter-dashboard.appspot.com/api/luci-status-handler",

@@ -21,7 +21,8 @@ import 'package:json_annotation/json_annotation.dart';
 /// ```
 ///
 /// Which is flattened out as a `Map<String, List<String>>`.
-class TagsConverter implements JsonConverter<Map<String?, List<String?>>?, List<dynamic>?> {
+class TagsConverter
+    implements JsonConverter<Map<String?, List<String?>>?, List<dynamic>?> {
   const TagsConverter();
 
   @override
@@ -29,9 +30,9 @@ class TagsConverter implements JsonConverter<Map<String?, List<String?>>?, List<
     if (json == null) {
       return null;
     }
-    final Map<String?, List<String?>> result = <String?, List<String?>>{};
-    for (Map<String, dynamic> tag in json.cast<Map<String, dynamic>>()) {
-      final String? key = tag['key'] as String?;
+    final result = <String?, List<String?>>{};
+    for (var tag in json.cast<Map<String, dynamic>>()) {
+      final key = tag['key'] as String?;
       result[key] ??= <String?>[];
       result[key]!.add(tag['value'] as String?);
     }
@@ -46,23 +47,20 @@ class TagsConverter implements JsonConverter<Map<String?, List<String?>>?, List<
     if (object.isEmpty) {
       return const <Map<String, List<String>>>[];
     }
-    final List<Map<String, String>> result = <Map<String, String>>[];
-    for (String? key in object.keys) {
+    final result = <Map<String, String>>[];
+    for (var key in object.keys) {
       if (key == null) {
         continue;
       }
-      final List<String?>? values = object[key];
+      final values = object[key];
       if (values == null) {
         continue;
       }
-      for (String? value in values) {
+      for (var value in values) {
         if (value == null) {
           continue;
         }
-        result.add(<String, String>{
-          'key': key,
-          'value': value,
-        });
+        result.add(<String, String>{'key': key, 'value': value});
       }
     }
     return result;
@@ -87,7 +85,8 @@ class Base64Converter implements JsonConverter<String, String> {
 }
 
 /// A converter for "timestamp" fields encoded as microseconds since epoch.
-class MicrosecondsSinceEpochConverter implements JsonConverter<DateTime?, String?> {
+class MicrosecondsSinceEpochConverter
+    implements JsonConverter<DateTime?, String?> {
   const MicrosecondsSinceEpochConverter();
 
   @override
@@ -124,7 +123,7 @@ class SecondsSinceEpochConverter implements JsonConverter<DateTime?, String?> {
     if (dateTime == null) {
       return null;
     }
-    final int secondsSinceEpoch = dateTime.millisecondsSinceEpoch ~/ 1000;
+    final secondsSinceEpoch = dateTime.millisecondsSinceEpoch ~/ 1000;
     return secondsSinceEpoch.toString();
   }
 }
@@ -151,7 +150,8 @@ class BoolConverter implements JsonConverter<bool?, String?> {
 }
 
 /// A converter for fields with nested JSON objects in String format.
-class NestedJsonConverter implements JsonConverter<Map<String, dynamic>?, String?> {
+class NestedJsonConverter
+    implements JsonConverter<Map<String, dynamic>?, String?> {
   const NestedJsonConverter();
 
   @override
@@ -198,20 +198,20 @@ class GerritDateTimeConverter implements JsonConverter<DateTime?, String?> {
       return null;
     }
 
-    final DateTime? date = DateTime.tryParse(json);
+    final date = DateTime.tryParse(json);
     if (date != null) {
       return date;
     }
 
     json = json.substring(4); // Trim day of the week
-    final List<String> parts = json.split(' ');
-    final int month = _months[parts[0]]!;
-    final int year = int.parse(parts[3]);
-    final int day = int.parse(parts[1]);
-    final List<String> time = parts[2].split(':');
-    final int hours = int.parse(time[0]);
-    final int minutes = int.parse(time[1]);
-    final int seconds = int.parse(time[2]);
+    final parts = json.split(' ');
+    final month = _months[parts[0]]!;
+    final year = int.parse(parts[3]);
+    final day = int.parse(parts[1]);
+    final time = parts[2].split(':');
+    final hours = int.parse(time[0]);
+    final minutes = int.parse(time[1]);
+    final seconds = int.parse(time[2]);
 
     return DateTime(year, month, day, hours, minutes, seconds);
   }

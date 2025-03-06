@@ -104,31 +104,47 @@ class TestResult extends $pb.GeneratedMessage {
     return $result;
   }
   TestResult._() : super();
-  factory TestResult.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TestResult.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory TestResult.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TestResult.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TestResult',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TestResult',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
     ..aOS(2, _omitFieldNames ? '' : 'testId')
     ..aOS(3, _omitFieldNames ? '' : 'resultId')
-    ..aOM<$0.Variant>(4, _omitFieldNames ? '' : 'variant', subBuilder: $0.Variant.create)
+    ..aOM<$0.Variant>(4, _omitFieldNames ? '' : 'variant',
+        subBuilder: $0.Variant.create)
     ..aOB(5, _omitFieldNames ? '' : 'expected')
     ..e<TestStatus>(6, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE,
-        defaultOrMaker: TestStatus.STATUS_UNSPECIFIED, valueOf: TestStatus.valueOf, enumValues: TestStatus.values)
+        defaultOrMaker: TestStatus.STATUS_UNSPECIFIED,
+        valueOf: TestStatus.valueOf,
+        enumValues: TestStatus.values)
     ..aOS(7, _omitFieldNames ? '' : 'summaryHtml')
-    ..aOM<$1.Timestamp>(8, _omitFieldNames ? '' : 'startTime', subBuilder: $1.Timestamp.create)
-    ..aOM<$2.Duration>(9, _omitFieldNames ? '' : 'duration', subBuilder: $2.Duration.create)
-    ..pc<$0.StringPair>(10, _omitFieldNames ? '' : 'tags', $pb.PbFieldType.PM, subBuilder: $0.StringPair.create)
+    ..aOM<$1.Timestamp>(8, _omitFieldNames ? '' : 'startTime',
+        subBuilder: $1.Timestamp.create)
+    ..aOM<$2.Duration>(9, _omitFieldNames ? '' : 'duration',
+        subBuilder: $2.Duration.create)
+    ..pc<$0.StringPair>(10, _omitFieldNames ? '' : 'tags', $pb.PbFieldType.PM,
+        subBuilder: $0.StringPair.create)
     ..aOS(12, _omitFieldNames ? '' : 'variantHash')
-    ..aOM<$3.TestMetadata>(13, _omitFieldNames ? '' : 'testMetadata', subBuilder: $3.TestMetadata.create)
-    ..aOM<$4.FailureReason>(14, _omitFieldNames ? '' : 'failureReason', subBuilder: $4.FailureReason.create)
-    ..aOM<$5.Struct>(15, _omitFieldNames ? '' : 'properties', subBuilder: $5.Struct.create)
+    ..aOM<$3.TestMetadata>(13, _omitFieldNames ? '' : 'testMetadata',
+        subBuilder: $3.TestMetadata.create)
+    ..aOM<$4.FailureReason>(14, _omitFieldNames ? '' : 'failureReason',
+        subBuilder: $4.FailureReason.create)
+    ..aOM<$5.Struct>(15, _omitFieldNames ? '' : 'properties',
+        subBuilder: $5.Struct.create)
     ..aOB(16, _omitFieldNames ? '' : 'isMasked')
     ..e<SkipReason>(18, _omitFieldNames ? '' : 'skipReason', $pb.PbFieldType.OE,
-        defaultOrMaker: SkipReason.SKIP_REASON_UNSPECIFIED, valueOf: SkipReason.valueOf, enumValues: SkipReason.values)
+        defaultOrMaker: SkipReason.SKIP_REASON_UNSPECIFIED,
+        valueOf: SkipReason.valueOf,
+        enumValues: SkipReason.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -148,7 +164,8 @@ class TestResult extends $pb.GeneratedMessage {
   TestResult createEmptyInstance() => create();
   static $pb.PbList<TestResult> createRepeated() => $pb.PbList<TestResult>();
   @$core.pragma('dart2js:noInline')
-  static TestResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TestResult>(create);
+  static TestResult getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TestResult>(create);
   static TestResult? _defaultInstance;
 
   ///  Can be used to refer to this test result, e.g. in ResultDB.GetTestResult
@@ -478,18 +495,24 @@ class TestExoneration extends $pb.GeneratedMessage {
   factory TestExoneration.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory TestExoneration.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TestExoneration.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TestExoneration',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TestExoneration',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
     ..aOS(2, _omitFieldNames ? '' : 'testId')
-    ..aOM<$0.Variant>(3, _omitFieldNames ? '' : 'variant', subBuilder: $0.Variant.create)
+    ..aOM<$0.Variant>(3, _omitFieldNames ? '' : 'variant',
+        subBuilder: $0.Variant.create)
     ..aOS(4, _omitFieldNames ? '' : 'exonerationId')
     ..aOS(5, _omitFieldNames ? '' : 'explanationHtml')
     ..aOS(6, _omitFieldNames ? '' : 'variantHash')
-    ..e<ExonerationReason>(7, _omitFieldNames ? '' : 'reason', $pb.PbFieldType.OE,
+    ..e<ExonerationReason>(
+        7, _omitFieldNames ? '' : 'reason', $pb.PbFieldType.OE,
         defaultOrMaker: ExonerationReason.EXONERATION_REASON_UNSPECIFIED,
         valueOf: ExonerationReason.valueOf,
         enumValues: ExonerationReason.values)
@@ -504,17 +527,19 @@ class TestExoneration extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   TestExoneration copyWith(void Function(TestExoneration) updates) =>
-      super.copyWith((message) => updates(message as TestExoneration)) as TestExoneration;
+      super.copyWith((message) => updates(message as TestExoneration))
+          as TestExoneration;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static TestExoneration create() => TestExoneration._();
   TestExoneration createEmptyInstance() => create();
-  static $pb.PbList<TestExoneration> createRepeated() => $pb.PbList<TestExoneration>();
+  static $pb.PbList<TestExoneration> createRepeated() =>
+      $pb.PbList<TestExoneration>();
   @$core.pragma('dart2js:noInline')
-  static TestExoneration getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TestExoneration>(create);
+  static TestExoneration getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TestExoneration>(create);
   static TestExoneration? _defaultInstance;
 
   ///  Can be used to refer to this test exoneration, e.g. in
@@ -649,4 +674,5 @@ class TestExoneration extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

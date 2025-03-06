@@ -5,9 +5,10 @@
 /// @docImport 'package:cocoon_service/src/service/luci_build_service.dart';
 library;
 
-import 'package:cocoon_service/ci_yaml.dart';
-import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:meta/meta.dart';
+
+import '../../../ci_yaml.dart';
+import '../../model/appengine/task.dart';
 
 /// Represents a task that has yet to be scheduled in [LuciBuildService].
 ///
@@ -31,7 +32,10 @@ final class PendingTask {
 
   @override
   bool operator ==(Object other) {
-    return other is PendingTask && target == other.target && task == other.task && priority == other.priority;
+    return other is PendingTask &&
+        target == other.target &&
+        task == other.task &&
+        priority == other.priority;
   }
 
   @override

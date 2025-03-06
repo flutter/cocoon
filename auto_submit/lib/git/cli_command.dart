@@ -28,7 +28,7 @@ class CliCommand {
       process.stderr.transform(const SystemEncoding().decoder).join(),
     ]);
 
-    final ProcessResult processResult = ProcessResult(
+    final processResult = ProcessResult(
       process.pid,
       result[0] as int,
       result[1] as String,
@@ -37,19 +37,28 @@ class CliCommand {
 
     if (throwOnError) {
       if (processResult.exitCode != 0) {
-        final Map<String, String> outputs = {
-          if (processResult.stdout != null) 'Standard out': processResult.stdout.toString().trim(),
-          if (processResult.stderr != null) 'Standard error': processResult.stderr.toString().trim(),
+        final outputs = <String, String>{
+          if (processResult.stdout != null)
+            'Standard out': processResult.stdout.toString().trim(),
+          if (processResult.stderr != null)
+            'Standard error': processResult.stderr.toString().trim(),
         }..removeWhere((k, v) => v.isEmpty);
 
         String errorMessage;
         if (outputs.isEmpty) {
           errorMessage = 'Unknown error.';
         } else {
-          errorMessage = outputs.entries.map((entry) => '${entry.key}\n${entry.value}').join('\n');
+          errorMessage = outputs.entries
+              .map((entry) => '${entry.key}\n${entry.value}')
+              .join('\n');
         }
 
-        throw ProcessException(executable, arguments, errorMessage, processResult.exitCode);
+        throw ProcessException(
+          executable,
+          arguments,
+          errorMessage,
+          processResult.exitCode,
+        );
       }
     }
 

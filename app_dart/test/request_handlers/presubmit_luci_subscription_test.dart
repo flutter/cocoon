@@ -19,8 +19,6 @@ import '../src/service/fake_scheduler.dart';
 import '../src/utilities/build_bucket_messages.dart';
 import '../src/utilities/mocks.dart';
 
-const String ref = 'deadbeef';
-
 void main() {
   late PresubmitLuciSubscription handler;
   late FakeConfig config;
@@ -53,9 +51,7 @@ void main() {
     );
     request = FakeHttpRequest();
 
-    tester = SubscriptionTester(
-      request: request,
-    );
+    tester = SubscriptionTester(request: request);
 
     mockGitHubClient = MockGitHub();
     mockRepositoriesService = MockRepositoriesService();
@@ -63,25 +59,28 @@ void main() {
     config.githubClient = mockGitHubClient;
   });
 
-  test('Requests without repo_owner and repo_name do not update checks', () async {
-    tester.message = createPushMessage(
-      Int64(1),
-      status: bbv2.Status.SUCCESS,
-      builder: 'Linux Host Engine',
-      addBuildSet: false,
-    );
+  test(
+    'Requests without repo_owner and repo_name do not update checks',
+    () async {
+      tester.message = createPushMessage(
+        Int64(1),
+        status: bbv2.Status.SUCCESS,
+        builder: 'Linux Host Engine',
+        addBuildSet: false,
+      );
 
-    await tester.post(handler);
+      await tester.post(handler);
 
-    verifyNever(
-      mockGithubChecksService.updateCheckStatus(
-        build: anyNamed('build'),
-        checkRunId: anyNamed('checkRunId'),
-        luciBuildService: anyNamed('luciBuildService'),
-        slug: anyNamed('slug'),
-      ),
-    );
-  });
+      verifyNever(
+        mockGithubChecksService.updateCheckStatus(
+          build: anyNamed('build'),
+          checkRunId: anyNamed('checkRunId'),
+          luciBuildService: anyNamed('luciBuildService'),
+          slug: anyNamed('slug'),
+        ),
+      );
+    },
+  );
 
   test('Requests with repo_owner and repo_name update checks', () async {
     when(
@@ -95,7 +94,7 @@ void main() {
 
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => false);
 
-    const Map<String, dynamic> userDataMap = {
+    const userDataMap = <String, dynamic>{
       'repo_owner': 'flutter',
       'repo_name': 'cocoon',
       'check_run_id': 1,
@@ -130,7 +129,7 @@ void main() {
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
 
-    const Map<String, dynamic> userDataMap = {
+    const userDataMap = <String, dynamic>{
       'repo_owner': 'flutter',
       'commit_branch': 'main',
       'commit_sha': 'abc',
@@ -145,7 +144,7 @@ void main() {
       userData: userDataMap,
     );
 
-    final bbv2.BuildsV2PubSub buildsPubSub = createBuild(
+    final buildsPubSub = createBuild(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux A',
@@ -182,7 +181,7 @@ void main() {
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
 
-    const Map<String, dynamic> userDataMap = {
+    const userDataMap = <String, dynamic>{
       'repo_owner': 'flutter',
       'commit_branch': 'main',
       'commit_sha': 'abc',
@@ -221,7 +220,7 @@ void main() {
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
 
-    const Map<String, dynamic> userDataMap = {
+    const userDataMap = <String, dynamic>{
       'repo_owner': 'flutter',
       'commit_branch': 'main',
       'commit_sha': 'abc',
@@ -235,9 +234,7 @@ void main() {
       builder: 'Linux A',
       userData: userDataMap,
       // Merge queue should get extra requeues by default, even without presubmit_max_attempts > 1.
-      extraTags: [
-        InMergeQueueBuildTag().toStringPair(),
-      ],
+      extraTags: [InMergeQueueBuildTag().toStringPair()],
     );
 
     when(
@@ -250,7 +247,11 @@ void main() {
     ).thenAnswer(
       (_) async => bbv2.Build(
         id: Int64(8905920700440101120),
-        builder: bbv2.BuilderID(bucket: 'luci.flutter.prod', project: 'flutter', builder: 'Linux B'),
+        builder: bbv2.BuilderID(
+          bucket: 'luci.flutter.prod',
+          project: 'flutter',
+          builder: 'Linux B',
+        ),
       ),
     );
 
@@ -297,7 +298,7 @@ void main() {
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
     // when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 1);
 
-    const Map<String, dynamic> userDataMap = {
+    const userDataMap = <String, dynamic>{
       'repo_owner': 'flutter',
       'commit_branch': 'main',
       'commit_sha': 'abc',
@@ -312,7 +313,7 @@ void main() {
       userData: userDataMap,
     );
 
-    final bbv2.BuildsV2PubSub buildsPubSub = createBuild(
+    final buildsPubSub = createBuild(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux C',
@@ -352,7 +353,7 @@ void main() {
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
     //  when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 1);
 
-    final Map<String, dynamic> userDataMap = {
+    final userDataMap = <String, dynamic>{
       'repo_owner': 'flutter',
       'commit_branch': Config.defaultBranch(Config.flutterSlug),
       'commit_sha': 'abc',
@@ -367,7 +368,7 @@ void main() {
       userData: userDataMap,
     );
 
-    final bbv2.BuildsV2PubSub buildsPubSub = createBuild(
+    final buildsPubSub = createBuild(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux C',
@@ -405,7 +406,7 @@ void main() {
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
 
-    const Map<String, dynamic> userDataMap = {
+    const userDataMap = <String, dynamic>{
       'repo_owner': 'flutter',
       'commit_branch': 'main',
       'commit_sha': 'abc',
@@ -430,12 +431,16 @@ void main() {
     ).thenAnswer((_) async {
       return bbv2.Build(
         id: Int64(8905920700440101120),
-        builder: bbv2.BuilderID(bucket: 'luci.flutter.prod', project: 'flutter', builder: 'Linux Coverage'),
+        builder: bbv2.BuilderID(
+          bucket: 'luci.flutter.prod',
+          project: 'flutter',
+          builder: 'Linux Coverage',
+        ),
       );
     });
 
     /// Create a handler using the mock LuciBuildService instead of the fake.
-    final PresubmitLuciSubscription luciHandler = PresubmitLuciSubscription(
+    final luciHandler = PresubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,
       luciBuildService: mockLuciBuildService,
@@ -446,14 +451,15 @@ void main() {
 
     await tester.post(luciHandler);
 
-    final bbv2.Build build = verify(
-      mockLuciBuildService.reschedulePresubmitBuild(
-        build: captureAnyNamed('build'),
-        builderName: anyNamed('builderName'),
-        nextAttempt: anyNamed('nextAttempt'),
-        userDataMap: anyNamed('userDataMap'),
-      ),
-    ).captured[0];
+    final bbv2.Build build =
+        verify(
+          mockLuciBuildService.reschedulePresubmitBuild(
+            build: captureAnyNamed('build'),
+            builderName: anyNamed('builderName'),
+            nextAttempt: anyNamed('nextAttempt'),
+            userDataMap: anyNamed('userDataMap'),
+          ),
+        ).captured[0];
 
     // Check that the build.input.properties extracted from build_large_fields
     // contains the git_ref property encoded in the test data.
