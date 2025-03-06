@@ -46,6 +46,3 @@ tasks:
 
   - task: dev/githubanalysis
     script: test_utilities/bin/dart_test_runner.sh
-
-  - task: dev/wiki-visualizer
-    script: test_utilities/bin/dart_test_runner.sh

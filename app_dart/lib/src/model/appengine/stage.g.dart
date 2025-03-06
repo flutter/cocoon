@@ -9,7 +9,7 @@ part of 'stage.dart';
 // **************************************************************************
 
 Map<String, dynamic> _$StageToJson(Stage instance) => <String, dynamic>{
-  'Name': instance.name,
-  'Tasks': instance.serializableTasks,
-  'Status': instance.taskStatus,
-};
+      'Name': instance.name,
+      'Tasks': instance.serializableTasks,
+      'Status': instance.taskStatus,
+    };

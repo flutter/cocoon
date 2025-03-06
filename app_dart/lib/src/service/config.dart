@@ -181,6 +181,12 @@ class Config {
   // the recipes GoB project.
   CipdVersion get defaultRecipeBundleRef => const CipdVersion(branch: 'main');
 
+  /// Which branches on `flutter/flutter` are considered "release" branches.
+  List<String> get releaseBranches => const ['stable', 'beta', 'staging'];
+
+  /// What file, in `flutter/flutter`, defines the releaes candidate branch.
+  String get releaseCandidateBranchPath => 'bin/internal/release-candidate-branch.version';
+
   DatastoreDB get db => _db;
 
   /// Size of the shards to send to buildBucket when scheduling builds.

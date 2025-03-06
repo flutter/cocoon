@@ -1,1 +1,201 @@
-{"targets":[{"name":"Linux Cocoon","properties":{"add_recipes_cq":"true"},"runIf":[".ci.yaml","analyze/**","app_dart/**","auto_submit/**","cipd_packages/**","cloud_build/**","dashboard/**","dev/**","licenses/**","packages/**","test_utilities/**","tooling/**","CI_YAML.md"],"recipe":"cocoon/cocoon"},{"name":"Linux device_doctor","properties":{"script":"cipd_packages/device_doctor/tool/build.sh","cipd_name":"flutter/device_doctor/linux-amd64"},"runIf":["cipd_packages/device_doctor/**",".ci.yaml"],"recipe":"cocoon/cipd"},{"name":"Mac device_doctor","properties":{"script":"cipd_packages/device_doctor/tool/build.sh","cipd_name":"flutter/device_doctor/mac-amd64","device_type":"none"},"runIf":["cipd_packages/device_doctor/**",".ci.yaml"],"recipe":"cocoon/cipd"},{"name":"Mac_arm64 device_doctor","properties":{"script":"cipd_packages/device_doctor/tool/build.sh","cipd_name":"flutter/device_doctor/mac-arm64","device_type":"none"},"runIf":["cipd_packages/device_doctor/**",".ci.yaml"],"recipe":"cocoon/cipd"},{"name":"Windows device_doctor","properties":{"script":"cipd_packages\\device_doctor\\tool\\build.bat","cipd_name":"flutter/device_doctor/windows-amd64"},"runIf":["cipd_packages/device_doctor/**",".ci.yaml"],"recipe":"cocoon/cipd"},{"name":"Linux doxygen","properties":{"script":"cipd_packages/doxygen/tool/build.sh","cipd_name":"flutter/doxygen/linux-amd64","dependencies":"[\n  {\"dependency\": \"cmake\", \"version\": \"build_id:8787856497187628321\"}\n]"},"runIf":["cipd_packages/doxygen/**",".ci.yaml"],"recipe":"cocoon/cipd"},{"name":"Mac codesign","properties":{"script":"cipd_packages/codesign/tool/build.sh","cipd_name":"flutter/codesign/mac-amd64","device_type":"none"},"runIf":["cipd_packages/codesign/**",".ci.yaml"],"recipe":"cocoon/cipd"},{"name":"Mac_arm64 codesign","properties":{"script":"cipd_packages/codesign/tool/build.sh","cipd_name":"flutter/codesign/mac-arm64","device_type":"none"},"runIf":["cipd_packages/codesign/**",".ci.yaml"],"recipe":"cocoon/cipd"},{"name":"Mac ruby","timeout":60,"properties":{"script":"cipd_packages/ruby/tools/build.sh","cipd_name":"flutter/ruby/mac-amd64","device_os":"iOS","contexts":"[\n  \"osx_sdk_devicelab\"\n]","$flutter/osx_sdk":"{\n  \"sdk_version\": \"15a240d\"\n}"},"runIf":["cipd_packages/ruby/**",".ci.yaml"],"recipe":"cocoon/cipd"},{"name":"Mac_arm64 ruby","timeout":60,"properties":{"script":"cipd_packages/ruby/tools/build.sh","cipd_name":"flutter/ruby/mac-arm64","device_os":"iOS","contexts":"[\n  \"osx_sdk_devicelab\"\n]","$flutter/osx_sdk":"{\n  \"sdk_version\": \"15a240d\"\n}"},"runIf":["cipd_packages/ruby/**",".ci.yaml"],"recipe":"cocoon/cipd"},{"name":"Linux ktlint","timeout":60,"properties":{"script":"cipd_packages/ktlint/tools/build.sh","cipd_name":"flutter/ktlint/linux-amd64"},"runIf":["cipd_packages/ktlint/**",".ci.yaml"],"recipe":"cocoon/cipd"},{"name":"Linux ci_yaml roller","properties":{"backfill":"false"},"runIf":[".ci.yaml"],"recipe":"infra/ci_yaml"}],"enabledBranches":["main"],"platformProperties":{"linux":{"properties":{"os":"Linux","device_type":"none"}},"mac":{"properties":{"os":"Mac-13|Mac-14","cpu":"x86"}},"mac_arm64":{"properties":{"os":"Mac-13|Mac-14","cpu":"arm64"}},"windows":{"properties":{"os":"Windows","device_type":"none"}}}}
+{
+  "targets": [
+    {
+      "name": "Linux Cocoon",
+      "properties": {
+        "add_recipes_cq": "true"
+      },
+      "runIf": [
+        ".ci.yaml",
+        "analyze/**",
+        "app_dart/**",
+        "auto_submit/**",
+        "cipd_packages/**",
+        "cloud_build/**",
+        "dashboard/**",
+        "dev/**",
+        "licenses/**",
+        "packages/**",
+        "test_utilities/**",
+        "tooling/**",
+        "CI_YAML.md"
+      ],
+      "recipe": "cocoon/cocoon"
+    },
+    {
+      "name": "Linux device_doctor",
+      "properties": {
+        "script": "cipd_packages/device_doctor/tool/build.sh",
+        "cipd_name": "flutter/device_doctor/linux-amd64"
+      },
+      "runIf": [
+        "cipd_packages/device_doctor/**",
+        ".ci.yaml"
+      ],
+      "recipe": "cocoon/cipd"
+    },
+    {
+      "name": "Mac device_doctor",
+      "properties": {
+        "script": "cipd_packages/device_doctor/tool/build.sh",
+        "cipd_name": "flutter/device_doctor/mac-amd64",
+        "device_type": "none"
+      },
+      "runIf": [
+        "cipd_packages/device_doctor/**",
+        ".ci.yaml"
+      ],
+      "recipe": "cocoon/cipd"
+    },
+    {
+      "name": "Mac_arm64 device_doctor",
+      "properties": {
+        "script": "cipd_packages/device_doctor/tool/build.sh",
+        "cipd_name": "flutter/device_doctor/mac-arm64",
+        "device_type": "none"
+      },
+      "runIf": [
+        "cipd_packages/device_doctor/**",
+        ".ci.yaml"
+      ],
+      "recipe": "cocoon/cipd"
+    },
+    {
+      "name": "Windows device_doctor",
+      "properties": {
+        "script": "cipd_packages\\device_doctor\\tool\\build.bat",
+        "cipd_name": "flutter/device_doctor/windows-amd64"
+      },
+      "runIf": [
+        "cipd_packages/device_doctor/**",
+        ".ci.yaml"
+      ],
+      "recipe": "cocoon/cipd"
+    },
+    {
+      "name": "Linux doxygen",
+      "properties": {
+        "script": "cipd_packages/doxygen/tool/build.sh",
+        "cipd_name": "flutter/doxygen/linux-amd64",
+        "dependencies": "[\n  {\"dependency\": \"cmake\", \"version\": \"build_id:8787856497187628321\"}\n]"
+      },
+      "runIf": [
+        "cipd_packages/doxygen/**",
+        ".ci.yaml"
+      ],
+      "recipe": "cocoon/cipd"
+    },
+    {
+      "name": "Mac codesign",
+      "properties": {
+        "script": "cipd_packages/codesign/tool/build.sh",
+        "cipd_name": "flutter/codesign/mac-amd64",
+        "device_type": "none"
+      },
+      "runIf": [
+        "cipd_packages/codesign/**",
+        ".ci.yaml"
+      ],
+      "recipe": "cocoon/cipd"
+    },
+    {
+      "name": "Mac_arm64 codesign",
+      "properties": {
+        "script": "cipd_packages/codesign/tool/build.sh",
+        "cipd_name": "flutter/codesign/mac-arm64",
+        "device_type": "none"
+      },
+      "runIf": [
+        "cipd_packages/codesign/**",
+        ".ci.yaml"
+      ],
+      "recipe": "cocoon/cipd"
+    },
+    {
+      "name": "Mac ruby",
+      "bringup": true,
+      "timeout": 60,
+      "properties": {
+        "script": "cipd_packages/ruby/tools/build.sh",
+        "cipd_name": "flutter/ruby/mac-amd64",
+        "device_os": "iOS",
+        "contexts": "[\n  \"osx_sdk_devicelab\"\n]",
+        "$flutter/osx_sdk": "{\n  \"sdk_version\": \"15a240d\"\n}"
+      },
+      "runIf": [
+        "cipd_packages/ruby/**",
+        ".ci.yaml"
+      ],
+      "recipe": "cocoon/cipd"
+    },
+    {
+      "name": "Mac_arm64 ruby",
+      "bringup": true,
+      "timeout": 60,
+      "properties": {
+        "script": "cipd_packages/ruby/tools/build.sh",
+        "cipd_name": "flutter/ruby/mac-arm64",
+        "device_os": "iOS",
+        "contexts": "[\n  \"osx_sdk_devicelab\"\n]",
+        "$flutter/osx_sdk": "{\n  \"sdk_version\": \"15a240d\"\n}"
+      },
+      "runIf": [
+        "cipd_packages/ruby/**",
+        ".ci.yaml"
+      ],
+      "recipe": "cocoon/cipd"
+    },
+    {
+      "name": "Linux ktlint",
+      "timeout": 60,
+      "properties": {
+        "script": "cipd_packages/ktlint/tools/build.sh",
+        "cipd_name": "flutter/ktlint/linux-amd64"
+      },
+      "runIf": [
+        "cipd_packages/ktlint/**",
+        ".ci.yaml"
+      ],
+      "recipe": "cocoon/cipd"
+    },
+    {
+      "name": "Linux ci_yaml roller",
+      "properties": {
+        "backfill": "false"
+      },
+      "runIf": [
+        ".ci.yaml"
+      ],
+      "recipe": "infra/ci_yaml"
+    }
+  ],
+  "enabledBranches": [
+    "main"
+  ],
+  "platformProperties": {
+    "linux": {
+      "properties": {
+        "os": "Linux",
+        "device_type": "none"
+      }
+    },
+    "mac": {
+      "properties": {
+        "os": "Mac-13|Mac-14",
+        "cpu": "x86"
+      }
+    },
+    "mac_arm64": {
+      "properties": {
+        "os": "Mac-13|Mac-14",
+        "cpu": "arm64"
+      }
+    },
+    "windows": {
+      "properties": {
+        "os": "Windows",
+        "device_type": "none"
+      }
+    }
+  }
+}

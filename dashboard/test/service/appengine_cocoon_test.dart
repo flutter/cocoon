@@ -356,8 +356,8 @@ void main() {
             ..branch = 'flutter-3.15-candidate.5'
             ..channel = 'dev',
           Branch()
-            ..branch = 'master'
-            ..channel = 'HEAD',
+            ..branch = 'HEAD'
+            ..channel = 'master',
         ]),
       );
     });

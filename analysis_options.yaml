@@ -2,6 +2,8 @@
 #
 # For a list of lints, see: http://dart-lang.github.io/linter/lints/.
 # For guidelines on configuring static analysis, see: https://dart.dev/tools/analysis.
+#
+# https://github.com/dart-lang/ecosystem/blob/main/pkgs/dart_flutter_team_lints/lib/analysis_options.yaml
 include: package:dart_flutter_team_lints/analysis_options.yaml
 
 analyzer:
@@ -29,3 +31,10 @@ analyzer:
     - "**/*.pbenum.dart"
     - "lib/generated_plugin_registrant.dart"
     - "test/**/mocks.mocks.dart"
+
+# Additional rules that do not *conflict* (i.e. are additive) with dart_flutter_team_lints.
+linter:
+  rules:
+    # - avoid_private_typedef_functions
+    # - avoid_unused_constructor_parameters
+    - prefer_final_locals
