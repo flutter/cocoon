@@ -9,12 +9,14 @@ class AccessClientProvider {
   /// Returns an OAuth 2.0 authenticated access client for the device lab service account.
   Future<Client> createAccessClient({
     List<String> scopes = const <String>[
-      'https://www.googleapis.com/auth/cloud-platform'
+      'https://www.googleapis.com/auth/cloud-platform',
     ],
     Client? baseClient,
   }) async {
     return clientViaApplicationDefaultCredentials(
-        scopes: scopes, baseClient: baseClient);
+      scopes: scopes,
+      baseClient: baseClient,
+    );
   }
 }
 
@@ -25,10 +27,7 @@ class AccessClientProvider {
 ///
 /// https://firebase.google.com/docs/firestore/manage-databases#access_a_named_database_with_a_client_library
 class FirestoreBaseClient extends BaseClient {
-  FirestoreBaseClient({
-    required this.projectId,
-    required this.databaseId,
-  });
+  FirestoreBaseClient({required this.projectId, required this.databaseId});
   final String databaseId;
   final String projectId;
   final Client client = Client();

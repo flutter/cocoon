@@ -28,495 +28,260 @@ import 'package:mockito/src/dummies.dart' as _i8;
 // ignore_for_file: subtype_of_sealed_class
 
 class _FakeClient_0 extends _i1.SmartFake implements _i2.Client {
-  _FakeClient_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeClient_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeJobCancelResponse_1 extends _i1.SmartFake
     implements _i3.JobCancelResponse {
-  _FakeJobCancelResponse_1(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeJobCancelResponse_1(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeJob_2 extends _i1.SmartFake implements _i3.Job {
-  _FakeJob_2(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeJob_2(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeGetQueryResultsResponse_3 extends _i1.SmartFake
     implements _i3.GetQueryResultsResponse {
-  _FakeGetQueryResultsResponse_3(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeGetQueryResultsResponse_3(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeJobList_4 extends _i1.SmartFake implements _i3.JobList {
-  _FakeJobList_4(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeJobList_4(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeQueryResponse_5 extends _i1.SmartFake implements _i3.QueryResponse {
-  _FakeQueryResponse_5(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeQueryResponse_5(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeAuthentication_6 extends _i1.SmartFake
     implements _i4.Authentication {
-  _FakeAuthentication_6(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeAuthentication_6(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeActivityService_7 extends _i1.SmartFake
     implements _i4.ActivityService {
-  _FakeActivityService_7(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeActivityService_7(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeAuthorizationsService_8 extends _i1.SmartFake
     implements _i4.AuthorizationsService {
-  _FakeAuthorizationsService_8(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeAuthorizationsService_8(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeGistsService_9 extends _i1.SmartFake implements _i4.GistsService {
-  _FakeGistsService_9(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeGistsService_9(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeGitService_10 extends _i1.SmartFake implements _i4.GitService {
-  _FakeGitService_10(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeGitService_10(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeIssuesService_11 extends _i1.SmartFake implements _i4.IssuesService {
-  _FakeIssuesService_11(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeIssuesService_11(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeMiscService_12 extends _i1.SmartFake implements _i4.MiscService {
-  _FakeMiscService_12(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeMiscService_12(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeOrganizationsService_13 extends _i1.SmartFake
     implements _i4.OrganizationsService {
-  _FakeOrganizationsService_13(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeOrganizationsService_13(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakePullRequestsService_14 extends _i1.SmartFake
     implements _i4.PullRequestsService {
-  _FakePullRequestsService_14(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakePullRequestsService_14(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeRepositoriesService_15 extends _i1.SmartFake
     implements _i4.RepositoriesService {
-  _FakeRepositoriesService_15(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeRepositoriesService_15(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeSearchService_16 extends _i1.SmartFake implements _i4.SearchService {
-  _FakeSearchService_16(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeSearchService_16(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeUrlShortenerService_17 extends _i1.SmartFake
     implements _i4.UrlShortenerService {
-  _FakeUrlShortenerService_17(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeUrlShortenerService_17(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeUsersService_18 extends _i1.SmartFake implements _i4.UsersService {
-  _FakeUsersService_18(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeUsersService_18(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeChecksService_19 extends _i1.SmartFake implements _i4.ChecksService {
-  _FakeChecksService_19(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeChecksService_19(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeFuture_20<T1> extends _i1.SmartFake implements _i5.Future<T1> {
-  _FakeFuture_20(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeFuture_20(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeResponse_21 extends _i1.SmartFake implements _i2.Response {
-  _FakeResponse_21(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeResponse_21(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeGitHub_22 extends _i1.SmartFake implements _i4.GitHub {
-  _FakeGitHub_22(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeGitHub_22(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakePullRequest_23 extends _i1.SmartFake implements _i4.PullRequest {
-  _FakePullRequest_23(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakePullRequest_23(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakePullRequestMerge_24 extends _i1.SmartFake
     implements _i4.PullRequestMerge {
-  _FakePullRequestMerge_24(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakePullRequestMerge_24(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakePullRequestComment_25 extends _i1.SmartFake
     implements _i4.PullRequestComment {
-  _FakePullRequestComment_25(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakePullRequestComment_25(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakePullRequestReview_26 extends _i1.SmartFake
     implements _i4.PullRequestReview {
-  _FakePullRequestReview_26(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakePullRequestReview_26(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeRepository_27 extends _i1.SmartFake implements _i4.Repository {
-  _FakeRepository_27(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeRepository_27(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeLicenseDetails_28 extends _i1.SmartFake
     implements _i4.LicenseDetails {
-  _FakeLicenseDetails_28(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeLicenseDetails_28(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeLanguageBreakdown_29 extends _i1.SmartFake
     implements _i4.LanguageBreakdown {
-  _FakeLanguageBreakdown_29(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeLanguageBreakdown_29(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeBranch_30 extends _i1.SmartFake implements _i4.Branch {
-  _FakeBranch_30(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeBranch_30(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeCommitComment_31 extends _i1.SmartFake implements _i4.CommitComment {
-  _FakeCommitComment_31(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeCommitComment_31(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeRepositoryCommit_32 extends _i1.SmartFake
     implements _i4.RepositoryCommit {
-  _FakeRepositoryCommit_32(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeRepositoryCommit_32(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeGitHubComparison_33 extends _i1.SmartFake
     implements _i4.GitHubComparison {
-  _FakeGitHubComparison_33(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeGitHubComparison_33(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeGitHubFile_34 extends _i1.SmartFake implements _i4.GitHubFile {
-  _FakeGitHubFile_34(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeGitHubFile_34(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeRepositoryContents_35 extends _i1.SmartFake
     implements _i4.RepositoryContents {
-  _FakeRepositoryContents_35(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeRepositoryContents_35(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeContentCreation_36 extends _i1.SmartFake
     implements _i4.ContentCreation {
-  _FakeContentCreation_36(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeContentCreation_36(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeHook_37 extends _i1.SmartFake implements _i4.Hook {
-  _FakeHook_37(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeHook_37(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakePublicKey_38 extends _i1.SmartFake implements _i4.PublicKey {
-  _FakePublicKey_38(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakePublicKey_38(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeRepositoryPages_39 extends _i1.SmartFake
     implements _i4.RepositoryPages {
-  _FakeRepositoryPages_39(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeRepositoryPages_39(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakePageBuild_40 extends _i1.SmartFake implements _i4.PageBuild {
-  _FakePageBuild_40(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakePageBuild_40(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeRelease_41 extends _i1.SmartFake implements _i4.Release {
-  _FakeRelease_41(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeRelease_41(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeReleaseAsset_42 extends _i1.SmartFake implements _i4.ReleaseAsset {
-  _FakeReleaseAsset_42(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeReleaseAsset_42(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeContributorParticipation_43 extends _i1.SmartFake
     implements _i4.ContributorParticipation {
-  _FakeContributorParticipation_43(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeContributorParticipation_43(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeRepositoryStatus_44 extends _i1.SmartFake
     implements _i4.RepositoryStatus {
-  _FakeRepositoryStatus_44(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeRepositoryStatus_44(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeCombinedRepositoryStatus_45 extends _i1.SmartFake
     implements _i4.CombinedRepositoryStatus {
-  _FakeCombinedRepositoryStatus_45(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeCombinedRepositoryStatus_45(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeReleaseNotes_46 extends _i1.SmartFake implements _i4.ReleaseNotes {
-  _FakeReleaseNotes_46(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeReleaseNotes_46(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 /// A class which mocks [AccessClientProvider].
@@ -531,31 +296,26 @@ class MockAccessClientProvider extends _i1.Mock
   @override
   _i5.Future<_i2.Client> createAccessClient({
     List<String>? scopes = const [
-      r'https://www.googleapis.com/auth/cloud-platform'
+      r'https://www.googleapis.com/auth/cloud-platform',
     ],
     _i2.Client? baseClient,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #createAccessClient,
-          [],
-          {
-            #scopes: scopes,
-            #baseClient: baseClient,
-          },
-        ),
-        returnValue: _i5.Future<_i2.Client>.value(_FakeClient_0(
-          this,
-          Invocation.method(
-            #createAccessClient,
-            [],
-            {
+            Invocation.method(#createAccessClient, [], {
               #scopes: scopes,
               #baseClient: baseClient,
-            },
-          ),
-        )),
-      ) as _i5.Future<_i2.Client>);
+            }),
+            returnValue: _i5.Future<_i2.Client>.value(
+              _FakeClient_0(
+                this,
+                Invocation.method(#createAccessClient, [], {
+                  #scopes: scopes,
+                  #baseClient: baseClient,
+                }),
+              ),
+            ),
+          )
+          as _i5.Future<_i2.Client>);
 }
 
 /// A class which mocks [JobsResource].
@@ -574,33 +334,23 @@ class MockJobsResource extends _i1.Mock implements _i3.JobsResource {
     String? $fields,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #cancel,
-          [
-            projectId,
-            jobId,
-          ],
-          {
-            #location: location,
-            #$fields: $fields,
-          },
-        ),
-        returnValue:
-            _i5.Future<_i3.JobCancelResponse>.value(_FakeJobCancelResponse_1(
-          this,
-          Invocation.method(
-            #cancel,
-            [
-              projectId,
-              jobId,
-            ],
-            {
-              #location: location,
-              #$fields: $fields,
-            },
-          ),
-        )),
-      ) as _i5.Future<_i3.JobCancelResponse>);
+            Invocation.method(
+              #cancel,
+              [projectId, jobId],
+              {#location: location, #$fields: $fields},
+            ),
+            returnValue: _i5.Future<_i3.JobCancelResponse>.value(
+              _FakeJobCancelResponse_1(
+                this,
+                Invocation.method(
+                  #cancel,
+                  [projectId, jobId],
+                  {#location: location, #$fields: $fields},
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i3.JobCancelResponse>);
 
   @override
   _i5.Future<void> delete(
@@ -610,20 +360,15 @@ class MockJobsResource extends _i1.Mock implements _i3.JobsResource {
     String? $fields,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #delete,
-          [
-            projectId,
-            jobId,
-          ],
-          {
-            #location: location,
-            #$fields: $fields,
-          },
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
+            Invocation.method(
+              #delete,
+              [projectId, jobId],
+              {#location: location, #$fields: $fields},
+            ),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
 
   @override
   _i5.Future<_i3.Job> get(
@@ -633,32 +378,23 @@ class MockJobsResource extends _i1.Mock implements _i3.JobsResource {
     String? $fields,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #get,
-          [
-            projectId,
-            jobId,
-          ],
-          {
-            #location: location,
-            #$fields: $fields,
-          },
-        ),
-        returnValue: _i5.Future<_i3.Job>.value(_FakeJob_2(
-          this,
-          Invocation.method(
-            #get,
-            [
-              projectId,
-              jobId,
-            ],
-            {
-              #location: location,
-              #$fields: $fields,
-            },
-          ),
-        )),
-      ) as _i5.Future<_i3.Job>);
+            Invocation.method(
+              #get,
+              [projectId, jobId],
+              {#location: location, #$fields: $fields},
+            ),
+            returnValue: _i5.Future<_i3.Job>.value(
+              _FakeJob_2(
+                this,
+                Invocation.method(
+                  #get,
+                  [projectId, jobId],
+                  {#location: location, #$fields: $fields},
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i3.Job>);
 
   @override
   _i5.Future<_i3.GetQueryResultsResponse> getQueryResults(
@@ -673,43 +409,41 @@ class MockJobsResource extends _i1.Mock implements _i3.JobsResource {
     String? $fields,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getQueryResults,
-          [
-            projectId,
-            jobId,
-          ],
-          {
-            #formatOptions_useInt64Timestamp: formatOptions_useInt64Timestamp,
-            #location: location,
-            #maxResults: maxResults,
-            #pageToken: pageToken,
-            #startIndex: startIndex,
-            #timeoutMs: timeoutMs,
-            #$fields: $fields,
-          },
-        ),
-        returnValue: _i5.Future<_i3.GetQueryResultsResponse>.value(
-            _FakeGetQueryResultsResponse_3(
-          this,
-          Invocation.method(
-            #getQueryResults,
-            [
-              projectId,
-              jobId,
-            ],
-            {
-              #formatOptions_useInt64Timestamp: formatOptions_useInt64Timestamp,
-              #location: location,
-              #maxResults: maxResults,
-              #pageToken: pageToken,
-              #startIndex: startIndex,
-              #timeoutMs: timeoutMs,
-              #$fields: $fields,
-            },
-          ),
-        )),
-      ) as _i5.Future<_i3.GetQueryResultsResponse>);
+            Invocation.method(
+              #getQueryResults,
+              [projectId, jobId],
+              {
+                #formatOptions_useInt64Timestamp:
+                    formatOptions_useInt64Timestamp,
+                #location: location,
+                #maxResults: maxResults,
+                #pageToken: pageToken,
+                #startIndex: startIndex,
+                #timeoutMs: timeoutMs,
+                #$fields: $fields,
+              },
+            ),
+            returnValue: _i5.Future<_i3.GetQueryResultsResponse>.value(
+              _FakeGetQueryResultsResponse_3(
+                this,
+                Invocation.method(
+                  #getQueryResults,
+                  [projectId, jobId],
+                  {
+                    #formatOptions_useInt64Timestamp:
+                        formatOptions_useInt64Timestamp,
+                    #location: location,
+                    #maxResults: maxResults,
+                    #pageToken: pageToken,
+                    #startIndex: startIndex,
+                    #timeoutMs: timeoutMs,
+                    #$fields: $fields,
+                  },
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i3.GetQueryResultsResponse>);
 
   @override
   _i5.Future<_i3.Job> insert(
@@ -720,34 +454,31 @@ class MockJobsResource extends _i1.Mock implements _i3.JobsResource {
     _i7.Media? uploadMedia,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #insert,
-          [
-            request,
-            projectId,
-          ],
-          {
-            #$fields: $fields,
-            #uploadOptions: uploadOptions,
-            #uploadMedia: uploadMedia,
-          },
-        ),
-        returnValue: _i5.Future<_i3.Job>.value(_FakeJob_2(
-          this,
-          Invocation.method(
-            #insert,
-            [
-              request,
-              projectId,
-            ],
-            {
-              #$fields: $fields,
-              #uploadOptions: uploadOptions,
-              #uploadMedia: uploadMedia,
-            },
-          ),
-        )),
-      ) as _i5.Future<_i3.Job>);
+            Invocation.method(
+              #insert,
+              [request, projectId],
+              {
+                #$fields: $fields,
+                #uploadOptions: uploadOptions,
+                #uploadMedia: uploadMedia,
+              },
+            ),
+            returnValue: _i5.Future<_i3.Job>.value(
+              _FakeJob_2(
+                this,
+                Invocation.method(
+                  #insert,
+                  [request, projectId],
+                  {
+                    #$fields: $fields,
+                    #uploadOptions: uploadOptions,
+                    #uploadMedia: uploadMedia,
+                  },
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i3.Job>);
 
   @override
   _i5.Future<_i3.JobList> list(
@@ -763,40 +494,43 @@ class MockJobsResource extends _i1.Mock implements _i3.JobsResource {
     String? $fields,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #list,
-          [projectId],
-          {
-            #allUsers: allUsers,
-            #maxCreationTime: maxCreationTime,
-            #maxResults: maxResults,
-            #minCreationTime: minCreationTime,
-            #pageToken: pageToken,
-            #parentJobId: parentJobId,
-            #projection: projection,
-            #stateFilter: stateFilter,
-            #$fields: $fields,
-          },
-        ),
-        returnValue: _i5.Future<_i3.JobList>.value(_FakeJobList_4(
-          this,
-          Invocation.method(
-            #list,
-            [projectId],
-            {
-              #allUsers: allUsers,
-              #maxCreationTime: maxCreationTime,
-              #maxResults: maxResults,
-              #minCreationTime: minCreationTime,
-              #pageToken: pageToken,
-              #parentJobId: parentJobId,
-              #projection: projection,
-              #stateFilter: stateFilter,
-              #$fields: $fields,
-            },
-          ),
-        )),
-      ) as _i5.Future<_i3.JobList>);
+            Invocation.method(
+              #list,
+              [projectId],
+              {
+                #allUsers: allUsers,
+                #maxCreationTime: maxCreationTime,
+                #maxResults: maxResults,
+                #minCreationTime: minCreationTime,
+                #pageToken: pageToken,
+                #parentJobId: parentJobId,
+                #projection: projection,
+                #stateFilter: stateFilter,
+                #$fields: $fields,
+              },
+            ),
+            returnValue: _i5.Future<_i3.JobList>.value(
+              _FakeJobList_4(
+                this,
+                Invocation.method(
+                  #list,
+                  [projectId],
+                  {
+                    #allUsers: allUsers,
+                    #maxCreationTime: maxCreationTime,
+                    #maxResults: maxResults,
+                    #minCreationTime: minCreationTime,
+                    #pageToken: pageToken,
+                    #parentJobId: parentJobId,
+                    #projection: projection,
+                    #stateFilter: stateFilter,
+                    #$fields: $fields,
+                  },
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i3.JobList>);
 
   @override
   _i5.Future<_i3.QueryResponse> query(
@@ -805,26 +539,23 @@ class MockJobsResource extends _i1.Mock implements _i3.JobsResource {
     String? $fields,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #query,
-          [
-            request,
-            projectId,
-          ],
-          {#$fields: $fields},
-        ),
-        returnValue: _i5.Future<_i3.QueryResponse>.value(_FakeQueryResponse_5(
-          this,
-          Invocation.method(
-            #query,
-            [
-              request,
-              projectId,
-            ],
-            {#$fields: $fields},
-          ),
-        )),
-      ) as _i5.Future<_i3.QueryResponse>);
+            Invocation.method(
+              #query,
+              [request, projectId],
+              {#$fields: $fields},
+            ),
+            returnValue: _i5.Future<_i3.QueryResponse>.value(
+              _FakeQueryResponse_5(
+                this,
+                Invocation.method(
+                  #query,
+                  [request, projectId],
+                  {#$fields: $fields},
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i3.QueryResponse>);
 }
 
 /// A class which mocks [GitHub].
@@ -836,166 +567,179 @@ class MockGitHub extends _i1.Mock implements _i4.GitHub {
   }
 
   @override
-  _i4.Authentication get auth => (super.noSuchMethod(
-        Invocation.getter(#auth),
-        returnValue: _FakeAuthentication_6(
-          this,
-          Invocation.getter(#auth),
-        ),
-      ) as _i4.Authentication);
+  _i4.Authentication get auth =>
+      (super.noSuchMethod(
+            Invocation.getter(#auth),
+            returnValue: _FakeAuthentication_6(this, Invocation.getter(#auth)),
+          )
+          as _i4.Authentication);
 
   @override
   set auth(_i4.Authentication? _auth) => super.noSuchMethod(
-        Invocation.setter(
-          #auth,
-          _auth,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#auth, _auth),
+    returnValueForMissingStub: null,
+  );
 
   @override
-  String get endpoint => (super.noSuchMethod(
-        Invocation.getter(#endpoint),
-        returnValue: _i8.dummyValue<String>(
-          this,
-          Invocation.getter(#endpoint),
-        ),
-      ) as String);
+  String get endpoint =>
+      (super.noSuchMethod(
+            Invocation.getter(#endpoint),
+            returnValue: _i8.dummyValue<String>(
+              this,
+              Invocation.getter(#endpoint),
+            ),
+          )
+          as String);
 
   @override
-  String get version => (super.noSuchMethod(
-        Invocation.getter(#version),
-        returnValue: _i8.dummyValue<String>(
-          this,
-          Invocation.getter(#version),
-        ),
-      ) as String);
+  String get version =>
+      (super.noSuchMethod(
+            Invocation.getter(#version),
+            returnValue: _i8.dummyValue<String>(
+              this,
+              Invocation.getter(#version),
+            ),
+          )
+          as String);
 
   @override
-  _i2.Client get client => (super.noSuchMethod(
-        Invocation.getter(#client),
-        returnValue: _FakeClient_0(
-          this,
-          Invocation.getter(#client),
-        ),
-      ) as _i2.Client);
+  _i2.Client get client =>
+      (super.noSuchMethod(
+            Invocation.getter(#client),
+            returnValue: _FakeClient_0(this, Invocation.getter(#client)),
+          )
+          as _i2.Client);
 
   @override
-  _i4.ActivityService get activity => (super.noSuchMethod(
-        Invocation.getter(#activity),
-        returnValue: _FakeActivityService_7(
-          this,
-          Invocation.getter(#activity),
-        ),
-      ) as _i4.ActivityService);
+  _i4.ActivityService get activity =>
+      (super.noSuchMethod(
+            Invocation.getter(#activity),
+            returnValue: _FakeActivityService_7(
+              this,
+              Invocation.getter(#activity),
+            ),
+          )
+          as _i4.ActivityService);
 
   @override
-  _i4.AuthorizationsService get authorizations => (super.noSuchMethod(
-        Invocation.getter(#authorizations),
-        returnValue: _FakeAuthorizationsService_8(
-          this,
-          Invocation.getter(#authorizations),
-        ),
-      ) as _i4.AuthorizationsService);
+  _i4.AuthorizationsService get authorizations =>
+      (super.noSuchMethod(
+            Invocation.getter(#authorizations),
+            returnValue: _FakeAuthorizationsService_8(
+              this,
+              Invocation.getter(#authorizations),
+            ),
+          )
+          as _i4.AuthorizationsService);
 
   @override
-  _i4.GistsService get gists => (super.noSuchMethod(
-        Invocation.getter(#gists),
-        returnValue: _FakeGistsService_9(
-          this,
-          Invocation.getter(#gists),
-        ),
-      ) as _i4.GistsService);
+  _i4.GistsService get gists =>
+      (super.noSuchMethod(
+            Invocation.getter(#gists),
+            returnValue: _FakeGistsService_9(this, Invocation.getter(#gists)),
+          )
+          as _i4.GistsService);
 
   @override
-  _i4.GitService get git => (super.noSuchMethod(
-        Invocation.getter(#git),
-        returnValue: _FakeGitService_10(
-          this,
-          Invocation.getter(#git),
-        ),
-      ) as _i4.GitService);
+  _i4.GitService get git =>
+      (super.noSuchMethod(
+            Invocation.getter(#git),
+            returnValue: _FakeGitService_10(this, Invocation.getter(#git)),
+          )
+          as _i4.GitService);
 
   @override
-  _i4.IssuesService get issues => (super.noSuchMethod(
-        Invocation.getter(#issues),
-        returnValue: _FakeIssuesService_11(
-          this,
-          Invocation.getter(#issues),
-        ),
-      ) as _i4.IssuesService);
+  _i4.IssuesService get issues =>
+      (super.noSuchMethod(
+            Invocation.getter(#issues),
+            returnValue: _FakeIssuesService_11(
+              this,
+              Invocation.getter(#issues),
+            ),
+          )
+          as _i4.IssuesService);
 
   @override
-  _i4.MiscService get misc => (super.noSuchMethod(
-        Invocation.getter(#misc),
-        returnValue: _FakeMiscService_12(
-          this,
-          Invocation.getter(#misc),
-        ),
-      ) as _i4.MiscService);
+  _i4.MiscService get misc =>
+      (super.noSuchMethod(
+            Invocation.getter(#misc),
+            returnValue: _FakeMiscService_12(this, Invocation.getter(#misc)),
+          )
+          as _i4.MiscService);
 
   @override
-  _i4.OrganizationsService get organizations => (super.noSuchMethod(
-        Invocation.getter(#organizations),
-        returnValue: _FakeOrganizationsService_13(
-          this,
-          Invocation.getter(#organizations),
-        ),
-      ) as _i4.OrganizationsService);
+  _i4.OrganizationsService get organizations =>
+      (super.noSuchMethod(
+            Invocation.getter(#organizations),
+            returnValue: _FakeOrganizationsService_13(
+              this,
+              Invocation.getter(#organizations),
+            ),
+          )
+          as _i4.OrganizationsService);
 
   @override
-  _i4.PullRequestsService get pullRequests => (super.noSuchMethod(
-        Invocation.getter(#pullRequests),
-        returnValue: _FakePullRequestsService_14(
-          this,
-          Invocation.getter(#pullRequests),
-        ),
-      ) as _i4.PullRequestsService);
+  _i4.PullRequestsService get pullRequests =>
+      (super.noSuchMethod(
+            Invocation.getter(#pullRequests),
+            returnValue: _FakePullRequestsService_14(
+              this,
+              Invocation.getter(#pullRequests),
+            ),
+          )
+          as _i4.PullRequestsService);
 
   @override
-  _i4.RepositoriesService get repositories => (super.noSuchMethod(
-        Invocation.getter(#repositories),
-        returnValue: _FakeRepositoriesService_15(
-          this,
-          Invocation.getter(#repositories),
-        ),
-      ) as _i4.RepositoriesService);
+  _i4.RepositoriesService get repositories =>
+      (super.noSuchMethod(
+            Invocation.getter(#repositories),
+            returnValue: _FakeRepositoriesService_15(
+              this,
+              Invocation.getter(#repositories),
+            ),
+          )
+          as _i4.RepositoriesService);
 
   @override
-  _i4.SearchService get search => (super.noSuchMethod(
-        Invocation.getter(#search),
-        returnValue: _FakeSearchService_16(
-          this,
-          Invocation.getter(#search),
-        ),
-      ) as _i4.SearchService);
+  _i4.SearchService get search =>
+      (super.noSuchMethod(
+            Invocation.getter(#search),
+            returnValue: _FakeSearchService_16(
+              this,
+              Invocation.getter(#search),
+            ),
+          )
+          as _i4.SearchService);
 
   @override
-  _i4.UrlShortenerService get urlShortener => (super.noSuchMethod(
-        Invocation.getter(#urlShortener),
-        returnValue: _FakeUrlShortenerService_17(
-          this,
-          Invocation.getter(#urlShortener),
-        ),
-      ) as _i4.UrlShortenerService);
+  _i4.UrlShortenerService get urlShortener =>
+      (super.noSuchMethod(
+            Invocation.getter(#urlShortener),
+            returnValue: _FakeUrlShortenerService_17(
+              this,
+              Invocation.getter(#urlShortener),
+            ),
+          )
+          as _i4.UrlShortenerService);
 
   @override
-  _i4.UsersService get users => (super.noSuchMethod(
-        Invocation.getter(#users),
-        returnValue: _FakeUsersService_18(
-          this,
-          Invocation.getter(#users),
-        ),
-      ) as _i4.UsersService);
+  _i4.UsersService get users =>
+      (super.noSuchMethod(
+            Invocation.getter(#users),
+            returnValue: _FakeUsersService_18(this, Invocation.getter(#users)),
+          )
+          as _i4.UsersService);
 
   @override
-  _i4.ChecksService get checks => (super.noSuchMethod(
-        Invocation.getter(#checks),
-        returnValue: _FakeChecksService_19(
-          this,
-          Invocation.getter(#checks),
-        ),
-      ) as _i4.ChecksService);
+  _i4.ChecksService get checks =>
+      (super.noSuchMethod(
+            Invocation.getter(#checks),
+            returnValue: _FakeChecksService_19(
+              this,
+              Invocation.getter(#checks),
+            ),
+          )
+          as _i4.ChecksService);
 
   @override
   _i5.Future<T> getJSON<S, T>(
@@ -1008,52 +752,54 @@ class MockGitHub extends _i1.Mock implements _i4.GitHub {
     String? preview,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getJSON,
-          [path],
-          {
-            #statusCode: statusCode,
-            #fail: fail,
-            #headers: headers,
-            #params: params,
-            #convert: convert,
-            #preview: preview,
-          },
-        ),
-        returnValue: _i8.ifNotNull(
-              _i8.dummyValueOrNull<T>(
-                this,
-                Invocation.method(
-                  #getJSON,
-                  [path],
-                  {
-                    #statusCode: statusCode,
-                    #fail: fail,
-                    #headers: headers,
-                    #params: params,
-                    #convert: convert,
-                    #preview: preview,
-                  },
-                ),
-              ),
-              (T v) => _i5.Future<T>.value(v),
-            ) ??
-            _FakeFuture_20<T>(
-              this,
-              Invocation.method(
-                #getJSON,
-                [path],
-                {
-                  #statusCode: statusCode,
-                  #fail: fail,
-                  #headers: headers,
-                  #params: params,
-                  #convert: convert,
-                  #preview: preview,
-                },
-              ),
+            Invocation.method(
+              #getJSON,
+              [path],
+              {
+                #statusCode: statusCode,
+                #fail: fail,
+                #headers: headers,
+                #params: params,
+                #convert: convert,
+                #preview: preview,
+              },
             ),
-      ) as _i5.Future<T>);
+            returnValue:
+                _i8.ifNotNull(
+                  _i8.dummyValueOrNull<T>(
+                    this,
+                    Invocation.method(
+                      #getJSON,
+                      [path],
+                      {
+                        #statusCode: statusCode,
+                        #fail: fail,
+                        #headers: headers,
+                        #params: params,
+                        #convert: convert,
+                        #preview: preview,
+                      },
+                    ),
+                  ),
+                  (T v) => _i5.Future<T>.value(v),
+                ) ??
+                _FakeFuture_20<T>(
+                  this,
+                  Invocation.method(
+                    #getJSON,
+                    [path],
+                    {
+                      #statusCode: statusCode,
+                      #fail: fail,
+                      #headers: headers,
+                      #params: params,
+                      #convert: convert,
+                      #preview: preview,
+                    },
+                  ),
+                ),
+          )
+          as _i5.Future<T>);
 
   @override
   _i5.Future<T> postJSON<S, T>(
@@ -1067,55 +813,57 @@ class MockGitHub extends _i1.Mock implements _i4.GitHub {
     String? preview,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #postJSON,
-          [path],
-          {
-            #statusCode: statusCode,
-            #fail: fail,
-            #headers: headers,
-            #params: params,
-            #convert: convert,
-            #body: body,
-            #preview: preview,
-          },
-        ),
-        returnValue: _i8.ifNotNull(
-              _i8.dummyValueOrNull<T>(
-                this,
-                Invocation.method(
-                  #postJSON,
-                  [path],
-                  {
-                    #statusCode: statusCode,
-                    #fail: fail,
-                    #headers: headers,
-                    #params: params,
-                    #convert: convert,
-                    #body: body,
-                    #preview: preview,
-                  },
-                ),
-              ),
-              (T v) => _i5.Future<T>.value(v),
-            ) ??
-            _FakeFuture_20<T>(
-              this,
-              Invocation.method(
-                #postJSON,
-                [path],
-                {
-                  #statusCode: statusCode,
-                  #fail: fail,
-                  #headers: headers,
-                  #params: params,
-                  #convert: convert,
-                  #body: body,
-                  #preview: preview,
-                },
-              ),
+            Invocation.method(
+              #postJSON,
+              [path],
+              {
+                #statusCode: statusCode,
+                #fail: fail,
+                #headers: headers,
+                #params: params,
+                #convert: convert,
+                #body: body,
+                #preview: preview,
+              },
             ),
-      ) as _i5.Future<T>);
+            returnValue:
+                _i8.ifNotNull(
+                  _i8.dummyValueOrNull<T>(
+                    this,
+                    Invocation.method(
+                      #postJSON,
+                      [path],
+                      {
+                        #statusCode: statusCode,
+                        #fail: fail,
+                        #headers: headers,
+                        #params: params,
+                        #convert: convert,
+                        #body: body,
+                        #preview: preview,
+                      },
+                    ),
+                  ),
+                  (T v) => _i5.Future<T>.value(v),
+                ) ??
+                _FakeFuture_20<T>(
+                  this,
+                  Invocation.method(
+                    #postJSON,
+                    [path],
+                    {
+                      #statusCode: statusCode,
+                      #fail: fail,
+                      #headers: headers,
+                      #params: params,
+                      #convert: convert,
+                      #body: body,
+                      #preview: preview,
+                    },
+                  ),
+                ),
+          )
+          as _i5.Future<T>);
 
   @override
   _i5.Future<T> putJSON<S, T>(
@@ -1129,55 +877,57 @@ class MockGitHub extends _i1.Mock implements _i4.GitHub {
     String? preview,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #putJSON,
-          [path],
-          {
-            #statusCode: statusCode,
-            #fail: fail,
-            #headers: headers,
-            #params: params,
-            #convert: convert,
-            #body: body,
-            #preview: preview,
-          },
-        ),
-        returnValue: _i8.ifNotNull(
-              _i8.dummyValueOrNull<T>(
-                this,
-                Invocation.method(
-                  #putJSON,
-                  [path],
-                  {
-                    #statusCode: statusCode,
-                    #fail: fail,
-                    #headers: headers,
-                    #params: params,
-                    #convert: convert,
-                    #body: body,
-                    #preview: preview,
-                  },
-                ),
-              ),
-              (T v) => _i5.Future<T>.value(v),
-            ) ??
-            _FakeFuture_20<T>(
-              this,
-              Invocation.method(
-                #putJSON,
-                [path],
-                {
-                  #statusCode: statusCode,
-                  #fail: fail,
-                  #headers: headers,
-                  #params: params,
-                  #convert: convert,
-                  #body: body,
-                  #preview: preview,
-                },
-              ),
+            Invocation.method(
+              #putJSON,
+              [path],
+              {
+                #statusCode: statusCode,
+                #fail: fail,
+                #headers: headers,
+                #params: params,
+                #convert: convert,
+                #body: body,
+                #preview: preview,
+              },
             ),
-      ) as _i5.Future<T>);
+            returnValue:
+                _i8.ifNotNull(
+                  _i8.dummyValueOrNull<T>(
+                    this,
+                    Invocation.method(
+                      #putJSON,
+                      [path],
+                      {
+                        #statusCode: statusCode,
+                        #fail: fail,
+                        #headers: headers,
+                        #params: params,
+                        #convert: convert,
+                        #body: body,
+                        #preview: preview,
+                      },
+                    ),
+                  ),
+                  (T v) => _i5.Future<T>.value(v),
+                ) ??
+                _FakeFuture_20<T>(
+                  this,
+                  Invocation.method(
+                    #putJSON,
+                    [path],
+                    {
+                      #statusCode: statusCode,
+                      #fail: fail,
+                      #headers: headers,
+                      #params: params,
+                      #convert: convert,
+                      #body: body,
+                      #preview: preview,
+                    },
+                  ),
+                ),
+          )
+          as _i5.Future<T>);
 
   @override
   _i5.Future<T> patchJSON<S, T>(
@@ -1191,55 +941,57 @@ class MockGitHub extends _i1.Mock implements _i4.GitHub {
     String? preview,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #patchJSON,
-          [path],
-          {
-            #statusCode: statusCode,
-            #fail: fail,
-            #headers: headers,
-            #params: params,
-            #convert: convert,
-            #body: body,
-            #preview: preview,
-          },
-        ),
-        returnValue: _i8.ifNotNull(
-              _i8.dummyValueOrNull<T>(
-                this,
-                Invocation.method(
-                  #patchJSON,
-                  [path],
-                  {
-                    #statusCode: statusCode,
-                    #fail: fail,
-                    #headers: headers,
-                    #params: params,
-                    #convert: convert,
-                    #body: body,
-                    #preview: preview,
-                  },
-                ),
-              ),
-              (T v) => _i5.Future<T>.value(v),
-            ) ??
-            _FakeFuture_20<T>(
-              this,
-              Invocation.method(
-                #patchJSON,
-                [path],
-                {
-                  #statusCode: statusCode,
-                  #fail: fail,
-                  #headers: headers,
-                  #params: params,
-                  #convert: convert,
-                  #body: body,
-                  #preview: preview,
-                },
-              ),
+            Invocation.method(
+              #patchJSON,
+              [path],
+              {
+                #statusCode: statusCode,
+                #fail: fail,
+                #headers: headers,
+                #params: params,
+                #convert: convert,
+                #body: body,
+                #preview: preview,
+              },
             ),
-      ) as _i5.Future<T>);
+            returnValue:
+                _i8.ifNotNull(
+                  _i8.dummyValueOrNull<T>(
+                    this,
+                    Invocation.method(
+                      #patchJSON,
+                      [path],
+                      {
+                        #statusCode: statusCode,
+                        #fail: fail,
+                        #headers: headers,
+                        #params: params,
+                        #convert: convert,
+                        #body: body,
+                        #preview: preview,
+                      },
+                    ),
+                  ),
+                  (T v) => _i5.Future<T>.value(v),
+                ) ??
+                _FakeFuture_20<T>(
+                  this,
+                  Invocation.method(
+                    #patchJSON,
+                    [path],
+                    {
+                      #statusCode: statusCode,
+                      #fail: fail,
+                      #headers: headers,
+                      #params: params,
+                      #convert: convert,
+                      #body: body,
+                      #preview: preview,
+                    },
+                  ),
+                ),
+          )
+          as _i5.Future<T>);
 
   @override
   _i5.Future<T> requestJson<S, T>(
@@ -1254,64 +1006,57 @@ class MockGitHub extends _i1.Mock implements _i4.GitHub {
     String? preview,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #requestJson,
-          [
-            method,
-            path,
-          ],
-          {
-            #statusCode: statusCode,
-            #fail: fail,
-            #headers: headers,
-            #params: params,
-            #convert: convert,
-            #body: body,
-            #preview: preview,
-          },
-        ),
-        returnValue: _i8.ifNotNull(
-              _i8.dummyValueOrNull<T>(
-                this,
-                Invocation.method(
-                  #requestJson,
-                  [
-                    method,
-                    path,
-                  ],
-                  {
-                    #statusCode: statusCode,
-                    #fail: fail,
-                    #headers: headers,
-                    #params: params,
-                    #convert: convert,
-                    #body: body,
-                    #preview: preview,
-                  },
-                ),
-              ),
-              (T v) => _i5.Future<T>.value(v),
-            ) ??
-            _FakeFuture_20<T>(
-              this,
-              Invocation.method(
-                #requestJson,
-                [
-                  method,
-                  path,
-                ],
-                {
-                  #statusCode: statusCode,
-                  #fail: fail,
-                  #headers: headers,
-                  #params: params,
-                  #convert: convert,
-                  #body: body,
-                  #preview: preview,
-                },
-              ),
+            Invocation.method(
+              #requestJson,
+              [method, path],
+              {
+                #statusCode: statusCode,
+                #fail: fail,
+                #headers: headers,
+                #params: params,
+                #convert: convert,
+                #body: body,
+                #preview: preview,
+              },
             ),
-      ) as _i5.Future<T>);
+            returnValue:
+                _i8.ifNotNull(
+                  _i8.dummyValueOrNull<T>(
+                    this,
+                    Invocation.method(
+                      #requestJson,
+                      [method, path],
+                      {
+                        #statusCode: statusCode,
+                        #fail: fail,
+                        #headers: headers,
+                        #params: params,
+                        #convert: convert,
+                        #body: body,
+                        #preview: preview,
+                      },
+                    ),
+                  ),
+                  (T v) => _i5.Future<T>.value(v),
+                ) ??
+                _FakeFuture_20<T>(
+                  this,
+                  Invocation.method(
+                    #requestJson,
+                    [method, path],
+                    {
+                      #statusCode: statusCode,
+                      #fail: fail,
+                      #headers: headers,
+                      #params: params,
+                      #convert: convert,
+                      #body: body,
+                      #preview: preview,
+                    },
+                  ),
+                ),
+          )
+          as _i5.Future<T>);
 
   @override
   _i5.Future<_i2.Response> request(
@@ -1325,58 +1070,51 @@ class MockGitHub extends _i1.Mock implements _i4.GitHub {
     String? preview,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #request,
-          [
-            method,
-            path,
-          ],
-          {
-            #headers: headers,
-            #params: params,
-            #body: body,
-            #statusCode: statusCode,
-            #fail: fail,
-            #preview: preview,
-          },
-        ),
-        returnValue: _i5.Future<_i2.Response>.value(_FakeResponse_21(
-          this,
-          Invocation.method(
-            #request,
-            [
-              method,
-              path,
-            ],
-            {
-              #headers: headers,
-              #params: params,
-              #body: body,
-              #statusCode: statusCode,
-              #fail: fail,
-              #preview: preview,
-            },
-          ),
-        )),
-      ) as _i5.Future<_i2.Response>);
+            Invocation.method(
+              #request,
+              [method, path],
+              {
+                #headers: headers,
+                #params: params,
+                #body: body,
+                #statusCode: statusCode,
+                #fail: fail,
+                #preview: preview,
+              },
+            ),
+            returnValue: _i5.Future<_i2.Response>.value(
+              _FakeResponse_21(
+                this,
+                Invocation.method(
+                  #request,
+                  [method, path],
+                  {
+                    #headers: headers,
+                    #params: params,
+                    #body: body,
+                    #statusCode: statusCode,
+                    #fail: fail,
+                    #preview: preview,
+                  },
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i2.Response>);
 
   @override
-  Never handleStatusCode(_i2.Response? response) => (super.noSuchMethod(
-        Invocation.method(
-          #handleStatusCode,
-          [response],
-        ),
-        returnValue: null,
-      ) as Never);
+  Never handleStatusCode(_i2.Response? response) =>
+      (super.noSuchMethod(
+            Invocation.method(#handleStatusCode, [response]),
+            returnValue: null,
+          )
+          as Never);
 
   @override
   void dispose() => super.noSuchMethod(
-        Invocation.method(
-          #dispose,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#dispose, []),
+    returnValueForMissingStub: null,
+  );
 }
 
 /// A class which mocks [PullRequestsService].
@@ -1389,13 +1127,12 @@ class MockPullRequestsService extends _i1.Mock
   }
 
   @override
-  _i4.GitHub get github => (super.noSuchMethod(
-        Invocation.getter(#github),
-        returnValue: _FakeGitHub_22(
-          this,
-          Invocation.getter(#github),
-        ),
-      ) as _i4.GitHub);
+  _i4.GitHub get github =>
+      (super.noSuchMethod(
+            Invocation.getter(#github),
+            returnValue: _FakeGitHub_22(this, Invocation.getter(#github)),
+          )
+          as _i4.GitHub);
 
   @override
   _i5.Stream<_i4.PullRequest> list(
@@ -1408,45 +1145,34 @@ class MockPullRequestsService extends _i1.Mock
     String? state = r'open',
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #list,
-          [slug],
-          {
-            #pages: pages,
-            #base: base,
-            #direction: direction,
-            #head: head,
-            #sort: sort,
-            #state: state,
-          },
-        ),
-        returnValue: _i5.Stream<_i4.PullRequest>.empty(),
-      ) as _i5.Stream<_i4.PullRequest>);
+            Invocation.method(
+              #list,
+              [slug],
+              {
+                #pages: pages,
+                #base: base,
+                #direction: direction,
+                #head: head,
+                #sort: sort,
+                #state: state,
+              },
+            ),
+            returnValue: _i5.Stream<_i4.PullRequest>.empty(),
+          )
+          as _i5.Stream<_i4.PullRequest>);
 
   @override
-  _i5.Future<_i4.PullRequest> get(
-    _i4.RepositorySlug? slug,
-    int? number,
-  ) =>
+  _i5.Future<_i4.PullRequest> get(_i4.RepositorySlug? slug, int? number) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #get,
-          [
-            slug,
-            number,
-          ],
-        ),
-        returnValue: _i5.Future<_i4.PullRequest>.value(_FakePullRequest_23(
-          this,
-          Invocation.method(
-            #get,
-            [
-              slug,
-              number,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i4.PullRequest>);
+            Invocation.method(#get, [slug, number]),
+            returnValue: _i5.Future<_i4.PullRequest>.value(
+              _FakePullRequest_23(
+                this,
+                Invocation.method(#get, [slug, number]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.PullRequest>);
 
   @override
   _i5.Future<_i4.PullRequest> create(
@@ -1454,24 +1180,15 @@ class MockPullRequestsService extends _i1.Mock
     _i4.CreatePullRequest? request,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #create,
-          [
-            slug,
-            request,
-          ],
-        ),
-        returnValue: _i5.Future<_i4.PullRequest>.value(_FakePullRequest_23(
-          this,
-          Invocation.method(
-            #create,
-            [
-              slug,
-              request,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i4.PullRequest>);
+            Invocation.method(#create, [slug, request]),
+            returnValue: _i5.Future<_i4.PullRequest>.value(
+              _FakePullRequest_23(
+                this,
+                Invocation.method(#create, [slug, request]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.PullRequest>);
 
   @override
   _i5.Future<_i4.PullRequest> edit(
@@ -1483,36 +1200,23 @@ class MockPullRequestsService extends _i1.Mock
     String? base,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #edit,
-          [
-            slug,
-            number,
-          ],
-          {
-            #title: title,
-            #body: body,
-            #state: state,
-            #base: base,
-          },
-        ),
-        returnValue: _i5.Future<_i4.PullRequest>.value(_FakePullRequest_23(
-          this,
-          Invocation.method(
-            #edit,
-            [
-              slug,
-              number,
-            ],
-            {
-              #title: title,
-              #body: body,
-              #state: state,
-              #base: base,
-            },
-          ),
-        )),
-      ) as _i5.Future<_i4.PullRequest>);
+            Invocation.method(
+              #edit,
+              [slug, number],
+              {#title: title, #body: body, #state: state, #base: base},
+            ),
+            returnValue: _i5.Future<_i4.PullRequest>.value(
+              _FakePullRequest_23(
+                this,
+                Invocation.method(
+                  #edit,
+                  [slug, number],
+                  {#title: title, #body: body, #state: state, #base: base},
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.PullRequest>);
 
   @override
   _i5.Stream<_i4.RepositoryCommit> listCommits(
@@ -1520,15 +1224,10 @@ class MockPullRequestsService extends _i1.Mock
     int? number,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listCommits,
-          [
-            slug,
-            number,
-          ],
-        ),
-        returnValue: _i5.Stream<_i4.RepositoryCommit>.empty(),
-      ) as _i5.Stream<_i4.RepositoryCommit>);
+            Invocation.method(#listCommits, [slug, number]),
+            returnValue: _i5.Stream<_i4.RepositoryCommit>.empty(),
+          )
+          as _i5.Stream<_i4.RepositoryCommit>);
 
   @override
   _i5.Stream<_i4.PullRequestFile> listFiles(
@@ -1536,15 +1235,10 @@ class MockPullRequestsService extends _i1.Mock
     int? number,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listFiles,
-          [
-            slug,
-            number,
-          ],
-        ),
-        returnValue: _i5.Stream<_i4.PullRequestFile>.empty(),
-      ) as _i5.Stream<_i4.PullRequestFile>);
+            Invocation.method(#listFiles, [slug, number]),
+            returnValue: _i5.Stream<_i4.PullRequestFile>.empty(),
+          )
+          as _i5.Stream<_i4.PullRequestFile>);
 
   @override
   _i5.Stream<_i4.PullRequestReview> listReviews(
@@ -1552,31 +1246,18 @@ class MockPullRequestsService extends _i1.Mock
     int? number,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listReviews,
-          [
-            slug,
-            number,
-          ],
-        ),
-        returnValue: _i5.Stream<_i4.PullRequestReview>.empty(),
-      ) as _i5.Stream<_i4.PullRequestReview>);
+            Invocation.method(#listReviews, [slug, number]),
+            returnValue: _i5.Stream<_i4.PullRequestReview>.empty(),
+          )
+          as _i5.Stream<_i4.PullRequestReview>);
 
   @override
-  _i5.Future<bool> isMerged(
-    _i4.RepositorySlug? slug,
-    int? number,
-  ) =>
+  _i5.Future<bool> isMerged(_i4.RepositorySlug? slug, int? number) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #isMerged,
-          [
-            slug,
-            number,
-          ],
-        ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+            Invocation.method(#isMerged, [slug, number]),
+            returnValue: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
 
   @override
   _i5.Future<_i4.PullRequestMerge> merge(
@@ -1587,35 +1268,31 @@ class MockPullRequestsService extends _i1.Mock
     String? requestSha,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #merge,
-          [
-            slug,
-            number,
-          ],
-          {
-            #message: message,
-            #mergeMethod: mergeMethod,
-            #requestSha: requestSha,
-          },
-        ),
-        returnValue:
-            _i5.Future<_i4.PullRequestMerge>.value(_FakePullRequestMerge_24(
-          this,
-          Invocation.method(
-            #merge,
-            [
-              slug,
-              number,
-            ],
-            {
-              #message: message,
-              #mergeMethod: mergeMethod,
-              #requestSha: requestSha,
-            },
-          ),
-        )),
-      ) as _i5.Future<_i4.PullRequestMerge>);
+            Invocation.method(
+              #merge,
+              [slug, number],
+              {
+                #message: message,
+                #mergeMethod: mergeMethod,
+                #requestSha: requestSha,
+              },
+            ),
+            returnValue: _i5.Future<_i4.PullRequestMerge>.value(
+              _FakePullRequestMerge_24(
+                this,
+                Invocation.method(
+                  #merge,
+                  [slug, number],
+                  {
+                    #message: message,
+                    #mergeMethod: mergeMethod,
+                    #requestSha: requestSha,
+                  },
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.PullRequestMerge>);
 
   @override
   _i5.Stream<_i4.PullRequestComment> listCommentsByPullRequest(
@@ -1623,25 +1300,18 @@ class MockPullRequestsService extends _i1.Mock
     int? number,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listCommentsByPullRequest,
-          [
-            slug,
-            number,
-          ],
-        ),
-        returnValue: _i5.Stream<_i4.PullRequestComment>.empty(),
-      ) as _i5.Stream<_i4.PullRequestComment>);
+            Invocation.method(#listCommentsByPullRequest, [slug, number]),
+            returnValue: _i5.Stream<_i4.PullRequestComment>.empty(),
+          )
+          as _i5.Stream<_i4.PullRequestComment>);
 
   @override
   _i5.Stream<_i4.PullRequestComment> listComments(_i4.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listComments,
-          [slug],
-        ),
-        returnValue: _i5.Stream<_i4.PullRequestComment>.empty(),
-      ) as _i5.Stream<_i4.PullRequestComment>);
+            Invocation.method(#listComments, [slug]),
+            returnValue: _i5.Stream<_i4.PullRequestComment>.empty(),
+          )
+          as _i5.Stream<_i4.PullRequestComment>);
 
   @override
   _i5.Future<_i4.PullRequestComment> createComment(
@@ -1650,27 +1320,15 @@ class MockPullRequestsService extends _i1.Mock
     _i4.CreatePullRequestComment? comment,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #createComment,
-          [
-            slug,
-            number,
-            comment,
-          ],
-        ),
-        returnValue:
-            _i5.Future<_i4.PullRequestComment>.value(_FakePullRequestComment_25(
-          this,
-          Invocation.method(
-            #createComment,
-            [
-              slug,
-              number,
-              comment,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i4.PullRequestComment>);
+            Invocation.method(#createComment, [slug, number, comment]),
+            returnValue: _i5.Future<_i4.PullRequestComment>.value(
+              _FakePullRequestComment_25(
+                this,
+                Invocation.method(#createComment, [slug, number, comment]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.PullRequestComment>);
 
   @override
   _i5.Future<_i4.PullRequestReview> createReview(
@@ -1678,25 +1336,15 @@ class MockPullRequestsService extends _i1.Mock
     _i4.CreatePullRequestReview? review,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #createReview,
-          [
-            slug,
-            review,
-          ],
-        ),
-        returnValue:
-            _i5.Future<_i4.PullRequestReview>.value(_FakePullRequestReview_26(
-          this,
-          Invocation.method(
-            #createReview,
-            [
-              slug,
-              review,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i4.PullRequestReview>);
+            Invocation.method(#createReview, [slug, review]),
+            returnValue: _i5.Future<_i4.PullRequestReview>.value(
+              _FakePullRequestReview_26(
+                this,
+                Invocation.method(#createReview, [slug, review]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.PullRequestReview>);
 }
 
 /// A class which mocks [RepositoriesService].
@@ -1709,13 +1357,12 @@ class MockRepositoriesService extends _i1.Mock
   }
 
   @override
-  _i4.GitHub get github => (super.noSuchMethod(
-        Invocation.getter(#github),
-        returnValue: _FakeGitHub_22(
-          this,
-          Invocation.getter(#github),
-        ),
-      ) as _i4.GitHub);
+  _i4.GitHub get github =>
+      (super.noSuchMethod(
+            Invocation.getter(#github),
+            returnValue: _FakeGitHub_22(this, Invocation.getter(#github)),
+          )
+          as _i4.GitHub);
 
   @override
   _i5.Stream<_i4.Repository> listRepositories({
@@ -1724,17 +1371,14 @@ class MockRepositoriesService extends _i1.Mock
     String? direction = r'asc',
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listRepositories,
-          [],
-          {
-            #type: type,
-            #sort: sort,
-            #direction: direction,
-          },
-        ),
-        returnValue: _i5.Stream<_i4.Repository>.empty(),
-      ) as _i5.Stream<_i4.Repository>);
+            Invocation.method(#listRepositories, [], {
+              #type: type,
+              #sort: sort,
+              #direction: direction,
+            }),
+            returnValue: _i5.Stream<_i4.Repository>.empty(),
+          )
+          as _i5.Stream<_i4.Repository>);
 
   @override
   _i5.Stream<_i4.Repository> listUserRepositories(
@@ -1744,17 +1388,14 @@ class MockRepositoriesService extends _i1.Mock
     String? direction = r'asc',
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listUserRepositories,
-          [user],
-          {
-            #type: type,
-            #sort: sort,
-            #direction: direction,
-          },
-        ),
-        returnValue: _i5.Stream<_i4.Repository>.empty(),
-      ) as _i5.Stream<_i4.Repository>);
+            Invocation.method(
+              #listUserRepositories,
+              [user],
+              {#type: type, #sort: sort, #direction: direction},
+            ),
+            returnValue: _i5.Stream<_i4.Repository>.empty(),
+          )
+          as _i5.Stream<_i4.Repository>);
 
   @override
   _i5.Stream<_i4.Repository> listOrganizationRepositories(
@@ -1762,13 +1403,14 @@ class MockRepositoriesService extends _i1.Mock
     String? type = r'all',
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listOrganizationRepositories,
-          [org],
-          {#type: type},
-        ),
-        returnValue: _i5.Stream<_i4.Repository>.empty(),
-      ) as _i5.Stream<_i4.Repository>);
+            Invocation.method(
+              #listOrganizationRepositories,
+              [org],
+              {#type: type},
+            ),
+            returnValue: _i5.Stream<_i4.Repository>.empty(),
+          )
+          as _i5.Stream<_i4.Repository>);
 
   @override
   _i5.Stream<_i4.Repository> listPublicRepositories({
@@ -1776,16 +1418,13 @@ class MockRepositoriesService extends _i1.Mock
     DateTime? since,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listPublicRepositories,
-          [],
-          {
-            #limit: limit,
-            #since: since,
-          },
-        ),
-        returnValue: _i5.Stream<_i4.Repository>.empty(),
-      ) as _i5.Stream<_i4.Repository>);
+            Invocation.method(#listPublicRepositories, [], {
+              #limit: limit,
+              #since: since,
+            }),
+            returnValue: _i5.Stream<_i4.Repository>.empty(),
+          )
+          as _i5.Stream<_i4.Repository>);
 
   @override
   _i5.Future<_i4.Repository> createRepository(
@@ -1793,63 +1432,49 @@ class MockRepositoriesService extends _i1.Mock
     String? org,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #createRepository,
-          [repository],
-          {#org: org},
-        ),
-        returnValue: _i5.Future<_i4.Repository>.value(_FakeRepository_27(
-          this,
-          Invocation.method(
-            #createRepository,
-            [repository],
-            {#org: org},
-          ),
-        )),
-      ) as _i5.Future<_i4.Repository>);
+            Invocation.method(#createRepository, [repository], {#org: org}),
+            returnValue: _i5.Future<_i4.Repository>.value(
+              _FakeRepository_27(
+                this,
+                Invocation.method(#createRepository, [repository], {#org: org}),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.Repository>);
 
   @override
   _i5.Future<_i4.LicenseDetails> getLicense(_i4.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getLicense,
-          [slug],
-        ),
-        returnValue:
-            _i5.Future<_i4.LicenseDetails>.value(_FakeLicenseDetails_28(
-          this,
-          Invocation.method(
-            #getLicense,
-            [slug],
-          ),
-        )),
-      ) as _i5.Future<_i4.LicenseDetails>);
+            Invocation.method(#getLicense, [slug]),
+            returnValue: _i5.Future<_i4.LicenseDetails>.value(
+              _FakeLicenseDetails_28(
+                this,
+                Invocation.method(#getLicense, [slug]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.LicenseDetails>);
 
   @override
   _i5.Future<_i4.Repository> getRepository(_i4.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getRepository,
-          [slug],
-        ),
-        returnValue: _i5.Future<_i4.Repository>.value(_FakeRepository_27(
-          this,
-          Invocation.method(
-            #getRepository,
-            [slug],
-          ),
-        )),
-      ) as _i5.Future<_i4.Repository>);
+            Invocation.method(#getRepository, [slug]),
+            returnValue: _i5.Future<_i4.Repository>.value(
+              _FakeRepository_27(
+                this,
+                Invocation.method(#getRepository, [slug]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.Repository>);
 
   @override
   _i5.Stream<_i4.Repository> getRepositories(List<_i4.RepositorySlug>? slugs) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getRepositories,
-          [slugs],
-        ),
-        returnValue: _i5.Stream<_i4.Repository>.empty(),
-      ) as _i5.Stream<_i4.Repository>);
+            Invocation.method(#getRepositories, [slugs]),
+            returnValue: _i5.Stream<_i4.Repository>.empty(),
+          )
+          as _i5.Stream<_i4.Repository>);
 
   @override
   _i5.Future<_i4.Repository> editRepository(
@@ -1863,46 +1488,47 @@ class MockRepositoriesService extends _i1.Mock
     bool? hasDownloads,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #editRepository,
-          [slug],
-          {
-            #name: name,
-            #description: description,
-            #homepage: homepage,
-            #private: private,
-            #hasIssues: hasIssues,
-            #hasWiki: hasWiki,
-            #hasDownloads: hasDownloads,
-          },
-        ),
-        returnValue: _i5.Future<_i4.Repository>.value(_FakeRepository_27(
-          this,
-          Invocation.method(
-            #editRepository,
-            [slug],
-            {
-              #name: name,
-              #description: description,
-              #homepage: homepage,
-              #private: private,
-              #hasIssues: hasIssues,
-              #hasWiki: hasWiki,
-              #hasDownloads: hasDownloads,
-            },
-          ),
-        )),
-      ) as _i5.Future<_i4.Repository>);
+            Invocation.method(
+              #editRepository,
+              [slug],
+              {
+                #name: name,
+                #description: description,
+                #homepage: homepage,
+                #private: private,
+                #hasIssues: hasIssues,
+                #hasWiki: hasWiki,
+                #hasDownloads: hasDownloads,
+              },
+            ),
+            returnValue: _i5.Future<_i4.Repository>.value(
+              _FakeRepository_27(
+                this,
+                Invocation.method(
+                  #editRepository,
+                  [slug],
+                  {
+                    #name: name,
+                    #description: description,
+                    #homepage: homepage,
+                    #private: private,
+                    #hasIssues: hasIssues,
+                    #hasWiki: hasWiki,
+                    #hasDownloads: hasDownloads,
+                  },
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.Repository>);
 
   @override
   _i5.Future<bool> deleteRepository(_i4.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #deleteRepository,
-          [slug],
-        ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+            Invocation.method(#deleteRepository, [slug]),
+            returnValue: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
 
   @override
   _i5.Stream<_i4.Contributor> listContributors(
@@ -1910,40 +1536,31 @@ class MockRepositoriesService extends _i1.Mock
     bool? anon = false,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listContributors,
-          [slug],
-          {#anon: anon},
-        ),
-        returnValue: _i5.Stream<_i4.Contributor>.empty(),
-      ) as _i5.Stream<_i4.Contributor>);
+            Invocation.method(#listContributors, [slug], {#anon: anon}),
+            returnValue: _i5.Stream<_i4.Contributor>.empty(),
+          )
+          as _i5.Stream<_i4.Contributor>);
 
   @override
   _i5.Stream<_i4.Team> listTeams(_i4.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listTeams,
-          [slug],
-        ),
-        returnValue: _i5.Stream<_i4.Team>.empty(),
-      ) as _i5.Stream<_i4.Team>);
+            Invocation.method(#listTeams, [slug]),
+            returnValue: _i5.Stream<_i4.Team>.empty(),
+          )
+          as _i5.Stream<_i4.Team>);
 
   @override
   _i5.Future<_i4.LanguageBreakdown> listLanguages(_i4.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listLanguages,
-          [slug],
-        ),
-        returnValue:
-            _i5.Future<_i4.LanguageBreakdown>.value(_FakeLanguageBreakdown_29(
-          this,
-          Invocation.method(
-            #listLanguages,
-            [slug],
-          ),
-        )),
-      ) as _i5.Future<_i4.LanguageBreakdown>);
+            Invocation.method(#listLanguages, [slug]),
+            returnValue: _i5.Future<_i4.LanguageBreakdown>.value(
+              _FakeLanguageBreakdown_29(
+                this,
+                Invocation.method(#listLanguages, [slug]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.LanguageBreakdown>);
 
   @override
   _i5.Stream<_i4.Tag> listTags(
@@ -1953,110 +1570,67 @@ class MockRepositoriesService extends _i1.Mock
     int? perPage = 30,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listTags,
-          [slug],
-          {
-            #page: page,
-            #pages: pages,
-            #perPage: perPage,
-          },
-        ),
-        returnValue: _i5.Stream<_i4.Tag>.empty(),
-      ) as _i5.Stream<_i4.Tag>);
+            Invocation.method(
+              #listTags,
+              [slug],
+              {#page: page, #pages: pages, #perPage: perPage},
+            ),
+            returnValue: _i5.Stream<_i4.Tag>.empty(),
+          )
+          as _i5.Stream<_i4.Tag>);
 
   @override
   _i5.Stream<_i4.Branch> listBranches(_i4.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listBranches,
-          [slug],
-        ),
-        returnValue: _i5.Stream<_i4.Branch>.empty(),
-      ) as _i5.Stream<_i4.Branch>);
+            Invocation.method(#listBranches, [slug]),
+            returnValue: _i5.Stream<_i4.Branch>.empty(),
+          )
+          as _i5.Stream<_i4.Branch>);
 
   @override
-  _i5.Future<_i4.Branch> getBranch(
-    _i4.RepositorySlug? slug,
-    String? branch,
-  ) =>
+  _i5.Future<_i4.Branch> getBranch(_i4.RepositorySlug? slug, String? branch) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getBranch,
-          [
-            slug,
-            branch,
-          ],
-        ),
-        returnValue: _i5.Future<_i4.Branch>.value(_FakeBranch_30(
-          this,
-          Invocation.method(
-            #getBranch,
-            [
-              slug,
-              branch,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i4.Branch>);
+            Invocation.method(#getBranch, [slug, branch]),
+            returnValue: _i5.Future<_i4.Branch>.value(
+              _FakeBranch_30(
+                this,
+                Invocation.method(#getBranch, [slug, branch]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.Branch>);
 
   @override
   _i5.Stream<_i4.Collaborator> listCollaborators(_i4.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listCollaborators,
-          [slug],
-        ),
-        returnValue: _i5.Stream<_i4.Collaborator>.empty(),
-      ) as _i5.Stream<_i4.Collaborator>);
+            Invocation.method(#listCollaborators, [slug]),
+            returnValue: _i5.Stream<_i4.Collaborator>.empty(),
+          )
+          as _i5.Stream<_i4.Collaborator>);
 
   @override
-  _i5.Future<bool> isCollaborator(
-    _i4.RepositorySlug? slug,
-    String? user,
-  ) =>
+  _i5.Future<bool> isCollaborator(_i4.RepositorySlug? slug, String? user) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #isCollaborator,
-          [
-            slug,
-            user,
-          ],
-        ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+            Invocation.method(#isCollaborator, [slug, user]),
+            returnValue: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
 
   @override
-  _i5.Future<bool> addCollaborator(
-    _i4.RepositorySlug? slug,
-    String? user,
-  ) =>
+  _i5.Future<bool> addCollaborator(_i4.RepositorySlug? slug, String? user) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #addCollaborator,
-          [
-            slug,
-            user,
-          ],
-        ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+            Invocation.method(#addCollaborator, [slug, user]),
+            returnValue: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
 
   @override
-  _i5.Future<bool> removeCollaborator(
-    _i4.RepositorySlug? slug,
-    String? user,
-  ) =>
+  _i5.Future<bool> removeCollaborator(_i4.RepositorySlug? slug, String? user) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #removeCollaborator,
-          [
-            slug,
-            user,
-          ],
-        ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+            Invocation.method(#removeCollaborator, [slug, user]),
+            returnValue: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
 
   @override
   _i5.Stream<_i4.CommitComment> listSingleCommitComments(
@@ -2064,25 +1638,18 @@ class MockRepositoriesService extends _i1.Mock
     _i4.RepositoryCommit? commit,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listSingleCommitComments,
-          [
-            slug,
-            commit,
-          ],
-        ),
-        returnValue: _i5.Stream<_i4.CommitComment>.empty(),
-      ) as _i5.Stream<_i4.CommitComment>);
+            Invocation.method(#listSingleCommitComments, [slug, commit]),
+            returnValue: _i5.Stream<_i4.CommitComment>.empty(),
+          )
+          as _i5.Stream<_i4.CommitComment>);
 
   @override
   _i5.Stream<_i4.CommitComment> listCommitComments(_i4.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listCommitComments,
-          [slug],
-        ),
-        returnValue: _i5.Stream<_i4.CommitComment>.empty(),
-      ) as _i5.Stream<_i4.CommitComment>);
+            Invocation.method(#listCommitComments, [slug]),
+            returnValue: _i5.Stream<_i4.CommitComment>.empty(),
+          )
+          as _i5.Stream<_i4.CommitComment>);
 
   @override
   _i5.Future<_i4.CommitComment> createCommitComment(
@@ -2094,36 +1661,23 @@ class MockRepositoriesService extends _i1.Mock
     int? line,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #createCommitComment,
-          [
-            slug,
-            commit,
-          ],
-          {
-            #body: body,
-            #path: path,
-            #position: position,
-            #line: line,
-          },
-        ),
-        returnValue: _i5.Future<_i4.CommitComment>.value(_FakeCommitComment_31(
-          this,
-          Invocation.method(
-            #createCommitComment,
-            [
-              slug,
-              commit,
-            ],
-            {
-              #body: body,
-              #path: path,
-              #position: position,
-              #line: line,
-            },
-          ),
-        )),
-      ) as _i5.Future<_i4.CommitComment>);
+            Invocation.method(
+              #createCommitComment,
+              [slug, commit],
+              {#body: body, #path: path, #position: position, #line: line},
+            ),
+            returnValue: _i5.Future<_i4.CommitComment>.value(
+              _FakeCommitComment_31(
+                this,
+                Invocation.method(
+                  #createCommitComment,
+                  [slug, commit],
+                  {#body: body, #path: path, #position: position, #line: line},
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.CommitComment>);
 
   @override
   _i5.Future<_i4.CommitComment> getCommitComment(
@@ -2131,20 +1685,15 @@ class MockRepositoriesService extends _i1.Mock
     required int? id,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getCommitComment,
-          [slug],
-          {#id: id},
-        ),
-        returnValue: _i5.Future<_i4.CommitComment>.value(_FakeCommitComment_31(
-          this,
-          Invocation.method(
-            #getCommitComment,
-            [slug],
-            {#id: id},
-          ),
-        )),
-      ) as _i5.Future<_i4.CommitComment>);
+            Invocation.method(#getCommitComment, [slug], {#id: id}),
+            returnValue: _i5.Future<_i4.CommitComment>.value(
+              _FakeCommitComment_31(
+                this,
+                Invocation.method(#getCommitComment, [slug], {#id: id}),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.CommitComment>);
 
   @override
   _i5.Future<_i4.CommitComment> updateCommitComment(
@@ -2153,26 +1702,23 @@ class MockRepositoriesService extends _i1.Mock
     required String? body,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #updateCommitComment,
-          [slug],
-          {
-            #id: id,
-            #body: body,
-          },
-        ),
-        returnValue: _i5.Future<_i4.CommitComment>.value(_FakeCommitComment_31(
-          this,
-          Invocation.method(
-            #updateCommitComment,
-            [slug],
-            {
-              #id: id,
-              #body: body,
-            },
-          ),
-        )),
-      ) as _i5.Future<_i4.CommitComment>);
+            Invocation.method(
+              #updateCommitComment,
+              [slug],
+              {#id: id, #body: body},
+            ),
+            returnValue: _i5.Future<_i4.CommitComment>.value(
+              _FakeCommitComment_31(
+                this,
+                Invocation.method(
+                  #updateCommitComment,
+                  [slug],
+                  {#id: id, #body: body},
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.CommitComment>);
 
   @override
   _i5.Future<bool> deleteCommitComment(
@@ -2180,13 +1726,10 @@ class MockRepositoriesService extends _i1.Mock
     required int? id,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #deleteCommitComment,
-          [slug],
-          {#id: id},
-        ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+            Invocation.method(#deleteCommitComment, [slug], {#id: id}),
+            returnValue: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
 
   @override
   _i5.Stream<_i4.RepositoryCommit> listCommits(
@@ -2199,20 +1742,21 @@ class MockRepositoriesService extends _i1.Mock
     DateTime? until,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listCommits,
-          [slug],
-          {
-            #sha: sha,
-            #path: path,
-            #author: author,
-            #committer: committer,
-            #since: since,
-            #until: until,
-          },
-        ),
-        returnValue: _i5.Stream<_i4.RepositoryCommit>.empty(),
-      ) as _i5.Stream<_i4.RepositoryCommit>);
+            Invocation.method(
+              #listCommits,
+              [slug],
+              {
+                #sha: sha,
+                #path: path,
+                #author: author,
+                #committer: committer,
+                #since: since,
+                #until: until,
+              },
+            ),
+            returnValue: _i5.Stream<_i4.RepositoryCommit>.empty(),
+          )
+          as _i5.Stream<_i4.RepositoryCommit>);
 
   @override
   _i5.Future<_i4.RepositoryCommit> getCommit(
@@ -2220,50 +1764,28 @@ class MockRepositoriesService extends _i1.Mock
     String? sha,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getCommit,
-          [
-            slug,
-            sha,
-          ],
-        ),
-        returnValue:
-            _i5.Future<_i4.RepositoryCommit>.value(_FakeRepositoryCommit_32(
-          this,
-          Invocation.method(
-            #getCommit,
-            [
-              slug,
-              sha,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i4.RepositoryCommit>);
+            Invocation.method(#getCommit, [slug, sha]),
+            returnValue: _i5.Future<_i4.RepositoryCommit>.value(
+              _FakeRepositoryCommit_32(
+                this,
+                Invocation.method(#getCommit, [slug, sha]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.RepositoryCommit>);
 
   @override
-  _i5.Future<String> getCommitDiff(
-    _i4.RepositorySlug? slug,
-    String? sha,
-  ) =>
+  _i5.Future<String> getCommitDiff(_i4.RepositorySlug? slug, String? sha) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getCommitDiff,
-          [
-            slug,
-            sha,
-          ],
-        ),
-        returnValue: _i5.Future<String>.value(_i8.dummyValue<String>(
-          this,
-          Invocation.method(
-            #getCommitDiff,
-            [
-              slug,
-              sha,
-            ],
-          ),
-        )),
-      ) as _i5.Future<String>);
+            Invocation.method(#getCommitDiff, [slug, sha]),
+            returnValue: _i5.Future<String>.value(
+              _i8.dummyValue<String>(
+                this,
+                Invocation.method(#getCommitDiff, [slug, sha]),
+              ),
+            ),
+          )
+          as _i5.Future<String>);
 
   @override
   _i5.Future<_i4.GitHubComparison> compareCommits(
@@ -2272,27 +1794,15 @@ class MockRepositoriesService extends _i1.Mock
     String? refHead,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #compareCommits,
-          [
-            slug,
-            refBase,
-            refHead,
-          ],
-        ),
-        returnValue:
-            _i5.Future<_i4.GitHubComparison>.value(_FakeGitHubComparison_33(
-          this,
-          Invocation.method(
-            #compareCommits,
-            [
-              slug,
-              refBase,
-              refHead,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i4.GitHubComparison>);
+            Invocation.method(#compareCommits, [slug, refBase, refHead]),
+            returnValue: _i5.Future<_i4.GitHubComparison>.value(
+              _FakeGitHubComparison_33(
+                this,
+                Invocation.method(#compareCommits, [slug, refBase, refHead]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.GitHubComparison>);
 
   @override
   _i5.Future<_i4.GitHubFile> getReadme(
@@ -2300,20 +1810,15 @@ class MockRepositoriesService extends _i1.Mock
     String? ref,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getReadme,
-          [slug],
-          {#ref: ref},
-        ),
-        returnValue: _i5.Future<_i4.GitHubFile>.value(_FakeGitHubFile_34(
-          this,
-          Invocation.method(
-            #getReadme,
-            [slug],
-            {#ref: ref},
-          ),
-        )),
-      ) as _i5.Future<_i4.GitHubFile>);
+            Invocation.method(#getReadme, [slug], {#ref: ref}),
+            returnValue: _i5.Future<_i4.GitHubFile>.value(
+              _FakeGitHubFile_34(
+                this,
+                Invocation.method(#getReadme, [slug], {#ref: ref}),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.GitHubFile>);
 
   @override
   _i5.Future<_i4.RepositoryContents> getContents(
@@ -2322,27 +1827,15 @@ class MockRepositoriesService extends _i1.Mock
     String? ref,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getContents,
-          [
-            slug,
-            path,
-          ],
-          {#ref: ref},
-        ),
-        returnValue:
-            _i5.Future<_i4.RepositoryContents>.value(_FakeRepositoryContents_35(
-          this,
-          Invocation.method(
-            #getContents,
-            [
-              slug,
-              path,
-            ],
-            {#ref: ref},
-          ),
-        )),
-      ) as _i5.Future<_i4.RepositoryContents>);
+            Invocation.method(#getContents, [slug, path], {#ref: ref}),
+            returnValue: _i5.Future<_i4.RepositoryContents>.value(
+              _FakeRepositoryContents_35(
+                this,
+                Invocation.method(#getContents, [slug, path], {#ref: ref}),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.RepositoryContents>);
 
   @override
   _i5.Future<_i4.ContentCreation> createFile(
@@ -2350,25 +1843,15 @@ class MockRepositoriesService extends _i1.Mock
     _i4.CreateFile? file,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #createFile,
-          [
-            slug,
-            file,
-          ],
-        ),
-        returnValue:
-            _i5.Future<_i4.ContentCreation>.value(_FakeContentCreation_36(
-          this,
-          Invocation.method(
-            #createFile,
-            [
-              slug,
-              file,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i4.ContentCreation>);
+            Invocation.method(#createFile, [slug, file]),
+            returnValue: _i5.Future<_i4.ContentCreation>.value(
+              _FakeContentCreation_36(
+                this,
+                Invocation.method(#createFile, [slug, file]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.ContentCreation>);
 
   @override
   _i5.Future<_i4.ContentCreation> updateFile(
@@ -2380,33 +1863,23 @@ class MockRepositoriesService extends _i1.Mock
     String? branch,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #updateFile,
-          [
-            slug,
-            path,
-            message,
-            content,
-            sha,
-          ],
-          {#branch: branch},
-        ),
-        returnValue:
-            _i5.Future<_i4.ContentCreation>.value(_FakeContentCreation_36(
-          this,
-          Invocation.method(
-            #updateFile,
-            [
-              slug,
-              path,
-              message,
-              content,
-              sha,
-            ],
-            {#branch: branch},
-          ),
-        )),
-      ) as _i5.Future<_i4.ContentCreation>);
+            Invocation.method(
+              #updateFile,
+              [slug, path, message, content, sha],
+              {#branch: branch},
+            ),
+            returnValue: _i5.Future<_i4.ContentCreation>.value(
+              _FakeContentCreation_36(
+                this,
+                Invocation.method(
+                  #updateFile,
+                  [slug, path, message, content, sha],
+                  {#branch: branch},
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.ContentCreation>);
 
   @override
   _i5.Future<_i4.ContentCreation> deleteFile(
@@ -2417,31 +1890,21 @@ class MockRepositoriesService extends _i1.Mock
     String? branch,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #deleteFile,
-          [
-            slug,
-            path,
-            message,
-            sha,
-            branch,
-          ],
-        ),
-        returnValue:
-            _i5.Future<_i4.ContentCreation>.value(_FakeContentCreation_36(
-          this,
-          Invocation.method(
-            #deleteFile,
-            [
-              slug,
-              path,
-              message,
-              sha,
-              branch,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i4.ContentCreation>);
+            Invocation.method(#deleteFile, [slug, path, message, sha, branch]),
+            returnValue: _i5.Future<_i4.ContentCreation>.value(
+              _FakeContentCreation_36(
+                this,
+                Invocation.method(#deleteFile, [
+                  slug,
+                  path,
+                  message,
+                  sha,
+                  branch,
+                ]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.ContentCreation>);
 
   @override
   _i5.Future<String?> getArchiveLink(
@@ -2450,26 +1913,18 @@ class MockRepositoriesService extends _i1.Mock
     String? format = r'tarball',
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getArchiveLink,
-          [
-            slug,
-            ref,
-          ],
-          {#format: format},
-        ),
-        returnValue: _i5.Future<String?>.value(),
-      ) as _i5.Future<String?>);
+            Invocation.method(#getArchiveLink, [slug, ref], {#format: format}),
+            returnValue: _i5.Future<String?>.value(),
+          )
+          as _i5.Future<String?>);
 
   @override
   _i5.Stream<_i4.Repository> listForks(_i4.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listForks,
-          [slug],
-        ),
-        returnValue: _i5.Stream<_i4.Repository>.empty(),
-      ) as _i5.Stream<_i4.Repository>);
+            Invocation.method(#listForks, [slug]),
+            returnValue: _i5.Stream<_i4.Repository>.empty(),
+          )
+          as _i5.Stream<_i4.Repository>);
 
   @override
   _i5.Future<_i4.Repository> createFork(
@@ -2477,59 +1932,33 @@ class MockRepositoriesService extends _i1.Mock
     _i4.CreateFork? fork,
   ]) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #createFork,
-          [
-            slug,
-            fork,
-          ],
-        ),
-        returnValue: _i5.Future<_i4.Repository>.value(_FakeRepository_27(
-          this,
-          Invocation.method(
-            #createFork,
-            [
-              slug,
-              fork,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i4.Repository>);
+            Invocation.method(#createFork, [slug, fork]),
+            returnValue: _i5.Future<_i4.Repository>.value(
+              _FakeRepository_27(
+                this,
+                Invocation.method(#createFork, [slug, fork]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.Repository>);
 
   @override
   _i5.Stream<_i4.Hook> listHooks(_i4.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listHooks,
-          [slug],
-        ),
-        returnValue: _i5.Stream<_i4.Hook>.empty(),
-      ) as _i5.Stream<_i4.Hook>);
+            Invocation.method(#listHooks, [slug]),
+            returnValue: _i5.Stream<_i4.Hook>.empty(),
+          )
+          as _i5.Stream<_i4.Hook>);
 
   @override
-  _i5.Future<_i4.Hook> getHook(
-    _i4.RepositorySlug? slug,
-    int? id,
-  ) =>
+  _i5.Future<_i4.Hook> getHook(_i4.RepositorySlug? slug, int? id) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getHook,
-          [
-            slug,
-            id,
-          ],
-        ),
-        returnValue: _i5.Future<_i4.Hook>.value(_FakeHook_37(
-          this,
-          Invocation.method(
-            #getHook,
-            [
-              slug,
-              id,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i4.Hook>);
+            Invocation.method(#getHook, [slug, id]),
+            returnValue: _i5.Future<_i4.Hook>.value(
+              _FakeHook_37(this, Invocation.method(#getHook, [slug, id])),
+            ),
+          )
+          as _i5.Future<_i4.Hook>);
 
   @override
   _i5.Future<_i4.Hook> createHook(
@@ -2537,24 +1966,12 @@ class MockRepositoriesService extends _i1.Mock
     _i4.CreateHook? hook,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #createHook,
-          [
-            slug,
-            hook,
-          ],
-        ),
-        returnValue: _i5.Future<_i4.Hook>.value(_FakeHook_37(
-          this,
-          Invocation.method(
-            #createHook,
-            [
-              slug,
-              hook,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i4.Hook>);
+            Invocation.method(#createHook, [slug, hook]),
+            returnValue: _i5.Future<_i4.Hook>.value(
+              _FakeHook_37(this, Invocation.method(#createHook, [slug, hook])),
+            ),
+          )
+          as _i5.Future<_i4.Hook>);
 
   @override
   _i5.Future<_i4.Hook> editHook(
@@ -2570,102 +1987,73 @@ class MockRepositoriesService extends _i1.Mock
     bool? active,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #editHook,
-          [
-            slug,
-            hookToEdit,
-          ],
-          {
-            #configUrl: configUrl,
-            #configContentType: configContentType,
-            #configSecret: configSecret,
-            #configInsecureSsl: configInsecureSsl,
-            #events: events,
-            #addEvents: addEvents,
-            #removeEvents: removeEvents,
-            #active: active,
-          },
-        ),
-        returnValue: _i5.Future<_i4.Hook>.value(_FakeHook_37(
-          this,
-          Invocation.method(
-            #editHook,
-            [
-              slug,
-              hookToEdit,
-            ],
-            {
-              #configUrl: configUrl,
-              #configContentType: configContentType,
-              #configSecret: configSecret,
-              #configInsecureSsl: configInsecureSsl,
-              #events: events,
-              #addEvents: addEvents,
-              #removeEvents: removeEvents,
-              #active: active,
-            },
-          ),
-        )),
-      ) as _i5.Future<_i4.Hook>);
+            Invocation.method(
+              #editHook,
+              [slug, hookToEdit],
+              {
+                #configUrl: configUrl,
+                #configContentType: configContentType,
+                #configSecret: configSecret,
+                #configInsecureSsl: configInsecureSsl,
+                #events: events,
+                #addEvents: addEvents,
+                #removeEvents: removeEvents,
+                #active: active,
+              },
+            ),
+            returnValue: _i5.Future<_i4.Hook>.value(
+              _FakeHook_37(
+                this,
+                Invocation.method(
+                  #editHook,
+                  [slug, hookToEdit],
+                  {
+                    #configUrl: configUrl,
+                    #configContentType: configContentType,
+                    #configSecret: configSecret,
+                    #configInsecureSsl: configInsecureSsl,
+                    #events: events,
+                    #addEvents: addEvents,
+                    #removeEvents: removeEvents,
+                    #active: active,
+                  },
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.Hook>);
 
   @override
-  _i5.Future<bool> testPushHook(
-    _i4.RepositorySlug? slug,
-    int? id,
-  ) =>
+  _i5.Future<bool> testPushHook(_i4.RepositorySlug? slug, int? id) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #testPushHook,
-          [
-            slug,
-            id,
-          ],
-        ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+            Invocation.method(#testPushHook, [slug, id]),
+            returnValue: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
 
   @override
-  _i5.Future<bool> pingHook(
-    _i4.RepositorySlug? slug,
-    int? id,
-  ) =>
+  _i5.Future<bool> pingHook(_i4.RepositorySlug? slug, int? id) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #pingHook,
-          [
-            slug,
-            id,
-          ],
-        ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+            Invocation.method(#pingHook, [slug, id]),
+            returnValue: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
 
   @override
-  _i5.Future<bool> deleteHook(
-    _i4.RepositorySlug? slug,
-    int? id,
-  ) =>
+  _i5.Future<bool> deleteHook(_i4.RepositorySlug? slug, int? id) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #deleteHook,
-          [
-            slug,
-            id,
-          ],
-        ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+            Invocation.method(#deleteHook, [slug, id]),
+            returnValue: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
 
   @override
   _i5.Stream<_i4.PublicKey> listDeployKeys(_i4.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listDeployKeys,
-          [slug],
-        ),
-        returnValue: _i5.Stream<_i4.PublicKey>.empty(),
-      ) as _i5.Stream<_i4.PublicKey>);
+            Invocation.method(#listDeployKeys, [slug]),
+            returnValue: _i5.Stream<_i4.PublicKey>.empty(),
+          )
+          as _i5.Stream<_i4.PublicKey>);
 
   @override
   _i5.Future<_i4.PublicKey> getDeployKey(
@@ -2673,20 +2061,15 @@ class MockRepositoriesService extends _i1.Mock
     required int? id,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getDeployKey,
-          [slug],
-          {#id: id},
-        ),
-        returnValue: _i5.Future<_i4.PublicKey>.value(_FakePublicKey_38(
-          this,
-          Invocation.method(
-            #getDeployKey,
-            [slug],
-            {#id: id},
-          ),
-        )),
-      ) as _i5.Future<_i4.PublicKey>);
+            Invocation.method(#getDeployKey, [slug], {#id: id}),
+            returnValue: _i5.Future<_i4.PublicKey>.value(
+              _FakePublicKey_38(
+                this,
+                Invocation.method(#getDeployKey, [slug], {#id: id}),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.PublicKey>);
 
   @override
   _i5.Future<_i4.PublicKey> createDeployKey(
@@ -2694,24 +2077,15 @@ class MockRepositoriesService extends _i1.Mock
     _i4.CreatePublicKey? key,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #createDeployKey,
-          [
-            slug,
-            key,
-          ],
-        ),
-        returnValue: _i5.Future<_i4.PublicKey>.value(_FakePublicKey_38(
-          this,
-          Invocation.method(
-            #createDeployKey,
-            [
-              slug,
-              key,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i4.PublicKey>);
+            Invocation.method(#createDeployKey, [slug, key]),
+            returnValue: _i5.Future<_i4.PublicKey>.value(
+              _FakePublicKey_38(
+                this,
+                Invocation.method(#createDeployKey, [slug, key]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.PublicKey>);
 
   @override
   _i5.Future<bool> deleteDeployKey({
@@ -2719,16 +2093,10 @@ class MockRepositoriesService extends _i1.Mock
     required _i4.PublicKey? key,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #deleteDeployKey,
-          [],
-          {
-            #slug: slug,
-            #key: key,
-          },
-        ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+            Invocation.method(#deleteDeployKey, [], {#slug: slug, #key: key}),
+            returnValue: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
 
   @override
   _i5.Future<_i4.RepositoryCommit> merge(
@@ -2736,119 +2104,83 @@ class MockRepositoriesService extends _i1.Mock
     _i4.CreateMerge? merge,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #merge,
-          [
-            slug,
-            merge,
-          ],
-        ),
-        returnValue:
-            _i5.Future<_i4.RepositoryCommit>.value(_FakeRepositoryCommit_32(
-          this,
-          Invocation.method(
-            #merge,
-            [
-              slug,
-              merge,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i4.RepositoryCommit>);
+            Invocation.method(#merge, [slug, merge]),
+            returnValue: _i5.Future<_i4.RepositoryCommit>.value(
+              _FakeRepositoryCommit_32(
+                this,
+                Invocation.method(#merge, [slug, merge]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.RepositoryCommit>);
 
   @override
   _i5.Future<_i4.RepositoryPages> getPagesInfo(_i4.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getPagesInfo,
-          [slug],
-        ),
-        returnValue:
-            _i5.Future<_i4.RepositoryPages>.value(_FakeRepositoryPages_39(
-          this,
-          Invocation.method(
-            #getPagesInfo,
-            [slug],
-          ),
-        )),
-      ) as _i5.Future<_i4.RepositoryPages>);
+            Invocation.method(#getPagesInfo, [slug]),
+            returnValue: _i5.Future<_i4.RepositoryPages>.value(
+              _FakeRepositoryPages_39(
+                this,
+                Invocation.method(#getPagesInfo, [slug]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.RepositoryPages>);
 
   @override
   _i5.Stream<_i4.PageBuild> listPagesBuilds(_i4.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listPagesBuilds,
-          [slug],
-        ),
-        returnValue: _i5.Stream<_i4.PageBuild>.empty(),
-      ) as _i5.Stream<_i4.PageBuild>);
+            Invocation.method(#listPagesBuilds, [slug]),
+            returnValue: _i5.Stream<_i4.PageBuild>.empty(),
+          )
+          as _i5.Stream<_i4.PageBuild>);
 
   @override
   _i5.Future<_i4.PageBuild> getLatestPagesBuild(_i4.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getLatestPagesBuild,
-          [slug],
-        ),
-        returnValue: _i5.Future<_i4.PageBuild>.value(_FakePageBuild_40(
-          this,
-          Invocation.method(
-            #getLatestPagesBuild,
-            [slug],
-          ),
-        )),
-      ) as _i5.Future<_i4.PageBuild>);
+            Invocation.method(#getLatestPagesBuild, [slug]),
+            returnValue: _i5.Future<_i4.PageBuild>.value(
+              _FakePageBuild_40(
+                this,
+                Invocation.method(#getLatestPagesBuild, [slug]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.PageBuild>);
 
   @override
   _i5.Stream<_i4.Release> listReleases(_i4.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listReleases,
-          [slug],
-        ),
-        returnValue: _i5.Stream<_i4.Release>.empty(),
-      ) as _i5.Stream<_i4.Release>);
+            Invocation.method(#listReleases, [slug]),
+            returnValue: _i5.Stream<_i4.Release>.empty(),
+          )
+          as _i5.Stream<_i4.Release>);
 
   @override
   _i5.Future<_i4.Release> getLatestRelease(_i4.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getLatestRelease,
-          [slug],
-        ),
-        returnValue: _i5.Future<_i4.Release>.value(_FakeRelease_41(
-          this,
-          Invocation.method(
-            #getLatestRelease,
-            [slug],
-          ),
-        )),
-      ) as _i5.Future<_i4.Release>);
+            Invocation.method(#getLatestRelease, [slug]),
+            returnValue: _i5.Future<_i4.Release>.value(
+              _FakeRelease_41(
+                this,
+                Invocation.method(#getLatestRelease, [slug]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.Release>);
 
   @override
-  _i5.Future<_i4.Release> getReleaseById(
-    _i4.RepositorySlug? slug,
-    int? id,
-  ) =>
+  _i5.Future<_i4.Release> getReleaseById(_i4.RepositorySlug? slug, int? id) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getReleaseById,
-          [
-            slug,
-            id,
-          ],
-        ),
-        returnValue: _i5.Future<_i4.Release>.value(_FakeRelease_41(
-          this,
-          Invocation.method(
-            #getReleaseById,
-            [
-              slug,
-              id,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i4.Release>);
+            Invocation.method(#getReleaseById, [slug, id]),
+            returnValue: _i5.Future<_i4.Release>.value(
+              _FakeRelease_41(
+                this,
+                Invocation.method(#getReleaseById, [slug, id]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.Release>);
 
   @override
   _i5.Future<_i4.Release> getReleaseByTagName(
@@ -2856,24 +2188,15 @@ class MockRepositoriesService extends _i1.Mock
     String? tagName,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getReleaseByTagName,
-          [
-            slug,
-            tagName,
-          ],
-        ),
-        returnValue: _i5.Future<_i4.Release>.value(_FakeRelease_41(
-          this,
-          Invocation.method(
-            #getReleaseByTagName,
-            [
-              slug,
-              tagName,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i4.Release>);
+            Invocation.method(#getReleaseByTagName, [slug, tagName]),
+            returnValue: _i5.Future<_i4.Release>.value(
+              _FakeRelease_41(
+                this,
+                Invocation.method(#getReleaseByTagName, [slug, tagName]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.Release>);
 
   @override
   _i5.Future<_i4.Release> createRelease(
@@ -2882,26 +2205,23 @@ class MockRepositoriesService extends _i1.Mock
     bool? getIfExists = true,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #createRelease,
-          [
-            slug,
-            createRelease,
-          ],
-          {#getIfExists: getIfExists},
-        ),
-        returnValue: _i5.Future<_i4.Release>.value(_FakeRelease_41(
-          this,
-          Invocation.method(
-            #createRelease,
-            [
-              slug,
-              createRelease,
-            ],
-            {#getIfExists: getIfExists},
-          ),
-        )),
-      ) as _i5.Future<_i4.Release>);
+            Invocation.method(
+              #createRelease,
+              [slug, createRelease],
+              {#getIfExists: getIfExists},
+            ),
+            returnValue: _i5.Future<_i4.Release>.value(
+              _FakeRelease_41(
+                this,
+                Invocation.method(
+                  #createRelease,
+                  [slug, createRelease],
+                  {#getIfExists: getIfExists},
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.Release>);
 
   @override
   _i5.Future<_i4.Release> editRelease(
@@ -2915,40 +2235,37 @@ class MockRepositoriesService extends _i1.Mock
     bool? preRelease,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #editRelease,
-          [
-            slug,
-            releaseToEdit,
-          ],
-          {
-            #tagName: tagName,
-            #targetCommitish: targetCommitish,
-            #name: name,
-            #body: body,
-            #draft: draft,
-            #preRelease: preRelease,
-          },
-        ),
-        returnValue: _i5.Future<_i4.Release>.value(_FakeRelease_41(
-          this,
-          Invocation.method(
-            #editRelease,
-            [
-              slug,
-              releaseToEdit,
-            ],
-            {
-              #tagName: tagName,
-              #targetCommitish: targetCommitish,
-              #name: name,
-              #body: body,
-              #draft: draft,
-              #preRelease: preRelease,
-            },
-          ),
-        )),
-      ) as _i5.Future<_i4.Release>);
+            Invocation.method(
+              #editRelease,
+              [slug, releaseToEdit],
+              {
+                #tagName: tagName,
+                #targetCommitish: targetCommitish,
+                #name: name,
+                #body: body,
+                #draft: draft,
+                #preRelease: preRelease,
+              },
+            ),
+            returnValue: _i5.Future<_i4.Release>.value(
+              _FakeRelease_41(
+                this,
+                Invocation.method(
+                  #editRelease,
+                  [slug, releaseToEdit],
+                  {
+                    #tagName: tagName,
+                    #targetCommitish: targetCommitish,
+                    #name: name,
+                    #body: body,
+                    #draft: draft,
+                    #preRelease: preRelease,
+                  },
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.Release>);
 
   @override
   _i5.Future<bool> deleteRelease(
@@ -2956,15 +2273,10 @@ class MockRepositoriesService extends _i1.Mock
     _i4.Release? release,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #deleteRelease,
-          [
-            slug,
-            release,
-          ],
-        ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+            Invocation.method(#deleteRelease, [slug, release]),
+            returnValue: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
 
   @override
   _i5.Stream<_i4.ReleaseAsset> listReleaseAssets(
@@ -2972,15 +2284,10 @@ class MockRepositoriesService extends _i1.Mock
     _i4.Release? release,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listReleaseAssets,
-          [
-            slug,
-            release,
-          ],
-        ),
-        returnValue: _i5.Stream<_i4.ReleaseAsset>.empty(),
-      ) as _i5.Stream<_i4.ReleaseAsset>);
+            Invocation.method(#listReleaseAssets, [slug, release]),
+            returnValue: _i5.Stream<_i4.ReleaseAsset>.empty(),
+          )
+          as _i5.Stream<_i4.ReleaseAsset>);
 
   @override
   _i5.Future<_i4.ReleaseAsset> getReleaseAsset(
@@ -2989,26 +2296,23 @@ class MockRepositoriesService extends _i1.Mock
     required int? assetId,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getReleaseAsset,
-          [
-            slug,
-            release,
-          ],
-          {#assetId: assetId},
-        ),
-        returnValue: _i5.Future<_i4.ReleaseAsset>.value(_FakeReleaseAsset_42(
-          this,
-          Invocation.method(
-            #getReleaseAsset,
-            [
-              slug,
-              release,
-            ],
-            {#assetId: assetId},
-          ),
-        )),
-      ) as _i5.Future<_i4.ReleaseAsset>);
+            Invocation.method(
+              #getReleaseAsset,
+              [slug, release],
+              {#assetId: assetId},
+            ),
+            returnValue: _i5.Future<_i4.ReleaseAsset>.value(
+              _FakeReleaseAsset_42(
+                this,
+                Invocation.method(
+                  #getReleaseAsset,
+                  [slug, release],
+                  {#assetId: assetId},
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.ReleaseAsset>);
 
   @override
   _i5.Future<_i4.ReleaseAsset> editReleaseAsset(
@@ -3018,32 +2322,23 @@ class MockRepositoriesService extends _i1.Mock
     String? label,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #editReleaseAsset,
-          [
-            slug,
-            assetToEdit,
-          ],
-          {
-            #name: name,
-            #label: label,
-          },
-        ),
-        returnValue: _i5.Future<_i4.ReleaseAsset>.value(_FakeReleaseAsset_42(
-          this,
-          Invocation.method(
-            #editReleaseAsset,
-            [
-              slug,
-              assetToEdit,
-            ],
-            {
-              #name: name,
-              #label: label,
-            },
-          ),
-        )),
-      ) as _i5.Future<_i4.ReleaseAsset>);
+            Invocation.method(
+              #editReleaseAsset,
+              [slug, assetToEdit],
+              {#name: name, #label: label},
+            ),
+            returnValue: _i5.Future<_i4.ReleaseAsset>.value(
+              _FakeReleaseAsset_42(
+                this,
+                Invocation.method(
+                  #editReleaseAsset,
+                  [slug, assetToEdit],
+                  {#name: name, #label: label},
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.ReleaseAsset>);
 
   @override
   _i5.Future<bool> deleteReleaseAsset(
@@ -3051,15 +2346,10 @@ class MockRepositoriesService extends _i1.Mock
     _i4.ReleaseAsset? asset,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #deleteReleaseAsset,
-          [
-            slug,
-            asset,
-          ],
-        ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+            Invocation.method(#deleteReleaseAsset, [slug, asset]),
+            returnValue: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
 
   @override
   _i5.Future<List<_i4.ReleaseAsset>> uploadReleaseAssets(
@@ -3067,78 +2357,70 @@ class MockRepositoriesService extends _i1.Mock
     Iterable<_i4.CreateReleaseAsset>? createReleaseAssets,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #uploadReleaseAssets,
-          [
-            release,
-            createReleaseAssets,
-          ],
-        ),
-        returnValue:
-            _i5.Future<List<_i4.ReleaseAsset>>.value(<_i4.ReleaseAsset>[]),
-      ) as _i5.Future<List<_i4.ReleaseAsset>>);
+            Invocation.method(#uploadReleaseAssets, [
+              release,
+              createReleaseAssets,
+            ]),
+            returnValue: _i5.Future<List<_i4.ReleaseAsset>>.value(
+              <_i4.ReleaseAsset>[],
+            ),
+          )
+          as _i5.Future<List<_i4.ReleaseAsset>>);
 
   @override
   _i5.Future<List<_i4.ContributorStatistics>> listContributorStats(
-          _i4.RepositorySlug? slug) =>
+    _i4.RepositorySlug? slug,
+  ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listContributorStats,
-          [slug],
-        ),
-        returnValue: _i5.Future<List<_i4.ContributorStatistics>>.value(
-            <_i4.ContributorStatistics>[]),
-      ) as _i5.Future<List<_i4.ContributorStatistics>>);
+            Invocation.method(#listContributorStats, [slug]),
+            returnValue: _i5.Future<List<_i4.ContributorStatistics>>.value(
+              <_i4.ContributorStatistics>[],
+            ),
+          )
+          as _i5.Future<List<_i4.ContributorStatistics>>);
 
   @override
   _i5.Stream<_i4.YearCommitCountWeek> listCommitActivity(
-          _i4.RepositorySlug? slug) =>
+    _i4.RepositorySlug? slug,
+  ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listCommitActivity,
-          [slug],
-        ),
-        returnValue: _i5.Stream<_i4.YearCommitCountWeek>.empty(),
-      ) as _i5.Stream<_i4.YearCommitCountWeek>);
+            Invocation.method(#listCommitActivity, [slug]),
+            returnValue: _i5.Stream<_i4.YearCommitCountWeek>.empty(),
+          )
+          as _i5.Stream<_i4.YearCommitCountWeek>);
 
   @override
   _i5.Stream<_i4.WeeklyChangesCount> listCodeFrequency(
-          _i4.RepositorySlug? slug) =>
+    _i4.RepositorySlug? slug,
+  ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listCodeFrequency,
-          [slug],
-        ),
-        returnValue: _i5.Stream<_i4.WeeklyChangesCount>.empty(),
-      ) as _i5.Stream<_i4.WeeklyChangesCount>);
+            Invocation.method(#listCodeFrequency, [slug]),
+            returnValue: _i5.Stream<_i4.WeeklyChangesCount>.empty(),
+          )
+          as _i5.Stream<_i4.WeeklyChangesCount>);
 
   @override
   _i5.Future<_i4.ContributorParticipation> getParticipation(
-          _i4.RepositorySlug? slug) =>
+    _i4.RepositorySlug? slug,
+  ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getParticipation,
-          [slug],
-        ),
-        returnValue: _i5.Future<_i4.ContributorParticipation>.value(
-            _FakeContributorParticipation_43(
-          this,
-          Invocation.method(
-            #getParticipation,
-            [slug],
-          ),
-        )),
-      ) as _i5.Future<_i4.ContributorParticipation>);
+            Invocation.method(#getParticipation, [slug]),
+            returnValue: _i5.Future<_i4.ContributorParticipation>.value(
+              _FakeContributorParticipation_43(
+                this,
+                Invocation.method(#getParticipation, [slug]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.ContributorParticipation>);
 
   @override
   _i5.Stream<_i4.PunchcardEntry> listPunchcard(_i4.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listPunchcard,
-          [slug],
-        ),
-        returnValue: _i5.Stream<_i4.PunchcardEntry>.empty(),
-      ) as _i5.Stream<_i4.PunchcardEntry>);
+            Invocation.method(#listPunchcard, [slug]),
+            returnValue: _i5.Stream<_i4.PunchcardEntry>.empty(),
+          )
+          as _i5.Stream<_i4.PunchcardEntry>);
 
   @override
   _i5.Stream<_i4.RepositoryStatus> listStatuses(
@@ -3146,15 +2428,10 @@ class MockRepositoriesService extends _i1.Mock
     String? ref,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #listStatuses,
-          [
-            slug,
-            ref,
-          ],
-        ),
-        returnValue: _i5.Stream<_i4.RepositoryStatus>.empty(),
-      ) as _i5.Stream<_i4.RepositoryStatus>);
+            Invocation.method(#listStatuses, [slug, ref]),
+            returnValue: _i5.Stream<_i4.RepositoryStatus>.empty(),
+          )
+          as _i5.Stream<_i4.RepositoryStatus>);
 
   @override
   _i5.Future<_i4.RepositoryStatus> createStatus(
@@ -3163,27 +2440,15 @@ class MockRepositoriesService extends _i1.Mock
     _i4.CreateStatus? request,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #createStatus,
-          [
-            slug,
-            ref,
-            request,
-          ],
-        ),
-        returnValue:
-            _i5.Future<_i4.RepositoryStatus>.value(_FakeRepositoryStatus_44(
-          this,
-          Invocation.method(
-            #createStatus,
-            [
-              slug,
-              ref,
-              request,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i4.RepositoryStatus>);
+            Invocation.method(#createStatus, [slug, ref, request]),
+            returnValue: _i5.Future<_i4.RepositoryStatus>.value(
+              _FakeRepositoryStatus_44(
+                this,
+                Invocation.method(#createStatus, [slug, ref, request]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.RepositoryStatus>);
 
   @override
   _i5.Future<_i4.CombinedRepositoryStatus> getCombinedStatus(
@@ -3191,42 +2456,30 @@ class MockRepositoriesService extends _i1.Mock
     String? ref,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getCombinedStatus,
-          [
-            slug,
-            ref,
-          ],
-        ),
-        returnValue: _i5.Future<_i4.CombinedRepositoryStatus>.value(
-            _FakeCombinedRepositoryStatus_45(
-          this,
-          Invocation.method(
-            #getCombinedStatus,
-            [
-              slug,
-              ref,
-            ],
-          ),
-        )),
-      ) as _i5.Future<_i4.CombinedRepositoryStatus>);
+            Invocation.method(#getCombinedStatus, [slug, ref]),
+            returnValue: _i5.Future<_i4.CombinedRepositoryStatus>.value(
+              _FakeCombinedRepositoryStatus_45(
+                this,
+                Invocation.method(#getCombinedStatus, [slug, ref]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.CombinedRepositoryStatus>);
 
   @override
   _i5.Future<_i4.ReleaseNotes> generateReleaseNotes(
-          _i4.CreateReleaseNotes? crn) =>
+    _i4.CreateReleaseNotes? crn,
+  ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #generateReleaseNotes,
-          [crn],
-        ),
-        returnValue: _i5.Future<_i4.ReleaseNotes>.value(_FakeReleaseNotes_46(
-          this,
-          Invocation.method(
-            #generateReleaseNotes,
-            [crn],
-          ),
-        )),
-      ) as _i5.Future<_i4.ReleaseNotes>);
+            Invocation.method(#generateReleaseNotes, [crn]),
+            returnValue: _i5.Future<_i4.ReleaseNotes>.value(
+              _FakeReleaseNotes_46(
+                this,
+                Invocation.method(#generateReleaseNotes, [crn]),
+              ),
+            ),
+          )
+          as _i5.Future<_i4.ReleaseNotes>);
 }
 
 /// A class which mocks [GitHubComparison].
@@ -3239,75 +2492,53 @@ class MockGitHubComparison extends _i1.Mock implements _i4.GitHubComparison {
 
   @override
   set url(String? _url) => super.noSuchMethod(
-        Invocation.setter(
-          #url,
-          _url,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#url, _url),
+    returnValueForMissingStub: null,
+  );
 
   @override
   set status(String? _status) => super.noSuchMethod(
-        Invocation.setter(
-          #status,
-          _status,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#status, _status),
+    returnValueForMissingStub: null,
+  );
 
   @override
   set aheadBy(int? _aheadBy) => super.noSuchMethod(
-        Invocation.setter(
-          #aheadBy,
-          _aheadBy,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#aheadBy, _aheadBy),
+    returnValueForMissingStub: null,
+  );
 
   @override
   set behindBy(int? _behindBy) => super.noSuchMethod(
-        Invocation.setter(
-          #behindBy,
-          _behindBy,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#behindBy, _behindBy),
+    returnValueForMissingStub: null,
+  );
 
   @override
   set totalCommits(int? _totalCommits) => super.noSuchMethod(
-        Invocation.setter(
-          #totalCommits,
-          _totalCommits,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#totalCommits, _totalCommits),
+    returnValueForMissingStub: null,
+  );
 
   @override
   set files(List<_i4.CommitFile>? _files) => super.noSuchMethod(
-        Invocation.setter(
-          #files,
-          _files,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#files, _files),
+    returnValueForMissingStub: null,
+  );
 
   @override
   set commits(List<_i4.RepositoryCommit>? _commits) => super.noSuchMethod(
-        Invocation.setter(
-          #commits,
-          _commits,
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.setter(#commits, _commits),
+    returnValueForMissingStub: null,
+  );
 
   @override
-  Map<String, dynamic> toJson() => (super.noSuchMethod(
-        Invocation.method(
-          #toJson,
-          [],
-        ),
-        returnValue: <String, dynamic>{},
-      ) as Map<String, dynamic>);
+  Map<String, dynamic> toJson() =>
+      (super.noSuchMethod(
+            Invocation.method(#toJson, []),
+            returnValue: <String, dynamic>{},
+          )
+          as Map<String, dynamic>);
 }
 
 /// A class which mocks [Response].
@@ -3319,41 +2550,44 @@ class MockResponse extends _i1.Mock implements _i2.Response {
   }
 
   @override
-  _i9.Uint8List get bodyBytes => (super.noSuchMethod(
-        Invocation.getter(#bodyBytes),
-        returnValue: _i9.Uint8List(0),
-      ) as _i9.Uint8List);
+  _i9.Uint8List get bodyBytes =>
+      (super.noSuchMethod(
+            Invocation.getter(#bodyBytes),
+            returnValue: _i9.Uint8List(0),
+          )
+          as _i9.Uint8List);
 
   @override
-  String get body => (super.noSuchMethod(
-        Invocation.getter(#body),
-        returnValue: _i8.dummyValue<String>(
-          this,
-          Invocation.getter(#body),
-        ),
-      ) as String);
+  String get body =>
+      (super.noSuchMethod(
+            Invocation.getter(#body),
+            returnValue: _i8.dummyValue<String>(this, Invocation.getter(#body)),
+          )
+          as String);
 
   @override
-  int get statusCode => (super.noSuchMethod(
-        Invocation.getter(#statusCode),
-        returnValue: 0,
-      ) as int);
+  int get statusCode =>
+      (super.noSuchMethod(Invocation.getter(#statusCode), returnValue: 0)
+          as int);
 
   @override
-  Map<String, String> get headers => (super.noSuchMethod(
-        Invocation.getter(#headers),
-        returnValue: <String, String>{},
-      ) as Map<String, String>);
+  Map<String, String> get headers =>
+      (super.noSuchMethod(
+            Invocation.getter(#headers),
+            returnValue: <String, String>{},
+          )
+          as Map<String, String>);
 
   @override
-  bool get isRedirect => (super.noSuchMethod(
-        Invocation.getter(#isRedirect),
-        returnValue: false,
-      ) as bool);
+  bool get isRedirect =>
+      (super.noSuchMethod(Invocation.getter(#isRedirect), returnValue: false)
+          as bool);
 
   @override
-  bool get persistentConnection => (super.noSuchMethod(
-        Invocation.getter(#persistentConnection),
-        returnValue: false,
-      ) as bool);
+  bool get persistentConnection =>
+      (super.noSuchMethod(
+            Invocation.getter(#persistentConnection),
+            returnValue: false,
+          )
+          as bool);
 }

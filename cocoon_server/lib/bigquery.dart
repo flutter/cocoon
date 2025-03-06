@@ -75,22 +75,10 @@ class BigqueryService {
           'ORGANIZATION',
           pullRequestRecord.organization,
         ),
-        _createStringQueryParameter(
-          'REPOSITORY',
-          pullRequestRecord.repository,
-        ),
-        _createStringQueryParameter(
-          'AUTHOR',
-          pullRequestRecord.author,
-        ),
-        _createIntegerQueryParameter(
-          'PR_NUMBER',
-          pullRequestRecord.prNumber,
-        ),
-        _createStringQueryParameter(
-          'PR_COMMIT',
-          pullRequestRecord.prCommit,
-        ),
+        _createStringQueryParameter('REPOSITORY', pullRequestRecord.repository),
+        _createStringQueryParameter('AUTHOR', pullRequestRecord.author),
+        _createIntegerQueryParameter('PR_NUMBER', pullRequestRecord.prNumber),
+        _createStringQueryParameter('PR_COMMIT', pullRequestRecord.prCommit),
         _createStringQueryParameter(
           'PR_REQUEST_TYPE',
           pullRequestRecord.prRequestType,
