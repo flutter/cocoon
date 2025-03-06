@@ -108,7 +108,7 @@ const String jsonGetBranchesResponse = '''[
     "channel":"dev"
   },
   {
-    "reference":"HEAD",
+    "reference":"master",
     "channel":"master"
   }
 ]''';

@@ -274,7 +274,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
               .where((Branch b) => b.branch != buildState.currentBranch)
               .map<DropdownMenuItem<String>>((Branch b) {
                 final branchPrefix =
-                    (b.channel != 'HEAD') ? '${b.channel}: ' : '';
+                    (b.channel != 'master') ? '${b.channel}: ' : '';
                 return DropdownMenuItem<String>(
                   value: b.branch,
                   child: Padding(

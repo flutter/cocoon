@@ -102,7 +102,7 @@ void main() {
           slug: Config.flutterSlug,
         );
         expect(releaseBranches, [
-          const ReleaseBranch(channel: 'master', reference: 'HEAD'),
+          const ReleaseBranch(channel: 'master', reference: 'master'),
         ]);
       },
     );
@@ -122,7 +122,7 @@ void main() {
         expect(
           releaseBranches,
           unorderedEquals([
-            const ReleaseBranch(channel: 'master', reference: 'HEAD'),
+            const ReleaseBranch(channel: 'master', reference: 'master'),
             const ReleaseBranch(
               channel: 'stable',
               reference: 'flutter-3.29-candidate.0',
@@ -150,7 +150,7 @@ void main() {
         expect(
           releaseBranches,
           unorderedEquals([
-            const ReleaseBranch(channel: 'master', reference: 'HEAD'),
+            const ReleaseBranch(channel: 'master', reference: 'master'),
             const ReleaseBranch(
               channel: 'stable',
               reference: 'flutter-3.29-candidate.0',
