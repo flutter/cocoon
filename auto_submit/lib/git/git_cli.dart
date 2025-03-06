@@ -35,7 +35,7 @@ class GitCli {
 
   /// Check to see if the current directory is a git repository.
   Future<bool> isGitRepository(String directory) async {
-    final ProcessResult processResult = await _cliCommand.runCliCommand(
+    final processResult = await _cliCommand.runCliCommand(
       executable: git,
       arguments: <String>[
         'rev-parse',
@@ -57,7 +57,7 @@ class GitCli {
     List<String>? options,
     bool throwOnError = true,
   }) async {
-    final List<String> clone = <String>[
+    final clone = <String>[
       'clone',
       '$repositoryPrefix${slug.fullName}',
       targetDirectory,
@@ -65,7 +65,7 @@ class GitCli {
     if (options != null) {
       clone.addAll(options);
     }
-    final ProcessResult processResult = await _cliCommand.runCliCommand(
+    final processResult = await _cliCommand.runCliCommand(
       executable: git,
       arguments: clone,
       workingDirectory: workingDirectory,
@@ -178,7 +178,7 @@ class GitCli {
     required String pullMethod,
     bool throwOnError = true,
   }) async {
-    final ProcessResult processResult = await _cliCommand.runCliCommand(
+    final processResult = await _cliCommand.runCliCommand(
       executable: git,
       arguments: <String>[
         'pull',

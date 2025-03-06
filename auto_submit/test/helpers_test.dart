@@ -11,17 +11,22 @@ import 'package:test/test.dart';
 void main() {
   group('LoggingHandler', () {
     test('Calls the delegate', () async {
-      bool called = false;
+      var called = false;
       final loggingHandler = LoggingHandler((request) async {
         called = true;
         return Response.ok('Delegate called with: ${request.requestedUri}');
       });
 
-      final response = await loggingHandler.handle(Request('get', Uri.parse('http://localhost/foo/bar')));
+      final response = await loggingHandler.handle(
+        Request('get', Uri.parse('http://localhost/foo/bar')),
+      );
 
       expect(called, isTrue);
       expect(response.statusCode, 200);
-      expect(await response.readAsString(), 'Delegate called with: http://localhost/foo/bar');
+      expect(
+        await response.readAsString(),
+        'Delegate called with: http://localhost/foo/bar',
+      );
     });
 
     test('Logs errors from the delegate and rethrows the exception', () async {
@@ -30,13 +35,13 @@ void main() {
       });
 
       final logRecords = <LogRecord>[];
-      final logSubscription = log.onRecord.listen((record) {
-        logRecords.add(record);
-      });
+      final logSubscription = log.onRecord.listen(logRecords.add);
 
       Object? caughtError;
       try {
-        await loggingHandler.handle(Request('get', Uri.parse('http://localhost/foo/bar')));
+        await loggingHandler.handle(
+          Request('get', Uri.parse('http://localhost/foo/bar')),
+        );
       } catch (error) {
         caughtError = error;
       }

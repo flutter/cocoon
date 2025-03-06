@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io' show ContentType, HttpResponse;
+import 'dart:io' show ContentType;
 import 'dart:typed_data';
 
 import 'package:file/file.dart';
@@ -34,24 +34,25 @@ class StaticFileHandler extends RequestHandler<Body> {
   /// Services an HTTP GET Request for static files.
   @override
   Future<Body> get() async {
-    final HttpResponse response = request!.response;
+    final response = request!.response;
 
     /// The map of mimeTypes not found in [mime] package.
-    final Map<String, String> mimeTypeMap = <String, String>{
+    final mimeTypeMap = <String, String>{
       '.map': 'application/json',
       '': 'text/plain',
       '.smcbin': 'application/octet-stream',
     };
 
-    final String resultPath = filePath == '/' ? '/index.html' : filePath;
+    final resultPath = filePath == '/' ? '/index.html' : filePath;
 
     /// The file path in app_dart to the files to serve
-    const String basePath = 'build/web';
-    final File file = fs.file('$basePath$resultPath');
+    const basePath = 'build/web';
+    final file = fs.file('$basePath$resultPath');
     if (file.existsSync()) {
-      final String mimeType = mimeTypeMap.containsKey(path.extension(file.path))
-          ? mimeTypeMap[path.extension(file.path)]!
-          : lookupMimeType(resultPath)!;
+      final mimeType =
+          mimeTypeMap.containsKey(path.extension(file.path))
+              ? mimeTypeMap[path.extension(file.path)]!
+              : lookupMimeType(resultPath)!;
       response.headers.contentType = ContentType.parse(mimeType);
       return Body.forStream(file.openRead().cast<Uint8List>());
     } else {

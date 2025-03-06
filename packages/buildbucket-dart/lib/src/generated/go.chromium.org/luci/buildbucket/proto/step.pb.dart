@@ -35,11 +35,14 @@ class Step_MergeBuild extends $pb.GeneratedMessage {
   factory Step_MergeBuild.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Step_MergeBuild.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Step_MergeBuild.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Step.MergeBuild',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Step.MergeBuild',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'fromLogdogStream')
     ..aOB(2, _omitFieldNames ? '' : 'legacyGlobalNamespace')
     ..hasRequiredFields = false;
@@ -52,17 +55,19 @@ class Step_MergeBuild extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   Step_MergeBuild copyWith(void Function(Step_MergeBuild) updates) =>
-      super.copyWith((message) => updates(message as Step_MergeBuild)) as Step_MergeBuild;
+      super.copyWith((message) => updates(message as Step_MergeBuild))
+          as Step_MergeBuild;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static Step_MergeBuild create() => Step_MergeBuild._();
   Step_MergeBuild createEmptyInstance() => create();
-  static $pb.PbList<Step_MergeBuild> createRepeated() => $pb.PbList<Step_MergeBuild>();
+  static $pb.PbList<Step_MergeBuild> createRepeated() =>
+      $pb.PbList<Step_MergeBuild>();
   @$core.pragma('dart2js:noInline')
-  static Step_MergeBuild getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Step_MergeBuild>(create);
+  static Step_MergeBuild getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<Step_MergeBuild>(create);
   static Step_MergeBuild? _defaultInstance;
 
   ///  If set, then this stream is expected to be a datagram stream
@@ -157,22 +162,33 @@ class Step extends $pb.GeneratedMessage {
     return $result;
   }
   Step._() : super();
-  factory Step.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Step.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Step.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Step.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Step',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Step',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
-    ..aOM<$0.Timestamp>(2, _omitFieldNames ? '' : 'startTime', subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(3, _omitFieldNames ? '' : 'endTime', subBuilder: $0.Timestamp.create)
+    ..aOM<$0.Timestamp>(2, _omitFieldNames ? '' : 'startTime',
+        subBuilder: $0.Timestamp.create)
+    ..aOM<$0.Timestamp>(3, _omitFieldNames ? '' : 'endTime',
+        subBuilder: $0.Timestamp.create)
     ..e<$1.Status>(4, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE,
-        defaultOrMaker: $1.Status.STATUS_UNSPECIFIED, valueOf: $1.Status.valueOf, enumValues: $1.Status.values)
-    ..pc<$1.Log>(5, _omitFieldNames ? '' : 'logs', $pb.PbFieldType.PM, subBuilder: $1.Log.create)
-    ..aOM<Step_MergeBuild>(6, _omitFieldNames ? '' : 'mergeBuild', subBuilder: Step_MergeBuild.create)
+        defaultOrMaker: $1.Status.STATUS_UNSPECIFIED,
+        valueOf: $1.Status.valueOf,
+        enumValues: $1.Status.values)
+    ..pc<$1.Log>(5, _omitFieldNames ? '' : 'logs', $pb.PbFieldType.PM,
+        subBuilder: $1.Log.create)
+    ..aOM<Step_MergeBuild>(6, _omitFieldNames ? '' : 'mergeBuild',
+        subBuilder: Step_MergeBuild.create)
     ..aOS(7, _omitFieldNames ? '' : 'summaryMarkdown')
-    ..pc<$1.StringPair>(8, _omitFieldNames ? '' : 'tags', $pb.PbFieldType.PM, subBuilder: $1.StringPair.create)
+    ..pc<$1.StringPair>(8, _omitFieldNames ? '' : 'tags', $pb.PbFieldType.PM,
+        subBuilder: $1.StringPair.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -182,7 +198,8 @@ class Step extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  Step copyWith(void Function(Step) updates) => super.copyWith((message) => updates(message as Step)) as Step;
+  Step copyWith(void Function(Step) updates) =>
+      super.copyWith((message) => updates(message as Step)) as Step;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -191,7 +208,8 @@ class Step extends $pb.GeneratedMessage {
   Step createEmptyInstance() => create();
   static $pb.PbList<Step> createRepeated() => $pb.PbList<Step>();
   @$core.pragma('dart2js:noInline')
-  static Step getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Step>(create);
+  static Step getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Step>(create);
   static Step? _defaultInstance;
 
   ///  Name of the step, unique within the build.
@@ -341,4 +359,5 @@ class Step extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

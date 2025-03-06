@@ -23,6 +23,6 @@ const Timestamp$json = {
 };
 
 /// Descriptor for `Timestamp`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List timestampDescriptor =
-    $convert.base64Decode('CglUaW1lc3RhbXASGAoHc2Vjb25kcxgBIAEoA1IHc2Vjb25kcxIUCgVuYW5vcxgCIAEoBVIFbm'
-        'Fub3M=');
+final $typed_data.Uint8List timestampDescriptor = $convert.base64Decode(
+    'CglUaW1lc3RhbXASGAoHc2Vjb25kcxgBIAEoA1IHc2Vjb25kcxIUCgVuYW5vcxgCIAEoBVIFbm'
+    'Fub3M=');

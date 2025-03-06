@@ -12,23 +12,29 @@ Stage buildStage({
   String name = 'stage',
   List<String> statuses = const <String>[Task.statusNew],
 }) {
-  final Iterable<Task> tasks = statuses.map<Task>((String status) => generateTask(1, status: status));
-  final StageBuilder builder = StageBuilder()
-    ..name = name
-    ..commit = generateCommit(1)
-    ..tasks.addAll(tasks);
+  final tasks = statuses.map<Task>(
+    (String status) => generateTask(1, status: status),
+  );
+  final builder =
+      StageBuilder()
+        ..name = name
+        ..commit = generateCommit(1)
+        ..tasks.addAll(tasks);
   return builder.build();
 }
 
 void main() {
   group('Stage', () {
     test('ordering', () {
-      final List<Stage> stages = <Stage>[
+      final stages = <Stage>[
         buildStage(name: 'devicelab'),
         buildStage(name: 'unknown'),
       ];
       stages.sort();
-      expect(stages.map<String?>((Stage stage) => stage.name), <String>['devicelab', 'unknown']);
+      expect(stages.map<String?>((Stage stage) => stage.name), <String>[
+        'devicelab',
+        'unknown',
+      ]);
     });
 
     test('isManagedByDeviceLab', () {
@@ -38,11 +44,7 @@ void main() {
 
     test('taskStatus', () {
       expect(
-        buildStage(
-          statuses: <String>[
-            Task.statusSucceeded,
-          ],
-        ).taskStatus,
+        buildStage(statuses: <String>[Task.statusSucceeded]).taskStatus,
         Task.statusSucceeded,
       );
       expect(
@@ -57,11 +59,7 @@ void main() {
       );
       expect(
         buildStage(
-          statuses: <String>[
-            Task.statusNew,
-            Task.statusFailed,
-            Task.statusNew,
-          ],
+          statuses: <String>[Task.statusNew, Task.statusFailed, Task.statusNew],
         ).taskStatus,
         Task.statusFailed,
       );
@@ -128,28 +126,19 @@ void main() {
       );
       expect(
         buildStage(
-          statuses: <String>[
-            Task.statusNew,
-            Task.statusNew,
-          ],
+          statuses: <String>[Task.statusNew, Task.statusNew],
         ).taskStatus,
         Task.statusNew,
       );
       expect(
         buildStage(
-          statuses: <String>[
-            Task.statusInProgress,
-            Task.statusInProgress,
-          ],
+          statuses: <String>[Task.statusInProgress, Task.statusInProgress],
         ).taskStatus,
         Task.statusInProgress,
       );
       expect(
         buildStage(
-          statuses: <String>[
-            Task.statusSucceeded,
-            Task.statusSucceeded,
-          ],
+          statuses: <String>[Task.statusSucceeded, Task.statusSucceeded],
         ).taskStatus,
         Task.statusSucceeded,
       );
@@ -160,12 +149,16 @@ void main() {
     test('validates state of the stage', () {
       expect(() => StageBuilder().build(), throwsStateError);
       expect(() => (StageBuilder()..name = 'name').build(), throwsStateError);
-      expect(() => (StageBuilder()..commit = generateCommit(1)).build(), throwsStateError);
       expect(
-        () => (StageBuilder()
-              ..name = 'name'
-              ..commit = generateCommit(1))
-            .build(),
+        () => (StageBuilder()..commit = generateCommit(1)).build(),
+        throwsStateError,
+      );
+      expect(
+        () =>
+            (StageBuilder()
+                  ..name = 'name'
+                  ..commit = generateCommit(1))
+                .build(),
         throwsStateError,
       );
     });

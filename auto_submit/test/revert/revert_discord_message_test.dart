@@ -15,7 +15,7 @@ void main() {
     String reasonForRevert,
     String realOutput,
   ) {
-    final String expectedFormattedOutput = '''
+    final expectedFormattedOutput = '''
 Pull Request [$originalPrDisplayText](<$originalPrUrl>) has been reverted by $initiatingAuthor.
 Please see the revert PR here: [$revertPrDisplayText](<$revertPrUrl>).
 Reason for reverting: $reasonForRevert''';
@@ -23,12 +23,13 @@ Reason for reverting: $reasonForRevert''';
   }
 
   test('generateMessage truncates content when necessary', () {
-    const String originalPrUrl = 'https://example.com/pr/1';
-    const String originalPrDisplayText = 'flutter/coconut#1234';
-    const String revertPrUrl = 'https://example.com/pr/2';
-    const String revertPrDisplayText = 'flutter/coconut#1235';
-    const String initiatingAuthor = 'John Doe';
-    const String reasonForRevert = '''Test failed very long reason that will exceed the character limit
+    const originalPrUrl = 'https://example.com/pr/1';
+    const originalPrDisplayText = 'flutter/coconut#1234';
+    const revertPrUrl = 'https://example.com/pr/2';
+    const revertPrDisplayText = 'flutter/coconut#1235';
+    const initiatingAuthor = 'John Doe';
+    const reasonForRevert =
+        '''Test failed very long reason that will exceed the character limit
      very long reason that will exceed the character limit
      very long reason that will exceed the character limit
      very long reason that will exceed the character limit
@@ -65,7 +66,7 @@ Reason for reverting: $reasonForRevert''';
      very long reason that will exceed the character limit
      ''';
 
-    final RevertDiscordMessage message = RevertDiscordMessage.generateMessage(
+    final message = RevertDiscordMessage.generateMessage(
       originalPrUrl,
       originalPrDisplayText,
       revertPrUrl,
@@ -78,14 +79,14 @@ Reason for reverting: $reasonForRevert''';
   });
 
   test('generateMessage does not truncate short content', () {
-    const String originalPrUrl = 'https://example.com/pr/1';
-    const String originalPrDisplayText = 'flutter/coconut#1234';
-    const String revertPrUrl = 'https://example.com/pr/2';
-    const String revertPrDisplayText = 'flutter/coconut#1235';
-    const String initiatingAuthor = 'John Doe';
-    const String reasonForRevert = 'Test failed';
+    const originalPrUrl = 'https://example.com/pr/1';
+    const originalPrDisplayText = 'flutter/coconut#1234';
+    const revertPrUrl = 'https://example.com/pr/2';
+    const revertPrDisplayText = 'flutter/coconut#1235';
+    const initiatingAuthor = 'John Doe';
+    const reasonForRevert = 'Test failed';
 
-    final RevertDiscordMessage message = RevertDiscordMessage.generateMessage(
+    final message = RevertDiscordMessage.generateMessage(
       originalPrUrl,
       originalPrDisplayText,
       revertPrUrl,
@@ -106,14 +107,14 @@ Reason for reverting: $reasonForRevert''';
   });
 
   test('RevertDiscordMessage generates a RevertDiscordMessage', () {
-    const String originalPrUrl = 'https://example.com/pr/1';
-    const String originalPrDisplayText = 'flutter/coconut#1234';
-    const String revertPrUrl = 'https://example.com/pr/2';
-    const String revertPrDisplayText = 'flutter/coconut#1235';
-    const String initiatingAuthor = 'John Doe';
-    const String reasonForRevert = 'Test failed';
+    const originalPrUrl = 'https://example.com/pr/1';
+    const originalPrDisplayText = 'flutter/coconut#1234';
+    const revertPrUrl = 'https://example.com/pr/2';
+    const revertPrDisplayText = 'flutter/coconut#1235';
+    const initiatingAuthor = 'John Doe';
+    const reasonForRevert = 'Test failed';
 
-    final RevertDiscordMessage message = RevertDiscordMessage.generateMessage(
+    final message = RevertDiscordMessage.generateMessage(
       originalPrUrl,
       originalPrDisplayText,
       revertPrUrl,

@@ -11,10 +11,13 @@ import 'package:test/test.dart';
 // Statically reference something from the Cocoon library to keep the analyzer
 // happy that we're importing it (which we're doing so the mirrors system sees
 // the library).
+// ignore: unreachable_from_main
 const Type libraryReference = Config;
 
-bool isKind(InstanceMirror annotation) => annotation.reflectee.runtimeType == Kind;
-bool isProperty(InstanceMirror annotation) => SymbolName(annotation.type.simpleName).toString().endsWith('Property');
+bool isKind(InstanceMirror annotation) =>
+    annotation.reflectee.runtimeType == Kind;
+bool isProperty(InstanceMirror annotation) =>
+    SymbolName(annotation.type.simpleName).toString().endsWith('Property');
 
 const Map<Symbol, Symbol> propertyAnnotationsTypeToFieldType = <Symbol, Symbol>{
   #BlobProperty: #List,
@@ -29,30 +32,37 @@ const Map<Symbol, Symbol> propertyAnnotationsTypeToFieldType = <Symbol, Symbol>{
 };
 
 void main() {
-  final Iterable<LibraryMirror> libraries = currentMirrorSystem()
-      .libraries
-      .entries
-      .where((MapEntry<Uri, LibraryMirror> entry) => entry.key.path.contains('cocoon_service'))
+  final libraries = currentMirrorSystem().libraries.entries
+      .where(
+        (MapEntry<Uri, LibraryMirror> entry) =>
+            entry.key.path.contains('cocoon_service'),
+      )
       .map((MapEntry<Uri, LibraryMirror> entry) => entry.value);
-  for (LibraryMirror library in libraries) {
-    final Iterable<ClassMirror> classes = library.declarations.values
+  for (var library in libraries) {
+    final classes = library.declarations.values
         .whereType<ClassMirror>()
         .where((ClassMirror declaration) => declaration.hasReflectedType)
         .where((ClassMirror declaration) => declaration.metadata.any(isKind));
-    for (ClassMirror modelClass in classes) {
+    for (var modelClass in classes) {
       group('${modelClass.reflectedType}', () {
         test('extends Model', () {
-          final bool isStringModel = modelClass.superclass!.reflectedType.toString() == 'Model<String>';
-          final bool isIntModel = modelClass.superclass!.reflectedType.toString() == 'Model<int>';
+          final isStringModel =
+              modelClass.superclass!.reflectedType.toString() ==
+              'Model<String>';
+          final isIntModel =
+              modelClass.superclass!.reflectedType.toString() == 'Model<int>';
           expect(isStringModel || isIntModel, isTrue);
         });
 
-        final Iterable<VariableMirror> propertyVariables = modelClass.declarations.values
+        final propertyVariables = modelClass.declarations.values
             .whereType<VariableMirror>()
-            .where((DeclarationMirror declaration) => declaration.metadata.any(isProperty));
+            .where(
+              (DeclarationMirror declaration) =>
+                  declaration.metadata.any(isProperty),
+            );
 
-        for (VariableMirror variable in propertyVariables) {
-          final Iterable<InstanceMirror> propertyAnnotations = variable.metadata.where(isProperty);
+        for (var variable in propertyVariables) {
+          final propertyAnnotations = variable.metadata.where(isProperty);
 
           group(SymbolName(variable.simpleName), () {
             test('contains only one property annotation', () {
@@ -60,8 +70,14 @@ void main() {
             });
 
             test('type matches property annotation type', () {
-              final Symbol propertyType = variable.type.simpleName;
-              expect(propertyAnnotationsTypeToFieldType[propertyAnnotations.single.type.simpleName], propertyType);
+              final propertyType = variable.type.simpleName;
+              expect(
+                propertyAnnotationsTypeToFieldType[propertyAnnotations
+                    .single
+                    .type
+                    .simpleName],
+                propertyType,
+              );
             });
 
             test('is not static', () {
@@ -74,13 +90,16 @@ void main() {
           });
         }
 
-        final Iterable<MethodMirror> propertyGetters = modelClass.declarations.values
+        final propertyGetters = modelClass.declarations.values
             .whereType<MethodMirror>()
             .where((MethodMirror method) => method.isGetter)
-            .where((DeclarationMirror declaration) => declaration.metadata.any(isProperty));
+            .where(
+              (DeclarationMirror declaration) =>
+                  declaration.metadata.any(isProperty),
+            );
 
-        for (MethodMirror getter in propertyGetters) {
-          final Iterable<InstanceMirror> propertyAnnotations = getter.metadata.where(isProperty);
+        for (var getter in propertyGetters) {
+          final propertyAnnotations = getter.metadata.where(isProperty);
 
           group(SymbolName(getter.simpleName), () {
             test('contains only one property annotation', () {
@@ -88,8 +107,14 @@ void main() {
             });
 
             test('type matches property annotation type', () {
-              final Symbol propertyType = getter.returnType.simpleName;
-              expect(propertyAnnotationsTypeToFieldType[propertyAnnotations.single.type.simpleName], propertyType);
+              final propertyType = getter.returnType.simpleName;
+              expect(
+                propertyAnnotationsTypeToFieldType[propertyAnnotations
+                    .single
+                    .type
+                    .simpleName],
+                propertyType,
+              );
             });
 
             test('is not static', () {
@@ -97,10 +122,14 @@ void main() {
             });
 
             test('has corresponding setter', () {
-              final Iterable<MethodMirror> setter = modelClass.declarations.values
+              final setter = modelClass.declarations.values
                   .whereType<MethodMirror>()
                   .where((MethodMirror method) => method.isSetter)
-                  .where((MethodMirror setter) => setter.simpleName == SymbolName(getter.simpleName).asSetter);
+                  .where(
+                    (MethodMirror setter) =>
+                        setter.simpleName ==
+                        SymbolName(getter.simpleName).asSetter,
+                  );
               expect(setter, hasLength(1));
             });
           });
@@ -125,8 +154,8 @@ class SymbolName {
 
   @override
   String toString() {
-    final String raw = symbol.toString();
-    final RegExpMatch? match = symbolToString.firstMatch(raw);
+    final raw = symbol.toString();
+    final match = symbolToString.firstMatch(raw);
     return match == null ? raw : match.group(1)!;
   }
 }

@@ -41,9 +41,12 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
   /// from [requestData].
   @protected
   void checkRequiredParameters(List<String> requiredParameters) {
-    final Iterable<String> missingParams = requiredParameters..removeWhere(requestData!.containsKey);
+    final Iterable<String> missingParams =
+        requiredParameters..removeWhere(requestData!.containsKey);
     if (missingParams.isNotEmpty) {
-      throw BadRequestException('Missing required parameter: ${missingParams.join(', ')}');
+      throw BadRequestException(
+        'Missing required parameter: ${missingParams.join(', ')}',
+      );
     }
   }
 
@@ -56,10 +59,13 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
   /// Throws a [BadRequestException] if any of [requiredQueryParameters] are missing from [requestData].
   @protected
   void checkRequiredQueryParameters(List<String> requiredQueryParameters) {
-    final Iterable<String> missingParams = requiredQueryParameters
-      ..removeWhere(request!.uri.queryParameters.containsKey);
+    final Iterable<String> missingParams =
+        requiredQueryParameters
+          ..removeWhere(request!.uri.queryParameters.containsKey);
     if (missingParams.isNotEmpty) {
-      throw BadRequestException('Missing required parameter: ${missingParams.join(', ')}');
+      throw BadRequestException(
+        'Missing required parameter: ${missingParams.join(', ')}',
+      );
     }
   }
 
@@ -68,7 +74,8 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
   /// This is guaranteed to be non-null. If the request was unauthenticated,
   /// the request will be denied.
   @protected
-  AuthenticatedContext? get authContext => getValue<AuthenticatedContext>(ApiKey.authContext);
+  AuthenticatedContext? get authContext =>
+      getValue<AuthenticatedContext>(ApiKey.authContext);
 
   /// The raw byte contents of the HTTP request body.
   ///
@@ -80,7 +87,8 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
   ///  * [requestData], which contains the JSON-decoded [Map] of the request
   ///    body content (if applicable).
   @protected
-  Uint8List? get requestBody => requestBodyValue ?? getValue<Uint8List>(ApiKey.requestBody);
+  Uint8List? get requestBody =>
+      requestBodyValue ?? getValue<Uint8List>(ApiKey.requestBody);
 
   /// Used for injecting [requestBody] in tests.
   final Uint8List? requestBodyValue;
@@ -95,7 +103,8 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
   ///
   ///  * [requestBody], which specifies the raw bytes of the HTTP request body.
   @protected
-  Map<String, dynamic>? get requestData => getValue<Map<String, dynamic>>(ApiKey.requestData);
+  Map<String, dynamic>? get requestData =>
+      getValue<Map<String, dynamic>>(ApiKey.requestData);
 
   @override
   Future<void> service(
@@ -106,7 +115,7 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
     try {
       context = await authenticationProvider.authenticate(request);
     } on Unauthenticated catch (error) {
-      final HttpResponse response = request.response;
+      final response = request.response;
       response
         ..statusCode = HttpStatus.unauthorized
         ..write(error.message);
@@ -119,7 +128,7 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
     try {
       body = await request.expand<int>((List<int> chunk) => chunk).toList();
     } catch (error) {
-      final HttpResponse response = request.response;
+      final response = request.response;
       response
         ..statusCode = HttpStatus.internalServerError
         ..write('$error');
@@ -136,7 +145,7 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
         // The HTTP request body is not valid UTF-8 encoded JSON. This is
         // allowed; just let [requestData] be null.
       } catch (error) {
-        final HttpResponse response = request.response;
+        final response = request.response;
         response
           ..statusCode = HttpStatus.internalServerError
           ..write('$error');
@@ -162,7 +171,11 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
 class ApiKey<T> extends RequestKey<T> {
   const ApiKey._(super.name);
 
-  static const ApiKey<Uint8List> requestBody = ApiKey<Uint8List>._('requestBody');
-  static const ApiKey<AuthenticatedContext> authContext = ApiKey<AuthenticatedContext>._('authenticatedContext');
-  static const ApiKey<Map<String, dynamic>> requestData = ApiKey<Map<String, dynamic>>._('requestData');
+  static const ApiKey<Uint8List> requestBody = ApiKey<Uint8List>._(
+    'requestBody',
+  );
+  static const ApiKey<AuthenticatedContext> authContext =
+      ApiKey<AuthenticatedContext>._('authenticatedContext');
+  static const ApiKey<Map<String, dynamic>> requestData =
+      ApiKey<Map<String, dynamic>>._('requestData');
 }

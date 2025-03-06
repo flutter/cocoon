@@ -13,11 +13,7 @@ typedef AsyncVoidCallback = Future<void> Function();
 /// Technically this violates the Material design guidelines six ways
 /// to Sunday but...
 class ProgressButton extends StatefulWidget {
-  const ProgressButton({
-    super.key,
-    this.child,
-    this.onPressed,
-  });
+  const ProgressButton({super.key, this.child, this.onPressed});
 
   final Widget? child;
 
@@ -49,10 +45,7 @@ class _ProgressButtonState extends State<ProgressButton> {
   static const Widget _progressIndicator = Padding(
     padding: EdgeInsets.all(12.0),
     child: Center(
-      child: AspectRatio(
-        aspectRatio: 1.0,
-        child: CircularProgressIndicator(),
-      ),
+      child: AspectRatio(aspectRatio: 1.0, child: CircularProgressIndicator()),
     ),
   );
 
@@ -61,9 +54,11 @@ class _ProgressButtonState extends State<ProgressButton> {
     return Stack(
       children: <Widget>[
         ElevatedButton(
-          onPressed: _busy // dartfmt will soon require this new formatting
-              ? null
-              : widget.onPressed != null // dartfmt will soon require this new formatting
+          onPressed:
+              _busy // dartfmt will soon require this new formatting
+                  ? null
+                  : widget.onPressed !=
+                      null // dartfmt will soon require this new formatting
                   ? _handlePressed
                   : null,
           child: widget.child,

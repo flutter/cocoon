@@ -40,13 +40,18 @@ class GetBuilderRequest extends $pb.GeneratedMessage {
   factory GetBuilderRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory GetBuilderRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory GetBuilderRequest.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetBuilderRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
-    ..aOM<$1.BuilderID>(1, _omitFieldNames ? '' : 'id', subBuilder: $1.BuilderID.create)
-    ..aOM<BuilderMask>(2, _omitFieldNames ? '' : 'mask', subBuilder: BuilderMask.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GetBuilderRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
+    ..aOM<$1.BuilderID>(1, _omitFieldNames ? '' : 'id',
+        subBuilder: $1.BuilderID.create)
+    ..aOM<BuilderMask>(2, _omitFieldNames ? '' : 'mask',
+        subBuilder: BuilderMask.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -57,17 +62,19 @@ class GetBuilderRequest extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   GetBuilderRequest copyWith(void Function(GetBuilderRequest) updates) =>
-      super.copyWith((message) => updates(message as GetBuilderRequest)) as GetBuilderRequest;
+      super.copyWith((message) => updates(message as GetBuilderRequest))
+          as GetBuilderRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static GetBuilderRequest create() => GetBuilderRequest._();
   GetBuilderRequest createEmptyInstance() => create();
-  static $pb.PbList<GetBuilderRequest> createRepeated() => $pb.PbList<GetBuilderRequest>();
+  static $pb.PbList<GetBuilderRequest> createRepeated() =>
+      $pb.PbList<GetBuilderRequest>();
   @$core.pragma('dart2js:noInline')
-  static GetBuilderRequest getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GetBuilderRequest>(create);
+  static GetBuilderRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<GetBuilderRequest>(create);
   static GetBuilderRequest? _defaultInstance;
 
   /// ID of the builder to return.
@@ -130,11 +137,14 @@ class ListBuildersRequest extends $pb.GeneratedMessage {
   factory ListBuildersRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory ListBuildersRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory ListBuildersRequest.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListBuildersRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ListBuildersRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'project')
     ..aOS(2, _omitFieldNames ? '' : 'bucket')
     ..a<$core.int>(3, _omitFieldNames ? '' : 'pageSize', $pb.PbFieldType.O3)
@@ -149,17 +159,19 @@ class ListBuildersRequest extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   ListBuildersRequest copyWith(void Function(ListBuildersRequest) updates) =>
-      super.copyWith((message) => updates(message as ListBuildersRequest)) as ListBuildersRequest;
+      super.copyWith((message) => updates(message as ListBuildersRequest))
+          as ListBuildersRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static ListBuildersRequest create() => ListBuildersRequest._();
   ListBuildersRequest createEmptyInstance() => create();
-  static $pb.PbList<ListBuildersRequest> createRepeated() => $pb.PbList<ListBuildersRequest>();
+  static $pb.PbList<ListBuildersRequest> createRepeated() =>
+      $pb.PbList<ListBuildersRequest>();
   @$core.pragma('dart2js:noInline')
-  static ListBuildersRequest getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ListBuildersRequest>(create);
+  static ListBuildersRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ListBuildersRequest>(create);
   static ListBuildersRequest? _defaultInstance;
 
   ///  LUCI project, e.g. "chromium". Omit to list all builders.
@@ -246,34 +258,42 @@ class ListBuildersResponse extends $pb.GeneratedMessage {
   factory ListBuildersResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory ListBuildersResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory ListBuildersResponse.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListBuildersResponse',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
-    ..pc<$1.BuilderItem>(1, _omitFieldNames ? '' : 'builders', $pb.PbFieldType.PM, subBuilder: $1.BuilderItem.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ListBuildersResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
+    ..pc<$1.BuilderItem>(
+        1, _omitFieldNames ? '' : 'builders', $pb.PbFieldType.PM,
+        subBuilder: $1.BuilderItem.create)
     ..aOS(2, _omitFieldNames ? '' : 'nextPageToken')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  ListBuildersResponse clone() => ListBuildersResponse()..mergeFromMessage(this);
+  ListBuildersResponse clone() =>
+      ListBuildersResponse()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   ListBuildersResponse copyWith(void Function(ListBuildersResponse) updates) =>
-      super.copyWith((message) => updates(message as ListBuildersResponse)) as ListBuildersResponse;
+      super.copyWith((message) => updates(message as ListBuildersResponse))
+          as ListBuildersResponse;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static ListBuildersResponse create() => ListBuildersResponse._();
   ListBuildersResponse createEmptyInstance() => create();
-  static $pb.PbList<ListBuildersResponse> createRepeated() => $pb.PbList<ListBuildersResponse>();
+  static $pb.PbList<ListBuildersResponse> createRepeated() =>
+      $pb.PbList<ListBuildersResponse>();
   @$core.pragma('dart2js:noInline')
-  static ListBuildersResponse getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ListBuildersResponse>(create);
+  static ListBuildersResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ListBuildersResponse>(create);
   static ListBuildersResponse? _defaultInstance;
 
   /// Matched builders.
@@ -314,40 +334,50 @@ class SetBuilderHealthRequest_BuilderHealth extends $pb.GeneratedMessage {
     return $result;
   }
   SetBuilderHealthRequest_BuilderHealth._() : super();
-  factory SetBuilderHealthRequest_BuilderHealth.fromBuffer($core.List<$core.int> i,
+  factory SetBuilderHealthRequest_BuilderHealth.fromBuffer(
+          $core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory SetBuilderHealthRequest_BuilderHealth.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetBuilderHealthRequest.BuilderHealth',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
-    ..aOM<$1.BuilderID>(1, _omitFieldNames ? '' : 'id', subBuilder: $1.BuilderID.create)
-    ..aOM<$2.HealthStatus>(2, _omitFieldNames ? '' : 'health', subBuilder: $2.HealthStatus.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SetBuilderHealthRequest.BuilderHealth',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
+    ..aOM<$1.BuilderID>(1, _omitFieldNames ? '' : 'id',
+        subBuilder: $1.BuilderID.create)
+    ..aOM<$2.HealthStatus>(2, _omitFieldNames ? '' : 'health',
+        subBuilder: $2.HealthStatus.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  SetBuilderHealthRequest_BuilderHealth clone() => SetBuilderHealthRequest_BuilderHealth()..mergeFromMessage(this);
+  SetBuilderHealthRequest_BuilderHealth clone() =>
+      SetBuilderHealthRequest_BuilderHealth()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  SetBuilderHealthRequest_BuilderHealth copyWith(void Function(SetBuilderHealthRequest_BuilderHealth) updates) =>
-      super.copyWith((message) => updates(message as SetBuilderHealthRequest_BuilderHealth))
+  SetBuilderHealthRequest_BuilderHealth copyWith(
+          void Function(SetBuilderHealthRequest_BuilderHealth) updates) =>
+      super.copyWith((message) =>
+              updates(message as SetBuilderHealthRequest_BuilderHealth))
           as SetBuilderHealthRequest_BuilderHealth;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static SetBuilderHealthRequest_BuilderHealth create() => SetBuilderHealthRequest_BuilderHealth._();
+  static SetBuilderHealthRequest_BuilderHealth create() =>
+      SetBuilderHealthRequest_BuilderHealth._();
   SetBuilderHealthRequest_BuilderHealth createEmptyInstance() => create();
   static $pb.PbList<SetBuilderHealthRequest_BuilderHealth> createRepeated() =>
       $pb.PbList<SetBuilderHealthRequest_BuilderHealth>();
   @$core.pragma('dart2js:noInline')
   static SetBuilderHealthRequest_BuilderHealth getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SetBuilderHealthRequest_BuilderHealth>(create);
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<
+          SetBuilderHealthRequest_BuilderHealth>(create);
   static SetBuilderHealthRequest_BuilderHealth? _defaultInstance;
 
   /// Required. Builder to set the health score for.
@@ -398,34 +428,42 @@ class SetBuilderHealthRequest extends $pb.GeneratedMessage {
   factory SetBuilderHealthRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory SetBuilderHealthRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory SetBuilderHealthRequest.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetBuilderHealthRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
-    ..pc<SetBuilderHealthRequest_BuilderHealth>(1, _omitFieldNames ? '' : 'health', $pb.PbFieldType.PM,
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SetBuilderHealthRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
+    ..pc<SetBuilderHealthRequest_BuilderHealth>(
+        1, _omitFieldNames ? '' : 'health', $pb.PbFieldType.PM,
         subBuilder: SetBuilderHealthRequest_BuilderHealth.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  SetBuilderHealthRequest clone() => SetBuilderHealthRequest()..mergeFromMessage(this);
+  SetBuilderHealthRequest clone() =>
+      SetBuilderHealthRequest()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  SetBuilderHealthRequest copyWith(void Function(SetBuilderHealthRequest) updates) =>
-      super.copyWith((message) => updates(message as SetBuilderHealthRequest)) as SetBuilderHealthRequest;
+  SetBuilderHealthRequest copyWith(
+          void Function(SetBuilderHealthRequest) updates) =>
+      super.copyWith((message) => updates(message as SetBuilderHealthRequest))
+          as SetBuilderHealthRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static SetBuilderHealthRequest create() => SetBuilderHealthRequest._();
   SetBuilderHealthRequest createEmptyInstance() => create();
-  static $pb.PbList<SetBuilderHealthRequest> createRepeated() => $pb.PbList<SetBuilderHealthRequest>();
+  static $pb.PbList<SetBuilderHealthRequest> createRepeated() =>
+      $pb.PbList<SetBuilderHealthRequest>();
   @$core.pragma('dart2js:noInline')
-  static SetBuilderHealthRequest getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SetBuilderHealthRequest>(create);
+  static SetBuilderHealthRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SetBuilderHealthRequest>(create);
   static SetBuilderHealthRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -462,34 +500,43 @@ class SetBuilderHealthResponse_Response extends $pb.GeneratedMessage {
     100: SetBuilderHealthResponse_Response_Response.error,
     0: SetBuilderHealthResponse_Response_Response.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetBuilderHealthResponse.Response',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SetBuilderHealthResponse.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
     ..oo(0, [1, 100])
-    ..aOM<$3.Empty>(1, _omitFieldNames ? '' : 'result', subBuilder: $3.Empty.create)
-    ..aOM<$4.Status>(100, _omitFieldNames ? '' : 'error', subBuilder: $4.Status.create)
+    ..aOM<$3.Empty>(1, _omitFieldNames ? '' : 'result',
+        subBuilder: $3.Empty.create)
+    ..aOM<$4.Status>(100, _omitFieldNames ? '' : 'error',
+        subBuilder: $4.Status.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  SetBuilderHealthResponse_Response clone() => SetBuilderHealthResponse_Response()..mergeFromMessage(this);
+  SetBuilderHealthResponse_Response clone() =>
+      SetBuilderHealthResponse_Response()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  SetBuilderHealthResponse_Response copyWith(void Function(SetBuilderHealthResponse_Response) updates) =>
-      super.copyWith((message) => updates(message as SetBuilderHealthResponse_Response))
+  SetBuilderHealthResponse_Response copyWith(
+          void Function(SetBuilderHealthResponse_Response) updates) =>
+      super.copyWith((message) =>
+              updates(message as SetBuilderHealthResponse_Response))
           as SetBuilderHealthResponse_Response;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static SetBuilderHealthResponse_Response create() => SetBuilderHealthResponse_Response._();
+  static SetBuilderHealthResponse_Response create() =>
+      SetBuilderHealthResponse_Response._();
   SetBuilderHealthResponse_Response createEmptyInstance() => create();
   static $pb.PbList<SetBuilderHealthResponse_Response> createRepeated() =>
       $pb.PbList<SetBuilderHealthResponse_Response>();
   @$core.pragma('dart2js:noInline')
-  static SetBuilderHealthResponse_Response getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SetBuilderHealthResponse_Response>(create);
+  static SetBuilderHealthResponse_Response getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SetBuilderHealthResponse_Response>(
+          create);
   static SetBuilderHealthResponse_Response? _defaultInstance;
 
   SetBuilderHealthResponse_Response_Response whichResponse() =>
@@ -540,34 +587,42 @@ class SetBuilderHealthResponse extends $pb.GeneratedMessage {
   factory SetBuilderHealthResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory SetBuilderHealthResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory SetBuilderHealthResponse.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetBuilderHealthResponse',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
-    ..pc<SetBuilderHealthResponse_Response>(1, _omitFieldNames ? '' : 'responses', $pb.PbFieldType.PM,
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SetBuilderHealthResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
+    ..pc<SetBuilderHealthResponse_Response>(
+        1, _omitFieldNames ? '' : 'responses', $pb.PbFieldType.PM,
         subBuilder: SetBuilderHealthResponse_Response.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  SetBuilderHealthResponse clone() => SetBuilderHealthResponse()..mergeFromMessage(this);
+  SetBuilderHealthResponse clone() =>
+      SetBuilderHealthResponse()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  SetBuilderHealthResponse copyWith(void Function(SetBuilderHealthResponse) updates) =>
-      super.copyWith((message) => updates(message as SetBuilderHealthResponse)) as SetBuilderHealthResponse;
+  SetBuilderHealthResponse copyWith(
+          void Function(SetBuilderHealthResponse) updates) =>
+      super.copyWith((message) => updates(message as SetBuilderHealthResponse))
+          as SetBuilderHealthResponse;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static SetBuilderHealthResponse create() => SetBuilderHealthResponse._();
   SetBuilderHealthResponse createEmptyInstance() => create();
-  static $pb.PbList<SetBuilderHealthResponse> createRepeated() => $pb.PbList<SetBuilderHealthResponse>();
+  static $pb.PbList<SetBuilderHealthResponse> createRepeated() =>
+      $pb.PbList<SetBuilderHealthResponse>();
   @$core.pragma('dart2js:noInline')
-  static SetBuilderHealthResponse getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SetBuilderHealthResponse>(create);
+  static SetBuilderHealthResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SetBuilderHealthResponse>(create);
   static SetBuilderHealthResponse? _defaultInstance;
 
   /// Responses should be empty protos or errors. They will map
@@ -587,15 +642,21 @@ class BuilderMask extends $pb.GeneratedMessage {
     return $result;
   }
   BuilderMask._() : super();
-  factory BuilderMask.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuilderMask.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory BuilderMask.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuilderMask.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuilderMask',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
-    ..e<BuilderMask_BuilderMaskType>(1, _omitFieldNames ? '' : 'type', $pb.PbFieldType.OE,
-        defaultOrMaker: BuilderMask_BuilderMaskType.BUILDER_MASK_TYPE_UNSPECIFIED,
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BuilderMask',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
+    ..e<BuilderMask_BuilderMaskType>(
+        1, _omitFieldNames ? '' : 'type', $pb.PbFieldType.OE,
+        defaultOrMaker:
+            BuilderMask_BuilderMaskType.BUILDER_MASK_TYPE_UNSPECIFIED,
         valueOf: BuilderMask_BuilderMaskType.valueOf,
         enumValues: BuilderMask_BuilderMaskType.values)
     ..hasRequiredFields = false;
@@ -608,7 +669,8 @@ class BuilderMask extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   BuilderMask copyWith(void Function(BuilderMask) updates) =>
-      super.copyWith((message) => updates(message as BuilderMask)) as BuilderMask;
+      super.copyWith((message) => updates(message as BuilderMask))
+          as BuilderMask;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -617,7 +679,8 @@ class BuilderMask extends $pb.GeneratedMessage {
   BuilderMask createEmptyInstance() => create();
   static $pb.PbList<BuilderMask> createRepeated() => $pb.PbList<BuilderMask>();
   @$core.pragma('dart2js:noInline')
-  static BuilderMask getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuilderMask>(create);
+  static BuilderMask getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BuilderMask>(create);
   static BuilderMask? _defaultInstance;
 
   /// Type of mask to use to filter BuilderItem.
@@ -635,4 +698,5 @@ class BuilderMask extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

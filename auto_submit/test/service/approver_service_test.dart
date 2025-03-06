@@ -22,34 +22,38 @@ void main() {
   setUp(() {
     github = MockGitHub();
     config = FakeConfig(githubClient: github);
-    config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfigNoOverride);
+    config.repositoryConfigurationMock =
+        RepositoryConfiguration.fromYaml(sampleConfigNoOverride);
     service = ApproverService(config);
     pullRequests = MockPullRequestsService();
     when(github.pullRequests).thenReturn(pullRequests);
-    when(pullRequests.createReview(any, any)).thenAnswer((_) async => gh.PullRequestReview(id: 123, user: gh.User()));
+    when(pullRequests.createReview(any, any)).thenAnswer(
+        (_) async => gh.PullRequestReview(id: 123, user: gh.User()));
   });
 
   test('Verify approval ignored', () async {
-    final gh.PullRequest pr = generatePullRequest(author: 'not_a_user');
+    final pr = generatePullRequest(author: 'not_a_user');
     await service.autoApproval(pr);
     verifyNever(pullRequests.createReview(any, captureAny));
   });
 
   test('Verify approve', () async {
-    when(pullRequests.listReviews(any, any)).thenAnswer((_) => const Stream<gh.PullRequestReview>.empty());
-    final gh.PullRequest pr = generatePullRequest(author: 'dependabot[bot]');
+    when(pullRequests.listReviews(any, any))
+        .thenAnswer((_) => const Stream<gh.PullRequestReview>.empty());
+    final pr = generatePullRequest(author: 'dependabot[bot]');
     await service.autoApproval(pr);
-    final List<dynamic> reviews = verify(pullRequests.createReview(any, captureAny)).captured;
+    final reviews = verify(pullRequests.createReview(any, captureAny)).captured;
     expect(reviews.length, 1);
-    final gh.CreatePullRequestReview review = reviews.single as gh.CreatePullRequestReview;
+    final review = reviews.single as gh.CreatePullRequestReview;
     expect(review.event, 'APPROVE');
   });
 
   test('Already approved', () async {
-    final gh.PullRequestReview review =
-        gh.PullRequestReview(id: 123, user: gh.User(login: 'fluttergithubbot'), state: 'APPROVED');
-    when(pullRequests.listReviews(any, any)).thenAnswer((_) => Stream<gh.PullRequestReview>.value(review));
-    final gh.PullRequest pr = generatePullRequest(author: 'dependabot[bot]');
+    final review = gh.PullRequestReview(
+        id: 123, user: gh.User(login: 'fluttergithubbot'), state: 'APPROVED');
+    when(pullRequests.listReviews(any, any))
+        .thenAnswer((_) => Stream<gh.PullRequestReview>.value(review));
+    final pr = generatePullRequest(author: 'dependabot[bot]');
     await service.autoApproval(pr);
     verifyNever(pullRequests.createReview(any, captureAny));
   });

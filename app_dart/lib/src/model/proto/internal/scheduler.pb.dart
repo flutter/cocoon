@@ -40,8 +40,10 @@ class SchedulerConfig_PlatformProperties extends $pb.GeneratedMessage {
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SchedulerConfig.PlatformProperties',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'scheduler'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SchedulerConfig.PlatformProperties',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'scheduler'),
+      createEmptyInstance: create)
     ..m<$core.String, $core.String>(1, _omitFieldNames ? '' : 'properties',
         entryClassName: 'SchedulerConfig.PlatformProperties.PropertiesEntry',
         keyFieldType: $pb.PbFieldType.OS,
@@ -57,24 +59,29 @@ class SchedulerConfig_PlatformProperties extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  SchedulerConfig_PlatformProperties clone() => SchedulerConfig_PlatformProperties()..mergeFromMessage(this);
+  SchedulerConfig_PlatformProperties clone() =>
+      SchedulerConfig_PlatformProperties()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  SchedulerConfig_PlatformProperties copyWith(void Function(SchedulerConfig_PlatformProperties) updates) =>
-      super.copyWith((message) => updates(message as SchedulerConfig_PlatformProperties))
+  SchedulerConfig_PlatformProperties copyWith(
+          void Function(SchedulerConfig_PlatformProperties) updates) =>
+      super.copyWith((message) =>
+              updates(message as SchedulerConfig_PlatformProperties))
           as SchedulerConfig_PlatformProperties;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static SchedulerConfig_PlatformProperties create() => SchedulerConfig_PlatformProperties._();
+  static SchedulerConfig_PlatformProperties create() =>
+      SchedulerConfig_PlatformProperties._();
   SchedulerConfig_PlatformProperties createEmptyInstance() => create();
   static $pb.PbList<SchedulerConfig_PlatformProperties> createRepeated() =>
       $pb.PbList<SchedulerConfig_PlatformProperties>();
   @$core.pragma('dart2js:noInline')
-  static SchedulerConfig_PlatformProperties getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SchedulerConfig_PlatformProperties>(create);
+  static SchedulerConfig_PlatformProperties getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SchedulerConfig_PlatformProperties>(
+          create);
   static SchedulerConfig_PlatformProperties? _defaultInstance;
 
   /// Generic key, value pairs to set platform-wide properties
@@ -93,7 +100,8 @@ class SchedulerConfig extends $pb.GeneratedMessage {
   factory SchedulerConfig({
     $core.Iterable<Target>? targets,
     $core.Iterable<$core.String>? enabledBranches,
-    $core.Map<$core.String, SchedulerConfig_PlatformProperties>? platformProperties,
+    $core.Map<$core.String, SchedulerConfig_PlatformProperties>?
+        platformProperties,
   }) {
     final $result = create();
     if (targets != null) {
@@ -111,14 +119,19 @@ class SchedulerConfig extends $pb.GeneratedMessage {
   factory SchedulerConfig.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory SchedulerConfig.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory SchedulerConfig.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SchedulerConfig',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'scheduler'), createEmptyInstance: create)
-    ..pc<Target>(1, _omitFieldNames ? '' : 'targets', $pb.PbFieldType.PM, subBuilder: Target.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SchedulerConfig',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'scheduler'),
+      createEmptyInstance: create)
+    ..pc<Target>(1, _omitFieldNames ? '' : 'targets', $pb.PbFieldType.PM,
+        subBuilder: Target.create)
     ..pPS(2, _omitFieldNames ? '' : 'enabledBranches')
-    ..m<$core.String, SchedulerConfig_PlatformProperties>(3, _omitFieldNames ? '' : 'platformProperties',
+    ..m<$core.String, SchedulerConfig_PlatformProperties>(
+        3, _omitFieldNames ? '' : 'platformProperties',
         entryClassName: 'SchedulerConfig.PlatformPropertiesEntry',
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OM,
@@ -135,17 +148,19 @@ class SchedulerConfig extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   SchedulerConfig copyWith(void Function(SchedulerConfig) updates) =>
-      super.copyWith((message) => updates(message as SchedulerConfig)) as SchedulerConfig;
+      super.copyWith((message) => updates(message as SchedulerConfig))
+          as SchedulerConfig;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static SchedulerConfig create() => SchedulerConfig._();
   SchedulerConfig createEmptyInstance() => create();
-  static $pb.PbList<SchedulerConfig> createRepeated() => $pb.PbList<SchedulerConfig>();
+  static $pb.PbList<SchedulerConfig> createRepeated() =>
+      $pb.PbList<SchedulerConfig>();
   @$core.pragma('dart2js:noInline')
-  static SchedulerConfig getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SchedulerConfig>(create);
+  static SchedulerConfig getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SchedulerConfig>(create);
   static SchedulerConfig? _defaultInstance;
 
   /// Targets to run from this config.
@@ -159,7 +174,8 @@ class SchedulerConfig extends $pb.GeneratedMessage {
   /// Universal platform args passed to LUCI builders.
   /// Keys are the platforms and values are the PlatformProperties (properties, dimensions etc.).
   @$pb.TagNumber(3)
-  $core.Map<$core.String, SchedulerConfig_PlatformProperties> get platformProperties => $_getMap(2);
+  $core.Map<$core.String, SchedulerConfig_PlatformProperties>
+      get platformProperties => $_getMap(2);
 }
 
 /// A unit of work for infrastructure to run.
@@ -236,32 +252,44 @@ class Target extends $pb.GeneratedMessage {
     return $result;
   }
   Target._() : super();
-  factory Target.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Target.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Target.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Target.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Target',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'scheduler'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Target',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'scheduler'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
     ..pPS(2, _omitFieldNames ? '' : 'dependencies')
     ..aOB(3, _omitFieldNames ? '' : 'bringup')
-    ..a<$core.int>(4, _omitFieldNames ? '' : 'timeout', $pb.PbFieldType.O3, defaultOrMaker: 30)
-    ..a<$core.String>(5, _omitFieldNames ? '' : 'testbed', $pb.PbFieldType.OS, defaultOrMaker: 'linux-vm')
+    ..a<$core.int>(4, _omitFieldNames ? '' : 'timeout', $pb.PbFieldType.O3,
+        defaultOrMaker: 30)
+    ..a<$core.String>(5, _omitFieldNames ? '' : 'testbed', $pb.PbFieldType.OS,
+        defaultOrMaker: 'linux-vm')
     ..m<$core.String, $core.String>(6, _omitFieldNames ? '' : 'properties',
         entryClassName: 'Target.PropertiesEntry',
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OS,
         packageName: const $pb.PackageName('scheduler'))
     ..aOS(7, _omitFieldNames ? '' : 'builder')
-    ..e<SchedulerSystem>(8, _omitFieldNames ? '' : 'scheduler', $pb.PbFieldType.OE,
-        defaultOrMaker: SchedulerSystem.cocoon, valueOf: SchedulerSystem.valueOf, enumValues: SchedulerSystem.values)
-    ..a<$core.bool>(9, _omitFieldNames ? '' : 'presubmit', $pb.PbFieldType.OB, defaultOrMaker: true)
-    ..a<$core.bool>(10, _omitFieldNames ? '' : 'postsubmit', $pb.PbFieldType.OB, defaultOrMaker: true)
+    ..e<SchedulerSystem>(
+        8, _omitFieldNames ? '' : 'scheduler', $pb.PbFieldType.OE,
+        defaultOrMaker: SchedulerSystem.cocoon,
+        valueOf: SchedulerSystem.valueOf,
+        enumValues: SchedulerSystem.values)
+    ..a<$core.bool>(9, _omitFieldNames ? '' : 'presubmit', $pb.PbFieldType.OB,
+        defaultOrMaker: true)
+    ..a<$core.bool>(10, _omitFieldNames ? '' : 'postsubmit', $pb.PbFieldType.OB,
+        defaultOrMaker: true)
     ..pPS(11, _omitFieldNames ? '' : 'runIf')
     ..pPS(12, _omitFieldNames ? '' : 'enabledBranches')
     ..aOS(13, _omitFieldNames ? '' : 'recipe')
-    ..m<$core.String, $core.String>(15, _omitFieldNames ? '' : 'postsubmitProperties',
+    ..m<$core.String, $core.String>(
+        15, _omitFieldNames ? '' : 'postsubmitProperties',
         entryClassName: 'Target.PostsubmitPropertiesEntry',
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OS,
@@ -281,7 +309,8 @@ class Target extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  Target copyWith(void Function(Target) updates) => super.copyWith((message) => updates(message as Target)) as Target;
+  Target copyWith(void Function(Target) updates) =>
+      super.copyWith((message) => updates(message as Target)) as Target;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -290,7 +319,8 @@ class Target extends $pb.GeneratedMessage {
   Target createEmptyInstance() => create();
   static $pb.PbList<Target> createRepeated() => $pb.PbList<Target>();
   @$core.pragma('dart2js:noInline')
-  static Target getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Target>(create);
+  static Target getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Target>(create);
   static Target? _defaultInstance;
 
   /// Unique, human readable identifier.
@@ -436,7 +466,8 @@ class Target extends $pb.GeneratedMessage {
 
   /// Properties to configure infrastructure tooling for only postsubmit runs.
   @$pb.TagNumber(15)
-  $core.Map<$core.String, $core.String> get postsubmitProperties => $_getMap(13);
+  $core.Map<$core.String, $core.String> get postsubmitProperties =>
+      $_getMap(13);
 
   /// Dimensions to configure swarming dimensions of LUCI builds.
   @$pb.TagNumber(16)
@@ -448,4 +479,5 @@ class Target extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

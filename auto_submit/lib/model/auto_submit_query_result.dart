@@ -36,7 +36,8 @@ class ReviewNode {
   final String? authorAssociation;
   final String? state;
 
-  factory ReviewNode.fromJson(Map<String, dynamic> json) => _$ReviewNodeFromJson(json);
+  factory ReviewNode.fromJson(Map<String, dynamic> json) =>
+      _$ReviewNodeFromJson(json);
 
   Map<String, dynamic> toJson() => _$ReviewNodeToJson(this);
 }
@@ -47,7 +48,8 @@ class Reviews {
 
   List<ReviewNode>? nodes;
 
-  factory Reviews.fromJson(Map<String, dynamic> json) => _$ReviewsFromJson(json);
+  factory Reviews.fromJson(Map<String, dynamic> json) =>
+      _$ReviewsFromJson(json);
 
   Map<String, dynamic> toJson() => _$ReviewsToJson(this);
 }
@@ -58,7 +60,8 @@ class CommitNode {
 
   Commit? commit;
 
-  factory CommitNode.fromJson(Map<String, dynamic> json) => _$CommitNodeFromJson(json);
+  factory CommitNode.fromJson(Map<String, dynamic> json) =>
+      _$CommitNodeFromJson(json);
 
   Map<String, dynamic> toJson() => _$CommitNodeToJson(this);
 }
@@ -69,7 +72,8 @@ class Commits {
 
   List<CommitNode>? nodes;
 
-  factory Commits.fromJson(Map<String, dynamic> json) => _$CommitsFromJson(json);
+  factory Commits.fromJson(Map<String, dynamic> json) =>
+      _$CommitsFromJson(json);
 
   Map<String, dynamic> toJson() => _$CommitsToJson(this);
 }
@@ -96,7 +100,8 @@ class ContextNode {
   @JsonKey(name: 'targetUrl')
   String? targetUrl;
 
-  factory ContextNode.fromJson(Map<String, dynamic> json) => _$ContextNodeFromJson(json);
+  factory ContextNode.fromJson(Map<String, dynamic> json) =>
+      _$ContextNodeFromJson(json);
 
   Map<String, dynamic> toJson() => _$ContextNodeToJson(this);
 
@@ -165,7 +170,8 @@ class PullRequest {
   final MergeableState? mergeable;
   final bool isInMergeQueue;
 
-  factory PullRequest.fromJson(Map<String, dynamic> json) => _$PullRequestFromJson(json);
+  factory PullRequest.fromJson(Map<String, dynamic> json) =>
+      _$PullRequestFromJson(json);
 
   Map<String, dynamic> toJson() => _$PullRequestToJson(this);
 }
@@ -179,7 +185,8 @@ class Repository {
   @JsonKey(name: 'pullRequest')
   PullRequest? pullRequest;
 
-  factory Repository.fromJson(Map<String, dynamic> json) => _$RepositoryFromJson(json);
+  factory Repository.fromJson(Map<String, dynamic> json) =>
+      _$RepositoryFromJson(json);
 
   Map<String, dynamic> toJson() => _$RepositoryToJson(this);
 }
@@ -193,7 +200,8 @@ class QueryResult {
 
   Repository? repository;
 
-  factory QueryResult.fromJson(Map<String, dynamic> json) => _$QueryResultFromJson(json);
+  factory QueryResult.fromJson(Map<String, dynamic> json) =>
+      _$QueryResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$QueryResultToJson(this);
 }
@@ -218,7 +226,8 @@ class RevertPullRequest {
   @JsonKey(name: 'revertPullRequest')
   PullRequest? revertPullRequest;
 
-  factory RevertPullRequest.fromJson(Map<String, dynamic> json) => _$RevertPullRequestFromJson(json);
+  factory RevertPullRequest.fromJson(Map<String, dynamic> json) =>
+      _$RevertPullRequestFromJson(json);
 
   Map<String, dynamic> toJson() => _$RevertPullRequestToJson(this);
 }
@@ -241,7 +250,8 @@ class RevertPullRequestData {
   @JsonKey(name: 'revertPullRequest')
   RevertPullRequest? revertPullRequest;
 
-  factory RevertPullRequestData.fromJson(Map<String, dynamic> json) => _$RevertPullRequestDataFromJson(json);
+  factory RevertPullRequestData.fromJson(Map<String, dynamic> json) =>
+      _$RevertPullRequestDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$RevertPullRequestDataToJson(this);
 }

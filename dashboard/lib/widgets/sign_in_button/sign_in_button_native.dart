@@ -13,8 +13,11 @@ class SignInButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final GoogleSignInService authService = Provider.of<GoogleSignInService>(context);
-    final Color textButtonForeground = Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87;
+    final authService = Provider.of<GoogleSignInService>(context);
+    final textButtonForeground =
+        Theme.of(context).brightness == Brightness.dark
+            ? Colors.white
+            : Colors.black87;
 
     return TextButton(
       style: TextButton.styleFrom(foregroundColor: textButtonForeground),

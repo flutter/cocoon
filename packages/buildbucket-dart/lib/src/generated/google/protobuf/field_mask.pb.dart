@@ -224,13 +224,17 @@ class FieldMask extends $pb.GeneratedMessage with $mixin.FieldMaskMixin {
     return $result;
   }
   FieldMask._() : super();
-  factory FieldMask.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory FieldMask.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory FieldMask.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory FieldMask.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'FieldMask',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'google.protobuf'),
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'FieldMask',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'google.protobuf'),
       createEmptyInstance: create,
       toProto3Json: $mixin.FieldMaskMixin.toProto3JsonHelper,
       fromProto3Json: $mixin.FieldMaskMixin.fromProto3JsonHelper)
@@ -254,7 +258,8 @@ class FieldMask extends $pb.GeneratedMessage with $mixin.FieldMaskMixin {
   FieldMask createEmptyInstance() => create();
   static $pb.PbList<FieldMask> createRepeated() => $pb.PbList<FieldMask>();
   @$core.pragma('dart2js:noInline')
-  static FieldMask getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<FieldMask>(create);
+  static FieldMask getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<FieldMask>(create);
   static FieldMask? _defaultInstance;
 
   /// The set of field mask paths.
@@ -263,4 +268,5 @@ class FieldMask extends $pb.GeneratedMessage with $mixin.FieldMaskMixin {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

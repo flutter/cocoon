@@ -28,7 +28,8 @@ class Toggle extends $pb.ProtobufEnum {
     NO,
   ];
 
-  static final $core.Map<$core.int, Toggle> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static final $core.Map<$core.int, Toggle> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
   static Toggle? valueOf($core.int value) => _byValue[value];
 
   const Toggle._($core.int v, $core.String n) : super(v, n);
@@ -36,7 +37,8 @@ class Toggle extends $pb.ProtobufEnum {
 
 class Acl_Role extends $pb.ProtobufEnum {
   static const Acl_Role READER = Acl_Role._(0, _omitEnumNames ? '' : 'READER');
-  static const Acl_Role SCHEDULER = Acl_Role._(1, _omitEnumNames ? '' : 'SCHEDULER');
+  static const Acl_Role SCHEDULER =
+      Acl_Role._(1, _omitEnumNames ? '' : 'SCHEDULER');
   static const Acl_Role WRITER = Acl_Role._(2, _omitEnumNames ? '' : 'WRITER');
 
   static const $core.List<Acl_Role> values = <Acl_Role>[
@@ -45,7 +47,8 @@ class Acl_Role extends $pb.ProtobufEnum {
     WRITER,
   ];
 
-  static final $core.Map<$core.int, Acl_Role> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static final $core.Map<$core.int, Acl_Role> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
   static Acl_Role? valueOf($core.int value) => _byValue[value];
 
   const Acl_Role._($core.int v, $core.String n) : super(v, n);

@@ -8,7 +8,7 @@ import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final Map<String, dynamic> userDataMap = {
+  final userDataMap = <String, dynamic>{
     'builder_name': 'Linux_web web_build_all_packages master',
     'check_run_id': 23005733384,
     'commit_sha': '272c0683235ac8c7e93d12caf3f64b7e5a0b5c32',
@@ -30,16 +30,16 @@ void main() {
   });
 
   test('user data conversions from bytes', () {
-    final Map<String, dynamic> decodedUserDataMap = UserData.decodeUserDataBytes(encodedBytes);
+    final decodedUserDataMap = UserData.decodeUserDataBytes(encodedBytes);
     expect(userDataMap, decodedUserDataMap);
-    final List<int>? bytesAgain = UserData.encodeUserDataToBytes(userDataMap);
+    final bytesAgain = UserData.encodeUserDataToBytes(userDataMap);
     expect(encodedBytes, bytesAgain);
   });
 
   test('user data conversions from strings', () {
-    final Map<String, dynamic> decodedUserStrDataMap = UserData.decodeUserDataString(encodedStr);
+    final decodedUserStrDataMap = UserData.decodeUserDataString(encodedStr);
     expect(userDataMap, decodedUserStrDataMap);
-    final String? encodedStringAgain = UserData.encodeUserDataToString(userDataMap);
+    final encodedStringAgain = UserData.encodeUserDataToString(userDataMap);
     expect(encodedStr, encodedStringAgain);
   });
 }

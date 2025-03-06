@@ -8,19 +8,17 @@ part of 'branch_service.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-ReleaseBranch _$ReleaseBranchFromJson(Map<String, dynamic> json) => $checkedCreate(
-      'ReleaseBranch',
-      json,
-      ($checkedConvert) {
-        final val = ReleaseBranch(
-          channel: $checkedConvert('channel', (v) => v as String),
-          reference: $checkedConvert('reference', (v) => v as String),
-        );
-        return val;
-      },
-    );
+ReleaseBranch _$ReleaseBranchFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('ReleaseBranch', json, ($checkedConvert) {
+      final val = ReleaseBranch(
+        channel: $checkedConvert('channel', (v) => v as String),
+        reference: $checkedConvert('reference', (v) => v as String),
+      );
+      return val;
+    });
 
-Map<String, dynamic> _$ReleaseBranchToJson(ReleaseBranch instance) => <String, dynamic>{
+Map<String, dynamic> _$ReleaseBranchToJson(ReleaseBranch instance) =>
+    <String, dynamic>{
       'channel': instance.channel,
       'reference': instance.reference,
     };

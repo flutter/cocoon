@@ -8,8 +8,6 @@ import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_server/logging.dart';
-import 'package:gcloud/db.dart';
-import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
@@ -80,9 +78,9 @@ class AuthenticationProvider {
   /// This will throw an [Unauthenticated] exception if the request is
   /// unauthenticated.
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
-    final bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
-    final String? idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
-    final ClientContext clientContext = clientContextProvider();
+    final isCron = request.headers.value('X-Appengine-Cron') == 'true';
+    final idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
+    final clientContext = clientContextProvider();
     if (isCron) {
       // Authenticate cron requests
       return AuthenticatedContext(clientContext: clientContext);
@@ -101,58 +99,71 @@ class AuthenticationProvider {
 
   /// Gets oauth token information. This method requires the token to be stored in
   /// X-Flutter-IdToken header.
-  Future<TokenInfo> tokenInfo(HttpRequest request, {String tokenType = 'id_token'}) async {
-    final String? idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
-    final http.Client client = httpClientProvider();
+  Future<TokenInfo> tokenInfo(
+    HttpRequest request, {
+    String tokenType = 'id_token',
+  }) async {
+    final idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
+    final client = httpClientProvider();
     try {
-      final http.Response verifyTokenResponse = await client.get(
-        Uri.https(
-          'oauth2.googleapis.com',
-          '/tokeninfo',
-          <String, String?>{
-            tokenType: idTokenFromHeader,
-          },
-        ),
+      final verifyTokenResponse = await client.get(
+        Uri.https('oauth2.googleapis.com', '/tokeninfo', <String, String?>{
+          tokenType: idTokenFromHeader,
+        }),
       );
 
       if (verifyTokenResponse.statusCode != HttpStatus.ok) {
         /// Google Auth API returns a message in the response body explaining why
         /// the request failed. Such as "Invalid Token".
-        log.fine('Token verification failed: ${verifyTokenResponse.statusCode}; ${verifyTokenResponse.body}');
+        log.fine(
+          'Token verification failed: ${verifyTokenResponse.statusCode}; ${verifyTokenResponse.body}',
+        );
         throw const Unauthenticated('Invalid ID token');
       }
 
       try {
-        return TokenInfo.fromJson(json.decode(verifyTokenResponse.body) as Map<String, dynamic>);
+        return TokenInfo.fromJson(
+          json.decode(verifyTokenResponse.body) as Map<String, dynamic>,
+        );
       } on FormatException {
-        throw InternalServerError('Invalid JSON: "${verifyTokenResponse.body}"');
+        throw InternalServerError(
+          'Invalid JSON: "${verifyTokenResponse.body}"',
+        );
       }
     } finally {
       client.close();
     }
   }
 
-  Future<AuthenticatedContext> authenticateToken(TokenInfo token, {required ClientContext clientContext}) async {
+  Future<AuthenticatedContext> authenticateToken(
+    TokenInfo token, {
+    required ClientContext clientContext,
+  }) async {
     // Authenticate as a signed-in Google account via OAuth id token.
-    final String clientId = await config.oauthClientId;
+    final clientId = await config.oauthClientId;
     if (token.audience != clientId && !token.email!.endsWith('@google.com')) {
-      log.warning('Possible forged token: "${token.audience}" (expected "$clientId")');
+      log.warning(
+        'Possible forged token: "${token.audience}" (expected "$clientId")',
+      );
       throw const Unauthenticated('Invalid ID token');
     }
 
     if (token.hostedDomain != 'google.com') {
-      final bool isAllowed = await _isAllowed(token.email);
+      final isAllowed = await _isAllowed(token.email);
       if (!isAllowed) {
-        throw Unauthenticated('${token.email} is not authorized to access the dashboard');
+        throw Unauthenticated(
+          '${token.email} is not authorized to access the dashboard',
+        );
       }
     }
     return AuthenticatedContext(clientContext: clientContext);
   }
 
   Future<bool> _isAllowed(String? email) async {
-    final Query<AllowedAccount> query = config.db.query<AllowedAccount>()
-      ..filter('email =', email)
-      ..limit(20);
+    final query =
+        config.db.query<AllowedAccount>()
+          ..filter('email =', email)
+          ..limit(20);
 
     return !(await query.run().isEmpty);
   }
@@ -167,9 +178,7 @@ class AuthenticationProvider {
 @immutable
 class AuthenticatedContext {
   /// Creates a new [AuthenticatedContext].
-  const AuthenticatedContext({
-    required this.clientContext,
-  });
+  const AuthenticatedContext({required this.clientContext});
 
   /// The App Engine [ClientContext] of the current request.
   ///

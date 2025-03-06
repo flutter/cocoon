@@ -7,7 +7,7 @@ import 'package:triage_bot/discord.dart';
 
 void main() {
   // copied from https://github.com/flutter/engine/pull/43163
-  const String prText = '''
+  const prText = '''
 *Replace this paragraph with a description of what this PR is changing or adding, and why. Consider including before/after screenshots.*
 
 *List which issues are fixed by this PR. You must list at least one issue.*

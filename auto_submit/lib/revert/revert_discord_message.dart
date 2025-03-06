@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/model/discord_message.dart';
+import '../model/discord_message.dart';
 
 class RevertDiscordMessage extends Message {
   static const String _username = 'Revert bot';
@@ -19,12 +19,12 @@ class RevertDiscordMessage extends Message {
     String initiatingAuthor,
     String reasonForRevert,
   ) {
-    final String content = '''
+    final content = '''
 Pull Request [$originalPrDisplayText](<$originalPrUrl>) has been reverted by $initiatingAuthor.
 Please see the revert PR here: [$revertPrDisplayText](<$revertPrUrl>).
 Reason for reverting: $reasonForRevert''';
 
-    final String truncatedContent = content.length <= discordMessageLength
+    final truncatedContent = content.length <= discordMessageLength
         ? content
         : '${content.substring(0, discordMessageLength - elipsesOffset)}...';
 

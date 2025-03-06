@@ -14,7 +14,11 @@ List<CocoonLink> createCocoonLinks(BuildContext context) {
       name: 'Build',
       route: BuildDashboardPage.routeName,
       icon: const Icon(Icons.build),
-      action: () => Navigator.pushReplacementNamed(context, BuildDashboardPage.routeName),
+      action:
+          () => Navigator.pushReplacementNamed(
+            context,
+            BuildDashboardPage.routeName,
+          ),
     ),
     CocoonLink(
       name: 'Framework Benchmarks',
@@ -42,12 +46,7 @@ List<CocoonLink> createCocoonLinks(BuildContext context) {
 
 /// Data class for storing links on the Cocoon app.
 class CocoonLink {
-  const CocoonLink({
-    this.name,
-    this.route,
-    this.action,
-    this.icon,
-  });
+  const CocoonLink({this.name, this.route, this.action, this.icon});
 
   /// Text shown to users describing this link.
   final String? name;

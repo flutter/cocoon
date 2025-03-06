@@ -17,22 +17,21 @@ import 'package:test/test.dart';
 
 import 'config_test_data.dart';
 
-/// Number of entries allowed in [Cache].
-const int kCacheSize = 1024;
-
 void main() {
   group('Config', () {
     late CacheProvider cacheProvider;
     late Config config;
     late MockClient mockClient;
-    final LocalSecretManager secretManager = LocalSecretManager();
-    final RepositorySlug flutterSlug = RepositorySlug('flutter', 'flutter');
-    final RepositorySlug testSlug = RepositorySlug('test', 'test');
-    const int kCacheSize = 1024;
+    final secretManager = LocalSecretManager();
+    final flutterSlug = RepositorySlug('flutter', 'flutter');
+    final testSlug = RepositorySlug('test', 'test');
+    const kCacheSize = 1024;
 
     setUp(() {
       cacheProvider = Cache.inMemoryCacheProvider(kCacheSize);
-      mockClient = MockClient((_) async => http.Response(userInstallation, HttpStatus.ok));
+      mockClient = MockClient(
+        (_) async => http.Response(userInstallation, HttpStatus.ok),
+      );
       config = Config(
         cacheProvider: cacheProvider,
         httpProvider: () => mockClient,
@@ -42,7 +41,9 @@ void main() {
 
     test('verify throws if installations response is unexpected', () async {
       cacheProvider = Cache.inMemoryCacheProvider(kCacheSize);
-      mockClient = MockClient((_) async => http.Response('{}', HttpStatus.internalServerError));
+      mockClient = MockClient(
+        (_) async => http.Response('{}', HttpStatus.internalServerError),
+      );
       secretManager.put(Config.kGithubKey, _fakeKey);
       secretManager.put(Config.kGithubAppId, '1');
       config = Config(
@@ -64,31 +65,34 @@ void main() {
     });
 
     test('verify github App Installation Id ', () async {
-      final Uri githubInstallationUri = Uri.https('api.github.com', 'users/flutter/installation');
-      final http.Response response = await mockClient.get(githubInstallationUri);
-      final Map<String, dynamic> map = json.decode(response.body) as Map<String, dynamic>;
+      final githubInstallationUri = Uri.https(
+        'api.github.com',
+        'users/flutter/installation',
+      );
+      final response = await mockClient.get(githubInstallationUri);
+      final map = json.decode(response.body) as Map<String, dynamic>;
       expect(map['id'].toString(), '24369313');
     });
 
     test('generateGithubToken pulls from cache', () async {
-      const String configValue = 'githubToken';
-      final Uint8List cachedValue = Uint8List.fromList(configValue.codeUnits);
-      final Cache cache = Cache<dynamic>(cacheProvider).withPrefix('config');
+      const configValue = 'githubToken';
+      final cachedValue = Uint8List.fromList(configValue.codeUnits);
+      final cache = Cache<dynamic>(cacheProvider).withPrefix('config');
       await cache['githubToken-${flutterSlug.owner}'].set(
         cachedValue,
         const Duration(minutes: 1),
       );
 
-      final String githubToken = await config.generateGithubToken(flutterSlug);
+      final githubToken = await config.generateGithubToken(flutterSlug);
       expect(githubToken, configValue);
     });
 
     test('Github clients are created with correct token', () async {
-      const String flutterToken = 'flutterToken';
-      final Uint8List flutterValue = Uint8List.fromList(flutterToken.codeUnits);
-      const String testToken = 'testToken';
-      final Uint8List testValue = Uint8List.fromList(testToken.codeUnits);
-      final Cache cache = Cache<dynamic>(cacheProvider).withPrefix('config');
+      const flutterToken = 'flutterToken';
+      final flutterValue = Uint8List.fromList(flutterToken.codeUnits);
+      const testToken = 'testToken';
+      final testValue = Uint8List.fromList(testToken.codeUnits);
+      final cache = Cache<dynamic>(cacheProvider).withPrefix('config');
       await cache['githubToken-${flutterSlug.owner}'].set(
         flutterValue,
         const Duration(minutes: 1),
@@ -98,8 +102,8 @@ void main() {
         const Duration(minutes: 1),
       );
 
-      final GitHub flutterClient = await config.createGithubClient(flutterSlug);
-      final GitHub testClient = await config.createGithubClient(testSlug);
+      final flutterClient = await config.createGithubClient(flutterSlug);
+      final testClient = await config.createGithubClient(testSlug);
       expect(flutterClient.auth.token!, flutterToken);
       expect(testClient.auth.token!, testToken);
     });

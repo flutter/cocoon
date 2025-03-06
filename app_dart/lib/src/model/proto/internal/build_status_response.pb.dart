@@ -35,13 +35,19 @@ class BuildStatusResponse extends $pb.GeneratedMessage {
   factory BuildStatusResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory BuildStatusResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuildStatusResponse.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildStatusResponse',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'cocoon'), createEmptyInstance: create)
-    ..e<EnumBuildStatus>(1, _omitFieldNames ? '' : 'buildStatus', $pb.PbFieldType.OE,
-        defaultOrMaker: EnumBuildStatus.success, valueOf: EnumBuildStatus.valueOf, enumValues: EnumBuildStatus.values)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BuildStatusResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'cocoon'),
+      createEmptyInstance: create)
+    ..e<EnumBuildStatus>(
+        1, _omitFieldNames ? '' : 'buildStatus', $pb.PbFieldType.OE,
+        defaultOrMaker: EnumBuildStatus.success,
+        valueOf: EnumBuildStatus.valueOf,
+        enumValues: EnumBuildStatus.values)
     ..pPS(2, _omitFieldNames ? '' : 'failingTasks')
     ..hasRequiredFields = false;
 
@@ -53,17 +59,19 @@ class BuildStatusResponse extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   BuildStatusResponse copyWith(void Function(BuildStatusResponse) updates) =>
-      super.copyWith((message) => updates(message as BuildStatusResponse)) as BuildStatusResponse;
+      super.copyWith((message) => updates(message as BuildStatusResponse))
+          as BuildStatusResponse;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static BuildStatusResponse create() => BuildStatusResponse._();
   BuildStatusResponse createEmptyInstance() => create();
-  static $pb.PbList<BuildStatusResponse> createRepeated() => $pb.PbList<BuildStatusResponse>();
+  static $pb.PbList<BuildStatusResponse> createRepeated() =>
+      $pb.PbList<BuildStatusResponse>();
   @$core.pragma('dart2js:noInline')
-  static BuildStatusResponse getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildStatusResponse>(create);
+  static BuildStatusResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BuildStatusResponse>(create);
   static BuildStatusResponse? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -83,4 +91,5 @@ class BuildStatusResponse extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

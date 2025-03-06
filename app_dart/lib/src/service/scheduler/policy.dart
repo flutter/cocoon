@@ -3,9 +3,9 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_server/logging.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
 
 import '../../model/appengine/task.dart';
+import '../datastore.dart';
 import '../luci_build_service.dart';
 
 /// Interface for implementing various scheduling policies in the Cocoon scheduler.
@@ -26,11 +26,14 @@ class GuaranteedPolicy implements SchedulerPolicy {
     required Task task,
     required DatastoreService datastore,
   }) async {
-    final List<Task> recentTasks = await datastore.queryRecentTasksByName(name: task.name!).toList();
+    final recentTasks =
+        await datastore.queryRecentTasksByName(name: task.name!).toList();
     // Ensure task isn't considered in recentTasks
     recentTasks.removeWhere((Task t) => t.commitKey == task.commitKey);
     if (recentTasks.isEmpty) {
-      log.warning('${task.name} is newly added, triggerring builds regardless of policy');
+      log.warning(
+        '${task.name} is newly added, triggerring builds regardless of policy',
+      );
       return LuciBuildService.kDefaultPriority;
     }
     // Prioritize tasks that recently failed.
@@ -55,7 +58,8 @@ class BatchPolicy implements SchedulerPolicy {
     required Task task,
     required DatastoreService datastore,
   }) async {
-    final List<Task> recentTasks = await datastore.queryRecentTasksByName(name: task.name!).toList();
+    final recentTasks =
+        await datastore.queryRecentTasksByName(name: task.name!).toList();
     // Skip scheduling if there is already a running task.
     if (recentTasks.any((Task task) => task.status == Task.statusInProgress)) {
       return null;
@@ -64,7 +68,9 @@ class BatchPolicy implements SchedulerPolicy {
     // Ensure task isn't considered in recentTasks
     recentTasks.removeWhere((Task t) => t.commitKey == task.commitKey);
     if (recentTasks.length < kBatchSize) {
-      log.warning('${task.name} has less than $kBatchSize, skip scheduling to wait for ci.yaml roll.');
+      log.warning(
+        '${task.name} has less than $kBatchSize, skip scheduling to wait for ci.yaml roll.',
+      );
       return null;
     }
 
@@ -83,7 +89,7 @@ class BatchPolicy implements SchedulerPolicy {
 
 /// Checks if all tasks are with [Task.statusNew].
 bool allNew(List<Task> tasks) {
-  for (Task task in tasks) {
+  for (var task in tasks) {
     if (task.status != Task.statusNew) {
       return false;
     }
@@ -94,8 +100,8 @@ bool allNew(List<Task> tasks) {
 /// Return true if there is an earlier failed build.
 bool shouldRerunPriority(List<Task> tasks, int pastTaskNumber) {
   // Prioritize tasks that recently failed.
-  bool hasRecentFailure = false;
-  for (int i = 0; i < pastTaskNumber && i < tasks.length; i++) {
+  var hasRecentFailure = false;
+  for (var i = 0; i < pastTaskNumber && i < tasks.length; i++) {
     if (_isFailed(tasks[i])) {
       hasRecentFailure = true;
       break;
@@ -105,7 +111,8 @@ bool shouldRerunPriority(List<Task> tasks, int pastTaskNumber) {
 }
 
 bool _isFailed(Task task) {
-  return task.status == Task.statusFailed || task.status == Task.statusInfraFailure;
+  return task.status == Task.statusFailed ||
+      task.status == Task.statusInfraFailure;
 }
 
 /// [Task] run outside of Cocoon are not triggered by the Cocoon scheduler.
@@ -114,6 +121,5 @@ class OmitPolicy implements SchedulerPolicy {
   Future<int?> triggerPriority({
     required Task task,
     required DatastoreService datastore,
-  }) async =>
-      null;
+  }) async => null;
 }

@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:core';
-import 'dart:io' as io_internals show exit;
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
@@ -16,16 +15,12 @@ final String reverse = hasColor ? '\x1B[7m' : ''; // used for clocks
 
 Future<void> main() async {
   print('$clock STARTING ANALYSIS');
-  try {
-    await run();
-  } on ExitException catch (error) {
-    error.apply();
-  }
+  await run();
   print('$clock ${bold}Analysis successful.$reset');
 }
 
 Future<void> run() async {
-  final String cocoonPath = path.join(path.dirname(Platform.script.path), '..');
+  final cocoonPath = path.join(path.dirname(Platform.script.path), '..');
   print('$clock Root path: $cocoonPath');
   print('$clock Licenses...');
   await verifyConsistentLicenses(cocoonPath);
@@ -43,21 +38,21 @@ String _generateLicense(String prefix) {
 ///
 /// Verifies that every LICENSE file in Cocoon matches cocoon/LICENSE.
 Future<void> verifyConsistentLicenses(String workingDirectory) async {
-  final String goldenLicensePath = '$workingDirectory/LICENSE';
-  final String goldenLicense = File(goldenLicensePath).readAsStringSync();
+  final goldenLicensePath = '$workingDirectory/LICENSE';
+  final goldenLicense = File(goldenLicensePath).readAsStringSync();
   if (goldenLicense.isEmpty) {
     throw Exception('No LICENSE was found at the root of Cocoon');
   }
 
-  final List<String> badLicenses = <String>[];
-  for (final FileSystemEntity entity in Directory(workingDirectory).listSync(recursive: true)) {
-    final String cocoonPath = entity.path.split('/../').last;
-    if (cocoonPath.contains(RegExp('(\.git)|(\.dart_tool)|(\.plugin_symlinks)'))) {
+  final badLicenses = <String>[];
+  for (final entity in Directory(workingDirectory).listSync(recursive: true)) {
+    final cocoonPath = entity.path.split('/../').last;
+    if (cocoonPath.contains(RegExp('(.git)|(.dart_tool)|(.plugin_symlinks)'))) {
       continue;
     }
 
     if (path.basename(entity.path) == 'LICENSE') {
-      final String license = File(entity.path).readAsStringSync();
+      final license = File(entity.path).readAsStringSync();
       if (license != goldenLicense) {
         badLicenses.add(cocoonPath);
       }
@@ -66,13 +61,18 @@ Future<void> verifyConsistentLicenses(String workingDirectory) async {
 
   if (badLicenses.isNotEmpty) {
     exitWithError(
-      <String>['The following LICENSE files do not match the golden LICENSE at root:']..insertAll(1, badLicenses),
+      <String>[
+        'The following LICENSE files do not match the golden LICENSE at root:',
+      ]..insertAll(1, badLicenses),
     );
   }
 }
 
-Future<void> verifyNoMissingLicense(String workingDirectory, {bool checkMinimums = true}) async {
-  final int? overrideMinimumMatches = checkMinimums ? null : 0;
+Future<void> verifyNoMissingLicense(
+  String workingDirectory, {
+  bool checkMinimums = true,
+}) async {
+  final overrideMinimumMatches = checkMinimums ? null : 0;
   await _verifyNoMissingLicenseForExtension(
     workingDirectory,
     'dart',
@@ -125,7 +125,7 @@ Future<void> verifyNoMissingLicense(String workingDirectory, {bool checkMinimums
     workingDirectory,
     'sh',
     overrideMinimumMatches ?? 1,
-    '#![^\n]+sh\n' + _generateLicense('# '),
+    '#![^\n]+sh\n${_generateLicense('# ')}',
   );
   await _verifyNoMissingLicenseForExtension(
     workingDirectory,
@@ -162,16 +162,22 @@ Future<void> _verifyNoMissingLicenseForExtension(
   bool trailingBlank = true,
 }) async {
   assert(!license.endsWith('\n'));
-  final String licensePattern = license + '\n' + (trailingBlank ? '\n' : '');
-  final List<String> errors = <String>[];
-  for (final File file in _allFiles(workingDirectory, extension, minimumMatches: minimumMatches)) {
-    final String contents = file.readAsStringSync().replaceAll('\r\n', '\n');
-    if (contents.isEmpty) continue; // let's not go down the /bin/true rabbit hole
+  final licensePattern = '$license\n${trailingBlank ? '\n' : ''}';
+  final errors = <String>[];
+  for (final file in _allFiles(
+    workingDirectory,
+    extension,
+    minimumMatches: minimumMatches,
+  )) {
+    final contents = file.readAsStringSync().replaceAll('\r\n', '\n');
+    if (contents.isEmpty) {
+      continue; // let's not go down the /bin/true rabbit hole
+    }
     if (!contents.startsWith(RegExp(licensePattern))) errors.add(file.path);
   }
   // Fail if any errors
   if (errors.isNotEmpty) {
-    final String s = errors.length == 1 ? ' does' : 's do';
+    final s = errors.length == 1 ? ' does' : 's do';
     exitWithError(<String>[
       '${bold}The following ${errors.length} file$s not have the right license header:$reset',
       ...errors,
@@ -182,18 +188,27 @@ Future<void> _verifyNoMissingLicenseForExtension(
   }
 }
 
-Iterable<File> _allFiles(String workingDirectory, String extension, {required int minimumMatches}) sync* {
-  assert(!extension.startsWith('.'), 'Extension argument should not start with a period.');
-  final Set<FileSystemEntity> pending = <FileSystemEntity>{Directory(workingDirectory)};
-  int matches = 0;
+Iterable<File> _allFiles(
+  String workingDirectory,
+  String extension, {
+  required int minimumMatches,
+}) sync* {
+  assert(
+    !extension.startsWith('.'),
+    'Extension argument should not start with a period.',
+  );
+  final pending = <FileSystemEntity>{Directory(workingDirectory)};
+  var matches = 0;
   while (pending.isNotEmpty) {
-    final FileSystemEntity entity = pending.first;
+    final entity = pending.first;
     pending.remove(entity);
     if (path.extension(entity.path) == '.tmpl') continue;
     if (entity is File) {
       if (_isGeneratedPluginRegistrant(entity)) continue;
       if (path.basename(entity.path) == 'AppDelegate.h') continue;
-      if (path.basename(entity.path) == 'flutter_export_environment.sh') continue;
+      if (path.basename(entity.path) == 'flutter_export_environment.sh') {
+        continue;
+      }
       if (path.basename(entity.path) == 'gradlew.bat') continue;
       if (path.basename(entity.path) == 'Runner-Bridging-Header.h') continue;
       if (path.basename(entity.path).endsWith('g.dart')) continue;
@@ -207,7 +222,8 @@ Iterable<File> _allFiles(String workingDirectory, String extension, {required in
         matches += 1;
         yield entity;
       }
-      if (path.basename(entity.path) == 'Dockerfile' && extension == 'Dockerfile') {
+      if (path.basename(entity.path) == 'Dockerfile' &&
+          extension == 'Dockerfile') {
         matches += 1;
         yield entity;
       }
@@ -228,7 +244,7 @@ Iterable<File> _allFiles(String workingDirectory, String extension, {required in
 }
 
 bool _isPartOfAppTemplate(Directory directory) {
-  const Set<String> templateDirs = <String>{
+  const templateDirs = <String>{
     'android',
     'build',
     'ios',
@@ -245,31 +261,23 @@ bool _isPartOfAppTemplate(Directory directory) {
 }
 
 bool _isGeneratedPluginRegistrant(File file) {
-  final String filename = path.basenameWithoutExtension(file.path);
+  final filename = path.basenameWithoutExtension(file.path);
   return !path.split(file.path).contains('.pub-cache') &&
-      (filename == 'generated_plugin_registrant' || filename == 'GeneratedPluginRegistrant');
+      (filename == 'generated_plugin_registrant' ||
+          filename == 'GeneratedPluginRegistrant');
 }
 
 void exitWithError(List<String> messages) {
-  final String redLine = '$red━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$reset';
+  final redLine =
+      '$red━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$reset';
   print(redLine);
   messages.forEach(print);
   print(redLine);
   exit(1);
 }
 
-class ExitException implements Exception {
-  ExitException(this.exitCode);
-
-  final int exitCode;
-
-  void apply() {
-    io_internals.exit(exitCode);
-  }
-}
-
 String get clock {
-  final DateTime now = DateTime.now();
+  final now = DateTime.now();
   return '$reverse▌'
       '${now.hour.toString().padLeft(2, "0")}:'
       '${now.minute.toString().padLeft(2, "0")}:'

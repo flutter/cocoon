@@ -39,14 +39,22 @@ class Key extends $pb.GeneratedMessage {
     return $result;
   }
   Key._() : super();
-  factory Key.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Key.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Key.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Key.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static const $core.Map<$core.int, Key_Id> _Key_IdByTag = {2: Key_Id.uid, 3: Key_Id.name, 0: Key_Id.notSet};
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Key',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'cocoon'), createEmptyInstance: create)
+  static const $core.Map<$core.int, Key_Id> _Key_IdByTag = {
+    2: Key_Id.uid,
+    3: Key_Id.name,
+    0: Key_Id.notSet
+  };
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Key',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'cocoon'),
+      createEmptyInstance: create)
     ..oo(0, [2, 3])
     ..aOS(1, _omitFieldNames ? '' : 'type')
     ..aInt64(2, _omitFieldNames ? '' : 'uid')
@@ -61,7 +69,8 @@ class Key extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  Key copyWith(void Function(Key) updates) => super.copyWith((message) => updates(message as Key)) as Key;
+  Key copyWith(void Function(Key) updates) =>
+      super.copyWith((message) => updates(message as Key)) as Key;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -70,7 +79,8 @@ class Key extends $pb.GeneratedMessage {
   Key createEmptyInstance() => create();
   static $pb.PbList<Key> createRepeated() => $pb.PbList<Key>();
   @$core.pragma('dart2js:noInline')
-  static Key getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Key>(create);
+  static Key getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Key>(create);
   static Key? _defaultInstance;
 
   Key_Id whichId() => _Key_IdByTag[$_whichOneof(0)]!;
@@ -142,13 +152,17 @@ class RootKey extends $pb.GeneratedMessage {
     return $result;
   }
   RootKey._() : super();
-  factory RootKey.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory RootKey.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory RootKey.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory RootKey.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RootKey',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'cocoon'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RootKey',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'cocoon'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'namespace')
     ..aOM<Key>(2, _omitFieldNames ? '' : 'child', subBuilder: Key.create)
     ..hasRequiredFields = false;
@@ -170,7 +184,8 @@ class RootKey extends $pb.GeneratedMessage {
   RootKey createEmptyInstance() => create();
   static $pb.PbList<RootKey> createRepeated() => $pb.PbList<RootKey>();
   @$core.pragma('dart2js:noInline')
-  static RootKey getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RootKey>(create);
+  static RootKey getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RootKey>(create);
   static RootKey? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -201,4 +216,5 @@ class RootKey extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

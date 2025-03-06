@@ -2,23 +2,24 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/configuration/repository_configuration.dart';
-import 'package:auto_submit/model/auto_submit_query_result.dart';
-import 'package:auto_submit/model/pull_request_data_types.dart';
-import 'package:auto_submit/request_handling/pubsub.dart';
-import 'package:auto_submit/service/approver_service.dart';
-import 'package:auto_submit/service/config.dart';
-import 'package:auto_submit/service/github_service.dart';
-import 'package:auto_submit/service/process_method.dart';
-import 'package:auto_submit/service/validation_service.dart';
-import 'package:auto_submit/validations/validation.dart';
-import 'package:auto_submit/validations/validation_filter.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
 
+import '../model/auto_submit_query_result.dart';
+import '../model/pull_request_data_types.dart';
+import '../request_handling/pubsub.dart';
+import '../validations/validation.dart';
+import '../validations/validation_filter.dart';
+import 'approver_service.dart';
+import 'config.dart';
+import 'github_service.dart';
+import 'process_method.dart';
+import 'validation_service.dart';
+
 class PullRequestValidationService extends ValidationService {
-  PullRequestValidationService(Config config, {RetryOptions? retryOptions, required this.subscription})
+  PullRequestValidationService(Config config,
+      {RetryOptions? retryOptions, required this.subscription})
       : super(config, retryOptions: retryOptions) {
     /// Validates a PR marked with the reverts label.
     approverService = ApproverService(config);
@@ -28,9 +29,11 @@ class PullRequestValidationService extends ValidationService {
   ApproverService? approverService;
 
   /// Processes a pub/sub message associated with PullRequest event.
-  Future<void> processMessage(github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
+  Future<void> processMessage(github.PullRequest messagePullRequest,
+      String ackId, PubSub pubsub) async {
     final slug = messagePullRequest.base!.repo!.slug();
-    final fullPullRequest = await getFullPullRequest(slug, messagePullRequest.number!);
+    final fullPullRequest =
+        await getFullPullRequest(slug, messagePullRequest.number!);
     if (shouldProcess(fullPullRequest)) {
       await processPullRequest(
         config: config,
@@ -40,7 +43,8 @@ class PullRequestValidationService extends ValidationService {
         pubsub: pubsub,
       );
     } else {
-      log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
+      log.info(
+          'Should not process ${messagePullRequest.toJson()}, and ack the message.');
       await pubsub.acknowledge(subscription, ackId);
     }
   }
@@ -48,7 +52,8 @@ class PullRequestValidationService extends ValidationService {
   bool shouldProcess(github.PullRequest pullRequest) {
     final labelNames = pullRequest.labelNames;
     final containsLabelsNeedingValidation =
-        labelNames.contains(Config.kAutosubmitLabel) || labelNames.contains(Config.kEmergencyLabel);
+        labelNames.contains(Config.kAutosubmitLabel) ||
+            labelNames.contains(Config.kEmergencyLabel);
     return pullRequest.state == 'open' && containsLabelsNeedingValidation;
   }
 
@@ -61,8 +66,8 @@ class PullRequestValidationService extends ValidationService {
     required String ackId,
     required PubSub pubsub,
   }) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final int prNumber = pullRequest.number!;
+    final slug = pullRequest.base!.repo!.slug();
+    final prNumber = pullRequest.number!;
 
     // If a pull request is currently in the merge queue do not touch it. Let
     // the merge queue merge it, or kick it out of the merge queue.
@@ -128,7 +133,8 @@ class _PullRequestValidationProcessor {
   }
 
   Future<void> process() async {
-    final hasAutosubmitLabel = pullRequest.labelNames.contains(Config.kAutosubmitLabel);
+    final hasAutosubmitLabel =
+        pullRequest.labelNames.contains(Config.kAutosubmitLabel);
 
     if (hasAutosubmitLabel) {
       await _processAutosubmit();
@@ -140,23 +146,24 @@ class _PullRequestValidationProcessor {
 
   Future<void> _processAutosubmit() async {
     logInfo('processing "${Config.kAutosubmitLabel}" label');
-    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
+    final repositoryConfiguration =
+        await config.getRepositoryConfiguration(slug);
 
     // filter out validations here
-    final ValidationFilter validationFilter = ValidationFilter(
+    final validationFilter = ValidationFilter(
       config: config,
       processMethod: ProcessMethod.processAutosubmit,
       repositoryConfiguration: repositoryConfiguration,
     );
-    final Set<Validation> validations = validationFilter.getValidations();
+    final validations = validationFilter.getValidations();
 
-    final Map<String, ValidationResult> validationsMap = <String, ValidationResult>{};
+    final validationsMap = <String, ValidationResult>{};
 
     /// Runs all the validation defined in the service.
     /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
-    for (Validation validation in validations) {
+    for (var validation in validations) {
       logInfo('running validation ${validation.name}');
-      final ValidationResult validationResult = await validation.validate(
+      final validationResult = await validation.validate(
         result,
         pullRequest,
       );
@@ -164,10 +171,11 @@ class _PullRequestValidationProcessor {
     }
 
     /// If there is at least one action that requires to remove label do so and add comments for all the failures.
-    bool shouldReturn = false;
+    var shouldReturn = false;
     for (final MapEntry(key: _, :value) in validationsMap.entries) {
       if (!value.result && value.action == Action.REMOVE_LABEL) {
-        final String commentMessage = value.message.isEmpty ? 'Validations Fail.' : value.message;
+        final commentMessage =
+            value.message.isEmpty ? 'Validations Fail.' : value.message;
         await _removeAutosubmitLabel(commentMessage);
         shouldReturn = true;
       }
@@ -182,25 +190,28 @@ class _PullRequestValidationProcessor {
     // If PR has some failures to ignore temporarily do nothing and continue.
     for (final MapEntry(:key, :value) in validationsMap.entries) {
       if (!value.result && value.action == Action.IGNORE_TEMPORARILY) {
-        logInfo('temporarily ignoring processing because $key validation failed.');
+        logInfo(
+            'temporarily ignoring processing because $key validation failed.');
         return;
       }
     }
 
     // If we got to this point it means we are ready to submit the PR.
-    final MergeResult processed = await validationService.submitPullRequest(
+    final processed = await validationService.submitPullRequest(
       config: config,
       pullRequest: pullRequest,
     );
 
     if (!processed.result) {
-      final String message = 'auto label is removed for ${slug.fullName}/$prNumber, ${processed.message}.';
+      final message =
+          'auto label is removed for ${slug.fullName}/$prNumber, ${processed.message}.';
       await githubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
       await githubService.createComment(slug, prNumber, message);
       logInfo(message);
     } else {
       logInfo('${processed.method.pastTenseLabel} successfully!');
-      logInfo('Attempting to insert a pull request record into the database for $prNumber');
+      logInfo(
+          'Attempting to insert a pull request record into the database for $prNumber');
       await validationService.insertPullRequestRecord(
         config: config,
         pullRequest: pullRequest,
@@ -213,7 +224,7 @@ class _PullRequestValidationProcessor {
   }
 
   Future<void> _removeAutosubmitLabel(String reason) async {
-    final String message =
+    final message =
         '${Config.kAutosubmitLabel} label was removed for ${slug.fullName}/$prNumber, because $reason';
     await githubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
     await githubService.createComment(slug, prNumber, message);

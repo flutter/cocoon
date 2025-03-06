@@ -18,15 +18,14 @@ if [ -z "$1" ]; then
 fi
 
 # Setup.
-pushd "$1" > /dev/null
+pushd "$1" >/dev/null
 flutter clean
 dart pub get
 
 # TODO(drewroengoogle): Validate proto code has been generated. https://github.com/flutter/flutter/issues/115473
 
-FORMAT_ARGS=--line-length=120
-echo "######### dart format $FORMAT_ARGS #########"
-dart format --set-exit-if-changed $FORMAT_ARGS .
+echo "######### dart format #########"
+dart format --set-exit-if-changed .
 
 echo "########### analyze ###########"
 dart analyze --fatal-infos
@@ -52,4 +51,4 @@ fi
 
 echo "###############################"
 
-popd > /dev/null
+popd >/dev/null

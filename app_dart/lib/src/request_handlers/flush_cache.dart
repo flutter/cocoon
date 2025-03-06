@@ -34,13 +34,14 @@ class FlushCache extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     checkRequiredQueryParameters(<String>[cacheKeyParam]);
-    final String cacheKey = request!.uri.queryParameters[cacheKeyParam]!;
+    final cacheKey = request!.uri.queryParameters[cacheKeyParam]!;
 
     // To validate cache flushes, validate that the key exists.
     await cache.getOrCreate(
       Config.configCacheName,
       cacheKey,
-      createFn: () => throw NotFoundException('Failed to find cache key: $cacheKey'),
+      createFn:
+          () => throw NotFoundException('Failed to find cache key: $cacheKey'),
     );
 
     await cache.purge(Config.configCacheName, cacheKey);

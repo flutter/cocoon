@@ -22,9 +22,10 @@ void main() {
     });
 
     test('succeeds for App Engine cronjobs', () async {
-      final Map<String, String> header = {'X-Appengine-Cron': 'true'};
-      request = Request('POST', Uri.parse('http://localhost/'), headers: header);
-      final bool result = await auth.authenticate(request);
+      final header = <String, String>{'X-Appengine-Cron': 'true'};
+      request =
+          Request('POST', Uri.parse('http://localhost/'), headers: header);
+      final result = await auth.authenticate(request);
       expect(result, true);
     });
   });

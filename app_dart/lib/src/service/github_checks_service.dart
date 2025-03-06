@@ -8,7 +8,6 @@ import 'package:github/github.dart' as github;
 
 import '../foundation/github_checks_util.dart';
 import 'config.dart';
-import 'github_service.dart';
 import 'luci_build_service.dart';
 
 const String kGithubSummary = '''
@@ -25,18 +24,17 @@ final List<bbv2.Status> terminalStatuses = [
 
 /// Controls triggering builds and updating their status in the Github UI.
 class GithubChecksService {
-  GithubChecksService(
-    this.config, {
-    GithubChecksUtil? githubChecksUtil,
-  }) : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil();
+  GithubChecksService(this.config, {GithubChecksUtil? githubChecksUtil})
+    : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil();
 
   Config config;
   GithubChecksUtil githubChecksUtil;
 
-  static Set<github.CheckRunConclusion> failedStatesSet = <github.CheckRunConclusion>{
-    github.CheckRunConclusion.cancelled,
-    github.CheckRunConclusion.failure,
-  };
+  static Set<github.CheckRunConclusion> failedStatesSet =
+      <github.CheckRunConclusion>{
+        github.CheckRunConclusion.cancelled,
+        github.CheckRunConclusion.failure,
+      };
 
   /// Updates the Github build status using a [BuildPushMessage] sent by LUCI in
   /// a pub/sub notification.
@@ -49,13 +47,13 @@ class GithubChecksService {
     required int checkRunId,
     bool rescheduled = false,
   }) async {
-    github.CheckRunStatus status = statusForResult(build.status);
+    var status = statusForResult(build.status);
     log.info('status for build ${build.id} is ${status.value}');
 
     // Only `id` and `name` in the CheckRun are needed.
     // Instead of making an API call to get the details of each check run, we
     // generate the check run with only necessary info.
-    final github.CheckRun checkRun = github.CheckRun.fromJson({
+    final checkRun = github.CheckRun.fromJson({
       'id': checkRunId,
       'status': status,
       'check_suite': const {'id': null},
@@ -64,25 +62,32 @@ class GithubChecksService {
       'name': build.builder.builder,
     });
 
-    github.CheckRunConclusion? conclusion =
-        (terminalStatuses.contains(build.status)) ? conclusionForResult(build.status) : null;
-    log.info('conclusion for build ${build.id} is ${(conclusion != null) ? conclusion.value : null}');
+    var conclusion =
+        (terminalStatuses.contains(build.status))
+            ? conclusionForResult(build.status)
+            : null;
+    log.info(
+      'conclusion for build ${build.id} is ${(conclusion != null) ? conclusion.value : null}',
+    );
 
-    final String url = 'https://cr-buildbucket.appspot.com/build/${build.id}';
+    final url = 'https://cr-buildbucket.appspot.com/build/${build.id}';
     github.CheckRunOutput? output;
     // If status has completed with failure then provide more details.
     if (taskFailed(build.status)) {
-      log.info('failed presubmit task, ${build.id} has failed, status = ${build.status.toString()}');
+      log.info(
+        'failed presubmit task, ${build.id} has failed, status = ${build.status.toString()}',
+      );
       if (rescheduled) {
         status = github.CheckRunStatus.queued;
         conclusion = null;
         output = github.CheckRunOutput(
           title: checkRun.name!,
-          summary: 'Note: this is an auto rerun. The timestamp above is based on the first attempt of this check run.',
+          summary:
+              'Note: this is an auto rerun. The timestamp above is based on the first attempt of this check run.',
         );
       } else {
         // summaryMarkdown should be present
-        final bbv2.Build buildbucketBuild = await luciBuildService.getBuildById(
+        final buildbucketBuild = await luciBuildService.getBuildById(
           build.id,
           buildMask: bbv2.BuildMask(
             // Need to use allFields as there is a bug with fieldMask and summaryMarkdown.
@@ -93,7 +98,9 @@ class GithubChecksService {
           title: checkRun.name!,
           summary: getGithubSummary(buildbucketBuild.summaryMarkdown),
         );
-        log.fine('Updating check run with output: [${output.toJson().toString()}]');
+        log.fine(
+          'Updating check run with output: [${output.toJson().toString()}]',
+        );
       }
     }
     await githubChecksUtil.updateCheckRun(
@@ -110,9 +117,10 @@ class GithubChecksService {
 
   /// Check if task has completed with failure.
   bool taskFailed(bbv2.Status status) {
-    final github.CheckRunStatus checkRunStatus = statusForResult(status);
-    final github.CheckRunConclusion conclusion = conclusionForResult(status);
-    return (checkRunStatus == github.CheckRunStatus.completed) && failedStatesSet.contains(conclusion);
+    final checkRunStatus = statusForResult(status);
+    final conclusion = conclusionForResult(status);
+    return (checkRunStatus == github.CheckRunStatus.completed) &&
+        failedStatesSet.contains(conclusion);
   }
 
   /// Appends triage wiki page to `summaryMarkdown` from LUCI build so that people can easily
@@ -122,12 +130,15 @@ class GithubChecksService {
       return '${kGithubSummary}Empty summaryMarkdown';
     }
     // This is an imposed GitHub limit
-    const int checkSummaryLimit = 65535;
+    const checkSummaryLimit = 65535;
     // This is to give buffer room incase GitHub lowers the amount.
-    const int checkSummaryBufferLimit = checkSummaryLimit - 10000 - kGithubSummary.length;
+    const checkSummaryBufferLimit =
+        checkSummaryLimit - 10000 - kGithubSummary.length;
     // Return the last [checkSummaryBufferLimit] characters as they are likely the most relevant.
     if (summary.length > checkSummaryBufferLimit) {
-      final String truncatedSummary = summary.substring(summary.length - checkSummaryBufferLimit);
+      final truncatedSummary = summary.substring(
+        summary.length - checkSummaryBufferLimit,
+      );
       summary = '[TRUNCATED...] $truncatedSummary';
     }
     return '$kGithubSummary$summary';
@@ -136,7 +147,9 @@ class GithubChecksService {
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs
   github.CheckRunConclusion conclusionForResult(bbv2.Status status) {
-    if (status == bbv2.Status.CANCELED || status == bbv2.Status.FAILURE || status == bbv2.Status.INFRA_FAILURE) {
+    if (status == bbv2.Status.CANCELED ||
+        status == bbv2.Status.FAILURE ||
+        status == bbv2.Status.INFRA_FAILURE) {
       return github.CheckRunConclusion.failure;
     } else if (status == bbv2.Status.SUCCESS) {
       return github.CheckRunConclusion.success;
@@ -174,23 +187,28 @@ class GithubChecksService {
     String headSha,
     int checkSuiteId,
   ) async {
-    final GithubService githubService = await config.createDefaultGitHubService();
+    final githubService = await config.createDefaultGitHubService();
 
     // There could be multiple PRs that have the same [headSha] commit.
-    final List<github.Issue> prIssues = await githubService.searchIssuesAndPRs(slug, '$headSha type:pr');
+    final prIssues = await githubService.searchIssuesAndPRs(
+      slug,
+      '$headSha type:pr',
+    );
 
     for (final prIssue in prIssues) {
-      final int prNumber = prIssue.number;
+      final prNumber = prIssue.number;
 
       // Each PR can have multiple check suites.
-      final List<github.CheckSuite> checkSuites = await githubChecksUtil.listCheckSuitesForRef(
+      final checkSuites = await githubChecksUtil.listCheckSuitesForRef(
         githubService.github,
         slug,
         ref: 'refs/pull/$prNumber/head',
       );
 
       // Use check suite ID equality to verify that we have iterated to the correct PR.
-      final bool doesPrIncludeMatchingCheckSuite = checkSuites.any((checkSuite) => checkSuite.id! == checkSuiteId);
+      final doesPrIncludeMatchingCheckSuite = checkSuites.any(
+        (checkSuite) => checkSuite.id! == checkSuiteId,
+      );
       if (doesPrIncludeMatchingCheckSuite) {
         return githubService.getPullRequest(slug, prNumber);
       }

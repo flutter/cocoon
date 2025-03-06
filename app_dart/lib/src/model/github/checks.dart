@@ -4,7 +4,8 @@
 
 import 'dart:convert';
 
-import 'package:github/github.dart' show CheckSuite, PullRequest, User, Repository;
+import 'package:github/github.dart'
+    show CheckSuite, PullRequest, Repository, User;
 import 'package:github/hooks.dart' show HookEvent;
 import 'package:json_annotation/json_annotation.dart';
 
@@ -16,14 +17,10 @@ part 'checks.g.dart';
 ///  * https://docs.github.com/en/webhooks/webhook-events-and-payloads#check_run.
 @JsonSerializable(fieldRename: FieldRename.snake)
 class CheckRunEvent extends HookEvent {
-  CheckRunEvent({
-    this.action,
-    this.checkRun,
-    this.sender,
-    this.repository,
-  });
+  CheckRunEvent({this.action, this.checkRun, this.sender, this.repository});
 
-  factory CheckRunEvent.fromJson(Map<String, dynamic> input) => _$CheckRunEventFromJson(input);
+  factory CheckRunEvent.fromJson(Map<String, dynamic> input) =>
+      _$CheckRunEventFromJson(input);
   CheckRun? checkRun;
   String? action;
   User? sender;
@@ -48,7 +45,8 @@ class CheckRun {
     this.checkSuite,
   });
 
-  factory CheckRun.fromJson(Map<String, dynamic> input) => _$CheckRunFromJson(input);
+  factory CheckRun.fromJson(Map<String, dynamic> input) =>
+      _$CheckRunFromJson(input);
   final int? id;
   final String? headSha;
   final String? conclusion;
@@ -85,7 +83,8 @@ class MergeGroupEvent extends HookEvent {
     this.sender,
   });
 
-  factory MergeGroupEvent.fromJson(Map<String, dynamic> input) => _$MergeGroupEventFromJson(input);
+  factory MergeGroupEvent.fromJson(Map<String, dynamic> input) =>
+      _$MergeGroupEventFromJson(input);
 
   String action;
 
@@ -130,7 +129,8 @@ class MergeGroup {
     required this.headCommit,
   });
 
-  factory MergeGroup.fromJson(Map<String, dynamic> input) => _$MergeGroupFromJson(input);
+  factory MergeGroup.fromJson(Map<String, dynamic> input) =>
+      _$MergeGroupFromJson(input);
 
   /// The commit SHA generated for the candidate PR to be merged.
   ///
@@ -170,7 +170,8 @@ class HeadCommit {
     required this.message,
   });
 
-  factory HeadCommit.fromJson(Map<String, dynamic> input) => _$HeadCommitFromJson(input);
+  factory HeadCommit.fromJson(Map<String, dynamic> input) =>
+      _$HeadCommitFromJson(input);
 
   /// The commit SHA generated for the candidate PR to be merged.
   ///

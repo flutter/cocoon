@@ -29,8 +29,8 @@ class CreateBranch extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     checkRequiredQueryParameters(<String>[branchParam, engineShaParam]);
-    final String branch = request!.uri.queryParameters[branchParam]!;
-    final String engineSha = request!.uri.queryParameters[engineShaParam]!;
+    final branch = request!.uri.queryParameters[branchParam]!;
+    final engineSha = request!.uri.queryParameters[engineShaParam]!;
 
     await branchService.branchFlutterRecipes(branch, engineSha);
 

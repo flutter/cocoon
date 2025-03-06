@@ -3,9 +3,10 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
+
+import 'cipd_version.dart';
 
 /// A collection of [BuildTag]s.
 final class BuildTags {
@@ -58,7 +59,8 @@ final class BuildTags {
   }
 
   /// Returns whether at least one build tag of type [T] exists in the set.
-  bool containsType<T extends BuildTag>() => buildTags.whereType<T>().isNotEmpty;
+  bool containsType<T extends BuildTag>() =>
+      buildTags.whereType<T>().isNotEmpty;
 
   /// Returns the first build tag of type [T], or `null` if none exists.
   T? getTagOfType<T extends BuildTag>() => buildTags.whereType<T>().firstOrNull;
@@ -102,10 +104,14 @@ sealed class BuildTag {
         if (_parseCommitGittiles.matchAsPrefix(pair.value) case final match?) {
           final slugName = match.group(1)!;
           final commitSha = match.group(2)!;
-          return ByCommitMirroredBuildSetBuildTag(commitSha: commitSha, slugName: slugName);
+          return ByCommitMirroredBuildSetBuildTag(
+            commitSha: commitSha,
+            slugName: slugName,
+          );
         }
       case GitHubPullRequestBuildTag._keyName:
-        if (_parseGithubPullRequest.matchAsPrefix(pair.value) case final match?) {
+        if (_parseGithubPullRequest.matchAsPrefix(pair.value)
+            case final match?) {
           final slugOwner = match.group(1)!;
           final slugName = match.group(2)!;
           final prNumber = int.tryParse(match.group(3)!);
@@ -128,7 +134,8 @@ sealed class BuildTag {
           return SchedulerJobIdBuildTag(targetName: targetName);
         }
       case CurrentAttemptBuildTag._keyName:
-        if (int.tryParse(pair.value) case final currentAttempt? when currentAttempt >= 1) {
+        if (int.tryParse(pair.value) case final currentAttempt?
+            when currentAttempt >= 1) {
           return CurrentAttemptBuildTag(attemptNumber: currentAttempt);
         }
       case CipdVersionBuildTag._keyName:
@@ -139,7 +146,9 @@ sealed class BuildTag {
       case InMergeQueueBuildTag._keyName when pair.value == 'true':
         return InMergeQueueBuildTag();
       case TriggerTypeBuildTag._keyName:
-        final matchingTag = TriggerTypeBuildTag.values.firstWhereOrNull((v) => v._value == pair.value);
+        final matchingTag = TriggerTypeBuildTag.values.firstWhereOrNull(
+          (v) => v._value == pair.value,
+        );
         if (matchingTag != null) {
           return matchingTag;
         }
@@ -151,8 +160,12 @@ sealed class BuildTag {
 
   static final _parsePresubmitRef = RegExp(r'sha/git/(.*)');
   static final _parsePostsubmitRef = RegExp(r'commit/git/(.*)');
-  static final _parseCommitGittiles = RegExp(r'commit/gitiles/flutter.googlesource.com/mirrors/(.*)/+/(.*)');
-  static final _parseGithubPullRequest = RegExp(r'https://github.com/(.*)/(.*)/pull/(.*)');
+  static final _parseCommitGittiles = RegExp(
+    r'commit/gitiles/flutter.googlesource.com/mirrors/(.*)/+/(.*)',
+  );
+  static final _parseGithubPullRequest = RegExp(
+    r'https://github.com/(.*)/(.*)/pull/(.*)',
+  );
   static final _parseSchedulerJobId = RegExp(r'flutter/(.*)');
   static final _parseCipdVersion = RegExp(r'refs/heads/(.*)');
 
@@ -223,7 +236,8 @@ sealed class BuildSetBuildTag extends BuildTag {
 
 /// A [BuildSetBuildTag] for _presubmit_ git commit SHAs.
 final class ByPresubmitCommitBuildSetBuildTag extends BuildSetBuildTag {
-  ByPresubmitCommitBuildSetBuildTag({required this.commitSha}) : super('sha/git/$commitSha');
+  ByPresubmitCommitBuildSetBuildTag({required this.commitSha})
+    : super('sha/git/$commitSha');
 
   /// Which presubmit commit SHA this buildset is connected to.
   final String commitSha;
@@ -231,7 +245,8 @@ final class ByPresubmitCommitBuildSetBuildTag extends BuildSetBuildTag {
 
 /// A [BuildSetBuildTag] for _postsubmit_ git commit SHAs.
 final class ByPostsubmitCommitBuildSetBuildTag extends BuildSetBuildTag {
-  ByPostsubmitCommitBuildSetBuildTag({required this.commitSha}) : super('commit/git/$commitSha');
+  ByPostsubmitCommitBuildSetBuildTag({required this.commitSha})
+    : super('commit/git/$commitSha');
 
   /// Which postsubmit commit SHA this buildset is connected to.
   final String commitSha;
@@ -244,8 +259,11 @@ final class ByCommitMirroredBuildSetBuildTag extends BuildSetBuildTag {
   ByCommitMirroredBuildSetBuildTag({
     required this.commitSha,
     required this.slugName,
-  }) : super('commit/gitiles/flutter.googlesource.com/mirrors/$slugName/+/$commitSha') {
+  }) : super(
+         'commit/gitiles/flutter.googlesource.com/mirrors/$slugName/+/$commitSha',
+       ) {
     // If this is wrong in production it's probably not worth crashing.
+    // ignore: prefer_asserts_in_initializer_lists
     assert(
       _validMirrors.contains(slugName),
       'Unsupported flutter.googlesource.com/mirrors repository: $slugName.',
@@ -277,7 +295,10 @@ final class GitHubPullRequestBuildTag extends BuildTag {
     required this.slugOwner,
     required this.slugName,
     required this.pullRequestNumber,
-  }) : super(_keyName, 'https://github.com/$slugOwner/$slugName/pull/$pullRequestNumber');
+  }) : super(
+         _keyName,
+         'https://github.com/$slugOwner/$slugName/pull/$pullRequestNumber',
+       );
 
   /// Which repository in `https://github.com/{owner}`.
   final String slugOwner;
@@ -292,7 +313,8 @@ final class GitHubPullRequestBuildTag extends BuildTag {
 /// A link back to the GitHub checkRun for this build.
 final class GitHubCheckRunIdBuildTag extends BuildTag {
   static const _keyName = 'github_checkrun';
-  GitHubCheckRunIdBuildTag({required this.checkRunId}) : super(_keyName, '$checkRunId');
+  GitHubCheckRunIdBuildTag({required this.checkRunId})
+    : super(_keyName, '$checkRunId');
 
   /// ID of the checkRun.
   final int checkRunId;
@@ -304,9 +326,8 @@ final class GitHubCheckRunIdBuildTag extends BuildTag {
 final class SchedulerJobIdBuildTag extends BuildTag {
   static const _keyName = 'scheduler_job_id';
 
-  SchedulerJobIdBuildTag({
-    required this.targetName,
-  }) : super(_keyName, 'flutter/$targetName');
+  SchedulerJobIdBuildTag({required this.targetName})
+    : super(_keyName, 'flutter/$targetName');
 
   /// The name of the target defined in `.ci.yaml`.
   final String targetName;
@@ -316,9 +337,14 @@ final class SchedulerJobIdBuildTag extends BuildTag {
 final class CurrentAttemptBuildTag extends BuildTag {
   static const _keyName = 'current_attempt';
 
-  CurrentAttemptBuildTag({required this.attemptNumber}) : super(_keyName, '$attemptNumber') {
+  CurrentAttemptBuildTag({required this.attemptNumber})
+    : super(_keyName, '$attemptNumber') {
     if (attemptNumber < 1) {
-      throw RangeError.value(attemptNumber, 'attemptNumber', 'Must be at least 1');
+      throw RangeError.value(
+        attemptNumber,
+        'attemptNumber',
+        'Must be at least 1',
+      );
     }
   }
 
@@ -332,7 +358,8 @@ final class CurrentAttemptBuildTag extends BuildTag {
 final class CipdVersionBuildTag extends BuildTag {
   static const _keyName = 'cipd_version';
 
-  CipdVersionBuildTag(CipdVersion cipdVersion) : super(_keyName, cipdVersion.version);
+  CipdVersionBuildTag(CipdVersion cipdVersion)
+    : super(_keyName, cipdVersion.version);
 }
 
 /// Specifies that this build is from the merge queue.

@@ -37,7 +37,10 @@ class FakeBuildStatusService implements BuildStatusService {
     if (commitStatuses == null) {
       throw AssertionError();
     }
-    commitStatuses!.sort((CommitStatus a, CommitStatus b) => a.commit.timestamp!.compareTo(b.commit.timestamp!));
+    commitStatuses!.sort(
+      (CommitStatus a, CommitStatus b) =>
+          a.commit.timestamp!.compareTo(b.commit.timestamp!),
+    );
 
     return Stream<CommitStatus>.fromIterable(
       commitStatuses!.where(
@@ -61,13 +64,15 @@ class FakeBuildStatusService implements BuildStatusService {
       throw AssertionError();
     }
     commitTasksStatuses!.sort(
-      (CommitTasksStatus a, CommitTasksStatus b) => a.commit.createTimestamp!.compareTo(b.commit.createTimestamp!),
+      (CommitTasksStatus a, CommitTasksStatus b) =>
+          a.commit.createTimestamp!.compareTo(b.commit.createTimestamp!),
     );
 
     return Stream<CommitTasksStatus>.fromIterable(
       commitTasksStatuses!.where(
         (CommitTasksStatus commitTasksStatus) =>
-            ((commitTasksStatus.commit.createTimestamp == null || timestamp == null)
+            ((commitTasksStatus.commit.createTimestamp == null ||
+                    timestamp == null)
                 ? true
                 : commitTasksStatus.commit.createTimestamp! < timestamp) &&
             commitTasksStatus.commit.branch == branch,

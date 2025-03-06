@@ -55,11 +55,7 @@ class OptionalImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (enabled!) {
-      return Image.network(
-        imageUrl!,
-        width: width,
-        height: height,
-      );
+      return Image.network(imageUrl!, width: width, height: height);
     }
     return placeholder!;
   }

@@ -36,13 +36,17 @@ class NotificationConfig extends $pb.GeneratedMessage {
   factory NotificationConfig.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory NotificationConfig.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory NotificationConfig.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'NotificationConfig',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'NotificationConfig',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'pubsubTopic')
-    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'userData', $pb.PbFieldType.OY)
+    ..a<$core.List<$core.int>>(
+        2, _omitFieldNames ? '' : 'userData', $pb.PbFieldType.OY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -53,17 +57,19 @@ class NotificationConfig extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   NotificationConfig copyWith(void Function(NotificationConfig) updates) =>
-      super.copyWith((message) => updates(message as NotificationConfig)) as NotificationConfig;
+      super.copyWith((message) => updates(message as NotificationConfig))
+          as NotificationConfig;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static NotificationConfig create() => NotificationConfig._();
   NotificationConfig createEmptyInstance() => create();
-  static $pb.PbList<NotificationConfig> createRepeated() => $pb.PbList<NotificationConfig>();
+  static $pb.PbList<NotificationConfig> createRepeated() =>
+      $pb.PbList<NotificationConfig>();
   @$core.pragma('dart2js:noInline')
-  static NotificationConfig getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<NotificationConfig>(create);
+  static NotificationConfig getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<NotificationConfig>(create);
   static NotificationConfig? _defaultInstance;
 
   ///  Target Cloud PubSub topic.
@@ -139,17 +145,26 @@ class BuildsV2PubSub extends $pb.GeneratedMessage {
     return $result;
   }
   BuildsV2PubSub._() : super();
-  factory BuildsV2PubSub.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuildsV2PubSub.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory BuildsV2PubSub.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuildsV2PubSub.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildsV2PubSub',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
-    ..aOM<$0.Build>(1, _omitFieldNames ? '' : 'build', subBuilder: $0.Build.create)
-    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'buildLargeFields', $pb.PbFieldType.OY)
-    ..e<$1.Compression>(3, _omitFieldNames ? '' : 'compression', $pb.PbFieldType.OE,
-        defaultOrMaker: $1.Compression.ZLIB, valueOf: $1.Compression.valueOf, enumValues: $1.Compression.values)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BuildsV2PubSub',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
+    ..aOM<$0.Build>(1, _omitFieldNames ? '' : 'build',
+        subBuilder: $0.Build.create)
+    ..a<$core.List<$core.int>>(
+        2, _omitFieldNames ? '' : 'buildLargeFields', $pb.PbFieldType.OY)
+    ..e<$1.Compression>(
+        3, _omitFieldNames ? '' : 'compression', $pb.PbFieldType.OE,
+        defaultOrMaker: $1.Compression.ZLIB,
+        valueOf: $1.Compression.valueOf,
+        enumValues: $1.Compression.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -160,16 +175,19 @@ class BuildsV2PubSub extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   BuildsV2PubSub copyWith(void Function(BuildsV2PubSub) updates) =>
-      super.copyWith((message) => updates(message as BuildsV2PubSub)) as BuildsV2PubSub;
+      super.copyWith((message) => updates(message as BuildsV2PubSub))
+          as BuildsV2PubSub;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static BuildsV2PubSub create() => BuildsV2PubSub._();
   BuildsV2PubSub createEmptyInstance() => create();
-  static $pb.PbList<BuildsV2PubSub> createRepeated() => $pb.PbList<BuildsV2PubSub>();
+  static $pb.PbList<BuildsV2PubSub> createRepeated() =>
+      $pb.PbList<BuildsV2PubSub>();
   @$core.pragma('dart2js:noInline')
-  static BuildsV2PubSub getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildsV2PubSub>(create);
+  static BuildsV2PubSub getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BuildsV2PubSub>(create);
   static BuildsV2PubSub? _defaultInstance;
 
   /// Contains all field except large fields
@@ -241,15 +259,21 @@ class PubSubCallBack extends $pb.GeneratedMessage {
     return $result;
   }
   PubSubCallBack._() : super();
-  factory PubSubCallBack.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory PubSubCallBack.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory PubSubCallBack.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory PubSubCallBack.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PubSubCallBack',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
-    ..aOM<BuildsV2PubSub>(1, _omitFieldNames ? '' : 'buildPubsub', subBuilder: BuildsV2PubSub.create)
-    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'userData', $pb.PbFieldType.OY)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'PubSubCallBack',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
+    ..aOM<BuildsV2PubSub>(1, _omitFieldNames ? '' : 'buildPubsub',
+        subBuilder: BuildsV2PubSub.create)
+    ..a<$core.List<$core.int>>(
+        2, _omitFieldNames ? '' : 'userData', $pb.PbFieldType.OY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -260,16 +284,19 @@ class PubSubCallBack extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   PubSubCallBack copyWith(void Function(PubSubCallBack) updates) =>
-      super.copyWith((message) => updates(message as PubSubCallBack)) as PubSubCallBack;
+      super.copyWith((message) => updates(message as PubSubCallBack))
+          as PubSubCallBack;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static PubSubCallBack create() => PubSubCallBack._();
   PubSubCallBack createEmptyInstance() => create();
-  static $pb.PbList<PubSubCallBack> createRepeated() => $pb.PbList<PubSubCallBack>();
+  static $pb.PbList<PubSubCallBack> createRepeated() =>
+      $pb.PbList<PubSubCallBack>();
   @$core.pragma('dart2js:noInline')
-  static PubSubCallBack getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PubSubCallBack>(create);
+  static PubSubCallBack getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<PubSubCallBack>(create);
   static PubSubCallBack? _defaultInstance;
 
   /// Buildbucket build
@@ -302,4 +329,5 @@ class PubSubCallBack extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

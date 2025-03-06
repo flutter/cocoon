@@ -94,7 +94,8 @@ const BoolValue$json = {
 };
 
 /// Descriptor for `BoolValue`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List boolValueDescriptor = $convert.base64Decode('CglCb29sVmFsdWUSFAoFdmFsdWUYASABKAhSBXZhbHVl');
+final $typed_data.Uint8List boolValueDescriptor =
+    $convert.base64Decode('CglCb29sVmFsdWUSFAoFdmFsdWUYASABKAhSBXZhbHVl');
 
 @$core.Deprecated('Use stringValueDescriptor instead')
 const StringValue$json = {

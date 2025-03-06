@@ -38,13 +38,18 @@ class CommitTasksStatus extends $pb.GeneratedMessage {
   factory CommitTasksStatus.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory CommitTasksStatus.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory CommitTasksStatus.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CommitTasksStatus',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'dashboard'), createEmptyInstance: create)
-    ..aOM<$0.CommitDocument>(1, _omitFieldNames ? '' : 'commit', subBuilder: $0.CommitDocument.create)
-    ..pc<$1.TaskDocument>(2, _omitFieldNames ? '' : 'tasks', $pb.PbFieldType.PM, subBuilder: $1.TaskDocument.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'CommitTasksStatus',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'dashboard'),
+      createEmptyInstance: create)
+    ..aOM<$0.CommitDocument>(1, _omitFieldNames ? '' : 'commit',
+        subBuilder: $0.CommitDocument.create)
+    ..pc<$1.TaskDocument>(2, _omitFieldNames ? '' : 'tasks', $pb.PbFieldType.PM,
+        subBuilder: $1.TaskDocument.create)
     ..aOS(3, _omitFieldNames ? '' : 'branch')
     ..hasRequiredFields = false;
 
@@ -56,17 +61,19 @@ class CommitTasksStatus extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   CommitTasksStatus copyWith(void Function(CommitTasksStatus) updates) =>
-      super.copyWith((message) => updates(message as CommitTasksStatus)) as CommitTasksStatus;
+      super.copyWith((message) => updates(message as CommitTasksStatus))
+          as CommitTasksStatus;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static CommitTasksStatus create() => CommitTasksStatus._();
   CommitTasksStatus createEmptyInstance() => create();
-  static $pb.PbList<CommitTasksStatus> createRepeated() => $pb.PbList<CommitTasksStatus>();
+  static $pb.PbList<CommitTasksStatus> createRepeated() =>
+      $pb.PbList<CommitTasksStatus>();
   @$core.pragma('dart2js:noInline')
-  static CommitTasksStatus getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CommitTasksStatus>(create);
+  static CommitTasksStatus getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<CommitTasksStatus>(create);
   static CommitTasksStatus? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -100,4 +107,5 @@ class CommitTasksStatus extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

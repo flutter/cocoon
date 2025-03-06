@@ -5,8 +5,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:auto_submit/configuration/repository_configuration.dart';
-import 'package:auto_submit/configuration/repository_configuration_manager.dart';
 import 'package:cocoon_server/access_client_provider.dart';
 import 'package:cocoon_server/bigquery.dart';
 import 'package:cocoon_server/logging.dart';
@@ -14,17 +12,19 @@ import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
-import 'package:http/http.dart' as http;
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:retry/retry.dart';
 
+import '../configuration/repository_configuration.dart';
+import '../configuration/repository_configuration_manager.dart';
 import '../foundation/providers.dart';
 import '../service/secrets.dart';
 import 'github_service.dart';
 
 class CocoonGitHubRequestException implements Exception {
-  const CocoonGitHubRequestException(this.message, {required this.code, required this.uri});
+  const CocoonGitHubRequestException(this.message,
+      {required this.code, required this.uri});
 
   final String message;
   final int code;
@@ -43,7 +43,8 @@ class Config {
     this.httpProvider = Providers.freshHttpClient,
     required this.secretManager,
   }) {
-    repositoryConfigurationManager = RepositoryConfigurationManager(this, cache);
+    repositoryConfigurationManager =
+        RepositoryConfigurationManager(this, cache);
   }
 
   late RepositoryConfigurationManager repositoryConfigurationManager;
@@ -143,8 +144,10 @@ class Config {
   /// https://github.com/flutter/cocoon/pull/2035/files#r938143840.
   int get kPubsubPullNumber => 5;
 
-  static String get pubsubTopicsPrefix => 'projects/$flutterGcpProjectId/topics';
-  static String get pubsubSubscriptionsPrefix => 'projects/$flutterGcpProjectId/subscriptions';
+  static String get pubsubTopicsPrefix =>
+      'projects/$flutterGcpProjectId/topics';
+  static String get pubsubSubscriptionsPrefix =>
+      'projects/$flutterGcpProjectId/subscriptions';
 
   String get pubsubPullRequestTopic => 'auto-submit-queue';
   String get pubsubPullRequestSubscription => 'auto-submit-queue-sub';
@@ -179,28 +182,29 @@ class Config {
 
   Cache get cache => Cache<dynamic>(cacheProvider).withPrefix('config');
 
-  Future<RepositoryConfiguration> getRepositoryConfiguration(RepositorySlug slug) async {
+  Future<RepositoryConfiguration> getRepositoryConfiguration(
+      RepositorySlug slug) async {
     return repositoryConfigurationManager.readRepositoryConfiguration(slug);
   }
 
   Future<GithubService> createGithubService(RepositorySlug slug) async {
-    final GitHub github = await createGithubClient(slug);
+    final github = await createGithubClient(slug);
     return GithubService(github);
   }
 
   Future<GitHub> createGithubClient(RepositorySlug slug) async {
-    final String token = await generateGithubToken(slug);
+    final token = await generateGithubToken(slug);
     return GitHub(auth: Authentication.withToken(token));
   }
 
   Future<GitHub> createFlutterGitHubBotClient(RepositorySlug slug) async {
-    final String token = await getFlutterGitHubBotToken();
+    final token = await getFlutterGitHubBotToken();
     return GitHub(auth: Authentication.withToken(token));
   }
 
   Future<String> generateGithubToken(RepositorySlug slug) async {
     // GitHub's secondary rate limits are run into very frequently when making auth tokens.
-    final Uint8List? cacheValue = await cache['githubToken-${slug.owner}'].get(
+    final cacheValue = await cache['githubToken-${slug.owner}'].get(
       () => _generateGithubToken(slug),
       // Tokens have a TTL of 10 minutes. AppEngine requests have a TTL of 1 minute.
       // To ensure no expired tokens are used, set this to 10 - 1, with an extra buffer of a duplicate request.
@@ -210,21 +214,22 @@ class Config {
   }
 
   Future<String> getInstallationId(RepositorySlug slug) async {
-    final String jwt = await _generateGithubJwt();
-    final Map<String, String> headers = <String, String>{
+    final jwt = await _generateGithubJwt();
+    final headers = <String, String>{
       'Authorization': 'Bearer $jwt',
       'Accept': 'application/vnd.github.machine-man-preview+json',
     };
     // TODO(KristinBi): Upstream the github package.https://github.com/flutter/flutter/issues/100920
-    final Uri githubInstallationUri = Uri.https('api.github.com', 'users/${slug.owner}/installation');
-    final http.Client client = httpProvider();
+    final githubInstallationUri =
+        Uri.https('api.github.com', 'users/${slug.owner}/installation');
+    final client = httpProvider();
     // TODO(KristinBi): Track the installation id by repo. https://github.com/flutter/flutter/issues/100808
-    final http.Response response = await client.get(
+    final response = await client.get(
       githubInstallationUri,
       headers: headers,
     );
-    final Map<String, dynamic> installData = json.decode(response.body) as Map<String, dynamic>;
-    final String? installationId = installData['id']?.toString();
+    final installData = json.decode(response.body) as Map<String, dynamic>;
+    final installationId = installData['id']?.toString();
     if (installationId == null) {
       log.warning('Failed to get ID from Github '
           '(response code ${response.statusCode}):\n${response.body}');
@@ -238,16 +243,16 @@ class Config {
   }
 
   Future<GraphQLClient> createGitHubGraphQLClient(RepositorySlug slug) async {
-    final HttpLink httpLink = HttpLink(
+    final httpLink = HttpLink(
       'https://api.github.com/graphql',
       defaultHeaders: <String, String>{
         'Accept': 'application/vnd.github.antiope-preview+json',
       },
     );
 
-    final String token = await generateGithubToken(slug);
+    final token = await generateGithubToken(slug);
 
-    final AuthLink authLink = AuthLink(
+    final authLink = AuthLink(
       getToken: () async => 'Bearer $token',
     );
 
@@ -258,7 +263,7 @@ class Config {
   }
 
   Future<BigqueryService> createBigQueryService() async {
-    final AccessClientProvider accessClientProvider = AccessClientProvider();
+    final accessClientProvider = AccessClientProvider();
     return BigqueryService(accessClientProvider);
   }
 
@@ -268,20 +273,21 @@ class Config {
 
   Future<Uint8List> _generateGithubToken(RepositorySlug slug) async {
     log.info('Generating new GitHub token');
-    final String jwt = await _generateGithubJwt();
-    final Map<String, String> headers = <String, String>{
+    final jwt = await _generateGithubJwt();
+    final headers = <String, String>{
       'Authorization': 'Bearer $jwt',
       'Accept': 'application/vnd.github.machine-man-preview+json',
     };
-    final String installationId = await getInstallationId(slug);
-    final Uri githubAccessTokensUri = Uri.https('api.github.com', 'app/installations/$installationId/access_tokens');
-    final http.Client client = httpProvider();
-    final http.Response response = await client.post(
+    final installationId = await getInstallationId(slug);
+    final githubAccessTokensUri = Uri.https(
+        'api.github.com', 'app/installations/$installationId/access_tokens');
+    final client = httpProvider();
+    final response = await client.post(
       githubAccessTokensUri,
       headers: headers,
     );
-    final Map<String, dynamic> jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
-    final String? token = jsonBody['token'] as String?;
+    final jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
+    final token = jsonBody['token'] as String?;
     if (token == null) {
       log.warning('Failed to get token from Github '
           '(response code ${response.statusCode}):\n${response.body}');
@@ -296,47 +302,48 @@ class Config {
   }
 
   Future<String> _generateGithubJwt() async {
-    final String rawKey = await secretManager.get(kGithubKey);
-    final StringBuffer sb = StringBuffer();
+    final rawKey = await secretManager.get(kGithubKey);
+    final sb = StringBuffer();
     sb.writeln(rawKey.substring(0, 32));
-    sb.writeln(rawKey.substring(32, rawKey.length - 30).replaceAll(' ', '  \n'));
+    sb.writeln(
+        rawKey.substring(32, rawKey.length - 30).replaceAll(' ', '  \n'));
     sb.writeln(rawKey.substring(rawKey.length - 30, rawKey.length));
-    final String privateKey = sb.toString();
-    final JWTBuilder builder = JWTBuilder();
-    final DateTime now = DateTime.now();
+    final privateKey = sb.toString();
+    final builder = JWTBuilder();
+    final now = DateTime.now();
     builder
       ..issuer = await secretManager.get(kGithubAppId)
       ..issuedAt = now
       ..expiresAt = now.add(const Duration(minutes: 10));
-    final JWTRsaSha256Signer signer = JWTRsaSha256Signer(privateKey: privateKey);
-    final JWT signedToken = builder.getSignedToken(signer);
+    final signer = JWTRsaSha256Signer(privateKey: privateKey);
+    final signedToken = builder.getSignedToken(signer);
     return signedToken.toString();
   }
 
   /// Get the webhook key
   Future<String> getWebhookKey() async {
-    final Uint8List? cacheValue = await cache[kWebHookKey].get(
+    final cacheValue = await cache[kWebHookKey].get(
       () => _getValueFromSecretManager(kWebHookKey),
     ) as Uint8List?;
     return String.fromCharCodes(cacheValue!);
   }
 
   Future<String> getFlutterGitHubBotToken() async {
-    final Uint8List? cacheValue = await cache[kFlutterGitHubBotKey].get(
+    final cacheValue = await cache[kFlutterGitHubBotKey].get(
       () => _getValueFromSecretManager(kFlutterGitHubBotKey),
     ) as Uint8List?;
     return String.fromCharCodes(cacheValue!);
   }
 
   Future<String> getTreeStatusDiscordUrl() async {
-    final Uint8List? cacheValue = await cache[kTreeStatusDiscordUrl].get(
+    final cacheValue = await cache[kTreeStatusDiscordUrl].get(
       () => _getValueFromSecretManager(kTreeStatusDiscordUrl),
     ) as Uint8List?;
     return String.fromCharCodes(cacheValue!);
   }
 
   Future<Uint8List> _getValueFromSecretManager(String key) async {
-    final String value = await secretManager.get(key);
+    final value = await secretManager.get(key);
     return Uint8List.fromList(value.codeUnits);
   }
 }

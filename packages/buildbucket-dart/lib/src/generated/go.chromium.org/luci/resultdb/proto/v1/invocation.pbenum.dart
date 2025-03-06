@@ -14,10 +14,14 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class Invocation_State extends $pb.ProtobufEnum {
-  static const Invocation_State STATE_UNSPECIFIED = Invocation_State._(0, _omitEnumNames ? '' : 'STATE_UNSPECIFIED');
-  static const Invocation_State ACTIVE = Invocation_State._(1, _omitEnumNames ? '' : 'ACTIVE');
-  static const Invocation_State FINALIZING = Invocation_State._(2, _omitEnumNames ? '' : 'FINALIZING');
-  static const Invocation_State FINALIZED = Invocation_State._(3, _omitEnumNames ? '' : 'FINALIZED');
+  static const Invocation_State STATE_UNSPECIFIED =
+      Invocation_State._(0, _omitEnumNames ? '' : 'STATE_UNSPECIFIED');
+  static const Invocation_State ACTIVE =
+      Invocation_State._(1, _omitEnumNames ? '' : 'ACTIVE');
+  static const Invocation_State FINALIZING =
+      Invocation_State._(2, _omitEnumNames ? '' : 'FINALIZING');
+  static const Invocation_State FINALIZED =
+      Invocation_State._(3, _omitEnumNames ? '' : 'FINALIZED');
 
   static const $core.List<Invocation_State> values = <Invocation_State>[
     STATE_UNSPECIFIED,
@@ -26,7 +30,8 @@ class Invocation_State extends $pb.ProtobufEnum {
     FINALIZED,
   ];
 
-  static final $core.Map<$core.int, Invocation_State> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static final $core.Map<$core.int, Invocation_State> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
   static Invocation_State? valueOf($core.int value) => _byValue[value];
 
   const Invocation_State._($core.int v, $core.String n) : super(v, n);

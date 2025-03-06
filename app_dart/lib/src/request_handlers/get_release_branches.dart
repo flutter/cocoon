@@ -4,9 +4,8 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/src/request_handling/request_handler.dart';
-
 import '../request_handling/body.dart';
+import '../request_handling/request_handler.dart';
 import '../service/branch_service.dart';
 import '../service/config.dart';
 
@@ -31,12 +30,17 @@ import '../service/config.dart';
 ///]
 
 final class GetReleaseBranches extends RequestHandler<Body> {
-  GetReleaseBranches({required super.config, required BranchService branchService}) : _branchService = branchService;
+  GetReleaseBranches({
+    required super.config,
+    required BranchService branchService,
+  }) : _branchService = branchService;
 
   final BranchService _branchService;
 
   @override
   Future<Body> get() async {
-    return Body.forJson(await _branchService.getReleaseBranches(slug: Config.flutterSlug));
+    return Body.forJson(
+      await _branchService.getReleaseBranches(slug: Config.flutterSlug),
+    );
   }
 }

@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:cocoon_server/access_client_provider.dart';
 import 'package:googleapis/bigquery/v2.dart';
-import 'package:http/http.dart';
 
 /// The sql query to query the build statistic from the
 /// `flutter-dashboard.datasite.luci_prod_build_status`.
@@ -93,7 +92,7 @@ class BigqueryService {
 
   /// Return a [TabledataResource] with an authenticated [client]
   Future<TabledataResource> defaultTabledata() async {
-    final Client client = await accessClientProvider.createAccessClient(
+    final client = await accessClientProvider.createAccessClient(
       scopes: const <String>[BigqueryApi.bigqueryScope],
     );
     return BigqueryApi(client).tabledata;
@@ -101,7 +100,7 @@ class BigqueryService {
 
   /// Return a [JobsResource] with an authenticated [client]
   Future<JobsResource> defaultJobs() async {
-    final Client client = await accessClientProvider.createAccessClient(
+    final client = await accessClientProvider.createAccessClient(
       scopes: const <String>[BigqueryApi.bigqueryScope],
     );
     return BigqueryApi(client).jobs;
@@ -116,9 +115,12 @@ class BigqueryService {
     int limit = 100,
     String bucket = 'prod',
   }) async {
-    final JobsResource jobsResource = await defaultJobs();
-    final QueryRequest query = QueryRequest.fromJson(<String, Object>{
-      'query': bucket == 'staging' ? getStagingBuilderStatisticQuery : getBuilderStatisticQuery,
+    final jobsResource = await defaultJobs();
+    final query = QueryRequest.fromJson(<String, Object>{
+      'query':
+          bucket == 'staging'
+              ? getStagingBuilderStatisticQuery
+              : getBuilderStatisticQuery,
       'queryParameters': <Map<String, Object>>[
         <String, Object>{
           'name': 'LIMIT',
@@ -128,17 +130,17 @@ class BigqueryService {
       ],
       'useLegacySql': false,
     });
-    final QueryResponse response = await jobsResource.query(query, projectId);
+    final response = await jobsResource.query(query, projectId);
     if (!response.jobComplete!) {
       throw 'job does not complete';
     }
-    final List<BuilderStatistic> result = <BuilderStatistic>[];
-    for (final TableRow row in response.rows!) {
-      final String builder = row.f![0].v as String;
-      List<String>? flakyBuilds = (row.f![3].v as String?)?.split(', ');
+    final result = <BuilderStatistic>[];
+    for (final row in response.rows!) {
+      final builder = row.f![0].v as String;
+      var flakyBuilds = (row.f![3].v as String?)?.split(', ');
       flakyBuilds?.sort();
       flakyBuilds = flakyBuilds?.reversed.toList();
-      List<String>? succeededBuilds = (row.f![4].v as String?)?.split(', ');
+      var succeededBuilds = (row.f![4].v as String?)?.split(', ');
       succeededBuilds?.sort();
       succeededBuilds = succeededBuilds?.reversed.toList();
       result.add(
@@ -168,8 +170,8 @@ class BigqueryService {
     String? builder,
     int? limit,
   }) async {
-    final JobsResource jobsResource = await defaultJobs();
-    final QueryRequest query = QueryRequest.fromJson(<String, Object>{
+    final jobsResource = await defaultJobs();
+    final query = QueryRequest.fromJson(<String, Object>{
       'query': getRecordsQuery,
       'parameterMode': 'NAMED',
       'queryParameters': <Map<String, Object>>[
@@ -186,16 +188,16 @@ class BigqueryService {
       ],
       'useLegacySql': false,
     });
-    final QueryResponse response = await jobsResource.query(query, projectId);
+    final response = await jobsResource.query(query, projectId);
     if (!response.jobComplete!) {
       throw 'job does not complete';
     }
-    final List<BuilderRecord> result = <BuilderRecord>[];
+    final result = <BuilderRecord>[];
     // When a test is newly marked as flaky, it is possible no execution exists.
     if (response.rows == null) {
       return result;
     }
-    for (final TableRow row in response.rows!) {
+    for (final row in response.rows!) {
       result.add(
         BuilderRecord(
           commit: row.f![0].v as String,

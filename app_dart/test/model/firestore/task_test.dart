@@ -5,8 +5,6 @@
 import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/appengine/task.dart' as datastore;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
@@ -20,15 +18,18 @@ import '../../src/utilities/mocks.dart';
 void main() {
   group('Task', () {
     test('disallows illegal status', () {
-      final Task task = Task();
+      final task = Task();
       expect(() => task.setStatus('unknown'), throwsArgumentError);
     });
 
     test('creates task document correctly from task data model', () async {
-      final datastore.Task task = generateTask(1);
-      final String commitSha = task.commitKey!.id!.split('/').last;
-      final Task taskDocument = taskToDocument(task);
-      expect(taskDocument.name, '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${task.name}_${task.attempts}');
+      final task = generateTask(1);
+      final commitSha = task.commitKey!.id!.split('/').last;
+      final taskDocument = taskToDocument(task);
+      expect(
+        taskDocument.name,
+        '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${task.name}_${task.attempts}',
+      );
       expect(taskDocument.createTimestamp, task.createTimestamp);
       expect(taskDocument.endTimestamp, task.endTimestamp);
       expect(taskDocument.bringup, task.isFlaky);
@@ -40,42 +41,71 @@ void main() {
     });
 
     test('creates task documents correctly from targets', () async {
-      final Commit commit = generateCommit(1);
-      final List<Target> targets = <Target>[
+      final commit = generateCommit(1);
+      final targets = <Target>[
         generateTarget(1, platform: 'Mac'),
         generateTarget(2, platform: 'Linux'),
       ];
-      final List<Task> taskDocuments = targetsToTaskDocuments(commit, targets);
+      final taskDocuments = targetsToTaskDocuments(commit, targets);
       expect(taskDocuments.length, 2);
       expect(
         taskDocuments[0].name,
         '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${targets[0].value.name}_$kTaskInitialAttempt',
       );
-      expect(taskDocuments[0].fields![kTaskCreateTimestampField]!.integerValue, commit.timestamp.toString());
-      expect(taskDocuments[0].fields![kTaskEndTimestampField]!.integerValue, '0');
+      expect(
+        taskDocuments[0].fields![kTaskCreateTimestampField]!.integerValue,
+        commit.timestamp.toString(),
+      );
+      expect(
+        taskDocuments[0].fields![kTaskEndTimestampField]!.integerValue,
+        '0',
+      );
       expect(taskDocuments[0].fields![kTaskBringupField]!.booleanValue, false);
-      expect(taskDocuments[0].fields![kTaskNameField]!.stringValue, targets[0].value.name);
-      expect(taskDocuments[0].fields![kTaskStartTimestampField]!.integerValue, '0');
-      expect(taskDocuments[0].fields![kTaskStatusField]!.stringValue, Task.statusNew);
-      expect(taskDocuments[0].fields![kTaskTestFlakyField]!.booleanValue, false);
-      expect(taskDocuments[0].fields![kTaskCommitShaField]!.stringValue, commit.sha);
+      expect(
+        taskDocuments[0].fields![kTaskNameField]!.stringValue,
+        targets[0].value.name,
+      );
+      expect(
+        taskDocuments[0].fields![kTaskStartTimestampField]!.integerValue,
+        '0',
+      );
+      expect(
+        taskDocuments[0].fields![kTaskStatusField]!.stringValue,
+        Task.statusNew,
+      );
+      expect(
+        taskDocuments[0].fields![kTaskTestFlakyField]!.booleanValue,
+        false,
+      );
+      expect(
+        taskDocuments[0].fields![kTaskCommitShaField]!.stringValue,
+        commit.sha,
+      );
     });
 
     group('updateFromBuild', () {
       test('update succeeds from buildbucket v2', () async {
-        final bbv2.BuildsV2PubSub pubSubCallBack = bbv2.BuildsV2PubSub().createEmptyInstance();
-        pubSubCallBack.mergeFromProto3Json(jsonDecode(buildBucketMessage) as Map<String, dynamic>);
-        final bbv2.Build build = pubSubCallBack.build;
+        final pubSubCallBack = bbv2.BuildsV2PubSub().createEmptyInstance();
+        pubSubCallBack.mergeFromProto3Json(
+          jsonDecode(buildBucketMessage) as Map<String, dynamic>,
+        );
+        final build = pubSubCallBack.build;
 
-        final Task task = generateFirestoreTask(
+        final task = generateFirestoreTask(
           1,
           name: build.builder.builder,
           commitSha: 'asldjflaksdjflkasjdflkasjf',
         );
 
-        final DateTime createTimeDateTime = DateTime.parse('2024-03-27T23:36:11.895266929Z');
-        final DateTime startTimeDateTime = DateTime.parse('2024-03-27T23:36:18.758986946Z');
-        final DateTime endTimeDateTime = DateTime.parse('2024-03-27T23:51:20.758986946Z');
+        final createTimeDateTime = DateTime.parse(
+          '2024-03-27T23:36:11.895266929Z',
+        );
+        final startTimeDateTime = DateTime.parse(
+          '2024-03-27T23:36:18.758986946Z',
+        );
+        final endTimeDateTime = DateTime.parse(
+          '2024-03-27T23:51:20.758986946Z',
+        );
 
         expect(task.status, Task.statusNew);
         expect(task.buildNumber, isNull);
@@ -104,17 +134,13 @@ void main() {
     });
 
     test('generates task correctly', () async {
-      final Task firestoreTask = generateFirestoreTask(1);
-      when(
-        mockFirestoreService.getDocument(
-          captureAny,
-        ),
-      ).thenAnswer((Invocation invocation) {
-        return Future<Document>.value(
-          firestoreTask,
-        );
+      final firestoreTask = generateFirestoreTask(1);
+      when(mockFirestoreService.getDocument(captureAny)).thenAnswer((
+        Invocation invocation,
+      ) {
+        return Future<Document>.value(firestoreTask);
       });
-      final Task resultedTask = await Task.fromFirestore(
+      final resultedTask = await Task.fromFirestore(
         firestoreService: mockFirestoreService,
         documentName: 'test',
       );
@@ -125,7 +151,7 @@ void main() {
 
   group('resert as retry', () {
     test('success', () {
-      final Task task = generateFirestoreTask(
+      final task = generateFirestoreTask(
         1,
         status: Task.statusFailed,
         testFlaky: true,
@@ -139,8 +165,8 @@ void main() {
   });
 
   test('task facade', () {
-    final Task taskDocument = generateFirestoreTask(1);
-    final Map<String, dynamic> expectedResult = <String, dynamic>{
+    final taskDocument = generateFirestoreTask(1);
+    final expectedResult = <String, dynamic>{
       kTaskDocumentName: taskDocument.name,
       kTaskCommitSha: taskDocument.commitSha,
       kTaskCreateTimestamp: taskDocument.createTimestamp,

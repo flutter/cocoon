@@ -59,7 +59,10 @@ final class PresubmitUserData extends PubSubUserData {
     try {
       return _$PresubmitUserDataFromJson(object);
     } on CheckedFromJsonException catch (e) {
-      throw FormatException('Invalid UserData object: ${e.message}.\n${e.innerStack}', object.toString());
+      throw FormatException(
+        'Invalid UserData object: ${e.message}.\n${e.innerStack}',
+        object.toString(),
+      );
     }
   }
 
@@ -124,7 +127,10 @@ final class PostsubmitUserData extends PubSubUserData {
     try {
       return _$PostsubmitUserDataFromJson(object);
     } on CheckedFromJsonException catch (e) {
-      throw FormatException('Invalid UserData object: ${e.message}.\n${e.innerStack}', object.toString());
+      throw FormatException(
+        'Invalid UserData object: ${e.message}.\n${e.innerStack}',
+        object.toString(),
+      );
     }
   }
 
@@ -178,7 +184,11 @@ final class FirestoreTaskDocumentName {
     required this.currentAttempt,
   }) {
     if (currentAttempt < 1) {
-      throw RangeError.value(currentAttempt, 'currentAttempt', 'Must be at least 1');
+      throw RangeError.value(
+        currentAttempt,
+        'currentAttempt',
+        'Must be at least 1',
+      );
     }
   }
 
@@ -195,7 +205,10 @@ final class FirestoreTaskDocumentName {
         );
       }
     }
-    throw FormatException('Unexpected firestore task document name', documentName);
+    throw FormatException(
+      'Unexpected firestore task document name',
+      documentName,
+    );
   }
 
   static String? _toJson(FirestoreTaskDocumentName? object) {
@@ -205,7 +218,9 @@ final class FirestoreTaskDocumentName {
   /// Parses `{commitSha}_{taskName}_{currentAttempt}`.
   ///
   /// This is gross because the [taskName] could also include underscores.
-  static final _parseDocumentName = RegExp(r'([^_]*)_((?:[^_]+_)*[^_]+)_([^_]*)');
+  static final _parseDocumentName = RegExp(
+    r'([^_]*)_((?:[^_]+_)*[^_]+)_([^_]*)',
+  );
 
   /// The commit SHA of the code being built.
   final String commitSha;

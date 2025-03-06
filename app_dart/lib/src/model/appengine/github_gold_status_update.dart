@@ -51,18 +51,19 @@ class GithubGoldStatusUpdate extends Model<int> {
 
   @override
   String toString() {
-    final StringBuffer buf = StringBuffer()
-      ..write('$runtimeType(')
-      ..write('id: $id')
-      ..write(', parentKey: ${parentKey?.id}')
-      ..write(', key: ${parentKey == null ? null : key.id}')
-      ..write(', pr: $pr')
-      ..write(', head: $head')
-      ..write(', lastStatus: $status')
-      ..write(', description $description')
-      ..write(', updates: $updates')
-      ..write(', repository: $repository')
-      ..write(')');
+    final buf =
+        StringBuffer()
+          ..write('$runtimeType(')
+          ..write('id: $id')
+          ..write(', parentKey: ${parentKey?.id}')
+          ..write(', key: ${parentKey == null ? null : key.id}')
+          ..write(', pr: $pr')
+          ..write(', head: $head')
+          ..write(', lastStatus: $status')
+          ..write(', description $description')
+          ..write(', updates: $updates')
+          ..write(', repository: $repository')
+          ..write(')');
     return buf.toString();
   }
 }

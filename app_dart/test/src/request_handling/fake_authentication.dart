@@ -32,9 +32,15 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
   }
 
   @override
-  Future<AuthenticatedContext> authenticateToken(TokenInfo token, {ClientContext? clientContext, Logging? log}) async {
+  Future<AuthenticatedContext> authenticateToken(
+    TokenInfo token, {
+    ClientContext? clientContext,
+    Logging? log,
+  }) async {
     if (authenticated) {
-      return FakeAuthenticatedContext(clientContext: clientContext as FakeClientContext?);
+      return FakeAuthenticatedContext(
+        clientContext: clientContext as FakeClientContext?,
+      );
     } else {
       throw const Unauthenticated('Not authenticated');
     }
@@ -50,19 +56,19 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
   HttpClientProvider get httpClientProvider => throw UnimplementedError();
 
   @override
-  Future<TokenInfo> tokenInfo(HttpRequest request, {Logging? log, String tokenType = 'id_token'}) async {
-    return TokenInfo(
-      email: 'abc@gmail.com',
-      issued: DateTime.now(),
-    );
+  Future<TokenInfo> tokenInfo(
+    HttpRequest request, {
+    Logging? log,
+    String tokenType = 'id_token',
+  }) async {
+    return TokenInfo(email: 'abc@gmail.com', issued: DateTime.now());
   }
 }
 
 // ignore: must_be_immutable
 class FakeAuthenticatedContext implements AuthenticatedContext {
-  FakeAuthenticatedContext({
-    FakeClientContext? clientContext,
-  }) : clientContext = clientContext ?? FakeClientContext();
+  FakeAuthenticatedContext({FakeClientContext? clientContext})
+    : clientContext = clientContext ?? FakeClientContext();
 
   @override
   FakeClientContext clientContext;
@@ -118,7 +124,6 @@ class FakeAppEngineContext implements AppEngineContext {
 }
 
 class FakeKeyHelper extends KeyHelper {
-  FakeKeyHelper({
-    AppEngineContext? applicationContext,
-  }) : super(applicationContext: applicationContext ?? FakeAppEngineContext());
+  FakeKeyHelper({AppEngineContext? applicationContext})
+    : super(applicationContext: applicationContext ?? FakeAppEngineContext());
 }

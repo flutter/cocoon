@@ -2,45 +2,56 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/configuration/repository_configuration.dart';
-import 'package:auto_submit/model/auto_submit_query_result.dart';
-import 'package:auto_submit/service/config.dart';
-import 'package:auto_submit/service/github_service.dart';
-import 'package:auto_submit/validations/validation.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
+
+import '../configuration/repository_configuration.dart';
+import '../model/auto_submit_query_result.dart';
+import '../service/config.dart';
+import '../service/github_service.dart';
+import 'validation.dart';
 
 /// Validates that a PR has been approved in accordance with the flutter code
 /// review guidelines.
 class Approval extends Validation {
-  Approval({
-    required super.config,
-  });
+  Approval({required super.config});
 
   @override
   String get name => 'Approval';
 
   /// Implements the code review approval logic.
   @override
-  Future<ValidationResult> validate(QueryResult result, github.PullRequest messagePullRequest) async {
-    final PullRequest pullRequest = result.repository!.pullRequest!;
-    final String? author = pullRequest.author!.login;
-    final List<ReviewNode> reviews = pullRequest.reviews!.nodes!;
-    final github.RepositorySlug slug = github.RepositorySlug.full(messagePullRequest.base!.repo!.fullName);
+  Future<ValidationResult> validate(
+    QueryResult result,
+    github.PullRequest messagePullRequest,
+  ) async {
+    final pullRequest = result.repository!.pullRequest!;
+    final author = pullRequest.author!.login;
+    final reviews = pullRequest.reviews!.nodes!;
+    final slug = github.RepositorySlug.full(
+      messagePullRequest.base!.repo!.fullName,
+    );
 
-    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
+    final repositoryConfiguration = await config.getRepositoryConfiguration(
+      slug,
+    );
 
-    bool approved = false;
-    String message = '';
-    Action action = Action.REMOVE_LABEL;
+    var approved = false;
+    var message = '';
+    var action = Action.REMOVE_LABEL;
     if (repositoryConfiguration.autoApprovalAccounts.contains(author)) {
-      log.info('PR ${slug.fullName}/${messagePullRequest.number} approved for roller account: $author');
+      log.info(
+        'PR ${slug.fullName}/${messagePullRequest.number} approved for roller account: $author',
+      );
       return ValidationResult(true, Action.REMOVE_LABEL, '');
     } else {
-      final GithubService githubService = await config.createGithubService(slug);
-      final bool authorIsFlutterHacker =
-          await githubService.isTeamMember(repositoryConfiguration.approvalGroup, author!, slug.owner);
-      final Approver approver = Approver(
+      final githubService = await config.createGithubService(slug);
+      final authorIsFlutterHacker = await githubService.isTeamMember(
+        repositoryConfiguration.approvalGroup,
+        author!,
+        slug.owner,
+      );
+      final approver = Approver(
         slug,
         repositoryConfiguration,
         githubService,
@@ -55,7 +66,7 @@ class Approval extends Validation {
       );
 
       String approvedMessage;
-      final String flutterHackerMessage = (authorIsFlutterHacker)
+      final flutterHackerMessage = authorIsFlutterHacker
           ? 'The PR author is a member of ${repositoryConfiguration.approvalGroup}'
           : 'The PR author is not a member of ${repositoryConfiguration.approvalGroup}';
       // Changes were requested, review count does not matter.
@@ -76,7 +87,9 @@ class Approval extends Validation {
         }
       }
 
-      message = approved ? approvedMessage : '$approvedMessage\n${Config.pullRequestApprovalRequirementsMessage}';
+      message = approved
+          ? approvedMessage
+          : '$approvedMessage\n${Config.pullRequestApprovalRequirementsMessage}';
     }
 
     return ValidationResult(approved, action, message);
@@ -124,8 +137,11 @@ class Approver {
   Future<void> computeApproval() async {
     _remainingReviews = repositoryConfiguration.approvingReviews;
     // TODO (ricardoamador) team might be more than one in the future.
-    final bool authorIsMember =
-        await githubService.isTeamMember(repositoryConfiguration.approvalGroup, author!, slug.owner);
+    final authorIsMember = await githubService.isTeamMember(
+      repositoryConfiguration.approvalGroup,
+      author!,
+      slug.owner,
+    );
 
     // The author counts as 1 review if they are a member of the approval group
     // so we need only 1 more review from a member of the approval group.
@@ -134,12 +150,12 @@ class Approver {
       _approvers.add(author);
     }
 
-    final int targetReviewCount = _remainingReviews;
+    final targetReviewCount = _remainingReviews;
 
     // Github reviews are returned in chonological order so to avoid the odd
     // case where a user requests changes then approves we parse the reviews in
     // reverse chronological order.
-    for (ReviewNode review in reviews.reversed) {
+    for (var review in reviews.reversed) {
       if (review.author!.login == author) {
         log.info('Author cannot review own pull request.');
         continue;
@@ -154,8 +170,8 @@ class Approver {
         continue;
       }
 
-      final String? state = review.state;
-      final String? authorLogin = review.author!.login;
+      final state = review.state;
+      final authorLogin = review.author!.login;
       // Github keeps all reviews so the same person can provide two reviews and
       // possibly bypass the two review rule. Track the reviewers so we can
       // account for this.
@@ -164,7 +180,8 @@ class Approver {
         if (_remainingReviews > 0) {
           _remainingReviews--;
         }
-      } else if (state == CHANGES_REQUESTED_STATE && !_reviewAuthors.contains(authorLogin)) {
+      } else if (state == CHANGES_REQUESTED_STATE &&
+          !_reviewAuthors.contains(authorLogin)) {
         _changeRequestAuthors.add(authorLogin);
         if (_remainingReviews < targetReviewCount) {
           _remainingReviews++;
@@ -174,6 +191,8 @@ class Approver {
       _reviewAuthors.add(authorLogin);
     }
 
-    _approved = (_approvers.length > repositoryConfiguration.approvingReviews - 1) && _changeRequestAuthors.isEmpty;
+    _approved =
+        (_approvers.length > repositoryConfiguration.approvingReviews - 1) &&
+            _changeRequestAuthors.isEmpty;
   }
 }

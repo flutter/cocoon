@@ -12,10 +12,8 @@ import 'package:meta/meta.dart';
 import 'request_handler_tester.dart';
 
 class NoAuthRequestHandlerTester extends RequestHandlerTester {
-  NoAuthRequestHandlerTester({
-    super.request,
-    Map<String, dynamic>? requestData,
-  }) : requestData = requestData ?? <String, dynamic>{};
+  NoAuthRequestHandlerTester({super.request, Map<String, dynamic>? requestData})
+    : requestData = requestData ?? <String, dynamic>{};
 
   Map<String, dynamic> requestData;
 

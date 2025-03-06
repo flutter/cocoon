@@ -20,17 +20,13 @@ void main() {
     });
 
     test('generates githubGoldStatus correctly', () async {
-      final GithubGoldStatus githubGoldStatus = generateFirestoreGithubGoldStatus(1);
-      when(
-        mockFirestoreService.getDocument(
-          captureAny,
-        ),
-      ).thenAnswer((Invocation invocation) {
-        return Future<GithubGoldStatus>.value(
-          githubGoldStatus,
-        );
+      final githubGoldStatus = generateFirestoreGithubGoldStatus(1);
+      when(mockFirestoreService.getDocument(captureAny)).thenAnswer((
+        Invocation invocation,
+      ) {
+        return Future<GithubGoldStatus>.value(githubGoldStatus);
       });
-      final GithubGoldStatus resultedGithubGoldStatus = await GithubGoldStatus.fromFirestore(
+      final resultedGithubGoldStatus = await GithubGoldStatus.fromFirestore(
         firestoreService: mockFirestoreService,
         documentName: 'test',
       );
@@ -40,7 +36,7 @@ void main() {
   });
 
   test('creates github gold status document correctly from data model', () async {
-    final GithubGoldStatusUpdate githubGoldStatusUpdate = GithubGoldStatusUpdate(
+    final githubGoldStatusUpdate = GithubGoldStatusUpdate(
       head: 'sha',
       pr: 1,
       status: GithubGoldStatusUpdate.statusCompleted,
@@ -48,19 +44,34 @@ void main() {
       description: '',
       repository: 'flutter/flutter',
     );
-    final GithubGoldStatus commitDocument = githubGoldStatusToDocument(githubGoldStatusUpdate);
+    final commitDocument = githubGoldStatusToDocument(githubGoldStatusUpdate);
     expect(
       commitDocument.name,
       '$kDatabase/documents/$kGithubGoldStatusCollectionId/${githubGoldStatusUpdate.repository!.replaceAll('/', '_')}_${githubGoldStatusUpdate.pr}',
     );
-    expect(commitDocument.fields![kGithubGoldStatusHeadField]!.stringValue, githubGoldStatusUpdate.head);
-    expect(commitDocument.fields![kGithubGoldStatusPrNumberField]!.integerValue, githubGoldStatusUpdate.pr.toString());
-    expect(commitDocument.fields![kGithubGoldStatusStatusField]!.stringValue, githubGoldStatusUpdate.status);
+    expect(
+      commitDocument.fields![kGithubGoldStatusHeadField]!.stringValue,
+      githubGoldStatusUpdate.head,
+    );
+    expect(
+      commitDocument.fields![kGithubGoldStatusPrNumberField]!.integerValue,
+      githubGoldStatusUpdate.pr.toString(),
+    );
+    expect(
+      commitDocument.fields![kGithubGoldStatusStatusField]!.stringValue,
+      githubGoldStatusUpdate.status,
+    );
     expect(
       commitDocument.fields![kGithubGoldStatusUpdatesField]!.integerValue,
       githubGoldStatusUpdate.updates.toString(),
     );
-    expect(commitDocument.fields![kGithubGoldStatusDescriptionField]!.stringValue, githubGoldStatusUpdate.description);
-    expect(commitDocument.fields![kGithubGoldStatusRepositoryField]!.stringValue, githubGoldStatusUpdate.repository);
+    expect(
+      commitDocument.fields![kGithubGoldStatusDescriptionField]!.stringValue,
+      githubGoldStatusUpdate.description,
+    );
+    expect(
+      commitDocument.fields![kGithubGoldStatusRepositoryField]!.stringValue,
+      githubGoldStatusUpdate.repository,
+    );
   });
 }

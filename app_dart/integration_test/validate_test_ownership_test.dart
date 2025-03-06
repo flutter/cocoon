@@ -18,40 +18,41 @@ final List<SupportedConfig> configs = <SupportedConfig>[
 ];
 
 Future<void> main() async {
-  for (final SupportedConfig config in configs) {
+  for (final config in configs) {
     test('validate test ownership for $config', () async {
-      const String dart = 'dart';
-      const String taskExecutable = 'bin/validate_task_ownership.dart';
-      final List<String> taskArgs = <String>[config.slug.name, config.branch];
+      const dart = 'dart';
+      const taskExecutable = 'bin/validate_task_ownership.dart';
+      final taskArgs = <String>[config.slug.name, config.branch];
 
       const ProcessManager processManager = LocalProcessManager();
-      final Process process = await processManager.start(
-        <String>[dart, taskExecutable, ...taskArgs],
-        workingDirectory: Directory.current.path,
-      );
+      final process = await processManager.start(<String>[
+        dart,
+        taskExecutable,
+        ...taskArgs,
+      ], workingDirectory: Directory.current.path);
 
-      final List<String> output = <String>[];
-      final List<String> error = <String>[];
+      final output = <String>[];
+      final error = <String>[];
 
       process.stdout
           .transform<String>(const Utf8Decoder())
           .transform<String>(const LineSplitter())
           .listen((String line) {
-        stdout.writeln('[STDOUT] $line');
-        output.add(line);
-      });
+            stdout.writeln('[STDOUT] $line');
+            output.add(line);
+          });
 
       process.stderr
           .transform<String>(const Utf8Decoder())
           .transform<String>(const LineSplitter())
           .listen((String line) {
-        stderr.writeln('[STDERR] $line');
-        error.add(line);
-      });
+            stderr.writeln('[STDERR] $line');
+            error.add(line);
+          });
 
-      final int exitCode = await process.exitCode;
+      final exitCode = await process.exitCode;
       if (exitCode != 0) {
-        for (String line in error) {
+        for (var line in error) {
           print(line);
         }
         fail('An error has occurred.');

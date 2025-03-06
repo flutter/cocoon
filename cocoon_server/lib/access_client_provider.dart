@@ -8,10 +8,15 @@ import 'package:http/http.dart';
 class AccessClientProvider {
   /// Returns an OAuth 2.0 authenticated access client for the device lab service account.
   Future<Client> createAccessClient({
-    List<String> scopes = const <String>['https://www.googleapis.com/auth/cloud-platform'],
+    List<String> scopes = const <String>[
+      'https://www.googleapis.com/auth/cloud-platform',
+    ],
     Client? baseClient,
   }) async {
-    return clientViaApplicationDefaultCredentials(scopes: scopes, baseClient: baseClient);
+    return clientViaApplicationDefaultCredentials(
+      scopes: scopes,
+      baseClient: baseClient,
+    );
   }
 }
 
@@ -22,16 +27,13 @@ class AccessClientProvider {
 ///
 /// https://firebase.google.com/docs/firestore/manage-databases#access_a_named_database_with_a_client_library
 class FirestoreBaseClient extends BaseClient {
-  FirestoreBaseClient({
-    required this.projectId,
-    required this.databaseId,
-  });
+  FirestoreBaseClient({required this.projectId, required this.databaseId});
   final String databaseId;
   final String projectId;
   final Client client = Client();
   @override
   Future<StreamedResponse> send(BaseRequest request) {
-    final Map<String, String> defaultHeaders = <String, String>{
+    final defaultHeaders = <String, String>{
       'x-goog-request-params': 'project_id=$projectId&database_id=$databaseId',
     };
     request.headers.addAll(defaultHeaders);

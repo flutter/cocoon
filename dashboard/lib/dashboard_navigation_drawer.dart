@@ -12,8 +12,8 @@ class DashboardNavigationDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<CocoonLink> cocoonLinks = createCocoonLinks(context);
-    final String? currentRoute = ModalRoute.of(context)!.settings.name;
+    final cocoonLinks = createCocoonLinks(context);
+    final currentRoute = ModalRoute.of(context)!.settings.name;
     return Drawer(
       child: ListView(
         children: <Widget>[
@@ -34,9 +34,7 @@ class DashboardNavigationDrawer extends StatelessWidget {
               selected: currentRoute == link.route,
             ),
           ),
-          const AboutListTile(
-            icon: FlutterLogo(),
-          ),
+          const AboutListTile(icon: FlutterLogo()),
         ],
       ),
     );

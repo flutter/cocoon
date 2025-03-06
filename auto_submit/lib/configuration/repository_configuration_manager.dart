@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/configuration/repository_configuration.dart';
-import 'package:auto_submit/service/config.dart';
-import 'package:auto_submit/service/github_service.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:mutex/mutex.dart';
 import 'package:neat_cache/neat_cache.dart';
+
+import '../service/config.dart';
+import 'repository_configuration.dart';
 
 /// The [RepositoryConfigurationManager] is responsible for fetching and merging
 /// the autosubmit configuration from the Org level repository and if needed
@@ -43,11 +43,12 @@ class RepositoryConfigurationManager {
     await _mutex.acquire();
     try {
       // Get the contents from the cache or go to github.
-      final cacheValue = await cache['${slug.fullName}$fileSeparator$fileName'].get(
+      final cacheValue =
+          await cache['${slug.fullName}$fileSeparator$fileName'].get(
         () async => _getConfiguration(slug),
         config.repositoryConfigurationTtl,
       );
-      final String cacheYaml = String.fromCharCodes(cacheValue);
+      final cacheYaml = String.fromCharCodes(cacheValue);
       log.info('Converting yaml to RepositoryConfiguration: $cacheYaml');
       return RepositoryConfiguration.fromYaml(cacheYaml);
     } finally {
@@ -63,29 +64,36 @@ class RepositoryConfigurationManager {
     // Read the org level configuraiton file first.
     log.info('Getting org level configuration.');
     // Get the Org level configuration.
-    final RepositorySlug orgSlug = RepositorySlug(slug.owner, orgRepository);
-    GithubService githubService = await config.createGithubService(orgSlug);
-    final String orgLevelConfig = await githubService.getFileContents(orgSlug, '$dirName$fileSeparator$fileName');
-    final RepositoryConfiguration globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(orgLevelConfig);
+    final orgSlug = RepositorySlug(slug.owner, orgRepository);
+    var githubService = await config.createGithubService(orgSlug);
+    final orgLevelConfig = await githubService.getFileContents(
+        orgSlug, '$dirName$fileSeparator$fileName');
+    final globalRepositoryConfiguration =
+        RepositoryConfiguration.fromYaml(orgLevelConfig);
 
     // Collect the default branch if it was not supplied.
-    if (globalRepositoryConfiguration.defaultBranch == RepositoryConfiguration.defaultBranchStr) {
-      globalRepositoryConfiguration.defaultBranch = await githubService.getDefaultBranch(slug);
+    if (globalRepositoryConfiguration.defaultBranch ==
+        RepositoryConfiguration.defaultBranchStr) {
+      globalRepositoryConfiguration.defaultBranch =
+          await githubService.getDefaultBranch(slug);
     }
-    log.info('Default branch was found to be ${globalRepositoryConfiguration.defaultBranch} for ${slug.fullName}.');
+    log.info(
+        'Default branch was found to be ${globalRepositoryConfiguration.defaultBranch} for ${slug.fullName}.');
 
     // If the override flag is set to true we check the pull request's
     // repository to collect any values that will override the global config.
     if (globalRepositoryConfiguration.allowConfigOverride) {
-      log.info('Override is set, collecting and merging local repository configuration.');
+      log.info(
+          'Override is set, collecting and merging local repository configuration.');
       githubService = await config.createGithubService(slug);
 
       String? localRepositoryConfigurationYaml;
       try {
-        localRepositoryConfigurationYaml = await githubService.getFileContents(slug, '$dirName$fileSeparator$fileName');
-        final RepositoryConfiguration localRepositoryConfiguration =
+        localRepositoryConfigurationYaml = await githubService.getFileContents(
+            slug, '$dirName$fileSeparator$fileName');
+        final localRepositoryConfiguration =
             RepositoryConfiguration.fromYaml(localRepositoryConfigurationYaml);
-        final RepositoryConfiguration mergedRepositoryConfiguration = mergeConfigurations(
+        final mergedRepositoryConfiguration = mergeConfigurations(
           globalRepositoryConfiguration,
           localRepositoryConfiguration,
         );
@@ -115,7 +123,7 @@ class RepositoryConfigurationManager {
     RepositoryConfiguration globalConfiguration,
     RepositoryConfiguration localConfiguration,
   ) {
-    final RepositoryConfiguration mergedRepositoryConfiguration = RepositoryConfiguration(
+    final mergedRepositoryConfiguration = RepositoryConfiguration(
       allowConfigOverride: globalConfiguration.allowConfigOverride,
       defaultBranch: globalConfiguration.defaultBranch,
       autoApprovalAccounts: globalConfiguration.autoApprovalAccounts,
@@ -128,38 +136,43 @@ class RepositoryConfigurationManager {
 
     // auto approval accounts, they should be empty if nothing was defined
     if (localConfiguration.autoApprovalAccounts.isNotEmpty) {
-      mergedRepositoryConfiguration.autoApprovalAccounts.addAll(localConfiguration.autoApprovalAccounts);
+      mergedRepositoryConfiguration.autoApprovalAccounts
+          .addAll(localConfiguration.autoApprovalAccounts);
     }
 
     // approving reviews
     // this may not be set lower than the global configuration value
-    final int localApprovingReviews = localConfiguration.approvingReviews;
+    final localApprovingReviews = localConfiguration.approvingReviews;
     if (localApprovingReviews > globalConfiguration.approvingReviews) {
       mergedRepositoryConfiguration.approvingReviews = localApprovingReviews;
     }
 
     // approval group
-    final String localApprovalGroup = localConfiguration.approvalGroup;
+    final localApprovalGroup = localConfiguration.approvalGroup;
     if (localApprovalGroup.isNotEmpty) {
       mergedRepositoryConfiguration.approvalGroup = localApprovalGroup;
     }
 
     // run ci
     // validates the checks runs
-    final bool localRunCi = localConfiguration.runCi;
+    final localRunCi = localConfiguration.runCi;
     if (globalConfiguration.runCi != localRunCi) {
       mergedRepositoryConfiguration.runCi = localRunCi;
     }
 
     // support no revert reviews - this will be a moot point after revert is updated
-    final bool localSupportNoReviewReverts = localConfiguration.supportNoReviewReverts;
-    if (localSupportNoReviewReverts != globalConfiguration.supportNoReviewReverts) {
-      mergedRepositoryConfiguration.supportNoReviewReverts = localSupportNoReviewReverts;
+    final localSupportNoReviewReverts =
+        localConfiguration.supportNoReviewReverts;
+    if (localSupportNoReviewReverts !=
+        globalConfiguration.supportNoReviewReverts) {
+      mergedRepositoryConfiguration.supportNoReviewReverts =
+          localSupportNoReviewReverts;
     }
 
     // required checkruns on revert, they should be empty if nothing was defined
     if (localConfiguration.requiredCheckRunsOnRevert.isNotEmpty) {
-      mergedRepositoryConfiguration.requiredCheckRunsOnRevert.addAll(localConfiguration.requiredCheckRunsOnRevert);
+      mergedRepositoryConfiguration.requiredCheckRunsOnRevert
+          .addAll(localConfiguration.requiredCheckRunsOnRevert);
     }
 
     return mergedRepositoryConfiguration;

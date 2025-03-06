@@ -23,10 +23,10 @@ void main() {
   late FakeHttpRequest request;
   late FakePubSub pubsub;
   late RequestHandlerTester tester;
-  const String keyString = 'not_a_real_key';
+  const keyString = 'not_a_real_key';
 
   String getHmac(Uint8List list, Uint8List key) {
-    final Hmac hmac = Hmac(sha1, key);
+    final hmac = Hmac(sha1, key);
     return hmac.convert(list).toString();
   }
 
@@ -34,9 +34,7 @@ void main() {
     request = FakeHttpRequest();
     tester = RequestHandlerTester(request: request);
 
-    config = FakeConfig(
-      webhookKeyValue: keyString,
-    );
+    config = FakeConfig(webhookKeyValue: keyString);
     pubsub = FakePubSub();
 
     webhook = GithubWebhook(
@@ -68,15 +66,15 @@ void main() {
   test('Publishes message', () async {
     request.headers.set('X-GitHub-Event', 'pull_request');
     request.body = '{}';
-    final Uint8List body = utf8.encode(request.body!);
-    final Uint8List key = utf8.encode(keyString);
-    final String hmac = getHmac(body, key);
+    final body = utf8.encode(request.body!);
+    final key = utf8.encode(keyString);
+    final hmac = getHmac(body, key);
     request.headers.set('X-Hub-Signature', 'sha1=$hmac');
     await tester.post(webhook);
 
     expect(pubsub.messages, hasLength(1));
     final Map<String, dynamic> messageJson = pubsub.messages.single;
-    final GithubWebhookMessage message = GithubWebhookMessage.fromJson(jsonEncode(messageJson));
+    final message = GithubWebhookMessage.fromJson(jsonEncode(messageJson));
     expect(message.event, 'pull_request');
     expect(message.payload, '{}');
   });

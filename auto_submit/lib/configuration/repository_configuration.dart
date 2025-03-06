@@ -2,8 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/exception/configuration_exception.dart';
 import 'package:yaml/yaml.dart';
+
+import '../exception/configuration_exception.dart';
 
 /// The RepositoryConfiguration stores the pertinent information that autosubmit
 /// will need when submiting and validating pull requests for a particular
@@ -18,19 +19,20 @@ class RepositoryConfiguration {
   static const String approvalGroupKey = 'approval_group';
   static const String runCiKey = 'run_ci';
   static const String supportNoReviewRevertKey = 'support_no_review_revert';
-  static const String requiredCheckRunsOnRevertKey = 'required_checkruns_on_revert';
+  static const String requiredCheckRunsOnRevertKey =
+      'required_checkruns_on_revert';
 
   static const String defaultBranchStr = 'default';
 
   RepositoryConfiguration({
-    allowConfigOverride,
-    defaultBranch,
-    autoApprovalAccounts,
-    approvingReviews,
-    approvalGroup,
-    runCi,
-    supportNoReviewReverts,
-    requiredCheckRunsOnRevert,
+    bool? allowConfigOverride,
+    String? defaultBranch,
+    Set<String>? autoApprovalAccounts,
+    int? approvingReviews,
+    String? approvalGroup,
+    bool? runCi,
+    bool? supportNoReviewReverts,
+    Set<String>? requiredCheckRunsOnRevert,
   })  : allowConfigOverride = allowConfigOverride ?? false,
         defaultBranch = defaultBranch ?? defaultBranchStr,
         autoApprovalAccounts = autoApprovalAccounts ?? <String>{},
@@ -71,11 +73,11 @@ class RepositoryConfiguration {
 
   @override
   String toString() {
-    final StringBuffer stringBuffer = StringBuffer();
+    final stringBuffer = StringBuffer();
     stringBuffer.writeln('$allowConfigOverrideKey: $allowConfigOverride');
     stringBuffer.writeln('$defaultBranchKey: $defaultBranch');
     stringBuffer.writeln('$autoApprovalAccountsKey:');
-    for (String account in autoApprovalAccounts) {
+    for (var account in autoApprovalAccounts) {
       stringBuffer.writeln('  - $account');
     }
     stringBuffer.writeln('$approvingReviewsKey: $approvingReviews');
@@ -83,7 +85,7 @@ class RepositoryConfiguration {
     stringBuffer.writeln('$runCiKey: $runCi');
     stringBuffer.writeln('$supportNoReviewRevertKey: $supportNoReviewReverts');
     stringBuffer.writeln('$requiredCheckRunsOnRevertKey:');
-    for (String checkrun in requiredCheckRunsOnRevert) {
+    for (var checkrun in requiredCheckRunsOnRevert) {
       stringBuffer.writeln('  - $checkrun');
     }
     return stringBuffer.toString();
@@ -92,10 +94,10 @@ class RepositoryConfiguration {
   static RepositoryConfiguration fromYaml(String yaml) {
     final dynamic yamlDoc = loadYaml(yaml);
 
-    final Set<String> autoApprovalAccounts = <String>{};
+    final autoApprovalAccounts = <String>{};
     final YamlList? yamlAutoApprovalAccounts = yamlDoc[autoApprovalAccountsKey];
     if (yamlAutoApprovalAccounts != null) {
-      for (YamlNode element in yamlAutoApprovalAccounts.nodes) {
+      for (var element in yamlAutoApprovalAccounts.nodes) {
         autoApprovalAccounts.add(element.value as String);
       }
     }
@@ -104,10 +106,11 @@ class RepositoryConfiguration {
       throw ConfigurationException('The approval group is a required field.');
     }
 
-    final Set<String> requiredCheckRunsOnRevert = <String>{};
-    final YamlList? yamlRequiredCheckRuns = yamlDoc[requiredCheckRunsOnRevertKey];
+    final requiredCheckRunsOnRevert = <String>{};
+    final YamlList? yamlRequiredCheckRuns =
+        yamlDoc[requiredCheckRunsOnRevertKey];
     if (yamlRequiredCheckRuns != null) {
-      for (YamlNode element in yamlRequiredCheckRuns.nodes) {
+      for (var element in yamlRequiredCheckRuns.nodes) {
         requiredCheckRunsOnRevert.add(element.value as String);
       }
     }

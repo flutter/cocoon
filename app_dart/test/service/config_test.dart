@@ -21,28 +21,31 @@ void main() {
       config = Config(datastore, cacheService);
     });
     test('githubAppInstallations when builder config does not exist', () async {
-      const String configValue = '{"godofredoc/cocoon":{"installation_id":"123"}}';
-      final Uint8List cachedValue = Uint8List.fromList(configValue.codeUnits);
+      const configValue = '{"godofredoc/cocoon":{"installation_id":"123"}}';
+      final cachedValue = Uint8List.fromList(configValue.codeUnits);
 
       await cacheService.set(
         Config.configCacheName,
         'githubapp_installations',
         cachedValue,
       );
-      final Map<String, dynamic> installation = await config.githubAppInstallations;
-      expect(installation['godofredoc/cocoon']['installation_id'], equals('123'));
+      final installation = await config.githubAppInstallations;
+      expect(
+        installation['godofredoc/cocoon']['installation_id'],
+        equals('123'),
+      );
     });
 
     test('generateGithubToken pulls from cache', () async {
-      const String configValue = 'githubToken';
-      final Uint8List cachedValue = Uint8List.fromList(configValue.codeUnits);
+      const configValue = 'githubToken';
+      final cachedValue = Uint8List.fromList(configValue.codeUnits);
       await cacheService.set(
         Config.configCacheName,
         'githubToken-${Config.flutterSlug}',
         cachedValue,
       );
 
-      final String githubToken = await config.generateGithubToken(Config.flutterSlug);
+      final githubToken = await config.generateGithubToken(Config.flutterSlug);
       expect(githubToken, 'githubToken');
     });
 

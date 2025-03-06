@@ -52,15 +52,20 @@ class TestMetadataDetail extends $pb.GeneratedMessage {
   factory TestMetadataDetail.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory TestMetadataDetail.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TestMetadataDetail.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TestMetadataDetail',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TestMetadataDetail',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
     ..aOS(2, _omitFieldNames ? '' : 'project')
     ..aOS(3, _omitFieldNames ? '' : 'testId')
-    ..aOM<$0.SourceRef>(4, _omitFieldNames ? '' : 'sourceRef', subBuilder: $0.SourceRef.create)
+    ..aOM<$0.SourceRef>(4, _omitFieldNames ? '' : 'sourceRef',
+        subBuilder: $0.SourceRef.create)
     ..aOM<TestMetadata>(5, _omitFieldNames ? '' : 'testMetadata',
         protoName: 'testMetadata', subBuilder: TestMetadata.create)
     ..aOS(12, _omitFieldNames ? '' : 'refHash')
@@ -74,17 +79,19 @@ class TestMetadataDetail extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   TestMetadataDetail copyWith(void Function(TestMetadataDetail) updates) =>
-      super.copyWith((message) => updates(message as TestMetadataDetail)) as TestMetadataDetail;
+      super.copyWith((message) => updates(message as TestMetadataDetail))
+          as TestMetadataDetail;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static TestMetadataDetail create() => TestMetadataDetail._();
   TestMetadataDetail createEmptyInstance() => create();
-  static $pb.PbList<TestMetadataDetail> createRepeated() => $pb.PbList<TestMetadataDetail>();
+  static $pb.PbList<TestMetadataDetail> createRepeated() =>
+      $pb.PbList<TestMetadataDetail>();
   @$core.pragma('dart2js:noInline')
-  static TestMetadataDetail getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TestMetadataDetail>(create);
+  static TestMetadataDetail getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TestMetadataDetail>(create);
   static TestMetadataDetail? _defaultInstance;
 
   ///  Can be used to refer to a test metadata, e.g. in ResultDB.QueryTestMetadata
@@ -207,18 +214,26 @@ class TestMetadata extends $pb.GeneratedMessage {
     return $result;
   }
   TestMetadata._() : super();
-  factory TestMetadata.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TestMetadata.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory TestMetadata.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TestMetadata.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TestMetadata',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TestMetadata',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
-    ..aOM<TestLocation>(2, _omitFieldNames ? '' : 'location', subBuilder: TestLocation.create)
-    ..aOM<BugComponent>(3, _omitFieldNames ? '' : 'bugComponent', subBuilder: BugComponent.create)
+    ..aOM<TestLocation>(2, _omitFieldNames ? '' : 'location',
+        subBuilder: TestLocation.create)
+    ..aOM<BugComponent>(3, _omitFieldNames ? '' : 'bugComponent',
+        subBuilder: BugComponent.create)
     ..aOS(4, _omitFieldNames ? '' : 'propertiesSchema')
-    ..aOM<$1.Struct>(5, _omitFieldNames ? '' : 'properties', subBuilder: $1.Struct.create)
+    ..aOM<$1.Struct>(5, _omitFieldNames ? '' : 'properties',
+        subBuilder: $1.Struct.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -229,16 +244,19 @@ class TestMetadata extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   TestMetadata copyWith(void Function(TestMetadata) updates) =>
-      super.copyWith((message) => updates(message as TestMetadata)) as TestMetadata;
+      super.copyWith((message) => updates(message as TestMetadata))
+          as TestMetadata;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static TestMetadata create() => TestMetadata._();
   TestMetadata createEmptyInstance() => create();
-  static $pb.PbList<TestMetadata> createRepeated() => $pb.PbList<TestMetadata>();
+  static $pb.PbList<TestMetadata> createRepeated() =>
+      $pb.PbList<TestMetadata>();
   @$core.pragma('dart2js:noInline')
-  static TestMetadata getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TestMetadata>(create);
+  static TestMetadata getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TestMetadata>(create);
   static TestMetadata? _defaultInstance;
 
   /// The original test name.
@@ -345,13 +363,18 @@ class TestLocation extends $pb.GeneratedMessage {
     return $result;
   }
   TestLocation._() : super();
-  factory TestLocation.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TestLocation.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory TestLocation.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TestLocation.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TestLocation',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TestLocation',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'repo')
     ..aOS(2, _omitFieldNames ? '' : 'fileName')
     ..a<$core.int>(3, _omitFieldNames ? '' : 'line', $pb.PbFieldType.O3)
@@ -365,16 +388,19 @@ class TestLocation extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   TestLocation copyWith(void Function(TestLocation) updates) =>
-      super.copyWith((message) => updates(message as TestLocation)) as TestLocation;
+      super.copyWith((message) => updates(message as TestLocation))
+          as TestLocation;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static TestLocation create() => TestLocation._();
   TestLocation createEmptyInstance() => create();
-  static $pb.PbList<TestLocation> createRepeated() => $pb.PbList<TestLocation>();
+  static $pb.PbList<TestLocation> createRepeated() =>
+      $pb.PbList<TestLocation>();
   @$core.pragma('dart2js:noInline')
-  static TestLocation getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TestLocation>(create);
+  static TestLocation getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TestLocation>(create);
   static TestLocation? _defaultInstance;
 
   /// Gitiles URL as the identifier for a repo.
@@ -445,21 +471,29 @@ class BugComponent extends $pb.GeneratedMessage {
     return $result;
   }
   BugComponent._() : super();
-  factory BugComponent.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BugComponent.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory BugComponent.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BugComponent.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static const $core.Map<$core.int, BugComponent_System> _BugComponent_SystemByTag = {
+  static const $core.Map<$core.int, BugComponent_System>
+      _BugComponent_SystemByTag = {
     1: BugComponent_System.issueTracker,
     2: BugComponent_System.monorail,
     0: BugComponent_System.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BugComponent',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BugComponent',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..oo(0, [1, 2])
-    ..aOM<IssueTrackerComponent>(1, _omitFieldNames ? '' : 'issueTracker', subBuilder: IssueTrackerComponent.create)
-    ..aOM<MonorailComponent>(2, _omitFieldNames ? '' : 'monorail', subBuilder: MonorailComponent.create)
+    ..aOM<IssueTrackerComponent>(1, _omitFieldNames ? '' : 'issueTracker',
+        subBuilder: IssueTrackerComponent.create)
+    ..aOM<MonorailComponent>(2, _omitFieldNames ? '' : 'monorail',
+        subBuilder: MonorailComponent.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -470,19 +504,23 @@ class BugComponent extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   BugComponent copyWith(void Function(BugComponent) updates) =>
-      super.copyWith((message) => updates(message as BugComponent)) as BugComponent;
+      super.copyWith((message) => updates(message as BugComponent))
+          as BugComponent;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static BugComponent create() => BugComponent._();
   BugComponent createEmptyInstance() => create();
-  static $pb.PbList<BugComponent> createRepeated() => $pb.PbList<BugComponent>();
+  static $pb.PbList<BugComponent> createRepeated() =>
+      $pb.PbList<BugComponent>();
   @$core.pragma('dart2js:noInline')
-  static BugComponent getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BugComponent>(create);
+  static BugComponent getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BugComponent>(create);
   static BugComponent? _defaultInstance;
 
-  BugComponent_System whichSystem() => _BugComponent_SystemByTag[$_whichOneof(0)]!;
+  BugComponent_System whichSystem() =>
+      _BugComponent_SystemByTag[$_whichOneof(0)]!;
   void clearSystem() => clearField($_whichOneof(0));
 
   /// The Google Issue Tracker component.
@@ -532,33 +570,41 @@ class IssueTrackerComponent extends $pb.GeneratedMessage {
   factory IssueTrackerComponent.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory IssueTrackerComponent.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory IssueTrackerComponent.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'IssueTrackerComponent',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'IssueTrackerComponent',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aInt64(1, _omitFieldNames ? '' : 'componentId')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  IssueTrackerComponent clone() => IssueTrackerComponent()..mergeFromMessage(this);
+  IssueTrackerComponent clone() =>
+      IssueTrackerComponent()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  IssueTrackerComponent copyWith(void Function(IssueTrackerComponent) updates) =>
-      super.copyWith((message) => updates(message as IssueTrackerComponent)) as IssueTrackerComponent;
+  IssueTrackerComponent copyWith(
+          void Function(IssueTrackerComponent) updates) =>
+      super.copyWith((message) => updates(message as IssueTrackerComponent))
+          as IssueTrackerComponent;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static IssueTrackerComponent create() => IssueTrackerComponent._();
   IssueTrackerComponent createEmptyInstance() => create();
-  static $pb.PbList<IssueTrackerComponent> createRepeated() => $pb.PbList<IssueTrackerComponent>();
+  static $pb.PbList<IssueTrackerComponent> createRepeated() =>
+      $pb.PbList<IssueTrackerComponent>();
   @$core.pragma('dart2js:noInline')
-  static IssueTrackerComponent getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<IssueTrackerComponent>(create);
+  static IssueTrackerComponent getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<IssueTrackerComponent>(create);
   static IssueTrackerComponent? _defaultInstance;
 
   /// The Google Issue Tracker component ID.
@@ -595,11 +641,15 @@ class MonorailComponent extends $pb.GeneratedMessage {
   factory MonorailComponent.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory MonorailComponent.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MonorailComponent.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MonorailComponent',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MonorailComponent',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'project')
     ..aOS(2, _omitFieldNames ? '' : 'value')
     ..hasRequiredFields = false;
@@ -612,17 +662,19 @@ class MonorailComponent extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   MonorailComponent copyWith(void Function(MonorailComponent) updates) =>
-      super.copyWith((message) => updates(message as MonorailComponent)) as MonorailComponent;
+      super.copyWith((message) => updates(message as MonorailComponent))
+          as MonorailComponent;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static MonorailComponent create() => MonorailComponent._();
   MonorailComponent createEmptyInstance() => create();
-  static $pb.PbList<MonorailComponent> createRepeated() => $pb.PbList<MonorailComponent>();
+  static $pb.PbList<MonorailComponent> createRepeated() =>
+      $pb.PbList<MonorailComponent>();
   @$core.pragma('dart2js:noInline')
-  static MonorailComponent getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MonorailComponent>(create);
+  static MonorailComponent getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MonorailComponent>(create);
   static MonorailComponent? _defaultInstance;
 
   /// The monorail project name.
@@ -653,4 +705,5 @@ class MonorailComponent extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

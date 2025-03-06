@@ -23,8 +23,8 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
     this.statuses = const <CommitStatus>[],
     this.moreStatusesExist = true,
     this.rerunTaskResult = false,
-  })  : authService = authService ?? MockGoogleSignInService(),
-        cocoonService = cocoonService ?? MockCocoonService();
+  }) : authService = authService ?? MockGoogleSignInService(),
+       cocoonService = cocoonService ?? MockCocoonService();
 
   @override
   late GoogleSignInService authService;
@@ -69,23 +69,21 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
 
   @override
   List<Branch> get branches {
-    final List<Branch> fakeBranches = <Branch>[];
-    for (String repo in ['flutter', 'cocoon']) {
+    final fakeBranches = <Branch>[];
+    for (var repo in ['flutter', 'cocoon']) {
       fakeBranches.add(
         Branch()
           ..repository = repo
           ..branch = defaultBranches[repo]!,
       );
-      fakeBranches.addAll(
-        <Branch>[
-          Branch()
-            ..repository = repo
-            ..branch = '$repo-release',
-          Branch()
-            ..repository = repo
-            ..branch = '$repo-release-very-long-name-that-should-be-truncated',
-        ],
-      );
+      fakeBranches.addAll(<Branch>[
+        Branch()
+          ..repository = repo
+          ..branch = '$repo-release',
+        Branch()
+          ..repository = repo
+          ..branch = '$repo-release-very-long-name-that-should-be-truncated',
+      ]);
     }
     return fakeBranches;
   }

@@ -7,11 +7,10 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_icons/flutter_app_icons.dart';
-import 'package:flutter_dashboard/model/branch.pb.dart';
 
 import '../logic/brooks.dart';
+import '../model/branch.pb.dart';
 import '../model/build_status_response.pb.dart';
-import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
 import '../model/key.pb.dart';
 import '../model/task.pb.dart';
@@ -20,10 +19,7 @@ import '../service/google_authentication.dart';
 
 /// State for the Flutter Build Dashboard.
 class BuildState extends ChangeNotifier {
-  BuildState({
-    required this.cocoonService,
-    required this.authService,
-  }) {
+  BuildState({required this.cocoonService, required this.authService}) {
     authService.addListener(notifyListeners);
   }
 
@@ -76,13 +72,16 @@ class BuildState extends ChangeNotifier {
   final ErrorSink _errors = ErrorSink();
 
   @visibleForTesting
-  static const String errorMessageFetchingStatuses = 'An error occurred fetching build statuses from Cocoon';
+  static const String errorMessageFetchingStatuses =
+      'An error occurred fetching build statuses from Cocoon';
 
   @visibleForTesting
-  static const String errorMessageFetchingTreeStatus = 'An error occurred fetching tree status from Cocoon';
+  static const String errorMessageFetchingTreeStatus =
+      'An error occurred fetching tree status from Cocoon';
 
   @visibleForTesting
-  static const String errorMessageRerunTasks = 'An error occurred rerunning tasks from Cocoon';
+  static const String errorMessageRerunTasks =
+      'An error occurred rerunning tasks from Cocoon';
 
   @visibleForTesting
   static const String errorMessageFetchingFailingTasks =
@@ -93,10 +92,12 @@ class BuildState extends ChangeNotifier {
       'An error occurred fetching branches from flutter/flutter on Cocoon.';
 
   @visibleForTesting
-  static const String errorMessageFetchingRepos = 'An error occurred fetching repos from flutter/flutter on Cocoon.';
+  static const String errorMessageFetchingRepos =
+      'An error occurred fetching repos from flutter/flutter on Cocoon.';
 
   @visibleForTesting
-  static const String errorMessageRefreshGitHubCommits = 'An error occurred refreshing GitHub commits.';
+  static const String errorMessageRefreshGitHubCommits =
+      'An error occurred refreshing GitHub commits.';
 
   /// How often to query the Cocoon backend for the current build state.
   @visibleForTesting
@@ -140,7 +141,7 @@ class BuildState extends ChangeNotifier {
 
   /// Request the latest [branches] from [CocoonService].
   Future<void> _fetchBranches() async {
-    final CocoonResponse<List<Branch>> response = await cocoonService.fetchFlutterBranches();
+    final response = await cocoonService.fetchFlutterBranches();
 
     if (response.error != null) {
       _errors.send('$errorMessageFetchingBranches: ${response.error}');
@@ -152,7 +153,7 @@ class BuildState extends ChangeNotifier {
 
   /// Request the latest [repos] from [CocoonService].
   Future<void> _fetchRepos() async {
-    final CocoonResponse<List<String>> response = await cocoonService.fetchRepos();
+    final response = await cocoonService.fetchRepos();
     if (response.error != null) {
       _errors.send('$errorMessageFetchingRepos: ${response.error}');
     } else {
@@ -167,9 +168,11 @@ class BuildState extends ChangeNotifier {
   Future<void> _fetchStatusUpdates([Timer? timer]) async {
     await Future.wait<void>(<Future<void>>[
       () async {
-        final String queriedRepoBranch = '$currentRepo/$currentBranch';
-        final CocoonResponse<List<CommitStatus>> response =
-            await cocoonService.fetchCommitStatuses(branch: currentBranch, repo: currentRepo);
+        final queriedRepoBranch = '$currentRepo/$currentBranch';
+        final response = await cocoonService.fetchCommitStatuses(
+          branch: currentBranch,
+          repo: currentRepo,
+        );
         if (!_active) {
           return null;
         }
@@ -185,8 +188,8 @@ class BuildState extends ChangeNotifier {
       }(),
       () async {
         final flutterAppIconsPlugin = FlutterAppIcons();
-        final String queriedRepoBranch = '$currentRepo/$currentBranch';
-        final CocoonResponse<BuildStatusResponse> response = await cocoonService.fetchTreeBuildStatus(
+        final queriedRepoBranch = '$currentRepo/$currentBranch';
+        final response = await cocoonService.fetchTreeBuildStatus(
           branch: currentBranch,
           repo: currentRepo,
         );
@@ -199,10 +202,13 @@ class BuildState extends ChangeNotifier {
           // No-op as the dashboard shouldn't update with old data
           return;
         } else {
-          _isTreeBuilding = response.data!.buildStatus == EnumBuildStatus.success;
+          _isTreeBuilding =
+              response.data!.buildStatus == EnumBuildStatus.success;
           _failingTasks = response.data!.failingTasks;
           if (_isTreeBuilding == false) {
-            unawaited(flutterAppIconsPlugin.setIcon(icon: 'favicon-failure.png'));
+            unawaited(
+              flutterAppIconsPlugin.setIcon(icon: 'favicon-failure.png'),
+            );
           } else {
             unawaited(flutterAppIconsPlugin.setIcon(icon: 'favicon.png'));
           }
@@ -260,32 +266,28 @@ class BuildState extends ChangeNotifier {
     }
 
     assert(_statusesInOrder(recentStatuses));
-    final List<CommitStatus> mergedStatuses = List<CommitStatus>.from(recentStatuses);
+    final mergedStatuses = List<CommitStatus>.from(recentStatuses);
 
     /// Bisect statuses to find the set that doesn't exist in [recentStatuses].
-    final CommitStatus lastRecentStatus = recentStatuses.last;
-    final int lastKnownIndex = _findCommitStatusIndex(_statuses, lastRecentStatus);
+    final lastRecentStatus = recentStatuses.last;
+    final lastKnownIndex = _findCommitStatusIndex(_statuses, lastRecentStatus);
 
     /// If this assertion error occurs, the Cocoon backend needs to be updated
     /// to return more commit statuses. This error will only occur if there
     /// is a gap between [recentStatuses] and [statuses].
     assert(lastKnownIndex != -1);
 
-    final int firstIndex = lastKnownIndex + 1;
-    final int lastIndex = _statuses.length;
+    final firstIndex = lastKnownIndex + 1;
+    final lastIndex = _statuses.length;
 
     /// If the current statuses has the same statuses as [recentStatuses],
     /// there will be no subset of remaining statuses. Instead, it will give
     /// a list with a null generated [CommitStatus]. Therefore we manually
     /// return an empty list.
-    final List<CommitStatus> remainingStatuses = (firstIndex < lastIndex)
-        ? _statuses
-            .getRange(
-              firstIndex,
-              lastIndex,
-            )
-            .toList()
-        : <CommitStatus>[];
+    final remainingStatuses =
+        (firstIndex < lastIndex)
+            ? _statuses.getRange(firstIndex, lastIndex).toList()
+            : <CommitStatus>[];
 
     mergedStatuses.addAll(remainingStatuses);
 
@@ -301,8 +303,8 @@ class BuildState extends ChangeNotifier {
     List<CommitStatus> statuses,
     CommitStatus statusToFind,
   ) {
-    for (int index = 0; index < statuses.length; index += 1) {
-      final CommitStatus current = _statuses[index];
+    for (var index = 0; index < statuses.length; index += 1) {
+      final current = _statuses[index];
       if (current.commit.key == statusToFind.commit.key) {
         return index;
       }
@@ -331,7 +333,7 @@ class BuildState extends ChangeNotifier {
   Future<void> _fetchMoreCommitStatusesInternal() async {
     assert(_statuses.isNotEmpty);
 
-    final CocoonResponse<List<CommitStatus>> response = await cocoonService.fetchCommitStatuses(
+    final response = await cocoonService.fetchCommitStatuses(
       lastCommitStatus: _statuses.last,
       branch: currentBranch,
       repo: currentRepo,
@@ -343,7 +345,7 @@ class BuildState extends ChangeNotifier {
       _errors.send('$errorMessageFetchingStatuses: ${response.error}');
       return;
     }
-    final List<CommitStatus> newStatuses = response.data!;
+    final newStatuses = response.data!;
 
     /// Handle the case where release branches only have a few commits.
     if (newStatuses.isEmpty) {
@@ -366,7 +368,9 @@ class BuildState extends ChangeNotifier {
     if (!authService.isAuthenticated) {
       return false;
     }
-    final bool successful = await cocoonService.vacuumGitHubCommits(await authService.idToken);
+    final successful = await cocoonService.vacuumGitHubCommits(
+      await authService.idToken,
+    );
     if (!successful) {
       _errors.send(errorMessageRefreshGitHubCommits);
       await authService.clearUser();
@@ -378,7 +382,11 @@ class BuildState extends ChangeNotifier {
     if (!authService.isAuthenticated) {
       return false;
     }
-    final CocoonResponse<bool> response = await cocoonService.rerunTask(task, await authService.idToken, _currentRepo);
+    final response = await cocoonService.rerunTask(
+      task,
+      await authService.idToken,
+      _currentRepo,
+    );
     if (response.error != null) {
       _errors.send('$errorMessageRerunTasks: ${response.error}');
       await authService.clearUser();
@@ -389,9 +397,9 @@ class BuildState extends ChangeNotifier {
 
   /// Assert that [statuses] is ordered from newest commit to oldest.
   bool _statusesInOrder(List<CommitStatus> statuses) {
-    for (int i = 0; i < statuses.length - 1; i++) {
-      final Commit current = statuses[i].commit;
-      final Commit next = statuses[i + 1].commit;
+    for (var i = 0; i < statuses.length - 1; i++) {
+      final current = statuses[i].commit;
+      final next = statuses[i + 1].commit;
 
       if (current.timestamp < next.timestamp) {
         return false;
@@ -403,9 +411,9 @@ class BuildState extends ChangeNotifier {
 
   /// Assert that there are no duplicate commits in [statuses].
   bool _statusesAreUnique(List<CommitStatus> statuses) {
-    final Set<RootKey> uniqueStatuses = <RootKey>{};
-    for (int i = 0; i < statuses.length; i += 1) {
-      final Commit current = statuses[i].commit;
+    final uniqueStatuses = <RootKey>{};
+    for (var i = 0; i < statuses.length; i += 1) {
+      final current = statuses[i].commit;
       if (uniqueStatuses.contains(current.key)) {
         return false;
       }
@@ -423,7 +431,7 @@ class BuildState extends ChangeNotifier {
   bool _statusesMatchCurrentBranch(List<CommitStatus> statuses) {
     assert(statuses.isNotEmpty);
 
-    final CommitStatus exampleStatus = statuses.first;
+    final exampleStatus = statuses.first;
     return exampleStatus.branch == _currentBranch;
   }
 

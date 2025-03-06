@@ -7,38 +7,49 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
-import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart' as http;
 import 'package:retry/retry.dart';
 import 'package:yaml/yaml.dart';
 
+import '../../cocoon_service.dart';
 import '../../protos.dart' as pb;
 import '../foundation/typedefs.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../request_handlers/flaky_handler_utils.dart';
 import '../request_handling/exceptions.dart';
+import '../service/get_files_changed.dart';
 
 const String kCiYamlPath = '.ci.yaml';
 const String kCiYamlFusionEnginePath = 'engine/src/flutter/$kCiYamlPath';
 const String kTestOwnerPath = 'TESTOWNERS';
 
 /// Attempts to parse the github merge queue branch into its constituent parts to be returned as a record.
-({bool parsed, String branch, int pullRequestNumber}) tryParseGitHubMergeQueueBranch(String branch) {
+({bool parsed, String branch, int pullRequestNumber})
+tryParseGitHubMergeQueueBranch(String branch) {
   final match = _githubMqBranch.firstMatch(branch);
   if (match == null) {
     return notGitHubMergeQueueBranch;
   }
 
-  return (parsed: true, branch: match.group(1)!, pullRequestNumber: int.parse(match.group(2)!));
+  return (
+    parsed: true,
+    branch: match.group(1)!,
+    pullRequestNumber: int.parse(match.group(2)!),
+  );
 }
 
-const notGitHubMergeQueueBranch = (parsed: false, branch: '', pullRequestNumber: -1);
+const notGitHubMergeQueueBranch = (
+  parsed: false,
+  branch: '',
+  pullRequestNumber: -1,
+);
 
-final _githubMqBranch = RegExp(r'^gh-readonly-queue\/([^/]+)\/pr-(\d+)-([a-fA-F0-9]+)$');
+final _githubMqBranch = RegExp(
+  r'^gh-readonly-queue\/([^/]+)\/pr-(\d+)-([a-fA-F0-9]+)$',
+);
 
 /// Signature for a function that calculates the backoff duration to wait in
 /// between requests when GitHub responds with an error.
@@ -78,7 +89,13 @@ class FusionTester {
       log.info('isFusionRef: cache hit for $cacheKey = $cacheHit');
       return cacheHit;
     }
-    final isFusion = _isFusionMap[cacheKey] = await _isFusionBasedRefReal(slug, sha, timeout, retryOptions);
+    final isFusion =
+        _isFusionMap[cacheKey] = await _isFusionBasedRefReal(
+          slug,
+          sha,
+          timeout,
+          retryOptions,
+        );
     return isFusion;
   }
 
@@ -133,7 +150,10 @@ class FusionTester {
 }
 
 const _githubTimeout = Duration(seconds: 5);
-const _githubRetryOptions = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 3));
+const _githubRetryOptions = RetryOptions(
+  maxAttempts: 3,
+  delayFactor: Duration(seconds: 3),
+);
 
 /// Get content of [filePath] from GitHub CDN.
 Future<String> githubFileContent(
@@ -144,29 +164,36 @@ Future<String> githubFileContent(
   Duration timeout = _githubTimeout,
   RetryOptions retryOptions = _githubRetryOptions,
 }) async {
-  final Uri githubUrl = Uri.https('raw.githubusercontent.com', '${slug.fullName}/$ref/$filePath');
+  final githubUrl = Uri.https(
+    'raw.githubusercontent.com',
+    '${slug.fullName}/$ref/$filePath',
+  );
   // git-on-borg has a different path for shas and refs to github
-  final String gobRef = (ref.length < 40) ? 'refs/heads/$ref' : ref;
-  final Uri gobUrl = Uri.https(
+  final gobRef = (ref.length < 40) ? 'refs/heads/$ref' : ref;
+  final gobUrl = Uri.https(
     'flutter.googlesource.com',
     'mirrors/${slug.name}/+/$gobRef/$filePath',
-    <String, String>{
-      'format': 'text',
-    },
+    <String, String>{'format': 'text'},
   );
   late String content;
   try {
     await retryOptions.retry(
-      () async => content = await getUrl(githubUrl, httpClientProvider, timeout: timeout),
+      () async =>
+          content = await getUrl(
+            githubUrl,
+            httpClientProvider,
+            timeout: timeout,
+          ),
       retryIf: (Exception e) => e is HttpException || e is NotFoundException,
     );
   } catch (e) {
     await retryOptions.retry(
-      () async => content = String.fromCharCodes(
-        base64Decode(
-          await getUrl(gobUrl, httpClientProvider, timeout: timeout),
-        ),
-      ),
+      () async =>
+          content = String.fromCharCodes(
+            base64Decode(
+              await getUrl(gobUrl, httpClientProvider, timeout: timeout),
+            ),
+          ),
       retryIf: (Exception e) => e is HttpException,
     );
   }
@@ -183,9 +210,9 @@ FutureOr<String> getUrl(
   Duration timeout = const Duration(seconds: 5),
 }) async {
   log.info('Making HTTP GET request for $url');
-  final http.Client client = httpClientProvider();
+  final client = httpClientProvider();
   try {
-    final http.Response response = await client.get(url).timeout(timeout);
+    final response = await client.get(url).timeout(timeout);
 
     if (response.statusCode == HttpStatus.ok) {
       return response.body;
@@ -247,7 +274,7 @@ Future<List<Target>> getTargetsToRun(
           for (final glob in globs) {
             // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
             final regExp = _convertGlobToRegExp(glob);
-            if (glob.isEmpty || filesChanged.any((file) => regExp.hasMatch(file))) {
+            if (glob.isEmpty || filesChanged.any(regExp.hasMatch)) {
               targetsToRun.add(target);
               break;
             }
@@ -276,19 +303,17 @@ Future<void> insertBigquery(
   TabledataResource tabledataResourceApi,
 ) async {
   // Define const variables for [BigQuery] operations.
-  const String projectId = 'flutter-dashboard';
-  const String dataset = 'cocoon';
-  final String table = tableName;
-  final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
+  const projectId = 'flutter-dashboard';
+  const dataset = 'cocoon';
+  final table = tableName;
+  final requestRows = <Map<String, Object>>[];
 
-  requestRows.add(<String, Object>{
-    'json': data,
-  });
+  requestRows.add(<String, Object>{'json': data});
 
   // Obtain [rows] to be inserted to [BigQuery].
-  final TableDataInsertAllRequest request = TableDataInsertAllRequest.fromJson(
-    <String, dynamic>{'rows': requestRows},
-  );
+  final request = TableDataInsertAllRequest.fromJson(<String, dynamic>{
+    'rows': requestRows,
+  });
 
   try {
     await tabledataResourceApi.insertAll(request, projectId, dataset, table);
@@ -303,31 +328,29 @@ List<String> validateOwnership(
   String testOwnersContent, {
   bool unfilteredTargets = false,
 }) {
-  final List<String> noOwnerBuilders = <String>[];
-  final YamlMap? ciYaml = loadYaml(ciYamlContent) as YamlMap?;
-  final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ciYaml);
+  final noOwnerBuilders = <String>[];
+  final ciYaml = loadYaml(ciYamlContent) as YamlMap?;
+  final unCheckedSchedulerConfig =
+      pb.SchedulerConfig()..mergeFromProto3Json(ciYaml);
 
-  final CiYamlSet ciYamlFromProto = CiYamlSet(
+  final ciYamlFromProto = CiYamlSet(
     slug: Config.flutterSlug,
     branch: Config.defaultBranch(Config.flutterSlug),
     yamls: {CiType.any: unCheckedSchedulerConfig},
   );
 
-  final pb.SchedulerConfig schedulerConfig = ciYamlFromProto.configFor(CiType.any);
+  final schedulerConfig = ciYamlFromProto.configFor(CiType.any);
 
-  for (pb.Target target in schedulerConfig.targets) {
-    final String builder = target.name;
-    final BuilderType builderType = getTypeForBuilder(
+  for (var target in schedulerConfig.targets) {
+    final builder = target.name;
+    final builderType = getTypeForBuilder(
       builder,
       ciYamlFromProto,
       unfilteredTargets: unfilteredTargets,
     );
 
-    final String? owner = getTestOwnership(
-      target,
-      builderType,
-      testOwnersContent,
-    ).owner;
+    final owner =
+        getTestOwnership(target, builderType, testOwnersContent).owner;
     print('$builder: $owner');
     if (owner == null) {
       noOwnerBuilders.add(builder);

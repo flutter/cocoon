@@ -15,11 +15,13 @@ import '../../service/firestore.dart';
 /// depend on them.
 ///
 /// This document layout is currently:
+/// ```
 ///  /projects/flutter-dashboard/databases/cocoon/ciStaging/
 ///     document: <owner>_<repo>_<sha>_<stage>
 ///       total: int >= 0
 ///       remaining: int >= 0
 ///       [*fields]: string {scheduled, success, failure, skipped}
+/// ```
 class CiStaging extends Document {
   /// Firestore collection for the staging documents.
   static const kCollectionId = 'ciStaging';
@@ -32,11 +34,18 @@ class CiStaging extends Document {
   static final kSuccessValue = CheckRunConclusion.success.value!;
   static final kFailureValue = CheckRunConclusion.failure.value!;
 
-  static String documentIdFor({required RepositorySlug slug, required String sha, required CiStage stage}) =>
-      '${slug.owner}_${slug.name}_${sha}_$stage';
+  static String documentIdFor({
+    required RepositorySlug slug,
+    required String sha,
+    required CiStage stage,
+  }) => '${slug.owner}_${slug.name}_${sha}_$stage';
 
   /// Returns a firebase documentName used in [fromFirestore].
-  static String documentNameFor({required RepositorySlug slug, required String sha, required CiStage stage}) {
+  static String documentNameFor({
+    required RepositorySlug slug,
+    required String sha,
+    required CiStage stage,
+  }) {
     // Document names cannot cannot have '/' in the document id.
     final docId = documentIdFor(slug: slug, sha: sha, stage: stage);
     return '$kDocumentParent/$kCollectionId/$docId';
@@ -49,14 +58,12 @@ class CiStaging extends Document {
     required FirestoreService firestoreService,
     required String documentName,
   }) async {
-    final Document document = await firestoreService.getDocument(documentName);
+    final document = await firestoreService.getDocument(documentName);
     return CiStaging.fromDocument(ciStagingDocument: document);
   }
 
   /// Create [CiStaging] from a Commit Document.
-  static CiStaging fromDocument({
-    required Document ciStagingDocument,
-  }) {
+  static CiStaging fromDocument({required Document ciStagingDocument}) {
     return CiStaging()
       ..fields = ciStagingDocument.fields!
       ..name = ciStagingDocument.name!;
@@ -89,7 +96,8 @@ class CiStaging extends Document {
     required String conclusion,
   }) async {
     final changeCrumb = '${slug.owner}_${slug.name}_$sha';
-    final logCrumb = 'markConclusion(${changeCrumb}_$stage, $checkRun, $conclusion)';
+    final logCrumb =
+        'markConclusion(${changeCrumb}_$stage, $checkRun, $conclusion)';
 
     // Marking needs to happen while in a transaction to ensure `remaining` is
     // updated correctly. For that to happen correctly; we need to perform a
@@ -98,9 +106,7 @@ class CiStaging extends Document {
     final docRes = await firestoreService.documentResource();
     final transactionResponse = await docRes.beginTransaction(
       BeginTransactionRequest(
-        options: TransactionOptions(
-          readWrite: ReadWrite(),
-        ),
+        options: TransactionOptions(readWrite: ReadWrite()),
       ),
       kDatabase,
     );
@@ -112,7 +118,7 @@ class CiStaging extends Document {
     var remaining = -1;
     var failed = -1;
     var total = -1;
-    bool valid = false;
+    var valid = false;
     String? checkRunGuard;
     String? recordedConclusion;
 
@@ -121,15 +127,8 @@ class CiStaging extends Document {
     // transaction block
     try {
       // First: read the fields we want to change.
-      final documentName = documentNameFor(
-        slug: slug,
-        stage: stage,
-        sha: sha,
-      );
-      doc = await docRes.get(
-        documentName,
-        transaction: transaction,
-      );
+      final documentName = documentNameFor(slug: slug, stage: stage, sha: sha);
+      doc = await docRes.get(documentName, transaction: transaction);
 
       final fields = doc.fields;
       if (fields == null) {
@@ -137,13 +136,17 @@ class CiStaging extends Document {
       }
 
       // Fields and remaining _must_ be present.
-      final docRemaining = int.tryParse(fields[kRemainingField]?.integerValue ?? '');
+      final docRemaining = int.tryParse(
+        fields[kRemainingField]?.integerValue ?? '',
+      );
       if (docRemaining == null) {
         throw '$logCrumb: missing field "$kRemainingField" for $transaction / ${doc.fields}';
       }
       remaining = docRemaining;
 
-      final maybeFailed = int.tryParse(fields[kFailedField]?.integerValue ?? '');
+      final maybeFailed = int.tryParse(
+        fields[kFailedField]?.integerValue ?? '',
+      );
       if (maybeFailed == null) {
         throw '$logCrumb: missing field "$kFailedField" for $transaction / ${doc.fields}';
       }
@@ -159,8 +162,13 @@ class CiStaging extends Document {
       // is an OK response to have. All fields should have been written at creation time.
       recordedConclusion = fields[checkRun]?.stringValue;
       if (recordedConclusion == null) {
-        log.info('$logCrumb: $checkRun not present in doc for $transaction / $doc');
-        await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
+        log.info(
+          '$logCrumb: $checkRun not present in doc for $transaction / $doc',
+        );
+        await docRes.rollback(
+          RollbackRequest(transaction: transaction),
+          kDatabase,
+        );
         return StagingConclusion(
           result: StagingConclusionResult.missing,
           remaining: remaining,
@@ -182,7 +190,8 @@ class CiStaging extends Document {
       //   recordedConclusion == failure && conclusion == success: down (-1)
       //   recordedConclusion != failure && conclusion == failure: up (+1)
       // So if the test existed and either remaining or failed_count is changed; the response is valid.
-      if (recordedConclusion == kScheduledValue && conclusion != kScheduledValue) {
+      if (recordedConclusion == kScheduledValue &&
+          conclusion != kScheduledValue) {
         // Guard against going negative and log enough info so we can debug.
         if (remaining == 0) {
           throw '$logCrumb: field "$kRemainingField" is already zero for $transaction / ${doc.fields}';
@@ -194,7 +203,9 @@ class CiStaging extends Document {
       // Only rollback the "failed" counter if this is a successful test run,
       // i.e. the test failed, the user requested a rerun, and now it passes.
       if (recordedConclusion == kFailureValue && conclusion == kSuccessValue) {
-        log.info('$logCrumb: conclusion flipped to positive - assuming test was re-run');
+        log.info(
+          '$logCrumb: conclusion flipped to positive - assuming test was re-run',
+        );
         if (failed == 0) {
           throw '$logCrumb: field "$kFailedField" is already zero for $transaction / ${doc.fields}';
         }
@@ -203,7 +214,8 @@ class CiStaging extends Document {
       }
 
       // Only increment the "failed" counter if the new conclusion flips from positive or neutral to failure.
-      if ((recordedConclusion == kScheduledValue || recordedConclusion == kSuccessValue) &&
+      if ((recordedConclusion == kScheduledValue ||
+              recordedConclusion == kSuccessValue) &&
           conclusion == kFailureValue) {
         log.info('$logCrumb: test failed');
         valid = true;
@@ -214,7 +226,9 @@ class CiStaging extends Document {
       checkRunGuard = fields[kCheckRunGuardField]?.stringValue;
 
       // All checks pass. "valid" is only set to true if there was a change in either the remaining or failed count.
-      log.info('$logCrumb: setting remaining to $remaining, failed to $failed, and changing $recordedConclusion');
+      log.info(
+        '$logCrumb: setting remaining to $remaining, failed to $failed, and changing $recordedConclusion',
+      );
       fields[checkRun] = Value(stringValue: conclusion);
       fields[kRemainingField] = Value(integerValue: '$remaining');
       fields[kFailedField] = Value(integerValue: '$failed');
@@ -222,7 +236,10 @@ class CiStaging extends Document {
       if (e.status == 404) {
         // An attempt to read a document not in firestore should not be retried.
         log.info('$logCrumb: staging document not found for $transaction');
-        await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
+        await docRes.rollback(
+          RollbackRequest(transaction: transaction),
+          kDatabase,
+        );
         return StagingConclusion(
           result: StagingConclusionResult.internalError,
           remaining: -1,
@@ -240,34 +257,52 @@ $stack
         );
       }
       // All other errors should bubble up and be retried.
-      await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
+      await docRes.rollback(
+        RollbackRequest(transaction: transaction),
+        kDatabase,
+      );
       rethrow;
     } catch (e) {
       // All other errors should bubble up and be retried.
-      await docRes.rollback(RollbackRequest(transaction: transaction), kDatabase);
+      await docRes.rollback(
+        RollbackRequest(transaction: transaction),
+        kDatabase,
+      );
       rethrow;
     }
 
     // Commit this write firebase and if no one else was writing at the same time, return success.
     // If this commit fails, that means someone else modified firestore and the caller should try again.
     // We do not need to rollback the transaction; firebase documentation says a failed commit takes care of that.
-    final commitRequest = CommitRequest(transaction: transaction, writes: documentsToWrites([doc], exists: true));
+    final commitRequest = CommitRequest(
+      transaction: transaction,
+      writes: documentsToWrites([doc], exists: true),
+    );
     final response = await docRes.commit(commitRequest, kDatabase);
-    log.info('$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}');
+    log.info(
+      '$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}',
+    );
     return StagingConclusion(
-      result: valid ? StagingConclusionResult.ok : StagingConclusionResult.internalError,
+      result:
+          valid
+              ? StagingConclusionResult.ok
+              : StagingConclusionResult.internalError,
       remaining: remaining,
       checkRunGuard: checkRunGuard,
       failed: failed,
-      summary: valid ? 'All tests passed' : 'Not a valid state transition for $checkRun',
-      details: valid
-          ? '''
+      summary:
+          valid
+              ? 'All tests passed'
+              : 'Not a valid state transition for $checkRun',
+      details:
+          valid
+              ? '''
 For CI stage $stage:
   Total check runs scheduled: $total
   Pending: $remaining
   Failed: $failed
 '''
-          : 'Attempted to transition the state of check run $checkRun from "$recordedConclusion" to "$conclusion".',
+              : 'Attempted to transition the state of check run $checkRun from "$recordedConclusion" to "$conclusion".',
     );
   }
 
@@ -286,7 +321,8 @@ For CI stage $stage:
     required List<String> tasks,
     required String checkRunGuard,
   }) async {
-    final logCrumb = 'initializeDocument(${slug.owner}_${slug.name}_${sha}_$stage, ${tasks.length} tasks)';
+    final logCrumb =
+        'initializeDocument(${slug.owner}_${slug.name}_${sha}_$stage, ${tasks.length} tasks)';
 
     final fields = <String, Value>{
       kTotalField: Value(integerValue: '${tasks.length}'),
@@ -302,7 +338,8 @@ For CI stage $stage:
       // Calling createDocument multiple times for the same documentId will return a 409 - ALREADY_EXISTS error;
       // this is good because it means we don't have to do any transactions.
       // curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN>" "https://firestore.googleapis.com/v1beta1/projects/flutter-dashboard/databases/cocoon/documents/ciStaging?documentId=foo_bar_baz" -d '{"fields": {"test": {"stringValue": "baz"}}}'
-      final databasesDocumentsResource = await firestoreService.documentResource();
+      final databasesDocumentsResource =
+          await firestoreService.documentResource();
       final newDoc = await databasesDocumentsResource.createDocument(
         document,
         kDocumentParent,
@@ -405,13 +442,13 @@ class StagingConclusion {
 
   @override
   int get hashCode => Object.hashAll([
-        result,
-        remaining,
-        checkRunGuard,
-        failed,
-        summary,
-        details,
-      ]);
+    result,
+    remaining,
+    checkRunGuard,
+    failed,
+    summary,
+    details,
+  ]);
 
   @override
   String toString() =>

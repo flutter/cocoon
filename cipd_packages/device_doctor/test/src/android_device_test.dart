@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:device_doctor/src/android_device.dart';
 import 'package:device_doctor/src/device.dart';
-import 'package:device_doctor/src/health.dart';
 import 'package:device_doctor/src/utils.dart';
 import 'package:file/src/backends/memory/memory_file_system.dart';
 import 'package:mockito/mockito.dart';
@@ -24,17 +23,19 @@ void main() {
     Process process;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
+      deviceDiscovery =
+          AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
     test('deviceDiscovery no retries', () async {
-      final StringBuffer sb = StringBuffer();
+      final sb = StringBuffer();
       sb.writeln('List of devices attached');
       sb.writeln('ZY223JQNMR      device');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
-      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
+      when(processManager.start(any,
+              workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
       final List<Device> devices = await deviceDiscovery.discoverDevices(
@@ -46,11 +47,14 @@ void main() {
     });
 
     test('deviceDiscovery fails', () async {
-      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
+      when(processManager.start(any,
+              workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => throw TimeoutException('test'));
       expect(
-        deviceDiscovery.discoverDevices(retryDuration: const Duration(seconds: 0), processManager: processManager),
-        throwsA(TypeMatcher<BuildFailedError>()),
+        deviceDiscovery.discoverDevices(
+            retryDuration: const Duration(seconds: 0),
+            processManager: processManager),
+        throwsA(const TypeMatcher<BuildFailedException>()),
       );
     });
   });
@@ -58,12 +62,13 @@ void main() {
   group('AndroidDeviceProperties', () {
     late AndroidDeviceDiscovery deviceDiscovery;
     late MockProcessManager processManager;
-    Process property_process;
+    Process propertyProcess;
     Process process;
     String output;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
+      deviceDiscovery =
+          AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -71,10 +76,14 @@ void main() {
       output = 'List of devices attached';
       process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
 
-      when(processManager.start(<Object>['adb', 'devices', '-l'], workingDirectory: anyNamed('workingDirectory')))
+      when(processManager.start(<Object>['adb', 'devices', '-l'],
+              workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      expect(await deviceDiscovery.deviceProperties(processManager: processManager), equals(<String, String>{}));
+      expect(
+          await deviceDiscovery.deviceProperties(
+              processManager: processManager),
+          equals(<String, String>{}));
     });
 
     test('get device properties', () async {
@@ -84,19 +93,20 @@ void main() {
       [ro.product.model]: [jkl]
       [ro.product.board]: [mno]
       ''';
-      property_process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
+      propertyProcess = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
 
       when(
         processManager.start(
           <Object>['adb', '-s', 'ZY223JQNMR', 'shell', 'getprop'],
           workingDirectory: anyNamed('workingDirectory'),
         ),
-      ).thenAnswer((_) => Future.value(property_process));
+      ).thenAnswer((_) => Future.value(propertyProcess));
 
-      final Map<String, String> deviceProperties = await deviceDiscovery
-          .getDeviceProperties(AndroidDevice(deviceId: 'ZY223JQNMR'), processManager: processManager);
+      final deviceProperties = await deviceDiscovery.getDeviceProperties(
+          AndroidDevice(deviceId: 'ZY223JQNMR'),
+          processManager: processManager);
 
-      const Map<String, String> expectedProperties = <String, String>{
+      const expectedProperties = <String, String>{
         'product_brand': 'abc',
         'build_id': 'def',
         'build_type': 'ghi',
@@ -113,19 +123,20 @@ void main() {
     Process process;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
+      deviceDiscovery =
+          AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
     test('returns success when adb power service is available', () async {
       process = FakeProcess(0);
       when(
-        processManager
-            .start(<Object>['adb', 'shell', 'dumpsys', 'power'], workingDirectory: anyNamed('workingDirectory')),
+        processManager.start(<Object>['adb', 'shell', 'dumpsys', 'power'],
+            workingDirectory: anyNamed('workingDirectory')),
       ).thenAnswer((_) => Future.value(process));
 
-      final HealthCheckResult healthCheckResult =
-          await deviceDiscovery.adbPowerServiceCheck(processManager: processManager);
+      final healthCheckResult = await deviceDiscovery.adbPowerServiceCheck(
+          processManager: processManager);
       expect(healthCheckResult.succeeded, true);
       expect(healthCheckResult.name, kAdbPowerServiceCheckKey);
     });
@@ -133,15 +144,16 @@ void main() {
     test('returns failure when adb returns none 0 code', () async {
       process = FakeProcess(1);
       when(
-        processManager
-            .start(<Object>['adb', 'shell', 'dumpsys', 'power'], workingDirectory: anyNamed('workingDirectory')),
+        processManager.start(<Object>['adb', 'shell', 'dumpsys', 'power'],
+            workingDirectory: anyNamed('workingDirectory')),
       ).thenAnswer((_) => Future.value(process));
 
-      final HealthCheckResult healthCheckResult =
-          await deviceDiscovery.adbPowerServiceCheck(processManager: processManager);
+      final healthCheckResult = await deviceDiscovery.adbPowerServiceCheck(
+          processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kAdbPowerServiceCheckKey);
-      expect(healthCheckResult.details, 'Executable adb failed with exit code 1.');
+      expect(
+          healthCheckResult.details, 'Executable adb failed with exit code 1.');
     });
   });
 
@@ -152,7 +164,8 @@ void main() {
     List<List<int>> output;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
+      deviceDiscovery =
+          AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -161,13 +174,20 @@ void main() {
       process = FakeProcess(0, out: output);
       when(
         processManager.start(
-          <Object>['adb', 'shell', 'settings', 'get', 'global', 'development_settings_enabled'],
+          <Object>[
+            'adb',
+            'shell',
+            'settings',
+            'get',
+            'global',
+            'development_settings_enabled'
+          ],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(process));
 
-      final HealthCheckResult healthCheckResult =
-          await deviceDiscovery.developerModeCheck(processManager: processManager);
+      final healthCheckResult = await deviceDiscovery.developerModeCheck(
+          processManager: processManager);
       expect(healthCheckResult.succeeded, true);
       expect(healthCheckResult.name, kDeveloperModeCheckKey);
     });
@@ -177,13 +197,20 @@ void main() {
       process = FakeProcess(0, out: output);
       when(
         processManager.start(
-          <Object>['adb', 'shell', 'settings', 'get', 'global', 'development_settings_enabled'],
+          <Object>[
+            'adb',
+            'shell',
+            'settings',
+            'get',
+            'global',
+            'development_settings_enabled'
+          ],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(process));
 
-      final HealthCheckResult healthCheckResult =
-          await deviceDiscovery.developerModeCheck(processManager: processManager);
+      final healthCheckResult = await deviceDiscovery.developerModeCheck(
+          processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kDeveloperModeCheckKey);
       expect(healthCheckResult.details, 'developer mode is off');
@@ -194,13 +221,20 @@ void main() {
       process = FakeProcess(0, out: output);
       when(
         processManager.start(
-          <Object>['adb', 'shell', 'settings', 'get', 'secure', 'screensaver_enabled'],
+          <Object>[
+            'adb',
+            'shell',
+            'settings',
+            'get',
+            'secure',
+            'screensaver_enabled'
+          ],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(process));
 
-      final HealthCheckResult healthCheckResult =
-          await deviceDiscovery.screenSaverCheck(processManager: processManager);
+      final healthCheckResult = await deviceDiscovery.screenSaverCheck(
+          processManager: processManager);
       expect(healthCheckResult.succeeded, true);
       expect(healthCheckResult.name, kScreenSaverCheckKey);
     });
@@ -210,13 +244,20 @@ void main() {
       process = FakeProcess(0, out: output);
       when(
         processManager.start(
-          <Object>['adb', 'shell', 'settings', 'get', 'secure', 'screensaver_enabled'],
+          <Object>[
+            'adb',
+            'shell',
+            'settings',
+            'get',
+            'secure',
+            'screensaver_enabled'
+          ],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(process));
 
-      final HealthCheckResult healthCheckResult =
-          await deviceDiscovery.screenSaverCheck(processManager: processManager);
+      final healthCheckResult = await deviceDiscovery.screenSaverCheck(
+          processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kScreenSaverCheckKey);
       expect(healthCheckResult.details, 'Screensaver is on');
@@ -226,16 +267,24 @@ void main() {
       process = FakeProcess(1);
       when(
         processManager.start(
-          <Object>['adb', 'shell', 'settings', 'get', 'global', 'development_settings_enabled'],
+          <Object>[
+            'adb',
+            'shell',
+            'settings',
+            'get',
+            'global',
+            'development_settings_enabled'
+          ],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(process));
 
-      final HealthCheckResult healthCheckResult =
-          await deviceDiscovery.developerModeCheck(processManager: processManager);
+      final healthCheckResult = await deviceDiscovery.developerModeCheck(
+          processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kDeveloperModeCheckKey);
-      expect(healthCheckResult.details, 'Executable adb failed with exit code 1.');
+      expect(
+          healthCheckResult.details, 'Executable adb failed with exit code 1.');
     });
   });
 
@@ -246,42 +295,61 @@ void main() {
     List<List<int>> output;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
+      deviceDiscovery =
+          AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
     test('returns success when screen is on', () async {
-      const String screenMessage = '''
+      const screenMessage = '''
       mHoldingDisplaySuspendBlocker=true
       ''';
       output = <List<int>>[utf8.encode(screenMessage)];
       process = FakeProcess(0, out: output);
       when(
         processManager.start(
-          <Object>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
+          <Object>[
+            'adb',
+            'shell',
+            'dumpsys',
+            'power',
+            '|',
+            'grep',
+            'mHoldingDisplaySuspendBlocker'
+          ],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(process));
 
-      final HealthCheckResult healthCheckResult = await deviceDiscovery.screenOnCheck(processManager: processManager);
+      final healthCheckResult =
+          await deviceDiscovery.screenOnCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, true);
       expect(healthCheckResult.name, kScreenOnCheckKey);
     });
 
     test('returns failure when screen is off', () async {
-      const String screenMessage = '''
+      const screenMessage = '''
       mHoldingDisplaySuspendBlocker=false
       ''';
       output = <List<int>>[utf8.encode(screenMessage)];
       process = FakeProcess(0, out: output);
       when(
         processManager.start(
-          <Object>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
+          <Object>[
+            'adb',
+            'shell',
+            'dumpsys',
+            'power',
+            '|',
+            'grep',
+            'mHoldingDisplaySuspendBlocker'
+          ],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(process));
 
-      final HealthCheckResult healthCheckResult = await deviceDiscovery.screenOnCheck(processManager: processManager);
+      final healthCheckResult =
+          await deviceDiscovery.screenOnCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kScreenOnCheckKey);
       expect(healthCheckResult.details, 'screen is off');
@@ -291,15 +359,25 @@ void main() {
       process = FakeProcess(1);
       when(
         processManager.start(
-          <Object>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
+          <Object>[
+            'adb',
+            'shell',
+            'dumpsys',
+            'power',
+            '|',
+            'grep',
+            'mHoldingDisplaySuspendBlocker'
+          ],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(process));
 
-      final HealthCheckResult healthCheckResult = await deviceDiscovery.screenOnCheck(processManager: processManager);
+      final healthCheckResult =
+          await deviceDiscovery.screenOnCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kScreenOnCheckKey);
-      expect(healthCheckResult.details, 'Executable adb failed with exit code 1.');
+      expect(
+          healthCheckResult.details, 'Executable adb failed with exit code 1.');
     });
   });
 
@@ -310,7 +388,8 @@ void main() {
     List<List<int>> output;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
+      deviceDiscovery =
+          AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -319,13 +398,20 @@ void main() {
       process = FakeProcess(0, out: output);
       when(
         processManager.start(
-          <Object>['adb', 'shell', 'settings', 'get', 'system', 'accelerometer_rotation'],
+          <Object>[
+            'adb',
+            'shell',
+            'settings',
+            'get',
+            'system',
+            'accelerometer_rotation'
+          ],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(process));
 
-      final HealthCheckResult healthCheckResult =
-          await deviceDiscovery.screenRotationCheck(processManager: processManager);
+      final healthCheckResult = await deviceDiscovery.screenRotationCheck(
+          processManager: processManager);
       expect(healthCheckResult.succeeded, true);
       expect(healthCheckResult.name, kScreenRotationCheckKey);
     });
@@ -335,13 +421,20 @@ void main() {
       process = FakeProcess(0, out: output);
       when(
         processManager.start(
-          <Object>['adb', 'shell', 'settings', 'get', 'system', 'accelerometer_rotation'],
+          <Object>[
+            'adb',
+            'shell',
+            'settings',
+            'get',
+            'system',
+            'accelerometer_rotation'
+          ],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(process));
 
-      final HealthCheckResult healthCheckResult =
-          await deviceDiscovery.screenRotationCheck(processManager: processManager);
+      final healthCheckResult = await deviceDiscovery.screenRotationCheck(
+          processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kScreenRotationCheckKey);
       expect(healthCheckResult.details, 'Screen rotation is enabled');
@@ -370,18 +463,32 @@ void main() {
       killProcess = FakeProcess(0);
       when(
         processManager.start(
-          <Object>['adb', 'shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
+          <Object>[
+            'adb',
+            'shell',
+            'dumpsys',
+            'activity',
+            '|',
+            'grep',
+            'top-activity'
+          ],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(listProcess));
       when(
         processManager.start(
-          <Object>['adb', 'shell', 'am', 'force-stop', 'com.google.android.apps.nexuslauncher'],
+          <Object>[
+            'adb',
+            'shell',
+            'am',
+            'force-stop',
+            'com.google.android.apps.nexuslauncher'
+          ],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(killProcess));
 
-      final bool result = await device.killProcesses(processManager: processManager);
+      final result = await device.killProcesses(processManager: processManager);
       expect(result, true);
     });
 
@@ -391,18 +498,32 @@ void main() {
       killProcess = FakeProcess(0);
       when(
         processManager.start(
-          <Object>['adb', 'shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
+          <Object>[
+            'adb',
+            'shell',
+            'dumpsys',
+            'activity',
+            '|',
+            'grep',
+            'top-activity'
+          ],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(listProcess));
       when(
         processManager.start(
-          <Object>['adb', 'shell', 'am', 'force-stop', 'com.google.android.apps.nexuslauncher'],
+          <Object>[
+            'adb',
+            'shell',
+            'am',
+            'force-stop',
+            'com.google.android.apps.nexuslauncher'
+          ],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(killProcess));
 
-      final bool result = await device.killProcesses(processManager: processManager);
+      final result = await device.killProcesses(processManager: processManager);
       expect(result, true);
     });
 
@@ -416,18 +537,32 @@ void main() {
       killProcess = FakeProcess(1);
       when(
         processManager.start(
-          <Object>['adb', 'shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
+          <Object>[
+            'adb',
+            'shell',
+            'dumpsys',
+            'activity',
+            '|',
+            'grep',
+            'top-activity'
+          ],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(listProcess));
       when(
         processManager.start(
-          <Object>['adb', 'shell', 'am', 'force-stop', 'com.google.android.apps.nexuslauncher'],
+          <Object>[
+            'adb',
+            'shell',
+            'am',
+            'force-stop',
+            'com.google.android.apps.nexuslauncher'
+          ],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(killProcess));
 
-      final bool result = await device.killProcesses(processManager: processManager);
+      final result = await device.killProcesses(processManager: processManager);
       expect(result, false);
     });
   });
@@ -438,31 +573,35 @@ void main() {
     Process process;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
+      deviceDiscovery =
+          AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
     test('returns success when adb power service is killed', () async {
       process = FakeProcess(0);
-      when(processManager.start(<Object>['adb', 'kill-server'], workingDirectory: anyNamed('workingDirectory')))
+      when(processManager.start(<Object>['adb', 'kill-server'],
+              workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      final HealthCheckResult healthCheckResult =
-          await deviceDiscovery.killAdbServerCheck(processManager: processManager);
+      final healthCheckResult = await deviceDiscovery.killAdbServerCheck(
+          processManager: processManager);
       expect(healthCheckResult.succeeded, true);
       expect(healthCheckResult.name, kKillAdbServerCheckKey);
     });
 
     test('returns failure when adb returns non 0 code', () async {
       process = FakeProcess(1);
-      when(processManager.start(<Object>['adb', 'kill-server'], workingDirectory: anyNamed('workingDirectory')))
+      when(processManager.start(<Object>['adb', 'kill-server'],
+              workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      final HealthCheckResult healthCheckResult =
-          await deviceDiscovery.killAdbServerCheck(processManager: processManager);
+      final healthCheckResult = await deviceDiscovery.killAdbServerCheck(
+          processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kKillAdbServerCheckKey);
-      expect(healthCheckResult.details, 'Executable adb failed with exit code 1.');
+      expect(
+          healthCheckResult.details, 'Executable adb failed with exit code 1.');
     });
   });
 
@@ -473,12 +612,13 @@ void main() {
     List<List<int>> output;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
+      deviceDiscovery =
+          AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
     test('returns success when battery level is high', () async {
-      const String screenMessage = '''
+      const screenMessage = '''
   level: 100
   mod level: -1
       ''';
@@ -491,14 +631,14 @@ void main() {
         ),
       ).thenAnswer((_) => Future.value(process));
 
-      final HealthCheckResult healthCheckResult =
-          await deviceDiscovery.batteryLevelCheck(processManager: processManager);
+      final healthCheckResult = await deviceDiscovery.batteryLevelCheck(
+          processManager: processManager);
       expect(healthCheckResult.succeeded, true);
       expect(healthCheckResult.name, kBatteryLevelCheckKey);
     });
 
     test('returns failure when battery level is below threshold', () async {
-      const String screenMessage = '''
+      const screenMessage = '''
   level: 10
   mod level: -1
       ''';
@@ -511,8 +651,8 @@ void main() {
         ),
       ).thenAnswer((_) => Future.value(process));
 
-      final HealthCheckResult healthCheckResult =
-          await deviceDiscovery.batteryLevelCheck(processManager: processManager);
+      final healthCheckResult = await deviceDiscovery.batteryLevelCheck(
+          processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kBatteryLevelCheckKey);
       expect(healthCheckResult.details, 'Battery level (10) is below 15');
@@ -526,47 +666,66 @@ void main() {
     List<List<int>> output;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
+      deviceDiscovery =
+          AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
     test('returns success when battery temperature is low', () async {
-      const String screenMessage = '''
+      const screenMessage = '''
   temperature: 24
       ''';
       output = <List<int>>[utf8.encode(screenMessage)];
       process = FakeProcess(0, out: output);
       when(
         processManager.start(
-          <Object>['adb', 'shell', 'dumpsys', 'battery', '|', 'grep', 'temperature'],
+          <Object>[
+            'adb',
+            'shell',
+            'dumpsys',
+            'battery',
+            '|',
+            'grep',
+            'temperature'
+          ],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(process));
 
-      final HealthCheckResult healthCheckResult =
-          await deviceDiscovery.batteryTemperatureCheck(processManager: processManager);
+      final healthCheckResult = await deviceDiscovery.batteryTemperatureCheck(
+          processManager: processManager);
       expect(healthCheckResult.succeeded, true);
       expect(healthCheckResult.name, kBatteryTemperatureCheckKey);
     });
 
-    test('returns failure when battery temperature is above threshold', () async {
-      const String screenMessage = '''
+    test('returns failure when battery temperature is above threshold',
+        () async {
+      const screenMessage = '''
   temperature: 350
       ''';
       output = <List<int>>[utf8.encode(screenMessage)];
       process = FakeProcess(0, out: output);
       when(
         processManager.start(
-          <Object>['adb', 'shell', 'dumpsys', 'battery', '|', 'grep', 'temperature'],
+          <Object>[
+            'adb',
+            'shell',
+            'dumpsys',
+            'battery',
+            '|',
+            'grep',
+            'temperature'
+          ],
           workingDirectory: anyNamed('workingDirectory'),
         ),
       ).thenAnswer((_) => Future.value(process));
 
-      final HealthCheckResult healthCheckResult =
-          await deviceDiscovery.batteryTemperatureCheck(processManager: processManager);
+      final healthCheckResult = await deviceDiscovery.batteryTemperatureCheck(
+          processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kBatteryTemperatureCheckKey);
-      expect(healthCheckResult.details, 'Battery temperature (35°C) is over 34°C');
+      expect(
+          healthCheckResult.details, 'Battery temperature (35°C) is over 34°C');
     });
   });
 }

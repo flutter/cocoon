@@ -28,7 +28,8 @@ class GithubPullRequestEvent {
   /// useful when processing revert requests.
   final User? sender;
 
-  factory GithubPullRequestEvent.fromJson(Map<String, dynamic> json) => _$GithubPullRequestEventFromJson(json);
+  factory GithubPullRequestEvent.fromJson(Map<String, dynamic> json) =>
+      _$GithubPullRequestEventFromJson(json);
 
   Map<String, dynamic> toJson() => _$GithubPullRequestEventToJson(this);
 }

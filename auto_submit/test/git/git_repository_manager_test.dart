@@ -15,15 +15,16 @@ void main() {
   group(
     'RepositoryManager',
     () {
-      final String workingDirectoryOutside = Directory.current.parent.parent.path;
+      final workingDirectoryOutside = Directory.current.parent.parent.path;
 
-      final String workingDirectory = '${Directory.current.path}/test/repository';
-      final String targetRepoCheckoutDirectory = '${Directory.current.path}/test/repository/flutter_test';
-      final CliCommand cliCommand = CliCommand();
-      final GitCli gitCli = GitCli(GitAccessMethod.SSH, cliCommand);
-      final RepositorySlug slug = RepositorySlug('ricardoamador', 'flutter_test');
+      final workingDirectory = '${Directory.current.path}/test/repository';
+      final targetRepoCheckoutDirectory =
+          '${Directory.current.path}/test/repository/flutter_test';
+      final cliCommand = CliCommand();
+      final gitCli = GitCli(GitAccessMethod.SSH, cliCommand);
+      final slug = RepositorySlug('ricardoamador', 'flutter_test');
 
-      final GitRepositoryManager gitRepositoryManager = GitRepositoryManager(
+      final gitRepositoryManager = GitRepositoryManager(
         slug: slug,
         workingDirectory: workingDirectory,
         cloneToDirectory: 'flutter_test',
@@ -31,7 +32,7 @@ void main() {
       );
 
       setUp(() {
-        final Directory directory = Directory(workingDirectory);
+        final directory = Directory(workingDirectory);
         directory.createSync();
       });
 
@@ -41,10 +42,15 @@ void main() {
       });
 
       test('cloneRepository() over existing dir.', () async {
-        await cliCommand.runCliCommand(executable: 'mkdir', arguments: ['$workingDirectory/flutter_test']);
+        await cliCommand.runCliCommand(
+            executable: 'mkdir', arguments: ['$workingDirectory/flutter_test']);
         await gitRepositoryManager.cloneRepository();
-        expect(Directory('$workingDirectoryOutside/flutter_test').existsSync(), isTrue);
-        expect(await gitCli.isGitRepository('$workingDirectoryOutside/flutter_test'), isTrue);
+        expect(Directory('$workingDirectoryOutside/flutter_test').existsSync(),
+            isTrue);
+        expect(
+            await gitCli
+                .isGitRepository('$workingDirectoryOutside/flutter_test'),
+            isTrue);
       });
 
       test('deleteRepository()', () async {
@@ -55,7 +61,8 @@ void main() {
       });
 
       tearDown(() async {
-        await cliCommand.runCliCommand(executable: 'rm', arguments: ['-rf', targetRepoCheckoutDirectory]);
+        await cliCommand.runCliCommand(
+            executable: 'rm', arguments: ['-rf', targetRepoCheckoutDirectory]);
       });
     },
     skip: true,

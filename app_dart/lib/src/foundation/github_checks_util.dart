@@ -20,13 +20,16 @@ class GithubChecksUtil {
     github.GitHub gitHubClient,
     CheckSuiteEvent checkSuiteEvent,
   ) async {
-    final List<github.CheckRun> allCheckRuns = await gitHubClient.checks.checkRuns
-        .listCheckRunsInSuite(
-          checkSuiteEvent.repository!.slug(),
-          checkSuiteId: checkSuiteEvent.checkSuite!.id!,
-        )
-        .toList();
-    return {for (github.CheckRun check in allCheckRuns) check.name as String: check};
+    final allCheckRuns =
+        await gitHubClient.checks.checkRuns
+            .listCheckRunsInSuite(
+              checkSuiteEvent.repository!.slug(),
+              checkSuiteId: checkSuiteEvent.checkSuite!.id!,
+            )
+            .toList();
+    return {
+      for (github.CheckRun check in allCheckRuns) check.name as String: check,
+    };
   }
 
   Future<github.CheckSuite> getCheckSuite(
@@ -48,10 +51,7 @@ class GithubChecksUtil {
     int? appId,
     String? checkName,
   }) async {
-    const RetryOptions r = RetryOptions(
-      maxAttempts: 3,
-      delayFactor: Duration(seconds: 2),
-    );
+    const r = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 2));
     return r.retry(
       () async {
         return gitHubClient.checks.checkSuites
@@ -78,13 +78,10 @@ class GithubChecksUtil {
     String? detailsUrl,
     github.CheckRunOutput? output,
   }) async {
-    const RetryOptions r = RetryOptions(
-      maxAttempts: 3,
-      delayFactor: Duration(seconds: 2),
-    );
+    const r = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 2));
     return r.retry(
       () async {
-        final github.GitHub gitHubClient = await config.createGitHubClient(slug: slug);
+        final gitHubClient = await config.createGitHubClient(slug: slug);
         await gitHubClient.checks.checkRuns.updateCheckRun(
           slug,
           checkRun,
@@ -103,17 +100,11 @@ class GithubChecksUtil {
     github.RepositorySlug slug,
     int? id,
   ) async {
-    const RetryOptions r = RetryOptions(
-      maxAttempts: 3,
-      delayFactor: Duration(seconds: 2),
-    );
+    const r = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 2));
     return r.retry(
       () async {
-        final github.GitHub gitHubClient = await config.createGitHubClient(slug: slug);
-        return gitHubClient.checks.checkRuns.getCheckRun(
-          slug,
-          checkRunId: id!,
-        );
+        final gitHubClient = await config.createGitHubClient(slug: slug);
+        return gitHubClient.checks.checkRuns.getCheckRun(slug, checkRunId: id!);
       },
       retryIf: (Exception e) => e is github.GitHubError || e is SocketException,
     );
@@ -133,10 +124,7 @@ class GithubChecksUtil {
     github.CheckRunOutput? output,
     github.CheckRunConclusion? conclusion,
   }) async {
-    const RetryOptions r = RetryOptions(
-      maxAttempts: 3,
-      delayFactor: Duration(seconds: 2),
-    );
+    const r = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 2));
     return r.retry(
       () async {
         return _createCheckRun(
@@ -149,9 +137,10 @@ class GithubChecksUtil {
         );
       },
       retryIf: (Exception e) => true,
-      onRetry: (Exception e) => log.warning(
-        'createCheckRun fails for slug: ${slug.fullName}, sha: $sha, name: $name. Exception: ${e.toString()}',
-      ),
+      onRetry:
+          (Exception e) => log.warning(
+            'createCheckRun fails for slug: ${slug.fullName}, sha: $sha, name: $name. Exception: ${e.toString()}',
+          ),
     );
   }
 
@@ -163,7 +152,7 @@ class GithubChecksUtil {
     github.CheckRunOutput? output,
     github.CheckRunConclusion? conclusion,
   }) async {
-    final github.GitHub gitHubClient = await config.createGitHubClient(slug: slug);
+    final gitHubClient = await config.createGitHubClient(slug: slug);
     return gitHubClient.checks.checkRuns.createCheckRun(
       slug,
       name: name,

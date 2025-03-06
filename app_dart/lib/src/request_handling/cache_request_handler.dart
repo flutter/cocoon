@@ -47,13 +47,13 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
   /// to the latest information.
   @override
   Future<T> get() async {
-    final String responseKey = '${request!.uri.path}:${request!.uri.query}';
+    final responseKey = '${request!.uri.path}:${request!.uri.query}';
 
     if (request!.uri.queryParameters[flushCacheQueryParam] == 'true') {
       await cache.purge(responseSubcacheName, responseKey);
     }
 
-    final Uint8List? cachedResponse = await cache.getOrCreateWithLocking(
+    final cachedResponse = await cache.getOrCreateWithLocking(
       responseSubcacheName,
       responseKey,
       createFn: () => getBodyBytesFromDelegate(delegate),
@@ -72,7 +72,11 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
     // the data out usually to a client. In this case, we want to store
     // the bytes in the cache which requires several conversions to get a
     // Uint8List that contains the bytes of the response.
-    final List<int> rawBytes = await body.serialize().expand<int>((Uint8List? chunk) => chunk!).toList();
+    final rawBytes =
+        await body
+            .serialize()
+            .expand<int>((Uint8List? chunk) => chunk!)
+            .toList();
     return Uint8List.fromList(rawBytes);
   }
 }

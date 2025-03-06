@@ -22,7 +22,8 @@ class FakeGoogleSignInAccount implements GoogleSignInAccount {
   String get serverAuthCode => 'migration placeholder';
 
   @override
-  Future<Map<String, String>> get authHeaders => Future<Map<String, String>>.value(<String, String>{});
+  Future<Map<String, String>> get authHeaders =>
+      Future<Map<String, String>>.value(<String, String>{});
 
   @override
   late final Future<GoogleSignInAuthentication> authentication;
@@ -32,8 +33,7 @@ class FakeGoogleSignInAccount implements GoogleSignInAccount {
 
   @override
   bool operator ==(Object other) {
-    final GoogleSignInAccount otherAccount = other as GoogleSignInAccount;
-    return email == otherAccount.email;
+    return other is GoogleSignInAccount && email == other.email;
   }
 
   @override

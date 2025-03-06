@@ -14,37 +14,115 @@ import 'key.pb.dart' as $0;
 
 class Task extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Task',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'Task',
       createEmptyInstance: create)
-    ..aOM<$0.RootKey>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'key',
+    ..aOM<$0.RootKey>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'key',
         subBuilder: $0.RootKey.create)
-    ..aOM<$0.RootKey>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'commitKey',
+    ..aOM<$0.RootKey>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'commitKey',
         subBuilder: $0.RootKey.create)
-    ..aInt64(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'createTimestamp')
-    ..aInt64(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'startTimestamp')
-    ..aInt64(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'endTimestamp')
-    ..aOS(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'name')
+    ..aInt64(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'createTimestamp')
+    ..aInt64(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'startTimestamp')
+    ..aInt64(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'endTimestamp')
+    ..aOS(
+        6,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'name')
     ..a<$core.int>(
-        7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'attempts', $pb.PbFieldType.O3)
-    ..aOB(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'isFlaky')
+        7,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'attempts',
+        $pb.PbFieldType.O3)
+    ..aOB(
+        8,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'isFlaky')
     ..a<$core.int>(
-        9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'timeoutInMinutes', $pb.PbFieldType.O3)
-    ..aOS(10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'reason')
-    ..pPS(11, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'requiredCapabilities')
-    ..aOS(12, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'reservedForAgentId',
+        9,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'timeoutInMinutes',
+        $pb.PbFieldType.O3)
+    ..aOS(
+        10,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'reason')
+    ..pPS(
+        11,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'requiredCapabilities')
+    ..aOS(
+        12,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'reservedForAgentId',
         protoName: 'reserved_for_agentId')
-    ..aOS(13, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'stageName')
-    ..aOS(14, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'status')
+    ..aOS(
+        13,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'stageName')
+    ..aOS(
+        14,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'status')
     ..a<$core.int>(
-        15, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'buildNumber', $pb.PbFieldType.O3,
+        15,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'buildNumber',
+        $pb.PbFieldType.O3,
         protoName: 'buildNumber')
-    ..aOS(16, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'buildNumberList',
+    ..aOS(
+        16,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'buildNumberList',
         protoName: 'buildNumberList')
-    ..aOS(17, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'builderName',
+    ..aOS(
+        17,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'builderName',
         protoName: 'builderName')
-    ..aOS(18, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'luciBucket',
+    ..aOS(
+        18,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'luciBucket',
         protoName: 'luciBucket')
-    ..aOB(19, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'isTestFlaky')
+    ..aOB(
+        19,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'isTestFlaky')
     ..hasRequiredFields = false;
 
   Task._() : super();
@@ -129,9 +207,11 @@ class Task extends $pb.GeneratedMessage {
     }
     return _result;
   }
-  factory Task.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Task.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Task.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Task.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
@@ -141,14 +221,16 @@ class Task extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   Task copyWith(void Function(Task) updates) =>
-      super.copyWith((message) => updates(message as Task)) as Task; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as Task))
+          as Task; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Task create() => Task._();
   Task createEmptyInstance() => create();
   static $pb.PbList<Task> createRepeated() => $pb.PbList<Task>();
   @$core.pragma('dart2js:noInline')
-  static Task getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Task>(create);
+  static Task getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Task>(create);
   static Task? _defaultInstance;
 
   @$pb.TagNumber(1)

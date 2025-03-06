@@ -24,17 +24,18 @@ import 'request_handler.dart';
 @immutable
 abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
   /// Creates a new [NoAuthRequestHandler].
-  const NoAuthRequestHandler({
-    required super.config,
-  });
+  const NoAuthRequestHandler({required super.config});
 
   /// Throws a [BadRequestException] if any of [requiredParameters] is missing
   /// from [requestData].
   @protected
   void checkRequiredParameters(List<String> requiredParameters) {
-    final Iterable<String> missingParams = requiredParameters..removeWhere(requestData!.containsKey);
+    final Iterable<String> missingParams =
+        requiredParameters..removeWhere(requestData!.containsKey);
     if (missingParams.isNotEmpty) {
-      throw BadRequestException('Missing required parameter: ${missingParams.join(', ')}');
+      throw BadRequestException(
+        'Missing required parameter: ${missingParams.join(', ')}',
+      );
     }
   }
 
@@ -60,7 +61,8 @@ abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
   ///
   ///  * [requestBody], which specifies the raw bytes of the HTTP request body.
   @protected
-  Map<String, dynamic>? get requestData => getValue<Map<String, dynamic>>(NoAuthKey.requestData);
+  Map<String, dynamic>? get requestData =>
+      getValue<Map<String, dynamic>>(NoAuthKey.requestData);
 
   @override
   Future<void> service(
@@ -71,7 +73,7 @@ abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
     try {
       body = await request.expand<int>((List<int> chunk) => chunk).toList();
     } catch (error) {
-      final HttpResponse response = request.response;
+      final response = request.response;
       response
         ..statusCode = HttpStatus.internalServerError
         ..write('$error');
@@ -88,7 +90,7 @@ abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
         // The HTTP request body is not valid UTF-8 encoded JSON. This is
         // allowed; just let [requestData] be null.
       } catch (error) {
-        final HttpResponse response = request.response;
+        final response = request.response;
         response
           ..statusCode = HttpStatus.internalServerError
           ..write('$error');
@@ -114,6 +116,9 @@ abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
 class NoAuthKey<T> extends RequestKey<T> {
   const NoAuthKey._(super.name);
 
-  static const NoAuthKey<Uint8List> requestBody = NoAuthKey<Uint8List>._('requestBody');
-  static const NoAuthKey<Map<String, dynamic>> requestData = NoAuthKey<Map<String, dynamic>>._('requestData');
+  static const NoAuthKey<Uint8List> requestBody = NoAuthKey<Uint8List>._(
+    'requestBody',
+  );
+  static const NoAuthKey<Map<String, dynamic>> requestData =
+      NoAuthKey<Map<String, dynamic>>._('requestData');
 }

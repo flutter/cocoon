@@ -20,14 +20,14 @@ void main() {
   group('Check Webhook', () {
     late Request req;
     late GithubWebhook githubWebhook;
-    const String keyString = 'not_a_real_key';
-    final FakeConfig config = FakeConfig(webhookKey: keyString);
-    final FakePubSub pubsub = FakePubSub();
+    const keyString = 'not_a_real_key';
+    final config = FakeConfig(webhookKey: keyString);
+    final pubsub = FakePubSub();
     late Map<String, String> validHeader;
     late Map<String, String> inValidHeader;
 
     String getHmac(Uint8List list, Uint8List key) {
-      final Hmac hmac = Hmac(sha1, key);
+      final hmac = Hmac(sha1, key);
       return hmac.convert(list).toString();
     }
 
@@ -36,28 +36,40 @@ void main() {
     });
 
     test('call handler to handle the post request', () async {
-      final Uint8List body = utf8.encode(generateWebhookEvent());
-      final Uint8List key = utf8.encode(keyString);
-      final String hmac = getHmac(body, key);
-      validHeader = <String, String>{'X-Hub-Signature': 'sha1=$hmac', 'X-GitHub-Event': 'yes'};
-      req = Request('POST', Uri.parse('http://localhost/'), body: generateWebhookEvent(), headers: validHeader);
-      final Response response = await githubWebhook.post(req);
-      final String resBody = await response.readAsString();
+      final body = utf8.encode(generateWebhookEvent());
+      final key = utf8.encode(keyString);
+      final hmac = getHmac(body, key);
+      validHeader = <String, String>{
+        'X-Hub-Signature': 'sha1=$hmac',
+        'X-GitHub-Event': 'yes'
+      };
+      req = Request('POST', Uri.parse('http://localhost/'),
+          body: generateWebhookEvent(), headers: validHeader);
+      final response = await githubWebhook.post(req);
+      final resBody = await response.readAsString();
       final reqBody = json.decode(resBody) as Map<String, dynamic>;
-      final List<IssueLabel> labels = PullRequest.fromJson(reqBody['pull_request'] as Map<String, dynamic>).labels!;
+      final labels =
+          PullRequest.fromJson(reqBody['pull_request'] as Map<String, dynamic>)
+              .labels!;
       expect(labels[0].name, 'cla: yes');
       expect(labels[1].name, 'autosubmit');
     });
 
     test('Rejects invalid hmac', () async {
-      inValidHeader = <String, String>{'X-GitHub-Event': 'pull_request', 'X-Hub-Signature': 'bar'};
-      req = Request('POST', Uri.parse('http://localhost/'), body: 'Hello, World!', headers: inValidHeader);
+      inValidHeader = <String, String>{
+        'X-GitHub-Event': 'pull_request',
+        'X-Hub-Signature': 'bar'
+      };
+      req = Request('POST', Uri.parse('http://localhost/'),
+          body: 'Hello, World!', headers: inValidHeader);
       await expectLater(githubWebhook.post(req), throwsA(isA<Forbidden>()));
     });
 
     test('Rejects missing headers', () async {
-      req = Request('POST', Uri.parse('http://localhost/'), body: generateWebhookEvent());
-      await expectLater(githubWebhook.post(req), throwsA(isA<BadRequestException>()));
+      req = Request('POST', Uri.parse('http://localhost/'),
+          body: generateWebhookEvent());
+      await expectLater(
+          githubWebhook.post(req), throwsA(isA<BadRequestException>()));
     });
   });
 }

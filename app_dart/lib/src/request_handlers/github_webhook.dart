@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+/// @docImport 'package:cocoon_service/src/model/proto/internal/github_webhook.pb.dart';
+library;
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -14,7 +17,7 @@ import '../request_handling/exceptions.dart';
 import '../request_handling/pubsub.dart';
 import '../request_handling/request_handler.dart';
 
-/// The [RequestHandler] for processing GitHub webhooks and publishing valid events to PubSub.
+/// Processes GitHub webhooks and publishes valid events to PubSub.
 ///
 /// Requests are only published as a [GithubWebhookMessage] iff they contain:
 ///   1. Event type from the header `X-GitHub-Event`
@@ -37,38 +40,40 @@ class GithubWebhook extends RequestHandler<Body> {
 
   @override
   Future<Body> post() async {
-    final String? event = request!.headers.value('X-GitHub-Event');
+    final event = request!.headers.value('X-GitHub-Event');
 
     if (event == null || request!.headers.value('X-Hub-Signature') == null) {
       throw const BadRequestException('Missing required headers.');
     }
-    final List<int> requestBytes = await request!.expand((_) => _).toList();
-    final String? hmacSignature = request!.headers.value('X-Hub-Signature');
+    final requestBytes = await request!.expand((i) => i).toList();
+    final hmacSignature = request!.headers.value('X-Hub-Signature');
     await _validateRequest(hmacSignature, requestBytes);
 
-    final String requestString = utf8.decode(requestBytes);
+    final requestString = utf8.decode(requestBytes);
 
-    final pb.GithubWebhookMessage message = pb.GithubWebhookMessage.create()
-      ..event = event
-      ..payload = requestString;
+    final message =
+        pb.GithubWebhookMessage.create()
+          ..event = event
+          ..payload = requestString;
     log.fine(message);
     await pubsub.publish(topic, message.writeToJsonMap());
 
     return Body.empty;
   }
 
-  /// Ensures the signature provided for the given payload matches what is expected.
+  /// Ensures signature provided for the given payload matches what is expected.
   ///
-  /// The expected key is the sha1 hash of the payload using the private key of the GitHub app.
+  /// The expected key is the sha1 hash of the payload using the private key of
+  /// the GitHub app.
   Future<void> _validateRequest(
     String? signature,
     List<int> requestBody,
   ) async {
-    final String rawKey = await secret;
+    final rawKey = await secret;
     final List<int> key = utf8.encode(rawKey);
-    final Hmac hmac = Hmac(sha1, key);
-    final Digest digest = hmac.convert(requestBody);
-    final String bodySignature = 'sha1=$digest';
+    final hmac = Hmac(sha1, key);
+    final digest = hmac.convert(requestBody);
+    final bodySignature = 'sha1=$digest';
     if (bodySignature != signature) {
       throw const Forbidden('X-Hub-Signature does not match expected value');
     }

@@ -6,7 +6,8 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore_commit;
+import 'package:cocoon_service/src/model/firestore/commit.dart'
+    as firestore_commit;
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
@@ -19,7 +20,8 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 
 import '../service/fake_scheduler.dart';
 
-Key<T> generateKey<T>(Type type, T id) => Key<T>.emptyKey(Partition(null)).append<T>(type, id: id);
+Key<T> generateKey<T>(Type type, T id) =>
+    Key<T>.emptyKey(Partition(null)).append<T>(type, id: id);
 
 Commit generateCommit(
   int i, {
@@ -28,23 +30,15 @@ Commit generateCommit(
   String? owner = 'flutter',
   String repo = 'flutter',
   int? timestamp,
-}) =>
-    Commit(
-      sha: sha ?? '$i',
-      timestamp: timestamp ?? i,
-      repository: '$owner/$repo',
-      branch: branch,
-      key: generateKey<String>(
-        Commit,
-        '$owner/$repo/$branch/${sha ?? '$i'}',
-      ),
-    );
+}) => Commit(
+  sha: sha ?? '$i',
+  timestamp: timestamp ?? i,
+  repository: '$owner/$repo',
+  branch: branch,
+  key: generateKey<String>(Commit, '$owner/$repo/$branch/${sha ?? '$i'}'),
+);
 
-github.Branch generateBranch(
-  int i, {
-  String? name,
-  String? sha,
-}) =>
+github.Branch generateBranch(int i, {String? name, String? sha}) =>
     github.Branch(
       name ?? '$i',
       github.CommitData(
@@ -59,20 +53,12 @@ github.Branch generateBranch(
       ),
     );
 
-github.Tag generateTag(
-  int i, {
-  String? name,
-  String? sha,
-}) =>
-    github.Tag(
-      name ?? '$i',
-      github.CommitInfo(
-        sha,
-        null,
-      ),
-      'blah_zip',
-      'blah_tar',
-    );
+github.Tag generateTag(int i, {String? name, String? sha}) => github.Tag(
+  name ?? '$i',
+  github.CommitInfo(sha, null),
+  'blah_zip',
+  'blah_tar',
+);
 
 Task generateTask(
   int i, {
@@ -84,19 +70,18 @@ Task generateTask(
   Commit? parent,
   int? buildNumber,
   DateTime? created,
-}) =>
-    Task(
-      name: name ?? 'task$i',
-      status: status,
-      commitKey: parent?.key ?? generateCommit(i).key,
-      key: (parent ?? generateCommit(i)).key.append(Task, id: i),
-      attempts: attempts,
-      isFlaky: isFlaky,
-      buildNumber: buildNumber,
-      buildNumberList: buildNumber != null ? '$buildNumber' : null,
-      createTimestamp: created?.millisecondsSinceEpoch ?? 0,
-      stageName: stage,
-    );
+}) => Task(
+  name: name ?? 'task$i',
+  status: status,
+  commitKey: parent?.key ?? generateCommit(i).key,
+  key: (parent ?? generateCommit(i)).key.append(Task, id: i),
+  attempts: attempts,
+  isFlaky: isFlaky,
+  buildNumber: buildNumber,
+  buildNumberList: buildNumber != null ? '$buildNumber' : null,
+  createTimestamp: created?.millisecondsSinceEpoch ?? 0,
+  stageName: stage,
+);
 
 firestore.Task generateFirestoreTask(
   int i, {
@@ -111,22 +96,31 @@ firestore.Task generateFirestoreTask(
   DateTime? ended,
   String? commitSha,
 }) {
-  final String taskName = name ?? 'task$i';
-  final String sha = commitSha ?? 'testSha';
-  final firestore.Task task = firestore.Task()
-    ..name = '${sha}_${taskName}_$attempts'
-    ..fields = <String, Value>{
-      firestore.kTaskCreateTimestampField: Value(integerValue: (created?.millisecondsSinceEpoch ?? 0).toString()),
-      firestore.kTaskStartTimestampField: Value(integerValue: (started?.millisecondsSinceEpoch ?? 0).toString()),
-      firestore.kTaskEndTimestampField: Value(integerValue: (ended?.millisecondsSinceEpoch ?? 0).toString()),
-      firestore.kTaskBringupField: Value(booleanValue: bringup),
-      firestore.kTaskTestFlakyField: Value(booleanValue: testFlaky),
-      firestore.kTaskStatusField: Value(stringValue: status),
-      firestore.kTaskNameField: Value(stringValue: taskName),
-      firestore.kTaskCommitShaField: Value(stringValue: sha),
-    };
+  final taskName = name ?? 'task$i';
+  final sha = commitSha ?? 'testSha';
+  final task =
+      firestore.Task()
+        ..name = '${sha}_${taskName}_$attempts'
+        ..fields = <String, Value>{
+          firestore.kTaskCreateTimestampField: Value(
+            integerValue: (created?.millisecondsSinceEpoch ?? 0).toString(),
+          ),
+          firestore.kTaskStartTimestampField: Value(
+            integerValue: (started?.millisecondsSinceEpoch ?? 0).toString(),
+          ),
+          firestore.kTaskEndTimestampField: Value(
+            integerValue: (ended?.millisecondsSinceEpoch ?? 0).toString(),
+          ),
+          firestore.kTaskBringupField: Value(booleanValue: bringup),
+          firestore.kTaskTestFlakyField: Value(booleanValue: testFlaky),
+          firestore.kTaskStatusField: Value(stringValue: status),
+          firestore.kTaskNameField: Value(stringValue: taskName),
+          firestore.kTaskCommitShaField: Value(stringValue: sha),
+        };
   if (buildNumber != null) {
-    task.fields![firestore.kTaskBuildNumberField] = Value(integerValue: buildNumber.toString());
+    task.fields![firestore.kTaskBuildNumberField] = Value(
+      integerValue: buildNumber.toString(),
+    );
   }
   return task;
 }
@@ -142,17 +136,22 @@ firestore_commit.Commit generateFirestoreCommit(
   String? author = 'author',
   String? avatar = 'avatar',
 }) {
-  final firestore_commit.Commit commit = firestore_commit.Commit()
-    ..name = sha ?? '$i'
-    ..fields = <String, Value>{
-      firestore_commit.kCommitCreateTimestampField: Value(integerValue: (createTimestamp ?? i).toString()),
-      firestore_commit.kCommitRepositoryPathField: Value(stringValue: '$owner/$repo'),
-      firestore_commit.kCommitBranchField: Value(stringValue: branch),
-      firestore_commit.kCommitMessageField: Value(stringValue: message),
-      firestore_commit.kCommitAuthorField: Value(stringValue: author),
-      firestore_commit.kCommitAvatarField: Value(stringValue: avatar),
-      firestore_commit.kCommitShaField: Value(stringValue: sha ?? '$i'),
-    };
+  final commit =
+      firestore_commit.Commit()
+        ..name = sha ?? '$i'
+        ..fields = <String, Value>{
+          firestore_commit.kCommitCreateTimestampField: Value(
+            integerValue: (createTimestamp ?? i).toString(),
+          ),
+          firestore_commit.kCommitRepositoryPathField: Value(
+            stringValue: '$owner/$repo',
+          ),
+          firestore_commit.kCommitBranchField: Value(stringValue: branch),
+          firestore_commit.kCommitMessageField: Value(stringValue: message),
+          firestore_commit.kCommitAuthorField: Value(stringValue: author),
+          firestore_commit.kCommitAvatarField: Value(stringValue: avatar),
+          firestore_commit.kCommitShaField: Value(stringValue: sha ?? '$i'),
+        };
   return commit;
 }
 
@@ -168,16 +167,19 @@ GithubGoldStatus generateFirestoreGithubGoldStatus(
 }) {
   pr ??= i;
   head ??= 'sha$i';
-  final GithubGoldStatus githubGoldStatus = GithubGoldStatus()
-    ..name = '{$pr}_$head'
-    ..fields = <String, Value>{
-      kGithubGoldStatusHeadField: Value(stringValue: head),
-      kGithubGoldStatusPrNumberField: Value(integerValue: pr.toString()),
-      kGithubGoldStatusRepositoryField: Value(stringValue: '$owner/$repo'),
-      kGithubGoldStatusUpdatesField: Value(integerValue: updates.toString()),
-      kGithubGoldStatusDescriptionField: Value(stringValue: description),
-      kGithubGoldStatusStatusField: Value(stringValue: status),
-    };
+  final githubGoldStatus =
+      GithubGoldStatus()
+        ..name = '{$pr}_$head'
+        ..fields = <String, Value>{
+          kGithubGoldStatusHeadField: Value(stringValue: head),
+          kGithubGoldStatusPrNumberField: Value(integerValue: pr.toString()),
+          kGithubGoldStatusRepositoryField: Value(stringValue: '$owner/$repo'),
+          kGithubGoldStatusUpdatesField: Value(
+            integerValue: updates.toString(),
+          ),
+          kGithubGoldStatusDescriptionField: Value(stringValue: description),
+          kGithubGoldStatusStatusField: Value(stringValue: status),
+        };
   return githubGoldStatus;
 }
 
@@ -192,15 +194,18 @@ GithubBuildStatus generateFirestoreGithubBuildStatus(
 }) {
   pr ??= i;
   head ??= 'sha$i';
-  final GithubBuildStatus githubBuildStatus = GithubBuildStatus()
-    ..name = '{$pr}_$head'
-    ..fields = <String, Value>{
-      kGithubBuildStatusHeadField: Value(stringValue: head),
-      kGithubBuildStatusPrNumberField: Value(integerValue: pr.toString()),
-      kGithubBuildStatusRepositoryField: Value(stringValue: '$owner/$repo'),
-      kGithubBuildStatusUpdatesField: Value(integerValue: updates.toString()),
-      kGithubBuildStatusStatusField: Value(stringValue: status),
-    };
+  final githubBuildStatus =
+      GithubBuildStatus()
+        ..name = '{$pr}_$head'
+        ..fields = <String, Value>{
+          kGithubBuildStatusHeadField: Value(stringValue: head),
+          kGithubBuildStatusPrNumberField: Value(integerValue: pr.toString()),
+          kGithubBuildStatusRepositoryField: Value(stringValue: '$owner/$repo'),
+          kGithubBuildStatusUpdatesField: Value(
+            integerValue: updates.toString(),
+          ),
+          kGithubBuildStatusStatusField: Value(stringValue: status),
+        };
   return githubBuildStatus;
 }
 
@@ -218,10 +223,13 @@ Target generateTarget(
   pb.SchedulerSystem? schedulerSystem,
   String recipe = 'devicelab/devicelab',
 }) {
-  final pb.SchedulerConfig config = schedulerConfig ?? exampleConfig.configFor(CiType.any);
+  final config = schedulerConfig ?? exampleConfig.configFor(CiType.any);
   if (platformProperties != null && platformDimensions != null) {
-    config.platformProperties[platform.toLowerCase()] =
-        pb.SchedulerConfig_PlatformProperties(properties: platformProperties, dimensions: platformDimensions);
+    config.platformProperties[platform
+        .toLowerCase()] = pb.SchedulerConfig_PlatformProperties(
+      properties: platformProperties,
+      dimensions: platformDimensions,
+    );
   } else if (platformDimensions != null) {
     config.platformProperties[platform.toLowerCase()] =
         pb.SchedulerConfig_PlatformProperties(dimensions: platformDimensions);
@@ -252,19 +260,14 @@ bbv2.Build generateBbv2Build(
   Iterable<bbv2.StringPair>? tags,
   bbv2.Build_Input? input,
   int buildNumber = 1,
-}) =>
-    bbv2.Build(
-      id: i,
-      builder: bbv2.BuilderID(
-        project: 'flutter',
-        bucket: bucket,
-        builder: name,
-      ),
-      status: status,
-      tags: tags,
-      number: buildNumber,
-      input: input,
-    );
+}) => bbv2.Build(
+  id: i,
+  builder: bbv2.BuilderID(project: 'flutter', bucket: bucket, builder: name),
+  status: status,
+  tags: tags,
+  number: buildNumber,
+  input: input,
+);
 
 github.CheckRun generateCheckRun(
   int i, {
@@ -336,10 +339,7 @@ github.PullRequest generatePullRequest({
         owner: github.UserInformation('flutter', 1, '', ''),
       ),
     ),
-    user: github.User(
-      login: authorLogin,
-      avatarUrl: authorAvatar,
-    ),
+    user: github.User(login: authorLogin, avatarUrl: authorAvatar),
     mergeCommitSha: headSha,
     merged: merged,
     labels: labels,
@@ -348,23 +348,23 @@ github.PullRequest generatePullRequest({
 }
 
 GerritCommit generateGerritCommit(String sha, int milliseconds) => GerritCommit(
-      commit: sha,
-      tree: 'main',
-      author: GerritUser(
-        email: 'dash@flutter.dev',
-        time: DateTime.fromMillisecondsSinceEpoch(milliseconds),
-      ),
-    );
+  commit: sha,
+  tree: 'main',
+  author: GerritUser(
+    email: 'dash@flutter.dev',
+    time: DateTime.fromMillisecondsSinceEpoch(milliseconds),
+  ),
+);
 
 github.RepositoryCommit generateGitCommit(int i) => github.RepositoryCommit(
-      commit: github.GitCommit(
-        committer: github.GitCommitUser(
-          'dash',
-          'dash@flutter.dev',
-          DateTime.fromMillisecondsSinceEpoch(i),
-        ),
-      ),
-    );
+  commit: github.GitCommit(
+    committer: github.GitCommitUser(
+      'dash',
+      'dash@flutter.dev',
+      DateTime.fromMillisecondsSinceEpoch(i),
+    ),
+  ),
+);
 
 github.Issue generateIssue(
   int i, {
@@ -377,9 +377,6 @@ github.Issue generateIssue(
     id: i,
     title: title,
     number: number,
-    user: github.User(
-      login: authorLogin,
-      avatarUrl: authorAvatar,
-    ),
+    user: github.User(login: authorLogin, avatarUrl: authorAvatar),
   );
 }

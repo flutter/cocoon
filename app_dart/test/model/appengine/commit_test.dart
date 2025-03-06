@@ -15,11 +15,16 @@ import '../../src/utilities/entity_generators.dart';
 void main() {
   group('Commit.composeKey', () {
     test('creates valid key', () {
-      final FakeDatastoreDB db = FakeDatastoreDB();
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-      const String gitBranch = 'main';
-      const String sha = 'abc';
-      final key = Commit.createKey(db: db, slug: slug, gitBranch: gitBranch, sha: sha);
+      final db = FakeDatastoreDB();
+      final slug = RepositorySlug('flutter', 'flutter');
+      const gitBranch = 'main';
+      const sha = 'abc';
+      final key = Commit.createKey(
+        db: db,
+        slug: slug,
+        gitBranch: gitBranch,
+        sha: sha,
+      );
       expect(key.id, equals('flutter/flutter/main/abc'));
     });
   });
@@ -35,7 +40,7 @@ void main() {
     });
 
     test('look up by id', () async {
-      final Commit commit = await Commit.fromDatastore(
+      final commit = await Commit.fromDatastore(
         datastore: DatastoreService(config.db, 5),
         key: expectedCommit.key,
       );

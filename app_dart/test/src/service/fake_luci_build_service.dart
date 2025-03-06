@@ -26,11 +26,11 @@ class FakeLuciBuildService extends LuciBuildService {
     PubSub? pubsub,
     FusionTester? fusionTester,
   }) : super(
-          cache: CacheService(inMemory: true),
-          buildBucketClient: buildBucketClient ?? FakeBuildBucketClient(),
-          githubChecksUtil: githubChecksUtil ?? MockGithubChecksUtil(),
-          gerritService: gerritService ?? FakeGerritService(),
-          pubsub: pubsub ?? FakePubSub(),
-          fusionTester: fusionTester ?? FakeFusionTester(),
-        );
+         cache: CacheService(inMemory: true),
+         buildBucketClient: buildBucketClient ?? FakeBuildBucketClient(),
+         githubChecksUtil: githubChecksUtil ?? MockGithubChecksUtil(),
+         gerritService: gerritService ?? FakeGerritService(),
+         pubsub: pubsub ?? FakePubSub(),
+         fusionTester: fusionTester ?? FakeFusionTester(),
+       );
 }

@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_server/logging.dart';
-import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
@@ -49,13 +48,16 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
   /// unauthenticated.
   @override
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
-    final String? swarmingToken = request.headers.value(kSwarmingTokenHeader);
+    final swarmingToken = request.headers.value(kSwarmingTokenHeader);
 
-    final ClientContext clientContext = clientContextProvider();
+    final clientContext = clientContextProvider();
 
     if (swarmingToken != null) {
       log.fine('Authenticating as swarming task');
-      return authenticateAccessToken(swarmingToken, clientContext: clientContext);
+      return authenticateAccessToken(
+        swarmingToken,
+        clientContext: clientContext,
+      );
     }
 
     throw const Unauthenticated('Request rejected due to not from LUCI');
@@ -74,33 +76,35 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
     required ClientContext clientContext,
   }) async {
     // Authenticate as a signed-in Google account via OAuth id token.
-    final Client client = httpClientProvider();
+    final client = httpClientProvider();
     try {
       log.fine('Sending token request to Google OAuth');
-      final Response verifyTokenResponse = await client.get(
-        Uri.https(
-          'oauth2.googleapis.com',
-          '/tokeninfo',
-          <String, String>{
-            'access_token': accessToken,
-          },
-        ),
+      final verifyTokenResponse = await client.get(
+        Uri.https('oauth2.googleapis.com', '/tokeninfo', <String, String>{
+          'access_token': accessToken,
+        }),
       );
 
       if (verifyTokenResponse.statusCode != HttpStatus.ok) {
         /// Google Auth API returns a message in the response body explaining why
         /// the request failed. Such as "Invalid Token".
-        final String body = verifyTokenResponse.body;
-        log.warning('Token verification failed: ${verifyTokenResponse.statusCode}; $body');
+        final body = verifyTokenResponse.body;
+        log.warning(
+          'Token verification failed: ${verifyTokenResponse.statusCode}; $body',
+        );
         throw const Unauthenticated('Invalid access token');
       }
 
       TokenInfo token;
       try {
-        token = TokenInfo.fromJson(json.decode(verifyTokenResponse.body) as Map<String, dynamic>);
+        token = TokenInfo.fromJson(
+          json.decode(verifyTokenResponse.body) as Map<String, dynamic>,
+        );
       } on FormatException {
         log.warning('Failed to decode token JSON: ${verifyTokenResponse.body}');
-        throw InternalServerError('Invalid JSON: "${verifyTokenResponse.body}"');
+        throw InternalServerError(
+          'Invalid JSON: "${verifyTokenResponse.body}"',
+        );
       }
 
       // Update is from Flutter LUCI builds

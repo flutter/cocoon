@@ -54,8 +54,10 @@ class GitRepositoryManager {
   }
 
   Future<void> setupConfig() async {
-    await gitCli.setupUserConfig(slug: slug, workingDirectory: targetCloneDirectory);
-    await gitCli.setupUserEmailConfig(slug: slug, workingDirectory: targetCloneDirectory);
+    await gitCli.setupUserConfig(
+        slug: slug, workingDirectory: targetCloneDirectory);
+    await gitCli.setupUserEmailConfig(
+        slug: slug, workingDirectory: targetCloneDirectory);
   }
 
   /// Revert a commit in the current repository.
@@ -63,8 +65,9 @@ class GitRepositoryManager {
   /// The [baseBranchName] is the branch we want to branch from. In this case it
   /// will almost always be the default branch name. The target branch is
   /// preformatted with the commitSha.
-  Future<void> revertCommit(String baseBranchName, String commitSha, RepositorySlug slug, String token) async {
-    final GitRevertBranchName revertBranchName = GitRevertBranchName(commitSha);
+  Future<void> revertCommit(String baseBranchName, String commitSha,
+      RepositorySlug slug, String token) async {
+    final revertBranchName = GitRevertBranchName(commitSha);
     // Working directory for these must be repo checkout directory.
     // Check out the baseBranchName before doing anything.
     await gitCli.createBranch(

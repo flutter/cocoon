@@ -53,19 +53,25 @@ class CommitDocument extends $pb.GeneratedMessage {
     return $result;
   }
   CommitDocument._() : super();
-  factory CommitDocument.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory CommitDocument.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory CommitDocument.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory CommitDocument.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CommitDocument',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'dashboard'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'CommitDocument',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'dashboard'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'documentName', protoName: 'documentName')
-    ..aInt64(2, _omitFieldNames ? '' : 'createTimestamp', protoName: 'createTimestamp')
+    ..aInt64(2, _omitFieldNames ? '' : 'createTimestamp',
+        protoName: 'createTimestamp')
     ..aOS(3, _omitFieldNames ? '' : 'sha')
     ..aOS(4, _omitFieldNames ? '' : 'author')
     ..aOS(5, _omitFieldNames ? '' : 'avatar')
-    ..aOS(6, _omitFieldNames ? '' : 'repositoryPath', protoName: 'repositoryPath')
+    ..aOS(6, _omitFieldNames ? '' : 'repositoryPath',
+        protoName: 'repositoryPath')
     ..aOS(7, _omitFieldNames ? '' : 'branch')
     ..aOS(8, _omitFieldNames ? '' : 'message')
     ..hasRequiredFields = false;
@@ -78,16 +84,19 @@ class CommitDocument extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   CommitDocument copyWith(void Function(CommitDocument) updates) =>
-      super.copyWith((message) => updates(message as CommitDocument)) as CommitDocument;
+      super.copyWith((message) => updates(message as CommitDocument))
+          as CommitDocument;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static CommitDocument create() => CommitDocument._();
   CommitDocument createEmptyInstance() => create();
-  static $pb.PbList<CommitDocument> createRepeated() => $pb.PbList<CommitDocument>();
+  static $pb.PbList<CommitDocument> createRepeated() =>
+      $pb.PbList<CommitDocument>();
   @$core.pragma('dart2js:noInline')
-  static CommitDocument getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CommitDocument>(create);
+  static CommitDocument getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<CommitDocument>(create);
   static CommitDocument? _defaultInstance;
 
   /// Next ID: 9
@@ -189,4 +198,5 @@ class CommitDocument extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

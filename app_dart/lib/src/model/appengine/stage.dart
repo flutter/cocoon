@@ -54,7 +54,7 @@ class Stage implements Comparable<Stage> {
   /// Representation of [tasks] used for JSON serialization.
   @JsonKey(name: 'Tasks')
   List<SerializableTask> get serializableTasks {
-    return tasks.map<SerializableTask>((Task task) => SerializableTask(task)).toList();
+    return tasks.map<SerializableTask>(SerializableTask.new).toList();
   }
 
   /// The aggregate status, accounting for all [tasks] in this stage.
@@ -78,7 +78,7 @@ class Stage implements Comparable<Stage> {
   int compareTo(Stage other) => _orderIndex(this).compareTo(_orderIndex(other));
 
   static int _orderIndex(Stage stage) {
-    int index = _order.indexOf(stage.name);
+    var index = _order.indexOf(stage.name);
     if (index == -1) {
       // Put unknown stages last.
       index = _endOfList;
@@ -91,13 +91,14 @@ class Stage implements Comparable<Stage> {
 
   @override
   String toString() {
-    final StringBuffer buf = StringBuffer()
-      ..write('$runtimeType(')
-      ..write('name: $name')
-      ..write(', commit: ${commit?.sha}')
-      ..write(', tasks: ${tasks.length}')
-      ..write(', taskStatus: $taskStatus')
-      ..write(')');
+    final buf =
+        StringBuffer()
+          ..write('$runtimeType(')
+          ..write('name: $name')
+          ..write(', commit: ${commit?.sha}')
+          ..write(', tasks: ${tasks.length}')
+          ..write(', taskStatus: $taskStatus')
+          ..write(')');
     return buf.toString();
   }
 }
@@ -152,8 +153,9 @@ class StageBuilder {
       return Task.statusFailed;
     }
 
-    final String? commonStatus =
-        tasks.map<String?>((Task task) => task.status).reduce((String? a, String? b) => a == b ? a : null);
+    final commonStatus = tasks
+        .map<String?>((Task task) => task.status)
+        .reduce((String? a, String? b) => a == b ? a : null);
     return commonStatus ?? Task.statusInProgress;
   }
 }

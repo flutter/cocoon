@@ -15,11 +15,14 @@ import 'package:protobuf/protobuf.dart' as $pb;
 
 /// Machine-readable status of a test result.
 class TestStatus extends $pb.ProtobufEnum {
-  static const TestStatus STATUS_UNSPECIFIED = TestStatus._(0, _omitEnumNames ? '' : 'STATUS_UNSPECIFIED');
+  static const TestStatus STATUS_UNSPECIFIED =
+      TestStatus._(0, _omitEnumNames ? '' : 'STATUS_UNSPECIFIED');
   static const TestStatus PASS = TestStatus._(1, _omitEnumNames ? '' : 'PASS');
   static const TestStatus FAIL = TestStatus._(2, _omitEnumNames ? '' : 'FAIL');
-  static const TestStatus CRASH = TestStatus._(3, _omitEnumNames ? '' : 'CRASH');
-  static const TestStatus ABORT = TestStatus._(4, _omitEnumNames ? '' : 'ABORT');
+  static const TestStatus CRASH =
+      TestStatus._(3, _omitEnumNames ? '' : 'CRASH');
+  static const TestStatus ABORT =
+      TestStatus._(4, _omitEnumNames ? '' : 'ABORT');
   static const TestStatus SKIP = TestStatus._(5, _omitEnumNames ? '' : 'SKIP');
 
   static const $core.List<TestStatus> values = <TestStatus>[
@@ -31,7 +34,8 @@ class TestStatus extends $pb.ProtobufEnum {
     SKIP,
   ];
 
-  static final $core.Map<$core.int, TestStatus> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static final $core.Map<$core.int, TestStatus> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
   static TestStatus? valueOf($core.int value) => _byValue[value];
 
   const TestStatus._($core.int v, $core.String n) : super(v, n);
@@ -41,16 +45,18 @@ class TestStatus extends $pb.ProtobufEnum {
 /// Only reasons actually used are listed here, if you need a new reason
 /// please add it here and send a CL to the OWNERS.
 class SkipReason extends $pb.ProtobufEnum {
-  static const SkipReason SKIP_REASON_UNSPECIFIED = SkipReason._(0, _omitEnumNames ? '' : 'SKIP_REASON_UNSPECIFIED');
-  static const SkipReason AUTOMATICALLY_DISABLED_FOR_FLAKINESS =
-      SkipReason._(1, _omitEnumNames ? '' : 'AUTOMATICALLY_DISABLED_FOR_FLAKINESS');
+  static const SkipReason SKIP_REASON_UNSPECIFIED =
+      SkipReason._(0, _omitEnumNames ? '' : 'SKIP_REASON_UNSPECIFIED');
+  static const SkipReason AUTOMATICALLY_DISABLED_FOR_FLAKINESS = SkipReason._(
+      1, _omitEnumNames ? '' : 'AUTOMATICALLY_DISABLED_FOR_FLAKINESS');
 
   static const $core.List<SkipReason> values = <SkipReason>[
     SKIP_REASON_UNSPECIFIED,
     AUTOMATICALLY_DISABLED_FOR_FLAKINESS,
   ];
 
-  static final $core.Map<$core.int, SkipReason> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static final $core.Map<$core.int, SkipReason> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
   static SkipReason? valueOf($core.int value) => _byValue[value];
 
   const SkipReason._($core.int v, $core.String n) : super(v, n);
@@ -59,13 +65,16 @@ class SkipReason extends $pb.ProtobufEnum {
 /// Reason why a test variant was exonerated.
 class ExonerationReason extends $pb.ProtobufEnum {
   static const ExonerationReason EXONERATION_REASON_UNSPECIFIED =
-      ExonerationReason._(0, _omitEnumNames ? '' : 'EXONERATION_REASON_UNSPECIFIED');
+      ExonerationReason._(
+          0, _omitEnumNames ? '' : 'EXONERATION_REASON_UNSPECIFIED');
   static const ExonerationReason OCCURS_ON_MAINLINE =
       ExonerationReason._(1, _omitEnumNames ? '' : 'OCCURS_ON_MAINLINE');
   static const ExonerationReason OCCURS_ON_OTHER_CLS =
       ExonerationReason._(2, _omitEnumNames ? '' : 'OCCURS_ON_OTHER_CLS');
-  static const ExonerationReason NOT_CRITICAL = ExonerationReason._(3, _omitEnumNames ? '' : 'NOT_CRITICAL');
-  static const ExonerationReason UNEXPECTED_PASS = ExonerationReason._(4, _omitEnumNames ? '' : 'UNEXPECTED_PASS');
+  static const ExonerationReason NOT_CRITICAL =
+      ExonerationReason._(3, _omitEnumNames ? '' : 'NOT_CRITICAL');
+  static const ExonerationReason UNEXPECTED_PASS =
+      ExonerationReason._(4, _omitEnumNames ? '' : 'UNEXPECTED_PASS');
 
   static const $core.List<ExonerationReason> values = <ExonerationReason>[
     EXONERATION_REASON_UNSPECIFIED,
@@ -75,7 +84,8 @@ class ExonerationReason extends $pb.ProtobufEnum {
     UNEXPECTED_PASS,
   ];
 
-  static final $core.Map<$core.int, ExonerationReason> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static final $core.Map<$core.int, ExonerationReason> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
   static ExonerationReason? valueOf($core.int value) => _byValue[value];
 
   const ExonerationReason._($core.int v, $core.String n) : super(v, n);

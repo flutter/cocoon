@@ -17,7 +17,7 @@ import '../src/utilities/mocks.dart';
 void main() {
   group(CreateBranch, () {
     test('runs', () async {
-      final RequestHandlerTester tester = RequestHandlerTester();
+      final tester = RequestHandlerTester();
       tester.request = FakeHttpRequest(
         queryParametersValue: <String, String>{
           CreateBranch.branchParam: 'flutter-3.7-candidate.1',
@@ -31,7 +31,9 @@ void main() {
         authenticationProvider: FakeAuthenticationProvider(),
       );
       await tester.get(handler);
-      verify(branchService.branchFlutterRecipes('flutter-3.7-candidate.1', 'abc123')).called(1);
+      verify(
+        branchService.branchFlutterRecipes('flutter-3.7-candidate.1', 'abc123'),
+      ).called(1);
     });
   });
 }

@@ -19,15 +19,15 @@ void main() {
   MockGitHub mockGitHub;
   late RepositorySlug slug;
 
-  const String branch = 'master';
-  const int lastCommitTimestampMills = 100;
+  const branch = 'master';
+  const lastCommitTimestampMills = 100;
 
-  const String authorName = 'Jane Doe';
-  const String authorEmail = 'janedoe@example.com';
-  const String authorDate = '2000-01-01T10:10:10Z';
-  const String authorLogin = 'Username';
-  const String authorAvatarUrl = 'http://example.com/avatar';
-  const String commitMessage = 'commit message';
+  const authorName = 'Jane Doe';
+  const authorEmail = 'janedoe@example.com';
+  const authorDate = '2000-01-01T10:10:10Z';
+  const authorLogin = 'Username';
+  const authorAvatarUrl = 'http://example.com/avatar';
+  const commitMessage = 'commit message';
 
   List<String> shas;
 
@@ -36,7 +36,7 @@ void main() {
     mockGitHub = MockGitHub();
     githubService = GithubService(mockGitHub);
     slug = RepositorySlug('flutter', 'flutter');
-    final PostExpectation<Future<http.Response>> whenGithubRequest = when(
+    final whenGithubRequest = when(
       mockGitHub.request(
         'GET',
         '/repos/${slug.owner}/${slug.name}/commits',
@@ -47,8 +47,8 @@ void main() {
       ),
     );
     whenGithubRequest.thenAnswer((_) async {
-      final List<dynamic> data = <dynamic>[];
-      for (String sha in shas) {
+      final data = <dynamic>[];
+      for (var sha in shas) {
         // https://developer.github.com/v3/repos/commits/#list-commits
         data.add(<String, dynamic>{
           'sha': sha,
@@ -72,13 +72,13 @@ void main() {
 
   test('listCommits decodes all relevant fields of each commit', () async {
     shas = <String>['1'];
-    final List<RepositoryCommit> commits = await githubService.listBranchedCommits(
+    final commits = await githubService.listBranchedCommits(
       slug,
       branch,
       lastCommitTimestampMills,
     );
     expect(commits, hasLength(1));
-    final RepositoryCommit commit = commits.single;
+    final commit = commits.single;
     expect(commit.sha, shas.single);
     expect(commit.author, isNotNull);
     expect(commit.author!.login, authorLogin);

@@ -22,28 +22,35 @@ export 'sink.pb.dart';
 
 @$pb.GrpcServiceName('luci.resultsink.v1.Sink')
 class SinkClient extends $grpc.Client {
-  static final _$reportTestResults = $grpc.ClientMethod<$0.ReportTestResultsRequest, $0.ReportTestResultsResponse>(
+  static final _$reportTestResults = $grpc.ClientMethod<
+          $0.ReportTestResultsRequest, $0.ReportTestResultsResponse>(
       '/luci.resultsink.v1.Sink/ReportTestResults',
       ($0.ReportTestResultsRequest value) => value.writeToBuffer(),
-      ($core.List<$core.int> value) => $0.ReportTestResultsResponse.fromBuffer(value));
+      ($core.List<$core.int> value) =>
+          $0.ReportTestResultsResponse.fromBuffer(value));
   static final _$reportInvocationLevelArtifacts =
       $grpc.ClientMethod<$0.ReportInvocationLevelArtifactsRequest, $1.Empty>(
           '/luci.resultsink.v1.Sink/ReportInvocationLevelArtifacts',
-          ($0.ReportInvocationLevelArtifactsRequest value) => value.writeToBuffer(),
+          ($0.ReportInvocationLevelArtifactsRequest value) =>
+              value.writeToBuffer(),
           ($core.List<$core.int> value) => $1.Empty.fromBuffer(value));
 
   SinkClient($grpc.ClientChannel channel,
-      {$grpc.CallOptions? options, $core.Iterable<$grpc.ClientInterceptor>? interceptors})
+      {$grpc.CallOptions? options,
+      $core.Iterable<$grpc.ClientInterceptor>? interceptors})
       : super(channel, options: options, interceptors: interceptors);
 
-  $grpc.ResponseFuture<$0.ReportTestResultsResponse> reportTestResults($0.ReportTestResultsRequest request,
+  $grpc.ResponseFuture<$0.ReportTestResultsResponse> reportTestResults(
+      $0.ReportTestResultsRequest request,
       {$grpc.CallOptions? options}) {
     return $createUnaryCall(_$reportTestResults, request, options: options);
   }
 
-  $grpc.ResponseFuture<$1.Empty> reportInvocationLevelArtifacts($0.ReportInvocationLevelArtifactsRequest request,
+  $grpc.ResponseFuture<$1.Empty> reportInvocationLevelArtifacts(
+      $0.ReportInvocationLevelArtifactsRequest request,
       {$grpc.CallOptions? options}) {
-    return $createUnaryCall(_$reportInvocationLevelArtifacts, request, options: options);
+    return $createUnaryCall(_$reportInvocationLevelArtifacts, request,
+        options: options);
   }
 }
 
@@ -52,29 +59,35 @@ abstract class SinkServiceBase extends $grpc.Service {
   $core.String get $name => 'luci.resultsink.v1.Sink';
 
   SinkServiceBase() {
-    $addMethod($grpc.ServiceMethod<$0.ReportTestResultsRequest, $0.ReportTestResultsResponse>(
+    $addMethod($grpc.ServiceMethod<$0.ReportTestResultsRequest,
+            $0.ReportTestResultsResponse>(
         'ReportTestResults',
         reportTestResults_Pre,
         false,
         false,
-        ($core.List<$core.int> value) => $0.ReportTestResultsRequest.fromBuffer(value),
+        ($core.List<$core.int> value) =>
+            $0.ReportTestResultsRequest.fromBuffer(value),
         ($0.ReportTestResultsResponse value) => value.writeToBuffer()));
-    $addMethod($grpc.ServiceMethod<$0.ReportInvocationLevelArtifactsRequest, $1.Empty>(
-        'ReportInvocationLevelArtifacts',
-        reportInvocationLevelArtifacts_Pre,
-        false,
-        false,
-        ($core.List<$core.int> value) => $0.ReportInvocationLevelArtifactsRequest.fromBuffer(value),
-        ($1.Empty value) => value.writeToBuffer()));
+    $addMethod(
+        $grpc.ServiceMethod<$0.ReportInvocationLevelArtifactsRequest, $1.Empty>(
+            'ReportInvocationLevelArtifacts',
+            reportInvocationLevelArtifacts_Pre,
+            false,
+            false,
+            ($core.List<$core.int> value) =>
+                $0.ReportInvocationLevelArtifactsRequest.fromBuffer(value),
+            ($1.Empty value) => value.writeToBuffer()));
   }
 
   $async.Future<$0.ReportTestResultsResponse> reportTestResults_Pre(
-      $grpc.ServiceCall call, $async.Future<$0.ReportTestResultsRequest> request) async {
+      $grpc.ServiceCall call,
+      $async.Future<$0.ReportTestResultsRequest> request) async {
     return reportTestResults(call, await request);
   }
 
   $async.Future<$1.Empty> reportInvocationLevelArtifacts_Pre(
-      $grpc.ServiceCall call, $async.Future<$0.ReportInvocationLevelArtifactsRequest> request) async {
+      $grpc.ServiceCall call,
+      $async.Future<$0.ReportInvocationLevelArtifactsRequest> request) async {
     return reportInvocationLevelArtifacts(call, await request);
   }
 

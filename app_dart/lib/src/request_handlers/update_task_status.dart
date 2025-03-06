@@ -33,7 +33,8 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   const UpdateTaskStatus({
     required super.config,
     required super.authenticationProvider,
-    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting
+    this.datastoreProvider = DatastoreService.defaultProvider,
   });
 
   final DatastoreServiceProvider datastoreProvider;
@@ -46,17 +47,24 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
   @override
   Future<UpdateTaskStatusResponse> post() async {
-    checkRequiredParameters(<String>[newStatusParam, gitBranchParam, gitShaParam, builderNameParam]);
+    checkRequiredParameters(<String>[
+      newStatusParam,
+      gitBranchParam,
+      gitShaParam,
+      builderNameParam,
+    ]);
 
-    final DatastoreService datastore = datastoreProvider(config.db);
-    final String newStatus = requestData![newStatusParam] as String;
-    final bool isTestFlaky = (requestData![testFlayParam] as bool?) ?? false;
+    final datastore = datastoreProvider(config.db);
+    final newStatus = requestData![newStatusParam] as String;
+    final isTestFlaky = (requestData![testFlayParam] as bool?) ?? false;
 
     if (newStatus != Task.statusSucceeded && newStatus != Task.statusFailed) {
-      throw const BadRequestException('NewStatus can be one of "Succeeded", "Failed"');
+      throw const BadRequestException(
+        'NewStatus can be one of "Succeeded", "Failed"',
+      );
     }
 
-    final Task task = await _getTaskFromNamedParams(datastore);
+    final task = await _getTaskFromNamedParams(datastore);
 
     task.status = newStatus;
     task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
@@ -65,29 +73,43 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     await datastore.insert(<Task>[task]);
 
     try {
-      await updateTaskDocument(task.status, task.endTimestamp!, task.isTestFlaky!);
+      await updateTaskDocument(
+        task.status,
+        task.endTimestamp!,
+        task.isTestFlaky!,
+      );
     } catch (error) {
       log.warning('Failed to update task in Firestore: $error');
     }
     return UpdateTaskStatusResponse(task);
   }
 
-  Future<void> updateTaskDocument(String status, int endTimestamp, bool isTestFlaky) async {
-    final FirestoreService firestoreService = await config.createFirestoreService();
-    final String sha = (requestData![gitShaParam] as String).trim();
-    final String? taskName = requestData![builderNameParam] as String?;
-    final String documentName = '$kDatabase/documents/tasks/${sha}_${taskName}_1';
+  Future<void> updateTaskDocument(
+    String status,
+    int endTimestamp,
+    bool isTestFlaky,
+  ) async {
+    final firestoreService = await config.createFirestoreService();
+    final sha = (requestData![gitShaParam] as String).trim();
+    final taskName = requestData![builderNameParam] as String?;
+    final documentName = '$kDatabase/documents/tasks/${sha}_${taskName}_1';
     log.info('getting firestore document: $documentName');
-    final List<firestore.Task> initialTasks = await firestoreService.queryCommitTasks(sha);
+    final initialTasks = await firestoreService.queryCommitTasks(sha);
     // Targets the latest task. This assumes only one task is running at any time.
-    final firestore.Task firestoreTask = initialTasks.where((firestore.Task task) => task.taskName == taskName).reduce(
-          (firestore.Task current, firestore.Task next) => current.name!.compareTo(next.name!) > 0 ? current : next,
+    final firestoreTask = initialTasks
+        .where((firestore.Task task) => task.taskName == taskName)
+        .reduce(
+          (firestore.Task current, firestore.Task next) =>
+              current.name!.compareTo(next.name!) > 0 ? current : next,
         );
     firestoreTask.setStatus(status);
     firestoreTask.setEndTimestamp(endTimestamp);
     firestoreTask.setTestFlaky(isTestFlaky);
-    final List<Write> writes = documentsToWrites([firestoreTask], exists: true);
-    await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
+    final writes = documentsToWrites([firestoreTask], exists: true);
+    await firestoreService.batchWriteDocuments(
+      BatchWriteRequest(writes: writes),
+      kDatabase,
+    );
   }
 
   /// Retrieve [Task] from [DatastoreService] when given [gitShaParam], [gitBranchParam], and [builderNameParam].
@@ -99,15 +121,15 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   /// To lookup the value, we construct the ancestor key, which corresponds to the [Commit].
   /// Then we query the tasks with that ancestor key and search for the one that matches the builder name.
   Future<Task> _getTaskFromNamedParams(DatastoreService datastore) async {
-    final Key<String> commitKey = await _constructCommitKey(datastore);
+    final commitKey = await _constructCommitKey(datastore);
 
-    final String? builderName = requestData![builderNameParam] as String?;
-    final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey);
-    final List<Task> initialTasks = await query.run().toList();
+    final builderName = requestData![builderNameParam] as String?;
+    final query = datastore.db.query<Task>(ancestorKey: commitKey);
+    final initialTasks = await query.run().toList();
     log.fine('Found ${initialTasks.length} tasks for commit');
-    final List<Task> tasks = <Task>[];
+    final tasks = <Task>[];
     log.fine('Searching for task with builderName=$builderName');
-    for (Task task in initialTasks) {
+    for (var task in initialTasks) {
       if (task.builderName == builderName || task.name == builderName) {
         tasks.add(task);
       }
@@ -115,7 +137,9 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     if (tasks.length != 1) {
       log.severe('Found ${tasks.length} entries for builder $builderName');
-      throw InternalServerError('Expected to find 1 task for $builderName, but found ${tasks.length}');
+      throw InternalServerError(
+        'Expected to find 1 task for $builderName, but found ${tasks.length}',
+      );
     }
 
     return tasks.first;
@@ -125,14 +149,14 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   ///
   /// Throws [BadRequestException] if the given git branch does not exist in [CocoonConfig].
   Future<Key<String>> _constructCommitKey(DatastoreService datastore) async {
-    final String gitBranch = (requestData![gitBranchParam] as String).trim();
-    final String gitSha = (requestData![gitShaParam] as String).trim();
+    final gitBranch = (requestData![gitBranchParam] as String).trim();
+    final gitSha = (requestData![gitShaParam] as String).trim();
 
-    final String id = 'flutter/flutter/$gitBranch/$gitSha';
-    final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
+    final id = 'flutter/flutter/$gitBranch/$gitSha';
+    final commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
     log.fine('Constructed commit key=$id');
     // Return the official key from Datastore for task lookups.
-    final Commit commit = await config.db.lookupValue<Commit>(commitKey);
+    final commit = await config.db.lookupValue<Commit>(commitKey);
     return commit.key;
   }
 }
@@ -145,9 +169,6 @@ class UpdateTaskStatusResponse extends JsonBody {
 
   @override
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'Name': task.name,
-      'Status': task.status,
-    };
+    return <String, dynamic>{'Name': task.name, 'Status': task.status};
   }
 }

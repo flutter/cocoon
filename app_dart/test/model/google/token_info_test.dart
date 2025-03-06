@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 void main() {
   group('TokenInfo', () {
     test('deserialize', () {
-      final TokenInfo token = TokenInfo.fromJson(<String, dynamic>{
+      final token = TokenInfo.fromJson(<String, dynamic>{
         'iss': 'issuer',
         'azp': 'authorizedParty',
         'aud': 'audience',
@@ -43,7 +43,10 @@ void main() {
       expect(token.familyName, 'Flutter');
       expect(token.locale, 'en');
       expect(token.issued, DateTime.fromMillisecondsSinceEpoch(12345 * 1000));
-      expect(token.expiration, DateTime.fromMillisecondsSinceEpoch(67890 * 1000));
+      expect(
+        token.expiration,
+        DateTime.fromMillisecondsSinceEpoch(67890 * 1000),
+      );
       expect(token.jwtId, 'jwtId');
       expect(token.algorithm, 'RSA');
       expect(token.keyId, 'keyId');

@@ -53,13 +53,18 @@ class Variant extends $pb.GeneratedMessage {
     return $result;
   }
   Variant._() : super();
-  factory Variant.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Variant.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Variant.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Variant.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Variant',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Variant',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..m<$core.String, $core.String>(1, _omitFieldNames ? '' : 'def',
         entryClassName: 'Variant.DefEntry',
         keyFieldType: $pb.PbFieldType.OS,
@@ -84,7 +89,8 @@ class Variant extends $pb.GeneratedMessage {
   Variant createEmptyInstance() => create();
   static $pb.PbList<Variant> createRepeated() => $pb.PbList<Variant>();
   @$core.pragma('dart2js:noInline')
-  static Variant getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Variant>(create);
+  static Variant getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Variant>(create);
   static Variant? _defaultInstance;
 
   /// The definition of the variant.
@@ -110,13 +116,18 @@ class StringPair extends $pb.GeneratedMessage {
     return $result;
   }
   StringPair._() : super();
-  factory StringPair.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory StringPair.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory StringPair.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory StringPair.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'StringPair',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'StringPair',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'key')
     ..aOS(2, _omitFieldNames ? '' : 'value')
     ..hasRequiredFields = false;
@@ -138,7 +149,8 @@ class StringPair extends $pb.GeneratedMessage {
   StringPair createEmptyInstance() => create();
   static $pb.PbList<StringPair> createRepeated() => $pb.PbList<StringPair>();
   @$core.pragma('dart2js:noInline')
-  static StringPair getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<StringPair>(create);
+  static StringPair getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<StringPair>(create);
   static StringPair? _defaultInstance;
 
   /// Regex: ^[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*)*$
@@ -202,13 +214,18 @@ class GitilesCommit extends $pb.GeneratedMessage {
     return $result;
   }
   GitilesCommit._() : super();
-  factory GitilesCommit.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory GitilesCommit.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory GitilesCommit.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory GitilesCommit.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GitilesCommit',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GitilesCommit',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'host')
     ..aOS(2, _omitFieldNames ? '' : 'project')
     ..aOS(3, _omitFieldNames ? '' : 'ref')
@@ -224,16 +241,19 @@ class GitilesCommit extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   GitilesCommit copyWith(void Function(GitilesCommit) updates) =>
-      super.copyWith((message) => updates(message as GitilesCommit)) as GitilesCommit;
+      super.copyWith((message) => updates(message as GitilesCommit))
+          as GitilesCommit;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static GitilesCommit create() => GitilesCommit._();
   GitilesCommit createEmptyInstance() => create();
-  static $pb.PbList<GitilesCommit> createRepeated() => $pb.PbList<GitilesCommit>();
+  static $pb.PbList<GitilesCommit> createRepeated() =>
+      $pb.PbList<GitilesCommit>();
   @$core.pragma('dart2js:noInline')
-  static GitilesCommit getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GitilesCommit>(create);
+  static GitilesCommit getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<GitilesCommit>(create);
   static GitilesCommit? _defaultInstance;
 
   /// The identity of the gitiles host, e.g. "chromium.googlesource.com".
@@ -334,13 +354,18 @@ class GerritChange extends $pb.GeneratedMessage {
     return $result;
   }
   GerritChange._() : super();
-  factory GerritChange.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory GerritChange.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory GerritChange.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory GerritChange.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GerritChange',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GerritChange',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'host')
     ..aOS(2, _omitFieldNames ? '' : 'project')
     ..aInt64(3, _omitFieldNames ? '' : 'change')
@@ -355,16 +380,19 @@ class GerritChange extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   GerritChange copyWith(void Function(GerritChange) updates) =>
-      super.copyWith((message) => updates(message as GerritChange)) as GerritChange;
+      super.copyWith((message) => updates(message as GerritChange))
+          as GerritChange;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static GerritChange create() => GerritChange._();
   GerritChange createEmptyInstance() => create();
-  static $pb.PbList<GerritChange> createRepeated() => $pb.PbList<GerritChange>();
+  static $pb.PbList<GerritChange> createRepeated() =>
+      $pb.PbList<GerritChange>();
   @$core.pragma('dart2js:noInline')
-  static GerritChange getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GerritChange>(create);
+  static GerritChange getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<GerritChange>(create);
   static GerritChange? _defaultInstance;
 
   /// Gerrit hostname, e.g. "chromium-review.googlesource.com".
@@ -444,13 +472,18 @@ class CommitPosition extends $pb.GeneratedMessage {
     return $result;
   }
   CommitPosition._() : super();
-  factory CommitPosition.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory CommitPosition.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory CommitPosition.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory CommitPosition.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CommitPosition',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'CommitPosition',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'host')
     ..aOS(2, _omitFieldNames ? '' : 'project')
     ..aOS(3, _omitFieldNames ? '' : 'ref')
@@ -465,16 +498,19 @@ class CommitPosition extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   CommitPosition copyWith(void Function(CommitPosition) updates) =>
-      super.copyWith((message) => updates(message as CommitPosition)) as CommitPosition;
+      super.copyWith((message) => updates(message as CommitPosition))
+          as CommitPosition;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static CommitPosition create() => CommitPosition._();
   CommitPosition createEmptyInstance() => create();
-  static $pb.PbList<CommitPosition> createRepeated() => $pb.PbList<CommitPosition>();
+  static $pb.PbList<CommitPosition> createRepeated() =>
+      $pb.PbList<CommitPosition>();
   @$core.pragma('dart2js:noInline')
-  static CommitPosition getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CommitPosition>(create);
+  static CommitPosition getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<CommitPosition>(create);
   static CommitPosition? _defaultInstance;
 
   /// The following fields identify a git repository and a ref within which the
@@ -549,13 +585,19 @@ class CommitPositionRange extends $pb.GeneratedMessage {
   factory CommitPositionRange.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory CommitPositionRange.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory CommitPositionRange.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CommitPositionRange',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
-    ..aOM<CommitPosition>(1, _omitFieldNames ? '' : 'earliest', subBuilder: CommitPosition.create)
-    ..aOM<CommitPosition>(2, _omitFieldNames ? '' : 'latest', subBuilder: CommitPosition.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'CommitPositionRange',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
+    ..aOM<CommitPosition>(1, _omitFieldNames ? '' : 'earliest',
+        subBuilder: CommitPosition.create)
+    ..aOM<CommitPosition>(2, _omitFieldNames ? '' : 'latest',
+        subBuilder: CommitPosition.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -566,17 +608,19 @@ class CommitPositionRange extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   CommitPositionRange copyWith(void Function(CommitPositionRange) updates) =>
-      super.copyWith((message) => updates(message as CommitPositionRange)) as CommitPositionRange;
+      super.copyWith((message) => updates(message as CommitPositionRange))
+          as CommitPositionRange;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static CommitPositionRange create() => CommitPositionRange._();
   CommitPositionRange createEmptyInstance() => create();
-  static $pb.PbList<CommitPositionRange> createRepeated() => $pb.PbList<CommitPositionRange>();
+  static $pb.PbList<CommitPositionRange> createRepeated() =>
+      $pb.PbList<CommitPositionRange>();
   @$core.pragma('dart2js:noInline')
-  static CommitPositionRange getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CommitPositionRange>(create);
+  static CommitPositionRange getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<CommitPositionRange>(create);
   static CommitPositionRange? _defaultInstance;
 
   /// The lowest commit position to include in the range.
@@ -628,15 +672,22 @@ class TimeRange extends $pb.GeneratedMessage {
     return $result;
   }
   TimeRange._() : super();
-  factory TimeRange.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TimeRange.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory TimeRange.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TimeRange.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TimeRange',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
-    ..aOM<$0.Timestamp>(1, _omitFieldNames ? '' : 'earliest', subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(2, _omitFieldNames ? '' : 'latest', subBuilder: $0.Timestamp.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TimeRange',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
+    ..aOM<$0.Timestamp>(1, _omitFieldNames ? '' : 'earliest',
+        subBuilder: $0.Timestamp.create)
+    ..aOM<$0.Timestamp>(2, _omitFieldNames ? '' : 'latest',
+        subBuilder: $0.Timestamp.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -656,7 +707,8 @@ class TimeRange extends $pb.GeneratedMessage {
   TimeRange createEmptyInstance() => create();
   static $pb.PbList<TimeRange> createRepeated() => $pb.PbList<TimeRange>();
   @$core.pragma('dart2js:noInline')
-  static TimeRange getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TimeRange>(create);
+  static TimeRange getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TimeRange>(create);
   static TimeRange? _defaultInstance;
 
   /// The oldest timestamp to include in the range.
@@ -704,19 +756,25 @@ class SourceRef extends $pb.GeneratedMessage {
     return $result;
   }
   SourceRef._() : super();
-  factory SourceRef.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory SourceRef.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory SourceRef.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory SourceRef.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
   static const $core.Map<$core.int, SourceRef_System> _SourceRef_SystemByTag = {
     1: SourceRef_System.gitiles,
     0: SourceRef_System.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SourceRef',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SourceRef',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..oo(0, [1])
-    ..aOM<GitilesRef>(1, _omitFieldNames ? '' : 'gitiles', subBuilder: GitilesRef.create)
+    ..aOM<GitilesRef>(1, _omitFieldNames ? '' : 'gitiles',
+        subBuilder: GitilesRef.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -736,7 +794,8 @@ class SourceRef extends $pb.GeneratedMessage {
   SourceRef createEmptyInstance() => create();
   static $pb.PbList<SourceRef> createRepeated() => $pb.PbList<SourceRef>();
   @$core.pragma('dart2js:noInline')
-  static SourceRef getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SourceRef>(create);
+  static SourceRef getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SourceRef>(create);
   static SourceRef? _defaultInstance;
 
   SourceRef_System whichSystem() => _SourceRef_SystemByTag[$_whichOneof(0)]!;
@@ -778,13 +837,18 @@ class GitilesRef extends $pb.GeneratedMessage {
     return $result;
   }
   GitilesRef._() : super();
-  factory GitilesRef.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory GitilesRef.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory GitilesRef.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory GitilesRef.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GitilesRef',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GitilesRef',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'host')
     ..aOS(2, _omitFieldNames ? '' : 'project')
     ..aOS(3, _omitFieldNames ? '' : 'ref')
@@ -807,7 +871,8 @@ class GitilesRef extends $pb.GeneratedMessage {
   GitilesRef createEmptyInstance() => create();
   static $pb.PbList<GitilesRef> createRepeated() => $pb.PbList<GitilesRef>();
   @$core.pragma('dart2js:noInline')
-  static GitilesRef getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GitilesRef>(create);
+  static GitilesRef getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<GitilesRef>(create);
   static GitilesRef? _defaultInstance;
 
   /// The gitiles host, e.g. "chromium.googlesource.com".
@@ -852,4 +917,5 @@ class GitilesRef extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

@@ -24,38 +24,66 @@ const BuilderID$json = {
 };
 
 /// Descriptor for `BuilderID`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List builderIDDescriptor =
-    $convert.base64Decode('CglCdWlsZGVySUQSLgoHcHJvamVjdBgBIAEoCUIUmsMaEFNldEJ1aWxkZXJIZWFsdGhSB3Byb2'
-        'plY3QSLAoGYnVja2V0GAIgASgJQhSawxoQU2V0QnVpbGRlckhlYWx0aFIGYnVja2V0Ei4KB2J1'
-        'aWxkZXIYAyABKAlCFJrDGhBTZXRCdWlsZGVySGVhbHRoUgdidWlsZGVy');
+final $typed_data.Uint8List builderIDDescriptor = $convert.base64Decode(
+    'CglCdWlsZGVySUQSLgoHcHJvamVjdBgBIAEoCUIUmsMaEFNldEJ1aWxkZXJIZWFsdGhSB3Byb2'
+    'plY3QSLAoGYnVja2V0GAIgASgJQhSawxoQU2V0QnVpbGRlckhlYWx0aFIGYnVja2V0Ei4KB2J1'
+    'aWxkZXIYAyABKAlCFJrDGhBTZXRCdWlsZGVySGVhbHRoUgdidWlsZGVy');
 
 @$core.Deprecated('Use builderMetadataDescriptor instead')
 const BuilderMetadata$json = {
   '1': 'BuilderMetadata',
   '2': [
     {'1': 'owner', '3': 1, '4': 1, '5': 9, '10': 'owner'},
-    {'1': 'health', '3': 2, '4': 1, '5': 11, '6': '.buildbucket.v2.HealthStatus', '10': 'health'},
+    {
+      '1': 'health',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.buildbucket.v2.HealthStatus',
+      '10': 'health'
+    },
   ],
 };
 
 /// Descriptor for `BuilderMetadata`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List builderMetadataDescriptor =
-    $convert.base64Decode('Cg9CdWlsZGVyTWV0YWRhdGESFAoFb3duZXIYASABKAlSBW93bmVyEjQKBmhlYWx0aBgCIAEoCz'
-        'IcLmJ1aWxkYnVja2V0LnYyLkhlYWx0aFN0YXR1c1IGaGVhbHRo');
+final $typed_data.Uint8List builderMetadataDescriptor = $convert.base64Decode(
+    'Cg9CdWlsZGVyTWV0YWRhdGESFAoFb3duZXIYASABKAlSBW93bmVyEjQKBmhlYWx0aBgCIAEoCz'
+    'IcLmJ1aWxkYnVja2V0LnYyLkhlYWx0aFN0YXR1c1IGaGVhbHRo');
 
 @$core.Deprecated('Use builderItemDescriptor instead')
 const BuilderItem$json = {
   '1': 'BuilderItem',
   '2': [
-    {'1': 'id', '3': 1, '4': 1, '5': 11, '6': '.buildbucket.v2.BuilderID', '10': 'id'},
-    {'1': 'config', '3': 2, '4': 1, '5': 11, '6': '.buildbucket.BuilderConfig', '10': 'config'},
-    {'1': 'metadata', '3': 3, '4': 1, '5': 11, '6': '.buildbucket.v2.BuilderMetadata', '10': 'metadata'},
+    {
+      '1': 'id',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.buildbucket.v2.BuilderID',
+      '10': 'id'
+    },
+    {
+      '1': 'config',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.buildbucket.BuilderConfig',
+      '10': 'config'
+    },
+    {
+      '1': 'metadata',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.buildbucket.v2.BuilderMetadata',
+      '10': 'metadata'
+    },
   ],
 };
 
 /// Descriptor for `BuilderItem`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List builderItemDescriptor =
-    $convert.base64Decode('CgtCdWlsZGVySXRlbRIpCgJpZBgBIAEoCzIZLmJ1aWxkYnVja2V0LnYyLkJ1aWxkZXJJRFICaW'
-        'QSMgoGY29uZmlnGAIgASgLMhouYnVpbGRidWNrZXQuQnVpbGRlckNvbmZpZ1IGY29uZmlnEjsK'
-        'CG1ldGFkYXRhGAMgASgLMh8uYnVpbGRidWNrZXQudjIuQnVpbGRlck1ldGFkYXRhUghtZXRhZG'
-        'F0YQ==');
+final $typed_data.Uint8List builderItemDescriptor = $convert.base64Decode(
+    'CgtCdWlsZGVySXRlbRIpCgJpZBgBIAEoCzIZLmJ1aWxkYnVja2V0LnYyLkJ1aWxkZXJJRFICaW'
+    'QSMgoGY29uZmlnGAIgASgLMhouYnVpbGRidWNrZXQuQnVpbGRlckNvbmZpZ1IGY29uZmlnEjsK'
+    'CG1ldGFkYXRhGAMgASgLMh8uYnVpbGRidWNrZXQudjIuQnVpbGRlck1ldGFkYXRhUghtZXRhZG'
+    'F0YQ==');

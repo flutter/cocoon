@@ -15,34 +15,41 @@ import 'package:http/http.dart' as http;
 ///
 /// This currently supports `flutter/flutter` only.
 Future<List<String>> remoteCheck(String repo, String ref) async {
-  final String ciYamlContent = await githubFileContent(
+  final ciYamlContent = await githubFileContent(
     RepositorySlug('flutter', repo),
     kCiYamlPath,
-    httpClientProvider: () => http.Client(),
+    httpClientProvider: http.Client.new,
     ref: ref,
   );
-  final String testOwnersContent = await githubFileContent(
+  final testOwnersContent = await githubFileContent(
     RepositorySlug('flutter', repo),
     kTestOwnerPath,
-    httpClientProvider: () => http.Client(),
+    httpClientProvider: http.Client.new,
     ref: ref,
   );
 
-  final List<String> noOwnerBuilders = validateOwnership(ciYamlContent, testOwnersContent, unfilteredTargets: true);
+  final noOwnerBuilders = validateOwnership(
+    ciYamlContent,
+    testOwnersContent,
+    unfilteredTargets: true,
+  );
   return noOwnerBuilders;
 }
 
 /// Local check is based on paths to the local `.ci.yaml` and `TESTOWNERS` files.
 List<String> localCheck(String ciYamlPath, String testOwnersPath) {
   const FileSystem fs = LocalFileSystem();
-  final File ciYamlFile = fs.file(ciYamlPath);
-  final File testOwnersFile = fs.file(testOwnersPath);
+  final ciYamlFile = fs.file(ciYamlPath);
+  final testOwnersFile = fs.file(testOwnersPath);
   if (!ciYamlFile.existsSync() || !testOwnersFile.existsSync()) {
     print('Make sure ciYamlPath and testOwnersPath exist.');
     io.exit(1);
   }
-  final List<String> noOwnerBuilders =
-      validateOwnership(ciYamlFile.readAsStringSync(), testOwnersFile.readAsStringSync(), unfilteredTargets: true);
+  final noOwnerBuilders = validateOwnership(
+    ciYamlFile.readAsStringSync(),
+    testOwnersFile.readAsStringSync(),
+    unfilteredTargets: true,
+  );
   return noOwnerBuilders;
 }
 
@@ -55,7 +62,9 @@ List<String> localCheck(String ciYamlPath, String testOwnersPath) {
 Future<void> main(List<String> args) async {
   if (args.length != 2 && args.length != 3) {
     print('validate_task_ownership.dart \$repo \$sha');
-    print('validate_task_ownership.dart local \$local_ci_yaml \$local_TESTOWNERS');
+    print(
+      'validate_task_ownership.dart local \$local_ci_yaml \$local_TESTOWNERS',
+    );
     io.exit(1);
   }
   List<String> noOwnerBuilders;
@@ -67,7 +76,9 @@ Future<void> main(List<String> args) async {
   if (noOwnerBuilders.isNotEmpty) {
     print('# Test ownership check failed.');
     print('Builders missing owner: $noOwnerBuilders');
-    print('Please define ownership in https://github.com/flutter/flutter/blob/master/TESTOWNERS');
+    print(
+      'Please define ownership in https://github.com/flutter/flutter/blob/master/TESTOWNERS',
+    );
     io.exit(1);
   } else {
     print('# Test ownership check succeeded.');

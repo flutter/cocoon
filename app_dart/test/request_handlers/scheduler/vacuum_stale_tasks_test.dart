@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/service/datastore.dart';
@@ -24,7 +23,7 @@ void main() {
     late VacuumStaleTasks handler;
     late MockFirestoreService mockFirestoreService;
 
-    final Commit commit = generateCommit(1);
+    final commit = generateCommit(1);
 
     setUp(() {
       mockFirestoreService = MockFirestoreService();
@@ -39,7 +38,7 @@ void main() {
     });
 
     test('skips when tasks have a build number', () async {
-      final List<Task> originalTasks = <Task>[
+      final originalTasks = <Task>[
         generateTask(
           1,
           status: Task.statusInProgress,
@@ -51,53 +50,44 @@ void main() {
 
       await tester.get(handler);
 
-      final List<Task> tasks = config.db.values.values.whereType<Task>().toList();
+      final tasks = config.db.values.values.whereType<Task>().toList();
       expect(tasks[0].status, Task.statusInProgress);
     });
 
-    test('skips when tasks are not yet old enough to be considered stale', () async {
-      when(
-        mockFirestoreService.writeViaTransaction(
-          captureAny,
-        ),
-      ).thenAnswer((Invocation invocation) {
-        return Future<CommitResponse>.value(CommitResponse());
-      });
-      final List<Task> originalTasks = <Task>[
-        generateTask(
-          1,
-          status: Task.statusInProgress,
-          parent: commit,
-          created: DateTime.now().subtract(const Duration(minutes: 5)),
-        ),
-      ];
-      await config.db.commit(inserts: originalTasks);
+    test(
+      'skips when tasks are not yet old enough to be considered stale',
+      () async {
+        when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer((
+          Invocation invocation,
+        ) {
+          return Future<CommitResponse>.value(CommitResponse());
+        });
+        final originalTasks = <Task>[
+          generateTask(
+            1,
+            status: Task.statusInProgress,
+            parent: commit,
+            created: DateTime.now().subtract(const Duration(minutes: 5)),
+          ),
+        ];
+        await config.db.commit(inserts: originalTasks);
 
-      await tester.get(handler);
+        await tester.get(handler);
 
-      final List<Task> tasks = config.db.values.values.whereType<Task>().toList();
-      expect(tasks[0].status, Task.statusInProgress);
-    });
+        final tasks = config.db.values.values.whereType<Task>().toList();
+        expect(tasks[0].status, Task.statusInProgress);
+      },
+    );
 
     test('resets stale task', () async {
-      when(
-        mockFirestoreService.writeViaTransaction(
-          captureAny,
-        ),
-      ).thenAnswer((Invocation invocation) {
+      when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer((
+        Invocation invocation,
+      ) {
         return Future<CommitResponse>.value(CommitResponse());
       });
-      final List<Task> originalTasks = <Task>[
-        generateTask(
-          1,
-          status: Task.statusInProgress,
-          parent: commit,
-        ),
-        generateTask(
-          2,
-          status: Task.statusSucceeded,
-          parent: commit,
-        ),
+      final originalTasks = <Task>[
+        generateTask(1, status: Task.statusInProgress, parent: commit),
+        generateTask(2, status: Task.statusSucceeded, parent: commit),
         // Task 3 should be vacuumed
         generateTask(
           3,
@@ -106,21 +96,26 @@ void main() {
           created: DateTime.now().subtract(const Duration(hours: 4)),
         ),
       ];
-      final DatastoreService datastore = DatastoreService(config.db, 5);
+      final datastore = DatastoreService(config.db, 5);
       await datastore.insert(originalTasks);
 
       await tester.get(handler);
 
-      final List<Task> tasks = config.db.values.values.whereType<Task>().toList();
+      final tasks = config.db.values.values.whereType<Task>().toList();
       expect(tasks[0].status, Task.statusNew);
       expect(tasks[2].status, Task.statusNew);
 
-      final List<dynamic> captured = verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
+      final captured =
+          verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
       expect(captured.length, 1);
-      final List<Write> commitResponse = captured[0] as List<Write>;
+      final commitResponse = captured[0] as List<Write>;
       expect(commitResponse.length, 2);
-      final firestore.Task taskDocuemnt1 = firestore.Task.fromDocument(taskDocument: commitResponse[0].update!);
-      final firestore.Task taskDocuemnt2 = firestore.Task.fromDocument(taskDocument: commitResponse[0].update!);
+      final taskDocuemnt1 = firestore.Task.fromDocument(
+        taskDocument: commitResponse[0].update!,
+      );
+      final taskDocuemnt2 = firestore.Task.fromDocument(
+        taskDocument: commitResponse[0].update!,
+      );
       expect(taskDocuemnt1.status, firestore.Task.statusNew);
       expect(taskDocuemnt2.status, firestore.Task.statusNew);
     });

@@ -55,13 +55,16 @@ class FakeConfig extends Config {
   Future<GitHub> createGithubClient(RepositorySlug slug) async => githubClient!;
 
   @override
-  Future<GitHub> createFlutterGitHubBotClient(RepositorySlug slug) async => githubClient!;
+  Future<GitHub> createFlutterGitHubBotClient(RepositorySlug slug) async =>
+      githubClient!;
 
   @override
-  Future<GithubService> createGithubService(RepositorySlug slug) async => githubService ?? FakeGithubService();
+  Future<GithubService> createGithubService(RepositorySlug slug) async =>
+      githubService ?? FakeGithubService();
 
   @override
-  Future<GraphQLClient> createGitHubGraphQLClient(RepositorySlug slug) async => githubGraphQLClient!;
+  Future<GraphQLClient> createGitHubGraphQLClient(RepositorySlug slug) async =>
+      githubGraphQLClient!;
 
   @override
   Set<String> get rollerAccounts =>
@@ -90,5 +93,7 @@ class FakeConfig extends Config {
   Future<BigqueryService> createBigQueryService() async => bigqueryService!;
 
   @override
-  Future<RepositoryConfiguration> getRepositoryConfiguration(RepositorySlug slug) async => repositoryConfigurationMock!;
+  Future<RepositoryConfiguration> getRepositoryConfiguration(
+          RepositorySlug slug) async =>
+      repositoryConfigurationMock!;
 }

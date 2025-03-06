@@ -37,13 +37,17 @@ class BuilderID extends $pb.GeneratedMessage {
     return $result;
   }
   BuilderID._() : super();
-  factory BuilderID.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuilderID.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory BuilderID.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuilderID.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuilderID',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BuilderID',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'project')
     ..aOS(2, _omitFieldNames ? '' : 'bucket')
     ..aOS(3, _omitFieldNames ? '' : 'builder')
@@ -66,7 +70,8 @@ class BuilderID extends $pb.GeneratedMessage {
   BuilderID createEmptyInstance() => create();
   static $pb.PbList<BuilderID> createRepeated() => $pb.PbList<BuilderID>();
   @$core.pragma('dart2js:noInline')
-  static BuilderID getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuilderID>(create);
+  static BuilderID getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuilderID>(create);
   static BuilderID? _defaultInstance;
 
   /// Project ID, e.g. "chromium". Unique within a LUCI deployment.
@@ -131,13 +136,17 @@ class BuilderMetadata extends $pb.GeneratedMessage {
   factory BuilderMetadata.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory BuilderMetadata.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuilderMetadata.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuilderMetadata',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BuilderMetadata',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'owner')
-    ..aOM<$0.HealthStatus>(2, _omitFieldNames ? '' : 'health', subBuilder: $0.HealthStatus.create)
+    ..aOM<$0.HealthStatus>(2, _omitFieldNames ? '' : 'health',
+        subBuilder: $0.HealthStatus.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -148,17 +157,19 @@ class BuilderMetadata extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   BuilderMetadata copyWith(void Function(BuilderMetadata) updates) =>
-      super.copyWith((message) => updates(message as BuilderMetadata)) as BuilderMetadata;
+      super.copyWith((message) => updates(message as BuilderMetadata))
+          as BuilderMetadata;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static BuilderMetadata create() => BuilderMetadata._();
   BuilderMetadata createEmptyInstance() => create();
-  static $pb.PbList<BuilderMetadata> createRepeated() => $pb.PbList<BuilderMetadata>();
+  static $pb.PbList<BuilderMetadata> createRepeated() =>
+      $pb.PbList<BuilderMetadata>();
   @$core.pragma('dart2js:noInline')
-  static BuilderMetadata getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuilderMetadata>(create);
+  static BuilderMetadata getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BuilderMetadata>(create);
   static BuilderMetadata? _defaultInstance;
 
   /// Team that owns the builder
@@ -214,16 +225,23 @@ class BuilderItem extends $pb.GeneratedMessage {
     return $result;
   }
   BuilderItem._() : super();
-  factory BuilderItem.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuilderItem.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory BuilderItem.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuilderItem.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuilderItem',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
-    ..aOM<BuilderID>(1, _omitFieldNames ? '' : 'id', subBuilder: BuilderID.create)
-    ..aOM<$1.BuilderConfig>(2, _omitFieldNames ? '' : 'config', subBuilder: $1.BuilderConfig.create)
-    ..aOM<BuilderMetadata>(3, _omitFieldNames ? '' : 'metadata', subBuilder: BuilderMetadata.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BuilderItem',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
+    ..aOM<BuilderID>(1, _omitFieldNames ? '' : 'id',
+        subBuilder: BuilderID.create)
+    ..aOM<$1.BuilderConfig>(2, _omitFieldNames ? '' : 'config',
+        subBuilder: $1.BuilderConfig.create)
+    ..aOM<BuilderMetadata>(3, _omitFieldNames ? '' : 'metadata',
+        subBuilder: BuilderMetadata.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -234,7 +252,8 @@ class BuilderItem extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   BuilderItem copyWith(void Function(BuilderItem) updates) =>
-      super.copyWith((message) => updates(message as BuilderItem)) as BuilderItem;
+      super.copyWith((message) => updates(message as BuilderItem))
+          as BuilderItem;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -243,7 +262,8 @@ class BuilderItem extends $pb.GeneratedMessage {
   BuilderItem createEmptyInstance() => create();
   static $pb.PbList<BuilderItem> createRepeated() => $pb.PbList<BuilderItem>();
   @$core.pragma('dart2js:noInline')
-  static BuilderItem getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuilderItem>(create);
+  static BuilderItem getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BuilderItem>(create);
   static BuilderItem? _defaultInstance;
 
   /// Uniquely identifies the builder in a given Buildbucket instance.
@@ -294,4 +314,5 @@ class BuilderItem extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

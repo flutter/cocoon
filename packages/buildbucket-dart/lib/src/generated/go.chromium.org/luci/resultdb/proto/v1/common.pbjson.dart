@@ -17,7 +17,14 @@ import 'dart:typed_data' as $typed_data;
 const Variant$json = {
   '1': 'Variant',
   '2': [
-    {'1': 'def', '3': 1, '4': 3, '5': 11, '6': '.luci.resultdb.v1.Variant.DefEntry', '10': 'def'},
+    {
+      '1': 'def',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.luci.resultdb.v1.Variant.DefEntry',
+      '10': 'def'
+    },
   ],
   '3': [Variant_DefEntry$json],
 };
@@ -33,10 +40,10 @@ const Variant_DefEntry$json = {
 };
 
 /// Descriptor for `Variant`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List variantDescriptor =
-    $convert.base64Decode('CgdWYXJpYW50EjQKA2RlZhgBIAMoCzIiLmx1Y2kucmVzdWx0ZGIudjEuVmFyaWFudC5EZWZFbn'
-        'RyeVIDZGVmGjYKCERlZkVudHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2'
-        'YWx1ZToCOAE=');
+final $typed_data.Uint8List variantDescriptor = $convert.base64Decode(
+    'CgdWYXJpYW50EjQKA2RlZhgBIAMoCzIiLmx1Y2kucmVzdWx0ZGIudjEuVmFyaWFudC5EZWZFbn'
+    'RyeVIDZGVmGjYKCERlZkVudHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2'
+    'YWx1ZToCOAE=');
 
 @$core.Deprecated('Use stringPairDescriptor instead')
 const StringPair$json = {
@@ -48,8 +55,8 @@ const StringPair$json = {
 };
 
 /// Descriptor for `StringPair`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List stringPairDescriptor =
-    $convert.base64Decode('CgpTdHJpbmdQYWlyEhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZQ==');
+final $typed_data.Uint8List stringPairDescriptor = $convert.base64Decode(
+    'CgpTdHJpbmdQYWlyEhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZQ==');
 
 @$core.Deprecated('Use gitilesCommitDescriptor instead')
 const GitilesCommit$json = {
@@ -64,10 +71,10 @@ const GitilesCommit$json = {
 };
 
 /// Descriptor for `GitilesCommit`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List gitilesCommitDescriptor =
-    $convert.base64Decode('Cg1HaXRpbGVzQ29tbWl0EhIKBGhvc3QYASABKAlSBGhvc3QSGAoHcHJvamVjdBgCIAEoCVIHcH'
-        'JvamVjdBIQCgNyZWYYAyABKAlSA3JlZhIfCgtjb21taXRfaGFzaBgEIAEoCVIKY29tbWl0SGFz'
-        'aBIaCghwb3NpdGlvbhgFIAEoA1IIcG9zaXRpb24=');
+final $typed_data.Uint8List gitilesCommitDescriptor = $convert.base64Decode(
+    'Cg1HaXRpbGVzQ29tbWl0EhIKBGhvc3QYASABKAlSBGhvc3QSGAoHcHJvamVjdBgCIAEoCVIHcH'
+    'JvamVjdBIQCgNyZWYYAyABKAlSA3JlZhIfCgtjb21taXRfaGFzaBgEIAEoCVIKY29tbWl0SGFz'
+    'aBIaCghwb3NpdGlvbhgFIAEoA1IIcG9zaXRpb24=');
 
 @$core.Deprecated('Use gerritChangeDescriptor instead')
 const GerritChange$json = {
@@ -81,10 +88,10 @@ const GerritChange$json = {
 };
 
 /// Descriptor for `GerritChange`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List gerritChangeDescriptor =
-    $convert.base64Decode('CgxHZXJyaXRDaGFuZ2USEgoEaG9zdBgBIAEoCVIEaG9zdBIYCgdwcm9qZWN0GAIgASgJUgdwcm'
-        '9qZWN0EhYKBmNoYW5nZRgDIAEoA1IGY2hhbmdlEhoKCHBhdGNoc2V0GAQgASgDUghwYXRjaHNl'
-        'dA==');
+final $typed_data.Uint8List gerritChangeDescriptor = $convert.base64Decode(
+    'CgxHZXJyaXRDaGFuZ2USEgoEaG9zdBgBIAEoCVIEaG9zdBIYCgdwcm9qZWN0GAIgASgJUgdwcm'
+    '9qZWN0EhYKBmNoYW5nZRgDIAEoA1IGY2hhbmdlEhoKCHBhdGNoc2V0GAQgASgDUghwYXRjaHNl'
+    'dA==');
 
 @$core.Deprecated('Use commitPositionDescriptor instead')
 const CommitPosition$json = {
@@ -98,45 +105,81 @@ const CommitPosition$json = {
 };
 
 /// Descriptor for `CommitPosition`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List commitPositionDescriptor =
-    $convert.base64Decode('Cg5Db21taXRQb3NpdGlvbhISCgRob3N0GAEgASgJUgRob3N0EhgKB3Byb2plY3QYAiABKAlSB3'
-        'Byb2plY3QSEAoDcmVmGAMgASgJUgNyZWYSGgoIcG9zaXRpb24YBCABKANSCHBvc2l0aW9u');
+final $typed_data.Uint8List commitPositionDescriptor = $convert.base64Decode(
+    'Cg5Db21taXRQb3NpdGlvbhISCgRob3N0GAEgASgJUgRob3N0EhgKB3Byb2plY3QYAiABKAlSB3'
+    'Byb2plY3QSEAoDcmVmGAMgASgJUgNyZWYSGgoIcG9zaXRpb24YBCABKANSCHBvc2l0aW9u');
 
 @$core.Deprecated('Use commitPositionRangeDescriptor instead')
 const CommitPositionRange$json = {
   '1': 'CommitPositionRange',
   '2': [
-    {'1': 'earliest', '3': 1, '4': 1, '5': 11, '6': '.luci.resultdb.v1.CommitPosition', '10': 'earliest'},
-    {'1': 'latest', '3': 2, '4': 1, '5': 11, '6': '.luci.resultdb.v1.CommitPosition', '10': 'latest'},
+    {
+      '1': 'earliest',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.luci.resultdb.v1.CommitPosition',
+      '10': 'earliest'
+    },
+    {
+      '1': 'latest',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.luci.resultdb.v1.CommitPosition',
+      '10': 'latest'
+    },
   ],
 };
 
 /// Descriptor for `CommitPositionRange`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List commitPositionRangeDescriptor =
-    $convert.base64Decode('ChNDb21taXRQb3NpdGlvblJhbmdlEjwKCGVhcmxpZXN0GAEgASgLMiAubHVjaS5yZXN1bHRkYi'
-        '52MS5Db21taXRQb3NpdGlvblIIZWFybGllc3QSOAoGbGF0ZXN0GAIgASgLMiAubHVjaS5yZXN1'
-        'bHRkYi52MS5Db21taXRQb3NpdGlvblIGbGF0ZXN0');
+final $typed_data.Uint8List commitPositionRangeDescriptor = $convert.base64Decode(
+    'ChNDb21taXRQb3NpdGlvblJhbmdlEjwKCGVhcmxpZXN0GAEgASgLMiAubHVjaS5yZXN1bHRkYi'
+    '52MS5Db21taXRQb3NpdGlvblIIZWFybGllc3QSOAoGbGF0ZXN0GAIgASgLMiAubHVjaS5yZXN1'
+    'bHRkYi52MS5Db21taXRQb3NpdGlvblIGbGF0ZXN0');
 
 @$core.Deprecated('Use timeRangeDescriptor instead')
 const TimeRange$json = {
   '1': 'TimeRange',
   '2': [
-    {'1': 'earliest', '3': 1, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'earliest'},
-    {'1': 'latest', '3': 2, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'latest'},
+    {
+      '1': 'earliest',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'earliest'
+    },
+    {
+      '1': 'latest',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'latest'
+    },
   ],
 };
 
 /// Descriptor for `TimeRange`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List timeRangeDescriptor =
-    $convert.base64Decode('CglUaW1lUmFuZ2USNgoIZWFybGllc3QYASABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW'
-        '1wUghlYXJsaWVzdBIyCgZsYXRlc3QYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1w'
-        'UgZsYXRlc3Q=');
+final $typed_data.Uint8List timeRangeDescriptor = $convert.base64Decode(
+    'CglUaW1lUmFuZ2USNgoIZWFybGllc3QYASABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW'
+    '1wUghlYXJsaWVzdBIyCgZsYXRlc3QYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1w'
+    'UgZsYXRlc3Q=');
 
 @$core.Deprecated('Use sourceRefDescriptor instead')
 const SourceRef$json = {
   '1': 'SourceRef',
   '2': [
-    {'1': 'gitiles', '3': 1, '4': 1, '5': 11, '6': '.luci.resultdb.v1.GitilesRef', '9': 0, '10': 'gitiles'},
+    {
+      '1': 'gitiles',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.luci.resultdb.v1.GitilesRef',
+      '9': 0,
+      '10': 'gitiles'
+    },
   ],
   '8': [
     {'1': 'system'},
@@ -144,9 +187,9 @@ const SourceRef$json = {
 };
 
 /// Descriptor for `SourceRef`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List sourceRefDescriptor =
-    $convert.base64Decode('CglTb3VyY2VSZWYSOAoHZ2l0aWxlcxgBIAEoCzIcLmx1Y2kucmVzdWx0ZGIudjEuR2l0aWxlc1'
-        'JlZkgAUgdnaXRpbGVzQggKBnN5c3RlbQ==');
+final $typed_data.Uint8List sourceRefDescriptor = $convert.base64Decode(
+    'CglTb3VyY2VSZWYSOAoHZ2l0aWxlcxgBIAEoCzIcLmx1Y2kucmVzdWx0ZGIudjEuR2l0aWxlc1'
+    'JlZkgAUgdnaXRpbGVzQggKBnN5c3RlbQ==');
 
 @$core.Deprecated('Use gitilesRefDescriptor instead')
 const GitilesRef$json = {
@@ -159,6 +202,6 @@ const GitilesRef$json = {
 };
 
 /// Descriptor for `GitilesRef`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List gitilesRefDescriptor =
-    $convert.base64Decode('CgpHaXRpbGVzUmVmEhIKBGhvc3QYASABKAlSBGhvc3QSGAoHcHJvamVjdBgCIAEoCVIHcHJvam'
-        'VjdBIQCgNyZWYYAyABKAlSA3JlZg==');
+final $typed_data.Uint8List gitilesRefDescriptor = $convert.base64Decode(
+    'CgpHaXRpbGVzUmVmEhIKBGhvc3QYASABKAlSBGhvc3QSGAoHcHJvamVjdBgCIAEoCVIHcHJvam'
+    'VjdBIQCgNyZWYYAyABKAlSA3JlZg==');

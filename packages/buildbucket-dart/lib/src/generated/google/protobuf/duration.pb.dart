@@ -88,13 +88,17 @@ class Duration extends $pb.GeneratedMessage with $mixin.DurationMixin {
     return $result;
   }
   Duration._() : super();
-  factory Duration.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Duration.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Duration.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Duration.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Duration',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'google.protobuf'),
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Duration',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'google.protobuf'),
       createEmptyInstance: create,
       toProto3Json: $mixin.DurationMixin.toProto3JsonHelper,
       fromProto3Json: $mixin.DurationMixin.fromProto3JsonHelper)
@@ -119,7 +123,8 @@ class Duration extends $pb.GeneratedMessage with $mixin.DurationMixin {
   Duration createEmptyInstance() => create();
   static $pb.PbList<Duration> createRepeated() => $pb.PbList<Duration>();
   @$core.pragma('dart2js:noInline')
-  static Duration getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Duration>(create);
+  static Duration getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Duration>(create);
   static Duration? _defaultInstance;
 
   /// Signed seconds of the span of time. Must be from -315,576,000,000
@@ -157,4 +162,5 @@ class Duration extends $pb.GeneratedMessage with $mixin.DurationMixin {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

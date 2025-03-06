@@ -16,9 +16,6 @@ void main() {
       const OptionalImage(imageUrl: 'url', enabled: false).enabled,
       isFalse,
     );
-    expect(
-      const OptionalImage(imageUrl: 'url', enabled: true).enabled,
-      isTrue,
-    );
+    expect(const OptionalImage(imageUrl: 'url', enabled: true).enabled, isTrue);
   });
 }

@@ -33,7 +33,8 @@ class DartInternalSubscription extends SubscriptionHandler {
     required super.config,
     super.authProvider,
     required this.buildBucketClient,
-    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting
+    this.datastoreProvider = DatastoreService.defaultProvider,
   }) : super(subscriptionName: 'dart-internal-build-results-sub');
 
   final BuildBucketClient buildBucketClient;
@@ -41,7 +42,7 @@ class DartInternalSubscription extends SubscriptionHandler {
 
   @override
   Future<Body> post() async {
-    final DatastoreService datastore = datastoreProvider(config.db);
+    final datastore = datastoreProvider(config.db);
 
     if (message.data == null) {
       log.info('no data in message');
@@ -60,7 +61,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     final String project = jsonBuildMap['build']['builder']['project'];
     final String bucket = jsonBuildMap['build']['builder']['bucket'];
     final String builder = jsonBuildMap['build']['builder']['builder'];
-    final Int64 buildId = Int64.parseInt(jsonBuildMap['build']['id']);
+    final buildId = Int64.parseInt(jsonBuildMap['build']['id']);
 
     // This should already be covered by the pubsub filter, but adding an additional check
     // to ensure we don't process builds that aren't from dart-internal/flutter.
@@ -72,8 +73,9 @@ class DartInternalSubscription extends SubscriptionHandler {
     // Only publish the parent release_builder builds to the datastore.
     // TODO(drewroengoogle): Remove this regex in favor of supporting *all* dart-internal build results.
     // Issue: https://github.com/flutter/flutter/issues/134674
-    final regex =
-        RegExp(r'(Linux|Mac|Windows)\s+(engine_release_builder|packaging_release_builder|flutter_release_builder)');
+    final regex = RegExp(
+      r'(Linux|Mac|Windows)\s+(engine_release_builder|packaging_release_builder|flutter_release_builder)',
+    );
     if (!regex.hasMatch(builder)) {
       log.info('Ignoring builder that is not a release builder');
       return Body.empty;
@@ -81,20 +83,20 @@ class DartInternalSubscription extends SubscriptionHandler {
 
     log.info('Creating build request object with build id $buildId');
 
-    final bbv2.GetBuildRequest getBuildRequest = bbv2.GetBuildRequest(
-      id: buildId,
-    );
+    final getBuildRequest = bbv2.GetBuildRequest(id: buildId);
+
+    log.info('Calling buildbucket api to get build data for build $buildId');
+
+    final existingBuild = await buildBucketClient.getBuild(getBuildRequest);
 
     log.info(
-      'Calling buildbucket api to get build data for build $buildId',
+      'Got back existing builder with name: ${existingBuild.builder.builder}',
     );
 
-    final bbv2.Build existingBuild = await buildBucketClient.getBuild(getBuildRequest);
-
-    log.info('Got back existing builder with name: ${existingBuild.builder.builder}');
-
     log.info('Checking for existing task in datastore');
-    final Task? existingTask = await datastore.getTaskFromBuildbucketBuild(existingBuild);
+    final existingTask = await datastore.getTaskFromBuildbucketBuild(
+      existingBuild,
+    );
 
     late Task taskToInsert;
     if (existingTask != null) {
@@ -109,10 +111,13 @@ class DartInternalSubscription extends SubscriptionHandler {
     log.info('Inserting Task into the datastore: ${taskToInsert.toString()}');
     await datastore.insert(<Task>[taskToInsert]);
     try {
-      final FirestoreService firestoreService = await config.createFirestoreService();
-      final firestore.Task taskDocument = firestore.taskToDocument(taskToInsert);
-      final List<Write> writes = documentsToWrites([taskDocument]);
-      await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
+      final firestoreService = await config.createFirestoreService();
+      final taskDocument = firestore.taskToDocument(taskToInsert);
+      final writes = documentsToWrites([taskDocument]);
+      await firestoreService.batchWriteDocuments(
+        BatchWriteRequest(writes: writes),
+        kDatabase,
+      );
     } catch (error) {
       log.warning('Failed to insert dart internal task into firestore: $error');
     }

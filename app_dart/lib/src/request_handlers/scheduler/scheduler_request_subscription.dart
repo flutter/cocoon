@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
-import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -14,6 +13,7 @@ import 'package:retry/retry.dart';
 
 import '../../../cocoon_service.dart';
 import '../../request_handling/exceptions.dart';
+import '../../request_handling/subscription_handler.dart';
 
 /// Subscription for making requests to BuildBucket.
 ///
@@ -50,12 +50,16 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
     // final String data = message.data!;
     log.fine('attempting to read message ${message.data}');
 
-    final bbv2.BatchRequest batchRequest = bbv2.BatchRequest.create();
+    final batchRequest = bbv2.BatchRequest.create();
 
     // Merge from json only works with the integer field names.
-    batchRequest.mergeFromProto3Json(jsonDecode(message.data!) as Map<String, dynamic>);
+    batchRequest.mergeFromProto3Json(
+      jsonDecode(message.data!) as Map<String, dynamic>,
+    );
 
-    log.info('Read the following data: ${batchRequest.toProto3Json().toString()}');
+    log.info(
+      'Read the following data: ${batchRequest.toProto3Json().toString()}',
+    );
 
     /// Retry scheduling builds upto 3 times.
     ///
@@ -66,25 +70,27 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
     final errors = <String>[];
     var unscheduledWarning = '';
     try {
-      await retryOptions.retry(
-        () async {
-          final requestsToRetry = await _sendBatchRequest(batchRequest);
+      await retryOptions.retry(() async {
+        final requestsToRetry = await _sendBatchRequest(batchRequest);
 
-          // Reset the batch requests to retry scheduling of failed entries.
-          batchRequest.requests.clear();
-          batchRequest.requests.addAll(requestsToRetry.retries);
-          errors
-            ..clear()
-            ..addAll(requestsToRetry.errors);
-          if (requestsToRetry.retries.isNotEmpty) {
-            unscheduledWarning = '${requestsToRetry.retries.map((e) => e.scheduleBuild.builder)}';
-            throw InternalServerError('Failed to schedule builds: $unscheduledWarning.');
-          }
-        },
-        retryIf: (Exception e) => e is InternalServerError,
-      );
+        // Reset the batch requests to retry scheduling of failed entries.
+        batchRequest.requests.clear();
+        batchRequest.requests.addAll(requestsToRetry.retries);
+        errors
+          ..clear()
+          ..addAll(requestsToRetry.errors);
+        if (requestsToRetry.retries.isNotEmpty) {
+          unscheduledWarning =
+              '${requestsToRetry.retries.map((e) => e.scheduleBuild.builder)}';
+          throw InternalServerError(
+            'Failed to schedule builds: $unscheduledWarning.',
+          );
+        }
+      }, retryIf: (Exception e) => e is InternalServerError);
     } catch (e) {
-      log.warning('Failed to schedule builds on exception: $unscheduledWarning.');
+      log.warning(
+        'Failed to schedule builds on exception: $unscheduledWarning.',
+      );
 
       await _failUnscheduledCheckRuns(batchRequest, errors);
 
@@ -94,20 +100,29 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
     return Body.empty;
   }
 
-  Future<void> _failUnscheduledCheckRuns(bbv2.BatchRequest batchRequest, List<String> errors) async {
+  Future<void> _failUnscheduledCheckRuns(
+    bbv2.BatchRequest batchRequest,
+    List<String> errors,
+  ) async {
     for (var failed in batchRequest.requests) {
-      final url = failed.scheduleBuild.properties.fields['git_url']?.stringValue;
+      final url =
+          failed.scheduleBuild.properties.fields['git_url']?.stringValue;
       final builder = failed.scheduleBuild.builder.builder;
-      final checkRunId = failed.scheduleBuild.tags.firstWhereOrNull((t) => t.key == 'github_checkrun')?.value;
+      final checkRunId =
+          failed.scheduleBuild.tags
+              .firstWhereOrNull((t) => t.key == 'github_checkrun')
+              ?.value;
       final pathSegments = Uri.tryParse(url ?? '')?.pathSegments ?? [];
-      if (url == null || pathSegments.length != 2 || int.tryParse(checkRunId ?? '') == null) {
+      if (url == null ||
+          pathSegments.length != 2 ||
+          int.tryParse(checkRunId ?? '') == null) {
         log.warning('missing url / github_checkrun for $builder');
         continue;
       }
 
       final slug = RepositorySlug(pathSegments[0], pathSegments[1]);
       final githubService = await config.createGithubService(slug);
-      final CheckRun checkRun = CheckRun.fromJson({
+      final checkRun = CheckRun.fromJson({
         'id': int.parse(checkRunId!),
         'status': CheckRunStatus.completed,
         'check_suite': const {'id': null},
@@ -136,9 +151,8 @@ ${errors.isEmpty ? 'unknown' : errors.map((t) => t.trim()).join('\n')}
   }
 
   /// Returns [List<bbv2.BatchRequest_Request>] of requests that need to be retried.
-  Future<({List<bbv2.BatchRequest_Request> retries, List<String> errors})> _sendBatchRequest(
-    bbv2.BatchRequest request,
-  ) async {
+  Future<({List<bbv2.BatchRequest_Request> retries, List<String> errors})>
+  _sendBatchRequest(bbv2.BatchRequest request) async {
     log.info('Sending batch request for ${request.toProto3Json().toString()}');
 
     final errors = <String>[];
@@ -151,21 +165,28 @@ ${errors.isEmpty ? 'unknown' : errors.map((t) => t.trim()).join('\n')}
       rethrow;
     }
 
-    log.info('Made ${request.requests.length} and received ${response.responses.length}');
+    log.info(
+      'Made ${request.requests.length} and received ${response.responses.length}',
+    );
     log.info('Responses: ${response.responses}');
 
     final retry = <bbv2.BatchRequest_Request>[...request.requests];
     for (final batchResponseResponse in response.responses) {
       if (batchResponseResponse.hasScheduleBuild()) {
         retry.removeWhere(
-          (t) => t.scheduleBuild.builder == batchResponseResponse.scheduleBuild.builder,
+          (t) =>
+              t.scheduleBuild.builder ==
+              batchResponseResponse.scheduleBuild.builder,
         );
       } else {
-        log.warning('Response does not have schedule build: $batchResponseResponse');
+        log.warning(
+          'Response does not have schedule build: $batchResponseResponse',
+        );
         errors.add('$batchResponseResponse');
       }
 
-      if (batchResponseResponse.hasError() && batchResponseResponse.error.code != 0) {
+      if (batchResponseResponse.hasError() &&
+          batchResponseResponse.error.code != 0) {
         log.info('Non-zero grpc code: $batchResponseResponse');
       }
     }

@@ -28,14 +28,15 @@ class FakeBuildBucketClient extends BuildBucketClient {
   Future<bbv2.BatchResponse>? Function(
     bbv2.BatchRequest request,
     String buildBucketUri,
-  )? batchResponse;
+  )?
+  batchResponse;
 
   Future<bbv2.Build>? cancelBuildResponse;
   Future<bbv2.Build>? getBuildResponse;
   Future<bbv2.ListBuildersResponse>? listBuildersResponse;
 
   bbv2.StringPair _createStringPair(String key, String value) {
-    final bbv2.StringPair stringPair = bbv2.StringPair.create();
+    final stringPair = bbv2.StringPair.create();
     stringPair.key = key;
     stringPair.value = value;
     return stringPair;
@@ -50,11 +51,11 @@ class FakeBuildBucketClient extends BuildBucketClient {
       return scheduleBuildResponse!;
     }
 
-    final bbv2.Build build = bbv2.Build.create();
+    final build = bbv2.Build.create();
     build.id = Int64(123);
     build.builder = request!.builder;
     // The tags here should be empty.
-    final List<bbv2.StringPair> existingTags = build.tags;
+    final existingTags = build.tags;
     existingTags.addAll(request.tags);
     return build;
   }
@@ -68,31 +69,36 @@ class FakeBuildBucketClient extends BuildBucketClient {
       return searchBuildsResponse!;
     }
 
-    final bbv2.Build build = bbv2.Build.create();
+    final build = bbv2.Build.create();
     build.id = Int64(123);
-    final bbv2.BuilderID builderID = bbv2.BuilderID.create();
+    final builderID = bbv2.BuilderID.create();
     builderID.builder = 'builder_abc';
     builderID.bucket = 'try';
     builderID.project = 'flutter';
     build.builder = builderID;
 
-    final List<bbv2.StringPair> tags = [];
+    final tags = <bbv2.StringPair>[];
     tags.add(_createStringPair('buildset', 'pr/git/12345'));
-    tags.add(_createStringPair('buildset', 'sha/git/259bcf77bd04e64ef2181caccc43eda57780cd21'));
+    tags.add(
+      _createStringPair(
+        'buildset',
+        'sha/git/259bcf77bd04e64ef2181caccc43eda57780cd21',
+      ),
+    );
     tags.add(_createStringPair('cipd_version', 'refs/heads/main'));
-    tags.add(_createStringPair('github_link', 'https://github/flutter/flutter/pull/1'));
-
-    final bbv2.Build_Input buildInput = bbv2.Build_Input.create();
-
-    final Map<String, bbv2.Value> propertiesMap = buildInput.properties.fields;
-    propertiesMap.addEntries(
-      <String, bbv2.Value>{
-        'bringup': bbv2.Value(boolValue: true),
-      }.entries,
+    tags.add(
+      _createStringPair('github_link', 'https://github/flutter/flutter/pull/1'),
     );
 
-    final bbv2.SearchBuildsResponse searchBuildsResponseRc = bbv2.SearchBuildsResponse.create();
-    final List<bbv2.Build> buildsList = searchBuildsResponseRc.builds;
+    final buildInput = bbv2.Build_Input.create();
+
+    final propertiesMap = buildInput.properties.fields;
+    propertiesMap.addEntries(
+      <String, bbv2.Value>{'bringup': bbv2.Value(boolValue: true)}.entries,
+    );
+
+    final searchBuildsResponseRc = bbv2.SearchBuildsResponse.create();
+    final buildsList = searchBuildsResponseRc.builds;
     buildsList.add(build);
     return searchBuildsResponseRc;
   }
@@ -111,22 +117,20 @@ class FakeBuildBucketClient extends BuildBucketClient {
       return customResponse;
     }
 
-    final bbv2.BatchResponse batchResponseRc = bbv2.BatchResponse.create();
+    final batchResponseRc = bbv2.BatchResponse.create();
     // a batch response has a response and the naming convention is terrible.
-    final List<bbv2.BatchResponse_Response> batchResponseResponses = batchResponseRc.responses;
+    final batchResponseResponses = batchResponseRc.responses;
 
-    for (bbv2.BatchRequest_Request request in request.requests) {
+    for (var request in request.requests) {
       if (request.hasCancelBuild()) {
-        final bbv2.CancelBuildRequest cancelBuildRequest = request.cancelBuild;
+        final cancelBuildRequest = request.cancelBuild;
         batchResponseResponses.add(
           bbv2.BatchResponse_Response(
-            cancelBuild: bbv2.Build(
-              id: cancelBuildRequest.id,
-            ),
+            cancelBuild: bbv2.Build(id: cancelBuildRequest.id),
           ),
         );
       } else if (request.hasGetBuild()) {
-        final bbv2.GetBuildRequest getBuildRequest = request.getBuild;
+        final getBuildRequest = request.getBuild;
         batchResponseResponses.add(
           bbv2.BatchResponse_Response(
             getBuild: bbv2.Build(
@@ -137,12 +141,10 @@ class FakeBuildBucketClient extends BuildBucketClient {
           ),
         );
       } else if (request.hasScheduleBuild()) {
-        final bbv2.ScheduleBuildRequest scheduleBuildRequest = request.scheduleBuild;
+        final scheduleBuildRequest = request.scheduleBuild;
         batchResponseResponses.add(
           bbv2.BatchResponse_Response(
-            scheduleBuild: bbv2.Build(
-              builder: scheduleBuildRequest.builder,
-            ),
+            scheduleBuild: bbv2.Build(builder: scheduleBuildRequest.builder),
           ),
         );
       } else if (request.hasSearchBuilds()) {
@@ -160,11 +162,19 @@ class FakeBuildBucketClient extends BuildBucketClient {
                   ),
                   tags: <bbv2.StringPair>[
                     bbv2.StringPair(key: 'buildset', value: 'pr/git/12345'),
-                    bbv2.StringPair(key: 'cipd_version', value: 'refs/heads/main'),
-                    bbv2.StringPair(key: 'github_link', value: 'https://github/flutter/flutter/pull/1'),
+                    bbv2.StringPair(
+                      key: 'cipd_version',
+                      value: 'refs/heads/main',
+                    ),
+                    bbv2.StringPair(
+                      key: 'github_link',
+                      value: 'https://github/flutter/flutter/pull/1',
+                    ),
                   ],
                   input: bbv2.Build_Input(
-                    properties: bbv2.Struct(fields: {'bringup': bbv2.Value(stringValue: 'true')}),
+                    properties: bbv2.Struct(
+                      fields: {'bringup': bbv2.Value(stringValue: 'true')},
+                    ),
                   ),
                 ),
               ],
@@ -186,9 +196,9 @@ class FakeBuildBucketClient extends BuildBucketClient {
       return cancelBuildResponse!;
     }
 
-    final bbv2.Build build = bbv2.Build.create();
+    final build = bbv2.Build.create();
     build.id = request!.id;
-    final bbv2.BuilderID builderID = bbv2.BuilderID(
+    final builderID = bbv2.BuilderID(
       bucket: 'try',
       project: 'flutter',
       builder: 'builder_abc',
@@ -208,7 +218,7 @@ class FakeBuildBucketClient extends BuildBucketClient {
       return getBuildResponse!;
     }
 
-    final bbv2.Build build = bbv2.Build.create();
+    final build = bbv2.Build.create();
     build.id = request!.id;
     build.builder = request.builder;
     build.number = request.buildNumber;

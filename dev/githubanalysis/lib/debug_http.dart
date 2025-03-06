@@ -3,21 +3,18 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:http/http.dart';
 
 class DebugHttpClient extends BaseClient {
-  DebugHttpClient({
-    final Client? client,
-  }) : _client = client ?? Client();
+  DebugHttpClient({final Client? client}) : _client = client ?? Client();
 
   final Client _client;
 
   @override
   Future<StreamedResponse> send(final BaseRequest request) async {
-    final StreamedResponse response = await _client.send(request);
-    final Uint8List bytes = await response.stream.toBytes();
+    final response = await _client.send(request);
+    final bytes = await response.stream.toBytes();
     print(request.url);
     print(utf8.decode(bytes));
     return StreamedResponse(

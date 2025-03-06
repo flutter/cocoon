@@ -20,17 +20,13 @@ void main() {
     });
 
     test('generates githubBuildStatus correctly', () async {
-      final GithubBuildStatus githubBuildStatus = generateFirestoreGithubBuildStatus(1);
-      when(
-        mockFirestoreService.getDocument(
-          captureAny,
-        ),
-      ).thenAnswer((Invocation invocation) {
-        return Future<GithubBuildStatus>.value(
-          githubBuildStatus,
-        );
+      final githubBuildStatus = generateFirestoreGithubBuildStatus(1);
+      when(mockFirestoreService.getDocument(captureAny)).thenAnswer((
+        Invocation invocation,
+      ) {
+        return Future<GithubBuildStatus>.value(githubBuildStatus);
       });
-      final GithubBuildStatus resultedGithubBuildStatus = await GithubBuildStatus.fromFirestore(
+      final resultedGithubBuildStatus = await GithubBuildStatus.fromFirestore(
         firestoreService: mockFirestoreService,
         documentName: 'test',
       );
@@ -41,32 +37,50 @@ void main() {
 
   group('Creates github gold status document', () {
     test('from data model', () async {
-      final GithubBuildStatusUpdate githubBuildStatusUpdate = GithubBuildStatusUpdate(
+      final githubBuildStatusUpdate = GithubBuildStatusUpdate(
         head: 'sha',
         pr: 1,
         status: GithubBuildStatusUpdate.statusSuccess,
         updates: 2,
         repository: '',
       );
-      final GithubBuildStatus githubBuildStatusDocument = githubBuildStatusToDocument(githubBuildStatusUpdate);
+      final githubBuildStatusDocument = githubBuildStatusToDocument(
+        githubBuildStatusUpdate,
+      );
       expect(
         githubBuildStatusDocument.name,
         '$kDatabase/documents/$kGithubBuildStatusCollectionId/${githubBuildStatusUpdate.head}_${githubBuildStatusUpdate.pr}',
       );
-      expect(githubBuildStatusDocument.fields![kGithubBuildStatusHeadField]!.stringValue, githubBuildStatusUpdate.head);
       expect(
-        githubBuildStatusDocument.fields![kGithubBuildStatusPrNumberField]!.integerValue,
+        githubBuildStatusDocument
+            .fields![kGithubBuildStatusHeadField]!
+            .stringValue,
+        githubBuildStatusUpdate.head,
+      );
+      expect(
+        githubBuildStatusDocument
+            .fields![kGithubBuildStatusPrNumberField]!
+            .integerValue,
         githubBuildStatusUpdate.pr.toString(),
       );
       expect(
-        githubBuildStatusDocument.fields![kGithubBuildStatusStatusField]!.stringValue,
+        githubBuildStatusDocument
+            .fields![kGithubBuildStatusStatusField]!
+            .stringValue,
         githubBuildStatusUpdate.status,
       );
       expect(
-        githubBuildStatusDocument.fields![kGithubBuildStatusUpdatesField]!.integerValue,
+        githubBuildStatusDocument
+            .fields![kGithubBuildStatusUpdatesField]!
+            .integerValue,
         githubBuildStatusUpdate.updates.toString(),
       );
-      expect(githubBuildStatusDocument.fields![kGithubBuildStatusRepositoryField]!.stringValue, '');
+      expect(
+        githubBuildStatusDocument
+            .fields![kGithubBuildStatusRepositoryField]!
+            .stringValue,
+        '',
+      );
     });
   });
 }

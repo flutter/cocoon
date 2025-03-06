@@ -24,8 +24,10 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     required super.authenticationProvider,
     @visibleForTesting DatastoreServiceProvider? datastoreProvider,
     @visibleForTesting BuildStatusServiceProvider? buildStatusServiceProvider,
-  })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
-        buildStatusServiceProvider = buildStatusServiceProvider ?? BuildStatusService.defaultProvider;
+  }) : datastoreProvider =
+           datastoreProvider ?? DatastoreService.defaultProvider,
+       buildStatusServiceProvider =
+           buildStatusServiceProvider ?? BuildStatusService.defaultProvider;
 
   final BuildStatusServiceProvider buildStatusServiceProvider;
   final DatastoreServiceProvider datastoreProvider;
@@ -39,14 +41,23 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       return Body.empty;
     }
 
-    final String repository = request!.uri.queryParameters[fullNameRepoParam] ?? 'flutter/flutter';
-    final RepositorySlug slug = RepositorySlug.full(repository);
-    final DatastoreService datastore = datastoreProvider(config.db);
-    final FirestoreService firestoreService = await config.createFirestoreService();
-    final BuildStatusService buildStatusService = buildStatusServiceProvider(datastore, firestoreService);
+    final repository =
+        request!.uri.queryParameters[fullNameRepoParam] ?? 'flutter/flutter';
+    final slug = RepositorySlug.full(repository);
+    final datastore = datastoreProvider(config.db);
+    final firestoreService = await config.createFirestoreService();
+    final buildStatusService = buildStatusServiceProvider(
+      datastore,
+      firestoreService,
+    );
 
-    final BuildStatus status = (await buildStatusService.calculateCumulativeStatus(slug))!;
-    await _insertBigquery(slug, status.githubStatus, Config.defaultBranch(slug), config);
+    final status = (await buildStatusService.calculateCumulativeStatus(slug))!;
+    await _insertBigquery(
+      slug,
+      status.githubStatus,
+      Config.defaultBranch(slug),
+      config,
+    );
     await _updatePRs(slug, status.githubStatus, datastore, firestoreService);
     log.fine('All the PRs for $repository have been updated with $status');
 
@@ -59,32 +70,44 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     DatastoreService datastore,
     FirestoreService firestoreService,
   ) async {
-    final GitHub github = await config.createGitHubClient(slug: slug);
-    final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
-    final List<GithubBuildStatus> githubBuildStatuses = <GithubBuildStatus>[];
-    await for (PullRequest pr in github.pullRequests.list(slug, base: Config.defaultBranch(slug))) {
+    final github = await config.createGitHubClient(slug: slug);
+    final updates = <GithubBuildStatusUpdate>[];
+    final githubBuildStatuses = <GithubBuildStatus>[];
+    await for (PullRequest pr in github.pullRequests.list(
+      slug,
+      base: Config.defaultBranch(slug),
+    )) {
       // Tree status only affects the default branch - which github should filter for.. but check for a whoopsie.
       if (pr.base!.ref != Config.defaultBranch(slug)) {
-        log.warning('when asked for PRs for ${Config.defaultBranch(slug)} - github returns something else: $pr');
+        log.warning(
+          'when asked for PRs for ${Config.defaultBranch(slug)} - github returns something else: $pr',
+        );
         continue;
       }
-      final GithubBuildStatusUpdate update = await datastore.queryLastStatusUpdate(slug, pr);
-      final GithubBuildStatus githubBuildStatus =
-          await firestoreService.queryLastBuildStatus(slug, pr.number!, pr.head!.sha!);
+      final update = await datastore.queryLastStatusUpdate(slug, pr);
+      final githubBuildStatus = await firestoreService.queryLastBuildStatus(
+        slug,
+        pr.number!,
+        pr.head!.sha!,
+      );
 
       // Look at the labels on the PR to figure out if we need to turn a failing status into a neutral one.
       // This will have the side effect of flipping a neutral to (success|failure) if the emergency label is removed.
-      final hasEmergencyLabel = pr.labels?.any((label) => label.name == Config.kEmergencyLabel) ?? false;
-      final status = (realStatus != GithubBuildStatus.statusSuccess && hasEmergencyLabel)
-          ? GithubBuildStatus.statusNeutral
-          : realStatus;
+      final hasEmergencyLabel =
+          pr.labels?.any((label) => label.name == Config.kEmergencyLabel) ??
+          false;
+      final status =
+          (realStatus != GithubBuildStatus.statusSuccess && hasEmergencyLabel)
+              ? GithubBuildStatus.statusNeutral
+              : realStatus;
       if (githubBuildStatus.status != status) {
         log.log(
           hasEmergencyLabel ? Level.WARNING : Level.FINE,
           'Updating status of ${slug.fullName}#${pr.number} from ${githubBuildStatus.status} to $status',
         );
-        final CreateStatus request = CreateStatus(status);
-        request.targetUrl = 'https://flutter-dashboard.appspot.com/#/build?repo=${slug.name}';
+        final request = CreateStatus(status);
+        request.targetUrl =
+            'https://flutter-dashboard.appspot.com/#/build?repo=${slug.name}';
         request.context = 'tree-status';
         if (status == GithubBuildStatus.statusNeutral) {
           request.description = config.flutterTreeStatusEmergency;
@@ -93,7 +116,8 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
         }
         try {
           await github.repositories.createStatus(slug, pr.head!.sha!, request);
-          final int currentTimeMillisecondsSinceEpoch = DateTime.now().millisecondsSinceEpoch;
+          final currentTimeMillisecondsSinceEpoch =
+              DateTime.now().millisecondsSinceEpoch;
           update.status = status;
           update.updates = (update.updates ?? 0) + 1;
           update.updateTimeMillis = currentTimeMillisecondsSinceEpoch;
@@ -101,10 +125,14 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
 
           githubBuildStatus.setStatus(status);
           githubBuildStatus.setUpdates((githubBuildStatus.updates ?? 0) + 1);
-          githubBuildStatus.setUpdateTimeMillis(currentTimeMillisecondsSinceEpoch);
+          githubBuildStatus.setUpdateTimeMillis(
+            currentTimeMillisecondsSinceEpoch,
+          );
           githubBuildStatuses.add(githubBuildStatus);
         } catch (error) {
-          log.severe('Failed to post status update to ${slug.fullName}#${pr.number}: $error');
+          log.severe(
+            'Failed to post status update to ${slug.fullName}#${pr.number}: $error',
+          );
         }
       }
     }
@@ -112,23 +140,37 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     await updateGithubBuildStatusDocuments(githubBuildStatuses);
   }
 
-  Future<void> updateGithubBuildStatusDocuments(List<GithubBuildStatus> githubBuildStatuses) async {
+  Future<void> updateGithubBuildStatusDocuments(
+    List<GithubBuildStatus> githubBuildStatuses,
+  ) async {
     if (githubBuildStatuses.isEmpty) {
       return;
     }
-    final List<Write> writes = documentsToWrites(githubBuildStatuses);
-    final FirestoreService firestoreService = await config.createFirestoreService();
-    await firestoreService.batchWriteDocuments(BatchWriteRequest(writes: writes), kDatabase);
+    final writes = documentsToWrites(githubBuildStatuses);
+    final firestoreService = await config.createFirestoreService();
+    await firestoreService.batchWriteDocuments(
+      BatchWriteRequest(writes: writes),
+      kDatabase,
+    );
   }
 
-  Future<void> _insertBigquery(RepositorySlug slug, String status, String branch, Config config) async {
-    const String bigqueryTableName = 'BuildStatus';
-    final Map<String, dynamic> bigqueryData = <String, dynamic>{
+  Future<void> _insertBigquery(
+    RepositorySlug slug,
+    String status,
+    String branch,
+    Config config,
+  ) async {
+    const bigqueryTableName = 'BuildStatus';
+    final bigqueryData = <String, dynamic>{
       'Timestamp': DateTime.now().millisecondsSinceEpoch,
       'Status': status,
       'Branch': branch,
       'Repo': slug.name,
     };
-    await insertBigquery(bigqueryTableName, bigqueryData, await config.createTabledataResourceApi());
+    await insertBigquery(
+      bigqueryTableName,
+      bigqueryData,
+      await config.createTabledataResourceApi(),
+    );
   }
 }

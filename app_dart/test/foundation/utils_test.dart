@@ -10,7 +10,6 @@ import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:github/github.dart';
-import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:logging/logging.dart';
@@ -24,25 +23,10 @@ const String branchRegExp = '''
       master
       flutter-1.1-candidate.1
       ''';
-const String luciBuilders = '''
-      {
-        "builders":[
-            {
-              "name":"Cocoon",
-              "repo":"cocoon",
-              "enabled":true
-            }, {
-              "name":"Cocoon2",
-              "repo":"cocoon",
-              "enabled":false
-            }
-        ]
-      }
-      ''';
 
 void main() {
   group('Test utils', () {
-    const RetryOptions noRetry = RetryOptions(
+    const noRetry = RetryOptions(
       maxAttempts: 1,
       delayFactor: Duration.zero,
       maxDelay: Duration.zero,
@@ -50,7 +34,9 @@ void main() {
 
     test('github merge queue branch parsing', () {
       expect(
-        tryParseGitHubMergeQueueBranch('gh-readonly-queue/master/pr-160481-1398dc7eecb696d302e4edb19ad79901e615ed56'),
+        tryParseGitHubMergeQueueBranch(
+          'gh-readonly-queue/master/pr-160481-1398dc7eecb696d302e4edb19ad79901e615ed56',
+        ),
         (parsed: true, branch: 'master', pullRequestNumber: 160481),
         reason: 'parses expected magic branch',
       );
@@ -65,29 +51,32 @@ void main() {
       late MockClient branchHttpClient;
 
       test('returns branches', () async {
-        branchHttpClient = MockClient((_) async => http.Response(branchRegExp, HttpStatus.ok));
-        final String branches = await githubFileContent(
+        branchHttpClient = MockClient(
+          (_) async => http.Response(branchRegExp, HttpStatus.ok),
+        );
+        final branches = await githubFileContent(
           RepositorySlug('flutter', 'cocoon'),
           'branches.txt',
           httpClientProvider: () => branchHttpClient,
           retryOptions: noRetry,
         );
-        final List<String> branchList = branches.split('\n').map((String branch) => branch.trim()).toList();
+        final branchList =
+            branches.split('\n').map((String branch) => branch.trim()).toList();
         branchList.removeWhere((String branch) => branch.isEmpty);
         expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
       });
 
       test('retries branches download upon HTTP failure', () async {
-        int retry = 0;
+        var retry = 0;
         branchHttpClient = MockClient((_) async {
           if (retry++ == 0) {
             return http.Response('', HttpStatus.serviceUnavailable);
           }
           return http.Response(branchRegExp, HttpStatus.ok);
         });
-        final List<LogRecord> records = <LogRecord>[];
-        log.onRecord.listen((LogRecord record) => records.add(record));
-        final String branches = await githubFileContent(
+        final records = <LogRecord>[];
+        log.onRecord.listen(records.add);
+        final branches = await githubFileContent(
           RepositorySlug('flutter', 'cocoon'),
           'branches.txt',
           httpClientProvider: () => branchHttpClient,
@@ -97,7 +86,8 @@ void main() {
             maxDelay: Duration.zero,
           ),
         );
-        final List<String> branchList = branches.split('\n').map((String branch) => branch.trim()).toList();
+        final branchList =
+            branches.split('\n').map((String branch) => branch.trim()).toList();
         branchList.removeWhere((String branch) => branch.isEmpty);
         expect(retry, 2);
         expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
@@ -123,9 +113,9 @@ void main() {
           // Mock a GitHub outage
           return http.Response('', HttpStatus.serviceUnavailable);
         });
-        final List<LogRecord> records = <LogRecord>[];
-        log.onRecord.listen((LogRecord record) => records.add(record));
-        final String branches = await githubFileContent(
+        final records = <LogRecord>[];
+        log.onRecord.listen(records.add);
+        final branches = await githubFileContent(
           RepositorySlug('flutter', 'cocoon'),
           '.ci.yaml',
           httpClientProvider: () => branchHttpClient,
@@ -136,7 +126,8 @@ void main() {
             maxDelay: Duration.zero,
           ),
         );
-        final List<String> branchList = branches.split('\n').map((String branch) => branch.trim()).toList();
+        final branchList =
+            branches.split('\n').map((String branch) => branch.trim()).toList();
         branchList.removeWhere((String branch) => branch.isEmpty);
         expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
       });
@@ -153,9 +144,9 @@ void main() {
           // Mock a GitHub outage
           return http.Response('', HttpStatus.serviceUnavailable);
         });
-        final List<LogRecord> records = <LogRecord>[];
-        log.onRecord.listen((LogRecord record) => records.add(record));
-        final String branches = await githubFileContent(
+        final records = <LogRecord>[];
+        log.onRecord.listen(records.add);
+        final branches = await githubFileContent(
           RepositorySlug('flutter', 'cocoon'),
           '.ci.yaml',
           ref: 'main',
@@ -166,19 +157,20 @@ void main() {
             maxDelay: Duration.zero,
           ),
         );
-        final List<String> branchList = branches.split('\n').map((String branch) => branch.trim()).toList();
+        final branchList =
+            branches.split('\n').map((String branch) => branch.trim()).toList();
         branchList.removeWhere((String branch) => branch.isEmpty);
         expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
       });
 
       test('gives up after 6 tries', () async {
-        int retry = 0;
+        var retry = 0;
         branchHttpClient = MockClient((_) async {
           retry++;
           return http.Response('', HttpStatus.serviceUnavailable);
         });
-        final List<LogRecord> records = <LogRecord>[];
-        log.onRecord.listen((LogRecord record) => records.add(record));
+        final records = <LogRecord>[];
+        log.onRecord.listen(records.add);
         await expectLater(
           githubFileContent(
             RepositorySlug('flutter', 'cocoon'),
@@ -217,36 +209,41 @@ void main() {
         tabledataResourceApi = FakeTabledataResource();
       });
       test('Insert data to bigquery', () async {
-        await insertBigquery(
+        await insertBigquery('test', <String, dynamic>{
+          'test': 'test',
+        }, tabledataResourceApi);
+        final tableDataList = await tabledataResourceApi.list(
           'test',
-          <String, dynamic>{'test': 'test'},
-          tabledataResourceApi,
+          'test',
+          'test',
         );
-        final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
         expect(tableDataList.totalRows, '1');
       });
     });
 
     group('getFilteredBuilders', () {
-      test('does not return builders when run_if does not match any file', () async {
-        final List<Target> targets = <Target>[
-          generateTarget(1, runIf: <String>['cde/']),
-        ];
-        final List<Target> result = await getTargetsToRun(
-          targets,
-          SuccessfulFilesChanged(
-            pullRequestNumber: 1234,
-            filesChanged: const ['abc/cde.py', 'cde/fgh.dart'],
-          ),
-        );
-        expect(result.isEmpty, isTrue);
-      });
+      test(
+        'does not return builders when run_if does not match any file',
+        () async {
+          final targets = <Target>[
+            generateTarget(1, runIf: <String>['cde/']),
+          ];
+          final result = await getTargetsToRun(
+            targets,
+            SuccessfulFilesChanged(
+              pullRequestNumber: 1234,
+              filesChanged: const ['abc/cde.py', 'cde/fgh.dart'],
+            ),
+          );
+          expect(result.isEmpty, isTrue);
+        },
+      );
 
       test('skips filtering when 30 or more files were updated', () async {
-        final List<Target> targets = <Target>[
+        final targets = <Target>[
           generateTarget(1, runIf: <String>['cde/']),
         ];
-        final List<Target> result = await getTargetsToRun(
+        final result = await getTargetsToRun(
           targets,
           const InconclusiveFilesChanged(
             pullRequestNumber: 1234,
@@ -257,8 +254,8 @@ void main() {
       });
 
       test('returns builders when run_if is null', () async {
-        final List<Target> targets = <Target>[generateTarget(1)];
-        final List<Target> result = await getTargetsToRun(
+        final targets = <Target>[generateTarget(1)];
+        final result = await getTargetsToRun(
           targets,
           SuccessfulFilesChanged(
             pullRequestNumber: 12324,
@@ -268,224 +265,235 @@ void main() {
         expect(result, targets);
       });
 
-      test('returns builders when run_if matches files using full path', () async {
-        final List<Target> targets = <Target>[
-          generateTarget(1, runIf: <String>['abc/cde.py']),
-        ];
-        final List<Target> result = await getTargetsToRun(
-          targets,
-          SuccessfulFilesChanged(
-            pullRequestNumber: 1234,
-            filesChanged: const [
-              'abc/cde.py',
-              'cgh/dhj.dart',
-            ],
-          ),
-        );
-        expect(result, targets);
-      });
+      test(
+        'returns builders when run_if matches files using full path',
+        () async {
+          final targets = <Target>[
+            generateTarget(1, runIf: <String>['abc/cde.py']),
+          ];
+          final result = await getTargetsToRun(
+            targets,
+            SuccessfulFilesChanged(
+              pullRequestNumber: 1234,
+              filesChanged: const ['abc/cde.py', 'cgh/dhj.dart'],
+            ),
+          );
+          expect(result, targets);
+        },
+      );
 
       test('returns builders when run_if matches files with **', () async {
-        final List<Target> targets = <Target>[
+        final targets = <Target>[
           generateTarget(1, runIf: <String>['abc/**']),
         ];
-        final List<Target> result = await getTargetsToRun(
+        final result = await getTargetsToRun(
           targets,
           SuccessfulFilesChanged(
             pullRequestNumber: 1234,
-            filesChanged: const [
-              'abc/cdf/hj.dart',
-              'abc/dej.dart',
-            ],
+            filesChanged: const ['abc/cdf/hj.dart', 'abc/dej.dart'],
           ),
         );
         expect(result, targets);
       });
 
-      test('returns builders when run_if matches files with ** that contain digits', () async {
-        final List<Target> targets = <Target>[
-          generateTarget(
-            1,
-            runIf: <String>[
-              'dev/**',
-              'packages/flutter/**',
-              'packages/flutter_driver/**',
-              'packages/integration_test/**',
-              'packages/flutter_localizations/**',
-              'packages/fuchsia_remote_debug_protocol/**',
-              'packages/flutter_test/**',
-              'packages/flutter_goldens/**',
-              'packages/flutter_tools/**',
-              'bin/**',
-              '.ci.yaml',
-            ],
-          ),
-        ];
-        final List<Target> result = await getTargetsToRun(
-          targets,
-          SuccessfulFilesChanged(
-            pullRequestNumber: 1234,
-            filesChanged: const [
-              'packages/flutter_localizations/lib/src/l10n/material_es.arb',
-              'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
-            ],
-          ),
-        );
-        expect(result, targets);
-      });
+      test(
+        'returns builders when run_if matches files with ** that contain digits',
+        () async {
+          final targets = <Target>[
+            generateTarget(
+              1,
+              runIf: <String>[
+                'dev/**',
+                'packages/flutter/**',
+                'packages/flutter_driver/**',
+                'packages/integration_test/**',
+                'packages/flutter_localizations/**',
+                'packages/fuchsia_remote_debug_protocol/**',
+                'packages/flutter_test/**',
+                'packages/flutter_goldens/**',
+                'packages/flutter_tools/**',
+                'bin/**',
+                '.ci.yaml',
+              ],
+            ),
+          ];
+          final result = await getTargetsToRun(
+            targets,
+            SuccessfulFilesChanged(
+              pullRequestNumber: 1234,
+              filesChanged: const [
+                'packages/flutter_localizations/lib/src/l10n/material_es.arb',
+                'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
+              ],
+            ),
+          );
+          expect(result, targets);
+        },
+      );
 
-      test('returns builders when run_if matches files with * and ** that contains digits', () async {
-        final List<Target> targets = <Target>[
-          generateTarget(
-            1,
-            runIf: <String>[
-              'dev/**',
-              'packages/flutter/**',
-              'packages/flutter_driver/**',
-              'packages/integration_test/**',
-              'packages/flutter_localizations/**/l10n/cupertino*.arb',
-              'packages/fuchsia_remote_debug_protocol/**',
-              'packages/flutter_test/**',
-              'packages/flutter_goldens/**',
-              'packages/flutter_tools/**',
-              'bin/**',
-              '.ci.yaml',
-            ],
-          ),
-        ];
-        final List<Target> result = await getTargetsToRun(
-          targets,
-          SuccessfulFilesChanged(
-            pullRequestNumber: 1234,
-            filesChanged: const [
-              'packages/flutter_localizations/lib/src/l10n/material_es.arb',
-              'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
-              'packages/flutter_localizations/lib/src/l10n/cupertino_cy.arb',
-            ],
-          ),
-        );
-        expect(result, targets);
-      });
+      test(
+        'returns builders when run_if matches files with * and ** that contains digits',
+        () async {
+          final targets = <Target>[
+            generateTarget(
+              1,
+              runIf: <String>[
+                'dev/**',
+                'packages/flutter/**',
+                'packages/flutter_driver/**',
+                'packages/integration_test/**',
+                'packages/flutter_localizations/**/l10n/cupertino*.arb',
+                'packages/fuchsia_remote_debug_protocol/**',
+                'packages/flutter_test/**',
+                'packages/flutter_goldens/**',
+                'packages/flutter_tools/**',
+                'bin/**',
+                '.ci.yaml',
+              ],
+            ),
+          ];
+          final result = await getTargetsToRun(
+            targets,
+            SuccessfulFilesChanged(
+              pullRequestNumber: 1234,
+              filesChanged: const [
+                'packages/flutter_localizations/lib/src/l10n/material_es.arb',
+                'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
+                'packages/flutter_localizations/lib/src/l10n/cupertino_cy.arb',
+              ],
+            ),
+          );
+          expect(result, targets);
+        },
+      );
 
-      test('returns builders when run_if matches files with * trailing glob', () async {
-        final List<Target> targets = <Target>[
-          generateTarget(
-            1,
-            runIf: <String>[
-              'packages/flutter_localizations/**/l10n/*',
-            ],
-          ),
-        ];
-        final List<Target> result = await getTargetsToRun(
-          targets,
-          SuccessfulFilesChanged(
-            pullRequestNumber: 1234,
-            filesChanged: const [
-              'packages/flutter_localizations/lib/src/l10n/material_es.arb',
-              'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
-              'packages/flutter_localizations/lib/src/l10n/cupertino_cy.arb',
-            ],
-          ),
-        );
-        expect(result, targets);
-      });
+      test(
+        'returns builders when run_if matches files with * trailing glob',
+        () async {
+          final targets = <Target>[
+            generateTarget(
+              1,
+              runIf: <String>['packages/flutter_localizations/**/l10n/*'],
+            ),
+          ];
+          final result = await getTargetsToRun(
+            targets,
+            SuccessfulFilesChanged(
+              pullRequestNumber: 1234,
+              filesChanged: const [
+                'packages/flutter_localizations/lib/src/l10n/material_es.arb',
+                'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
+                'packages/flutter_localizations/lib/src/l10n/cupertino_cy.arb',
+              ],
+            ),
+          );
+          expect(result, targets);
+        },
+      );
 
-      test('returns builders when run_if matches files with * trailing glob 2', () async {
-        final List<Target> targets = <Target>[
-          generateTarget(
-            1,
-            runIf: <String>[
-              'packages/flutter_localizations/**/l10n/cupertino*',
-            ],
-          ),
-        ];
-        final List<Target> result = await getTargetsToRun(
-          targets,
-          SuccessfulFilesChanged(
-            pullRequestNumber: 1234,
-            filesChanged: const [
-              'packages/flutter_localizations/lib/src/l10n/material_es.arb',
-              'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
-              'packages/flutter_localizations/lib/src/l10n/cupertino_cy.arb',
-            ],
-          ),
-        );
-        expect(result, targets);
-      });
+      test(
+        'returns builders when run_if matches files with * trailing glob 2',
+        () async {
+          final targets = <Target>[
+            generateTarget(
+              1,
+              runIf: <String>[
+                'packages/flutter_localizations/**/l10n/cupertino*',
+              ],
+            ),
+          ];
+          final result = await getTargetsToRun(
+            targets,
+            SuccessfulFilesChanged(
+              pullRequestNumber: 1234,
+              filesChanged: const [
+                'packages/flutter_localizations/lib/src/l10n/material_es.arb',
+                'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
+                'packages/flutter_localizations/lib/src/l10n/cupertino_cy.arb',
+              ],
+            ),
+          );
+          expect(result, targets);
+        },
+      );
 
-      test('returns builders when run_if matches files with ** in the middle', () async {
-        final List<Target> targets = <Target>[
-          generateTarget(1, runIf: <String>['abc/**/hj.dart']),
-        ];
-        final List<Target> result = await getTargetsToRun(
-          targets,
-          SuccessfulFilesChanged(
-            pullRequestNumber: 1234,
-            filesChanged: const [
-              'abc/cdf/efg/hj.dart',
-              'abc/dej.dart',
-            ],
-          ),
-        );
-        expect(result, [targets[0]]);
-      });
+      test(
+        'returns builders when run_if matches files with ** in the middle',
+        () async {
+          final targets = <Target>[
+            generateTarget(1, runIf: <String>['abc/**/hj.dart']),
+          ];
+          final result = await getTargetsToRun(
+            targets,
+            SuccessfulFilesChanged(
+              pullRequestNumber: 1234,
+              filesChanged: const ['abc/cdf/efg/hj.dart', 'abc/dej.dart'],
+            ),
+          );
+          expect(result, [targets[0]]);
+        },
+      );
 
-      test('returns builders when run_if matches files with both * and **', () async {
-        final List<Target> targets = <Target>[
-          generateTarget(1, runIf: <String>['a/b*c/**']),
-        ];
-        final List<Target> result = await getTargetsToRun(
-          targets,
-          SuccessfulFilesChanged(
-            pullRequestNumber: 1234,
-            filesChanged: const [
-              'a/baddsc/defg.zz',
-              'c/d',
-            ],
-          ),
-        );
-        expect(result, targets);
-      });
+      test(
+        'returns builders when run_if matches files with both * and **',
+        () async {
+          final targets = <Target>[
+            generateTarget(1, runIf: <String>['a/b*c/**']),
+          ];
+          final result = await getTargetsToRun(
+            targets,
+            SuccessfulFilesChanged(
+              pullRequestNumber: 1234,
+              filesChanged: const ['a/baddsc/defg.zz', 'c/d'],
+            ),
+          );
+          expect(result, targets);
+        },
+      );
 
-      test('returns correct builders when file and folder share the same name', () async {
-        final List<Target> targets = <Target>[
-          generateTarget(1, runIf: <String>['a/b/']),
-          generateTarget(2, runIf: <String>['a']),
-        ];
-        final List<Target> result = await getTargetsToRun(
-          targets,
-          SuccessfulFilesChanged(
-            pullRequestNumber: 1234,
-            filesChanged: const [
-              'a',
-            ],
-          ),
-        );
-        expect(result.length, 1);
-        expect(result.single, targets[1]);
-      });
+      test(
+        'returns correct builders when file and folder share the same name',
+        () async {
+          final targets = <Target>[
+            generateTarget(1, runIf: <String>['a/b/']),
+            generateTarget(2, runIf: <String>['a']),
+          ];
+          final result = await getTargetsToRun(
+            targets,
+            SuccessfulFilesChanged(
+              pullRequestNumber: 1234,
+              filesChanged: const ['a'],
+            ),
+          );
+          expect(result.length, 1);
+          expect(result.single, targets[1]);
+        },
+      );
     });
   });
 
   group('Fusion Tests', () {
-    const RetryOptions noRetry = RetryOptions(
+    const noRetry = RetryOptions(
       maxAttempts: 1,
       delayFactor: Duration.zero,
       maxDelay: Duration.zero,
     );
 
-    final goodFlutterRef = (slug: RepositorySlug.full('flutter/flutter'), sha: '1234');
+    final goodFlutterRef = (
+      slug: RepositorySlug.full('flutter/flutter'),
+      sha: '1234',
+    );
 
     test('isFusionPR returns false non-flutter repo', () async {
-      final branchHttpClient = MockClient(
-        (req) async {
-          final url = '${req.url}';
-          if (!url.contains('https://raw.githubusercontent.com/flutter/flutter/DEPS')) {
-            return http.Response('', HttpStatus.notFound);
-          }
-          return http.Response('test', HttpStatus.ok);
-        },
-      );
+      final branchHttpClient = MockClient((req) async {
+        final url = '${req.url}';
+        if (!url.contains(
+          'https://raw.githubusercontent.com/flutter/flutter/DEPS',
+        )) {
+          return http.Response('', HttpStatus.notFound);
+        }
+        return http.Response('test', HttpStatus.ok);
+      });
       final tester = FusionTester(httpClientProvider: () => branchHttpClient);
 
       final fusion = await tester.isFusionBasedRef(
@@ -497,19 +505,17 @@ void main() {
     });
 
     test('isFusionPR returns false for missing DEPS file', () async {
-      final branchHttpClient = MockClient(
-        (req) async {
-          final url = '${req.url}';
-          if (url.contains('flutter.googlesource.com')) {
-            return http.Response('', HttpStatus.notFound);
-          } else if (url.contains(
-            'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS',
-          )) {
-            return http.Response('', HttpStatus.notFound);
-          }
-          return http.Response('test', HttpStatus.ok);
-        },
-      );
+      final branchHttpClient = MockClient((req) async {
+        final url = '${req.url}';
+        if (url.contains('flutter.googlesource.com')) {
+          return http.Response('', HttpStatus.notFound);
+        } else if (url.contains(
+          'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS',
+        )) {
+          return http.Response('', HttpStatus.notFound);
+        }
+        return http.Response('test', HttpStatus.ok);
+      });
       final tester = FusionTester(httpClientProvider: () => branchHttpClient);
 
       final fusion = await tester.isFusionBasedRef(
@@ -521,19 +527,17 @@ void main() {
     });
 
     test('isFusionPR returns false for missing engine/src/.gn file', () async {
-      final branchHttpClient = MockClient(
-        (req) async {
-          final url = '${req.url}';
-          if (url.contains('flutter.googlesource.com')) {
-            return http.Response('', HttpStatus.notFound);
-          } else if (url.contains(
-            'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
-          )) {
-            return http.Response('', HttpStatus.notFound);
-          }
-          return http.Response('test', HttpStatus.ok);
-        },
-      );
+      final branchHttpClient = MockClient((req) async {
+        final url = '${req.url}';
+        if (url.contains('flutter.googlesource.com')) {
+          return http.Response('', HttpStatus.notFound);
+        } else if (url.contains(
+          'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
+        )) {
+          return http.Response('', HttpStatus.notFound);
+        }
+        return http.Response('test', HttpStatus.ok);
+      });
       final tester = FusionTester(httpClientProvider: () => branchHttpClient);
 
       final fusion = await tester.isFusionBasedRef(
@@ -545,22 +549,20 @@ void main() {
     });
 
     test('isFusionPR returns false if required files are empty', () async {
-      final branchHttpClient = MockClient(
-        (req) async {
-          final url = '${req.url}';
-          if (url.contains('flutter.googlesource.com')) {
-            return http.Response('', HttpStatus.notFound);
-          } else if (url.contains(
-                'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
-              ) ||
-              url.contains(
-                'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS',
-              )) {
-            return http.Response('', HttpStatus.ok);
-          }
-          return http.Response('test', HttpStatus.ok);
-        },
-      );
+      final branchHttpClient = MockClient((req) async {
+        final url = '${req.url}';
+        if (url.contains('flutter.googlesource.com')) {
+          return http.Response('', HttpStatus.notFound);
+        } else if (url.contains(
+              'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
+            ) ||
+            url.contains(
+              'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS',
+            )) {
+          return http.Response('', HttpStatus.ok);
+        }
+        return http.Response('test', HttpStatus.ok);
+      });
       final tester = FusionTester(httpClientProvider: () => branchHttpClient);
 
       final fusion = await tester.isFusionBasedRef(
@@ -572,19 +574,17 @@ void main() {
     });
 
     test('isFusionPR lets non-404 exceptions bubble', () async {
-      final branchHttpClient = MockClient(
-        (req) async {
-          final url = '${req.url}';
-          if (url.contains('flutter.googlesource.com')) {
-            return http.Response('', HttpStatus.badRequest);
-          } else if (url.contains(
-            'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
-          )) {
-            return http.Response('', HttpStatus.badRequest);
-          }
-          return http.Response('test', HttpStatus.ok);
-        },
-      );
+      final branchHttpClient = MockClient((req) async {
+        final url = '${req.url}';
+        if (url.contains('flutter.googlesource.com')) {
+          return http.Response('', HttpStatus.badRequest);
+        } else if (url.contains(
+          'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
+        )) {
+          return http.Response('', HttpStatus.badRequest);
+        }
+        return http.Response('test', HttpStatus.ok);
+      });
       final tester = FusionTester(httpClientProvider: () => branchHttpClient);
 
       expect(
@@ -598,22 +598,20 @@ void main() {
     });
 
     test('isFusionPR returns true whe expected files are present', () async {
-      final branchHttpClient = MockClient(
-        (req) async {
-          final url = '${req.url}';
-          if (url.contains('flutter.googlesource.com')) {
-            return http.Response('', HttpStatus.notFound);
-          } else if (url.contains(
-                'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
-              ) ||
-              url.contains(
-                'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS',
-              )) {
-            return http.Response('FUSION', HttpStatus.ok);
-          }
-          return http.Response('test', HttpStatus.ok);
-        },
-      );
+      final branchHttpClient = MockClient((req) async {
+        final url = '${req.url}';
+        if (url.contains('flutter.googlesource.com')) {
+          return http.Response('', HttpStatus.notFound);
+        } else if (url.contains(
+              'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
+            ) ||
+            url.contains(
+              'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS',
+            )) {
+          return http.Response('FUSION', HttpStatus.ok);
+        }
+        return http.Response('test', HttpStatus.ok);
+      });
 
       final tester = FusionTester(httpClientProvider: () => branchHttpClient);
 
@@ -628,23 +626,21 @@ void main() {
     test('isFusionPR caches results', () async {
       final urlCalled = <String, int>{};
 
-      final branchHttpClient = MockClient(
-        (req) async {
-          final url = '${req.url}';
-          urlCalled[url] = (urlCalled[url] ?? 0) + 1;
-          if (url.contains('flutter.googlesource.com')) {
-            return http.Response('', HttpStatus.notFound);
-          } else if (url.contains(
-                'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
-              ) ||
-              url.contains(
-                'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS',
-              )) {
-            return http.Response('FUSION', HttpStatus.ok);
-          }
-          return http.Response('test', HttpStatus.ok);
-        },
-      );
+      final branchHttpClient = MockClient((req) async {
+        final url = '${req.url}';
+        urlCalled[url] = (urlCalled[url] ?? 0) + 1;
+        if (url.contains('flutter.googlesource.com')) {
+          return http.Response('', HttpStatus.notFound);
+        } else if (url.contains(
+              'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
+            ) ||
+            url.contains(
+              'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS',
+            )) {
+          return http.Response('FUSION', HttpStatus.ok);
+        }
+        return http.Response('test', HttpStatus.ok);
+      });
 
       final tester = FusionTester(httpClientProvider: () => branchHttpClient);
       final fusion = await tester.isFusionBasedRef(
@@ -653,8 +649,14 @@ void main() {
         retryOptions: noRetry,
       );
       expect(fusion, isTrue);
-      expect(urlCalled['https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn'], 1);
-      expect(urlCalled['https://raw.githubusercontent.com/flutter/flutter/1234/DEPS'], 1);
+      expect(
+        urlCalled['https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn'],
+        1,
+      );
+      expect(
+        urlCalled['https://raw.githubusercontent.com/flutter/flutter/1234/DEPS'],
+        1,
+      );
     });
   });
 }

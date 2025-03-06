@@ -8,7 +8,7 @@ class FakeDiscordNotification extends DiscordNotification {
   FakeDiscordNotification({required super.targetUri});
 
   @override
-  notifyDiscordChannelWebhook(String jsonMessageString) {
+  Future<void> notifyDiscordChannelWebhook(String jsonMessageString) async {
     // do nothing
   }
 }

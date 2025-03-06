@@ -30,13 +30,15 @@ class CommitTasksStatus {
   ///
   /// Note we use the lastest run as the `task`, surfacing on the dashboard.
   List<FullTask> toFullTasks(List<Task> tasks) {
-    final Map<String, FullTask> fullTasksMap = <String, FullTask>{};
-    for (Task task in tasks) {
+    final fullTasksMap = <String, FullTask>{};
+    for (var task in tasks) {
       if (!fullTasksMap.containsKey(task.taskName)) {
         if (task.buildNumber == null) {
           fullTasksMap[task.taskName!] = FullTask(task, <int>[]);
         } else {
-          fullTasksMap[task.taskName!] = FullTask(task, <int>[task.buildNumber!]);
+          fullTasksMap[task.taskName!] = FullTask(task, <int>[
+            task.buildNumber!,
+          ]);
         }
       } else if (fullTasksMap.containsKey(task.taskName)) {
         fullTasksMap[task.taskName]!.buildList.add(task.buildNumber!);

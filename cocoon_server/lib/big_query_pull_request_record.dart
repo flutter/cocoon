@@ -35,7 +35,8 @@ class PullRequestRecord {
   @override
   String toString() => jsonEncode(toJson());
 
-  factory PullRequestRecord.fromJson(Map<String, dynamic> json) => _$PullRequestRecordFromJson(json);
+  factory PullRequestRecord.fromJson(Map<String, dynamic> json) =>
+      _$PullRequestRecordFromJson(json);
 
   Map<String, dynamic> toJson() => _$PullRequestRecordToJson(this);
 }

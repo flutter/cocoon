@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_server/logging.dart';
-import 'package:http/http.dart' as http;
 
 import '../foundation/providers.dart';
 
@@ -20,10 +19,10 @@ class DiscordNotification {
 
   final HttpProvider httpProvider = Providers.freshHttpClient;
 
-  notifyDiscordChannelWebhook(String jsonMessageString) async {
-    final http.Client client = httpProvider();
+  Future<void> notifyDiscordChannelWebhook(String jsonMessageString) async {
+    final client = httpProvider();
 
-    final http.Response response = await client.post(
+    final response = await client.post(
       targetUri!,
       headers: defaultHeaders,
       body: jsonMessageString,

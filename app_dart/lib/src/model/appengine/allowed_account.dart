@@ -14,9 +14,7 @@ import 'package:gcloud/db.dart';
 @Kind(name: 'AllowedAccount')
 class AllowedAccount extends Model<int> {
   /// Creates a new [AllowedAccount].
-  AllowedAccount({
-    Key<int>? key,
-  }) {
+  AllowedAccount({Key<int>? key}) {
     parentKey = key?.parent;
     id = key?.id;
   }
@@ -27,13 +25,14 @@ class AllowedAccount extends Model<int> {
 
   @override
   String toString() {
-    final StringBuffer buf = StringBuffer()
-      ..write('$runtimeType(')
-      ..write('id: $id')
-      ..write(', parentKey: ${parentKey?.id}')
-      ..write(', key: ${parentKey == null ? null : key.id}')
-      ..write(', email: $email')
-      ..write(')');
+    final buf =
+        StringBuffer()
+          ..write('$runtimeType(')
+          ..write('id: $id')
+          ..write(', parentKey: ${parentKey?.id}')
+          ..write(', key: ${parentKey == null ? null : key.id}')
+          ..write(', email: $email')
+          ..write(')');
     return buf.toString();
   }
 }

@@ -5,8 +5,8 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/service/commit_service.dart';
+import 'cocoon_service.dart';
+import 'src/service/commit_service.dart';
 
 typedef Server = Future<void> Function(HttpRequest);
 
@@ -26,7 +26,7 @@ Server createServer({
   FusionTester? fusionTester,
 }) {
   fusionTester ??= FusionTester();
-  final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
+  final handlers = <String, RequestHandler<dynamic>>{
     '/api/check_flaky_builders': CheckFlakyBuilders(
       config: config,
       authenticationProvider: authProvider,
@@ -123,14 +123,13 @@ Server createServer({
       config: config,
       scheduler: scheduler,
     ),
-    '/api/v2/scheduler/batch-request-subscription': SchedulerRequestSubscription(
-      cache: cache,
-      config: config,
-      buildBucketClient: buildBucketClient,
-    ),
-    '/api/scheduler/vacuum-stale-tasks': VacuumStaleTasks(
-      config: config,
-    ),
+    '/api/v2/scheduler/batch-request-subscription':
+        SchedulerRequestSubscription(
+          cache: cache,
+          config: config,
+          buildBucketClient: buildBucketClient,
+        ),
+    '/api/scheduler/vacuum-stale-tasks': VacuumStaleTasks(config: config),
     '/api/update_existing_flaky_issues': UpdateExistingFlakyIssue(
       config: config,
       authenticationProvider: authProvider,
@@ -198,7 +197,10 @@ Server createServer({
     '/api/public/get-release-branches': CacheRequestHandler<Body>(
       cache: cache,
       config: config,
-      delegate: GetReleaseBranches(config: config, branchService: branchService),
+      delegate: GetReleaseBranches(
+        config: config,
+        branchService: branchService,
+      ),
       ttl: const Duration(hours: 1),
     ),
 
@@ -283,28 +285,32 @@ Server createServer({
     '/readiness_check': ReadinessCheck(config: config),
   };
 
-  return ((HttpRequest request) async {
+  return (HttpRequest request) async {
     if (handlers.containsKey(request.uri.path)) {
-      final RequestHandler<dynamic> handler = handlers[request.uri.path]!;
+      final handler = handlers[request.uri.path]!;
       await handler.service(request);
     } else {
       /// Requests with query parameters and anchors need to be trimmed to get the file path.
       // TODO(chillers): Use toFilePath(), https://github.com/dart-lang/sdk/issues/39373
-      final int queryIndex = request.uri.path.contains('?') ? request.uri.path.indexOf('?') : request.uri.path.length;
-      final int anchorIndex = request.uri.path.contains('#') ? request.uri.path.indexOf('#') : request.uri.path.length;
+      final queryIndex =
+          request.uri.path.contains('?')
+              ? request.uri.path.indexOf('?')
+              : request.uri.path.length;
+      final anchorIndex =
+          request.uri.path.contains('#')
+              ? request.uri.path.indexOf('#')
+              : request.uri.path.length;
 
       /// Trim to the first instance of an anchor or query.
       final int trimIndex = min(queryIndex, anchorIndex);
-      final String filePath = request.uri.path.substring(0, trimIndex);
+      final filePath = request.uri.path.substring(0, trimIndex);
 
-      const Map<String, String> redirects = <String, String>{
-        '/build.html': '/#/build',
-      };
+      const redirects = <String, String>{'/build.html': '/#/build'};
       if (redirects.containsKey(filePath)) {
         request.response.statusCode = HttpStatus.permanentRedirect;
         return request.response.redirect(Uri.parse(redirects[filePath]!));
       }
       await StaticFileHandler(filePath, config: config).service(request);
     }
-  });
+  };
 }

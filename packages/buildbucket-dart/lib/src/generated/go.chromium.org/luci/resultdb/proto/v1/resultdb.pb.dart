@@ -37,33 +37,40 @@ class GetInvocationRequest extends $pb.GeneratedMessage {
   factory GetInvocationRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory GetInvocationRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory GetInvocationRequest.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetInvocationRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GetInvocationRequest',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  GetInvocationRequest clone() => GetInvocationRequest()..mergeFromMessage(this);
+  GetInvocationRequest clone() =>
+      GetInvocationRequest()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   GetInvocationRequest copyWith(void Function(GetInvocationRequest) updates) =>
-      super.copyWith((message) => updates(message as GetInvocationRequest)) as GetInvocationRequest;
+      super.copyWith((message) => updates(message as GetInvocationRequest))
+          as GetInvocationRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static GetInvocationRequest create() => GetInvocationRequest._();
   GetInvocationRequest createEmptyInstance() => create();
-  static $pb.PbList<GetInvocationRequest> createRepeated() => $pb.PbList<GetInvocationRequest>();
+  static $pb.PbList<GetInvocationRequest> createRepeated() =>
+      $pb.PbList<GetInvocationRequest>();
   @$core.pragma('dart2js:noInline')
-  static GetInvocationRequest getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GetInvocationRequest>(create);
+  static GetInvocationRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<GetInvocationRequest>(create);
   static GetInvocationRequest? _defaultInstance;
 
   /// The name of the invocation to request, see Invocation.name.
@@ -95,33 +102,40 @@ class GetTestResultRequest extends $pb.GeneratedMessage {
   factory GetTestResultRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory GetTestResultRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory GetTestResultRequest.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetTestResultRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GetTestResultRequest',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  GetTestResultRequest clone() => GetTestResultRequest()..mergeFromMessage(this);
+  GetTestResultRequest clone() =>
+      GetTestResultRequest()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   GetTestResultRequest copyWith(void Function(GetTestResultRequest) updates) =>
-      super.copyWith((message) => updates(message as GetTestResultRequest)) as GetTestResultRequest;
+      super.copyWith((message) => updates(message as GetTestResultRequest))
+          as GetTestResultRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static GetTestResultRequest create() => GetTestResultRequest._();
   GetTestResultRequest createEmptyInstance() => create();
-  static $pb.PbList<GetTestResultRequest> createRepeated() => $pb.PbList<GetTestResultRequest>();
+  static $pb.PbList<GetTestResultRequest> createRepeated() =>
+      $pb.PbList<GetTestResultRequest>();
   @$core.pragma('dart2js:noInline')
-  static GetTestResultRequest getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GetTestResultRequest>(create);
+  static GetTestResultRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<GetTestResultRequest>(create);
   static GetTestResultRequest? _defaultInstance;
 
   /// The name of the test result to request, see TestResult.name.
@@ -165,36 +179,45 @@ class ListTestResultsRequest extends $pb.GeneratedMessage {
   factory ListTestResultsRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory ListTestResultsRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory ListTestResultsRequest.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListTestResultsRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ListTestResultsRequest',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'invocation')
     ..a<$core.int>(2, _omitFieldNames ? '' : 'pageSize', $pb.PbFieldType.O3)
     ..aOS(3, _omitFieldNames ? '' : 'pageToken')
-    ..aOM<$4.FieldMask>(4, _omitFieldNames ? '' : 'readMask', subBuilder: $4.FieldMask.create)
+    ..aOM<$4.FieldMask>(4, _omitFieldNames ? '' : 'readMask',
+        subBuilder: $4.FieldMask.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  ListTestResultsRequest clone() => ListTestResultsRequest()..mergeFromMessage(this);
+  ListTestResultsRequest clone() =>
+      ListTestResultsRequest()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  ListTestResultsRequest copyWith(void Function(ListTestResultsRequest) updates) =>
-      super.copyWith((message) => updates(message as ListTestResultsRequest)) as ListTestResultsRequest;
+  ListTestResultsRequest copyWith(
+          void Function(ListTestResultsRequest) updates) =>
+      super.copyWith((message) => updates(message as ListTestResultsRequest))
+          as ListTestResultsRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static ListTestResultsRequest create() => ListTestResultsRequest._();
   ListTestResultsRequest createEmptyInstance() => create();
-  static $pb.PbList<ListTestResultsRequest> createRepeated() => $pb.PbList<ListTestResultsRequest>();
+  static $pb.PbList<ListTestResultsRequest> createRepeated() =>
+      $pb.PbList<ListTestResultsRequest>();
   @$core.pragma('dart2js:noInline')
-  static ListTestResultsRequest getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ListTestResultsRequest>(create);
+  static ListTestResultsRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ListTestResultsRequest>(create);
   static ListTestResultsRequest? _defaultInstance;
 
   /// Name of the invocation, e.g. "invocations/{id}".
@@ -283,34 +306,44 @@ class ListTestResultsResponse extends $pb.GeneratedMessage {
   factory ListTestResultsResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory ListTestResultsResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory ListTestResultsResponse.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListTestResultsResponse',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
-    ..pc<$2.TestResult>(1, _omitFieldNames ? '' : 'testResults', $pb.PbFieldType.PM, subBuilder: $2.TestResult.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ListTestResultsResponse',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
+    ..pc<$2.TestResult>(
+        1, _omitFieldNames ? '' : 'testResults', $pb.PbFieldType.PM,
+        subBuilder: $2.TestResult.create)
     ..aOS(2, _omitFieldNames ? '' : 'nextPageToken')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  ListTestResultsResponse clone() => ListTestResultsResponse()..mergeFromMessage(this);
+  ListTestResultsResponse clone() =>
+      ListTestResultsResponse()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  ListTestResultsResponse copyWith(void Function(ListTestResultsResponse) updates) =>
-      super.copyWith((message) => updates(message as ListTestResultsResponse)) as ListTestResultsResponse;
+  ListTestResultsResponse copyWith(
+          void Function(ListTestResultsResponse) updates) =>
+      super.copyWith((message) => updates(message as ListTestResultsResponse))
+          as ListTestResultsResponse;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static ListTestResultsResponse create() => ListTestResultsResponse._();
   ListTestResultsResponse createEmptyInstance() => create();
-  static $pb.PbList<ListTestResultsResponse> createRepeated() => $pb.PbList<ListTestResultsResponse>();
+  static $pb.PbList<ListTestResultsResponse> createRepeated() =>
+      $pb.PbList<ListTestResultsResponse>();
   @$core.pragma('dart2js:noInline')
-  static ListTestResultsResponse getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ListTestResultsResponse>(create);
+  static ListTestResultsResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ListTestResultsResponse>(create);
   static ListTestResultsResponse? _defaultInstance;
 
   /// The test results from the specified invocation.
@@ -349,33 +382,41 @@ class GetTestExonerationRequest extends $pb.GeneratedMessage {
   factory GetTestExonerationRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory GetTestExonerationRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory GetTestExonerationRequest.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetTestExonerationRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GetTestExonerationRequest',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  GetTestExonerationRequest clone() => GetTestExonerationRequest()..mergeFromMessage(this);
+  GetTestExonerationRequest clone() =>
+      GetTestExonerationRequest()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  GetTestExonerationRequest copyWith(void Function(GetTestExonerationRequest) updates) =>
-      super.copyWith((message) => updates(message as GetTestExonerationRequest)) as GetTestExonerationRequest;
+  GetTestExonerationRequest copyWith(
+          void Function(GetTestExonerationRequest) updates) =>
+      super.copyWith((message) => updates(message as GetTestExonerationRequest))
+          as GetTestExonerationRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static GetTestExonerationRequest create() => GetTestExonerationRequest._();
   GetTestExonerationRequest createEmptyInstance() => create();
-  static $pb.PbList<GetTestExonerationRequest> createRepeated() => $pb.PbList<GetTestExonerationRequest>();
+  static $pb.PbList<GetTestExonerationRequest> createRepeated() =>
+      $pb.PbList<GetTestExonerationRequest>();
   @$core.pragma('dart2js:noInline')
-  static GetTestExonerationRequest getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GetTestExonerationRequest>(create);
+  static GetTestExonerationRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<GetTestExonerationRequest>(create);
   static GetTestExonerationRequest? _defaultInstance;
 
   /// The name of the test exoneration to request, see TestExoneration.name.
@@ -419,8 +460,11 @@ class ListTestExonerationsRequest extends $pb.GeneratedMessage {
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListTestExonerationsRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ListTestExonerationsRequest',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'invocation')
     ..a<$core.int>(2, _omitFieldNames ? '' : 'pageSize', $pb.PbFieldType.O3)
     ..aOS(3, _omitFieldNames ? '' : 'pageToken')
@@ -429,22 +473,28 @@ class ListTestExonerationsRequest extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  ListTestExonerationsRequest clone() => ListTestExonerationsRequest()..mergeFromMessage(this);
+  ListTestExonerationsRequest clone() =>
+      ListTestExonerationsRequest()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  ListTestExonerationsRequest copyWith(void Function(ListTestExonerationsRequest) updates) =>
-      super.copyWith((message) => updates(message as ListTestExonerationsRequest)) as ListTestExonerationsRequest;
+  ListTestExonerationsRequest copyWith(
+          void Function(ListTestExonerationsRequest) updates) =>
+      super.copyWith(
+              (message) => updates(message as ListTestExonerationsRequest))
+          as ListTestExonerationsRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static ListTestExonerationsRequest create() => ListTestExonerationsRequest._();
+  static ListTestExonerationsRequest create() =>
+      ListTestExonerationsRequest._();
   ListTestExonerationsRequest createEmptyInstance() => create();
-  static $pb.PbList<ListTestExonerationsRequest> createRepeated() => $pb.PbList<ListTestExonerationsRequest>();
+  static $pb.PbList<ListTestExonerationsRequest> createRepeated() =>
+      $pb.PbList<ListTestExonerationsRequest>();
   @$core.pragma('dart2js:noInline')
-  static ListTestExonerationsRequest getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ListTestExonerationsRequest>(create);
+  static ListTestExonerationsRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ListTestExonerationsRequest>(create);
   static ListTestExonerationsRequest? _defaultInstance;
 
   /// Name of the invocation, e.g. "invocations/{id}".
@@ -518,9 +568,13 @@ class ListTestExonerationsResponse extends $pb.GeneratedMessage {
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListTestExonerationsResponse',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
-    ..pc<$2.TestExoneration>(1, _omitFieldNames ? '' : 'testExonerations', $pb.PbFieldType.PM,
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ListTestExonerationsResponse',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
+    ..pc<$2.TestExoneration>(
+        1, _omitFieldNames ? '' : 'testExonerations', $pb.PbFieldType.PM,
         subBuilder: $2.TestExoneration.create)
     ..aOS(2, _omitFieldNames ? '' : 'nextPageToken')
     ..hasRequiredFields = false;
@@ -528,22 +582,28 @@ class ListTestExonerationsResponse extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  ListTestExonerationsResponse clone() => ListTestExonerationsResponse()..mergeFromMessage(this);
+  ListTestExonerationsResponse clone() =>
+      ListTestExonerationsResponse()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  ListTestExonerationsResponse copyWith(void Function(ListTestExonerationsResponse) updates) =>
-      super.copyWith((message) => updates(message as ListTestExonerationsResponse)) as ListTestExonerationsResponse;
+  ListTestExonerationsResponse copyWith(
+          void Function(ListTestExonerationsResponse) updates) =>
+      super.copyWith(
+              (message) => updates(message as ListTestExonerationsResponse))
+          as ListTestExonerationsResponse;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static ListTestExonerationsResponse create() => ListTestExonerationsResponse._();
+  static ListTestExonerationsResponse create() =>
+      ListTestExonerationsResponse._();
   ListTestExonerationsResponse createEmptyInstance() => create();
-  static $pb.PbList<ListTestExonerationsResponse> createRepeated() => $pb.PbList<ListTestExonerationsResponse>();
+  static $pb.PbList<ListTestExonerationsResponse> createRepeated() =>
+      $pb.PbList<ListTestExonerationsResponse>();
   @$core.pragma('dart2js:noInline')
-  static ListTestExonerationsResponse getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ListTestExonerationsResponse>(create);
+  static ListTestExonerationsResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ListTestExonerationsResponse>(create);
   static ListTestExonerationsResponse? _defaultInstance;
 
   /// The test exonerations from the specified invocation.
@@ -598,37 +658,47 @@ class QueryTestResultsRequest extends $pb.GeneratedMessage {
   factory QueryTestResultsRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory QueryTestResultsRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory QueryTestResultsRequest.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'QueryTestResultsRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'QueryTestResultsRequest',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..pPS(1, _omitFieldNames ? '' : 'invocations')
-    ..aOM<$5.TestResultPredicate>(2, _omitFieldNames ? '' : 'predicate', subBuilder: $5.TestResultPredicate.create)
+    ..aOM<$5.TestResultPredicate>(2, _omitFieldNames ? '' : 'predicate',
+        subBuilder: $5.TestResultPredicate.create)
     ..a<$core.int>(4, _omitFieldNames ? '' : 'pageSize', $pb.PbFieldType.O3)
     ..aOS(5, _omitFieldNames ? '' : 'pageToken')
-    ..aOM<$4.FieldMask>(6, _omitFieldNames ? '' : 'readMask', subBuilder: $4.FieldMask.create)
+    ..aOM<$4.FieldMask>(6, _omitFieldNames ? '' : 'readMask',
+        subBuilder: $4.FieldMask.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  QueryTestResultsRequest clone() => QueryTestResultsRequest()..mergeFromMessage(this);
+  QueryTestResultsRequest clone() =>
+      QueryTestResultsRequest()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  QueryTestResultsRequest copyWith(void Function(QueryTestResultsRequest) updates) =>
-      super.copyWith((message) => updates(message as QueryTestResultsRequest)) as QueryTestResultsRequest;
+  QueryTestResultsRequest copyWith(
+          void Function(QueryTestResultsRequest) updates) =>
+      super.copyWith((message) => updates(message as QueryTestResultsRequest))
+          as QueryTestResultsRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static QueryTestResultsRequest create() => QueryTestResultsRequest._();
   QueryTestResultsRequest createEmptyInstance() => create();
-  static $pb.PbList<QueryTestResultsRequest> createRepeated() => $pb.PbList<QueryTestResultsRequest>();
+  static $pb.PbList<QueryTestResultsRequest> createRepeated() =>
+      $pb.PbList<QueryTestResultsRequest>();
   @$core.pragma('dart2js:noInline')
-  static QueryTestResultsRequest getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<QueryTestResultsRequest>(create);
+  static QueryTestResultsRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<QueryTestResultsRequest>(create);
   static QueryTestResultsRequest? _defaultInstance;
 
   ///  Retrieve test results included in these invocations, directly or indirectly
@@ -727,34 +797,44 @@ class QueryTestResultsResponse extends $pb.GeneratedMessage {
   factory QueryTestResultsResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory QueryTestResultsResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory QueryTestResultsResponse.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'QueryTestResultsResponse',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
-    ..pc<$2.TestResult>(1, _omitFieldNames ? '' : 'testResults', $pb.PbFieldType.PM, subBuilder: $2.TestResult.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'QueryTestResultsResponse',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
+    ..pc<$2.TestResult>(
+        1, _omitFieldNames ? '' : 'testResults', $pb.PbFieldType.PM,
+        subBuilder: $2.TestResult.create)
     ..aOS(2, _omitFieldNames ? '' : 'nextPageToken')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  QueryTestResultsResponse clone() => QueryTestResultsResponse()..mergeFromMessage(this);
+  QueryTestResultsResponse clone() =>
+      QueryTestResultsResponse()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  QueryTestResultsResponse copyWith(void Function(QueryTestResultsResponse) updates) =>
-      super.copyWith((message) => updates(message as QueryTestResultsResponse)) as QueryTestResultsResponse;
+  QueryTestResultsResponse copyWith(
+          void Function(QueryTestResultsResponse) updates) =>
+      super.copyWith((message) => updates(message as QueryTestResultsResponse))
+          as QueryTestResultsResponse;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static QueryTestResultsResponse create() => QueryTestResultsResponse._();
   QueryTestResultsResponse createEmptyInstance() => create();
-  static $pb.PbList<QueryTestResultsResponse> createRepeated() => $pb.PbList<QueryTestResultsResponse>();
+  static $pb.PbList<QueryTestResultsResponse> createRepeated() =>
+      $pb.PbList<QueryTestResultsResponse>();
   @$core.pragma('dart2js:noInline')
-  static QueryTestResultsResponse getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<QueryTestResultsResponse>(create);
+  static QueryTestResultsResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<QueryTestResultsResponse>(create);
   static QueryTestResultsResponse? _defaultInstance;
 
   /// Matched test results.
@@ -809,8 +889,11 @@ class QueryTestExonerationsRequest extends $pb.GeneratedMessage {
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'QueryTestExonerationsRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'QueryTestExonerationsRequest',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..pPS(1, _omitFieldNames ? '' : 'invocations')
     ..aOM<$5.TestExonerationPredicate>(2, _omitFieldNames ? '' : 'predicate',
         subBuilder: $5.TestExonerationPredicate.create)
@@ -821,22 +904,28 @@ class QueryTestExonerationsRequest extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  QueryTestExonerationsRequest clone() => QueryTestExonerationsRequest()..mergeFromMessage(this);
+  QueryTestExonerationsRequest clone() =>
+      QueryTestExonerationsRequest()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  QueryTestExonerationsRequest copyWith(void Function(QueryTestExonerationsRequest) updates) =>
-      super.copyWith((message) => updates(message as QueryTestExonerationsRequest)) as QueryTestExonerationsRequest;
+  QueryTestExonerationsRequest copyWith(
+          void Function(QueryTestExonerationsRequest) updates) =>
+      super.copyWith(
+              (message) => updates(message as QueryTestExonerationsRequest))
+          as QueryTestExonerationsRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static QueryTestExonerationsRequest create() => QueryTestExonerationsRequest._();
+  static QueryTestExonerationsRequest create() =>
+      QueryTestExonerationsRequest._();
   QueryTestExonerationsRequest createEmptyInstance() => create();
-  static $pb.PbList<QueryTestExonerationsRequest> createRepeated() => $pb.PbList<QueryTestExonerationsRequest>();
+  static $pb.PbList<QueryTestExonerationsRequest> createRepeated() =>
+      $pb.PbList<QueryTestExonerationsRequest>();
   @$core.pragma('dart2js:noInline')
-  static QueryTestExonerationsRequest getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<QueryTestExonerationsRequest>(create);
+  static QueryTestExonerationsRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<QueryTestExonerationsRequest>(create);
   static QueryTestExonerationsRequest? _defaultInstance;
 
   ///  Retrieve test exonerations included in these invocations, directly or
@@ -920,9 +1009,13 @@ class QueryTestExonerationsResponse extends $pb.GeneratedMessage {
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'QueryTestExonerationsResponse',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
-    ..pc<$2.TestExoneration>(1, _omitFieldNames ? '' : 'testExonerations', $pb.PbFieldType.PM,
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'QueryTestExonerationsResponse',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
+    ..pc<$2.TestExoneration>(
+        1, _omitFieldNames ? '' : 'testExonerations', $pb.PbFieldType.PM,
         subBuilder: $2.TestExoneration.create)
     ..aOS(2, _omitFieldNames ? '' : 'nextPageToken')
     ..hasRequiredFields = false;
@@ -930,22 +1023,28 @@ class QueryTestExonerationsResponse extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  QueryTestExonerationsResponse clone() => QueryTestExonerationsResponse()..mergeFromMessage(this);
+  QueryTestExonerationsResponse clone() =>
+      QueryTestExonerationsResponse()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  QueryTestExonerationsResponse copyWith(void Function(QueryTestExonerationsResponse) updates) =>
-      super.copyWith((message) => updates(message as QueryTestExonerationsResponse)) as QueryTestExonerationsResponse;
+  QueryTestExonerationsResponse copyWith(
+          void Function(QueryTestExonerationsResponse) updates) =>
+      super.copyWith(
+              (message) => updates(message as QueryTestExonerationsResponse))
+          as QueryTestExonerationsResponse;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static QueryTestExonerationsResponse create() => QueryTestExonerationsResponse._();
+  static QueryTestExonerationsResponse create() =>
+      QueryTestExonerationsResponse._();
   QueryTestExonerationsResponse createEmptyInstance() => create();
-  static $pb.PbList<QueryTestExonerationsResponse> createRepeated() => $pb.PbList<QueryTestExonerationsResponse>();
+  static $pb.PbList<QueryTestExonerationsResponse> createRepeated() =>
+      $pb.PbList<QueryTestExonerationsResponse>();
   @$core.pragma('dart2js:noInline')
-  static QueryTestExonerationsResponse getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<QueryTestExonerationsResponse>(create);
+  static QueryTestExonerationsResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<QueryTestExonerationsResponse>(create);
   static QueryTestExonerationsResponse? _defaultInstance;
 
   /// The test exonerations matching the predicate.
@@ -988,32 +1087,40 @@ class QueryTestResultStatisticsRequest extends $pb.GeneratedMessage {
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'QueryTestResultStatisticsRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'QueryTestResultStatisticsRequest',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..pPS(1, _omitFieldNames ? '' : 'invocations')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  QueryTestResultStatisticsRequest clone() => QueryTestResultStatisticsRequest()..mergeFromMessage(this);
+  QueryTestResultStatisticsRequest clone() =>
+      QueryTestResultStatisticsRequest()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  QueryTestResultStatisticsRequest copyWith(void Function(QueryTestResultStatisticsRequest) updates) =>
-      super.copyWith((message) => updates(message as QueryTestResultStatisticsRequest))
+  QueryTestResultStatisticsRequest copyWith(
+          void Function(QueryTestResultStatisticsRequest) updates) =>
+      super.copyWith(
+              (message) => updates(message as QueryTestResultStatisticsRequest))
           as QueryTestResultStatisticsRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static QueryTestResultStatisticsRequest create() => QueryTestResultStatisticsRequest._();
+  static QueryTestResultStatisticsRequest create() =>
+      QueryTestResultStatisticsRequest._();
   QueryTestResultStatisticsRequest createEmptyInstance() => create();
   static $pb.PbList<QueryTestResultStatisticsRequest> createRepeated() =>
       $pb.PbList<QueryTestResultStatisticsRequest>();
   @$core.pragma('dart2js:noInline')
-  static QueryTestResultStatisticsRequest getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<QueryTestResultStatisticsRequest>(create);
+  static QueryTestResultStatisticsRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<QueryTestResultStatisticsRequest>(
+          create);
   static QueryTestResultStatisticsRequest? _defaultInstance;
 
   ///  Retrieve statistics of test result belong to these invocations,
@@ -1044,32 +1151,40 @@ class QueryTestResultStatisticsResponse extends $pb.GeneratedMessage {
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'QueryTestResultStatisticsResponse',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'QueryTestResultStatisticsResponse',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aInt64(1, _omitFieldNames ? '' : 'totalTestResults')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  QueryTestResultStatisticsResponse clone() => QueryTestResultStatisticsResponse()..mergeFromMessage(this);
+  QueryTestResultStatisticsResponse clone() =>
+      QueryTestResultStatisticsResponse()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  QueryTestResultStatisticsResponse copyWith(void Function(QueryTestResultStatisticsResponse) updates) =>
-      super.copyWith((message) => updates(message as QueryTestResultStatisticsResponse))
+  QueryTestResultStatisticsResponse copyWith(
+          void Function(QueryTestResultStatisticsResponse) updates) =>
+      super.copyWith((message) =>
+              updates(message as QueryTestResultStatisticsResponse))
           as QueryTestResultStatisticsResponse;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static QueryTestResultStatisticsResponse create() => QueryTestResultStatisticsResponse._();
+  static QueryTestResultStatisticsResponse create() =>
+      QueryTestResultStatisticsResponse._();
   QueryTestResultStatisticsResponse createEmptyInstance() => create();
   static $pb.PbList<QueryTestResultStatisticsResponse> createRepeated() =>
       $pb.PbList<QueryTestResultStatisticsResponse>();
   @$core.pragma('dart2js:noInline')
-  static QueryTestResultStatisticsResponse getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<QueryTestResultStatisticsResponse>(create);
+  static QueryTestResultStatisticsResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<QueryTestResultStatisticsResponse>(
+          create);
   static QueryTestResultStatisticsResponse? _defaultInstance;
 
   /// Total number of test results.
@@ -1101,11 +1216,15 @@ class GetArtifactRequest extends $pb.GeneratedMessage {
   factory GetArtifactRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory GetArtifactRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory GetArtifactRequest.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetArtifactRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GetArtifactRequest',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
     ..hasRequiredFields = false;
 
@@ -1117,17 +1236,19 @@ class GetArtifactRequest extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   GetArtifactRequest copyWith(void Function(GetArtifactRequest) updates) =>
-      super.copyWith((message) => updates(message as GetArtifactRequest)) as GetArtifactRequest;
+      super.copyWith((message) => updates(message as GetArtifactRequest))
+          as GetArtifactRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static GetArtifactRequest create() => GetArtifactRequest._();
   GetArtifactRequest createEmptyInstance() => create();
-  static $pb.PbList<GetArtifactRequest> createRepeated() => $pb.PbList<GetArtifactRequest>();
+  static $pb.PbList<GetArtifactRequest> createRepeated() =>
+      $pb.PbList<GetArtifactRequest>();
   @$core.pragma('dart2js:noInline')
-  static GetArtifactRequest getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GetArtifactRequest>(create);
+  static GetArtifactRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<GetArtifactRequest>(create);
   static GetArtifactRequest? _defaultInstance;
 
   /// The name of the artifact to request, see Artifact.name.
@@ -1167,11 +1288,15 @@ class ListArtifactsRequest extends $pb.GeneratedMessage {
   factory ListArtifactsRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory ListArtifactsRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory ListArtifactsRequest.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListArtifactsRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ListArtifactsRequest',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'parent')
     ..a<$core.int>(2, _omitFieldNames ? '' : 'pageSize', $pb.PbFieldType.O3)
     ..aOS(3, _omitFieldNames ? '' : 'pageToken')
@@ -1180,22 +1305,25 @@ class ListArtifactsRequest extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  ListArtifactsRequest clone() => ListArtifactsRequest()..mergeFromMessage(this);
+  ListArtifactsRequest clone() =>
+      ListArtifactsRequest()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   ListArtifactsRequest copyWith(void Function(ListArtifactsRequest) updates) =>
-      super.copyWith((message) => updates(message as ListArtifactsRequest)) as ListArtifactsRequest;
+      super.copyWith((message) => updates(message as ListArtifactsRequest))
+          as ListArtifactsRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static ListArtifactsRequest create() => ListArtifactsRequest._();
   ListArtifactsRequest createEmptyInstance() => create();
-  static $pb.PbList<ListArtifactsRequest> createRepeated() => $pb.PbList<ListArtifactsRequest>();
+  static $pb.PbList<ListArtifactsRequest> createRepeated() =>
+      $pb.PbList<ListArtifactsRequest>();
   @$core.pragma('dart2js:noInline')
-  static ListArtifactsRequest getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ListArtifactsRequest>(create);
+  static ListArtifactsRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ListArtifactsRequest>(create);
   static ListArtifactsRequest? _defaultInstance;
 
   /// Name of the parent, e.g. an invocation (see Invocation.name) or
@@ -1266,34 +1394,43 @@ class ListArtifactsResponse extends $pb.GeneratedMessage {
   factory ListArtifactsResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory ListArtifactsResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory ListArtifactsResponse.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ListArtifactsResponse',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
-    ..pc<$3.Artifact>(1, _omitFieldNames ? '' : 'artifacts', $pb.PbFieldType.PM, subBuilder: $3.Artifact.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ListArtifactsResponse',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
+    ..pc<$3.Artifact>(1, _omitFieldNames ? '' : 'artifacts', $pb.PbFieldType.PM,
+        subBuilder: $3.Artifact.create)
     ..aOS(2, _omitFieldNames ? '' : 'nextPageToken')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  ListArtifactsResponse clone() => ListArtifactsResponse()..mergeFromMessage(this);
+  ListArtifactsResponse clone() =>
+      ListArtifactsResponse()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  ListArtifactsResponse copyWith(void Function(ListArtifactsResponse) updates) =>
-      super.copyWith((message) => updates(message as ListArtifactsResponse)) as ListArtifactsResponse;
+  ListArtifactsResponse copyWith(
+          void Function(ListArtifactsResponse) updates) =>
+      super.copyWith((message) => updates(message as ListArtifactsResponse))
+          as ListArtifactsResponse;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static ListArtifactsResponse create() => ListArtifactsResponse._();
   ListArtifactsResponse createEmptyInstance() => create();
-  static $pb.PbList<ListArtifactsResponse> createRepeated() => $pb.PbList<ListArtifactsResponse>();
+  static $pb.PbList<ListArtifactsResponse> createRepeated() =>
+      $pb.PbList<ListArtifactsResponse>();
   @$core.pragma('dart2js:noInline')
-  static ListArtifactsResponse getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ListArtifactsResponse>(create);
+  static ListArtifactsResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ListArtifactsResponse>(create);
   static ListArtifactsResponse? _defaultInstance;
 
   /// The artifacts from the specified parent.
@@ -1344,13 +1481,18 @@ class QueryArtifactsRequest extends $pb.GeneratedMessage {
   factory QueryArtifactsRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory QueryArtifactsRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory QueryArtifactsRequest.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'QueryArtifactsRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'QueryArtifactsRequest',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..pPS(1, _omitFieldNames ? '' : 'invocations')
-    ..aOM<$5.ArtifactPredicate>(2, _omitFieldNames ? '' : 'predicate', subBuilder: $5.ArtifactPredicate.create)
+    ..aOM<$5.ArtifactPredicate>(2, _omitFieldNames ? '' : 'predicate',
+        subBuilder: $5.ArtifactPredicate.create)
     ..a<$core.int>(4, _omitFieldNames ? '' : 'pageSize', $pb.PbFieldType.O3)
     ..aOS(5, _omitFieldNames ? '' : 'pageToken')
     ..hasRequiredFields = false;
@@ -1358,22 +1500,26 @@ class QueryArtifactsRequest extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  QueryArtifactsRequest clone() => QueryArtifactsRequest()..mergeFromMessage(this);
+  QueryArtifactsRequest clone() =>
+      QueryArtifactsRequest()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  QueryArtifactsRequest copyWith(void Function(QueryArtifactsRequest) updates) =>
-      super.copyWith((message) => updates(message as QueryArtifactsRequest)) as QueryArtifactsRequest;
+  QueryArtifactsRequest copyWith(
+          void Function(QueryArtifactsRequest) updates) =>
+      super.copyWith((message) => updates(message as QueryArtifactsRequest))
+          as QueryArtifactsRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static QueryArtifactsRequest create() => QueryArtifactsRequest._();
   QueryArtifactsRequest createEmptyInstance() => create();
-  static $pb.PbList<QueryArtifactsRequest> createRepeated() => $pb.PbList<QueryArtifactsRequest>();
+  static $pb.PbList<QueryArtifactsRequest> createRepeated() =>
+      $pb.PbList<QueryArtifactsRequest>();
   @$core.pragma('dart2js:noInline')
-  static QueryArtifactsRequest getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<QueryArtifactsRequest>(create);
+  static QueryArtifactsRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<QueryArtifactsRequest>(create);
   static QueryArtifactsRequest? _defaultInstance;
 
   ///  Retrieve artifacts included in these invocations, directly or indirectly
@@ -1453,34 +1599,43 @@ class QueryArtifactsResponse extends $pb.GeneratedMessage {
   factory QueryArtifactsResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory QueryArtifactsResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory QueryArtifactsResponse.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'QueryArtifactsResponse',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
-    ..pc<$3.Artifact>(1, _omitFieldNames ? '' : 'artifacts', $pb.PbFieldType.PM, subBuilder: $3.Artifact.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'QueryArtifactsResponse',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
+    ..pc<$3.Artifact>(1, _omitFieldNames ? '' : 'artifacts', $pb.PbFieldType.PM,
+        subBuilder: $3.Artifact.create)
     ..aOS(2, _omitFieldNames ? '' : 'nextPageToken')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  QueryArtifactsResponse clone() => QueryArtifactsResponse()..mergeFromMessage(this);
+  QueryArtifactsResponse clone() =>
+      QueryArtifactsResponse()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  QueryArtifactsResponse copyWith(void Function(QueryArtifactsResponse) updates) =>
-      super.copyWith((message) => updates(message as QueryArtifactsResponse)) as QueryArtifactsResponse;
+  QueryArtifactsResponse copyWith(
+          void Function(QueryArtifactsResponse) updates) =>
+      super.copyWith((message) => updates(message as QueryArtifactsResponse))
+          as QueryArtifactsResponse;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static QueryArtifactsResponse create() => QueryArtifactsResponse._();
   QueryArtifactsResponse createEmptyInstance() => create();
-  static $pb.PbList<QueryArtifactsResponse> createRepeated() => $pb.PbList<QueryArtifactsResponse>();
+  static $pb.PbList<QueryArtifactsResponse> createRepeated() =>
+      $pb.PbList<QueryArtifactsResponse>();
   @$core.pragma('dart2js:noInline')
-  static QueryArtifactsResponse getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<QueryArtifactsResponse>(create);
+  static QueryArtifactsResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<QueryArtifactsResponse>(create);
   static QueryArtifactsResponse? _defaultInstance;
 
   /// Matched artifacts.
@@ -1541,38 +1696,48 @@ class QueryTestVariantsRequest extends $pb.GeneratedMessage {
   factory QueryTestVariantsRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory QueryTestVariantsRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory QueryTestVariantsRequest.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'QueryTestVariantsRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'QueryTestVariantsRequest',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..pPS(2, _omitFieldNames ? '' : 'invocations')
     ..a<$core.int>(4, _omitFieldNames ? '' : 'pageSize', $pb.PbFieldType.O3)
     ..aOS(5, _omitFieldNames ? '' : 'pageToken')
-    ..aOM<$6.TestVariantPredicate>(6, _omitFieldNames ? '' : 'predicate', subBuilder: $6.TestVariantPredicate.create)
-    ..aOM<$4.FieldMask>(7, _omitFieldNames ? '' : 'readMask', subBuilder: $4.FieldMask.create)
+    ..aOM<$6.TestVariantPredicate>(6, _omitFieldNames ? '' : 'predicate',
+        subBuilder: $6.TestVariantPredicate.create)
+    ..aOM<$4.FieldMask>(7, _omitFieldNames ? '' : 'readMask',
+        subBuilder: $4.FieldMask.create)
     ..a<$core.int>(8, _omitFieldNames ? '' : 'resultLimit', $pb.PbFieldType.O3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  QueryTestVariantsRequest clone() => QueryTestVariantsRequest()..mergeFromMessage(this);
+  QueryTestVariantsRequest clone() =>
+      QueryTestVariantsRequest()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  QueryTestVariantsRequest copyWith(void Function(QueryTestVariantsRequest) updates) =>
-      super.copyWith((message) => updates(message as QueryTestVariantsRequest)) as QueryTestVariantsRequest;
+  QueryTestVariantsRequest copyWith(
+          void Function(QueryTestVariantsRequest) updates) =>
+      super.copyWith((message) => updates(message as QueryTestVariantsRequest))
+          as QueryTestVariantsRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static QueryTestVariantsRequest create() => QueryTestVariantsRequest._();
   QueryTestVariantsRequest createEmptyInstance() => create();
-  static $pb.PbList<QueryTestVariantsRequest> createRepeated() => $pb.PbList<QueryTestVariantsRequest>();
+  static $pb.PbList<QueryTestVariantsRequest> createRepeated() =>
+      $pb.PbList<QueryTestVariantsRequest>();
   @$core.pragma('dart2js:noInline')
-  static QueryTestVariantsRequest getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<QueryTestVariantsRequest>(create);
+  static QueryTestVariantsRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<QueryTestVariantsRequest>(create);
   static QueryTestVariantsRequest? _defaultInstance;
 
   ///  Retrieve test variants included in these invocations, directly or indirectly
@@ -1703,12 +1868,17 @@ class QueryTestVariantsResponse extends $pb.GeneratedMessage {
   factory QueryTestVariantsResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory QueryTestVariantsResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory QueryTestVariantsResponse.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'QueryTestVariantsResponse',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
-    ..pc<$6.TestVariant>(1, _omitFieldNames ? '' : 'testVariants', $pb.PbFieldType.PM,
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'QueryTestVariantsResponse',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
+    ..pc<$6.TestVariant>(
+        1, _omitFieldNames ? '' : 'testVariants', $pb.PbFieldType.PM,
         subBuilder: $6.TestVariant.create)
     ..aOS(2, _omitFieldNames ? '' : 'nextPageToken')
     ..m<$core.String, $1.Sources>(3, _omitFieldNames ? '' : 'sources',
@@ -1723,22 +1893,26 @@ class QueryTestVariantsResponse extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  QueryTestVariantsResponse clone() => QueryTestVariantsResponse()..mergeFromMessage(this);
+  QueryTestVariantsResponse clone() =>
+      QueryTestVariantsResponse()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  QueryTestVariantsResponse copyWith(void Function(QueryTestVariantsResponse) updates) =>
-      super.copyWith((message) => updates(message as QueryTestVariantsResponse)) as QueryTestVariantsResponse;
+  QueryTestVariantsResponse copyWith(
+          void Function(QueryTestVariantsResponse) updates) =>
+      super.copyWith((message) => updates(message as QueryTestVariantsResponse))
+          as QueryTestVariantsResponse;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static QueryTestVariantsResponse create() => QueryTestVariantsResponse._();
   QueryTestVariantsResponse createEmptyInstance() => create();
-  static $pb.PbList<QueryTestVariantsResponse> createRepeated() => $pb.PbList<QueryTestVariantsResponse>();
+  static $pb.PbList<QueryTestVariantsResponse> createRepeated() =>
+      $pb.PbList<QueryTestVariantsResponse>();
   @$core.pragma('dart2js:noInline')
-  static QueryTestVariantsResponse getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<QueryTestVariantsResponse>(create);
+  static QueryTestVariantsResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<QueryTestVariantsResponse>(create);
   static QueryTestVariantsResponse? _defaultInstance;
 
   /// Matched test variants.
@@ -1772,7 +1946,8 @@ class QueryTestVariantsResponse extends $pb.GeneratedMessage {
   $core.Map<$core.String, $1.Sources> get sources => $_getMap(2);
 }
 
-class BatchGetTestVariantsRequest_TestVariantIdentifier extends $pb.GeneratedMessage {
+class BatchGetTestVariantsRequest_TestVariantIdentifier
+    extends $pb.GeneratedMessage {
   factory BatchGetTestVariantsRequest_TestVariantIdentifier({
     $core.String? testId,
     $core.String? variantHash,
@@ -1787,16 +1962,21 @@ class BatchGetTestVariantsRequest_TestVariantIdentifier extends $pb.GeneratedMes
     return $result;
   }
   BatchGetTestVariantsRequest_TestVariantIdentifier._() : super();
-  factory BatchGetTestVariantsRequest_TestVariantIdentifier.fromBuffer($core.List<$core.int> i,
+  factory BatchGetTestVariantsRequest_TestVariantIdentifier.fromBuffer(
+          $core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory BatchGetTestVariantsRequest_TestVariantIdentifier.fromJson($core.String i,
+  factory BatchGetTestVariantsRequest_TestVariantIdentifier.fromJson(
+          $core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'BatchGetTestVariantsRequest.TestVariantIdentifier',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      _omitMessageNames
+          ? ''
+          : 'BatchGetTestVariantsRequest.TestVariantIdentifier',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
       createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'testId')
     ..aOS(2, _omitFieldNames ? '' : 'variantHash')
@@ -1806,13 +1986,16 @@ class BatchGetTestVariantsRequest_TestVariantIdentifier extends $pb.GeneratedMes
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
   BatchGetTestVariantsRequest_TestVariantIdentifier clone() =>
-      BatchGetTestVariantsRequest_TestVariantIdentifier()..mergeFromMessage(this);
+      BatchGetTestVariantsRequest_TestVariantIdentifier()
+        ..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   BatchGetTestVariantsRequest_TestVariantIdentifier copyWith(
-          void Function(BatchGetTestVariantsRequest_TestVariantIdentifier) updates) =>
-      super.copyWith((message) => updates(message as BatchGetTestVariantsRequest_TestVariantIdentifier))
+          void Function(BatchGetTestVariantsRequest_TestVariantIdentifier)
+              updates) =>
+      super.copyWith((message) => updates(
+              message as BatchGetTestVariantsRequest_TestVariantIdentifier))
           as BatchGetTestVariantsRequest_TestVariantIdentifier;
 
   $pb.BuilderInfo get info_ => _i;
@@ -1820,12 +2003,15 @@ class BatchGetTestVariantsRequest_TestVariantIdentifier extends $pb.GeneratedMes
   @$core.pragma('dart2js:noInline')
   static BatchGetTestVariantsRequest_TestVariantIdentifier create() =>
       BatchGetTestVariantsRequest_TestVariantIdentifier._();
-  BatchGetTestVariantsRequest_TestVariantIdentifier createEmptyInstance() => create();
-  static $pb.PbList<BatchGetTestVariantsRequest_TestVariantIdentifier> createRepeated() =>
-      $pb.PbList<BatchGetTestVariantsRequest_TestVariantIdentifier>();
+  BatchGetTestVariantsRequest_TestVariantIdentifier createEmptyInstance() =>
+      create();
+  static $pb.PbList<BatchGetTestVariantsRequest_TestVariantIdentifier>
+      createRepeated() =>
+          $pb.PbList<BatchGetTestVariantsRequest_TestVariantIdentifier>();
   @$core.pragma('dart2js:noInline')
   static BatchGetTestVariantsRequest_TestVariantIdentifier getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BatchGetTestVariantsRequest_TestVariantIdentifier>(create);
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<
+          BatchGetTestVariantsRequest_TestVariantIdentifier>(create);
   static BatchGetTestVariantsRequest_TestVariantIdentifier? _defaultInstance;
 
   /// The unique identifier of the test in a LUCI project. See the comment on
@@ -1861,7 +2047,8 @@ class BatchGetTestVariantsRequest_TestVariantIdentifier extends $pb.GeneratedMes
 class BatchGetTestVariantsRequest extends $pb.GeneratedMessage {
   factory BatchGetTestVariantsRequest({
     $core.String? invocation,
-    $core.Iterable<BatchGetTestVariantsRequest_TestVariantIdentifier>? testVariants,
+    $core.Iterable<BatchGetTestVariantsRequest_TestVariantIdentifier>?
+        testVariants,
     $core.int? resultLimit,
   }) {
     final $result = create();
@@ -1884,8 +2071,11 @@ class BatchGetTestVariantsRequest extends $pb.GeneratedMessage {
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BatchGetTestVariantsRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BatchGetTestVariantsRequest',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'invocation')
     ..pc<BatchGetTestVariantsRequest_TestVariantIdentifier>(
         2, _omitFieldNames ? '' : 'testVariants', $pb.PbFieldType.PM,
@@ -1896,22 +2086,28 @@ class BatchGetTestVariantsRequest extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  BatchGetTestVariantsRequest clone() => BatchGetTestVariantsRequest()..mergeFromMessage(this);
+  BatchGetTestVariantsRequest clone() =>
+      BatchGetTestVariantsRequest()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  BatchGetTestVariantsRequest copyWith(void Function(BatchGetTestVariantsRequest) updates) =>
-      super.copyWith((message) => updates(message as BatchGetTestVariantsRequest)) as BatchGetTestVariantsRequest;
+  BatchGetTestVariantsRequest copyWith(
+          void Function(BatchGetTestVariantsRequest) updates) =>
+      super.copyWith(
+              (message) => updates(message as BatchGetTestVariantsRequest))
+          as BatchGetTestVariantsRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static BatchGetTestVariantsRequest create() => BatchGetTestVariantsRequest._();
+  static BatchGetTestVariantsRequest create() =>
+      BatchGetTestVariantsRequest._();
   BatchGetTestVariantsRequest createEmptyInstance() => create();
-  static $pb.PbList<BatchGetTestVariantsRequest> createRepeated() => $pb.PbList<BatchGetTestVariantsRequest>();
+  static $pb.PbList<BatchGetTestVariantsRequest> createRepeated() =>
+      $pb.PbList<BatchGetTestVariantsRequest>();
   @$core.pragma('dart2js:noInline')
-  static BatchGetTestVariantsRequest getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BatchGetTestVariantsRequest>(create);
+  static BatchGetTestVariantsRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BatchGetTestVariantsRequest>(create);
   static BatchGetTestVariantsRequest? _defaultInstance;
 
   /// Name of the invocation that the test variants are in.
@@ -1931,7 +2127,8 @@ class BatchGetTestVariantsRequest extends $pb.GeneratedMessage {
   /// variants. Size is limited to 500. Any request for more than 500 variants
   /// will return an error.
   @$pb.TagNumber(2)
-  $core.List<BatchGetTestVariantsRequest_TestVariantIdentifier> get testVariants => $_getList(1);
+  $core.List<BatchGetTestVariantsRequest_TestVariantIdentifier>
+      get testVariants => $_getList(1);
 
   ///  The maximum number of test results to be included in a test variant.
   ///
@@ -1975,9 +2172,13 @@ class BatchGetTestVariantsResponse extends $pb.GeneratedMessage {
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BatchGetTestVariantsResponse',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
-    ..pc<$6.TestVariant>(1, _omitFieldNames ? '' : 'testVariants', $pb.PbFieldType.PM,
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BatchGetTestVariantsResponse',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
+    ..pc<$6.TestVariant>(
+        1, _omitFieldNames ? '' : 'testVariants', $pb.PbFieldType.PM,
         subBuilder: $6.TestVariant.create)
     ..m<$core.String, $1.Sources>(2, _omitFieldNames ? '' : 'sources',
         entryClassName: 'BatchGetTestVariantsResponse.SourcesEntry',
@@ -1991,22 +2192,28 @@ class BatchGetTestVariantsResponse extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  BatchGetTestVariantsResponse clone() => BatchGetTestVariantsResponse()..mergeFromMessage(this);
+  BatchGetTestVariantsResponse clone() =>
+      BatchGetTestVariantsResponse()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  BatchGetTestVariantsResponse copyWith(void Function(BatchGetTestVariantsResponse) updates) =>
-      super.copyWith((message) => updates(message as BatchGetTestVariantsResponse)) as BatchGetTestVariantsResponse;
+  BatchGetTestVariantsResponse copyWith(
+          void Function(BatchGetTestVariantsResponse) updates) =>
+      super.copyWith(
+              (message) => updates(message as BatchGetTestVariantsResponse))
+          as BatchGetTestVariantsResponse;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static BatchGetTestVariantsResponse create() => BatchGetTestVariantsResponse._();
+  static BatchGetTestVariantsResponse create() =>
+      BatchGetTestVariantsResponse._();
   BatchGetTestVariantsResponse createEmptyInstance() => create();
-  static $pb.PbList<BatchGetTestVariantsResponse> createRepeated() => $pb.PbList<BatchGetTestVariantsResponse>();
+  static $pb.PbList<BatchGetTestVariantsResponse> createRepeated() =>
+      $pb.PbList<BatchGetTestVariantsResponse>();
   @$core.pragma('dart2js:noInline')
-  static BatchGetTestVariantsResponse getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BatchGetTestVariantsResponse>(create);
+  static BatchGetTestVariantsResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BatchGetTestVariantsResponse>(create);
   static BatchGetTestVariantsResponse? _defaultInstance;
 
   /// Test variants matching the requests. Any variants that weren't found are
@@ -2053,13 +2260,18 @@ class QueryTestMetadataRequest extends $pb.GeneratedMessage {
   factory QueryTestMetadataRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory QueryTestMetadataRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory QueryTestMetadataRequest.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'QueryTestMetadataRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'QueryTestMetadataRequest',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'project')
-    ..aOM<$5.TestMetadataPredicate>(2, _omitFieldNames ? '' : 'predicate', subBuilder: $5.TestMetadataPredicate.create)
+    ..aOM<$5.TestMetadataPredicate>(2, _omitFieldNames ? '' : 'predicate',
+        subBuilder: $5.TestMetadataPredicate.create)
     ..a<$core.int>(3, _omitFieldNames ? '' : 'pageSize', $pb.PbFieldType.O3)
     ..aOS(4, _omitFieldNames ? '' : 'pageToken')
     ..hasRequiredFields = false;
@@ -2067,22 +2279,26 @@ class QueryTestMetadataRequest extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  QueryTestMetadataRequest clone() => QueryTestMetadataRequest()..mergeFromMessage(this);
+  QueryTestMetadataRequest clone() =>
+      QueryTestMetadataRequest()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  QueryTestMetadataRequest copyWith(void Function(QueryTestMetadataRequest) updates) =>
-      super.copyWith((message) => updates(message as QueryTestMetadataRequest)) as QueryTestMetadataRequest;
+  QueryTestMetadataRequest copyWith(
+          void Function(QueryTestMetadataRequest) updates) =>
+      super.copyWith((message) => updates(message as QueryTestMetadataRequest))
+          as QueryTestMetadataRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static QueryTestMetadataRequest create() => QueryTestMetadataRequest._();
   QueryTestMetadataRequest createEmptyInstance() => create();
-  static $pb.PbList<QueryTestMetadataRequest> createRepeated() => $pb.PbList<QueryTestMetadataRequest>();
+  static $pb.PbList<QueryTestMetadataRequest> createRepeated() =>
+      $pb.PbList<QueryTestMetadataRequest>();
   @$core.pragma('dart2js:noInline')
-  static QueryTestMetadataRequest getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<QueryTestMetadataRequest>(create);
+  static QueryTestMetadataRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<QueryTestMetadataRequest>(create);
   static QueryTestMetadataRequest? _defaultInstance;
 
   /// The LUCI Project to query.
@@ -2167,12 +2383,17 @@ class QueryTestMetadataResponse extends $pb.GeneratedMessage {
   factory QueryTestMetadataResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory QueryTestMetadataResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory QueryTestMetadataResponse.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'QueryTestMetadataResponse',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
-    ..pc<$7.TestMetadataDetail>(1, _omitFieldNames ? '' : 'testMetadata', $pb.PbFieldType.PM,
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'QueryTestMetadataResponse',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
+    ..pc<$7.TestMetadataDetail>(
+        1, _omitFieldNames ? '' : 'testMetadata', $pb.PbFieldType.PM,
         protoName: 'testMetadata', subBuilder: $7.TestMetadataDetail.create)
     ..aOS(2, _omitFieldNames ? '' : 'nextPageToken')
     ..hasRequiredFields = false;
@@ -2180,22 +2401,26 @@ class QueryTestMetadataResponse extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  QueryTestMetadataResponse clone() => QueryTestMetadataResponse()..mergeFromMessage(this);
+  QueryTestMetadataResponse clone() =>
+      QueryTestMetadataResponse()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  QueryTestMetadataResponse copyWith(void Function(QueryTestMetadataResponse) updates) =>
-      super.copyWith((message) => updates(message as QueryTestMetadataResponse)) as QueryTestMetadataResponse;
+  QueryTestMetadataResponse copyWith(
+          void Function(QueryTestMetadataResponse) updates) =>
+      super.copyWith((message) => updates(message as QueryTestMetadataResponse))
+          as QueryTestMetadataResponse;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static QueryTestMetadataResponse create() => QueryTestMetadataResponse._();
   QueryTestMetadataResponse createEmptyInstance() => create();
-  static $pb.PbList<QueryTestMetadataResponse> createRepeated() => $pb.PbList<QueryTestMetadataResponse>();
+  static $pb.PbList<QueryTestMetadataResponse> createRepeated() =>
+      $pb.PbList<QueryTestMetadataResponse>();
   @$core.pragma('dart2js:noInline')
-  static QueryTestMetadataResponse getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<QueryTestMetadataResponse>(create);
+  static QueryTestMetadataResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<QueryTestMetadataResponse>(create);
   static QueryTestMetadataResponse? _defaultInstance;
 
   /// The matched testMetadata.
@@ -2246,8 +2471,11 @@ class QueryNewTestVariantsRequest extends $pb.GeneratedMessage {
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'QueryNewTestVariantsRequest',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'QueryNewTestVariantsRequest',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'invocation')
     ..aOS(2, _omitFieldNames ? '' : 'baseline')
     ..hasRequiredFields = false;
@@ -2255,22 +2483,28 @@ class QueryNewTestVariantsRequest extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  QueryNewTestVariantsRequest clone() => QueryNewTestVariantsRequest()..mergeFromMessage(this);
+  QueryNewTestVariantsRequest clone() =>
+      QueryNewTestVariantsRequest()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  QueryNewTestVariantsRequest copyWith(void Function(QueryNewTestVariantsRequest) updates) =>
-      super.copyWith((message) => updates(message as QueryNewTestVariantsRequest)) as QueryNewTestVariantsRequest;
+  QueryNewTestVariantsRequest copyWith(
+          void Function(QueryNewTestVariantsRequest) updates) =>
+      super.copyWith(
+              (message) => updates(message as QueryNewTestVariantsRequest))
+          as QueryNewTestVariantsRequest;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static QueryNewTestVariantsRequest create() => QueryNewTestVariantsRequest._();
+  static QueryNewTestVariantsRequest create() =>
+      QueryNewTestVariantsRequest._();
   QueryNewTestVariantsRequest createEmptyInstance() => create();
-  static $pb.PbList<QueryNewTestVariantsRequest> createRepeated() => $pb.PbList<QueryNewTestVariantsRequest>();
+  static $pb.PbList<QueryNewTestVariantsRequest> createRepeated() =>
+      $pb.PbList<QueryNewTestVariantsRequest>();
   @$core.pragma('dart2js:noInline')
-  static QueryNewTestVariantsRequest getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<QueryNewTestVariantsRequest>(create);
+  static QueryNewTestVariantsRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<QueryNewTestVariantsRequest>(create);
   static QueryNewTestVariantsRequest? _defaultInstance;
 
   /// Name of the invocation, e.g. "invocations/{id}".
@@ -2319,7 +2553,8 @@ class QueryNewTestVariantsResponse_NewTestVariant extends $pb.GeneratedMessage {
     return $result;
   }
   QueryNewTestVariantsResponse_NewTestVariant._() : super();
-  factory QueryNewTestVariantsResponse_NewTestVariant.fromBuffer($core.List<$core.int> i,
+  factory QueryNewTestVariantsResponse_NewTestVariant.fromBuffer(
+          $core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory QueryNewTestVariantsResponse_NewTestVariant.fromJson($core.String i,
@@ -2328,7 +2563,8 @@ class QueryNewTestVariantsResponse_NewTestVariant extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'QueryNewTestVariantsResponse.NewTestVariant',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
       createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'testId')
     ..aOS(2, _omitFieldNames ? '' : 'variantHash')
@@ -2344,19 +2580,23 @@ class QueryNewTestVariantsResponse_NewTestVariant extends $pb.GeneratedMessage {
       'Will be removed in next major version')
   QueryNewTestVariantsResponse_NewTestVariant copyWith(
           void Function(QueryNewTestVariantsResponse_NewTestVariant) updates) =>
-      super.copyWith((message) => updates(message as QueryNewTestVariantsResponse_NewTestVariant))
+      super.copyWith((message) =>
+              updates(message as QueryNewTestVariantsResponse_NewTestVariant))
           as QueryNewTestVariantsResponse_NewTestVariant;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static QueryNewTestVariantsResponse_NewTestVariant create() => QueryNewTestVariantsResponse_NewTestVariant._();
+  static QueryNewTestVariantsResponse_NewTestVariant create() =>
+      QueryNewTestVariantsResponse_NewTestVariant._();
   QueryNewTestVariantsResponse_NewTestVariant createEmptyInstance() => create();
-  static $pb.PbList<QueryNewTestVariantsResponse_NewTestVariant> createRepeated() =>
-      $pb.PbList<QueryNewTestVariantsResponse_NewTestVariant>();
+  static $pb.PbList<QueryNewTestVariantsResponse_NewTestVariant>
+      createRepeated() =>
+          $pb.PbList<QueryNewTestVariantsResponse_NewTestVariant>();
   @$core.pragma('dart2js:noInline')
   static QueryNewTestVariantsResponse_NewTestVariant getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<QueryNewTestVariantsResponse_NewTestVariant>(create);
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<
+          QueryNewTestVariantsResponse_NewTestVariant>(create);
   static QueryNewTestVariantsResponse_NewTestVariant? _defaultInstance;
 
   ///  A unique identifier of the test in a LUCI project.
@@ -2394,7 +2634,8 @@ class QueryNewTestVariantsResponse_NewTestVariant extends $pb.GeneratedMessage {
 class QueryNewTestVariantsResponse extends $pb.GeneratedMessage {
   factory QueryNewTestVariantsResponse({
     $core.bool? isBaselineReady,
-    $core.Iterable<QueryNewTestVariantsResponse_NewTestVariant>? newTestVariants,
+    $core.Iterable<QueryNewTestVariantsResponse_NewTestVariant>?
+        newTestVariants,
   }) {
     final $result = create();
     if (isBaselineReady != null) {
@@ -2413,32 +2654,42 @@ class QueryNewTestVariantsResponse extends $pb.GeneratedMessage {
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'QueryNewTestVariantsResponse',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'QueryNewTestVariantsResponse',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'isBaselineReady')
-    ..pc<QueryNewTestVariantsResponse_NewTestVariant>(2, _omitFieldNames ? '' : 'newTestVariants', $pb.PbFieldType.PM,
+    ..pc<QueryNewTestVariantsResponse_NewTestVariant>(
+        2, _omitFieldNames ? '' : 'newTestVariants', $pb.PbFieldType.PM,
         subBuilder: QueryNewTestVariantsResponse_NewTestVariant.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  QueryNewTestVariantsResponse clone() => QueryNewTestVariantsResponse()..mergeFromMessage(this);
+  QueryNewTestVariantsResponse clone() =>
+      QueryNewTestVariantsResponse()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  QueryNewTestVariantsResponse copyWith(void Function(QueryNewTestVariantsResponse) updates) =>
-      super.copyWith((message) => updates(message as QueryNewTestVariantsResponse)) as QueryNewTestVariantsResponse;
+  QueryNewTestVariantsResponse copyWith(
+          void Function(QueryNewTestVariantsResponse) updates) =>
+      super.copyWith(
+              (message) => updates(message as QueryNewTestVariantsResponse))
+          as QueryNewTestVariantsResponse;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static QueryNewTestVariantsResponse create() => QueryNewTestVariantsResponse._();
+  static QueryNewTestVariantsResponse create() =>
+      QueryNewTestVariantsResponse._();
   QueryNewTestVariantsResponse createEmptyInstance() => create();
-  static $pb.PbList<QueryNewTestVariantsResponse> createRepeated() => $pb.PbList<QueryNewTestVariantsResponse>();
+  static $pb.PbList<QueryNewTestVariantsResponse> createRepeated() =>
+      $pb.PbList<QueryNewTestVariantsResponse>();
   @$core.pragma('dart2js:noInline')
-  static QueryNewTestVariantsResponse getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<QueryNewTestVariantsResponse>(create);
+  static QueryNewTestVariantsResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<QueryNewTestVariantsResponse>(create);
   static QueryNewTestVariantsResponse? _defaultInstance;
 
   /// Indicates whether the baseline has been populated with at least 72 hours
@@ -2458,8 +2709,10 @@ class QueryNewTestVariantsResponse extends $pb.GeneratedMessage {
   /// Test variants that are new, meaning that they have not been part of
   /// a submitted run prior.
   @$pb.TagNumber(2)
-  $core.List<QueryNewTestVariantsResponse_NewTestVariant> get newTestVariants => $_getList(1);
+  $core.List<QueryNewTestVariantsResponse_NewTestVariant> get newTestVariants =>
+      $_getList(1);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');
