@@ -3,7 +3,9 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
@@ -14,15 +16,23 @@ part 'user_data.g.dart';
 /// See https://chromium.googlesource.com/infra/luci/luci-go/+/main/buildbucket/proto/notification.proto#41.
 @immutable
 sealed class PubSubUserData {
-  const PubSubUserData({
-    required this.checkRunId,
-    required this.repoOwner,
-    required this.repoName,
-  });
+  const PubSubUserData({required this.repoOwner, required this.repoName});
 
-  /// Which GitHub check run this build reports status to.
-  @JsonKey(name: 'check_run_id')
-  final int checkRunId;
+  static Map<String, Object?> _fromJsonBytes(List<int> bytes) {
+    Map<String, Object?> jsonObject;
+    try {
+      jsonObject = json.decode(utf8.decode(bytes));
+    } on FormatException {
+      // TODO(matanlurey): Remove legacy cases. https://github.com/flutter/flutter/issues/164568.
+      log.warning(
+        'Expected JSON encoding. See https://github.com/flutter/flutter/issues/164568.',
+      );
+      final encodedBytes = String.fromCharCodes(bytes);
+      final base64Decoded = base64.decode(encodedBytes);
+      jsonObject = json.decode(String.fromCharCodes(base64Decoded));
+    }
+    return jsonObject;
+  }
 
   /// The owner of the GitHub repo, i.e. `flutter` or `matanlurey`.
   @JsonKey(name: 'repo_owner')
@@ -35,6 +45,12 @@ sealed class PubSubUserData {
   /// Returns a JSON representation of this object.
   Map<String, Object?> toJson();
 
+  /// Returns a byte-serialized representation of this object.
+  ///
+  /// The format is intended to be reinterpreted by a `*.fromBytes` method.
+  @nonVirtual
+  Uint8List toBytes() => utf8.encode(json.encode(toJson()));
+
   @override
   @nonVirtual
   String toString() {
@@ -46,7 +62,7 @@ sealed class PubSubUserData {
 @JsonSerializable(includeIfNull: false, checked: true)
 final class PresubmitUserData extends PubSubUserData {
   const PresubmitUserData({
-    required super.checkRunId,
+    required this.checkRunId,
     required super.repoOwner,
     required super.repoName,
     required this.builderName,
@@ -65,6 +81,17 @@ final class PresubmitUserData extends PubSubUserData {
       );
     }
   }
+
+  /// Decodes [PresubmitUserData.toBytes].
+  ///
+  /// Throws a [FormatException] if the data is not in the expected format.
+  factory PresubmitUserData.fromBytes(List<int> bytes) {
+    return PresubmitUserData.fromJson(PubSubUserData._fromJsonBytes(bytes));
+  }
+
+  /// Which GitHub check run this build reports status to.
+  @JsonKey(name: 'check_run_id')
+  final int checkRunId;
 
   /// The name of the builder being executed.
   @JsonKey(name: 'builder_name')
@@ -115,7 +142,7 @@ final class PresubmitUserData extends PubSubUserData {
 @JsonSerializable(includeIfNull: false, checked: true)
 final class PostsubmitUserData extends PubSubUserData {
   const PostsubmitUserData({
-    required super.checkRunId,
+    required this.checkRunId,
     required super.repoName,
     required super.repoOwner,
     required this.taskKey,
@@ -133,6 +160,19 @@ final class PostsubmitUserData extends PubSubUserData {
       );
     }
   }
+
+  /// Decodes [PostsubmitUserData.toBytes].
+  ///
+  /// Throws a [FormatException] if the data is not in the expected format.
+  factory PostsubmitUserData.fromBytes(List<int> bytes) {
+    return PostsubmitUserData.fromJson(PubSubUserData._fromJsonBytes(bytes));
+  }
+
+  /// Which GitHub check run this build reports status to.
+  ///
+  /// If this postsubmit is marked bringup (`bringup: true`) there is no associated ID.
+  @JsonKey(name: 'check_run_id', includeIfNull: false)
+  final int? checkRunId;
 
   @JsonKey(name: 'task_key')
   final String taskKey;
