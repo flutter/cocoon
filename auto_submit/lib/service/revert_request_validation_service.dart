@@ -34,8 +34,8 @@ class RevertRequestValidationService extends ValidationService {
     Config config, {
     RetryOptions? retryOptions,
     RevertMethod? revertMethod,
-  })  : revertMethod = revertMethod ?? GitCliRevertMethod(),
-        super(config, retryOptions: retryOptions) {
+  }) : revertMethod = revertMethod ?? GitCliRevertMethod(),
+       super(config, retryOptions: retryOptions) {
     /// Validates a PR marked with the reverts label.
     approverService = ApproverService(config);
   }
@@ -225,12 +225,14 @@ class RevertRequestValidationService extends ValidationService {
     // Attempt to create the new revert pull request.
     try {
       // This is the autosubmit query result pull request from graphql.
-      final pullRequest = await revertMethod!.createRevert(
-        config,
-        sender,
-        revertReason,
-        messagePullRequest,
-      ) as github.PullRequest;
+      final pullRequest =
+          await revertMethod!.createRevert(
+                config,
+                sender,
+                revertReason,
+                messagePullRequest,
+              )
+              as github.PullRequest;
       log.info(
         'Created revert pull request ${slug.fullName}/${pullRequest.number}.',
       );

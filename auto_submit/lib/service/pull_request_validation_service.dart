@@ -18,9 +18,11 @@ import 'process_method.dart';
 import 'validation_service.dart';
 
 class PullRequestValidationService extends ValidationService {
-  PullRequestValidationService(Config config,
-      {RetryOptions? retryOptions, required this.subscription})
-      : super(config, retryOptions: retryOptions) {
+  PullRequestValidationService(
+    Config config, {
+    RetryOptions? retryOptions,
+    required this.subscription,
+  }) : super(config, retryOptions: retryOptions) {
     /// Validates a PR marked with the reverts label.
     approverService = ApproverService(config);
   }
@@ -29,11 +31,16 @@ class PullRequestValidationService extends ValidationService {
   ApproverService? approverService;
 
   /// Processes a pub/sub message associated with PullRequest event.
-  Future<void> processMessage(github.PullRequest messagePullRequest,
-      String ackId, PubSub pubsub) async {
+  Future<void> processMessage(
+    github.PullRequest messagePullRequest,
+    String ackId,
+    PubSub pubsub,
+  ) async {
     final slug = messagePullRequest.base!.repo!.slug();
-    final fullPullRequest =
-        await getFullPullRequest(slug, messagePullRequest.number!);
+    final fullPullRequest = await getFullPullRequest(
+      slug,
+      messagePullRequest.number!,
+    );
     if (shouldProcess(fullPullRequest)) {
       await processPullRequest(
         config: config,
@@ -44,7 +51,8 @@ class PullRequestValidationService extends ValidationService {
       );
     } else {
       log.info(
-          'Should not process ${messagePullRequest.toJson()}, and ack the message.');
+        'Should not process ${messagePullRequest.toJson()}, and ack the message.',
+      );
       await pubsub.acknowledge(subscription, ackId);
     }
   }
@@ -53,7 +61,7 @@ class PullRequestValidationService extends ValidationService {
     final labelNames = pullRequest.labelNames;
     final containsLabelsNeedingValidation =
         labelNames.contains(Config.kAutosubmitLabel) ||
-            labelNames.contains(Config.kEmergencyLabel);
+        labelNames.contains(Config.kEmergencyLabel);
     return pullRequest.state == 'open' && containsLabelsNeedingValidation;
   }
 
@@ -107,8 +115,8 @@ class _PullRequestValidationProcessor {
     required this.ackId,
     required this.pubsub,
     required this.subscription,
-  })  : slug = pullRequest.base!.repo!.slug(),
-        prNumber = pullRequest.number!;
+  }) : slug = pullRequest.base!.repo!.slug(),
+       prNumber = pullRequest.number!;
 
   final PullRequestValidationService validationService;
   final GithubService githubService;
@@ -133,8 +141,9 @@ class _PullRequestValidationProcessor {
   }
 
   Future<void> process() async {
-    final hasAutosubmitLabel =
-        pullRequest.labelNames.contains(Config.kAutosubmitLabel);
+    final hasAutosubmitLabel = pullRequest.labelNames.contains(
+      Config.kAutosubmitLabel,
+    );
 
     if (hasAutosubmitLabel) {
       await _processAutosubmit();
@@ -146,8 +155,9 @@ class _PullRequestValidationProcessor {
 
   Future<void> _processAutosubmit() async {
     logInfo('processing "${Config.kAutosubmitLabel}" label');
-    final repositoryConfiguration =
-        await config.getRepositoryConfiguration(slug);
+    final repositoryConfiguration = await config.getRepositoryConfiguration(
+      slug,
+    );
 
     // filter out validations here
     final validationFilter = ValidationFilter(
@@ -163,10 +173,7 @@ class _PullRequestValidationProcessor {
     /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
     for (var validation in validations) {
       logInfo('running validation ${validation.name}');
-      final validationResult = await validation.validate(
-        result,
-        pullRequest,
-      );
+      final validationResult = await validation.validate(result, pullRequest);
       validationsMap[validation.name] = validationResult;
     }
 
@@ -191,7 +198,8 @@ class _PullRequestValidationProcessor {
     for (final MapEntry(:key, :value) in validationsMap.entries) {
       if (!value.result && value.action == Action.IGNORE_TEMPORARILY) {
         logInfo(
-            'temporarily ignoring processing because $key validation failed.');
+          'temporarily ignoring processing because $key validation failed.',
+        );
         return;
       }
     }
@@ -211,7 +219,8 @@ class _PullRequestValidationProcessor {
     } else {
       logInfo('${processed.method.pastTenseLabel} successfully!');
       logInfo(
-          'Attempting to insert a pull request record into the database for $prNumber');
+        'Attempting to insert a pull request record into the database for $prNumber',
+      );
       await validationService.insertPullRequestRecord(
         config: config,
         pullRequest: pullRequest,

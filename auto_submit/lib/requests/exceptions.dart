@@ -23,44 +23,44 @@ class HttpStatusException implements Exception {
 /// Exception that will trigger an HTTP 400 bad request.
 class BadRequestException extends HttpStatusException {
   const BadRequestException([String message = 'Bad request'])
-      : super(HttpStatus.badRequest, message);
+    : super(HttpStatus.badRequest, message);
 }
 
 /// Exception that will trigger an HTTP 404 not found
 class NotFoundException extends HttpStatusException {
   const NotFoundException(String missing)
-      : super(HttpStatus.notFound, 'Not found: $missing');
+    : super(HttpStatus.notFound, 'Not found: $missing');
 }
 
 /// Exception that will trigger an HTTP 405 method not allowed.
 class MethodNotAllowed extends HttpStatusException {
   const MethodNotAllowed(String method)
-      : super(HttpStatus.methodNotAllowed, 'Unsupported method: $method');
+    : super(HttpStatus.methodNotAllowed, 'Unsupported method: $method');
 }
 
 /// Exception that will trigger an HTTP 409 conflict.
 class ConflictException extends HttpStatusException {
-  const ConflictException(
-      [String message = 'Request conflict with server state'])
-      : super(HttpStatus.conflict, message);
+  const ConflictException([
+    String message = 'Request conflict with server state',
+  ]) : super(HttpStatus.conflict, message);
 }
 
 /// Exception that will trigger an HTTP 500 internal server error.
 class InternalServerError extends HttpStatusException {
   const InternalServerError([String message = 'Internal server error'])
-      : super(HttpStatus.internalServerError, message);
+    : super(HttpStatus.internalServerError, message);
 }
 
 /// Exception that will trigger an HTTP 401 not authorized.
 class Unauthorized extends HttpStatusException {
   const Unauthorized([String message = 'Unauthorized'])
-      : super(HttpStatus.unauthorized, message);
+    : super(HttpStatus.unauthorized, message);
 }
 
 /// Exception that will trigger an HTTP 403 forbidden.
 class Forbidden extends HttpStatusException {
   const Forbidden([String message = 'Forbidden'])
-      : super(HttpStatus.forbidden, message);
+    : super(HttpStatus.forbidden, message);
 }
 
 /// Exception thrown when attempting to authenticate a request that cannot be

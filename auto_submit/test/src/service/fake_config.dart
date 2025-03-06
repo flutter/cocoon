@@ -26,9 +26,9 @@ class FakeConfig extends Config {
     this.kPubsubPullNumberValue,
     this.bigqueryService,
   }) : super(
-          cacheProvider: Cache.inMemoryCacheProvider(4),
-          secretManager: LocalSecretManager(),
-        );
+         cacheProvider: Cache.inMemoryCacheProvider(4),
+         secretManager: LocalSecretManager(),
+       );
 
   GitHub? githubClient;
   GraphQLClient? githubGraphQLClient;
@@ -94,6 +94,6 @@ class FakeConfig extends Config {
 
   @override
   Future<RepositoryConfiguration> getRepositoryConfiguration(
-          RepositorySlug slug) async =>
-      repositoryConfigurationMock!;
+    RepositorySlug slug,
+  ) async => repositoryConfigurationMock!;
 }

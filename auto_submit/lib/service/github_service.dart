@@ -18,10 +18,7 @@ class GithubService {
   final GitHub github;
 
   /// Retrieves check runs with the ref.
-  Future<List<CheckRun>> getCheckRuns(
-    RepositorySlug slug,
-    String ref,
-  ) async {
+  Future<List<CheckRun>> getCheckRuns(RepositorySlug slug, String ref) async {
     return github.checks.checkRuns.listCheckRunsForRef(slug, ref: ref).toList();
   }
 
@@ -72,10 +69,7 @@ class GithubService {
   }
 
   /// Fetches the specified commit.
-  Future<RepositoryCommit> getCommit(
-    RepositorySlug slug,
-    String sha,
-  ) async {
+  Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
     return github.repositories.getCommit(slug, sha);
   }
 
@@ -273,17 +267,11 @@ class GithubService {
     return response.statusCode == StatusCodes.ACCEPTED;
   }
 
-  Future<Branch> getBranch(
-    RepositorySlug slug,
-    String branchName,
-  ) async {
+  Future<Branch> getBranch(RepositorySlug slug, String branchName) async {
     return github.repositories.getBranch(slug, branchName);
   }
 
-  Future<bool> deleteBranch(
-    RepositorySlug slug,
-    String branchName,
-  ) async {
+  Future<bool> deleteBranch(RepositorySlug slug, String branchName) async {
     final ref = 'heads/$branchName';
     return github.git.deleteReference(slug, ref);
   }
@@ -311,26 +299,37 @@ class GithubService {
     final slug = pullRequest.base!.repo!.slug();
     final prNumber = pullRequest.number!;
     final totCommit = await getCommit(slug, 'HEAD');
-    final comparison =
-        await compareTwoCommits(slug, totCommit.sha!, pullRequest.base!.sha!);
+    final comparison = await compareTwoCommits(
+      slug,
+      totCommit.sha!,
+      pullRequest.base!.sha!,
+    );
     if (comparison.behindBy! >= _kBehindToT) {
       log.info(
-          'The current branch is behind by ${comparison.behindBy} commits.');
+        'The current branch is behind by ${comparison.behindBy} commits.',
+      );
       final headSha = pullRequest.head!.sha!;
       await updateBranch(slug, prNumber, headSha);
     }
   }
 
   /// Get contents from a repository at the supplied path.
-  Future<String> getFileContents(RepositorySlug slug, String path,
-      {String? ref}) async {
-    final repositoryContents =
-        await github.repositories.getContents(slug, path, ref: ref);
+  Future<String> getFileContents(
+    RepositorySlug slug,
+    String path, {
+    String? ref,
+  }) async {
+    final repositoryContents = await github.repositories.getContents(
+      slug,
+      path,
+      ref: ref,
+    );
     if (!repositoryContents.isFile) {
       throw 'Contents do not point to a file.';
     }
     final content = utf8.decode(
-        base64.decode(repositoryContents.file!.content!.replaceAll('\n', '')));
+      base64.decode(repositoryContents.file!.content!.replaceAll('\n', '')),
+    );
     return content;
   }
 
@@ -340,8 +339,8 @@ class GithubService {
   /// membership in general or is not a member of the team.
   Future<bool> isTeamMember(String team, String user, String org) async {
     try {
-      final teamMembershipState =
-          await github.organizations.getTeamMembershipByName(org, team, user);
+      final teamMembershipState = await github.organizations
+          .getTeamMembershipByName(org, team, user);
       return teamMembershipState.isActive;
     } on GitHubError {
       return false;

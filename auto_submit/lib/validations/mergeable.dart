@@ -17,13 +17,16 @@ class Mergeable extends Validation {
 
   @override
   Future<ValidationResult> validate(
-      QueryResult result, github.PullRequest messagePullRequest) async {
+    QueryResult result,
+    github.PullRequest messagePullRequest,
+  ) async {
     final pullRequestNumber = messagePullRequest.number!;
     final slug = messagePullRequest.base!.repo!.slug();
     final mergeableState = result.repository!.pullRequest!.mergeable!;
 
     log.info(
-        '${slug.name}/$pullRequestNumber has mergeable state $mergeableState');
+      '${slug.name}/$pullRequestNumber has mergeable state $mergeableState',
+    );
 
     switch (mergeableState) {
       case MergeableState.MERGEABLE:

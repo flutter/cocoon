@@ -9,18 +9,17 @@ import 'validation.dart';
 
 /// Validates that the list of checks for the PR is not empty.
 class EmptyChecks extends Validation {
-  EmptyChecks({
-    required super.config,
-  });
+  EmptyChecks({required super.config});
 
   @override
   String get name => 'EmptyChecks';
 
   @override
-
   /// Implements the validation to verify the list of checks is not empty.
   Future<ValidationResult> validate(
-      QueryResult result, github.PullRequest messagePullRequest) async {
+    QueryResult result,
+    github.PullRequest messagePullRequest,
+  ) async {
     final slug = messagePullRequest.base!.repo!.slug();
     final gitHubService = await config.createGithubService(slug);
     final pullRequest = result.repository!.pullRequest!;

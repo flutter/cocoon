@@ -27,12 +27,7 @@ void main() {
       gitCli = GitCli(GitAccessMethod.SSH, cliCommand);
       initProcessResult = await cliCommand.runCliCommand(
         executable: 'git',
-        arguments: [
-          'init',
-          slug.name,
-          '-b',
-          'main',
-        ],
+        arguments: ['init', slug.name, '-b', 'main'],
         workingDirectory: workingDirectory,
         throwOnError: false,
       );
@@ -65,8 +60,10 @@ void main() {
         arguments: ['status'],
         workingDirectory: fullRepoCheckoutPath,
       );
-      expect((processResult.stdout as String).contains('On branch test_branch'),
-          isTrue);
+      expect(
+        (processResult.stdout as String).contains('On branch test_branch'),
+        isTrue,
+      );
     });
 
     tearDown(() async {

@@ -57,14 +57,21 @@ class CheckPullRequest extends CheckRequest {
       return Response.ok('$crumb: nothing to do, exiting.');
     }
 
-    final workItems =
-        await _extractPullRequestFromMessages(pubSubSubscription, messages);
+    final workItems = await _extractPullRequestFromMessages(
+      pubSubSubscription,
+      messages,
+    );
 
     // Process pull requests in parallel.
     final futures = <Future<void>>[];
     for (final workItem in workItems) {
-      futures.add(_processPullRequest(
-          workItem.pullRequest, workItem.ackId, pubSubSubscription));
+      futures.add(
+        _processPullRequest(
+          workItem.pullRequest,
+          workItem.ackId,
+          pubSubSubscription,
+        ),
+      );
     }
     await Future.wait(futures);
 
@@ -72,7 +79,7 @@ class CheckPullRequest extends CheckRequest {
   }
 
   Future<List<({PullRequest pullRequest, String ackId})>>
-      _extractPullRequestFromMessages(
+  _extractPullRequestFromMessages(
     String pubSubSubscription,
     List<pub.ReceivedMessage> messages,
   ) async {
@@ -108,8 +115,10 @@ class CheckPullRequest extends CheckRequest {
         await pubsub.acknowledge(pubSubSubscription, message.ackId!);
         continue;
       } else {
-        workItems[pullRequest.number!] =
-            (pullRequest: pullRequest, ackId: message.ackId!);
+        workItems[pullRequest.number!] = (
+          pullRequest: pullRequest,
+          ackId: message.ackId!,
+        );
       }
     }
 
@@ -117,7 +126,10 @@ class CheckPullRequest extends CheckRequest {
   }
 
   Future<void> _processPullRequest(
-      PullRequest pullRequest, String ackId, String pubSubSubscription) async {
+    PullRequest pullRequest,
+    String ackId,
+    String pubSubSubscription,
+  ) async {
     final crumb =
         '$CheckPullRequest(${pullRequest.repo?.fullName}/${pullRequest.number})';
     log.info('$crumb: Processing PR: ${pullRequest.toJson()}');
@@ -126,8 +138,10 @@ class CheckPullRequest extends CheckRequest {
       final approver = approverProvider(config);
       await approver.autoApproval(pullRequest);
 
-      final validationService = PullRequestValidationService(config,
-          subscription: pubSubSubscription);
+      final validationService = PullRequestValidationService(
+        config,
+        subscription: pubSubSubscription,
+      );
       await validationService.processMessage(pullRequest, ackId, pubsub);
     } catch (error, stackTrace) {
       // Log at severe level but do not rethrow. Because this loop processes a

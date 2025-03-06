@@ -19,14 +19,16 @@ import 'graphql_service.dart';
 /// services.
 class ValidationService {
   ValidationService(this.config, {RetryOptions? retryOptions})
-      : retryOptions = retryOptions ?? Config.mergeRetryOptions;
+    : retryOptions = retryOptions ?? Config.mergeRetryOptions;
 
   final Config config;
   final RetryOptions retryOptions;
 
   /// Fetch the most up to date info for the current pull request from github.
   Future<QueryResult> getNewestPullRequestInfo(
-      Config config, github.PullRequest pullRequest) async {
+    Config config,
+    github.PullRequest pullRequest,
+  ) async {
     final slug = pullRequest.base!.repo!.slug();
     final prNumber = pullRequest.number;
 
@@ -47,7 +49,9 @@ class ValidationService {
   }
 
   Future<github.PullRequest> getFullPullRequest(
-      github.RepositorySlug slug, int pullRequestNumber) async {
+    github.RepositorySlug slug,
+    int pullRequestNumber,
+  ) async {
     final githubService = await config.createGithubService(slug);
     return githubService.getPullRequest(slug, pullRequestNumber);
   }
@@ -83,21 +87,24 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
   }
 
   Future<MergeResult> _enqueuePullRequest(
-      github.RepositorySlug slug, github.PullRequest restPullRequest) async {
+    github.RepositorySlug slug,
+    github.PullRequest restPullRequest,
+  ) async {
     final graphQlService = await GraphQlService.forRepo(config, slug);
-    final isEmergencyPullRequest = restPullRequest.labels
+    final isEmergencyPullRequest =
+        restPullRequest.labels
             ?.where((label) => label.name == Config.kEmergencyLabel)
             .isNotEmpty ??
         false;
 
     try {
-      await retryOptions.retry(
-        () async {
-          await graphQlService.enqueuePullRequest(
-              slug, restPullRequest.number!, isEmergencyPullRequest);
-        },
-        retryIf: (Exception e) => e is RetryableException,
-      );
+      await retryOptions.retry(() async {
+        await graphQlService.enqueuePullRequest(
+          slug,
+          restPullRequest.number!,
+          isEmergencyPullRequest,
+        );
+      }, retryIf: (Exception e) => e is RetryableException);
     } catch (e) {
       final message =
           'Failed to enqueue ${slug.fullName}/${restPullRequest.number} with $e';
@@ -108,27 +115,27 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
     return (
       result: true,
       message: restPullRequest.title!,
-      method: SubmitMethod.enqueue
+      method: SubmitMethod.enqueue,
     );
   }
 
   Future<MergeResult> _mergePullRequest(
-      int number, String commitMessage, github.RepositorySlug slug) async {
+    int number,
+    String commitMessage,
+    github.RepositorySlug slug,
+  ) async {
     try {
       github.PullRequestMerge? result;
 
-      await retryOptions.retry(
-        () async {
-          result = await _processMergeInternal(
-            config: config,
-            commitMessage: commitMessage,
-            slug: slug,
-            number: number,
-            mergeMethod: github.MergeMethod.squash,
-          );
-        },
-        retryIf: (Exception e) => e is RetryableException,
-      );
+      await retryOptions.retry(() async {
+        result = await _processMergeInternal(
+          config: config,
+          commitMessage: commitMessage,
+          slug: slug,
+          number: number,
+          mergeMethod: github.MergeMethod.squash,
+        );
+      }, retryIf: (Exception e) => e is RetryableException);
 
       final merged = result?.merged ?? false;
       if (result != null && !merged) {
@@ -156,8 +163,10 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
     final slug = pullRequest.base!.repo!.slug();
     final gitHubService = await config.createGithubService(slug);
     // We need the updated time fields for the merged request from github.
-    final currentPullRequest =
-        await gitHubService.getPullRequest(slug, pullRequest.number!);
+    final currentPullRequest = await gitHubService.getPullRequest(
+      slug,
+      pullRequest.number!,
+    );
 
     // add a record for the pull request into our metrics tracking
     final pullRequestRecord = PullRequestRecord(
@@ -234,7 +243,8 @@ Future<github.PullRequestMerge> _processMergeInternal({
 
   if (pullRequestMerge.merged != true) {
     throw RetryableException(
-        'Pull request ${slug.fullName}/$number could not be merged: ${pullRequestMerge.message}');
+      'Pull request ${slug.fullName}/$number could not be merged: ${pullRequestMerge.message}',
+    );
   }
 
   return pullRequestMerge;
@@ -275,9 +285,7 @@ String _sanitizePrBody(String rawPrBody) {
 ///
 /// This variable is read-write to allow tests to choose which repos they want
 /// to test in which mode.
-List<String> mqEnabledRepos = const <String>[
-  'flutter/flutter',
-];
+List<String> mqEnabledRepos = const <String>['flutter/flutter'];
 
 /// Convenience extension so one can just do `pullRequest.isMergeQueueEnabled`.
 extension PullRequestExtension on github.PullRequest {

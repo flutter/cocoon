@@ -139,19 +139,21 @@ class FakeGithubService implements GithubService {
   }
 
   final List<
-      ({
-        RepositorySlug slug,
-        CheckRun checkRun,
-        String? name,
-        String? detailsUrl,
-        String? externalId,
-        DateTime? startedAt,
-        CheckRunStatus status,
-        CheckRunConclusion? conclusion,
-        DateTime? completedAt,
-        CheckRunOutput? output,
-        List<CheckRunAction>? actions,
-      })> checkRunUpdates = [];
+    ({
+      RepositorySlug slug,
+      CheckRun checkRun,
+      String? name,
+      String? detailsUrl,
+      String? externalId,
+      DateTime? startedAt,
+      CheckRunStatus status,
+      CheckRunConclusion? conclusion,
+      DateTime? completedAt,
+      CheckRunOutput? output,
+      List<CheckRunAction>? actions,
+    })
+  >
+  checkRunUpdates = [];
 
   @override
   Future<CheckRun> updateCheckRun({

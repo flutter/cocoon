@@ -33,33 +33,24 @@ Future<void> main() async {
     );
     const authProvider = CronAuthProvider();
 
-    final router = Router()
-      ..post(
-        '/webhook',
-        GithubWebhook(
-          config: config,
-        ).post,
-      )
-      ..get(
-        '/check-pull-request',
-        CheckPullRequest(
-          config: config,
-          cronAuthProvider: authProvider,
-        ).run,
-      )
-      ..get(
-        '/check-revert-requests',
-        CheckRevertRequest(
-          config: config,
-          cronAuthProvider: authProvider,
-        ).run,
-      )
-      ..get(
-        '/readiness_check',
-        ReadinessCheck(
-          config: config,
-        ).run,
-      );
+    final router =
+        Router()
+          ..post('/webhook', GithubWebhook(config: config).post)
+          ..get(
+            '/check-pull-request',
+            CheckPullRequest(
+              config: config,
+              cronAuthProvider: authProvider,
+            ).run,
+          )
+          ..get(
+            '/check-revert-requests',
+            CheckRevertRequest(
+              config: config,
+              cronAuthProvider: authProvider,
+            ).run,
+          )
+          ..get('/readiness_check', ReadinessCheck(config: config).run);
     await serveHandler(router.call);
   });
 }

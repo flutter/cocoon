@@ -48,10 +48,12 @@ void main() {
     ).thenAnswer((_) => Future.value(mockResponse));
     when(mockResponse.statusCode).thenReturn(200);
     when(mockGitHub.repositories).thenReturn(mockRepositoriesService);
-    when(mockRepositoriesService.getCommit(any, any))
-        .thenAnswer((_) => Future.value(testCommit));
-    when(mockRepositoriesService.compareCommits(any, any, any))
-        .thenAnswer((_) => Future.value(mockGitHubComparison));
+    when(
+      mockRepositoriesService.getCommit(any, any),
+    ).thenAnswer((_) => Future.value(testCommit));
+    when(
+      mockRepositoriesService.compareCommits(any, any, any),
+    ).thenAnswer((_) => Future.value(mockGitHubComparison));
   });
 
   test('listReviews retrieves all reviews of the pull request', () async {

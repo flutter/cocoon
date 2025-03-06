@@ -71,8 +71,9 @@ void main() {
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) {
         final operation = options.asRequest.operation;
         final mutationNameRegExp = RegExp(r'"mutation (\w+)');
-        final mutationName =
-            mutationNameRegExp.firstMatch(operation.toString())!.group(1);
+        final mutationName = mutationNameRegExp
+            .firstMatch(operation.toString())!
+            .group(1);
 
         if (mutationName == 'EnqueueFlutterPullRequest') {
           return QueryResult(
@@ -88,8 +89,9 @@ void main() {
       githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
         final operation = options.asRequest.operation;
         final queryNameRegExp = RegExp(r'"query (\w+)');
-        final queryName =
-            queryNameRegExp.firstMatch(operation.toString())!.group(1);
+        final queryName = queryNameRegExp
+            .firstMatch(operation.toString())!
+            .group(1);
 
         if (queryName == 'LabeledPullRequestWithReviews') {
           expect(options.variables['sOwner'], 'flutter');
@@ -116,10 +118,10 @@ void main() {
 
       final findPullRequestsWithReviewsQueryFlutter =
           FindPullRequestsWithReviewsQuery(
-        repositoryOwner: 'flutter',
-        repositoryName: 'flutter',
-        pullRequestNumber: 0,
-      );
+            repositoryOwner: 'flutter',
+            repositoryName: 'flutter',
+            pullRequestNumber: 0,
+          );
 
       flutterOption = QueryOptions(
         document: findPullRequestsWithReviewsQueryFlutter.documentNode,
@@ -129,10 +131,10 @@ void main() {
 
       final findPullRequestsWithReviewsQueryCocoon =
           FindPullRequestsWithReviewsQuery(
-        repositoryOwner: 'flutter',
-        repositoryName: 'cocoon',
-        pullRequestNumber: 1,
-      );
+            repositoryOwner: 'flutter',
+            repositoryName: 'cocoon',
+            pullRequestNumber: 1,
+          );
 
       cocoonOption = QueryOptions(
         document: findPullRequestsWithReviewsQueryCocoon.documentNode,
@@ -233,9 +235,10 @@ void main() {
         // Calling get should not fail despite the failing message inside.
         await checkPullRequest.get();
 
-        final errorLogs = records
-            .where((LogRecord record) => record.level == Level.SEVERE)
-            .toList();
+        final errorLogs =
+            records
+                .where((LogRecord record) => record.level == Level.SEVERE)
+                .toList();
         expect(errorLogs, hasLength(1));
         expect(
           errorLogs[0].message,
@@ -333,9 +336,10 @@ void main() {
       await checkPullRequest.get();
       // every failure is now acknowledged from the queue.
       expect(pubsub.messagesQueue.length, 0);
-      final errorLogs = records
-          .where((LogRecord record) => record.level == Level.SEVERE)
-          .toList();
+      final errorLogs =
+          records
+              .where((LogRecord record) => record.level == Level.SEVERE)
+              .toList();
       expect(errorLogs.length, 1);
       expect(errorLogs[0].message.contains('Failed to merge'), true);
       pubsub.messagesQueue.clear();

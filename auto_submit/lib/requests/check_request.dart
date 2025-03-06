@@ -34,10 +34,7 @@ abstract class CheckRequest extends AuthenticatedRequestHandler {
   ) async {
     final messageMap = <String, pub.ReceivedMessage>{};
     for (var i = 0; i < pulls; i++) {
-      final pullResponse = await pubsub.pull(
-        subscription,
-        batchSize,
-      );
+      final pullResponse = await pubsub.pull(subscription, batchSize);
       final receivedMessages = pullResponse.receivedMessages;
       if (receivedMessages == null) {
         continue;

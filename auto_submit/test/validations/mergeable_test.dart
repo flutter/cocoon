@@ -23,7 +23,9 @@ void main() {
     githubGraphQLClient = FakeGraphQLClient();
     githubService = FakeGithubService(client: MockGitHub());
     config = FakeConfig(
-        githubService: githubService, githubGraphQLClient: githubGraphQLClient);
+      githubService: githubService,
+      githubGraphQLClient: githubGraphQLClient,
+    );
     mergeable = Mergeable(config: config);
   });
 
@@ -49,8 +51,10 @@ void main() {
       pullRequest,
     );
     expect(processMergeResult.result, isTrue);
-    expect(processMergeResult.message,
-        'Pull request flutter/flutter/1347 is mergeable');
+    expect(
+      processMergeResult.message,
+      'Pull request flutter/flutter/1347 is mergeable',
+    );
   });
 
   test('Pull request mergeability has not been determined', () async {
@@ -107,7 +111,9 @@ void main() {
       pullRequest,
     );
     expect(processMergeResult.result, isFalse);
-    expect(processMergeResult.message,
-        'Pull request flutter/flutter/1347 is not in a mergeable state.');
+    expect(
+      processMergeResult.message,
+      'Pull request flutter/flutter/1347 is not in a mergeable state.',
+    );
   });
 }

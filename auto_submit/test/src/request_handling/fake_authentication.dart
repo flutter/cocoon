@@ -8,9 +8,7 @@ import 'package:shelf/shelf.dart';
 
 // ignore: must_be_immutable
 class FakeCronAuthProvider implements CronAuthProvider {
-  FakeCronAuthProvider({
-    this.authenticated = true,
-  });
+  FakeCronAuthProvider({this.authenticated = true});
 
   bool authenticated;
 

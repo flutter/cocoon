@@ -17,7 +17,9 @@ class FakeMergeable extends Mergeable {
 
   @override
   Future<ValidationResult> validate(
-      QueryResult result, github.PullRequest messagePullRequest) async {
+    QueryResult result,
+    github.PullRequest messagePullRequest,
+  ) async {
     return validationResult ?? ValidationResult(true, Action.REMOVE_LABEL, '');
   }
 }

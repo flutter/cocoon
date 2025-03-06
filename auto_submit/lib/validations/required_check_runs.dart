@@ -22,10 +22,8 @@ const String ciyamlValidation = 'ci.yaml validation';
 /// required check runs must pass before the bot will merge the pull request
 /// regardless of review status.
 class RequiredCheckRuns extends Validation {
-  const RequiredCheckRuns({
-    required super.config,
-    RetryOptions? retryOptions,
-  }) : retryOptions = retryOptions ?? Config.requiredChecksRetryOptions;
+  const RequiredCheckRuns({required super.config, RetryOptions? retryOptions})
+    : retryOptions = retryOptions ?? Config.requiredChecksRetryOptions;
 
   final RetryOptions retryOptions;
 
@@ -51,16 +49,9 @@ class RequiredCheckRuns extends Validation {
 
     try {
       for (var checkRun in targetCheckRuns) {
-        await retryOptions.retry(
-          () async {
-            await _verifyCheckRunCompleted(
-              slug,
-              githubService,
-              checkRun,
-            );
-          },
-          retryIf: (Exception e) => e is RetryableException,
-        );
+        await retryOptions.retry(() async {
+          await _verifyCheckRunCompleted(slug, githubService, checkRun);
+        }, retryIf: (Exception e) => e is RetryableException);
       }
     } catch (e) {
       log.warning('Required check has not completed in time. ${e.toString()}');
@@ -75,18 +66,24 @@ class RequiredCheckRuns extends Validation {
 
   @override
   Future<ValidationResult> validate(
-      auto.QueryResult result, github.PullRequest messagePullRequest) async {
+    auto.QueryResult result,
+    github.PullRequest messagePullRequest,
+  ) async {
     final pullRequest = result.repository!.pullRequest!;
     final commit = pullRequest.commits!.nodes!.single.commit!;
     final sha = commit.oid;
     final slug = messagePullRequest.base!.repo!.slug();
 
-    final repositoryConfiguration =
-        await config.getRepositoryConfiguration(slug);
+    final repositoryConfiguration = await config.getRepositoryConfiguration(
+      slug,
+    );
     final requiredCheckRuns = repositoryConfiguration.requiredCheckRunsOnRevert;
 
     final success = await waitForRequiredChecks(
-        slug: slug, sha: sha!, checkNames: requiredCheckRuns);
+      slug: slug,
+      sha: sha!,
+      checkNames: requiredCheckRuns,
+    );
 
     return ValidationResult(
       success,

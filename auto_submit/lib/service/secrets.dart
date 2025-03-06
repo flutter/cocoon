@@ -29,19 +29,17 @@ class CloudSecretManager implements SecretManager {
       Platform.environment['APPLICATION_ID'] ?? Config.flutterGcpProjectId;
 
   @override
-  Future<String> get(
-    String key, {
-    String? fields,
-  }) async {
+  Future<String> get(String key, {String? fields}) async {
     final api = SecretManagerApi(authClientService);
-    final payload = (await api.projects.secrets.versions.access(
-      'projects/$projectId/secrets/$key/versions/latest',
-      $fields: fields,
-    ))
-        .payload;
+    final payload =
+        (await api.projects.secrets.versions.access(
+          'projects/$projectId/secrets/$key/versions/latest',
+          $fields: fields,
+        )).payload;
     if (payload?.data == null) {
       throw SecretManagerException(
-          'Failed to find secret for $key with \$fields=$fields');
+        'Failed to find secret for $key with \$fields=$fields',
+      );
     }
     return String.fromCharCodes(base64Decode(payload!.data!));
   }
@@ -64,7 +62,8 @@ class LocalSecretManager implements SecretManager {
     }
 
     throw Exception(
-        'Failed to find $key in environment. Try adding it to the environment variables');
+      'Failed to find $key in environment. Try adding it to the environment variables',
+    );
   }
 
   @override

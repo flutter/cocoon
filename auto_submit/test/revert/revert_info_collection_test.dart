@@ -15,26 +15,34 @@ void main() {
 
   test('extract reverts link', () {
     const expected = 'flutter/cocoon#3460';
-    expect(revertInfoCollection!.extractOriginalPrLink(sampleRevertBody),
-        expected);
+    expect(
+      revertInfoCollection!.extractOriginalPrLink(sampleRevertBody),
+      expected,
+    );
   });
 
   test('extract initiating author', () {
     const expected = 'yusuf-goog';
-    expect(revertInfoCollection!.extractInitiatingAuthor(sampleRevertBody),
-        expected);
+    expect(
+      revertInfoCollection!.extractInitiatingAuthor(sampleRevertBody),
+      expected,
+    );
   });
 
   test('extract revert reason', () {
     const expected = 'comment was added by mistake.';
     expect(
-        revertInfoCollection!.extractRevertReason(sampleRevertBody), expected);
+      revertInfoCollection!.extractRevertReason(sampleRevertBody),
+      expected,
+    );
   });
 
   test('extract original pr author', () {
     const expected = 'ricardoamador';
-    expect(revertInfoCollection!.extractOriginalPrAuthor(sampleRevertBody),
-        expected);
+    expect(
+      revertInfoCollection!.extractOriginalPrAuthor(sampleRevertBody),
+      expected,
+    );
   });
 
   test('extract original pr reviewers', () {
@@ -45,16 +53,18 @@ void main() {
   test('extract the original revert info', () {
     const expected =
         'A long winded description about this change is revolutionary.';
-    final description =
-        revertInfoCollection!.extractRevertBody(sampleRevertBody);
+    final description = revertInfoCollection!.extractRevertBody(
+      sampleRevertBody,
+    );
     expect(description!.contains(expected), isTrue);
   });
 
   test('extract reason with link', () {
     const expected =
         'Broke engine post-submit, see https://logs.chromium.org/logs/flutter/buildbucket/cr-buildbucket/8753367119442265873/+/u/test:_Android_Unit_Tests__API_28_/stdout.';
-    final reasonForRevert = revertInfoCollection!
-        .extractRevertReason(sampleRevertBodyWithTrailingLink);
+    final reasonForRevert = revertInfoCollection!.extractRevertReason(
+      sampleRevertBodyWithTrailingLink,
+    );
     expect(reasonForRevert, expected);
   });
 }

@@ -24,13 +24,8 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: subtype_of_sealed_class
 
 class _FakeConfig_0 extends _i1.SmartFake implements _i2.Config {
-  _FakeConfig_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeConfig_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 /// A class which mocks [ApproverService].
@@ -42,32 +37,27 @@ class MockApproverService extends _i1.Mock implements _i3.ApproverService {
   }
 
   @override
-  _i2.Config get config => (super.noSuchMethod(
-        Invocation.getter(#config),
-        returnValue: _FakeConfig_0(
-          this,
-          Invocation.getter(#config),
-        ),
-      ) as _i2.Config);
+  _i2.Config get config =>
+      (super.noSuchMethod(
+            Invocation.getter(#config),
+            returnValue: _FakeConfig_0(this, Invocation.getter(#config)),
+          )
+          as _i2.Config);
 
   @override
   _i4.Future<Set<String>> getAutoApprovalAccounts(_i5.RepositorySlug? slug) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getAutoApprovalAccounts,
-          [slug],
-        ),
-        returnValue: _i4.Future<Set<String>>.value(<String>{}),
-      ) as _i4.Future<Set<String>>);
+            Invocation.method(#getAutoApprovalAccounts, [slug]),
+            returnValue: _i4.Future<Set<String>>.value(<String>{}),
+          )
+          as _i4.Future<Set<String>>);
 
   @override
   _i4.Future<void> autoApproval(_i5.PullRequest? pullRequest) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #autoApproval,
-          [pullRequest],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
+            Invocation.method(#autoApproval, [pullRequest]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
 }

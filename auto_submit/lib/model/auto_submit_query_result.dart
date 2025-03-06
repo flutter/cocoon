@@ -14,9 +14,7 @@ part 'auto_submit_query_result.g.dart';
 
 @JsonSerializable()
 class Author {
-  Author({
-    this.login,
-  });
+  Author({this.login});
   final String? login;
 
   factory Author.fromJson(Map<String, dynamic> json) => _$AuthorFromJson(json);
@@ -26,11 +24,7 @@ class Author {
 
 @JsonSerializable()
 class ReviewNode {
-  ReviewNode({
-    this.author,
-    this.authorAssociation,
-    this.state,
-  });
+  ReviewNode({this.author, this.authorAssociation, this.state});
   final Author? author;
   @JsonKey(name: 'authorAssociation')
   final String? authorAssociation;
@@ -78,20 +72,11 @@ class Commits {
   Map<String, dynamic> toJson() => _$CommitsToJson(this);
 }
 
-enum MergeableState {
-  CONFLICTING,
-  MERGEABLE,
-  UNKNOWN,
-}
+enum MergeableState { CONFLICTING, MERGEABLE, UNKNOWN }
 
 @JsonSerializable()
 class ContextNode {
-  ContextNode({
-    this.createdAt,
-    this.context,
-    this.state,
-    this.targetUrl,
-  });
+  ContextNode({this.createdAt, this.context, this.state, this.targetUrl});
 
   @JsonKey(name: 'createdAt')
   DateTime? createdAt;
@@ -178,9 +163,7 @@ class PullRequest {
 
 @JsonSerializable()
 class Repository {
-  Repository({
-    this.pullRequest,
-  });
+  Repository({this.pullRequest});
 
   @JsonKey(name: 'pullRequest')
   PullRequest? pullRequest;
@@ -194,9 +177,7 @@ class Repository {
 // TODO(yjbanov): rename to AutosubmitQueryResult to avoid name clash with graphql.dart/QueryResult
 @JsonSerializable()
 class QueryResult {
-  QueryResult({
-    this.repository,
-  });
+  QueryResult({this.repository});
 
   Repository? repository;
 

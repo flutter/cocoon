@@ -41,16 +41,21 @@ void main() {
       final hmac = getHmac(body, key);
       validHeader = <String, String>{
         'X-Hub-Signature': 'sha1=$hmac',
-        'X-GitHub-Event': 'yes'
+        'X-GitHub-Event': 'yes',
       };
-      req = Request('POST', Uri.parse('http://localhost/'),
-          body: generateWebhookEvent(), headers: validHeader);
+      req = Request(
+        'POST',
+        Uri.parse('http://localhost/'),
+        body: generateWebhookEvent(),
+        headers: validHeader,
+      );
       final response = await githubWebhook.post(req);
       final resBody = await response.readAsString();
       final reqBody = json.decode(resBody) as Map<String, dynamic>;
       final labels =
-          PullRequest.fromJson(reqBody['pull_request'] as Map<String, dynamic>)
-              .labels!;
+          PullRequest.fromJson(
+            reqBody['pull_request'] as Map<String, dynamic>,
+          ).labels!;
       expect(labels[0].name, 'cla: yes');
       expect(labels[1].name, 'autosubmit');
     });
@@ -58,18 +63,27 @@ void main() {
     test('Rejects invalid hmac', () async {
       inValidHeader = <String, String>{
         'X-GitHub-Event': 'pull_request',
-        'X-Hub-Signature': 'bar'
+        'X-Hub-Signature': 'bar',
       };
-      req = Request('POST', Uri.parse('http://localhost/'),
-          body: 'Hello, World!', headers: inValidHeader);
+      req = Request(
+        'POST',
+        Uri.parse('http://localhost/'),
+        body: 'Hello, World!',
+        headers: inValidHeader,
+      );
       await expectLater(githubWebhook.post(req), throwsA(isA<Forbidden>()));
     });
 
     test('Rejects missing headers', () async {
-      req = Request('POST', Uri.parse('http://localhost/'),
-          body: generateWebhookEvent());
+      req = Request(
+        'POST',
+        Uri.parse('http://localhost/'),
+        body: generateWebhookEvent(),
+      );
       await expectLater(
-          githubWebhook.post(req), throwsA(isA<BadRequestException>()));
+        githubWebhook.post(req),
+        throwsA(isA<BadRequestException>()),
+      );
     });
   });
 }

@@ -17,7 +17,9 @@ class FakeRequiredCheckRuns extends RequiredCheckRuns {
 
   @override
   Future<ValidationResult> validate(
-      auto.QueryResult result, github.PullRequest messagePullRequest) async {
+    auto.QueryResult result,
+    github.PullRequest messagePullRequest,
+  ) async {
     return validationResult ?? ValidationResult(true, Action.REMOVE_LABEL, '');
   }
 }

@@ -69,9 +69,9 @@ class EmergencyValidationFilter implements ValidationFilter {
 
   @override
   Set<Validation> getValidations() => {
-        Approval(config: config),
-        Mergeable(config: config),
-      };
+    Approval(config: config),
+    Mergeable(config: config),
+  };
 }
 
 /// [RevertRequestValidationFilter] returns a Set of validations that we run on
@@ -84,8 +84,8 @@ class RevertRequestValidationFilter implements ValidationFilter {
 
   @override
   Set<Validation> getValidations() => {
-        Approval(config: config),
-        RequiredCheckRuns(config: config),
-        Mergeable(config: config),
-      };
+    Approval(config: config),
+    RequiredCheckRuns(config: config),
+    Mergeable(config: config),
+  };
 }

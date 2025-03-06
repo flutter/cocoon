@@ -33,14 +33,14 @@ class RepositoryConfiguration {
     bool? runCi,
     bool? supportNoReviewReverts,
     Set<String>? requiredCheckRunsOnRevert,
-  })  : allowConfigOverride = allowConfigOverride ?? false,
-        defaultBranch = defaultBranch ?? defaultBranchStr,
-        autoApprovalAccounts = autoApprovalAccounts ?? <String>{},
-        approvingReviews = approvingReviews ?? 2,
-        approvalGroup = approvalGroup ?? 'flutter-hackers',
-        runCi = runCi ?? true,
-        supportNoReviewReverts = supportNoReviewReverts ?? true,
-        requiredCheckRunsOnRevert = requiredCheckRunsOnRevert ?? <String>{};
+  }) : allowConfigOverride = allowConfigOverride ?? false,
+       defaultBranch = defaultBranch ?? defaultBranchStr,
+       autoApprovalAccounts = autoApprovalAccounts ?? <String>{},
+       approvingReviews = approvingReviews ?? 2,
+       approvalGroup = approvalGroup ?? 'flutter-hackers',
+       runCi = runCi ?? true,
+       supportNoReviewReverts = supportNoReviewReverts ?? true,
+       requiredCheckRunsOnRevert = requiredCheckRunsOnRevert ?? <String>{};
 
   /// This flag allows the repository to override the org level configuration.
   bool allowConfigOverride;

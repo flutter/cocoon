@@ -15,18 +15,14 @@ import '../service/config.dart';
 
 /// Service class for interacting with PubSub.
 class PubSub {
-  const PubSub({
-    this.httpClientProvider = Providers.freshHttpClient,
-  });
+  const PubSub({this.httpClientProvider = Providers.freshHttpClient});
 
   final HttpClientProvider httpClientProvider;
 
   /// Adds one message to the topic.
   Future<void> publish(String topic, dynamic json) async {
     final Client httpClient = await clientViaApplicationDefaultCredentials(
-      scopes: <String>[
-        pubsub.PubsubApi.pubsubScope,
-      ],
+      scopes: <String>[pubsub.PubsubApi.pubsubScope],
     );
     final pubsubApi = pubsub.PubsubApi(httpClient);
     final messageData = jsonEncode(json);
@@ -38,22 +34,24 @@ class PubSub {
       ],
     );
     final fullTopicName = '${Config.pubsubTopicsPrefix}/$topic';
-    final response =
-        await pubsubApi.projects.topics.publish(request, fullTopicName);
+    final response = await pubsubApi.projects.topics.publish(
+      request,
+      fullTopicName,
+    );
     log.info('pubsub response messageId=${response.messageIds}');
   }
 
   /// Pulls messages from the server.
   Future<pubsub.PullResponse> pull(String subscription, int maxMessages) async {
     final Client httpClient = await clientViaApplicationDefaultCredentials(
-      scopes: <String>[
-        pubsub.PubsubApi.pubsubScope,
-      ],
+      scopes: <String>[pubsub.PubsubApi.pubsubScope],
     );
     final pubsubApi = pubsub.PubsubApi(httpClient);
     final pullRequest = pubsub.PullRequest(maxMessages: maxMessages);
-    final pullResponse = await pubsubApi.projects.subscriptions
-        .pull(pullRequest, '${Config.pubsubSubscriptionsPrefix}/$subscription');
+    final pullResponse = await pubsubApi.projects.subscriptions.pull(
+      pullRequest,
+      '${Config.pubsubSubscriptionsPrefix}/$subscription',
+    );
     return pullResponse;
   }
 
@@ -62,14 +60,14 @@ class PubSub {
   /// The PubSub system can remove the relevant messages from the subscription.
   Future<void> acknowledge(String subscription, String ackId) async {
     final Client httpClient = await clientViaApplicationDefaultCredentials(
-      scopes: <String>[
-        pubsub.PubsubApi.pubsubScope,
-      ],
+      scopes: <String>[pubsub.PubsubApi.pubsubScope],
     );
     final pubsubApi = pubsub.PubsubApi(httpClient);
     final ackIds = <String>[ackId];
     final acknowledgeRequest = pubsub.AcknowledgeRequest(ackIds: ackIds);
-    await pubsubApi.projects.subscriptions.acknowledge(acknowledgeRequest,
-        '${Config.pubsubSubscriptionsPrefix}/$subscription');
+    await pubsubApi.projects.subscriptions.acknowledge(
+      acknowledgeRequest,
+      '${Config.pubsubSubscriptionsPrefix}/$subscription',
+    );
   }
 }

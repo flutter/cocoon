@@ -7,7 +7,5 @@ import 'package:mockito/annotations.dart';
 
 export 'mocks.mocks.dart';
 
-@GenerateMocks(<Type>[
-  ApproverService,
-])
+@GenerateMocks(<Type>[ApproverService])
 void main() {}

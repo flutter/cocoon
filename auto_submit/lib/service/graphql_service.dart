@@ -20,7 +20,9 @@ class GraphQlService {
   //                slug-specific makes it awkward to use for org operations and cross-repo
   //                operations.
   static Future<GraphQlService> forRepo(
-      Config config, github.RepositorySlug slug) async {
+    Config config,
+    github.RepositorySlug slug,
+  ) async {
     final client = await config.createGitHubGraphQLClient(slug);
     return GraphQlService._(client);
   }
@@ -75,7 +77,9 @@ class GraphQlService {
   /// The REST pull request ID is not the same as the GraphQL ID, and GraphQL
   /// mutations only accept the GraphQL variant.
   Future<String> getPullRequestId(
-      github.RepositorySlug slug, int pullRequestNumber) async {
+    github.RepositorySlug slug,
+    int pullRequestNumber,
+  ) async {
     final queryPullRequest = FindPullRequestNodeIdQuery(
       repositoryOwner: slug.owner,
       repositoryName: slug.name,
@@ -96,7 +100,10 @@ class GraphQlService {
   /// pull request is in a state that allows it to proceed onto the merge queue
   /// (e.g. all required checks pass).
   Future<void> enqueuePullRequest(
-      github.RepositorySlug slug, int pullRequestNumber, bool jump) async {
+    github.RepositorySlug slug,
+    int pullRequestNumber,
+    bool jump,
+  ) async {
     final enqueueMutation = EnqueuePullRequestMutation(
       id: await getPullRequestId(slug, pullRequestNumber),
       jump: jump,

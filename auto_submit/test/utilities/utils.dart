@@ -14,12 +14,18 @@ const String title = 'some_title';
 class StatusHelper {
   const StatusHelper(this.name, this.state);
 
-  static const StatusHelper flutterBuildSuccess =
-      StatusHelper('tree-status', 'SUCCESS');
-  static const StatusHelper flutterBuildFailure =
-      StatusHelper('tree-status', 'FAILURE');
-  static const StatusHelper otherStatusFailure =
-      StatusHelper('other status', 'FAILURE');
+  static const StatusHelper flutterBuildSuccess = StatusHelper(
+    'tree-status',
+    'SUCCESS',
+  );
+  static const StatusHelper flutterBuildFailure = StatusHelper(
+    'tree-status',
+    'FAILURE',
+  );
+  static const StatusHelper otherStatusFailure = StatusHelper(
+    'other status',
+    'FAILURE',
+  );
 
   final String name;
   final String state;
@@ -36,13 +42,14 @@ class PullRequestHelper {
     this.mergeableState = MergeableState.MERGEABLE,
     this.reviews = const <PullRequestReviewHelper>[
       PullRequestReviewHelper(
-          authorName: 'member',
-          state: ReviewState.APPROVED,
-          memberType: MemberType.MEMBER),
+        authorName: 'member',
+        state: ReviewState.APPROVED,
+        memberType: MemberType.MEMBER,
+      ),
     ],
     this.lastCommitHash = 'oid',
     this.lastCommitStatuses = const <StatusHelper>[
-      StatusHelper.flutterBuildSuccess
+      StatusHelper.flutterBuildSuccess,
     ],
     this.lastCommitMessage = '',
     this.dateTime,
@@ -80,14 +87,20 @@ class PullRequestHelper {
               .toIso8601String(),
       'isInMergeQueue': isInMergeQueue,
       'reviews': <String, dynamic>{
-        'nodes': reviews.map((PullRequestReviewHelper review) {
-          return <String, dynamic>{
-            'author': <String, dynamic>{'login': review.authorName},
-            'authorAssociation':
-                review.memberType.toString().replaceFirst('MemberType.', ''),
-            'state': review.state.toString().replaceFirst('ReviewState.', ''),
-          };
-        }).toList(),
+        'nodes':
+            reviews.map((PullRequestReviewHelper review) {
+              return <String, dynamic>{
+                'author': <String, dynamic>{'login': review.authorName},
+                'authorAssociation': review.memberType.toString().replaceFirst(
+                  'MemberType.',
+                  '',
+                ),
+                'state': review.state.toString().replaceFirst(
+                  'ReviewState.',
+                  '',
+                ),
+              };
+            }).toList(),
       },
       'commits': <String, dynamic>{
         'nodes': <dynamic>[
@@ -100,18 +113,19 @@ class PullRequestHelper {
                       .toIso8601String(),
               'message': lastCommitMessage,
               'status': <String, dynamic>{
-                'contexts': lastCommitStatuses != null
-                    ? lastCommitStatuses!.map((StatusHelper status) {
-                        return <String, dynamic>{
-                          'context': status.name,
-                          'state': status.state,
-                          'targetUrl': 'https://${status.name}',
-                        };
-                      }).toList()
-                    : <dynamic>[],
+                'contexts':
+                    lastCommitStatuses != null
+                        ? lastCommitStatuses!.map((StatusHelper status) {
+                          return <String, dynamic>{
+                            'context': status.name,
+                            'state': status.state,
+                            'targetUrl': 'https://${status.name}',
+                          };
+                        }).toList()
+                        : <dynamic>[],
               },
             },
-          }
+          },
         ],
       },
     };
@@ -128,17 +142,10 @@ QueryResult createQueryResult(PullRequestHelper pullRequest) {
 }
 
 /// List of review state from a github pull request.
-enum ReviewState {
-  APPROVED,
-  CHANGES_REQUESTED,
-}
+enum ReviewState { APPROVED, CHANGES_REQUESTED }
 
 /// List of member type of a github pull request author/reviewer.
-enum MemberType {
-  OWNER,
-  MEMBER,
-  OTHER,
-}
+enum MemberType { OWNER, MEMBER, OTHER }
 
 /// Details of a github pull request review.
 @immutable

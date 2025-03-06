@@ -11,11 +11,7 @@ part 'github_pull_request_event.g.dart';
 /// sent to the webhook.
 @JsonSerializable()
 class GithubPullRequestEvent {
-  const GithubPullRequestEvent({
-    this.pullRequest,
-    this.action,
-    this.sender,
-  });
+  const GithubPullRequestEvent({this.pullRequest, this.action, this.sender});
 
   /// The [PullRequest] object information.
   @JsonKey(name: 'pull_request')

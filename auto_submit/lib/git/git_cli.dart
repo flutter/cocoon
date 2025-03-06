@@ -37,9 +37,7 @@ class GitCli {
   Future<bool> isGitRepository(String directory) async {
     final processResult = await _cliCommand.runCliCommand(
       executable: git,
-      arguments: <String>[
-        'rev-parse',
-      ],
+      arguments: <String>['rev-parse'],
       throwOnError: false,
       workingDirectory: directory,
     );
@@ -142,10 +140,7 @@ class GitCli {
   }) async {
     return _cliCommand.runCliCommand(
       executable: git,
-      arguments: <String>[
-        'fetch',
-        '--all',
-      ],
+      arguments: <String>['fetch', '--all'],
       throwOnError: throwOnError,
     );
   }
@@ -180,10 +175,7 @@ class GitCli {
   }) async {
     final processResult = await _cliCommand.runCliCommand(
       executable: git,
-      arguments: <String>[
-        'pull',
-        pullMethod,
-      ],
+      arguments: <String>['pull', pullMethod],
       workingDirectory: workingDirectory,
     );
     return processResult;
@@ -202,16 +194,9 @@ class GitCli {
     // Then create the new branch.
     List<String> args;
     if (useCheckout) {
-      args = <String>[
-        'checkout',
-        '-b',
-        newBranchName,
-      ];
+      args = <String>['checkout', '-b', newBranchName];
     } else {
-      args = <String>[
-        'branch',
-        newBranchName,
-      ];
+      args = <String>['branch', newBranchName];
     }
 
     return _cliCommand.runCliCommand(
@@ -231,13 +216,7 @@ class GitCli {
     // Issue a revert of the pull request.
     return _cliCommand.runCliCommand(
       executable: git,
-      arguments: <String>[
-        'revert',
-        '--no-edit',
-        '-m',
-        '1',
-        commitSha,
-      ],
+      arguments: <String>['revert', '--no-edit', '-m', '1', commitSha],
       workingDirectory: workingDirectory,
       throwOnError: throwOnError,
     );
@@ -251,12 +230,7 @@ class GitCli {
   }) async {
     return _cliCommand.runCliCommand(
       executable: git,
-      arguments: <String>[
-        'push',
-        '--verbose',
-        'origin',
-        branchName,
-      ],
+      arguments: <String>['push', '--verbose', 'origin', branchName],
       workingDirectory: workingDirectory,
       throwOnError: throwOnError,
     );
@@ -270,11 +244,7 @@ class GitCli {
   }) async {
     return _cliCommand.runCliCommand(
       executable: git,
-      arguments: <String>[
-        'branch',
-        '-D',
-        branchName,
-      ],
+      arguments: <String>['branch', '-D', branchName],
       workingDirectory: workingDirectory,
       throwOnError: throwOnError,
     );
@@ -290,12 +260,7 @@ class GitCli {
   }) async {
     return _cliCommand.runCliCommand(
       executable: git,
-      arguments: <String>[
-        'push',
-        'origin',
-        '--delete',
-        branchName,
-      ],
+      arguments: <String>['push', 'origin', '--delete', branchName],
       throwOnError: throwOnError,
     );
   }
@@ -307,11 +272,7 @@ class GitCli {
   }) async {
     return _cliCommand.runCliCommand(
       executable: git,
-      arguments: <String>[
-        'config',
-        '--get',
-        'remote.origin.url',
-      ],
+      arguments: <String>['config', '--get', 'remote.origin.url'],
       workingDirectory: workingDirectory,
       throwOnError: throwOnError,
     );
@@ -324,10 +285,7 @@ class GitCli {
   }) async {
     return _cliCommand.runCliCommand(
       executable: git,
-      arguments: <String>[
-        'switch',
-        branchName,
-      ],
+      arguments: <String>['switch', branchName],
       workingDirectory: workingDirectory,
       throwOnError: throwOnError,
     );

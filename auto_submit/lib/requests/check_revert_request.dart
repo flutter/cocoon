@@ -88,7 +88,8 @@ class CheckRevertRequest extends CheckRequest {
         if (pullRequest.labels!.any((element) => element.name == 'revert of')) {
           final approver = approverProvider(config);
           log.info(
-              'Checking auto approval of "revert of" pull request: $rawBody');
+            'Checking auto approval of "revert of" pull request: $rawBody',
+          );
           await approver.autoApproval(pullRequest);
         } else {
           // These should be closed requests that do not need to be reviewed.
@@ -99,7 +100,10 @@ class CheckRevertRequest extends CheckRequest {
 
       futures.add(
         validationService.processMessage(
-            githubPullRequestEvent, message.ackId!, pubsub),
+          githubPullRequestEvent,
+          message.ackId!,
+          pubsub,
+        ),
       );
     }
     await Future.wait(futures);

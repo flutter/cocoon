@@ -29,63 +29,31 @@ class RevertInfoCollection {
   final String endRevertBodyTag = '<!-- end_revert_body -->';
 
   String? extractOriginalPrLink(String text) {
-    return _extract(
-      startOriginalPrLinkTag,
-      endOriginalPrLinkTag,
-      text,
-    );
+    return _extract(startOriginalPrLinkTag, endOriginalPrLinkTag, text);
   }
 
   String? extractInitiatingAuthor(String text) {
-    return _extract(
-      startInitiatingAuthorTag,
-      endInitiatingAuthorTag,
-      text,
-    );
+    return _extract(startInitiatingAuthorTag, endInitiatingAuthorTag, text);
   }
 
   String? extractRevertReason(String text) {
-    return _extract(
-      startRevertReasonTag,
-      endRevertReasonTag,
-      text,
-    );
+    return _extract(startRevertReasonTag, endRevertReasonTag, text);
   }
 
   String? extractOriginalPrAuthor(String text) {
-    return _extract(
-      startOriginalPrAuthorTag,
-      endOriginalPrAuthorTag,
-      text,
-    );
+    return _extract(startOriginalPrAuthorTag, endOriginalPrAuthorTag, text);
   }
 
   String? extractReviewers(String text) {
-    return _extract(
-      startReviewersTag,
-      endReviewersTag,
-      text,
-    );
+    return _extract(startReviewersTag, endReviewersTag, text);
   }
 
   String? extractRevertBody(String text) {
-    return _extract(
-      startRevertBodyTag,
-      endRevertBodyTag,
-      text,
-    );
+    return _extract(startRevertBodyTag, endRevertBodyTag, text);
   }
 
-  String? extractWithTags(
-    String text,
-    String startTag,
-    String endTag,
-  ) {
-    return _extract(
-      startTag,
-      endTag,
-      text,
-    );
+  String? extractWithTags(String text, String startTag, String endTag) {
+    return _extract(startTag, endTag, text);
   }
 
   String? _extract(String startTag, String endTag, String text) {
@@ -95,10 +63,7 @@ class RevertInfoCollection {
     pattern = pattern.replaceAll('>', '\\>');
     pattern = pattern.replaceAll('-', '\\-');
     pattern = pattern.replaceAll('!', '\\!');
-    final regExp = RegExp(
-      pattern,
-      multiLine: true,
-    );
+    final regExp = RegExp(pattern, multiLine: true);
     if (regExp.hasMatch(text)) {
       final matches = regExp.allMatches(text);
       final Match m = matches.first;

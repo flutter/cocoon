@@ -22,15 +22,18 @@ void main() {
         - Google-testing
     ''';
 
-    final repositoryConfiguration =
-        RepositoryConfiguration.fromYaml(sampleConfig);
+    final repositoryConfiguration = RepositoryConfiguration.fromYaml(
+      sampleConfig,
+    );
     expect(repositoryConfiguration.defaultBranch, 'main');
     expect(repositoryConfiguration.autoApprovalAccounts.isNotEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
     expect(
-        repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty, isTrue);
+      repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty,
+      isTrue,
+    );
   });
 
   test('Parse config from yaml excluding auto approval accounts', () {
@@ -45,15 +48,18 @@ void main() {
         - “Google-testing”
     ''';
 
-    final repositoryConfiguration =
-        RepositoryConfiguration.fromYaml(sampleConfig);
+    final repositoryConfiguration = RepositoryConfiguration.fromYaml(
+      sampleConfig,
+    );
     expect(repositoryConfiguration.defaultBranch, 'main');
     expect(repositoryConfiguration.autoApprovalAccounts.isEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
     expect(
-        repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty, isTrue);
+      repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty,
+      isTrue,
+    );
   });
 
   test('Parse config from yaml with empty auto_approval_accounts field', () {
@@ -68,8 +74,9 @@ void main() {
         - “Google-testing”
     ''';
 
-    final repositoryConfiguration =
-        RepositoryConfiguration.fromYaml(sampleConfig);
+    final repositoryConfiguration = RepositoryConfiguration.fromYaml(
+      sampleConfig,
+    );
     // We will get the default branch later as it does not need to be added to
     // the initial configuration.
     repositoryConfiguration.defaultBranch = 'main';
@@ -81,7 +88,9 @@ void main() {
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
     expect(
-        repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty, isTrue);
+      repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty,
+      isTrue,
+    );
   });
 
   test('Parse minimal configuration', () {
@@ -92,8 +101,9 @@ void main() {
         repo: flutter
     ''';
 
-    final repositoryConfiguration =
-        RepositoryConfiguration.fromYaml(sampleConfig);
+    final repositoryConfiguration = RepositoryConfiguration.fromYaml(
+      sampleConfig,
+    );
     repositoryConfiguration.defaultBranch = 'master';
 
     expect(repositoryConfiguration.defaultBranch, 'master');

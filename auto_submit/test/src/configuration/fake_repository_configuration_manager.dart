@@ -26,7 +26,8 @@ class FakeRepositoryConfigurationManager
 
   @override
   Future<RepositoryConfiguration> readRepositoryConfiguration(
-      RepositorySlug slug) async {
+    RepositorySlug slug,
+  ) async {
     return repositoryConfigurationMock!;
   }
 

@@ -54,9 +54,13 @@ void main() {
       expect(commitNode.commit, isNotNull);
       expect(commitNode.commit!.abbreviatedOid, '4009ecc');
       expect(
-          commitNode.commit!.oid, '4009ecc0b6dbf5cb19cb97472147063e7368ec10');
-      expect(commitNode.commit!.pushedDate,
-          DateTime.parse('2022-05-11 22:35:03.000Z'));
+        commitNode.commit!.oid,
+        '4009ecc0b6dbf5cb19cb97472147063e7368ec10',
+      );
+      expect(
+        commitNode.commit!.pushedDate,
+        DateTime.parse('2022-05-11 22:35:03.000Z'),
+      );
       expect(commitNode.commit!.status, isNotNull);
       final statuses = commitNode.commit!.status!.contexts!;
       expect(statuses[0].createdAt, DateTime.parse('2023-12-01T23:29:12Z'));
@@ -71,25 +75,35 @@ void main() {
     test('All fields are present', () {
       expect(revertPullRequestData.revertPullRequest, isNotNull);
       expect(
-          revertPullRequestData.revertPullRequest!.clientMutationId, isNotNull);
+        revertPullRequestData.revertPullRequest!.clientMutationId,
+        isNotNull,
+      );
       expect(revertPullRequestData.revertPullRequest!.pullRequest, isNotNull);
-      expect(revertPullRequestData.revertPullRequest!.revertPullRequest,
-          isNotNull);
+      expect(
+        revertPullRequestData.revertPullRequest!.revertPullRequest,
+        isNotNull,
+      );
     });
 
     test('Client Mutation Id field', () {
-      expect(revertPullRequestData.revertPullRequest!.clientMutationId,
-          'ra186026');
+      expect(
+        revertPullRequestData.revertPullRequest!.clientMutationId,
+        'ra186026',
+      );
     });
 
     test('To be reverted PullRequest field.', () {
       final pullRequest = revertPullRequestData.revertPullRequest!.pullRequest!;
       expect(pullRequest.id, 'PR_kwDOIRxr_M5MQ7mV');
-      expect(pullRequest.title,
-          'Adding a TODO comment for testing pull request auto approval.');
+      expect(
+        pullRequest.title,
+        'Adding a TODO comment for testing pull request auto approval.',
+      );
       expect(pullRequest.author!.login, 'ricardoamador');
-      expect(pullRequest.body,
-          'This is for testing revert and should be present in the revert mutation.');
+      expect(
+        pullRequest.body,
+        'This is for testing revert and should be present in the revert mutation.',
+      );
     });
 
     test('Revert PullRequest field.', () {

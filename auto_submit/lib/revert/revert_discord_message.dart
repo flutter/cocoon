@@ -24,9 +24,10 @@ Pull Request [$originalPrDisplayText](<$originalPrUrl>) has been reverted by $in
 Please see the revert PR here: [$revertPrDisplayText](<$revertPrUrl>).
 Reason for reverting: $reasonForRevert''';
 
-    final truncatedContent = content.length <= discordMessageLength
-        ? content
-        : '${content.substring(0, discordMessageLength - elipsesOffset)}...';
+    final truncatedContent =
+        content.length <= discordMessageLength
+            ? content
+            : '${content.substring(0, discordMessageLength - elipsesOffset)}...';
 
     return RevertDiscordMessage(content: truncatedContent, username: _username);
   }

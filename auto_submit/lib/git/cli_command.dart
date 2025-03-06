@@ -54,7 +54,11 @@ class CliCommand {
         }
 
         throw ProcessException(
-            executable, arguments, errorMessage, processResult.exitCode);
+          executable,
+          arguments,
+          errorMessage,
+          processResult.exitCode,
+        );
       }
     }
 

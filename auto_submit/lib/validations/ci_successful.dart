@@ -18,24 +18,24 @@ class CiSuccessful extends Validation {
     'submit-queue', // packages repo
   };
 
-  CiSuccessful({
-    required super.config,
-  });
+  CiSuccessful({required super.config});
 
   @override
   String get name => 'CiSuccessful';
 
   @override
-
   /// Implements the CI build/tests validations.
   Future<ValidationResult> validate(
-      QueryResult result, github.PullRequest messagePullRequest) async {
+    QueryResult result,
+    github.PullRequest messagePullRequest,
+  ) async {
     var allSuccess = true;
     final slug = messagePullRequest.base!.repo!.slug();
     final prNumber = messagePullRequest.number!;
-    final prState = (messagePullRequest.state == 'closed')
-        ? PullRequestState.closed
-        : PullRequestState.open;
+    final prState =
+        (messagePullRequest.state == 'closed')
+            ? PullRequestState.closed
+            : PullRequestState.open;
     final pullRequest = result.repository!.pullRequest!;
     final failures = <FailureDetail>{};
 
@@ -49,8 +49,9 @@ class CiSuccessful extends Validation {
       statuses.addAll(commit.status!.contexts!);
     }
 
-    final repositoryConfiguration =
-        await config.getRepositoryConfiguration(slug);
+    final repositoryConfiguration = await config.getRepositoryConfiguration(
+      slug,
+    );
     final targetBranch = repositoryConfiguration.defaultBranch;
     // Check tree status of repos. If the tree status is not ready,
     // we want to hold and wait for the status, same as waiting
@@ -60,23 +61,37 @@ class CiSuccessful extends Validation {
       // Only validate tree status where base branch is the default branch.
       if (!isTreeStatusReporting(slug, prNumber, statuses)) {
         log.warning(
-            'Statuses were not ready for ${slug.fullName}/$prNumber, sha: $commit.');
-        return ValidationResult(false, Action.IGNORE_TEMPORARILY,
-            'Hold to wait for the tree status ready.');
+          'Statuses were not ready for ${slug.fullName}/$prNumber, sha: $commit.',
+        );
+        return ValidationResult(
+          false,
+          Action.IGNORE_TEMPORARILY,
+          'Hold to wait for the tree status ready.',
+        );
       }
     } else {
       log.info(
-          'Target branch is $baseBranch for ${slug.fullName}/$prNumber, skipping tree status check.');
+        'Target branch is $baseBranch for ${slug.fullName}/$prNumber, skipping tree status check.',
+      );
     }
 
     // List of labels associated with the pull request.
-    final labelNames = (messagePullRequest.labels as List<github.IssueLabel>)
-        .map<String>((github.IssueLabel labelMap) => labelMap.name)
-        .toList();
+    final labelNames =
+        (messagePullRequest.labels as List<github.IssueLabel>)
+            .map<String>((github.IssueLabel labelMap) => labelMap.name)
+            .toList();
 
     /// Validate if all statuses have been successful.
-    allSuccess = validateStatuses(slug, prNumber, prState, author, labelNames,
-        statuses, failures, allSuccess);
+    allSuccess = validateStatuses(
+      slug,
+      prNumber,
+      prState,
+      author,
+      labelNames,
+      statuses,
+      failures,
+      allSuccess,
+    );
 
     final gitHubService = await config.createGithubService(slug);
     final sha = commit.oid;
@@ -88,7 +103,14 @@ class CiSuccessful extends Validation {
 
     /// Validate if all checkRuns have succeeded.
     allSuccess = validateCheckRuns(
-        slug, prNumber, prState, checkRuns, failures, allSuccess, author);
+      slug,
+      prNumber,
+      prState,
+      checkRuns,
+      failures,
+      allSuccess,
+      author,
+    );
 
     if (!allSuccess && failures.isEmpty) {
       return ValidationResult(allSuccess, Action.IGNORE_TEMPORARILY, '');
@@ -98,13 +120,15 @@ class CiSuccessful extends Validation {
     if (failures.isNotEmpty) {
       for (var detail in failures) {
         buffer.writeln(
-            '- The status or check suite ${detail.markdownLink} has failed. Please fix the '
-            'issues identified (or deflake) before re-applying this label.');
+          '- The status or check suite ${detail.markdownLink} has failed. Please fix the '
+          'issues identified (or deflake) before re-applying this label.',
+        );
       }
     }
-    final action = labelNames.contains(Config.kEmergencyLabel)
-        ? Action.IGNORE_FAILURE
-        : Action.REMOVE_LABEL;
+    final action =
+        labelNames.contains(Config.kEmergencyLabel)
+            ? Action.IGNORE_FAILURE
+            : Action.REMOVE_LABEL;
     return ValidationResult(allSuccess, action, buffer.toString());
   }
 
@@ -120,7 +144,10 @@ class CiSuccessful extends Validation {
   ///
   /// If a repo doesn't have a tree status, simply return `true`.
   bool isTreeStatusReporting(
-      github.RepositorySlug slug, int prNumber, List<ContextNode> statuses) {
+    github.RepositorySlug slug,
+    int prNumber,
+    List<ContextNode> statuses,
+  ) {
     var treeStatusValid = false;
     if (!Config.reposWithTreeStatus.contains(slug)) {
       return true;
@@ -130,7 +157,8 @@ class CiSuccessful extends Validation {
     }
     const treeStatusName = 'tree-status';
     log.info(
-        '${slug.fullName}/$prNumber: Validating tree status for ${slug.name}/tree-status, statuses: $statuses');
+      '${slug.fullName}/$prNumber: Validating tree status for ${slug.name}/tree-status, statuses: $statuses',
+    );
 
     /// Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
     for (var status in statuses) {
@@ -246,8 +274,11 @@ class CiSuccessful extends Validation {
 
   // Treat any GitHub check run as stale if created over [Config.kGitHubCheckStaleThreshold] hours ago.
   bool isStale(DateTime dateTime) {
-    return dateTime.compareTo(DateTime.now().subtract(
-            const Duration(hours: Config.kGitHubCheckStaleThreshold))) <
+    return dateTime.compareTo(
+          DateTime.now().subtract(
+            const Duration(hours: Config.kGitHubCheckStaleThreshold),
+          ),
+        ) <
         0;
   }
 

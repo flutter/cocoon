@@ -23,8 +23,11 @@ import '../service/secrets.dart';
 import 'github_service.dart';
 
 class CocoonGitHubRequestException implements Exception {
-  const CocoonGitHubRequestException(this.message,
-      {required this.code, required this.uri});
+  const CocoonGitHubRequestException(
+    this.message, {
+    required this.code,
+    required this.uri,
+  });
 
   final String message;
   final int code;
@@ -43,8 +46,10 @@ class Config {
     this.httpProvider = Providers.freshHttpClient,
     required this.secretManager,
   }) {
-    repositoryConfigurationManager =
-        RepositoryConfigurationManager(this, cache);
+    repositoryConfigurationManager = RepositoryConfigurationManager(
+      this,
+      cache,
+    );
   }
 
   late RepositoryConfigurationManager repositoryConfigurationManager;
@@ -123,14 +128,14 @@ class Config {
   /// These accounts should not need reviews before merging. See
   /// https://github.com/flutter/flutter/blob/master/docs/infra/Autorollers.md
   Set<String> get rollerAccounts => const <String>{
-        'skia-flutter-autoroll',
-        'engine-flutter-autoroll',
-        // REST API returns dependabot[bot] as author while GraphQL returns dependabot. We need
-        // both as we use graphQL to merge the PR and REST API to approve the PR.
-        'dependabot[bot]',
-        'dependabot',
-        'DartDevtoolWorkflowBot',
-      };
+    'skia-flutter-autoroll',
+    'engine-flutter-autoroll',
+    // REST API returns dependabot[bot] as author while GraphQL returns dependabot. We need
+    // both as we use graphQL to merge the PR and REST API to approve the PR.
+    'dependabot[bot]',
+    'dependabot',
+    'DartDevtoolWorkflowBot',
+  };
 
   /// Repository configuration variables
   Duration get repositoryConfigurationTtl => const Duration(minutes: 10);
@@ -183,7 +188,8 @@ class Config {
   Cache get cache => Cache<dynamic>(cacheProvider).withPrefix('config');
 
   Future<RepositoryConfiguration> getRepositoryConfiguration(
-      RepositorySlug slug) async {
+    RepositorySlug slug,
+  ) async {
     return repositoryConfigurationManager.readRepositoryConfiguration(slug);
   }
 
@@ -204,12 +210,14 @@ class Config {
 
   Future<String> generateGithubToken(RepositorySlug slug) async {
     // GitHub's secondary rate limits are run into very frequently when making auth tokens.
-    final cacheValue = await cache['githubToken-${slug.owner}'].get(
-      () => _generateGithubToken(slug),
-      // Tokens have a TTL of 10 minutes. AppEngine requests have a TTL of 1 minute.
-      // To ensure no expired tokens are used, set this to 10 - 1, with an extra buffer of a duplicate request.
-      const Duration(minutes: 8),
-    ) as Uint8List?;
+    final cacheValue =
+        await cache['githubToken-${slug.owner}'].get(
+              () => _generateGithubToken(slug),
+              // Tokens have a TTL of 10 minutes. AppEngine requests have a TTL of 1 minute.
+              // To ensure no expired tokens are used, set this to 10 - 1, with an extra buffer of a duplicate request.
+              const Duration(minutes: 8),
+            )
+            as Uint8List?;
     return String.fromCharCodes(cacheValue!);
   }
 
@@ -220,19 +228,20 @@ class Config {
       'Accept': 'application/vnd.github.machine-man-preview+json',
     };
     // TODO(KristinBi): Upstream the github package.https://github.com/flutter/flutter/issues/100920
-    final githubInstallationUri =
-        Uri.https('api.github.com', 'users/${slug.owner}/installation');
+    final githubInstallationUri = Uri.https(
+      'api.github.com',
+      'users/${slug.owner}/installation',
+    );
     final client = httpProvider();
     // TODO(KristinBi): Track the installation id by repo. https://github.com/flutter/flutter/issues/100808
-    final response = await client.get(
-      githubInstallationUri,
-      headers: headers,
-    );
+    final response = await client.get(githubInstallationUri, headers: headers);
     final installData = json.decode(response.body) as Map<String, dynamic>;
     final installationId = installData['id']?.toString();
     if (installationId == null) {
-      log.warning('Failed to get ID from Github '
-          '(response code ${response.statusCode}):\n${response.body}');
+      log.warning(
+        'Failed to get ID from Github '
+        '(response code ${response.statusCode}):\n${response.body}',
+      );
       throw CocoonGitHubRequestException(
         'getInstallationId failed to get ID from Github',
         code: response.statusCode,
@@ -252,9 +261,7 @@ class Config {
 
     final token = await generateGithubToken(slug);
 
-    final authLink = AuthLink(
-      getToken: () async => 'Bearer $token',
-    );
+    final authLink = AuthLink(getToken: () async => 'Bearer $token');
 
     return GraphQLClient(
       cache: GraphQLCache(),
@@ -280,17 +287,18 @@ class Config {
     };
     final installationId = await getInstallationId(slug);
     final githubAccessTokensUri = Uri.https(
-        'api.github.com', 'app/installations/$installationId/access_tokens');
-    final client = httpProvider();
-    final response = await client.post(
-      githubAccessTokensUri,
-      headers: headers,
+      'api.github.com',
+      'app/installations/$installationId/access_tokens',
     );
+    final client = httpProvider();
+    final response = await client.post(githubAccessTokensUri, headers: headers);
     final jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
     final token = jsonBody['token'] as String?;
     if (token == null) {
-      log.warning('Failed to get token from Github '
-          '(response code ${response.statusCode}):\n${response.body}');
+      log.warning(
+        'Failed to get token from Github '
+        '(response code ${response.statusCode}):\n${response.body}',
+      );
       throw CocoonGitHubRequestException(
         'generateGithubToken failed to get token from Github',
         code: response.statusCode,
@@ -306,7 +314,8 @@ class Config {
     final sb = StringBuffer();
     sb.writeln(rawKey.substring(0, 32));
     sb.writeln(
-        rawKey.substring(32, rawKey.length - 30).replaceAll(' ', '  \n'));
+      rawKey.substring(32, rawKey.length - 30).replaceAll(' ', '  \n'),
+    );
     sb.writeln(rawKey.substring(rawKey.length - 30, rawKey.length));
     final privateKey = sb.toString();
     final builder = JWTBuilder();
@@ -322,23 +331,29 @@ class Config {
 
   /// Get the webhook key
   Future<String> getWebhookKey() async {
-    final cacheValue = await cache[kWebHookKey].get(
-      () => _getValueFromSecretManager(kWebHookKey),
-    ) as Uint8List?;
+    final cacheValue =
+        await cache[kWebHookKey].get(
+              () => _getValueFromSecretManager(kWebHookKey),
+            )
+            as Uint8List?;
     return String.fromCharCodes(cacheValue!);
   }
 
   Future<String> getFlutterGitHubBotToken() async {
-    final cacheValue = await cache[kFlutterGitHubBotKey].get(
-      () => _getValueFromSecretManager(kFlutterGitHubBotKey),
-    ) as Uint8List?;
+    final cacheValue =
+        await cache[kFlutterGitHubBotKey].get(
+              () => _getValueFromSecretManager(kFlutterGitHubBotKey),
+            )
+            as Uint8List?;
     return String.fromCharCodes(cacheValue!);
   }
 
   Future<String> getTreeStatusDiscordUrl() async {
-    final cacheValue = await cache[kTreeStatusDiscordUrl].get(
-      () => _getValueFromSecretManager(kTreeStatusDiscordUrl),
-    ) as Uint8List?;
+    final cacheValue =
+        await cache[kTreeStatusDiscordUrl].get(
+              () => _getValueFromSecretManager(kTreeStatusDiscordUrl),
+            )
+            as Uint8List?;
     return String.fromCharCodes(cacheValue!);
   }
 

@@ -42,11 +42,7 @@ class LoggingHandler {
     try {
       return await _delegate(request);
     } catch (error, stackTrace) {
-      log.severe(
-        'Uncaught exception in HTTP handler',
-        error,
-        stackTrace,
-      );
+      log.severe('Uncaught exception in HTTP handler', error, stackTrace);
       rethrow;
     }
   }
