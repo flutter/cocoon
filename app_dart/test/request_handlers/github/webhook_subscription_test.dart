@@ -2557,7 +2557,10 @@ void foo() {
         const issueNumber = 12345;
         var batchRequestCalled = false;
 
-        Future<bbv2.BatchResponse> getBatchResponse(_) async {
+        Future<bbv2.BatchResponse> getBatchResponse(
+          bbv2.BatchRequest _,
+          String _,
+        ) async {
           batchRequestCalled = true;
           return bbv2.BatchResponse(
             responses: <bbv2.BatchResponse_Response>[
