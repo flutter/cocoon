@@ -24,7 +24,10 @@ void main() {
       cache: CacheService(inMemory: true),
       authProvider: FakeAuthenticationProvider(),
       swarmingAuthProvider: FakeAuthenticationProvider(),
-      branchService: BranchService(config: FakeConfig(), gerritService: FakeGerritService()),
+      branchService: BranchService(
+        config: FakeConfig(),
+        gerritService: FakeGerritService(),
+      ),
       buildBucketClient: FakeBuildBucketClient(),
       luciBuildService: FakeLuciBuildService(config: FakeConfig()),
       githubChecksService: GithubChecksService(FakeConfig()),

@@ -5,12 +5,10 @@
 import 'dart:async';
 
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
-import 'package:github/github.dart';
 
 import '../request_handling/body.dart';
 import '../service/branch_service.dart';
 import '../service/config.dart';
-import '../service/github_service.dart';
 
 /// Return a list of release branch information.
 ///
@@ -19,30 +17,26 @@ import '../service/github_service.dart';
 /// Response: Status 200 OK
 ///[
 ///    {
-///        "branch":"flutter-2.13-candidate.0",
-///        "name":"stable"
+///        "reference":"flutter-2.13-candidate.0",
+///        "channel":"stable"
 ///    },
 ///    {
-///        "branch":"flutter-3.2-candidate.5",
-///        "name":"beta"
+///        "reference":"flutter-3.2-candidate.5",
+///        "channel":"beta"
 ///    },
 ///    {
-///        "branch":"flutter-3.4-candidate.5",
-///        "name":"dev"
+///        "reference":"flutter-3.4-candidate.5",
+///        "channel":"dev"
 ///    }
 ///]
 
-class GetReleaseBranches extends RequestHandler<Body> {
-  GetReleaseBranches({required super.config, required this.branchService});
+final class GetReleaseBranches extends RequestHandler<Body> {
+  GetReleaseBranches({required super.config, required BranchService branchService}) : _branchService = branchService;
 
-  final BranchService branchService;
+  final BranchService _branchService;
 
   @override
   Future<Body> get() async {
-    final GitHub github = await config.createGitHubClient(slug: Config.flutterSlug);
-    final GithubService githubService = GithubService(github);
-    final List<Map<String, String>> branchNames =
-        await branchService.getReleaseBranches(githubService: githubService, slug: Config.flutterSlug);
-    return Body.forJson(branchNames);
+    return Body.forJson(await _branchService.getReleaseBranches(slug: Config.flutterSlug));
   }
 }
