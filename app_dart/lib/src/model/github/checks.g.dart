@@ -36,7 +36,7 @@ Map<String, dynamic> _$CheckRunEventToJson(CheckRunEvent instance) =>
 CheckRun _$CheckRunFromJson(Map<String, dynamic> json) => CheckRun(
   conclusion: json['conclusion'] as String?,
   headSha: json['head_sha'] as String?,
-  id: json['id'] as int?,
+  id: (json['id'] as num?)?.toInt(),
   pullRequests:
       (json['pull_requests'] as List<dynamic>?)
           ?.map((e) => PullRequest.fromJson(e as Map<String, dynamic>))
