@@ -21,7 +21,7 @@ sealed class PubSubUserData {
   static Map<String, Object?> _fromJsonBytes(List<int> bytes) {
     Map<String, Object?> jsonObject;
     try {
-      jsonObject = json.decode(utf8.decode(bytes)) as Map<String, Object?>;
+      jsonObject = json.decode(utf8.decode(bytes)) as Map<String, dynamic>;
     } on FormatException {
       // TODO(matanlurey): Remove legacy cases. https://github.com/flutter/flutter/issues/164568.
       log.warning(
@@ -31,7 +31,7 @@ sealed class PubSubUserData {
       final base64Decoded = base64.decode(encodedBytes);
       jsonObject =
           json.decode(String.fromCharCodes(base64Decoded))
-              as Map<String, Object?>;
+              as Map<String, dynamic>;
     }
     return jsonObject;
   }

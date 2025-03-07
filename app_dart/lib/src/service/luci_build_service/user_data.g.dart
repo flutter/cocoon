@@ -14,7 +14,10 @@ PresubmitUserData _$PresubmitUserDataFromJson(Map<String, dynamic> json) =>
       json,
       ($checkedConvert) {
         final val = PresubmitUserData(
-          checkRunId: $checkedConvert('check_run_id', (v) => v as int),
+          checkRunId: $checkedConvert(
+            'check_run_id',
+            (v) => (v as num).toInt(),
+          ),
           repoOwner: $checkedConvert('repo_owner', (v) => v as String),
           repoName: $checkedConvert('repo_name', (v) => v as String),
           builderName: $checkedConvert('builder_name', (v) => v as String),
@@ -52,7 +55,10 @@ PostsubmitUserData _$PostsubmitUserDataFromJson(Map<String, dynamic> json) =>
       json,
       ($checkedConvert) {
         final val = PostsubmitUserData(
-          checkRunId: $checkedConvert('check_run_id', (v) => v as int?),
+          checkRunId: $checkedConvert(
+            'check_run_id',
+            (v) => (v as num?)?.toInt(),
+          ),
           repoName: $checkedConvert('repo_name', (v) => v as String),
           repoOwner: $checkedConvert('repo_owner', (v) => v as String),
           taskKey: $checkedConvert('task_key', (v) => v as String),
@@ -74,24 +80,14 @@ PostsubmitUserData _$PostsubmitUserDataFromJson(Map<String, dynamic> json) =>
       },
     );
 
-Map<String, dynamic> _$PostsubmitUserDataToJson(PostsubmitUserData instance) {
-  final val = <String, dynamic>{
-    'repo_owner': instance.repoOwner,
-    'repo_name': instance.repoName,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('check_run_id', instance.checkRunId);
-  val['task_key'] = instance.taskKey;
-  val['commit_key'] = instance.commitKey;
-  writeNotNull(
-    'firestore_task_document_name',
-    FirestoreTaskDocumentName._toJson(instance.firestoreTaskDocumentName),
-  );
-  return val;
-}
+Map<String, dynamic> _$PostsubmitUserDataToJson(PostsubmitUserData instance) =>
+    <String, dynamic>{
+      'repo_owner': instance.repoOwner,
+      'repo_name': instance.repoName,
+      if (instance.checkRunId case final value?) 'check_run_id': value,
+      'task_key': instance.taskKey,
+      'commit_key': instance.commitKey,
+      if (FirestoreTaskDocumentName._toJson(instance.firestoreTaskDocumentName)
+          case final value?)
+        'firestore_task_document_name': value,
+    };
