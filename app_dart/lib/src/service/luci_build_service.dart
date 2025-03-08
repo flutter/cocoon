@@ -1172,7 +1172,7 @@ class LuciBuildService {
     }
     final retries = task.attempts ?? 1;
     if (retries > config.maxLuciTaskRetries) {
-      log.warning('Max retries reached');
+      log.info('Max retries reached for ${task.taskName}');
       return false;
     }
 
