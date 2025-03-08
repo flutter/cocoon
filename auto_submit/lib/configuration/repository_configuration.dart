@@ -117,13 +117,13 @@ class RepositoryConfiguration {
     }
 
     return RepositoryConfiguration(
-      allowConfigOverride: yamlDoc[allowConfigOverrideKey],
-      defaultBranch: yamlDoc[defaultBranchKey],
+      allowConfigOverride: yamlDoc[allowConfigOverrideKey] as bool?,
+      defaultBranch: yamlDoc[defaultBranchKey] as String?,
       autoApprovalAccounts: autoApprovalAccounts,
-      approvingReviews: yamlDoc[approvingReviewsKey],
-      approvalGroup: yamlDoc[approvalGroupKey],
-      runCi: yamlDoc[runCiKey],
-      supportNoReviewReverts: yamlDoc[supportNoReviewRevertKey],
+      approvingReviews: yamlDoc[approvingReviewsKey] as int?,
+      approvalGroup: yamlDoc[approvalGroupKey] as String?,
+      runCi: yamlDoc[runCiKey] as bool?,
+      supportNoReviewReverts: yamlDoc[supportNoReviewRevertKey] as bool?,
       requiredCheckRunsOnRevert: requiredCheckRunsOnRevert,
     );
   }

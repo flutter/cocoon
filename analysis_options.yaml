@@ -10,7 +10,6 @@ analyzer:
   errors:
     # TODO(matanlurey): Ignore for now, we have a lot of pre-existing violations.
     avoid_dynamic_calls: ignore
-    argument_type_not_assignable: ignore
     comment_references: ignore
     inference_failure_on_collection_literal: ignore
     inference_failure_on_function_invocation: ignore
@@ -19,7 +18,6 @@ analyzer:
     inference_failure_on_untyped_parameter: ignore
     lines_longer_than_80_chars: ignore
     only_throw_errors: ignore
-    return_of_invalid_type: ignore
   exclude:
     - ".dart_tool/**"
     - "**/*.g.dart"

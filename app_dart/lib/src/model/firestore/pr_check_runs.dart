@@ -48,14 +48,16 @@ class PrCheckRuns extends Document {
 
   /// The json string of the pullrequest belonging to this document.
   PullRequest get pullRequest => PullRequest.fromJson(
-    json.decode(fields![kPullRequestField]!.stringValue!),
+    json.decode(fields![kPullRequestField]!.stringValue!)
+        as Map<String, Object?>,
   );
 
   /// The head sha at the time this document was created for testing.
   String get sha => fields![kShaField]!.stringValue!;
 
-  RepositorySlug get slug =>
-      RepositorySlug.fromJson(json.decode(fields![kSlugField]!.stringValue!));
+  RepositorySlug get slug => RepositorySlug.fromJson(
+    json.decode(fields![kSlugField]!.stringValue!) as Map<String, Object?>,
+  );
 
   /// Initializes a new document for the list of check_runs in Firestore so we can find it later.
   ///

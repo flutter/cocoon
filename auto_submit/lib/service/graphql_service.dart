@@ -91,7 +91,7 @@ class GraphQlService {
       variables: queryPullRequest.variables,
     );
 
-    return graphQlPullRequest['repository']['pullRequest']['id'];
+    return graphQlPullRequest['repository']['pullRequest']['id'] as String;
   }
 
   /// Puts the given pull request onto the merge queue.

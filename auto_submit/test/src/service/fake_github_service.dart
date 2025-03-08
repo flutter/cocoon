@@ -460,7 +460,9 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<Branch> getBranch(RepositorySlug slug, String branchName) async {
-    return Branch.fromJson(json.decode(branchMockData!));
+    return Branch.fromJson(
+      json.decode(branchMockData!) as Map<String, Object?>,
+    );
   }
 
   bool addReviewersToPullRequestMock = true;

@@ -25,15 +25,16 @@ class MockProcessManager extends Mock implements ProcessManager {
     bool includeParentEnvironment = true,
     bool runInShell = false,
     ProcessStartMode mode = ProcessStartMode.normal,
-  }) {
+  }) async {
     return super.noSuchMethod(
-      Invocation.method(
-        #start,
-        [command],
-        {#workingDirectory: workingDirectory},
-      ),
-      returnValue: Future<Process>.value(FakeProcess(0)),
-    );
+          Invocation.method(
+            #start,
+            [command],
+            {#workingDirectory: workingDirectory},
+          ),
+          returnValue: Future<Process>.value(FakeProcess(0)),
+        )
+        as Process;
   }
 
   @override
@@ -47,9 +48,10 @@ class MockProcessManager extends Mock implements ProcessManager {
     covariant Encoding? stderrEncoding = systemEncoding,
   }) {
     return super.noSuchMethod(
-      Invocation.method(#runSync, [command]),
-      returnValue: ProcessResult(1, 0, 'abc', 'def'),
-    );
+          Invocation.method(#runSync, [command]),
+          returnValue: ProcessResult(1, 0, 'abc', 'def'),
+        )
+        as ProcessResult;
   }
 
   @override
@@ -61,11 +63,12 @@ class MockProcessManager extends Mock implements ProcessManager {
     bool runInShell = false,
     covariant Encoding? stdoutEncoding = systemEncoding,
     covariant Encoding? stderrEncoding = systemEncoding,
-  }) {
+  }) async {
     return super.noSuchMethod(
-      Invocation.method(#run, [command]),
-      returnValue: Future.value(ProcessResult(1, 0, 'abc', 'def')),
-    );
+          Invocation.method(#run, [command]),
+          returnValue: Future.value(ProcessResult(1, 0, 'abc', 'def')),
+        )
+        as ProcessResult;
   }
 }
 

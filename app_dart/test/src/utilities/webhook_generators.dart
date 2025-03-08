@@ -1097,7 +1097,8 @@ Map<String, dynamic> generatePushEvent(
   String message = 'Commit-message',
   String avatarUrl = 'https://fakegithubcontent.com/google_profile',
   String username = 'googledotcom',
-}) => jsonDecode('''
+}) =>
+    jsonDecode('''
 {
   "ref": "refs/heads/$branch",
   "before": "abc123abc123abc123",
@@ -1125,7 +1126,8 @@ Map<String, dynamic> generatePushEvent(
     "full_name": "$organization/$repository"
   }
 }
-''');
+''')
+        as Map<String, Object?>;
 
 PushMessage generateMergeGroupMessage({
   required String repository,

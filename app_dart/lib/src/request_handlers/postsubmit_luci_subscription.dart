@@ -191,7 +191,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       log.info('Updating check status for ${target.getTestName}');
       await githubChecksService.updateCheckStatus(
         build: build,
-        checkRunId: userDataMap['check_run_id'],
+        checkRunId: userDataMap['check_run_id'] as int,
         luciBuildService: scheduler.luciBuildService,
         slug: commit.slug,
       );
