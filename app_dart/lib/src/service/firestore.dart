@@ -129,6 +129,21 @@ class FirestoreService {
         .toList();
   }
 
+  /// Queries for recent [Task] by [name].
+  Future<List<Task>> queryRecentTasksByName({
+    int limit = 100,
+    required String name,
+  }) async {
+    final filterMap = {'$kTaskNameField =': name};
+    final orderMap = {kTaskCreateTimestampField: kQueryOrderDescending};
+    final documents = await query(
+      kTaskCollectionId,
+      filterMap,
+      orderMap: orderMap,
+    );
+    return documents.map((d) => Task.fromDocument(taskDocument: d)).toList();
+  }
+
   /// Returns all tasks running against the speificed [commitSha].
   Future<List<Task>> queryCommitTasks(String commitSha) async {
     final filterMap = <String, Object>{'$kTaskCommitShaField =': commitSha};

@@ -281,10 +281,36 @@ class BatchBackfiller extends RequestHandler {
     if (tasks.length < BatchPolicy.kBatchSize) {
       return null;
     }
-    if (shouldRerunPriority(tasks, BatchPolicy.kBatchSize)) {
+
+    // TODO(matanlurey): This was duplicated as part of (incrementally) removing
+    // datastore to prioritize firestore in other parts of the codebase; keep
+    // this in sync with "shouldRerunPriority" in scheduler/policy.dart.
+    if (_shouldRerunPriorityDatastore(tasks, BatchPolicy.kBatchSize)) {
       return LuciBuildService.kRerunPriority;
     }
     return LuciBuildService.kBackfillPriority;
+  }
+
+  // TODO(matanlurey): This was duplicated as part of (incrementally) removing
+  // datastore to prioritize firestore in other parts of the codebase; keep
+  // this in sync with "shouldRerunPriority" in scheduler/policy.dart.
+  //
+  // See https://github.com/flutter/flutter/issues/142951.
+  static bool _shouldRerunPriorityDatastore(
+    List<Task> tasks,
+    int pastTaskNumber,
+  ) {
+    // Prioritize tasks that recently failed.
+    var hasRecentFailure = false;
+    for (var i = 0; i < pastTaskNumber && i < tasks.length; i++) {
+      final task = tasks[i];
+      if (task.status == Task.statusFailed ||
+          task.status == Task.statusInfraFailure) {
+        hasRecentFailure = true;
+        break;
+      }
+    }
+    return hasRecentFailure;
   }
 
   /// Returns the most recent [FullTask] to backfill.

@@ -65,6 +65,13 @@ void main() {
     request = FakeHttpRequest();
     db = FakeDatastoreDB();
     mockFirestoreService = MockFirestoreService();
+    when(
+      mockFirestoreService.queryRecentTasksByName(
+        name: anyNamed('name'),
+        limit: anyNamed('limit'),
+      ),
+    ).thenAnswer((_) async => []);
+
     gitHubClient = MockGitHub();
     githubService = FakeGithubService();
     commitService = MockCommitService();
