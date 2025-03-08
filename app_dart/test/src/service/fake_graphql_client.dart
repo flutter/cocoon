@@ -89,6 +89,7 @@ class FakeGraphQLClient implements GraphQLClient {
     GraphQLCache? cache,
     DefaultPolicies? defaultPolicies,
     bool? alwaysRebroadcast,
+    Duration? queryRequestTimeout,
   }) {
     throw UnimplementedError();
   }

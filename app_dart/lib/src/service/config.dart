@@ -272,9 +272,7 @@ class Config {
 
   String get missingTestsPullRequestMessage =>
       'It looks like this pull request may not have tests. Please make sure to '
-      'add tests before merging. If you need an exemption, contact '
-      '"@test-exemption-reviewer" in the #hackers channel in [Discord](https://github.com/flutter/flutter/blob/master/docs/contributing/Chat.md) '
-      '(don\'t just cc them here, they won\'t see it!).'
+      'add tests or get an explicit test exemption before merging.'
       '\n\n'
       'If you are not sure if you need tests, consider this rule of thumb: '
       'the purpose of a test is to make sure someone doesn\'t accidentally '
@@ -284,7 +282,10 @@ class Config {
       '\n\n'
       '__Reviewers__: Read the [Tree Hygiene page]'
       '(https://github.com/flutter/flutter/blob/master/docs/contributing/Tree-hygiene.md#how-to-review-code) '
-      'and make sure this patch meets those guidelines before LGTMing. The test '
+      'and make sure this patch meets those guidelines before LGTMing.'
+      'If you believe this PR qualifies for a test exemption, contact '
+      '"@test-exemption-reviewer" in the #hackers channel in [Discord](https://github.com/flutter/flutter/blob/master/docs/contributing/Chat.md) '
+      '(don\'t just cc them here, they won\'t see it!). The test '
       'exemption team is a small volunteer group, so _all_ reviewers should feel '
       'empowered to ask for tests, without delegating that responsibility '
       'entirely to the test exemption group.';

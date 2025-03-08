@@ -51,16 +51,16 @@ class DartInternalSubscription extends SubscriptionHandler {
 
     // This looks to be like we are simply getting the build and not the top level
     // buildsPubSub message.
-    final Map<String, dynamic> jsonBuildMap = json.decode(message.data!);
+    final jsonBuildMap = json.decode(message.data!) as Map<String, dynamic>;
 
     if (jsonBuildMap['build'] == null) {
       log.info('no build information in message');
       return Body.empty;
     }
 
-    final String project = jsonBuildMap['build']['builder']['project'];
-    final String bucket = jsonBuildMap['build']['builder']['bucket'];
-    final String builder = jsonBuildMap['build']['builder']['builder'];
+    final project = jsonBuildMap['build']['builder']['project'] as String;
+    final bucket = jsonBuildMap['build']['builder']['bucket'] as String;
+    final builder = jsonBuildMap['build']['builder']['builder'] as String;
     final buildId = Int64.parseInt(jsonBuildMap['build']['id']);
 
     // This should already be covered by the pubsub filter, but adding an additional check

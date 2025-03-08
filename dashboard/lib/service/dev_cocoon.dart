@@ -139,7 +139,7 @@ class DevelopmentCocoonService implements CocoonService {
   Future<CocoonResponse<List<Branch>>> fetchFlutterBranches() async {
     final fakeBranches = <Branch>[
       Branch()
-        ..channel = 'HEAD'
+        ..channel = 'master'
         ..branch = 'master',
       Branch()
         ..channel = 'stable'

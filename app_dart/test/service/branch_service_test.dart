@@ -101,8 +101,14 @@ void main() {
         final releaseBranches = await branchService.getReleaseBranches(
           slug: Config.flutterSlug,
         );
+        // NOTE, master is intentionally used as both the channel and the
+        // reference, because on the frontend, the "channel" moniker is just
+        // ignored, and the "reference" must point to an actual git reference
+        // (HEAD is not sufficient or correct).
+        //
+        // See https://github.com/flutter/flutter/issues/164726.
         expect(releaseBranches, [
-          const ReleaseBranch(channel: 'master', reference: 'HEAD'),
+          const ReleaseBranch(channel: 'master', reference: 'master'),
         ]);
       },
     );
@@ -122,7 +128,7 @@ void main() {
         expect(
           releaseBranches,
           unorderedEquals([
-            const ReleaseBranch(channel: 'master', reference: 'HEAD'),
+            const ReleaseBranch(channel: 'master', reference: 'master'),
             const ReleaseBranch(
               channel: 'stable',
               reference: 'flutter-3.29-candidate.0',
@@ -150,7 +156,7 @@ void main() {
         expect(
           releaseBranches,
           unorderedEquals([
-            const ReleaseBranch(channel: 'master', reference: 'HEAD'),
+            const ReleaseBranch(channel: 'master', reference: 'master'),
             const ReleaseBranch(
               channel: 'stable',
               reference: 'flutter-3.29-candidate.0',

@@ -97,7 +97,7 @@ class RecoverCommand extends Command<bool> {
   ///
   /// Should be located at //cocoon/dashboard/ios/Runner.xcodeproj/project.xcworkspace.
   Directory get dashboardXcWorkspace {
-    final String cocoonRootPath = argResults!['cocoon-root'];
+    final cocoonRootPath = argResults!['cocoon-root'] as String;
     final cocoonRoot = fs.directory(cocoonRootPath);
     final dashboardXcWorkspace =
         cocoonRoot
@@ -135,13 +135,13 @@ class RecoverCommand extends Command<bool> {
       'xcodebuild',
       '-runFirstLaunch',
     ]);
-    final String runFirstLaunchStdout = runFirstLaunchResult.stdout.trim();
+    final runFirstLaunchStdout = (runFirstLaunchResult.stdout as String).trim();
     if (runFirstLaunchStdout.isNotEmpty) {
       logger.info(
         'stdout from `xcodebuild -runFirstLaunch`:\n$runFirstLaunchStdout\n',
       );
     }
-    final String runFirstLaunchStderr = runFirstLaunchResult.stderr.trim();
+    final runFirstLaunchStderr = (runFirstLaunchResult.stderr as String).trim();
     if (runFirstLaunchStderr.isNotEmpty) {
       logger.info(
         'stderr from `xcodebuild -runFirstLaunch`:\n$runFirstLaunchStderr\n',
@@ -168,11 +168,11 @@ class RecoverCommand extends Command<bool> {
     unawaited(
       xcodeFuture.then((io.ProcessResult result) {
         logger.info('Open closed...');
-        final String stdout = result.stdout.trim();
+        final stdout = (result.stdout as String).trim();
         if (stdout.isNotEmpty) {
           logger.info('stdout from `open`:\n$stdout\n');
         }
-        final String stderr = result.stderr.trim();
+        final stderr = (result.stderr as String).trim();
         if (stderr.isNotEmpty) {
           logger.info('stderr from `open`:\n$stderr\n');
         }

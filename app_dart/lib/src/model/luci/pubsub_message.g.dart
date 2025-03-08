@@ -17,19 +17,11 @@ PubSubPushMessage _$PubSubPushMessageFromJson(Map<String, dynamic> json) =>
       subscription: json['subscription'] as String?,
     );
 
-Map<String, dynamic> _$PubSubPushMessageToJson(PubSubPushMessage instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('message', instance.message);
-  writeNotNull('subscription', instance.subscription);
-  return val;
-}
+Map<String, dynamic> _$PubSubPushMessageToJson(PubSubPushMessage instance) =>
+    <String, dynamic>{
+      if (instance.message case final value?) 'message': value,
+      if (instance.subscription case final value?) 'subscription': value,
+    };
 
 PushMessage _$PushMessageFromJson(Map<String, dynamic> json) => PushMessage(
   attributes: (json['attributes'] as Map<String, dynamic>?)?.map(
@@ -43,27 +35,18 @@ PushMessage _$PushMessageFromJson(Map<String, dynamic> json) => PushMessage(
   publishTime: json['publishTime'] as String?,
 );
 
-Map<String, dynamic> _$PushMessageToJson(PushMessage instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('attributes', instance.attributes);
-  writeNotNull(
-    'data',
-    _$JsonConverterToJson<String, String>(
-      instance.data,
-      const Base64Converter().toJson,
-    ),
-  );
-  writeNotNull('messageId', instance.messageId);
-  writeNotNull('publishTime', instance.publishTime);
-  return val;
-}
+Map<String, dynamic> _$PushMessageToJson(PushMessage instance) =>
+    <String, dynamic>{
+      if (instance.attributes case final value?) 'attributes': value,
+      if (_$JsonConverterToJson<String, String>(
+            instance.data,
+            const Base64Converter().toJson,
+          )
+          case final value?)
+        'data': value,
+      if (instance.messageId case final value?) 'messageId': value,
+      if (instance.publishTime case final value?) 'publishTime': value,
+    };
 
 Value? _$JsonConverterFromJson<Json, Value>(
   Object? json,

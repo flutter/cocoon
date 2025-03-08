@@ -73,18 +73,19 @@ void main() {
         luciBuildService: mockLuciBuildService,
         slug: slug,
       );
-      final github.CheckRun checkRunCaptured =
+      final checkRunCaptured =
           await verify(
-            mockGithubChecksUtil.updateCheckRun(
-              any,
-              any,
-              captureAny,
-              status: anyNamed('status'),
-              conclusion: anyNamed('conclusion'),
-              detailsUrl: anyNamed('detailsUrl'),
-              output: anyNamed('output'),
-            ),
-          ).captured.first;
+                mockGithubChecksUtil.updateCheckRun(
+                  any,
+                  any,
+                  captureAny,
+                  status: anyNamed('status'),
+                  conclusion: anyNamed('conclusion'),
+                  detailsUrl: anyNamed('detailsUrl'),
+                  output: anyNamed('output'),
+                ),
+              ).captured.first
+              as github.CheckRun;
       expect(checkRunCaptured.id, checkRun.id);
       expect(checkRunCaptured.name, checkRun.name);
     });
