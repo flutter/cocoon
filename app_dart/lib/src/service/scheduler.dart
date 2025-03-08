@@ -227,7 +227,8 @@ class Scheduler {
         policy = const GuaranteedPolicy();
       }
       final priority = await policy.triggerPriority(
-        task.name!,
+        taskName: task.name!,
+        commitSha: commit.sha!,
         recentTasks: await firestoreService.queryRecentTasksByName(
           name: task.name!,
         ),

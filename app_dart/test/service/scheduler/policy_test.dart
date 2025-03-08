@@ -65,9 +65,11 @@ void main() {
     ];
 
     test('triggers if less tasks than batch size', () async {
+      final task = generateFirestoreTask(4);
       expect(
         await policy.triggerPriority(
-          generateFirestoreTask(4).taskName!,
+          taskName: task.taskName!,
+          commitSha: task.commitSha!,
           recentTasks: allPending,
         ),
         isNull,
@@ -75,9 +77,11 @@ void main() {
     });
 
     test('triggers after batch size', () async {
+      final task = generateFirestoreTask(7);
       expect(
         await policy.triggerPriority(
-          generateFirestoreTask(7).taskName!,
+          taskName: task.taskName!,
+          commitSha: task.commitSha!,
           recentTasks: latestAllPending,
         ),
         LuciBuildService.kDefaultPriority,
@@ -85,9 +89,11 @@ void main() {
     });
 
     test('triggers with higher priority on recent failures', () async {
+      final task = generateFirestoreTask(7);
       expect(
         await policy.triggerPriority(
-          generateFirestoreTask(7).taskName!,
+          taskName: task.taskName!,
+          commitSha: task.commitSha!,
           recentTasks: latestFailed,
         ),
         LuciBuildService.kRerunPriority,
@@ -97,9 +103,11 @@ void main() {
     test(
       'does not trigger on recent failures if there is already a running task',
       () async {
+        final task = generateFirestoreTask(7);
         expect(
           await policy.triggerPriority(
-            generateFirestoreTask(7).taskName!,
+            taskName: task.taskName!,
+            commitSha: task.commitSha!,
             recentTasks: failedWithRunning,
           ),
           isNull,
@@ -108,9 +116,11 @@ void main() {
     );
 
     test('does not trigger when a test was recently scheduled', () async {
+      final task = generateFirestoreTask(7);
       expect(
         await policy.triggerPriority(
-          generateFirestoreTask(7).taskName!,
+          taskName: task.taskName!,
+          commitSha: task.commitSha!,
           recentTasks: latestFinishedButRestPending,
         ),
         isNull,
@@ -118,9 +128,11 @@ void main() {
     });
 
     test('does not trigger when pending queue is smaller than batch', () async {
+      final task = generateFirestoreTask(7);
       expect(
         await policy.triggerPriority(
-          generateFirestoreTask(7).taskName!,
+          taskName: task.taskName!,
+          commitSha: task.commitSha!,
           recentTasks: latestPending,
         ),
         isNull,
@@ -144,9 +156,11 @@ void main() {
     ];
 
     test('triggers every task', () async {
+      final task = generateFirestoreTask(2);
       expect(
         await policy.triggerPriority(
-          generateFirestoreTask(2).taskName!,
+          taskName: task.taskName!,
+          commitSha: task.commitSha!,
           recentTasks: pending,
         ),
         LuciBuildService.kDefaultPriority,
@@ -154,9 +168,11 @@ void main() {
     });
 
     test('triggers with higher priority on recent failure', () async {
+      final task = generateFirestoreTask(2);
       expect(
         await policy.triggerPriority(
-          generateFirestoreTask(2).taskName!,
+          taskName: task.taskName!,
+          commitSha: task.commitSha!,
           recentTasks: latestFailed,
         ),
         LuciBuildService.kRerunPriority,

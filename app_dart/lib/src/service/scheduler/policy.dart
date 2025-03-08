@@ -12,8 +12,9 @@ sealed class SchedulerPolicy {
   /// Returns the priority of [taskName], given [recentTasks] executing the same thing.
   ///
   /// If null is returned, the task should not be scheduled.
-  Future<int?> triggerPriority(
-    String taskName, {
+  Future<int?> triggerPriority({
+    required String commitSha,
+    required String taskName,
     required List<Task> recentTasks,
   });
 }
@@ -23,12 +24,15 @@ final class GuaranteedPolicy implements SchedulerPolicy {
   const GuaranteedPolicy();
 
   @override
-  Future<int?> triggerPriority(
-    String taskName, {
+  Future<int?> triggerPriority({
+    required String commitSha,
+    required String taskName,
     required List<Task> recentTasks,
   }) async {
     // Ensure task isn't considered in recentTasks
-    recentTasks.removeWhere((Task t) => t.name == taskName);
+    recentTasks.removeWhere(
+      (Task t) => t.taskName == taskName && t.commitSha == commitSha,
+    );
     if (recentTasks.isEmpty) {
       log.warning(
         '$taskName is newly added, triggerring builds regardless of policy',
@@ -56,8 +60,9 @@ final class BatchPolicy implements SchedulerPolicy {
   const BatchPolicy();
 
   @override
-  Future<int?> triggerPriority(
-    String taskName, {
+  Future<int?> triggerPriority({
+    required String commitSha,
+    required String taskName,
     required List<Task> recentTasks,
   }) async {
     // Skip scheduling if there is already a running task.
@@ -66,7 +71,9 @@ final class BatchPolicy implements SchedulerPolicy {
     }
 
     // Ensure task isn't considered in recentTasks
-    recentTasks.removeWhere((Task t) => t.name == taskName);
+    recentTasks.removeWhere(
+      (Task t) => t.taskName == taskName && t.commitSha == commitSha,
+    );
     if (recentTasks.length < kBatchSize) {
       log.warning(
         '$taskName has less than $kBatchSize, skip scheduling to wait for ci.yaml roll.',
@@ -130,8 +137,9 @@ final class OmitPolicy implements SchedulerPolicy {
   const OmitPolicy();
 
   @override
-  Future<int?> triggerPriority(
-    String taskName, {
+  Future<int?> triggerPriority({
+    required String commitSha,
+    required String taskName,
     required List<Task> recentTasks,
   }) async => null;
 }
