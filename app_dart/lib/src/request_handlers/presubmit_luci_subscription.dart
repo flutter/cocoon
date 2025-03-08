@@ -118,8 +118,8 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
           slug,
           builderName,
           tagSet,
-          commitBranch: userDataMap['commit_branch'],
-          commitSha: userDataMap['commit_sha'],
+          commitBranch: userDataMap['commit_branch'] as String,
+          commitSha: userDataMap['commit_sha'] as String,
         );
         if (currentAttempt < maxAttempt) {
           rescheduled = true;
@@ -133,7 +133,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
         }
       }
       await githubChecksService.updateCheckStatus(
-        checkRunId: userDataMap['check_run_id'],
+        checkRunId: userDataMap['check_run_id'] as int,
         build: build,
         luciBuildService: luciBuildService,
         slug: slug,

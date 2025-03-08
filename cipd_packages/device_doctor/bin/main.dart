@@ -80,7 +80,7 @@ Future<void> main(List<String> args) async {
   final argResults = parser.parse(args);
   _action = argResults[actionFlag] as String?;
   _deviceOS = argResults[deviceOSFlag] as String?;
-  _output = File(argResults[outputFlag] ?? defaultOutputPath);
+  _output = File(argResults[outputFlag] as String? ?? defaultOutputPath);
 
   final deviceDiscovery = DeviceDiscovery(_deviceOS, _output);
 

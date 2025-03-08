@@ -48,7 +48,7 @@ class RepositoryConfigurationManager {
             () async => _getConfiguration(slug),
             config.repositoryConfigurationTtl,
           );
-      final cacheYaml = String.fromCharCodes(cacheValue);
+      final cacheYaml = String.fromCharCodes(cacheValue as Iterable<int>);
       log.info('Converting yaml to RepositoryConfiguration: $cacheYaml');
       return RepositoryConfiguration.fromYaml(cacheYaml);
     } finally {

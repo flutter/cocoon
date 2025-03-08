@@ -16,7 +16,7 @@ Future<Null> main(List<String> rawArgs) async {
   final args = argParser.parse(rawArgs);
 
   // Load tests yaml file.
-  final file = File(args['tests-file']);
+  final file = File(args['tests-file'] as String);
   final doc = loadYaml(file.readAsStringSync());
   // Execute the tests
   final baseDir = normalize(
@@ -30,9 +30,12 @@ Future<Null> main(List<String> rawArgs) async {
   );
   await runShellCommand(<String>[prepareScriptPath], 'prepare environment');
   doc['tasks'].forEach((task) async {
-    final scriptPath = join(baseDir, task['script']);
-    final taskPath = join(baseDir, task['task']);
-    await runShellCommand(<String>[scriptPath, taskPath], task['task']);
+    final scriptPath = join(baseDir, task['script'] as String);
+    final taskPath = join(baseDir, task['task'] as String);
+    await runShellCommand(<String>[
+      scriptPath,
+      taskPath,
+    ], task['task'] as String);
   });
 }
 

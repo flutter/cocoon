@@ -93,7 +93,7 @@ class AppEngineCocoonService implements CocoonService {
     try {
       final jsonResponse = jsonDecode(response.body) as Map<String, dynamic>;
       return CocoonResponse<List<CommitStatus>>.data(
-        _commitStatusesFromJson(jsonResponse['Statuses']),
+        _commitStatusesFromJson(jsonResponse['Statuses'] as List<Object?>),
       );
     } catch (error) {
       return CocoonResponse<List<CommitStatus>>.error(error.toString());
@@ -129,7 +129,9 @@ class AppEngineCocoonService implements CocoonService {
     try {
       final jsonResponse = jsonDecode(response.body) as Map<String, dynamic>;
       return CocoonResponse<List<CommitTasksStatus>>.data(
-        _commitStatusesFromJsonFirestore(jsonResponse['Statuses']),
+        _commitStatusesFromJsonFirestore(
+          jsonResponse['Statuses'] as List<Object?>,
+        ),
       );
     } catch (error) {
       return CocoonResponse<List<CommitTasksStatus>>.error(error.toString());
@@ -330,7 +332,9 @@ class AppEngineCocoonService implements CocoonService {
         CommitStatus()
           ..commit = _commitFromJson(checklist)
           ..branch = _branchFromJson(checklist)!
-          ..tasks.addAll(_tasksFromStagesJson(jsonCommitStatus['Stages'])),
+          ..tasks.addAll(
+            _tasksFromStagesJson(jsonCommitStatus['Stages'] as List<Object?>),
+          ),
       );
     }
 
@@ -352,7 +356,9 @@ class AppEngineCocoonService implements CocoonService {
         CommitTasksStatus()
           ..commit = _commitFromJsonFirestore(jsonCommit)
           ..branch = _branchFromJsonFirestore(jsonCommit)!
-          ..tasks.addAll(_tasksFromJsonFirestore(jsonCommitStatus['Tasks'])),
+          ..tasks.addAll(
+            _tasksFromJsonFirestore(jsonCommitStatus['Tasks'] as List<Object?>),
+          ),
       );
     }
 
@@ -378,7 +384,7 @@ class AppEngineCocoonService implements CocoonService {
           ..key =
               (RootKey()
                 ..child = (Key()..name = jsonChecklist['Key'] as String))
-          ..timestamp = Int64() + checklist['CreateTimestamp']!
+          ..timestamp = Int64() + (checklist['CreateTimestamp']! as Object)
           ..sha = commit['Sha'] as String
           ..author = author['Login'] as String
           ..authorAvatarUrl = author['avatar_url'] as String
@@ -410,7 +416,7 @@ class AppEngineCocoonService implements CocoonService {
     final tasks = <Task>[];
 
     for (final jsonStage in json.cast<Map<String, dynamic>>()) {
-      tasks.addAll(_tasksFromJson(jsonStage['Tasks']));
+      tasks.addAll(_tasksFromJson(jsonStage['Tasks'] as List<Object?>));
     }
 
     return tasks;

@@ -1339,7 +1339,8 @@ void main() {
         numberOfPullRequests: 1,
       );
       final jsonMap = json.decode(pushMessage.data!) as Map<String, dynamic>;
-      final jsonSubMap = json.decode(jsonMap['2']) as Map<String, dynamic>;
+      final jsonSubMap =
+          json.decode(jsonMap['2'] as String) as Map<String, dynamic>;
       final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
 
       expect(
@@ -1393,7 +1394,8 @@ void main() {
         numberOfPullRequests: 1,
       );
       final jsonMap = json.decode(pushMessage.data!) as Map<String, dynamic>;
-      final jsonSubMap = json.decode(jsonMap['2']) as Map<String, dynamic>;
+      final jsonSubMap =
+          json.decode(jsonMap['2'] as String) as Map<String, dynamic>;
       final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
 
       final taskDocument = generateFirestoreTask(0);

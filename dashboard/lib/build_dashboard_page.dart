@@ -488,7 +488,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                             return (commit) {
                               return _schedulePostsubmitBuildForReleaseBranch(
                                 context: context,
-                                commit: commit,
+                                commit: commit as Commit,
                               );
                             };
                           }(),
