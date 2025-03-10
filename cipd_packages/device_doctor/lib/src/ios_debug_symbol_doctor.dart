@@ -118,7 +118,7 @@ class RecoverCommand extends Command<bool> {
 
   @override
   Future<bool> run() async {
-    final timeoutSeconds = int.tryParse(argResults!['timeout']);
+    final timeoutSeconds = int.tryParse(argResults!['timeout'] as String);
     if (timeoutSeconds == null) {
       throw ArgumentError(
         'Could not parse an integer from the option --timeout="${argResults!['timeout']}"',

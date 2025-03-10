@@ -514,7 +514,7 @@ class AndroidDevice implements Device {
     final packages = <String>[];
 
     // Listen to the stdout and stderr streams
-    const LineSplitter().convert(result.stdout).forEach((data) {
+    const LineSplitter().convert(result.stdout as String).forEach((data) {
       final packageMatch = RegExp(r'package:(.+)$').firstMatch(data);
       if (packageMatch != null) {
         final packageName = packageMatch.group(1);
@@ -550,7 +550,7 @@ class AndroidDevice implements Device {
     final packages = <String>[];
 
     // Listen to the stdout and stderr streams
-    const LineSplitter().convert(result.stdout).forEach((data) {
+    const LineSplitter().convert(result.stdout as String).forEach((data) {
       final packageMatch = RegExp(r'package:(.+)$').firstMatch(data);
       if (packageMatch != null) {
         final packageName = packageMatch.group(1);

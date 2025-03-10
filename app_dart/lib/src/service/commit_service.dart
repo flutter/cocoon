@@ -44,7 +44,9 @@ class CommitService {
   /// https://docs.github.com/en/webhooks/webhook-events-and-payloads#push
   Future<void> handlePushGithubRequest(Map<String, dynamic> pushEvent) async {
     final datastore = datastoreProvider(config.db);
-    final slug = RepositorySlug.full(pushEvent['repository']['full_name']);
+    final slug = RepositorySlug.full(
+      pushEvent['repository']['full_name'] as String,
+    );
     final sha = pushEvent['head_commit']['id'] as String;
     final branch = pushEvent['ref'].split('/')[2] as String;
     final id = '${slug.fullName}/$branch/$sha';
@@ -53,16 +55,16 @@ class CommitService {
       key: key,
       timestamp:
           DateTime.parse(
-            pushEvent['head_commit']['timestamp'],
+            pushEvent['head_commit']['timestamp'] as String,
           ).millisecondsSinceEpoch,
       repository: slug.fullName,
       sha: sha,
-      author: pushEvent['sender']['login'],
-      authorAvatarUrl: pushEvent['sender']['avatar_url'],
+      author: pushEvent['sender']['login'] as String?,
+      authorAvatarUrl: pushEvent['sender']['avatar_url'] as String?,
       // The field has a size of 1500 we need to ensure the commit message
       // is at most 1500 chars long.
       message: truncate(
-        pushEvent['head_commit']['message'],
+        pushEvent['head_commit']['message'] as String,
         1490,
         omission: '...',
       ),
