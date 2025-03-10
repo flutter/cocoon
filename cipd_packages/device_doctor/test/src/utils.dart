@@ -25,7 +25,7 @@ class MockProcessManager extends Mock implements ProcessManager {
     bool includeParentEnvironment = true,
     bool runInShell = false,
     ProcessStartMode mode = ProcessStartMode.normal,
-  }) async {
+  }) {
     return super.noSuchMethod(
           Invocation.method(
             #start,
@@ -34,7 +34,7 @@ class MockProcessManager extends Mock implements ProcessManager {
           ),
           returnValue: Future<Process>.value(FakeProcess(0)),
         )
-        as Process;
+        as Future<Process>;
   }
 
   @override
@@ -63,12 +63,12 @@ class MockProcessManager extends Mock implements ProcessManager {
     bool runInShell = false,
     covariant Encoding? stdoutEncoding = systemEncoding,
     covariant Encoding? stderrEncoding = systemEncoding,
-  }) async {
+  }) {
     return super.noSuchMethod(
           Invocation.method(#run, [command]),
           returnValue: Future.value(ProcessResult(1, 0, 'abc', 'def')),
         )
-        as ProcessResult;
+        as Future<ProcessResult>;
   }
 }
 
