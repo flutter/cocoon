@@ -28,7 +28,9 @@ void main() {
       },
       "message": "Roll recipe dependencies (trivial)\\n\\nThis is an automated CL created by the recipe roller."
     }''';
-      final commit = GerritCommit.fromJson(jsonDecode(json));
+      final commit = GerritCommit.fromJson(
+        jsonDecode(json) as Map<String, Object?>,
+      );
       expect(commit.author, isNotNull);
       expect(commit.author!.name, 'recipe-roller');
       expect(commit.author!.time, DateTime(2023, 06, 07, 22, 54, 6));

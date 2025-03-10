@@ -61,7 +61,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     final project = jsonBuildMap['build']['builder']['project'] as String;
     final bucket = jsonBuildMap['build']['builder']['bucket'] as String;
     final builder = jsonBuildMap['build']['builder']['builder'] as String;
-    final buildId = Int64.parseInt(jsonBuildMap['build']['id']);
+    final buildId = Int64.parseInt(jsonBuildMap['build']['id'] as String);
 
     // This should already be covered by the pubsub filter, but adding an additional check
     // to ensure we don't process builds that aren't from dart-internal/flutter.

@@ -210,7 +210,7 @@ void main() {
       ).thenAnswer((Invocation invocation) async {
         return generateCheckRun(
           invocation.positionalArguments[2].hashCode,
-          name: invocation.positionalArguments[3],
+          name: invocation.positionalArguments[3] as String,
         );
       });
 
@@ -1209,7 +1209,9 @@ targets:
         // Set up mock buildbucket to validate which bucket is requested.
         final mockBuildbucket = MockBuildBucketClient();
         when(mockBuildbucket.batch(any)).thenAnswer((i) async {
-          return FakeBuildBucketClient().batch(i.positionalArguments[0]);
+          return FakeBuildBucketClient().batch(
+            i.positionalArguments[0] as bbv2.BatchRequest,
+          );
         });
         when(
           mockBuildbucket.scheduleBuild(
@@ -1298,7 +1300,7 @@ targets:
           expect(
             await scheduler.processCheckRun(
               cocoon_checks.CheckRunEvent.fromJson(
-                json.decode(checkRunEventFor()),
+                json.decode(checkRunEventFor()) as Map<String, Object?>,
               ),
             ),
             true,
@@ -1337,7 +1339,8 @@ targets:
                 expect(
                   await scheduler.processCheckRunCompletion(
                     cocoon_checks.CheckRunEvent.fromJson(
-                      json.decode(checkRunEventFor(test: ignored)),
+                      json.decode(checkRunEventFor(test: ignored))
+                          as Map<String, Object?>,
                     ),
                   ),
                   isTrue,
@@ -1381,7 +1384,8 @@ targets:
             expect(
               await scheduler.processCheckRunCompletion(
                 cocoon_checks.CheckRunEvent.fromJson(
-                  json.decode(checkRunEventFor(test: 'Bar bar')),
+                  json.decode(checkRunEventFor(test: 'Bar bar'))
+                      as Map<String, Object?>,
                 ),
               ),
               isFalse,
@@ -1436,7 +1440,8 @@ targets:
             expect(
               await scheduler.processCheckRunCompletion(
                 cocoon_checks.CheckRunEvent.fromJson(
-                  json.decode(checkRunEventFor(test: 'Bar bar')),
+                  json.decode(checkRunEventFor(test: 'Bar bar'))
+                      as Map<String, Object?>,
                 ),
               ),
               isFalse,
@@ -1497,7 +1502,8 @@ targets:
               expect(
                 await scheduler.processCheckRunCompletion(
                   cocoon_checks.CheckRunEvent.fromJson(
-                    json.decode(checkRunEventFor(test: 'Bar bar')),
+                    json.decode(checkRunEventFor(test: 'Bar bar'))
+                        as Map<String, Object?>,
                   ),
                 ),
                 isTrue,
@@ -1642,9 +1648,8 @@ targets:
             expect(
               await scheduler.processCheckRunCompletion(
                 cocoon_checks.CheckRunEvent.fromJson(
-                  json.decode(
-                    checkRunEventFor(test: 'Bar bar', sha: 'testSha'),
-                  ),
+                  json.decode(checkRunEventFor(test: 'Bar bar', sha: 'testSha'))
+                      as Map<String, Object?>,
                 ),
               ),
               isTrue,
@@ -1750,9 +1755,8 @@ targets:
             expect(
               await scheduler.processCheckRunCompletion(
                 cocoon_checks.CheckRunEvent.fromJson(
-                  json.decode(
-                    checkRunEventFor(test: 'Bar bar', sha: 'testSha'),
-                  ),
+                  json.decode(checkRunEventFor(test: 'Bar bar', sha: 'testSha'))
+                      as Map<String, Object?>,
                 ),
               ),
               isTrue,
@@ -1856,8 +1860,8 @@ targets:
                 ),
               ).thenAnswer((inv) async {
                 final slug = inv.positionalArguments[1] as RepositorySlug;
-                final sha = inv.positionalArguments[2];
-                final name = inv.positionalArguments[3];
+                final sha = inv.positionalArguments[2] as String;
+                final name = inv.positionalArguments[3] as String?;
                 checkRuns.add(
                   createCheckRun(
                     id: 1,
@@ -1944,8 +1948,8 @@ targets:
               ),
             ).thenAnswer((inv) async {
               final slug = inv.positionalArguments[1] as RepositorySlug;
-              final sha = inv.positionalArguments[2];
-              final name = inv.positionalArguments[3];
+              final sha = inv.positionalArguments[2] as String;
+              final name = inv.positionalArguments[3] as String?;
               checkRuns.add(
                 createCheckRun(
                   id: 1,
@@ -2072,8 +2076,9 @@ targets:
                 await scheduler.processCheckRunCompletion(
                   cocoon_checks.CheckRunEvent.fromJson(
                     json.decode(
-                      checkRunEventFor(test: 'Bar bar', sha: 'testSha'),
-                    ),
+                          checkRunEventFor(test: 'Bar bar', sha: 'testSha'),
+                        )
+                        as Map<String, Object?>,
                   ),
                 ),
                 isTrue,
@@ -2243,7 +2248,8 @@ targets:
               expect(
                 await scheduler.processCheckRunCompletion(
                   cocoon_checks.CheckRunEvent.fromJson(
-                    json.decode(checkRunEventFor(test: 'Bar bar')),
+                    json.decode(checkRunEventFor(test: 'Bar bar'))
+                        as Map<String, Object?>,
                   ),
                 ),
                 isTrue,
@@ -2998,8 +3004,8 @@ targets:
           ),
         ).thenAnswer((inv) async {
           final slug = inv.positionalArguments[1] as RepositorySlug;
-          final sha = inv.positionalArguments[2];
-          final name = inv.positionalArguments[3];
+          final sha = inv.positionalArguments[2] as String;
+          final name = inv.positionalArguments[3] as String?;
           checkRuns.add(
             createCheckRun(
               id: 1,
@@ -3152,8 +3158,8 @@ targets:
           ),
         ).thenAnswer((inv) async {
           final slug = inv.positionalArguments[1] as RepositorySlug;
-          final sha = inv.positionalArguments[2];
-          final name = inv.positionalArguments[3];
+          final sha = inv.positionalArguments[2] as String;
+          final name = inv.positionalArguments[3] as String?;
           checkRuns.add(
             createCheckRun(
               id: 1,
@@ -3204,12 +3210,13 @@ targets:
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
           json.decode(
-            generateMergeGroupEventString(
-              repository: 'flutter/flutter',
-              action: 'checks_requested',
-              message: 'Implement an amazing feature',
-            ),
-          ),
+                generateMergeGroupEventString(
+                  repository: 'flutter/flutter',
+                  action: 'checks_requested',
+                  message: 'Implement an amazing feature',
+                ),
+              )
+              as Map<String, Object?>,
         );
 
         await scheduler.triggerMergeGroupTargets(
@@ -3311,8 +3318,8 @@ targets:
           ),
         ).thenAnswer((inv) async {
           final slug = inv.positionalArguments[1] as RepositorySlug;
-          final sha = inv.positionalArguments[2];
-          final name = inv.positionalArguments[3];
+          final sha = inv.positionalArguments[2] as String;
+          final name = inv.positionalArguments[3] as String?;
           checkRuns.add(
             createCheckRun(
               id: 1,
@@ -3362,12 +3369,13 @@ targets:
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
           json.decode(
-            generateMergeGroupEventString(
-              repository: 'flutter/flutter',
-              action: 'checks_requested',
-              message: 'Implement an amazing feature',
-            ),
-          ),
+                generateMergeGroupEventString(
+                  repository: 'flutter/flutter',
+                  action: 'checks_requested',
+                  message: 'Implement an amazing feature',
+                ),
+              )
+              as Map<String, Object?>,
         );
 
         await scheduler.triggerMergeGroupTargets(
@@ -3456,8 +3464,8 @@ targets:
           ),
         ).thenAnswer((inv) async {
           final slug = inv.positionalArguments[1] as RepositorySlug;
-          final sha = inv.positionalArguments[2];
-          final name = inv.positionalArguments[3];
+          final sha = inv.positionalArguments[2] as String;
+          final name = inv.positionalArguments[3] as String?;
           checkRuns.add(
             createCheckRun(
               id: 1,
@@ -3508,12 +3516,13 @@ targets:
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
           json.decode(
-            generateMergeGroupEventString(
-              repository: 'flutter/flutter',
-              action: 'checks_requested',
-              message: 'Implement an amazing feature',
-            ),
-          ),
+                generateMergeGroupEventString(
+                  repository: 'flutter/flutter',
+                  action: 'checks_requested',
+                  message: 'Implement an amazing feature',
+                ),
+              )
+              as Map<String, Object?>,
         );
 
         await scheduler.triggerMergeGroupTargets(
