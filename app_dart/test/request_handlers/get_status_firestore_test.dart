@@ -86,7 +86,7 @@ void main() {
     });
 
     test('no statuses', () async {
-      final result = (await decodeHandlerBody())!;
+      final result = (await decodeHandlerBody<Map<String, Object?>>())!;
       expect(result['Statuses'], isEmpty);
     });
 
@@ -103,9 +103,8 @@ void main() {
         buildStatusProvider: (_, _) => buildStatusService,
       );
 
-      final result = (await decodeHandlerBody())!;
-
-      expect(result['Statuses'].length, 2);
+      final result = (await decodeHandlerBody<Map<String, Object?>>())!;
+      expect(result, containsPair('Statuses', hasLength(2)));
     });
 
     test('reports statuses with input commit key', () async {
@@ -159,21 +158,26 @@ void main() {
           GetStatusFirestore.kLastCommitKeyParam: expectedLastCommitKeyEncoded,
         },
       );
-      final result = (await decodeHandlerBody())!;
 
-      expect(result['Statuses'].first, <String, dynamic>{
-        'Commit': <String, dynamic>{
-          'DocumentName': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
-          'RepositoryPath': 'flutter/flutter',
-          'CreateTimestamp': 1,
-          'Sha': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
-          'Message': 'test message',
-          'Author': 'author',
-          'Avatar': 'avatar',
-          'Branch': 'master',
-        },
-        'Tasks': [],
-      });
+      final result = (await decodeHandlerBody<Map<String, Object?>>())!;
+      expect(
+        result,
+        containsPair(
+          'Statuses',
+          contains(
+            containsPair('Commit', <String, dynamic>{
+              'DocumentName': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
+              'RepositoryPath': 'flutter/flutter',
+              'CreateTimestamp': 1,
+              'Sha': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
+              'Message': 'test message',
+              'Author': 'author',
+              'Avatar': 'avatar',
+              'Branch': 'master',
+            }),
+          ),
+        ),
+      );
     });
 
     test('reports statuses with input branch', () async {
@@ -208,22 +212,26 @@ void main() {
           GetStatusFirestore.kBranchParam: branch,
         },
       );
-      final result = (await decodeHandlerBody())!;
 
-      expect(result['Statuses'].length, 1);
-      expect(result['Statuses'].first, <String, dynamic>{
-        'Commit': <String, dynamic>{
-          'DocumentName': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
-          'RepositoryPath': 'flutter/flutter',
-          'CreateTimestamp': 2,
-          'Sha': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
-          'Message': 'test message',
-          'Author': 'author',
-          'Avatar': 'avatar',
-          'Branch': 'flutter-1.1-candidate.1',
-        },
-        'Tasks': [],
-      });
+      final result = (await decodeHandlerBody<Map<String, Object?>>())!;
+      expect(
+        result,
+        containsPair('Statuses', [
+          <String, dynamic>{
+            'Commit': <String, dynamic>{
+              'DocumentName': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
+              'RepositoryPath': 'flutter/flutter',
+              'CreateTimestamp': 2,
+              'Sha': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
+              'Message': 'test message',
+              'Author': 'author',
+              'Avatar': 'avatar',
+              'Branch': 'flutter-1.1-candidate.1',
+            },
+            'Tasks': <Object?>[],
+          },
+        ]),
+      );
     });
   });
 }
