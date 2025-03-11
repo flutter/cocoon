@@ -78,7 +78,7 @@ void main() {
       final tabledataResourceApi = MockTabledataResource();
       mockFirestoreService = MockFirestoreService();
       when(
-        mockFirestoreService.queryRecentTasksByName(
+        mockFirestoreService.queryRecentTasks(
           name: anyNamed('name'),
           limit: anyNamed('limit'),
         ),
