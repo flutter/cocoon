@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/stage.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/commit.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
@@ -83,14 +84,14 @@ void main() {
       task3FailedFlaky,
     ], Task.statusInProgress); // should succeed, even though it includes task 3
 
-    Future<List<T?>?> decodeHandlerBody<T>() async {
+    Future<List<Commit>> decodeHandlerBody() async {
       final body = await tester.get(handler);
       return (await utf8.decoder
                   .bind(body.serialize() as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
-              as List<dynamic>)
-          .cast<T>();
+              as List<Object?>)
+          .cast<Commit>();
     }
 
     setUp(() {
@@ -115,7 +116,7 @@ void main() {
     });
 
     test('no green commits', () async {
-      final result = (await decodeHandlerBody())!;
+      final result = await decodeHandlerBody();
       expect(result, isEmpty);
     });
 
@@ -132,7 +133,7 @@ void main() {
         buildStatusProvider: (_, _) => buildStatusService,
       );
 
-      final result = (await decodeHandlerBody())!;
+      final result = await decodeHandlerBody();
 
       expect(result.length, 2);
       expect(result, <String>[commit2.sha!, commit1.sha!]);
@@ -156,7 +157,7 @@ void main() {
           buildStatusProvider: (_, _) => buildStatusService,
         );
 
-        final result = (await decodeHandlerBody())!;
+        final result = await decodeHandlerBody();
 
         expect(result.length, 1);
         expect(result, <String>[commit2.sha!]);
@@ -178,7 +179,7 @@ void main() {
           buildStatusProvider: (_, _) => buildStatusService,
         );
 
-        final result = (await decodeHandlerBody())!;
+        final result = await decodeHandlerBody();
 
         expect(result.length, 1);
         expect(result, <String>[commit2.sha!]);
@@ -198,7 +199,7 @@ void main() {
         buildStatusProvider: (_, _) => buildStatusService,
       );
 
-      final result = (await decodeHandlerBody())!;
+      final result = await decodeHandlerBody();
 
       expect(result.length, 2);
       expect(result, <String>[commit2.sha!, commit1.sha!]);
@@ -221,7 +222,7 @@ void main() {
         buildStatusProvider: (_, _) => buildStatusService,
       );
 
-      final result = (await decodeHandlerBody())!;
+      final result = await decodeHandlerBody();
 
       expect(result, <String>[commitBranched.sha!]);
     });

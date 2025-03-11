@@ -24,7 +24,7 @@ void main() {
           'Avatar': 'avatar',
           'Branch': 'master',
         },
-        'Tasks': [],
+        'Tasks': isEmpty,
       });
     });
 

@@ -51,13 +51,12 @@ class FakeGraphQLClient implements GraphQLClient {
 
     for (var i = 0; i < math.min(queries.length, expected.length); i++) {
       final matcher = equals(expected[i].properties);
-      final matchState = {};
-      if (!matcher.matches(queries[i].properties, matchState)) {
+      if (!matcher.matches(queries[i].properties, {})) {
         final description = StringDescription();
         matcher.describeMismatch(
           expected[i].properties,
           description,
-          matchState,
+          {},
           false,
         );
         errorBuffer.writeln(description);
