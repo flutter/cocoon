@@ -13,7 +13,6 @@ analyzer:
     comment_references: ignore
     inference_failure_on_function_return_type: ignore
     inference_failure_on_instance_creation: ignore
-    inference_failure_on_untyped_parameter: ignore
     lines_longer_than_80_chars: ignore
     only_throw_errors: ignore
   exclude:

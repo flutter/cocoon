@@ -29,14 +29,15 @@ Future<Null> main(List<String> rawArgs) async {
     'prepare_environment.sh',
   );
   await runShellCommand(<String>[prepareScriptPath], 'prepare environment');
-  doc['tasks'].forEach((task) async {
+
+  for (final task in doc['tasks'] as Iterable<Map<String, Object?>>) {
     final scriptPath = join(baseDir, task['script'] as String);
     final taskPath = join(baseDir, task['task'] as String);
     await runShellCommand(<String>[
       scriptPath,
       taskPath,
     ], task['task'] as String);
-  });
+  }
 }
 
 Future<void> runShellCommand(List<String> args, String taskName) async {
