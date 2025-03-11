@@ -215,6 +215,7 @@ final class _FakeFirestoreService extends Fake implements FirestoreService {
       commitSha: commit.sha!,
       buildNumber: buildNumber,
       status: status,
+      created: createdAt,
     );
     _tasksByCommitSha.putIfAbsent(commit.sha!, () => {})[task.name!] = task;
     return task;
