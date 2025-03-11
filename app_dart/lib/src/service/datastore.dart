@@ -35,7 +35,7 @@ const int defaultTimeSeriesValuesNumber = 1500;
 typedef DatastoreServiceProvider = DatastoreService Function(DatastoreDB db);
 
 /// Function signature that will be executed with retries.
-typedef RetryHandler = Function();
+typedef RetryHandler = void Function();
 
 /// Runs a db transaction with retries.
 ///

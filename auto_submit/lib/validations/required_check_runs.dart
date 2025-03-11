@@ -96,7 +96,7 @@ class RequiredCheckRuns extends Validation {
 }
 
 /// Function signature that will be executed with retries.
-typedef RetryHandler = Function();
+typedef RetryHandler = void Function();
 
 /// Simple function to wait on completed checkRuns with retries.
 Future<void> _verifyCheckRunCompleted(
