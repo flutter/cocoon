@@ -1868,31 +1868,33 @@ class MockFirestoreService extends _i1.Mock implements _i14.FirestoreService {
 
   @override
   _i19.Future<List<_i42.Commit>> queryRecentCommits({
+    required _i12.RepositorySlug? slug,
     int? limit = 100,
     int? timestamp,
     String? branch,
-    required _i12.RepositorySlug? slug,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#queryRecentCommits, [], {
+              #slug: slug,
               #limit: limit,
               #timestamp: timestamp,
               #branch: branch,
-              #slug: slug,
             }),
             returnValue: _i19.Future<List<_i42.Commit>>.value(<_i42.Commit>[]),
           )
           as _i19.Future<List<_i42.Commit>>);
 
   @override
-  _i19.Future<List<_i43.Task>> queryRecentTasksByName({
+  _i19.Future<List<_i43.Task>> queryRecentTasks({
     int? limit = 100,
-    required String? name,
+    String? name,
+    String? commitSha,
   }) =>
       (super.noSuchMethod(
-            Invocation.method(#queryRecentTasksByName, [], {
+            Invocation.method(#queryRecentTasks, [], {
               #limit: limit,
               #name: name,
+              #commitSha: commitSha,
             }),
             returnValue: _i19.Future<List<_i43.Task>>.value(<_i43.Task>[]),
           )

@@ -101,10 +101,10 @@ class FirestoreService {
   ///
   /// The returned commits will be ordered by most recent [Commit.timestamp].
   Future<List<Commit>> queryRecentCommits({
+    required RepositorySlug slug,
     int limit = 100,
     int? timestamp,
     String? branch,
-    required RepositorySlug slug,
   }) async {
     timestamp ??= DateTime.now().millisecondsSinceEpoch;
     branch ??= Config.defaultBranch(slug);
@@ -129,12 +129,22 @@ class FirestoreService {
         .toList();
   }
 
-  /// Queries for recent [Task] by [name].
-  Future<List<Task>> queryRecentTasksByName({
+  /// Queries for recent [Task]s.
+  ///
+  /// Optionally may filter by:
+  /// - [name], which maps to [Task.taskName];
+  /// - [commitSha], which maps to [Task.commitSha];
+  ///
+  /// The default [limit] is 100 tasks.
+  Future<List<Task>> queryRecentTasks({
     int limit = 100,
-    required String name,
+    String? name,
+    String? commitSha,
   }) async {
-    final filterMap = {'$kTaskNameField =': name};
+    final filterMap = {
+      if (name != null) '$kTaskNameField =': name,
+      if (commitSha != null) '$kTaskCommitShaField =': commitSha,
+    };
     final orderMap = {kTaskCreateTimestampField: kQueryOrderDescending};
     final documents = await query(
       kTaskCollectionId,
