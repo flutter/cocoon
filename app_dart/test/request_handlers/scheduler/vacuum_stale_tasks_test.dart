@@ -19,18 +19,6 @@ import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.dart';
 
 void main() {
-  // late FakeConfig config;
-  // late RequestHandlerTester tester;
-  // late VacuumStaleTasks handler;
-  // late _FakeFirestoreService firestoreService;
-
-  // setUp(() {
-  //   firestoreService = _FakeFirestoreService();
-  //   config = FakeConfig(firestoreService: firestoreService);
-  //   tester = RequestHandlerTester();
-  //   handler = VacuumStaleTasks(config: config);
-  // });
-
   late RequestHandlerTester tester;
 
   setUp(() {
