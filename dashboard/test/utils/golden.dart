@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -33,7 +32,7 @@ Future<void> expectGoldenMatches(
     actual,
     matchesGoldenFile(goldenPath),
     reason: reason,
-    skip: skip is String || skip == true || !Platform.isLinux,
+    skip: skip is String || skip == true || kIsWeb || !Platform.isLinux,
   );
 }
 
@@ -49,17 +48,17 @@ class CocoonFileComparator extends LocalFileComparator {
 
     if (!result.passed && result.diffPercent > _kGoldenDiffTolerance) {
       final error = await generateFailureOutput(result, golden, basedir);
-      if (Platform.environment.containsKey('LUCI_CONTEXT')) {
-        log(
+      if (!kIsWeb && Platform.environment.containsKey('LUCI_CONTEXT')) {
+        stderr.writeln(
           '$golden has failed. For your convenience CI provides it as a base64 encoded image below. #[IMAGE]:',
         );
-        log(base64Encode(imageBytes));
-        log('#[/IMAGE]');
+        stderr.writeln(base64Encode(imageBytes));
+        stderr.writeln('#[/IMAGE]');
       }
       throw FlutterError(error);
     }
-    if (!result.passed) {
-      log(
+    if (!result.passed && !kIsWeb) {
+      stderr.writeln(
         'A tolerable difference of ${result.diffPercent * 100}% was found when '
         'comparing $golden.',
       );

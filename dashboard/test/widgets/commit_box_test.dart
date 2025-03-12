@@ -8,6 +8,7 @@ import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/widgets/commit_box.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:url_launcher/link.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 import '../utils/fake_flutter_app_icons.dart';
@@ -162,7 +163,7 @@ void main() {
     await tester.pump();
 
     // Tap the redirect button
-    await tester.tap(find.byType(Hyperlink));
+    await tester.tap(find.byType(Link));
     await tester.pump();
 
     expect(urlLauncher.launches, isNotEmpty);

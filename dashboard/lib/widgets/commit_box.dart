@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/link.dart';
 
 import '../model/commit.pb.dart';
 import 'commit_author_avatar.dart';
@@ -138,9 +138,17 @@ class CommitOverlayContents extends StatelessWidget {
                               duration: kThemeChangeDuration,
                               child: Row(
                                 children: <Widget>[
-                                  Hyperlink(
-                                    text: commit.sha.substring(0, 7),
-                                    onPressed: _openGithub,
+                                  Link(
+                                    uri: Uri.https(
+                                      'github.com',
+                                      '${commit.repository}/commit/${commit.sha}',
+                                    ),
+                                    builder: (context, open) {
+                                      return ElevatedButton(
+                                        onPressed: open,
+                                        child: Text(commit.sha.substring(0, 7)),
+                                      );
+                                    },
                                   ),
                                   IconButton(
                                     icon: const Icon(Icons.copy),
@@ -193,46 +201,6 @@ class CommitOverlayContents extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Future<void> _openGithub() async {
-    final githubUrl =
-        'https://github.com/${commit.repository}/commit/${commit.sha}';
-    await launchUrl(Uri.parse(githubUrl));
-  }
-}
-
-class Hyperlink extends StatefulWidget {
-  const Hyperlink({super.key, required this.text, this.onPressed});
-
-  final String text;
-  final VoidCallback? onPressed;
-
-  @override
-  HyperlinkState createState() => HyperlinkState();
-}
-
-class HyperlinkState extends State<Hyperlink> {
-  bool hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final defaultStyle = DefaultTextStyle.of(context).style;
-    return MouseRegion(
-      onEnter: (PointerEnterEvent _) => setState(() => hover = true),
-      onExit: (PointerExitEvent _) => setState(() => hover = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: widget.onPressed,
-        child: Text(
-          widget.text,
-          style: defaultStyle.copyWith(
-            color: const Color(0xff1377c0),
-            decoration: hover ? TextDecoration.underline : TextDecoration.none,
-          ),
-        ),
-      ),
     );
   }
 }
