@@ -42,6 +42,7 @@ import 'luci_build_service.dart';
 import 'luci_build_service/engine_artifacts.dart';
 import 'luci_build_service/pending_task.dart';
 import 'scheduler/policy.dart';
+import 'scheduler/process_check_run_result.dart';
 
 /// Scheduler service to validate all commits to supported Flutter repositories.
 ///
@@ -1506,13 +1507,14 @@ $stacktrace
   ///
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs-and-requested-actions
-  Future<bool> processCheckRun(
+  @useResult
+  Future<ProcessCheckRunResult> processCheckRun(
     cocoon_checks.CheckRunEvent checkRunEvent,
   ) async {
     switch (checkRunEvent.action) {
       case 'completed':
         await processCheckRunCompletion(checkRunEvent);
-        return true;
+        return const ProcessCheckRunResult.success();
 
       case 'rerequested':
         log.fine(
@@ -1588,7 +1590,8 @@ $stacktrace
                 log.warning(
                   'Asked to reschedule presubmits for unknown sha/PR: ${checkRunEvent.checkRun!.headSha!}',
                 );
-                return true;
+                // TODO(matanlurey): Follow up with jtmcdole on why this was/is a success case.
+                return const ProcessCheckRunResult.success();
               }
 
               final isFusion = await fusionTester.isFusionBasedRef(slug, sha);
@@ -1630,11 +1633,10 @@ $stacktrace
                 (target) => checkRunEvent.checkRun!.name == target.value.name,
               );
               if (target == null) {
-                // TODO(matanlurey): Revisit why this is coming up null, it's just mitigation for https://github.com/flutter/flutter/issues/164342 until then.
-                log.warning(
-                  'Could not reschedule checkRun "${checkRunEvent.checkRun!.name}", not found in list of presubmit targets: ${presubmitTargets.map((t) => t.value.name).toList()}',
+                return ProcessCheckRunResult.internalError(
+                  'Could not reschedule checkRun "${checkRunEvent.checkRun!.name}", '
+                  'not found in list of presubmit targets: ${presubmitTargets.map((t) => t.value.name).toList()}',
                 );
-                return true;
               }
               await luciBuildService.scheduleTryBuilds(
                 targets: [target],
@@ -1681,14 +1683,24 @@ $stacktrace
             success = true;
           } on NoBuildFoundException {
             log.warning('No build found to reschedule.');
+          } on FormatException catch (e) {
+            // See https://github.com/flutter/flutter/issues/165018.
+            log.info('CheckName: $name failed due to user error: $e');
+            return ProcessCheckRunResult.userError('$e');
           }
         }
 
         log.fine('CheckName: $name State: $success');
-        return success;
+
+        // TODO(matanlurey): It would be better to early return above where it is not a success.
+        if (!success) {
+          return const ProcessCheckRunResult.internalError(
+            'Not successful. See previous log messages',
+          );
+        }
     }
 
-    return true;
+    return const ProcessCheckRunResult.success();
   }
 
   /// Push [Commit] to BigQuery as part of the infra metrics dashboards.
