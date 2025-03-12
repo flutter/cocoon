@@ -8,12 +8,9 @@ import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:flutter_dashboard/model/build_status_response.pb.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
-import 'package:flutter_dashboard/model/commit_firestore.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
-import 'package:flutter_dashboard/model/commit_tasks_status.pb.dart';
 import 'package:flutter_dashboard/model/key.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
-import 'package:flutter_dashboard/model/task_firestore.pb.dart';
 import 'package:flutter_dashboard/service/appengine_cocoon.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -96,85 +93,6 @@ void main() {
       );
 
       final response = await service.fetchCommitStatuses(repo: 'flutter');
-      expect(response.error, isNotNull);
-    });
-  });
-
-  group('AppEngine CocoonService fetchCommitStatusFirestore', () {
-    late AppEngineCocoonService service;
-
-    setUp(() async {
-      service = AppEngineCocoonService(
-        client: MockClient((Request request) async {
-          return Response(luciJsonGetStatsResponseFirestore, 200);
-        }),
-      );
-    });
-
-    test('should return CocoonResponse<List<CommitStatus>>', () {
-      expect(
-        service.fetchCommitStatusesFirestore(repo: 'flutter'),
-        const TypeMatcher<Future<CocoonResponse<List<CommitTasksStatus>>>>(),
-      );
-    });
-
-    test('should return expected List<CommitTasksStatus>', () async {
-      final statuses = await service.fetchCommitStatusesFirestore(
-        repo: 'flutter',
-      );
-
-      final expectedStatus =
-          CommitTasksStatus()
-            ..branch = 'master'
-            ..commit =
-                (CommitDocument()
-                  ..documentName = 'commit/document/name'
-                  ..createTimestamp = Int64(123456789)
-                  ..sha = 'ShaShankHash'
-                  ..author = 'ShaSha'
-                  ..avatar = 'https://flutter.dev'
-                  ..repositoryPath = 'flutter/cocoon'
-                  ..branch = 'master'
-                  ..message = 'message')
-            ..tasks.add(
-              TaskDocument()
-                ..documentName = 'task/document/name'
-                ..createTimestamp = Int64(1569353940885)
-                ..startTimestamp = Int64(1569354594672)
-                ..endTimestamp = Int64(1569354700642)
-                ..taskName = 'linux'
-                ..attempts = 1
-                ..bringup = false
-                ..status = 'Succeeded'
-                ..testFlaky = false
-                ..buildNumber = 123
-                ..buildList = '123'
-                ..commitSha = 'testSha',
-            );
-
-      expect(statuses.data!.length, 1);
-      expect(statuses.data!.first, expectedStatus);
-    });
-
-    test('should have error if given non-200 response', () async {
-      service = AppEngineCocoonService(
-        client: MockClient((Request request) async => Response('', 404)),
-      );
-
-      final response = await service.fetchCommitStatusesFirestore(
-        repo: 'flutter',
-      );
-      expect(response.error, isNotNull);
-    });
-
-    test('should have error if given bad response', () async {
-      service = AppEngineCocoonService(
-        client: MockClient((Request request) async => Response('bad', 200)),
-      );
-
-      final response = await service.fetchCommitStatusesFirestore(
-        repo: 'flutter',
-      );
       expect(response.error, isNotNull);
     });
   });
