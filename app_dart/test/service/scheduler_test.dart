@@ -21,6 +21,7 @@ import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
+import 'package:cocoon_service/src/service/scheduler/process_check_run_result.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
@@ -590,6 +591,73 @@ void main() {
         expect(commitResponse.length, 4);
       });
 
+      test('run all tasks if regular release candidate branch', () async {
+        fakeFusion.isFusion = (_, _) => true;
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
+            return http.Response(fusionCiYaml, 200);
+          } else if (request.url.path.endsWith('.ci.yaml')) {
+            return http.Response(singleCiYaml, 200);
+          }
+          throw Exception('Failed to find ${request.url.path}');
+        });
+
+        when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer((
+          Invocation invocation,
+        ) {
+          return Future<CommitResponse>.value(CommitResponse());
+        });
+        final mergedPr = generatePullRequest(
+          branch: 'flutter-1.23-candidate.0',
+        );
+        await scheduler.addPullRequest(mergedPr);
+
+        expect(
+          db.values.values.whereType<Task>(),
+          everyElement(
+            isA<Task>().having(
+              (t) => t.status,
+              'status',
+              Task.statusInProgress,
+            ),
+          ),
+          reason: 'Skips all post-submit targets',
+        );
+      });
+
+      test(
+        'skips all tasks if experimental release candidate branch',
+        () async {
+          fakeFusion.isFusion = (_, _) => true;
+          httpClient = MockClient((http.Request request) async {
+            if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
+              return http.Response(fusionCiYaml, 200);
+            } else if (request.url.path.endsWith('.ci.yaml')) {
+              return http.Response(singleCiYaml, 200);
+            }
+            throw Exception('Failed to find ${request.url.path}');
+          });
+
+          when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer(
+            (Invocation invocation) {
+              return Future<CommitResponse>.value(CommitResponse());
+            },
+          );
+          final mergedPr = generatePullRequest(
+            branch: 'flutter-0.42-candidate.0',
+          );
+          await scheduler.addPullRequest(mergedPr);
+
+          expect(
+            db.values.values.whereType<Task>(),
+            everyElement(
+              isA<Task>().having((t) => t.status, 'status', Task.statusSkipped),
+            ),
+            reason: 'Skips all post-submit targets',
+          );
+        },
+      );
+
       test('schedules tasks against merged PRs', () async {
         when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer((
           Invocation invocation,
@@ -865,7 +933,10 @@ targets:
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           checkRunEventJson,
         );
-        expect(await scheduler.processCheckRun(checkRunEvent), true);
+        expect(
+          await scheduler.processCheckRun(checkRunEvent),
+          const ProcessCheckRunResult.success(),
+        );
         verify(
           mockGithubChecksUtil.createCheckRun(
             any,
@@ -975,7 +1046,10 @@ targets:
           final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
             checkRunEventJson,
           );
-          expect(await scheduler.processCheckRun(checkRunEvent), true);
+          expect(
+            await scheduler.processCheckRun(checkRunEvent),
+            const ProcessCheckRunResult.success(),
+          );
           verify(
             mockGithubChecksUtil.createCheckRun(
               any,
@@ -1063,7 +1137,10 @@ targets:
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           checkRunEventJson,
         );
-        expect(await scheduler.processCheckRun(checkRunEvent), true);
+        expect(
+          await scheduler.processCheckRun(checkRunEvent),
+          const ProcessCheckRunResult.success(),
+        );
         verifyNever(
           mockGithubChecksUtil.createCheckRun(
             any,
@@ -1134,7 +1211,10 @@ targets:
         checkrun['name'] = checkrun['check_run']['name'] = 'Linux A';
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(checkrun);
 
-        expect(await scheduler.processCheckRun(checkRunEvent), true);
+        expect(
+          await scheduler.processCheckRun(checkRunEvent),
+          const ProcessCheckRunResult.success(),
+        );
 
         verify(
           callbacks.findPullRequestForSha(any, checkRunEvent.checkRun!.headSha),
@@ -1252,7 +1332,10 @@ targets:
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           jsonDecode(checkRunString) as Map<String, dynamic>,
         );
-        expect(await scheduler.processCheckRun(checkRunEvent), true);
+        expect(
+          await scheduler.processCheckRun(checkRunEvent),
+          const ProcessCheckRunResult.success(),
+        );
         verify(
           mockGithubChecksUtil.createCheckRun(any, any, any, any),
         ).called(1);
@@ -1290,7 +1373,14 @@ targets:
           findPullRequestForSha: callbacks.findPullRequestForSha,
           httpClientProvider: () => httpClient,
         );
-        expect(await scheduler.processCheckRun(checkRunEvent), true);
+        expect(
+          await scheduler.processCheckRun(checkRunEvent),
+          isA<RecoverableErrorResult>().having(
+            (e) => e.message,
+            'message',
+            contains('Asked to reschedule presubmits for unknown sha/PR'),
+          ),
+        );
         verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
       });
 
@@ -1303,7 +1393,7 @@ targets:
                 json.decode(checkRunEventFor()) as Map<String, Object?>,
               ),
             ),
-            true,
+            const ProcessCheckRunResult.success(),
           );
         });
 

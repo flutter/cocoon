@@ -938,8 +938,8 @@ void main() {
 
       // Find the schedule button and press it.
       when(
-        cocoonService.schedulePostsubmitsForCommit(
-          commit,
+        cocoonService.rerunCommit(
+          commitSha: commit.sha,
           idToken: '1234567890',
           branch: 'flutter-release',
           repo: 'flutter',
