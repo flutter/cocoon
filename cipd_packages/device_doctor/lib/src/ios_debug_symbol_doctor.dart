@@ -183,7 +183,7 @@ class RecoverCommand extends Command<bool> {
     );
 
     logger.info('Waiting for $timeoutSeconds seconds');
-    await Future.delayed(timeout);
+    await Future<void>.delayed(timeout);
     logger.info('Waited for $timeoutSeconds seconds, now killing Xcode');
     final result = await processManager.run(<String>['killall', '-9', 'Xcode']);
 

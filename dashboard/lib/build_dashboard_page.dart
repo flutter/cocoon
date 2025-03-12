@@ -485,10 +485,10 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                             if (buildState.currentBranch == 'master') {
                               return null;
                             }
-                            return (commit) {
+                            return (Commit commit) {
                               return _schedulePostsubmitBuildForReleaseBranch(
                                 context: context,
-                                commit: commit as Commit,
+                                commit: commit,
                               );
                             };
                           }(),

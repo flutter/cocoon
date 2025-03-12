@@ -115,7 +115,7 @@ void main() {
     });
 
     test('no green commits', () async {
-      final result = (await decodeHandlerBody())!;
+      final result = (await decodeHandlerBody<List<Object?>>())!;
       expect(result, isEmpty);
     });
 
@@ -132,9 +132,7 @@ void main() {
         buildStatusProvider: (_, _) => buildStatusService,
       );
 
-      final result = (await decodeHandlerBody())!;
-
-      expect(result.length, 2);
+      final result = (await decodeHandlerBody<String>())!;
       expect(result, <String>[commit2.sha!, commit1.sha!]);
     });
 
@@ -156,9 +154,7 @@ void main() {
           buildStatusProvider: (_, _) => buildStatusService,
         );
 
-        final result = (await decodeHandlerBody())!;
-
-        expect(result.length, 1);
+        final result = (await decodeHandlerBody<String>())!;
         expect(result, <String>[commit2.sha!]);
       },
     );
@@ -178,9 +174,7 @@ void main() {
           buildStatusProvider: (_, _) => buildStatusService,
         );
 
-        final result = (await decodeHandlerBody())!;
-
-        expect(result.length, 1);
+        final result = (await decodeHandlerBody<String>())!;
         expect(result, <String>[commit2.sha!]);
       },
     );
@@ -198,9 +192,7 @@ void main() {
         buildStatusProvider: (_, _) => buildStatusService,
       );
 
-      final result = (await decodeHandlerBody())!;
-
-      expect(result.length, 2);
+      final result = (await decodeHandlerBody<String>())!;
       expect(result, <String>[commit2.sha!, commit1.sha!]);
     });
 
@@ -221,8 +213,7 @@ void main() {
         buildStatusProvider: (_, _) => buildStatusService,
       );
 
-      final result = (await decodeHandlerBody())!;
-
+      final result = (await decodeHandlerBody<String>())!;
       expect(result, <String>[commitBranched.sha!]);
     });
   });

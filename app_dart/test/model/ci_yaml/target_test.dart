@@ -141,7 +141,7 @@ void main() {
             'android_sdk': 'abc',
           },
         );
-        expect(target.tags, []);
+        expect(target.tags, isEmpty);
       });
     });
 

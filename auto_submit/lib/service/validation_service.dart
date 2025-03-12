@@ -218,7 +218,7 @@ enum SubmitMethod {
 typedef MergeResult = ({bool result, String message, SubmitMethod method});
 
 /// Function signature that will be executed with retries.
-typedef RetryHandler = Function();
+typedef RetryHandler = void Function();
 
 /// Internal wrapper for the logic of merging a pull request into github.
 Future<github.PullRequestMerge> _processMergeInternal({

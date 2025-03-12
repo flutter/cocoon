@@ -214,7 +214,7 @@ class FilterPropertySheet extends StatefulWidget {
 
   /// The optional callback for when the close field on the sheet is used to close the
   /// sheet. This [Widget] will only implement its own close box if this callback is non-null.
-  final Function()? onClose;
+  final void Function()? onClose;
 
   @override
   State createState() => FilterPropertySheetState();

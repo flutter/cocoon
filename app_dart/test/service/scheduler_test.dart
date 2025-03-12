@@ -632,7 +632,7 @@ void main() {
         final captured =
             verify(
               mockFirestoreService.writeViaTransaction(captureAny),
-            ).captured;
+            ).captured.cast<List<Write>>();
         expect(
           captured.first.map((write) => write.update?.name),
           [
@@ -3261,10 +3261,12 @@ targets:
           ),
         );
         expect(result.callCount, 1);
-        expect(result.captured[0].map((target) => target.value.name), [
-          'Linux engine_build',
-          'Mac engine_build',
-        ]);
+        expect(
+          result.captured.cast<List<Target>>()[0].map(
+            (target) => target.value.name,
+          ),
+          ['Linux engine_build', 'Mac engine_build'],
+        );
 
         expect(checkRuns, hasLength(1));
         verifyNever(
@@ -3410,9 +3412,12 @@ targets:
           ),
         );
         expect(result.callCount, 1);
-        expect(result.captured[0].map((target) => target.value.name), [
-          'Mac engine_build',
-        ]);
+        expect(
+          result.captured.cast<List<Target>>()[0].map(
+            (target) => target.value.name,
+          ),
+          ['Mac engine_build'],
+        );
 
         expect(checkRuns, hasLength(1));
         verifyNever(
@@ -3567,10 +3572,12 @@ targets:
           ),
         );
         expect(result.callCount, 1);
-        expect(result.captured[0].map((target) => target.value.name), [
-          'Linux engine_build',
-          'Mac engine_build',
-        ]);
+        expect(
+          result.captured.cast<List<Target>>()[0].map(
+            (target) => target.value.name,
+          ),
+          ['Linux engine_build', 'Mac engine_build'],
+        );
 
         expect(checkRuns, hasLength(1));
 

@@ -132,7 +132,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     }
     // Manually add a 1s delay between consecutive GitHub requests to deal with secondary rate limit error.
     // https://docs.github.com/en/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits
-    await Future.delayed(config.githubRequestDelay);
+    await Future<void>.delayed(config.githubRequestDelay);
     issue = await fileFlakyIssue(
       builderDetail: builderDetail,
       gitHub: gitHub,
