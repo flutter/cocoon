@@ -14,8 +14,7 @@ class FakeUrlLauncher extends UrlLauncherPlatform {
   }
 
   @override
-  LinkDelegate? get linkDelegate =>
-      throw UnimplementedError('linkDelegate has not been implemented.');
+  LinkDelegate? get linkDelegate => null;
 
   @override
   Future<bool> launch(
