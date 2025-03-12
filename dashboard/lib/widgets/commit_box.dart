@@ -138,7 +138,6 @@ class CommitOverlayContents extends StatelessWidget {
                               duration: kThemeChangeDuration,
                               child: Row(
                                 children: <Widget>[
-                                  // 'https://github.com/${commit.repository}/commit/${commit.sha}'
                                   Link(
                                     uri: Uri.https(
                                       'github.com',
