@@ -1587,11 +1587,9 @@ $stacktrace
                 checkRunEvent.checkRun!.headSha!,
               );
               if (pullRequest == null) {
-                log.warning(
+                return ProcessCheckRunResult.userError(
                   'Asked to reschedule presubmits for unknown sha/PR: ${checkRunEvent.checkRun!.headSha!}',
                 );
-                // TODO(matanlurey): Follow up with jtmcdole on why this was/is a success case.
-                return const ProcessCheckRunResult.success();
               }
 
               final isFusion = await fusionTester.isFusionBasedRef(slug, sha);

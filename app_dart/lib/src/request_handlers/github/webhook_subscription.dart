@@ -124,6 +124,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
               'Failed to process check_run event. checkRunEvent: $checkRunEvent',
             );
           case RecoverableErrorResult(:final message):
+            log.info(
+              'User error state for check_run event ($checkRunEvent): $message',
+            );
             response!.statusCode = HttpStatus.badRequest;
             response!.reasonPhrase = message;
             return Body.empty;
