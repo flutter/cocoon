@@ -11,7 +11,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'dashboard_navigation_drawer.dart';
 import 'logic/task_grid_filter.dart';
-import 'model/branch.pb.dart';
 import 'model/commit.pb.dart';
 import 'service/cocoon.dart';
 import 'state/build.dart';
@@ -55,7 +54,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   /// Example branch for [truncate].
   ///
   /// Include the ellipsis to get the correct length that should be truncated at.
-  final String _exampleBranch = 'flutter-3.12-candidate.23...';
+  static const _exampleBranch = 'flutter-3.12-candidate.23...';
 
   @override
   void initState() {
@@ -271,18 +270,15 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
             ),
           ),
           ...buildState.branches
-              .where((Branch b) => b.branch != buildState.currentBranch)
-              .map<DropdownMenuItem<String>>((Branch b) {
-                final branchPrefix =
-                    (b.channel != 'master') ? '${b.channel}: ' : '';
-                return DropdownMenuItem<String>(
-                  value: b.branch,
+              .where((b) => b.reference != buildState.currentBranch)
+              .map((b) {
+                return DropdownMenuItem(
+                  value: b.reference,
                   child: Padding(
                     padding: const EdgeInsets.only(top: 9.0),
                     child: Center(
                       child: Text(
-                        branchPrefix +
-                            truncate(b.branch, _exampleBranch.length),
+                        '${(b.channel != 'master') ? '${b.channel}: ' : ''}${truncate(b.reference, _exampleBranch.length)}',
                         style: theme.primaryTextTheme.bodyLarge,
                       ),
                     ),

@@ -9,13 +9,13 @@ import 'dart:typed_data' as _i9;
 import 'dart:ui' as _i14;
 
 import 'package:flutter_dashboard/logic/brooks.dart' as _i5;
-import 'package:flutter_dashboard/model/branch.pb.dart' as _i12;
 import 'package:flutter_dashboard/model/build_status_response.pb.dart' as _i11;
 import 'package:flutter_dashboard/model/commit.pb.dart' as _i16;
 import 'package:flutter_dashboard/model/commit_status.pb.dart' as _i10;
 import 'package:flutter_dashboard/model/task.pb.dart' as _i15;
 import 'package:flutter_dashboard/service/cocoon.dart' as _i3;
 import 'package:flutter_dashboard/service/google_authentication.dart' as _i4;
+import 'package:flutter_dashboard/src/rpc_model.dart' as _i12;
 import 'package:flutter_dashboard/state/build.dart' as _i13;
 import 'package:google_sign_in/google_sign_in.dart' as _i17;
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart'

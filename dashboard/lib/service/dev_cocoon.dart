@@ -8,12 +8,12 @@ import 'dart:math' as math;
 import 'package:fixnum/fixnum.dart';
 
 import '../logic/qualified_task.dart';
-import '../model/branch.pb.dart';
 import '../model/build_status_response.pb.dart';
 import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
 import '../model/key.pb.dart';
 import '../model/task.pb.dart';
+import '../src/rpc_model.dart';
 import '../widgets/task_box.dart';
 import 'cocoon.dart';
 
@@ -126,21 +126,12 @@ class DevelopmentCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<List<Branch>>> fetchFlutterBranches() async {
-    final fakeBranches = <Branch>[
-      Branch()
-        ..channel = 'master'
-        ..branch = 'master',
-      Branch()
-        ..channel = 'stable'
-        ..branch = 'flutter-3.13-candidate.0',
-      Branch()
-        ..channel = 'beta'
-        ..branch = 'flutter-3.15-candidate.5',
-      Branch()
-        ..channel = 'dev'
-        ..branch = 'flutter-3.15-candidate.12',
-    ];
-    return CocoonResponse<List<Branch>>.data(fakeBranches);
+    return CocoonResponse.data([
+      Branch(channel: 'master', reference: 'master'),
+      Branch(channel: 'stable', reference: 'flutter-3.13-candidate.0'),
+      Branch(channel: 'beta', reference: 'flutter-3.15-candidate.5'),
+      Branch(channel: 'dev', reference: 'flutter-3.15-candidate.12'),
+    ]);
   }
 
   @override

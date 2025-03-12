@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
-import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:flutter_dashboard/model/build_status_response.pb.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
@@ -13,6 +12,7 @@ import 'package:flutter_dashboard/model/key.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/service/google_authentication.dart';
+import 'package:flutter_dashboard/src/rpc_model.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -58,10 +58,8 @@ void main() {
             const CocoonResponse<List<String>>.data(<String>['flutter']),
       );
       when(mockCocoonService.fetchFlutterBranches()).thenAnswer(
-        (_) async => CocoonResponse<List<Branch>>.data(<Branch>[
-          Branch()
-            ..branch = defaultBranch
-            ..repository = 'flutter',
+        (_) async => CocoonResponse<List<Branch>>.data([
+          Branch(channel: defaultBranch, reference: defaultBranch),
         ]),
       );
 

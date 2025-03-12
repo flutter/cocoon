@@ -9,12 +9,12 @@ import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 
-import '../model/branch.pb.dart';
 import '../model/build_status_response.pb.dart';
 import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
 import '../model/key.pb.dart';
 import '../model/task.pb.dart';
+import '../src/rpc_model.dart';
 import 'cocoon.dart';
 
 /// CocoonService for interacting with flutter/flutter production build data.
@@ -162,20 +162,16 @@ class AppEngineCocoonService implements CocoonService {
     final response = await _client.get(getBranchesUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<List<Branch>>.error(
+      return CocoonResponse.error(
         '/api/public/get-release-branches returned ${response.statusCode}',
       );
     }
 
     try {
-      final jsonResponse = jsonDecode(response.body) as List<dynamic>;
+      final jsonResponse = jsonDecode(response.body) as List<Object?>;
       final branches = <Branch>[];
-      for (final jsonBranch in jsonResponse.cast<Map<String, dynamic>>()) {
-        branches.add(
-          Branch()
-            ..branch = jsonBranch['reference']! as String
-            ..channel = jsonBranch['channel']! as String,
-        );
+      for (final jsonBranch in jsonResponse.cast<Map<String, Object?>>()) {
+        branches.add(Branch.fromJson(jsonBranch));
       }
       return CocoonResponse<List<Branch>>.data(branches);
     } catch (error) {
