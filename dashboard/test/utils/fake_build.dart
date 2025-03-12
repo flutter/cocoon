@@ -6,11 +6,11 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dashboard/logic/brooks.dart';
-import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/service/google_authentication.dart';
+import 'package:flutter_dashboard/src/rpc_model.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/widgets/task_overlay.dart';
 
@@ -69,23 +69,19 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
 
   @override
   List<Branch> get branches {
-    final fakeBranches = <Branch>[];
-    for (var repo in ['flutter', 'cocoon']) {
-      fakeBranches.add(
-        Branch()
-          ..repository = repo
-          ..branch = defaultBranches[repo]!,
-      );
-      fakeBranches.addAll(<Branch>[
-        Branch()
-          ..repository = repo
-          ..branch = '$repo-release',
-        Branch()
-          ..repository = repo
-          ..branch = '$repo-release-very-long-name-that-should-be-truncated',
-      ]);
-    }
-    return fakeBranches;
+    // TODO(matanlurey): Previously the channel names were implicitly empty,
+    // which meant the UI fit in a very small screen (Pixel 4-ish). To make
+    // these more "real" the build_dashboard_page_test.dart will need to be
+    // updated to have a larger UI *or* widget changes will need to be made to
+    // fit better on a mobile device.
+    return [
+      Branch(channel: '', reference: 'master'),
+      Branch(channel: '', reference: 'stable-release'),
+      Branch(
+        channel: '',
+        reference: 'release-very-long-name-that-should-be-truncated',
+      ),
+    ];
   }
 
   @override

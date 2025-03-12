@@ -4,12 +4,12 @@
 
 import 'package:flutter/foundation.dart';
 
-import '../model/branch.pb.dart';
 import '../model/build_status_response.pb.dart';
 import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
 import '../model/commit_tasks_status.pb.dart';
 import '../model/task.pb.dart';
+import '../src/rpc_model.dart';
 import 'appengine_cocoon.dart';
 import 'dev_cocoon.dart';
 

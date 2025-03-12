@@ -5,7 +5,6 @@
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dashboard/logic/qualified_task.dart';
-import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:flutter_dashboard/model/build_status_response.pb.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_firestore.pb.dart';
@@ -16,6 +15,7 @@ import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/model/task_firestore.pb.dart';
 import 'package:flutter_dashboard/service/appengine_cocoon.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
+import 'package:flutter_dashboard/src/rpc_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' show Request, Response;
 import 'package:http/testing.dart';
@@ -342,22 +342,13 @@ void main() {
       final branches = await service.fetchFlutterBranches();
 
       expect(branches.error, isNull);
-      expect(branches.data!.length, 4);
       expect(
         branches.data,
-        containsAll([
-          Branch()
-            ..branch = 'flutter-3.13-candidate.0'
-            ..channel = 'stable',
-          Branch()
-            ..branch = 'flutter-3.14-candidate.0'
-            ..channel = 'beta',
-          Branch()
-            ..branch = 'flutter-3.15-candidate.5'
-            ..channel = 'dev',
-          Branch()
-            ..branch = 'master'
-            ..channel = 'master',
+        unorderedEquals([
+          Branch(channel: 'stable', reference: 'flutter-3.13-candidate.0'),
+          Branch(channel: 'beta', reference: 'flutter-3.14-candidate.0'),
+          Branch(channel: 'dev', reference: 'flutter-3.15-candidate.5'),
+          Branch(channel: 'master', reference: 'master'),
         ]),
       );
     });
