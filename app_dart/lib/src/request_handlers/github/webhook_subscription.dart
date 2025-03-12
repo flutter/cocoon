@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
@@ -18,6 +19,7 @@ import '../../request_handling/subscription_handler.dart';
 import '../../service/commit_service.dart';
 import '../../service/datastore.dart';
 import '../../service/github_service.dart';
+import '../../service/scheduler/process_check_run_result.dart';
 
 // Filenames which are not actually tests.
 const List<String> kNotActuallyATest = <String>[
@@ -109,10 +111,25 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'check_run':
         final event = jsonDecode(webhook.payload) as Map<String, dynamic>;
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
-        if (await scheduler.processCheckRun(checkRunEvent) == false) {
-          throw InternalServerError(
-            'Failed to process check_run event. checkRunEvent: $checkRunEvent',
-          );
+        switch (await scheduler.processCheckRun(checkRunEvent)) {
+          case SuccessResult():
+            break;
+          case InternalErrorResult(
+            :final message,
+            :final error,
+            :final stackTrace,
+          ):
+            log.severe(message, error, stackTrace);
+            throw InternalServerError(
+              'Failed to process check_run event. checkRunEvent: $checkRunEvent',
+            );
+          case RecoverableErrorResult(:final message):
+            log.info(
+              'User error state for check_run event ($checkRunEvent): $message',
+            );
+            response!.statusCode = HttpStatus.badRequest;
+            response!.reasonPhrase = message;
+            return Body.empty;
         }
         break;
       case 'push':

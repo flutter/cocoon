@@ -21,6 +21,7 @@ import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
+import 'package:cocoon_service/src/service/scheduler/process_check_run_result.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
@@ -932,7 +933,10 @@ targets:
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           checkRunEventJson,
         );
-        expect(await scheduler.processCheckRun(checkRunEvent), true);
+        expect(
+          await scheduler.processCheckRun(checkRunEvent),
+          const ProcessCheckRunResult.success(),
+        );
         verify(
           mockGithubChecksUtil.createCheckRun(
             any,
@@ -1042,7 +1046,10 @@ targets:
           final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
             checkRunEventJson,
           );
-          expect(await scheduler.processCheckRun(checkRunEvent), true);
+          expect(
+            await scheduler.processCheckRun(checkRunEvent),
+            const ProcessCheckRunResult.success(),
+          );
           verify(
             mockGithubChecksUtil.createCheckRun(
               any,
@@ -1130,7 +1137,10 @@ targets:
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           checkRunEventJson,
         );
-        expect(await scheduler.processCheckRun(checkRunEvent), true);
+        expect(
+          await scheduler.processCheckRun(checkRunEvent),
+          const ProcessCheckRunResult.success(),
+        );
         verifyNever(
           mockGithubChecksUtil.createCheckRun(
             any,
@@ -1201,7 +1211,10 @@ targets:
         checkrun['name'] = checkrun['check_run']['name'] = 'Linux A';
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(checkrun);
 
-        expect(await scheduler.processCheckRun(checkRunEvent), true);
+        expect(
+          await scheduler.processCheckRun(checkRunEvent),
+          const ProcessCheckRunResult.success(),
+        );
 
         verify(
           callbacks.findPullRequestForSha(any, checkRunEvent.checkRun!.headSha),
@@ -1319,7 +1332,10 @@ targets:
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           jsonDecode(checkRunString) as Map<String, dynamic>,
         );
-        expect(await scheduler.processCheckRun(checkRunEvent), true);
+        expect(
+          await scheduler.processCheckRun(checkRunEvent),
+          const ProcessCheckRunResult.success(),
+        );
         verify(
           mockGithubChecksUtil.createCheckRun(any, any, any, any),
         ).called(1);
@@ -1357,7 +1373,14 @@ targets:
           findPullRequestForSha: callbacks.findPullRequestForSha,
           httpClientProvider: () => httpClient,
         );
-        expect(await scheduler.processCheckRun(checkRunEvent), true);
+        expect(
+          await scheduler.processCheckRun(checkRunEvent),
+          isA<RecoverableErrorResult>().having(
+            (e) => e.message,
+            'message',
+            contains('Asked to reschedule presubmits for unknown sha/PR'),
+          ),
+        );
         verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
       });
 
@@ -1370,7 +1393,7 @@ targets:
                 json.decode(checkRunEventFor()) as Map<String, Object?>,
               ),
             ),
-            true,
+            const ProcessCheckRunResult.success(),
           );
         });
 
