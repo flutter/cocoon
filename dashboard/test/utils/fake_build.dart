@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dashboard/logic/brooks.dart';
 import 'package:flutter_dashboard/model/branch.pb.dart';
+import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
@@ -48,7 +49,7 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   Future<bool> refreshGitHubCommits() async => false;
 
   @override
-  Future<bool> rerunTask(Task task) async {
+  Future<bool> rerunTask(Task task, Commit commit) async {
     if (!rerunTaskResult) {
       errors.send(TaskOverlayContents.rerunErrorMessage);
       return false;

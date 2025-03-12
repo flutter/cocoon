@@ -173,15 +173,23 @@ void main() {
 
     test('should return true if request succeeds', () async {
       final response = await service.rerunTask(
-        task,
-        'fakeAccessToken',
-        'flutter',
+        taskName: task.name,
+        idToken: 'fakeAccessToken',
+        repo: 'flutter',
+        commitSha: 'abc123',
+        branch: 'master',
       );
       expect(response.error, isNull);
     });
 
-    test('should set error in response if task key is null', () async {
-      final response = await service.rerunTask(task, null, 'flutter');
+    test('should set error in response if ID token is null', () async {
+      final response = await service.rerunTask(
+        taskName: task.name,
+        idToken: null,
+        repo: 'flutter',
+        commitSha: 'abc123',
+        branch: 'master',
+      );
       expect(
         response.error,
         allOf(<Matcher>[isNotNull, contains('Sign in to trigger reruns')]),
@@ -198,9 +206,11 @@ void main() {
         );
 
         final response = await service.rerunTask(
-          task,
-          'fakeAccessToken',
-          'flutter',
+          taskName: task.name,
+          idToken: 'fakeAccessToken',
+          repo: 'flutter',
+          commitSha: 'abc123',
+          branch: 'master',
         );
         expect(
           response.error,

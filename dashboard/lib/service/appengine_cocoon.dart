@@ -9,7 +9,6 @@ import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 
-import '../logic/qualified_task.dart';
 import '../model/branch.pb.dart';
 import '../model/build_status_response.pb.dart';
 import '../model/commit.pb.dart';
@@ -195,26 +194,27 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<bool>> rerunTask(
-    Task task,
-    String? idToken,
-    String repo,
-  ) async {
+  Future<CocoonResponse<bool>> rerunTask({
+    required String? idToken,
+    required String taskName,
+    required String commitSha,
+    required String repo,
+    required String branch,
+  }) async {
     if (idToken == null || idToken.isEmpty) {
       return const CocoonResponse<bool>.error('Sign in to trigger reruns');
     }
 
-    final qualifiedTask = QualifiedTask.fromTask(task);
-    assert(qualifiedTask.isLuci);
-
     /// This endpoint only returns a status code.
-    final postResetTaskUrl = apiEndpoint('/api/reset-prod-task');
+    final postResetTaskUrl = apiEndpoint('/api/rerun-prod-task');
     final response = await _client.post(
       postResetTaskUrl,
-      headers: <String, String>{'X-Flutter-IdToken': idToken},
-      body: jsonEncode(<String, String>{
-        'Key': task.key.child.name,
-        'Repo': repo,
+      headers: {'X-Flutter-IdToken': idToken},
+      body: jsonEncode({
+        'branch': branch,
+        'repo': repo,
+        'commit': commitSha,
+        'task': taskName,
       }),
     );
 
@@ -228,29 +228,18 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<void>> schedulePostsubmitsForCommit(
-    Commit commit, {
-    required String idToken,
-    required String branch,
+  Future<CocoonResponse<void>> rerunCommit({
+    required String? idToken,
+    required String commitSha,
     required String repo,
+    required String branch,
   }) async {
-    if (idToken.isEmpty) {
-      return const CocoonResponse<bool>.error('Sign in to trigger reruns');
-    }
-    final response = await _client.post(
-      apiEndpoint('/api/schedule-postsubmit-commits'),
-      headers: <String, String>{'X-Flutter-IdToken': idToken},
-      body: jsonEncode(<String, String>{
-        'Repo': repo,
-        'Branch': branch,
-        'Commit': commit.sha,
-      }),
-    );
-    if (response.statusCode == HttpStatus.ok) {
-      return const CocoonResponse<void>.data(null);
-    }
-    return CocoonResponse<void>.error(
-      'HTTP Code: ${response.statusCode}, ${response.body}',
+    return rerunTask(
+      idToken: idToken,
+      taskName: 'all',
+      commitSha: commitSha,
+      repo: repo,
+      branch: branch,
     );
   }
 

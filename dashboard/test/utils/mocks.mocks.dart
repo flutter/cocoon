@@ -6,17 +6,17 @@
 import 'dart:async' as _i6;
 import 'dart:convert' as _i7;
 import 'dart:typed_data' as _i9;
-import 'dart:ui' as _i16;
+import 'dart:ui' as _i14;
 
 import 'package:flutter_dashboard/logic/brooks.dart' as _i5;
 import 'package:flutter_dashboard/model/branch.pb.dart' as _i12;
 import 'package:flutter_dashboard/model/build_status_response.pb.dart' as _i11;
-import 'package:flutter_dashboard/model/commit.pb.dart' as _i14;
+import 'package:flutter_dashboard/model/commit.pb.dart' as _i16;
 import 'package:flutter_dashboard/model/commit_status.pb.dart' as _i10;
-import 'package:flutter_dashboard/model/task.pb.dart' as _i13;
+import 'package:flutter_dashboard/model/task.pb.dart' as _i15;
 import 'package:flutter_dashboard/service/cocoon.dart' as _i3;
 import 'package:flutter_dashboard/service/google_authentication.dart' as _i4;
-import 'package:flutter_dashboard/state/build.dart' as _i15;
+import 'package:flutter_dashboard/state/build.dart' as _i13;
 import 'package:google_sign_in/google_sign_in.dart' as _i17;
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart'
     as _i18;
@@ -335,21 +335,63 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
           as _i6.Future<_i3.CocoonResponse<List<String>>>);
 
   @override
-  _i6.Future<_i3.CocoonResponse<bool>> rerunTask(
-    _i13.Task? task,
-    String? idToken,
-    String? repo,
-  ) =>
+  _i6.Future<_i3.CocoonResponse<bool>> rerunTask({
+    required String? idToken,
+    required String? taskName,
+    required String? commitSha,
+    required String? repo,
+    required String? branch,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#rerunTask, [task, idToken, repo]),
+            Invocation.method(#rerunTask, [], {
+              #idToken: idToken,
+              #taskName: taskName,
+              #commitSha: commitSha,
+              #repo: repo,
+              #branch: branch,
+            }),
             returnValue: _i6.Future<_i3.CocoonResponse<bool>>.value(
               _FakeCocoonResponse_2<bool>(
                 this,
-                Invocation.method(#rerunTask, [task, idToken, repo]),
+                Invocation.method(#rerunTask, [], {
+                  #idToken: idToken,
+                  #taskName: taskName,
+                  #commitSha: commitSha,
+                  #repo: repo,
+                  #branch: branch,
+                }),
               ),
             ),
           )
           as _i6.Future<_i3.CocoonResponse<bool>>);
+
+  @override
+  _i6.Future<_i3.CocoonResponse<void>> rerunCommit({
+    required String? idToken,
+    required String? commitSha,
+    required String? repo,
+    required String? branch,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#rerunCommit, [], {
+              #idToken: idToken,
+              #commitSha: commitSha,
+              #repo: repo,
+              #branch: branch,
+            }),
+            returnValue: _i6.Future<_i3.CocoonResponse<void>>.value(
+              _FakeCocoonResponse_2<void>(
+                this,
+                Invocation.method(#rerunCommit, [], {
+                  #idToken: idToken,
+                  #commitSha: commitSha,
+                  #repo: repo,
+                  #branch: branch,
+                }),
+              ),
+            ),
+          )
+          as _i6.Future<_i3.CocoonResponse<void>>);
 
   @override
   _i6.Future<bool> vacuumGitHubCommits(String? idToken) =>
@@ -358,38 +400,12 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
             returnValue: _i6.Future<bool>.value(false),
           )
           as _i6.Future<bool>);
-
-  @override
-  _i6.Future<_i3.CocoonResponse<void>> schedulePostsubmitsForCommit(
-    _i14.Commit? commit, {
-    required String? idToken,
-    required String? branch,
-    required String? repo,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(
-              #schedulePostsubmitsForCommit,
-              [commit],
-              {#idToken: idToken, #branch: branch, #repo: repo},
-            ),
-            returnValue: _i6.Future<_i3.CocoonResponse<void>>.value(
-              _FakeCocoonResponse_2<void>(
-                this,
-                Invocation.method(
-                  #schedulePostsubmitsForCommit,
-                  [commit],
-                  {#idToken: idToken, #branch: branch, #repo: repo},
-                ),
-              ),
-            ),
-          )
-          as _i6.Future<_i3.CocoonResponse<void>>);
 }
 
 /// A class which mocks [BuildState].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockBuildState extends _i1.Mock implements _i15.BuildState {
+class MockBuildState extends _i1.Mock implements _i13.BuildState {
   MockBuildState() {
     _i1.throwOnMissingStub(this);
   }
@@ -501,13 +517,13 @@ class MockBuildState extends _i1.Mock implements _i15.BuildState {
           as bool);
 
   @override
-  void addListener(_i16.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i14.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void removeListener(_i16.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i14.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
     returnValueForMissingStub: null,
   );
@@ -536,9 +552,9 @@ class MockBuildState extends _i1.Mock implements _i15.BuildState {
           as _i6.Future<bool>);
 
   @override
-  _i6.Future<bool> rerunTask(_i13.Task? task) =>
+  _i6.Future<bool> rerunTask(_i15.Task? task, _i16.Commit? commit) =>
       (super.noSuchMethod(
-            Invocation.method(#rerunTask, [task]),
+            Invocation.method(#rerunTask, [task, commit]),
             returnValue: _i6.Future<bool>.value(false),
           )
           as _i6.Future<bool>);
@@ -729,13 +745,13 @@ class MockGoogleSignInService extends _i1.Mock
           as _i6.Future<void>);
 
   @override
-  void addListener(_i16.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i14.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void removeListener(_i16.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i14.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
     returnValueForMissingStub: null,
   );
