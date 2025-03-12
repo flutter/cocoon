@@ -6,10 +6,8 @@ import 'package:flutter/foundation.dart';
 
 import '../model/branch.pb.dart';
 import '../model/build_status_response.pb.dart';
-import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
 import '../model/commit_tasks_status.pb.dart';
-import '../model/task.pb.dart';
 import 'appengine_cocoon.dart';
 import 'dev_cocoon.dart';
 
@@ -65,26 +63,25 @@ abstract class CocoonService {
   /// Get the current list of version branches in flutter/flutter.
   Future<CocoonResponse<List<String>>> fetchRepos();
 
-  /// Send rerun [Task] command to devicelab.
-  ///
-  /// Will not rerun tasks that are outside of devicelab.
+  /// Schedule the provided [task] to be re-run.
+  Future<CocoonResponse<bool>> rerunTask({
+    required String? idToken,
+    required String taskName,
+    required String commitSha,
+    required String repo,
+    required String branch,
+  });
 
-  Future<CocoonResponse<bool>> rerunTask(
-    Task task,
-    String? idToken,
-    String repo,
-  );
+  /// Tell Cocoon to manually schedule (or reschedule) tasks for the given commit.
+  Future<CocoonResponse<void>> rerunCommit({
+    required String? idToken,
+    required String commitSha,
+    required String repo,
+    required String branch,
+  });
 
   /// Force update Cocoon to get the latest commits.
   Future<bool> vacuumGitHubCommits(String idToken);
-
-  /// Tell Cocoon to manually schedule (or reschedule) post-submits for the given commit.
-  Future<CocoonResponse<void>> schedulePostsubmitsForCommit(
-    Commit commit, {
-    required String idToken,
-    required String branch,
-    required String repo,
-  });
 }
 
 /// Wrapper class for data this state serves.

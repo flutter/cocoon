@@ -577,6 +577,7 @@ void main() {
     late MockCocoonService cocoonService;
     late MockGoogleSignInService authService;
     final task = Task();
+    final commit = Commit();
 
     setUp(() {
       cocoonService = MockCocoonService();
@@ -591,10 +592,18 @@ void main() {
         cocoonService: cocoonService,
       );
 
-      final result = await buildState.rerunTask(task);
+      final result = await buildState.rerunTask(task, commit);
 
       expect(result, isFalse);
-      verifyNever(cocoonService.rerunTask(any, any, any));
+      verifyNever(
+        cocoonService.rerunTask(
+          idToken: anyNamed('idToken'),
+          taskName: anyNamed('taskName'),
+          commitSha: anyNamed('commitSha'),
+          repo: anyNamed('repo'),
+          branch: anyNamed('branch'),
+        ),
+      );
     });
 
     testWidgets('clears user when rerunTask fails', (_) async {
@@ -602,7 +611,13 @@ void main() {
       when(authService.isAuthenticated).thenReturn(true);
       when(authService.idToken).thenAnswer((_) async => idToken);
       when(
-        cocoonService.rerunTask(task, idToken, any),
+        cocoonService.rerunTask(
+          idToken: argThat(equals(idToken), named: 'idToken'),
+          taskName: argThat(equals(task.name), named: 'taskName'),
+          commitSha: anyNamed('commitSha'),
+          repo: anyNamed('repo'),
+          branch: anyNamed('branch'),
+        ),
       ).thenAnswer((_) async => const CocoonResponse<bool>.error('failed!'));
 
       final buildState = BuildState(
@@ -610,7 +625,7 @@ void main() {
         cocoonService: cocoonService,
       );
 
-      final result = await buildState.rerunTask(task);
+      final result = await buildState.rerunTask(task, commit);
 
       expect(result, isFalse);
       verify(authService.clearUser()).called(1);
@@ -621,7 +636,13 @@ void main() {
       when(authService.isAuthenticated).thenReturn(true);
       when(authService.idToken).thenAnswer((_) async => idToken);
       when(
-        cocoonService.rerunTask(task, idToken, any),
+        cocoonService.rerunTask(
+          idToken: argThat(equals(idToken), named: 'idToken'),
+          taskName: argThat(equals(task.name), named: 'taskName'),
+          commitSha: anyNamed('commitSha'),
+          repo: anyNamed('repo'),
+          branch: anyNamed('branch'),
+        ),
       ).thenAnswer((_) async => const CocoonResponse<bool>.data(true));
 
       final buildState = BuildState(
@@ -629,7 +650,7 @@ void main() {
         cocoonService: cocoonService,
       );
 
-      final result = await buildState.rerunTask(task);
+      final result = await buildState.rerunTask(task, commit);
 
       expect(result, isTrue);
       verifyNever(authService.clearUser());

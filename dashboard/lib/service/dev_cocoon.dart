@@ -160,22 +160,24 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<bool>> rerunTask(
-    Task task,
-    String? accessToken,
-    String repo,
-  ) async {
+  Future<CocoonResponse<bool>> rerunTask({
+    required String? idToken,
+    required String taskName,
+    required String commitSha,
+    required String repo,
+    required String branch,
+  }) async {
     return const CocoonResponse<bool>.error(
       'Unable to retry against fake data. Try building the app to use prod data.',
     );
   }
 
   @override
-  Future<CocoonResponse<void>> schedulePostsubmitsForCommit(
-    Commit commit, {
-    required String idToken,
-    required String branch,
+  Future<CocoonResponse<void>> rerunCommit({
+    required String? idToken,
+    required String commitSha,
     required String repo,
+    required String branch,
   }) async {
     return const CocoonResponse<void>.error(
       'Unable to schedule against fake data. Try building the app to use prod data.',
