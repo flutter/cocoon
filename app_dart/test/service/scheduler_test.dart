@@ -1308,7 +1308,11 @@ targets:
         );
         expect(
           await scheduler.processCheckRun(checkRunEvent),
-          const ProcessCheckRunResult.success(),
+          isA<RecoverableErrorResult>().having(
+            (e) => e.message,
+            'message',
+            contains('Asked to reschedule presubmits for unknown sha/PR'),
+          ),
         );
         verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
       });
