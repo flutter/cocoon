@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'cocoon_service.dart';
+import 'src/request_handlers/trigger_workflow.dart';
 import 'src/service/commit_service.dart';
 
 typedef Server = Future<void> Function(HttpRequest);
@@ -164,6 +165,12 @@ Server createServer({
       config: config,
       authenticationProvider: authProvider,
       scheduler: scheduler,
+    ),
+
+    /// Temporary API to trigger a dispatch-able workflow from Cocoon.
+    '/api/trigger-workflow': TriggerWorkflow(
+      authenticationProvider: authProvider,
+      config: config,
     ),
 
     /// Returns status of the framework tree.
