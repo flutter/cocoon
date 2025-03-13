@@ -331,6 +331,58 @@ void main() {
       reason: 'Engine .ci.yaml should only contain Linux Engine',
     );
   });
+
+  test('fails with an empty config', () async {
+    httpClient = MockClient((_) async {
+      return http.Response('', HttpStatus.ok);
+    });
+
+    await expectLater(
+      ciYamlFetcher.getCiYaml(
+        slug: Config.flutterSlug,
+        commitSha: currentSha,
+        commitBranch: 'master',
+        validate: true,
+      ),
+      throwsA(
+        isA<FormatException>().having(
+          (e) => e.message,
+          'message',
+          contains('must have at least 1 target'),
+        ),
+      ),
+    );
+  });
+
+  test('fails with unknown dependencies', () async {
+    httpClient = MockClient((_) async {
+      return http.Response('''
+enabled_branches:
+  - master
+targets:
+  - name: A
+    builder: Linux A
+    dependencies:
+      - B
+          ''', HttpStatus.ok);
+    });
+
+    await expectLater(
+      ciYamlFetcher.getCiYaml(
+        slug: Config.flutterSlug,
+        commitSha: currentSha,
+        commitBranch: 'master',
+        validate: true,
+      ),
+      throwsA(
+        isA<FormatException>().having(
+          (e) => e.message,
+          'message',
+          contains('A depends on B which does not exist'),
+        ),
+      ),
+    );
+  });
 }
 
 const String singleCiYaml = r'''

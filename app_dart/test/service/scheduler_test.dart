@@ -28,8 +28,6 @@ import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
 import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -134,7 +132,6 @@ void main() {
   late FakeConfig config;
   late FakeDatastoreDB db;
   late FakeBuildStatusService buildStatusService;
-  late MockClient httpClient;
   late MockFirestoreService mockFirestoreService;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Scheduler scheduler;
@@ -192,13 +189,8 @@ void main() {
           Config.packagesSlug,
         },
       );
-      httpClient = MockClient((http.Request request) async {
-        if (request.url.path.contains('.ci.yaml')) {
-          return http.Response(singleCiYaml, 200);
-        }
-        throw Exception('Failed to find ${request.url.path}');
-      });
 
+      ciYamlFetcher.setCiYamlFrom(Config.flutterSlug, singleCiYaml);
       mockGithubChecksUtil = MockGithubChecksUtil();
       // Generate check runs based on the name hash code
       when(
@@ -229,7 +221,6 @@ void main() {
           config,
           githubChecksUtil: mockGithubChecksUtil,
         ),
-        httpClientProvider: () => httpClient,
         getFilesChanged: getFilesChanged,
         luciBuildService: FakeLuciBuildService(
           config: config,
@@ -255,15 +246,11 @@ void main() {
     });
 
     test('fusion, getPresubmitTargets supports two ci.yamls', () async {
-      httpClient = MockClient((http.Request request) async {
-        if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
-          return http.Response(fusionCiYaml, 200);
-        } else if (request.url.path.endsWith('.ci.yaml')) {
-          return http.Response(singleCiYaml, 200);
-        }
-        throw Exception('Failed to find ${request.url.path}');
-      });
-
+      ciYamlFetcher.setCiYamlFrom(
+        Config.flutterSlug,
+        singleCiYaml,
+        engine: fusionCiYaml,
+      );
       fakeFusion.isFusion = (_, _) => true;
 
       final presubmitTargets = await scheduler.getPresubmitTargets(pullRequest);
@@ -454,7 +441,6 @@ void main() {
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
-          httpClientProvider: () => httpClient,
           luciBuildService: luciBuildService,
           fusionTester: fakeFusion,
           ciYamlFetcher: ciYamlFetcher,
@@ -553,7 +539,6 @@ void main() {
               githubChecksUtil: mockGithubChecksUtil,
             ),
             getFilesChanged: getFilesChanged,
-            httpClientProvider: () => httpClient,
             luciBuildService: luciBuildService,
             fusionTester: fakeFusion,
             ciYamlFetcher: ciYamlFetcher,
@@ -613,14 +598,11 @@ void main() {
         // NOTE: The scheduler doesn't actually do anything except for write backfill requests - unless its a release.
         // When backfills are picked up, they'll go through the same flow (schedulePostsubmitBuilds).
         fakeFusion.isFusion = (_, _) => true;
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
-            return http.Response(fusionCiYaml, 200);
-          } else if (request.url.path.endsWith('.ci.yaml')) {
-            return http.Response(singleCiYaml, 200);
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
+        ciYamlFetcher.setCiYamlFrom(
+          Config.flutterSlug,
+          singleCiYaml,
+          engine: fusionCiYaml,
+        );
         when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer((
           Invocation invocation,
         ) {
@@ -686,25 +668,27 @@ void main() {
               return Future<CommitResponse>.value(CommitResponse());
             },
           );
-          const totCiYaml = r'''
-enabled_branches:
-  - main
-  - flutter-\d+\.\d+-candidate\.\d+
-targets:
-  - name: Linux A
-    properties:
-      custom: abc
-''';
-          httpClient = MockClient((http.Request request) async {
-            if (request.url.path == '/flutter/flutter/abc/.ci.yaml') {
-              return http.Response(totCiYaml, HttpStatus.ok);
-            }
-            if (request.url.path == '/flutter/flutter/1/.ci.yaml') {
-              return http.Response(singleCiYaml, HttpStatus.ok);
-            }
-            print(request.url.path);
-            throw Exception('Failed to find ${request.url.path}');
-          });
+
+          ciYamlFetcher.setCiYamlFrom(Config.flutterSlug, singleCiYaml);
+          //           const totCiYaml = r'''
+          // enabled_branches:
+          //   - main
+          //   - flutter-\d+\.\d+-candidate\.\d+
+          // targets:
+          //   - name: Linux A
+          //     properties:
+          //       custom: abc
+          // ''';
+          //           httpClient = MockClient((http.Request request) async {
+          //             if (request.url.path == '/flutter/flutter/abc/.ci.yaml') {
+          //               return http.Response(totCiYaml, HttpStatus.ok);
+          //             }
+          //             if (request.url.path == '/flutter/flutter/1/.ci.yaml') {
+          //               return http.Response(singleCiYaml, HttpStatus.ok);
+          //             }
+          //             print(request.url.path);
+          //             throw Exception('Failed to find ${request.url.path}');
+          //           });
           scheduler = Scheduler(
             cache: cache,
             config: config,
@@ -715,7 +699,6 @@ targets:
               githubChecksUtil: mockGithubChecksUtil,
             ),
             getFilesChanged: getFilesChanged,
-            httpClientProvider: () => httpClient,
             luciBuildService: FakeLuciBuildService(
               config: config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -818,7 +801,6 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
-          httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -908,14 +890,12 @@ targets:
 
           // Enable fusion (modern flutter/flutter merged)
           fakeFusion.isFusion = (_, _) => true;
-          httpClient = MockClient((http.Request request) async {
-            if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
-              return http.Response(fusionCiYaml, 200);
-            } else if (request.url.path.endsWith('.ci.yaml')) {
-              return http.Response(singleCiYaml, 200);
-            }
-            throw Exception('Failed to find ${request.url.path}');
-          });
+
+          ciYamlFetcher.setCiYamlFrom(
+            Config.flutterSlug,
+            singleCiYaml,
+            engine: fusionCiYaml,
+          );
           config.maxFilesChangedForSkippingEnginePhaseValue = 0;
           scheduler = Scheduler(
             cache: cache,
@@ -926,7 +906,6 @@ targets:
               githubChecksUtil: mockGithubChecksUtil,
             ),
             getFilesChanged: getFilesChanged,
-            httpClientProvider: () => httpClient,
             luciBuildService: FakeLuciBuildService(
               config: config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -1018,7 +997,6 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
-          httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -1105,14 +1083,11 @@ targets:
           return pullRequest;
         });
 
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
-            return http.Response(fusionCiYaml, 200);
-          } else if (request.url.path.endsWith('.ci.yaml')) {
-            return http.Response(singleCiYaml, 200);
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
+        ciYamlFetcher.setCiYamlFrom(
+          Config.flutterSlug,
+          singleCiYaml,
+          engine: fusionCiYaml,
+        );
 
         final luci = MockLuciBuildService();
         when(
@@ -1137,7 +1112,6 @@ targets:
           luciBuildService: luci,
           fusionTester: fakeFusion,
           findPullRequestForSha: callbacks.findPullRequestForSha,
-          httpClientProvider: () => httpClient,
           ciYamlFetcher: ciYamlFetcher,
         );
 
@@ -1204,18 +1178,13 @@ targets:
         config.db.values[task.key] = task;
 
         // Set up ci.yaml with task name and branch name from [checkRunString].
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.contains('.ci.yaml')) {
-            return http.Response(r'''
+        ciYamlFetcher.setCiYamlFrom(Config.flutterSlug, r'''
 enabled_branches:
   - independent_agent
   - master
 targets:
   - name: test1
-''', 200);
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
+''');
 
         // Set up mock buildbucket to validate which bucket is requested.
         final mockBuildbucket = MockBuildBucketClient();
@@ -1256,7 +1225,6 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
-          httpClientProvider: () => httpClient,
           luciBuildService: luciBuildService,
           fusionTester: fakeFusion,
           ciYamlFetcher: ciYamlFetcher,
@@ -1300,7 +1268,6 @@ targets:
           luciBuildService: FakeLuciBuildService(config: config),
           fusionTester: fakeFusion,
           findPullRequestForSha: callbacks.findPullRequestForSha,
-          httpClientProvider: () => httpClient,
           ciYamlFetcher: ciYamlFetcher,
         );
         expect(await scheduler.processCheckRun(checkRunEvent), true);
@@ -1582,14 +1549,11 @@ targets:
               ],
             );
 
-            httpClient = MockClient((http.Request request) async {
-              if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
-                return http.Response(fusionCiYaml, 200);
-              } else if (request.url.path.endsWith('.ci.yaml')) {
-                return http.Response(singleCiYaml, 200);
-              }
-              throw Exception('Failed to find ${request.url.path}');
-            });
+            ciYamlFetcher.setCiYamlFrom(
+              Config.flutterSlug,
+              singleCiYaml,
+              engine: fusionCiYaml,
+            );
             final luci = MockLuciBuildService();
             when(
               luci.scheduleTryBuilds(
@@ -1631,7 +1595,6 @@ targets:
               buildStatusProvider: (_, _) => buildStatusService,
               getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
-              httpClientProvider: () => httpClient,
               luciBuildService: luci,
               fusionTester: fakeFusion,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
@@ -1736,7 +1699,6 @@ targets:
               buildStatusProvider: (_, _) => buildStatusService,
               getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
-              httpClientProvider: () => httpClient,
               luciBuildService: luci,
               fusionTester: fakeFusion,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
@@ -1851,7 +1813,6 @@ targets:
                 buildStatusProvider: (_, _) => buildStatusService,
                 getFilesChanged: getFilesChanged,
                 githubChecksService: gitHubChecksService,
-                httpClientProvider: () => httpClient,
                 luciBuildService: luci,
                 fusionTester: fakeFusion,
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
@@ -1940,7 +1901,6 @@ targets:
               buildStatusProvider: (_, _) => buildStatusService,
               getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
-              httpClientProvider: () => httpClient,
               luciBuildService: luci,
               fusionTester: fakeFusion,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
@@ -2055,7 +2015,6 @@ targets:
                 buildStatusProvider: (_, _) => buildStatusService,
                 getFilesChanged: getFilesChanged,
                 githubChecksService: gitHubChecksService,
-                httpClientProvider: () => httpClient,
                 luciBuildService: luci,
                 fusionTester: fakeFusion,
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
@@ -2191,14 +2150,11 @@ targets:
                 return pullRequest;
               });
 
-              httpClient = MockClient((http.Request request) async {
-                if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
-                  return http.Response(fusionCiYaml, 200);
-                } else if (request.url.path.endsWith('.ci.yaml')) {
-                  return http.Response(singleCiYaml, 200);
-                }
-                throw Exception('Failed to find ${request.url.path}');
-              });
+              ciYamlFetcher.setCiYamlFrom(
+                Config.flutterSlug,
+                singleCiYaml,
+                engine: fusionCiYaml,
+              );
               final luci = MockLuciBuildService();
               when(
                 luci.scheduleTryBuilds(
@@ -2235,7 +2191,6 @@ targets:
                 buildStatusProvider: (_, _) => buildStatusService,
                 githubChecksService: gitHubChecksService,
                 getFilesChanged: getFilesChanged,
-                httpClientProvider: () => httpClient,
                 luciBuildService: luci,
                 fusionTester: fakeFusion,
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
@@ -2336,9 +2291,7 @@ targets:
 
     group('presubmit', () {
       test('gets only enabled .ci.yaml builds', () async {
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.contains('.ci.yaml')) {
-            return http.Response('''
+        ciYamlFetcher.setCiYamlFrom(Config.flutterSlug, '''
 enabled_branches:
   - master
 targets:
@@ -2364,10 +2317,7 @@ targets:
     enabled_branches:
       - master
     presubmit: true
-          ''', 200);
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
+          ''');
         final presubmitTargets = await scheduler.getPresubmitTargets(
           pullRequest,
         );
@@ -2380,9 +2330,7 @@ targets:
       group('treats postsubmit as presubmit if a label is present', () {
         final runAllTests = IssueLabel(name: 'test: all');
         setUp(() async {
-          httpClient = MockClient((http.Request request) async {
-            if (request.url.path.contains('.ci.yaml')) {
-              return http.Response('''
+          ciYamlFetcher.setCiYamlFrom(Config.flutterSlug, '''
   enabled_branches:
     - main
     - master
@@ -2405,10 +2353,7 @@ targets:
       scheduler: luci
       properties:
         cache_name: "builder"
-  ''', 200);
-            }
-            throw Exception('Failed to find ${request.url.path}');
-          });
+  ''');
         });
 
         test('with a specific label in the flutter/engine repo', () async {
@@ -2479,19 +2424,14 @@ targets:
 
       test('checks for release branches', () async {
         const branch = 'flutter-1.24-candidate.1';
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.contains('.ci.yaml')) {
-            return http.Response('''
+        ciYamlFetcher.setCiYamlFrom(Config.flutterSlug, '''
 enabled_branches:
   - master
 targets:
   - name: Linux A
     presubmit: true
     scheduler: luci
-          ''', 200);
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
+          ''');
         expect(
           scheduler.getPresubmitTargets(generatePullRequest(branch: branch)),
           throwsA(
@@ -2504,9 +2444,7 @@ targets:
 
       test('checks for release branch regex', () async {
         const branch = 'flutter-1.24-candidate.1';
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.contains('.ci.yaml')) {
-            return http.Response('''
+        ciYamlFetcher.setCiYamlFrom(Config.flutterSlug, '''
 enabled_branches:
   - main
   - master
@@ -2514,10 +2452,7 @@ enabled_branches:
 targets:
   - name: Linux A
     scheduler: luci
-          ''', 200);
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
+          ''');
         final targets = await scheduler.getPresubmitTargets(
           generatePullRequest(branch: branch),
         );
@@ -2630,7 +2565,7 @@ targets:
       test(
         'filters out presubmit targets that do not exist in main and do not filter targets not in main',
         () async {
-          const singleCiYaml = r'''
+          ciYamlFetcher.setCiYamlFrom(Config.flutterSlug, r'''
 enabled_branches:
   - master
   - main
@@ -2648,27 +2583,46 @@ targets:
       - main
       - flutter-\d+\.\d+-candidate\.\d+
     scheduler: luci
-''';
-          const totCiYaml = r'''
-enabled_branches:
-  - main
-  - flutter-\d+\.\d+-candidate\.\d+
-targets:
-  - name: Linux A
-    bringup: true
-    properties:
-      custom: abc
-''';
-          httpClient = MockClient((http.Request request) async {
-            if (request.url.path == '/flutter/flutter/1/.ci.yaml') {
-              return http.Response(totCiYaml, HttpStatus.ok);
-            }
-            if (request.url.path == '/flutter/flutter/abc/.ci.yaml') {
-              return http.Response(singleCiYaml, HttpStatus.ok);
-            }
-            print(request.url.path);
-            throw Exception('Failed to find ${request.url.path}');
-          });
+''');
+          //           const singleCiYaml = r'''
+          // enabled_branches:
+          //   - master
+          //   - main
+          //   - flutter-\d+\.\d+-candidate\.\d+
+          // targets:
+          //   - name: Linux A
+          //     properties:
+          //       custom: abc
+          //   - name: Linux B
+          //     enabled_branches:
+          //       - flutter-\d+\.\d+-candidate\.\d+
+          //     scheduler: luci
+          //   - name: Linux C
+          //     enabled_branches:
+          //       - main
+          //       - flutter-\d+\.\d+-candidate\.\d+
+          //     scheduler: luci
+          // ''';
+          //           const totCiYaml = r'''
+          // enabled_branches:
+          //   - main
+          //   - flutter-\d+\.\d+-candidate\.\d+
+          // targets:
+          //   - name: Linux A
+          //     bringup: true
+          //     properties:
+          //       custom: abc
+          // ''';
+          //           httpClient = MockClient((http.Request request) async {
+          //             if (request.url.path == '/flutter/flutter/1/.ci.yaml') {
+          //               return http.Response(totCiYaml, HttpStatus.ok);
+          //             }
+          //             if (request.url.path == '/flutter/flutter/abc/.ci.yaml') {
+          //               return http.Response(singleCiYaml, HttpStatus.ok);
+          //             }
+          //             print(request.url.path);
+          //             throw Exception('Failed to find ${request.url.path}');
+          //           });
           scheduler = Scheduler(
             cache: cache,
             config: config,
@@ -2679,7 +2633,6 @@ targets:
               githubChecksUtil: mockGithubChecksUtil,
             ),
             getFilesChanged: getFilesChanged,
-            httpClientProvider: () => httpClient,
             luciBuildService: FakeLuciBuildService(
               config: config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -2728,7 +2681,6 @@ targets:
               githubChecksUtil: mockGithubChecksUtil,
             ),
             getFilesChanged: getFilesChanged,
-            httpClientProvider: () => httpClient,
             luciBuildService: FakeLuciBuildService(
               config: config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -2837,13 +2789,8 @@ targets:
         );
       });
 
-      test('ci.yaml validation fails with empty config', () async {
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.contains('.ci.yaml')) {
-            return http.Response('', 200);
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
+      test('on a validation failure fails ci.yaml validation check', () async {
+        ciYamlFetcher.failCiYamlValidation = true;
 
         final capturedUpdates =
             <(String, CheckRunStatus, CheckRunConclusion)>[];
@@ -2905,40 +2852,6 @@ targets:
         );
       });
 
-      test(
-        'ci.yaml validation fails with config with unknown dependencies',
-        () async {
-          httpClient = MockClient((http.Request request) async {
-            if (request.url.path.contains('.ci.yaml')) {
-              return http.Response('''
-enabled_branches:
-  - master
-targets:
-  - name: A
-    builder: Linux A
-    dependencies:
-      - B
-          ''', 200);
-            }
-            throw Exception('Failed to find ${request.url.path}');
-          });
-          await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
-          expect(
-            verify(
-              mockGithubChecksUtil.updateCheckRun(
-                any,
-                any,
-                any,
-                status: anyNamed('status'),
-                conclusion: anyNamed('conclusion'),
-                output: captureAnyNamed('output'),
-              ),
-            ).captured.first.text,
-            'FormatException: ERROR: A depends on B which does not exist',
-          );
-        },
-      );
-
       test('triggers only specificed targets', () async {
         final presubmitTargets = <Target>[generateTarget(1), generateTarget(2)];
         final presubmitTriggerTargets = scheduler.filterTargets(
@@ -2995,14 +2908,11 @@ targets:
       );
 
       test('in fusion gathers creates engine builds', () async {
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
-            return http.Response(fusionCiYaml, 200);
-          } else if (request.url.path.endsWith('.ci.yaml')) {
-            return http.Response(singleCiYaml, 200);
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
+        ciYamlFetcher.setCiYamlFrom(
+          Config.flutterSlug,
+          singleCiYaml,
+          engine: fusionCiYaml,
+        );
         final luci = MockLuciBuildService();
         when(
           luci.scheduleTryBuilds(
@@ -3071,7 +2981,6 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
-          httpClientProvider: () => httpClient,
           luciBuildService: luci,
           fusionTester: fakeFusion,
           initializeCiStagingDocument: callbacks.initializeDocument,
@@ -3142,14 +3051,11 @@ targets:
 
     group('merge groups', () {
       test('schedule some work on prod', () async {
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
-            return http.Response(fusionDualCiYaml, 200);
-          } else if (request.url.path.endsWith('.ci.yaml')) {
-            return http.Response(singleCiYaml, 200);
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
+        ciYamlFetcher.setCiYamlFrom(
+          Config.flutterSlug,
+          singleCiYaml,
+          engine: fusionDualCiYaml,
+        );
         final luci = MockLuciBuildService();
         when(
           luci.getAvailableBuilderSet(
@@ -3224,7 +3130,6 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
-          httpClientProvider: () => httpClient,
           luciBuildService: luci,
           fusionTester: fakeFusion,
           initializeCiStagingDocument: callbacks.initializeDocument,
@@ -3305,14 +3210,11 @@ targets:
       });
 
       test('handles missing builders', () async {
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
-            return http.Response(fusionDualCiYaml, 200);
-          } else if (request.url.path.endsWith('.ci.yaml')) {
-            return http.Response(singleCiYaml, 200);
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
+        ciYamlFetcher.setCiYamlFrom(
+          Config.flutterSlug,
+          singleCiYaml,
+          engine: fusionDualCiYaml,
+        );
         final luci = MockLuciBuildService();
         when(
           luci.getAvailableBuilderSet(
@@ -3386,7 +3288,6 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
-          httpClientProvider: () => httpClient,
           luciBuildService: luci,
           fusionTester: fakeFusion,
           initializeCiStagingDocument: callbacks.initializeDocument,
@@ -3457,14 +3358,11 @@ targets:
       });
 
       test('fails the merge queue guard if fails to schedule checks', () async {
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
-            return http.Response(fusionDualCiYaml, 200);
-          } else if (request.url.path.endsWith('.ci.yaml')) {
-            return http.Response(singleCiYaml, 200);
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
+        ciYamlFetcher.setCiYamlFrom(
+          Config.flutterSlug,
+          singleCiYaml,
+          engine: fusionDualCiYaml,
+        );
         final luci = MockLuciBuildService();
         when(
           luci.getAvailableBuilderSet(
@@ -3537,7 +3435,6 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
-          httpClientProvider: () => httpClient,
           luciBuildService: luci,
           fusionTester: fakeFusion,
           initializeCiStagingDocument: callbacks.initializeDocument,
@@ -3646,14 +3543,11 @@ targets:
       setUp(() {
         mockGithubService = MockGithubService();
         fakeLuciBuildService = _CapturingFakeLuciBuildService();
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.endsWith('engine/src/flutter/.ci.yaml')) {
-            return http.Response(fusionCiYaml, 200);
-          } else if (request.url.path.endsWith('.ci.yaml')) {
-            return http.Response(singleCiYaml, 200);
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
+        ciYamlFetcher.setCiYamlFrom(
+          Config.flutterSlug,
+          singleCiYaml,
+          engine: fusionCiYaml,
+        );
 
         logs = [];
         log = Logger.detached('logger')
@@ -3694,7 +3588,6 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
-          httpClientProvider: () => httpClient,
           luciBuildService: fakeLuciBuildService,
           fusionTester: fakeFusion,
           ciYamlFetcher: ciYamlFetcher,

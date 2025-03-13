@@ -4,8 +4,10 @@
 
 import 'package:cocoon_service/protos.dart' as pb;
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:github/src/common/model/repos.dart';
+import 'package:yaml/yaml.dart';
 
 final class FakeCiYamlFetcher extends CiYamlFetcher {
   FakeCiYamlFetcher({this.ciYaml, this.failCiYamlValidation = false})
@@ -15,6 +17,28 @@ final class FakeCiYamlFetcher extends CiYamlFetcher {
   ///
   /// If omitted (`null`) defaults to a configuration with a single target.
   CiYamlSet? ciYaml;
+
+  /// Sets [ciYaml] by loading a YAML document.
+  ///
+  /// Optionally may also specify [engine] for a fusion [CiYamlSet].
+  void setCiYamlFrom(
+    RepositorySlug slug,
+    String root, {
+    String? branch,
+    String? engine,
+  }) {
+    branch ??= Config.defaultBranch(slug);
+    ciYaml = CiYamlSet(
+      slug: slug,
+      branch: branch,
+      yamls: {
+        CiType.any: pb.SchedulerConfig()..mergeFromProto3Json(loadYaml(root)),
+        if (engine != null)
+          CiType.fusionEngine:
+              pb.SchedulerConfig()..mergeFromProto3Json(loadYaml(engine)),
+      },
+    );
+  }
 
   /// If `true`, [getCiYaml] will throw a [FormatException].
   ///

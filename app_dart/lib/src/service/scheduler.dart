@@ -16,8 +16,6 @@ import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 import 'package:truncate/truncate.dart';
 
-import '../foundation/providers.dart';
-import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
@@ -59,7 +57,6 @@ class Scheduler {
     required this.getFilesChanged,
     required CiYamlFetcher ciYamlFetcher,
     this.datastoreProvider = DatastoreService.defaultProvider,
-    this.httpClientProvider = Providers.freshHttpClient,
     this.buildStatusProvider = BuildStatusService.defaultProvider,
     @visibleForTesting this.markCheckRunConclusion = CiStaging.markConclusion,
     @visibleForTesting
@@ -75,7 +72,6 @@ class Scheduler {
   final Config config;
   final DatastoreServiceProvider datastoreProvider;
   final GithubChecksService githubChecksService;
-  final HttpClientProvider httpClientProvider;
   final FusionTester fusionTester;
   final CiYamlFetcher _ciYamlFetcher;
   late DatastoreService datastore;
