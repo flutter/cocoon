@@ -132,15 +132,26 @@ void main() {
   late FakeConfig config;
   late FakeDatastoreDB db;
   late FakeBuildStatusService buildStatusService;
+  late FakeCiYamlFetcher ciYamlFetcher;
   late MockFirestoreService mockFirestoreService;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Scheduler scheduler;
   late FakeFusionTester fakeFusion;
   late MockCallbacks callbacks;
   late FakeGetFilesChanged getFilesChanged;
-  late FakeCiYamlFetcher ciYamlFetcher;
-
   late List<String> logs;
+
+  final pullRequest = generatePullRequest(id: 42);
+
+  Commit shaToCommit(String sha, {String branch = 'master'}) {
+    return Commit(
+      key: db.emptyKey.append(Commit, id: 'flutter/flutter/$branch/$sha'),
+      repository: 'flutter/flutter',
+      sha: sha,
+      branch: branch,
+      timestamp: int.parse(sha),
+    );
+  }
 
   setUp(() {
     logs = [];
@@ -157,25 +168,14 @@ void main() {
       }
       logs.add('$buffer');
     });
-    ciYamlFetcher =
-        FakeCiYamlFetcher()..setCiYamlFrom(Config.flutterSlug, singleCiYaml);
+
+    ciYamlFetcher = FakeCiYamlFetcher();
+    ciYamlFetcher.setCiYamlFrom(singleCiYaml);
   });
 
   tearDown(() {
     printOnFailure('LOGGER BUFFER:\n${logs.join('\n')}');
   });
-
-  final pullRequest = generatePullRequest(id: 42);
-
-  Commit shaToCommit(String sha, {String branch = 'master'}) {
-    return Commit(
-      key: db.emptyKey.append(Commit, id: 'flutter/flutter/$branch/$sha'),
-      repository: 'flutter/flutter',
-      sha: sha,
-      branch: branch,
-      timestamp: int.parse(sha),
-    );
-  }
 
   group('Scheduler', () {
     setUp(() {
@@ -215,7 +215,6 @@ void main() {
         },
       );
 
-      ciYamlFetcher.setCiYamlFrom(Config.flutterSlug, singleCiYaml);
       mockGithubChecksUtil = MockGithubChecksUtil();
       // Generate check runs based on the name hash code
       when(
@@ -245,6 +244,7 @@ void main() {
           config,
           githubChecksUtil: mockGithubChecksUtil,
         ),
+        ciYamlFetcher: ciYamlFetcher,
         getFilesChanged: getFilesChanged,
         luciBuildService: FakeLuciBuildService(
           config: config,
@@ -255,7 +255,6 @@ void main() {
         ),
         fusionTester: fakeFusion,
         markCheckRunConclusion: callbacks.markCheckRunConclusion,
-        ciYamlFetcher: ciYamlFetcher,
       );
 
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((
@@ -270,11 +269,7 @@ void main() {
     });
 
     test('fusion, getPresubmitTargets supports two ci.yamls', () async {
-      ciYamlFetcher.setCiYamlFrom(
-        Config.flutterSlug,
-        singleCiYaml,
-        engine: fusionCiYaml,
-      );
+      ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
       fakeFusion.isFusion = (_, _) => true;
 
       final presubmitTargets = await scheduler.getPresubmitTargets(pullRequest);
@@ -465,9 +460,9 @@ void main() {
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
+          ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luciBuildService,
           fusionTester: fakeFusion,
-          ciYamlFetcher: ciYamlFetcher,
         );
 
         // This test is testing `GuaranteedPolicy` get scheduled - there's only one now.
@@ -563,9 +558,9 @@ void main() {
               githubChecksUtil: mockGithubChecksUtil,
             ),
             getFilesChanged: getFilesChanged,
+            ciYamlFetcher: ciYamlFetcher,
             luciBuildService: luciBuildService,
             fusionTester: fakeFusion,
-            ciYamlFetcher: ciYamlFetcher,
           );
 
           await scheduler.addCommits(
@@ -622,11 +617,7 @@ void main() {
         // NOTE: The scheduler doesn't actually do anything except for write backfill requests - unless its a release.
         // When backfills are picked up, they'll go through the same flow (schedulePostsubmitBuilds).
         fakeFusion.isFusion = (_, _) => true;
-        ciYamlFetcher.setCiYamlFrom(
-          Config.flutterSlug,
-          singleCiYaml,
-          engine: fusionCiYaml,
-        );
+        ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
         when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer((
           Invocation invocation,
         ) {
@@ -637,9 +628,15 @@ void main() {
 
         expect(db.values.values.whereType<Commit>().length, 1);
         expect(
-          db.values.values.whereType<Task>().length,
-          5,
-          reason: 'removes release_build targets',
+          db.values.values.whereType<Task>().map((t) => t.name),
+          [
+            'Linux A',
+            'Linux runIf',
+            'Google Internal Roll',
+            'Linux Z',
+            'Linux runIf engine',
+          ],
+          reason: 'removes release_build targets (Linux engine_build)',
         );
         final captured =
             verify(
@@ -693,26 +690,15 @@ void main() {
             },
           );
 
-          ciYamlFetcher.setCiYamlFrom(Config.flutterSlug, singleCiYaml);
-          //           const totCiYaml = r'''
-          // enabled_branches:
-          //   - main
-          //   - flutter-\d+\.\d+-candidate\.\d+
-          // targets:
-          //   - name: Linux A
-          //     properties:
-          //       custom: abc
-          // ''';
-          //           httpClient = MockClient((http.Request request) async {
-          //             if (request.url.path == '/flutter/flutter/abc/.ci.yaml') {
-          //               return http.Response(totCiYaml, HttpStatus.ok);
-          //             }
-          //             if (request.url.path == '/flutter/flutter/1/.ci.yaml') {
-          //               return http.Response(singleCiYaml, HttpStatus.ok);
-          //             }
-          //             print(request.url.path);
-          //             throw Exception('Failed to find ${request.url.path}');
-          //           });
+          ciYamlFetcher.setCiYamlFrom(r'''
+          enabled_branches:
+            - main
+            - flutter-\d+\.\d+-candidate\.\d+
+          targets:
+            - name: Linux A
+              properties:
+                custom: abc
+          ''');
           scheduler = Scheduler(
             cache: cache,
             config: config,
@@ -723,6 +709,7 @@ void main() {
               githubChecksUtil: mockGithubChecksUtil,
             ),
             getFilesChanged: getFilesChanged,
+            ciYamlFetcher: ciYamlFetcher,
             luciBuildService: FakeLuciBuildService(
               config: config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -731,7 +718,6 @@ void main() {
               ),
             ),
             fusionTester: fakeFusion,
-            ciYamlFetcher: ciYamlFetcher,
           );
 
           final mergedPr = generatePullRequest(
@@ -825,12 +811,12 @@ void main() {
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
+          ciYamlFetcher: ciYamlFetcher,
           luciBuildService: FakeLuciBuildService(
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
           ),
           fusionTester: fakeFusion,
-          ciYamlFetcher: ciYamlFetcher,
         );
         when(mockGithubService.github).thenReturn(mockGithubClient);
         when(
@@ -914,12 +900,7 @@ void main() {
 
           // Enable fusion (modern flutter/flutter merged)
           fakeFusion.isFusion = (_, _) => true;
-
-          ciYamlFetcher.setCiYamlFrom(
-            Config.flutterSlug,
-            singleCiYaml,
-            engine: fusionCiYaml,
-          );
+          ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
           config.maxFilesChangedForSkippingEnginePhaseValue = 0;
           scheduler = Scheduler(
             cache: cache,
@@ -930,6 +911,7 @@ void main() {
               githubChecksUtil: mockGithubChecksUtil,
             ),
             getFilesChanged: getFilesChanged,
+            ciYamlFetcher: ciYamlFetcher,
             luciBuildService: FakeLuciBuildService(
               config: config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -938,7 +920,6 @@ void main() {
             findPullRequestForSha: (_, sha) async {
               return pullRequest;
             },
-            ciYamlFetcher: ciYamlFetcher,
           );
           when(mockGithubService.github).thenReturn(mockGithubClient);
           when(
@@ -1021,12 +1002,12 @@ void main() {
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
+          ciYamlFetcher: ciYamlFetcher,
           luciBuildService: FakeLuciBuildService(
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
           ),
           fusionTester: fakeFusion,
-          ciYamlFetcher: ciYamlFetcher,
         );
         when(mockGithubService.github).thenReturn(mockGithubClient);
         when(
@@ -1107,11 +1088,7 @@ void main() {
           return pullRequest;
         });
 
-        ciYamlFetcher.setCiYamlFrom(
-          Config.flutterSlug,
-          singleCiYaml,
-          engine: fusionCiYaml,
-        );
+        ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
 
         final luci = MockLuciBuildService();
         when(
@@ -1202,7 +1179,7 @@ void main() {
         config.db.values[task.key] = task;
 
         // Set up ci.yaml with task name and branch name from [checkRunString].
-        ciYamlFetcher.setCiYamlFrom(Config.flutterSlug, r'''
+        ciYamlFetcher.setCiYamlFrom(r'''
 enabled_branches:
   - independent_agent
   - master
@@ -1249,9 +1226,9 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
+          ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luciBuildService,
           fusionTester: fakeFusion,
-          ciYamlFetcher: ciYamlFetcher,
         );
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           jsonDecode(checkRunString) as Map<String, dynamic>,
@@ -1573,11 +1550,7 @@ targets:
               ],
             );
 
-            ciYamlFetcher.setCiYamlFrom(
-              Config.flutterSlug,
-              singleCiYaml,
-              engine: fusionCiYaml,
-            );
+            ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
             final luci = MockLuciBuildService();
             when(
               luci.scheduleTryBuilds(
@@ -1619,11 +1592,11 @@ targets:
               buildStatusProvider: (_, _) => buildStatusService,
               getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
+              ciYamlFetcher: ciYamlFetcher,
               luciBuildService: luci,
               fusionTester: fakeFusion,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
               initializeCiStagingDocument: callbacks.initializeDocument,
-              ciYamlFetcher: ciYamlFetcher,
             );
 
             when(
@@ -1723,10 +1696,10 @@ targets:
               buildStatusProvider: (_, _) => buildStatusService,
               getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
+              ciYamlFetcher: ciYamlFetcher,
               luciBuildService: luci,
               fusionTester: fakeFusion,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
-              ciYamlFetcher: ciYamlFetcher,
             );
 
             when(
@@ -1837,10 +1810,10 @@ targets:
                 buildStatusProvider: (_, _) => buildStatusService,
                 getFilesChanged: getFilesChanged,
                 githubChecksService: gitHubChecksService,
+                ciYamlFetcher: ciYamlFetcher,
                 luciBuildService: luci,
                 fusionTester: fakeFusion,
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
-                ciYamlFetcher: ciYamlFetcher,
               );
 
               when(
@@ -1908,6 +1881,8 @@ targets:
 
           // Regression test for https://github.com/flutter/flutter/issues/164031.
           test('uses the built-from-source engine artifacts', () async {
+            ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
+
             final githubService = config.githubService = MockGithubService();
             final githubClient = MockGitHub();
             final luci = MockLuciBuildService();
@@ -1925,10 +1900,10 @@ targets:
               buildStatusProvider: (_, _) => buildStatusService,
               getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
+              ciYamlFetcher: ciYamlFetcher,
               luciBuildService: luci,
               fusionTester: fakeFusion,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
-              ciYamlFetcher: ciYamlFetcher,
             );
 
             when(
@@ -2039,10 +2014,10 @@ targets:
                 buildStatusProvider: (_, _) => buildStatusService,
                 getFilesChanged: getFilesChanged,
                 githubChecksService: gitHubChecksService,
+                ciYamlFetcher: ciYamlFetcher,
                 luciBuildService: luci,
                 fusionTester: fakeFusion,
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
-                ciYamlFetcher: ciYamlFetcher,
               );
 
               when(
@@ -2174,11 +2149,7 @@ targets:
                 return pullRequest;
               });
 
-              ciYamlFetcher.setCiYamlFrom(
-                Config.flutterSlug,
-                singleCiYaml,
-                engine: fusionCiYaml,
-              );
+              ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
               final luci = MockLuciBuildService();
               when(
                 luci.scheduleTryBuilds(
@@ -2215,12 +2186,12 @@ targets:
                 buildStatusProvider: (_, _) => buildStatusService,
                 githubChecksService: gitHubChecksService,
                 getFilesChanged: getFilesChanged,
+                ciYamlFetcher: ciYamlFetcher,
                 luciBuildService: luci,
                 fusionTester: fakeFusion,
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
                 findPullRequestFor: callbacks.findPullRequestFor,
                 initializeCiStagingDocument: callbacks.initializeDocument,
-                ciYamlFetcher: ciYamlFetcher,
               );
 
               when(
@@ -2315,7 +2286,7 @@ targets:
 
     group('presubmit', () {
       test('gets only enabled .ci.yaml builds', () async {
-        ciYamlFetcher.setCiYamlFrom(Config.flutterSlug, '''
+        ciYamlFetcher.setCiYamlFrom(r'''
 enabled_branches:
   - master
 targets:
@@ -2354,30 +2325,30 @@ targets:
       group('treats postsubmit as presubmit if a label is present', () {
         final runAllTests = IssueLabel(name: 'test: all');
         setUp(() async {
-          ciYamlFetcher.setCiYamlFrom(Config.flutterSlug, '''
-  enabled_branches:
+          ciYamlFetcher.setCiYamlFrom(r'''
+enabled_branches:
     - main
     - master
-  targets:
-    - name: Linux Presubmit
-      presubmit: true
-      scheduler: luci
-    - name: Linux Conditional Presubmit (runIf)
-      presubmit: true
-      scheduler: luci
-      runIf:
-        - .ci.yaml
-        - DEPS
-        - dev/run_if/**
-    - name: Linux Postsubmit
-      presubmit: false
-      scheduler: luci
-    - name: Linux Cache
-      presubmit: false
-      scheduler: luci
-      properties:
-        cache_name: "builder"
-  ''');
+targets:
+  - name: Linux Presubmit
+    presubmit: true
+    scheduler: luci
+  - name: Linux Conditional Presubmit (runIf)
+    presubmit: true
+    scheduler: luci
+    runIf:
+      - .ci.yaml
+      - DEPS
+      - dev/run_if/**
+  - name: Linux Postsubmit
+    presubmit: false
+    scheduler: luci
+  - name: Linux Cache
+    presubmit: false
+    scheduler: luci
+    properties:
+      cache_name: "builder"
+          ''');
         });
 
         test('with a specific label in the flutter/engine repo', () async {
@@ -2448,7 +2419,7 @@ targets:
 
       test('checks for release branches', () async {
         const branch = 'flutter-1.24-candidate.1';
-        ciYamlFetcher.setCiYamlFrom(Config.flutterSlug, '''
+        ciYamlFetcher.setCiYamlFrom(r'''
 enabled_branches:
   - master
 targets:
@@ -2468,7 +2439,7 @@ targets:
 
       test('checks for release branch regex', () async {
         const branch = 'flutter-1.24-candidate.1';
-        ciYamlFetcher.setCiYamlFrom(Config.flutterSlug, '''
+        ciYamlFetcher.setCiYamlFrom('''
 enabled_branches:
   - main
   - master
@@ -2589,7 +2560,7 @@ targets:
       test(
         'filters out presubmit targets that do not exist in main and do not filter targets not in main',
         () async {
-          ciYamlFetcher.setCiYamlFrom(Config.flutterSlug, r'''
+          ciYamlFetcher.setCiYamlFrom(r'''
 enabled_branches:
   - master
   - main
@@ -2608,45 +2579,6 @@ targets:
       - flutter-\d+\.\d+-candidate\.\d+
     scheduler: luci
 ''');
-          //           const singleCiYaml = r'''
-          // enabled_branches:
-          //   - master
-          //   - main
-          //   - flutter-\d+\.\d+-candidate\.\d+
-          // targets:
-          //   - name: Linux A
-          //     properties:
-          //       custom: abc
-          //   - name: Linux B
-          //     enabled_branches:
-          //       - flutter-\d+\.\d+-candidate\.\d+
-          //     scheduler: luci
-          //   - name: Linux C
-          //     enabled_branches:
-          //       - main
-          //       - flutter-\d+\.\d+-candidate\.\d+
-          //     scheduler: luci
-          // ''';
-          //           const totCiYaml = r'''
-          // enabled_branches:
-          //   - main
-          //   - flutter-\d+\.\d+-candidate\.\d+
-          // targets:
-          //   - name: Linux A
-          //     bringup: true
-          //     properties:
-          //       custom: abc
-          // ''';
-          //           httpClient = MockClient((http.Request request) async {
-          //             if (request.url.path == '/flutter/flutter/1/.ci.yaml') {
-          //               return http.Response(totCiYaml, HttpStatus.ok);
-          //             }
-          //             if (request.url.path == '/flutter/flutter/abc/.ci.yaml') {
-          //               return http.Response(singleCiYaml, HttpStatus.ok);
-          //             }
-          //             print(request.url.path);
-          //             throw Exception('Failed to find ${request.url.path}');
-          //           });
           scheduler = Scheduler(
             cache: cache,
             config: config,
@@ -2657,6 +2589,7 @@ targets:
               githubChecksUtil: mockGithubChecksUtil,
             ),
             getFilesChanged: getFilesChanged,
+            ciYamlFetcher: ciYamlFetcher,
             luciBuildService: FakeLuciBuildService(
               config: config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -2665,7 +2598,6 @@ targets:
               ),
             ),
             fusionTester: fakeFusion,
-            ciYamlFetcher: ciYamlFetcher,
           );
           final pr = generatePullRequest(
             repo: Config.flutterSlug.name,
@@ -2705,6 +2637,7 @@ targets:
               githubChecksUtil: mockGithubChecksUtil,
             ),
             getFilesChanged: getFilesChanged,
+            ciYamlFetcher: ciYamlFetcher,
             luciBuildService: FakeLuciBuildService(
               config: config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -2713,7 +2646,6 @@ targets:
               ),
             ),
             fusionTester: fakeFusion,
-            ciYamlFetcher: ciYamlFetcher,
           );
           await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
           expect(
@@ -2813,7 +2745,7 @@ targets:
         );
       });
 
-      test('on a validation failure fails ci.yaml validation check', () async {
+      test('ci.yaml validation failure', () async {
         ciYamlFetcher.failCiYamlValidation = true;
 
         final capturedUpdates =
@@ -2932,11 +2864,7 @@ targets:
       );
 
       test('in fusion gathers creates engine builds', () async {
-        ciYamlFetcher.setCiYamlFrom(
-          Config.flutterSlug,
-          singleCiYaml,
-          engine: fusionCiYaml,
-        );
+        ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
         final luci = MockLuciBuildService();
         when(
           luci.scheduleTryBuilds(
@@ -3005,10 +2933,10 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
+          ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
           fusionTester: fakeFusion,
           initializeCiStagingDocument: callbacks.initializeDocument,
-          ciYamlFetcher: ciYamlFetcher,
         );
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         final results =
@@ -3075,11 +3003,7 @@ targets:
 
     group('merge groups', () {
       test('schedule some work on prod', () async {
-        ciYamlFetcher.setCiYamlFrom(
-          Config.flutterSlug,
-          singleCiYaml,
-          engine: fusionDualCiYaml,
-        );
+        ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionDualCiYaml);
         final luci = MockLuciBuildService();
         when(
           luci.getAvailableBuilderSet(
@@ -3154,10 +3078,10 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
+          ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
           fusionTester: fakeFusion,
           initializeCiStagingDocument: callbacks.initializeDocument,
-          ciYamlFetcher: ciYamlFetcher,
         );
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
@@ -3234,11 +3158,7 @@ targets:
       });
 
       test('handles missing builders', () async {
-        ciYamlFetcher.setCiYamlFrom(
-          Config.flutterSlug,
-          singleCiYaml,
-          engine: fusionDualCiYaml,
-        );
+        ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionDualCiYaml);
         final luci = MockLuciBuildService();
         when(
           luci.getAvailableBuilderSet(
@@ -3312,10 +3232,10 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
+          ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
           fusionTester: fakeFusion,
           initializeCiStagingDocument: callbacks.initializeDocument,
-          ciYamlFetcher: ciYamlFetcher,
         );
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
@@ -3382,11 +3302,7 @@ targets:
       });
 
       test('fails the merge queue guard if fails to schedule checks', () async {
-        ciYamlFetcher.setCiYamlFrom(
-          Config.flutterSlug,
-          singleCiYaml,
-          engine: fusionDualCiYaml,
-        );
+        ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionDualCiYaml);
         final luci = MockLuciBuildService();
         when(
           luci.getAvailableBuilderSet(
@@ -3459,10 +3375,10 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
+          ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
           fusionTester: fakeFusion,
           initializeCiStagingDocument: callbacks.initializeDocument,
-          ciYamlFetcher: ciYamlFetcher,
         );
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
@@ -3556,11 +3472,7 @@ targets:
       setUp(() {
         mockGithubService = MockGithubService();
         fakeLuciBuildService = _CapturingFakeLuciBuildService();
-        ciYamlFetcher.setCiYamlFrom(
-          Config.flutterSlug,
-          singleCiYaml,
-          engine: fusionCiYaml,
-        );
+        ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
 
         when(mockFirestoreService.documentResource()).thenAnswer((_) async {
           final resource = MockProjectsDatabasesDocumentsResource();
@@ -3595,14 +3507,10 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
+          ciYamlFetcher: ciYamlFetcher,
           luciBuildService: fakeLuciBuildService,
           fusionTester: fakeFusion,
-          ciYamlFetcher: ciYamlFetcher,
         );
-      });
-
-      tearDown(() {
-        printOnFailure('LOGGER BUFFER:\n${logs.join('\n')}');
       });
 
       test(

@@ -195,6 +195,7 @@ class Scheduler {
     final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(commit);
 
     final initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
+
     final isFusion = await fusionTester.isFusionBasedRef(
       commit.slug,
       commit.sha!,

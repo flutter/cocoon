@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart'
@@ -12,6 +13,7 @@ import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:googleapis/firestore/v1.dart';
+import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -36,12 +38,28 @@ void main() {
   late MockGithubChecksUtil mockGithubChecksUtil;
   late FakeScheduler scheduler;
   late FakeCiYamlFetcher ciYamlFetcher;
+  late List<String> logs;
 
   firestore.Task? firestoreTask;
   firestore_commit.Commit? firestoreCommit;
   late int attempt;
 
   setUp(() async {
+    logs = [];
+    log = Logger.detached('postsubmit_luci_subscription_test');
+    log.onRecord.listen((r) {
+      final buffer = StringBuffer(r.message);
+      if (r.error case final error?) {
+        buffer.writeln();
+        buffer.writeln('$error');
+      }
+      if (r.stackTrace case final stackTrace?) {
+        buffer.writeln();
+        buffer.writeln('$stackTrace');
+      }
+      logs.add('$buffer');
+    });
+
     firestoreTask = null;
     attempt = 0;
     mockGithubChecksUtil = MockGithubChecksUtil();
@@ -92,15 +110,6 @@ void main() {
         <firestore_commit.Commit>[firestoreCommit!],
       );
     });
-    // when(
-    //   mockFirestoreService.getDocument(
-    //     'projects/flutter-dashboard/databases/cocoon/documents/tasks/87f88734747805589f2131753620d61b22922822_Linux A_1',
-    //   ),
-    // ).thenAnswer((Invocation invocation) {
-    //   return Future<Document>.value(
-    //     firestoreCommit,
-    //   );
-    // });
     when(
       mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
     ).thenAnswer((Invocation invocation) {
@@ -125,8 +134,11 @@ void main() {
       ciYamlFetcher: ciYamlFetcher,
     );
     request = FakeHttpRequest();
-
     tester = SubscriptionTester(request: request);
+  });
+
+  tearDown(() {
+    printOnFailure('LOGGER BUFFER:\n${logs.join('\n')}');
   });
 
   test('throws exception when task document name is not in message', () async {
@@ -508,6 +520,7 @@ void main() {
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
       repo: 'packages',
+      branch: Config.defaultBranch(Config.packagesSlug),
     );
     final task = generateTask(
       4507531199512576,

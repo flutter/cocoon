@@ -21,22 +21,17 @@ final class FakeCiYamlFetcher extends CiYamlFetcher {
   /// Sets [ciYaml] by loading a YAML document.
   ///
   /// Optionally may also specify [engine] for a fusion [CiYamlSet].
-  void setCiYamlFrom(
-    RepositorySlug slug,
-    String root, {
-    String? branch,
-    String? engine,
-  }) {
-    branch ??= Config.defaultBranch(slug);
+  void setCiYamlFrom(String root, {String? engine}) {
     ciYaml = CiYamlSet(
-      slug: slug,
-      branch: branch,
+      slug: Config.flutterSlug,
+      branch: 'will-be-replaced',
       yamls: {
         CiType.any: pb.SchedulerConfig()..mergeFromProto3Json(loadYaml(root)),
         if (engine != null)
           CiType.fusionEngine:
               pb.SchedulerConfig()..mergeFromProto3Json(loadYaml(engine)),
       },
+      isFusion: engine != null,
     );
   }
 
@@ -55,7 +50,13 @@ final class FakeCiYamlFetcher extends CiYamlFetcher {
     if (validate && failCiYamlValidation) {
       throw const FormatException('Failed validation!');
     }
-    return ciYaml ?? _createDefault(slug: slug, commitBranch: commitBranch);
+    final ci = ciYaml ?? _createDefault(slug: slug, commitBranch: commitBranch);
+    return CiYamlSet(
+      slug: slug,
+      branch: commitBranch,
+      yamls: ci.configs.map((k, v) => MapEntry(k, v.config)),
+      isFusion: ci.isFusion,
+    );
   }
 
   static CiYamlSet _createDefault({
