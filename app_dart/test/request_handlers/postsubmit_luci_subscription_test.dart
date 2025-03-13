@@ -19,6 +19,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/subscription_tester.dart';
+import '../src/service/fake_ci_yaml_fetcher.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/build_bucket_messages.dart';
@@ -34,6 +35,8 @@ void main() {
   late MockGithubChecksService mockGithubChecksService;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late FakeScheduler scheduler;
+  late FakeCiYamlFetcher ciYamlFetcher;
+
   firestore.Task? firestoreTask;
   firestore_commit.Commit? firestoreCommit;
   late int attempt;
@@ -108,10 +111,10 @@ void main() {
       githubChecksUtil: mockGithubChecksUtil,
     );
     scheduler = FakeScheduler(
-      ciYaml: exampleConfig,
       config: config,
       luciBuildService: luciBuildService,
     );
+    ciYamlFetcher = FakeCiYamlFetcher();
     handler = PostsubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,
@@ -119,6 +122,7 @@ void main() {
       githubChecksService: mockGithubChecksService,
       datastoreProvider: (_) => DatastoreService(config.db, 5),
       scheduler: scheduler,
+      ciYamlFetcher: ciYamlFetcher,
     );
     request = FakeHttpRequest();
 
@@ -491,7 +495,7 @@ void main() {
 
   test('non-bringup target updates check run', () async {
     firestoreTask = generateFirestoreTask(1, name: 'Linux nonbringup');
-    scheduler.ciYaml = nonBringupPackagesConfig;
+    ciYamlFetcher.ciYaml = nonBringupPackagesConfig;
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
@@ -541,7 +545,7 @@ void main() {
 
   test('bringup target does not update check run', () async {
     firestoreTask = generateFirestoreTask(1, name: 'Linux bringup');
-    scheduler.ciYaml = bringupPackagesConfig;
+    ciYamlFetcher.ciYaml = bringupPackagesConfig;
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
@@ -588,7 +592,7 @@ void main() {
   });
 
   test('unsupported repo target does not update check run', () async {
-    scheduler.ciYaml = unsupportedPostsubmitCheckrunConfig;
+    ciYamlFetcher.ciYaml = unsupportedPostsubmitCheckrunConfig;
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),

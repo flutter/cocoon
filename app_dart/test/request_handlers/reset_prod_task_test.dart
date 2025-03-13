@@ -15,6 +15,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
+import '../src/service/fake_ci_yaml_fetcher.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
@@ -30,6 +31,8 @@ void main() {
     late ApiRequestHandlerTester tester;
     late Commit commit;
     late Task task;
+    late FakeCiYamlFetcher ciYamlFetcher;
+
     final firestoreTask = generateFirestoreTask(1, attempts: 1);
 
     setUp(() {
@@ -53,13 +56,15 @@ void main() {
       );
       tester = ApiRequestHandlerTester(context: authContext);
       mockLuciBuildService = MockLuciBuildService();
+      ciYamlFetcher = FakeCiYamlFetcher(ciYaml: exampleConfig);
       handler = ResetProdTask(
         config: config,
         authenticationProvider: FakeAuthenticationProvider(
           clientContext: clientContext,
         ),
         luciBuildService: mockLuciBuildService,
-        scheduler: FakeScheduler(config: config, ciYaml: exampleConfig),
+        scheduler: FakeScheduler(config: config),
+        ciYamlFetcher: ciYamlFetcher,
       );
       commit = generateCommit(1);
       task = generateTask(

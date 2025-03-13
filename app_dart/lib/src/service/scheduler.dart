@@ -15,7 +15,6 @@ import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 import 'package:truncate/truncate.dart';
-import 'package:yaml/yaml.dart';
 
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
@@ -41,6 +40,7 @@ import 'github_checks_service.dart';
 import 'luci_build_service.dart';
 import 'luci_build_service/engine_artifacts.dart';
 import 'luci_build_service/pending_task.dart';
+import 'scheduler/ci_yaml_fetcher.dart';
 import 'scheduler/policy.dart';
 
 /// Scheduler service to validate all commits to supported Flutter repositories.
@@ -57,6 +57,7 @@ class Scheduler {
     required this.luciBuildService,
     required this.fusionTester,
     required this.getFilesChanged,
+    required CiYamlFetcher ciYamlFetcher,
     this.datastoreProvider = DatastoreService.defaultProvider,
     this.httpClientProvider = Providers.freshHttpClient,
     this.buildStatusProvider = BuildStatusService.defaultProvider,
@@ -66,7 +67,7 @@ class Scheduler {
     @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
     @visibleForTesting
     this.findPullRequestForSha = PrCheckRuns.findPullRequestForSha,
-  });
+  }) : _ciYamlFetcher = ciYamlFetcher;
 
   final GetFilesChanged getFilesChanged;
   final BuildStatusServiceProvider buildStatusProvider;
@@ -76,6 +77,7 @@ class Scheduler {
   final GithubChecksService githubChecksService;
   final HttpClientProvider httpClientProvider;
   final FusionTester fusionTester;
+  final CiYamlFetcher _ciYamlFetcher;
   late DatastoreService datastore;
   late FirestoreService firestoreService;
   LuciBuildService luciBuildService;
@@ -195,7 +197,7 @@ class Scheduler {
       return;
     }
 
-    final ciYaml = await getCiYaml(commit);
+    final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(commit);
 
     final initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
     final isFusion = await fusionTester.isFusionBasedRef(
@@ -341,101 +343,6 @@ class Scheduler {
       return false;
     }
     return true;
-  }
-
-  /// Process and filters ciyaml.
-  Future<CiYamlSet> getCiYaml(Commit commit, {bool validate = false}) async {
-    final isFusion = await fusionTester.isFusionBasedRef(
-      commit.slug,
-      commit.sha!,
-    );
-    final totCommit = await generateTotCommit(
-      slug: commit.slug,
-      branch: Config.defaultBranch(commit.slug),
-    );
-    final totYaml = await _getCiYaml(totCommit, isFusionCommit: isFusion);
-    return _getCiYaml(
-      commit,
-      totCiYaml: totYaml,
-      validate: validate,
-      isFusionCommit: isFusion,
-    );
-  }
-
-  /// Load in memory the `.ci.yaml`.
-  Future<CiYamlSet> _getCiYaml(
-    Commit commit, {
-    CiYamlSet? totCiYaml,
-    bool validate = false,
-    RetryOptions retryOptions = const RetryOptions(
-      delayFactor: Duration(seconds: 2),
-      maxAttempts: 4,
-    ),
-    bool isFusionCommit = false,
-  }) async {
-    Future<pb.SchedulerConfig> getSchedulerConfig(String ciPath) async {
-      final ciYamlBytes =
-          (await cache.getOrCreate(
-            subcacheName,
-            // This is a key for a cache; not a path - so its needs to be 'unique'
-            '${commit.repository}/${commit.sha!}/$ciPath',
-            createFn:
-                () async =>
-                    (await _downloadCiYaml(
-                      commit,
-                      // actual path to go and fetch
-                      ciPath,
-                      retryOptions: retryOptions,
-                    )).writeToBuffer(),
-            ttl: const Duration(hours: 1),
-          ))!;
-      final schedulerConfig = pb.SchedulerConfig.fromBuffer(ciYamlBytes);
-      log.fine('Retrieved .ci.yaml for $ciPath');
-      return schedulerConfig;
-    }
-
-    // First, whatever was asked of us.
-    final schedulerConfig = await getSchedulerConfig(kCiYamlPath);
-
-    // Second - maybe the engine CI
-    pb.SchedulerConfig? engineFusionConfig;
-    if (isFusionCommit) {
-      // Fetch the engine yaml and mark it up.
-      engineFusionConfig = await getSchedulerConfig(kCiYamlFusionEnginePath);
-      log.fine('fusion engine .ci.yaml file fetched');
-    }
-
-    // If totCiYaml is not null, we assume upper level function has verified that current branch is not a release branch.
-    return CiYamlSet(
-      yamls: {
-        CiType.any: schedulerConfig,
-        if (engineFusionConfig != null) CiType.fusionEngine: engineFusionConfig,
-      },
-      slug: commit.slug,
-      branch: commit.branch!,
-      totConfig: totCiYaml,
-      validate: validate,
-      isFusion: isFusionCommit,
-    );
-  }
-
-  /// Get `.ci.yaml` from GitHub
-  Future<pb.SchedulerConfig> _downloadCiYaml(
-    Commit commit,
-    String ciPath, {
-    RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
-  }) async {
-    final configContent = await githubFileContent(
-      commit.slug,
-      ciPath,
-      httpClientProvider: httpClientProvider,
-      ref: commit.sha!,
-      retryOptions: retryOptions,
-    );
-    final configYaml = loadYaml(configContent) as YamlMap;
-    final schedulerConfig =
-        pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
-    return schedulerConfig;
   }
 
   /// Cancel all incomplete targets against a pull request.
@@ -866,12 +773,10 @@ $stackTrace
       sha: headSha,
     );
 
-    late CiYamlSet ciYaml;
-    if (commit.branch == Config.defaultBranch(commit.slug)) {
-      ciYaml = await getCiYaml(commit, validate: true);
-    } else {
-      ciYaml = await getCiYaml(commit);
-    }
+    final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(
+      commit,
+      validate: commit.branch == Config.defaultBranch(commit.slug),
+    );
     log.info(
       'ci.yaml loaded successfully; collecting merge group targets for $headSha',
     );
@@ -998,15 +903,15 @@ $stackTrace
       repository: pullRequest.base!.repo!.fullName,
       sha: pullRequest.head!.sha,
     );
-    late CiYamlSet ciYaml;
     log.info(
       'Attempting to read presubmit targets from ci.yaml for ${pullRequest.number}',
     );
-    if (commit.branch == Config.defaultBranch(commit.slug)) {
-      ciYaml = await getCiYaml(commit, validate: true);
-    } else {
-      ciYaml = await getCiYaml(commit);
-    }
+
+    final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(
+      commit,
+      validate: commit.branch == Config.defaultBranch(commit.slug),
+    );
+
     log.info('ci.yaml loaded successfully.');
     log.info('Collecting presubmit targets for ${pullRequest.number}');
 
@@ -1662,7 +1567,9 @@ $stacktrace
                       .toList()
                       .first;
               log.fine('Latest firestore task is $taskDocument');
-              final ciYaml = await getCiYaml(commit);
+              final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(
+                commit,
+              );
               final target = ciYaml.postsubmitTargets().singleWhere(
                 (Target target) => target.value.name == task.name,
               );

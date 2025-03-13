@@ -40,6 +40,7 @@ import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_build_bucket_client.dart';
 import '../src/service/fake_build_status_provider.dart';
+import '../src/service/fake_ci_yaml_fetcher.dart';
 import '../src/service/fake_fusion_tester.dart';
 import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_get_files_changed.dart';
@@ -140,6 +141,7 @@ void main() {
   late FakeFusionTester fakeFusion;
   late MockCallbacks callbacks;
   late FakeGetFilesChanged getFilesChanged;
+  late FakeCiYamlFetcher ciYamlFetcher;
 
   final pullRequest = generatePullRequest(id: 42);
 
@@ -216,6 +218,7 @@ void main() {
 
       fakeFusion = FakeFusionTester();
       callbacks = MockCallbacks();
+      ciYamlFetcher = FakeCiYamlFetcher();
 
       scheduler = Scheduler(
         cache: cache,
@@ -237,6 +240,7 @@ void main() {
         ),
         fusionTester: fakeFusion,
         markCheckRunConclusion: callbacks.markCheckRunConclusion,
+        ciYamlFetcher: ciYamlFetcher,
       );
 
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((
@@ -453,6 +457,7 @@ void main() {
           httpClientProvider: () => httpClient,
           luciBuildService: luciBuildService,
           fusionTester: fakeFusion,
+          ciYamlFetcher: ciYamlFetcher,
         );
 
         // This test is testing `GuaranteedPolicy` get scheduled - there's only one now.
@@ -551,6 +556,7 @@ void main() {
             httpClientProvider: () => httpClient,
             luciBuildService: luciBuildService,
             fusionTester: fakeFusion,
+            ciYamlFetcher: ciYamlFetcher,
           );
 
           await scheduler.addCommits(
@@ -718,6 +724,7 @@ targets:
               ),
             ),
             fusionTester: fakeFusion,
+            ciYamlFetcher: ciYamlFetcher,
           );
 
           final mergedPr = generatePullRequest(
@@ -817,6 +824,7 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
           ),
           fusionTester: fakeFusion,
+          ciYamlFetcher: ciYamlFetcher,
         );
         when(mockGithubService.github).thenReturn(mockGithubClient);
         when(
@@ -927,6 +935,7 @@ targets:
             findPullRequestForSha: (_, sha) async {
               return pullRequest;
             },
+            ciYamlFetcher: ciYamlFetcher,
           );
           when(mockGithubService.github).thenReturn(mockGithubClient);
           when(
@@ -1015,6 +1024,7 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
           ),
           fusionTester: fakeFusion,
+          ciYamlFetcher: ciYamlFetcher,
         );
         when(mockGithubService.github).thenReturn(mockGithubClient);
         when(
@@ -1128,6 +1138,7 @@ targets:
           fusionTester: fakeFusion,
           findPullRequestForSha: callbacks.findPullRequestForSha,
           httpClientProvider: () => httpClient,
+          ciYamlFetcher: ciYamlFetcher,
         );
 
         final checkrun = jsonDecode(checkRunString) as Map<String, dynamic>;
@@ -1248,6 +1259,7 @@ targets:
           httpClientProvider: () => httpClient,
           luciBuildService: luciBuildService,
           fusionTester: fakeFusion,
+          ciYamlFetcher: ciYamlFetcher,
         );
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           jsonDecode(checkRunString) as Map<String, dynamic>,
@@ -1289,6 +1301,7 @@ targets:
           fusionTester: fakeFusion,
           findPullRequestForSha: callbacks.findPullRequestForSha,
           httpClientProvider: () => httpClient,
+          ciYamlFetcher: ciYamlFetcher,
         );
         expect(await scheduler.processCheckRun(checkRunEvent), true);
         verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
@@ -1623,6 +1636,7 @@ targets:
               fusionTester: fakeFusion,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
               initializeCiStagingDocument: callbacks.initializeDocument,
+              ciYamlFetcher: ciYamlFetcher,
             );
 
             when(
@@ -1726,6 +1740,7 @@ targets:
               luciBuildService: luci,
               fusionTester: fakeFusion,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
+              ciYamlFetcher: ciYamlFetcher,
             );
 
             when(
@@ -1840,6 +1855,7 @@ targets:
                 luciBuildService: luci,
                 fusionTester: fakeFusion,
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
+                ciYamlFetcher: ciYamlFetcher,
               );
 
               when(
@@ -1928,6 +1944,7 @@ targets:
               luciBuildService: luci,
               fusionTester: fakeFusion,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
+              ciYamlFetcher: ciYamlFetcher,
             );
 
             when(
@@ -2042,6 +2059,7 @@ targets:
                 luciBuildService: luci,
                 fusionTester: fakeFusion,
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
+                ciYamlFetcher: ciYamlFetcher,
               );
 
               when(
@@ -2223,6 +2241,7 @@ targets:
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
                 findPullRequestFor: callbacks.findPullRequestFor,
                 initializeCiStagingDocument: callbacks.initializeDocument,
+                ciYamlFetcher: ciYamlFetcher,
               );
 
               when(
@@ -2669,6 +2688,7 @@ targets:
               ),
             ),
             fusionTester: fakeFusion,
+            ciYamlFetcher: ciYamlFetcher,
           );
           final pr = generatePullRequest(
             repo: Config.flutterSlug.name,
@@ -2717,6 +2737,7 @@ targets:
               ),
             ),
             fusionTester: fakeFusion,
+            ciYamlFetcher: ciYamlFetcher,
           );
           await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
           expect(
@@ -3054,6 +3075,7 @@ targets:
           luciBuildService: luci,
           fusionTester: fakeFusion,
           initializeCiStagingDocument: callbacks.initializeDocument,
+          ciYamlFetcher: ciYamlFetcher,
         );
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         final results =
@@ -3206,6 +3228,7 @@ targets:
           luciBuildService: luci,
           fusionTester: fakeFusion,
           initializeCiStagingDocument: callbacks.initializeDocument,
+          ciYamlFetcher: ciYamlFetcher,
         );
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
@@ -3367,6 +3390,7 @@ targets:
           luciBuildService: luci,
           fusionTester: fakeFusion,
           initializeCiStagingDocument: callbacks.initializeDocument,
+          ciYamlFetcher: ciYamlFetcher,
         );
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
@@ -3517,6 +3541,7 @@ targets:
           luciBuildService: luci,
           fusionTester: fakeFusion,
           initializeCiStagingDocument: callbacks.initializeDocument,
+          ciYamlFetcher: ciYamlFetcher,
         );
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
@@ -3672,6 +3697,7 @@ targets:
           httpClientProvider: () => httpClient,
           luciBuildService: fakeLuciBuildService,
           fusionTester: fakeFusion,
+          ciYamlFetcher: ciYamlFetcher,
         )..firestoreService = mockFirestoreService;
       });
 

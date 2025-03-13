@@ -14,6 +14,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/subscription_tester.dart';
+import '../src/service/fake_ci_yaml_fetcher.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/build_bucket_messages.dart';
@@ -29,6 +30,7 @@ void main() {
   late MockGithubChecksService mockGithubChecksService;
   late MockLuciBuildService mockLuciBuildService;
   late FakeScheduler scheduler;
+  late FakeCiYamlFetcher ciYamlFetcher;
 
   setUp(() async {
     config = FakeConfig();
@@ -36,11 +38,11 @@ void main() {
 
     mockGithubChecksService = MockGithubChecksService();
     scheduler = FakeScheduler(
-      ciYaml: examplePresubmitRescheduleConfig,
       config: config,
       luciBuildService: mockLuciBuildService,
     );
 
+    ciYamlFetcher = FakeCiYamlFetcher();
     handler = PresubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,
@@ -48,6 +50,7 @@ void main() {
       githubChecksService: mockGithubChecksService,
       authProvider: FakeAuthenticationProvider(),
       scheduler: scheduler,
+      ciYamlFetcher: ciYamlFetcher,
     );
     request = FakeHttpRequest();
 
@@ -263,6 +266,7 @@ void main() {
       githubChecksService: mockGithubChecksService,
       authProvider: FakeAuthenticationProvider(),
       scheduler: scheduler,
+      ciYamlFetcher: ciYamlFetcher,
     );
 
     await tester.post(luciHandler);
@@ -340,7 +344,6 @@ void main() {
   });
 
   test('Build not rescheduled if ci.yaml fails validation.', () async {
-    scheduler.failCiYamlValidation = true;
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
@@ -447,6 +450,7 @@ void main() {
       githubChecksService: mockGithubChecksService,
       authProvider: FakeAuthenticationProvider(),
       scheduler: scheduler,
+      ciYamlFetcher: ciYamlFetcher,
     );
 
     await tester.post(luciHandler);

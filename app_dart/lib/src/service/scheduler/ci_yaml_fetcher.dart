@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:github/github.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:retry/retry.dart';
 import 'package:yaml/yaml.dart';
@@ -18,33 +19,21 @@ import '../cache_service.dart';
 import '../config.dart';
 
 /// Fetches a [CiYamlSet] given the current repository and commit context.
-interface class CiYamlFetcher {
-  CiYamlFetcher({
+abstract base class CiYamlFetcher {
+  /// Creates a [CiYamlFetcher] from the provided configuration.
+  factory CiYamlFetcher({
     required CacheService cache,
     required Config config,
     required FusionTester fusionTester,
-    HttpClientProvider httpClientProvider = Providers.freshHttpClient,
-    Duration cacheTtl = const Duration(hours: 1),
-    String subcacheName = 'scheduler',
-    RetryOptions retryOptions = const RetryOptions(
-      delayFactor: Duration(seconds: 2),
-      maxAttempts: 4,
-    ),
-  }) : _cache = cache,
-       _cacheTtl = cacheTtl,
-       _subcacheName = subcacheName,
-       _config = config,
-       _fusionTester = fusionTester,
-       _retryOptions = retryOptions,
-       _httpClientProvider = httpClientProvider;
+    HttpClientProvider httpClientProvider,
+    Duration cacheTtl,
+    String subcacheName,
+    RetryOptions retryOptions,
+  }) = _CiYamlFetcher;
 
-  final CacheService _cache;
-  final String _subcacheName;
-  final Duration _cacheTtl;
-  final RetryOptions _retryOptions;
-  final Config _config;
-  final FusionTester _fusionTester;
-  final HttpClientProvider _httpClientProvider;
+  /// Exists so that a fake implementation can re-use `getCiYamlBy*` methods.
+  @visibleForTesting
+  CiYamlFetcher.forTesting();
 
   /// Fetches and processes (as appropriate) the `.ci.yaml`(s) for [commit].
   ///
@@ -77,6 +66,44 @@ interface class CiYamlFetcher {
   }
 
   /// Fetches and processes (as appropriate) the `.ci.yaml`(s) for a commit.
+  Future<CiYamlSet> getCiYaml({
+    required RepositorySlug slug,
+    required String commitSha,
+    required String commitBranch,
+    bool validate = false,
+  });
+}
+
+final class _CiYamlFetcher extends CiYamlFetcher {
+  _CiYamlFetcher({
+    required CacheService cache,
+    required Config config,
+    required FusionTester fusionTester,
+    HttpClientProvider httpClientProvider = Providers.freshHttpClient,
+    Duration cacheTtl = const Duration(hours: 1),
+    String subcacheName = 'scheduler',
+    RetryOptions retryOptions = const RetryOptions(
+      delayFactor: Duration(seconds: 2),
+      maxAttempts: 4,
+    ),
+  }) : _cache = cache,
+       _cacheTtl = cacheTtl,
+       _subcacheName = subcacheName,
+       _config = config,
+       _fusionTester = fusionTester,
+       _retryOptions = retryOptions,
+       _httpClientProvider = httpClientProvider,
+       super.forTesting();
+
+  final CacheService _cache;
+  final String _subcacheName;
+  final Duration _cacheTtl;
+  final RetryOptions _retryOptions;
+  final Config _config;
+  final FusionTester _fusionTester;
+  final HttpClientProvider _httpClientProvider;
+
+  @override
   Future<CiYamlSet> getCiYaml({
     required RepositorySlug slug,
     required String commitSha,
