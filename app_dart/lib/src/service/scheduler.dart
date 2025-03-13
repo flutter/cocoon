@@ -75,7 +75,6 @@ class Scheduler {
   final FusionTester fusionTester;
   final CiYamlFetcher _ciYamlFetcher;
   late DatastoreService datastore;
-  late FirestoreService firestoreService;
   LuciBuildService luciBuildService;
 
   Future<StagingConclusion> Function({
@@ -423,7 +422,7 @@ class Scheduler {
           log.info('$logCrumb: FRAMEWORK_ONLY_TESTING_PR');
 
           await initializeCiStagingDocument(
-            firestoreService: firestoreService,
+            firestoreService: await config.createFirestoreService(),
             slug: slug,
             sha: sha,
             stage: CiStage.fusionEngineBuild,
@@ -458,7 +457,7 @@ class Scheduler {
         final EngineArtifacts engineArtifacts;
         if (isFusion) {
           await initializeCiStagingDocument(
-            firestoreService: firestoreService,
+            firestoreService: await config.createFirestoreService(),
             slug: slug,
             sha: sha,
             stage: CiStage.fusionEngineBuild,
@@ -677,10 +676,11 @@ class Scheduler {
           '$logCrumb: missing builders for targtets: ${mergeGroupTargets.difference(availableTargets)}',
         );
       }
+
       // Create the staging doc that will track our engine progress and allow us to unlock
       // the merge group lock later.
       await initializeCiStagingDocument(
-        firestoreService: firestoreService,
+        firestoreService: await config.createFirestoreService(),
         slug: slug,
         sha: headSha,
         stage: CiStage.fusionEngineBuild,
@@ -1014,8 +1014,6 @@ $stackTrace
 
     final isMergeGroup = detectMergeGroup(checkRun);
 
-    firestoreService = await config.createFirestoreService();
-
     // Check runs are fired at every stage. However, at this point it is unknown
     // if this check run belongs in the engine build stage or in the test stage.
     // So first look for it in the engine stage, and if it's missing, look for
@@ -1240,7 +1238,7 @@ $stackTrace
 
         // Create the document for tracking test check runs.
         await initializeCiStagingDocument(
-          firestoreService: firestoreService,
+          firestoreService: await config.createFirestoreService(),
           slug: pullRequest.base!.repo!.slug(),
           sha: pullRequest.head!.sha!,
           stage: CiStage.fusionTests,
@@ -1306,7 +1304,11 @@ $stackTrace
     final id = checkRun.id!;
     final name = checkRun.name!;
     try {
-      pullRequest = await findPullRequestFor(firestoreService, id, name);
+      pullRequest = await findPullRequestFor(
+        await config.createFirestoreService(),
+        id,
+        name,
+      );
     } catch (e, s) {
       log.warning('$logCrumb: unable to find PR in PrCheckRuns', e, s);
     }
@@ -1386,6 +1388,7 @@ $stacktrace
     // a sane amount of times before giving up.
     const r = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 2));
 
+    final firestoreService = await config.createFirestoreService();
     return r.retry(() {
       return markCheckRunConclusion(
         firestoreService: firestoreService,
@@ -1544,7 +1547,6 @@ $stacktrace
               );
             } else {
               log.fine('Rescheduling postsubmit build.');
-              firestoreService = await config.createFirestoreService();
               final checkName = checkRunEvent.checkRun!.name!;
               final task = await Task.fromDatastore(
                 datastore: datastore,
@@ -1552,6 +1554,7 @@ $stacktrace
                 name: checkName,
               );
               // Query the lastest run of the `checkName` againt commit `sha`.
+              final firestoreService = await config.createFirestoreService();
               final taskDocuments = await firestoreService.queryCommitTasks(
                 commit.sha!,
               );
@@ -1639,28 +1642,6 @@ $stacktrace
     } on ApiRequestError {
       log.warning('Failed to add commits to BigQuery: $ApiRequestError');
     }
-  }
-
-  /// Returns the tip of tree [Commit] using specified [branch] and [RepositorySlug].
-  ///
-  /// A tip of tree [Commit] is used to help generate the tip of tree [CiYamlSet].
-  /// The generated tip of tree [CiYamlSet] will be compared against Presubmit Targets in current [CiYamlSet],
-  /// to ensure new targets without `bringup: true` label are not added into the build.
-  Future<Commit> generateTotCommit({
-    required String branch,
-    required RepositorySlug slug,
-  }) async {
-    datastore = datastoreProvider(config.db);
-    firestoreService = await config.createFirestoreService();
-    final buildStatusService = buildStatusProvider(datastore, firestoreService);
-    final totCommit =
-        (await buildStatusService
-                .retrieveCommitStatus(limit: 1, branch: branch, slug: slug)
-                .map<Commit>((CommitStatus status) => status.commit)
-                .toList())
-            .single;
-
-    return totCommit;
   }
 
   /// Parses CheckRun from a previously json string encode

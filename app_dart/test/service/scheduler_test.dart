@@ -140,6 +140,31 @@ void main() {
   late FakeGetFilesChanged getFilesChanged;
   late FakeCiYamlFetcher ciYamlFetcher;
 
+  late List<String> logs;
+
+  setUp(() {
+    logs = [];
+    log = Logger.detached('scheduler_test');
+    log.onRecord.listen((r) {
+      final buffer = StringBuffer(r.message);
+      if (r.error case final error?) {
+        buffer.writeln();
+        buffer.writeln('$error');
+      }
+      if (r.stackTrace case final stackTrace?) {
+        buffer.writeln();
+        buffer.writeln('$stackTrace');
+      }
+      logs.add('$buffer');
+    });
+    ciYamlFetcher =
+        FakeCiYamlFetcher()..setCiYamlFrom(Config.flutterSlug, singleCiYaml);
+  });
+
+  tearDown(() {
+    printOnFailure('LOGGER BUFFER:\n${logs.join('\n')}');
+  });
+
   final pullRequest = generatePullRequest(id: 42);
 
   Commit shaToCommit(String sha, {String branch = 'master'}) {
@@ -210,7 +235,6 @@ void main() {
 
       fakeFusion = FakeFusionTester();
       callbacks = MockCallbacks();
-      ciYamlFetcher = FakeCiYamlFetcher();
 
       scheduler = Scheduler(
         cache: cache,
@@ -3523,22 +3547,11 @@ targets:
     });
 
     group('framework-only PR optimization', () {
-      late final Logger globalLogger;
-
-      setUpAll(() {
-        globalLogger = log;
-      });
-
-      tearDownAll(() {
-        log = globalLogger;
-      });
-
       // TODO(matanlurey): Inject this.
       const allowListedUser = 'matanlurey';
 
       late MockGithubService mockGithubService;
       late _CapturingFakeLuciBuildService fakeLuciBuildService;
-      late List<String> logs;
 
       setUp(() {
         mockGithubService = MockGithubService();
@@ -3548,12 +3561,6 @@ targets:
           singleCiYaml,
           engine: fusionCiYaml,
         );
-
-        logs = [];
-        log = Logger.detached('logger')
-          ..onRecord.listen((record) {
-            logs.add(record.message);
-          });
 
         when(mockFirestoreService.documentResource()).thenAnswer((_) async {
           final resource = MockProjectsDatabasesDocumentsResource();
@@ -3591,7 +3598,7 @@ targets:
           luciBuildService: fakeLuciBuildService,
           fusionTester: fakeFusion,
           ciYamlFetcher: ciYamlFetcher,
-        )..firestoreService = mockFirestoreService;
+        );
       });
 
       tearDown(() {

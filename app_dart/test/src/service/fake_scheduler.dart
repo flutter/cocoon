@@ -4,7 +4,6 @@
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/foundation/utils.dart';
-import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:cocoon_service/src/service/build_bucket_client.dart';
@@ -17,7 +16,6 @@ import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:github/github.dart';
 
-import '../utilities/entity_generators.dart';
 import 'fake_ci_yaml_fetcher.dart';
 import 'fake_fusion_tester.dart';
 import 'fake_get_files_changed.dart';
@@ -50,14 +48,6 @@ class FakeScheduler extends Scheduler {
          fusionTester: fusionTester ?? FakeFusionTester(),
          ciYamlFetcher: ciYamlFetcher ?? FakeCiYamlFetcher(),
        );
-
-  @override
-  Future<Commit> generateTotCommit({
-    required String branch,
-    required RepositorySlug slug,
-  }) async {
-    return generateCommit(1);
-  }
 
   int cancelPreSubmitTargetsCallCnt = 0;
 
