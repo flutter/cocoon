@@ -511,13 +511,12 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     required Commit commit,
   }) async {
     final buildState = Provider.of<BuildState>(context, listen: false);
-    final response = await buildState.cocoonService
-        .schedulePostsubmitsForCommit(
-          commit,
-          idToken: await buildState.authService.idToken,
-          branch: buildState.currentBranch,
-          repo: buildState.currentRepo,
-        );
+    final response = await buildState.cocoonService.rerunCommit(
+      commitSha: commit.sha,
+      idToken: await buildState.authService.idToken,
+      branch: buildState.currentBranch,
+      repo: buildState.currentRepo,
+    );
     if (!context.mounted) {
       return;
     }

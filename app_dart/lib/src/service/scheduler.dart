@@ -40,6 +40,7 @@ import 'luci_build_service/engine_artifacts.dart';
 import 'luci_build_service/pending_task.dart';
 import 'scheduler/ci_yaml_fetcher.dart';
 import 'scheduler/policy.dart';
+import 'scheduler/process_check_run_result.dart';
 
 /// Scheduler service to validate all commits to supported Flutter repositories.
 ///
@@ -158,9 +159,19 @@ class Scheduler {
       return;
     }
 
-    final fullRepo = pr.base!.repo!.fullName;
     final branch = pr.base!.ref;
+    final fullRepo = pr.base!.repo!.fullName;
     final sha = pr.mergeCommitSha!;
+
+    // TODO(matanlurey): Expand to every release candidate branch instead of a test branch.
+    // See https://github.com/flutter/flutter/issues/163896.
+    var markAllTasksSkipped = false;
+    if (branch == 'flutter-0.42-candidate.0') {
+      markAllTasksSkipped = true;
+      log.info(
+        '[release-candidate-postsubmit-skip] For merged PR ${pr.number}, SHA=$sha, skipping all post-submit tasks',
+      );
+    }
 
     final id = '$fullRepo/$branch/$sha';
     final key = datastore.db.emptyKey.append<String>(Commit, id: id);
@@ -182,20 +193,18 @@ class Scheduler {
     }
 
     log.fine('Scheduling $sha via GitHub webhook');
-    await _addCommit(mergedCommit);
+    await _addCommit(mergedCommit, skipAllTasks: markAllTasksSkipped);
   }
 
   /// Processes postsubmit tasks.
-  Future<void> _addCommit(Commit commit) async {
+  Future<void> _addCommit(Commit commit, {bool skipAllTasks = false}) async {
     if (!config.supportedRepos.contains(commit.slug)) {
       log.fine('Skipping ${commit.id} as repo is not supported');
       return;
     }
 
     final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(commit);
-
-    final initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
-
+    final targets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
     final isFusion = await fusionTester.isFusionBasedRef(
       commit.slug,
       commit.sha!,
@@ -208,18 +217,29 @@ class Scheduler {
         fusionPostTargets,
         type: CiType.fusionEngine,
       );
-      initialTargets.addAll(fusionInitialTargets);
+      targets.addAll(fusionInitialTargets);
       // Note on post submit targets: CiYaml filters out release_true for release branches and fusion trees
     }
 
-    final tasks = <Task>[...targetsToTasks(commit, initialTargets)];
+    final tasks = <Task>[...targetsToTasks(commit, targets)];
     final firestoreService = await config.createFirestoreService();
     final toBeScheduled = <PendingTask>[];
-    for (var target in initialTargets) {
+    for (var target in targets) {
       final task = tasks.singleWhere(
         (Task task) => task.name == target.value.name,
       );
       var policy = target.schedulerPolicy;
+
+      // TODO(matanlurey): Clean up the logic below, we actually do *not* want
+      // release branches to run every task automatically, and instead defer to
+      // manual scheduling.
+      //
+      // See https://github.com/flutter/flutter/issues/163896.
+      if (skipAllTasks) {
+        task.status = Task.statusSkipped;
+        continue;
+      }
+
       // Release branches should run every task
       if (Config.defaultBranch(commit.slug) != commit.branch) {
         policy = const GuaranteedPolicy();
@@ -256,13 +276,10 @@ class Scheduler {
     }
 
     log.info(
-      'Firestore initial targets created for $commit: ${initialTargets.map((t) => '"${t.value.name}"').join(', ')}',
+      'Firestore initial targets created for $commit: ${targets.map((t) => '"${t.value.name}"').join(', ')}',
     );
     final commitDocument = firestore_commmit.commitToCommitDocument(commit);
-    final taskDocuments = firestore.targetsToTaskDocuments(
-      commit,
-      initialTargets,
-    );
+    final taskDocuments = firestore.targetsToTaskDocuments(commit, targets);
     final writes = documentsToWrites([
       ...taskDocuments,
       commitDocument,
@@ -1411,13 +1428,14 @@ $stacktrace
   ///
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs-and-requested-actions
-  Future<bool> processCheckRun(
+  @useResult
+  Future<ProcessCheckRunResult> processCheckRun(
     cocoon_checks.CheckRunEvent checkRunEvent,
   ) async {
     switch (checkRunEvent.action) {
       case 'completed':
         await processCheckRunCompletion(checkRunEvent);
-        return true;
+        return const ProcessCheckRunResult.success();
 
       case 'rerequested':
         log.fine(
@@ -1490,10 +1508,9 @@ $stacktrace
                 checkRunEvent.checkRun!.headSha!,
               );
               if (pullRequest == null) {
-                log.warning(
+                return ProcessCheckRunResult.userError(
                   'Asked to reschedule presubmits for unknown sha/PR: ${checkRunEvent.checkRun!.headSha!}',
                 );
-                return true;
               }
 
               final isFusion = await fusionTester.isFusionBasedRef(slug, sha);
@@ -1535,11 +1552,10 @@ $stacktrace
                 (target) => checkRunEvent.checkRun!.name == target.value.name,
               );
               if (target == null) {
-                // TODO(matanlurey): Revisit why this is coming up null, it's just mitigation for https://github.com/flutter/flutter/issues/164342 until then.
-                log.warning(
-                  'Could not reschedule checkRun "${checkRunEvent.checkRun!.name}", not found in list of presubmit targets: ${presubmitTargets.map((t) => t.value.name).toList()}',
+                return ProcessCheckRunResult.internalError(
+                  'Could not reschedule checkRun "${checkRunEvent.checkRun!.name}", '
+                  'not found in list of presubmit targets: ${presubmitTargets.map((t) => t.value.name).toList()}',
                 );
-                return true;
               }
               await luciBuildService.scheduleTryBuilds(
                 targets: [target],
@@ -1588,14 +1604,24 @@ $stacktrace
             success = true;
           } on NoBuildFoundException {
             log.warning('No build found to reschedule.');
+          } on FormatException catch (e) {
+            // See https://github.com/flutter/flutter/issues/165018.
+            log.info('CheckName: $name failed due to user error: $e');
+            return ProcessCheckRunResult.userError('$e');
           }
         }
 
         log.fine('CheckName: $name State: $success');
-        return success;
+
+        // TODO(matanlurey): It would be better to early return above where it is not a success.
+        if (!success) {
+          return const ProcessCheckRunResult.internalError(
+            'Not successful. See previous log messages',
+          );
+        }
     }
 
-    return true;
+    return const ProcessCheckRunResult.success();
   }
 
   /// Push [Commit] to BigQuery as part of the infra metrics dashboards.

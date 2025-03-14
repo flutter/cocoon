@@ -174,7 +174,7 @@ class TaskOverlayContents extends StatelessWidget {
     required this.buildState,
     required this.task,
     required this.closeCallback,
-    this.commit,
+    required this.commit,
   });
 
   final ShowSnackBarCallback showSnackBarCallback;
@@ -186,7 +186,7 @@ class TaskOverlayContents extends StatelessWidget {
   final Task task;
 
   /// [Commit] for tasks to show log.
-  final Commit? commit;
+  final Commit commit;
 
   /// This callback removes the parent overlay from the widget tree.
   ///
@@ -330,12 +330,7 @@ class TaskOverlayContents extends StatelessWidget {
                           final isAuthenticated =
                               buildState.authService.isAuthenticated;
                           return ProgressButton(
-                            onPressed:
-                                isAuthenticated
-                                    ? () {
-                                      return _rerunTask(task);
-                                    }
-                                    : null,
+                            onPressed: isAuthenticated ? _rerunTask : null,
                             child: child,
                           );
                         },
@@ -351,8 +346,8 @@ class TaskOverlayContents extends StatelessWidget {
     );
   }
 
-  Future<void> _rerunTask(Task task) async {
-    final rerunResponse = await buildState.rerunTask(task);
+  Future<void> _rerunTask() async {
+    final rerunResponse = await buildState.rerunTask(task, commit);
     if (rerunResponse) {
       showSnackBarCallback(
         const SnackBar(

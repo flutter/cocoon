@@ -98,14 +98,7 @@ Server createServer({
       authenticationProvider: authProvider,
     ),
     // I do not believe these recieve a build message.
-    '/api/reset-prod-task': ResetProdTask(
-      config: config,
-      authenticationProvider: authProvider,
-      luciBuildService: luciBuildService,
-      scheduler: scheduler,
-      ciYamlFetcher: ciYamlFetcher,
-    ),
-    '/api/v2/reset-prod-task': ResetProdTask(
+    '/api/rerun-prod-task': RerunProdTask(
       config: config,
       authenticationProvider: authProvider,
       luciBuildService: luciBuildService,
