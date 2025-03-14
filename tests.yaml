@@ -44,5 +44,11 @@ tasks:
   - task: packages/buildbucket-dart
     script: test_utilities/bin/dart_test_runner.sh
 
+  - task: packages/cocoon_common
+    script: test_utilities/bin/dart_test_runner.sh
+
+  - task: packages/cocoon_common_test
+    script: test_utilities/bin/dart_test_runner.sh
+
   - task: dev/githubanalysis
     script: test_utilities/bin/dart_test_runner.sh
