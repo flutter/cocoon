@@ -8,7 +8,7 @@ import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/validations/approval.dart';
 import 'package:auto_submit/validations/validation.dart';
-import 'package:cocoon_server/testing/mocks.dart';
+import 'package:cocoon_server_test/mocks.dart';
 import 'package:test/test.dart';
 
 import '../configuration/repository_configuration_data.dart';

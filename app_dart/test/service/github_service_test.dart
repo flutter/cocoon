@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cocoon_server/testing/mocks.dart';
+import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;

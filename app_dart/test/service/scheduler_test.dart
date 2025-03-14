@@ -7,7 +7,7 @@ import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
-import 'package:cocoon_server/testing/mocks.dart';
+import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/stage.dart';

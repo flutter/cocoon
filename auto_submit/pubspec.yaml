@@ -13,7 +13,7 @@ environment:
 dependencies:
   appengine: 0.13.10
   cocoon_server:
-    path: ../cocoon_server
+    path: ../packages/cocoon_server
   corsac_jwt: 1.0.1
   crypto: 3.0.6
   github: 9.24.0
@@ -34,9 +34,11 @@ dependencies:
 
 dev_dependencies:
   build_runner: 2.4.13
+  cocoon_server_test:
+    path: ../packages/cocoon_server_test
   dart_flutter_team_lints: 3.4.0
   json_serializable: 6.9.0
-  mockito: 5.4.4
+  mockito: 5.4.5
   test: 1.25.15
 
 builders:

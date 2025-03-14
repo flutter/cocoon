@@ -5,9 +5,9 @@
 # Dart Docker official images can be found here: https://hub.docker.com/_/dart
 FROM dart:3.7.1
 
-WORKDIR /cocoon_server
-
-COPY cocoon_server .
+# Packages are PATH dependencies of app_dart, and need to be copied/accessible.
+WORKDIR /packages
+COPY packages .
 
 WORKDIR /app
 

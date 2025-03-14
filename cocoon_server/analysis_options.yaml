@@ -1,8 +1,0 @@
-include: ../analysis_options.yaml
-
-linter:
-  rules:
-    # a few rules listed below are the ones we would like to exclude from flutter_lint package, for app_dart
-    # reasons for exclusions are provided in the comments to the right
-    avoid_print: false # we have necessary print calls in the code
-    constant_identifier_names: false # we have all capitalized enums in check_for_waiting_pull_requests_test.dart
