@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_server/testing/mocks.dart';
+import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
 import 'package:fixnum/fixnum.dart';

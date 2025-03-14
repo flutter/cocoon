@@ -26,9 +26,6 @@ tasks:
   - task: cipd_packages/codesign
     script: test_utilities/bin/dart_test_runner.sh
 
-  - task: cocoon_server
-    script: test_utilities/bin/dart_test_runner.sh
-
   - task: app_dart
     script: test_utilities/bin/dart_test_runner.sh
 
@@ -48,6 +45,12 @@ tasks:
     script: test_utilities/bin/dart_test_runner.sh
 
   - task: packages/cocoon_common_test
+    script: test_utilities/bin/dart_test_runner.sh
+
+  - task: packages/cocoon_server
+    script: test_utilities/bin/dart_test_runner.sh
+
+  - task: packages/cocoon_server_test
     script: test_utilities/bin/dart_test_runner.sh
 
   - task: dev/githubanalysis

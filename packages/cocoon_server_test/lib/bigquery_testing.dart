@@ -1,6 +1,6 @@
+import 'package:cocoon_server/bigquery.dart';
 import 'package:googleapis/bigquery/v2.dart';
 
-import '../bigquery.dart';
 import 'mocks.dart';
 
 const String revertRequestRecordResponse = '''

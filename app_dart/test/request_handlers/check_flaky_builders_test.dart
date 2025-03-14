@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:cocoon_server/testing/mocks.dart';
+import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart'
