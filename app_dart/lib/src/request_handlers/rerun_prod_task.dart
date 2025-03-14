@@ -24,6 +24,7 @@ import '../service/luci_build_service.dart';
 import '../service/luci_build_service/build_tags.dart';
 import '../service/luci_build_service/user_data.dart';
 import '../service/scheduler.dart';
+import '../service/scheduler/ci_yaml_fetcher.dart';
 
 /// Reruns a postsubmit LUCI build.
 ///
@@ -35,6 +36,7 @@ class RerunProdTask extends ApiRequestHandler<Body> {
     required super.authenticationProvider,
     required this.luciBuildService,
     required this.scheduler,
+    required this.ciYamlFetcher,
     @visibleForTesting DatastoreServiceProvider? datastoreProvider,
   }) : datastoreProvider =
            datastoreProvider ?? DatastoreService.defaultProvider;
@@ -42,6 +44,7 @@ class RerunProdTask extends ApiRequestHandler<Body> {
   final DatastoreServiceProvider datastoreProvider;
   final LuciBuildService luciBuildService;
   final Scheduler scheduler;
+  final CiYamlFetcher ciYamlFetcher;
 
   static const _paramBranch = 'branch';
   static const _paramRepo = 'repo';
@@ -146,7 +149,7 @@ class RerunProdTask extends ApiRequestHandler<Body> {
       slug: slug,
     );
     final commit = await _getCommitFromTask(datastore, task);
-    final ciYaml = await scheduler.getCiYaml(commit);
+    final ciYaml = await ciYamlFetcher.getCiYamlByDatastoreCommit(commit);
     final targets = [
       ...ciYaml.postsubmitTargets(),
       if (ciYaml.isFusion)

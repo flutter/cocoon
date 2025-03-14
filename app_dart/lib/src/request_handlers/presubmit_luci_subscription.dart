@@ -22,6 +22,7 @@ import '../service/github_checks_service.dart';
 import '../service/luci_build_service.dart';
 import '../service/luci_build_service/build_tags.dart';
 import '../service/scheduler.dart';
+import '../service/scheduler/ci_yaml_fetcher.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
 ///
@@ -44,12 +45,14 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     required this.scheduler,
     required this.luciBuildService,
     required this.githubChecksService,
+    required this.ciYamlFetcher,
     AuthenticationProvider? authProvider,
   }) : super(subscriptionName: 'build-bucket-presubmit-sub');
 
   final LuciBuildService luciBuildService;
   final GithubChecksService githubChecksService;
   final Scheduler scheduler;
+  final CiYamlFetcher ciYamlFetcher;
 
   @override
   Future<Body> post() async {
@@ -170,11 +173,10 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     );
     final CiYamlSet ciYaml;
     try {
-      if (commit.branch == Config.defaultBranch(commit.slug)) {
-        ciYaml = await scheduler.getCiYaml(commit, validate: true);
-      } else {
-        ciYaml = await scheduler.getCiYaml(commit);
-      }
+      ciYaml = await ciYamlFetcher.getCiYamlByDatastoreCommit(
+        commit,
+        validate: commit.branch == Config.defaultBranch(commit.slug),
+      );
     } on FormatException {
       // If ci.yaml no longer passes validation (for example, because a builder
       // has been removed), ensure no retries.

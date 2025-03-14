@@ -175,7 +175,7 @@ Future<String> githubFileContent(
     'mirrors/${slug.name}/+/$gobRef/$filePath',
     <String, String>{'format': 'text'},
   );
-  late String content;
+  late final String content;
   try {
     await retryOptions.retry(
       () async =>
@@ -186,7 +186,14 @@ Future<String> githubFileContent(
           ),
       retryIf: (Exception e) => e is HttpException || e is NotFoundException,
     );
-  } catch (e) {
+  } on Exception catch (e) {
+    // A logical error (i.e. something like an ArgumentError) should not be
+    // used as a retry signal. For example, 'TestFailure' (package:test) is an
+    // exception but is not recoverable.
+    if (e is! HttpException && e is! NotFoundException) {
+      rethrow;
+    }
+    log.warning('Failed to fetch $githubUrl, falling back to $gobUrl', e);
     await retryOptions.retry(
       () async =>
           content = String.fromCharCodes(

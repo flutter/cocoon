@@ -4,7 +4,6 @@
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/foundation/utils.dart';
-import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:cocoon_service/src/service/build_bucket_client.dart';
@@ -14,10 +13,10 @@ import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
+import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:github/github.dart';
-import 'package:retry/retry.dart';
 
-import '../utilities/entity_generators.dart';
+import 'fake_ci_yaml_fetcher.dart';
 import 'fake_fusion_tester.dart';
 import 'fake_get_files_changed.dart';
 import 'fake_luci_build_service.dart';
@@ -25,13 +24,13 @@ import 'fake_luci_build_service.dart';
 /// Fake for [Scheduler] to use for tests that rely on it.
 class FakeScheduler extends Scheduler {
   FakeScheduler({
-    this.ciYaml,
     LuciBuildService? luciBuildService,
     BuildBucketClient? buildbucket,
     GetFilesChanged? getFilesChanged,
     required super.config,
     GithubChecksUtil? githubChecksUtil,
     FusionTester? fusionTester,
+    CiYamlFetcher? ciYamlFetcher,
   }) : super(
          cache: CacheService(inMemory: true),
          githubChecksService: GithubChecksService(
@@ -47,38 +46,8 @@ class FakeScheduler extends Scheduler {
                githubChecksUtil: githubChecksUtil,
              ),
          fusionTester: fusionTester ?? FakeFusionTester(),
+         ciYamlFetcher: ciYamlFetcher ?? FakeCiYamlFetcher(),
        );
-
-  final CiYamlSet _defaultConfig = emptyConfig;
-
-  /// [CiYamlSet] value to be injected on [getCiYaml].
-  CiYamlSet? ciYaml;
-
-  /// If true, getCiYaml will throw a [FormatException] when validation is
-  /// enforced, simulating failing validation.
-  bool failCiYamlValidation = false;
-
-  @override
-  Future<CiYamlSet> getCiYaml(
-    Commit commit, {
-    CiYamlSet? totCiYaml,
-    RetryOptions? retryOptions,
-    bool validate = false,
-  }) async {
-    if (validate && failCiYamlValidation) {
-      throw const FormatException('Failed validation!');
-    }
-
-    return ciYaml ?? _defaultConfig;
-  }
-
-  @override
-  Future<Commit> generateTotCommit({
-    required String branch,
-    required RepositorySlug slug,
-  }) async {
-    return generateCommit(1);
-  }
 
   int cancelPreSubmitTargetsCallCnt = 0;
 

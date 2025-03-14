@@ -16,6 +16,7 @@ import '../../src/datastore/fake_config.dart';
 import '../../src/datastore/fake_datastore.dart';
 import '../../src/request_handling/fake_pubsub.dart';
 import '../../src/request_handling/request_handler_tester.dart';
+import '../../src/service/fake_ci_yaml_fetcher.dart';
 import '../../src/service/fake_luci_build_service.dart';
 import '../../src/service/fake_scheduler.dart';
 import '../../src/utilities/entity_generators.dart';
@@ -36,6 +37,7 @@ void main() {
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Config config;
   late MockFirestoreService mockFirestoreService;
+  late FakeCiYamlFetcher ciYamlFetcher;
 
   group('BatchBackfiller', () {
     setUp(() async {
@@ -71,9 +73,9 @@ void main() {
         return Future<CommitResponse>.value(CommitResponse());
       });
 
+      ciYamlFetcher = FakeCiYamlFetcher(ciYaml: batchPolicyConfig);
       scheduler = FakeScheduler(
         config: config,
-        ciYaml: batchPolicyConfig,
         githubChecksUtil: mockGithubChecksUtil,
         luciBuildService: FakeLuciBuildService(
           config: config,
@@ -82,7 +84,11 @@ void main() {
         ),
       );
 
-      handler = BatchBackfiller(config: config, scheduler: scheduler);
+      handler = BatchBackfiller(
+        config: config,
+        scheduler: scheduler,
+        ciYamlFetcher: ciYamlFetcher,
+      );
 
       tester = RequestHandlerTester();
     });
@@ -110,9 +116,9 @@ void main() {
     });
 
     test('does not backfill when task does not exist in TOT', () async {
+      ciYamlFetcher.ciYaml = notInToTConfig;
       scheduler = FakeScheduler(
         config: config,
-        ciYaml: notInToTConfig,
         githubChecksUtil: mockGithubChecksUtil,
         luciBuildService: FakeLuciBuildService(
           config: config,
@@ -120,7 +126,11 @@ void main() {
           githubChecksUtil: mockGithubChecksUtil,
         ),
       );
-      handler = BatchBackfiller(config: config, scheduler: scheduler);
+      handler = BatchBackfiller(
+        config: config,
+        scheduler: scheduler,
+        ciYamlFetcher: ciYamlFetcher,
+      );
       final allGray = <Task>[
         generateTask(1, name: 'Linux_android B', status: Task.statusNew),
       ];
