@@ -169,7 +169,7 @@ void main() {
 
       mockFirestoreService = MockFirestoreService();
       when(
-        mockFirestoreService.queryRecentTasks(
+        mockFirestoreService.queryRecentTasksByName(
           name: anyNamed('name'),
           limit: anyNamed('limit'),
         ),

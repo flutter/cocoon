@@ -11,44 +11,40 @@ import 'package:meta/meta.dart';
 import '../../../cocoon_service.dart';
 import '../../model/appengine/task.dart';
 import '../../model/firestore/task.dart' as firestore;
+import '../../service/datastore.dart';
 
-/// "Vacuums" stale tasks.
+/// Vacuum stale tasks.
 ///
 /// Occassionally, a build never gets processed by LUCI. To prevent tasks
 /// being stuck as "In Progress," this will return tasks to "New" if they have
 /// no updates after 3 hours.
-///
-/// For configuration options, see [VacuumStaleTasks.new].
 @immutable
-interface class VacuumStaleTasks extends RequestHandler<Body> {
-  /// Creates a [VacuumStaleTasks] request handler.
-  ///
-  /// When [get] is invoked, it:
-  /// - Looks for the last [Config.backfillerCommitLimit] commits;
-  /// - Finds tasks associated with that task that are both:
-  ///   - [Task.statusInProgress] and
-  ///   - Do not have a [Task.buildNumber] assigned
-  ///
-  /// If a task was found that was created longer than [timeoutLimit] the
-  /// status is "reset" (set back to [Task.new]).
+class VacuumStaleTasks extends RequestHandler<Body> {
   const VacuumStaleTasks({
     required super.config,
-    @visibleForTesting DateTime Function() now = DateTime.now,
-    @visibleForTesting Duration timeoutLimit = const Duration(hours: 3),
-  }) : _now = now,
-       _timeoutLimit = timeoutLimit;
+    @visibleForTesting
+    this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting this.nowValue,
+  });
 
-  final DateTime Function() _now;
-  final Duration _timeoutLimit;
+  final DatastoreServiceProvider datastoreProvider;
+
+  /// For testing, can be used to inject a deterministic time.
+  final DateTime? nowValue;
+
+  /// Tasks that are in progress without a build for this duration will be
+  /// reset.
+  static const Duration kTimeoutLimit = Duration(hours: 3);
 
   @override
   Future<Body> get() async {
     final futures = <Future<void>>[];
-    for (final slug in config.supportedRepos) {
+    for (var slug in config.supportedRepos) {
       futures.add(_vacuumRepository(slug));
     }
 
     await Future.wait(futures);
+
     return Body.empty;
   }
 
@@ -57,57 +53,49 @@ interface class VacuumStaleTasks extends RequestHandler<Body> {
   ///
   /// The expectation is the [BatchBackfiller] will be able to reschedule these.
   Future<void> _vacuumRepository(gh.RepositorySlug slug) async {
+    final datastore = datastoreProvider(config.db);
+
     // Use the same commit limit as the backfill scheduler, since the primary
     // purpose of fixing stuck tasks is to prevent the backfiller from being
     // stuck on one of these tasks.
-    final commitLimit = config.backfillerCommitLimit;
-    final firestoreService = await config.createFirestoreService();
-
-    // For each recent commit, find each task associated with it.
-    final tasksToBeReset = <firestore.Task>[];
-    for (final recentCommit in await firestoreService.queryRecentCommits(
-      slug: slug,
-      limit: commitLimit,
-    )) {
-      for (final taskForCommit in await firestoreService.queryCommitTasks(
-        recentCommit.sha!,
-      )) {
-        // For completed tasks, skip.
-        if (taskForCommit.status != Task.statusInProgress) {
-          continue;
-        }
-
-        // For tasks that are assigned a build, skip.
-        if (taskForCommit.buildNumber != null) {
-          continue;
-        }
-
+    final tasks =
+        await datastore
+            .queryRecentTasks(
+              slug: slug,
+              commitLimit: config.backfillerCommitLimit,
+            )
+            .toList();
+    final tasksToBeReset = <Task>[];
+    final now = DateTime.now();
+    for (var fullTask in tasks) {
+      final task = fullTask.task;
+      if (task.status == Task.statusInProgress && task.buildNumber == null) {
         // If the task hasn't been assigned a build, see if it's been waiting
         // longer than the timeout, and if so reset it back to New as a
         // mitigation for https://github.com/flutter/flutter/issues/122117 until
         // the root cause is determined and fixed.
         final creationTime = DateTime.fromMillisecondsSinceEpoch(
-          taskForCommit.createTimestamp ?? 0,
+          task.createTimestamp ?? 0,
         );
-        if (_now().difference(creationTime) > _timeoutLimit) {
-          taskForCommit.setStatus(Task.statusNew);
-          tasksToBeReset.add(taskForCommit);
+        if (now.difference(creationTime) > kTimeoutLimit) {
+          task.status = Task.statusNew;
+          tasksToBeReset.add(task);
         }
       }
     }
-
     log.info('Vacuuming stale tasks: $tasksToBeReset');
-    await _updateTaskDocuments(firestoreService, tasksToBeReset);
+    await datastore.insert(tasksToBeReset);
+
+    await updateTaskDocuments(tasksToBeReset);
   }
 
-  Future<void> _updateTaskDocuments(
-    FirestoreService firestoreService,
-    List<firestore.Task> tasks,
-  ) async {
+  Future<void> updateTaskDocuments(List<Task> tasks) async {
     if (tasks.isEmpty) {
       return;
     }
-    final writes = documentsToWrites(tasks, exists: true);
+    final taskDocuments = tasks.map(firestore.taskToDocument).toList();
+    final writes = documentsToWrites(taskDocuments, exists: true);
+    final firestoreService = await config.createFirestoreService();
     await firestoreService.writeViaTransaction(writes);
   }
 }
