@@ -176,11 +176,6 @@ Future<int> full(final Directory cache, final GitHub github) async {
       }
     }
 
-    // Counting characters is not relevant to analysis.
-    // void processText(final UserActivity activity, final String body) {
-    //   activity.characters += body.length;
-    // }
-
     roster.teams[primaryTeam]!.values.forEach(forUser);
 
     final List<FullIssue> allIssues = issues.values
@@ -196,37 +191,15 @@ Future<int> full(final Directory cache, final GitHub github) async {
         forUser(issue.metadata.user).issues.add(issue.metadata.createdAt);
         increment<String?>(forUser(issue.metadata.user).priorityCount, foundPriorities, issue.priority);
       }
-      // Issues closed by users
-      // Not relevant to validating flutter-hacker activity.
-      // if (!issue.isPullRequest && (issue.metadata.closedBy != null)) {
-      //   forUser(issue.metadata.closedBy).closures.add(issue.metadata.closedAt);
-      //   // Issues closed and opened by the same user
-      //   if (issue.metadata.closedBy!.login == issue.metadata.user!.login) {
-      //     forUser(issue.metadata.closedBy).selfClosures += 1;
-      //   }
-      // }
 
-      // How many characters of text from a given user in the main issue issue/pull request.
-      // Not relevant to validating flutter-hacker activity.
-      // processText(forUser(issue.metadata.user), issue.metadata.body);
-
-      // Issue/pull request comments.
+      // Pull request comments.
       for (final IssueComment comment in issue.comments) {
-        // Comments left by user on pull requests.
+        // Comments left by users on pull requests.
         // Issue comments have a lot of spam, excluding for now.
         if (issue.isPullRequest) {
           forUser(comment.user).comments.add(comment.createdAt);
         }
-        // Number of text characters typed per comment.
-        // processText(forUser(comment.user), comment.body!);
       }
-
-      // Emoji reactions on Issues/pull requests.
-      // Not relevant for evaluating contributor activity.
-      // for (final Reaction reaction in issue.reactions) {
-      //   forUser(reaction.user).reactions.add(reaction.createdAt);
-      //   increment(forUser(reaction.user).reactionCount, reactionKinds, reaction.content!);
-      // }
     }
     DateTime? earliest;
     DateTime? latest;
@@ -250,9 +223,7 @@ Future<int> full(final Directory cache, final GitHub github) async {
     for (final UserActivity activity in activityMetrics.values) {
       considerTimes(activity, activity.issues);
       considerTimes(activity, activity.comments);
-      // considerTimes(activity, activity.closures);
       considerTimes(activity, activity.pullRequests);
-      // considerTimes(activity, activity.reactions);
     }
 
     // PRINT ACTIVITY RESULTS
@@ -650,11 +621,6 @@ Future<int> full(final Directory cache, final GitHub github) async {
           forWeek(comment.createdAt)!.comments += 1;
           forWeek(comment.createdAt)!.characters += comment.body!.length;
         }
-        // for (final Reaction reaction in issue.reactions) {
-        //   forWeek(reaction.createdAt)!.reactions += 1;
-        //   forWeek(reaction.createdAt)!.reactionCount[reaction.content!] =
-        //       forWeek(reaction.createdAt)!.reactionCount[reaction.content!]! + 1;
-        // }
       }
       if (weeks.isNotEmpty) {
         weeks.removeLast(); // last week is incomplete data
