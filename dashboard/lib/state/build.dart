@@ -9,13 +9,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app_icons/flutter_app_icons.dart';
 
 import '../logic/brooks.dart';
-import '../model/branch.pb.dart';
 import '../model/build_status_response.pb.dart';
+import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
 import '../model/key.pb.dart';
 import '../model/task.pb.dart';
 import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
+import '../src/rpc_model.dart';
 
 /// State for the Flutter Build Dashboard.
 class BuildState extends ChangeNotifier {
@@ -32,9 +33,7 @@ class BuildState extends ChangeNotifier {
   /// Recent branches for flutter related to releases.
   List<Branch> get branches => _branches;
   List<Branch> _branches = <Branch>[
-    Branch()
-      ..branch = 'master'
-      ..repository = 'flutter',
+    Branch(channel: 'master', reference: 'master'),
   ];
 
   /// The active flutter branches to show data from.
@@ -378,14 +377,16 @@ class BuildState extends ChangeNotifier {
     return successful;
   }
 
-  Future<bool> rerunTask(Task task) async {
+  Future<bool> rerunTask(Task task, Commit commit) async {
     if (!authService.isAuthenticated) {
       return false;
     }
     final response = await cocoonService.rerunTask(
-      task,
-      await authService.idToken,
-      _currentRepo,
+      idToken: await authService.idToken,
+      taskName: task.name,
+      commitSha: commit.sha,
+      repo: _currentRepo,
+      branch: _currentBranch,
     );
     if (response.error != null) {
       _errors.send('$errorMessageRerunTasks: ${response.error}');

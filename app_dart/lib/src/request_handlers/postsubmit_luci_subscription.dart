@@ -23,6 +23,7 @@ import '../service/datastore.dart';
 import '../service/firestore.dart';
 import '../service/github_checks_service.dart';
 import '../service/scheduler.dart';
+import '../service/scheduler/ci_yaml_fetcher.dart';
 
 /// An endpoint for listening to build updates for postsubmit builds.
 ///
@@ -41,11 +42,13 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     this.datastoreProvider = DatastoreService.defaultProvider,
     required this.scheduler,
     required this.githubChecksService,
+    required this.ciYamlFetcher,
   }) : super(subscriptionName: 'build-bucket-postsubmit-sub');
 
   final DatastoreServiceProvider datastoreProvider;
   final Scheduler scheduler;
   final GithubChecksService githubChecksService;
+  final CiYamlFetcher ciYamlFetcher;
 
   @override
   Future<Body> post() async {
@@ -151,7 +154,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
 
     final commit = await datastore.lookupByValue<Commit>(commitKey);
 
-    final ciYaml = await scheduler.getCiYaml(commit);
+    final ciYaml = await ciYamlFetcher.getCiYamlByDatastoreCommit(commit);
     final postsubmitTargets = [
       ...ciYaml.postsubmitTargets(),
       if (ciYaml.isFusion)

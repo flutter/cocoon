@@ -8,13 +8,12 @@ import 'dart:math' as math;
 import 'package:fixnum/fixnum.dart';
 
 import '../logic/qualified_task.dart';
-import '../model/branch.pb.dart';
 import '../model/build_status_response.pb.dart';
 import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
-import '../model/commit_tasks_status.pb.dart';
 import '../model/key.pb.dart';
 import '../model/task.pb.dart';
+import '../src/rpc_model.dart';
 import '../widgets/task_box.dart';
 import 'cocoon.dart';
 
@@ -68,16 +67,6 @@ class DevelopmentCocoonService implements CocoonService {
       _pausedStatus = null;
     }
     _paused = pause;
-  }
-
-  @override
-  Future<CocoonResponse<List<CommitTasksStatus>>> fetchCommitStatusesFirestore({
-    CommitStatus? lastCommitStatus,
-    String? branch,
-    required String repo,
-  }) async {
-    // TODO(keyonghan): to be impelemented when logics are switched to Firestore.
-    return const CocoonResponse<List<CommitTasksStatus>>.error('');
   }
 
   @override
@@ -137,21 +126,12 @@ class DevelopmentCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<List<Branch>>> fetchFlutterBranches() async {
-    final fakeBranches = <Branch>[
-      Branch()
-        ..channel = 'master'
-        ..branch = 'master',
-      Branch()
-        ..channel = 'stable'
-        ..branch = 'flutter-3.13-candidate.0',
-      Branch()
-        ..channel = 'beta'
-        ..branch = 'flutter-3.15-candidate.5',
-      Branch()
-        ..channel = 'dev'
-        ..branch = 'flutter-3.15-candidate.12',
-    ];
-    return CocoonResponse<List<Branch>>.data(fakeBranches);
+    return CocoonResponse.data([
+      Branch(channel: 'master', reference: 'master'),
+      Branch(channel: 'stable', reference: 'flutter-3.13-candidate.0'),
+      Branch(channel: 'beta', reference: 'flutter-3.15-candidate.5'),
+      Branch(channel: 'dev', reference: 'flutter-3.15-candidate.12'),
+    ]);
   }
 
   @override
@@ -160,22 +140,24 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<bool>> rerunTask(
-    Task task,
-    String? accessToken,
-    String repo,
-  ) async {
+  Future<CocoonResponse<bool>> rerunTask({
+    required String? idToken,
+    required String taskName,
+    required String commitSha,
+    required String repo,
+    required String branch,
+  }) async {
     return const CocoonResponse<bool>.error(
       'Unable to retry against fake data. Try building the app to use prod data.',
     );
   }
 
   @override
-  Future<CocoonResponse<void>> schedulePostsubmitsForCommit(
-    Commit commit, {
-    required String idToken,
-    required String branch,
+  Future<CocoonResponse<void>> rerunCommit({
+    required String? idToken,
+    required String commitSha,
     required String repo,
+    required String branch,
   }) async {
     return const CocoonResponse<void>.error(
       'Unable to schedule against fake data. Try building the app to use prod data.',

@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/build_dashboard_page.dart';
-import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:flutter_dashboard/model/build_status_response.pb.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
@@ -15,6 +14,7 @@ import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/service/dev_cocoon.dart';
 import 'package:flutter_dashboard/service/google_authentication.dart';
+import 'package:flutter_dashboard/src/rpc_model.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/widgets/commit_box.dart';
 import 'package:flutter_dashboard/widgets/error_brook_watcher.dart';
@@ -938,8 +938,8 @@ void main() {
 
       // Find the schedule button and press it.
       when(
-        cocoonService.schedulePostsubmitsForCommit(
-          commit,
+        cocoonService.rerunCommit(
+          commitSha: commit.sha,
           idToken: '1234567890',
           branch: 'flutter-release',
           repo: 'flutter',

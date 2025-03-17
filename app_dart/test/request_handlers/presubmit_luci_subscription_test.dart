@@ -3,10 +3,12 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
 import 'package:fixnum/fixnum.dart';
+import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -14,6 +16,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/subscription_tester.dart';
+import '../src/service/fake_ci_yaml_fetcher.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/build_bucket_messages.dart';
@@ -29,18 +32,35 @@ void main() {
   late MockGithubChecksService mockGithubChecksService;
   late MockLuciBuildService mockLuciBuildService;
   late FakeScheduler scheduler;
+  late FakeCiYamlFetcher ciYamlFetcher;
+  late List<String> logs;
 
   setUp(() async {
+    logs = [];
+    log = Logger.detached('postsubmit_luci_subscription_test');
+    log.onRecord.listen((r) {
+      final buffer = StringBuffer(r.message);
+      if (r.error case final error?) {
+        buffer.writeln();
+        buffer.writeln('$error');
+      }
+      if (r.stackTrace case final stackTrace?) {
+        buffer.writeln();
+        buffer.writeln('$stackTrace');
+      }
+      logs.add('$buffer');
+    });
+
     config = FakeConfig();
     mockLuciBuildService = MockLuciBuildService();
 
     mockGithubChecksService = MockGithubChecksService();
     scheduler = FakeScheduler(
-      ciYaml: examplePresubmitRescheduleConfig,
       config: config,
       luciBuildService: mockLuciBuildService,
     );
 
+    ciYamlFetcher = FakeCiYamlFetcher(ciYaml: examplePresubmitRescheduleConfig);
     handler = PresubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,
@@ -48,6 +68,7 @@ void main() {
       githubChecksService: mockGithubChecksService,
       authProvider: FakeAuthenticationProvider(),
       scheduler: scheduler,
+      ciYamlFetcher: ciYamlFetcher,
     );
     request = FakeHttpRequest();
 
@@ -57,6 +78,10 @@ void main() {
     mockRepositoriesService = MockRepositoriesService();
     when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
     config.githubClient = mockGitHubClient;
+  });
+
+  tearDown(() {
+    printOnFailure('LOGGER BUFFER:\n${logs.join('\n')}');
   });
 
   test(
@@ -131,7 +156,7 @@ void main() {
 
     const userDataMap = <String, dynamic>{
       'repo_owner': 'flutter',
-      'commit_branch': 'main',
+      'commit_branch': 'master',
       'commit_sha': 'abc',
       'repo_name': 'flutter',
       'check_run_id': 1,
@@ -183,7 +208,7 @@ void main() {
 
     const userDataMap = <String, dynamic>{
       'repo_owner': 'flutter',
-      'commit_branch': 'main',
+      'commit_branch': 'master',
       'commit_sha': 'abc',
       'repo_name': 'flutter',
       'check_run_id': 1,
@@ -222,7 +247,7 @@ void main() {
 
     const userDataMap = <String, dynamic>{
       'repo_owner': 'flutter',
-      'commit_branch': 'main',
+      'commit_branch': 'master',
       'commit_sha': 'abc',
       'repo_name': 'flutter',
       'check_run_id': 1,
@@ -263,6 +288,7 @@ void main() {
       githubChecksService: mockGithubChecksService,
       authProvider: FakeAuthenticationProvider(),
       scheduler: scheduler,
+      ciYamlFetcher: ciYamlFetcher,
     );
 
     await tester.post(luciHandler);
@@ -300,7 +326,7 @@ void main() {
 
     const userDataMap = <String, dynamic>{
       'repo_owner': 'flutter',
-      'commit_branch': 'main',
+      'commit_branch': 'master',
       'commit_sha': 'abc',
       'repo_name': 'flutter',
       'check_run_id': 1,
@@ -340,7 +366,6 @@ void main() {
   });
 
   test('Build not rescheduled if ci.yaml fails validation.', () async {
-    scheduler.failCiYamlValidation = true;
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
@@ -408,7 +433,7 @@ void main() {
 
     const userDataMap = <String, dynamic>{
       'repo_owner': 'flutter',
-      'commit_branch': 'main',
+      'commit_branch': 'master',
       'commit_sha': 'abc',
       'repo_name': 'flutter',
       'check_run_id': 1,
@@ -447,6 +472,7 @@ void main() {
       githubChecksService: mockGithubChecksService,
       authProvider: FakeAuthenticationProvider(),
       scheduler: scheduler,
+      ciYamlFetcher: ciYamlFetcher,
     );
 
     await tester.post(luciHandler);
