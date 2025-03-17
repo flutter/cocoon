@@ -15,6 +15,7 @@ import '../../model/firestore/task.dart' as firestore;
 import '../../request_handling/exceptions.dart';
 import '../../service/datastore.dart';
 import '../../service/luci_build_service/pending_task.dart';
+import '../../service/scheduler/ci_yaml_fetcher.dart';
 import '../../service/scheduler/policy.dart';
 
 /// Cron request handler for scheduling targets when capacity becomes available.
@@ -26,12 +27,14 @@ class BatchBackfiller extends RequestHandler {
   const BatchBackfiller({
     required super.config,
     required this.scheduler,
+    required this.ciYamlFetcher,
     @visibleForTesting
     this.datastoreProvider = DatastoreService.defaultProvider,
   });
 
   final DatastoreServiceProvider datastoreProvider;
   final Scheduler scheduler;
+  final CiYamlFetcher ciYamlFetcher;
 
   @override
   Future<Body> get() async {
@@ -72,7 +75,9 @@ class BatchBackfiller extends RequestHandler {
     for (var taskColumn in taskMap.values) {
       final task = taskColumn.first;
 
-      final ciYaml = await scheduler.getCiYaml(task.commit);
+      final ciYaml = await ciYamlFetcher.getCiYamlByDatastoreCommit(
+        task.commit,
+      );
       final ciYamlTargets = [
         ...ciYaml.backfillTargets(),
         if (ciYaml.isFusion)

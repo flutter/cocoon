@@ -10,6 +10,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
+import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
@@ -45,6 +46,12 @@ Future<void> main() async {
     // Gerrit service class to communicate with GoB.
     final gerritService = GerritService(config: config);
 
+    final ciYamlFetcher = CiYamlFetcher(
+      cache: cache,
+      config: config,
+      fusionTester: fusionTester,
+    );
+
     /// Cocoon scheduler service to manage validating commits in presubmit and postsubmit.
     final scheduler = Scheduler(
       cache: cache,
@@ -53,6 +60,7 @@ Future<void> main() async {
       getFilesChanged: GithubApiGetFilesChanged(config),
       luciBuildService: luciBuildService,
       fusionTester: fusionTester,
+      ciYamlFetcher: ciYamlFetcher,
     );
 
     final branchService = BranchService(
@@ -74,6 +82,7 @@ Future<void> main() async {
       githubChecksService: githubChecksService,
       commitService: commitService,
       swarmingAuthProvider: swarmingAuthProvider,
+      ciYamlFetcher: ciYamlFetcher,
     );
 
     return runAppEngine(

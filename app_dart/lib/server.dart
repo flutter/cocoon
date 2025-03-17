@@ -8,6 +8,7 @@ import 'dart:math';
 import 'cocoon_service.dart';
 import 'src/request_handlers/trigger_workflow.dart';
 import 'src/service/commit_service.dart';
+import 'src/service/scheduler/ci_yaml_fetcher.dart';
 
 typedef Server = Future<void> Function(HttpRequest);
 
@@ -24,6 +25,7 @@ Server createServer({
   required CommitService commitService,
   required GerritService gerritService,
   required Scheduler scheduler,
+  required CiYamlFetcher ciYamlFetcher,
   FusionTester? fusionTester,
 }) {
   fusionTester ??= FusionTester();
@@ -78,12 +80,14 @@ Server createServer({
       luciBuildService: luciBuildService,
       githubChecksService: githubChecksService,
       scheduler: scheduler,
+      ciYamlFetcher: ciYamlFetcher,
     ),
     '/api/v2/postsubmit-luci-subscription': PostsubmitLuciSubscription(
       cache: cache,
       config: config,
       scheduler: scheduler,
       githubChecksService: githubChecksService,
+      ciYamlFetcher: ciYamlFetcher,
     ),
     '/api/push-build-status-to-github': PushBuildStatusToGithub(
       config: config,
@@ -99,6 +103,7 @@ Server createServer({
       authenticationProvider: authProvider,
       luciBuildService: luciBuildService,
       scheduler: scheduler,
+      ciYamlFetcher: ciYamlFetcher,
     ),
     '/api/reset-try-task': ResetTryTask(
       config: config,
@@ -113,10 +118,12 @@ Server createServer({
     '/api/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
       scheduler: scheduler,
+      ciYamlFetcher: ciYamlFetcher,
     ),
     '/api/v2/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
       scheduler: scheduler,
+      ciYamlFetcher: ciYamlFetcher,
     ),
     '/api/v2/scheduler/batch-request-subscription':
         SchedulerRequestSubscription(

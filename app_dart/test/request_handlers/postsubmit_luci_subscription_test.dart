@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart'
@@ -12,6 +13,7 @@ import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:googleapis/firestore/v1.dart';
+import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -19,6 +21,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/subscription_tester.dart';
+import '../src/service/fake_ci_yaml_fetcher.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/build_bucket_messages.dart';
@@ -34,11 +37,29 @@ void main() {
   late MockGithubChecksService mockGithubChecksService;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late FakeScheduler scheduler;
+  late FakeCiYamlFetcher ciYamlFetcher;
+  late List<String> logs;
+
   firestore.Task? firestoreTask;
   firestore_commit.Commit? firestoreCommit;
   late int attempt;
 
   setUp(() async {
+    logs = [];
+    log = Logger.detached('postsubmit_luci_subscription_test');
+    log.onRecord.listen((r) {
+      final buffer = StringBuffer(r.message);
+      if (r.error case final error?) {
+        buffer.writeln();
+        buffer.writeln('$error');
+      }
+      if (r.stackTrace case final stackTrace?) {
+        buffer.writeln();
+        buffer.writeln('$stackTrace');
+      }
+      logs.add('$buffer');
+    });
+
     firestoreTask = null;
     attempt = 0;
     mockGithubChecksUtil = MockGithubChecksUtil();
@@ -89,15 +110,6 @@ void main() {
         <firestore_commit.Commit>[firestoreCommit!],
       );
     });
-    // when(
-    //   mockFirestoreService.getDocument(
-    //     'projects/flutter-dashboard/databases/cocoon/documents/tasks/87f88734747805589f2131753620d61b22922822_Linux A_1',
-    //   ),
-    // ).thenAnswer((Invocation invocation) {
-    //   return Future<Document>.value(
-    //     firestoreCommit,
-    //   );
-    // });
     when(
       mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
     ).thenAnswer((Invocation invocation) {
@@ -108,10 +120,10 @@ void main() {
       githubChecksUtil: mockGithubChecksUtil,
     );
     scheduler = FakeScheduler(
-      ciYaml: exampleConfig,
       config: config,
       luciBuildService: luciBuildService,
     );
+    ciYamlFetcher = FakeCiYamlFetcher();
     handler = PostsubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,
@@ -119,10 +131,14 @@ void main() {
       githubChecksService: mockGithubChecksService,
       datastoreProvider: (_) => DatastoreService(config.db, 5),
       scheduler: scheduler,
+      ciYamlFetcher: ciYamlFetcher,
     );
     request = FakeHttpRequest();
-
     tester = SubscriptionTester(request: request);
+  });
+
+  tearDown(() {
+    printOnFailure('LOGGER BUFFER:\n${logs.join('\n')}');
   });
 
   test('throws exception when task document name is not in message', () async {
@@ -491,7 +507,7 @@ void main() {
 
   test('non-bringup target updates check run', () async {
     firestoreTask = generateFirestoreTask(1, name: 'Linux nonbringup');
-    scheduler.ciYaml = nonBringupPackagesConfig;
+    ciYamlFetcher.ciYaml = nonBringupPackagesConfig;
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
@@ -504,6 +520,7 @@ void main() {
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
       repo: 'packages',
+      branch: Config.defaultBranch(Config.packagesSlug),
     );
     final task = generateTask(
       4507531199512576,
@@ -541,7 +558,7 @@ void main() {
 
   test('bringup target does not update check run', () async {
     firestoreTask = generateFirestoreTask(1, name: 'Linux bringup');
-    scheduler.ciYaml = bringupPackagesConfig;
+    ciYamlFetcher.ciYaml = bringupPackagesConfig;
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
@@ -588,7 +605,7 @@ void main() {
   });
 
   test('unsupported repo target does not update check run', () async {
-    scheduler.ciYaml = unsupportedPostsubmitCheckrunConfig;
+    ciYamlFetcher.ciYaml = unsupportedPostsubmitCheckrunConfig;
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
