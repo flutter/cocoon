@@ -28,22 +28,26 @@ final Directory output = Directory('output');
 const String orgName = 'flutter';
 final RepositorySlug issueDatabaseRepo = RepositorySlug(orgName, 'flutter');
 final Set<RepositorySlug> repos = <RepositorySlug>{
-  issueDatabaseRepo,
-  RepositorySlug(orgName, 'engine'),
+  issueDatabaseRepo, // flutter/flutter
+  RepositorySlug(orgName, 'assets-for-api-docs'),
   RepositorySlug(orgName, 'buildroot'),
-  RepositorySlug(orgName, 'devtools'),
-  RepositorySlug(orgName, 'flutter-intellij'),
-  RepositorySlug(orgName, 'packages'),
-  RepositorySlug(orgName, 'codelabs'),
-  RepositorySlug(orgName, 'website'),
   RepositorySlug(orgName, 'cocoon'),
+  RepositorySlug(orgName, 'codelabs'),
+  RepositorySlug(orgName, 'devtools'),
+  RepositorySlug(orgName, 'engine'),
+  RepositorySlug(orgName, 'flutter-intellij'),
+  RepositorySlug(orgName, 'gallery'),
+  RepositorySlug(orgName, 'games'),
+  RepositorySlug(orgName, 'holobooth'),
+  RepositorySlug(orgName, 'io_flip'),
+  RepositorySlug(orgName, 'news_toolkit'),
+  RepositorySlug(orgName, 'packages'),
+  RepositorySlug(orgName, 'photobooth'),
+  RepositorySlug(orgName, 'pinball'),
   RepositorySlug(orgName, 'platform_tests'),
   RepositorySlug(orgName, 'samples'),
-  RepositorySlug(orgName, 'gallery'),
-  RepositorySlug(orgName, 'news_toolkit'),
-  RepositorySlug(orgName, 'holobooth'),
-  RepositorySlug(orgName, 'pinball'),
-  RepositorySlug(orgName, 'photobooth'),
+  RepositorySlug(orgName, 'tests'),
+  RepositorySlug(orgName, 'website'),
 };
 const String primaryTeam = 'flutter-hackers';
 const Duration rosterMaxAge = Duration(minutes: 10);
@@ -61,6 +65,11 @@ bool issueIsClosed(final FullIssue issue) {
   return issue.metadata.isClosed || issue.metadata.state.toUpperCase() == 'CLOSED';
 }
 
+// Turns a username into an internal canonicalized form.
+// We add a "👤" emoji here so that if we accidentally use the canonicalized form
+// in the output, we will catch it.
+String canon(final String? s) => '👤${(s ?? "").toLowerCase()}';
+
 Future<int> full(final Directory cache, final GitHub github) async {
   try {
     // FETCH USER AND TEAM DATA
@@ -72,18 +81,19 @@ Future<int> full(final Directory cache, final GitHub github) async {
       cacheEpoch: maxAge(rosterMaxAge),
     );
     final Set<String> allMembers = <String>{};
-    final Set<String> currentMembers = roster.teams[primaryTeam]!.keys.toSet();
+    final Set<String> currentMembers = roster.teams[primaryTeam]!.keys.map(canon).toSet();
     final Set<String> expectedMembers = (await membersFile.readAsString())
         .trimRight()
         .split('\n')
         .where((final String name) => !name.endsWith(' (DO NOT ADD)'))
+        .map(canon)
         .toSet();
-    final Set<String> expectedExmembers = (await exmembersFile.readAsString()).trimRight().split('\n').toSet();
+    final Set<String> expectedExmembers =
+        (await exmembersFile.readAsString()).trimRight().split('\n').map(canon).toSet();
     try {
-      Set<String> canon(final Set<String> set) => set.map<String>((final String s) => s.toLowerCase()).toSet();
-      final Set<String> unexpectedMembers = canon(currentMembers).difference(canon(expectedMembers));
-      final Set<String> memberExmembers = canon(expectedExmembers).intersection(canon(currentMembers));
-      final Set<String> missingMembers = canon(expectedMembers).difference(canon(currentMembers));
+      final Set<String> unexpectedMembers = currentMembers.difference(expectedMembers);
+      final Set<String> memberExmembers = expectedExmembers.intersection(currentMembers);
+      final Set<String> missingMembers = expectedMembers.difference(currentMembers);
       if (unexpectedMembers.isNotEmpty) {
         print(
           'WARNING: The following users are currently members of $primaryTeam but not expected: ${unexpectedMembers.join(', ')}',
@@ -144,11 +154,11 @@ Future<int> full(final Directory cache, final GitHub github) async {
     UserActivity forUser(final User? user) {
       return activityMetrics.putIfAbsent(user!.login!, () {
         final UserActivity result = UserActivity();
-        if (expectedMembers.contains(user.login)) {
+        if (expectedMembers.contains(canon(user.login))) {
           result
             ..isMember = true
             ..isActiveMember = true;
-        } else if (expectedExmembers.contains(user.login)) {
+        } else if (expectedExmembers.contains(canon(user.login))) {
           result.isMember = true;
         }
         return result;
@@ -166,39 +176,57 @@ Future<int> full(final Directory cache, final GitHub github) async {
       }
     }
 
-    void processText(final UserActivity activity, final String body) {
-      activity.characters += body.length;
-    }
+    // Counting characters is not relevant to analysis.
+    // void processText(final UserActivity activity, final String body) {
+    //   activity.characters += body.length;
+    // }
 
-    for (final String user in currentMembers) {
-      forUser(User(login: user));
-    }
+    roster.teams[primaryTeam]!.values.forEach(forUser);
+
     final List<FullIssue> allIssues = issues.values
         .expand((final Map<int, FullIssue> issues) => issues.values)
         .where((final FullIssue issue) => issue.isValid)
         .toList();
     for (final FullIssue issue in allIssues) {
       if (issue.isPullRequest) {
+        // Pull requests filed
         forUser(issue.metadata.user).pullRequests.add(issue.metadata.createdAt);
       } else {
+        // Issues filed by users
         forUser(issue.metadata.user).issues.add(issue.metadata.createdAt);
         increment<String?>(forUser(issue.metadata.user).priorityCount, foundPriorities, issue.priority);
       }
-      if (!issue.isPullRequest && (issue.metadata.closedBy != null)) {
-        forUser(issue.metadata.closedBy).closures.add(issue.metadata.closedAt);
-        if (issue.metadata.closedBy!.login == issue.metadata.user!.login) {
-          forUser(issue.metadata.closedBy).selfClosures += 1;
-        }
-      }
-      processText(forUser(issue.metadata.user), issue.metadata.body);
+      // Issues closed by users
+      // Not relevant to validating flutter-hacker activity.
+      // if (!issue.isPullRequest && (issue.metadata.closedBy != null)) {
+      //   forUser(issue.metadata.closedBy).closures.add(issue.metadata.closedAt);
+      //   // Issues closed and opened by the same user
+      //   if (issue.metadata.closedBy!.login == issue.metadata.user!.login) {
+      //     forUser(issue.metadata.closedBy).selfClosures += 1;
+      //   }
+      // }
+
+      // How many characters of text from a given user in the main issue issue/pull request.
+      // Not relevant to validating flutter-hacker activity.
+      // processText(forUser(issue.metadata.user), issue.metadata.body);
+
+      // Issue/pull request comments.
       for (final IssueComment comment in issue.comments) {
-        forUser(comment.user).comments.add(comment.createdAt);
-        processText(forUser(comment.user), comment.body!);
+        // Comments left by user on pull requests.
+        // Issue comments have a lot of spam, excluding for now.
+        if (issue.isPullRequest) {
+          forUser(comment.user).comments.add(comment.createdAt);
+        }
+        // Number of text characters typed per comment.
+        // processText(forUser(comment.user), comment.body!);
       }
-      for (final Reaction reaction in issue.reactions) {
-        forUser(reaction.user).reactions.add(reaction.createdAt);
-        increment(forUser(reaction.user).reactionCount, reactionKinds, reaction.content!);
-      }
+
+      // Emoji reactions on Issues/pull requests.
+      // Not relevant for evaluating contributor activity.
+      // for (final Reaction reaction in issue.reactions) {
+      //   forUser(reaction.user).reactions.add(reaction.createdAt);
+      //   increment(forUser(reaction.user).reactionCount, reactionKinds, reaction.content!);
+      // }
     }
     DateTime? earliest;
     DateTime? latest;
@@ -222,9 +250,9 @@ Future<int> full(final Directory cache, final GitHub github) async {
     for (final UserActivity activity in activityMetrics.values) {
       considerTimes(activity, activity.issues);
       considerTimes(activity, activity.comments);
-      considerTimes(activity, activity.closures);
+      // considerTimes(activity, activity.closures);
       considerTimes(activity, activity.pullRequests);
-      considerTimes(activity, activity.reactions);
+      // considerTimes(activity, activity.reactions);
     }
 
     // PRINT ACTIVITY RESULTS
@@ -241,6 +269,7 @@ Future<int> full(final Directory cache, final GitHub github) async {
       ..sort((final String a, final String b) => activityMetrics[b]!.total - activityMetrics[a]!.total)) {
       verifyStringSanity(user, csvSpecials);
       final UserActivity activity = activityMetrics[user]!;
+
       if (activity.daysActive > 0) {
         usersWithMoreThanOneDayActive += 1;
       }
@@ -276,7 +305,7 @@ Future<int> full(final Directory cache, final GitHub github) async {
         .toList();
     for (final FullIssue issue in primaryIssues.where((final FullIssue issue) => issue.priority != null)) {
       final PriorityResults priorityResults = priorityAnalysis[issue.priority!]!;
-      final bool teamIssue = allMembers.contains(issue.metadata.user!.login);
+      final bool teamIssue = allMembers.contains(canon(issue.metadata.user!.login));
       priorityResults.total += 1;
       if (teamIssue) {
         priorityResults.openedByTeam += 1;
@@ -387,8 +416,8 @@ Future<int> full(final Directory cache, final GitHub github) async {
         ..write(',${issue.labels.contains('new feature')}')
         ..write(',${issue.labels.contains('proposal')}')
         ..write(',${issue.labels.contains('waiting for customer response')}')
-        ..write(',${allMembers.contains(issue.metadata.user!.login)}')
-        ..write(',${expectedExmembers.contains(issue.metadata.user!.login)}')
+        ..write(',${allMembers.contains(canon(issue.metadata.user!.login))}')
+        ..write(',${expectedExmembers.contains(canon(issue.metadata.user!.login))}')
         ..writeln();
       if ((daysToTwentyVotes == null || daysToTwentyVotes > 60) &&
           issue.labels.contains('new feature') &&
@@ -621,11 +650,11 @@ Future<int> full(final Directory cache, final GitHub github) async {
           forWeek(comment.createdAt)!.comments += 1;
           forWeek(comment.createdAt)!.characters += comment.body!.length;
         }
-        for (final Reaction reaction in issue.reactions) {
-          forWeek(reaction.createdAt)!.reactions += 1;
-          forWeek(reaction.createdAt)!.reactionCount[reaction.content!] =
-              forWeek(reaction.createdAt)!.reactionCount[reaction.content!]! + 1;
-        }
+        // for (final Reaction reaction in issue.reactions) {
+        //   forWeek(reaction.createdAt)!.reactions += 1;
+        //   forWeek(reaction.createdAt)!.reactionCount[reaction.content!] =
+        //       forWeek(reaction.createdAt)!.reactionCount[reaction.content!]! + 1;
+        // }
       }
       if (weeks.isNotEmpty) {
         weeks.removeLast(); // last week is incomplete data
