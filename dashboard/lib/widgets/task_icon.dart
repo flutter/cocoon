@@ -91,8 +91,8 @@ class TaskIcon extends StatelessWidget {
     return IconTheme.merge(
       data: IconThemeData(size: TaskBox.of(context) - 5),
       child: InkWell(
-        onTap: () {
-          launchUrl(Uri.parse(qualifiedTask.sourceConfigurationUrl));
+        onTap: () async {
+          await launchUrl(Uri.parse(qualifiedTask.sourceConfigurationUrl));
         },
         child: Tooltip(
           message: '${qualifiedTask.task} (${qualifiedTask.stage})',

@@ -37,6 +37,7 @@ void main() {
     githubService = GithubService(mockGitHub);
     slug = RepositorySlug('flutter', 'flutter');
     final whenGithubRequest = when(
+      // ignore: discarded_futures
       mockGitHub.request(
         'GET',
         '/repos/${slug.owner}/${slug.name}/commits',

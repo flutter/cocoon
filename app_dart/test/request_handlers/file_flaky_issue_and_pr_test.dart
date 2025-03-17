@@ -65,6 +65,7 @@ void main() {
       mockUsersService = MockUsersService();
       // when gets the content of .ci.yaml
       when(
+        // ignore: discarded_futures
         mockRepositoriesService.getContents(captureAny, kCiYamlPath),
       ).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
@@ -75,6 +76,7 @@ void main() {
       });
       // when gets the content of TESTOWNERS
       when(
+        // ignore: discarded_futures
         mockRepositoriesService.getContents(captureAny, kTestOwnerPath),
       ).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
@@ -83,6 +85,7 @@ void main() {
           ),
         );
       });
+      // ignore: discarded_futures
       when(mockIssuesService.create(any, any)).thenAnswer((_) async => Issue());
       // when gets existing flaky issues.
       when(
@@ -101,6 +104,7 @@ void main() {
         return const Stream<PullRequest>.empty();
       });
       // when gets the current head of master branch
+      // ignore: discarded_futures
       when(mockGitService.getReference(captureAny, kMasterRefs)).thenAnswer((
         Invocation invocation,
       ) {
@@ -112,6 +116,7 @@ void main() {
         );
       });
       // when gets the current user.
+      // ignore: discarded_futures
       when(mockUsersService.getCurrentUser()).thenAnswer((
         Invocation invocation,
       ) {
@@ -123,6 +128,7 @@ void main() {
       });
       // when assigns pull request reviewer.
       when(
+        // ignore: discarded_futures
         mockGitHubClient.postJSON<Map<String, dynamic>, PullRequest>(
           captureAny,
           statusCode: captureAnyNamed('statusCode'),

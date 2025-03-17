@@ -56,6 +56,7 @@ void main() {
       );
       when(mockGithub.pullRequests).thenReturn(mockPullRequestsService);
       when(
+        // ignore: discarded_futures
         mockPullRequestsService.get(any, 123),
       ).thenAnswer((_) async => generatePullRequest(id: 123));
     });

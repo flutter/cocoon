@@ -11,7 +11,6 @@ import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/key.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/appengine_cocoon.dart';
-import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/src/rpc_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' show Request, Response;
@@ -28,13 +27,6 @@ void main() {
         client: MockClient((Request request) async {
           return Response(luciJsonGetStatsResponse, 200);
         }),
-      );
-    });
-
-    test('should return CocoonResponse<List<CommitStatus>>', () {
-      expect(
-        service.fetchCommitStatuses(repo: 'flutter'),
-        const TypeMatcher<Future<CocoonResponse<List<CommitStatus>>>>(),
       );
     });
 
@@ -105,13 +97,6 @@ void main() {
         client: MockClient((Request request) async {
           return Response(jsonBuildStatusTrueResponse, 200);
         }),
-      );
-    });
-
-    test('should return CocoonResponse<bool>', () {
-      expect(
-        service.fetchTreeBuildStatus(repo: 'flutter'),
-        const TypeMatcher<Future<CocoonResponse<BuildStatusResponse>>>(),
       );
     });
 
@@ -256,13 +241,6 @@ void main() {
         client: MockClient((Request request) async {
           return Response(jsonGetBranchesResponse, 200);
         }),
-      );
-    });
-
-    test('should return CocoonResponse<List<Branch>>', () {
-      expect(
-        service.fetchFlutterBranches(),
-        const TypeMatcher<Future<CocoonResponse<List<Branch>>>>(),
       );
     });
 

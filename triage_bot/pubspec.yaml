@@ -18,5 +18,5 @@ dependencies:
   nyxx: ^5.0.4
 
 dev_dependencies:
-  dart_flutter_team_lints: 3.4.0
+  dart_flutter_team_lints: 3.5.0
   test: ^1.21.0

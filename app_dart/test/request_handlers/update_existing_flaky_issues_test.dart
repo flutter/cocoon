@@ -63,6 +63,7 @@ void main() {
 
       // when gets the content of TESTOWNERS
       when(
+        // ignore: discarded_futures
         mockRepositoriesService.getContents(captureAny, kTestOwnerPath),
       ).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
@@ -75,9 +76,11 @@ void main() {
       when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
       when(mockGitHubClient.issues).thenReturn(mockIssuesService);
       when(
+        // ignore: discarded_futures
         mockIssuesService.createComment(any, any, any),
       ).thenAnswer((_) async => IssueComment());
       when(
+        // ignore: discarded_futures
         mockIssuesService.edit(any, any, any),
       ).thenAnswer((_) async => Issue());
       config = FakeConfig(

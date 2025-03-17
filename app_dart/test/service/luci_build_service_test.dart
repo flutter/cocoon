@@ -567,9 +567,11 @@ void main() {
         });
 
         when(
+          // ignore: discarded_futures
           mockGithubChecksUtil.createCheckRun(any, any, any, any),
         ).thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
         when(
+          // ignore: discarded_futures
           callbacks.initializePrCheckRuns(
             firestoreService: anyNamed('firestoreService'),
             pullRequest: anyNamed('pullRequest'),
@@ -1792,6 +1794,7 @@ void main() {
       mockFirestoreService = MockFirestoreService();
       mockBuildBucketClient = MockBuildBucketClient();
       when(
+        // ignore: discarded_futures
         mockGithubChecksUtil.createCheckRun(
           any,
           any,
@@ -1801,16 +1804,19 @@ void main() {
         ),
       ).thenAnswer((realInvocation) async => generateCheckRun(1));
       when(
+        // ignore: discarded_futures
         mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
       ).thenAnswer((Invocation invocation) {
         return Future<BatchWriteResponse>.value(BatchWriteResponse());
       });
+      // ignore: discarded_futures
       when(mockFirestoreService.getDocument(captureAny)).thenAnswer((
         Invocation invocation,
       ) {
         return Future<firestore_commit.Commit>.value(firestoreCommit);
       });
       when(
+        // ignore: discarded_futures
         mockFirestoreService.queryRecentCommits(
           limit: captureAnyNamed('limit'),
           slug: captureAnyNamed('slug'),
@@ -2100,6 +2106,7 @@ void main() {
       config = FakeConfig();
       firestoreCommit = null;
       mockBuildBucketClient = MockBuildBucketClient();
+      // ignore: discarded_futures
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         return bbv2.ListBuildersResponse(
           builders: [
@@ -2123,6 +2130,7 @@ void main() {
 
       mockGithubChecksUtil = MockGithubChecksUtil();
       when(
+        // ignore: discarded_futures
         mockGithubChecksUtil.createCheckRun(
           any,
           any,
@@ -2134,16 +2142,19 @@ void main() {
 
       mockFirestoreService = MockFirestoreService();
       when(
+        // ignore: discarded_futures
         mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
       ).thenAnswer((Invocation invocation) {
         return Future<BatchWriteResponse>.value(BatchWriteResponse());
       });
+      // ignore: discarded_futures
       when(mockFirestoreService.getDocument(captureAny)).thenAnswer((
         Invocation invocation,
       ) {
         return Future<firestore_commit.Commit>.value(firestoreCommit);
       });
       when(
+        // ignore: discarded_futures
         mockFirestoreService.queryRecentCommits(
           limit: captureAnyNamed('limit'),
           slug: captureAnyNamed('slug'),

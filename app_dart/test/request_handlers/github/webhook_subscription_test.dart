@@ -66,6 +66,7 @@ void main() {
     db = FakeDatastoreDB();
     mockFirestoreService = MockFirestoreService();
     when(
+      // ignore: discarded_futures
       mockFirestoreService.queryRecentTasksByName(
         name: anyNamed('name'),
         limit: anyNamed('limit'),
@@ -77,6 +78,7 @@ void main() {
     commitService = MockCommitService();
     final tabledataResource = MockTabledataResource();
     when(
+      // ignore: discarded_futures
       tabledataResource.insertAll(any, any, any, any),
     ).thenAnswer((_) async => TableDataInsertAllResponse());
     config = FakeConfig(
@@ -101,9 +103,11 @@ void main() {
     );
     issuesService = MockIssuesService();
     when(
+      // ignore: discarded_futures
       issuesService.addLabelsToIssue(any, any, any),
     ).thenAnswer((_) async => <IssueLabel>[]);
     when(
+      // ignore: discarded_futures
       issuesService.createComment(any, any, any),
     ).thenAnswer((_) async => IssueComment());
     when(issuesService.listCommentsByIssue(any, any)).thenAnswer(
@@ -114,6 +118,7 @@ void main() {
       pullRequestsService.listFiles(Config.flutterSlug, any),
     ).thenAnswer((_) => const Stream<PullRequestFile>.empty());
     when(
+      // ignore: discarded_futures
       pullRequestsService.edit(
         any,
         any,
@@ -137,6 +142,7 @@ void main() {
     when(gitHubClient.issues).thenReturn(issuesService);
     when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
     when(
+      // ignore: discarded_futures
       mockGithubChecksUtil.createCheckRun(
         any,
         any,
@@ -2803,8 +2809,8 @@ void foo() {
         });
       });
 
-      tearDown(() {
-        logSubscription.cancel();
+      tearDown(() async {
+        await logSubscription.cancel();
       });
 
       test('applies emergency label on approved PRs', () async {

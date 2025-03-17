@@ -20,6 +20,6 @@ dependencies:
   retry: 3.1.2
 
 dev_dependencies:
-  dart_flutter_team_lints: 3.4.0
+  dart_flutter_team_lints: 3.5.0
   lints: 5.0.0
   test: 1.25.15

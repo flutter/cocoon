@@ -29,6 +29,7 @@ void main() {
     pullRequests = MockPullRequestsService();
     when(github.pullRequests).thenReturn(pullRequests);
     when(
+      // ignore: discarded_futures
       pullRequests.createReview(any, any),
     ).thenAnswer((_) async => gh.PullRequestReview(id: 123, user: gh.User()));
   });

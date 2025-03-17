@@ -46,9 +46,11 @@ void main() {
     commitService = CommitService(config: config);
 
     when(
+      // ignore: discarded_futures
       config.createDefaultGitHubService(),
     ).thenAnswer((_) async => githubService);
     when(
+      // ignore: discarded_futures
       config.createFirestoreService(),
     ).thenAnswer((_) async => mockFirestoreService);
     when(config.db).thenReturn(db);

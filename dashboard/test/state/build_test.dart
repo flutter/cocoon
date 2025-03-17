@@ -34,6 +34,7 @@ void main() {
       setupCommitStatus = _createCommitStatus('setup');
 
       when(
+        // ignore: discarded_futures
         mockCocoonService.fetchCommitStatuses(
           branch: anyNamed('branch'),
           repo: anyNamed('repo'),
@@ -44,6 +45,7 @@ void main() {
         ),
       );
       when(
+        // ignore: discarded_futures
         mockCocoonService.fetchTreeBuildStatus(
           branch: anyNamed('branch'),
           repo: anyNamed('repo'),
@@ -53,10 +55,12 @@ void main() {
           BuildStatusResponse()..buildStatus = EnumBuildStatus.success,
         ),
       );
+      // ignore: discarded_futures
       when(mockCocoonService.fetchRepos()).thenAnswer(
         (_) async =>
             const CocoonResponse<List<String>>.data(<String>['flutter']),
       );
+      // ignore: discarded_futures
       when(mockCocoonService.fetchFlutterBranches()).thenAnswer(
         (_) async => CocoonResponse<List<Branch>>.data([
           Branch(channel: defaultBranch, reference: defaultBranch),

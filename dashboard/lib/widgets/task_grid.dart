@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -303,7 +304,7 @@ class _TaskGridState extends State<TaskGrid> {
                   schedulePostsubmitBuild: () {
                     if (widget.schedulePostsubmitBuildForReleaseBranch
                         case final schedule?) {
-                      return () => schedule(row.commit);
+                      return () async => schedule(row.commit);
                     }
                     return null;
                   }(),
@@ -387,8 +388,9 @@ class _TaskGridState extends State<TaskGrid> {
       for (int index = 0; index < max(length, _loadingMessage.length); index++)
         LatticeCell(
           builder: (BuildContext context) {
-            widget.buildState
-                .fetchMoreCommitStatuses(); // This is safe to call many times.
+            unawaited(
+              widget.buildState.fetchMoreCommitStatuses(),
+            ); // This is safe to call many times.
             return Text(
               _loadingMessage[index % _loadingMessage.length],
               style: TextStyle(

@@ -148,6 +148,7 @@ class _FakeProcess implements io.Process {
       stderr = const Stream<List<int>>.empty();
     } else if (outputFollowsExit) {
       stderr = Stream<List<int>>.fromFuture(
+        // ignore: discarded_futures
         exitCode.then((_) {
           return Future<List<int>>(() => utf8.encode(_stderr));
         }),
@@ -160,6 +161,7 @@ class _FakeProcess implements io.Process {
       stdout = const Stream<List<int>>.empty();
     } else if (outputFollowsExit) {
       stdout = Stream<List<int>>.fromFuture(
+        // ignore: discarded_futures
         exitCode.then((_) {
           return Future<List<int>>(() => utf8.encode(_stdout));
         }),

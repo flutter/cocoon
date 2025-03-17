@@ -66,6 +66,7 @@ void main() {
       sampleConfigNoOverride,
     );
 
+    // ignore: discarded_futures
     when(jobsResource.query(captureAny, any)).thenAnswer((
       Invocation invocation,
     ) {

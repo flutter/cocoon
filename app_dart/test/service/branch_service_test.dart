@@ -31,6 +31,7 @@ void main() {
 
     config = MockConfig();
     when(
+      // ignore: discarded_futures
       config.createDefaultGitHubService(),
     ).thenAnswer((_) async => githubService);
     gerritService = FakeGerritService();
@@ -69,6 +70,7 @@ void main() {
         config.releaseCandidateBranchPath,
       ).thenReturn('bin/internal/release-candidate-branch.version');
       when(
+        // ignore: discarded_futures
         githubService.getFileContent(
           // Required because RepositorySlug does not implement operator==.
           argThat(
@@ -185,6 +187,7 @@ void main() {
 
       repositories = MockRepositoriesService();
       when(
+        // ignore: discarded_futures
         repositories.getCommit(Config.flutterSlug, sha),
       ).thenAnswer((_) async => generateGitCommit(5));
 

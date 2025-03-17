@@ -63,6 +63,7 @@ void main() {
       sha: 'bf58e0e6dffbfd759a3b2b5c56a2b5b115506c91',
     );
     when(
+      // ignore: discarded_futures
       firestoreService.queryRecentCommits(
         slug: anyNamed('slug'),
         limit: argThat(equals(1), named: 'limit'),

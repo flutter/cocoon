@@ -24,9 +24,11 @@ void main() {
         mockSignIn!.onCurrentUserChanged,
       ).thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
       when(
+        // ignore: discarded_futures
         mockSignIn!.isSignedIn(),
       ).thenAnswer((_) => Future<bool>.value(false));
       when(
+        // ignore: discarded_futures
         mockSignIn!.signInSilently(),
       ).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
       authService = GoogleSignInService(googleSignIn: mockSignIn);
@@ -68,12 +70,15 @@ void main() {
 
       mockSignIn = MockGoogleSignIn();
       when(
+        // ignore: discarded_futures
         mockSignIn.signIn(),
       ).thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccount));
       when(
+        // ignore: discarded_futures
         mockSignIn.signInSilently(),
       ).thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccount));
       when(mockSignIn.currentUser).thenReturn(testAccount);
+      // ignore: discarded_futures
       when(mockSignIn.isSignedIn()).thenAnswer((_) => Future<bool>.value(true));
       when(
         mockSignIn.onCurrentUserChanged,
