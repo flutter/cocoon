@@ -13,4 +13,4 @@ workspace:
   - packages/cocoon_common_test
 
 dev_dependencies:
-  dart_flutter_team_lints: 3.4.0
+  dart_flutter_team_lints: 3.5.0

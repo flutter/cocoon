@@ -77,6 +77,7 @@ void main() {
       'task': task.name,
     };
 
+    // ignore: discarded_futures
     when(mockFirestoreService.getDocument(captureAny)).thenAnswer((
       Invocation invocation,
     ) {
@@ -84,6 +85,7 @@ void main() {
     });
 
     when(
+      // ignore: discarded_futures
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
         datastore: anyNamed('datastore'),

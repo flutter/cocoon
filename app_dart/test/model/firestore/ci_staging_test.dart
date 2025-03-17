@@ -87,9 +87,11 @@ void main() {
       setUp(() {
         docRes = MockProjectsDatabasesDocumentsResource();
         when(
+          // ignore: discarded_futures
           docRes.rollback(captureAny, captureAny),
         ).thenAnswer((_) async => Empty());
         when(
+          // ignore: discarded_futures
           firestoreService.documentResource(),
         ).thenAnswer((_) async => docRes);
       });
@@ -783,6 +785,7 @@ For CI stage engine:
       setUp(() {
         docRes = MockProjectsDatabasesDocumentsResource();
         when(
+          // ignore: discarded_futures
           firestoreService.documentResource(),
         ).thenAnswer((_) async => docRes);
       });

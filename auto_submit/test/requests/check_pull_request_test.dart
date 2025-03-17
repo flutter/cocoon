@@ -161,9 +161,11 @@ void main() {
       pullRequests = MockPullRequestsService();
       when(gitHub.pullRequests).thenReturn(pullRequests);
       when(
+        // ignore: discarded_futures
         pullRequests.get(any, any),
       ).thenAnswer((_) async => PullRequest(number: 123, state: 'open'));
 
+      // ignore: discarded_futures
       when(jobsResource.query(captureAny, any)).thenAnswer((
         Invocation invocation,
       ) {

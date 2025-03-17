@@ -78,12 +78,14 @@ void main() {
       final tabledataResourceApi = MockTabledataResource();
       mockFirestoreService = MockFirestoreService();
       when(
+        // ignore: discarded_futures
         mockFirestoreService.queryRecentTasksByName(
           name: anyNamed('name'),
           limit: anyNamed('limit'),
         ),
       ).thenAnswer((_) async => []);
 
+      // ignore: discarded_futures
       when(tabledataResourceApi.insertAll(any, any, any, any)).thenAnswer((
         _,
       ) async {

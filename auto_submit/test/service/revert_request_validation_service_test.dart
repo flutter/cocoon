@@ -81,6 +81,7 @@ void main() {
     );
     validationService.discordNotification = discordNotification;
 
+    // ignore: discarded_futures
     when(jobsResource.query(captureAny, any)).thenAnswer((
       Invocation invocation,
     ) {

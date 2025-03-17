@@ -26,20 +26,22 @@ class ProgressButton extends StatefulWidget {
 class _ProgressButtonState extends State<ProgressButton> {
   bool _busy = false;
 
-  void _handlePressed() {
+  void _handlePressed() async {
     if (_busy) {
       return;
     }
     setState(() {
       _busy = true;
     });
-    widget.onPressed!().whenComplete(() {
+    try {
+      await widget.onPressed!();
+    } finally {
       if (mounted) {
         setState(() {
           _busy = false;
         });
       }
-    });
+    }
   }
 
   static const Widget _progressIndicator = Padding(

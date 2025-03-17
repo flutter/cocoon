@@ -13,5 +13,5 @@ dependencies:
 dev_dependencies:
   cocoon_common_test:
     path: ../cocoon_common_test
-  dart_flutter_team_lints: ^3.4.0
+  dart_flutter_team_lints:
   test: ^1.25.15

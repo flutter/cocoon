@@ -35,6 +35,7 @@ void main() {
 
     when(mockGitHubComparison.behindBy).thenReturn(10);
     when(
+      // ignore: discarded_futures
       mockGitHub.request(
         any,
         any,
@@ -49,9 +50,11 @@ void main() {
     when(mockResponse.statusCode).thenReturn(200);
     when(mockGitHub.repositories).thenReturn(mockRepositoriesService);
     when(
+      // ignore: discarded_futures
       mockRepositoriesService.getCommit(any, any),
     ).thenAnswer((_) => Future.value(testCommit));
     when(
+      // ignore: discarded_futures
       mockRepositoriesService.compareCommits(any, any, any),
     ).thenAnswer((_) => Future.value(mockGitHubComparison));
   });

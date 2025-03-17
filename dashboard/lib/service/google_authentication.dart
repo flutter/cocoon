@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -26,7 +28,7 @@ class GoogleSignInService extends ChangeNotifier {
     });
 
     try {
-      _googleSignIn.signInSilently();
+      unawaited(_googleSignIn.signInSilently());
     } on PlatformException catch (error) {
       debugPrint('GoogleSignIn error code: ${error.code}');
       debugPrint(error.message);

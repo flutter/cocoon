@@ -47,6 +47,7 @@ void main() {
         tasks2 = <Task>[];
         commits = <Commit>[];
         when(
+          // ignore: discarded_futures
           mockFirestoreService.queryRecentCommits(
             limit: captureAnyNamed('limit'),
             slug: captureAnyNamed('slug'),
@@ -55,6 +56,8 @@ void main() {
         ).thenAnswer((Invocation invocation) {
           return Future<List<Commit>>.value(commits);
         });
+
+        // ignore: discarded_futures
         when(mockFirestoreService.queryCommitTasks(captureAny)).thenAnswer((
           Invocation invocation,
         ) {

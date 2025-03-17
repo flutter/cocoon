@@ -181,6 +181,7 @@ void main() {
   group('Scheduler', () {
     setUp(() {
       final tabledataResource = MockTabledataResource();
+      // ignore: discarded_futures
       when(tabledataResource.insertAll(any, any, any, any)).thenAnswer((
         _,
       ) async {
@@ -193,6 +194,7 @@ void main() {
 
       mockFirestoreService = MockFirestoreService();
       when(
+        // ignore: discarded_futures
         mockFirestoreService.queryRecentTasksByName(
           name: anyNamed('name'),
           limit: anyNamed('limit'),
@@ -219,6 +221,7 @@ void main() {
       mockGithubChecksUtil = MockGithubChecksUtil();
       // Generate check runs based on the name hash code
       when(
+        // ignore: discarded_futures
         mockGithubChecksUtil.createCheckRun(
           any,
           any,
@@ -258,6 +261,7 @@ void main() {
         markCheckRunConclusion: callbacks.markCheckRunConclusion,
       );
 
+      // ignore: discarded_futures
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((
         _,
       ) async {
@@ -3550,6 +3554,7 @@ targets:
         fakeLuciBuildService = _CapturingFakeLuciBuildService();
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
 
+        // ignore: discarded_futures
         when(mockFirestoreService.documentResource()).thenAnswer((_) async {
           final resource = MockProjectsDatabasesDocumentsResource();
           when(

@@ -74,107 +74,98 @@ void main() {
   });
 
   group('validateCheckRuns', () {
-    test('ValidateCheckRuns no failures for skipped conclusion.', () {
+    test('ValidateCheckRuns no failures for skipped conclusion.', () async {
       githubService.checkRunsData = skippedCheckRunsMock;
-      final checkRunFuture = githubService.getCheckRuns(slug, 'ref');
       const allSuccess = true;
-
-      checkRunFuture.then((checkRuns) {
-        expect(
-          ciSuccessful.validateCheckRuns(
-            slug,
-            prNumber,
-            PullRequestState.open,
-            checkRuns,
-            failures,
-            allSuccess,
-            Author(login: 'testAuthor'),
-          ),
-          isTrue,
-        );
-        expect(failures, isEmpty);
-      });
+      final checkRuns = await githubService.getCheckRuns(slug, 'ref');
+      expect(
+        ciSuccessful.validateCheckRuns(
+          slug,
+          prNumber,
+          PullRequestState.open,
+          checkRuns,
+          failures,
+          allSuccess,
+          Author(login: 'testAuthor'),
+        ),
+        isTrue,
+      );
+      expect(failures, isEmpty);
     });
 
-    test('ValidateCheckRuns no failures for successful conclusion.', () {
+    test('ValidateCheckRuns no failures for successful conclusion.', () async {
       githubService.checkRunsData = checkRunsMock;
-      final checkRunFuture = githubService.getCheckRuns(slug, 'ref');
+      final checkRuns = await githubService.getCheckRuns(slug, 'ref');
       const allSuccess = true;
 
-      checkRunFuture.then((checkRuns) {
-        expect(
-          ciSuccessful.validateCheckRuns(
-            slug,
-            prNumber,
-            PullRequestState.open,
-            checkRuns,
-            failures,
-            allSuccess,
-            Author(login: 'testAuthor'),
-          ),
-          isTrue,
-        );
-        expect(failures, isEmpty);
-      });
+      expect(
+        ciSuccessful.validateCheckRuns(
+          slug,
+          prNumber,
+          PullRequestState.open,
+          checkRuns,
+          failures,
+          allSuccess,
+          Author(login: 'testAuthor'),
+        ),
+        isTrue,
+      );
+      expect(failures, isEmpty);
     });
 
     test(
       'ValidateCheckRuns no failure for status completed and neutral conclusion.',
-      () {
+      () async {
         githubService.checkRunsData = neutralCheckRunsMock;
-        final checkRunFuture = githubService.getCheckRuns(slug, 'ref');
+        final checkRuns = await githubService.getCheckRuns(slug, 'ref');
         const allSuccess = true;
 
-        checkRunFuture.then((checkRuns) {
-          expect(
-            ciSuccessful.validateCheckRuns(
-              slug,
-              prNumber,
-              PullRequestState.open,
-              checkRuns,
-              failures,
-              allSuccess,
-              Author(login: 'testAuthor'),
-            ),
-            isTrue,
-          );
-          expect(failures, isEmpty);
-        });
+        expect(
+          ciSuccessful.validateCheckRuns(
+            slug,
+            prNumber,
+            PullRequestState.open,
+            checkRuns,
+            failures,
+            allSuccess,
+            Author(login: 'testAuthor'),
+          ),
+          isTrue,
+        );
+        expect(failures, isEmpty);
       },
     );
 
     test(
       'ValidateCheckRuns failure detected on status completed no neutral conclusion.',
-      () {
+      () async {
         githubService.checkRunsData = failedCheckRunsMock;
-        final checkRunFuture = githubService.getCheckRuns(slug, 'ref');
+        final checkRuns = await githubService.getCheckRuns(slug, 'ref');
         const allSuccess = true;
 
-        checkRunFuture.then((checkRuns) {
-          expect(
-            ciSuccessful.validateCheckRuns(
-              slug,
-              prNumber,
-              PullRequestState.open,
-              checkRuns,
-              failures,
-              allSuccess,
-              Author(login: 'testAuthor'),
-            ),
-            isFalse,
-          );
-          expect(failures, isNotEmpty);
-          expect(failures.length, 1);
-        });
+        expect(
+          ciSuccessful.validateCheckRuns(
+            slug,
+            prNumber,
+            PullRequestState.open,
+            checkRuns,
+            failures,
+            allSuccess,
+            Author(login: 'testAuthor'),
+          ),
+          isFalse,
+        );
+        expect(failures, hasLength(1));
       },
     );
 
-    test('ValidateCheckRuns succes with multiple successful check runs.', () {
-      githubService.checkRunsData = multipleCheckRunsMock;
-      final checkRunFuture = githubService.getCheckRuns(slug, 'ref');
-      const allSuccess = true;
+    test(
+      'ValidateCheckRuns succes with multiple successful check runs.',
+      () async {
+        githubService.checkRunsData = multipleCheckRunsMock;
+        final checkRuns = await githubService.getCheckRuns(slug, 'ref');
+        const allSuccess = true;
 
-      checkRunFuture.then((checkRuns) {
         expect(
           ciSuccessful.validateCheckRuns(
             slug,
@@ -188,40 +179,38 @@ void main() {
           isTrue,
         );
         expect(failures, isEmpty);
-      });
-    });
+      },
+    );
 
-    test('ValidateCheckRuns failed with multiple check runs.', () {
+    test('ValidateCheckRuns failed with multiple check runs.', () async {
       githubService.checkRunsData = multipleCheckRunsWithFailureMock;
-      final checkRunFuture = githubService.getCheckRuns(slug, 'ref');
+      final checkRuns = await githubService.getCheckRuns(slug, 'ref');
       const allSuccess = true;
 
-      checkRunFuture.then((checkRuns) {
-        expect(
-          ciSuccessful.validateCheckRuns(
-            slug,
-            prNumber,
-            PullRequestState.open,
-            checkRuns,
-            failures,
-            allSuccess,
-            Author(login: 'testAuthor'),
-          ),
-          isFalse,
-        );
-        expect(failures, isNotEmpty);
-        expect(failures.length, 1);
-      });
+      expect(
+        ciSuccessful.validateCheckRuns(
+          slug,
+          prNumber,
+          PullRequestState.open,
+          checkRuns,
+          failures,
+          allSuccess,
+          Author(login: 'testAuthor'),
+        ),
+        isFalse,
+      );
+      expect(failures, hasLength(1));
     });
 
-    test('ValidateCheckRuns allSucces false but no failures recorded.', () {
-      /// This test just checks that a checkRun that has not yet completed and
-      /// does not cause failure is a candidate to be temporarily ignored.
-      githubService.checkRunsData = inprogressAndNotFailedCheckRunMock;
-      final checkRunFuture = githubService.getCheckRuns(slug, 'ref');
-      const allSuccess = true;
+    test(
+      'ValidateCheckRuns allSucces false but no failures recorded.',
+      () async {
+        /// This test just checks that a checkRun that has not yet completed and
+        /// does not cause failure is a candidate to be temporarily ignored.
+        githubService.checkRunsData = inprogressAndNotFailedCheckRunMock;
+        final checkRuns = await githubService.getCheckRuns(slug, 'ref');
+        const allSuccess = true;
 
-      checkRunFuture.then((checkRuns) {
         expect(
           ciSuccessful.validateCheckRuns(
             slug,
@@ -235,30 +224,27 @@ void main() {
           isFalse,
         );
         expect(failures, isEmpty);
-      });
-    });
+      },
+    );
 
-    test('ValidateCheckRuns allSuccess false is preserved.', () {
+    test('ValidateCheckRuns allSuccess false is preserved.', () async {
       githubService.checkRunsData = multipleCheckRunsWithFailureMock;
-      final checkRunFuture = githubService.getCheckRuns(slug, 'ref');
+      final checkRuns = await githubService.getCheckRuns(slug, 'ref');
       const allSuccess = false;
 
-      checkRunFuture.then((checkRuns) {
-        expect(
-          ciSuccessful.validateCheckRuns(
-            slug,
-            prNumber,
-            PullRequestState.open,
-            checkRuns,
-            failures,
-            allSuccess,
-            Author(login: 'testAuthor'),
-          ),
-          isFalse,
-        );
-        expect(failures, isNotEmpty);
-        expect(failures.length, 1);
-      });
+      expect(
+        ciSuccessful.validateCheckRuns(
+          slug,
+          prNumber,
+          PullRequestState.open,
+          checkRuns,
+          failures,
+          allSuccess,
+          Author(login: 'testAuthor'),
+        ),
+        isFalse,
+      );
+      expect(failures, hasLength(1));
     });
   });
 
@@ -621,7 +607,7 @@ void main() {
   });
 
   group('validate', () {
-    test('Commit has a null status, no statuses to verify.', () {
+    test('Commit has a null status, no statuses to verify.', () async {
       final queryResultJsonDecode =
           jsonDecode(nullStatusCommitRepositoryJson) as Map<String, dynamic>;
       final queryResult = QueryResult.fromJson(queryResultJsonDecode);
@@ -635,16 +621,15 @@ void main() {
       final npr = generatePullRequest();
       githubService.checkRunsData = checkRunsMock;
 
-      ciSuccessful.validate(queryResult, npr).then((value) {
-        // fails because in this case there is only a single fail status
-        expect(false, value.result);
-        // Remove label.
-        expect(value.action, Action.IGNORE_TEMPORARILY);
-        expect(value.message, 'Hold to wait for the tree status ready.');
-      });
+      final value = await ciSuccessful.validate(queryResult, npr);
+      // fails because in this case there is only a single fail status
+      expect(false, value.result);
+      // Remove label.
+      expect(value.action, Action.IGNORE_TEMPORARILY);
+      expect(value.message, 'Hold to wait for the tree status ready.');
     });
 
-    test('Commit has no statuses to verify.', () {
+    test('Commit has no statuses to verify.', () async {
       final queryResultJsonDecode =
           jsonDecode(noStatusInCommitJson) as Map<String, dynamic>;
       final queryResult = QueryResult.fromJson(queryResultJsonDecode);
@@ -655,18 +640,17 @@ void main() {
       final npr = generatePullRequest();
       githubService.checkRunsData = checkRunsMock;
 
-      ciSuccessful.validate(queryResult, npr).then((value) {
-        // fails because in this case there is only a single fail status
-        expect(false, value.result);
-        // Remove label.
-        expect(value.action, Action.IGNORE_TEMPORARILY);
-        expect(value.message, 'Hold to wait for the tree status ready.');
-      });
+      final value = await ciSuccessful.validate(queryResult, npr);
+      // fails because in this case there is only a single fail status
+      expect(false, value.result);
+      // Remove label.
+      expect(value.action, Action.IGNORE_TEMPORARILY);
+      expect(value.message, 'Hold to wait for the tree status ready.');
     });
 
     // When branch is default we need to wait for the tree status if it is not
     // present.
-    test('Commit has no statuses to verify.', () {
+    test('Commit has no statuses to verify.', () async {
       final queryResultJsonDecode =
           jsonDecode(noStatusInCommitJson) as Map<String, dynamic>;
       final queryResult = QueryResult.fromJson(queryResultJsonDecode);
@@ -677,20 +661,19 @@ void main() {
       final npr = generatePullRequest();
       githubService.checkRunsData = checkRunsMock;
 
-      ciSuccessful.validate(queryResult, npr).then((value) {
-        // fails because in this case there is only a single fail status
-        expect(false, value.result);
-        // Remove label.
-        expect(value.action, Action.IGNORE_TEMPORARILY);
-        expect(value.message, 'Hold to wait for the tree status ready.');
-      });
+      final value = await ciSuccessful.validate(queryResult, npr);
+      // fails because in this case there is only a single fail status
+      expect(false, value.result);
+      // Remove label.
+      expect(value.action, Action.IGNORE_TEMPORARILY);
+      expect(value.message, 'Hold to wait for the tree status ready.');
     });
 
     // Test for when the base branch is not default, we should not check the
     // tree status as it does not apply.
     test(
       'Commit has no statuses to verify and base branch is not default.',
-      () {
+      () async {
         final queryResultJsonDecode =
             jsonDecode(noStatusInCommitJson) as Map<String, dynamic>;
         final queryResult = QueryResult.fromJson(queryResultJsonDecode);
@@ -701,42 +684,43 @@ void main() {
         final npr = generatePullRequest(baseRef: 'test_feature');
         githubService.checkRunsData = checkRunsMock;
 
-        ciSuccessful.validate(queryResult, npr).then((value) {
-          expect(true, value.result);
-          // Remove label.
-          expect(value.action, Action.REMOVE_LABEL);
-          expect(value.message, isEmpty);
-        });
+        final value = await ciSuccessful.validate(queryResult, npr);
+        expect(true, value.result);
+        // Remove label.
+        expect(value.action, Action.REMOVE_LABEL);
+        expect(value.message, isEmpty);
       },
     );
 
-    test('Commit has statuses to verify, action remove label, no message.', () {
-      final queryResultJsonDecode =
-          jsonDecode(nonNullStatusSUCCESSCommitRepositoryJson)
-              as Map<String, dynamic>;
-      final queryResult = QueryResult.fromJson(queryResultJsonDecode);
-      expect(queryResult, isNotNull);
-      final pr = queryResult.repository!.pullRequest!;
-      expect(pr, isNotNull);
-      final commit = pr.commits!.nodes!.single.commit!;
-      expect(commit, isNotNull);
-      expect(commit.status, isNotNull);
+    test(
+      'Commit has statuses to verify, action remove label, no message.',
+      () async {
+        final queryResultJsonDecode =
+            jsonDecode(nonNullStatusSUCCESSCommitRepositoryJson)
+                as Map<String, dynamic>;
+        final queryResult = QueryResult.fromJson(queryResultJsonDecode);
+        expect(queryResult, isNotNull);
+        final pr = queryResult.repository!.pullRequest!;
+        expect(pr, isNotNull);
+        final commit = pr.commits!.nodes!.single.commit!;
+        expect(commit, isNotNull);
+        expect(commit.status, isNotNull);
 
-      final npr = generatePullRequest();
-      githubService.checkRunsData = checkRunsMock;
+        final npr = generatePullRequest();
+        githubService.checkRunsData = checkRunsMock;
 
-      ciSuccessful.validate(queryResult, npr).then((value) {
+        final value = await ciSuccessful.validate(queryResult, npr);
         // No failure.
         expect(value.result, isTrue);
         // Remove label.
         expect(value.action == Action.REMOVE_LABEL, isTrue);
         expect(value.message, isEmpty);
-      });
-    });
+      },
+    );
 
     test(
       'Commit has statuses to verify, action ignore failure, no message.',
-      () {
+      () async {
         final queryResultJsonDecode =
             jsonDecode(nonNullStatusFAILURECommitRepositoryJson)
                 as Map<String, dynamic>;
@@ -751,39 +735,40 @@ void main() {
         final npr = generatePullRequest(labelName: Config.kEmergencyLabel);
         githubService.checkRunsData = checkRunsMock;
 
-        ciSuccessful.validate(queryResult, npr).then((value) {
-          // No failure.
-          expect(value.result, isTrue);
-          // Remove label.
-          expect(value.action == Action.IGNORE_FAILURE, isTrue);
-          expect(value.message, isEmpty);
-        });
+        final value = await ciSuccessful.validate(queryResult, npr);
+        // No failure.
+        expect(value.result, isTrue);
+        // Remove label.
+        expect(value.action == Action.IGNORE_FAILURE, isTrue);
+        expect(value.message, isEmpty);
       },
     );
 
-    test('Commit has statuses to verify, action failure, no message.', () {
-      final queryResultJsonDecode =
-          jsonDecode(nonNullStatusFAILURECommitRepositoryJson)
-              as Map<String, dynamic>;
-      final queryResult = QueryResult.fromJson(queryResultJsonDecode);
-      expect(queryResult, isNotNull);
-      final pr = queryResult.repository!.pullRequest!;
-      expect(pr, isNotNull);
-      final commit = pr.commits!.nodes!.single.commit!;
-      expect(commit, isNotNull);
-      expect(commit.status, isNotNull);
+    test(
+      'Commit has statuses to verify, action failure, no message.',
+      () async {
+        final queryResultJsonDecode =
+            jsonDecode(nonNullStatusFAILURECommitRepositoryJson)
+                as Map<String, dynamic>;
+        final queryResult = QueryResult.fromJson(queryResultJsonDecode);
+        expect(queryResult, isNotNull);
+        final pr = queryResult.repository!.pullRequest!;
+        expect(pr, isNotNull);
+        final commit = pr.commits!.nodes!.single.commit!;
+        expect(commit, isNotNull);
+        expect(commit.status, isNotNull);
 
-      final npr = generatePullRequest();
-      githubService.checkRunsData = checkRunsMock;
+        final npr = generatePullRequest();
+        githubService.checkRunsData = checkRunsMock;
 
-      ciSuccessful.validate(queryResult, npr).then((value) {
+        final value = await ciSuccessful.validate(queryResult, npr);
         // No failure.
         expect(false, value.result);
         // Remove label.
         expect(value.action == Action.IGNORE_TEMPORARILY, isTrue);
         expect(value.message, isEmpty);
-      });
-    });
+      },
+    );
   });
 
   group('Validate empty message is not returned.', () {

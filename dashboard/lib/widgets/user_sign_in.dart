@@ -39,11 +39,10 @@ class UserSignIn extends StatelessWidget {
                     child: Text('Log out'),
                   ),
                 ],
-            onSelected: (_SignInButtonAction value) {
+            onSelected: (_SignInButtonAction value) async {
               switch (value) {
                 case _SignInButtonAction.logout:
-                  authService.signOut();
-                  break;
+                  await authService.signOut();
               }
             },
             iconSize: Scaffold.of(context).appBarMaxHeight,

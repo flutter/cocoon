@@ -35,13 +35,15 @@ class LuciTaskAttemptSummary extends StatelessWidget {
       children: List<Widget>.generate(buildNumberList.length, (int i) {
         return ElevatedButton(
           child: Text('OPEN LOG FOR BUILD #${buildNumberList[i]}'),
-          onPressed: () {
+          onPressed: () async {
             if (task.stageName == 'dart-internal') {
-              launchUrl(
+              await launchUrl(
                 _dartInternalLogUrl(task.builderName, buildNumberList[i]),
               );
             } else {
-              launchUrl(_luciProdLogUrl(task.builderName, buildNumberList[i]));
+              await launchUrl(
+                _luciProdLogUrl(task.builderName, buildNumberList[i]),
+              );
             }
           },
         );

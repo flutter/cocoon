@@ -132,9 +132,9 @@ class BuildState extends ChangeNotifier {
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
   void _startFetchingStatusUpdates() {
     assert(refreshTimer == null);
-    _fetchBranches();
-    _fetchRepos();
-    _fetchStatusUpdates();
+    unawaited(_fetchBranches());
+    unawaited(_fetchRepos());
+    unawaited(_fetchStatusUpdates());
     refreshTimer = Timer.periodic(refreshRate!, _fetchStatusUpdates);
   }
 
@@ -231,7 +231,7 @@ class BuildState extends ChangeNotifier {
     _failingTasks = <String>[];
     _statuses = <CommitStatus>[];
 
-    _fetchStatusUpdates();
+    unawaited(_fetchStatusUpdates());
   }
 
   /// Handle merging status updates with the current data in [statuses].

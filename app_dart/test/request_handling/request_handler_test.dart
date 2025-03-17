@@ -55,9 +55,9 @@ void main() {
       return request.close();
     }
 
-    Future<HttpClientResponse> issueGet() => issueRequest('get');
+    Future<HttpClientResponse> issueGet() async => issueRequest('get');
 
-    Future<HttpClientResponse> issuePost() => issueRequest('post');
+    Future<HttpClientResponse> issuePost() async => issueRequest('post');
 
     test('Unimplemented methods yield HTTP method not allowed', () async {
       handler = MethodNotAllowed();

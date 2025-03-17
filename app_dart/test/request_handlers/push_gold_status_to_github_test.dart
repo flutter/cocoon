@@ -142,11 +142,14 @@ void main() {
           return Stream<PullRequest>.fromIterable(prsFromGitHub);
         });
 
+        // ignore: discarded_futures
         when(mockFirestoreService.queryLastGoldStatus(slug, 123)).thenAnswer((
           Invocation invocation,
         ) {
           return Future<GithubGoldStatus>.value(githubGoldStatus);
         });
+
+        // ignore: discarded_futures
         when(mockFirestoreService.queryLastGoldStatus(slug, 456)).thenAnswer((
           Invocation invocation,
         ) {
@@ -154,18 +157,22 @@ void main() {
         });
 
         when(
+          // ignore: discarded_futures
           mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
         ).thenAnswer((Invocation invocation) {
           return Future<BatchWriteResponse>.value(BatchWriteResponse());
         });
 
         when(
+          // ignore: discarded_futures
           repositoriesService.createStatus(any, any, any),
         ).thenAnswer((_) async => RepositoryStatus());
         when(
+          // ignore: discarded_futures
           issuesService.createComment(any, any, any),
         ).thenAnswer((_) async => IssueComment());
         when(
+          // ignore: discarded_futures
           issuesService.addLabelsToIssue(any, any, any),
         ).thenAnswer((_) async => <IssueLabel>[]);
         config.githubClient = github;
@@ -231,6 +238,7 @@ void main() {
                 List<gcloud_db.Key<dynamic>> deletes,
               ) => throw AssertionError();
           when(
+            // ignore: discarded_futures
             repositoriesService.createStatus(any, any, any),
           ).thenThrow(AssertionError());
         });

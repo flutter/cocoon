@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app_icons/flutter_app_icons.dart';
@@ -76,7 +78,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
 
   @override
   void dispose() {
-    _flutterAppIconsPlugin.setIcon(icon: 'favicon.png');
+    unawaited(_flutterAppIconsPlugin.setIcon(icon: 'favicon.png'));
     super.dispose();
   }
 
@@ -100,7 +102,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       path: BuildDashboardPage.routeName,
       queryParameters: queryParameters,
     );
-    Navigator.pushNamed(context, uri.toString());
+    unawaited(Navigator.pushNamed(context, uri.toString()));
   }
 
   void _removeSettingsDialog() {
@@ -481,7 +483,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                             if (buildState.currentBranch == 'master') {
                               return null;
                             }
-                            return (Commit commit) {
+                            return (Commit commit) async {
                               return _schedulePostsubmitBuildForReleaseBranch(
                                 context: context,
                                 commit: commit,

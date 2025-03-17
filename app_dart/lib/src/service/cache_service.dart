@@ -168,8 +168,8 @@ class CacheService {
     }
   }
 
-  void dispose() {
-    _provider.close();
+  Future<void> dispose() async {
+    await _provider.close();
   }
 }
 
