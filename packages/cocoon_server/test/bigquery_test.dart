@@ -6,8 +6,8 @@ import 'dart:convert';
 
 import 'package:cocoon_server/big_query_pull_request_record.dart';
 import 'package:cocoon_server/bigquery.dart';
-import 'package:cocoon_server/testing/bigquery_testing.dart';
-import 'package:cocoon_server/testing/mocks.dart';
+import 'package:cocoon_server_test/bigquery_testing.dart';
+import 'package:cocoon_server_test/mocks.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/expect.dart';

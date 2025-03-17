@@ -8,5 +8,9 @@ name: _cocoon_workspace
 environment:
   sdk: ^3.7.0
 
+workspace:
+  - packages/cocoon_common
+  - packages/cocoon_common_test
+
 dev_dependencies:
   dart_flutter_team_lints: 3.4.0

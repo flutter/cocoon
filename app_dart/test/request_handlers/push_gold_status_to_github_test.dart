@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
-import 'package:cocoon_server/testing/mocks.dart';
+import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_service/src/model/appengine/github_gold_status_update.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/request_handlers/push_gold_status_to_github.dart';

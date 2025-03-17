@@ -16,7 +16,7 @@ dependencies:
   buildbucket:
     path: ../packages/buildbucket-dart
   cocoon_server:
-    path: ../cocoon_server
+    path: ../packages/cocoon_server
   collection: ^1.19.1
   corsac_jwt: ^1.0.1
   crypto: ^3.0.6
@@ -49,8 +49,9 @@ dependencies:
 #  protobuf: 3.1.0
 
 dev_dependencies:
-  analyzer: ^7.3.0
   build_runner: ^2.4.15
+  cocoon_server_test:
+    path: ../packages/cocoon_server_test
   dart_flutter_team_lints: 3.4.0
   fake_async: ^1.3.3
   json_serializable: ^6.9.4

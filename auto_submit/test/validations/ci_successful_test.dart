@@ -12,7 +12,7 @@ import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:cocoon_server/logging.dart';
-import 'package:cocoon_server/testing/mocks.dart';
+import 'package:cocoon_server_test/mocks.dart';
 import 'package:github/github.dart' as github;
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
