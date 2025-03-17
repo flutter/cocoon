@@ -7,7 +7,7 @@ environment:
 
 dependencies:
   analyzer: 6.11.0
-  args: 2.6.0
+  args: 2.7.0
   file: any
   logging: 1.2.0
   meta: 1.16.0
