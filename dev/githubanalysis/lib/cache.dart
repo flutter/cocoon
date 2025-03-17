@@ -48,7 +48,8 @@ Future<String> loadFromCache(
   final PopulateCacheCallback callback,
 ) async {
   final File cacheFile = cacheFileFor(cacheDirectory, key);
-  final RandomAccessFile cacheFileContents = await cacheFile.open(mode: FileMode.append);
+  final RandomAccessFile cacheFileContents =
+      await cacheFile.open(mode: FileMode.append);
   bool firstWait = true;
   while (true) {
     try {
@@ -68,14 +69,17 @@ Future<String> loadFromCache(
   }
   try {
     await cacheFileContents.setPosition(0);
-    final String cacheData = utf8.decode(await cacheFileContents.read(await cacheFileContents.length()));
+    final String cacheData = utf8
+        .decode(await cacheFileContents.read(await cacheFileContents.length()));
     final int firstLineBreak = cacheData.indexOf('\n');
     bool needsReplacing = true;
     if (cacheEpoch != null) {
       if (firstLineBreak > 0) {
-        final int? cacheTimeInMilliseconds = int.tryParse(cacheData.substring(0, firstLineBreak), radix: 10);
+        final int? cacheTimeInMilliseconds =
+            int.tryParse(cacheData.substring(0, firstLineBreak), radix: 10);
         if (cacheTimeInMilliseconds != null) {
-          final DateTime cacheTime = DateTime.fromMillisecondsSinceEpoch(cacheTimeInMilliseconds);
+          final DateTime cacheTime =
+              DateTime.fromMillisecondsSinceEpoch(cacheTimeInMilliseconds);
           if (cacheTime.isAfter(cacheEpoch)) {
             needsReplacing = false;
           }
@@ -92,7 +96,8 @@ Future<String> loadFromCache(
       }
       await cacheFileContents.truncate(0);
       await cacheFileContents.setPosition(0);
-      await cacheFileContents.writeString('${DateTime.now().millisecondsSinceEpoch}\n');
+      await cacheFileContents
+          .writeString('${DateTime.now().millisecondsSinceEpoch}\n');
       await cacheFileContents.writeString(data);
       return data;
     }
