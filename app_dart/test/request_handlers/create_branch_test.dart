@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/request_handlers/create_branch.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
 import 'package:cocoon_service/src/service/branch_service.dart';
@@ -15,6 +16,8 @@ import '../src/request_handling/request_handler_tester.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group(CreateBranch, () {
     test('runs', () async {
       final tester = RequestHandlerTester();

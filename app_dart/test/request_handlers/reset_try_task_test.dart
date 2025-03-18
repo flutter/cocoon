@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/request_handlers/reset_try_task.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -20,30 +21,29 @@ import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('ResetTryTask', () {
     late ApiRequestHandlerTester tester;
-    FakeClientContext clientContext;
     late ResetTryTask handler;
     late FakeConfig config;
-    FakeScheduler fakeScheduler;
-    FakeAuthenticatedContext authContext;
-    MockGitHub mockGithub;
-    MockPullRequestsService mockPullRequestsService;
     late MockGithubChecksUtil mockGithubChecksUtil;
 
     setUp(() {
-      clientContext = FakeClientContext();
+      final clientContext = FakeClientContext();
       clientContext.isDevelopmentEnvironment = false;
-      authContext = FakeAuthenticatedContext(clientContext: clientContext);
-      mockGithub = MockGitHub();
-      mockPullRequestsService = MockPullRequestsService();
+      final authContext = FakeAuthenticatedContext(
+        clientContext: clientContext,
+      );
+      final mockGithub = MockGitHub();
+      final mockPullRequestsService = MockPullRequestsService();
       config = FakeConfig(
         githubClient: mockGithub,
         githubService: FakeGithubService(),
       );
       mockGithubChecksUtil = MockGithubChecksUtil();
       tester = ApiRequestHandlerTester(context: authContext);
-      fakeScheduler = FakeScheduler(
+      final fakeScheduler = FakeScheduler(
         config: config,
         githubChecksUtil: mockGithubChecksUtil,
       );

@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
@@ -24,31 +25,29 @@ import 'update_existing_flaky_issues_test_data.dart';
 const String kThreshold = '0.02';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('Update flaky', () {
     late UpdateExistingFlakyIssue handler;
     late ApiRequestHandlerTester tester;
-    FakeHttpRequest request;
     late FakeConfig config;
-    FakeClientContext clientContext;
-    FakeAuthenticationProvider auth;
     late MockBigqueryService mockBigqueryService;
     late MockGitHub mockGitHubClient;
     late MockIssuesService mockIssuesService;
-    MockRepositoriesService mockRepositoriesService;
 
     setUp(() {
-      request = FakeHttpRequest(
+      final request = FakeHttpRequest(
         queryParametersValue: <String, dynamic>{
           FileFlakyIssueAndPR.kThresholdKey: kThreshold,
         },
       );
 
-      clientContext = FakeClientContext();
-      auth = FakeAuthenticationProvider(clientContext: clientContext);
+      final clientContext = FakeClientContext();
+      final auth = FakeAuthenticationProvider(clientContext: clientContext);
       mockBigqueryService = MockBigqueryService();
       mockGitHubClient = MockGitHub();
       mockIssuesService = MockIssuesService();
-      mockRepositoriesService = MockRepositoriesService();
+      final mockRepositoriesService = MockRepositoriesService();
 
       // when gets existing flaky issues.
       when(

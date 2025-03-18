@@ -3,12 +3,11 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
 import 'package:fixnum/fixnum.dart';
-import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -23,6 +22,8 @@ import '../src/utilities/build_bucket_messages.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late PresubmitLuciSubscription handler;
   late FakeConfig config;
   late MockGitHub mockGitHubClient;
@@ -33,24 +34,8 @@ void main() {
   late MockLuciBuildService mockLuciBuildService;
   late FakeScheduler scheduler;
   late FakeCiYamlFetcher ciYamlFetcher;
-  late List<String> logs;
 
   setUp(() async {
-    logs = [];
-    log = Logger.detached('postsubmit_luci_subscription_test');
-    log.onRecord.listen((r) {
-      final buffer = StringBuffer(r.message);
-      if (r.error case final error?) {
-        buffer.writeln();
-        buffer.writeln('$error');
-      }
-      if (r.stackTrace case final stackTrace?) {
-        buffer.writeln();
-        buffer.writeln('$stackTrace');
-      }
-      logs.add('$buffer');
-    });
-
     config = FakeConfig();
     mockLuciBuildService = MockLuciBuildService();
 
@@ -78,10 +63,6 @@ void main() {
     mockRepositoriesService = MockRepositoriesService();
     when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
     config.githubClient = mockGitHubClient;
-  });
-
-  tearDown(() {
-    printOnFailure('LOGGER BUFFER:\n${logs.join('\n')}');
   });
 
   test(

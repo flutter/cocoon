@@ -4,6 +4,7 @@
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart'
@@ -29,6 +30,8 @@ import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late PostsubmitLuciSubscription handler;
   late FakeConfig config;
   late FakeHttpRequest request;

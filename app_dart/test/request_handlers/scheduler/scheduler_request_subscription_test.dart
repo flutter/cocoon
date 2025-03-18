@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -22,9 +23,10 @@ import '../../src/service/fake_github_service.dart';
 import '../../src/utilities/mocks.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late SchedulerRequestSubscription handler;
   late SubscriptionTester tester;
-
   late MockBuildBucketClient buildBucketClient;
   late FakeGithubService githubService;
 

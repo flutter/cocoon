@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/request_handlers/push_build_status_to_github.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
@@ -26,6 +27,8 @@ import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('PushStatusToGithub', () {
     late FakeBuildStatusService buildStatusService;
     late MockFirestoreService mockFirestoreService;

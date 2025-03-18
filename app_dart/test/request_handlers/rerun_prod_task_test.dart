@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
@@ -21,10 +22,10 @@ import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
-  FakeClientContext clientContext;
+  useTestLoggerPerTest();
+
   late RerunProdTask handler;
   late FakeConfig config;
-  FakeKeyHelper keyHelper;
   late MockLuciBuildService mockLuciBuildService;
   late MockFirestoreService mockFirestoreService;
   late ApiRequestHandlerTester tester;
@@ -36,15 +37,14 @@ void main() {
 
   setUp(() {
     final datastoreDB = FakeDatastoreDB();
-    clientContext = FakeClientContext();
+    final clientContext = FakeClientContext();
     mockFirestoreService = MockFirestoreService();
     clientContext.isDevelopmentEnvironment = false;
-    keyHelper = FakeKeyHelper(
-      applicationContext: clientContext.applicationContext,
-    );
     config = FakeConfig(
       dbValue: datastoreDB,
-      keyHelperValue: keyHelper,
+      keyHelperValue: FakeKeyHelper(
+        applicationContext: clientContext.applicationContext,
+      ),
       supportedBranchesValue: <String>[
         Config.defaultBranch(Config.flutterSlug),
       ],
