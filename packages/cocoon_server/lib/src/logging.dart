@@ -3,6 +3,8 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_common/cocoon_common.dart';
+// ignore: invalid_use_of_internal_member, implementation_imports
+import 'package:cocoon_common/src/internal.dart' as internal;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
@@ -16,7 +18,18 @@ import 'logging.dart' as self;
 Logger log = Logger.root..level = Level.ALL;
 
 /// A root application logger using the interface in `package:cocoon_common`.
-LogSink get log2 => const DuringMigrationLogSink();
+LogSink get log2 => _log2;
+LogSink _log2 = const DuringMigrationLogSink();
+
+/// Changes the default implementation of [log2].
+///
+/// This can all be called in a testing environment.
+void overrideLog2ForTesting(LogSink logSink) {
+  if (!internal.assertionsEnabled) {
+    throw StateError('Can only use in a test or local development');
+  }
+  _log2 = logSink;
+}
 
 /// A narrow shim on top of [LogSink] that delegates to [log].
 ///
