@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
@@ -10,6 +11,8 @@ import 'package:test/test.dart';
 import '../../src/utilities/entity_generators.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('BatchPolicy', () {
     const policy = BatchPolicy();
 

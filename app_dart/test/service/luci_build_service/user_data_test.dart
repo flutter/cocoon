@@ -4,10 +4,13 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:test/test.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   // TODO(matanlurey): Remove after validating https://github.com/flutter/flutter/issues/164568.
   List<int> encodeUserDataToBase64Bytes(Map<String, Object?> userDataMap) {
     // Copied from original UserData class/helper:

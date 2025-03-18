@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore;
@@ -18,6 +19,8 @@ import '../src/utilities/mocks.mocks.dart';
 import '../src/utilities/webhook_generators.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late MockConfig config;
   late FakeDatastoreDB db;
   late CommitService commitService;

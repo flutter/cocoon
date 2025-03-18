@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:fixnum/fixnum.dart';
 
@@ -17,8 +18,8 @@ import '../src/datastore/fake_config.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
-  FakeConfig config;
-  MockGithubService mockGithubService;
+  useTestLoggerPerTest();
+
   late MockGithubChecksUtil mockGithubChecksUtil;
   late MockLuciBuildService mockLuciBuildService;
   late GithubChecksService githubChecksService;
@@ -26,10 +27,10 @@ void main() {
   late RepositorySlug slug;
 
   setUp(() {
-    mockGithubService = MockGithubService();
+    final mockGithubService = MockGithubService();
     mockLuciBuildService = MockLuciBuildService();
     mockGithubChecksUtil = MockGithubChecksUtil();
-    config = FakeConfig(
+    final config = FakeConfig(
       githubService: mockGithubService,
       rollerAccountsValue: {'engine-flutter-autoroll'},
     );

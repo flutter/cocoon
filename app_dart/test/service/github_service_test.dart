@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
@@ -15,8 +16,9 @@ import 'package:test/test.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late GithubService githubService;
-  MockGitHub mockGitHub;
   late RepositorySlug slug;
 
   const branch = 'master';
@@ -33,7 +35,7 @@ void main() {
 
   setUp(() {
     shas = <String>[];
-    mockGitHub = MockGitHub();
+    final mockGitHub = MockGitHub();
     githubService = GithubService(mockGitHub);
     slug = RepositorySlug('flutter', 'flutter');
     final whenGithubRequest = when(
@@ -92,7 +94,7 @@ void main() {
   });
 
   test('searchIssuesAndPRs encodes query properly', () async {
-    mockGitHub = MockGitHub();
+    final mockGitHub = MockGitHub();
     final mockSearchService = MockSearchService();
     when(mockGitHub.search).thenReturn(mockSearchService);
     when(mockSearchService.issues(any)).thenAnswer((invocation) {

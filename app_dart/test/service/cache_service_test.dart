@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:mockito/mockito.dart';
 import 'package:neat_cache/neat_cache.dart';
@@ -13,6 +14,8 @@ import 'package:test/test.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('CacheService', () {
     late CacheService cache;
 

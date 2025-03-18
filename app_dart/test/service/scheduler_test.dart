@@ -6,8 +6,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/stage.dart';
@@ -29,7 +29,6 @@ import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
-import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -129,6 +128,8 @@ targets:
 ''';
 
 void main() {
+  useTestLoggerPerTest();
+
   late CacheService cache;
   late FakeConfig config;
   late FakeDatastoreDB db;
@@ -140,7 +141,6 @@ void main() {
   late FakeFusionTester fakeFusion;
   late MockCallbacks callbacks;
   late FakeGetFilesChanged getFilesChanged;
-  late List<String> logs;
 
   final pullRequest = generatePullRequest(id: 42);
 
@@ -155,27 +155,8 @@ void main() {
   }
 
   setUp(() {
-    logs = [];
-    log = Logger.detached('scheduler_test');
-    log.onRecord.listen((r) {
-      final buffer = StringBuffer(r.message);
-      if (r.error case final error?) {
-        buffer.writeln();
-        buffer.writeln('$error');
-      }
-      if (r.stackTrace case final stackTrace?) {
-        buffer.writeln();
-        buffer.writeln('$stackTrace');
-      }
-      logs.add('$buffer');
-    });
-
     ciYamlFetcher = FakeCiYamlFetcher();
     ciYamlFetcher.setCiYamlFrom(singleCiYaml);
-  });
-
-  tearDown(() {
-    printOnFailure('LOGGER BUFFER:\n${logs.join('\n')}');
   });
 
   group('Scheduler', () {

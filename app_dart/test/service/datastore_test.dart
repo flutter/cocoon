@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
@@ -27,6 +28,8 @@ class Counter {
 }
 
 void main() {
+  useTestLoggerPerTest();
+
   group('Datastore', () {
     late FakeConfig config;
     late FakeDatastoreDB db;
