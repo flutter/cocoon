@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/appengine/allowed_account.dart';
 import 'package:cocoon_service/src/model/google/token_info.dart';
 import 'package:cocoon_service/src/request_handling/authentication.dart';
@@ -19,6 +20,8 @@ import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('AuthenticationProvider', () {
     late FakeConfig config;
     late FakeClientContext clientContext;
