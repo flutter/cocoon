@@ -23,6 +23,9 @@ tasks:
   - task: analyze
     script: test_utilities/bin/analyze.sh
 
+  - task: dev/cocoon_code_health
+    script: test_utilities/bin/code_health_check.sh
+
   - task: cipd_packages/codesign
     script: test_utilities/bin/dart_test_runner.sh
 
