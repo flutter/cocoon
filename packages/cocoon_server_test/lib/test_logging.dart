@@ -9,14 +9,9 @@ import 'package:test_api/scaffolding.dart';
 
 /// Overrides [internal.log2] to use a [BufferedLogger] per-test instance.
 ///
-/// Should be invoked exactly once in `void main()` or similar:
-/// ```dart
-/// void main() {
-///   useTestLoggerPerTest();
-/// }
-/// ```
-///
-/// If the test would result in a failure the current log buffer is printed.
+/// Note that by using this method, [internal.log], the production root logger
+/// instance (https://github.com/flutter/flutter/issues/164652) is no longer
+/// written to, meaning that assertions against it will need to be re-written.
 ///
 /// To assert against [log2], use `package:cocoon_common_test`:
 /// ```dart
@@ -28,6 +23,19 @@ import 'package:test_api/scaffolding.dart';
 ///   ]))
 /// );
 /// ```
+///
+/// ## Setup
+///
+/// Should be invoked exactly once in `void main()` or similar:
+/// ```dart
+/// void main() {
+///   useTestLoggerPerTest();
+/// }
+/// ```
+///
+/// ## Failing Tests
+///
+/// If the test would result in a failure the current log buffer is printed.
 void useTestLoggerPerTest() {
   late BufferedLogger testLogger;
 

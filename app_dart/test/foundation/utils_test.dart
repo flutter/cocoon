@@ -5,14 +5,16 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cocoon_common/cocoon_common.dart';
+import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:logging/logging.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
@@ -25,6 +27,8 @@ const String branchRegExp = '''
       ''';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('Test utils', () {
     const noRetry = RetryOptions(
       maxAttempts: 1,
@@ -60,22 +64,22 @@ void main() {
           httpClientProvider: () => branchHttpClient,
           retryOptions: noRetry,
         );
-        final branchList =
-            branches.split('\n').map((String branch) => branch.trim()).toList();
-        branchList.removeWhere((String branch) => branch.isEmpty);
-        expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
+
+        expect(branches.split('\n'), [
+          equalsIgnoringWhitespace('master'),
+          equalsIgnoringWhitespace('flutter-1.1-candidate.1'),
+          equalsIgnoringWhitespace(''),
+        ]);
       });
 
       test('retries branches download upon HTTP failure', () async {
-        var retry = 0;
+        var retried = 0;
         branchHttpClient = MockClient((_) async {
-          if (retry++ == 0) {
+          if (retried++ == 0) {
             return http.Response('', HttpStatus.serviceUnavailable);
           }
           return http.Response(branchRegExp, HttpStatus.ok);
         });
-        final records = <LogRecord>[];
-        log.onRecord.listen(records.add);
         final branches = await githubFileContent(
           RepositorySlug('flutter', 'cocoon'),
           'branches.txt',
@@ -86,19 +90,23 @@ void main() {
             maxDelay: Duration.zero,
           ),
         );
-        final branchList =
-            branches.split('\n').map((String branch) => branch.trim()).toList();
-        branchList.removeWhere((String branch) => branch.isEmpty);
-        expect(retry, 2);
-        expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
+
+        expect(retried, 2);
+        expect(branches.split('\n'), [
+          equalsIgnoringWhitespace('master'),
+          equalsIgnoringWhitespace('flutter-1.1-candidate.1'),
+          equalsIgnoringWhitespace(''),
+        ]);
+
         expect(
-          records.where((LogRecord record) => record.level == Level.INFO),
-          isNotEmpty,
+          log2,
+          bufferedLoggerOf(
+            contains(
+              logThat(message: anything, severity: equals(Severity.info)),
+            ),
+          ),
         );
-        expect(
-          records.where((LogRecord record) => record.level == Level.SEVERE),
-          isEmpty,
-        );
+        expect(log2, hasNoWarningsOrHigher);
       });
 
       test('falls back to git on borg', () async {
@@ -113,8 +121,6 @@ void main() {
           // Mock a GitHub outage
           return http.Response('', HttpStatus.serviceUnavailable);
         });
-        final records = <LogRecord>[];
-        log.onRecord.listen(records.add);
         final branches = await githubFileContent(
           RepositorySlug('flutter', 'cocoon'),
           '.ci.yaml',
@@ -126,10 +132,12 @@ void main() {
             maxDelay: Duration.zero,
           ),
         );
-        final branchList =
-            branches.split('\n').map((String branch) => branch.trim()).toList();
-        branchList.removeWhere((String branch) => branch.isEmpty);
-        expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
+
+        expect(branches.split('\n'), [
+          equalsIgnoringWhitespace('master'),
+          equalsIgnoringWhitespace('flutter-1.1-candidate.1'),
+          equalsIgnoringWhitespace(''),
+        ]);
       });
 
       test('falls back to git on borg when given sha', () async {
@@ -144,8 +152,6 @@ void main() {
           // Mock a GitHub outage
           return http.Response('', HttpStatus.serviceUnavailable);
         });
-        final records = <LogRecord>[];
-        log.onRecord.listen(records.add);
         final branches = await githubFileContent(
           RepositorySlug('flutter', 'cocoon'),
           '.ci.yaml',
@@ -157,10 +163,12 @@ void main() {
             maxDelay: Duration.zero,
           ),
         );
-        final branchList =
-            branches.split('\n').map((String branch) => branch.trim()).toList();
-        branchList.removeWhere((String branch) => branch.isEmpty);
-        expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
+
+        expect(branches.split('\n'), [
+          equalsIgnoringWhitespace('master'),
+          equalsIgnoringWhitespace('flutter-1.1-candidate.1'),
+          equalsIgnoringWhitespace(''),
+        ]);
       });
 
       test('gives up after 6 tries', () async {
@@ -169,8 +177,6 @@ void main() {
           retry++;
           return http.Response('', HttpStatus.serviceUnavailable);
         });
-        final records = <LogRecord>[];
-        log.onRecord.listen(records.add);
         await expectLater(
           githubFileContent(
             RepositorySlug('flutter', 'cocoon'),
@@ -184,11 +190,43 @@ void main() {
           ),
           throwsA(isA<HttpException>()),
         );
+
         // It will request from GitHub 3 times, fallback to GoB, then fail.
         expect(retry, 6);
         expect(
-          records.where((LogRecord record) => record.level == Level.WARNING),
-          isNotEmpty,
+          log2,
+          bufferedLoggerOf(
+            containsAll([
+              logThat(
+                message: contains('HTTP 503'),
+                severity: equals(Severity.warning),
+              ),
+              logThat(
+                message: contains('HTTP 503'),
+                severity: equals(Severity.warning),
+              ),
+              logThat(
+                message: contains('HTTP 503'),
+                severity: equals(Severity.warning),
+              ),
+              logThat(
+                message: matches(RegExp('Failed to fetch.*falling back to')),
+                severity: equals(Severity.warning),
+              ),
+              logThat(
+                message: contains('HTTP 503'),
+                severity: equals(Severity.warning),
+              ),
+              logThat(
+                message: contains('HTTP 503'),
+                severity: equals(Severity.warning),
+              ),
+              logThat(
+                message: contains('HTTP 503'),
+                severity: equals(Severity.warning),
+              ),
+            ]),
+          ),
         );
       });
     });

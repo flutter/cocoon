@@ -123,14 +123,19 @@ sealed class LogRecord {
   @override
   @nonVirtual
   String toString() {
-    final buffer = {
+    return 'LogRecord ${const JsonEncoder.withIndent('  ').convert(toJson())}';
+  }
+
+  /// Returns a JSON object representation of the log record.
+  @nonVirtual
+  Map<String, Object?> toJson() {
+    return {
       'message': message,
       'severity': severity.name,
       'recordedAt': recordedAt.toIso8601String(),
       if (error case final error?) 'error': '$error',
       if (trace case final trace?) 'trace': '$trace',
     };
-    return 'LogRecord ${const JsonEncoder.withIndent('  ').convert(buffer)}';
   }
 }
 
