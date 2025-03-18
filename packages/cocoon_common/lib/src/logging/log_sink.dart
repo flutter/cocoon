@@ -66,76 +66,61 @@ abstract base mixin class LogSink {
 
   /// A shortcut for calling [log] with [Severity.debug].
   @nonVirtual
-  void debug(String message, {Object? error, StackTrace? stackTrace}) {
-    log(message, severity: Severity.debug, error: error, trace: stackTrace);
+  void debug(String message, [Object? error, StackTrace? trace]) {
+    log(message, severity: Severity.debug, error: error, trace: trace);
   }
 
   /// A shortcut for calling [log] with [Severity.debug].
   @nonVirtual
-  void debugJson(Object? message, {Object? error, StackTrace? stackTrace}) {
-    logJson(message, severity: Severity.debug, error: error, trace: stackTrace);
+  void debugJson(Object? message, [Object? error, StackTrace? trace]) {
+    logJson(message, severity: Severity.debug, error: error, trace: trace);
   }
 
   /// A shortcut for calling [log] with [Severity.info].
   @nonVirtual
-  void info(String message, {Object? error, StackTrace? stackTrace}) {
-    log(message, severity: Severity.info, error: error, trace: stackTrace);
+  void info(String message, [Object? error, StackTrace? trace]) {
+    log(message, severity: Severity.info, error: error, trace: trace);
   }
 
   /// A shortcut for calling [log] with (an explicit) [Severity.info].
   @nonVirtual
-  void infoJson(Object? message, {Object? error, StackTrace? stackTrace}) {
-    logJson(message, severity: Severity.info, error: error, trace: stackTrace);
+  void infoJson(Object? message, [Object? error, StackTrace? trace]) {
+    logJson(message, severity: Severity.info, error: error, trace: trace);
   }
 
   /// A shortcut for calling [log] with [Severity.notice].
   @nonVirtual
-  void notice(String message, {Object? error, StackTrace? stackTrace}) {
-    log(message, severity: Severity.notice, error: error, trace: stackTrace);
+  void notice(String message, [Object? error, StackTrace? trace]) {
+    log(message, severity: Severity.notice, error: error, trace: trace);
   }
 
   /// A shortcut for calling [log] with (an explicit) [Severity.info].
   @nonVirtual
-  void noticeJson(Object? message, {Object? error, StackTrace? stackTrace}) {
-    logJson(
-      message,
-      severity: Severity.notice,
-      error: error,
-      trace: stackTrace,
-    );
+  void noticeJson(Object? message, [Object? error, StackTrace? trace]) {
+    logJson(message, severity: Severity.notice, error: error, trace: trace);
   }
 
   /// A shortcut for calling [log] with [Severity.warning].
   @nonVirtual
-  void warn(String message, {Object? error, StackTrace? stackTrace}) {
-    log(message, severity: Severity.warning, error: error, trace: stackTrace);
+  void warn(String message, [Object? error, StackTrace? trace]) {
+    log(message, severity: Severity.warning, error: error, trace: trace);
   }
 
   /// A shortcut for calling [log] with [Severity.warning].
   @nonVirtual
-  void warnJson(Object? message, {Object? error, StackTrace? stackTrace}) {
-    logJson(
-      message,
-      severity: Severity.warning,
-      error: error,
-      trace: stackTrace,
-    );
+  void warnJson(Object? message, [Object? error, StackTrace? trace]) {
+    logJson(message, severity: Severity.warning, error: error, trace: trace);
   }
 
   /// A shortcut for calling [log] with [Severity.error].
   @nonVirtual
-  void error(String message, {Object? error, StackTrace? stackTrace}) {
-    log(message, severity: Severity.warning, error: error, trace: stackTrace);
+  void error(String message, [Object? error, StackTrace? trace]) {
+    log(message, severity: Severity.warning, error: error, trace: trace);
   }
 
   /// A shortcut for calling [log] with [Severity.error].
   @nonVirtual
-  void errorJson(Object? message, {Object? error, StackTrace? stackTrace}) {
-    logJson(
-      message,
-      severity: Severity.warning,
-      error: error,
-      trace: stackTrace,
-    );
+  void errorJson(Object? message, [Object? error, StackTrace? trace]) {
+    logJson(message, severity: Severity.warning, error: error, trace: trace);
   }
 }

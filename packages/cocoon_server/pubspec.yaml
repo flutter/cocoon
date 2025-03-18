@@ -9,6 +9,8 @@ environment:
 # exact versions are locked by app_dart and auto_submit apps.
 dependencies:
   _discoveryapis_commons: any
+  cocoon_common:
+    path: ../cocoon_common
   github: ^9.24.0
   googleapis: ^13.2.0
   googleapis_auth: ^1.6.0
