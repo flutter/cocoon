@@ -54,6 +54,10 @@ void main() {
   ];
   final pullRequest = generatePullRequest(id: 1, repo: 'cocoon');
 
+  setUp(() {
+    mockGithubChecksUtil = MockGithubChecksUtil();
+  });
+
   group('getBuilds', () {
     final macBuild = generateBbv2Build(
       Int64(998),
@@ -338,7 +342,6 @@ void main() {
         firestoreService: firestoreService,
       );
       mockBuildBucketClient = MockBuildBucketClient();
-      mockGithubChecksUtil = MockGithubChecksUtil();
       pubsub = FakePubSub();
       gerritService = FakeGerritService(branchesValue: <String>['master']);
       service = LuciBuildService(
@@ -1763,7 +1766,6 @@ void main() {
     late Commit commit;
     late Commit totCommit;
     late DatastoreService datastore;
-    late MockGithubChecksUtil mockGithubChecksUtil;
     late MockFirestoreService mockFirestoreService;
     firestore.Task? firestoreTask;
     firestore_commit.Commit? firestoreCommit;
@@ -1772,7 +1774,6 @@ void main() {
       config = FakeConfig();
       firestoreTask = null;
       firestoreCommit = null;
-      mockGithubChecksUtil = MockGithubChecksUtil();
       mockFirestoreService = MockFirestoreService();
       mockBuildBucketClient = MockBuildBucketClient();
       when(
@@ -2080,7 +2081,6 @@ void main() {
   });
 
   group('scheduleMergeGroupBuilds', () {
-    late MockGithubChecksUtil mockGithubChecksUtil;
     late MockFirestoreService mockFirestoreService;
     firestore_commit.Commit? firestoreCommit;
     setUp(() {
@@ -2110,7 +2110,6 @@ void main() {
         );
       });
 
-      mockGithubChecksUtil = MockGithubChecksUtil();
       when(
         // ignore: discarded_futures
         mockGithubChecksUtil.createCheckRun(
