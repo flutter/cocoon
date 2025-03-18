@@ -3,9 +3,26 @@
 // found in the LICENSE file.
 
 import 'package:flutter_dashboard/src/rpc_model.dart'
-    show
-        BuildStatus, //
-        BuildStatusResponse;
+    show BuildStatus, BuildStatusResponse;
 import 'package:flutter_test/flutter_test.dart';
 
-void main() {}
+void main() {
+  final success = BuildStatusResponse(
+    buildStatus: BuildStatus.success,
+    failingTasks: [],
+  );
+  final failure = BuildStatusResponse(
+    buildStatus: BuildStatus.failure,
+    failingTasks: ['failing_task'],
+  );
+
+  test('implements == and hashCode', () {
+    expect(success, success);
+    expect(failure, failure);
+  });
+
+  test('encodes and decodes to JSON', () {
+    expect(BuildStatusResponse.fromJson(success.toJson()), success);
+    expect(BuildStatusResponse.fromJson(failure.toJson()), failure);
+  });
+}
