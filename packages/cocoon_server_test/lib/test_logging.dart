@@ -9,6 +9,13 @@ import 'package:test_api/scaffolding.dart';
 
 /// Overrides [internal.log2] to use a [BufferedLogger] per-test instance.
 ///
+/// Should be invoked exactly once in `void main()` or similar:
+/// ```dart
+/// void main() {
+///   useTestLoggerPerTest();
+/// }
+/// ```
+///
 /// If the test would result in a failure the current log buffer is printed.
 ///
 /// To assert against [log2], use `package:cocoon_common_test`:
@@ -21,7 +28,7 @@ import 'package:test_api/scaffolding.dart';
 ///   ]))
 /// );
 /// ```
-void useTestLogger() {
+void useTestLoggerPerTest() {
   late BufferedLogger testLogger;
 
   setUp(() {
