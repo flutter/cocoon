@@ -8,6 +8,8 @@ import 'dart:convert';
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/service/pull_request_validation_service.dart';
 import 'package:auto_submit/service/validation_service.dart';
+import 'package:cocoon_common/cocoon_common.dart';
+import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/bigquery_testing.dart';
 import 'package:cocoon_server_test/mocks.dart';
@@ -700,11 +702,6 @@ This is the second line in a paragraph.''');
     });
 
     test('Does not enqueue pull requests already in the queue', () async {
-      final logs = <String>[];
-      final logSub = log.onRecord.listen((record) {
-        logs.add(record.toString());
-      });
-
       slug = RepositorySlug('flutter', 'flutter');
       final flutterRequest = PullRequestHelper(
         prNumber: 0,
@@ -742,11 +739,17 @@ This is the second line in a paragraph.''');
         pubsub: pubsub,
       );
 
-      await logSub.cancel();
       expect(
-        logs,
-        contains(
-          '[INFO] auto_submit: flutter/flutter/0 is already in the merge queue. Skipping.',
+        log2,
+        bufferedLoggerOf(
+          contains(
+            logThat(
+              message: equals(
+                'flutter/flutter/0 is already in the merge queue. Skipping.',
+              ),
+              severity: equals(Severity.info),
+            ),
+          ),
         ),
       );
       expect(pubsub.acks, contains((subscription: 'test-sub', ackId: 'test')));

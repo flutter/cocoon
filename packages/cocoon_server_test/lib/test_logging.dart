@@ -47,3 +47,10 @@ void useTestLoggerPerTest() {
     printOnFailure('Log buffer: $testLogger');
   });
 }
+
+/// Clears [internal.log2].
+///
+/// Use this method judiciously, and instead write tighter test cases.
+void clearTestLogger() {
+  (internal.log2 as BufferedLogger).clear();
+}
