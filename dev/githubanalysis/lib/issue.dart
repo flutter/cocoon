@@ -24,7 +24,7 @@ class FullIssue {
     this.redirect,
     this.isDeleted = false,
   }) {
-    final _labels =
+    _labels =
         _metadata?.labels
             .map<String>((final IssueLabel label) => label.name)
             .toSet();
