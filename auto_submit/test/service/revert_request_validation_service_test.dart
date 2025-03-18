@@ -10,13 +10,14 @@ import 'package:auto_submit/model/discord_message.dart';
 import 'package:auto_submit/requests/github_pull_request_event.dart';
 import 'package:auto_submit/service/revert_request_validation_service.dart';
 import 'package:auto_submit/validations/validation.dart';
+import 'package:cocoon_common/cocoon_common.dart';
+import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/bigquery_testing.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
-import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
@@ -50,10 +51,6 @@ void main() {
   late FakeBigqueryService bigqueryService;
   late FakeRevertMethod revertMethod;
   late FakeDiscordNotification discordNotification;
-
-  setUpAll(() {
-    log = Logger('auto_submit');
-  });
 
   setUp(() {
     githubGraphQLClient = FakeGraphQLClient();
@@ -1390,11 +1387,6 @@ void main() {
       // Use a test slug that has MQ enabled
       slug = RepositorySlug('flutter', 'flutter');
 
-      final logs = <String>[];
-      final logSub = log.onRecord.listen((record) {
-        logs.add(record.toString());
-      });
-
       final pubsub = FakePubSub();
 
       final flutterRequest = PullRequestHelper(
@@ -1429,13 +1421,19 @@ void main() {
         ackId: 'test',
         pubsub: pubsub,
       );
-      await logSub.cancel();
 
       // Expectations
       expect(
-        logs,
-        contains(
-          '[INFO] auto_submit: flutter/flutter/0 is already in the merge queue. Skipping.',
+        log2,
+        bufferedLoggerOf(
+          contains(
+            logThat(
+              severity: equals(Severity.info),
+              message: equals(
+                'flutter/flutter/0 is already in the merge queue. Skipping.',
+              ),
+            ),
+          ),
         ),
       );
       expect(githubService.issueComment, isNull);
