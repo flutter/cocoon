@@ -3,9 +3,12 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/revert/revert_discord_message.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:test/test.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   void checkExpectedOutput(
     String originalPrUrl,
     String originalPrDisplayText,

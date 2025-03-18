@@ -3,10 +3,13 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/revert/revert_info_collection.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:test/test.dart';
 import 'revert_support_data.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   RevertInfoCollection? revertInfoCollection;
 
   setUp(() {

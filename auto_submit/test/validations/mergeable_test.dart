@@ -5,6 +5,7 @@
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto;
 import 'package:auto_submit/validations/mergeable.dart';
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:test/test.dart';
 
 import '../requests/github_webhook_test_data.dart';
@@ -14,6 +15,8 @@ import '../src/service/fake_graphql_client.dart';
 import '../utilities/utils.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late Mergeable mergeable;
   late FakeConfig config;
   late FakeGithubService githubService;

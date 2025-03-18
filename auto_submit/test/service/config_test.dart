@@ -8,6 +8,7 @@ import 'dart:typed_data';
 
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/secrets.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -18,6 +19,8 @@ import 'package:test/test.dart';
 import 'config_test_data.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('Config', () {
     late CacheProvider cacheProvider;
     late Config config;

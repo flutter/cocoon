@@ -8,10 +8,13 @@ import 'package:auto_submit/git/cli_command.dart';
 import 'package:auto_submit/git/git_cli.dart';
 import 'package:auto_submit/git/git_repository_manager.dart';
 import 'package:auto_submit/git/utilities.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('RepositoryManager', () {
     final workingDirectoryOutside = Directory.current.parent.parent.path;
 

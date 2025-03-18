@@ -3,10 +3,13 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/revert/revert_issue_body_formatter.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   // Calls are made as they are done in git_cli_revert_method.dart.
   test('Allow nullable fields in formatter.', () {
     final pullRequest = PullRequest(

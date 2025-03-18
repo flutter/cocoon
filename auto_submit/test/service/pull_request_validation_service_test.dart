@@ -11,6 +11,7 @@ import 'package:auto_submit/service/validation_service.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/bigquery_testing.dart';
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
@@ -28,6 +29,8 @@ import '../src/service/fake_graphql_client.dart';
 import '../utilities/utils.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late PullRequestValidationService validationService;
   late FakeConfig config;
   late FakeGithubService githubService;

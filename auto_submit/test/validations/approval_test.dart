@@ -9,6 +9,7 @@ import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/validations/approval.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:test/test.dart';
 
 import '../configuration/repository_configuration_data.dart';
@@ -19,14 +20,17 @@ import '../src/service/fake_graphql_client.dart';
 import 'approval_test_data.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late Approval approval;
   late FakeConfig config;
-  final githubService = FakeGithubService();
+  late FakeGithubService githubService;
   late FakeGraphQLClient githubGraphQLClient;
-  final gitHub = MockGitHub();
 
   setUp(() {
+    final gitHub = MockGitHub();
     githubGraphQLClient = FakeGraphQLClient();
+    githubService = FakeGithubService();
     config = FakeConfig(
       githubService: githubService,
       githubGraphQLClient: githubGraphQLClient,

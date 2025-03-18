@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:auto_submit/requests/exceptions.dart';
 import 'package:auto_submit/requests/github_webhook.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:crypto/crypto.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
@@ -17,6 +18,8 @@ import '../src/service/fake_config.dart';
 import './github_webhook_test_data.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('Check Webhook', () {
     late Request req;
     late GithubWebhook githubWebhook;

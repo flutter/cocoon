@@ -11,13 +11,15 @@ import 'package:auto_submit/requests/check_pull_request.dart';
 import 'package:auto_submit/requests/graphql_queries.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/validation_service.dart';
+import 'package:cocoon_common/cocoon_common.dart';
+import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/bigquery_testing.dart';
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart' hide Request, Response;
-import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -34,6 +36,8 @@ import './github_webhook_test_data.dart';
 const String oid = '6dcb09b5b57875f334f61aebed695e2e4193db5e';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('Check CheckPullRequest', () {
     late CheckPullRequest checkPullRequest;
     late FakeConfig config;
@@ -231,30 +235,27 @@ void main() {
           cronAuthProvider: auth,
         );
 
-        final records = <LogRecord>[];
-        log.onRecord.listen(records.add);
-
         // Calling get should not fail despite the failing message inside.
         await checkPullRequest.get();
 
-        final errorLogs =
-            records
-                .where((LogRecord record) => record.level == Level.SEVERE)
-                .toList();
-        expect(errorLogs, hasLength(1));
         expect(
-          errorLogs[0].message,
-          contains(
-            'CheckPullRequest(flutter/cocoon/0): failed to process message.',
+          log2,
+          bufferedLoggerOf(
+            contains(
+              logThat(
+                message: stringContainsInOrder([
+                  'CheckPullRequest(flutter/cocoon/0): failed to process message.',
+                  'Pull request: https://github.com/flutter/cocoon/0',
+                ]),
+                severity: equals(Severity.error),
+                error: isA<Error>().having(
+                  (e) => e.toString(),
+                  'toString()',
+                  contains('Unexpected invocation of getPullRequest method'),
+                ),
+              ),
+            ),
           ),
-        );
-        expect(
-          errorLogs[0].message,
-          contains('Pull request: https://github.com/flutter/cocoon/0'),
-        );
-        expect(
-          errorLogs[0].error?.toString(),
-          contains('Unexpected invocation of getPullRequest method'),
         );
 
         // The message failed, so it shouldn't be acked.
@@ -332,22 +333,22 @@ void main() {
       expectedMergeRequestMap[0] = RepositorySlug('flutter', 'flutter');
       expectedMergeRequestMap[1] = RepositorySlug('flutter', cocoonRepo);
 
-      final records = <LogRecord>[];
-      log.onRecord.listen(records.add);
       // this is the test.
       await checkPullRequest.get();
       // every failure is now acknowledged from the queue.
       expect(pubsub.messagesQueue.length, 0);
-      final errorLogs =
-          records.where((record) => record.level == Level.SEVERE).toList();
 
-      expect(errorLogs, [
-        isA<LogRecord>().having(
-          (e) => e.message,
-          'message',
-          contains('Failed to merge'),
+      expect(
+        log2,
+        bufferedLoggerOf(
+          contains(
+            logThat(
+              message: contains('Failed to merge'),
+              severity: equals(Severity.error),
+            ),
+          ),
         ),
-      ]);
+      );
       pubsub.messagesQueue.clear();
     });
 

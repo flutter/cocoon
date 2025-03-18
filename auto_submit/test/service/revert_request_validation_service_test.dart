@@ -13,6 +13,7 @@ import 'package:auto_submit/validations/validation.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/bigquery_testing.dart';
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:logging/logging.dart';
@@ -37,6 +38,8 @@ import '../src/validations/fake_validation_filter.dart';
 import '../utilities/utils.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late RevertRequestValidationService validationService;
   late FakeConfig config;
   late FakeGithubService githubService;

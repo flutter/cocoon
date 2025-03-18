@@ -3,9 +3,12 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/configuration/repository_configuration.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:test/test.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   test('Parse config from yaml', () {
     const sampleConfig = '''
       default_branch: main

@@ -5,6 +5,7 @@
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:github/github.dart' as gh;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -14,14 +15,15 @@ import '../requests/github_webhook_test_data.dart';
 import '../src/service/fake_config.dart';
 
 void main() {
-  FakeConfig config;
+  useTestLoggerPerTest();
+
   late ApproverService service;
   late MockGitHub github;
   late MockPullRequestsService pullRequests;
 
   setUp(() {
     github = MockGitHub();
-    config = FakeConfig(githubClient: github);
+    final config = FakeConfig(githubClient: github);
     config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(
       sampleConfigNoOverride,
     );

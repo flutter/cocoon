@@ -5,9 +5,12 @@
 import 'dart:convert';
 
 import 'package:auto_submit/model/auto_submit_query_result.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:test/test.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late QueryResult queryResult;
   late RevertPullRequestData revertPullRequestData;
 

@@ -4,6 +4,7 @@
 
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/configuration/repository_configuration_manager.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:github/github.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
@@ -14,6 +15,8 @@ import '../src/service/fake_github_service.dart';
 import 'repository_configuration_data.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late RepositoryConfigurationManager repositoryConfigurationManager;
   late CacheProvider cacheProvider;
   late Cache cache;

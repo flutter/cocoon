@@ -13,6 +13,7 @@ import 'package:auto_submit/validations/ci_successful.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:github/github.dart' as github;
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
@@ -26,11 +27,12 @@ import '../utilities/utils.dart';
 import 'ci_successful_test_data.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late CiSuccessful ciSuccessful;
   late FakeConfig config;
-  var githubService = FakeGithubService();
+  late FakeGithubService githubService;
   late FakeGraphQLClient githubGraphQLClient;
-  final gitHub = MockGitHub();
   late github.RepositorySlug slug;
   late Set<FailureDetail> failures;
   const prNumber = 1;
@@ -59,7 +61,9 @@ void main() {
 
   /// Setup objects needed across test groups.
   setUp(() {
+    githubService = FakeGithubService();
     githubGraphQLClient = FakeGraphQLClient();
+    final gitHub = MockGitHub();
     config = FakeConfig(
       githubService: githubService,
       githubGraphQLClient: githubGraphQLClient,

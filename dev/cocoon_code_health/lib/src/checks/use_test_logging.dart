@@ -24,9 +24,6 @@ final class UseTestLogging extends Check {
   Glob get shouldCheck => Glob('test/**/*_test.dart');
 
   @override
-  Iterable<Glob> get allowListed => [Glob('auto_submit/test/**')];
-
-  @override
   Future<CheckResult> check(LogSink logger, File file) async {
     final contents = file.readAsStringSync();
     if (!_hasImport.hasMatch(contents)) {
