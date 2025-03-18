@@ -70,7 +70,7 @@ class BuildBucketClient {
     final url = Uri.parse('$buildBucketUri$path');
     final token = await accessTokenService?.createAccessToken();
 
-    log.info('Making bbv2 request with path: $url and body: $request');
+    log2.info('Making bbv2 request with path: $url and body: $request');
 
     final response = await httpClient.post(
       url,
@@ -83,8 +83,8 @@ class BuildBucketClient {
       },
     );
 
-    log.info('bbv2 request returned response code ${response.statusCode}');
-    log.info('bbv2 request response body: ${response.body}');
+    log2.info('bbv2 request returned response code ${response.statusCode}');
+    log2.info('bbv2 request response body: ${response.body}');
 
     if (response.statusCode < 300) {
       return response.body.substring(kRpcResponseGarbage.length);
@@ -147,7 +147,7 @@ class BuildBucketClient {
     if (response.responses.length != request.requests.length) {
       throw BatchRequestException('Failed to execute all requests');
     }
-    log.info('Batch response matches request size.');
+    log2.info('Batch response matches request size.');
     return response;
   }
 

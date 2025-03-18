@@ -36,8 +36,10 @@ class GithubRateLimitStatus extends RequestHandler<Body> {
     final quotaLimit = quotaUsage['limit'] as int;
     const githubQuotaUsageSLO = 0.5;
     if (remainingQuota < githubQuotaUsageSLO * quotaLimit) {
-      log.warning(
-        'Remaining GitHub quota is $remainingQuota, which is less than quota usage SLO ${githubQuotaUsageSLO * quotaLimit} (${githubQuotaUsageSLO * 100}% of the limit $quotaLimit)).',
+      log2.warn(
+        'Remaining GitHub quota is $remainingQuota, which is less than quota'
+        'usage SLO ${githubQuotaUsageSLO * quotaLimit} '
+        '(${githubQuotaUsageSLO * 100}% of the limit $quotaLimit)).',
       );
     }
 

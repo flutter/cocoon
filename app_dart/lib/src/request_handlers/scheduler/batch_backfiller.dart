@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_server/logging.dart';
-import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -110,40 +109,35 @@ class BatchBackfiller extends RequestHandler {
     // Get the number of targets to be backfilled in each cycle.
     backfill = getFilteredBackfill(backfill);
 
-    log.fine('Backfilling ${backfill.length} builds');
-    log.fine(
-      backfill.map<String>(
-        (Tuple<Target, FullTask, int> tuple) => tuple.first.value.name,
-      ),
-    );
+    log2.debug('Backfilling ${backfill.length} builds');
+    log2.debug(backfill.map((tuple) => tuple.first.value.name).toString());
 
     // Update tasks status as in progress to avoid duplicate scheduling.
-    final backfillTasks =
-        backfill
-            .map((Tuple<Target, FullTask, int> tuple) => tuple.second.task)
-            .toList();
+    final backfillTasks = backfill.map((tuple) => tuple.second.task).toList();
     try {
-      await datastore.withTransaction<void>((Transaction transaction) async {
+      await datastore.withTransaction<void>((transaction) async {
         transaction.queueMutations(inserts: backfillTasks);
         await transaction.commit();
-        log.fine(
-          'Updated ${backfillTasks.length} tasks: ${backfillTasks.map((e) => e.name).toList()} when backfilling.',
+        log2.debug(
+          'Updated ${backfillTasks.length} tasks: '
+          '${backfillTasks.map((e) => e.name).toList()} when backfilling.',
         );
       });
       // TODO(keyonghan): remove try catch logic after validated to work.
       try {
         await updateTaskDocuments(backfillTasks);
-      } catch (error) {
-        log.warning(
-          'Failed to update batch backfilled task documents in Firestore: $error',
+      } catch (e) {
+        log2.warn(
+          'Failed to update batch backfilled task documents in Firestore',
+          e,
         );
       }
 
       // Schedule all builds asynchronously.
       // Schedule after db updates to avoid duplicate scheduling when db update fails.
       await _scheduleWithRetries(backfill);
-    } catch (error) {
-      log.severe('Failed to update tasks when backfilling: $error');
+    } catch (e) {
+      log2.error('Failed to update tasks when backfilling', e);
     }
   }
 
@@ -218,7 +212,7 @@ class BatchBackfiller extends RequestHandler {
                   .where((element) => element.isNotEmpty)
                   .toList()
                   .length;
-          log.info(
+          log2.info(
             'Backfill fails and retry backfilling $nonEmptyListLenght targets.',
           );
           backfill = _updateBackfill(backfill, pendingTasks);
@@ -227,9 +221,10 @@ class BatchBackfiller extends RequestHandler {
           );
         }
       }, retryIf: (Exception e) => e is InternalServerError);
-    } catch (error) {
-      log.severe(
-        'Failed to backfill ${backfill.length} targets due to error: $error',
+    } catch (e) {
+      log2.error(
+        'Failed to backfill ${backfill.length} targets due to error',
+        e,
       );
     }
   }

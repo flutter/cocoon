@@ -216,11 +216,11 @@ class LuciBuildService {
       bbv2.BatchRequest(requests: {batchRequestRequest}),
     );
 
-    log.info(
+    log2.info(
       'Responses from get builds batch request = ${batchResponse.responses.length}',
     );
     for (var response in batchResponse.responses) {
-      log.info('Found a response: ${response.toString()}');
+      log2.info('Found a response: ${response.toString()}');
     }
 
     final builds = batchResponse.responses
@@ -268,8 +268,9 @@ class LuciBuildService {
         if (branches.contains(proposedVersion.version)) {
           cipdVersion = proposedVersion;
         } else {
-          log.warning(
-            'Falling back to default recipe, could not find "${proposedVersion.version}" in $branches.',
+          log2.warn(
+            'Falling back to default recipe, could not find '
+            '"${proposedVersion.version}" in $branches.',
           );
           cipdVersion = config.defaultRecipeBundleRef;
         }
@@ -323,13 +324,13 @@ class LuciBuildService {
             properties['flutter_prebuilt_engine_version'] = commitSha;
             properties['flutter_realm'] = flutterRealm;
           case UnnecessaryEngineArtifacts(:final reason):
-            log.fine(
+            log2.debug(
               'No engineArtifacts were specified for PR#${pullRequest.number} (${pullRequest.head!.sha}): $reason.',
             );
         }
       } else if (engineArtifacts is! UnnecessaryEngineArtifacts) {
         // This is an error case, as we're setting artifacts for a PR that will never use them.
-        log.warning(
+        log2.warn(
           'Unexpected engineArtifacts were specified for PR#${pullRequest.number} (${pullRequest.head!.sha})',
           null,
           StackTrace.current,
@@ -367,11 +368,11 @@ class LuciBuildService {
         pullRequest: pullRequest,
         checks: checkRuns,
       );
-      log.info('scheduleTryBuilds: created PrCheckRuns doc ${doc.name}');
+      log2.info('scheduleTryBuilds: created PrCheckRuns doc ${doc.name}');
     } catch (e, s) {
       // We are not going to block on this error. If we cannot find this document
       // later, we'll fall back to the old github query method.
-      log.warning('scheduleTryBuilds: error creating PrCheckRuns doc', e, s);
+      log2.warn('scheduleTryBuilds: error creating PrCheckRuns doc', e, s);
     }
 
     final Iterable<List<bbv2.BatchRequest_Request>> requestPartitions =
@@ -395,26 +396,26 @@ class LuciBuildService {
     required github.PullRequest pullRequest,
     required String reason,
   }) async {
-    log.info(
+    log2.info(
       'Attempting to cancel builds (v2) for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}',
     );
 
     final builds = await getTryBuildsByPullRequest(pullRequest: pullRequest);
 
     if (builds.isEmpty) {
-      log.info(
+      log2.info(
         'No builds were found for pull request ${pullRequest.base!.repo!.fullName}.',
       );
       return;
     }
-    log.info('Found ${builds.length} builds.');
+    log2.info('Found ${builds.length} builds.');
 
     final requests = <bbv2.BatchRequest_Request>[];
     for (var build in builds) {
       if (build.status == bbv2.Status.SCHEDULED ||
           build.status == bbv2.Status.STARTED) {
         // Scheduled status includes scheduled and pending tasks.
-        log.info('Cancelling build with build id ${build.id}.');
+        log2.info('Cancelling build with build id ${build.id}.');
         requests.add(
           bbv2.BatchRequest_Request(
             cancelBuild: bbv2.CancelBuildRequest(
@@ -436,25 +437,25 @@ class LuciBuildService {
     required String sha,
     required String reason,
   }) async {
-    log.info(
+    log2.info(
       'Attempting to cancel builds (v2) for git SHA $sha because $reason',
     );
 
     final builds = await getProdBuilds(sha: sha);
 
     if (builds.isEmpty) {
-      log.info('No builds found. Will not request cancellation from LUCI.');
+      log2.info('No builds found. Will not request cancellation from LUCI.');
       return;
     }
 
-    log.info('Found ${builds.length} builds.');
+    log2.info('Found ${builds.length} builds.');
 
     final requests = <bbv2.BatchRequest_Request>[];
     for (final build in builds) {
       if (build.status == bbv2.Status.SCHEDULED ||
           build.status == bbv2.Status.STARTED) {
         // Scheduled status includes scheduled and pending tasks.
-        log.info('Cancelling build with build id ${build.id}.');
+        log2.info('Cancelling build with build id ${build.id}.');
         requests.add(
           bbv2.BatchRequest_Request(
             cancelBuild: bbv2.CancelBuildRequest(
@@ -561,8 +562,8 @@ class LuciBuildService {
     final properties = propertiesStruct.toProto3Json() as Map<String, Object?>;
     final tags = BuildTags.fromStringPairs(build.tags);
 
-    log.info('input ${build.input} properties $properties');
-    log.info('input ${build.input} tags $tags');
+    log2.info('input ${build.input} properties $properties');
+    log2.info('input ${build.input} tags $tags');
 
     tags.addOrReplace(TriggerTypeBuildTag.checkRunManualRetry);
 
@@ -574,13 +575,15 @@ class LuciBuildService {
         datastore = datastore,
       );
       tags.addOrReplace(CurrentAttemptBuildTag(attemptNumber: newAttempt));
-    } catch (error) {
-      log.severe(
-        'updating task ${taskDocument.taskName} of commit ${taskDocument.commitSha} failure: $error. Skipping rescheduling.',
+    } catch (e) {
+      log2.error(
+        'updating task ${taskDocument.taskName} of commit '
+        '${taskDocument.commitSha}. Skipping rescheduling.',
+        e,
       );
       return;
     }
-    log.info('Updated input ${build.input} tags $tags');
+    log2.info('Updated input ${build.input} tags $tags');
     final request = bbv2.BatchRequest(
       requests: <bbv2.BatchRequest_Request>[
         bbv2.BatchRequest_Request(
@@ -631,7 +634,7 @@ class LuciBuildService {
     String project = 'flutter',
     String bucket = 'prod',
   }) async {
-    log.info(
+    log2.info(
       'No cached value for builderList, start fetching via the rpc call.',
     );
     final availableBuilderSet = <String>{};
@@ -654,7 +657,7 @@ class LuciBuildService {
       }
     } while (hasToken && token != null);
     final joinedBuilderSet = availableBuilderSet.toList().join(',');
-    log.info('successfully fetched the builderSet: $joinedBuilderSet');
+    log2.info('successfully fetched the builderSet: $joinedBuilderSet');
     return Uint8List.fromList(joinedBuilderSet.codeUnits);
   }
 
@@ -667,8 +670,9 @@ class LuciBuildService {
     required List<PendingTask> toBeScheduled,
   }) async {
     if (toBeScheduled.isEmpty) {
-      log.fine(
-        'Skipping schedulePostsubmitBuilds as there are no targets to be scheduled by Cocoon',
+      log2.debug(
+        'Skipping schedulePostsubmitBuilds as there are no targets to be '
+        'scheduled by Cocoon',
       );
       return toBeScheduled;
     }
@@ -681,20 +685,20 @@ class LuciBuildService {
         project: 'flutter',
         bucket: 'prod',
       );
-    } catch (error) {
-      log.severe('Failed to get buildbucket builder list due to $error');
+    } catch (e) {
+      log2.error('Failed to get buildbucket builder list', e);
       return toBeScheduled;
     }
-    log.info('Available builder list: $availableBuilderSet');
+    log2.info('Available builder list: $availableBuilderSet');
     for (var pending in toBeScheduled) {
       // Non-existing builder target will be skipped from scheduling.
       if (!availableBuilderSet.contains(pending.target.value.name)) {
-        log.warning(
+        log2.warn(
           'Found no available builder for ${pending.target.value.name}, commit ${commit.sha}',
         );
         continue;
       }
-      log.info(
+      log2.info(
         'create postsubmit schedule request for target: ${pending.target.value} in commit ${commit.sha}',
       );
       final scheduleBuildRequest = await _createPostsubmitScheduleBuild(
@@ -706,13 +710,13 @@ class LuciBuildService {
       buildRequests.add(
         bbv2.BatchRequest_Request(scheduleBuild: scheduleBuildRequest),
       );
-      log.info(
+      log2.info(
         'created postsubmit schedule request for target: ${pending.target.value} in commit ${commit.sha}',
       );
     }
 
     final batchRequest = bbv2.BatchRequest(requests: buildRequests);
-    log.fine(batchRequest);
+    log2.debug('$batchRequest');
     List<String> messageIds;
 
     try {
@@ -720,12 +724,12 @@ class LuciBuildService {
         'cocoon-scheduler-requests',
         batchRequest.toProto3Json(),
       );
-      log.info('Published $messageIds for commit ${commit.sha}');
-    } catch (error) {
-      log.severe('Failed to publish message to pub/sub due to $error');
+      log2.info('Published $messageIds for commit ${commit.sha}');
+    } catch (e) {
+      log2.error('Failed to publish message to pub/sub', e);
       return toBeScheduled;
     }
-    log.info('Published a request with ${buildRequests.length} builds');
+    log2.info('Published a request with ${buildRequests.length} builds');
     return <PendingTask>[];
   }
 
@@ -742,20 +746,21 @@ class LuciBuildService {
         project: 'flutter',
         bucket: 'prod',
       );
-    } catch (error) {
-      log.warning('Failed to get buildbucket builder list', error);
-      throw 'Failed to get buildbucket builder list due to $error';
+    } catch (e) {
+      log2.warn('Failed to get buildbucket builder list', e);
+      throw 'Failed to get buildbucket builder list due to $e';
     }
-    log.info('Available builder list: $availableBuilderSet');
+    log2.info('Available builder list: $availableBuilderSet');
     for (var target in targets) {
       // Non-existing builder target will be skipped from scheduling.
       if (!availableBuilderSet.contains(target.value.name)) {
-        log.warning(
-          'Found no available builder for ${target.value.name}, commit ${commit.sha}',
+        log2.warn(
+          'Found no available builder for ${target.value.name}, commit '
+          '${commit.sha}',
         );
         continue;
       }
-      log.info(
+      log2.info(
         'create postsubmit schedule request for target: ${target.value} in commit ${commit.sha}',
       );
 
@@ -766,13 +771,13 @@ class LuciBuildService {
       buildRequests.add(
         bbv2.BatchRequest_Request(scheduleBuild: scheduleBuildRequest),
       );
-      log.info(
+      log2.info(
         'created postsubmit schedule request for target: ${target.value} in commit ${commit.sha}',
       );
     }
 
     final batchRequest = bbv2.BatchRequest(requests: buildRequests);
-    log.fine(batchRequest);
+    log2.debug('$batchRequest');
     final List<String> messageIds;
 
     try {
@@ -780,12 +785,12 @@ class LuciBuildService {
         'cocoon-scheduler-requests',
         batchRequest.toProto3Json(),
       );
-      log.info('Published $messageIds for commit ${commit.sha}');
-    } catch (error) {
-      log.severe('Failed to publish message to pub/sub due to $error');
+      log2.info('Published $messageIds for commit ${commit.sha}');
+    } catch (e) {
+      log2.error('Failed to publish message to pub/sub', e);
       rethrow;
     }
-    log.info('Published a request with ${buildRequests.length} builds');
+    log2.info('Published a request with ${buildRequests.length} builds');
   }
 
   /// Create a Presubmit ScheduleBuildRequest using the [slug], [sha], and
@@ -875,7 +880,7 @@ class LuciBuildService {
     BuildTags? tags,
     int priority = kDefaultPriority,
   }) async {
-    log.info(
+    log2.info(
       'Creating postsubmit schedule builder for ${target.value.name} on commit ${commit.sha}',
     );
     tags ??= BuildTags([
@@ -888,11 +893,11 @@ class LuciBuildService {
 
     final commitKey = task.parentKey!.id.toString();
     final taskKey = task.key.id.toString();
-    log.info(
+    log2.info(
       'Scheduling builder: ${target.value.name} for commit ${commit.sha}',
     );
-    log.info('Task commit_key: $commitKey for task name: ${task.name}');
-    log.info('Task task_key: $taskKey for task name: ${task.name}');
+    log2.info('Task commit_key: $commitKey for task name: ${task.name}');
+    log2.info('Task task_key: $taskKey for task name: ${task.name}');
 
     final rawUserData = <String, dynamic>{
       'commit_key': commitKey,
@@ -940,7 +945,7 @@ class LuciBuildService {
 
     final executable = bbv2.Executable(cipdVersion: cipdExe);
 
-    log.info(
+    log2.info(
       'Constructing the postsubmit schedule build request for ${target.value.name} on commit ${commit.sha}.',
     );
 
@@ -976,10 +981,10 @@ class LuciBuildService {
     required Target target,
     int priority = kDefaultPriority,
   }) async {
-    log.info(
+    log2.info(
       'Creating merge group schedule builder for ${target.value.name} on commit ${commit.sha}',
     );
-    log.info(
+    log2.info(
       'Scheduling builder: ${target.value.name} for commit ${commit.sha}',
     );
 
@@ -991,7 +996,7 @@ class LuciBuildService {
     processedProperties['git_branch'] = commit.branch!;
 
     final mqBranch = tryParseGitHubMergeQueueBranch(commit.branch!);
-    log.info('parsed mqBranch: $mqBranch');
+    log2.info('parsed mqBranch: $mqBranch');
 
     final cipdExe = 'refs/heads/${mqBranch.branch}';
     processedProperties['exe_cipd_version'] = cipdExe;
@@ -1004,7 +1009,7 @@ class LuciBuildService {
     final requestedDimensions = target.getDimensions();
     final executable = bbv2.Executable(cipdVersion: cipdExe);
 
-    log.info(
+    log2.info(
       'Constructing the merge group schedule build request for ${target.value.name} on commit ${commit.sha}.',
     );
 
@@ -1091,7 +1096,7 @@ class LuciBuildService {
       return false;
     }
 
-    log.info('Rerun builder: ${target.value.name} for commit ${commit.sha}');
+    log2.info('Rerun builder: ${target.value.name} for commit ${commit.sha}');
 
     final buildTags = BuildTags(tags);
     buildTags.add(TriggerTypeBuildTag.autoRetry);
@@ -1104,14 +1109,16 @@ class LuciBuildService {
         datastore = datastore,
       );
       buildTags.add(CurrentAttemptBuildTag(attemptNumber: newAttempt));
-    } catch (error) {
-      log.severe(
-        'updating task ${taskDocument.taskName} of commit ${taskDocument.commitSha} failure: $error. Skipping rescheduling.',
+    } catch (e) {
+      log2.error(
+        'Updating task ${taskDocument.taskName} of commit '
+        '${taskDocument.commitSha} failure. Skipping rescheduling.',
+        e,
       );
       return false;
     }
 
-    log.info('Tags from rerun after update: $tags');
+    log2.info('Tags from rerun after update: $tags');
 
     final request = bbv2.BatchRequest(
       requests: <bbv2.BatchRequest_Request>[
@@ -1172,7 +1179,7 @@ class LuciBuildService {
     }
     final retries = task.attempts ?? 1;
     if (retries > config.maxLuciTaskRetries) {
-      log.info('Max retries reached for ${task.taskName}');
+      log2.info('Max retries reached for ${task.taskName}');
       return false;
     }
 

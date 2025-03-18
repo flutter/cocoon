@@ -33,7 +33,7 @@ class CommitService {
     final datastore = datastoreProvider(config.db);
     final slug = RepositorySlug.full(createEvent.repository!.fullName);
     final branch = createEvent.ref!;
-    log.info(
+    log2.info(
       'Creating commit object for branch $branch in repository ${slug.fullName}',
     );
     final commit = await _createCommitFromBranchEvent(datastore, slug, branch);
@@ -106,10 +106,10 @@ class CommitService {
     final firestoreService = await config.createFirestoreService();
     final datastore = datastoreProvider(config.db);
     try {
-      log.info('Checking for existing commit in the datastore');
+      log2.info('Checking for existing commit in the datastore');
       await datastore.lookupByValue<Commit>(commit.key);
     } on KeyNotFoundException {
-      log.info('Commit does not exist in datastore, inserting into datastore');
+      log2.info('Commit does not exist in datastore, inserting into datastore');
       await datastore.insert(<Commit>[commit]);
       try {
         final commitDocument = firestore.commitToCommitDocument(commit);
@@ -118,10 +118,8 @@ class CommitService {
           BatchWriteRequest(writes: writes),
           kDatabase,
         );
-      } catch (error) {
-        log.warning(
-          'Failed to insert new branched commit in Firestore: $error',
-        );
+      } catch (e) {
+        log2.warn('Failed to insert new branched commit in Firestore', e);
       }
     }
   }

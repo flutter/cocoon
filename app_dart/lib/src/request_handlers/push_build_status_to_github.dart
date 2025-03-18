@@ -4,10 +4,10 @@
 
 import 'dart:async';
 
+import 'package:cocoon_common/cocoon_common.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
-import 'package:logging/logging.dart' show Level;
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
@@ -37,7 +37,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     if (authContext!.clientContext.isDevelopmentEnvironment) {
       // Don't push GitHub status from the local dev server.
-      log.fine('GitHub statuses are not pushed from local dev environments');
+      log2.debug('GitHub statuses are not pushed from local dev environments');
       return Body.empty;
     }
 
@@ -59,7 +59,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       config,
     );
     await _updatePRs(slug, status.githubStatus, datastore, firestoreService);
-    log.fine('All the PRs for $repository have been updated with $status');
+    log2.debug('All the PRs for $repository have been updated with $status');
 
     return Body.empty;
   }
@@ -79,8 +79,9 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     )) {
       // Tree status only affects the default branch - which github should filter for.. but check for a whoopsie.
       if (pr.base!.ref != Config.defaultBranch(slug)) {
-        log.warning(
-          'when asked for PRs for ${Config.defaultBranch(slug)} - github returns something else: $pr',
+        log2.warn(
+          'when asked for PRs for ${Config.defaultBranch(slug)} - github '
+          'returns something else: $pr',
         );
         continue;
       }
@@ -101,9 +102,10 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
               ? GithubBuildStatus.statusNeutral
               : realStatus;
       if (githubBuildStatus.status != status) {
-        log.log(
-          hasEmergencyLabel ? Level.WARNING : Level.FINE,
-          'Updating status of ${slug.fullName}#${pr.number} from ${githubBuildStatus.status} to $status',
+        log2.log(
+          severity: hasEmergencyLabel ? Severity.warning : Severity.debug,
+          'Updating status of ${slug.fullName}#${pr.number} from '
+          '${githubBuildStatus.status} to $status',
         );
         final request = CreateStatus(status);
         request.targetUrl =
@@ -129,9 +131,10 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
             currentTimeMillisecondsSinceEpoch,
           );
           githubBuildStatuses.add(githubBuildStatus);
-        } catch (error) {
-          log.severe(
-            'Failed to post status update to ${slug.fullName}#${pr.number}: $error',
+        } catch (e) {
+          log2.error(
+            'Failed to post status update to ${slug.fullName}#${pr.number}',
+            e,
           );
         }
       }

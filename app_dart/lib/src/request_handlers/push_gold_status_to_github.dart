@@ -60,7 +60,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     final gitHubClient = await config.createGitHubClient(slug: slug);
     final statusUpdates = <GithubGoldStatusUpdate>[];
     final githubGoldStatuses = <GithubGoldStatus>[];
-    log.fine('Beginning Gold checks...');
+    log2.debug('Beginning Gold checks...');
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
       assert(pr.number != null);
       // Get last known Gold status from firestore.
@@ -71,22 +71,24 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       );
       CreateStatus statusRequest;
 
-      log.fine(
+      log2.debug(
         'Last known Gold status for $slug#${pr.number} was with sha: '
-        '${githubGoldStatus.head}, status: ${githubGoldStatus.status}, description: ${githubGoldStatus.description}',
+        '${githubGoldStatus.head}, status: ${githubGoldStatus.status}, '
+        'description: ${githubGoldStatus.description}',
       );
 
       if (githubGoldStatus.status == GithubGoldStatus.statusCompleted &&
           githubGoldStatus.head == pr.head!.sha) {
-        log.fine('Completed status already reported for this commit.');
+        log2.debug('Completed status already reported for this commit.');
         // We have already seen this commit and it is completed or, this is not
         // a change staged to land on master, which we should ignore.
         continue;
       }
 
       if (!Config.doesSkiaGoldRunOnBranch(slug, pr.base!.ref)) {
-        log.fine(
-          'This change\'s destination, ${pr.base!.ref}, does not run Skia Gold checks, skipping.',
+        log2.debug(
+          'This change\'s destination, ${pr.base!.ref}, does not run Skia Gold '
+          'checks, skipping.',
         );
         // This is potentially a release branch, or another change not landing
         // on master, we don't need a Gold check.
@@ -94,7 +96,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       }
 
       if (pr.draft!) {
-        log.fine('This pull request is a draft.');
+        log2.debug('This pull request is a draft.');
         // We don't want to query Gold while a PR is in a draft state, and we
         // don't want to needlessly hold a pending state either.
         // If a PR has been marked `draft` after the fact, and there has not
@@ -119,8 +121,9 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         continue;
       }
 
-      log.fine(
-        'Querying builds for pull request #${pr.number} with sha: ${githubGoldStatus.head}...',
+      log2.debug(
+        'Querying builds for pull request #${pr.number} with sha: '
+        '${githubGoldStatus.head}...',
       );
       final gitHubGraphQLClient = await config.createGitHubGraphQLClient();
       final incompleteChecks = <String>[];
@@ -139,9 +142,9 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
                 .cast<Map<String, dynamic>>();
       }
       checkRuns = checkRuns ?? <Map<String, dynamic>>[];
-      log.fine('This PR has ${checkRuns.length} checks.');
+      log2.debug('This PR has ${checkRuns.length} checks.');
       for (var checkRun in checkRuns) {
-        log.fine('Check run: $checkRun');
+        log2.debug('Check run: $checkRun');
         final name = checkRun['name'].toLowerCase() as String;
         if (slug == Config.flutterSlug) {
           if (const <String>[
@@ -172,7 +175,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       }
 
       if (runsGoldenFileTests) {
-        log.fine('This PR executes golden file tests.');
+        log2.debug('This PR executes golden file tests.');
         // Check when this PR was last updated. Gold does not keep results after
         // >20 days. If a PR has gone stale, we should draw attention to it to be
         // updated or closed.
@@ -181,14 +184,14 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           const Duration(days: 20),
         );
         if (updatedAt.isBefore(twentyDaysAgo)) {
-          log.fine('Stale PR, no gold status to report.');
+          log2.debug('Stale PR, no gold status to report.');
           if (!await _alreadyCommented(
             gitHubClient,
             pr,
             slug,
             config.flutterGoldStalePR,
           )) {
-            log.fine('Notifying for stale PR.');
+            log2.debug('Notifying for stale PR.');
             await gitHubClient.issues.createComment(
               slug,
               pr.number!,
@@ -205,7 +208,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           // If checks on an open PR are running or failing, the gold status
           // should just be pending. Any draft PRs are skipped
           // until marked ready for review.
-          log.fine('Waiting for checks to be completed.');
+          log2.debug('Waiting for checks to be completed.');
           statusRequest = _createStatus(
             GithubGoldStatus.statusRunning,
             config.flutterGoldPending,
@@ -225,8 +228,9 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
             slug,
             pr.number!,
           );
-          log.fine(
-            'New status for potential update: ${statusRequest.state}, ${statusRequest.description}',
+          log2.debug(
+            'New status for potential update: ${statusRequest.state}, '
+            '${statusRequest.description}',
           );
           if (goldStatus == GithubGoldStatus.statusRunning &&
               !await _alreadyCommented(
@@ -235,7 +239,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
                 slug,
                 config.flutterGoldCommentID(pr),
               )) {
-            log.fine('Notifying for triage.');
+            log2.debug('Notifying for triage.');
             await _commentAndApplyGoldLabels(gitHubClient, pr, slug);
           }
         }
@@ -245,7 +249,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         if (githubGoldStatus.description != statusRequest.description ||
             githubGoldStatus.head != pr.head!.sha) {
           try {
-            log.fine(
+            log2.debug(
               'Pushing status to GitHub: ${statusRequest.state}, ${statusRequest.description}',
             );
             await gitHubClient.repositories.createStatus(
@@ -264,20 +268,21 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
             githubGoldStatus.setUpdates((githubGoldStatus.updates ?? 0) + 1);
             githubGoldStatus.setDescription(statusRequest.description!);
             githubGoldStatuses.add(githubGoldStatus);
-          } catch (error) {
-            log.severe(
-              'Failed to post status update to ${slug.fullName}#${pr.number}: $error',
+          } catch (e) {
+            log2.error(
+              'Failed to post status update to ${slug.fullName}#${pr.number}',
+              e,
             );
           }
         }
       } else {
-        log.fine('This PR does not execute golden file tests.');
+        log2.debug('This PR does not execute golden file tests.');
       }
     }
     await datastore.insert(statusUpdates);
-    log.fine('Committed all updates for $slug');
+    log2.debug('Committed all updates for $slug');
     await updateGithubGoldStatusDocuments(githubGoldStatuses, firestoreService);
-    log.fine('Saved all updates to firestore for $slug');
+    log2.debug('Saved all updates to firestore for $slug');
   }
 
   Future<void> updateGithubGoldStatusDocuments(
@@ -319,7 +324,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       '${_getGoldHost(slug)}/json/v1/changelist_summary/github/${pr.number}',
     );
     try {
-      log.fine('Querying Gold for image results...');
+      log2.debug('Querying Gold for image results...');
       final response = await goldClient.get(requestForTryjobStatus);
       if (response.statusCode != HttpStatus.ok) {
         throw HttpException(response.body);
@@ -342,14 +347,14 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       }
 
       if (untriaged == 0) {
-        log.fine(
+        log2.debug(
           'There are no unexpected image results for #${pr.number} at sha '
           '${pr.head!.sha}.',
         );
 
         return GithubGoldStatusUpdate.statusCompleted;
       } else {
-        log.fine(
+        log2.debug(
           'Tryjob for #${pr.number} at sha ${pr.head!.sha} generated new '
           'images.',
         );
@@ -455,7 +460,7 @@ Future<Map<String, dynamic>?> _queryGraphQL(
   );
 
   if (result.hasException) {
-    log.severe(result.exception.toString());
+    log2.error('GraphQL query failed', result.exception);
     throw const BadRequestException('GraphQL query failed');
   }
   return result.data;

@@ -110,7 +110,16 @@ void main() {
           await utf8.decoder.bind(response).join(),
           contains('error message'),
         );
-        expect(records.first.message, contains('error message'));
+        expect(
+          records.first,
+          isA<LogRecord>()
+              .having(
+                (e) => e.message,
+                'message',
+                contains('Internal server error'),
+              )
+              .having((e) => '${e.error}', 'error', contains('error message')),
+        );
       },
     );
 

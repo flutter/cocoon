@@ -136,11 +136,13 @@ class GithubChecksUtil {
           conclusion: conclusion,
         );
       },
-      retryIf: (Exception e) => true,
-      onRetry:
-          (Exception e) => log.warning(
-            'createCheckRun fails for slug: ${slug.fullName}, sha: $sha, name: $name. Exception: ${e.toString()}',
-          ),
+      retryIf: (_) => true,
+      onRetry: (e) {
+        log2.warn(
+          'createCheckRun fails for slug: ${slug.fullName}, sha: $sha, name: $name.',
+          e,
+        );
+      },
     );
   }
 

@@ -3128,14 +3128,17 @@ void foo() {
         ),
       ).called(1);
 
-      expect(records, <String>[
-        'Processing merge_group',
-        'Processing checks_requested for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-        'Checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-        'flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was found on GoB mirror. Scheduling merge group tasks',
-        'triggerMergeGroupTargets(flutter/flutter, c9affbbb12aa40cb3afbe94b9ea6b119a256bebf, simulated): scheduling merge group checks',
-        'Unlocking Merge Queue Guard for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-      ]);
+      expect(
+        records,
+        containsAllInOrder([
+          'Processing merge_group',
+          'Processing checks_requested for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was found on GoB mirror. Scheduling merge group tasks',
+          'triggerMergeGroupTargets(flutter/flutter, c9affbbb12aa40cb3afbe94b9ea6b119a256bebf, simulated): scheduling merge group checks',
+          'Unlocking Merge Queue Guard for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+        ]),
+      );
     });
 
     test('destroyed', () async {
@@ -3234,18 +3237,21 @@ void foo() {
         'cancel ${bbv2.Status.STARTED.value}',
       ]);
 
-      expect(records, [
-        'Processing merge_group',
-        'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-        'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because it was dequeued.',
-        'Cancelling merge group targets for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-        'Attempting to cancel builds (v2) for git SHA c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because Merge group was destroyed',
-        'Responses from get builds batch request = 1',
-        contains('Found a response: searchBuilds:'),
-        'Found 8 builds.',
-        'Cancelling build with build id 1.',
-        'Cancelling build with build id 2.',
-      ]);
+      expect(
+        records,
+        containsAllInOrder([
+          'Processing merge_group',
+          'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because it was dequeued.',
+          'Cancelling merge group targets for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Attempting to cancel builds (v2) for git SHA c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because Merge group was destroyed',
+          'Responses from get builds batch request = 1',
+          contains('Found a response: searchBuilds:'),
+          'Found 8 builds.',
+          'Cancelling build with build id 1.',
+          'Cancelling build with build id 2.',
+        ]),
+      );
     });
 
     test('destroyed with no builds', () async {
@@ -3298,16 +3304,19 @@ void foo() {
         'search builds for commit/git/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf by flutter-cocoon',
       ]);
 
-      expect(records, [
-        'Processing merge_group',
-        'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-        'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because it was invalidated.',
-        'Cancelling merge group targets for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-        'Attempting to cancel builds (v2) for git SHA c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because Merge group was destroyed',
-        'Responses from get builds batch request = 1',
-        contains('Found a response: searchBuilds:'),
-        'No builds found. Will not request cancellation from LUCI.',
-      ]);
+      expect(
+        records,
+        containsAllInOrder([
+          'Processing merge_group',
+          'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because it was invalidated.',
+          'Cancelling merge group targets for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Attempting to cancel builds (v2) for git SHA c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because Merge group was destroyed',
+          'Responses from get builds batch request = 1',
+          contains('Found a response: searchBuilds:'),
+          'No builds found. Will not request cancellation from LUCI.',
+        ]),
+      );
     });
 
     test('does not cancel builds if destroyed because merged successfully', () async {
@@ -3331,12 +3340,15 @@ void foo() {
       await tester.post(webhook);
       await subscription.cancel();
 
-      expect(records, [
-        'Processing merge_group',
-        'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-        'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because it was merged.',
-        'Merge group for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was merged successfully.',
-      ]);
+      expect(
+        records,
+        containsAllInOrder([
+          'Processing merge_group',
+          'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because it was merged.',
+          'Merge group for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was merged successfully.',
+        ]),
+      );
     });
   });
 }

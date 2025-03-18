@@ -57,7 +57,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   @override
   Future<Body> post() async {
     if (message.data == null) {
-      log.info('no data in message');
+      log2.info('no data in message');
       return Body.empty;
     }
 
@@ -69,7 +69,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     final buildsPubSub = pubSubCallBack.buildPubsub;
 
     if (!buildsPubSub.hasBuild()) {
-      log.info('no build information in message');
+      log2.info('no build information in message');
       return Body.empty;
     }
 
@@ -81,18 +81,18 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     final builderName = build.builder.builder;
     final tagSet = BuildTags.fromStringPairs(build.tags);
 
-    log.info('Available tags: $tagSet');
+    log2.info('Available tags: $tagSet');
 
     // Skip status update if we can not get the sha tag.
     if (tagSet.buildTags.whereType<BuildSetBuildTag>().isEmpty) {
-      log.warning('Buildset tag not included, skipping Status Updates');
+      log2.warn('Buildset tag not included, skipping Status Updates');
       return Body.empty;
     }
 
-    log.info('Setting status (${build.status}) for $builderName');
+    log2.info('Setting status (${build.status}) for $builderName');
 
     if (!pubSubCallBack.hasUserData()) {
-      log.info('No user data was found in this request');
+      log2.info('No user data was found in this request');
       return Body.empty;
     }
 
@@ -101,10 +101,10 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       userDataMap =
           json.decode(String.fromCharCodes(pubSubCallBack.userData))
               as Map<String, dynamic>;
-      log.info('User data was not base64 encoded.');
+      log2.info('User data was not base64 encoded.');
     } on FormatException {
       userDataMap = UserData.decodeUserDataBytes(pubSubCallBack.userData);
-      log.info('Decoding base64 encoded user data.');
+      log2.info('Decoding base64 encoded user data.');
     }
 
     if (userDataMap.containsKey('repo_owner') &&
@@ -126,7 +126,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
         );
         if (currentAttempt < maxAttempt) {
           rescheduled = true;
-          log.info('Rerunning failed task: $builderName');
+          log2.info('Rerunning failed task: $builderName');
           await luciBuildService.reschedulePresubmitBuild(
             builderName: builderName,
             build: build,
@@ -143,7 +143,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
         rescheduled: rescheduled,
       );
     } else {
-      log.info('This repo does not support checks API');
+      log2.info('This repo does not support checks API');
     }
     return Body.empty;
   }
@@ -191,12 +191,13 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     // Do not block on the target not found.
     if (!targets.any((element) => element.value.name == builderName)) {
       // do not reschedule
-      log.warning(
-        'Did not find builder with name: $builderName in ciYaml for ${commit.sha}',
+      log2.warn(
+        'Did not find builder with name: $builderName in ciYaml for '
+        '${commit.sha}',
       );
       final availableBuilderList =
           ciYaml.presubmitTargets().map((Target e) => e.value.name).toList();
-      log.warning('ciYaml presubmit targets found: $availableBuilderList');
+      log2.warn('ciYaml presubmit targets found: $availableBuilderList');
       return 1;
     }
 

@@ -55,7 +55,7 @@ class GithubWebhook extends RequestHandler<Body> {
         pb.GithubWebhookMessage.create()
           ..event = event
           ..payload = requestString;
-    log.fine(message);
+    log2.debug('$message');
     await pubsub.publish(topic, message.writeToJsonMap());
 
     return Body.empty;
