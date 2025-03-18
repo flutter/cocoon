@@ -7,9 +7,8 @@ set -ex
 
 dir=$(dirname $0)
 
-pushd $dir/../../dev/code_health_check > /dev/null
+pushd $dir/../../dev/code_health_check >/dev/null
 dart pub get
 dart run bin/check.dart
 
-popd > /dev/null
-
+popd >/dev/null

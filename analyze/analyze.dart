@@ -281,6 +281,7 @@ const Set<String> kExecutableAllowlist = <String>{
   'format.sh',
   'packages/buildbucket-dart/tool/regenerate.sh',
   'test_utilities/bin/analyze.sh',
+  'test_utilities/bin/code_health_check.sh',
   'test_utilities/bin/config_test_runner.sh',
   'test_utilities/bin/dart_test_runner.sh',
   'test_utilities/bin/flutter_test_runner.sh',
