@@ -104,7 +104,7 @@ class GitRepositoryManager {
 
   /// Delete the repository managed by this instance.
   Future<void> deleteRepository() async {
-    log.info('Deleting clone directory $targetCloneDirectory');
+    log2.info('Deleting clone directory $targetCloneDirectory');
     if (Directory(targetCloneDirectory).existsSync()) {
       Directory(targetCloneDirectory).deleteSync(recursive: true);
     }

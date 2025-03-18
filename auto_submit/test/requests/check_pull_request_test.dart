@@ -253,7 +253,7 @@ void main() {
           contains('Pull request: https://github.com/flutter/cocoon/0'),
         );
         expect(
-          errorLogs[0].message,
+          errorLogs[0].error?.toString(),
           contains('Unexpected invocation of getPullRequest method'),
         );
 
@@ -339,11 +339,15 @@ void main() {
       // every failure is now acknowledged from the queue.
       expect(pubsub.messagesQueue.length, 0);
       final errorLogs =
-          records
-              .where((LogRecord record) => record.level == Level.SEVERE)
-              .toList();
-      expect(errorLogs.length, 1);
-      expect(errorLogs[0].message.contains('Failed to merge'), true);
+          records.where((record) => record.level == Level.SEVERE).toList();
+
+      expect(errorLogs, [
+        isA<LogRecord>().having(
+          (e) => e.message,
+          'message',
+          contains('Failed to merge'),
+        ),
+      ]);
       pubsub.messagesQueue.clear();
     });
 

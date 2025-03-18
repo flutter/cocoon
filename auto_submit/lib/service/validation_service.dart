@@ -105,10 +105,10 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
           isEmergencyPullRequest,
         );
       }, retryIf: (Exception e) => e is RetryableException);
-    } catch (e) {
+    } catch (e, s) {
       final message =
           'Failed to enqueue ${slug.fullName}/${restPullRequest.number} with $e';
-      log.severe(message);
+      log2.error(message, e, s);
       return (result: false, message: message, method: SubmitMethod.enqueue);
     }
 
@@ -141,13 +141,13 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
       if (result != null && !merged) {
         final message =
             'Failed to merge ${slug.fullName}/$number with ${result?.message}';
-        log.severe(message);
+        log2.error(message);
         return (result: false, message: message, method: SubmitMethod.merge);
       }
-    } catch (e) {
+    } catch (e, s) {
       // Catch graphql client init exceptions.
       final message = 'Failed to merge ${slug.fullName}/$number with $e';
-      log.severe(message);
+      log2.error(message, e, s);
       return (result: false, message: message, method: SubmitMethod.merge);
     }
 
@@ -186,9 +186,11 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
         projectId: Config.flutterGcpProjectId,
         pullRequestRecord: pullRequestRecord,
       );
-    } on BigQueryException catch (exception) {
-      log.severe(
-        'Failed to insert pull request record into BigQuery for pull request ${slug.fullName}/${pullRequest.number} due to: $exception',
+    } on BigQueryException catch (e) {
+      log2.error(
+        'Failed to insert pull request record into BigQuery for pull request '
+        '${slug.fullName}/${pullRequest.number} due to',
+        e,
       );
     }
   }
@@ -231,7 +233,7 @@ Future<github.PullRequestMerge> _processMergeInternal({
 }) async {
   // This is retryable so to guard against token expiration we get a fresh
   // client each time.
-  log.info('Attempting to merge ${slug.fullName}/$number.');
+  log2.info('Attempting to merge ${slug.fullName}/$number.');
   final gitHubService = await config.createGithubService(slug);
   final pullRequestMerge = await gitHubService.mergePullRequest(
     slug,

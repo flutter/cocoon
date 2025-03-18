@@ -53,8 +53,8 @@ class RequiredCheckRuns extends Validation {
           await _verifyCheckRunCompleted(slug, githubService, checkRun);
         }, retryIf: (Exception e) => e is RetryableException);
       }
-    } catch (e) {
-      log.warning('Required check has not completed in time. ${e.toString()}');
+    } catch (e, s) {
+      log2.warn('Required check has not completed in time', e, s);
       checksCompleted = false;
     }
 

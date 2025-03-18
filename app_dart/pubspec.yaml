@@ -15,6 +15,8 @@ dependencies:
   args: ^2.6.0
   buildbucket:
     path: ../packages/buildbucket-dart
+  cocoon_common:
+    path: ../packages/cocoon_common
   cocoon_server:
     path: ../packages/cocoon_server
   collection: ^1.19.1

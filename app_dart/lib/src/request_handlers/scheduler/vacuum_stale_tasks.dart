@@ -83,7 +83,7 @@ class VacuumStaleTasks extends RequestHandler<Body> {
         }
       }
     }
-    log.info('Vacuuming stale tasks: $tasksToBeReset');
+    log2.info('Vacuuming stale tasks: $tasksToBeReset');
     await datastore.insert(tasksToBeReset);
 
     await updateTaskDocuments(tasksToBeReset);

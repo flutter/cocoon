@@ -87,7 +87,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
       return;
     }
 
-    log.info('Request body: ${utf8.decode(body)}');
+    log2.info('Request body: ${utf8.decode(body)}');
     PubSubPushMessage? pubSubPushMessage;
     if (body.isNotEmpty) {
       try {
@@ -108,7 +108,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
       throw const BadRequestException('Failed to get message');
     }
 
-    log.finer(pubSubPushMessage.toString());
+    log2.debug(pubSubPushMessage.toString());
 
     final messageId = pubSubPushMessage.message!.messageId!;
 
@@ -137,16 +137,17 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
       ttl: const Duration(days: 1),
     );
 
-    log.info('Processing message $messageId');
+    log2.info('Processing message $messageId');
     await runZoned<Future<void>>(
       () async => super.service(
         request,
-        onError: (HttpStatusException exception) async {
-          log.warning(
-            'Failed to process $message. (${exception.statusCode}) ${exception.message}',
+        onError: (e) async {
+          log2.warn(
+            'Failed to process $message. (${e.statusCode}) ${e.message}',
+            e,
           );
           await cache.purge(subscriptionName, messageId);
-          log.info('Purged write lock from cache');
+          log2.info('Purged write lock from cache');
         },
       ),
       zoneValues: <RequestKey<dynamic>, Object?>{

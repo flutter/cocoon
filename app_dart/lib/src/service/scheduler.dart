@@ -139,7 +139,7 @@ class Scheduler {
   Future<void> addCommits(List<Commit> commits) async {
     datastore = datastoreProvider(config.db);
     final newCommits = await _getMissingCommits(commits);
-    log.fine('Found ${newCommits.length} new commits on GitHub');
+    log2.debug('Found ${newCommits.length} new commits on GitHub');
     for (var commit in newCommits) {
       await _addCommit(commit);
     }
@@ -153,7 +153,7 @@ class Scheduler {
     datastore = datastoreProvider(config.db);
     // TODO(chillers): Support triggering on presubmit. https://github.com/flutter/flutter/issues/77858
     if (!pr.merged!) {
-      log.warning(
+      log2.warn(
         'Only pull requests that were closed and merged should have tasks scheduled',
       );
       return;
@@ -168,7 +168,7 @@ class Scheduler {
     var markAllTasksSkipped = false;
     if (branch == 'flutter-0.42-candidate.0') {
       markAllTasksSkipped = true;
-      log.info(
+      log2.info(
         '[release-candidate-postsubmit-skip] For merged PR ${pr.number}, SHA=$sha, skipping all post-submit tasks',
       );
     }
@@ -188,18 +188,18 @@ class Scheduler {
     );
 
     if (await _commitExistsInDatastore(mergedCommit)) {
-      log.fine('$sha already exists in datastore. Scheduling skipped.');
+      log2.debug('$sha already exists in datastore. Scheduling skipped.');
       return;
     }
 
-    log.fine('Scheduling $sha via GitHub webhook');
+    log2.debug('Scheduling $sha via GitHub webhook');
     await _addCommit(mergedCommit, skipAllTasks: markAllTasksSkipped);
   }
 
   /// Processes postsubmit tasks.
   Future<void> _addCommit(Commit commit, {bool skipAllTasks = false}) async {
     if (!config.supportedRepos.contains(commit.slug)) {
-      log.fine('Skipping ${commit.id} as repo is not supported');
+      log2.debug('Skipping ${commit.id} as repo is not supported');
       return;
     }
 
@@ -262,22 +262,22 @@ class Scheduler {
 
     // Datastore must be written to generate task keys
     try {
-      log.info(
+      log2.info(
         'Datastore tasks created for $commit: ${tasks.map((t) => '"${t.name}"').join(', ')}',
       );
       await datastore.withTransaction<void>((Transaction transaction) async {
         transaction.queueMutations(inserts: <Commit>[commit]);
         transaction.queueMutations(inserts: tasks);
         await transaction.commit();
-        log.fine(
+        log2.debug(
           'Committed ${tasks.length} new tasks for commit ${commit.sha!}',
         );
       });
-    } catch (error) {
-      log.severe('Failed to add commit ${commit.sha!}: $error');
+    } catch (e, s) {
+      log2.error('Failed to add commit ${commit.sha!}', e, s);
     }
 
-    log.info(
+    log2.info(
       'Firestore initial targets created for $commit: ${targets.map((t) => '"${t.value.name}"').join(', ')}',
     );
     final commitDocument = firestore_commmit.commitToCommitDocument(commit);
@@ -289,11 +289,11 @@ class Scheduler {
     // TODO(keyonghan): remove try catch logic after validated to work.
     try {
       await firestoreService.writeViaTransaction(writes);
-    } catch (error) {
-      log.warning('Failed to add to Firestore: $error');
+    } catch (e, s) {
+      log2.warn('Failed to add to Firestore', e, s);
     }
 
-    log.info(
+    log2.info(
       'Immediately scheduled tasks for $commit: ${toBeScheduled.map((t) => '"${t.task.name}"').join(', ')}',
     );
     await _batchScheduleBuilds(commit, toBeScheduled);
@@ -326,7 +326,7 @@ class Scheduler {
         ),
       );
     }
-    log.info(batchLog);
+    log2.info('$batchLog');
     await Future.wait<void>(futures);
   }
 
@@ -365,7 +365,7 @@ class Scheduler {
     required PullRequest pullRequest,
     String reason = 'Newer commit available',
   }) async {
-    log.info('Cancelling presubmit targets with buildbucket v2.');
+    log2.info('Cancelling presubmit targets with buildbucket v2.');
     await luciBuildService.cancelBuilds(
       pullRequest: pullRequest,
       reason: reason,
@@ -384,7 +384,7 @@ class Scheduler {
     List<String>? builderTriggerList,
   }) async {
     // Always cancel running builds so we don't ever schedule duplicates.
-    log.info(
+    log2.info(
       'Attempting to cancel existing presubmit targets for ${pullRequest.number}',
     );
     await cancelPreSubmitTargets(pullRequest: pullRequest, reason: reason);
@@ -402,7 +402,7 @@ class Scheduler {
 
     final ciValidationCheckRun = await _createCiYamlCheckRun(pullRequest, slug);
 
-    log.info('Creating presubmit targets for ${pullRequest.number}');
+    log2.info('Creating presubmit targets for ${pullRequest.number}');
     Object? exception;
     var isFusion = false;
     do {
@@ -419,7 +419,7 @@ class Scheduler {
             pullRequest.labels!.any(
               (element) => element.name == Config.revertOfLabel,
             )) {
-          log.info(
+          log2.info(
             'Skipping generating the full set of checks for revert request.',
           );
           unlockMergeGroup = true;
@@ -439,7 +439,7 @@ class Scheduler {
             )) {
           final logCrumb =
               'triggerPresubmitTargets($slug, $sha){frameworkOnly}';
-          log.info('$logCrumb: FRAMEWORK_ONLY_TESTING_PR');
+          log2.info('$logCrumb: FRAMEWORK_ONLY_TESTING_PR');
 
           await initializeCiStagingDocument(
             firestoreService: await config.createFirestoreService(),
@@ -497,18 +497,22 @@ class Scheduler {
           pullRequest: pullRequest,
           engineArtifacts: engineArtifacts,
         );
-      } on FormatException catch (error, backtrace) {
-        log.warning(
-          'FormatException encountered when scheduling presubmit targets for ${pullRequest.number}',
+      } on FormatException catch (e, s) {
+        log2.warn(
+          'FormatException encountered when scheduling presubmit targets for '
+          '${pullRequest.number}',
+          e,
+          s,
         );
-        log.warning(backtrace.toString());
-        exception = error;
-      } catch (error, backtrace) {
-        log.warning(
-          'Exception encountered when scheduling presubmit targets for ${pullRequest.number}',
+        exception = e;
+      } catch (e, s) {
+        log2.warn(
+          'Exception encountered when scheduling presubmit targets for '
+          '${pullRequest.number}',
+          e,
+          s,
         );
-        log.warning(backtrace.toString());
-        exception = error;
+        exception = e;
       }
     } while (false);
 
@@ -526,7 +530,7 @@ class Scheduler {
     if (unlockMergeGroup) {
       await unlockMergeQueueGuard(slug, pullRequest.head!.sha!, lock);
     }
-    log.info(
+    log2.info(
       'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug $slug}',
     );
   }
@@ -553,13 +557,13 @@ class Scheduler {
     final refuseLogPrefix =
         'Refusing to skip engine builds for PR#$prNumber branch';
     if (prBranch != Config.defaultBranch(Config.flutterSlug)) {
-      log.info(
+      log2.info(
         '$refuseLogPrefix: $prBranch (not ${Config.defaultBranch(Config.flutterSlug)} branch)',
       );
       return false;
     }
     if (changedFilesCount > config.maxFilesChangedForSkippingEnginePhase) {
-      log.info(
+      log2.info(
         '$refuseLogPrefix: $changedFilesCount > ${config.maxFilesChangedForSkippingEnginePhase}',
       );
       return false;
@@ -568,12 +572,12 @@ class Scheduler {
     switch (filesChanged) {
       case InconclusiveFilesChanged(:final reason):
         // We would have hoped to avoid making this call at all (based on changedFilesCount), or we hit an HTTP issue.
-        log.warning('$refuseLogPrefix: $reason');
+        log2.warn('$refuseLogPrefix: $reason');
         return false;
       case SuccessfulFilesChanged(:final filesChanged):
         for (final file in filesChanged) {
           if (file == 'DEPS' || file.startsWith('engine/')) {
-            log.info(
+            log2.info(
               '$refuseLogPrefix: Engine source files or dependencies changed.\n${filesChanged.join('\n')}',
             );
             return false;
@@ -589,10 +593,10 @@ class Scheduler {
     RepositorySlug slug,
     CheckRun ciValidationCheckRun,
   ) async {
-    log.info('Updating ci.yaml validation check for $description');
+    log2.info('Updating ci.yaml validation check for $description');
     if (exception == null) {
       // Success in validating ci.yaml
-      log.info('ci.yaml validation check was successful for $description');
+      log2.info('ci.yaml validation check was successful for $description');
       await githubChecksService.githubChecksUtil.updateCheckRun(
         config,
         slug,
@@ -601,10 +605,7 @@ class Scheduler {
         conclusion: CheckRunConclusion.success,
       );
     } else {
-      log.warning(
-        'Marking $description ${Config.kCiYamlCheckName} as failed',
-        e,
-      );
+      log2.warn('Marking $description ${Config.kCiYamlCheckName} as failed', e);
       // Failure when validating ci.yaml
       await githubChecksService.githubChecksUtil.updateCheckRun(
         config,
@@ -625,7 +626,7 @@ class Scheduler {
     PullRequest pullRequest,
     RepositorySlug slug,
   ) async {
-    log.info('Creating ciYaml validation check run for ${pullRequest.number}');
+    log2.info('Creating ciYaml validation check run for ${pullRequest.number}');
     final ciValidationCheckRun = await githubChecksService.githubChecksUtil
         .createCheckRun(
           config,
@@ -660,7 +661,7 @@ class Scheduler {
     final logCrumb =
         'triggerMergeGroupTargets($slug, $headSha, ${isFusion ? 'real' : 'simulated'})';
 
-    log.info('$logCrumb: scheduling merge group checks');
+    log2.info('$logCrumb: scheduling merge group checks');
 
     final lock = await lockMergeGroupChecks(slug, headSha);
 
@@ -692,8 +693,9 @@ class Scheduler {
         ),
       };
       if (availableTargets.length != mergeGroupTargets.length) {
-        log.warning(
-          '$logCrumb: missing builders for targtets: ${mergeGroupTargets.difference(availableTargets)}',
+        log2.warn(
+          '$logCrumb: missing builders for targtets: '
+          '${mergeGroupTargets.difference(availableTargets)}',
         );
       }
 
@@ -722,12 +724,12 @@ class Scheduler {
       );
 
       // Do not unlock the merge group guard in successful case - that will be done by staging checks.
-      log.info('$logCrumb: successfully scheduled merge group checks');
-    } catch (error, stackTrace) {
-      log.warning(
+      log2.info('$logCrumb: successfully scheduled merge group checks');
+    } catch (e, s) {
+      log2.warn(
         '$logCrumb: error encountered when scheduling merge group checks',
-        error,
-        stackTrace,
+        e,
+        s,
       );
       // If Cocoon/LUCI failed to schedule targets, the PR should be kicked out
       // of the queue. To do that, the merge queue guard must fail as it's the
@@ -739,8 +741,8 @@ class Scheduler {
         '''
 $logCrumb
 
-ERROR: $error
-$stackTrace
+ERROR: $e
+$s
 ''',
         lock,
       );
@@ -779,7 +781,7 @@ $stackTrace
     String headSha, {
     CiType type = CiType.any,
   }) async {
-    log.info(
+    log2.info(
       'Attempting to read merge group targets from ci.yaml for $headSha',
     );
 
@@ -793,7 +795,7 @@ $stackTrace
       commit,
       validate: commit.branch == Config.defaultBranch(commit.slug),
     );
-    log.info(
+    log2.info(
       'ci.yaml loaded successfully; collecting merge group targets for $headSha',
     );
 
@@ -810,7 +812,7 @@ $stackTrace
   Future<void> cancelDestroyedMergeGroupTargets({
     required String headSha,
   }) async {
-    log.info('Cancelling merge group targets for $headSha');
+    log2.info('Cancelling merge group targets for $headSha');
     await luciBuildService.cancelBuildsBySha(
       sha: headSha,
       reason: 'Merge group was destroyed',
@@ -852,7 +854,7 @@ $stackTrace
     String headSha,
     CheckRun lock,
   ) async {
-    log.info('Unlocking Merge Queue Guard for $slug/$headSha');
+    log2.info('Unlocking Merge Queue Guard for $slug/$headSha');
     await githubChecksService.githubChecksUtil.updateCheckRun(
       config,
       slug,
@@ -873,7 +875,7 @@ $stackTrace
     String details,
     CheckRun lock,
   ) async {
-    log.info('Failing merge group guard for merge group $headSha in $slug');
+    log2.info('Failing merge group guard for merge group $headSha in $slug');
     await githubChecksService.githubChecksUtil.updateCheckRun(
       config,
       slug,
@@ -919,7 +921,7 @@ $stackTrace
       repository: pullRequest.base!.repo!.fullName,
       sha: pullRequest.head!.sha,
     );
-    log.info(
+    log2.info(
       'Attempting to read presubmit targets from ci.yaml for ${pullRequest.number}',
     );
 
@@ -928,8 +930,8 @@ $stackTrace
       validate: commit.branch == Config.defaultBranch(commit.slug),
     );
 
-    log.info('ci.yaml loaded successfully.');
-    log.info('Collecting presubmit targets for ${pullRequest.number}');
+    log2.info('ci.yaml loaded successfully.');
+    log2.info('Collecting presubmit targets for ${pullRequest.number}');
 
     final inner = ciYaml.ciYamlFor(type);
 
@@ -949,7 +951,7 @@ $stackTrace
       pullRequest,
     );
     if (includePostsubmitAsPresubmit) {
-      log.info(
+      log2.info(
         'Including postsubmit targets as presubmit for ${pullRequest.number}',
       );
 
@@ -963,17 +965,17 @@ $stackTrace
       }
     }
 
-    log.info('Collected ${presubmitTargets.length} presubmit targets.');
+    log2.info('Collected ${presubmitTargets.length} presubmit targets.');
     // Release branches should run every test.
     if (pullRequest.base!.ref !=
         Config.defaultBranch(pullRequest.base!.repo!.slug())) {
-      log.info(
+      log2.info(
         'Release branch found, scheduling all targets for ${pullRequest.number}',
       );
       return presubmitTargets;
     }
     if (includePostsubmitAsPresubmit) {
-      log.info(
+      log2.info(
         'Postsubmit targets included as presubmit, scheduling all targets for ${pullRequest.number}',
       );
       return presubmitTargets;
@@ -1088,7 +1090,7 @@ $stackTrace
 
     // Are there tests remaining? Keep waiting.
     if (stagingConclusion.isPending) {
-      log.info(
+      log2.info(
         '$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}',
       );
       return false;
@@ -1172,7 +1174,7 @@ $stackTrace
       return;
     }
 
-    log.info(
+    log2.info(
       '$logCrumb: Stage completed successfully: ${CiStage.fusionEngineBuild}',
     );
 
@@ -1191,7 +1193,7 @@ $stackTrace
     required String sha,
     required String logCrumb,
   }) async {
-    log.info('$logCrumb: Stage completed: ${CiStage.fusionTests}');
+    log2.info('$logCrumb: Stage completed: ${CiStage.fusionTests}');
     await unlockMergeQueueGuard(slug, sha, checkRunFromString(mergeQueueGuard));
   }
 
@@ -1223,7 +1225,7 @@ $stackTrace
     required CiStage stage,
     required String logCrumb,
   }) async {
-    log.info('$logCrumb: Merge Queue finished successfully');
+    log2.info('$logCrumb: Merge Queue finished successfully');
 
     // Unlock the guarding check_run.
     final checkRunGuard = checkRunFromString(mergeQueueGuard);
@@ -1244,7 +1246,7 @@ $stackTrace
           pullRequest.labels!.any(
             (element) => element.name == Config.revertOfLabel,
           )) {
-        log.info(
+        log2.info(
           '$logCrumb: skipping generating the full set of checks for revert request.',
         );
       } else {
@@ -1292,18 +1294,20 @@ $stackTrace
           engineArtifacts: engineArtifacts,
         );
       }
-    } on FormatException catch (error, backtrace) {
-      log.warning(
-        '$logCrumb: FormatException encountered when scheduling presubmit targets for ${pullRequest.number}',
-        error,
-        backtrace,
+    } on FormatException catch (e, s) {
+      log2.warn(
+        '$logCrumb: FormatException encountered when scheduling presubmit '
+        'targets for ${pullRequest.number}',
+        e,
+        s,
       );
       rethrow;
-    } catch (error, backtrace) {
-      log.warning(
-        '$logCrumb: Exception encountered when scheduling presubmit targets for ${pullRequest.number}',
-        error,
-        backtrace,
+    } catch (e, s) {
+      log2.warn(
+        '$logCrumb: Exception encountered when scheduling presubmit targets '
+        'for ${pullRequest.number}',
+        e,
+        s,
       );
       rethrow;
     }
@@ -1330,7 +1334,7 @@ $stackTrace
         name,
       );
     } catch (e, s) {
-      log.warning('$logCrumb: unable to find PR in PrCheckRuns', e, s);
+      log2.warn('$logCrumb: unable to find PR in PrCheckRuns', e, s);
     }
 
     // We've failed to find the pull request; try a reverse look it from the check suite.
@@ -1402,7 +1406,7 @@ $stacktrace
       sha: sha,
       stage: stage,
     );
-    log.info('$logCrumb: $documentName');
+    log2.info('$logCrumb: $documentName');
 
     // We're doing a transactional update, which could fail if multiple tasks are running at the same time; so retry
     // a sane amount of times before giving up.
@@ -1440,7 +1444,7 @@ $stacktrace
         return const ProcessCheckRunResult.success();
 
       case 'rerequested':
-        log.fine(
+        log2.debug(
           'Rerun requested by GitHub user: ${checkRunEvent.sender?.login}',
         );
         final name = checkRunEvent.checkRun!.name;
@@ -1448,8 +1452,9 @@ $stacktrace
         if (name == Config.kMergeQueueLockName) {
           final slug = checkRunEvent.repository!.slug();
           final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
-          log.fine(
-            'Requested re-run of "${Config.kMergeQueueLockName}" for $slug / $checkSuiteId - ignoring',
+          log2.debug(
+            'Requested re-run of "${Config.kMergeQueueLockName}" for '
+            '$slug / $checkSuiteId - ignoring',
           );
           success = true;
         } else if (name == Config.kCiYamlCheckName) {
@@ -1464,15 +1469,13 @@ $stacktrace
             checkSuiteId,
           );
           if (pullRequest != null) {
-            log.fine(
+            log2.debug(
               'Matched PR: ${pullRequest.number} Repo: ${slug.fullName}',
             );
             await triggerPresubmitTargets(pullRequest: pullRequest);
             success = true;
           } else {
-            log.warning(
-              'No matching PR found for head_sha in check run event.',
-            );
+            log2.warn('No matching PR found for head_sha in check run event.');
           }
         } else {
           try {
@@ -1496,13 +1499,13 @@ $stacktrace
                 datastore: datastore,
                 key: commitKey,
               );
-              log.fine('Commit found in datastore.');
+              log2.debug('Commit found in datastore.');
             } on KeyNotFoundException {
-              log.fine('Commit not found in datastore.');
+              log2.debug('Commit not found in datastore.');
             }
 
             if (commit == null) {
-              log.fine(
+              log2.debug(
                 'Rescheduling presubmit build for ${checkRunEvent.checkRun?.name}',
               );
               final pullRequest = await findPullRequestForSha(
@@ -1565,7 +1568,7 @@ $stacktrace
                 engineArtifacts: engineArtifacts,
               );
             } else {
-              log.fine('Rescheduling postsubmit build.');
+              log2.debug('Rescheduling postsubmit build.');
               final checkName = checkRunEvent.checkRun!.name!;
               final task = await Task.fromDatastore(
                 datastore: datastore,
@@ -1584,7 +1587,7 @@ $stacktrace
                       )
                       .toList()
                       .first;
-              log.fine('Latest firestore task is $taskDocument');
+              log2.debug('Latest firestore task is $taskDocument');
               final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(
                 commit,
               );
@@ -1605,15 +1608,15 @@ $stacktrace
 
             success = true;
           } on NoBuildFoundException {
-            log.warning('No build found to reschedule.');
+            log2.warn('No build found to reschedule.');
           } on FormatException catch (e) {
             // See https://github.com/flutter/flutter/issues/165018.
-            log.info('CheckName: $name failed due to user error: $e');
+            log2.info('CheckName: $name failed due to user error: $e');
             return ProcessCheckRunResult.userError('$e');
           }
         }
 
-        log.fine('CheckName: $name State: $success');
+        log2.debug('CheckName: $name State: $success');
 
         // TODO(matanlurey): It would be better to early return above where it is not a success.
         if (!success) {
@@ -1632,7 +1635,7 @@ $stacktrace
     const dataset = 'cocoon';
     const table = 'Checklist';
 
-    log.info('Uploading commit ${commit.sha} info to bigquery.');
+    log2.info('Uploading commit ${commit.sha} info to bigquery.');
 
     final tabledataResource = await config.createTabledataResourceApi();
     final tableDataInsertAllRequestRows = <Map<String, Object>>[];
@@ -1661,15 +1664,15 @@ $stacktrace
     /// Insert [commits] to [BigQuery]
     try {
       if (rows.rows == null) {
-        log.warning('Rows to be inserted is null');
+        log2.warn('Rows to be inserted is null');
       } else {
-        log.info(
+        log2.info(
           'Inserting ${rows.rows!.length} into big query for ${commit.sha}',
         );
       }
       await tabledataResource.insertAll(rows, projectId, dataset, table);
-    } on ApiRequestError {
-      log.warning('Failed to add commits to BigQuery: $ApiRequestError');
+    } on ApiRequestError catch (e) {
+      log2.warn('Failed to add commits to BigQuery', e);
     }
   }
 

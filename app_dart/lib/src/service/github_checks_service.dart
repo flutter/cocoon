@@ -48,7 +48,7 @@ class GithubChecksService {
     bool rescheduled = false,
   }) async {
     var status = statusForResult(build.status);
-    log.info('status for build ${build.id} is ${status.value}');
+    log2.info('status for build ${build.id} is ${status.value}');
 
     // Only `id` and `name` in the CheckRun are needed.
     // Instead of making an API call to get the details of each check run, we
@@ -66,7 +66,7 @@ class GithubChecksService {
         (terminalStatuses.contains(build.status))
             ? conclusionForResult(build.status)
             : null;
-    log.info(
+    log2.info(
       'conclusion for build ${build.id} is ${(conclusion != null) ? conclusion.value : null}',
     );
 
@@ -74,7 +74,7 @@ class GithubChecksService {
     github.CheckRunOutput? output;
     // If status has completed with failure then provide more details.
     if (taskFailed(build.status)) {
-      log.info(
+      log2.info(
         'failed presubmit task, ${build.id} has failed, status = ${build.status.toString()}',
       );
       if (rescheduled) {
@@ -98,7 +98,7 @@ class GithubChecksService {
           title: checkRun.name!,
           summary: getGithubSummary(buildbucketBuild.summaryMarkdown),
         );
-        log.fine(
+        log2.debug(
           'Updating check run with output: [${output.toJson().toString()}]',
         );
       }

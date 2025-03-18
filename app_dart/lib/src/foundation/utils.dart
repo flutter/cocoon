@@ -86,7 +86,7 @@ class FusionTester {
     final cacheKey = '${slug.fullName}/$sha';
     final cacheHit = _isFusionMap[cacheKey];
     if (cacheHit != null) {
-      log.info('isFusionRef: cache hit for $cacheKey = $cacheHit');
+      log2.info('isFusionRef: cache hit for $cacheKey = $cacheHit');
       return cacheHit;
     }
     final isFusion =
@@ -106,7 +106,7 @@ class FusionTester {
     RetryOptions retryOptions,
   ) async {
     if (slug != Config.flutterSlug) {
-      log.fine('isFusionRef: not a fusion ref - wrong slug($slug)');
+      log2.debug('isFusionRef: not a fusion ref - wrong slug($slug)');
       return false;
     }
     try {
@@ -129,21 +129,22 @@ class FusionTester {
         ),
       ]);
       if (files.any((contents) => contents.isEmpty)) {
-        log.fine(
+        log2.debug(
           'isFusionRef: not a fusion ref - DEPS or engine/src/.gn is empty',
         );
         return false;
       }
 
-      log.fine('isFusionRef: fusion ref - ');
+      log2.debug('isFusionRef: fusion ref - ');
       return true;
     } on NotFoundException catch (e) {
-      log.fine(
-        "isFusionRef: 'DEPS' or 'engine/src/.gn' not found a fusion ref - error: $e",
+      log2.debug(
+        "isFusionRef: 'DEPS' or 'engine/src/.gn' not found a fusion ref.",
+        e,
       );
       return false;
     } catch (e) {
-      log.warning('isFusionRef: unknown error while testing: $e');
+      log2.warn('isFusionRef: unknown error while testing', e);
       rethrow;
     }
   }
@@ -193,16 +194,14 @@ Future<String> githubFileContent(
     if (e is! HttpException && e is! NotFoundException) {
       rethrow;
     }
-    log.warning('Failed to fetch $githubUrl, falling back to $gobUrl', e);
-    await retryOptions.retry(
-      () async =>
-          content = String.fromCharCodes(
-            base64Decode(
-              await getUrl(gobUrl, httpClientProvider, timeout: timeout),
-            ),
-          ),
-      retryIf: (Exception e) => e is HttpException,
-    );
+    log2.warn('Failed to fetch $githubUrl, falling back to $gobUrl', e);
+    await retryOptions.retry(() async {
+      content = String.fromCharCodes(
+        base64Decode(
+          await getUrl(gobUrl, httpClientProvider, timeout: timeout),
+        ),
+      );
+    }, retryIf: (e) => e is HttpException);
   }
   return content;
 }
@@ -216,7 +215,7 @@ FutureOr<String> getUrl(
   HttpClientProvider httpClientProvider, {
   Duration timeout = const Duration(seconds: 5),
 }) async {
-  log.info('Making HTTP GET request for $url');
+  log2.info('Making HTTP GET request for $url');
   final client = httpClientProvider();
   try {
     final response = await client.get(url).timeout(timeout);
@@ -226,7 +225,7 @@ FutureOr<String> getUrl(
     } else if (response.statusCode == HttpStatus.notFound) {
       throw NotFoundException('HTTP ${response.statusCode}: $url');
     } else {
-      log.warning('HTTP ${response.statusCode}: $url');
+      log2.warn('HTTP ${response.statusCode}: $url');
       throw HttpException('HTTP ${response.statusCode}: $url');
     }
   } finally {
@@ -263,12 +262,12 @@ Future<List<Target>> getTargetsToRun(
   Iterable<Target> targets,
   FilesChanged filesChanged,
 ) async {
-  log.info('Getting targets to run from diff.');
+  log2.info('Getting targets to run from diff.');
 
   // If we were not able to determine what files were changed run all targets.
   switch (filesChanged) {
     case InconclusiveFilesChanged(:final pullRequestNumber, :final reason):
-      log.info('Running all targets on PR#$pullRequestNumber: $reason');
+      log2.info('Running all targets on PR#$pullRequestNumber: $reason');
       return [...targets];
     case SuccessfulFilesChanged(:final pullRequestNumber, :final filesChanged):
       final targetsToRun = <Target>[];
@@ -289,7 +288,7 @@ Future<List<Target>> getTargetsToRun(
         }
       }
 
-      log.info(
+      log2.info(
         'Running a subset of targets on PR#$pullRequestNumber: ${targetsToRun.map((t) => t.value.name).join(', ')}',
       );
 
@@ -324,8 +323,8 @@ Future<void> insertBigquery(
 
   try {
     await tabledataResourceApi.insertAll(request, projectId, dataset, table);
-  } on ApiRequestError catch (error) {
-    log.warning('Failed to add to BigQuery: $error');
+  } on ApiRequestError catch (e) {
+    log2.warn('Failed to add to BigQuery', e);
   }
 }
 

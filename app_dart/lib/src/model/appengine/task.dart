@@ -82,7 +82,7 @@ class Task extends Model<int> {
       ..filter('name =', name);
     final tasks = await query.run().toList();
     if (tasks.length != 1) {
-      log.severe('Found ${tasks.length} entries for builder $name');
+      log2.error('Found ${tasks.length} entries for builder $name');
       throw InternalServerError(
         'Expected to find 1 task for $name, but found ${tasks.length}',
       );
@@ -99,7 +99,7 @@ class Task extends Model<int> {
     required Key<String> commitKey,
     required int id,
   }) {
-    log.fine('Looking up key...');
+    log2.debug('Looking up key...');
     final key = Key<int>(commitKey, Task, id);
     return datastore.lookupByValue<Task>(key);
   }
@@ -136,24 +136,24 @@ class Task extends Model<int> {
     DatastoreService datastore, {
     String? customName,
   }) async {
-    log.fine('Creating task from buildbucket result: ${build.toString()}');
+    log2.debug('Creating task from buildbucket result: ${build.toString()}');
     // Example: Getting "flutter" from "mirrors/flutter".
     final repository = build.input.gitilesCommit.project.split('/')[1];
-    log.fine('Repository: $repository');
+    log2.debug('Repository: $repository');
 
     // Example: Getting "stable" from "refs/heads/stable".
     final branch = build.input.gitilesCommit.ref.split('/')[2];
-    log.fine('Branch: $branch');
+    log2.debug('Branch: $branch');
 
     final hash = build.input.gitilesCommit.id;
-    log.fine('Hash: $hash');
+    log2.debug('Hash: $hash');
 
     final slug = RepositorySlug('flutter', repository);
-    log.fine('Slug: ${slug.toString()}');
+    log2.debug('Slug: ${slug.toString()}');
 
     final startTime = build.startTime.toDateTime().millisecondsSinceEpoch;
     final endTime = build.endTime.toDateTime().millisecondsSinceEpoch;
-    log.fine('Start/end time (ms): $startTime, $endTime');
+    log2.debug('Start/end time (ms): $startTime, $endTime');
 
     final id = '${slug.fullName}/$branch/$hash';
     final commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);

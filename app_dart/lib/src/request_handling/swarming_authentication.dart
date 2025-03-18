@@ -53,7 +53,7 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
     final clientContext = clientContextProvider();
 
     if (swarmingToken != null) {
-      log.fine('Authenticating as swarming task');
+      log2.debug('Authenticating as swarming task');
       return authenticateAccessToken(
         swarmingToken,
         clientContext: clientContext,
@@ -78,7 +78,7 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
     // Authenticate as a signed-in Google account via OAuth id token.
     final client = httpClientProvider();
     try {
-      log.fine('Sending token request to Google OAuth');
+      log2.debug('Sending token request to Google OAuth');
       final verifyTokenResponse = await client.get(
         Uri.https('oauth2.googleapis.com', '/tokeninfo', <String, String>{
           'access_token': accessToken,
@@ -89,7 +89,7 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
         /// Google Auth API returns a message in the response body explaining why
         /// the request failed. Such as "Invalid Token".
         final body = verifyTokenResponse.body;
-        log.warning(
+        log2.warnJson(
           'Token verification failed: ${verifyTokenResponse.statusCode}; $body',
         );
         throw const Unauthenticated('Invalid access token');
@@ -101,7 +101,7 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
           json.decode(verifyTokenResponse.body) as Map<String, dynamic>,
         );
       } on FormatException {
-        log.warning('Failed to decode token JSON: ${verifyTokenResponse.body}');
+        log2.warn('Failed to decode token JSON: ${verifyTokenResponse.body}');
         throw InternalServerError(
           'Invalid JSON: "${verifyTokenResponse.body}"',
         );
@@ -113,12 +113,12 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
       }
 
       if (token.email == Config.frobAccount) {
-        log.fine('Authenticating as FRoB request');
+        log2.debug('Authenticating as FRoB request');
         return AuthenticatedContext(clientContext: clientContext);
       }
 
-      log.fine(verifyTokenResponse.body);
-      log.warning('${token.email} is not allowed');
+      log2.debug(verifyTokenResponse.body);
+      log2.warn('${token.email} is not allowed');
       throw Unauthenticated('${token.email} is not allowed');
     } finally {
       client.close();

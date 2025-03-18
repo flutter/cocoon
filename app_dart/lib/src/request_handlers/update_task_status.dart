@@ -78,8 +78,8 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
         task.endTimestamp!,
         task.isTestFlaky!,
       );
-    } catch (error) {
-      log.warning('Failed to update task in Firestore: $error');
+    } catch (e) {
+      log2.warn('Failed to update task in Firestore', e);
     }
     return UpdateTaskStatusResponse(task);
   }
@@ -93,7 +93,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     final sha = (requestData![gitShaParam] as String).trim();
     final taskName = requestData![builderNameParam] as String?;
     final documentName = '$kDatabase/documents/tasks/${sha}_${taskName}_1';
-    log.info('getting firestore document: $documentName');
+    log2.info('getting firestore document: $documentName');
     final initialTasks = await firestoreService.queryCommitTasks(sha);
     // Targets the latest task. This assumes only one task is running at any time.
     final firestoreTask = initialTasks
@@ -126,9 +126,9 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     final builderName = requestData![builderNameParam] as String?;
     final query = datastore.db.query<Task>(ancestorKey: commitKey);
     final initialTasks = await query.run().toList();
-    log.fine('Found ${initialTasks.length} tasks for commit');
+    log2.debug('Found ${initialTasks.length} tasks for commit');
     final tasks = <Task>[];
-    log.fine('Searching for task with builderName=$builderName');
+    log2.debug('Searching for task with builderName=$builderName');
     for (var task in initialTasks) {
       if (task.builderName == builderName || task.name == builderName) {
         tasks.add(task);
@@ -136,7 +136,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     }
 
     if (tasks.length != 1) {
-      log.severe('Found ${tasks.length} entries for builder $builderName');
+      log2.error('Found ${tasks.length} entries for builder $builderName');
       throw InternalServerError(
         'Expected to find 1 task for $builderName, but found ${tasks.length}',
       );
@@ -154,7 +154,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     final id = 'flutter/flutter/$gitBranch/$gitSha';
     final commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
-    log.fine('Constructed commit key=$id');
+    log2.debug('Constructed commit key=$id');
     // Return the official key from Datastore for task lookups.
     final commit = await config.db.lookupValue<Commit>(commitKey);
     return commit.key;

@@ -47,8 +47,9 @@ class TriggerWorkflow extends ApiRequestHandler<Body> {
       body: json.encode({'ref': ref}),
     );
     if (response.statusCode != 204 || response.body.isNotEmpty) {
-      log.warning(
-        'trigger-workflow($ref, $workflow): failed; ${response.statusCode} / ${response.body}',
+      log2.warn(
+        'trigger-workflow($ref, $workflow): failed; ${response.statusCode} / '
+        '${response.body}',
       );
     }
   }

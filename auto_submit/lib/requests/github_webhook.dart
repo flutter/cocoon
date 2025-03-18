@@ -36,7 +36,7 @@ class GithubWebhook extends RequestHandler {
   @override
   Future<Response> post(Request request) async {
     final reqHeader = request.headers;
-    log.info('Header: $reqHeader');
+    log2.info('Header: $reqHeader');
 
     final gitHubEvent = request.headers[GithubWebhook.eventTypeHeader];
 
@@ -48,7 +48,7 @@ class GithubWebhook extends RequestHandler {
         await request.read().expand((bodyBytes) => bodyBytes).toList();
     final hmacSignature = request.headers[GithubWebhook.signatureHeader];
     if (!await _validateRequest(hmacSignature, requestBytes)) {
-      log.info('User is forbidden');
+      log2.info('User is forbidden');
       throw const Forbidden();
     }
 
@@ -83,7 +83,7 @@ class GithubWebhook extends RequestHandler {
 
     // Check for revert label first.
     if (hasRevertLabel) {
-      log.info('Found pull request with the revert label.');
+      log2.info('Found pull request with the revert label.');
       await pubsub.publish(
         config.pubsubRevertRequestTopic,
         GithubPullRequestEvent(
@@ -93,7 +93,7 @@ class GithubWebhook extends RequestHandler {
         ),
       );
     } else if (hasAutosubmit) {
-      log.info('Found pull request with autosubmit label.');
+      log2.info('Found pull request with autosubmit label.');
       await pubsub.publish(config.pubsubPullRequestTopic, pullRequest);
     }
 

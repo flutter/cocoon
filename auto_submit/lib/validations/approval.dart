@@ -40,7 +40,7 @@ class Approval extends Validation {
     var message = '';
     var action = Action.REMOVE_LABEL;
     if (repositoryConfiguration.autoApprovalAccounts.contains(author)) {
-      log.info(
+      log2.info(
         'PR ${slug.fullName}/${messagePullRequest.number} approved for roller account: $author',
       );
       return ValidationResult(true, Action.REMOVE_LABEL, '');
@@ -61,7 +61,7 @@ class Approval extends Validation {
       await approver.computeApproval();
       approved = approver.approved;
 
-      log.info(
+      log2.info(
         'PR ${slug.fullName}/${messagePullRequest.number} approved $approved, approvers: ${approver.approvers}, remaining approvals: ${approver.remainingReviews}, request authors: ${approver.changeRequestAuthors}',
       );
 
@@ -160,7 +160,7 @@ class Approver {
     // reverse chronological order.
     for (var review in reviews.reversed) {
       if (review.author!.login == author) {
-        log.info('Author cannot review own pull request.');
+        log2.info('Author cannot review own pull request.');
         continue;
       }
 

@@ -54,14 +54,14 @@ interface class BranchService {
       filterRegex: branch,
     )).contains(branch)) {
       // subString is a regex, and can return multiple matches
-      log.warning('$branch already exists for $recipesSlug');
+      log2.warn('$branch already exists for $recipesSlug');
       throw BadRequestException('$branch already exists');
     }
     final recipeCommits = await _gerritService.commits(
       recipesSlug,
       Config.defaultBranch(recipesSlug),
     );
-    log.info('$recipesSlug commits: $recipeCommits');
+    log2.info('$recipesSlug commits: $recipeCommits');
     final engineCommit = await _retryOptions.retry(() async {
       // This attempts to regenerate the OAuth token, which is why it isn't stored as a dependency.
       final githubService = await _config.createDefaultGitHubService();
@@ -70,12 +70,12 @@ interface class BranchService {
         engineSha,
       );
     }, retryIf: (Exception e) => e is gh.GitHubError);
-    log.info('${Config.flutterSlug} commit: $engineCommit');
+    log2.info('${Config.flutterSlug} commit: $engineCommit');
     final branchTime = engineCommit.commit?.committer?.date;
     if (branchTime == null) {
       throw BadRequestException('$engineSha has no commit time');
     }
-    log.info('Searching for a recipe commit before $branchTime');
+    log2.info('Searching for a recipe commit before $branchTime');
     for (var recipeCommit in recipeCommits) {
       final recipeTime = recipeCommit.author?.time;
 
@@ -109,7 +109,7 @@ interface class BranchService {
         branchName: channel,
       );
       if (reference == null) {
-        log.warning('Could not resolve release branch for "$channel"');
+        log2.warn('Could not resolve release branch for "$channel"');
         continue;
       }
       results.add(ReleaseBranch(channel: channel, reference: reference));
@@ -135,7 +135,7 @@ interface class BranchService {
       );
       return content.trim();
     } catch (e, s) {
-      log.severe('Could not fetch release version file', e, s);
+      log2.error('Could not fetch release version file', e, s);
       return null;
     }
   }

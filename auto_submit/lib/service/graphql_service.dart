@@ -45,7 +45,7 @@ class GraphQlService {
     );
 
     if (queryResult.hasException) {
-      log.severe(queryResult.exception.toString());
+      log2.error('GraphQL query failed', queryResult.exception);
       throw const BadRequestException('GraphQL query failed');
     }
     return queryResult.data!;
@@ -66,7 +66,7 @@ class GraphQlService {
     );
 
     if (queryResult.hasException) {
-      log.severe(queryResult.exception.toString());
+      log2.error('GraphQL mutate failed', queryResult.exception);
       throw const BadRequestException('GraphQL mutate failed');
     }
     return queryResult.data!;
@@ -109,7 +109,7 @@ class GraphQlService {
       jump: jump,
     );
 
-    log.info(
+    log2.info(
       'Attempting to enqueue ${slug.fullName}/$pullRequestNumber '
       'with these variables: ${enqueueMutation.variables}',
     );

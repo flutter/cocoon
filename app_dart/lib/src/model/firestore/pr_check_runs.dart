@@ -96,10 +96,10 @@ class PrCheckRuns extends Document {
         kDocumentParent,
         kCollectionId,
       );
-      log.info('$logCrumb: document created');
+      log2.info('$logCrumb: document created');
       return newDoc;
     } catch (e) {
-      log.warning('$logCrumb: failed to create document: $e');
+      log2.warn('$logCrumb: failed to create document', e);
       rethrow;
     }
   }
@@ -111,9 +111,9 @@ class PrCheckRuns extends Document {
     String checkRunName,
   ) async {
     final filterMap = <String, Object>{'$checkRunName =': '$checkRunId'};
-    log.info('findDocumentFor($filterMap): finding prCheckRuns document');
+    log2.info('findDocumentFor($filterMap): finding prCheckRuns document');
     final docs = await firestoreService.query(kCollectionId, filterMap);
-    log.info('findDocumentFor($filterMap): found: $docs');
+    log2.info('findDocumentFor($filterMap): found: $docs');
     return PrCheckRuns.fromDocument(docs.first).pullRequest;
   }
 
@@ -123,9 +123,11 @@ class PrCheckRuns extends Document {
     String sha,
   ) async {
     final filterMap = <String, Object>{'sha =': sha};
-    log.info('findPullRequestForSha($filterMap): finding prCheckRuns document');
+    log2.info(
+      'findPullRequestForSha($filterMap): finding prCheckRuns document',
+    );
     final docs = await firestoreService.query(kCollectionId, filterMap);
-    log.info('findPullRequestForSha($filterMap): found: $docs');
+    log2.info('findPullRequestForSha($filterMap): found: $docs');
     if (docs.isEmpty) return null;
     return PrCheckRuns.fromDocument(docs.first).pullRequest;
   }

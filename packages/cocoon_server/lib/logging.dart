@@ -2,6 +2,4 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:logging/logging.dart';
-
-Logger log = Logger.root..level = Level.ALL;
+export 'src/logging.dart' show log, log2;

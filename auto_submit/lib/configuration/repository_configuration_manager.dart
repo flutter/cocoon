@@ -49,7 +49,7 @@ class RepositoryConfigurationManager {
             config.repositoryConfigurationTtl,
           );
       final cacheYaml = String.fromCharCodes(cacheValue as Iterable<int>);
-      log.info('Converting yaml to RepositoryConfiguration: $cacheYaml');
+      log2.info('Converting yaml to RepositoryConfiguration: $cacheYaml');
       return RepositoryConfiguration.fromYaml(cacheYaml);
     } finally {
       _mutex.release();
@@ -60,7 +60,7 @@ class RepositoryConfigurationManager {
   /// bytes.
   Future<List<int>> _getConfiguration(RepositorySlug slug) async {
     // Read the org level configuraiton file first.
-    log.info('Getting org level configuration.');
+    log2.info('Getting org level configuration.');
     // Get the Org level configuration.
     final orgSlug = RepositorySlug(slug.owner, orgRepository);
     var githubService = await config.createGithubService(orgSlug);
@@ -78,14 +78,14 @@ class RepositoryConfigurationManager {
       globalRepositoryConfiguration.defaultBranch = await githubService
           .getDefaultBranch(slug);
     }
-    log.info(
+    log2.info(
       'Default branch was found to be ${globalRepositoryConfiguration.defaultBranch} for ${slug.fullName}.',
     );
 
     // If the override flag is set to true we check the pull request's
     // repository to collect any values that will override the global config.
     if (globalRepositoryConfiguration.allowConfigOverride) {
-      log.info(
+      log2.info(
         'Override is set, collecting and merging local repository configuration.',
       );
       githubService = await config.createGithubService(slug);
@@ -104,9 +104,12 @@ class RepositoryConfigurationManager {
           localRepositoryConfiguration,
         );
         return mergedRepositoryConfiguration.toString().codeUnits;
-      } on GitHubError {
-        log.warning(
-          'Configuration override was set but no local repository configuration file was found in ${slug.fullName}, using global configuration.',
+      } on GitHubError catch (e) {
+        log2.warn(
+          'Configuration override was set but no local repository '
+          'configuration file was found in ${slug.fullName}, using global '
+          'configuration.',
+          e,
         );
       }
     }

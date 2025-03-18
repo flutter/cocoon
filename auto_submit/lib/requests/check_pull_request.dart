@@ -50,10 +50,10 @@ class CheckPullRequest extends CheckRequest {
       pubSubBatchSize,
     );
 
-    log.info('$crumb: pulled message batch of size ${messages.length}');
+    log2.info('$crumb: pulled message batch of size ${messages.length}');
 
     if (messages.isEmpty) {
-      log.info('$crumb: nothing to do, exiting.');
+      log2.info('$crumb: nothing to do, exiting.');
       return Response.ok('$crumb: nothing to do, exiting.');
     }
 
@@ -89,7 +89,7 @@ class CheckPullRequest extends CheckRequest {
     for (var message in messages) {
       assert(message.message != null);
       assert(message.message!.data != null);
-      log.info(
+      log2.info(
         '$crumb: processing message: '
         'id = ${message.message?.messageId}, '
         'ackId = ${message.ackId}, '
@@ -98,7 +98,7 @@ class CheckPullRequest extends CheckRequest {
 
       final messageData = message.message!.data!;
       final requestBodyJson = String.fromCharCodes(base64.decode(messageData));
-      log.info('$crumb: request JSON = $requestBodyJson');
+      log2.info('$crumb: request JSON = $requestBodyJson');
 
       final requestBody = json.decode(requestBodyJson) as Map<String, Object?>;
       final pullRequest = PullRequest.fromJson(requestBody);
@@ -111,7 +111,7 @@ class CheckPullRequest extends CheckRequest {
         // of the PR and decide to submit it or not based on all the labels set
         // on it. So the message is deduplicated but still ackowledged so it is
         // not delivered again.
-        log.info('$crumb: deduplicated pull request #${pullRequest.number}');
+        log2.info('$crumb: deduplicated pull request #${pullRequest.number}');
         await pubsub.acknowledge(pubSubSubscription, message.ackId!);
         continue;
       } else {
@@ -132,7 +132,7 @@ class CheckPullRequest extends CheckRequest {
   ) async {
     final crumb =
         '$CheckPullRequest(${pullRequest.repo?.fullName}/${pullRequest.number})';
-    log.info('$crumb: Processing PR: ${pullRequest.toJson()}');
+    log2.info('$crumb: Processing PR: ${pullRequest.toJson()}');
 
     try {
       final approver = approverProvider(config);
@@ -143,21 +143,22 @@ class CheckPullRequest extends CheckRequest {
         subscription: pubSubSubscription,
       );
       await validationService.processMessage(pullRequest, ackId, pubsub);
-    } catch (error, stackTrace) {
+    } catch (e, s) {
       // Log at severe level but do not rethrow. Because this loop processes a
       // batch of messages, one for each pull request, we don't want one pull
       // request to affect the outcome of processing other pull requests.
       // Because each message is acked individually, the successful ones will
       // be acked, and the failed ones will not, and will be retried by pubsub
       // later according to the retry policy set up in Cocoon.
-      log.severe('''$crumb: failed to process message.
+      log2.error(
+        '''$crumb: failed to process message.
 
 Pull request: https://github.com/${pullRequest.repo?.fullName}/${pullRequest.number}
 Parsed pull request: ${pullRequest.toJson()}
-
-Error: $error
-$stackTrace
-''');
+''',
+        e,
+        s,
+      );
     }
   }
 }
