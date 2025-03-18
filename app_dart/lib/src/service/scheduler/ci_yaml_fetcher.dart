@@ -111,10 +111,7 @@ final class _CiYamlFetcher extends CiYamlFetcher {
     bool validate = false,
   }) async {
     final isFusion = await _fusionTester.isFusionBasedRef(slug, commitSha);
-    final totCommit = await _fetchTipOfTreeCommit(
-      slug: slug,
-      commitBranch: commitBranch,
-    );
+    final totCommit = await _fetchTipOfTreeCommit(slug: slug);
     final totYaml = await _getCiYaml(
       slug: totCommit.slug,
       commitSha: totCommit.sha!,
@@ -219,12 +216,11 @@ final class _CiYamlFetcher extends CiYamlFetcher {
   /// (without `bringup: true`) are not added to the build.
   Future<firestore.Commit> _fetchTipOfTreeCommit({
     required RepositorySlug slug,
-    required String commitBranch,
   }) async {
     final firestore = await _config.createFirestoreService();
     final recentCommits = await firestore.queryRecentCommits(
       slug: slug,
-      branch: commitBranch,
+      branch: Config.defaultBranch(slug),
       limit: 1,
     );
     if (recentCommits.length != 1) {
