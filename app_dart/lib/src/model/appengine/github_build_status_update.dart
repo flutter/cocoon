@@ -25,6 +25,8 @@ class GithubBuildStatusUpdate extends Model<int> {
 
   static const String statusFailure = 'failure';
 
+  static const String statusNeutral = 'neutral';
+
   @StringProperty(propertyName: 'Repository', required: true)
   String? repository;
 
@@ -46,18 +48,19 @@ class GithubBuildStatusUpdate extends Model<int> {
 
   @override
   String toString() {
-    final StringBuffer buf = StringBuffer()
-      ..write('$runtimeType(')
-      ..write('id: $id')
-      ..write(', parentKey: ${parentKey?.id}')
-      ..write(', key: ${parentKey == null ? null : key.id}')
-      ..write(', repository: $repository')
-      ..write(', pr: $pr')
-      ..write(', head: $head')
-      ..write(', lastStatus: $status')
-      ..write(', updates: $updates')
-      ..write(', updateTimeMillis: $updateTimeMillis')
-      ..write(')');
+    final buf =
+        StringBuffer()
+          ..write('$runtimeType(')
+          ..write('id: $id')
+          ..write(', parentKey: ${parentKey?.id}')
+          ..write(', key: ${parentKey == null ? null : key.id}')
+          ..write(', repository: $repository')
+          ..write(', pr: $pr')
+          ..write(', head: $head')
+          ..write(', lastStatus: $status')
+          ..write(', updates: $updates')
+          ..write(', updateTimeMillis: $updateTimeMillis')
+          ..write(')');
     return buf.toString();
   }
 }

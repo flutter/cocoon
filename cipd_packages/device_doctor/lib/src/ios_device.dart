@@ -40,77 +40,99 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   static IosDeviceDiscovery? _instance;
 
   @override
-  Future<List<Device>> discoverDevices({Duration retryDuration = const Duration(seconds: 10)}) async {
+  Future<List<Device>> discoverDevices({
+    Duration retryDuration = const Duration(seconds: 10),
+  }) async {
     final List<Device> discoveredDevices =
-        LineSplitter.split(await deviceListOutput()).map((String id) => IosDevice(deviceId: id)).toList();
-    stdout.write('ios devices discovered: ${discoveredDevices.map((e) => e.deviceId).toList()}');
+        LineSplitter.split(
+          await deviceListOutput(),
+        ).map((String id) => IosDevice(deviceId: id)).toList();
+    stdout.write(
+      'ios devices discovered: ${discoveredDevices.map((e) => e.deviceId).toList()}',
+    );
     return discoveredDevices;
   }
 
   Future<String> deviceListOutput({
     ProcessManager processManager = const LocalProcessManager(),
   }) async {
-    final String fullPathIdeviceId = await getMacBinaryPath('idevice_id', processManager: processManager);
+    final fullPathIdeviceId = await getMacBinaryPath(
+      'idevice_id',
+      processManager: processManager,
+    );
     stdout.write('idevice_id path $fullPathIdeviceId');
-    return eval(fullPathIdeviceId, <String>['-l'], processManager: processManager);
+    return eval(fullPathIdeviceId, <String>[
+      '-l',
+    ], processManager: processManager);
   }
 
   @override
-  Future<Map<String, List<HealthCheckResult>>> checkDevices({ProcessManager? processManager}) async {
-    processManager ??= LocalProcessManager();
-    final Map<String, List<HealthCheckResult>> results = <String, List<HealthCheckResult>>{};
-    for (Device device in await discoverDevices()) {
-      final List<HealthCheckResult> checks = <HealthCheckResult>[];
+  Future<Map<String, List<HealthCheckResult>>> checkDevices({
+    ProcessManager? processManager,
+  }) async {
+    processManager ??= const LocalProcessManager();
+    final results = <String, List<HealthCheckResult>>{};
+    for (var device in await discoverDevices()) {
+      final checks = <HealthCheckResult>[];
       checks.add(HealthCheckResult.success(kDeviceAccessCheckKey));
       checks.add(await keychainUnlockCheck(processManager: processManager));
       checks.add(await certCheck(processManager: processManager));
       checks.add(await devicePairCheck(processManager: processManager));
       checks.add(await userAutoLoginCheck(processManager: processManager));
-      checks.add(await deviceProvisioningProfileCheck(device.deviceId, processManager: processManager));
+      checks.add(
+        await deviceProvisioningProfileCheck(
+          device.deviceId,
+          processManager: processManager,
+        ),
+      );
       checks.add(await batteryLevelCheck(processManager: processManager));
       results['ios-device-${device.deviceId}'] = checks;
     }
-    final Map<String, Map<String, dynamic>> healthCheckMap = await healthcheck(results);
+    final healthCheckMap = await healthcheck(results);
     writeToFile(json.encode(healthCheckMap), _outputFilePath!);
     return results;
   }
 
   /// Checks and returns the device properties.
   @override
-  Future<Map<String, String>> deviceProperties({ProcessManager? processManager}) async {
+  Future<Map<String, String>> deviceProperties({
+    ProcessManager? processManager,
+  }) async {
     return <String, String>{};
   }
 
   @override
   Future<void> recoverDevices() async {
-    for (Device device in await discoverDevices()) {
+    for (var device in await discoverDevices()) {
       await device.recover();
     }
   }
 
   @visibleForTesting
-  Future<HealthCheckResult> deviceProvisioningProfileCheck(String? deviceId, {ProcessManager? processManager}) async {
+  Future<HealthCheckResult> deviceProvisioningProfileCheck(
+    String? deviceId, {
+    ProcessManager? processManager,
+  }) async {
     HealthCheckResult healthCheckResult;
     try {
-      final String? homeDir = Platform.environment['HOME'];
+      final homeDir = Platform.environment['HOME'];
 
-      final String out = await eval(
-        'ls',
-        <String>['$homeDir/Library/MobileDevice/Provisioning\ Profiles'],
-        processManager: processManager,
-      );
+      final out = await eval('ls', <String>[
+        '$homeDir/Library/MobileDevice/Provisioning Profiles',
+      ], processManager: processManager);
       // Split filenames
       final profiles = LineSplitter.split(out).toList();
 
       // Check all provisioning profiles in the directory to
       // to see if any contain a valid profile
-      bool validProfileFound = false;
+      var validProfileFound = false;
       for (var file in profiles) {
-        final String provisionFileContent = await eval(
-          'security',
-          <String>['cms', '-D', '-i', '$homeDir/Library/MobileDevice/Provisioning\ Profiles/$file'],
-          processManager: processManager,
-        );
+        final provisionFileContent = await eval('security', <String>[
+          'cms',
+          '-D',
+          '-i',
+          '$homeDir/Library/MobileDevice/Provisioning Profiles/$file',
+        ], processManager: processManager);
         if (provisionFileContent.contains(deviceId!)) {
           validProfileFound = true;
           break;
@@ -118,49 +140,73 @@ class IosDeviceDiscovery implements DeviceDiscovery {
       }
       // If any file contained a valid profile, then set result accordingly
       if (validProfileFound) {
-        healthCheckResult = HealthCheckResult.success(kDeviceProvisioningProfileCheckKey);
+        healthCheckResult = HealthCheckResult.success(
+          kDeviceProvisioningProfileCheckKey,
+        );
       } else {
         healthCheckResult = HealthCheckResult.failure(
           kDeviceProvisioningProfileCheckKey,
           'device does not exist in the provisioning profile',
         );
       }
-    } on BuildFailedError catch (error) {
-      healthCheckResult = HealthCheckResult.failure(kDeviceProvisioningProfileCheckKey, error.toString());
+    } on BuildFailedException catch (error) {
+      healthCheckResult = HealthCheckResult.failure(
+        kDeviceProvisioningProfileCheckKey,
+        error.toString(),
+      );
     }
     return healthCheckResult;
   }
 
   @visibleForTesting
-  Future<HealthCheckResult> keychainUnlockCheck({ProcessManager? processManager}) async {
+  Future<HealthCheckResult> keychainUnlockCheck({
+    ProcessManager? processManager,
+  }) async {
     HealthCheckResult healthCheckResult;
     try {
-      await eval(kUnlockLoginKeychain, <String>[], processManager: processManager);
-      healthCheckResult = HealthCheckResult.success(kKeychainUnlockCheckKey);
-    } on BuildFailedError catch (error) {
-      healthCheckResult = HealthCheckResult.failure(kKeychainUnlockCheckKey, error.toString());
-    }
-    return healthCheckResult;
-  }
-
-  @visibleForTesting
-  Future<HealthCheckResult> batteryLevelCheck({ProcessManager? processManager}) async {
-    HealthCheckResult healthCheckResult;
-    try {
-      final String batteryCheckResult = await eval(
-        'ideviceinfo',
-        <String>['-q', 'com.apple.mobile.battery', '-k', 'BatteryCurrentCapacity'],
+      await eval(
+        kUnlockLoginKeychain,
+        <String>[],
         processManager: processManager,
       );
-      final int level = int.parse(batteryCheckResult.isEmpty ? '0' : batteryCheckResult);
+      healthCheckResult = HealthCheckResult.success(kKeychainUnlockCheckKey);
+    } on BuildFailedException catch (error) {
+      healthCheckResult = HealthCheckResult.failure(
+        kKeychainUnlockCheckKey,
+        error.toString(),
+      );
+    }
+    return healthCheckResult;
+  }
+
+  @visibleForTesting
+  Future<HealthCheckResult> batteryLevelCheck({
+    ProcessManager? processManager,
+  }) async {
+    HealthCheckResult healthCheckResult;
+    try {
+      final batteryCheckResult = await eval('ideviceinfo', <String>[
+        '-q',
+        'com.apple.mobile.battery',
+        '-k',
+        'BatteryCurrentCapacity',
+      ], processManager: processManager);
+      final level = int.parse(
+        batteryCheckResult.isEmpty ? '0' : batteryCheckResult,
+      );
       if (level < _kBatteryMinLevel) {
-        healthCheckResult =
-            HealthCheckResult.failure(kBatteryLevelCheckKey, 'Battery level ($level) is below $_kBatteryMinLevel');
+        healthCheckResult = HealthCheckResult.failure(
+          kBatteryLevelCheckKey,
+          'Battery level ($level) is below $_kBatteryMinLevel',
+        );
       } else {
         healthCheckResult = HealthCheckResult.success(kBatteryLevelCheckKey);
       }
-    } on BuildFailedError catch (error) {
-      healthCheckResult = HealthCheckResult.failure(kBatteryLevelCheckKey, error.toString());
+    } on BuildFailedException catch (error) {
+      healthCheckResult = HealthCheckResult.failure(
+        kBatteryLevelCheckKey,
+        error.toString(),
+      );
     }
     return healthCheckResult;
   }
@@ -169,41 +215,60 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   Future<HealthCheckResult> certCheck({ProcessManager? processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
-      final String certCheckResult =
-          await eval('security', <String>['find-identity', '-p', 'codesigning', '-v'], processManager: processManager);
+      final certCheckResult = await eval('security', <String>[
+        'find-identity',
+        '-p',
+        'codesigning',
+        '-v',
+      ], processManager: processManager);
       if (certCheckResult.contains('Apple Development: Flutter Devicelab') &&
           certCheckResult.contains('1 valid identities found') &&
           !certCheckResult.contains('CSSMERR_TP_CERT_REVOKED')) {
         healthCheckResult = HealthCheckResult.success(kCertCheckKey);
       } else {
-        healthCheckResult = HealthCheckResult.failure(kCertCheckKey, certCheckResult);
+        healthCheckResult = HealthCheckResult.failure(
+          kCertCheckKey,
+          certCheckResult,
+        );
       }
-    } on BuildFailedError catch (error) {
-      healthCheckResult = HealthCheckResult.failure(kCertCheckKey, error.toString());
+    } on BuildFailedException catch (error) {
+      healthCheckResult = HealthCheckResult.failure(
+        kCertCheckKey,
+        error.toString(),
+      );
     }
     return healthCheckResult;
   }
 
   @visibleForTesting
-  Future<HealthCheckResult> devicePairCheck({ProcessManager? processManager}) async {
+  Future<HealthCheckResult> devicePairCheck({
+    ProcessManager? processManager,
+  }) async {
     HealthCheckResult healthCheckResult;
     try {
-      final String devicePairCheckResult =
-          await eval('idevicepair', <String>['validate'], processManager: processManager);
+      final devicePairCheckResult = await eval('idevicepair', <String>[
+        'validate',
+      ], processManager: processManager);
       if (devicePairCheckResult.contains('SUCCESS')) {
         healthCheckResult = HealthCheckResult.success(kDevicePairCheckKey);
       } else {
-        healthCheckResult = HealthCheckResult.failure(kDevicePairCheckKey, devicePairCheckResult);
+        healthCheckResult = HealthCheckResult.failure(
+          kDevicePairCheckKey,
+          devicePairCheckResult,
+        );
       }
-    } on BuildFailedError catch (error) {
-      healthCheckResult = HealthCheckResult.failure(kDevicePairCheckKey, error.toString());
+    } on BuildFailedException catch (error) {
+      healthCheckResult = HealthCheckResult.failure(
+        kDevicePairCheckKey,
+        error.toString(),
+      );
     }
     return healthCheckResult;
   }
 
   @override
   Future<void> prepareDevices() async {
-    for (Device device in await discoverDevices()) {
+    for (var device in await discoverDevices()) {
       await device.prepare();
     }
   }
@@ -218,8 +283,8 @@ class IosDevice implements Device {
 
   @override
   Future<void> recover() async {
-    await uninstall_applications();
-    await restart_device();
+    await uninstallApplications();
+    await restartDevice();
   }
 
   @override
@@ -229,17 +294,22 @@ class IosDevice implements Device {
 
   /// Restart iOS device.
   @visibleForTesting
-  Future<bool> restart_device({ProcessManager? processManager}) async {
-    processManager ??= LocalProcessManager();
+  Future<bool> restartDevice({ProcessManager? processManager}) async {
+    processManager ??= const LocalProcessManager();
     try {
       if (noRebootList.contains(deviceId)) {
         stdout.write('Device not marked for reboot.');
         return true;
       }
-      final String fullPathIdevicediagnostics =
-          await getMacBinaryPath('idevicediagnostics', processManager: processManager);
-      await eval(fullPathIdevicediagnostics, <String>['restart'], processManager: processManager);
-    } on BuildFailedError catch (error) {
+      final fullPathIdevicediagnostics = await getMacBinaryPath(
+        'idevicediagnostics',
+        processManager: processManager,
+      );
+      await eval(fullPathIdevicediagnostics, <String>[
+        'restart',
+      ], processManager: processManager);
+      // ignore: avoid_catching_errors
+    } on BuildFailedException catch (error) {
       stderr.write('device restart fails: $error');
       return false;
     }
@@ -253,29 +323,43 @@ class IosDevice implements Device {
   /// certificate from previous installed application.
   /// Issue: https://github.com/flutter/flutter/issues/76896
   @visibleForTesting
-  Future<bool> uninstall_applications({ProcessManager? processManager}) async {
-    processManager ??= LocalProcessManager();
+  Future<bool> uninstallApplications({ProcessManager? processManager}) async {
+    processManager ??= const LocalProcessManager();
     String result;
-    final String fullPathIdeviceInstaller = await getMacBinaryPath('ideviceinstaller', processManager: processManager);
+    final fullPathIdeviceInstaller = await getMacBinaryPath(
+      'ideviceinstaller',
+      processManager: processManager,
+    );
     try {
-      result = await eval(fullPathIdeviceInstaller, <String>['-l'], processManager: processManager);
-    } on BuildFailedError catch (error) {
+      result = await eval(fullPathIdeviceInstaller, <String>[
+        '-l',
+      ], processManager: processManager);
+      // ignore: avoid_catching_errors
+    } on BuildFailedException catch (error) {
       stderr.write('list applications fails: $error');
       return false;
     }
 
     // Skip uninstalling process when no device is available or no application exists.
-    if (result == 'No device found.' || result == 'CFBundleIdentifier, CFBundleVersion, CFBundleDisplayName') {
-      stdout.write('No device was found or no application to uninstall exists.');
+    if (result == 'No device found.' ||
+        result == 'CFBundleIdentifier, CFBundleVersion, CFBundleDisplayName') {
+      stdout.write(
+        'No device was found or no application to uninstall exists.',
+      );
       return true;
     }
-    final List<String> results = result.trim().split('\n');
-    final List<String> bundleIdentifiers = results.sublist(1).map((e) => e.split(',')[0].trim()).toList();
+    final results = result.trim().split('\n');
+    final bundleIdentifiers =
+        results.sublist(1).map((e) => e.split(',')[0].trim()).toList();
     try {
-      for (String bundleIdentifier in bundleIdentifiers) {
-        await eval(fullPathIdeviceInstaller, <String>['-U', bundleIdentifier], processManager: processManager);
+      for (var bundleIdentifier in bundleIdentifiers) {
+        await eval(fullPathIdeviceInstaller, <String>[
+          '-U',
+          bundleIdentifier,
+        ], processManager: processManager);
       }
-    } on BuildFailedError catch (error) {
+      // ignore: avoid_catching_errors
+    } on BuildFailedException catch (error) {
       stderr.write('uninstall applications fails: $error');
       return false;
     }

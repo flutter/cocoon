@@ -6,11 +6,12 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dashboard/logic/brooks.dart';
-import 'package:flutter_dashboard/model/branch.pb.dart';
+import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/service/google_authentication.dart';
+import 'package:flutter_dashboard/src/rpc_model.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/widgets/task_overlay.dart';
 
@@ -23,8 +24,8 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
     this.statuses = const <CommitStatus>[],
     this.moreStatusesExist = true,
     this.rerunTaskResult = false,
-  })  : authService = authService ?? MockGoogleSignInService(),
-        cocoonService = cocoonService ?? MockCocoonService();
+  }) : authService = authService ?? MockGoogleSignInService(),
+       cocoonService = cocoonService ?? MockCocoonService();
 
   @override
   late GoogleSignInService authService;
@@ -48,7 +49,7 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   Future<bool> refreshGitHubCommits() async => false;
 
   @override
-  Future<bool> rerunTask(Task task) async {
+  Future<bool> rerunTask(Task task, Commit commit) async {
     if (!rerunTaskResult) {
       errors.send(TaskOverlayContents.rerunErrorMessage);
       return false;
@@ -69,25 +70,19 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
 
   @override
   List<Branch> get branches {
-    final List<Branch> fakeBranches = <Branch>[];
-    for (String repo in ['flutter', 'engine', 'cocoon']) {
-      fakeBranches.add(
-        Branch()
-          ..repository = repo
-          ..branch = defaultBranches[repo]!,
-      );
-      fakeBranches.addAll(
-        <Branch>[
-          Branch()
-            ..repository = repo
-            ..branch = '$repo-release',
-          Branch()
-            ..repository = repo
-            ..branch = '$repo-release-very-long-name-that-should-be-truncated',
-        ],
-      );
-    }
-    return fakeBranches;
+    // TODO(matanlurey): Previously the channel names were implicitly empty,
+    // which meant the UI fit in a very small screen (Pixel 4-ish). To make
+    // these more "real" the build_dashboard_page_test.dart will need to be
+    // updated to have a larger UI *or* widget changes will need to be made to
+    // fit better on a mobile device.
+    return [
+      Branch(channel: '', reference: 'master'),
+      Branch(channel: '', reference: 'stable-release'),
+      Branch(
+        channel: '',
+        reference: 'release-very-long-name-that-should-be-truncated',
+      ),
+    ];
   }
 
   @override
@@ -102,7 +97,7 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   String _currentRepo = 'flutter';
 
   @override
-  List<String> get repos => <String>['flutter', 'engine', 'cocoon'];
+  List<String> get repos => <String>['flutter', 'cocoon'];
 
   @override
   Future<void> updateCurrentRepoBranch(String repo, String branch) async {

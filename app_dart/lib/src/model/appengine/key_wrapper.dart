@@ -13,9 +13,9 @@ class KeyWrapper {
   const KeyWrapper(this.key);
 
   factory KeyWrapper.fromProto(pb.RootKey root) {
-    Key<dynamic> result = Key<dynamic>.emptyKey(Partition(root.namespace));
-    for (pb.Key key = root.child; key.hasChild(); key = key.child) {
-      final Type type = _typeFromString(key.type);
+    var result = Key<dynamic>.emptyKey(Partition(root.namespace));
+    for (var key = root.child; key.hasChild(); key = key.child) {
+      final type = _typeFromString(key.type);
       switch (key.whichId()) {
         case pb.Key_Id.uid:
           result = result.append<int>(type, id: key.uid.toInt());
@@ -37,7 +37,7 @@ class KeyWrapper {
   pb.RootKey toProto() {
     pb.Key? previous;
     for (Key<dynamic>? slice = key; slice != null; slice = key.parent) {
-      final pb.Key current = pb.Key();
+      final current = pb.Key();
       if (slice.type != null) {
         current.type = slice.type.toString();
       }
@@ -63,7 +63,9 @@ class KeyWrapper {
   }
 
   static Type _typeFromString(String value) {
-    final KeyHelper keyHelper = KeyHelper();
-    return keyHelper.types.keys.singleWhere((Type type) => type.toString() == value);
+    final keyHelper = KeyHelper();
+    return keyHelper.types.keys.singleWhere(
+      (Type type) => type.toString() == value,
+    );
   }
 }

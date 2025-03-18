@@ -167,7 +167,8 @@ PullRequest generatePullRequest({
       "author_association": "$authorAssociation",
       "mergeable": $mergeable,
       "mergeable_state": "clean"
-  }''') as Map<String, dynamic>,
+  }''')
+        as Map<String, dynamic>,
   );
 }
 

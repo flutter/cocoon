@@ -1,0 +1,16 @@
+# This file represents a "workspace" that applies to the whole repository.
+#
+# See <https://flutter.dev/go/pub-workspace> for details.
+
+name: _cocoon_workspace
+
+# Required for workspace support.
+environment:
+  sdk: ^3.7.0
+
+workspace:
+  - packages/cocoon_common
+  - packages/cocoon_common_test
+
+dev_dependencies:
+  dart_flutter_team_lints: 3.5.0

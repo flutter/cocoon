@@ -1,0 +1,17 @@
+name: cocoon_common
+description: Shared functionality and interfaces across flutter/cocoon
+publish_to: none
+
+environment:
+  sdk: ^3.7.0
+
+resolution: workspace
+
+dependencies:
+  meta: ^1.16.0
+
+dev_dependencies:
+  cocoon_common_test:
+    path: ../cocoon_common_test
+  dart_flutter_team_lints:
+  test: ^1.25.15

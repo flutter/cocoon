@@ -23,13 +23,14 @@ class CreateBranch extends ApiRequestHandler<Body> {
   final BranchService branchService;
 
   static const String branchParam = 'branch';
+  // Intentionally kept at 'engine' as there may be scripts out there.
   static const String engineShaParam = 'engine';
 
   @override
   Future<Body> get() async {
     checkRequiredQueryParameters(<String>[branchParam, engineShaParam]);
-    final String branch = request!.uri.queryParameters[branchParam]!;
-    final String engineSha = request!.uri.queryParameters[engineShaParam]!;
+    final branch = request!.uri.queryParameters[branchParam]!;
+    final engineSha = request!.uri.queryParameters[engineShaParam]!;
 
     await branchService.branchFlutterRecipes(branch, engineSha);
 

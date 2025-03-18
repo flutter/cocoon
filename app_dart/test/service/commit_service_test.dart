@@ -2,13 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_server/testing/mocks.dart';
+import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore;
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:github/github.dart';
-import 'package:github/hooks.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -26,14 +25,14 @@ void main() {
   late MockRepositoriesService repositories;
   late MockGitHub github;
   late MockFirestoreService mockFirestoreService;
-  const String owner = 'flutter';
-  const String repository = 'flutter';
-  const String branch = 'coolest-branch';
-  const String sha = '1234';
-  const String message = 'Adding null safety';
-  const String avatarUrl = 'https://avatars.githubusercontent.com/u/fake-user-num';
-  const String username = 'AwesomeGithubUser';
-  const String dateTimeAsString = '2023-08-18T19:27:00Z';
+  const owner = 'flutter';
+  const repository = 'flutter';
+  const branch = 'coolest-branch';
+  const sha = '1234';
+  const message = 'Adding null safety';
+  const avatarUrl = 'https://avatars.githubusercontent.com/u/fake-user-num';
+  const username = 'AwesomeGithubUser';
+  const dateTimeAsString = '2023-08-18T19:27:00Z';
 
   setUp(() {
     db = FakeDatastoreDB();
@@ -46,8 +45,14 @@ void main() {
     config = MockConfig();
     commitService = CommitService(config: config);
 
-    when(config.createDefaultGitHubService()).thenAnswer((_) async => githubService);
-    when(config.createFirestoreService()).thenAnswer((_) async => mockFirestoreService);
+    when(
+      // ignore: discarded_futures
+      config.createDefaultGitHubService(),
+    ).thenAnswer((_) async => githubService);
+    when(
+      // ignore: discarded_futures
+      config.createFirestoreService(),
+    ).thenAnswer((_) async => mockFirestoreService);
     when(config.db).thenReturn(db);
   });
 
@@ -55,38 +60,41 @@ void main() {
     test('adds commit to db if it does not exist in the datastore', () async {
       expect(db.values.values.whereType<Commit>().length, 0);
       when(
-        mockFirestoreService.batchWriteDocuments(
-          captureAny,
-          captureAny,
-        ),
+        mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
       ).thenAnswer((Invocation invocation) {
         return Future<BatchWriteResponse>.value(BatchWriteResponse());
       });
-      when(githubService.getReference(RepositorySlug(owner, repository), 'heads/$branch'))
-          .thenAnswer((Invocation invocation) {
+      when(
+        githubService.getReference(
+          RepositorySlug(owner, repository),
+          'heads/$branch',
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<GitReference>.value(
           GitReference(ref: 'refs/$branch', object: GitObject('', sha, '')),
         );
       });
 
-      when(repositories.getCommit(RepositorySlug(owner, repository), sha)).thenAnswer((Invocation invocation) {
+      when(
+        repositories.getCommit(RepositorySlug(owner, repository), sha),
+      ).thenAnswer((Invocation invocation) {
         return Future<RepositoryCommit>.value(
           RepositoryCommit(
             sha: sha,
-            author: User(
-              login: username,
-              avatarUrl: avatarUrl,
-            ),
+            author: User(login: username, avatarUrl: avatarUrl),
             commit: GitCommit(message: message),
           ),
         );
       });
 
-      final CreateEvent createEvent = generateCreateBranchEvent(branch, '$owner/$repository');
+      final createEvent = generateCreateBranchEvent(
+        branch,
+        '$owner/$repository',
+      );
       await commitService.handleCreateGithubRequest(createEvent);
 
       expect(db.values.values.whereType<Commit>().length, 1);
-      final Commit commit = db.values.values.whereType<Commit>().single;
+      final commit = db.values.values.whereType<Commit>().single;
       expect(commit.repository, '$owner/$repository');
       expect(commit.message, message);
       expect(commit.key.id, '$owner/$repository/$branch/$sha');
@@ -95,16 +103,22 @@ void main() {
       expect(commit.authorAvatarUrl, avatarUrl);
       expect(commit.branch, branch);
 
-      final List<dynamic> captured = verify(mockFirestoreService.batchWriteDocuments(captureAny, captureAny)).captured;
+      final captured =
+          verify(
+            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+          ).captured;
       expect(captured.length, 2);
-      final BatchWriteRequest batchWriteRequest = captured[0] as BatchWriteRequest;
+      final batchWriteRequest = captured[0] as BatchWriteRequest;
       expect(batchWriteRequest.writes!.length, 1);
-      final Document insertedCommitDocument = batchWriteRequest.writes![0].update!;
-      expect(insertedCommitDocument.name, '$kDatabase/documents/${firestore.kCommitCollectionId}/$sha');
+      final insertedCommitDocument = batchWriteRequest.writes![0].update!;
+      expect(
+        insertedCommitDocument.name,
+        '$kDatabase/documents/${firestore.kCommitCollectionId}/$sha',
+      );
     });
 
     test('does not add commit to db if it exists in the datastore', () async {
-      final Commit existingCommit = generateCommit(
+      final existingCommit = generateCommit(
         1,
         sha: sha,
         branch: branch,
@@ -112,18 +126,24 @@ void main() {
         repo: repository,
         timestamp: 0,
       );
-      final List<Commit> datastoreCommit = <Commit>[existingCommit];
+      final datastoreCommit = <Commit>[existingCommit];
       await config.db.commit(inserts: datastoreCommit);
       expect(db.values.values.whereType<Commit>().length, 1);
 
-      when(githubService.getReference(RepositorySlug(owner, repository), 'heads/$branch'))
-          .thenAnswer((Invocation invocation) {
+      when(
+        githubService.getReference(
+          RepositorySlug(owner, repository),
+          'heads/$branch',
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<GitReference>.value(
           GitReference(ref: 'refs/$branch', object: GitObject('', sha, '')),
         );
       });
 
-      when(repositories.getCommit(RepositorySlug(owner, repository), sha)).thenAnswer((Invocation invocation) {
+      when(
+        repositories.getCommit(RepositorySlug(owner, repository), sha),
+      ).thenAnswer((Invocation invocation) {
         return Future<RepositoryCommit>.value(
           RepositoryCommit(
             sha: sha,
@@ -137,11 +157,14 @@ void main() {
         );
       });
 
-      final CreateEvent createEvent = generateCreateBranchEvent(branch, '$owner/$repository');
+      final createEvent = generateCreateBranchEvent(
+        branch,
+        '$owner/$repository',
+      );
       await commitService.handleCreateGithubRequest(createEvent);
 
       expect(db.values.values.whereType<Commit>().length, 1);
-      final Commit commit = db.values.values.whereType<Commit>().single;
+      final commit = db.values.values.whereType<Commit>().single;
       expect(commit, existingCommit);
     });
   });
@@ -150,7 +173,7 @@ void main() {
     test('adds commit to db if it does not exist in the datastore', () async {
       expect(db.values.values.whereType<Commit>().length, 0);
 
-      final Map<String, dynamic> pushEvent = generatePushEvent(
+      final pushEvent = generatePushEvent(
         branch,
         owner,
         repository,
@@ -162,7 +185,7 @@ void main() {
       await commitService.handlePushGithubRequest(pushEvent);
 
       expect(db.values.values.whereType<Commit>().length, 1);
-      final Commit commit = db.values.values.whereType<Commit>().single;
+      final commit = db.values.values.whereType<Commit>().single;
       expect(commit.repository, '$owner/$repository');
       expect(commit.message, message);
       expect(commit.key.id, '$owner/$repository/$branch/$sha');
@@ -173,7 +196,7 @@ void main() {
     });
 
     test('does not add commit to db if it exists in the datastore', () async {
-      final Commit existingCommit = generateCommit(
+      final existingCommit = generateCommit(
         1,
         sha: sha,
         branch: branch,
@@ -181,11 +204,11 @@ void main() {
         repo: repository,
         timestamp: 0,
       );
-      final List<Commit> datastoreCommit = <Commit>[existingCommit];
+      final datastoreCommit = <Commit>[existingCommit];
       await config.db.commit(inserts: datastoreCommit);
       expect(db.values.values.whereType<Commit>().length, 1);
 
-      final Map<String, dynamic> pushEvent = generatePushEvent(
+      final pushEvent = generatePushEvent(
         branch,
         owner,
         repository,
@@ -197,7 +220,7 @@ void main() {
       await commitService.handlePushGithubRequest(pushEvent);
 
       expect(db.values.values.whereType<Commit>().length, 1);
-      final Commit commit = db.values.values.whereType<Commit>().single;
+      final commit = db.values.values.whereType<Commit>().single;
       expect(commit, existingCommit);
     });
   });

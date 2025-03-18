@@ -4,8 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:cocoon_server/testing/mocks.dart';
-import 'package:cocoon_service/src/service/bigquery.dart';
+import 'package:cocoon_server_test/mocks.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -57,12 +56,16 @@ void main() {
 
   test('can handle unsuccessful job query', () async {
     // When queries flaky data from BigQuery.
-    when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
+    when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((
+      Invocation invocation,
+    ) {
       return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(jobNotCompleteResponse) as Map<dynamic, dynamic>),
+        QueryResponse.fromJson(
+          jsonDecode(jobNotCompleteResponse) as Map<dynamic, dynamic>,
+        ),
       );
     });
-    bool hasError = false;
+    var hasError = false;
     try {
       await service.listBuilderStatistic(expectedProjectId);
     } catch (e) {
@@ -74,14 +77,21 @@ void main() {
 
   test('can handle job query', () async {
     // When queries flaky data from BigQuery.
-    when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
+    when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((
+      Invocation invocation,
+    ) {
       return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(semanticsIntegrationTestResponse) as Map<dynamic, dynamic>),
+        QueryResponse.fromJson(
+          jsonDecode(semanticsIntegrationTestResponse) as Map<dynamic, dynamic>,
+        ),
       );
     });
-    final List<BuilderStatistic> statisticList = await service.listBuilderStatistic(expectedProjectId);
+    final statisticList = await service.listBuilderStatistic(expectedProjectId);
     expect(statisticList.length, 1);
-    expect(statisticList[0].name, 'Mac_android android_semantics_integration_test');
+    expect(
+      statisticList[0].name,
+      'Mac_android android_semantics_integration_test',
+    );
     expect(statisticList[0].flakyRate, 0.5);
     expect(statisticList[0].succeededBuilds!.length, 3);
     expect(statisticList[0].succeededBuilds![0], '203');
@@ -98,13 +108,20 @@ void main() {
   });
 
   test('return empty build list when bigquery returns no rows', () async {
-    when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
+    when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((
+      Invocation invocation,
+    ) {
       return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(noRecordsResponse) as Map<dynamic, dynamic>),
+        QueryResponse.fromJson(
+          jsonDecode(noRecordsResponse) as Map<dynamic, dynamic>,
+        ),
       );
     });
-    final List<BuilderRecord> records =
-        await service.listRecentBuildRecordsForBuilder(expectedProjectId, builder: 'test', limit: 10);
+    final records = await service.listRecentBuildRecordsForBuilder(
+      expectedProjectId,
+      builder: 'test',
+      limit: 10,
+    );
     expect(records.length, 0);
   });
 }

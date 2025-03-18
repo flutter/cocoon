@@ -29,25 +29,26 @@ PushMessage generateGithubWebhookMessage({
   bool withAutosubmit = false,
   bool withRevertOf = false,
 }) {
-  final String data = (pb.GithubWebhookMessage.create()
-        ..event = event
-        ..payload = _generatePullRequestEvent(
-          action,
-          number,
-          baseRef,
-          baseSha: baseSha,
-          login: login,
-          headRef: headRef,
-          isDraft: isDraft,
-          merged: merged,
-          isMergeable: mergeable,
-          slug: slug,
-          mergeCommitSha: mergeCommitSha,
-          includeChanges: includeChanges,
-          withAutosubmit: withAutosubmit,
-          withRevertOf: withRevertOf,
-        ))
-      .writeToJson();
+  final data =
+      (pb.GithubWebhookMessage.create()
+            ..event = event
+            ..payload = _generatePullRequestEvent(
+              action,
+              number,
+              baseRef,
+              baseSha: baseSha,
+              login: login,
+              headRef: headRef,
+              isDraft: isDraft,
+              merged: merged,
+              isMergeable: mergeable,
+              slug: slug,
+              mergeCommitSha: mergeCommitSha,
+              includeChanges: includeChanges,
+              withAutosubmit: withAutosubmit,
+              withRevertOf: withRevertOf,
+            ))
+          .writeToJson();
   return PushMessage(data: data, messageId: 'abc123');
 }
 
@@ -600,7 +601,7 @@ PushMessage generateCheckRunEvent({
   String action = 'created',
   int numberOfPullRequests = 1,
 }) {
-  String data = '''{
+  var data = '''{
   "action": "$action",
   "check_run": {
     "id": 128620228,
@@ -766,7 +767,7 @@ PushMessage generateCheckRunEvent({
     },
     "pull_requests": [''';
 
-  for (int i = 0; i < numberOfPullRequests; i++) {
+  for (var i = 0; i < numberOfPullRequests; i++) {
     data += '''{
         "url": "https://api.github.com/repos/flutter/flutter/pulls/2",
         "id": 279147437,
@@ -924,28 +925,33 @@ PushMessage generateCheckRunEvent({
     "site_admin": false
   }
 }''';
-  final pb.GithubWebhookMessage message = pb.GithubWebhookMessage(
-    event: 'check_run',
-    payload: data,
-  );
-  return PushMessage(
-    data: message.writeToJson(),
-    messageId: 'abc123',
-  );
+  final message = pb.GithubWebhookMessage(event: 'check_run', payload: data);
+  return PushMessage(data: message.writeToJson(), messageId: 'abc123');
 }
 
-PushMessage generateCreateBranchMessage(String branchName, String repository, {bool forked = false}) {
-  final CreateEvent createEvent = generateCreateBranchEvent(branchName, repository, forked: forked);
-  final pb.GithubWebhookMessage message = pb.GithubWebhookMessage(
+PushMessage generateCreateBranchMessage(
+  String branchName,
+  String repository, {
+  bool forked = false,
+}) {
+  final createEvent = generateCreateBranchEvent(
+    branchName,
+    repository,
+    forked: forked,
+  );
+  final message = pb.GithubWebhookMessage(
     event: 'create',
     payload: jsonEncode(createEvent),
   );
   return PushMessage(data: message.writeToJson(), messageId: 'abc123');
 }
 
-CreateEvent generateCreateBranchEvent(String branchName, String repository, {bool forked = false}) =>
-    CreateEvent.fromJson(
-      jsonDecode('''
+CreateEvent generateCreateBranchEvent(
+  String branchName,
+  String repository, {
+  bool forked = false,
+}) => CreateEvent.fromJson(
+  jsonDecode('''
 {
   "ref": "$branchName",
   "ref_type": "branch",
@@ -1066,12 +1072,20 @@ CreateEvent generateCreateBranchEvent(String branchName, String repository, {boo
     "type": "User",
     "site_admin": false
   }
-}''') as Map<String, dynamic>,
-    );
+}''')
+      as Map<String, dynamic>,
+);
 
-PushMessage generatePushMessage(String branch, String organization, String repository) {
-  final Map<String, dynamic> event = generatePushEvent(branch, organization, repository);
-  final pb.GithubWebhookMessage message = pb.GithubWebhookMessage(event: 'push', payload: jsonEncode(event));
+PushMessage generatePushMessage(
+  String branch,
+  String organization,
+  String repository,
+) {
+  final event = generatePushEvent(branch, organization, repository);
+  final message = pb.GithubWebhookMessage(
+    event: 'push',
+    payload: jsonEncode(event),
+  );
   return PushMessage(data: message.writeToJson(), messageId: 'abc123');
 }
 
@@ -1112,7 +1126,8 @@ Map<String, dynamic> generatePushEvent(
     "full_name": "$organization/$repository"
   }
 }
-''');
+''')
+        as Map<String, Object?>;
 
 PushMessage generateMergeGroupMessage({
   required String repository,
@@ -1120,15 +1135,21 @@ PushMessage generateMergeGroupMessage({
   required String message,
   String? reason,
 }) {
-  if (action == 'destroyed' && !MergeGroupEvent.destroyReasons.contains(reason)) {
+  if (action == 'destroyed' &&
+      !MergeGroupEvent.destroyReasons.contains(reason)) {
     fail(
       'Invalid reason "$reason" for merge group "destroyed" event. The reason '
       'must be one of: ${MergeGroupEvent.destroyReasons}',
     );
   }
-  final pb.GithubWebhookMessage webhookMessage = pb.GithubWebhookMessage(
+  final webhookMessage = pb.GithubWebhookMessage(
     event: 'merge_group',
-    payload: generateMergeGroupEventString(action: action, message: message, repository: repository, reason: reason),
+    payload: generateMergeGroupEventString(
+      action: action,
+      message: message,
+      repository: repository,
+      reason: reason,
+    ),
   );
   return PushMessage(data: webhookMessage.writeToJson(), messageId: 'abc123');
 }

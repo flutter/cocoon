@@ -7,10 +7,7 @@ import 'package:cocoon_service/src/request_handling/request_handler.dart';
 
 // ignore: must_be_immutable
 class FakeRequestHandler extends RequestHandler<Body> {
-  FakeRequestHandler({
-    required this.body,
-    required super.config,
-  });
+  FakeRequestHandler({required this.body, required super.config});
 
   final Body body;
 

@@ -15,10 +15,10 @@ import 'package:shelf/shelf_io.dart';
 /// The returned [Future] will complete using [terminateRequestFuture] after
 /// closing the server.
 Future<void> serveHandler(Handler handler) async {
-  final int port = listenPort();
+  final port = listenPort();
 
-  final HttpServer server = await serve(
-    handler,
+  final server = await serve(
+    LoggingHandler(handler).handle,
     InternetAddress.anyIPv4, // Allows external connections
     port,
   );
@@ -27,6 +27,25 @@ Future<void> serveHandler(Handler handler) async {
   await terminateRequestFuture();
 
   await server.close();
+}
+
+/// Wraps another [Handler], catching and logging uncaught exceptions from it.
+class LoggingHandler {
+  const LoggingHandler(this._delegate);
+
+  final Handler _delegate;
+
+  /// Handles a request.
+  ///
+  /// Tear off this method and pass it to [serve].
+  FutureOr<Response> handle(Request request) async {
+    try {
+      return await _delegate(request);
+    } catch (error, stackTrace) {
+      log.severe('Uncaught exception in HTTP handler', error, stackTrace);
+      rethrow;
+    }
+  }
 }
 
 /// Returns the port to listen on from environment variable or uses the default
@@ -42,7 +61,7 @@ int listenPort() => int.parse(Platform.environment['PORT'] ?? '8080');
 ///
 /// [ProcessSignal.sigterm] is listened to on all platforms except Windows.
 Future<void> terminateRequestFuture() {
-  final Completer<bool> completer = Completer<bool>.sync();
+  final completer = Completer<bool>.sync();
 
   // sigIntSub is copied below to avoid a race condition - ignoring this lint
   // ignore: cancel_subscriptions

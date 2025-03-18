@@ -21,14 +21,17 @@ Future<String> githubFileContent(
   String ref = 'master',
   Duration timeout = const Duration(seconds: 5),
 }) async {
-  final Uri githubUrl = Uri.https('raw.githubusercontent.com', '${slug.fullName}/$ref/$filePath');
+  final githubUrl = Uri.https(
+    'raw.githubusercontent.com',
+    '${slug.fullName}/$ref/$filePath',
+  );
   return getUrl(githubUrl);
 }
 
 FutureOr<String> getUrl(Uri url) async {
-  final http.Client client = debugHttpClientFactory?.call() ?? http.Client();
+  final client = debugHttpClientFactory?.call() ?? http.Client();
   try {
-    final http.Response response = await client.get(url);
+    final response = await client.get(url);
 
     if (response.statusCode == HttpStatus.ok) {
       return response.body;
@@ -40,8 +43,12 @@ FutureOr<String> getUrl(Uri url) async {
   }
 }
 
-Future<String> getRemoteConfigContent(String repo, String ref, String relativePath) async {
-  final String configContent = await githubFileContent(
+Future<String> getRemoteConfigContent(
+  String repo,
+  String ref,
+  String relativePath,
+) async {
+  final configContent = await githubFileContent(
     RepositorySlug('flutter', repo),
     relativePath,
     ref: ref,
@@ -50,7 +57,7 @@ Future<String> getRemoteConfigContent(String repo, String ref, String relativePa
 }
 
 String getLocalConfigContent(String path) {
-  final File configFile = File(path);
+  final configFile = File(path);
   return configFile.readAsStringSync();
 }
 
@@ -65,12 +72,16 @@ Future<void> main(List<String> args) async {
   if (args.length == 1) {
     configContent = getLocalConfigContent(args[0]);
   } else {
-    final String relativePath = args.elementAtOrNull(2) ?? '.ci.yaml';
-    configContent = await getRemoteConfigContent(args[0], args[1], relativePath);
+    final relativePath = args.elementAtOrNull(2) ?? '.ci.yaml';
+    configContent = await getRemoteConfigContent(
+      args[0],
+      args[1],
+      relativePath,
+    );
   }
 
-  final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-  final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
+  final configYaml = loadYaml(configContent) as YamlMap;
+  final schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
 
   print(jsonEncode(schedulerConfig.toProto3Json()));
 }

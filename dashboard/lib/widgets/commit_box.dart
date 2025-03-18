@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/link.dart';
 
 import '../model/commit.pb.dart';
 import 'commit_author_avatar.dart';
@@ -24,10 +24,14 @@ class CommitBox extends StatefulWidget {
   const CommitBox({
     super.key,
     required this.commit,
+    this.schedulePostsubmitBuild,
   });
 
   /// The commit being shown
   final Commit commit;
+
+  /// Whether to provide a 'schedule build' button'.
+  final Future<void> Function()? schedulePostsubmitBuild;
 
   @override
   CommitBoxState createState() => CommitBoxState();
@@ -49,11 +53,13 @@ class CommitBoxState extends State<CommitBox> {
 
   void _handleTap() {
     _commitOverlay = OverlayEntry(
-      builder: (_) => CommitOverlayContents(
-        parentContext: context,
-        commit: widget.commit,
-        closeCallback: _closeOverlay,
-      ),
+      builder:
+          (_) => CommitOverlayContents(
+            parentContext: context,
+            commit: widget.commit,
+            closeCallback: _closeOverlay,
+            schedulePostsubmitBuild: widget.schedulePostsubmitBuild,
+          ),
     );
 
     Overlay.of(context).insert(_commitOverlay!);
@@ -72,6 +78,7 @@ class CommitOverlayContents extends StatelessWidget {
     required this.parentContext,
     required this.commit,
     required this.closeCallback,
+    required this.schedulePostsubmitBuild,
   });
 
   /// The parent context that has the size of the whole screen
@@ -86,11 +93,14 @@ class CommitOverlayContents extends StatelessWidget {
   /// this callback is called closing the overlay.
   final void Function() closeCallback;
 
+  /// This callback schedules a post-submit build.
+  final Future<void> Function()? schedulePostsubmitBuild;
+
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final RenderBox renderBox = parentContext.findRenderObject() as RenderBox;
-    final Offset offsetLeft = renderBox.localToGlobal(Offset.zero);
+    final theme = Theme.of(context);
+    final renderBox = parentContext.findRenderObject() as RenderBox;
+    final offsetLeft = renderBox.localToGlobal(Offset.zero);
     return Stack(
       children: <Widget>[
         // This is the area a user can click (the rest of the screen) to close the overlay.
@@ -128,17 +138,26 @@ class CommitOverlayContents extends StatelessWidget {
                               duration: kThemeChangeDuration,
                               child: Row(
                                 children: <Widget>[
-                                  Hyperlink(
-                                    text: commit.sha.substring(0, 7),
-                                    onPressed: _openGithub,
+                                  Link(
+                                    uri: Uri.https(
+                                      'github.com',
+                                      '${commit.repository}/commit/${commit.sha}',
+                                    ),
+                                    builder: (context, open) {
+                                      return ElevatedButton(
+                                        onPressed: open,
+                                        child: Text(commit.sha.substring(0, 7)),
+                                      );
+                                    },
                                   ),
                                   IconButton(
                                     icon: const Icon(Icons.copy),
-                                    onPressed: () => unawaited(
-                                      Clipboard.setData(
-                                        ClipboardData(text: commit.sha),
-                                      ),
-                                    ),
+                                    onPressed:
+                                        () => unawaited(
+                                          Clipboard.setData(
+                                            ClipboardData(text: commit.sha),
+                                          ),
+                                        ),
                                   ),
                                 ],
                               ),
@@ -152,10 +171,26 @@ class CommitOverlayContents extends StatelessWidget {
                                 color: theme.textTheme.bodySmall!.color,
                               ),
                               duration: kThemeChangeDuration,
-                              child: SelectableText(commit.message.split('\n').first),
+                              child: SelectableText(
+                                commit.message.split('\n').first,
+                              ),
                             ),
                           ),
                           SelectableText(commit.author),
+                          Tooltip(
+                            key: const ValueKey('schedulePostsubmit'),
+                            message:
+                                schedulePostsubmitBuild == null
+                                    ? 'Only enabled for release branches'
+                                    : ''
+                                        'For release branches, the post-submit artifacts are not '
+                                        'immediately available and must be manually scheduled.',
+                            child: TextButton.icon(
+                              label: const Text('Schedule post-submit'),
+                              icon: const Icon(Icons.hardware),
+                              onPressed: schedulePostsubmitBuild,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -166,49 +201,6 @@ class CommitOverlayContents extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Future<void> _openGithub() async {
-    final String githubUrl = 'https://github.com/${commit.repository}/commit/${commit.sha}';
-    await launchUrl(Uri.parse(githubUrl));
-  }
-}
-
-class Hyperlink extends StatefulWidget {
-  const Hyperlink({
-    super.key,
-    required this.text,
-    this.onPressed,
-  });
-
-  final String text;
-  final VoidCallback? onPressed;
-
-  @override
-  HyperlinkState createState() => HyperlinkState();
-}
-
-class HyperlinkState extends State<Hyperlink> {
-  bool hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final TextStyle defaultStyle = DefaultTextStyle.of(context).style;
-    return MouseRegion(
-      onEnter: (PointerEnterEvent _) => setState(() => hover = true),
-      onExit: (PointerExitEvent _) => setState(() => hover = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: widget.onPressed,
-        child: Text(
-          widget.text,
-          style: defaultStyle.copyWith(
-            color: const Color(0xff1377c0),
-            decoration: hover ? TextDecoration.underline : TextDecoration.none,
-          ),
-        ),
-      ),
     );
   }
 }

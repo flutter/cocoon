@@ -12,21 +12,33 @@ import '../../src/service/fake_scheduler.dart';
 
 void main() {
   group('enabledBranchesMatchesCurrentBranch', () {
-    final List<EnabledBranchesRegexTest> tests = <EnabledBranchesRegexTest>[
+    final tests = <EnabledBranchesRegexTest>[
       EnabledBranchesRegexTest('matches main', 'main', <String>['main']),
       EnabledBranchesRegexTest(
         'matches candidate branch',
         'flutter-2.4-candidate.3',
         <String>['flutter-\\d+\\.\\d+-candidate\\.\\d+'],
       ),
-      EnabledBranchesRegexTest('matches main when not first pattern', 'main', <String>['dev', 'main']),
-      EnabledBranchesRegexTest('does not do partial matches', 'super-main', <String>['main'], false),
+      EnabledBranchesRegexTest(
+        'matches main when not first pattern',
+        'main',
+        <String>['dev', 'main'],
+      ),
+      EnabledBranchesRegexTest(
+        'does not do partial matches',
+        'super-main',
+        <String>['main'],
+        false,
+      ),
     ];
 
-    for (EnabledBranchesRegexTest regexTest in tests) {
+    for (var regexTest in tests) {
       test(regexTest.name, () {
         expect(
-          CiYaml.enabledBranchesMatchesCurrentBranch(regexTest.enabledBranches, regexTest.branch),
+          CiYaml.enabledBranchesMatchesCurrentBranch(
+            regexTest.enabledBranches,
+            regexTest.branch,
+          ),
           regexTest.expectation,
         );
       });
@@ -40,9 +52,13 @@ void main() {
       });
     }
 
-    validatePinnedVersion('[{"dependency": "chrome_and_driver", "version": "version:96.2"}]');
+    validatePinnedVersion(
+      '[{"dependency": "chrome_and_driver", "version": "version:96.2"}]',
+    );
     validatePinnedVersion('[{"dependency": "open_jdk", "version": "11"}]');
-    validatePinnedVersion('[{"dependency": "android_sdk", "version": "version:31v8"}]');
+    validatePinnedVersion(
+      '[{"dependency": "android_sdk", "version": "version:31v8"}]',
+    );
     validatePinnedVersion(
       '[{"dependency": "goldctl", "version": "git_revision:3a77d0b12c697a840ca0c7705208e8622dc94603"}]',
     );
@@ -51,45 +67,43 @@ void main() {
   group('Validate un-pinned version operation.', () {
     void validateUnPinnedVersion(String input) {
       test('$input -> returns normally', () {
-        expect(() => DependencyValidator.hasVersion(dependencyJsonString: input), throwsException);
+        expect(
+          () => DependencyValidator.hasVersion(dependencyJsonString: input),
+          throwsException,
+        );
       });
     }
 
     validateUnPinnedVersion('[{"dependency": "some_sdk", "version": ""}]');
     validateUnPinnedVersion('[{"dependency": "another_sdk"}]');
-    validateUnPinnedVersion('[{"dependency": "yet_another_sdk", "version": "latest"}]');
+    validateUnPinnedVersion(
+      '[{"dependency": "yet_another_sdk", "version": "latest"}]',
+    );
   });
 
   group('initialTargets', () {
     test('targets without deps', () {
       final ciYaml = exampleConfig;
-      final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
-      final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
+      final initialTargets = ciYaml.getInitialTargets(
+        ciYaml.postsubmitTargets(),
+      );
+      final initialTargetNames =
+          initialTargets.map((Target target) => target.value.name).toList();
       expect(
         initialTargetNames,
-        containsAll(
-          <String>[
-            'Linux A',
-            'Mac A',
-            'Windows A',
-          ],
-        ),
+        containsAll(<String>['Linux A', 'Mac A', 'Windows A']),
       );
     });
 
     test('filter bringup targets on release branches', () {
-      final CiYamlSet ciYaml = CiYamlSet(
+      final ciYaml = CiYamlSet(
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         yamls: {
           CiType.any: pb.SchedulerConfig(
-            enabledBranches: <String>[
-              Config.defaultBranch(Config.flutterSlug),
-            ],
+            enabledBranches: <String>[Config.defaultBranch(Config.flutterSlug)],
             targets: <pb.Target>[
-              pb.Target(
-                name: 'Linux A',
-              ),
+              pb.Target(name: 'Linux A'),
               pb.Target(
                 name: 'Mac A', // Should be ignored on release branches
                 bringup: true,
@@ -98,31 +112,23 @@ void main() {
           ),
         },
       );
-      final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
-      final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
-      expect(
-        initialTargetNames,
-        containsAll(
-          <String>[
-            'Linux A',
-          ],
-        ),
+      final initialTargets = ciYaml.getInitialTargets(
+        ciYaml.postsubmitTargets(),
       );
+      final initialTargetNames =
+          initialTargets.map((Target target) => target.value.name).toList();
+      expect(initialTargetNames, containsAll(<String>['Linux A']));
     });
 
     group('validations and filters.', () {
-      final CiYaml totCIYaml = CiYaml(
+      final totCIYaml = CiYaml(
         type: CiType.any,
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         config: pb.SchedulerConfig(
-          enabledBranches: <String>[
-            Config.defaultBranch(Config.flutterSlug),
-          ],
+          enabledBranches: <String>[Config.defaultBranch(Config.flutterSlug)],
           targets: <pb.Target>[
-            pb.Target(
-              name: 'Linux A',
-            ),
+            pb.Target(name: 'Linux A'),
             pb.Target(
               name: 'Mac A', // Should be ignored on release branches
               bringup: true,
@@ -130,21 +136,15 @@ void main() {
           ],
         ),
       );
-      final CiYaml ciYaml = CiYaml(
+      final ciYaml = CiYaml(
         type: CiType.any,
         slug: Config.flutterSlug,
         branch: 'flutter-2.4-candidate.3',
         config: pb.SchedulerConfig(
-          enabledBranches: <String>[
-            'flutter-2.4-candidate.3',
-          ],
+          enabledBranches: <String>['flutter-2.4-candidate.3'],
           targets: <pb.Target>[
-            pb.Target(
-              name: 'Linux A',
-            ),
-            pb.Target(
-              name: 'Linux B',
-            ),
+            pb.Target(name: 'Linux A'),
+            pb.Target(name: 'Linux B'),
             pb.Target(
               name: 'Mac A', // Should be ignored on release branches
               bringup: true,
@@ -155,34 +155,23 @@ void main() {
       );
 
       test('filter targets removed from presubmit', () {
-        final List<Target> initialTargets = ciYaml.presubmitTargets;
-        final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
-        expect(
-          initialTargetNames,
-          containsAll(
-            <String>[
-              'Linux A',
-            ],
-          ),
-        );
+        final initialTargets = ciYaml.presubmitTargets;
+        final initialTargetNames =
+            initialTargets.map((Target target) => target.value.name).toList();
+        expect(initialTargetNames, containsAll(<String>['Linux A']));
       });
 
       test('handles github merge queue branch', () {
         final ciYaml = CiYaml(
           type: CiType.any,
           slug: Config.flutterSlug,
-          branch: 'gh-readonly-queue/master/pr-160481-1398dc7eecb696d302e4edb19ad79901e615ed56',
+          branch:
+              'gh-readonly-queue/master/pr-160481-1398dc7eecb696d302e4edb19ad79901e615ed56',
           config: pb.SchedulerConfig(
-            enabledBranches: <String>[
-              'master',
-            ],
+            enabledBranches: <String>['master'],
             targets: <pb.Target>[
-              pb.Target(
-                name: 'Linux A',
-              ),
-              pb.Target(
-                name: 'Linux B',
-              ),
+              pb.Target(name: 'Linux A'),
+              pb.Target(name: 'Linux B'),
               pb.Target(
                 name: 'Mac A', // Should be ignored on release branches
                 bringup: true,
@@ -192,63 +181,41 @@ void main() {
           totConfig: totCIYaml,
         );
 
-        final List<String> initialTargetNames =
-            ciYaml.presubmitTargets.map((Target target) => target.value.name).toList();
-        expect(
-          initialTargetNames,
-          containsAll(
-            <String>[
-              'Linux A',
-            ],
-          ),
-        );
+        final initialTargetNames =
+            ciYaml.presubmitTargets
+                .map((Target target) => target.value.name)
+                .toList();
+        expect(initialTargetNames, containsAll(<String>['Linux A']));
       });
 
       test('filter targets removed from postsubmit', () {
-        final List<Target> initialTargets = ciYaml.postsubmitTargets;
-        final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
-        expect(
-          initialTargetNames,
-          containsAll(
-            <String>[
-              'Linux A',
-            ],
-          ),
-        );
+        final initialTargets = ciYaml.postsubmitTargets;
+        final initialTargetNames =
+            initialTargets.map((Target target) => target.value.name).toList();
+        expect(initialTargetNames, containsAll(<String>['Linux A']));
       });
 
       test('Get backfill targets from postsubmit', () {
         final ciYaml = exampleBackfillConfig;
-        final List<Target> backfillTargets = ciYaml.backfillTargets();
-        final List<String> backfillTargetNames = backfillTargets.map((Target target) => target.value.name).toList();
-        expect(
-          backfillTargetNames,
-          containsAll(
-            <String>[
-              'Linux A',
-              'Mac A',
-            ],
-          ),
-        );
+        final backfillTargets = ciYaml.backfillTargets();
+        final backfillTargetNames =
+            backfillTargets.map((Target target) => target.value.name).toList();
+        expect(backfillTargetNames, containsAll(<String>['Linux A', 'Mac A']));
       });
 
       test('filter release_build targets from release candidate branches', () {
-        final CiYaml releaseYaml = CiYaml(
+        final releaseYaml = CiYaml(
           type: CiType.any,
           slug: Config.flutterSlug,
           branch: 'flutter-2.4-candidate.3',
           config: pb.SchedulerConfig(
-            enabledBranches: <String>[
-              'flutter-2.4-candidate.3',
-            ],
+            enabledBranches: <String>['flutter-2.4-candidate.3'],
             targets: <pb.Target>[
               pb.Target(
                 name: 'Linux A',
                 properties: <String, String>{'release_build': 'true'},
               ),
-              pb.Target(
-                name: 'Linux B',
-              ),
+              pb.Target(name: 'Linux B'),
               pb.Target(
                 name: 'Mac A', // Should be ignored on release branches
                 bringup: true,
@@ -257,13 +224,14 @@ void main() {
           ),
           totConfig: totCIYaml,
         );
-        final List<Target> initialTargets = releaseYaml.postsubmitTargets;
-        final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
+        final initialTargets = releaseYaml.postsubmitTargets;
+        final initialTargetNames =
+            initialTargets.map((Target target) => target.value.name).toList();
         expect(initialTargetNames, isEmpty);
       });
 
       test('release_build targets for main are not filtered', () {
-        final CiYaml releaseYaml = CiYaml(
+        final releaseYaml = CiYaml(
           type: CiType.any,
           slug: Config.flutterSlug,
           branch: 'main',
@@ -273,9 +241,7 @@ void main() {
                 name: 'Linux A',
                 properties: <String, String>{'release_build': 'true'},
               ),
-              pb.Target(
-                name: 'Linux B',
-              ),
+              pb.Target(name: 'Linux B'),
               pb.Target(
                 name: 'Mac A', // Should be ignored on release branches
                 bringup: true,
@@ -284,52 +250,45 @@ void main() {
           ),
           totConfig: totCIYaml,
         );
-        final List<Target> initialTargets = releaseYaml.postsubmitTargets;
-        final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
-        expect(
-          initialTargetNames,
-          containsAll(
-            <String>[
-              'Linux A',
-            ],
-          ),
-        );
+        final initialTargets = releaseYaml.postsubmitTargets;
+        final initialTargetNames =
+            initialTargets.map((Target target) => target.value.name).toList();
+        expect(initialTargetNames, containsAll(<String>['Linux A']));
       });
 
-      test('release_build and bringup targets are correctly filtered for postsubmit in fusion mode', () {
-        final CiYaml releaseYaml = CiYaml(
-          type: CiType.any,
-          slug: Config.flutterSlug,
-          branch: 'main',
-          config: pb.SchedulerConfig(
-            targets: <pb.Target>[
-              pb.Target(
-                name: 'Linux A',
-                properties: <String, String>{'release_build': 'true'},
-              ),
-              pb.Target(
-                name: 'Linux B',
-              ),
-              pb.Target(
-                name: 'Mac A', // Should be ignored on release branches
-                bringup: true,
-              ),
-            ],
-          ),
-          isFusion: true,
-        );
-        final List<Target> initialTargets = releaseYaml.postsubmitTargets;
-        final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
-        expect(
-          initialTargetNames,
-          <String>[
+      test(
+        'release_build and bringup targets are correctly filtered for postsubmit in fusion mode',
+        () {
+          final releaseYaml = CiYaml(
+            type: CiType.any,
+            slug: Config.flutterSlug,
+            branch: 'main',
+            config: pb.SchedulerConfig(
+              targets: <pb.Target>[
+                pb.Target(
+                  name: 'Linux A',
+                  properties: <String, String>{'release_build': 'true'},
+                ),
+                pb.Target(name: 'Linux B'),
+                pb.Target(
+                  name: 'Mac A', // Should be ignored on release branches
+                  bringup: true,
+                ),
+              ],
+            ),
+            isFusion: true,
+          );
+          final initialTargets = releaseYaml.postsubmitTargets;
+          final initialTargetNames =
+              initialTargets.map((Target target) => target.value.name).toList();
+          expect(initialTargetNames, <String>[
             // This is a non-release target and therefore must run in post-submit in fusion mode.
             'Linux B',
             // This is a bringup target and therefore must run in post-submit on a non-release branch.
             'Mac A',
-          ],
-        );
-      });
+          ]);
+        },
+      );
 
       test('validates yaml config', () {
         expect(
@@ -342,12 +301,8 @@ void main() {
                 Config.defaultBranch(Config.flutterSlug),
               ],
               targets: <pb.Target>[
-                pb.Target(
-                  name: 'Linux A',
-                ),
-                pb.Target(
-                  name: 'Linux B',
-                ),
+                pb.Target(name: 'Linux A'),
+                pb.Target(name: 'Linux B'),
               ],
             ),
             totConfig: totCIYaml,
@@ -359,19 +314,14 @@ void main() {
     });
 
     group('Presubmit validation', () {
-      final CiYaml totCIYaml = CiYaml(
+      final totCIYaml = CiYaml(
         type: CiType.any,
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         config: pb.SchedulerConfig(
-          enabledBranches: <String>[
-            Config.defaultBranch(Config.flutterSlug),
-          ],
+          enabledBranches: <String>[Config.defaultBranch(Config.flutterSlug)],
           targets: <pb.Target>[
-            pb.Target(
-              name: 'Linux A',
-              presubmit: false,
-            ),
+            pb.Target(name: 'Linux A', presubmit: false),
             pb.Target(
               name: 'Mac A', // Should be ignored on release branches
               bringup: true,
@@ -379,19 +329,14 @@ void main() {
           ],
         ),
       );
-      final CiYaml ciYaml = CiYaml(
+      final ciYaml = CiYaml(
         type: CiType.any,
         slug: Config.flutterSlug,
         branch: 'flutter-2.4-candidate.3',
         config: pb.SchedulerConfig(
           targets: <pb.Target>[
-            pb.Target(
-              name: 'Linux A',
-              presubmit: true,
-            ),
-            pb.Target(
-              name: 'Linux B',
-            ),
+            pb.Target(name: 'Linux A', presubmit: true),
+            pb.Target(name: 'Linux B'),
             pb.Target(
               name: 'Mac A', // Should be ignored on release branches
               bringup: true,
@@ -401,18 +346,15 @@ void main() {
         totConfig: totCIYaml,
       );
 
-      test('presubmit true target is scheduled though TOT is with presubmit false', () {
-        final List<Target> initialTargets = ciYaml.presubmitTargets;
-        final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
-        expect(
-          initialTargetNames,
-          containsAll(
-            <String>[
-              'Linux A',
-            ],
-          ),
-        );
-      });
+      test(
+        'presubmit true target is scheduled though TOT is with presubmit false',
+        () {
+          final initialTargets = ciYaml.presubmitTargets;
+          final initialTargetNames =
+              initialTargets.map((Target target) => target.value.name).toList();
+          expect(initialTargetNames, containsAll(<String>['Linux A']));
+        },
+      );
     });
   });
 
@@ -435,7 +377,12 @@ void main() {
 
 /// Wrapper class for table driven design of [CiYaml.enabledBranchesMatchesCurrentBranch].
 class EnabledBranchesRegexTest {
-  EnabledBranchesRegexTest(this.name, this.branch, this.enabledBranches, [this.expectation = true]);
+  EnabledBranchesRegexTest(
+    this.name,
+    this.branch,
+    this.enabledBranches, [
+    this.expectation = true,
+  ]);
 
   final String branch;
   final List<String> enabledBranches;

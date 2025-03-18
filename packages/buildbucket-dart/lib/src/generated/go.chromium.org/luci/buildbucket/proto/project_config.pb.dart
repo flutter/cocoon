@@ -47,15 +47,21 @@ class Acl extends $pb.GeneratedMessage {
     return $result;
   }
   Acl._() : super();
-  factory Acl.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Acl.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Acl.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Acl.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Acl',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Acl',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'),
+      createEmptyInstance: create)
     ..e<Acl_Role>(1, _omitFieldNames ? '' : 'role', $pb.PbFieldType.OE,
-        defaultOrMaker: Acl_Role.READER, valueOf: Acl_Role.valueOf, enumValues: Acl_Role.values)
+        defaultOrMaker: Acl_Role.READER,
+        valueOf: Acl_Role.valueOf,
+        enumValues: Acl_Role.values)
     ..aOS(2, _omitFieldNames ? '' : 'group')
     ..aOS(3, _omitFieldNames ? '' : 'identity')
     ..hasRequiredFields = false;
@@ -67,7 +73,8 @@ class Acl extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  Acl copyWith(void Function(Acl) updates) => super.copyWith((message) => updates(message as Acl)) as Acl;
+  Acl copyWith(void Function(Acl) updates) =>
+      super.copyWith((message) => updates(message as Acl)) as Acl;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -76,7 +83,8 @@ class Acl extends $pb.GeneratedMessage {
   Acl createEmptyInstance() => create();
   static $pb.PbList<Acl> createRepeated() => $pb.PbList<Acl>();
   @$core.pragma('dart2js:noInline')
-  static Acl getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Acl>(create);
+  static Acl getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Acl>(create);
   static Acl? _defaultInstance;
 
   @$core.Deprecated('This field is deprecated.')
@@ -178,36 +186,44 @@ class BuilderConfig_CacheEntry extends $pb.GeneratedMessage {
   factory BuilderConfig_CacheEntry.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory BuilderConfig_CacheEntry.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuilderConfig_CacheEntry.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuilderConfig.CacheEntry',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BuilderConfig.CacheEntry',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
     ..aOS(2, _omitFieldNames ? '' : 'path')
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'waitForWarmCacheSecs', $pb.PbFieldType.O3)
+    ..a<$core.int>(
+        3, _omitFieldNames ? '' : 'waitForWarmCacheSecs', $pb.PbFieldType.O3)
     ..aOS(4, _omitFieldNames ? '' : 'envVar')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  BuilderConfig_CacheEntry clone() => BuilderConfig_CacheEntry()..mergeFromMessage(this);
+  BuilderConfig_CacheEntry clone() =>
+      BuilderConfig_CacheEntry()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  BuilderConfig_CacheEntry copyWith(void Function(BuilderConfig_CacheEntry) updates) =>
-      super.copyWith((message) => updates(message as BuilderConfig_CacheEntry)) as BuilderConfig_CacheEntry;
+  BuilderConfig_CacheEntry copyWith(
+          void Function(BuilderConfig_CacheEntry) updates) =>
+      super.copyWith((message) => updates(message as BuilderConfig_CacheEntry))
+          as BuilderConfig_CacheEntry;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static BuilderConfig_CacheEntry create() => BuilderConfig_CacheEntry._();
   BuilderConfig_CacheEntry createEmptyInstance() => create();
-  static $pb.PbList<BuilderConfig_CacheEntry> createRepeated() => $pb.PbList<BuilderConfig_CacheEntry>();
+  static $pb.PbList<BuilderConfig_CacheEntry> createRepeated() =>
+      $pb.PbList<BuilderConfig_CacheEntry>();
   @$core.pragma('dart2js:noInline')
-  static BuilderConfig_CacheEntry getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuilderConfig_CacheEntry>(create);
+  static BuilderConfig_CacheEntry getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BuilderConfig_CacheEntry>(create);
   static BuilderConfig_CacheEntry? _defaultInstance;
 
   /// Identifier of the cache. Length is limited to 128.
@@ -304,11 +320,14 @@ class BuilderConfig_Recipe extends $pb.GeneratedMessage {
   factory BuilderConfig_Recipe.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory BuilderConfig_Recipe.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuilderConfig_Recipe.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuilderConfig.Recipe',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BuilderConfig.Recipe',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'),
+      createEmptyInstance: create)
     ..aOS(2, _omitFieldNames ? '' : 'name')
     ..pPS(3, _omitFieldNames ? '' : 'properties')
     ..pPS(4, _omitFieldNames ? '' : 'propertiesJ')
@@ -319,22 +338,25 @@ class BuilderConfig_Recipe extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  BuilderConfig_Recipe clone() => BuilderConfig_Recipe()..mergeFromMessage(this);
+  BuilderConfig_Recipe clone() =>
+      BuilderConfig_Recipe()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   BuilderConfig_Recipe copyWith(void Function(BuilderConfig_Recipe) updates) =>
-      super.copyWith((message) => updates(message as BuilderConfig_Recipe)) as BuilderConfig_Recipe;
+      super.copyWith((message) => updates(message as BuilderConfig_Recipe))
+          as BuilderConfig_Recipe;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static BuilderConfig_Recipe create() => BuilderConfig_Recipe._();
   BuilderConfig_Recipe createEmptyInstance() => create();
-  static $pb.PbList<BuilderConfig_Recipe> createRepeated() => $pb.PbList<BuilderConfig_Recipe>();
+  static $pb.PbList<BuilderConfig_Recipe> createRepeated() =>
+      $pb.PbList<BuilderConfig_Recipe>();
   @$core.pragma('dart2js:noInline')
-  static BuilderConfig_Recipe getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuilderConfig_Recipe>(create);
+  static BuilderConfig_Recipe getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BuilderConfig_Recipe>(create);
   static BuilderConfig_Recipe? _defaultInstance;
 
   /// Name of the recipe to run.
@@ -435,36 +457,45 @@ class BuilderConfig_ResultDB extends $pb.GeneratedMessage {
   factory BuilderConfig_ResultDB.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory BuilderConfig_ResultDB.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuilderConfig_ResultDB.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuilderConfig.ResultDB',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BuilderConfig.ResultDB',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'),
+      createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'enable')
-    ..pc<$3.BigQueryExport>(2, _omitFieldNames ? '' : 'bqExports', $pb.PbFieldType.PM,
+    ..pc<$3.BigQueryExport>(
+        2, _omitFieldNames ? '' : 'bqExports', $pb.PbFieldType.PM,
         subBuilder: $3.BigQueryExport.create)
-    ..aOM<$3.HistoryOptions>(3, _omitFieldNames ? '' : 'historyOptions', subBuilder: $3.HistoryOptions.create)
+    ..aOM<$3.HistoryOptions>(3, _omitFieldNames ? '' : 'historyOptions',
+        subBuilder: $3.HistoryOptions.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  BuilderConfig_ResultDB clone() => BuilderConfig_ResultDB()..mergeFromMessage(this);
+  BuilderConfig_ResultDB clone() =>
+      BuilderConfig_ResultDB()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  BuilderConfig_ResultDB copyWith(void Function(BuilderConfig_ResultDB) updates) =>
-      super.copyWith((message) => updates(message as BuilderConfig_ResultDB)) as BuilderConfig_ResultDB;
+  BuilderConfig_ResultDB copyWith(
+          void Function(BuilderConfig_ResultDB) updates) =>
+      super.copyWith((message) => updates(message as BuilderConfig_ResultDB))
+          as BuilderConfig_ResultDB;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static BuilderConfig_ResultDB create() => BuilderConfig_ResultDB._();
   BuilderConfig_ResultDB createEmptyInstance() => create();
-  static $pb.PbList<BuilderConfig_ResultDB> createRepeated() => $pb.PbList<BuilderConfig_ResultDB>();
+  static $pb.PbList<BuilderConfig_ResultDB> createRepeated() =>
+      $pb.PbList<BuilderConfig_ResultDB>();
   @$core.pragma('dart2js:noInline')
-  static BuilderConfig_ResultDB getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuilderConfig_ResultDB>(create);
+  static BuilderConfig_ResultDB getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BuilderConfig_ResultDB>(create);
   static BuilderConfig_ResultDB? _defaultInstance;
 
   /// Whether to enable ResultDB:Buildbucket integration.
@@ -521,11 +552,14 @@ class BuilderConfig_Backend extends $pb.GeneratedMessage {
   factory BuilderConfig_Backend.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory BuilderConfig_Backend.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuilderConfig_Backend.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuilderConfig.Backend',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BuilderConfig.Backend',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'target')
     ..aOS(2, _omitFieldNames ? '' : 'configJson')
     ..hasRequiredFields = false;
@@ -533,22 +567,26 @@ class BuilderConfig_Backend extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  BuilderConfig_Backend clone() => BuilderConfig_Backend()..mergeFromMessage(this);
+  BuilderConfig_Backend clone() =>
+      BuilderConfig_Backend()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  BuilderConfig_Backend copyWith(void Function(BuilderConfig_Backend) updates) =>
-      super.copyWith((message) => updates(message as BuilderConfig_Backend)) as BuilderConfig_Backend;
+  BuilderConfig_Backend copyWith(
+          void Function(BuilderConfig_Backend) updates) =>
+      super.copyWith((message) => updates(message as BuilderConfig_Backend))
+          as BuilderConfig_Backend;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static BuilderConfig_Backend create() => BuilderConfig_Backend._();
   BuilderConfig_Backend createEmptyInstance() => create();
-  static $pb.PbList<BuilderConfig_Backend> createRepeated() => $pb.PbList<BuilderConfig_Backend>();
+  static $pb.PbList<BuilderConfig_Backend> createRepeated() =>
+      $pb.PbList<BuilderConfig_Backend>();
   @$core.pragma('dart2js:noInline')
-  static BuilderConfig_Backend getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuilderConfig_Backend>(create);
+  static BuilderConfig_Backend getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BuilderConfig_Backend>(create);
   static BuilderConfig_Backend? _defaultInstance;
 
   /// URI for this backend, e.g. "swarming://chromium-swarm".
@@ -607,15 +645,18 @@ class BuilderConfig_ShadowBuilderAdjustments extends $pb.GeneratedMessage {
     return $result;
   }
   BuilderConfig_ShadowBuilderAdjustments._() : super();
-  factory BuilderConfig_ShadowBuilderAdjustments.fromBuffer($core.List<$core.int> i,
+  factory BuilderConfig_ShadowBuilderAdjustments.fromBuffer(
+          $core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory BuilderConfig_ShadowBuilderAdjustments.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuilderConfig.ShadowBuilderAdjustments',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BuilderConfig.ShadowBuilderAdjustments',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'serviceAccount')
     ..aOS(2, _omitFieldNames ? '' : 'pool')
     ..aOS(3, _omitFieldNames ? '' : 'properties')
@@ -625,24 +666,29 @@ class BuilderConfig_ShadowBuilderAdjustments extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  BuilderConfig_ShadowBuilderAdjustments clone() => BuilderConfig_ShadowBuilderAdjustments()..mergeFromMessage(this);
+  BuilderConfig_ShadowBuilderAdjustments clone() =>
+      BuilderConfig_ShadowBuilderAdjustments()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  BuilderConfig_ShadowBuilderAdjustments copyWith(void Function(BuilderConfig_ShadowBuilderAdjustments) updates) =>
-      super.copyWith((message) => updates(message as BuilderConfig_ShadowBuilderAdjustments))
+  BuilderConfig_ShadowBuilderAdjustments copyWith(
+          void Function(BuilderConfig_ShadowBuilderAdjustments) updates) =>
+      super.copyWith((message) =>
+              updates(message as BuilderConfig_ShadowBuilderAdjustments))
           as BuilderConfig_ShadowBuilderAdjustments;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static BuilderConfig_ShadowBuilderAdjustments create() => BuilderConfig_ShadowBuilderAdjustments._();
+  static BuilderConfig_ShadowBuilderAdjustments create() =>
+      BuilderConfig_ShadowBuilderAdjustments._();
   BuilderConfig_ShadowBuilderAdjustments createEmptyInstance() => create();
   static $pb.PbList<BuilderConfig_ShadowBuilderAdjustments> createRepeated() =>
       $pb.PbList<BuilderConfig_ShadowBuilderAdjustments>();
   @$core.pragma('dart2js:noInline')
   static BuilderConfig_ShadowBuilderAdjustments getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuilderConfig_ShadowBuilderAdjustments>(create);
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<
+          BuilderConfig_ShadowBuilderAdjustments>(create);
   static BuilderConfig_ShadowBuilderAdjustments? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -719,8 +765,10 @@ class BuilderConfig_BuilderHealthLinks extends $pb.GeneratedMessage {
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuilderConfig.BuilderHealthLinks',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BuilderConfig.BuilderHealthLinks',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'),
+      createEmptyInstance: create)
     ..m<$core.String, $core.String>(1, _omitFieldNames ? '' : 'docLinks',
         entryClassName: 'BuilderConfig.BuilderHealthLinks.DocLinksEntry',
         keyFieldType: $pb.PbFieldType.OS,
@@ -736,24 +784,29 @@ class BuilderConfig_BuilderHealthLinks extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  BuilderConfig_BuilderHealthLinks clone() => BuilderConfig_BuilderHealthLinks()..mergeFromMessage(this);
+  BuilderConfig_BuilderHealthLinks clone() =>
+      BuilderConfig_BuilderHealthLinks()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  BuilderConfig_BuilderHealthLinks copyWith(void Function(BuilderConfig_BuilderHealthLinks) updates) =>
-      super.copyWith((message) => updates(message as BuilderConfig_BuilderHealthLinks))
+  BuilderConfig_BuilderHealthLinks copyWith(
+          void Function(BuilderConfig_BuilderHealthLinks) updates) =>
+      super.copyWith(
+              (message) => updates(message as BuilderConfig_BuilderHealthLinks))
           as BuilderConfig_BuilderHealthLinks;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static BuilderConfig_BuilderHealthLinks create() => BuilderConfig_BuilderHealthLinks._();
+  static BuilderConfig_BuilderHealthLinks create() =>
+      BuilderConfig_BuilderHealthLinks._();
   BuilderConfig_BuilderHealthLinks createEmptyInstance() => create();
   static $pb.PbList<BuilderConfig_BuilderHealthLinks> createRepeated() =>
       $pb.PbList<BuilderConfig_BuilderHealthLinks>();
   @$core.pragma('dart2js:noInline')
-  static BuilderConfig_BuilderHealthLinks getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuilderConfig_BuilderHealthLinks>(create);
+  static BuilderConfig_BuilderHealthLinks getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BuilderConfig_BuilderHealthLinks>(
+          create);
   static BuilderConfig_BuilderHealthLinks? _defaultInstance;
 
   ///  Mapping of username domain to clickable link for documentation on the health
@@ -919,57 +972,89 @@ class BuilderConfig extends $pb.GeneratedMessage {
     return $result;
   }
   BuilderConfig._() : super();
-  factory BuilderConfig.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuilderConfig.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory BuilderConfig.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuilderConfig.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuilderConfig',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BuilderConfig',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
     ..pPS(2, _omitFieldNames ? '' : 'swarmingTags')
     ..pPS(3, _omitFieldNames ? '' : 'dimensions')
-    ..aOM<BuilderConfig_Recipe>(4, _omitFieldNames ? '' : 'recipe', subBuilder: BuilderConfig_Recipe.create)
+    ..aOM<BuilderConfig_Recipe>(4, _omitFieldNames ? '' : 'recipe',
+        subBuilder: BuilderConfig_Recipe.create)
     ..a<$core.int>(5, _omitFieldNames ? '' : 'priority', $pb.PbFieldType.OU3)
     ..aOS(6, _omitFieldNames ? '' : 'category')
-    ..a<$core.int>(7, _omitFieldNames ? '' : 'executionTimeoutSecs', $pb.PbFieldType.OU3)
-    ..pc<BuilderConfig_CacheEntry>(9, _omitFieldNames ? '' : 'caches', $pb.PbFieldType.PM,
+    ..a<$core.int>(
+        7, _omitFieldNames ? '' : 'executionTimeoutSecs', $pb.PbFieldType.OU3)
+    ..pc<BuilderConfig_CacheEntry>(
+        9, _omitFieldNames ? '' : 'caches', $pb.PbFieldType.PM,
         subBuilder: BuilderConfig_CacheEntry.create)
     ..aOS(12, _omitFieldNames ? '' : 'serviceAccount')
     ..e<Toggle>(16, _omitFieldNames ? '' : 'buildNumbers', $pb.PbFieldType.OE,
-        defaultOrMaker: Toggle.UNSET, valueOf: Toggle.valueOf, enumValues: Toggle.values)
-    ..e<Toggle>(17, _omitFieldNames ? '' : 'autoBuilderDimension', $pb.PbFieldType.OE,
-        defaultOrMaker: Toggle.UNSET, valueOf: Toggle.valueOf, enumValues: Toggle.values)
+        defaultOrMaker: Toggle.UNSET,
+        valueOf: Toggle.valueOf,
+        enumValues: Toggle.values)
+    ..e<Toggle>(
+        17, _omitFieldNames ? '' : 'autoBuilderDimension', $pb.PbFieldType.OE,
+        defaultOrMaker: Toggle.UNSET,
+        valueOf: Toggle.valueOf,
+        enumValues: Toggle.values)
     ..e<Toggle>(18, _omitFieldNames ? '' : 'experimental', $pb.PbFieldType.OE,
-        defaultOrMaker: Toggle.UNSET, valueOf: Toggle.valueOf, enumValues: Toggle.values)
-    ..a<$core.int>(20, _omitFieldNames ? '' : 'expirationSecs', $pb.PbFieldType.OU3)
+        defaultOrMaker: Toggle.UNSET,
+        valueOf: Toggle.valueOf,
+        enumValues: Toggle.values)
+    ..a<$core.int>(
+        20, _omitFieldNames ? '' : 'expirationSecs', $pb.PbFieldType.OU3)
     ..aOS(21, _omitFieldNames ? '' : 'swarmingHost')
-    ..aOM<$0.UInt32Value>(22, _omitFieldNames ? '' : 'taskTemplateCanaryPercentage', subBuilder: $0.UInt32Value.create)
-    ..aOM<$1.Executable>(23, _omitFieldNames ? '' : 'exe', subBuilder: $1.Executable.create)
+    ..aOM<$0.UInt32Value>(
+        22, _omitFieldNames ? '' : 'taskTemplateCanaryPercentage',
+        subBuilder: $0.UInt32Value.create)
+    ..aOM<$1.Executable>(23, _omitFieldNames ? '' : 'exe',
+        subBuilder: $1.Executable.create)
     ..aOS(24, _omitFieldNames ? '' : 'properties')
     ..e<$1.Trinary>(25, _omitFieldNames ? '' : 'critical', $pb.PbFieldType.OE,
-        defaultOrMaker: $1.Trinary.UNSET, valueOf: $1.Trinary.valueOf, enumValues: $1.Trinary.values)
-    ..aOM<BuilderConfig_ResultDB>(26, _omitFieldNames ? '' : 'resultdb', subBuilder: BuilderConfig_ResultDB.create)
+        defaultOrMaker: $1.Trinary.UNSET,
+        valueOf: $1.Trinary.valueOf,
+        enumValues: $1.Trinary.values)
+    ..aOM<BuilderConfig_ResultDB>(26, _omitFieldNames ? '' : 'resultdb',
+        subBuilder: BuilderConfig_ResultDB.create)
     ..m<$core.String, $core.int>(28, _omitFieldNames ? '' : 'experiments',
         entryClassName: 'BuilderConfig.ExperimentsEntry',
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.O3,
         packageName: const $pb.PackageName('buildbucket'))
-    ..e<$1.Trinary>(29, _omitFieldNames ? '' : 'waitForCapacity', $pb.PbFieldType.OE,
-        defaultOrMaker: $1.Trinary.UNSET, valueOf: $1.Trinary.valueOf, enumValues: $1.Trinary.values)
+    ..e<$1.Trinary>(
+        29, _omitFieldNames ? '' : 'waitForCapacity', $pb.PbFieldType.OE,
+        defaultOrMaker: $1.Trinary.UNSET,
+        valueOf: $1.Trinary.valueOf,
+        enumValues: $1.Trinary.values)
     ..aOS(30, _omitFieldNames ? '' : 'descriptionHtml')
-    ..aOM<$2.Duration>(31, _omitFieldNames ? '' : 'gracePeriod', subBuilder: $2.Duration.create)
-    ..aOM<BuilderConfig_Backend>(32, _omitFieldNames ? '' : 'backend', subBuilder: BuilderConfig_Backend.create)
-    ..aOM<BuilderConfig_Backend>(33, _omitFieldNames ? '' : 'backendAlt', subBuilder: BuilderConfig_Backend.create)
+    ..aOM<$2.Duration>(31, _omitFieldNames ? '' : 'gracePeriod',
+        subBuilder: $2.Duration.create)
+    ..aOM<BuilderConfig_Backend>(32, _omitFieldNames ? '' : 'backend',
+        subBuilder: BuilderConfig_Backend.create)
+    ..aOM<BuilderConfig_Backend>(33, _omitFieldNames ? '' : 'backendAlt',
+        subBuilder: BuilderConfig_Backend.create)
     ..pPS(34, _omitFieldNames ? '' : 'allowedPropertyOverrides')
-    ..aOM<BuilderConfig_ShadowBuilderAdjustments>(35, _omitFieldNames ? '' : 'shadowBuilderAdjustments',
+    ..aOM<BuilderConfig_ShadowBuilderAdjustments>(
+        35, _omitFieldNames ? '' : 'shadowBuilderAdjustments',
         subBuilder: BuilderConfig_ShadowBuilderAdjustments.create)
     ..e<$1.Trinary>(36, _omitFieldNames ? '' : 'retriable', $pb.PbFieldType.OE,
-        defaultOrMaker: $1.Trinary.UNSET, valueOf: $1.Trinary.valueOf, enumValues: $1.Trinary.values)
-    ..aOM<BuilderConfig_BuilderHealthLinks>(37, _omitFieldNames ? '' : 'builderHealthMetricsLinks',
+        defaultOrMaker: $1.Trinary.UNSET,
+        valueOf: $1.Trinary.valueOf,
+        enumValues: $1.Trinary.values)
+    ..aOM<BuilderConfig_BuilderHealthLinks>(
+        37, _omitFieldNames ? '' : 'builderHealthMetricsLinks',
         subBuilder: BuilderConfig_BuilderHealthLinks.create)
     ..aOS(38, _omitFieldNames ? '' : 'contactTeamEmail')
-    ..a<$core.int>(39, _omitFieldNames ? '' : 'heartbeatTimeoutSecs', $pb.PbFieldType.OU3)
+    ..a<$core.int>(
+        39, _omitFieldNames ? '' : 'heartbeatTimeoutSecs', $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -980,16 +1065,19 @@ class BuilderConfig extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   BuilderConfig copyWith(void Function(BuilderConfig) updates) =>
-      super.copyWith((message) => updates(message as BuilderConfig)) as BuilderConfig;
+      super.copyWith((message) => updates(message as BuilderConfig))
+          as BuilderConfig;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static BuilderConfig create() => BuilderConfig._();
   BuilderConfig createEmptyInstance() => create();
-  static $pb.PbList<BuilderConfig> createRepeated() => $pb.PbList<BuilderConfig>();
+  static $pb.PbList<BuilderConfig> createRepeated() =>
+      $pb.PbList<BuilderConfig>();
   @$core.pragma('dart2js:noInline')
-  static BuilderConfig getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuilderConfig>(create);
+  static BuilderConfig getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BuilderConfig>(create);
   static BuilderConfig? _defaultInstance;
 
   ///  Name of the builder.
@@ -1452,7 +1540,8 @@ class BuilderConfig extends $pb.GeneratedMessage {
   $core.List<$core.String> get allowedPropertyOverrides => $_getList(25);
 
   @$pb.TagNumber(35)
-  BuilderConfig_ShadowBuilderAdjustments get shadowBuilderAdjustments => $_getN(26);
+  BuilderConfig_ShadowBuilderAdjustments get shadowBuilderAdjustments =>
+      $_getN(26);
   @$pb.TagNumber(35)
   set shadowBuilderAdjustments(BuilderConfig_ShadowBuilderAdjustments v) {
     setField(35, v);
@@ -1463,7 +1552,8 @@ class BuilderConfig extends $pb.GeneratedMessage {
   @$pb.TagNumber(35)
   void clearShadowBuilderAdjustments() => clearField(35);
   @$pb.TagNumber(35)
-  BuilderConfig_ShadowBuilderAdjustments ensureShadowBuilderAdjustments() => $_ensure(26);
+  BuilderConfig_ShadowBuilderAdjustments ensureShadowBuilderAdjustments() =>
+      $_ensure(26);
 
   ///  This field will set the default value of the "retriable" field of
   ///  all the builds of this builder. Please refer to build.proto for
@@ -1494,7 +1584,8 @@ class BuilderConfig extends $pb.GeneratedMessage {
   @$pb.TagNumber(37)
   void clearBuilderHealthMetricsLinks() => clearField(37);
   @$pb.TagNumber(37)
-  BuilderConfig_BuilderHealthLinks ensureBuilderHealthMetricsLinks() => $_ensure(28);
+  BuilderConfig_BuilderHealthLinks ensureBuilderHealthMetricsLinks() =>
+      $_ensure(28);
 
   /// The owning team's contact email. This team is responsible for fixing
   /// any builder health issues (see Builder.Metadata.HealthSpec).
@@ -1554,15 +1645,23 @@ class Swarming extends $pb.GeneratedMessage {
     return $result;
   }
   Swarming._() : super();
-  factory Swarming.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Swarming.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Swarming.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Swarming.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Swarming',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'), createEmptyInstance: create)
-    ..pc<BuilderConfig>(4, _omitFieldNames ? '' : 'builders', $pb.PbFieldType.PM, subBuilder: BuilderConfig.create)
-    ..aOM<$0.UInt32Value>(5, _omitFieldNames ? '' : 'taskTemplateCanaryPercentage', subBuilder: $0.UInt32Value.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Swarming',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'),
+      createEmptyInstance: create)
+    ..pc<BuilderConfig>(
+        4, _omitFieldNames ? '' : 'builders', $pb.PbFieldType.PM,
+        subBuilder: BuilderConfig.create)
+    ..aOM<$0.UInt32Value>(
+        5, _omitFieldNames ? '' : 'taskTemplateCanaryPercentage',
+        subBuilder: $0.UInt32Value.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -1582,7 +1681,8 @@ class Swarming extends $pb.GeneratedMessage {
   Swarming createEmptyInstance() => create();
   static $pb.PbList<Swarming> createRepeated() => $pb.PbList<Swarming>();
   @$core.pragma('dart2js:noInline')
-  static Swarming getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Swarming>(create);
+  static Swarming getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Swarming>(create);
   static Swarming? _defaultInstance;
 
   /// Configuration for each builder.
@@ -1630,11 +1730,14 @@ class Bucket_Constraints extends $pb.GeneratedMessage {
   factory Bucket_Constraints.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Bucket_Constraints.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Bucket_Constraints.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Bucket.Constraints',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Bucket.Constraints',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'),
+      createEmptyInstance: create)
     ..pPS(1, _omitFieldNames ? '' : 'pools')
     ..pPS(2, _omitFieldNames ? '' : 'serviceAccounts')
     ..hasRequiredFields = false;
@@ -1647,17 +1750,19 @@ class Bucket_Constraints extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   Bucket_Constraints copyWith(void Function(Bucket_Constraints) updates) =>
-      super.copyWith((message) => updates(message as Bucket_Constraints)) as Bucket_Constraints;
+      super.copyWith((message) => updates(message as Bucket_Constraints))
+          as Bucket_Constraints;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static Bucket_Constraints create() => Bucket_Constraints._();
   Bucket_Constraints createEmptyInstance() => create();
-  static $pb.PbList<Bucket_Constraints> createRepeated() => $pb.PbList<Bucket_Constraints>();
+  static $pb.PbList<Bucket_Constraints> createRepeated() =>
+      $pb.PbList<Bucket_Constraints>();
   @$core.pragma('dart2js:noInline')
-  static Bucket_Constraints getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Bucket_Constraints>(create);
+  static Bucket_Constraints getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<Bucket_Constraints>(create);
   static Bucket_Constraints? _defaultInstance;
 
   /// Constraints allowed pools.
@@ -1689,30 +1794,39 @@ class Bucket_DynamicBuilderTemplate extends $pb.GeneratedMessage {
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Bucket.DynamicBuilderTemplate',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'), createEmptyInstance: create)
-    ..aOM<BuilderConfig>(1, _omitFieldNames ? '' : 'template', subBuilder: BuilderConfig.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Bucket.DynamicBuilderTemplate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'),
+      createEmptyInstance: create)
+    ..aOM<BuilderConfig>(1, _omitFieldNames ? '' : 'template',
+        subBuilder: BuilderConfig.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  Bucket_DynamicBuilderTemplate clone() => Bucket_DynamicBuilderTemplate()..mergeFromMessage(this);
+  Bucket_DynamicBuilderTemplate clone() =>
+      Bucket_DynamicBuilderTemplate()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  Bucket_DynamicBuilderTemplate copyWith(void Function(Bucket_DynamicBuilderTemplate) updates) =>
-      super.copyWith((message) => updates(message as Bucket_DynamicBuilderTemplate)) as Bucket_DynamicBuilderTemplate;
+  Bucket_DynamicBuilderTemplate copyWith(
+          void Function(Bucket_DynamicBuilderTemplate) updates) =>
+      super.copyWith(
+              (message) => updates(message as Bucket_DynamicBuilderTemplate))
+          as Bucket_DynamicBuilderTemplate;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static Bucket_DynamicBuilderTemplate create() => Bucket_DynamicBuilderTemplate._();
+  static Bucket_DynamicBuilderTemplate create() =>
+      Bucket_DynamicBuilderTemplate._();
   Bucket_DynamicBuilderTemplate createEmptyInstance() => create();
-  static $pb.PbList<Bucket_DynamicBuilderTemplate> createRepeated() => $pb.PbList<Bucket_DynamicBuilderTemplate>();
+  static $pb.PbList<Bucket_DynamicBuilderTemplate> createRepeated() =>
+      $pb.PbList<Bucket_DynamicBuilderTemplate>();
   @$core.pragma('dart2js:noInline')
-  static Bucket_DynamicBuilderTemplate getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Bucket_DynamicBuilderTemplate>(create);
+  static Bucket_DynamicBuilderTemplate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<Bucket_DynamicBuilderTemplate>(create);
   static Bucket_DynamicBuilderTemplate? _defaultInstance;
 
   /// The Builder template which is shared among all builders in this dynamic
@@ -1765,19 +1879,27 @@ class Bucket extends $pb.GeneratedMessage {
     return $result;
   }
   Bucket._() : super();
-  factory Bucket.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Bucket.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Bucket.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Bucket.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Bucket',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Bucket',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
-    ..pc<Acl>(2, _omitFieldNames ? '' : 'acls', $pb.PbFieldType.PM, subBuilder: Acl.create)
-    ..aOM<Swarming>(3, _omitFieldNames ? '' : 'swarming', subBuilder: Swarming.create)
+    ..pc<Acl>(2, _omitFieldNames ? '' : 'acls', $pb.PbFieldType.PM,
+        subBuilder: Acl.create)
+    ..aOM<Swarming>(3, _omitFieldNames ? '' : 'swarming',
+        subBuilder: Swarming.create)
     ..aOS(5, _omitFieldNames ? '' : 'shadow')
-    ..aOM<Bucket_Constraints>(6, _omitFieldNames ? '' : 'constraints', subBuilder: Bucket_Constraints.create)
-    ..aOM<Bucket_DynamicBuilderTemplate>(7, _omitFieldNames ? '' : 'dynamicBuilderTemplate',
+    ..aOM<Bucket_Constraints>(6, _omitFieldNames ? '' : 'constraints',
+        subBuilder: Bucket_Constraints.create)
+    ..aOM<Bucket_DynamicBuilderTemplate>(
+        7, _omitFieldNames ? '' : 'dynamicBuilderTemplate',
         subBuilder: Bucket_DynamicBuilderTemplate.create)
     ..hasRequiredFields = false;
 
@@ -1788,7 +1910,8 @@ class Bucket extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  Bucket copyWith(void Function(Bucket) updates) => super.copyWith((message) => updates(message as Bucket)) as Bucket;
+  Bucket copyWith(void Function(Bucket) updates) =>
+      super.copyWith((message) => updates(message as Bucket)) as Bucket;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -1797,7 +1920,8 @@ class Bucket extends $pb.GeneratedMessage {
   Bucket createEmptyInstance() => create();
   static $pb.PbList<Bucket> createRepeated() => $pb.PbList<Bucket>();
   @$core.pragma('dart2js:noInline')
-  static Bucket getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Bucket>(create);
+  static Bucket getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Bucket>(create);
   static Bucket? _defaultInstance;
 
   /// Name of the bucket. Names are unique within one instance of buildbucket.
@@ -1930,35 +2054,44 @@ class BuildbucketCfg_Topic extends $pb.GeneratedMessage {
   factory BuildbucketCfg_Topic.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory BuildbucketCfg_Topic.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuildbucketCfg_Topic.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildbucketCfg.Topic',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BuildbucketCfg.Topic',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
-    ..e<$1.Compression>(2, _omitFieldNames ? '' : 'compression', $pb.PbFieldType.OE,
-        defaultOrMaker: $1.Compression.ZLIB, valueOf: $1.Compression.valueOf, enumValues: $1.Compression.values)
+    ..e<$1.Compression>(
+        2, _omitFieldNames ? '' : 'compression', $pb.PbFieldType.OE,
+        defaultOrMaker: $1.Compression.ZLIB,
+        valueOf: $1.Compression.valueOf,
+        enumValues: $1.Compression.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  BuildbucketCfg_Topic clone() => BuildbucketCfg_Topic()..mergeFromMessage(this);
+  BuildbucketCfg_Topic clone() =>
+      BuildbucketCfg_Topic()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   BuildbucketCfg_Topic copyWith(void Function(BuildbucketCfg_Topic) updates) =>
-      super.copyWith((message) => updates(message as BuildbucketCfg_Topic)) as BuildbucketCfg_Topic;
+      super.copyWith((message) => updates(message as BuildbucketCfg_Topic))
+          as BuildbucketCfg_Topic;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static BuildbucketCfg_Topic create() => BuildbucketCfg_Topic._();
   BuildbucketCfg_Topic createEmptyInstance() => create();
-  static $pb.PbList<BuildbucketCfg_Topic> createRepeated() => $pb.PbList<BuildbucketCfg_Topic>();
+  static $pb.PbList<BuildbucketCfg_Topic> createRepeated() =>
+      $pb.PbList<BuildbucketCfg_Topic>();
   @$core.pragma('dart2js:noInline')
-  static BuildbucketCfg_Topic getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildbucketCfg_Topic>(create);
+  static BuildbucketCfg_Topic getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BuildbucketCfg_Topic>(create);
   static BuildbucketCfg_Topic? _defaultInstance;
 
   /// Topic name format should be like
@@ -2010,31 +2143,40 @@ class BuildbucketCfg_CommonConfig extends $pb.GeneratedMessage {
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildbucketCfg.CommonConfig',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'), createEmptyInstance: create)
-    ..pc<BuildbucketCfg_Topic>(1, _omitFieldNames ? '' : 'buildsNotificationTopics', $pb.PbFieldType.PM,
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BuildbucketCfg.CommonConfig',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'),
+      createEmptyInstance: create)
+    ..pc<BuildbucketCfg_Topic>(1,
+        _omitFieldNames ? '' : 'buildsNotificationTopics', $pb.PbFieldType.PM,
         subBuilder: BuildbucketCfg_Topic.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  BuildbucketCfg_CommonConfig clone() => BuildbucketCfg_CommonConfig()..mergeFromMessage(this);
+  BuildbucketCfg_CommonConfig clone() =>
+      BuildbucketCfg_CommonConfig()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  BuildbucketCfg_CommonConfig copyWith(void Function(BuildbucketCfg_CommonConfig) updates) =>
-      super.copyWith((message) => updates(message as BuildbucketCfg_CommonConfig)) as BuildbucketCfg_CommonConfig;
+  BuildbucketCfg_CommonConfig copyWith(
+          void Function(BuildbucketCfg_CommonConfig) updates) =>
+      super.copyWith(
+              (message) => updates(message as BuildbucketCfg_CommonConfig))
+          as BuildbucketCfg_CommonConfig;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static BuildbucketCfg_CommonConfig create() => BuildbucketCfg_CommonConfig._();
+  static BuildbucketCfg_CommonConfig create() =>
+      BuildbucketCfg_CommonConfig._();
   BuildbucketCfg_CommonConfig createEmptyInstance() => create();
-  static $pb.PbList<BuildbucketCfg_CommonConfig> createRepeated() => $pb.PbList<BuildbucketCfg_CommonConfig>();
+  static $pb.PbList<BuildbucketCfg_CommonConfig> createRepeated() =>
+      $pb.PbList<BuildbucketCfg_CommonConfig>();
   @$core.pragma('dart2js:noInline')
-  static BuildbucketCfg_CommonConfig getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildbucketCfg_CommonConfig>(create);
+  static BuildbucketCfg_CommonConfig getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BuildbucketCfg_CommonConfig>(create);
   static BuildbucketCfg_CommonConfig? _defaultInstance;
 
   ///  A list of PubSub topics that Buildbucket will publish notifications for
@@ -2070,14 +2212,19 @@ class BuildbucketCfg extends $pb.GeneratedMessage {
     return $result;
   }
   BuildbucketCfg._() : super();
-  factory BuildbucketCfg.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuildbucketCfg.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory BuildbucketCfg.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuildbucketCfg.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildbucketCfg',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'), createEmptyInstance: create)
-    ..pc<Bucket>(1, _omitFieldNames ? '' : 'buckets', $pb.PbFieldType.PM, subBuilder: Bucket.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BuildbucketCfg',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket'),
+      createEmptyInstance: create)
+    ..pc<Bucket>(1, _omitFieldNames ? '' : 'buckets', $pb.PbFieldType.PM,
+        subBuilder: Bucket.create)
     ..aOM<BuildbucketCfg_CommonConfig>(5, _omitFieldNames ? '' : 'commonConfig',
         subBuilder: BuildbucketCfg_CommonConfig.create)
     ..hasRequiredFields = false;
@@ -2090,16 +2237,19 @@ class BuildbucketCfg extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   BuildbucketCfg copyWith(void Function(BuildbucketCfg) updates) =>
-      super.copyWith((message) => updates(message as BuildbucketCfg)) as BuildbucketCfg;
+      super.copyWith((message) => updates(message as BuildbucketCfg))
+          as BuildbucketCfg;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static BuildbucketCfg create() => BuildbucketCfg._();
   BuildbucketCfg createEmptyInstance() => create();
-  static $pb.PbList<BuildbucketCfg> createRepeated() => $pb.PbList<BuildbucketCfg>();
+  static $pb.PbList<BuildbucketCfg> createRepeated() =>
+      $pb.PbList<BuildbucketCfg>();
   @$core.pragma('dart2js:noInline')
-  static BuildbucketCfg getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildbucketCfg>(create);
+  static BuildbucketCfg getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BuildbucketCfg>(create);
   static BuildbucketCfg? _defaultInstance;
 
   /// All buckets defined for this project.
@@ -2124,4 +2274,5 @@ class BuildbucketCfg extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

@@ -3,22 +3,23 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
-import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/github/checks.dart';
-import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
 
+import '../../../cocoon_service.dart';
 import '../../../protos.dart' as pb;
-import '../../model/gerrit/commit.dart';
 import '../../model/github/checks.dart' as cocoon_checks;
+import '../../model/github/checks.dart';
 import '../../request_handling/exceptions.dart';
 import '../../request_handling/subscription_handler.dart';
+import '../../service/commit_service.dart';
 import '../../service/datastore.dart';
 import '../../service/github_service.dart';
+import '../../service/scheduler/process_check_run_result.dart';
 
 // Filenames which are not actually tests.
 const List<String> kNotActuallyATest = <String>[
@@ -27,7 +28,6 @@ const List<String> kNotActuallyATest = <String>[
 
 /// List of repos that require check for tests.
 Set<RepositorySlug> kNeedsTests = <RepositorySlug>{
-  Config.engineSlug,
   Config.flutterSlug,
   Config.packagesSlug,
 };
@@ -97,7 +97,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       return Body.empty;
     }
 
-    final pb.GithubWebhookMessage webhook = pb.GithubWebhookMessage.fromJson(message.data!);
+    final webhook = pb.GithubWebhookMessage.fromJson(message.data!);
 
     log.info('Processing ${webhook.event}');
     log.finest(webhook.payload);
@@ -109,30 +109,55 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         await _handleMergeGroup(webhook.payload);
         break;
       case 'check_run':
-        final Map<String, dynamic> event = jsonDecode(webhook.payload) as Map<String, dynamic>;
-        final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
-        if (await scheduler.processCheckRun(checkRunEvent) == false) {
-          throw InternalServerError('Failed to process check_run event. checkRunEvent: $checkRunEvent');
+        final event = jsonDecode(webhook.payload) as Map<String, dynamic>;
+        final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
+        switch (await scheduler.processCheckRun(checkRunEvent)) {
+          case SuccessResult():
+            break;
+          case InternalErrorResult(
+            :final message,
+            :final error,
+            :final stackTrace,
+          ):
+            log.severe(message, error, stackTrace);
+            throw InternalServerError(
+              'Failed to process check_run event. checkRunEvent: $checkRunEvent',
+            );
+          case RecoverableErrorResult(:final message):
+            log.info(
+              'User error state for check_run event ($checkRunEvent): $message',
+            );
+            response!.statusCode = HttpStatus.badRequest;
+            response!.reasonPhrase = message;
+            return Body.empty;
         }
         break;
       case 'push':
-        final Map<String, dynamic> event = jsonDecode(webhook.payload) as Map<String, dynamic>;
-        final String branch = event['ref'].split('/')[2]; // Eg: refs/heads/beta would return beta.
-        final String repository = event['repository']['name'];
+        final event = jsonDecode(webhook.payload) as Map<String, dynamic>;
+        final branch =
+            (event['ref'] as String).split(
+              '/',
+            )[2]; // Eg: refs/heads/beta would return beta.
+        final repository = event['repository']['name'] as String;
         // If the branch is beta/stable, then a commit wasn't created through a PR,
         // meaning the commit needs to be added to the datastore here instead.
-        if (repository == 'flutter' && (branch == 'stable' || branch == 'beta')) {
+        if (repository == 'flutter' &&
+            (branch == 'stable' || branch == 'beta')) {
           await commitService.handlePushGithubRequest(event);
         }
         break;
       case 'create':
-        final CreateEvent createEvent = CreateEvent.fromJson(json.decode(webhook.payload) as Map<String, dynamic>);
-        final RegExp candidateBranchRegex = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
+        final createEvent = CreateEvent.fromJson(
+          json.decode(webhook.payload) as Map<String, dynamic>,
+        );
+        final candidateBranchRegex = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
         // Create a commit object for candidate branches in the datastore so
         // dart-internal builds that are triggered by the initial branch
         // creation have an associated commit.
         if (candidateBranchRegex.hasMatch(createEvent.ref!)) {
-          log.fine('Branch ${createEvent.ref} is a candidate branch, creating new commit in the datastore');
+          log.fine(
+            'Branch ${createEvent.ref} is a candidate branch, creating new commit in the datastore',
+          );
           await commitService.handleCreateGithubRequest(createEvent);
         }
     }
@@ -150,13 +175,21 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   /// should be caught up within that time frame via either the internal
   /// mirroring service or [VacuumGithubCommits].
   Future<void> _handlePullRequest(String rawRequest) async {
-    final PullRequestEvent? pullRequestEvent = _getPullRequestEvent(rawRequest);
+    final pullRequestEvent = _getPullRequestEvent(rawRequest);
     if (pullRequestEvent == null) {
       throw const BadRequestException('Expected pull request event.');
     }
-    final String? eventAction = pullRequestEvent.action;
-    final PullRequest pr = pullRequestEvent.pullRequest!;
+    final eventAction = pullRequestEvent.action;
+    final pr = pullRequestEvent.pullRequest!;
     final crumb = '$GithubWebhookSubscription._handlePullRequest(${pr.number})';
+
+    final slug = pr.base!.repo!.slug();
+    if (!config.supportedRepos.contains(slug)) {
+      log.warning(
+        '$crumb: asked to handle unsupported repo $slug for ${pr.htmlUrl}',
+      );
+      throw const InternalServerError('Unsupported repository');
+    }
 
     // See the API reference:
     // https://developer.github.com/v3/activity/events/types/#pullrequestevent
@@ -169,7 +202,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'edited':
         await _checkForTests(pullRequestEvent);
         // In the event of the base ref changing we want to start new checks.
-        if (pullRequestEvent.changes != null && pullRequestEvent.changes!.base != null) {
+        if (pullRequestEvent.changes != null &&
+            pullRequestEvent.changes!.base != null) {
           await _scheduleIfMergeable(pullRequestEvent);
         }
         break;
@@ -182,8 +216,10 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         await _tryReleaseApproval(pullRequestEvent);
         break;
       case 'labeled':
-        log.info('$crumb: PR labels = [${pr.labels?.map((label) => '"${label.name}"').join(', ')}]');
-        await _processLabels(pullRequestEvent.pullRequest!);
+        log.info(
+          '$crumb: PR labels = [${pr.labels?.map((label) => '"${label.name}"').join(', ')}]',
+        );
+        await _processLabels(pr);
         break;
       case 'synchronize':
         // This indicates the PR has new commits. We need to cancel old jobs
@@ -208,7 +244,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
   Future<void> _processLabels(PullRequest pullRequest) async {
     final slug = pullRequest.base!.repo!.slug();
-    final GithubService githubService = await config.createGithubService(slug);
+    final githubService = await config.createGithubService(slug);
 
     final labelProcessor = pullRequestLabelProcessorProvider(
       config: config,
@@ -259,33 +295,41 @@ class GithubWebhookSubscription extends SubscriptionHandler {
             '$slug/$headSha was not found on GoB. Failing so this event can be retried',
           );
         }
-        log.info('$slug/$headSha was found on GoB mirror. Scheduling merge group tasks');
-        await scheduler.triggerMergeGroupTargets(mergeGroupEvent: mergeGroupEvent);
+        log.info(
+          '$slug/$headSha was found on GoB mirror. Scheduling merge group tasks',
+        );
+        await scheduler.triggerMergeGroupTargets(
+          mergeGroupEvent: mergeGroupEvent,
+        );
 
       // A merge group was deleted. This can happen when a PR is pulled from the
       // merge queue. All CI jobs pertaining to this merge group should be
       // stopped to save CI resources, as Github will no longer merge this group
       // into the main branch.
       case 'destroyed':
-        log.info('Merge group destroyed for $slug/$headSha because it was $reason.');
+        log.info(
+          'Merge group destroyed for $slug/$headSha because it was $reason.',
+        );
         if (reason == 'invalidated' || reason == 'dequeued') {
           await scheduler.cancelDestroyedMergeGroupTargets(headSha: headSha);
         } else if (reason == 'merged') {
           log.info('Merge group for $slug/$headSha was merged successfully.');
         } else {
-          log.warning('Unrecognized reason for merge group destroyed event: $reason');
+          log.warning(
+            'Unrecognized reason for merge group destroyed event: $reason',
+          );
         }
     }
   }
 
   Future<bool> _commitExistsInGob(PullRequest pr) async {
-    final RepositorySlug slug = pr.base!.repo!.slug();
-    final String sha = pr.mergeCommitSha!;
+    final slug = pr.base!.repo!.slug();
+    final sha = pr.mergeCommitSha!;
     return _shaExistsInGob(slug, sha);
   }
 
   Future<bool> _shaExistsInGob(RepositorySlug slug, String sha) async {
-    final GerritCommit? gobCommit = await gerritService.findMirroredCommit(slug, sha);
+    final gobCommit = await gerritService.findMirroredCommit(slug, sha);
     return gobCommit != null;
   }
 
@@ -295,9 +339,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   Future<void> _respondToPullRequestDequeued(
     PullRequestEvent pullRequestEvent,
   ) async {
-    final PullRequest pr = pullRequestEvent.pullRequest!;
-    final RepositorySlug slug = pullRequestEvent.repository!.slug();
-    final GithubService githubService = await config.createGithubService(slug);
+    final pr = pullRequestEvent.pullRequest!;
+    final slug = pullRequestEvent.repository!.slug();
+    final githubService = await config.createGithubService(slug);
 
     // Remove the autosubmit label when a pull request is kicked out of the
     // merge queue to avoid infinite loops.
@@ -313,19 +357,23 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     // Removing the `autosubmit` label will prevent the autosubmit bot from
     // repeating the process, until a human looks at the PR, decides that it's
     // ready again, and manually adds the `autosubmit` label on it.
-    final bool hasAutosubmitLabel = pr.labels?.any((label) => label.name == Config.kAutosubmitLabel) ?? false;
+    final hasAutosubmitLabel =
+        pr.labels?.any((label) => label.name == Config.kAutosubmitLabel) ??
+        false;
     if (hasAutosubmitLabel) {
-      await githubService.removeLabel(slug, pr.number!, Config.kAutosubmitLabel);
+      await githubService.removeLabel(
+        slug,
+        pr.number!,
+        Config.kAutosubmitLabel,
+      );
     }
   }
 
   /// This method assumes that jobs should be cancelled if they are already
   /// runnning.
-  Future<void> _scheduleIfMergeable(
-    PullRequestEvent pullRequestEvent,
-  ) async {
-    final PullRequest pr = pullRequestEvent.pullRequest!;
-    final RepositorySlug slug = pullRequestEvent.repository!.slug();
+  Future<void> _scheduleIfMergeable(PullRequestEvent pullRequestEvent) async {
+    final pr = pullRequestEvent.pullRequest!;
+    final slug = pullRequestEvent.repository!.slug();
 
     log.info(
       'Scheduling tasks if mergeable(${pr.mergeable}): owner=${slug.owner} repo=${slug.name} and pr=${pr.number}',
@@ -334,9 +382,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     // The mergeable flag may be null. False indicates there's a merge conflict,
     // null indicates unknown. Err on the side of allowing the job to run.
     if (pr.mergeable == false) {
-      final RepositorySlug slug = pullRequestEvent.repository!.slug();
-      final GitHub gitHubClient = await config.createGitHubClient(pullRequest: pr);
-      final String body = config.mergeConflictPullRequestMessage;
+      final slug = pullRequestEvent.repository!.slug();
+      final gitHubClient = await config.createGitHubClient(pullRequest: pr);
+      final body = config.mergeConflictPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
       }
@@ -353,32 +401,39 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   }
 
   /// Release tooling generates cherrypick pull requests that should be granted an approval.
-  Future<void> _tryReleaseApproval(
-    PullRequestEvent pullRequestEvent,
-  ) async {
-    final PullRequest pr = pullRequestEvent.pullRequest!;
-    final RepositorySlug slug = pullRequestEvent.repository!.slug();
+  Future<void> _tryReleaseApproval(PullRequestEvent pullRequestEvent) async {
+    final pr = pullRequestEvent.pullRequest!;
+    final slug = pullRequestEvent.repository!.slug();
 
-    final String defaultBranch = Config.defaultBranch(slug);
-    final String? branch = pr.base?.ref;
+    final defaultBranch = Config.defaultBranch(slug);
+    final branch = pr.base?.ref;
     if (branch == null || branch.contains(defaultBranch)) {
       // This isn't a release branch PR
       return;
     }
 
-    final List<String> releaseAccounts = await config.releaseAccounts;
+    final releaseAccounts = await config.releaseAccounts;
     if (releaseAccounts.contains(pr.user?.login) == false) {
       // The author isn't in the list of release accounts, do nothing
       return;
     }
 
-    final GitHub gitHubClient = config.createGitHubClientWithToken(await config.githubOAuthToken);
-    final CreatePullRequestReview review = CreatePullRequestReview(slug.owner, slug.name, pr.number!, 'APPROVE');
+    final gitHubClient = config.createGitHubClientWithToken(
+      await config.githubOAuthToken,
+    );
+    final review = CreatePullRequestReview(
+      slug.owner,
+      slug.name,
+      pr.number!,
+      'APPROVE',
+    );
     await gitHubClient.pullRequests.createReview(slug, review);
   }
 
-  Future<void> _processPullRequestClosed(PullRequestEvent pullRequestEvent) async {
-    final PullRequest pr = pullRequestEvent.pullRequest!;
+  Future<void> _processPullRequestClosed(
+    PullRequestEvent pullRequestEvent,
+  ) async {
+    final pr = pullRequestEvent.pullRequest!;
 
     // Cancel any outstanding presubmit jobs. They are useless after the PR is
     // closed. If the PR was merged, then the post-submit results will determine
@@ -408,16 +463,21 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       //   the PR and not merge it.
       // * If a PR is closed but not merged, the author may still want to reopen
       //   the PR. That would not be possible if the source branch was deleted.
-      final isRevertPullRequest = pr.labels?.any((label) => label.name == Config.revertOfLabel) == true;
+      final isRevertPullRequest =
+          pr.labels?.any((label) => label.name == Config.revertOfLabel) == true;
       if (isRevertPullRequest) {
-        log.info('Revert merged successfully, deleting branch ${pr.head!.ref!}');
+        log.info(
+          'Revert merged successfully, deleting branch ${pr.head!.ref!}',
+        );
         final slug = pullRequestEvent.repository!.slug();
         final githubService = await config.createGithubService(slug);
         await githubService.deleteBranch(slug, pr.head!.ref!);
       }
 
       if (await _commitExistsInGob(pr)) {
-        log.fine('Merged commit was found on GoB mirror. Scheduling postsubmit tasks...');
+        log.fine(
+          'Merged commit was found on GoB mirror. Scheduling postsubmit tasks...',
+        );
         return scheduler.addPullRequest(pr);
       }
       throw InternalServerError(
@@ -427,24 +487,38 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   }
 
   Future<void> _checkForTests(PullRequestEvent pullRequestEvent) async {
-    final PullRequest pr = pullRequestEvent.pullRequest!;
-    final String? eventAction = pullRequestEvent.action;
-    final RepositorySlug slug = pr.base!.repo!.slug();
-    final bool isTipOfTree = pr.base!.ref == Config.defaultBranch(slug);
-    final GitHub gitHubClient = await config.createGitHubClient(pullRequest: pr);
+    final pr = pullRequestEvent.pullRequest!;
+    final eventAction = pullRequestEvent.action;
+    final slug = pr.base!.repo!.slug();
+    final isTipOfTree = pr.base!.ref == Config.defaultBranch(slug);
+    final gitHubClient = await config.createGitHubClient(pullRequest: pr);
     await _validateRefs(gitHubClient, pr);
     if (kNeedsTests.contains(slug) && isTipOfTree) {
       switch (slug.name) {
         case 'flutter':
-          final bool isFusion = await fusionTester.isFusionBasedRef(slug, pr.head!.sha!);
-          final files = await gitHubClient.pullRequests.listFiles(slug, pr.number!).toList();
-          await _applyFrameworkRepoLabels(gitHubClient, eventAction, pr, isFusion: isFusion, files: files);
+          final isFusion = await fusionTester.isFusionBasedRef(
+            slug,
+            pr.head!.sha!,
+          );
+          final files =
+              await gitHubClient.pullRequests
+                  .listFiles(slug, pr.number!)
+                  .toList();
+          await _applyFrameworkRepoLabels(
+            gitHubClient,
+            eventAction,
+            pr,
+            isFusion: isFusion,
+            files: files,
+          );
           if (isFusion) {
-            await _applyEngineRepoLabels(gitHubClient, eventAction, pr, files: files);
+            await _applyEngineRepoLabels(
+              gitHubClient,
+              eventAction,
+              pr,
+              files: files,
+            );
           }
-        case 'engine':
-          final files = await gitHubClient.pullRequests.listFiles(slug, pr.number!).toList();
-          return _applyEngineRepoLabels(gitHubClient, eventAction, pr, files: files);
         case 'packages':
           return _applyPackageTestChecks(gitHubClient, eventAction, pr);
       }
@@ -462,21 +536,22 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       return;
     }
 
-    final RepositorySlug slug = pr.base!.repo!.slug();
+    final slug = pr.base!.repo!.slug();
     log.info(
       'Applying framework repo labels for: owner=${slug.owner} repo=${slug.name} isFusion=$isFusion and pr=${pr.number}',
     );
 
-    files ??= await gitHubClient.pullRequests.listFiles(slug, pr.number!).toList();
+    files ??=
+        await gitHubClient.pullRequests.listFiles(slug, pr.number!).toList();
 
-    final Set<String> labels = <String>{};
-    bool hasTests = false;
-    bool needsTests = false;
+    final labels = <String>{};
+    var hasTests = false;
+    var needsTests = false;
 
-    int frameworkFiles = 0;
+    var frameworkFiles = 0;
 
     for (var file in files) {
-      final String filename = file.filename!;
+      final filename = file.filename!;
 
       if (!_isFusionEnginePath(filename)) {
         frameworkFiles++;
@@ -506,7 +581,11 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
 
     if (labels.isNotEmpty) {
-      await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, labels.toList());
+      await gitHubClient.issues.addLabelsToIssue(
+        slug,
+        pr.number!,
+        labels.toList(),
+      );
     }
 
     // We do not need to add test labels if this is an auto roller author.
@@ -515,7 +594,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
 
     if (!hasTests && needsTests && !pr.draft! && !_isReleaseBranch(pr)) {
-      final String body = config.missingTestsPullRequestMessage;
+      final body = config.missingTestsPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
       }
@@ -528,7 +607,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
     // Check for Objective-C tests which end in either "Tests.m" or "Test.m"
     // in the "dev" directory.
-    final RegExp objectiveCTestRegex = RegExp(r'.*dev\/.*Test[s]?\.m$');
+    final objectiveCTestRegex = RegExp(r'.*dev\/.*Test[s]?\.m$');
     return filename.endsWith('_test.dart') ||
         filename.endsWith('.expect') ||
         filename.contains('test_fixes') ||
@@ -547,7 +626,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   /// Returns true if changes to [filename] are exempt from the testing
   /// requirement, across repositories.
   bool _isTestExempt(String filename, {String engineBasePath = ''}) {
-    final bool isBuildPythonScript = (filename.startsWith('${engineBasePath}sky/tools') && filename.endsWith('.py'));
+    final isBuildPythonScript =
+        filename.startsWith('${engineBasePath}sky/tools') &&
+        filename.endsWith('.py');
     return filename.contains('.ci.yaml') ||
         filename.endsWith('analysis_options.yaml') ||
         filename.endsWith('AUTHORS') ||
@@ -570,13 +651,18 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.startsWith('${engineBasePath}impeller/fixtures/') ||
         filename.startsWith('${engineBasePath}impeller/golden_tests/') ||
         filename.startsWith('${engineBasePath}impeller/playground/') ||
-        filename.startsWith('${engineBasePath}shell/platform/embedder/tests/') ||
-        filename.startsWith('${engineBasePath}shell/platform/embedder/fixtures/') ||
+        filename.startsWith(
+          '${engineBasePath}shell/platform/embedder/tests/',
+        ) ||
+        filename.startsWith(
+          '${engineBasePath}shell/platform/embedder/fixtures/',
+        ) ||
         filename.startsWith('${engineBasePath}testing/') ||
         filename.startsWith('${engineBasePath}tools/clangd_check/');
   }
 
-  bool _isFusionEnginePath(String path) => (path.startsWith('engine/') || path == 'DEPS');
+  bool _isFusionEnginePath(String path) =>
+      path.startsWith('engine/') || path == 'DEPS';
 
   Future<void> _applyEngineRepoLabels(
     GitHub gitHubClient,
@@ -589,19 +675,20 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       return;
     }
 
-    final RepositorySlug slug = pr.base!.repo!.slug();
-    bool hasTests = false;
-    bool needsTests = false;
+    final slug = pr.base!.repo!.slug();
+    var hasTests = false;
+    var needsTests = false;
 
     // If engine labels are being applied to the flutterSlug - we're in a fusion repo.
-    final bool isFusion = slug == Config.flutterSlug;
+    final isFusion = slug == Config.flutterSlug;
     final engineBasePath = isFusion ? 'engine/src/flutter/' : '';
 
-    int engineFiles = 0;
+    var engineFiles = 0;
 
-    files ??= await gitHubClient.pullRequests.listFiles(slug, pr.number!).toList();
+    files ??=
+        await gitHubClient.pullRequests.listFiles(slug, pr.number!).toList();
     for (var file in files) {
-      final String path = file.filename!;
+      final path = file.filename!;
       if (isFusion && _isFusionEnginePath(path)) {
         engineFiles++;
       }
@@ -634,7 +721,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
 
     if (!hasTests && needsTests && !pr.draft! && !_isReleaseBranch(pr)) {
-      final String body = config.missingTestsPullRequestMessage;
+      final body = config.missingTestsPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
       }
@@ -642,7 +729,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   }
 
   bool _isAnEngineTest(String filename) {
-    final RegExp engineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc|sh|py)$');
+    final engineTestRegExp = RegExp(
+      r'(tests?|benchmarks?)\.(dart|java|mm|m|cc|sh|py)$',
+    );
     return filename.contains('IosBenchmarks') ||
         filename.contains('IosUnitTests') ||
         filename.contains('scenario_app') ||
@@ -651,21 +740,25 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
   bool _fileContainsAddedCode(PullRequestFile file) {
     // When null, do not assume 0 lines have been added.
-    final int linesAdded = file.additionsCount ?? 1;
-    final int linesDeleted = file.deletionsCount ?? 0;
-    final int linesTotal = file.changesCount ?? linesDeleted + linesAdded;
+    final linesAdded = file.additionsCount ?? 1;
+    final linesDeleted = file.deletionsCount ?? 0;
+    final linesTotal = file.changesCount ?? linesDeleted + linesAdded;
     return linesAdded > 0 || linesDeleted != linesTotal;
   }
 
   // Runs automated test checks for both flutter/packages.
-  Future<void> _applyPackageTestChecks(GitHub gitHubClient, String? eventAction, PullRequest pr) async {
-    final RepositorySlug slug = pr.base!.repo!.slug();
-    final Stream<PullRequestFile> files = gitHubClient.pullRequests.listFiles(slug, pr.number!);
-    bool hasTests = false;
-    bool needsTests = false;
+  Future<void> _applyPackageTestChecks(
+    GitHub gitHubClient,
+    String? eventAction,
+    PullRequest pr,
+  ) async {
+    final slug = pr.base!.repo!.slug();
+    final files = gitHubClient.pullRequests.listFiles(slug, pr.number!);
+    var hasTests = false;
+    var needsTests = false;
 
     await for (PullRequestFile file in files) {
-      final String filename = file.filename!;
+      final filename = file.filename!;
 
       if (_fileContainsAddedCode(file) &&
           !_isTestExempt(filename) &&
@@ -707,7 +800,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
 
     if (!hasTests && needsTests && !pr.draft! && !_isReleaseBranch(pr)) {
-      final String body = config.missingTestsPullRequestMessage;
+      final body = config.missingTestsPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
       }
@@ -715,32 +808,21 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   }
 
   /// Validate the base and head refs of the PR.
-  Future<void> _validateRefs(
-    GitHub gitHubClient,
-    PullRequest pr,
-  ) async {
-    final RepositorySlug slug = pr.base!.repo!.slug();
+  Future<void> _validateRefs(GitHub gitHubClient, PullRequest pr) async {
+    final slug = pr.base!.repo!.slug();
     String body;
-    const List<String> releaseChannels = <String>[
-      'stable',
-      'beta',
-      'dev',
-    ];
+    const releaseChannels = <String>['stable', 'beta', 'dev'];
     // Close PRs that use a release branch as a source.
     if (releaseChannels.contains(pr.head!.ref)) {
       body = config.wrongHeadBranchPullRequestMessage(pr.head!.ref!);
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
-        await gitHubClient.pullRequests.edit(
-          slug,
-          pr.number!,
-          state: 'closed',
-        );
+        await gitHubClient.pullRequests.edit(slug, pr.number!, state: 'closed');
         await gitHubClient.issues.createComment(slug, pr.number!, body);
       }
       return;
     }
-    final String defaultBranchName = Config.defaultBranch(pr.base!.repo!.slug());
-    final String baseName = pr.base!.ref!;
+    final defaultBranchName = Config.defaultBranch(pr.base!.repo!.slug());
+    final baseName = pr.base!.ref!;
     if (baseName == defaultBranchName) {
       return;
     }
@@ -753,12 +835,15 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
 
     // For repos migrated to main, close PRs opened against master.
-    final bool isMaster = pr.base?.ref == 'master';
-    final bool isMigrated = defaultBranchName == 'main';
+    final isMaster = pr.base?.ref == 'master';
+    final isMigrated = defaultBranchName == 'main';
     // PRs should never be open to "beta" or "stable."
-    final bool isReleaseChannelBranch = releaseChannels.contains(pr.base?.ref);
+    final isReleaseChannelBranch = releaseChannels.contains(pr.base?.ref);
     if ((isMaster && isMigrated) || isReleaseChannelBranch) {
-      body = _getWrongBaseComment(base: baseName, defaultBranch: defaultBranchName);
+      body = _getWrongBaseComment(
+        base: baseName,
+        defaultBranch: defaultBranchName,
+      );
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.pullRequests.edit(
           slug,
@@ -771,8 +856,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   }
 
   bool _isReleaseBranch(PullRequest pr) {
-    final String defaultBranchName = Config.defaultBranch(pr.base!.repo!.slug());
-    final String baseName = pr.base!.ref!;
+    final defaultBranchName = Config.defaultBranch(pr.base!.repo!.slug());
+    final baseName = pr.base!.ref!;
 
     if (baseName == defaultBranchName) {
       return false;
@@ -782,8 +867,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     // for a release branch, whereas a pr with non conforming name is likely
     // caused by user misoperations, in which case bot
     // will suggest open pull request against default branch instead.
-    final RegExp candidateTest = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
-    if (candidateTest.hasMatch(baseName) && candidateTest.hasMatch(pr.head!.ref!)) {
+    final candidateTest = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
+    if (candidateTest.hasMatch(baseName) &&
+        candidateTest.hasMatch(pr.head!.ref!)) {
       return true;
     }
     return false;
@@ -794,7 +880,10 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     PullRequest pr,
     String message,
   ) async {
-    final Stream<IssueComment> comments = gitHubClient.issues.listCommentsByIssue(pr.base!.repo!.slug(), pr.number!);
+    final comments = gitHubClient.issues.listCommentsByIssue(
+      pr.base!.repo!.slug(),
+      pr.number!,
+    );
     await for (IssueComment comment in comments) {
       if (comment.body != null && comment.body!.contains(message)) {
         return true;
@@ -807,13 +896,17 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     required String base,
     required String defaultBranch,
   }) {
-    final String messageTemplate = config.wrongBaseBranchPullRequestMessage;
-    return messageTemplate.replaceAll('{{target_branch}}', base).replaceAll('{{default_branch}}', defaultBranch);
+    final messageTemplate = config.wrongBaseBranchPullRequestMessage;
+    return messageTemplate
+        .replaceAll('{{target_branch}}', base)
+        .replaceAll('{{default_branch}}', defaultBranch);
   }
 
   PullRequestEvent? _getPullRequestEvent(String request) {
     try {
-      return PullRequestEvent.fromJson(json.decode(request) as Map<String, dynamic>);
+      return PullRequestEvent.fromJson(
+        json.decode(request) as Map<String, dynamic>,
+      );
     } on FormatException {
       return null;
     }
@@ -824,17 +917,18 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   /// If that cannot be determined with confidence, returns false. False
   /// negatives (e.g., for /* */-style multi-line comments) should be expected.
   bool _allChangesAreCodeComments(PullRequestFile file) {
-    final int? linesAdded = file.additionsCount;
-    final int? linesDeleted = file.deletionsCount;
-    final String? patch = file.patch;
+    final linesAdded = file.additionsCount;
+    final linesDeleted = file.deletionsCount;
+    final patch = file.patch;
     // If information is missing, err or the side of assuming it's a non-comment
     // change.
     if (linesAdded == null || linesDeleted == null || patch == null) {
       return false;
     }
 
-    final String filename = file.filename!;
-    final String? extension = filename.contains('.') ? filename.split('.').last.toLowerCase() : null;
+    final filename = file.filename!;
+    final extension =
+        filename.contains('.') ? filename.split('.').last.toLowerCase() : null;
     if (extension == null || !knownCommentCodeExtensions.contains(extension)) {
       return false;
     }
@@ -842,9 +936,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     // Only handles single-line comments; identifying multi-line comments
     // would require the full file and non-trivial parsing. Also doesn't handle
     // end-of-line comments (e.g., "int x = 0; // Info about x").
-    final RegExp commentRegex = RegExp(r'^[+-]\s*//');
-    final RegExp onlyWhitespaceRegex = RegExp(r'^[+-]\s*$');
-    for (String line in patch.split('\n')) {
+    final commentRegex = RegExp(r'^[+-]\s*//');
+    final onlyWhitespaceRegex = RegExp(r'^[+-]\s*$');
+    for (var line in patch.split('\n')) {
       if (!line.startsWith('+') && !line.startsWith('-')) {
         continue;
       }
@@ -862,37 +956,51 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   }
 }
 
-typedef PullRequestLabelProcessorProvider = PullRequestLabelProcessor Function({
-  required Config config,
-  required GithubService githubService,
-  required PullRequest pullRequest,
-});
+typedef PullRequestLabelProcessorProvider =
+    PullRequestLabelProcessor Function({
+      required Config config,
+      required GithubService githubService,
+      required PullRequest pullRequest,
+    });
 
 class PullRequestLabelProcessor {
   PullRequestLabelProcessor({
     required this.config,
     required this.githubService,
     required this.pullRequest,
-  })  : slug = pullRequest.base!.repo!.slug(),
-        prNumber = pullRequest.number!;
+  }) : slug = pullRequest.base!.repo!.slug(),
+       prNumber = pullRequest.number!;
+
+  static const kEmergencyLabelEducation = '''
+Detected the `emergency` label.
+
+If you add the `autosubmit` label, the bot will wait until all presubmits pass but ignore the tree status, allowing fixes for tree breakages while still validating that they don't break any existing presubmits.
+
+The "Merge" button is also unlocked. To bypass presubmits as well as the tree status, press the GitHub "Add to Merge Queue".
+''';
 
   final Config config;
   final GithubService githubService;
   final PullRequest pullRequest;
   final RepositorySlug slug;
   final int prNumber;
-  late final String logCrumb = '$PullRequestLabelProcessor($slug/pull/$prNumber)';
+  late final String logCrumb =
+      '$PullRequestLabelProcessor($slug/pull/$prNumber)';
 
   void logInfo(Object? message) {
     log.info('$logCrumb: $message');
   }
 
-  void logSevere(Object? message) {
-    log.severe('$logCrumb: $message');
+  void logSevere(Object? message, {Object? error, StackTrace? stackTrace}) {
+    log.severe('$logCrumb: $message', error, stackTrace);
   }
 
   Future<void> processLabels() async {
-    final hasEmergencyLabel = pullRequest.labels?.any((label) => label.name == Config.kEmergencyLabel) ?? false;
+    final hasEmergencyLabel =
+        pullRequest.labels?.any(
+          (label) => label.name == Config.kEmergencyLabel,
+        ) ??
+        false;
     if (hasEmergencyLabel) {
       // The merge guard can be unlocked without approval checks because:
       //
@@ -907,14 +1015,16 @@ class PullRequestLabelProcessor {
   }
 
   Future<void> _unlockMergeQueueGuardForEmergency() async {
-    logInfo('attempting to unlock the ${Config.kMergeQueueLockName} for emergency');
+    logInfo(
+      'attempting to unlock the ${Config.kMergeQueueLockName} for emergency',
+    );
 
-    final guard = (await githubService.getCheckRunsFiltered(
-      slug: slug,
-      ref: pullRequest.head!.sha!,
-      checkName: Config.kMergeQueueLockName,
-    ))
-        .singleOrNull;
+    final guard =
+        (await githubService.getCheckRunsFiltered(
+          slug: slug,
+          ref: pullRequest.head!.sha!,
+          checkName: Config.kMergeQueueLockName,
+        )).singleOrNull;
 
     if (guard == null) {
       logSevere(
@@ -934,6 +1044,29 @@ class PullRequestLabelProcessor {
       ),
     );
 
-    logInfo('unlocked "${Config.kMergeQueueLockName}", allowing it to land as an emergency.');
+    logInfo(
+      'unlocked "${Config.kMergeQueueLockName}", allowing it to land as an emergency.',
+    );
+
+    // Let the developer know what is happening with the MQ when this label is found the first time.
+    try {
+      if (!await githubService.commentExists(
+        slug,
+        prNumber,
+        PullRequestLabelProcessor.kEmergencyLabelEducation,
+      )) {
+        await githubService.createComment(
+          slug,
+          issueNumber: prNumber,
+          body: PullRequestLabelProcessor.kEmergencyLabelEducation,
+        );
+      }
+    } catch (e, s) {
+      logSevere(
+        'failed to leave educational comment for emergency label.',
+        error: e,
+        stackTrace: s,
+      );
+    }
   }
 }

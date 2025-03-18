@@ -28,13 +28,17 @@ class StructMask extends $pb.GeneratedMessage {
     return $result;
   }
   StructMask._() : super();
-  factory StructMask.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory StructMask.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory StructMask.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory StructMask.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'StructMask',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'structmask'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'StructMask',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'structmask'),
+      createEmptyInstance: create)
     ..pPS(1, _omitFieldNames ? '' : 'path')
     ..hasRequiredFields = false;
 
@@ -55,7 +59,8 @@ class StructMask extends $pb.GeneratedMessage {
   StructMask createEmptyInstance() => create();
   static $pb.PbList<StructMask> createRepeated() => $pb.PbList<StructMask>();
   @$core.pragma('dart2js:noInline')
-  static StructMask getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<StructMask>(create);
+  static StructMask getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<StructMask>(create);
   static StructMask? _defaultInstance;
 
   ///  A field path inside the struct to select.
@@ -88,4 +93,5 @@ class StructMask extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

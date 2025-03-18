@@ -6,7 +6,7 @@ import 'package:buildbucket/buildbucket_pb.dart';
 import 'package:test/test.dart';
 
 Map<String, dynamic> buildJson = {
-  'builder': {'project': 'flutter', 'bucket': 'try', 'builder': 'buildabc'}
+  'builder': {'project': 'flutter', 'bucket': 'try', 'builder': 'buildabc'},
 };
 
 void main() {

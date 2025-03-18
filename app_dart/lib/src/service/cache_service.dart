@@ -17,17 +17,19 @@ import 'package:retry/retry.dart';
 /// If [inMemory] is true, a cache with [inMemoryMaxNumberEntries] number
 /// of entries will be created. Otherwise, it will use the default redis cache.
 class CacheService {
-  CacheService({
-    bool inMemory = false,
-    int inMemoryMaxNumberEntries = 256,
-  }) : _provider =
-            inMemory ? Cache.inMemoryCacheProvider(inMemoryMaxNumberEntries) : Cache.redisCacheProvider(memorystoreUri);
+  CacheService({bool inMemory = false, int inMemoryMaxNumberEntries = 256})
+    : _provider =
+          inMemory
+              ? Cache.inMemoryCacheProvider(inMemoryMaxNumberEntries)
+              : Cache.redisCacheProvider(memorystoreUri);
 
   final Mutex m = Mutex();
 
   final CacheProvider<List<int>> _provider;
 
-  Cache<Uint8List> get cache => cacheValue ?? Cache<List<int>>(_provider).withCodec<Uint8List>(const _CacheCodec());
+  Cache<Uint8List> get cache =>
+      cacheValue ??
+      Cache<List<int>>(_provider).withCodec<Uint8List>(const _CacheCodec());
 
   @visibleForTesting
   Cache<Uint8List>? cacheValue;
@@ -57,18 +59,13 @@ class CacheService {
     required Future<Uint8List> Function()? createFn,
     Duration ttl = const Duration(minutes: 1),
   }) async {
-    Uint8List? value = await _readValue(subcacheName, key);
+    var value = await _readValue(subcacheName, key);
 
     // If given createFn, update the cache value if the value returned was null.
     if (createFn != null && value == null) {
       // Try creating the value
       value = await createFn();
-      await set(
-        subcacheName,
-        key,
-        value,
-        ttl: ttl,
-      );
+      await set(subcacheName, key, value, ttl: ttl);
     }
 
     return value;
@@ -87,41 +84,31 @@ class CacheService {
     required Future<Uint8List> Function()? createFn,
     Duration ttl = const Duration(minutes: 1),
   }) async {
-    Uint8List? value = await _readValue(subcacheName, key);
+    var value = await _readValue(subcacheName, key);
 
     // If given createFn, update the cache value if the value returned was null.
     if (createFn != null && value == null) {
       // Try creating the value
       value = await createFn();
-      await setWithLocking(
-        subcacheName,
-        key,
-        value,
-        ttl: ttl,
-      );
+      await setWithLocking(subcacheName, key, value, ttl: ttl);
     }
 
     return value;
   }
 
-  Future<Uint8List?> _readValue(
-    String subcacheName,
-    String key,
-  ) async {
-    final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
+  Future<Uint8List?> _readValue(String subcacheName, String key) async {
+    final subcache = cache.withPrefix(subcacheName);
     Uint8List? value;
 
-    const RetryOptions r = RetryOptions(
+    const r = RetryOptions(
       maxAttempts: maxCacheGetAttempts,
       delayFactor: Duration(milliseconds: 50),
     );
 
     try {
-      await r.retry(
-        () async {
-          value = await subcache[key].get();
-        },
-      );
+      await r.retry(() async {
+        value = await subcache[key].get();
+      });
     } catch (e) {
       // If the last retry is unsuccessful on an exception we do not want to die
       // here.
@@ -139,8 +126,8 @@ class CacheService {
     Uint8List? value, {
     Duration ttl = const Duration(minutes: 1),
   }) async {
-    final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
-    final Entry<Uint8List> entry = subcache[key];
+    final subcache = cache.withPrefix(subcacheName);
+    final entry = subcache[key];
     return entry.set(value, ttl);
   }
 
@@ -159,12 +146,7 @@ class CacheService {
   }) async {
     await m.acquire();
     try {
-      return set(
-        subcacheName,
-        key,
-        value,
-        ttl: ttl,
-      );
+      return set(subcacheName, key, value, ttl: ttl);
     } finally {
       m.release();
     }
@@ -179,15 +161,15 @@ class CacheService {
   Future<void> purge(String subcacheName, String key) async {
     await m.acquire();
     try {
-      final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
+      final subcache = cache.withPrefix(subcacheName);
       return subcache[key].purge(retries: maxCacheGetAttempts);
     } finally {
       m.release();
     }
   }
 
-  void dispose() {
-    _provider.close();
+  Future<void> dispose() async {
+    await _provider.close();
   }
 }
 

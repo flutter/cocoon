@@ -4,16 +4,9 @@
 
 import 'dart:convert';
 import 'dart:math';
-import 'dart:typed_data';
 
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
-import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
-import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
-import 'package:cocoon_service/src/service/build_status_provider.dart';
-import 'package:cocoon_service/src/service/exceptions.dart';
-import 'package:cocoon_service/src/service/get_files_changed.dart';
-import 'package:cocoon_service/src/service/scheduler/policy.dart';
+import 'package:collection/collection.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
@@ -22,25 +15,32 @@ import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 import 'package:truncate/truncate.dart';
-import 'package:yaml/yaml.dart';
 
-import '../foundation/providers.dart';
-import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
+import '../model/firestore/ci_staging.dart';
 import '../model/firestore/commit.dart' as firestore_commmit;
+import '../model/firestore/pr_check_runs.dart';
 import '../model/firestore/task.dart' as firestore;
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/proto/internal/scheduler.pb.dart' as pb;
+import 'build_status_provider.dart';
 import 'cache_service.dart';
 import 'config.dart';
 import 'datastore.dart';
+import 'exceptions.dart';
 import 'firestore.dart';
+import 'get_files_changed.dart';
 import 'github_checks_service.dart';
 import 'luci_build_service.dart';
+import 'luci_build_service/engine_artifacts.dart';
+import 'luci_build_service/pending_task.dart';
+import 'scheduler/ci_yaml_fetcher.dart';
+import 'scheduler/policy.dart';
+import 'scheduler/process_check_run_result.dart';
 
 /// Scheduler service to validate all commits to supported Flutter repositories.
 ///
@@ -56,13 +56,16 @@ class Scheduler {
     required this.luciBuildService,
     required this.fusionTester,
     required this.getFilesChanged,
+    required CiYamlFetcher ciYamlFetcher,
     this.datastoreProvider = DatastoreService.defaultProvider,
-    this.httpClientProvider = Providers.freshHttpClient,
     this.buildStatusProvider = BuildStatusService.defaultProvider,
     @visibleForTesting this.markCheckRunConclusion = CiStaging.markConclusion,
-    @visibleForTesting this.initializeCiStagingDocument = CiStaging.initializeDocument,
+    @visibleForTesting
+    this.initializeCiStagingDocument = CiStaging.initializeDocument,
     @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
-  });
+    @visibleForTesting
+    this.findPullRequestForSha = PrCheckRuns.findPullRequestForSha,
+  }) : _ciYamlFetcher = ciYamlFetcher;
 
   final GetFilesChanged getFilesChanged;
   final BuildStatusServiceProvider buildStatusProvider;
@@ -70,10 +73,9 @@ class Scheduler {
   final Config config;
   final DatastoreServiceProvider datastoreProvider;
   final GithubChecksService githubChecksService;
-  final HttpClientProvider httpClientProvider;
   final FusionTester fusionTester;
+  final CiYamlFetcher _ciYamlFetcher;
   late DatastoreService datastore;
-  late FirestoreService firestoreService;
   LuciBuildService luciBuildService;
 
   Future<StagingConclusion> Function({
@@ -83,7 +85,8 @@ class Scheduler {
     required String sha,
     required RepositorySlug slug,
     required CiStage stage,
-  }) markCheckRunConclusion;
+  })
+  markCheckRunConclusion;
 
   Future<Document> Function({
     required FirestoreService firestoreService,
@@ -92,20 +95,31 @@ class Scheduler {
     required CiStage stage,
     required List<String> tasks,
     required String checkRunGuard,
-  }) initializeCiStagingDocument;
+  })
+  initializeCiStagingDocument;
 
   final Future<PullRequest> Function(
     FirestoreService firestoreService,
     int checkRunId,
     String checkRunName,
-  ) findPullRequestFor;
+  )
+  findPullRequestFor;
+
+  final Future<PullRequest?> Function(
+    FirestoreService firestoreService,
+    String sha,
+  )
+  findPullRequestForSha;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
 
   /// List of check runs that do not need to be tracked or looked up in
   /// any staging logic.
-  static const kCheckRunsToIgnore = [Config.kMergeQueueLockName, Config.kCiYamlCheckName];
+  static const kCheckRunsToIgnore = [
+    Config.kMergeQueueLockName,
+    Config.kCiYamlCheckName,
+  ];
 
   /// Briefly describes what the "Merge Queue Guard" check is for.
   ///
@@ -124,9 +138,9 @@ class Scheduler {
   /// Otherwise, ignore it.
   Future<void> addCommits(List<Commit> commits) async {
     datastore = datastoreProvider(config.db);
-    final List<Commit> newCommits = await _getMissingCommits(commits);
+    final newCommits = await _getMissingCommits(commits);
     log.fine('Found ${newCommits.length} new commits on GitHub');
-    for (Commit commit in newCommits) {
+    for (var commit in newCommits) {
       await _addCommit(commit);
     }
   }
@@ -139,17 +153,29 @@ class Scheduler {
     datastore = datastoreProvider(config.db);
     // TODO(chillers): Support triggering on presubmit. https://github.com/flutter/flutter/issues/77858
     if (!pr.merged!) {
-      log.warning('Only pull requests that were closed and merged should have tasks scheduled');
+      log.warning(
+        'Only pull requests that were closed and merged should have tasks scheduled',
+      );
       return;
     }
 
-    final String fullRepo = pr.base!.repo!.fullName;
-    final String? branch = pr.base!.ref;
-    final String sha = pr.mergeCommitSha!;
+    final branch = pr.base!.ref;
+    final fullRepo = pr.base!.repo!.fullName;
+    final sha = pr.mergeCommitSha!;
 
-    final String id = '$fullRepo/$branch/$sha';
-    final Key<String> key = datastore.db.emptyKey.append<String>(Commit, id: id);
-    final Commit mergedCommit = Commit(
+    // TODO(matanlurey): Expand to every release candidate branch instead of a test branch.
+    // See https://github.com/flutter/flutter/issues/163896.
+    var markAllTasksSkipped = false;
+    if (branch == 'flutter-0.42-candidate.0') {
+      markAllTasksSkipped = true;
+      log.info(
+        '[release-candidate-postsubmit-skip] For merged PR ${pr.number}, SHA=$sha, skipping all post-submit tasks',
+      );
+    }
+
+    final id = '$fullRepo/$branch/$sha';
+    final key = datastore.db.emptyKey.append<String>(Commit, id: id);
+    final mergedCommit = Commit(
       author: pr.user!.login!,
       authorAvatarUrl: pr.user!.avatarUrl!,
       branch: branch,
@@ -167,65 +193,99 @@ class Scheduler {
     }
 
     log.fine('Scheduling $sha via GitHub webhook');
-    await _addCommit(mergedCommit);
+    await _addCommit(mergedCommit, skipAllTasks: markAllTasksSkipped);
   }
 
   /// Processes postsubmit tasks.
-  Future<void> _addCommit(Commit commit) async {
+  Future<void> _addCommit(Commit commit, {bool skipAllTasks = false}) async {
     if (!config.supportedRepos.contains(commit.slug)) {
       log.fine('Skipping ${commit.id} as repo is not supported');
       return;
     }
 
-    final CiYamlSet ciYaml = await getCiYaml(commit);
-
-    final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
-    final isFusion = await fusionTester.isFusionBasedRef(commit.slug, commit.sha!);
+    final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(commit);
+    final targets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
+    final isFusion = await fusionTester.isFusionBasedRef(
+      commit.slug,
+      commit.sha!,
+    );
     if (isFusion) {
-      final fusionPostTargets = ciYaml.postsubmitTargets(type: CiType.fusionEngine);
-      final fusionInitialTargets = ciYaml.getInitialTargets(fusionPostTargets, type: CiType.fusionEngine);
-      initialTargets.addAll(fusionInitialTargets);
+      final fusionPostTargets = ciYaml.postsubmitTargets(
+        type: CiType.fusionEngine,
+      );
+      final fusionInitialTargets = ciYaml.getInitialTargets(
+        fusionPostTargets,
+        type: CiType.fusionEngine,
+      );
+      targets.addAll(fusionInitialTargets);
       // Note on post submit targets: CiYaml filters out release_true for release branches and fusion trees
     }
 
-    final List<Task> tasks = [...targetsToTasks(commit, initialTargets)];
+    final tasks = <Task>[...targetsToTasks(commit, targets)];
+    final firestoreService = await config.createFirestoreService();
+    final toBeScheduled = <PendingTask>[];
+    for (var target in targets) {
+      final task = tasks.singleWhere(
+        (Task task) => task.name == target.value.name,
+      );
+      var policy = target.schedulerPolicy;
 
-    final List<Tuple<Target, Task, int>> toBeScheduled = <Tuple<Target, Task, int>>[];
-    for (Target target in initialTargets) {
-      final Task task = tasks.singleWhere((Task task) => task.name == target.value.name);
-      SchedulerPolicy policy = target.schedulerPolicy;
+      // TODO(matanlurey): Clean up the logic below, we actually do *not* want
+      // release branches to run every task automatically, and instead defer to
+      // manual scheduling.
+      //
+      // See https://github.com/flutter/flutter/issues/163896.
+      if (skipAllTasks) {
+        task.status = Task.statusSkipped;
+        continue;
+      }
+
       // Release branches should run every task
       if (Config.defaultBranch(commit.slug) != commit.branch) {
-        policy = GuaranteedPolicy();
+        policy = const GuaranteedPolicy();
       }
-      final int? priority = await policy.triggerPriority(task: task, datastore: datastore);
+      final priority = await policy.triggerPriority(
+        taskName: task.name!,
+        commitSha: commit.sha!,
+        recentTasks: await firestoreService.queryRecentTasksByName(
+          name: task.name!,
+        ),
+      );
       if (priority != null) {
         // Mark task as in progress to ensure it isn't scheduled over
         task.status = Task.statusInProgress;
-        toBeScheduled.add(Tuple<Target, Task, int>(target, task, priority));
+        toBeScheduled.add(
+          PendingTask(target: target, task: task, priority: priority),
+        );
       }
     }
 
     // Datastore must be written to generate task keys
     try {
-      log.info('Datastore tasks created for $commit: ${tasks.map((t) => '"${t.name}"').join(', ')}');
+      log.info(
+        'Datastore tasks created for $commit: ${tasks.map((t) => '"${t.name}"').join(', ')}',
+      );
       await datastore.withTransaction<void>((Transaction transaction) async {
         transaction.queueMutations(inserts: <Commit>[commit]);
         transaction.queueMutations(inserts: tasks);
         await transaction.commit();
-        log.fine('Committed ${tasks.length} new tasks for commit ${commit.sha!}');
+        log.fine(
+          'Committed ${tasks.length} new tasks for commit ${commit.sha!}',
+        );
       });
     } catch (error) {
       log.severe('Failed to add commit ${commit.sha!}: $error');
     }
 
     log.info(
-      'Firestore initial targets created for $commit: ${initialTargets.map((t) => '"${t.value.name}"').join(', ')}',
+      'Firestore initial targets created for $commit: ${targets.map((t) => '"${t.value.name}"').join(', ')}',
     );
-    final firestore_commmit.Commit commitDocument = firestore_commmit.commitToCommitDocument(commit);
-    final List<firestore.Task> taskDocuments = firestore.targetsToTaskDocuments(commit, initialTargets);
-    final List<Write> writes = documentsToWrites([...taskDocuments, commitDocument], exists: false);
-    final FirestoreService firestoreService = await config.createFirestoreService();
+    final commitDocument = firestore_commmit.commitToCommitDocument(commit);
+    final taskDocuments = firestore.targetsToTaskDocuments(commit, targets);
+    final writes = documentsToWrites([
+      ...taskDocuments,
+      commitDocument,
+    ], exists: false);
     // TODO(keyonghan): remove try catch logic after validated to work.
     try {
       await firestoreService.writeViaTransaction(writes);
@@ -233,7 +293,9 @@ class Scheduler {
       log.warning('Failed to add to Firestore: $error');
     }
 
-    log.info('Immediately scheduled tasks for $commit: ${toBeScheduled.map((t) => '"${t.second.name}"').join(', ')}');
+    log.info(
+      'Immediately scheduled tasks for $commit: ${toBeScheduled.map((t) => '"${t.task.name}"').join(', ')}',
+    );
     await _batchScheduleBuilds(commit, toBeScheduled);
     await _uploadToBigQuery(commit);
   }
@@ -241,14 +303,22 @@ class Scheduler {
   /// Schedule all builds in batch requests instead of a single request.
   ///
   /// Each batch request contains [Config.batchSize] builds to be scheduled.
-  Future<void> _batchScheduleBuilds(Commit commit, List<Tuple<Target, Task, int>> toBeScheduled) async {
+  Future<void> _batchScheduleBuilds(
+    Commit commit,
+    List<PendingTask> toBeScheduled,
+  ) async {
     final batchLog = StringBuffer(
       'Scheduling ${toBeScheduled.length} tasks in batches for ${commit.sha} as follows:\n',
     );
-    final List<Future<void>> futures = <Future<void>>[];
-    for (int i = 0; i < toBeScheduled.length; i += config.batchSize) {
-      final batch = toBeScheduled.sublist(i, min(i + config.batchSize, toBeScheduled.length));
-      batchLog.writeln('  - ${batch.map((t) => '"${t.second.name}"').join(', ')}');
+    final futures = <Future<void>>[];
+    for (var i = 0; i < toBeScheduled.length; i += config.batchSize) {
+      final batch = toBeScheduled.sublist(
+        i,
+        min(i + config.batchSize, toBeScheduled.length),
+      );
+      batchLog.writeln(
+        '  - ${batch.map((t) => '"${t.task.name}"').join(', ')}',
+      );
       futures.add(
         luciBuildService.schedulePostsubmitBuilds(
           commit: commit,
@@ -262,10 +332,10 @@ class Scheduler {
 
   /// Return subset of [commits] not stored in Datastore.
   Future<List<Commit>> _getMissingCommits(List<Commit> commits) async {
-    final List<Commit> newCommits = <Commit>[];
+    final newCommits = <Commit>[];
     // Ensure commits are sorted from newest to oldest (descending order)
     commits.sort((Commit a, Commit b) => b.timestamp!.compareTo(a.timestamp!));
-    for (Commit commit in commits) {
+    for (var commit in commits) {
       // Cocoon may randomly drop commits, so check the entire list.
       if (!await _commitExistsInDatastore(commit)) {
         newCommits.add(commit);
@@ -288,87 +358,6 @@ class Scheduler {
       return false;
     }
     return true;
-  }
-
-  /// Process and filters ciyaml.
-  Future<CiYamlSet> getCiYaml(
-    Commit commit, {
-    bool validate = false,
-  }) async {
-    final isFusion = await fusionTester.isFusionBasedRef(commit.slug, commit.sha!);
-    final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
-    final CiYamlSet totYaml = await _getCiYaml(totCommit, isFusionCommit: isFusion);
-    return _getCiYaml(commit, totCiYaml: totYaml, validate: validate, isFusionCommit: isFusion);
-  }
-
-  /// Load in memory the `.ci.yaml`.
-  Future<CiYamlSet> _getCiYaml(
-    Commit commit, {
-    CiYamlSet? totCiYaml,
-    bool validate = false,
-    RetryOptions retryOptions = const RetryOptions(delayFactor: Duration(seconds: 2), maxAttempts: 4),
-    bool isFusionCommit = false,
-  }) async {
-    Future<pb.SchedulerConfig> getSchedulerConfig(String ciPath) async {
-      final Uint8List ciYamlBytes = (await cache.getOrCreate(
-        subcacheName,
-        // This is a key for a cache; not a path - so its needs to be 'unique'
-        '${commit.repository}/${commit.sha!}/$ciPath',
-        createFn: () async => (await _downloadCiYaml(
-          commit,
-          // actual path to go and fetch
-          ciPath,
-          retryOptions: retryOptions,
-        ))
-            .writeToBuffer(),
-        ttl: const Duration(hours: 1),
-      ))!;
-      final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig.fromBuffer(ciYamlBytes);
-      log.fine('Retrieved .ci.yaml for $ciPath');
-      return schedulerConfig;
-    }
-
-    // First, whatever was asked of us.
-    final schedulerConfig = await getSchedulerConfig(kCiYamlPath);
-
-    // Second - maybe the engine CI
-    pb.SchedulerConfig? engineFusionConfig;
-    if (isFusionCommit) {
-      // Fetch the engine yaml and mark it up.
-      engineFusionConfig = await getSchedulerConfig(kCiYamlFusionEnginePath);
-      log.fine('fusion engine .ci.yaml file fetched');
-    }
-
-    // If totCiYaml is not null, we assume upper level function has verified that current branch is not a release branch.
-    return CiYamlSet(
-      yamls: {
-        CiType.any: schedulerConfig,
-        if (engineFusionConfig != null) CiType.fusionEngine: engineFusionConfig,
-      },
-      slug: commit.slug,
-      branch: commit.branch!,
-      totConfig: totCiYaml,
-      validate: validate,
-      isFusion: isFusionCommit,
-    );
-  }
-
-  /// Get `.ci.yaml` from GitHub
-  Future<pb.SchedulerConfig> _downloadCiYaml(
-    Commit commit,
-    String ciPath, {
-    RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
-  }) async {
-    final String configContent = await githubFileContent(
-      commit.slug,
-      ciPath,
-      httpClientProvider: httpClientProvider,
-      ref: commit.sha!,
-      retryOptions: retryOptions,
-    );
-    final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-    final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
-    return schedulerConfig;
   }
 
   /// Cancel all incomplete targets against a pull request.
@@ -395,11 +384,10 @@ class Scheduler {
     List<String>? builderTriggerList,
   }) async {
     // Always cancel running builds so we don't ever schedule duplicates.
-    log.info('Attempting to cancel existing presubmit targets for ${pullRequest.number}');
-    await cancelPreSubmitTargets(
-      pullRequest: pullRequest,
-      reason: reason,
+    log.info(
+      'Attempting to cancel existing presubmit targets for ${pullRequest.number}',
     );
+    await cancelPreSubmitTargets(pullRequest: pullRequest, reason: reason);
 
     final slug = pullRequest.base!.repo!.slug();
 
@@ -410,13 +398,13 @@ class Scheduler {
 
     // Track if we should unlock the merge group lock in case of non-fusion or
     // revert bots.
-    bool unlockMergeGroup = false;
+    var unlockMergeGroup = false;
 
-    final ciValidationCheckRun = await createCiYamlCheckRun(pullRequest, slug);
+    final ciValidationCheckRun = await _createCiYamlCheckRun(pullRequest, slug);
 
     log.info('Creating presubmit targets for ${pullRequest.number}');
     Object? exception;
-    bool isFusion = false;
+    var isFusion = false;
     do {
       try {
         final sha = pullRequest.head!.sha!;
@@ -428,8 +416,12 @@ class Scheduler {
         // Both the author and label should be checked to make sure that no one is
         // attempting to get a pull request without check through.
         if (pullRequest.user!.login == config.autosubmitBot &&
-            pullRequest.labels!.any((element) => element.name == Config.revertOfLabel)) {
-          log.info('Skipping generating the full set of checks for revert request.');
+            pullRequest.labels!.any(
+              (element) => element.name == Config.revertOfLabel,
+            )) {
+          log.info(
+            'Skipping generating the full set of checks for revert request.',
+          );
           unlockMergeGroup = true;
           break;
         }
@@ -441,14 +433,16 @@ class Scheduler {
         if (isFusion &&
             await _applyFrameworkOnlyPrOptimization(
               slug,
+              changedFilesCount: pullRequest.changedFilesCount!,
               prNumber: pullRequest.number!,
               prBranch: pullRequest.base!.ref!,
             )) {
-          final logCrumb = 'triggerPresubmitTargets($slug, $sha){frameworkOnly}';
+          final logCrumb =
+              'triggerPresubmitTargets($slug, $sha){frameworkOnly}';
           log.info('$logCrumb: FRAMEWORK_ONLY_TESTING_PR');
 
           await initializeCiStagingDocument(
-            firestoreService: firestoreService,
+            firestoreService: await config.createFirestoreService(),
             slug: slug,
             sha: sha,
             stage: CiStage.fusionEngineBuild,
@@ -460,45 +454,71 @@ class Scheduler {
             pullRequest: pullRequest,
             checkRunGuard: '$lock',
             logCrumb: logCrumb,
-            skipEngine: true,
-            flutterPrebuiltEngineVersion: pullRequest.base!.sha,
+
+            // The if-branch already skips the engine build phase.
+            testsToRun: _FlutterRepoTestsToRun.frameworkTestsOnly,
           );
           break;
         }
-        final presubmitTargets = isFusion
-            ? await getTestsForStage(pullRequest, CiStage.fusionEngineBuild)
-            : await getPresubmitTargets(pullRequest);
-        final presubmitTriggerTargets = filterTargets(presubmitTargets, builderTriggerList);
+        final presubmitTargets =
+            isFusion
+                ? await _getTestsForStage(
+                  pullRequest,
+                  CiStage.fusionEngineBuild,
+                )
+                : await getPresubmitTargets(pullRequest);
+        final presubmitTriggerTargets = filterTargets(
+          presubmitTargets,
+          builderTriggerList,
+        );
 
         // When running presubmits for a fusion PR; create a new staging document to track tasks needed
         // to complete before we can schedule more tests (i.e. build engine artifacts before testing against them).
+        final EngineArtifacts engineArtifacts;
         if (isFusion) {
           await initializeCiStagingDocument(
-            firestoreService: firestoreService,
+            firestoreService: await config.createFirestoreService(),
             slug: slug,
             sha: sha,
             stage: CiStage.fusionEngineBuild,
             tasks: [...presubmitTriggerTargets.map((t) => t.value.name)],
             checkRunGuard: '$lock',
           );
+          engineArtifacts = const EngineArtifacts.noFrameworkTests(
+            reason: 'This is the engine phase of the build',
+          );
+        } else {
+          engineArtifacts = const EngineArtifacts.noFrameworkTests(
+            reason: 'This is not the flutter/flutter repository',
+          );
         }
         await luciBuildService.scheduleTryBuilds(
           targets: presubmitTriggerTargets,
           pullRequest: pullRequest,
+          engineArtifacts: engineArtifacts,
         );
       } on FormatException catch (error, backtrace) {
-        log.warning('FormatException encountered when scheduling presubmit targets for ${pullRequest.number}');
+        log.warning(
+          'FormatException encountered when scheduling presubmit targets for ${pullRequest.number}',
+        );
         log.warning(backtrace.toString());
         exception = error;
       } catch (error, backtrace) {
-        log.warning('Exception encountered when scheduling presubmit targets for ${pullRequest.number}');
+        log.warning(
+          'Exception encountered when scheduling presubmit targets for ${pullRequest.number}',
+        );
         log.warning(backtrace.toString());
         exception = error;
       }
     } while (false);
 
     // Update validate ci.yaml check
-    await closeCiYamlCheckRun('PR ${pullRequest.number}', exception, slug, ciValidationCheckRun);
+    await closeCiYamlCheckRun(
+      'PR ${pullRequest.number}',
+      exception,
+      slug,
+      ciValidationCheckRun,
+    );
 
     // Normally the lock stays pending until the PR is ready to be enqueued, but
     // there are situations (see code above) when it needs to be unlocked
@@ -513,6 +533,7 @@ class Scheduler {
 
   Future<bool> _applyFrameworkOnlyPrOptimization(
     RepositorySlug slug, {
+    required int changedFilesCount,
     required int prNumber,
     required String prBranch,
   }) async {
@@ -529,21 +550,32 @@ class Scheduler {
     // In theory, many moons from now when maintained release branches are
     // guaranteed to include the flutter/recipes change we could remove this
     // check.
+    final refuseLogPrefix =
+        'Refusing to skip engine builds for PR#$prNumber branch';
     if (prBranch != Config.defaultBranch(Config.flutterSlug)) {
       log.info(
-        'Refusing to skip engine builds for PR#$prNumber branch: $prBranch (not ${Config.defaultBranch(Config.flutterSlug)} branch)',
+        '$refuseLogPrefix: $prBranch (not ${Config.defaultBranch(Config.flutterSlug)} branch)',
+      );
+      return false;
+    }
+    if (changedFilesCount > config.maxFilesChangedForSkippingEnginePhase) {
+      log.info(
+        '$refuseLogPrefix: $changedFilesCount > ${config.maxFilesChangedForSkippingEnginePhase}',
       );
       return false;
     }
     final filesChanged = await getFilesChanged.get(slug, prNumber);
     switch (filesChanged) {
       case InconclusiveFilesChanged(:final reason):
-        log.warning('Not considering PR#$prNumber as framework-only: $reason');
+        // We would have hoped to avoid making this call at all (based on changedFilesCount), or we hit an HTTP issue.
+        log.warning('$refuseLogPrefix: $reason');
         return false;
       case SuccessfulFilesChanged(:final filesChanged):
         for (final file in filesChanged) {
           if (file == 'DEPS' || file.startsWith('engine/')) {
-            log.info('Engine source files or dependencies changed in PR#$prNumber:\n${filesChanged.join('\n')}');
+            log.info(
+              '$refuseLogPrefix: Engine source files or dependencies changed.\n${filesChanged.join('\n')}',
+            );
             return false;
           }
         }
@@ -553,7 +585,7 @@ class Scheduler {
 
   Future<void> closeCiYamlCheckRun(
     String description,
-    exception,
+    Object? exception,
     RepositorySlug slug,
     CheckRun ciValidationCheckRun,
   ) async {
@@ -569,7 +601,10 @@ class Scheduler {
         conclusion: CheckRunConclusion.success,
       );
     } else {
-      log.warning('Marking $description ${Config.kCiYamlCheckName} as failed', e);
+      log.warning(
+        'Marking $description ${Config.kCiYamlCheckName} as failed',
+        e,
+      );
       // Failure when validating ci.yaml
       await githubChecksService.githubChecksUtil.updateCheckRun(
         config,
@@ -586,18 +621,23 @@ class Scheduler {
     }
   }
 
-  Future<CheckRun> createCiYamlCheckRun(PullRequest pullRequest, RepositorySlug slug) async {
+  Future<CheckRun> _createCiYamlCheckRun(
+    PullRequest pullRequest,
+    RepositorySlug slug,
+  ) async {
     log.info('Creating ciYaml validation check run for ${pullRequest.number}');
-    final CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
-      config,
-      slug,
-      pullRequest.head!.sha!,
-      Config.kCiYamlCheckName,
-      output: const CheckRunOutput(
-        title: Config.kCiYamlCheckName,
-        summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
-      ),
-    );
+    final ciValidationCheckRun = await githubChecksService.githubChecksUtil
+        .createCheckRun(
+          config,
+          slug,
+          pullRequest.head!.sha!,
+          Config.kCiYamlCheckName,
+          output: const CheckRunOutput(
+            title: Config.kCiYamlCheckName,
+            summary:
+                'If this check is stuck pending, push an empty commit to retrigger the checks',
+          ),
+        );
     return ciValidationCheckRun;
   }
 
@@ -617,7 +657,8 @@ class Scheduler {
     final slug = mergeGroupEvent.repository!.slug();
     final isFusion = await fusionTester.isFusionBasedRef(slug, headSha);
 
-    final logCrumb = 'triggerMergeGroupTargets($slug, $headSha, ${isFusion ? 'real' : 'simulated'})';
+    final logCrumb =
+        'triggerMergeGroupTargets($slug, $headSha, ${isFusion ? 'real' : 'simulated'})';
 
     log.info('$logCrumb: scheduling merge group checks');
 
@@ -645,14 +686,21 @@ class Scheduler {
         project: 'flutter',
         bucket: 'prod',
       );
-      final availableTargets = {...mergeGroupTargets.where((target) => availableBuilders.contains(target.value.name))};
+      final availableTargets = {
+        ...mergeGroupTargets.where(
+          (target) => availableBuilders.contains(target.value.name),
+        ),
+      };
       if (availableTargets.length != mergeGroupTargets.length) {
-        log.warning('$logCrumb: missing builders for targtets: ${mergeGroupTargets.difference(availableTargets)}');
+        log.warning(
+          '$logCrumb: missing builders for targtets: ${mergeGroupTargets.difference(availableTargets)}',
+        );
       }
+
       // Create the staging doc that will track our engine progress and allow us to unlock
       // the merge group lock later.
       await initializeCiStagingDocument(
-        firestoreService: firestoreService,
+        firestoreService: await config.createFirestoreService(),
         slug: slug,
         sha: headSha,
         stage: CiStage.fusionEngineBuild,
@@ -676,7 +724,11 @@ class Scheduler {
       // Do not unlock the merge group guard in successful case - that will be done by staging checks.
       log.info('$logCrumb: successfully scheduled merge group checks');
     } catch (error, stackTrace) {
-      log.warning('$logCrumb: error encountered when scheduling merge group checks', error, stackTrace);
+      log.warning(
+        '$logCrumb: error encountered when scheduling merge group checks',
+        error,
+        stackTrace,
+      );
       // If Cocoon/LUCI failed to schedule targets, the PR should be kicked out
       // of the queue. To do that, the merge queue guard must fail as it's the
       // only required GitHub check.
@@ -703,11 +755,18 @@ $stackTrace
   ) async {
     final mergeGroupTargets = [
       ...await getMergeGroupTargets(baseRef, slug, headSha),
-      ...await getMergeGroupTargets(baseRef, slug, headSha, type: CiType.fusionEngine),
+      ...await getMergeGroupTargets(
+        baseRef,
+        slug,
+        headSha,
+        type: CiType.fusionEngine,
+      ),
     ].where(
       (Target target) => switch (stage) {
-        CiStage.fusionEngineBuild => target.value.properties['release_build'] == 'true',
-        CiStage.fusionTests => target.value.properties['release_build'] != 'true'
+        CiStage.fusionEngineBuild =>
+          target.value.properties['release_build'] == 'true',
+        CiStage.fusionTests =>
+          target.value.properties['release_build'] != 'true',
       },
     );
 
@@ -720,27 +779,30 @@ $stackTrace
     String headSha, {
     CiType type = CiType.any,
   }) async {
-    log.info('Attempting to read merge group targets from ci.yaml for $headSha');
+    log.info(
+      'Attempting to read merge group targets from ci.yaml for $headSha',
+    );
 
-    final Commit commit = Commit(
+    final commit = Commit(
       branch: baseRef.substring('refs/heads/'.length),
       repository: slug.fullName,
       sha: headSha,
     );
 
-    late CiYamlSet ciYaml;
-    if (commit.branch == Config.defaultBranch(commit.slug)) {
-      ciYaml = await getCiYaml(commit, validate: true);
-    } else {
-      ciYaml = await getCiYaml(commit);
-    }
-    log.info('ci.yaml loaded successfully; collecting merge group targets for $headSha');
+    final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(
+      commit,
+      validate: commit.branch == Config.defaultBranch(commit.slug),
+    );
+    log.info(
+      'ci.yaml loaded successfully; collecting merge group targets for $headSha',
+    );
 
     final inner = ciYaml.ciYamlFor(type);
 
     // Filter out targets with schedulers different than luci or cocoon.
     bool filter(Target target) =>
-        target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon;
+        target.value.scheduler == pb.SchedulerSystem.luci ||
+        target.value.scheduler == pb.SchedulerSystem.cocoon;
     return [...inner.presubmitTargets.where(filter)];
   }
 
@@ -761,7 +823,10 @@ $stackTrace
   /// While this check is still in progress, the merge queue will not merge the
   /// respective PR onto the target branch (e.g. main or master), because this
   /// check is "required".
-  Future<CheckRun> lockMergeGroupChecks(RepositorySlug slug, String headSha) async {
+  Future<CheckRun> lockMergeGroupChecks(
+    RepositorySlug slug,
+    String headSha,
+  ) async {
     return githubChecksService.githubChecksUtil.createCheckRun(
       config,
       slug,
@@ -782,7 +847,11 @@ $stackTrace
   ///
   /// If the guard is guarding a pull request, this immediately makes the pull
   /// request eligible for enqueuing into the merge queue.
-  Future<void> unlockMergeQueueGuard(RepositorySlug slug, String headSha, CheckRun lock) async {
+  Future<void> unlockMergeQueueGuard(
+    RepositorySlug slug,
+    String headSha,
+    CheckRun lock,
+  ) async {
     log.info('Unlocking Merge Queue Guard for $slug/$headSha');
     await githubChecksService.githubChecksUtil.updateCheckRun(
       config,
@@ -826,42 +895,13 @@ $stackTrace
     List<String>? builderTriggerList,
   ) {
     if (builderTriggerList != null && builderTriggerList.isNotEmpty) {
-      return presubmitTarget.where((Target target) => builderTriggerList.contains(target.value.name)).toList();
+      return presubmitTarget
+          .where(
+            (Target target) => builderTriggerList.contains(target.value.name),
+          )
+          .toList();
     }
     return presubmitTarget;
-  }
-
-  /// Given a pull request event, retry all failed LUCI checks.
-  ///
-  /// 1. Aggregate .ci.yaml and try_builders.json presubmit builds.
-  /// 2. Get failed LUCI builds for this pull request at [commitSha].
-  /// 3. Rerun the failed builds that also have a failed check status.
-  Future<void> retryPresubmitTargets({
-    required PullRequest pullRequest,
-    required CheckSuiteEvent checkSuiteEvent,
-  }) async {
-    final GitHub githubClient = await config.createGitHubClient(pullRequest: pullRequest);
-    final Map<String, CheckRun> checkRuns = await githubChecksService.githubChecksUtil.allCheckRuns(
-      githubClient,
-      checkSuiteEvent,
-    );
-    final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
-    final List<bbv2.Build?> failedBuilds =
-        await luciBuildService.failedBuilds(pullRequest: pullRequest, targets: presubmitTargets);
-    for (bbv2.Build? build in failedBuilds) {
-      final CheckRun checkRun = checkRuns[build!.builder.builder]!;
-
-      if (checkRun.status != CheckRunStatus.completed) {
-        // Check run is still in progress, do not retry.
-        continue;
-      }
-
-      await luciBuildService.scheduleTryBuilds(
-        targets: presubmitTargets.where((Target target) => build.builder.builder == target.value.name).toList(),
-        pullRequest: pullRequest,
-        checkSuiteEvent: checkSuiteEvent,
-      );
-    }
   }
 
   /// Get LUCI presubmit builders from .ci.yaml.
@@ -874,40 +914,50 @@ $stackTrace
     PullRequest pullRequest, {
     CiType type = CiType.any,
   }) async {
-    final Commit commit = Commit(
+    final commit = Commit(
       branch: pullRequest.base!.ref,
       repository: pullRequest.base!.repo!.fullName,
       sha: pullRequest.head!.sha,
     );
-    late CiYamlSet ciYaml;
-    log.info('Attempting to read presubmit targets from ci.yaml for ${pullRequest.number}');
-    if (commit.branch == Config.defaultBranch(commit.slug)) {
-      ciYaml = await getCiYaml(commit, validate: true);
-    } else {
-      ciYaml = await getCiYaml(commit);
-    }
+    log.info(
+      'Attempting to read presubmit targets from ci.yaml for ${pullRequest.number}',
+    );
+
+    final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(
+      commit,
+      validate: commit.branch == Config.defaultBranch(commit.slug),
+    );
+
     log.info('ci.yaml loaded successfully.');
     log.info('Collecting presubmit targets for ${pullRequest.number}');
 
     final inner = ciYaml.ciYamlFor(type);
 
     // Filter out schedulers targets with schedulers different than luci or cocoon.
-    final List<Target> presubmitTargets = inner.presubmitTargets
-        .where(
-          (Target target) =>
-              target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon,
-        )
-        .toList();
+    final presubmitTargets =
+        inner.presubmitTargets
+            .where(
+              (Target target) =>
+                  target.value.scheduler == pb.SchedulerSystem.luci ||
+                  target.value.scheduler == pb.SchedulerSystem.cocoon,
+            )
+            .toList();
 
     // See https://github.com/flutter/flutter/issues/138430.
-    final includePostsubmitAsPresubmit = _includePostsubmitAsPresubmit(inner, pullRequest);
+    final includePostsubmitAsPresubmit = _includePostsubmitAsPresubmit(
+      inner,
+      pullRequest,
+    );
     if (includePostsubmitAsPresubmit) {
-      log.info('Including postsubmit targets as presubmit for ${pullRequest.number}');
+      log.info(
+        'Including postsubmit targets as presubmit for ${pullRequest.number}',
+      );
 
-      for (Target target in inner.postsubmitTargets) {
+      for (var target in inner.postsubmitTargets) {
         // We don't want to include a presubmit twice
         // We don't want to run the builder_cache target as a presubmit
-        if (!target.value.presubmit && !target.value.properties.containsKey('cache_name')) {
+        if (!target.value.presubmit &&
+            !target.value.properties.containsKey('cache_name')) {
           presubmitTargets.add(target);
         }
       }
@@ -915,12 +965,17 @@ $stackTrace
 
     log.info('Collected ${presubmitTargets.length} presubmit targets.');
     // Release branches should run every test.
-    if (pullRequest.base!.ref != Config.defaultBranch(pullRequest.base!.repo!.slug())) {
-      log.info('Release branch found, scheduling all targets for ${pullRequest.number}');
+    if (pullRequest.base!.ref !=
+        Config.defaultBranch(pullRequest.base!.repo!.slug())) {
+      log.info(
+        'Release branch found, scheduling all targets for ${pullRequest.number}',
+      );
       return presubmitTargets;
     }
     if (includePostsubmitAsPresubmit) {
-      log.info('Postsubmit targets included as presubmit, scheduling all targets for ${pullRequest.number}');
+      log.info(
+        'Postsubmit targets included as presubmit, scheduling all targets for ${pullRequest.number}',
+      );
       return presubmitTargets;
     }
 
@@ -932,17 +987,18 @@ $stackTrace
     return getTargetsToRun(presubmitTargets, filesChanged);
   }
 
-  static final _allowTestAll = {
-    Config.engineSlug,
-    Config.flutterSlug,
-  };
+  static final _allowTestAll = {Config.flutterSlug};
 
   /// Returns `true` if [ciYaml.postsubmitTargets] should be ran during presubmit.
-  static bool _includePostsubmitAsPresubmit(CiYaml ciYaml, PullRequest pullRequest) {
+  static bool _includePostsubmitAsPresubmit(
+    CiYaml ciYaml,
+    PullRequest pullRequest,
+  ) {
     if (!_allowTestAll.contains(ciYaml.slug)) {
       return false;
     }
-    if (pullRequest.labels?.any((label) => label.name.contains('test: all')) ?? false) {
+    if (pullRequest.labels?.any((label) => label.name.contains('test: all')) ??
+        false) {
       return true;
     }
     return false;
@@ -952,14 +1008,20 @@ $stackTrace
   ///
   /// Handles both fusion engine build and test stages, and both pull requests
   /// and merge groups.
-  Future<bool> processCheckRunCompletion(cocoon_checks.CheckRunEvent checkRunEvent) async {
+  Future<bool> processCheckRunCompletion(
+    cocoon_checks.CheckRunEvent checkRunEvent,
+  ) async {
     final checkRun = checkRunEvent.checkRun!;
     final name = checkRun.name;
     final sha = checkRun.headSha;
     final slug = checkRunEvent.repository?.slug();
     final conclusion = checkRun.conclusion;
 
-    if (name == null || sha == null || slug == null || conclusion == null || kCheckRunsToIgnore.contains(name)) {
+    if (name == null ||
+        sha == null ||
+        slug == null ||
+        conclusion == null ||
+        kCheckRunsToIgnore.contains(name)) {
       return true;
     }
 
@@ -971,8 +1033,6 @@ $stackTrace
     }
 
     final isMergeGroup = detectMergeGroup(checkRun);
-
-    firestoreService = await config.createFirestoreService();
 
     // Check runs are fired at every stage. However, at this point it is unknown
     // if this check run belongs in the engine build stage or in the test stage.
@@ -1028,7 +1088,9 @@ $stackTrace
 
     // Are there tests remaining? Keep waiting.
     if (stagingConclusion.isPending) {
-      log.info('$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}');
+      log.info(
+        '$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}',
+      );
       return false;
     }
 
@@ -1110,7 +1172,9 @@ $stackTrace
       return;
     }
 
-    log.info('$logCrumb: Stage completed successfully: ${CiStage.fusionEngineBuild}');
+    log.info(
+      '$logCrumb: Stage completed successfully: ${CiStage.fusionEngineBuild}',
+    );
 
     await proceedToCiTestingStage(
       checkRun: checkRun,
@@ -1132,14 +1196,21 @@ $stackTrace
   }
 
   /// Returns the presubmit targets for the fusion repo [pullRequest] that should run for the given [stage].
-  Future<List<Target>> getTestsForStage(PullRequest pullRequest, CiStage stage, {bool skipEngine = false}) async {
+  Future<List<Target>> _getTestsForStage(
+    PullRequest pullRequest,
+    CiStage stage, {
+    bool skipEngine = false,
+  }) async {
     final presubmitTargets = [
       ...await getPresubmitTargets(pullRequest),
-      if (!skipEngine) ...await getPresubmitTargets(pullRequest, type: CiType.fusionEngine),
+      if (!skipEngine)
+        ...await getPresubmitTargets(pullRequest, type: CiType.fusionEngine),
     ].where(
       (Target target) => switch (stage) {
-        CiStage.fusionEngineBuild => target.value.properties['release_build'] == 'true',
-        CiStage.fusionTests => target.value.properties['release_build'] != 'true'
+        CiStage.fusionEngineBuild =>
+          target.value.properties['release_build'] == 'true',
+        CiStage.fusionTests =>
+          target.value.properties['release_build'] != 'true',
       },
     );
     return [...presubmitTargets];
@@ -1159,26 +1230,35 @@ $stackTrace
     await unlockMergeQueueGuard(slug, sha, checkRunGuard);
   }
 
+  /// Schedules post-engine build tests (i.e. engine tests, and framework tests).
   Future<void> _runCiTestingStage({
     required PullRequest pullRequest,
     required String checkRunGuard,
     required String logCrumb,
-    bool skipEngine = false,
-    String? flutterPrebuiltEngineVersion,
+    required _FlutterRepoTestsToRun testsToRun,
   }) async {
     try {
       // Both the author and label should be checked to make sure that no one is
       // attempting to get a pull request without check through.
       if (pullRequest.user!.login == config.autosubmitBot &&
-          pullRequest.labels!.any((element) => element.name == Config.revertOfLabel)) {
-        log.info('$logCrumb: skipping generating the full set of checks for revert request.');
+          pullRequest.labels!.any(
+            (element) => element.name == Config.revertOfLabel,
+          )) {
+        log.info(
+          '$logCrumb: skipping generating the full set of checks for revert request.',
+        );
       } else {
         // Schedule the tests that would have run in a call to triggerPresubmitTargets - but for both the
         // engine and the framework.
-        final presubmitTargets = await getTestsForStage(pullRequest, CiStage.fusionTests, skipEngine: skipEngine);
+        final presubmitTargets = await _getTestsForStage(
+          pullRequest,
+          CiStage.fusionTests,
+          skipEngine: testsToRun == _FlutterRepoTestsToRun.frameworkTestsOnly,
+        );
+
         // Create the document for tracking test check runs.
         await initializeCiStagingDocument(
-          firestoreService: firestoreService,
+          firestoreService: await config.createFirestoreService(),
           slug: pullRequest.base!.repo!.slug(),
           sha: pullRequest.head!.sha!,
           stage: CiStage.fusionTests,
@@ -1186,10 +1266,30 @@ $stackTrace
           checkRunGuard: checkRunGuard,
         );
 
+        // Here is where it gets fun: how do framework tests* know what engine
+        // artifacts to fetch and use on CI? For presubmits on flutter/flutter;
+        // see https://github.com/flutter/flutter/issues/164031.
+        //
+        // *In theory, also engine tests, but engine tests build from the engine
+        // from source and rely on remote-build execution (RBE) for builds to
+        // fast and cached.
+        final EngineArtifacts engineArtifacts;
+        if (testsToRun == _FlutterRepoTestsToRun.frameworkTestsOnly) {
+          // Use the engine that this PR was branched off of.
+          engineArtifacts = EngineArtifacts.usingExistingEngine(
+            commitSha: pullRequest.base!.sha!,
+          );
+        } else {
+          // Use the engine that was built from source *for* this PR.
+          engineArtifacts = EngineArtifacts.builtFromSource(
+            commitSha: pullRequest.head!.sha!,
+          );
+        }
+
         await luciBuildService.scheduleTryBuilds(
           targets: presubmitTargets,
           pullRequest: pullRequest,
-          flutterPrebuiltEngineVersion: flutterPrebuiltEngineVersion,
+          engineArtifacts: engineArtifacts,
         );
       }
     } on FormatException catch (error, backtrace) {
@@ -1225,7 +1325,7 @@ $stackTrace
     final name = checkRun.name!;
     try {
       pullRequest = await findPullRequestFor(
-        firestoreService,
+        await config.createFirestoreService(),
         id,
         name,
       );
@@ -1235,8 +1335,12 @@ $stackTrace
 
     // We've failed to find the pull request; try a reverse look it from the check suite.
     if (pullRequest == null) {
-      final int checkSuiteId = checkRun.checkSuite!.id!;
-      pullRequest = await githubChecksService.findMatchingPullRequest(slug, sha, checkSuiteId);
+      final checkSuiteId = checkRun.checkSuite!.id!;
+      pullRequest = await githubChecksService.findMatchingPullRequest(
+        slug,
+        sha,
+        checkSuiteId,
+      );
     }
 
     // We cannot make any forward progress. Abandon all hope, Check runs who enter here.
@@ -1245,7 +1349,12 @@ $stackTrace
     }
 
     try {
-      await _runCiTestingStage(pullRequest: pullRequest, checkRunGuard: '$checkRunGuard', logCrumb: logCrumb);
+      await _runCiTestingStage(
+        pullRequest: pullRequest,
+        checkRunGuard: '$checkRunGuard',
+        logCrumb: logCrumb,
+        testsToRun: _FlutterRepoTestsToRun.engineTestsAndFrameworkTests,
+      );
     } catch (error, stacktrace) {
       await githubChecksService.githubChecksUtil.createCheckRun(
         config,
@@ -1288,28 +1397,28 @@ $stacktrace
     required String conclusion,
   }) async {
     final logCrumb = 'checkCompleted($name, $slug, $sha, $conclusion)';
-    final documentName = CiStaging.documentNameFor(slug: slug, sha: sha, stage: stage);
+    final documentName = CiStaging.documentNameFor(
+      slug: slug,
+      sha: sha,
+      stage: stage,
+    );
     log.info('$logCrumb: $documentName');
 
     // We're doing a transactional update, which could fail if multiple tasks are running at the same time; so retry
     // a sane amount of times before giving up.
-    const RetryOptions r = RetryOptions(
-      maxAttempts: 3,
-      delayFactor: Duration(seconds: 2),
-    );
+    const r = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 2));
 
-    return r.retry(
-      () {
-        return markCheckRunConclusion(
-          firestoreService: firestoreService,
-          slug: slug,
-          sha: sha,
-          stage: stage,
-          checkRun: name,
-          conclusion: conclusion,
-        );
-      },
-    );
+    final firestoreService = await config.createFirestoreService();
+    return r.retry(() {
+      return markCheckRunConclusion(
+        firestoreService: firestoreService,
+        slug: slug,
+        sha: sha,
+        stage: stage,
+        checkRun: name,
+        conclusion: conclusion,
+      );
+    });
   }
 
   /// Reschedules a failed build using a [CheckRunEvent]. The CheckRunEvent is
@@ -1321,105 +1430,212 @@ $stacktrace
   ///
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs-and-requested-actions
-  Future<bool> processCheckRun(cocoon_checks.CheckRunEvent checkRunEvent) async {
+  @useResult
+  Future<ProcessCheckRunResult> processCheckRun(
+    cocoon_checks.CheckRunEvent checkRunEvent,
+  ) async {
     switch (checkRunEvent.action) {
       case 'completed':
         await processCheckRunCompletion(checkRunEvent);
-        return true;
+        return const ProcessCheckRunResult.success();
 
       case 'rerequested':
-        log.fine('Rerun requested by GitHub user: ${checkRunEvent.sender?.login}');
-        final String? name = checkRunEvent.checkRun!.name;
-        bool success = false;
+        log.fine(
+          'Rerun requested by GitHub user: ${checkRunEvent.sender?.login}',
+        );
+        final name = checkRunEvent.checkRun!.name;
+        var success = false;
         if (name == Config.kMergeQueueLockName) {
-          final RepositorySlug slug = checkRunEvent.repository!.slug();
-          final int checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
-          log.fine('Requested re-run of "${Config.kMergeQueueLockName}" for $slug / $checkSuiteId - ignoring');
+          final slug = checkRunEvent.repository!.slug();
+          final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
+          log.fine(
+            'Requested re-run of "${Config.kMergeQueueLockName}" for $slug / $checkSuiteId - ignoring',
+          );
           success = true;
         } else if (name == Config.kCiYamlCheckName) {
           // The CheckRunEvent.checkRun.pullRequests array is empty for this
           // event, so we need to find the matching pull request.
-          final RepositorySlug slug = checkRunEvent.repository!.slug();
-          final String headSha = checkRunEvent.checkRun!.headSha!;
-          final int checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
-          final PullRequest? pullRequest =
-              await githubChecksService.findMatchingPullRequest(slug, headSha, checkSuiteId);
+          final slug = checkRunEvent.repository!.slug();
+          final headSha = checkRunEvent.checkRun!.headSha!;
+          final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
+          final pullRequest = await githubChecksService.findMatchingPullRequest(
+            slug,
+            headSha,
+            checkSuiteId,
+          );
           if (pullRequest != null) {
-            log.fine('Matched PR: ${pullRequest.number} Repo: ${slug.fullName}');
+            log.fine(
+              'Matched PR: ${pullRequest.number} Repo: ${slug.fullName}',
+            );
             await triggerPresubmitTargets(pullRequest: pullRequest);
             success = true;
           } else {
-            log.warning('No matching PR found for head_sha in check run event.');
+            log.warning(
+              'No matching PR found for head_sha in check run event.',
+            );
           }
         } else {
           try {
-            final RepositorySlug slug = checkRunEvent.repository!.slug();
-            final String gitBranch = checkRunEvent.checkRun!.checkSuite!.headBranch ?? Config.defaultBranch(slug);
-            final String sha = checkRunEvent.checkRun!.headSha!;
+            final slug = checkRunEvent.repository!.slug();
+            final gitBranch =
+                checkRunEvent.checkRun!.checkSuite!.headBranch ??
+                Config.defaultBranch(slug);
+            final sha = checkRunEvent.checkRun!.headSha!;
 
             // Only merged commits are added to the datastore. If a matching commit is found, this must be a postsubmit checkrun.
             datastore = datastoreProvider(config.db);
-            final Key<String> commitKey =
-                Commit.createKey(db: datastore.db, slug: slug, gitBranch: gitBranch, sha: sha);
+            final commitKey = Commit.createKey(
+              db: datastore.db,
+              slug: slug,
+              gitBranch: gitBranch,
+              sha: sha,
+            );
             Commit? commit;
             try {
-              commit = await Commit.fromDatastore(datastore: datastore, key: commitKey);
+              commit = await Commit.fromDatastore(
+                datastore: datastore,
+                key: commitKey,
+              );
               log.fine('Commit found in datastore.');
             } on KeyNotFoundException {
               log.fine('Commit not found in datastore.');
             }
 
             if (commit == null) {
-              log.fine('Rescheduling presubmit build.');
-              // Does not do anything with the returned build oddly.
-              await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent: checkRunEvent);
+              log.fine(
+                'Rescheduling presubmit build for ${checkRunEvent.checkRun?.name}',
+              );
+              final pullRequest = await findPullRequestForSha(
+                await config.createFirestoreService(),
+                checkRunEvent.checkRun!.headSha!,
+              );
+              if (pullRequest == null) {
+                return ProcessCheckRunResult.userError(
+                  'Asked to reschedule presubmits for unknown sha/PR: ${checkRunEvent.checkRun!.headSha!}',
+                );
+              }
+
+              final isFusion = await fusionTester.isFusionBasedRef(slug, sha);
+              final List<Target> presubmitTargets;
+              final EngineArtifacts engineArtifacts;
+              if (isFusion) {
+                // Fusion repos have presubmits split across two .ci.yaml files.
+                // /ci.yaml
+                // /engine/src/flutter/.ci.yaml
+                presubmitTargets = [
+                  ...await getPresubmitTargets(pullRequest),
+                  ...await getPresubmitTargets(
+                    pullRequest,
+                    type: CiType.fusionEngine,
+                  ),
+                ];
+                if (await _applyFrameworkOnlyPrOptimization(
+                  slug,
+                  changedFilesCount: pullRequest.changedFilesCount!,
+                  prNumber: pullRequest.number!,
+                  prBranch: pullRequest.base!.ref!,
+                )) {
+                  engineArtifacts = EngineArtifacts.usingExistingEngine(
+                    commitSha: pullRequest.base!.sha!,
+                  );
+                } else {
+                  engineArtifacts = EngineArtifacts.builtFromSource(
+                    commitSha: pullRequest.head!.sha!,
+                  );
+                }
+              } else {
+                presubmitTargets = await getPresubmitTargets(pullRequest);
+                engineArtifacts = const EngineArtifacts.noFrameworkTests(
+                  reason: 'Not flutter/flutter',
+                );
+              }
+
+              final target = presubmitTargets.firstWhereOrNull(
+                (target) => checkRunEvent.checkRun!.name == target.value.name,
+              );
+              if (target == null) {
+                return ProcessCheckRunResult.internalError(
+                  'Could not reschedule checkRun "${checkRunEvent.checkRun!.name}", '
+                  'not found in list of presubmit targets: ${presubmitTargets.map((t) => t.value.name).toList()}',
+                );
+              }
+              await luciBuildService.scheduleTryBuilds(
+                targets: [target],
+                pullRequest: pullRequest,
+                engineArtifacts: engineArtifacts,
+              );
             } else {
               log.fine('Rescheduling postsubmit build.');
-              firestoreService = await config.createFirestoreService();
-              final String checkName = checkRunEvent.checkRun!.name!;
-              final Task task = await Task.fromDatastore(datastore: datastore, commitKey: commitKey, name: checkName);
-              // Query the lastest run of the `checkName` againt commit `sha`.
-              final List<firestore.Task> taskDocuments = await firestoreService.queryCommitTasks(commit.sha!);
-              final firestore.Task taskDocument =
-                  taskDocuments.where((taskDocument) => taskDocument.taskName == checkName).toList().first;
-              log.fine('Latest firestore task is $taskDocument');
-              final CiYamlSet ciYaml = await getCiYaml(commit);
-              final Target target =
-                  ciYaml.postsubmitTargets().singleWhere((Target target) => target.value.name == task.name);
-              await luciBuildService.reschedulePostsubmitBuildUsingCheckRunEvent(
-                checkRunEvent,
-                commit: commit,
-                task: task,
-                target: target,
-                taskDocument: taskDocument,
+              final checkName = checkRunEvent.checkRun!.name!;
+              final task = await Task.fromDatastore(
                 datastore: datastore,
-                firestoreService: firestoreService,
+                commitKey: commitKey,
+                name: checkName,
               );
+              // Query the lastest run of the `checkName` againt commit `sha`.
+              final firestoreService = await config.createFirestoreService();
+              final taskDocuments = await firestoreService.queryCommitTasks(
+                commit.sha!,
+              );
+              final taskDocument =
+                  taskDocuments
+                      .where(
+                        (taskDocument) => taskDocument.taskName == checkName,
+                      )
+                      .toList()
+                      .first;
+              log.fine('Latest firestore task is $taskDocument');
+              final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(
+                commit,
+              );
+              final target = ciYaml.postsubmitTargets().singleWhere(
+                (Target target) => target.value.name == task.name,
+              );
+              await luciBuildService
+                  .reschedulePostsubmitBuildUsingCheckRunEvent(
+                    checkRunEvent,
+                    commit: commit,
+                    task: task,
+                    target: target,
+                    taskDocument: taskDocument,
+                    datastore: datastore,
+                    firestoreService: firestoreService,
+                  );
             }
 
             success = true;
           } on NoBuildFoundException {
             log.warning('No build found to reschedule.');
+          } on FormatException catch (e) {
+            // See https://github.com/flutter/flutter/issues/165018.
+            log.info('CheckName: $name failed due to user error: $e');
+            return ProcessCheckRunResult.userError('$e');
           }
         }
 
         log.fine('CheckName: $name State: $success');
-        return success;
+
+        // TODO(matanlurey): It would be better to early return above where it is not a success.
+        if (!success) {
+          return const ProcessCheckRunResult.internalError(
+            'Not successful. See previous log messages',
+          );
+        }
     }
 
-    return true;
+    return const ProcessCheckRunResult.success();
   }
 
   /// Push [Commit] to BigQuery as part of the infra metrics dashboards.
   Future<void> _uploadToBigQuery(Commit commit) async {
-    const String projectId = 'flutter-dashboard';
-    const String dataset = 'cocoon';
-    const String table = 'Checklist';
+    const projectId = 'flutter-dashboard';
+    const dataset = 'cocoon';
+    const table = 'Checklist';
 
     log.info('Uploading commit ${commit.sha} info to bigquery.');
 
-    final TabledataResource tabledataResource = await config.createTabledataResourceApi();
-    final List<Map<String, Object>> tableDataInsertAllRequestRows = <Map<String, Object>>[];
+    final tabledataResource = await config.createTabledataResourceApi();
+    final tableDataInsertAllRequestRows = <Map<String, Object>>[];
 
     /// Consolidate [commits] together
     ///
@@ -1438,42 +1654,23 @@ $stacktrace
     });
 
     /// Final [rows] to be inserted to [BigQuery]
-    final TableDataInsertAllRequest rows =
-        TableDataInsertAllRequest.fromJson(<String, Object>{'rows': tableDataInsertAllRequestRows});
+    final rows = TableDataInsertAllRequest.fromJson(<String, Object>{
+      'rows': tableDataInsertAllRequestRows,
+    });
 
     /// Insert [commits] to [BigQuery]
     try {
       if (rows.rows == null) {
         log.warning('Rows to be inserted is null');
       } else {
-        log.info('Inserting ${rows.rows!.length} into big query for ${commit.sha}');
+        log.info(
+          'Inserting ${rows.rows!.length} into big query for ${commit.sha}',
+        );
       }
       await tabledataResource.insertAll(rows, projectId, dataset, table);
     } on ApiRequestError {
       log.warning('Failed to add commits to BigQuery: $ApiRequestError');
     }
-  }
-
-  /// Returns the tip of tree [Commit] using specified [branch] and [RepositorySlug].
-  ///
-  /// A tip of tree [Commit] is used to help generate the tip of tree [CiYamlSet].
-  /// The generated tip of tree [CiYamlSet] will be compared against Presubmit Targets in current [CiYamlSet],
-  /// to ensure new targets without `bringup: true` label are not added into the build.
-  Future<Commit> generateTotCommit({required String branch, required RepositorySlug slug}) async {
-    datastore = datastoreProvider(config.db);
-    firestoreService = await config.createFirestoreService();
-    final BuildStatusService buildStatusService = buildStatusProvider(datastore, firestoreService);
-    final Commit totCommit = (await buildStatusService
-            .retrieveCommitStatus(
-              limit: 1,
-              branch: branch,
-              slug: slug,
-            )
-            .map<Commit>((CommitStatus status) => status.commit)
-            .toList())
-        .single;
-
-    return totCommit;
   }
 
   /// Parses CheckRun from a previously json string encode
@@ -1485,4 +1682,13 @@ $stacktrace
     }
     return CheckRun.fromJson(checkRunJson);
   }
+}
+
+/// Describes in `flutter/flutter` which tests to schedule.
+enum _FlutterRepoTestsToRun {
+  /// Run tests _of_ the engine, and tests in the framework (that use an engine).
+  engineTestsAndFrameworkTests,
+
+  /// Run only tests in the framework (that use an engine), skpping engine tests.
+  frameworkTestsOnly,
 }

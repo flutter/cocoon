@@ -12,11 +12,10 @@ import 'package:auto_submit/requests/graphql_queries.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:cocoon_server/logging.dart';
-import 'package:cocoon_server/testing/bigquery_testing.dart';
-import 'package:cocoon_server/testing/mocks.dart';
+import 'package:cocoon_server_test/bigquery_testing.dart';
+import 'package:cocoon_server_test/mocks.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
-import 'package:googleapis/pubsub/v1.dart' as pub;
 import 'package:graphql/client.dart' hide Request, Response;
 import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
@@ -33,7 +32,6 @@ import '../utilities/utils.dart' hide createQueryResult;
 import './github_webhook_test_data.dart';
 
 const String oid = '6dcb09b5b57875f334f61aebed695e2e4193db5e';
-const String title = 'some_title';
 
 void main() {
   group('Check CheckPullRequest', () {
@@ -45,18 +43,18 @@ void main() {
     late MockJobsResource jobsResource;
     late FakeBigqueryService bigqueryService;
     late MockPullRequestsService pullRequests;
-    final MockGitHub gitHub = MockGitHub();
+    final gitHub = MockGitHub();
     late FakePubSub pubsub;
     late PullRequestHelper flutterRequest;
     late PullRequestHelper cocoonRequest;
     late List<QueryOptions> expectedOptions;
     late QueryOptions flutterOption;
     late QueryOptions cocoonOption;
-    const String testSubscription = 'test-sub';
-    const String testTopic = 'test-topic';
-    const String rollorAuthor = 'engine-flutter-autoroll';
-    const String cocoonRepo = 'cocoon';
-    const String noAutosubmitLabel = 'no_autosubmit';
+    const testSubscription = 'test-sub';
+    const testTopic = 'test-topic';
+    const rollorAuthor = 'engine-flutter-autoroll';
+    const cocoonRepo = 'cocoon';
+    const noAutosubmitLabel = 'no_autosubmit';
 
     setUp(() {
       // To keep pre-MQ workflow tested until we're completely moved to MQ-based
@@ -73,16 +71,14 @@ void main() {
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) {
         final operation = options.asRequest.operation;
         final mutationNameRegExp = RegExp(r'"mutation (\w+)');
-        final mutationName = mutationNameRegExp.firstMatch(operation.toString())!.group(1);
+        final mutationName = mutationNameRegExp
+            .firstMatch(operation.toString())!
+            .group(1);
 
         if (mutationName == 'EnqueueFlutterPullRequest') {
           return QueryResult(
-            data: {
-              'clientMutationId': 1,
-            },
-            options: QueryOptions(
-              document: options.document,
-            ),
+            data: {'clientMutationId': 1},
+            options: QueryOptions(document: options.document),
             source: QueryResultSource.network,
           );
         }
@@ -93,11 +89,13 @@ void main() {
       githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
         final operation = options.asRequest.operation;
         final queryNameRegExp = RegExp(r'"query (\w+)');
-        final queryName = queryNameRegExp.firstMatch(operation.toString())!.group(1);
+        final queryName = queryNameRegExp
+            .firstMatch(operation.toString())!
+            .group(1);
 
         if (queryName == 'LabeledPullRequestWithReviews') {
           expect(options.variables['sOwner'], 'flutter');
-          final String? repoName = options.variables['sName'] as String?;
+          final repoName = options.variables['sName'] as String?;
           if (repoName == 'flutter') {
             return createQueryResult(flutterRequest);
           } else if (repoName == 'cocoon') {
@@ -109,9 +107,7 @@ void main() {
           return createFakeQueryResult(
             data: <String, dynamic>{
               'repository': <String, dynamic>{
-                'pullRequest': {
-                  'id': 'PR_blahblah',
-                },
+                'pullRequest': {'id': 'PR_blahblah'},
               },
             },
           );
@@ -120,11 +116,12 @@ void main() {
         }
       };
 
-      final FindPullRequestsWithReviewsQuery findPullRequestsWithReviewsQueryFlutter = FindPullRequestsWithReviewsQuery(
-        repositoryOwner: 'flutter',
-        repositoryName: 'flutter',
-        pullRequestNumber: 0,
-      );
+      final findPullRequestsWithReviewsQueryFlutter =
+          FindPullRequestsWithReviewsQuery(
+            repositoryOwner: 'flutter',
+            repositoryName: 'flutter',
+            pullRequestNumber: 0,
+          );
 
       flutterOption = QueryOptions(
         document: findPullRequestsWithReviewsQueryFlutter.documentNode,
@@ -132,11 +129,12 @@ void main() {
         variables: findPullRequestsWithReviewsQueryFlutter.variables,
       );
 
-      final FindPullRequestsWithReviewsQuery findPullRequestsWithReviewsQueryCocoon = FindPullRequestsWithReviewsQuery(
-        repositoryOwner: 'flutter',
-        repositoryName: 'cocoon',
-        pullRequestNumber: 1,
-      );
+      final findPullRequestsWithReviewsQueryCocoon =
+          FindPullRequestsWithReviewsQuery(
+            repositoryOwner: 'flutter',
+            repositoryName: 'cocoon',
+            pullRequestNumber: 1,
+          );
 
       cocoonOption = QueryOptions(
         document: findPullRequestsWithReviewsQueryCocoon.documentNode,
@@ -157,19 +155,25 @@ void main() {
         githubClient: gitHub,
       );
       config.bigqueryService = bigqueryService;
-      config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfigNoOverride);
+      config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(
+        sampleConfigNoOverride,
+      );
       pullRequests = MockPullRequestsService();
       when(gitHub.pullRequests).thenReturn(pullRequests);
-      when(pullRequests.get(any, any)).thenAnswer(
-        (_) async => PullRequest(
-          number: 123,
-          state: 'open',
-        ),
-      );
+      when(
+        // ignore: discarded_futures
+        pullRequests.get(any, any),
+      ).thenAnswer((_) async => PullRequest(number: 123, state: 'open'));
 
-      when(jobsResource.query(captureAny, any)).thenAnswer((Invocation invocation) {
+      // ignore: discarded_futures
+      when(jobsResource.query(captureAny, any)).thenAnswer((
+        Invocation invocation,
+      ) {
         return Future<QueryResponse>.value(
-          QueryResponse.fromJson(jsonDecode(insertDeleteUpdateSuccessResponse) as Map<dynamic, dynamic>),
+          QueryResponse.fromJson(
+            jsonDecode(insertDeleteUpdateSuccessResponse)
+                as Map<dynamic, dynamic>,
+          ),
         );
       });
     });
@@ -179,7 +183,7 @@ void main() {
     }
 
     test('Multiple identical messages are processed once', () async {
-      final PullRequest pullRequest1 = generatePullRequest(
+      final pullRequest1 = generatePullRequest(
         prNumber: 0,
         repoName: cocoonRepo,
       );
@@ -187,7 +191,7 @@ void main() {
       githubService.isTeamMemberMockMap['member'] = true;
       githubService.isTeamMemberMockMap['author1'] = true;
       githubService.pullRequestData = pullRequest1;
-      for (int i = 0; i < 2; i++) {
+      for (var i = 0; i < 2; i++) {
         unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest1));
       }
 
@@ -196,12 +200,9 @@ void main() {
         pubsub: pubsub,
         cronAuthProvider: auth,
       );
-      cocoonRequest = PullRequestHelper(
-        prNumber: 0,
-        lastCommitHash: oid,
-      );
+      cocoonRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
 
-      final Map<int, RepositorySlug> expectedMergeRequestMap = {};
+      final expectedMergeRequestMap = <int, RepositorySlug>{};
       expectedMergeRequestMap[0] = RepositorySlug('flutter', cocoonRepo);
 
       await checkPullRequest.get();
@@ -211,62 +212,67 @@ void main() {
       expect(0, pubsub.messagesQueue.length);
     });
 
-    test('Failing messages are logged by do not fail the entire request handler', () async {
-      final PullRequest pullRequest = generatePullRequest(
-        prNumber: 0,
-        repoName: cocoonRepo,
-      );
-      // 'member' is in the review nodes and 'author1' is the pr author.
-      githubService.isTeamMemberMockMap['member'] = true;
-      githubService.isTeamMemberMockMap['author1'] = true;
-      githubService.pullRequestData = null;
-      unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
+    test(
+      'Failing messages are logged by do not fail the entire request handler',
+      () async {
+        final pullRequest = generatePullRequest(
+          prNumber: 0,
+          repoName: cocoonRepo,
+        );
+        // 'member' is in the review nodes and 'author1' is the pr author.
+        githubService.isTeamMemberMockMap['member'] = true;
+        githubService.isTeamMemberMockMap['author1'] = true;
+        githubService.pullRequestData = null;
+        unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
 
-      checkPullRequest = CheckPullRequest(
-        config: config,
-        pubsub: pubsub,
-        cronAuthProvider: auth,
-      );
+        checkPullRequest = CheckPullRequest(
+          config: config,
+          pubsub: pubsub,
+          cronAuthProvider: auth,
+        );
 
-      final List<LogRecord> records = <LogRecord>[];
-      log.onRecord.listen((LogRecord record) => records.add(record));
+        final records = <LogRecord>[];
+        log.onRecord.listen(records.add);
 
-      // Calling get should not fail despite the failing message inside.
-      await checkPullRequest.get();
+        // Calling get should not fail despite the failing message inside.
+        await checkPullRequest.get();
 
-      final List<LogRecord> errorLogs = records.where((LogRecord record) => record.level == Level.SEVERE).toList();
-      expect(errorLogs, hasLength(1));
-      expect(
-        errorLogs[0].message,
-        contains('CheckPullRequest(flutter/cocoon/0): failed to process message.'),
-      );
-      expect(
-        errorLogs[0].message,
-        contains('Pull request: https://github.com/flutter/cocoon/0'),
-      );
-      expect(
-        errorLogs[0].message,
-        contains('Unexpected invocation of getPullRequest method'),
-      );
+        final errorLogs =
+            records
+                .where((LogRecord record) => record.level == Level.SEVERE)
+                .toList();
+        expect(errorLogs, hasLength(1));
+        expect(
+          errorLogs[0].message,
+          contains(
+            'CheckPullRequest(flutter/cocoon/0): failed to process message.',
+          ),
+        );
+        expect(
+          errorLogs[0].message,
+          contains('Pull request: https://github.com/flutter/cocoon/0'),
+        );
+        expect(
+          errorLogs[0].message,
+          contains('Unexpected invocation of getPullRequest method'),
+        );
 
-      // The message failed, so it shouldn't be acked.
-      expect(pubsub.messagesQueue, hasLength(1));
-    });
+        // The message failed, so it shouldn't be acked.
+        expect(pubsub.messagesQueue, hasLength(1));
+      },
+    );
 
     test('Closed PRs are not processed', () async {
-      final PullRequest pullRequest1 = generatePullRequest(
+      final pullRequest1 = generatePullRequest(
         prNumber: 0,
         repoName: cocoonRepo,
         state: 'close',
       );
       githubService.pullRequestData = pullRequest1;
-      when(pullRequests.get(any, any)).thenAnswer(
-        (_) async => PullRequest(
-          number: 0,
-          state: 'close',
-        ),
-      );
-      for (int i = 0; i < 2; i++) {
+      when(
+        pullRequests.get(any, any),
+      ).thenAnswer((_) async => PullRequest(number: 0, state: 'close'));
+      for (var i = 0; i < 2; i++) {
         unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest1));
       }
 
@@ -275,21 +281,16 @@ void main() {
         pubsub: pubsub,
         cronAuthProvider: auth,
       );
-      cocoonRequest = PullRequestHelper(
-        prNumber: 0,
-        lastCommitHash: oid,
-      );
+      cocoonRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
       await checkPullRequest.get();
 
-      githubGraphQLClient.verifyMutations(
-        <MutationOptions>[],
-      );
+      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
       expect(0, pubsub.messagesQueue.length);
     });
 
     test('Merge exception is handled correctly', () async {
-      final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
-      final PullRequest pullRequest2 = generatePullRequest(
+      final pullRequest1 = generatePullRequest(prNumber: 0);
+      final pullRequest2 = generatePullRequest(
         prNumber: 1,
         repoName: cocoonRepo,
       );
@@ -299,8 +300,8 @@ void main() {
       githubService.isTeamMemberMockMap['member'] = true;
       githubService.isTeamMemberMockMap['author1'] = true;
 
-      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
-      for (PullRequest pr in pullRequests) {
+      final pullRequests = <PullRequest>[pullRequest1, pullRequest2];
+      for (var pr in pullRequests) {
         unawaited(pubsub.publish(testTopic, pr));
       }
 
@@ -309,14 +310,8 @@ void main() {
         pubsub: pubsub,
         cronAuthProvider: auth,
       );
-      flutterRequest = PullRequestHelper(
-        prNumber: 0,
-        lastCommitHash: oid,
-      );
-      cocoonRequest = PullRequestHelper(
-        prNumber: 1,
-        lastCommitHash: oid,
-      );
+      flutterRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
+      cocoonRequest = PullRequestHelper(prNumber: 1, lastCommitHash: oid);
 
       githubService.useMergeRequestMockList = true;
       githubService.pullRequestMergeMockList.add(
@@ -333,31 +328,28 @@ void main() {
         ),
       );
 
-      final Map<int, RepositorySlug> expectedMergeRequestMap = {};
-      expectedMergeRequestMap[0] = RepositorySlug(
-        'flutter',
-        'flutter',
-      );
-      expectedMergeRequestMap[1] = RepositorySlug(
-        'flutter',
-        cocoonRepo,
-      );
+      final expectedMergeRequestMap = <int, RepositorySlug>{};
+      expectedMergeRequestMap[0] = RepositorySlug('flutter', 'flutter');
+      expectedMergeRequestMap[1] = RepositorySlug('flutter', cocoonRepo);
 
-      final List<LogRecord> records = <LogRecord>[];
-      log.onRecord.listen((LogRecord record) => records.add(record));
+      final records = <LogRecord>[];
+      log.onRecord.listen(records.add);
       // this is the test.
       await checkPullRequest.get();
       // every failure is now acknowledged from the queue.
       expect(pubsub.messagesQueue.length, 0);
-      final List<LogRecord> errorLogs = records.where((LogRecord record) => record.level == Level.SEVERE).toList();
+      final errorLogs =
+          records
+              .where((LogRecord record) => record.level == Level.SEVERE)
+              .toList();
       expect(errorLogs.length, 1);
       expect(errorLogs[0].message.contains('Failed to merge'), true);
       pubsub.messagesQueue.clear();
     });
 
     test('Merges PR with successful status and checks', () async {
-      final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
-      final PullRequest pullRequest2 = generatePullRequest(
+      final pullRequest1 = generatePullRequest(prNumber: 0);
+      final pullRequest2 = generatePullRequest(
         prNumber: 1,
         repoName: cocoonRepo,
       );
@@ -369,8 +361,8 @@ void main() {
       // 'member' is in the review nodes and 'author1' is the pr author.
       githubService.isTeamMemberMockMap['member'] = true;
       githubService.isTeamMemberMockMap['author1'] = true;
-      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
-      for (PullRequest pr in pullRequests) {
+      final pullRequests = <PullRequest>[pullRequest1, pullRequest2];
+      for (var pr in pullRequests) {
         unawaited(pubsub.publish(testTopic, pr));
       }
 
@@ -380,14 +372,8 @@ void main() {
         cronAuthProvider: auth,
       );
 
-      flutterRequest = PullRequestHelper(
-        prNumber: 0,
-        lastCommitHash: oid,
-      );
-      cocoonRequest = PullRequestHelper(
-        prNumber: 1,
-        lastCommitHash: oid,
-      );
+      flutterRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
+      cocoonRequest = PullRequestHelper(prNumber: 1, lastCommitHash: oid);
 
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
@@ -410,7 +396,7 @@ void main() {
         ),
       );
 
-      final Map<int, RepositorySlug> expectedMergeRequestMap = {};
+      final expectedMergeRequestMap = <int, RepositorySlug>{};
       expectedMergeRequestMap[0] = RepositorySlug('flutter', 'flutter');
       expectedMergeRequestMap[1] = RepositorySlug('flutter', cocoonRepo);
 
@@ -420,7 +406,7 @@ void main() {
     });
 
     test('Merges unapproved PR from autoroller', () async {
-      final PullRequest pullRequest = generatePullRequest(
+      final pullRequest = generatePullRequest(
         prNumber: 0,
         author: rollorAuthor,
       );
@@ -445,11 +431,8 @@ void main() {
       expectedOptions.add(flutterOption);
       verifyQueries(expectedOptions);
 
-      final Map<int, RepositorySlug> expectedMergeRequestMap = {};
-      expectedMergeRequestMap[0] = RepositorySlug(
-        'flutter',
-        'flutter',
-      );
+      final expectedMergeRequestMap = <int, RepositorySlug>{};
+      expectedMergeRequestMap[0] = RepositorySlug('flutter', 'flutter');
 
       githubService.mergeRequestMock = PullRequestMerge(
         merged: true,
@@ -463,7 +446,7 @@ void main() {
     });
 
     test('Merges a clean revert PR with in progress tests', () async {
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0);
+      final pullRequest = generatePullRequest(prNumber: 0);
       githubService.pullRequestData = pullRequest;
       // 'member' is in the review nodes and 'author1' is the pr author.
       githubService.isTeamMemberMockMap['member'] = true;
@@ -481,18 +464,16 @@ void main() {
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
         ],
-        lastCommitMessage: 'Revert "This is a test PR" This reverts commit abc.',
+        lastCommitMessage:
+            'Revert "This is a test PR" This reverts commit abc.',
       );
 
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       verifyQueries(expectedOptions);
 
-      final Map<int, RepositorySlug> expectedMergeRequestMap = {};
-      expectedMergeRequestMap[0] = RepositorySlug(
-        'flutter',
-        'flutter',
-      );
+      final expectedMergeRequestMap = <int, RepositorySlug>{};
+      expectedMergeRequestMap[0] = RepositorySlug('flutter', 'flutter');
 
       githubService.mergeRequestMock = PullRequestMerge(
         merged: true,
@@ -505,52 +486,52 @@ void main() {
       assert(pubsub.messagesQueue.isEmpty);
     });
 
-    test('Merges PR with successful checks on repo without tree status', () async {
-      final PullRequest pullRequest = generatePullRequest(
-        prNumber: 1,
-        repoName: cocoonRepo,
-      );
-      githubService.pullRequestData = pullRequest;
-      // 'member' is in the review nodes and 'author1' is the pr author.
-      githubService.isTeamMemberMockMap['member'] = true;
-      githubService.isTeamMemberMockMap['author1'] = true;
-      unawaited(pubsub.publish(testTopic, pullRequest));
+    test(
+      'Merges PR with successful checks on repo without tree status',
+      () async {
+        final pullRequest = generatePullRequest(
+          prNumber: 1,
+          repoName: cocoonRepo,
+        );
+        githubService.pullRequestData = pullRequest;
+        // 'member' is in the review nodes and 'author1' is the pr author.
+        githubService.isTeamMemberMockMap['member'] = true;
+        githubService.isTeamMemberMockMap['author1'] = true;
+        unawaited(pubsub.publish(testTopic, pullRequest));
 
-      checkPullRequest = CheckPullRequest(
-        config: config,
-        pubsub: pubsub,
-        cronAuthProvider: auth,
-      );
+        checkPullRequest = CheckPullRequest(
+          config: config,
+          pubsub: pubsub,
+          cronAuthProvider: auth,
+        );
 
-      cocoonRequest = PullRequestHelper(
-        lastCommitHash: oid,
-        lastCommitStatuses: const <StatusHelper>[],
-      );
+        cocoonRequest = PullRequestHelper(
+          lastCommitHash: oid,
+          lastCommitStatuses: const <StatusHelper>[],
+        );
 
-      await checkPullRequest.get();
-      expectedOptions.add(cocoonOption);
-      verifyQueries(expectedOptions);
+        await checkPullRequest.get();
+        expectedOptions.add(cocoonOption);
+        verifyQueries(expectedOptions);
 
-      final Map<int, RepositorySlug> expectedMergeRequestMap = {};
-      expectedMergeRequestMap[1] = RepositorySlug(
-        'flutter',
-        cocoonRepo,
-      );
+        final expectedMergeRequestMap = <int, RepositorySlug>{};
+        expectedMergeRequestMap[1] = RepositorySlug('flutter', cocoonRepo);
 
-      githubService.mergeRequestMock = PullRequestMerge(
-        merged: true,
-        sha: 'sha1',
-        message: 'Pull request merged successfully',
-      );
+        githubService.mergeRequestMock = PullRequestMerge(
+          merged: true,
+          sha: 'sha1',
+          message: 'Pull request merged successfully',
+        );
 
-      githubService.verifyMergePullRequests(expectedMergeRequestMap);
+        githubService.verifyMergePullRequests(expectedMergeRequestMap);
 
-      assert(pubsub.messagesQueue.isEmpty);
-    });
+        assert(pubsub.messagesQueue.isEmpty);
+      },
+    );
 
     test('Merges PR with neutral status checkrun', () async {
-      final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
-      final PullRequest pullRequest2 = generatePullRequest(
+      final pullRequest1 = generatePullRequest(prNumber: 0);
+      final pullRequest2 = generatePullRequest(
         prNumber: 1,
         repoName: cocoonRepo,
       );
@@ -558,8 +539,8 @@ void main() {
       // 'member' is in the review nodes and 'author1' is the pr author.
       githubService.isTeamMemberMockMap['member'] = true;
       githubService.isTeamMemberMockMap['author1'] = true;
-      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
-      for (PullRequest pr in pullRequests) {
+      final pullRequests = <PullRequest>[pullRequest1, pullRequest2];
+      for (var pr in pullRequests) {
         unawaited(pubsub.publish(testTopic, pr));
       }
       githubService.checkRunsData = neutralCheckRunsMock;
@@ -568,14 +549,8 @@ void main() {
         pubsub: pubsub,
         cronAuthProvider: auth,
       );
-      flutterRequest = PullRequestHelper(
-        prNumber: 0,
-        lastCommitHash: oid,
-      );
-      cocoonRequest = PullRequestHelper(
-        prNumber: 1,
-        lastCommitHash: oid,
-      );
+      flutterRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
+      cocoonRequest = PullRequestHelper(prNumber: 1, lastCommitHash: oid);
 
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
@@ -585,8 +560,8 @@ void main() {
     });
 
     test('Removes the label for the PR with failed tests', () async {
-      final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
-      final PullRequest pullRequest2 = generatePullRequest(
+      final pullRequest1 = generatePullRequest(prNumber: 0);
+      final pullRequest2 = generatePullRequest(
         prNumber: 1,
         repoName: cocoonRepo,
       );
@@ -594,8 +569,8 @@ void main() {
       // 'member' is in the review nodes and 'author1' is the pr author.
       githubService.isTeamMemberMockMap['member'] = true;
       githubService.isTeamMemberMockMap['author1'] = true;
-      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
-      for (PullRequest pr in pullRequests) {
+      final pullRequests = <PullRequest>[pullRequest1, pullRequest2];
+      for (var pr in pullRequests) {
         unawaited(pubsub.publish(testTopic, pr));
       }
       githubService.checkRunsData = failedCheckRunsMock;
@@ -604,14 +579,8 @@ void main() {
         pubsub: pubsub,
         cronAuthProvider: auth,
       );
-      flutterRequest = PullRequestHelper(
-        prNumber: 0,
-        lastCommitHash: oid,
-      );
-      cocoonRequest = PullRequestHelper(
-        prNumber: 1,
-        lastCommitHash: oid,
-      );
+      flutterRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
+      cocoonRequest = PullRequestHelper(prNumber: 1, lastCommitHash: oid);
 
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
@@ -621,7 +590,7 @@ void main() {
     });
 
     test('Removes the label for the PR with failed status', () async {
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0);
+      final pullRequest = generatePullRequest(prNumber: 0);
       githubService.pullRequestData = pullRequest;
       // 'member' is in the review nodes and 'author1' is the pr author.
       githubService.isTeamMemberMockMap['member'] = true;
@@ -648,63 +617,67 @@ void main() {
       assert(pubsub.messagesQueue.isEmpty);
     });
 
-    test('Removes the label if non member does not have at least 2 member reviews', () async {
-      final PullRequest pullRequest = generatePullRequest(
-        prNumber: 0,
-      );
-      githubService.pullRequestData = pullRequest;
-      // 'octocat' is the pr author from generatePullRequest calls.
-      githubService.isTeamMemberMockMap['octocat'] = false;
-      unawaited(pubsub.publish(testTopic, pullRequest));
+    test(
+      'Removes the label if non member does not have at least 2 member reviews',
+      () async {
+        final pullRequest = generatePullRequest(prNumber: 0);
+        githubService.pullRequestData = pullRequest;
+        // 'octocat' is the pr author from generatePullRequest calls.
+        githubService.isTeamMemberMockMap['octocat'] = false;
+        unawaited(pubsub.publish(testTopic, pullRequest));
 
-      checkPullRequest = CheckPullRequest(
-        config: config,
-        pubsub: pubsub,
-        cronAuthProvider: auth,
-      );
+        checkPullRequest = CheckPullRequest(
+          config: config,
+          pubsub: pubsub,
+          cronAuthProvider: auth,
+        );
 
-      flutterRequest = PullRequestHelper(
-        authorAssociation: '',
-        lastCommitHash: oid,
-        lastCommitStatuses: const <StatusHelper>[
-          StatusHelper.flutterBuildSuccess,
-        ],
-      );
+        flutterRequest = PullRequestHelper(
+          authorAssociation: '',
+          lastCommitHash: oid,
+          lastCommitStatuses: const <StatusHelper>[
+            StatusHelper.flutterBuildSuccess,
+          ],
+        );
 
-      await checkPullRequest.get();
-      expectedOptions.add(flutterOption);
-      verifyQueries(expectedOptions);
-      assert(pubsub.messagesQueue.isEmpty);
-    });
+        await checkPullRequest.get();
+        expectedOptions.add(flutterOption);
+        verifyQueries(expectedOptions);
+        assert(pubsub.messagesQueue.isEmpty);
+      },
+    );
 
-    test('Removes the label for the PR with null checks and statuses', () async {
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0);
-      githubService.pullRequestData = pullRequest;
-      // 'octocat' is the pr author from generatePullRequest calls.
-      githubService.isTeamMemberMockMap['octocat'] = true;
-      unawaited(pubsub.publish(testTopic, pullRequest));
+    test(
+      'Removes the label for the PR with null checks and statuses',
+      () async {
+        final pullRequest = generatePullRequest(prNumber: 0);
+        githubService.pullRequestData = pullRequest;
+        // 'octocat' is the pr author from generatePullRequest calls.
+        githubService.isTeamMemberMockMap['octocat'] = true;
+        unawaited(pubsub.publish(testTopic, pullRequest));
 
-      githubService.checkRunsData = emptyCheckRunsMock;
-      checkPullRequest = CheckPullRequest(
-        config: config,
-        pubsub: pubsub,
-        cronAuthProvider: auth,
-      );
+        githubService.checkRunsData = emptyCheckRunsMock;
+        checkPullRequest = CheckPullRequest(
+          config: config,
+          pubsub: pubsub,
+          cronAuthProvider: auth,
+        );
 
-      flutterRequest = PullRequestHelper(
-        lastCommitHash: oid,
-        lastCommitStatuses: const <StatusHelper>[],
-      );
+        flutterRequest = PullRequestHelper(
+          lastCommitHash: oid,
+          lastCommitStatuses: const <StatusHelper>[],
+        );
 
-      await checkPullRequest.get();
-      expectedOptions.add(flutterOption);
-      verifyQueries(expectedOptions);
-      assert(pubsub.messagesQueue.isEmpty);
-    });
+        await checkPullRequest.get();
+        expectedOptions.add(flutterOption);
+        verifyQueries(expectedOptions);
+        assert(pubsub.messagesQueue.isEmpty);
+      },
+    );
 
     test('Does not merge PR with in progress checks', () async {
-      final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
-      final PullRequest pullRequest2 = generatePullRequest(
+      final pullRequest1 = generatePullRequest(prNumber: 0);
+      final pullRequest2 = generatePullRequest(
         prNumber: 1,
         repoName: cocoonRepo,
       );
@@ -712,8 +685,8 @@ void main() {
       // 'member' is in the review nodes and 'author1' is the pr author.
       githubService.isTeamMemberMockMap['member'] = true;
       githubService.isTeamMemberMockMap['author1'] = true;
-      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
-      for (PullRequest pr in pullRequests) {
+      final pullRequests = <PullRequest>[pullRequest1, pullRequest2];
+      for (var pr in pullRequests) {
         unawaited(pubsub.publish(testTopic, pr));
       }
       githubService.checkRunsData = inProgressCheckRunsMock;
@@ -733,18 +706,18 @@ void main() {
     });
 
     test('Does not merge PR if no autosubmit label any more', () async {
-      final PullRequest pullRequest1 = generatePullRequest(
+      final pullRequest1 = generatePullRequest(
         prNumber: 0,
         autosubmitLabel: noAutosubmitLabel,
       );
-      final PullRequest pullRequest2 = generatePullRequest(
+      final pullRequest2 = generatePullRequest(
         prNumber: 1,
         autosubmitLabel: noAutosubmitLabel,
         repoName: cocoonRepo,
       );
       githubService.pullRequestData = pullRequest1;
-      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
-      for (PullRequest pr in pullRequests) {
+      final pullRequests = <PullRequest>[pullRequest1, pullRequest2];
+      for (var pr in pullRequests) {
         unawaited(pubsub.publish(testTopic, pr));
       }
       checkPullRequest = CheckPullRequest(
@@ -759,7 +732,7 @@ void main() {
     });
 
     test('Self review is disallowed', () async {
-      final PullRequest pullRequest = generatePullRequest(
+      final pullRequest = generatePullRequest(
         prNumber: 0,
         author: 'some_rando',
       );
@@ -795,17 +768,12 @@ void main() {
     });
 
     test('All messages are pulled', () async {
-      for (int i = 0; i < 3; i++) {
-        final PullRequest pullRequest = generatePullRequest(
+      for (var i = 0; i < 3; i++) {
+        final pullRequest = generatePullRequest(
           prNumber: i,
           repoName: cocoonRepo,
         );
-        unawaited(
-          pubsub.publish(
-            'auto-submit-queue-sub',
-            pullRequest,
-          ),
-        );
+        unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
       }
 
       checkPullRequest = CheckPullRequest(
@@ -813,11 +781,12 @@ void main() {
         pubsub: pubsub,
         cronAuthProvider: auth,
       );
-      cocoonRequest = PullRequestHelper(
-        prNumber: 0,
-        lastCommitHash: oid,
+      cocoonRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
+      final messages = await checkPullRequest.pullMessages(
+        testSubscription,
+        5,
+        5,
       );
-      final List<pub.ReceivedMessage> messages = await checkPullRequest.pullMessages(testSubscription, 5, 5);
       expect(messages.length, 3);
     });
   });
@@ -831,15 +800,4 @@ QueryResult createQueryResult(PullRequestHelper pullRequest) {
       },
     },
   );
-}
-
-Map<String, dynamic> getMergePullRequestVariables(
-  String id,
-  String number,
-) {
-  return <String, dynamic>{
-    'id': id,
-    'oid': oid,
-    'title': '$title (#$number)',
-  };
 }

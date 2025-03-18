@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/common/json_converters.dart';
 import 'package:json_annotation/json_annotation.dart';
+
+import '../../../cocoon_service.dart';
+import '../common/json_converters.dart';
 
 part 'pubsub_message.g.dart';
 
@@ -13,12 +14,10 @@ part 'pubsub_message.g.dart';
 // message.
 @JsonSerializable(includeIfNull: false)
 class PubSubPushMessage extends JsonBody {
-  const PubSubPushMessage({
-    this.message,
-    this.subscription,
-  });
+  const PubSubPushMessage({this.message, this.subscription});
 
-  static PubSubPushMessage fromJson(Map<String, dynamic> json) => _$PubSubPushMessageFromJson(json);
+  static PubSubPushMessage fromJson(Map<String, dynamic> json) =>
+      _$PubSubPushMessageFromJson(json);
 
   /// The message contents.
   final PushMessage? message;
@@ -58,7 +57,8 @@ class PushMessage extends JsonBody {
   /// "2014-10-02T15:01:23.045123456Z".
   final String? publishTime;
 
-  static PushMessage fromJson(Map<String, dynamic> json) => _$PushMessageFromJson(json);
+  static PushMessage fromJson(Map<String, dynamic> json) =>
+      _$PushMessageFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$PushMessageToJson(this);

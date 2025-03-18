@@ -6,21 +6,21 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:fixnum/fixnum.dart';
-import 'package:flutter_dashboard/model/branch.pb.dart';
 
 import '../logic/qualified_task.dart';
 import '../model/build_status_response.pb.dart';
 import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
-import '../model/commit_tasks_status.pb.dart';
 import '../model/key.pb.dart';
 import '../model/task.pb.dart';
+import '../src/rpc_model.dart';
+import '../widgets/task_box.dart';
 import 'cocoon.dart';
 
 class _PausedCommitStatus {
   _PausedCommitStatus(CocoonResponse<List<CommitStatus>> status)
-      : _completer = Completer<CocoonResponse<List<CommitStatus>>>(),
-        _pausedStatus = status;
+    : _completer = Completer<CocoonResponse<List<CommitStatus>>>(),
+      _pausedStatus = status;
 
   final Completer<CocoonResponse<List<CommitStatus>>> _completer;
   CocoonResponse<List<CommitStatus>>? _pausedStatus;
@@ -46,7 +46,7 @@ class _PausedCommitStatus {
 /// This creates fake data that mimicks what production will send.
 class DevelopmentCocoonService implements CocoonService {
   DevelopmentCocoonService(this.now, {this.simulateLoadingDelays = false})
-      : _random = math.Random(now.millisecondsSinceEpoch);
+    : _random = math.Random(now.millisecondsSinceEpoch);
 
   final math.Random _random;
 
@@ -70,23 +70,14 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<List<CommitTasksStatus>>> fetchCommitStatusesFirestore({
-    CommitStatus? lastCommitStatus,
-    String? branch,
-    required String repo,
-  }) async {
-    // TODO(keyonghan): to be impelemented when logics are switched to Firestore.
-    return const CocoonResponse<List<CommitTasksStatus>>.error('');
-  }
-
-  @override
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
     CommitStatus? lastCommitStatus,
     String? branch,
     required String repo,
   }) async {
-    final CocoonResponse<List<CommitStatus>> data =
-        CocoonResponse<List<CommitStatus>>.data(_createFakeCommitStatuses(lastCommitStatus, repo));
+    final data = CocoonResponse<List<CommitStatus>>.data(
+      _createFakeCommitStatuses(lastCommitStatus, repo, branch: branch),
+    );
     if (_pausedStatus == null || _pausedStatus!.isComplete) {
       _pausedStatus = _PausedCommitStatus(data);
     } else {
@@ -95,7 +86,7 @@ class DevelopmentCocoonService implements CocoonService {
 
     if (!_paused) {
       if (simulateLoadingDelays) {
-        final _PausedCommitStatus? delayedStatus = _pausedStatus;
+        final delayedStatus = _pausedStatus;
         Future<void>.delayed(const Duration(seconds: 2), () {
           if (!_paused && !delayedStatus!.isComplete) {
             delayedStatus.complete();
@@ -109,11 +100,7 @@ class DevelopmentCocoonService implements CocoonService {
     return _pausedStatus!.future;
   }
 
-  static const List<String> _repos = <String>[
-    'flutter',
-    'engine',
-    'cocoon',
-  ];
+  static const List<String> _repos = <String>['flutter', 'cocoon'];
 
   @override
   Future<CocoonResponse<List<String>>> fetchRepos() async {
@@ -125,9 +112,11 @@ class DevelopmentCocoonService implements CocoonService {
     String? branch,
     required String repo,
   }) async {
-    final bool failed = _random.nextBool();
-    final BuildStatusResponse response = BuildStatusResponse()
-      ..buildStatus = failed ? EnumBuildStatus.failure : EnumBuildStatus.success;
+    final failed = _random.nextBool();
+    final response =
+        BuildStatusResponse()
+          ..buildStatus =
+              failed ? EnumBuildStatus.failure : EnumBuildStatus.success;
     if (failed) {
       response.failingTasks.addAll(<String>['failed_task_1', 'failed_task_2']);
     }
@@ -137,21 +126,12 @@ class DevelopmentCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<List<Branch>>> fetchFlutterBranches() async {
-    final List<Branch> fakeBranches = <Branch>[
-      Branch()
-        ..channel = 'HEAD'
-        ..branch = 'master',
-      Branch()
-        ..channel = 'stable'
-        ..branch = 'flutter-3.13-candidate.0',
-      Branch()
-        ..channel = 'beta'
-        ..branch = 'flutter-3.15-candidate.5',
-      Branch()
-        ..channel = 'dev'
-        ..branch = 'flutter-3.15-candidate.12',
-    ];
-    return CocoonResponse<List<Branch>>.data(fakeBranches);
+    return CocoonResponse.data([
+      Branch(channel: 'master', reference: 'master'),
+      Branch(channel: 'stable', reference: 'flutter-3.13-candidate.0'),
+      Branch(channel: 'beta', reference: 'flutter-3.15-candidate.5'),
+      Branch(channel: 'dev', reference: 'flutter-3.15-candidate.12'),
+    ]);
   }
 
   @override
@@ -160,35 +140,81 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<bool>> rerunTask(Task task, String? accessToken, String repo) async {
+  Future<CocoonResponse<bool>> rerunTask({
+    required String? idToken,
+    required String taskName,
+    required String commitSha,
+    required String repo,
+    required String branch,
+  }) async {
     return const CocoonResponse<bool>.error(
       'Unable to retry against fake data. Try building the app to use prod data.',
     );
   }
 
+  @override
+  Future<CocoonResponse<void>> rerunCommit({
+    required String? idToken,
+    required String commitSha,
+    required String repo,
+    required String branch,
+  }) async {
+    return const CocoonResponse<void>.error(
+      'Unable to schedule against fake data. Try building the app to use prod data.',
+    );
+  }
+
   static const int _commitGap = 2 * 60 * 1000; // 2 minutes between commits
 
-  List<CommitStatus> _createFakeCommitStatuses(CommitStatus? lastCommitStatus, String repo) {
-    final int baseTimestamp =
-        lastCommitStatus != null ? (lastCommitStatus.commit.timestamp.toInt()) : now.millisecondsSinceEpoch;
-
-    final List<CommitStatus> result = <CommitStatus>[];
-    for (int index = 0; index < 25; index += 1) {
-      final int commitTimestamp = baseTimestamp - ((index + 1) * _commitGap);
-      final math.Random random = math.Random(commitTimestamp);
-      final Commit commit = _createFakeCommit(commitTimestamp, random, repo, _commits[index]);
-      final CommitStatus status = CommitStatus()
-        ..branch = defaultBranches[repo]!
-        ..commit = commit
-        ..tasks.addAll(_createFakeTasks(commitTimestamp, commit, random));
+  List<CommitStatus> _createFakeCommitStatuses(
+    CommitStatus? lastCommitStatus,
+    String repo, {
+    String? branch,
+  }) {
+    branch ??= defaultBranches[repo]!;
+    final baseTimestamp =
+        lastCommitStatus != null
+            ? (lastCommitStatus.commit.timestamp.toInt())
+            : now.millisecondsSinceEpoch;
+    final result = <CommitStatus>[];
+    for (var index = 0; index < 25; index += 1) {
+      final commitTimestamp = baseTimestamp - ((index + 1) * _commitGap);
+      final random = math.Random(commitTimestamp);
+      final commit = _createFakeCommit(
+        commitTimestamp,
+        random,
+        repo,
+        _commits[index],
+        branch,
+      );
+      final status =
+          CommitStatus()
+            ..branch = branch
+            ..commit = commit
+            ..tasks.addAll(_createFakeTasks(commitTimestamp, commit, random));
       result.add(status);
     }
     return result;
   }
 
-  final List<String> _authors = <String>['alice', 'bob', 'charlie', 'dobb', 'eli', 'fred'];
+  final List<String> _authors = <String>[
+    'alice',
+    'bob',
+    'charlie',
+    'dobb',
+    'eli',
+    'fred',
+  ];
   final List<int> _messagePrimes = <int>[3, 11, 17, 23, 31, 41, 47, 67, 79];
-  final List<String> _words = <String>['fixes', 'issue', 'crash', 'developer', 'blocker', 'intermittent', 'format'];
+  final List<String> _words = <String>[
+    'fixes',
+    'issue',
+    'crash',
+    'developer',
+    'blocker',
+    'intermittent',
+    'format',
+  ];
   final List<String> _commits = <String>[
     '2d22b5e85f986f3fa2cf1bfaf085905c2182c270',
     '2fd76f920a38e4384248173d05ee482d5aeaf4c5',
@@ -274,19 +300,29 @@ class DevelopmentCocoonService implements CocoonService {
     '792aa82143bb12e97f396cb2a462ad617dbd22bc',
   ];
 
-  Commit _createFakeCommit(int commitTimestamp, math.Random random, String repo, String commitSha) {
-    final int author = random.nextInt(_authors.length);
-    final int message = commitTimestamp % 37 + author;
-    final int messageInc = _messagePrimes[message % _messagePrimes.length];
+  Commit _createFakeCommit(
+    int commitTimestamp,
+    math.Random random,
+    String repo,
+    String commitSha,
+    String branch,
+  ) {
+    final author = random.nextInt(_authors.length);
+    final message = commitTimestamp % 37 + author;
+    final messageInc = _messagePrimes[message % _messagePrimes.length];
     return Commit()
       ..key = (RootKey()..child = (Key()..name = '$commitTimestamp'))
       ..author = _authors[author]
-      ..authorAvatarUrl = 'https://avatars2.githubusercontent.com/u/${2148558 + author}?v=4'
-      ..message = List<String>.generate(6, (int i) => _words[(message + i * messageInc) % _words.length]).join(' ')
+      ..authorAvatarUrl =
+          'https://avatars2.githubusercontent.com/u/${2148558 + author}?v=4'
+      ..message = List<String>.generate(
+        6,
+        (int i) => _words[(message + i * messageInc) % _words.length],
+      ).join(' ')
       ..repository = 'flutter/$repo'
       ..sha = commitSha
       ..timestamp = Int64(commitTimestamp)
-      ..branch = 'master';
+      ..branch = branch;
   }
 
   static const Map<String, int> _repoTaskCount = <String, int>{
@@ -295,9 +331,15 @@ class DevelopmentCocoonService implements CocoonService {
     'flutter/engine': 20,
   };
 
-  List<Task> _createFakeTasks(int commitTimestamp, Commit commit, math.Random random) {
+  List<Task> _createFakeTasks(
+    int commitTimestamp,
+    Commit commit,
+    math.Random random,
+  ) {
     if (_repoTaskCount.containsKey(commit.repository) == false) {
-      throw Exception('Add ${commit.repository} to _repoTaskCount in DevCocoonService');
+      throw Exception(
+        'Add ${commit.repository} to _repoTaskCount in DevCocoonService',
+      );
     }
     return List<Task>.generate(
       _repoTaskCount[commit.repository]!,
@@ -306,99 +348,99 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   static const List<String> _statuses = <String>[
-    'New',
-    'In Progress',
-    'Succeeded',
-    'Succeeded Flaky',
-    'Failed',
-    'Underperformed',
-    'Underperfomed In Progress',
-    'Skipped',
+    TaskBox.statusNew,
+    TaskBox.statusInProgress,
+    TaskBox.statusSucceeded,
+    TaskBox.statusFailed,
+    TaskBox.statusInfraFailure,
+    TaskBox.statusSkipped,
+    TaskBox.statusCancelled,
   ];
 
   static const Map<String, int> _minAttempts = <String, int>{
-    'New': 0,
-    'In Progress': 1,
-    'Succeeded': 1,
-    'Succeeded Flaky': 1,
-    'Failed': 1,
-    'Underperformed': 1,
-    'Underperfomed In Progress': 1,
-    'Skipped': 0,
+    TaskBox.statusNew: 0,
+    TaskBox.statusInProgress: 1,
+    TaskBox.statusSucceeded: 1,
+    TaskBox.statusFailed: 1,
+    TaskBox.statusInfraFailure: 1,
+    TaskBox.statusSkipped: 0,
+    TaskBox.statusCancelled: 1,
   };
 
   static const Map<String, int> _maxAttempts = <String, int>{
-    'New': 0,
-    'In Progress': 1,
-    'Succeeded': 1,
-    'Succeeded Flaky': 2,
-    'Failed': 2,
-    'Underperformed': 2,
-    'Underperfomed In Progress': 2,
-    'Skipped': 0,
+    TaskBox.statusNew: 0,
+    TaskBox.statusInProgress: 1,
+    TaskBox.statusSucceeded: 1,
+    TaskBox.statusFailed: 2,
+    TaskBox.statusInfraFailure: 2,
+    TaskBox.statusSkipped: 0,
+    TaskBox.statusCancelled: 1,
   };
 
-  Task _createFakeTask(int commitTimestamp, int index, String stageName, math.Random random) {
-    final int age = (now.millisecondsSinceEpoch - commitTimestamp) ~/ _commitGap;
+  Task _createFakeTask(
+    int commitTimestamp,
+    int index,
+    String stageName,
+    math.Random random,
+  ) {
+    final age = (now.millisecondsSinceEpoch - commitTimestamp) ~/ _commitGap;
     assert(age >= 0);
     // The [statusesProbability] list is an list of proportional
     // weights to give each of the values in _statuses when randomly
     // determining the status. So e.g. if one is 150, another 50, and
     // the rest 0, then the first has a 75% chance of being picked,
     // the second a 25% chance, and the rest a 0% chance.
-    final List<int> statusesProbability = <int>[
+    final statusesProbability = <int>[
       // bigger = more probable
-      math.max(index % 2, 20 - age * 2), // blue
-      math.max(0, 10 - age * 2), // spinny
-      math.min(10 + age * 2, 100), // green
-      math.min(1 + age ~/ 3, 30), // yellow
-      if (index % 15 == 0) // red
+      math.max(index % 2, 20 - age * 2), // TaskBox.statusNew
+      math.max(0, 10 - age * 2), // TaskBox.statusInProgress
+      math.min(10 + age * 2, 100), // TaskBox.statusSucceeded
+      math.min(1 + age ~/ 3, 30), // TaskBox.statusFailed
+      if (index % 15 == 0) // TaskBox.statusInfraFailure
         5
-      else if (index % 25 == 0) // red
+      else if (index % 25 == 0)
         15
       else
         1,
-      1, // orange
-      1, // orange spinny
-      if (index == now.millisecondsSinceEpoch % 20) // white
-        math.max(0, 1000 - age * 20)
-      else if (index == now.millisecondsSinceEpoch % 22)
-        math.max(0, 1000 - age * 10)
-      else
-        0,
+      if (index % 20 == 0) 30,
+      1, // TaskBox.statusCancelled
     ];
     // max is the sum of all the values in statusesProbability.
-    final int max = statusesProbability.fold(0, (int c, int p) => c + p);
+    final max = statusesProbability.fold(0, (int c, int p) => c + p);
     // weightedIndex is the random number in the range 0 <= weightedIndex < max.
-    int weightedIndex = random.nextInt(max);
+    var weightedIndex = random.nextInt(max);
     // statusIndex is the actual index into _statuses that corresponds
     // to the randomly selected weightedIndex. So if
     // statusesProbability is 10,20,30 and weightedIndex is 15, then
     // the statusIndex will be 1 (corresponding to the second entry,
     // the one with weight 20, since lists are zero-indexed).
-    int statusIndex = 0;
+    var statusIndex = 0;
     while (weightedIndex > statusesProbability[statusIndex]) {
       weightedIndex -= statusesProbability[statusIndex];
       statusIndex += 1;
     }
     // Finally we get the actual status using statusIndex as an index into _statuses.
-    final String status = _statuses[statusIndex];
-    final int minAttempts = _minAttempts[status]!;
-    final int maxAttempts = _maxAttempts[status]!;
-    final int attempts = minAttempts + random.nextInt(maxAttempts - minAttempts + 1);
-    final Task task = Task()
-      ..createTimestamp = Int64(commitTimestamp + index)
-      ..startTimestamp = Int64(commitTimestamp + (index * 1000 * 60))
-      ..endTimestamp = Int64(commitTimestamp + (index * 1000 * 60) + (index * 1000 * 60))
-      ..name = 'Linux_android $index'
-      ..builderName = 'Linux_android $index'
-      ..attempts = attempts
-      ..isFlaky = index == now.millisecondsSinceEpoch % 13
-      ..requiredCapabilities.add('[linux/android]')
-      ..reservedForAgentId = 'linux1'
-      ..stageName = stageName
-      ..status = status
-      ..isTestFlaky = index == now.millisecondsSinceEpoch % 17;
+    final status = _statuses[statusIndex];
+    final minAttempts = _minAttempts[status]!;
+    final maxAttempts = _maxAttempts[status]!;
+    final attempts =
+        minAttempts + random.nextInt(maxAttempts - minAttempts + 1);
+    final task =
+        Task()
+          ..createTimestamp = Int64(commitTimestamp + index)
+          ..startTimestamp = Int64(commitTimestamp + (index * 1000 * 60))
+          ..endTimestamp = Int64(
+            commitTimestamp + (index * 1000 * 60) + (index * 1000 * 60),
+          )
+          ..name = 'Linux_android $index'
+          ..builderName = 'Linux_android $index'
+          ..attempts = attempts
+          ..isFlaky = index == now.millisecondsSinceEpoch % 13
+          ..requiredCapabilities.add('[linux/android]')
+          ..reservedForAgentId = 'linux1'
+          ..stageName = stageName
+          ..status = status
+          ..isTestFlaky = index == now.millisecondsSinceEpoch % 17;
 
     return task;
   }

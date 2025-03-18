@@ -10,9 +10,7 @@ import '../server/request_handler.dart';
 
 /// Handler for readiness checks.
 class ReadinessCheck extends RequestHandler {
-  const ReadinessCheck({
-    required super.config,
-  });
+  const ReadinessCheck({required super.config});
 
   @override
   Future<Response> get() async {

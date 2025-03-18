@@ -67,22 +67,30 @@ class Artifact extends $pb.GeneratedMessage {
     return $result;
   }
   Artifact._() : super();
-  factory Artifact.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Artifact.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Artifact.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Artifact.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Artifact',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Artifact',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'luci.resultdb.v1'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
     ..aOS(2, _omitFieldNames ? '' : 'artifactId')
     ..aOS(3, _omitFieldNames ? '' : 'fetchUrl')
-    ..aOM<$0.Timestamp>(4, _omitFieldNames ? '' : 'fetchUrlExpiration', subBuilder: $0.Timestamp.create)
+    ..aOM<$0.Timestamp>(4, _omitFieldNames ? '' : 'fetchUrlExpiration',
+        subBuilder: $0.Timestamp.create)
     ..aOS(5, _omitFieldNames ? '' : 'contentType')
     ..aInt64(6, _omitFieldNames ? '' : 'sizeBytes')
-    ..a<$core.List<$core.int>>(7, _omitFieldNames ? '' : 'contents', $pb.PbFieldType.OY)
+    ..a<$core.List<$core.int>>(
+        7, _omitFieldNames ? '' : 'contents', $pb.PbFieldType.OY)
     ..aOS(8, _omitFieldNames ? '' : 'gcsUri')
-    ..e<$1.TestStatus>(9, _omitFieldNames ? '' : 'testStatus', $pb.PbFieldType.OE,
+    ..e<$1.TestStatus>(
+        9, _omitFieldNames ? '' : 'testStatus', $pb.PbFieldType.OE,
         defaultOrMaker: $1.TestStatus.STATUS_UNSPECIFIED,
         valueOf: $1.TestStatus.valueOf,
         enumValues: $1.TestStatus.values)
@@ -105,7 +113,8 @@ class Artifact extends $pb.GeneratedMessage {
   Artifact createEmptyInstance() => create();
   static $pb.PbList<Artifact> createRepeated() => $pb.PbList<Artifact>();
   @$core.pragma('dart2js:noInline')
-  static Artifact getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Artifact>(create);
+  static Artifact getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Artifact>(create);
   static Artifact? _defaultInstance;
 
   /// Can be used to refer to this artifact.
@@ -256,4 +265,5 @@ class Artifact extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

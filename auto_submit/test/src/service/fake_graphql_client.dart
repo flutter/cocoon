@@ -44,15 +44,21 @@ class FakeGraphQLClient implements GraphQLClient {
     final errorBuffer = StringBuffer();
 
     if (queries.length != expected.length) {
-      errorBuffer.writeln('queries.length (${queries.length}) != expected.length (${expected.length})');
+      errorBuffer.writeln(
+        'queries.length (${queries.length}) != expected.length (${expected.length})',
+      );
     }
 
-    for (int i = 0; i < math.min(queries.length, expected.length); i++) {
+    for (var i = 0; i < math.min(queries.length, expected.length); i++) {
       final matcher = equals(expected[i].properties);
-      final matchState = {};
-      if (!matcher.matches(queries[i].properties, matchState)) {
+      if (!matcher.matches(queries[i].properties, {})) {
         final description = StringDescription();
-        matcher.describeMismatch(expected[i].properties, description, matchState, false);
+        matcher.describeMismatch(
+          expected[i].properties,
+          description,
+          {},
+          false,
+        );
         errorBuffer.writeln(description);
       }
     }
@@ -64,11 +70,8 @@ class FakeGraphQLClient implements GraphQLClient {
 
   void verifyMutations(List<MutationOptions> expected) {
     expect(mutations.length, expected.length);
-    for (int i = 0; i < mutations.length; i++) {
-      expect(
-        mutations[i].properties,
-        equals(expected[i].properties),
-      );
+    for (var i = 0; i < mutations.length; i++) {
+      expect(mutations[i].properties, equals(expected[i].properties));
     }
   }
 
@@ -76,7 +79,10 @@ class FakeGraphQLClient implements GraphQLClient {
   late DefaultPolicies defaultPolicies;
 
   @override
-  Map<String, dynamic> readFragment(FragmentRequest fragmentRequest, {bool? optimistic = true}) {
+  Map<String, dynamic> readFragment(
+    FragmentRequest fragmentRequest, {
+    bool? optimistic = true,
+  }) {
     throw UnimplementedError();
   }
 
@@ -91,10 +97,18 @@ class FakeGraphQLClient implements GraphQLClient {
   }
 
   @override
-  void writeFragment(FragmentRequest fragmentRequest, {bool? broadcast = true, Map<String, dynamic>? data}) {}
+  void writeFragment(
+    FragmentRequest fragmentRequest, {
+    bool? broadcast = true,
+    Map<String, dynamic>? data,
+  }) {}
 
   @override
-  void writeQuery(Request request, {Map<String, dynamic>? data, bool? broadcast = true}) {}
+  void writeQuery(
+    Request request, {
+    Map<String, dynamic>? data,
+    bool? broadcast = true,
+  }) {}
 
   @override
   GraphQLCache get cache => throw UnimplementedError();
@@ -137,12 +151,9 @@ class FakeGraphQLClient implements GraphQLClient {
 QueryResult createFakeQueryResult({
   Map<String, dynamic>? data,
   OperationException? exception,
-}) =>
-    QueryResult(
-      data: data,
-      exception: exception,
-      options: QueryOptions(
-        document: const DocumentNode(),
-      ),
-      source: QueryResultSource.network,
-    );
+}) => QueryResult(
+  data: data,
+  exception: exception,
+  options: QueryOptions(document: const DocumentNode()),
+  source: QueryResultSource.network,
+);

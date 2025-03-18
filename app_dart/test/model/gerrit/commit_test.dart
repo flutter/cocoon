@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 void main() {
   group(GerritCommit, () {
     test('fromJson', () {
-      const String json = '''{
+      const json = '''{
       "commit": "c80a772eebe7f47d12ad1b21bc48fbd9521519aa",
       "tree": "ee444f607795706641aedbc7c43a578b001aec5e",
       "parents": [
@@ -28,7 +28,9 @@ void main() {
       },
       "message": "Roll recipe dependencies (trivial)\\n\\nThis is an automated CL created by the recipe roller."
     }''';
-      final GerritCommit commit = GerritCommit.fromJson(jsonDecode(json));
+      final commit = GerritCommit.fromJson(
+        jsonDecode(json) as Map<String, Object?>,
+      );
       expect(commit.author, isNotNull);
       expect(commit.author!.name, 'recipe-roller');
       expect(commit.author!.time, DateTime(2023, 06, 07, 22, 54, 6));

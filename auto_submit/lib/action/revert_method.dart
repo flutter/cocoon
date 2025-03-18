@@ -2,8 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/service/config.dart';
 import 'package:github/github.dart' as github;
+
+import '../service/config.dart';
 
 abstract class RevertMethod {
   // Allows substitution of the method of creating the revert request.

@@ -2,7 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:github/github.dart' show CheckSuite, PullRequest, User, Repository;
+import 'dart:convert';
+
+import 'package:github/github.dart'
+    show CheckSuite, PullRequest, Repository, User;
 import 'package:github/hooks.dart' show HookEvent;
 import 'package:json_annotation/json_annotation.dart';
 
@@ -14,20 +17,21 @@ part 'checks.g.dart';
 ///  * https://docs.github.com/en/webhooks/webhook-events-and-payloads#check_run.
 @JsonSerializable(fieldRename: FieldRename.snake)
 class CheckRunEvent extends HookEvent {
-  CheckRunEvent({
-    this.action,
-    this.checkRun,
-    this.sender,
-    this.repository,
-  });
+  CheckRunEvent({this.action, this.checkRun, this.sender, this.repository});
 
-  factory CheckRunEvent.fromJson(Map<String, dynamic> input) => _$CheckRunEventFromJson(input);
+  factory CheckRunEvent.fromJson(Map<String, dynamic> input) =>
+      _$CheckRunEventFromJson(input);
   CheckRun? checkRun;
   String? action;
   User? sender;
   Repository? repository;
 
   Map<String, dynamic> toJson() => _$CheckRunEventToJson(this);
+
+  @override
+  String toString() {
+    return 'CheckRunEvent ${const JsonEncoder.withIndent('  ').convert(toJson())}';
+  }
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
@@ -41,7 +45,8 @@ class CheckRun {
     this.checkSuite,
   });
 
-  factory CheckRun.fromJson(Map<String, dynamic> input) => _$CheckRunFromJson(input);
+  factory CheckRun.fromJson(Map<String, dynamic> input) =>
+      _$CheckRunFromJson(input);
   final int? id;
   final String? headSha;
   final String? conclusion;
@@ -51,6 +56,11 @@ class CheckRun {
   final List<PullRequest>? pullRequests;
 
   Map<String, dynamic> toJson() => _$CheckRunToJson(this);
+
+  @override
+  String toString() {
+    return 'CheckRun ${const JsonEncoder.withIndent('  ').convert(toJson())}';
+  }
 }
 
 /// Data model for a `merge_group` event.
@@ -73,7 +83,8 @@ class MergeGroupEvent extends HookEvent {
     this.sender,
   });
 
-  factory MergeGroupEvent.fromJson(Map<String, dynamic> input) => _$MergeGroupEventFromJson(input);
+  factory MergeGroupEvent.fromJson(Map<String, dynamic> input) =>
+      _$MergeGroupEventFromJson(input);
 
   String action;
 
@@ -98,6 +109,11 @@ class MergeGroupEvent extends HookEvent {
   User? sender;
 
   Map<String, dynamic> toJson() => _$MergeGroupEventToJson(this);
+
+  @override
+  String toString() {
+    return 'MergeGroupEvent ${const JsonEncoder.withIndent('  ').convert(toJson())}';
+  }
 }
 
 /// Data model for a `merge_group`.
@@ -113,7 +129,8 @@ class MergeGroup {
     required this.headCommit,
   });
 
-  factory MergeGroup.fromJson(Map<String, dynamic> input) => _$MergeGroupFromJson(input);
+  factory MergeGroup.fromJson(Map<String, dynamic> input) =>
+      _$MergeGroupFromJson(input);
 
   /// The commit SHA generated for the candidate PR to be merged.
   ///
@@ -133,6 +150,11 @@ class MergeGroup {
   final HeadCommit headCommit;
 
   Map<String, dynamic> toJson() => _$MergeGroupToJson(this);
+
+  @override
+  String toString() {
+    return 'MergeGroup ${const JsonEncoder.withIndent('  ').convert(toJson())}';
+  }
 }
 
 /// Data model for `merge_group.head_commit`.
@@ -148,7 +170,8 @@ class HeadCommit {
     required this.message,
   });
 
-  factory HeadCommit.fromJson(Map<String, dynamic> input) => _$HeadCommitFromJson(input);
+  factory HeadCommit.fromJson(Map<String, dynamic> input) =>
+      _$HeadCommitFromJson(input);
 
   /// The commit SHA generated for the candidate PR to be merged.
   ///
@@ -162,4 +185,9 @@ class HeadCommit {
   final String message;
 
   Map<String, dynamic> toJson() => _$HeadCommitToJson(this);
+
+  @override
+  String toString() {
+    return 'HeadCommit ${const JsonEncoder.withIndent('  ').convert(toJson())}';
+  }
 }

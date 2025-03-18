@@ -5,18 +5,18 @@
 import 'dart:async';
 
 import 'package:cocoon_server/access_client_provider.dart';
-import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
-import 'package:http/http.dart';
 
+import '../../cocoon_service.dart';
 import '../model/firestore/commit.dart';
 import '../model/firestore/github_build_status.dart';
 import '../model/firestore/github_gold_status.dart';
 import '../model/firestore/task.dart';
 import 'config.dart';
 
-const String kDatabase = 'projects/${Config.flutterGcpProjectId}/databases/${Config.flutterGcpFirestoreDatabase}';
+const String kDatabase =
+    'projects/${Config.flutterGcpProjectId}/databases/${Config.flutterGcpFirestoreDatabase}';
 const String kDocumentParent = '$kDatabase/documents';
 const String kFieldFilterOpEqual = 'EQUAL';
 const String kFieldFilterOpNotEqual = 'NOT_EQUAL';
@@ -35,7 +35,10 @@ const Map<String, String> kRelationMapping = <String, String>{
   '!=': 'NOT_EQUAL',
 };
 
-final kFieldMapRegExp = RegExp(r'([a-zA-Z0-9_\t ]+)' '(${kRelationMapping.keys.join("|")})');
+final kFieldMapRegExp = RegExp(
+  r'([a-zA-Z0-9_\t ]+)'
+  '(${kRelationMapping.keys.join("|")})',
+);
 
 class FirestoreService {
   const FirestoreService(this.accessClientProvider);
@@ -45,7 +48,7 @@ class FirestoreService {
 
   /// Return a [ProjectsDatabasesDocumentsResource] with an authenticated [client]
   Future<ProjectsDatabasesDocumentsResource> documentResource() async {
-    final Client client = await accessClientProvider.createAccessClient(
+    final client = await accessClientProvider.createAccessClient(
       scopes: const <String>[FirestoreApi.datastoreScope],
       baseClient: FirestoreBaseClient(
         projectId: Config.flutterGcpProjectId,
@@ -56,10 +59,8 @@ class FirestoreService {
   }
 
   /// Gets a document based on name.
-  Future<Document> getDocument(
-    String name,
-  ) async {
-    final ProjectsDatabasesDocumentsResource databasesDocumentsResource = await documentResource();
+  Future<Document> getDocument(String name) async {
+    final databasesDocumentsResource = await documentResource();
     return databasesDocumentsResource.get(name);
   }
 
@@ -69,8 +70,11 @@ class FirestoreService {
   /// Each write succeeds or fails independently.
   ///
   /// https://firebase.google.com/docs/firestore/reference/rest/v1/projects.databases.documents/batchWrite
-  Future<BatchWriteResponse> batchWriteDocuments(BatchWriteRequest request, String database) async {
-    final ProjectsDatabasesDocumentsResource databasesDocumentsResource = await documentResource();
+  Future<BatchWriteResponse> batchWriteDocuments(
+    BatchWriteRequest request,
+    String database,
+  ) async {
+    final databasesDocumentsResource = await documentResource();
     return databasesDocumentsResource.batchWrite(request, database);
   }
 
@@ -78,13 +82,16 @@ class FirestoreService {
   ///
   /// This is an atomic operation: either all writes succeed or all writes fail.
   Future<CommitResponse> writeViaTransaction(List<Write> writes) async {
-    final ProjectsDatabasesDocumentsResource databasesDocumentsResource = await documentResource();
-    final BeginTransactionRequest beginTransactionRequest =
-        BeginTransactionRequest(options: TransactionOptions(readWrite: ReadWrite()));
-    final BeginTransactionResponse beginTransactionResponse =
-        await databasesDocumentsResource.beginTransaction(beginTransactionRequest, kDatabase);
-    final CommitRequest commitRequest =
-        CommitRequest(transaction: beginTransactionResponse.transaction, writes: writes);
+    final databasesDocumentsResource = await documentResource();
+    final beginTransactionRequest = BeginTransactionRequest(
+      options: TransactionOptions(readWrite: ReadWrite()),
+    );
+    final beginTransactionResponse = await databasesDocumentsResource
+        .beginTransaction(beginTransactionRequest, kDatabase);
+    final commitRequest = CommitRequest(
+      transaction: beginTransactionResponse.transaction,
+      writes: writes,
+    );
     return databasesDocumentsResource.commit(commitRequest, kDatabase);
   }
 
@@ -101,47 +108,86 @@ class FirestoreService {
   }) async {
     timestamp ??= DateTime.now().millisecondsSinceEpoch;
     branch ??= Config.defaultBranch(slug);
-    final Map<String, Object> filterMap = <String, Object>{
+    final filterMap = <String, Object>{
       '$kCommitBranchField =': branch,
       '$kCommitRepositoryPathField =': slug.fullName,
       '$kCommitCreateTimestampField <': timestamp,
     };
-    final Map<String, String> orderMap = <String, String>{
+    final orderMap = <String, String>{
       kCommitCreateTimestampField: kQueryOrderDescending,
     };
-    final List<Document> documents = await query(kCommitCollectionId, filterMap, orderMap: orderMap, limit: limit);
-    return documents.map((Document document) => Commit.fromDocument(commitDocument: document)).toList();
+    final documents = await query(
+      kCommitCollectionId,
+      filterMap,
+      orderMap: orderMap,
+      limit: limit,
+    );
+    return documents
+        .map(
+          (Document document) => Commit.fromDocument(commitDocument: document),
+        )
+        .toList();
+  }
+
+  /// Queries for recent [Task] by [name].
+  Future<List<Task>> queryRecentTasksByName({
+    int limit = 100,
+    required String name,
+  }) async {
+    final filterMap = {'$kTaskNameField =': name};
+    final orderMap = {kTaskCreateTimestampField: kQueryOrderDescending};
+    final documents = await query(
+      kTaskCollectionId,
+      filterMap,
+      orderMap: orderMap,
+    );
+    return documents.map((d) => Task.fromDocument(taskDocument: d)).toList();
   }
 
   /// Returns all tasks running against the speificed [commitSha].
   Future<List<Task>> queryCommitTasks(String commitSha) async {
-    final Map<String, Object> filterMap = <String, Object>{
-      '$kTaskCommitShaField =': commitSha,
-    };
-    final Map<String, String> orderMap = <String, String>{
+    final filterMap = <String, Object>{'$kTaskCommitShaField =': commitSha};
+    final orderMap = <String, String>{
       kTaskCreateTimestampField: kQueryOrderDescending,
     };
-    final List<Document> documents = await query(kTaskCollectionId, filterMap, orderMap: orderMap);
-    return documents.map((Document document) => Task.fromDocument(taskDocument: document)).toList();
+    final documents = await query(
+      kTaskCollectionId,
+      filterMap,
+      orderMap: orderMap,
+    );
+    return documents
+        .map((Document document) => Task.fromDocument(taskDocument: document))
+        .toList();
   }
 
   /// Queries the last updated Gold status for the [slug] and [prNumber].
   ///
   /// If not existing, returns a fresh new Gold status.
-  Future<GithubGoldStatus> queryLastGoldStatus(RepositorySlug slug, int prNumber) async {
-    final Map<String, Object> filterMap = <String, Object>{
+  Future<GithubGoldStatus> queryLastGoldStatus(
+    RepositorySlug slug,
+    int prNumber,
+  ) async {
+    final filterMap = <String, Object>{
       '$kGithubGoldStatusPrNumberField =': prNumber,
       '$kGithubGoldStatusRepositoryField =': slug.fullName,
     };
-    final List<Document> documents = await query(kGithubGoldStatusCollectionId, filterMap);
-    final List<GithubGoldStatus> githubGoldStatuses =
-        documents.map((Document document) => GithubGoldStatus.fromDocument(githubGoldStatus: document)).toList();
+    final documents = await query(kGithubGoldStatusCollectionId, filterMap);
+    final githubGoldStatuses =
+        documents
+            .map(
+              (Document document) =>
+                  GithubGoldStatus.fromDocument(githubGoldStatus: document),
+            )
+            .toList();
     if (githubGoldStatuses.isEmpty) {
       return GithubGoldStatus.fromDocument(
         githubGoldStatus: Document(
-          name: '$kDatabase/documents/$kGithubGoldStatusCollectionId/${slug.owner}_${slug.name}_$prNumber',
+          name:
+              '$kDatabase/documents/$kGithubGoldStatusCollectionId/${slug.owner}_${slug.name}_$prNumber',
           fields: <String, Value>{
-            kGithubGoldStatusPrNumberField: Value(integerValue: prNumber.toString()),
+            kGithubGoldStatusPrNumberField: Value(
+              integerValue: prNumber.toString(),
+            ),
             kGithubGoldStatusHeadField: Value(stringValue: ''),
             kGithubGoldStatusStatusField: Value(stringValue: ''),
             kGithubGoldStatusUpdatesField: Value(integerValue: '0'),
@@ -152,8 +198,10 @@ class FirestoreService {
       );
     } else {
       if (githubGoldStatuses.length > 1) {
-        throw StateError('GithubGoldStatusUpdate should have no more than one entry on '
-            'repository ${slug.fullName}, pr $prNumber.');
+        throw StateError(
+          'GithubGoldStatusUpdate should have no more than one entry on '
+          'repository ${slug.fullName}, pr $prNumber.',
+        );
       }
       return githubGoldStatuses.single;
     }
@@ -162,34 +210,51 @@ class FirestoreService {
   /// Queries the last updated build status for the [slug], [prNumber], and [head].
   ///
   /// If not existing, returns a fresh new Build status.
-  Future<GithubBuildStatus> queryLastBuildStatus(RepositorySlug slug, int prNumber, String head) async {
-    final Map<String, Object> filterMap = <String, Object>{
+  Future<GithubBuildStatus> queryLastBuildStatus(
+    RepositorySlug slug,
+    int prNumber,
+    String head,
+  ) async {
+    final filterMap = <String, Object>{
       '$kGithubBuildStatusPrNumberField =': prNumber,
       '$kGithubBuildStatusRepositoryField =': slug.fullName,
       '$kGithubBuildStatusHeadField =': head,
     };
-    final List<Document> documents = await query(kGithubBuildStatusCollectionId, filterMap);
-    final List<GithubBuildStatus> githubBuildStatuses =
-        documents.map((Document document) => GithubBuildStatus.fromDocument(githubBuildStatus: document)).toList();
+    final documents = await query(kGithubBuildStatusCollectionId, filterMap);
+    final githubBuildStatuses =
+        documents
+            .map(
+              (Document document) =>
+                  GithubBuildStatus.fromDocument(githubBuildStatus: document),
+            )
+            .toList();
     if (githubBuildStatuses.isEmpty) {
       return GithubBuildStatus.fromDocument(
         githubBuildStatus: Document(
-          name: '$kDatabase/documents/$kGithubBuildStatusCollectionId/${head}_$prNumber',
+          name:
+              '$kDatabase/documents/$kGithubBuildStatusCollectionId/${head}_$prNumber',
           fields: <String, Value>{
-            kGithubBuildStatusPrNumberField: Value(integerValue: prNumber.toString()),
+            kGithubBuildStatusPrNumberField: Value(
+              integerValue: prNumber.toString(),
+            ),
             kGithubBuildStatusHeadField: Value(stringValue: head),
             kGithubBuildStatusStatusField: Value(stringValue: ''),
             kGithubBuildStatusUpdatesField: Value(integerValue: '0'),
-            kGithubBuildStatusUpdateTimeMillisField:
-                Value(integerValue: DateTime.now().millisecondsSinceEpoch.toString()),
-            kGithubBuildStatusRepositoryField: Value(stringValue: slug.fullName),
+            kGithubBuildStatusUpdateTimeMillisField: Value(
+              integerValue: DateTime.now().millisecondsSinceEpoch.toString(),
+            ),
+            kGithubBuildStatusRepositoryField: Value(
+              stringValue: slug.fullName,
+            ),
           },
         ),
       );
     } else {
       if (githubBuildStatuses.length > 1) {
-        throw StateError('GithubBuildStatus should have no more than one entry on '
-            'repository ${slug.fullName}, pr $prNumber, and head $head.');
+        throw StateError(
+          'GithubBuildStatus should have no more than one entry on '
+          'repository ${slug.fullName}, pr $prNumber, and head $head.',
+        );
       }
       return githubBuildStatuses.single;
     }
@@ -206,8 +271,11 @@ class FirestoreService {
   }
 
   /// Generates Firestore query filter based on "human" read conditions.
-  Filter generateFilter(Map<String, Object> filterMap, String compositeFilterOp) {
-    final List<Filter> filters = <Filter>[];
+  Filter generateFilter(
+    Map<String, Object> filterMap,
+    String compositeFilterOp,
+  ) {
+    final filters = <Filter>[];
     filterMap.forEach((filterString, comparisonOject) {
       final match = kFieldMapRegExp.firstMatch(filterString);
       if (match == null) {
@@ -218,7 +286,7 @@ class FirestoreService {
         throw ArgumentError("Invalid filter comparison in '$filterString'.");
       }
 
-      final Value value = getValueFromFilter(comparisonOject);
+      final value = getValueFromFilter(comparisonOject);
       filters.add(
         Filter(
           fieldFilter: FieldFilter(
@@ -230,10 +298,7 @@ class FirestoreService {
       );
     });
     return Filter(
-      compositeFilter: CompositeFilter(
-        filters: filters,
-        op: compositeFilterOp,
-      ),
+      compositeFilter: CompositeFilter(filters: filters, op: compositeFilterOp),
     );
   }
 
@@ -241,9 +306,11 @@ class FirestoreService {
     if (orderMap == null || orderMap.isEmpty) {
       return null;
     }
-    final List<Order> orders = <Order>[];
+    final orders = <Order>[];
     orderMap.forEach((field, direction) {
-      orders.add(Order(field: FieldReference(fieldPath: field), direction: direction));
+      orders.add(
+        Order(field: FieldReference(fieldPath: field), direction: direction),
+      );
     });
     return orders;
   }
@@ -266,13 +333,13 @@ class FirestoreService {
     Map<String, String>? orderMap,
     String compositeFilterOp = kCompositeFilterOpAnd,
   }) async {
-    final ProjectsDatabasesDocumentsResource databasesDocumentsResource = await documentResource();
-    final List<CollectionSelector> from = <CollectionSelector>[
+    final databasesDocumentsResource = await documentResource();
+    final from = <CollectionSelector>[
       CollectionSelector(collectionId: collectionId),
     ];
-    final Filter filter = generateFilter(filterMap, compositeFilterOp);
-    final List<Order>? orders = generateOrders(orderMap);
-    final RunQueryRequest runQueryRequest = RunQueryRequest(
+    final filter = generateFilter(filterMap, compositeFilterOp);
+    final orders = generateOrders(orderMap);
+    final runQueryRequest = RunQueryRequest(
       structuredQuery: StructuredQuery(
         from: from,
         where: filter,
@@ -280,15 +347,19 @@ class FirestoreService {
         limit: limit,
       ),
     );
-    final List<RunQueryResponseElement> runQueryResponseElements =
-        await databasesDocumentsResource.runQuery(runQueryRequest, kDocumentParent);
+    final runQueryResponseElements = await databasesDocumentsResource.runQuery(
+      runQueryRequest,
+      kDocumentParent,
+    );
     return documentsFromQueryResponse(runQueryResponseElements);
   }
 
   /// Retrieve documents based on query response.
-  List<Document> documentsFromQueryResponse(List<RunQueryResponseElement> runQueryResponseElements) {
-    final List<Document> documents = <Document>[];
-    for (RunQueryResponseElement runQueryResponseElement in runQueryResponseElements) {
+  List<Document> documentsFromQueryResponse(
+    List<RunQueryResponseElement> runQueryResponseElements,
+  ) {
+    final documents = <Document>[];
+    for (var runQueryResponseElement in runQueryResponseElements) {
       if (runQueryResponseElement.document != null) {
         documents.add(runQueryResponseElement.document!);
       }

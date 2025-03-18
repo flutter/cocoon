@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -13,11 +15,10 @@ import 'package:google_sign_in/google_sign_in.dart';
 class GoogleSignInService extends ChangeNotifier {
   /// Creates a new [GoogleSignIn].
   GoogleSignInService({GoogleSignIn? googleSignIn})
-      : _googleSignIn = googleSignIn ??
-            GoogleSignIn(
-              scopes: _googleScopes,
-            ) {
-    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? accountValue) {
+    : _googleSignIn = googleSignIn ?? GoogleSignIn(scopes: _googleScopes) {
+    _googleSignIn.onCurrentUserChanged.listen((
+      GoogleSignInAccount? accountValue,
+    ) {
       // We could decode the idToken here and look at its TTL, but it can be
       // revoked (from another website) at any time, so the only reliable way of
       // knowing that we're still authenticated is... to monitor the statuses of
@@ -27,7 +28,7 @@ class GoogleSignInService extends ChangeNotifier {
     });
 
     try {
-      _googleSignIn.signInSilently();
+      unawaited(_googleSignIn.signInSilently());
     } on PlatformException catch (error) {
       debugPrint('GoogleSignIn error code: ${error.code}');
       debugPrint(error.message);
@@ -59,10 +60,13 @@ class GoogleSignInService extends ChangeNotifier {
 
   /// Authentication token to be sent to Cocoon Backend to verify API calls.
   Future<String> get idToken async {
-    assert(isAuthenticated, 'Ensure user isAuthenticated before requesting an idToken.');
+    assert(
+      isAuthenticated,
+      'Ensure user isAuthenticated before requesting an idToken.',
+    );
 
-    final GoogleSignInAuthentication? key = await user?.authentication;
-    final String? idToken = key?.idToken;
+    final key = await user?.authentication;
+    final idToken = key?.idToken;
     assert(idToken != null && idToken.isNotEmpty);
 
     return idToken!;

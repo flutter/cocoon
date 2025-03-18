@@ -19,13 +19,11 @@ enum _SignInButtonAction { logout }
 /// If logged in, it will display the user's avatar. Clicking it opens a dropdown for logging out.
 /// Otherwise, a sign in button will show.
 class UserSignIn extends StatelessWidget {
-  const UserSignIn({
-    super.key,
-  });
+  const UserSignIn({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final GoogleSignInService authService = Provider.of<GoogleSignInService>(context);
+    final authService = Provider.of<GoogleSignInService>(context);
 
     // Listen to the changes of `authService` to re-render.
     return AnimatedBuilder(
@@ -34,31 +32,30 @@ class UserSignIn extends StatelessWidget {
         if (authService.user != null) {
           return PopupMenuButton<_SignInButtonAction>(
             offset: const Offset(0, 50),
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<_SignInButtonAction>>[
-              const PopupMenuItem<_SignInButtonAction>(
-                value: _SignInButtonAction.logout,
-                child: Text('Log out'),
-              ),
-            ],
-            onSelected: (_SignInButtonAction value) {
+            itemBuilder:
+                (BuildContext context) => <PopupMenuEntry<_SignInButtonAction>>[
+                  const PopupMenuItem<_SignInButtonAction>(
+                    value: _SignInButtonAction.logout,
+                    child: Text('Log out'),
+                  ),
+                ],
+            onSelected: (_SignInButtonAction value) async {
               switch (value) {
                 case _SignInButtonAction.logout:
-                  authService.signOut();
-                  break;
+                  await authService.signOut();
               }
             },
             iconSize: Scaffold.of(context).appBarMaxHeight,
             icon: Builder(
               builder: (BuildContext context) {
-                if (!kIsWeb && Platform.environment.containsKey('FLUTTER_TEST')) {
+                if (!kIsWeb &&
+                    Platform.environment.containsKey('FLUTTER_TEST')) {
                   return Padding(
                     padding: const EdgeInsets.only(right: 10.0, top: 20.0),
                     child: Text(authService.user!.email),
                   );
                 }
-                return GoogleUserCircleAvatar(
-                  identity: authService.user!,
-                );
+                return GoogleUserCircleAvatar(identity: authService.user!);
               },
             ),
           );

@@ -21,7 +21,11 @@ void main() {
 
     test('documentNameFor produces expected keys', () {
       expect(
-        CiStaging.documentNameFor(slug: RepositorySlug('code', 'fu'), sha: '12345', stage: CiStage.fusionTests),
+        CiStaging.documentNameFor(
+          slug: RepositorySlug('code', 'fu'),
+          sha: '12345',
+          stage: CiStage.fusionTests,
+        ),
         '$kDocumentParent/ciStaging/code_fu_12345_fusion',
       );
     });
@@ -82,12 +86,20 @@ void main() {
 
       setUp(() {
         docRes = MockProjectsDatabasesDocumentsResource();
-        when(docRes.rollback(captureAny, captureAny)).thenAnswer((_) async => Empty());
-        when(firestoreService.documentResource()).thenAnswer((_) async => docRes);
+        when(
+          // ignore: discarded_futures
+          docRes.rollback(captureAny, captureAny),
+        ).thenAnswer((_) async => Empty());
+        when(
+          // ignore: discarded_futures
+          firestoreService.documentResource(),
+        ).thenAnswer((_) async => docRes);
       });
 
       test('bad transaction throws', () async {
-        when(docRes.beginTransaction(any, any)).thenAnswer((_) async => BeginTransactionResponse());
+        when(
+          docRes.beginTransaction(any, any),
+        ).thenAnswer((_) async => BeginTransactionResponse());
         expect(
           CiStaging.markConclusion(
             firestoreService: firestoreService,
@@ -102,7 +114,13 @@ void main() {
       });
 
       test('handles missing fields', () async {
-        when(docRes.beginTransaction(any, any, $fields: argThat(isNull, named: r'$fields'))).thenAnswer((_) async {
+        when(
+          docRes.beginTransaction(
+            any,
+            any,
+            $fields: argThat(isNull, named: r'$fields'),
+          ),
+        ).thenAnswer((_) async {
           return BeginTransactionResponse(transaction: kTransaction);
         });
         when(
@@ -132,18 +150,34 @@ void main() {
             transaction: argThat(equals(kTransaction), named: 'transaction'),
           ),
         ).called(1);
-        verify(docRes.rollback(argThat(predicate((RollbackRequest t) => t.transaction == kTransaction)), kDatabase))
-            .called(1);
+        verify(
+          docRes.rollback(
+            argThat(
+              predicate((RollbackRequest t) => t.transaction == kTransaction),
+            ),
+            kDatabase,
+          ),
+        ).called(1);
         verify(
           docRes.beginTransaction(
-            argThat(predicate((BeginTransactionRequest t) => t.options!.readWrite != null)),
+            argThat(
+              predicate(
+                (BeginTransactionRequest t) => t.options!.readWrite != null,
+              ),
+            ),
             kDatabase,
           ),
         ).called(1);
       });
 
       test('handles missing check_runs', () async {
-        when(docRes.beginTransaction(any, any, $fields: argThat(isNull, named: r'$fields'))).thenAnswer((_) async {
+        when(
+          docRes.beginTransaction(
+            any,
+            any,
+            $fields: argThat(isNull, named: r'$fields'),
+          ),
+        ).thenAnswer((_) async {
           return BeginTransactionResponse(transaction: kTransaction);
         });
         when(
@@ -190,12 +224,24 @@ void main() {
             details: 'Change flutter_flutter_1234',
           ),
         );
-        verify(docRes.rollback(argThat(predicate((RollbackRequest t) => t.transaction == kTransaction)), kDatabase))
-            .called(1);
+        verify(
+          docRes.rollback(
+            argThat(
+              predicate((RollbackRequest t) => t.transaction == kTransaction),
+            ),
+            kDatabase,
+          ),
+        ).called(1);
       });
 
       test('handles transaction failures', () async {
-        when(docRes.beginTransaction(any, any, $fields: argThat(isNull, named: r'$fields'))).thenAnswer((_) async {
+        when(
+          docRes.beginTransaction(
+            any,
+            any,
+            $fields: argThat(isNull, named: r'$fields'),
+          ),
+        ).thenAnswer((_) async {
           return BeginTransactionResponse(transaction: kTransaction);
         });
         when(
@@ -219,7 +265,9 @@ void main() {
           ),
         );
 
-        when(docRes.commit(any, kDatabase)).thenAnswer((_) async => Future.error('commit failure'));
+        when(
+          docRes.commit(any, kDatabase),
+        ).thenAnswer((_) async => Future.error('commit failure'));
 
         final future = CiStaging.markConclusion(
           firestoreService: firestoreService,
@@ -238,8 +286,20 @@ void main() {
                 return t.transaction == kTransaction &&
                     t.writes!.length == 1 &&
                     t.writes!.first.update!.fields!.length == 5 &&
-                    t.writes!.first.update!.fields!['Linux build_test']!.stringValue == 'mulligan' &&
-                    t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '0';
+                    t
+                            .writes!
+                            .first
+                            .update!
+                            .fields!['Linux build_test']!
+                            .stringValue ==
+                        'mulligan' &&
+                    t
+                            .writes!
+                            .first
+                            .update!
+                            .fields![CiStaging.kRemainingField]!
+                            .integerValue ==
+                        '0';
               }),
             ),
             kDatabase,
@@ -249,7 +309,13 @@ void main() {
       });
 
       test('handles writing updating', () async {
-        when(docRes.beginTransaction(any, any, $fields: argThat(isNull, named: r'$fields'))).thenAnswer((_) async {
+        when(
+          docRes.beginTransaction(
+            any,
+            any,
+            $fields: argThat(isNull, named: r'$fields'),
+          ),
+        ).thenAnswer((_) async {
           return BeginTransactionResponse(transaction: kTransaction);
         });
         when(
@@ -273,7 +339,9 @@ void main() {
           ),
         );
 
-        when(docRes.commit(any, kDatabase)).thenAnswer((_) async => CommitResponse());
+        when(
+          docRes.commit(any, kDatabase),
+        ).thenAnswer((_) async => CommitResponse());
 
         final future = CiStaging.markConclusion(
           firestoreService: firestoreService,
@@ -308,8 +376,20 @@ For CI stage engine:
                 return t.transaction == kTransaction &&
                     t.writes!.length == 1 &&
                     t.writes!.first.update!.fields!.length == 5 &&
-                    t.writes!.first.update!.fields!['Linux build_test']!.stringValue == 'mulligan' &&
-                    t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '0';
+                    t
+                            .writes!
+                            .first
+                            .update!
+                            .fields!['Linux build_test']!
+                            .stringValue ==
+                        'mulligan' &&
+                    t
+                            .writes!
+                            .first
+                            .update!
+                            .fields![CiStaging.kRemainingField]!
+                            .integerValue ==
+                        '0';
               }),
             ),
             kDatabase,
@@ -319,7 +399,13 @@ For CI stage engine:
       });
 
       test('handles previously completed check_runs', () async {
-        when(docRes.beginTransaction(any, any, $fields: argThat(isNull, named: r'$fields'))).thenAnswer((_) async {
+        when(
+          docRes.beginTransaction(
+            any,
+            any,
+            $fields: argThat(isNull, named: r'$fields'),
+          ),
+        ).thenAnswer((_) async {
           return BeginTransactionResponse(transaction: kTransaction);
         });
         when(
@@ -343,7 +429,9 @@ For CI stage engine:
           ),
         );
 
-        when(docRes.commit(any, kDatabase)).thenAnswer((_) async => CommitResponse());
+        when(
+          docRes.commit(any, kDatabase),
+        ).thenAnswer((_) async => CommitResponse());
 
         final future = CiStaging.markConclusion(
           firestoreService: firestoreService,
@@ -363,7 +451,8 @@ For CI stage engine:
             failed: 0,
             checkRunGuard: '{}',
             summary: 'Not a valid state transition for MacOS build_test',
-            details: 'Attempted to transition the state of check run MacOS build_test from "success" to "mulligan".',
+            details:
+                'Attempted to transition the state of check run MacOS build_test from "success" to "mulligan".',
           ),
         );
         verify(
@@ -373,8 +462,20 @@ For CI stage engine:
                 return t.transaction == kTransaction &&
                     t.writes!.length == 1 &&
                     t.writes!.first.update!.fields!.length == 5 &&
-                    t.writes!.first.update!.fields!['MacOS build_test']!.stringValue == 'mulligan' &&
-                    t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '1';
+                    t
+                            .writes!
+                            .first
+                            .update!
+                            .fields!['MacOS build_test']!
+                            .stringValue ==
+                        'mulligan' &&
+                    t
+                            .writes!
+                            .first
+                            .update!
+                            .fields![CiStaging.kRemainingField]!
+                            .integerValue ==
+                        '1';
               }),
             ),
             kDatabase,
@@ -384,7 +485,13 @@ For CI stage engine:
       });
 
       test('handles a test flip-flop after re-running', () async {
-        when(docRes.beginTransaction(any, any, $fields: argThat(isNull, named: r'$fields'))).thenAnswer((_) async {
+        when(
+          docRes.beginTransaction(
+            any,
+            any,
+            $fields: argThat(isNull, named: r'$fields'),
+          ),
+        ).thenAnswer((_) async {
           return BeginTransactionResponse(transaction: kTransaction);
         });
         when(
@@ -408,7 +515,9 @@ For CI stage engine:
           ),
         );
 
-        when(docRes.commit(any, kDatabase)).thenAnswer((_) async => CommitResponse());
+        when(
+          docRes.commit(any, kDatabase),
+        ).thenAnswer((_) async => CommitResponse());
 
         final future = CiStaging.markConclusion(
           firestoreService: firestoreService,
@@ -444,9 +553,27 @@ For CI stage engine:
                 return t.transaction == kTransaction &&
                     t.writes!.length == 1 &&
                     t.writes!.first.update!.fields!.length == 5 &&
-                    t.writes!.first.update!.fields!['MacOS build_test']!.stringValue == CiStaging.kSuccessValue &&
-                    t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '1' &&
-                    t.writes!.first.update!.fields![CiStaging.kFailedField]!.integerValue == '0';
+                    t
+                            .writes!
+                            .first
+                            .update!
+                            .fields!['MacOS build_test']!
+                            .stringValue ==
+                        CiStaging.kSuccessValue &&
+                    t
+                            .writes!
+                            .first
+                            .update!
+                            .fields![CiStaging.kRemainingField]!
+                            .integerValue ==
+                        '1' &&
+                    t
+                            .writes!
+                            .first
+                            .update!
+                            .fields![CiStaging.kFailedField]!
+                            .integerValue ==
+                        '0';
               }),
             ),
             kDatabase,
@@ -456,7 +583,13 @@ For CI stage engine:
       });
 
       test('ignored repeat failures', () async {
-        when(docRes.beginTransaction(any, any, $fields: argThat(isNull, named: r'$fields'))).thenAnswer((_) async {
+        when(
+          docRes.beginTransaction(
+            any,
+            any,
+            $fields: argThat(isNull, named: r'$fields'),
+          ),
+        ).thenAnswer((_) async {
           return BeginTransactionResponse(transaction: kTransaction);
         });
         when(
@@ -480,7 +613,9 @@ For CI stage engine:
           ),
         );
 
-        when(docRes.commit(any, kDatabase)).thenAnswer((_) async => CommitResponse());
+        when(
+          docRes.commit(any, kDatabase),
+        ).thenAnswer((_) async => CommitResponse());
 
         final future = CiStaging.markConclusion(
           firestoreService: firestoreService,
@@ -500,7 +635,8 @@ For CI stage engine:
             failed: 1,
             checkRunGuard: '{}',
             summary: 'Not a valid state transition for MacOS build_test',
-            details: 'Attempted to transition the state of check run MacOS build_test from "failure" to "failure".',
+            details:
+                'Attempted to transition the state of check run MacOS build_test from "failure" to "failure".',
           ),
         );
         verify(
@@ -510,9 +646,27 @@ For CI stage engine:
                 return t.transaction == kTransaction &&
                     t.writes!.length == 1 &&
                     t.writes!.first.update!.fields!.length == 5 &&
-                    t.writes!.first.update!.fields!['MacOS build_test']!.stringValue == CiStaging.kFailureValue &&
-                    t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '1' &&
-                    t.writes!.first.update!.fields![CiStaging.kFailedField]!.integerValue == '1';
+                    t
+                            .writes!
+                            .first
+                            .update!
+                            .fields!['MacOS build_test']!
+                            .stringValue ==
+                        CiStaging.kFailureValue &&
+                    t
+                            .writes!
+                            .first
+                            .update!
+                            .fields![CiStaging.kRemainingField]!
+                            .integerValue ==
+                        '1' &&
+                    t
+                            .writes!
+                            .first
+                            .update!
+                            .fields![CiStaging.kFailedField]!
+                            .integerValue ==
+                        '1';
               }),
             ),
             kDatabase,
@@ -522,7 +676,13 @@ For CI stage engine:
       });
 
       test('handles success to failure case', () async {
-        when(docRes.beginTransaction(any, any, $fields: argThat(isNull, named: r'$fields'))).thenAnswer((_) async {
+        when(
+          docRes.beginTransaction(
+            any,
+            any,
+            $fields: argThat(isNull, named: r'$fields'),
+          ),
+        ).thenAnswer((_) async {
           return BeginTransactionResponse(transaction: kTransaction);
         });
         when(
@@ -546,7 +706,9 @@ For CI stage engine:
           ),
         );
 
-        when(docRes.commit(any, kDatabase)).thenAnswer((_) async => CommitResponse());
+        when(
+          docRes.commit(any, kDatabase),
+        ).thenAnswer((_) async => CommitResponse());
 
         final future = CiStaging.markConclusion(
           firestoreService: firestoreService,
@@ -581,9 +743,27 @@ For CI stage engine:
                 return t.transaction == kTransaction &&
                     t.writes!.length == 1 &&
                     t.writes!.first.update!.fields!.length == 5 &&
-                    t.writes!.first.update!.fields!['MacOS build_test']!.stringValue == CiStaging.kFailureValue &&
-                    t.writes!.first.update!.fields![CiStaging.kRemainingField]!.integerValue == '1' &&
-                    t.writes!.first.update!.fields![CiStaging.kFailedField]!.integerValue == '1';
+                    t
+                            .writes!
+                            .first
+                            .update!
+                            .fields!['MacOS build_test']!
+                            .stringValue ==
+                        CiStaging.kFailureValue &&
+                    t
+                            .writes!
+                            .first
+                            .update!
+                            .fields![CiStaging.kRemainingField]!
+                            .integerValue ==
+                        '1' &&
+                    t
+                            .writes!
+                            .first
+                            .update!
+                            .fields![CiStaging.kFailedField]!
+                            .integerValue ==
+                        '1';
               }),
             ),
             kDatabase,
@@ -604,7 +784,10 @@ For CI stage engine:
 
       setUp(() {
         docRes = MockProjectsDatabasesDocumentsResource();
-        when(firestoreService.documentResource()).thenAnswer((_) async => docRes);
+        when(
+          // ignore: discarded_futures
+          firestoreService.documentResource(),
+        ).thenAnswer((_) async => docRes);
       });
 
       test('creates a document with the correct fields', () async {
@@ -617,19 +800,31 @@ For CI stage engine:
             $fields: anyNamed(r'$fields'),
           ),
         ).thenAnswer((Invocation inv) async {
-          final Document document = inv.positionalArguments[0] as Document;
-          final String collectionId = inv.positionalArguments[2] as String;
-          final String documentId = inv.namedArguments[#documentId] as String;
+          final document = inv.positionalArguments[0] as Document;
+          final collectionId = inv.positionalArguments[2] as String;
+          final documentId = inv.namedArguments[#documentId] as String;
 
           // Check the fields of the document
           expect(document.fields, isNotNull);
-          expect(document.fields![CiStaging.kTotalField]!.integerValue, tasks.length.toString());
-          expect(document.fields![CiStaging.kRemainingField]!.integerValue, tasks.length.toString());
+          expect(
+            document.fields![CiStaging.kTotalField]!.integerValue,
+            tasks.length.toString(),
+          );
+          expect(
+            document.fields![CiStaging.kRemainingField]!.integerValue,
+            tasks.length.toString(),
+          );
           expect(document.fields![CiStaging.kFailedField]!.integerValue, '0');
-          expect(document.fields![CiStaging.kCheckRunGuardField]!.stringValue, checkRunGuard);
+          expect(
+            document.fields![CiStaging.kCheckRunGuardField]!.stringValue,
+            checkRunGuard,
+          );
 
           for (final task in tasks) {
-            expect(document.fields![task]!.stringValue, CiStaging.kScheduledValue);
+            expect(
+              document.fields![task]!.stringValue,
+              CiStaging.kScheduledValue,
+            );
           }
 
           return Document(name: '$kDocumentParent/$collectionId/$documentId');
@@ -643,7 +838,10 @@ For CI stage engine:
           tasks: tasks,
           checkRunGuard: checkRunGuard,
         );
-        expect(createdDoc.name, CiStaging.documentNameFor(slug: slug, sha: sha, stage: stage));
+        expect(
+          createdDoc.name,
+          CiStaging.documentNameFor(slug: slug, sha: sha, stage: stage),
+        );
         verify(
           docRes.createDocument(
             any,

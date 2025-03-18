@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_server/testing/mocks.dart';
+import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/request_handlers/vacuum_github_commits.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
@@ -37,16 +37,21 @@ void main() {
     late int yieldedCommitCount;
 
     List<RepositoryCommit> commitList() {
-      final List<RepositoryCommit> commits = <RepositoryCommit>[];
-      for (String sha in githubCommits) {
-        final User author = User()
-          ..login = 'Username'
-          ..avatarUrl = 'http://example.org/avatar.jpg';
-        final GitCommitUser committer =
-            GitCommitUser('Username', 'Username@abc.com', DateTime.fromMillisecondsSinceEpoch(int.parse(sha)));
-        final GitCommit gitCommit = GitCommit()
-          ..message = 'commit message'
-          ..committer = committer;
+      final commits = <RepositoryCommit>[];
+      for (var sha in githubCommits) {
+        final author =
+            User()
+              ..login = 'Username'
+              ..avatarUrl = 'http://example.org/avatar.jpg';
+        final committer = GitCommitUser(
+          'Username',
+          'Username@abc.com',
+          DateTime.fromMillisecondsSinceEpoch(int.parse(sha)),
+        );
+        final gitCommit =
+            GitCommit()
+              ..message = 'commit message'
+              ..committer = committer;
         commits.add(
           RepositoryCommit()
             ..sha = sha
@@ -68,11 +73,22 @@ void main() {
     }
 
     setUp(() {
-      final MockRepositoriesService repositories = MockRepositoriesService();
-      final FakeGithubService githubService = FakeGithubService();
-      final MockTabledataResource tabledataResourceApi = MockTabledataResource();
+      final repositories = MockRepositoriesService();
+      final githubService = FakeGithubService();
+      final tabledataResourceApi = MockTabledataResource();
       mockFirestoreService = MockFirestoreService();
-      when(tabledataResourceApi.insertAll(any, any, any, any)).thenAnswer((_) async {
+      when(
+        // ignore: discarded_futures
+        mockFirestoreService.queryRecentTasksByName(
+          name: anyNamed('name'),
+          limit: anyNamed('limit'),
+        ),
+      ).thenAnswer((_) async => []);
+
+      // ignore: discarded_futures
+      when(tabledataResourceApi.insertAll(any, any, any, any)).thenAnswer((
+        _,
+      ) async {
         return TableDataInsertAllResponse();
       });
 
@@ -83,23 +99,16 @@ void main() {
         githubService: githubService,
         firestoreService: mockFirestoreService,
         dbValue: db,
-        supportedBranchesValue: <String>[
-          'master',
-          'main',
-        ],
+        supportedBranchesValue: <String>['master', 'main'],
         supportedReposValue: <RepositorySlug>{
           Config.cocoonSlug,
-          Config.engineSlug,
           Config.flutterSlug,
           Config.packagesSlug,
         },
       );
 
       auth = FakeAuthenticationProvider();
-      scheduler = FakeScheduler(
-        config: config,
-        ciYaml: exampleConfig,
-      );
+      scheduler = FakeScheduler(config: config);
       tester = ApiRequestHandlerTester();
       handler = VacuumGithubCommits(
         config: config,
@@ -118,7 +127,7 @@ void main() {
     test('succeeds when GitHub returns no commits', () async {
       githubCommits = <String>[];
       config.supportedBranchesValue = <String>['master'];
-      final Body body = await tester.get<Body>(handler);
+      final body = await tester.get<Body>(handler);
       expect(yieldedCommitCount, 0);
       expect(db.values, isEmpty);
       expect(await body.serialize().toList(), isEmpty);
@@ -143,9 +152,12 @@ void main() {
       githubCommits = <String>['1'];
       expect(db.values.values.whereType<Commit>().length, 0);
       await tester.get<Body>(handler);
-      expect(db.values.values.whereType<Commit>().length, config.supportedRepos.length);
-      final List<Commit> commits = db.values.values.whereType<Commit>().toList();
-      final Commit commit = commits.first;
+      expect(
+        db.values.values.whereType<Commit>().length,
+        config.supportedRepos.length,
+      );
+      final commits = db.values.values.whereType<Commit>().toList();
+      final commit = commits.first;
       expect(commit.repository, 'flutter/cocoon');
       expect(commit.branch, 'main');
       expect(commit.sha, '1');
@@ -153,8 +165,7 @@ void main() {
       expect(commit.author, 'Username');
       expect(commit.authorAvatarUrl, 'http://example.org/avatar.jpg');
       expect(commit.message, 'commit message');
-      expect(commits[1].repository, Config.engineSlug.fullName);
-      expect(commits[2].repository, Config.flutterSlug.fullName);
+      expect(commits[1].repository, Config.flutterSlug.fullName);
     });
 
     test('skips commits for which transaction commit fails', () async {
@@ -162,20 +173,35 @@ void main() {
 
       /// This test is simulating an existing branch, which must already
       /// have at least one commit in the datastore.
-      final Commit commit = shaToCommit('1', 'main', Config.engineSlug);
+      final commit = shaToCommit('1', 'master', Config.flutterSlug);
       db.values[commit.key] = commit;
 
-      db.onCommit = (List<gcloud_db.Model<dynamic>> inserts, List<gcloud_db.Key<dynamic>> deletes) {
-        if (inserts.whereType<Commit>().where((Commit commit) => commit.sha == '3').isNotEmpty) {
+      db.onCommit = (
+        List<gcloud_db.Model<dynamic>> inserts,
+        List<gcloud_db.Key<dynamic>> deletes,
+      ) {
+        if (inserts
+            .whereType<Commit>()
+            .where((Commit commit) => commit.sha == '3')
+            .isNotEmpty) {
           throw StateError('Commit failed');
         }
       };
-      final Body body = await tester.get<Body>(handler);
+      final body = await tester.get<Body>(handler);
 
       /// The +1 is coming from the engine repository and manually added commit on the top of this test.
-      expect(db.values.values.whereType<Commit>().length, 8 + 1); // 2 commits for 4 repos
-      expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
-      expect(db.values.values.whereType<Commit>().map<int>(toTimestamp), containsAll(<int>[1, 2, 4]));
+      expect(
+        db.values.values.whereType<Commit>().length,
+        6 + 1,
+      ); // 2 commits for 3 repos
+      expect(
+        db.values.values.whereType<Commit>().map<String>(toSha),
+        containsAll(<String>['1', '2', '4']),
+      );
+      expect(
+        db.values.values.whereType<Commit>().map<int>(toTimestamp),
+        containsAll(<int>[1, 2, 4]),
+      );
       expect(await body.serialize().toList(), isEmpty);
     });
   });

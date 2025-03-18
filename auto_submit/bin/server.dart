@@ -27,39 +27,30 @@ Future<void> main() async {
     useLoggingPackageAdaptor();
 
     final cache = Cache.inMemoryCacheProvider(kCacheSize);
-    final Config config = Config(
+    final config = Config(
       cacheProvider: cache,
       secretManager: CloudSecretManager(),
     );
-    const CronAuthProvider authProvider = CronAuthProvider();
+    const authProvider = CronAuthProvider();
 
-    final Router router = Router()
-      ..post(
-        '/webhook',
-        GithubWebhook(
-          config: config,
-        ).post,
-      )
-      ..get(
-        '/check-pull-request',
-        CheckPullRequest(
-          config: config,
-          cronAuthProvider: authProvider,
-        ).run,
-      )
-      ..get(
-        '/check-revert-requests',
-        CheckRevertRequest(
-          config: config,
-          cronAuthProvider: authProvider,
-        ).run,
-      )
-      ..get(
-        '/readiness_check',
-        ReadinessCheck(
-          config: config,
-        ).run,
-      );
+    final router =
+        Router()
+          ..post('/webhook', GithubWebhook(config: config).post)
+          ..get(
+            '/check-pull-request',
+            CheckPullRequest(
+              config: config,
+              cronAuthProvider: authProvider,
+            ).run,
+          )
+          ..get(
+            '/check-revert-requests',
+            CheckRevertRequest(
+              config: config,
+              cronAuthProvider: authProvider,
+            ).run,
+          )
+          ..get('/readiness_check', ReadinessCheck(config: config).run);
     await serveHandler(router.call);
   });
 }

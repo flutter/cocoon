@@ -17,12 +17,12 @@ void main() {
     });
 
     test('repository values', () async {
-      final Repository repository = queryResult.repository!;
+      final repository = queryResult.repository!;
       expect(repository.pullRequest, isNotNull);
     });
 
     test('pullRequest values', () async {
-      final PullRequest pullRequest = queryResult.repository!.pullRequest!;
+      final pullRequest = queryResult.repository!.pullRequest!;
       expect(pullRequest.author, isNotNull);
       expect(pullRequest.authorAssociation, 'MEMBER');
       expect(pullRequest.commits, isNotNull);
@@ -33,30 +33,36 @@ void main() {
     });
 
     test('Author values', () async {
-      final Author author = queryResult.repository!.pullRequest!.author!;
+      final author = queryResult.repository!.pullRequest!.author!;
       expect(author.login, 'author1');
     });
 
     test('Reviews values', () async {
-      final Reviews reviews = queryResult.repository!.pullRequest!.reviews!;
+      final reviews = queryResult.repository!.pullRequest!.reviews!;
       expect(reviews.nodes, isNotNull);
       expect(reviews.nodes!.single, isA<ReviewNode>());
-      final ReviewNode review = reviews.nodes!.single;
+      final review = reviews.nodes!.single;
       expect(review.author, isA<Author>());
       expect(review.authorAssociation, 'MEMBER');
       expect(review.state, 'APPROVED');
     });
 
     test('Commits values', () async {
-      final Commits commits = queryResult.repository!.pullRequest!.commits!;
+      final commits = queryResult.repository!.pullRequest!.commits!;
       expect(commits.nodes, isNotNull);
-      final CommitNode commitNode = commits.nodes!.first;
+      final commitNode = commits.nodes!.first;
       expect(commitNode.commit, isNotNull);
       expect(commitNode.commit!.abbreviatedOid, '4009ecc');
-      expect(commitNode.commit!.oid, '4009ecc0b6dbf5cb19cb97472147063e7368ec10');
-      expect(commitNode.commit!.pushedDate, DateTime.parse('2022-05-11 22:35:03.000Z'));
+      expect(
+        commitNode.commit!.oid,
+        '4009ecc0b6dbf5cb19cb97472147063e7368ec10',
+      );
+      expect(
+        commitNode.commit!.pushedDate,
+        DateTime.parse('2022-05-11 22:35:03.000Z'),
+      );
       expect(commitNode.commit!.status, isNotNull);
-      final List<ContextNode> statuses = commitNode.commit!.status!.contexts!;
+      final statuses = commitNode.commit!.status!.contexts!;
       expect(statuses[0].createdAt, DateTime.parse('2023-12-01T23:29:12Z'));
     });
   });
@@ -68,25 +74,41 @@ void main() {
 
     test('All fields are present', () {
       expect(revertPullRequestData.revertPullRequest, isNotNull);
-      expect(revertPullRequestData.revertPullRequest!.clientMutationId, isNotNull);
+      expect(
+        revertPullRequestData.revertPullRequest!.clientMutationId,
+        isNotNull,
+      );
       expect(revertPullRequestData.revertPullRequest!.pullRequest, isNotNull);
-      expect(revertPullRequestData.revertPullRequest!.revertPullRequest, isNotNull);
+      expect(
+        revertPullRequestData.revertPullRequest!.revertPullRequest,
+        isNotNull,
+      );
     });
 
     test('Client Mutation Id field', () {
-      expect(revertPullRequestData.revertPullRequest!.clientMutationId, 'ra186026');
+      expect(
+        revertPullRequestData.revertPullRequest!.clientMutationId,
+        'ra186026',
+      );
     });
 
     test('To be reverted PullRequest field.', () {
-      final PullRequest pullRequest = revertPullRequestData.revertPullRequest!.pullRequest!;
+      final pullRequest = revertPullRequestData.revertPullRequest!.pullRequest!;
       expect(pullRequest.id, 'PR_kwDOIRxr_M5MQ7mV');
-      expect(pullRequest.title, 'Adding a TODO comment for testing pull request auto approval.');
+      expect(
+        pullRequest.title,
+        'Adding a TODO comment for testing pull request auto approval.',
+      );
       expect(pullRequest.author!.login, 'ricardoamador');
-      expect(pullRequest.body, 'This is for testing revert and should be present in the revert mutation.');
+      expect(
+        pullRequest.body,
+        'This is for testing revert and should be present in the revert mutation.',
+      );
     });
 
     test('Revert PullRequest field.', () {
-      final PullRequest revertPullRequest = revertPullRequestData.revertPullRequest!.revertPullRequest!;
+      final revertPullRequest =
+          revertPullRequestData.revertPullRequest!.revertPullRequest!;
       expect(revertPullRequest.id, 'PR_kwDOIRxr_M5QN0kD');
       expect(revertPullRequest.title, 'Revert comment in configuration file.');
       expect(revertPullRequest.author!.login, 'ricardoamador');
@@ -95,7 +117,8 @@ void main() {
   });
 }
 
-final Map<String, dynamic> data = json.decode(dataString) as Map<String, dynamic>;
+final Map<String, dynamic> data =
+    json.decode(dataString) as Map<String, dynamic>;
 
 const String dataString = '''
 {
@@ -152,7 +175,8 @@ const String dataString = '''
 }
 ''';
 
-final Map<String, dynamic> revertData = json.decode(revertRequestString) as Map<String, dynamic>;
+final Map<String, dynamic> revertData =
+    json.decode(revertRequestString) as Map<String, dynamic>;
 
 const String revertRequestString = '''
 {

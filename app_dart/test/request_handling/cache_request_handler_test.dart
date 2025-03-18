@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/cache_request_handler.dart';
@@ -22,46 +21,57 @@ void main() {
 
     late CacheService cache;
 
-    const String testHttpPath = '/cache_request_handler_test';
+    const testHttpPath = '/cache_request_handler_test';
 
     setUp(() async {
       config = FakeConfig();
       tester = RequestHandlerTester(
-        request: FakeHttpRequest(
-          path: testHttpPath,
-        ),
+        request: FakeHttpRequest(path: testHttpPath),
       );
 
       cache = CacheService(inMemory: true);
     });
 
     test('returns response from cache', () async {
-      const String responseKey = '$testHttpPath:';
-      const String expectedResponse = 'Hello, World!';
-      final Body expectedBody = Body.forString(expectedResponse);
-      final FakeRequestHandler fallbackHandler = FakeRequestHandler(body: expectedBody, config: FakeConfig());
+      const responseKey = '$testHttpPath:';
+      const expectedResponse = 'Hello, World!';
+      final expectedBody = Body.forString(expectedResponse);
+      final fallbackHandler = FakeRequestHandler(
+        body: expectedBody,
+        config: FakeConfig(),
+      );
 
-      final Uint8List? serializedBody = await expectedBody.serialize().first;
+      final serializedBody = await expectedBody.serialize().first;
 
-      await cache.set(CacheRequestHandler.responseSubcacheName, responseKey, serializedBody);
+      await cache.set(
+        CacheRequestHandler.responseSubcacheName,
+        responseKey,
+        serializedBody,
+      );
 
-      final CacheRequestHandler<Body> cacheRequestHandler =
-          CacheRequestHandler<Body>(delegate: fallbackHandler, cache: cache, config: config);
+      final cacheRequestHandler = CacheRequestHandler<Body>(
+        delegate: fallbackHandler,
+        cache: cache,
+        config: config,
+      );
 
-      final Body body = await tester.get(cacheRequestHandler);
-      final Uint8List response = (await body.serialize().first)!;
-      final String strResponse = utf8.decode(response);
+      final body = await tester.get(cacheRequestHandler);
+      final response = (await body.serialize().first)!;
+      final strResponse = utf8.decode(response);
       expect(strResponse, expectedResponse);
     });
 
     test('fallback handler called when cache is empty', () async {
-      final FakeRequestHandler fallbackHandler = FakeRequestHandler(
+      final fallbackHandler = FakeRequestHandler(
         body: Body.forString('hello!'),
         config: FakeConfig(),
       );
 
-      final CacheRequestHandler<Body> cacheRequestHandler =
-          CacheRequestHandler<Body>(delegate: fallbackHandler, cache: cache, config: config);
+      final cacheRequestHandler = CacheRequestHandler<Body>(
+        delegate: fallbackHandler,
+        cache: cache,
+        config: config,
+      );
 
       expect(fallbackHandler.callCount, 0);
       await tester.get(cacheRequestHandler);
@@ -77,28 +87,35 @@ void main() {
           },
         ),
       );
-      final FakeRequestHandler fallbackHandler = FakeRequestHandler(
+      final fallbackHandler = FakeRequestHandler(
         body: Body.empty,
         config: FakeConfig(),
       );
 
-      const String responseKey = '$testHttpPath:';
-      const String expectedResponse = 'Hello, World!';
-      final Body expectedBody = Body.forString(expectedResponse);
+      const responseKey = '$testHttpPath:';
+      const expectedResponse = 'Hello, World!';
+      final expectedBody = Body.forString(expectedResponse);
 
-      final Uint8List? serializedBody = await expectedBody.serialize().first;
+      final serializedBody = await expectedBody.serialize().first;
 
       // set an existing response for the request
-      await cache.set(CacheRequestHandler.responseSubcacheName, responseKey, serializedBody);
+      await cache.set(
+        CacheRequestHandler.responseSubcacheName,
+        responseKey,
+        serializedBody,
+      );
 
-      final CacheRequestHandler<Body> cacheRequestHandler =
-          CacheRequestHandler<Body>(delegate: fallbackHandler, cache: cache, config: config);
+      final cacheRequestHandler = CacheRequestHandler<Body>(
+        delegate: fallbackHandler,
+        cache: cache,
+        config: config,
+      );
 
       expect(fallbackHandler.callCount, 0);
 
-      final Body body = await tester.get(cacheRequestHandler);
-      final Uint8List response = (await body.serialize().first)!;
-      final String strResponse = utf8.decode(response);
+      final body = await tester.get(cacheRequestHandler);
+      final response = (await body.serialize().first)!;
+      final strResponse = utf8.decode(response);
 
       // the mock should update the cache to have null -> empty string
       expect(strResponse, '');

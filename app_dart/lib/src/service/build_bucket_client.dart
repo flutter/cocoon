@@ -7,7 +7,6 @@ import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
-import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
@@ -37,10 +36,12 @@ class BuildBucketClient {
   static const String kRpcResponseGarbage = ")]}'";
 
   /// The default endpoint for BuildBucket build requests.
-  static const String kDefaultBuildBucketBuildUri = 'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds';
+  static const String kDefaultBuildBucketBuildUri =
+      'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds';
 
   /// The default endpoint for BuildBucket builder requests.
-  static const String kDefaultBuildBucketBuilderUri = 'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builders';
+  static const String kDefaultBuildBucketBuilderUri =
+      'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builders';
 
   /// The base URI for build bucket requests.
   ///
@@ -66,18 +67,19 @@ class BuildBucketClient {
     String request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) async {
-    final Uri url = Uri.parse('$buildBucketUri$path');
-    final AccessToken? token = await accessTokenService?.createAccessToken();
+    final url = Uri.parse('$buildBucketUri$path');
+    final token = await accessTokenService?.createAccessToken();
 
     log.info('Making bbv2 request with path: $url and body: $request');
 
-    final http.Response response = await httpClient.post(
+    final response = await httpClient.post(
       url,
       body: request,
       headers: <String, String>{
         HttpHeaders.contentTypeHeader: 'application/json',
         HttpHeaders.acceptHeader: 'application/json',
-        if (token != null) HttpHeaders.authorizationHeader: '${token.type} ${token.data}',
+        if (token != null)
+          HttpHeaders.authorizationHeader: '${token.type} ${token.data}',
       },
     );
 
@@ -95,9 +97,9 @@ class BuildBucketClient {
     bbv2.ScheduleBuildRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) async {
-    final bbv2.Build build = bbv2.Build.create();
+    final build = bbv2.Build.create();
 
-    final String responseBody = await _postRequest(
+    final responseBody = await _postRequest(
       '/ScheduleBuild',
       jsonEncode(request.toProto3Json()),
       buildBucketUri: buildBucketUri,
@@ -112,9 +114,9 @@ class BuildBucketClient {
     bbv2.SearchBuildsRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) async {
-    final bbv2.SearchBuildsResponse searchBuildsResponse = bbv2.SearchBuildsResponse.create();
+    final searchBuildsResponse = bbv2.SearchBuildsResponse.create();
 
-    final String responseBody = await _postRequest(
+    final responseBody = await _postRequest(
       '/SearchBuilds',
       jsonEncode(request.toProto3Json()),
       buildBucketUri: buildBucketUri,
@@ -133,8 +135,8 @@ class BuildBucketClient {
     bbv2.BatchRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) async {
-    final bbv2.BatchResponse response = bbv2.BatchResponse.create();
-    final String responseBody = await _postRequest(
+    final response = bbv2.BatchResponse.create();
+    final responseBody = await _postRequest(
       '/Batch',
       //For some reason this needs to be stringified as the proto message is not quoted for some reason.
       jsonEncode(request.toProto3Json()),
@@ -154,9 +156,9 @@ class BuildBucketClient {
     bbv2.CancelBuildRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) async {
-    final bbv2.Build build = bbv2.Build.create();
+    final build = bbv2.Build.create();
 
-    final String responseBody = await _postRequest(
+    final responseBody = await _postRequest(
       '/CancelBuild',
       jsonEncode(request.toProto3Json()),
       buildBucketUri: buildBucketUri,
@@ -171,9 +173,9 @@ class BuildBucketClient {
     bbv2.GetBuildRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) async {
-    final bbv2.Build build = bbv2.Build.create();
+    final build = bbv2.Build.create();
 
-    final String responseBody = await _postRequest(
+    final responseBody = await _postRequest(
       '/GetBuild',
       jsonEncode(request.toProto3Json()),
       buildBucketUri: buildBucketUri,
@@ -188,9 +190,9 @@ class BuildBucketClient {
     bbv2.ListBuildersRequest request, {
     String buildBucketUri = kDefaultBuildBucketBuilderUri,
   }) async {
-    final bbv2.ListBuildersResponse listBuildersResponse = bbv2.ListBuildersResponse.create();
+    final listBuildersResponse = bbv2.ListBuildersResponse.create();
 
-    final String responseBody = await _postRequest(
+    final responseBody = await _postRequest(
       '/ListBuilders',
       jsonEncode(request.toProto3Json()),
       buildBucketUri: buildBucketUri,

@@ -4,12 +4,12 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/ci_yaml.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
+import '../../ci_yaml.dart';
 import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
@@ -35,32 +35,38 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final RepositorySlug slug = Config.flutterSlug;
-    final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
-    final BigqueryService bigquery = await config.createBigQueryService();
-    final List<BuilderStatistic> builderStatisticList = await bigquery.listBuilderStatistic(kBigQueryProjectId);
-    final YamlMap? ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
-    final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
-    final CiYamlSet ciYaml = CiYamlSet(
+    final slug = Config.flutterSlug;
+    final gitHub = config.createGithubServiceWithToken(
+      await config.githubOAuthToken,
+    );
+    final bigquery = await config.createBigQueryService();
+    final builderStatisticList = await bigquery.listBuilderStatistic(
+      kBigQueryProjectId,
+    );
+    final ci =
+        loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
+    final unCheckedSchedulerConfig =
+        pb.SchedulerConfig()..mergeFromProto3Json(ci);
+    final ciYaml = CiYamlSet(
       slug: slug,
       branch: Config.defaultBranch(slug),
       yamls: {CiType.any: unCheckedSchedulerConfig},
     );
 
-    final pb.SchedulerConfig schedulerConfig = ciYaml.configFor(CiType.any);
-    final List<pb.Target> targets = schedulerConfig.targets;
+    final schedulerConfig = ciYaml.configFor(CiType.any);
+    final targets = schedulerConfig.targets;
 
-    final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
-    final Map<String?, Issue> nameToExistingIssue = await getExistingIssues(gitHub, slug);
-    final Map<String?, PullRequest> nameToExistingPR = await getExistingPRs(gitHub, slug);
-    int filedIssueAndPRCount = 0;
-    for (final BuilderStatistic statistic in builderStatisticList) {
+    final testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
+    final nameToExistingIssue = await getExistingIssues(gitHub, slug);
+    final nameToExistingPR = await getExistingPRs(gitHub, slug);
+    var filedIssueAndPRCount = 0;
+    for (final statistic in builderStatisticList) {
       if (shouldSkip(statistic, ciYaml, targets)) {
         continue;
       }
 
-      final BuilderType type = getTypeForBuilder(statistic.name, ciYaml);
-      final bool issueAndPRFiled = await _fileIssueAndPR(
+      final type = getTypeForBuilder(statistic.name, ciYaml);
+      final issueAndPRFiled = await _fileIssueAndPR(
         gitHub,
         slug,
         builderDetail: BuilderDetail(
@@ -89,7 +95,11 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     });
   }
 
-  bool shouldSkip(BuilderStatistic statistic, CiYamlSet ciYaml, List<pb.Target> targets) {
+  bool shouldSkip(
+    BuilderStatistic statistic,
+    CiYamlSet ciYaml,
+    List<pb.Target> targets,
+  ) {
     // Skips if the target has been removed from .ci.yaml.
     if (!targets.map((e) => e.name).toList().contains(statistic.name)) {
       return true;
@@ -99,46 +109,54 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       return true;
     }
     // Skips if the flaky percentage is below the threshold.
-    final threshold = ciYaml.getFirstPostsubmitTarget(statistic.name)?.flakinessThreshold ?? _threshold;
+    final threshold =
+        ciYaml.getFirstPostsubmitTarget(statistic.name)?.flakinessThreshold ??
+        _threshold;
     if (statistic.flakyRate < threshold) {
       return true;
     }
     return false;
   }
 
-  double get _threshold => double.parse(request!.uri.queryParameters[kThresholdKey]!);
+  double get _threshold =>
+      double.parse(request!.uri.queryParameters[kThresholdKey]!);
 
   Future<bool> _fileIssueAndPR(
     GithubService gitHub,
     RepositorySlug slug, {
     required BuilderDetail builderDetail,
   }) async {
-    Issue? issue = builderDetail.existingIssue;
+    var issue = builderDetail.existingIssue;
     if (_shouldNotFileIssueAndPR(builderDetail, issue)) {
       return false;
     }
     // Manually add a 1s delay between consecutive GitHub requests to deal with secondary rate limit error.
     // https://docs.github.com/en/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits
-    await Future.delayed(config.githubRequestDelay);
-    issue = await fileFlakyIssue(builderDetail: builderDetail, gitHub: gitHub, slug: slug, threshold: _threshold);
+    await Future<void>.delayed(config.githubRequestDelay);
+    issue = await fileFlakyIssue(
+      builderDetail: builderDetail,
+      gitHub: gitHub,
+      slug: slug,
+      threshold: _threshold,
+    );
 
     if (builderDetail.type == BuilderType.shard ||
         builderDetail.type == BuilderType.unknown ||
         builderDetail.existingPullRequest != null) {
       return true;
     }
-    final String modifiedContent = _marksBuildFlakyInContent(
-      await gitHub.getFileContent(
-        slug,
-        kCiYamlPath,
-      ),
+    final modifiedContent = _marksBuildFlakyInContent(
+      await gitHub.getFileContent(slug, kCiYamlPath),
       builderDetail.statistic.name,
       issue.htmlUrl,
     );
-    final GitReference masterRef = await gitHub.getReference(slug, kMasterRefs);
-    final PullRequestBuilder prBuilder =
-        PullRequestBuilder(statistic: builderDetail.statistic, ownership: builderDetail.ownership, issue: issue);
-    final PullRequest pullRequest = await gitHub.createPullRequest(
+    final masterRef = await gitHub.getReference(slug, kMasterRefs);
+    final prBuilder = PullRequestBuilder(
+      statistic: builderDetail.statistic,
+      ownership: builderDetail.ownership,
+      issue: issue,
+    );
+    final pullRequest = await gitHub.createPullRequest(
       slug,
       title: prBuilder.pullRequestTitle,
       body: prBuilder.pullRequestBody,
@@ -153,8 +171,12 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
         ),
       ],
     );
-    final String? label = getTeamLabelFromTeam(builderDetail.ownership.team);
-    await gitHub.assignReviewer(slug, reviewer: prBuilder.pullRequestReviewer, pullRequestNumber: pullRequest.number);
+    final label = getTeamLabelFromTeam(builderDetail.ownership.team);
+    await gitHub.assignReviewer(
+      slug,
+      reviewer: prBuilder.pullRequestReviewer,
+      pullRequestNumber: pullRequest.number,
+    );
     if (label != null) {
       await gitHub.addIssueLabels(slug, pullRequest.number!, <String>[label]);
     }
@@ -174,7 +196,8 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     // down after the fix is merged.
     if (issue != null &&
         (issue.state != 'closed' ||
-            DateTime.now().difference(issue.closedAt!) <= const Duration(days: kGracePeriodForClosedFlake))) {
+            DateTime.now().difference(issue.closedAt!) <=
+                const Duration(days: kGracePeriodForClosedFlake))) {
       return true;
     }
 
@@ -182,38 +205,56 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   }
 
   bool _getIsMarkedFlaky(String builderName, YamlMap ci) {
-    final YamlList targets = ci[kCiYamlTargetsKey] as YamlList;
-    final YamlMap? target = targets.firstWhere(
-      (dynamic element) => element[kCiYamlTargetNameKey] == builderName,
-      orElse: () => null,
-    ) as YamlMap?;
+    final targets = ci[kCiYamlTargetsKey] as YamlList;
+    final target =
+        targets.firstWhere(
+              (dynamic element) => element[kCiYamlTargetNameKey] == builderName,
+              orElse: () => null,
+            )
+            as YamlMap?;
     return target != null && target[kCiYamlTargetIsFlakyKey] == true;
   }
 
   @visibleForTesting
   static bool getIgnoreFlakiness(String builderName, CiYamlSet ciYaml) {
-    final Target? target =
-        ciYaml.postsubmitTargets().singleWhereOrNull((Target target) => target.value.name == builderName);
+    final target = ciYaml.postsubmitTargets().singleWhereOrNull(
+      (Target target) => target.value.name == builderName,
+    );
     return target == null ? false : target.getIgnoreFlakiness();
   }
 
-  String _marksBuildFlakyInContent(String content, String builder, String issueUrl) {
-    final List<String> lines = content.split('\n');
-    final int builderLineNumber = lines.indexWhere((String line) => line.contains('name: $builder'));
+  String _marksBuildFlakyInContent(
+    String content,
+    String builder,
+    String issueUrl,
+  ) {
+    final lines = content.split('\n');
+    final builderLineNumber = lines.indexWhere(
+      (String line) => line.contains('name: $builder'),
+    );
     // Takes care the case if is kCiYamlTargetIsFlakyKey is already defined to false
-    int nextLine = builderLineNumber + 1;
+    var nextLine = builderLineNumber + 1;
     while (nextLine < lines.length && !lines[nextLine].contains('name:')) {
       if (lines[nextLine].contains('$kCiYamlTargetIsFlakyKey:')) {
-        lines[nextLine] = lines[nextLine].replaceFirst('false', 'true # Flaky $issueUrl');
+        lines[nextLine] = lines[nextLine].replaceFirst(
+          'false',
+          'true # Flaky $issueUrl',
+        );
         return lines.join('\n');
       }
       nextLine += 1;
     }
-    lines.insert(builderLineNumber + 1, '    $kCiYamlTargetIsFlakyKey: true # Flaky $issueUrl');
+    lines.insert(
+      builderLineNumber + 1,
+      '    $kCiYamlTargetIsFlakyKey: true # Flaky $issueUrl',
+    );
     return lines.join('\n');
   }
 
   Future<RepositorySlug> getSlugFor(GitHub client, String repository) async {
-    return RepositorySlug((await client.users.getCurrentUser()).login!, repository);
+    return RepositorySlug(
+      (await client.users.getCurrentUser()).login!,
+      repository,
+    );
   }
 }

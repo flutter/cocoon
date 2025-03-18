@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_server/testing/mocks.dart';
+import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_service/src/request_handlers/reset_try_task.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -37,7 +37,10 @@ void main() {
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       mockGithub = MockGitHub();
       mockPullRequestsService = MockPullRequestsService();
-      config = FakeConfig(githubClient: mockGithub, githubService: FakeGithubService());
+      config = FakeConfig(
+        githubClient: mockGithub,
+        githubService: FakeGithubService(),
+      );
       mockGithubChecksUtil = MockGithubChecksUtil();
       tester = ApiRequestHandlerTester(context: authContext);
       fakeScheduler = FakeScheduler(
@@ -46,33 +49,42 @@ void main() {
       );
       handler = ResetTryTask(
         config: config,
-        authenticationProvider: FakeAuthenticationProvider(clientContext: clientContext),
+        authenticationProvider: FakeAuthenticationProvider(
+          clientContext: clientContext,
+        ),
         scheduler: fakeScheduler,
       );
       when(mockGithub.pullRequests).thenReturn(mockPullRequestsService);
-      when(mockPullRequestsService.get(any, 123)).thenAnswer((_) async => generatePullRequest(id: 123));
+      when(
+        // ignore: discarded_futures
+        mockPullRequestsService.get(any, 123),
+      ).thenAnswer((_) async => generatePullRequest(id: 123));
     });
 
     test('Empty repo', () async {
       tester.request = FakeHttpRequest(
-        queryParametersValue: <String, String>{
-          'pr': '123',
-        },
+        queryParametersValue: <String, String>{'pr': '123'},
       );
       expect(() => tester.get(handler), throwsA(isA<BadRequestException>()));
     });
 
     test('Empty pr', () async {
       tester.request = FakeHttpRequest(
-        queryParametersValue: <String, String>{
-          'repo': 'flutter',
-        },
+        queryParametersValue: <String, String>{'repo': 'flutter'},
       );
       expect(() => tester.get(handler), throwsA(isA<BadRequestException>()));
     });
 
     test('Trigger builds if all parameters are correct', () async {
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output'))).thenAnswer((_) async {
+      when(
+        mockGithubChecksUtil.createCheckRun(
+          any,
+          any,
+          any,
+          any,
+          output: anyNamed('output'),
+        ),
+      ).thenAnswer((_) async {
         return CheckRun.fromJson(const <String, dynamic>{
           'id': 1,
           'started_at': '2020-05-10T02:49:31Z',
@@ -89,7 +101,7 @@ void main() {
     });
 
     test('Parses empty builder correctly', () {
-      final List<String> builders = handler.getBuilderList('');
+      final builders = handler.getBuilderList('');
       expect(builders.isEmpty, true);
     });
 

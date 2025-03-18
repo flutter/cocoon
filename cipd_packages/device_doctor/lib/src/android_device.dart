@@ -39,19 +39,30 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
 
   static AndroidDeviceDiscovery? _instance;
 
-  Future<String> _deviceListOutput(Duration timeout, {ProcessManager? processManager}) async {
-    return eval('adb', <String>['devices', '-l'], canFail: false, processManager: processManager).timeout(timeout);
+  Future<String> _deviceListOutput(
+    Duration timeout, {
+    ProcessManager? processManager,
+  }) async {
+    return eval(
+      'adb',
+      <String>['devices', '-l'],
+      canFail: false,
+      processManager: processManager,
+    ).timeout(timeout);
   }
 
-  Future<List<String>> _deviceListOutputWithRetries(Duration retryDuration, {ProcessManager? processManager}) async {
-    const Duration deviceOutputTimeout = Duration(seconds: 15);
-    final RetryOptions r = RetryOptions(
-      maxAttempts: 3,
-      delayFactor: retryDuration,
-    );
+  Future<List<String>> _deviceListOutputWithRetries(
+    Duration retryDuration, {
+    ProcessManager? processManager,
+  }) async {
+    const deviceOutputTimeout = Duration(seconds: 15);
+    final r = RetryOptions(maxAttempts: 3, delayFactor: retryDuration);
     return r.retry(
       () async {
-        final String result = await _deviceListOutput(deviceOutputTimeout, processManager: processManager);
+        final result = await _deviceListOutput(
+          deviceOutputTimeout,
+          processManager: processManager,
+        );
         return result.trim().split('\n');
       },
       retryIf: (Exception e) => e is TimeoutException,
@@ -61,9 +72,17 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
 
   void _killAdbServer({ProcessManager? processManager}) async {
     if (Platform.isWindows) {
-      await killAllRunningProcessesOnWindows('adb', processManager: processManager);
+      await killAllRunningProcessesOnWindows(
+        'adb',
+        processManager: processManager,
+      );
     } else {
-      await eval('adb', <String>['kill-server'], canFail: false, processManager: processManager);
+      await eval(
+        'adb',
+        <String>['kill-server'],
+        canFail: false,
+        processManager: processManager,
+      );
     }
   }
 
@@ -72,10 +91,13 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     Duration retryDuration = const Duration(seconds: 10),
     ProcessManager? processManager,
   }) async {
-    processManager ??= LocalProcessManager();
-    final List<String> output = await _deviceListOutputWithRetries(retryDuration, processManager: processManager);
-    final List<String> results = <String>[];
-    for (String line in output) {
+    processManager ??= const LocalProcessManager();
+    final output = await _deviceListOutputWithRetries(
+      retryDuration,
+      processManager: processManager,
+    );
+    final results = <String>[];
+    for (var line in output) {
       // Skip lines like: * daemon started successfully *
       if (line.startsWith('* daemon ')) continue;
 
@@ -84,8 +106,8 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       if (_kDeviceRegex.hasMatch(line)) {
         final Match? match = _kDeviceRegex.firstMatch(line);
 
-        final String? deviceID = match?[1];
-        final String? deviceState = match?[2];
+        final deviceID = match?[1];
+        final deviceState = match?[2];
 
         if (!const ['unauthorized', 'offline'].contains(deviceState)) {
           results.add(deviceID!);
@@ -98,13 +120,15 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   }
 
   @override
-  Future<Map<String, List<HealthCheckResult>>> checkDevices({ProcessManager? processManager}) async {
-    processManager ??= LocalProcessManager();
-    final List<HealthCheckResult> defaultChecks = <HealthCheckResult>[];
+  Future<Map<String, List<HealthCheckResult>>> checkDevices({
+    ProcessManager? processManager,
+  }) async {
+    processManager ??= const LocalProcessManager();
+    final defaultChecks = <HealthCheckResult>[];
     defaultChecks.add(await killAdbServerCheck(processManager: processManager));
-    final Map<String, List<HealthCheckResult>> results = <String, List<HealthCheckResult>>{};
-    for (AndroidDevice device in await discoverDevices(processManager: processManager)) {
-      final List<HealthCheckResult> checks = defaultChecks;
+    final results = <String, List<HealthCheckResult>>{};
+    for (var device in await discoverDevices(processManager: processManager)) {
+      final checks = defaultChecks;
       checks.add(HealthCheckResult.success(kDeviceAccessCheckKey));
       checks.add(await adbPowerServiceCheck(processManager: processManager));
       checks.add(await developerModeCheck(processManager: processManager));
@@ -118,7 +142,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       }
       results['android-device-${device.deviceId}'] = checks;
     }
-    final Map<String, Map<String, dynamic>> healthCheckMap = await healthcheck(results);
+    final healthCheckMap = await healthcheck(results);
     writeToFile(json.encode(healthCheckMap), _outputFilePath!);
     return results;
   }
@@ -127,19 +151,26 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   ///
   /// It supports multiple devices, but here we are assuming only one device is attached.
   @override
-  Future<Map<String, String>> deviceProperties({ProcessManager? processManager}) async {
-    final List<AndroidDevice> devices = await discoverDevices(processManager: processManager);
-    Map<String, String> properties = <String, String>{};
+  Future<Map<String, String>> deviceProperties({
+    ProcessManager? processManager,
+  }) async {
+    final devices = await discoverDevices(processManager: processManager);
+    var properties = <String, String>{};
     if (devices.isEmpty) {
       writeToFile(json.encode(properties), _outputFilePath!);
       stdout.writeln('No devices available.');
       return properties;
     }
-    properties = await getDeviceProperties(devices[0], processManager: processManager);
-    final String propertiesJson = json.encode(properties);
+    properties = await getDeviceProperties(
+      devices[0],
+      processManager: processManager,
+    );
+    final propertiesJson = json.encode(properties);
 
     writeToFile(propertiesJson, _outputFilePath!);
-    stdout.writeln('Properties for deviceID ${devices[0].deviceId}: $propertiesJson');
+    stdout.writeln(
+      'Properties for deviceID ${devices[0].deviceId}: $propertiesJson',
+    );
     return properties;
   }
 
@@ -147,14 +178,25 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   ///
   /// Refer function `get_dimensions` from
   /// https://source.chromium.org/chromium/infra/infra/+/master:luci/appengine/swarming/swarming_bot/api/platforms/android.py
-  Future<Map<String, String>> getDeviceProperties(AndroidDevice device, {ProcessManager? processManager}) async {
-    processManager ??= LocalProcessManager();
-    final Map<String, String> deviceProperties = <String, String>{};
-    final Map<String, String> propertyMap = <String, String>{};
+  Future<Map<String, String>> getDeviceProperties(
+    AndroidDevice device, {
+    ProcessManager? processManager,
+  }) async {
+    processManager ??= const LocalProcessManager();
+    final deviceProperties = <String, String>{};
+    final propertyMap = <String, String>{};
     LineSplitter.split(
-      await eval('adb', <String>['-s', device.deviceId!, 'shell', 'getprop'], processManager: processManager),
+      await eval('adb', <String>[
+        '-s',
+        device.deviceId!,
+        'shell',
+        'getprop',
+      ], processManager: processManager),
     ).forEach((String property) {
-      final List<String> propertyList = property.replaceAll('[', '').replaceAll(']', '').split(': ');
+      final propertyList = property
+          .replaceAll('[', '')
+          .replaceAll(']', '')
+          .split(': ');
 
       /// Deal with entries spanning only one line.
       ///
@@ -184,80 +226,114 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   }
 
   @visibleForTesting
-  Future<HealthCheckResult> adbPowerServiceCheck({ProcessManager? processManager}) async {
+  Future<HealthCheckResult> adbPowerServiceCheck({
+    ProcessManager? processManager,
+  }) async {
     HealthCheckResult healthCheckResult;
     try {
-      await eval('adb', <String>['shell', 'dumpsys', 'power'], processManager: processManager);
+      await eval('adb', <String>[
+        'shell',
+        'dumpsys',
+        'power',
+      ], processManager: processManager);
       healthCheckResult = HealthCheckResult.success(kAdbPowerServiceCheckKey);
-    } on BuildFailedError catch (error) {
-      healthCheckResult = HealthCheckResult.failure(kAdbPowerServiceCheckKey, error.toString());
+    } on BuildFailedException catch (error) {
+      healthCheckResult = HealthCheckResult.failure(
+        kAdbPowerServiceCheckKey,
+        error.toString(),
+      );
     }
     return healthCheckResult;
   }
 
   @visibleForTesting
-
   /// The health check for Android device screen on.
   ///
   /// An Android device screen is on when both `mHoldingWakeLockSuspendBlocker` and
   /// `mHoldingDisplaySuspendBlocker` are true.
-  Future<HealthCheckResult> screenOnCheck({ProcessManager? processManager}) async {
+  Future<HealthCheckResult> screenOnCheck({
+    ProcessManager? processManager,
+  }) async {
     HealthCheckResult healthCheckResult;
     try {
-      final String result = await eval(
-        'adb',
-        <String>['shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
-        processManager: processManager,
-      );
+      final result = await eval('adb', <String>[
+        'shell',
+        'dumpsys',
+        'power',
+        '|',
+        'grep',
+        'mHoldingDisplaySuspendBlocker',
+      ], processManager: processManager);
       if (result.trim() == 'mHoldingDisplaySuspendBlocker=true') {
         healthCheckResult = HealthCheckResult.success(kScreenOnCheckKey);
       } else {
-        healthCheckResult = HealthCheckResult.failure(kScreenOnCheckKey, 'screen is off');
+        healthCheckResult = HealthCheckResult.failure(
+          kScreenOnCheckKey,
+          'screen is off',
+        );
       }
-    } on BuildFailedError catch (error) {
-      healthCheckResult = HealthCheckResult.failure(kScreenOnCheckKey, error.toString());
+    } on BuildFailedException catch (error) {
+      healthCheckResult = HealthCheckResult.failure(
+        kScreenOnCheckKey,
+        error.toString(),
+      );
     }
     return healthCheckResult;
   }
 
   @visibleForTesting
-
   /// The health check for Android device adb kill server.
   ///
   /// Kill adb server before running any health check to avoid device quarantine:
   /// https://github.com/flutter/flutter/issues/93075.
-  Future<HealthCheckResult> killAdbServerCheck({ProcessManager? processManager}) async {
+  Future<HealthCheckResult> killAdbServerCheck({
+    ProcessManager? processManager,
+  }) async {
     HealthCheckResult healthCheckResult;
     try {
-      await eval('adb', <String>['kill-server'], processManager: processManager);
+      await eval('adb', <String>[
+        'kill-server',
+      ], processManager: processManager);
       healthCheckResult = HealthCheckResult.success(kKillAdbServerCheckKey);
-    } on BuildFailedError catch (error) {
-      healthCheckResult = HealthCheckResult.failure(kKillAdbServerCheckKey, error.toString());
+    } on BuildFailedException catch (error) {
+      healthCheckResult = HealthCheckResult.failure(
+        kKillAdbServerCheckKey,
+        error.toString(),
+      );
     }
     return healthCheckResult;
   }
 
   @visibleForTesting
-
   /// The health check for Android device developer mode.
   ///
   /// Developer mode `on` is expected for a healthy Android device.
-  Future<HealthCheckResult> developerModeCheck({ProcessManager? processManager}) async {
+  Future<HealthCheckResult> developerModeCheck({
+    ProcessManager? processManager,
+  }) async {
     HealthCheckResult healthCheckResult;
     try {
-      final String result = await eval(
-        'adb',
-        <String>['shell', 'settings', 'get', 'global', 'development_settings_enabled'],
-        processManager: processManager,
-      );
+      final result = await eval('adb', <String>[
+        'shell',
+        'settings',
+        'get',
+        'global',
+        'development_settings_enabled',
+      ], processManager: processManager);
       // The output of `development_settings_enabled` is `1` when developer mode is on.
       if (result == '1') {
         healthCheckResult = HealthCheckResult.success(kDeveloperModeCheckKey);
       } else {
-        healthCheckResult = HealthCheckResult.failure(kDeveloperModeCheckKey, 'developer mode is off');
+        healthCheckResult = HealthCheckResult.failure(
+          kDeveloperModeCheckKey,
+          'developer mode is off',
+        );
       }
-    } on BuildFailedError catch (error) {
-      healthCheckResult = HealthCheckResult.failure(kDeveloperModeCheckKey, error.toString());
+    } on BuildFailedException catch (error) {
+      healthCheckResult = HealthCheckResult.failure(
+        kDeveloperModeCheckKey,
+        error.toString(),
+      );
     }
     return healthCheckResult;
   }
@@ -265,22 +341,32 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   /// The health check to validate screen rotation is off.
   ///
   /// Screen rotation is expected disabled for a healthy Android device.
-  Future<HealthCheckResult> screenRotationCheck({ProcessManager? processManager}) async {
+  Future<HealthCheckResult> screenRotationCheck({
+    ProcessManager? processManager,
+  }) async {
     HealthCheckResult healthCheckResult;
     try {
-      final String result = await eval(
-        'adb',
-        <String>['shell', 'settings', 'get', 'system', 'accelerometer_rotation'],
-        processManager: processManager,
-      );
+      final result = await eval('adb', <String>[
+        'shell',
+        'settings',
+        'get',
+        'system',
+        'accelerometer_rotation',
+      ], processManager: processManager);
       // The output of `screensaver_enabled` is `0` when screensaver mode is off.
       if (result == '0') {
         healthCheckResult = HealthCheckResult.success(kScreenRotationCheckKey);
       } else {
-        healthCheckResult = HealthCheckResult.failure(kScreenRotationCheckKey, 'Screen rotation is enabled');
+        healthCheckResult = HealthCheckResult.failure(
+          kScreenRotationCheckKey,
+          'Screen rotation is enabled',
+        );
       }
-    } on BuildFailedError catch (error) {
-      healthCheckResult = HealthCheckResult.failure(kScreenRotationCheckKey, error.toString());
+    } on BuildFailedException catch (error) {
+      healthCheckResult = HealthCheckResult.failure(
+        kScreenRotationCheckKey,
+        error.toString(),
+      );
     }
     return healthCheckResult;
   }
@@ -288,78 +374,108 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   /// The health check to validate screensaver is off.
   ///
   /// Screensaver`off` is expected for a healthy Android device.
-  Future<HealthCheckResult> screenSaverCheck({ProcessManager? processManager}) async {
+  Future<HealthCheckResult> screenSaverCheck({
+    ProcessManager? processManager,
+  }) async {
     HealthCheckResult healthCheckResult;
     try {
-      final String result = await eval(
-        'adb',
-        <String>['shell', 'settings', 'get', 'secure', 'screensaver_enabled'],
-        processManager: processManager,
-      );
+      final result = await eval('adb', <String>[
+        'shell',
+        'settings',
+        'get',
+        'secure',
+        'screensaver_enabled',
+      ], processManager: processManager);
       // The output of `screensaver_enabled` is `0` when screensaver mode is off.
       if (result == '0') {
         healthCheckResult = HealthCheckResult.success(kScreenSaverCheckKey);
       } else {
-        healthCheckResult = HealthCheckResult.failure(kScreenSaverCheckKey, 'Screensaver is on');
+        healthCheckResult = HealthCheckResult.failure(
+          kScreenSaverCheckKey,
+          'Screensaver is on',
+        );
       }
-    } on BuildFailedError catch (error) {
-      healthCheckResult = HealthCheckResult.failure(kScreenSaverCheckKey, error.toString());
+    } on BuildFailedException catch (error) {
+      healthCheckResult = HealthCheckResult.failure(
+        kScreenSaverCheckKey,
+        error.toString(),
+      );
     }
     return healthCheckResult;
   }
 
   /// The health check for battery level.
-  Future<HealthCheckResult> batteryLevelCheck({ProcessManager? processManager}) async {
+  Future<HealthCheckResult> batteryLevelCheck({
+    ProcessManager? processManager,
+  }) async {
     HealthCheckResult healthCheckResult;
     try {
       // The battery level returns two rows. For example:
       //   level: 100
       //   mod level: -1
-      final String levelResults = await eval(
-        'adb',
-        <String>['shell', 'dumpsys', 'battery', '|', 'grep', 'level'],
-        processManager: processManager,
-      );
-      final RegExp levelRegExp = RegExp('level: (?<level>.+)');
-      final RegExpMatch? match = levelRegExp.firstMatch(levelResults);
-      final int level = int.parse(match!.namedGroup('level')!);
+      final levelResults = await eval('adb', <String>[
+        'shell',
+        'dumpsys',
+        'battery',
+        '|',
+        'grep',
+        'level',
+      ], processManager: processManager);
+      final levelRegExp = RegExp('level: (?<level>.+)');
+      final match = levelRegExp.firstMatch(levelResults);
+      final level = int.parse(match!.namedGroup('level')!);
       if (level < _kBatteryMinLevel) {
-        healthCheckResult =
-            HealthCheckResult.failure(kBatteryLevelCheckKey, 'Battery level ($level) is below $_kBatteryMinLevel');
+        healthCheckResult = HealthCheckResult.failure(
+          kBatteryLevelCheckKey,
+          'Battery level ($level) is below $_kBatteryMinLevel',
+        );
       } else {
         healthCheckResult = HealthCheckResult.success(kBatteryLevelCheckKey);
       }
-    } on BuildFailedError catch (error) {
-      healthCheckResult = HealthCheckResult.failure(kScreenSaverCheckKey, error.toString());
+    } on BuildFailedException catch (error) {
+      healthCheckResult = HealthCheckResult.failure(
+        kScreenSaverCheckKey,
+        error.toString(),
+      );
     }
     return healthCheckResult;
   }
 
   /// The health check for battery temperature.
-  Future<HealthCheckResult> batteryTemperatureCheck({ProcessManager? processManager}) async {
+  Future<HealthCheckResult> batteryTemperatureCheck({
+    ProcessManager? processManager,
+  }) async {
     HealthCheckResult healthCheckResult;
     try {
       // The battery temperature returns one row. For example:
       //  temperature: 240
       // It means 24°C.
-      final String tempResult = await eval(
-        'adb',
-        <String>['shell', 'dumpsys', 'battery', '|', 'grep', 'temperature'],
-        processManager: processManager,
-      );
-      final RegExp? tempRegExp = RegExp('temperature: (?<temperature>.+)');
-      final RegExpMatch match = tempRegExp!.firstMatch(tempResult)!;
-      final int temperature = int.parse(match.namedGroup('temperature')!);
+      final tempResult = await eval('adb', <String>[
+        'shell',
+        'dumpsys',
+        'battery',
+        '|',
+        'grep',
+        'temperature',
+      ], processManager: processManager);
+      final tempRegExp = RegExp('temperature: (?<temperature>.+)');
+      final match = tempRegExp.firstMatch(tempResult)!;
+      final temperature = int.parse(match.namedGroup('temperature')!);
       if (temperature > _kBatteryMaxTemperatureInCelsius * 10) {
         healthCheckResult = HealthCheckResult.failure(
           kBatteryTemperatureCheckKey,
           'Battery temperature (${(temperature * 0.1).toInt()}°C) is over $_kBatteryMaxTemperatureInCelsius°C',
         );
       } else {
-        healthCheckResult = HealthCheckResult.success(kBatteryTemperatureCheckKey);
+        healthCheckResult = HealthCheckResult.success(
+          kBatteryTemperatureCheckKey,
+        );
       }
-    } on BuildFailedError catch (error) {
-      healthCheckResult = HealthCheckResult.failure(kBatteryTemperatureCheckKey, error.toString());
+    } on BuildFailedException catch (error) {
+      healthCheckResult = HealthCheckResult.failure(
+        kBatteryTemperatureCheckKey,
+        error.toString(),
+      );
     }
     return healthCheckResult;
   }
@@ -385,7 +501,12 @@ class AndroidDevice implements Device {
 
   @visibleForTesting
   Future<void> deletePackageCache() async {
-    final ProcessResult result = Process.runSync('adb', <String>['shell', 'pm', 'list', 'packages']);
+    final result = Process.runSync('adb', <String>[
+      'shell',
+      'pm',
+      'list',
+      'packages',
+    ]);
 
     if (result.exitCode != 0) {
       throw Exception(result.stderr as String);
@@ -393,7 +514,7 @@ class AndroidDevice implements Device {
     final packages = <String>[];
 
     // Listen to the stdout and stderr streams
-    LineSplitter().convert(result.stdout).forEach((data) {
+    const LineSplitter().convert(result.stdout as String).forEach((data) {
       final packageMatch = RegExp(r'package:(.+)$').firstMatch(data);
       if (packageMatch != null) {
         final packageName = packageMatch.group(1);
@@ -416,14 +537,20 @@ class AndroidDevice implements Device {
 
   @visibleForTesting
   Future<void> delete3Ppackages() async {
-    final ProcessResult result = Process.runSync('adb', <String>['shell', 'pm', 'list', 'packages', '-3']);
+    final result = Process.runSync('adb', <String>[
+      'shell',
+      'pm',
+      'list',
+      'packages',
+      '-3',
+    ]);
     if (result.exitCode != 0) {
       throw Exception(result.stderr as String);
     }
     final packages = <String>[];
 
     // Listen to the stdout and stderr streams
-    LineSplitter().convert(result.stdout).forEach((data) {
+    const LineSplitter().convert(result.stdout as String).forEach((data) {
       final packageMatch = RegExp(r'package:(.+)$').firstMatch(data);
       if (packageMatch != null) {
         final packageName = packageMatch.group(1);
@@ -446,20 +573,37 @@ class AndroidDevice implements Device {
 
   @visibleForTesting
   Future<bool> cleanDevice({ProcessManager? processManager}) async {
-    processManager ??= LocalProcessManager();
-    final int timeoutSecs = 60;
+    processManager ??= const LocalProcessManager();
+    final timeoutSecs = 60;
     print('Device recovery: deleting package caches...');
-    await eval('adb', <String>['wait-for-device'], canFail: false, processManager: processManager)
-        .timeout(Duration(seconds: timeoutSecs));
+    await eval(
+      'adb',
+      <String>['wait-for-device'],
+      canFail: false,
+      processManager: processManager,
+    ).timeout(Duration(seconds: timeoutSecs));
     await deletePackageCache();
-    await eval('adb', <String>['wait-for-device'], canFail: false, processManager: processManager)
-        .timeout(Duration(seconds: timeoutSecs));
+    await eval(
+      'adb',
+      <String>['wait-for-device'],
+      canFail: false,
+      processManager: processManager,
+    ).timeout(Duration(seconds: timeoutSecs));
     print('Device recovery: deleting 3P packages...');
     await delete3Ppackages();
-    await eval('adb', <String>['wait-for-device'], canFail: false, processManager: processManager)
-        .timeout(Duration(seconds: timeoutSecs));
+    await eval(
+      'adb',
+      <String>['wait-for-device'],
+      canFail: false,
+      processManager: processManager,
+    ).timeout(Duration(seconds: timeoutSecs));
     print('Device recovery: rebooting...');
-    await eval('adb', <String>['reboot'], canFail: false, processManager: processManager);
+    await eval(
+      'adb',
+      <String>['reboot'],
+      canFail: false,
+      processManager: processManager,
+    );
     return true;
   }
 
@@ -471,7 +615,7 @@ class AndroidDevice implements Device {
   /// Kill top running process if existing.
   @visibleForTesting
   Future<bool> killProcesses({ProcessManager? processManager}) async {
-    processManager ??= LocalProcessManager();
+    processManager ??= const LocalProcessManager();
     String result;
     result = await eval(
       'adb',
@@ -485,18 +629,30 @@ class AndroidDevice implements Device {
       stdout.write('no process is running');
       return true;
     }
-    final List<String> results = result.trim().split('\n');
+    final results = result.trim().split('\n');
     // Example result:
     //
     // Proc # 0: fore  T/A/T  trm: 0 4544:com.google.android.googlequicksearchbox/u0a66 (top-activity)
-    final List<String> processes =
-        results.map((result) => result.substring(result.lastIndexOf(':') + 1, result.lastIndexOf('/'))).toList();
+    final processes =
+        results
+            .map(
+              (result) => result.substring(
+                result.lastIndexOf(':') + 1,
+                result.lastIndexOf('/'),
+              ),
+            )
+            .toList();
     try {
-      for (String process in processes) {
-        await eval('adb', <String>['shell', 'am', 'force-stop', process], processManager: processManager);
+      for (var process in processes) {
+        await eval('adb', <String>[
+          'shell',
+          'am',
+          'force-stop',
+          process,
+        ], processManager: processManager);
         stdout.write('adb stop process: $process');
       }
-    } on BuildFailedError catch (error) {
+    } on BuildFailedException catch (error) {
       stderr.write('uninstall applications fails: $error');
       return false;
     }

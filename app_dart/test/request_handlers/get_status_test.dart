@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/stage.dart';
 import 'package:cocoon_service/src/request_handlers/get_status.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
@@ -34,24 +33,38 @@ void main() {
     late Commit commit2;
 
     Future<T?> decodeHandlerBody<T>() async {
-      final Body body = await tester.get(handler);
-      return await utf8.decoder.bind(body.serialize() as Stream<List<int>>).transform(json.decoder).single as T?;
+      final body = await tester.get(handler);
+      return await utf8.decoder
+              .bind(body.serialize() as Stream<List<int>>)
+              .transform(json.decoder)
+              .single
+          as T?;
     }
 
     setUp(() {
       clientContext = FakeClientContext();
       mockFirestoreService = MockFirestoreService();
-      keyHelper = FakeKeyHelper(applicationContext: clientContext.applicationContext);
+      keyHelper = FakeKeyHelper(
+        applicationContext: clientContext.applicationContext,
+      );
       tester = RequestHandlerTester();
-      config = FakeConfig(keyHelperValue: keyHelper, firestoreService: mockFirestoreService);
-      buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[]);
+      config = FakeConfig(
+        keyHelperValue: keyHelper,
+        firestoreService: mockFirestoreService,
+      );
+      buildStatusService = FakeBuildStatusService(
+        commitStatuses: <CommitStatus>[],
+      );
       handler = GetStatus(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_, __) => buildStatusService,
+        buildStatusProvider: (_, _) => buildStatusService,
       );
       commit1 = Commit(
-        key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
+        key: config.db.emptyKey.append(
+          Commit,
+          id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829',
+        ),
         repository: 'flutter/flutter',
         sha: 'ea28a9c34dc701de891eaf74503ca4717019f829',
         timestamp: 3,
@@ -59,7 +72,10 @@ void main() {
         branch: 'master',
       );
       commit2 = Commit(
-        key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
+        key: config.db.emptyKey.append(
+          Commit,
+          id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
+        ),
         repository: 'flutter/flutter',
         sha: 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
         timestamp: 1,
@@ -69,38 +85,46 @@ void main() {
     });
 
     test('no statuses', () async {
-      final Map<String, dynamic> result = (await decodeHandlerBody())!;
-      expect(result['Statuses'], isEmpty);
+      final result = (await decodeHandlerBody<Map<String, Object?>>())!;
+      expect(result, containsPair('Statuses', isEmpty));
     });
 
     test('reports statuses without input commit key', () async {
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
       buildStatusService = FakeBuildStatusService(
-        commitStatuses: <CommitStatus>[CommitStatus(commit1, const <Stage>[]), CommitStatus(commit2, const <Stage>[])],
+        commitStatuses: <CommitStatus>[
+          CommitStatus(commit1, const <Stage>[]),
+          CommitStatus(commit2, const <Stage>[]),
+        ],
       );
       handler = GetStatus(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_, __) => buildStatusService,
+        buildStatusProvider: (_, _) => buildStatusService,
       );
 
-      final Map<String, dynamic> result = (await decodeHandlerBody())!;
-
-      expect(result['Statuses'].length, 2);
+      final result = (await decodeHandlerBody<Map<String, Object?>>())!;
+      expect(result, containsPair('Statuses', hasLength(2)));
     });
 
     test('reports statuses with input commit key', () async {
-      final Commit commit1 = Commit(
-        key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
+      final commit1 = Commit(
+        key: config.db.emptyKey.append(
+          Commit,
+          id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829',
+        ),
         repository: 'flutter/flutter',
         sha: 'ea28a9c34dc701de891eaf74503ca4717019f829',
         timestamp: 3,
         message: 'test message 1',
         branch: 'master',
       );
-      final Commit commit2 = Commit(
-        key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
+      final commit2 = Commit(
+        key: config.db.emptyKey.append(
+          Commit,
+          id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
+        ),
         repository: 'flutter/flutter',
         sha: 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
         timestamp: 1,
@@ -110,15 +134,18 @@ void main() {
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
       buildStatusService = FakeBuildStatusService(
-        commitStatuses: <CommitStatus>[CommitStatus(commit1, const <Stage>[]), CommitStatus(commit2, const <Stage>[])],
+        commitStatuses: <CommitStatus>[
+          CommitStatus(commit1, const <Stage>[]),
+          CommitStatus(commit2, const <Stage>[]),
+        ],
       );
       handler = GetStatus(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_, __) => buildStatusService,
+        buildStatusProvider: (_, _) => buildStatusService,
       );
 
-      const String expectedLastCommitKeyEncoded =
+      const expectedLastCommitKeyEncoded =
           'ahNzfmZsdXR0ZXItZGFzaGJvYXJkckcLEglDaGVja2xpc3QiOGZsdXR0ZXIvZmx1dHRlci9lYTI4YTljMzRkYzcwMWRlODkxZWFmNzQ1MDNjYTQ3MTcwMTlmODI5DA';
 
       tester.request = FakeHttpRequest(
@@ -126,25 +153,33 @@ void main() {
           GetStatus.kLastCommitKeyParam: expectedLastCommitKeyEncoded,
         },
       );
-      final Map<String, dynamic> result = (await decodeHandlerBody())!;
 
-      expect(result['Statuses'].first, <String, dynamic>{
-        'Checklist': <String, dynamic>{
-          'Key':
-              'ahFmbHV0dGVyLWRhc2hib2FyZHJHCxIJQ2hlY2tsaXN0IjhmbHV0dGVyL2ZsdXR0ZXIvZDViMGIzYzhkMWM1ZmQ4OTMwMjA4OTA3N2NjYWJiY2ZhYWUwNDVlNAyiAQlbZGVmYXVsdF0',
-          'Checklist': <String, dynamic>{
-            'FlutterRepositoryPath': 'flutter/flutter',
-            'CreateTimestamp': 1,
-            'Commit': <String, dynamic>{
-              'Sha': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
-              'Message': 'test message 2',
-              'Author': <String, dynamic>{'Login': null, 'avatar_url': null},
+      final result = (await decodeHandlerBody<Map<String, Object?>>())!;
+      expect(
+        result,
+        containsPair('Statuses', [
+          <String, dynamic>{
+            'Checklist': <String, dynamic>{
+              'Key':
+                  'ahFmbHV0dGVyLWRhc2hib2FyZHJHCxIJQ2hlY2tsaXN0IjhmbHV0dGVyL2ZsdXR0ZXIvZDViMGIzYzhkMWM1ZmQ4OTMwMjA4OTA3N2NjYWJiY2ZhYWUwNDVlNAyiAQlbZGVmYXVsdF0',
+              'Checklist': <String, dynamic>{
+                'FlutterRepositoryPath': 'flutter/flutter',
+                'CreateTimestamp': 1,
+                'Commit': <String, dynamic>{
+                  'Sha': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
+                  'Message': 'test message 2',
+                  'Author': <String, dynamic>{
+                    'Login': null,
+                    'avatar_url': null,
+                  },
+                },
+                'Branch': 'master',
+              },
             },
-            'Branch': 'master',
+            'Stages': <String>[],
           },
-        },
-        'Stages': <String>[],
-      });
+        ]),
+      );
     });
 
     test('reports statuses with input branch', () async {
@@ -152,43 +187,50 @@ void main() {
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
       buildStatusService = FakeBuildStatusService(
-        commitStatuses: <CommitStatus>[CommitStatus(commit1, const <Stage>[]), CommitStatus(commit2, const <Stage>[])],
+        commitStatuses: <CommitStatus>[
+          CommitStatus(commit1, const <Stage>[]),
+          CommitStatus(commit2, const <Stage>[]),
+        ],
       );
       handler = GetStatus(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_, __) => buildStatusService,
+        buildStatusProvider: (_, _) => buildStatusService,
       );
 
-      const String branch = 'flutter-1.1-candidate.1';
+      const branch = 'flutter-1.1-candidate.1';
 
       expect(config.db.values.length, 2);
 
       tester.request = FakeHttpRequest(
-        queryParametersValue: <String, String>{
-          GetStatus.kBranchParam: branch,
-        },
+        queryParametersValue: <String, String>{GetStatus.kBranchParam: branch},
       );
-      final Map<String, dynamic> result = (await decodeHandlerBody())!;
-
-      expect(result['Statuses'].length, 1);
-      expect(result['Statuses'].first, <String, dynamic>{
-        'Checklist': <String, dynamic>{
-          'Key':
-              'ahFmbHV0dGVyLWRhc2hib2FyZHJHCxIJQ2hlY2tsaXN0IjhmbHV0dGVyL2ZsdXR0ZXIvZDViMGIzYzhkMWM1ZmQ4OTMwMjA4OTA3N2NjYWJiY2ZhYWUwNDVlNAyiAQlbZGVmYXVsdF0',
-          'Checklist': <String, dynamic>{
-            'FlutterRepositoryPath': 'flutter/flutter',
-            'CreateTimestamp': 1,
-            'Commit': <String, dynamic>{
-              'Sha': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
-              'Message': 'test message 2',
-              'Author': <String, dynamic>{'Login': null, 'avatar_url': null},
+      final result = (await decodeHandlerBody<Map<String, Object?>>())!;
+      expect(
+        result,
+        containsPair('Statuses', [
+          <String, dynamic>{
+            'Checklist': <String, dynamic>{
+              'Key':
+                  'ahFmbHV0dGVyLWRhc2hib2FyZHJHCxIJQ2hlY2tsaXN0IjhmbHV0dGVyL2ZsdXR0ZXIvZDViMGIzYzhkMWM1ZmQ4OTMwMjA4OTA3N2NjYWJiY2ZhYWUwNDVlNAyiAQlbZGVmYXVsdF0',
+              'Checklist': <String, dynamic>{
+                'FlutterRepositoryPath': 'flutter/flutter',
+                'CreateTimestamp': 1,
+                'Commit': <String, dynamic>{
+                  'Sha': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
+                  'Message': 'test message 2',
+                  'Author': <String, dynamic>{
+                    'Login': null,
+                    'avatar_url': null,
+                  },
+                },
+                'Branch': 'flutter-1.1-candidate.1',
+              },
             },
-            'Branch': 'flutter-1.1-candidate.1',
+            'Stages': <String>[],
           },
-        },
-        'Stages': <String>[],
-      });
+        ]),
+      );
     });
   });
 }

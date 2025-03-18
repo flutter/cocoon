@@ -2,10 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/model/auto_submit_query_result.dart';
-import 'package:auto_submit/validations/validation.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
+
+import '../model/auto_submit_query_result.dart';
+import 'validation.dart';
 
 /// Validates that a pull request is in a mergeable state.
 class Mergeable extends Validation {
@@ -15,12 +16,17 @@ class Mergeable extends Validation {
   String get name => 'Mergeable';
 
   @override
-  Future<ValidationResult> validate(QueryResult result, github.PullRequest messagePullRequest) async {
-    final int pullRequestNumber = messagePullRequest.number!;
-    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
-    final MergeableState mergeableState = result.repository!.pullRequest!.mergeable!;
+  Future<ValidationResult> validate(
+    QueryResult result,
+    github.PullRequest messagePullRequest,
+  ) async {
+    final pullRequestNumber = messagePullRequest.number!;
+    final slug = messagePullRequest.base!.repo!.slug();
+    final mergeableState = result.repository!.pullRequest!.mergeable!;
 
-    log.info('${slug.name}/$pullRequestNumber has mergeable state $mergeableState');
+    log.info(
+      '${slug.name}/$pullRequestNumber has mergeable state $mergeableState',
+    );
 
     switch (mergeableState) {
       case MergeableState.MERGEABLE:

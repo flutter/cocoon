@@ -73,7 +73,7 @@ Future<void> main(List<String> args) async {
     stdout.writeln(record.toString());
   });
 
-  final ArgParser parser = ArgParser();
+  final parser = ArgParser();
   parser
     ..addFlag(
       kHelpFlag,
@@ -87,7 +87,8 @@ Future<void> main(List<String> args) async {
     )
     ..addOption(
       kCodesignCertNameOption,
-      help: 'The name of the codesign certificate to be used when codesigning.'
+      help:
+          'The name of the codesign certificate to be used when codesigning.'
           'the name of the certificate for flutter, for example, is: FLUTTER.IO LLC',
     )
     ..addOption(
@@ -119,18 +120,22 @@ Future<void> main(List<String> args) async {
       help: 'whether we are going to skip the notarization process.',
     );
 
-  final ArgResults argResults = parser.parse(args);
+  final argResults = parser.parse(args);
 
   const Platform platform = LocalPlatform();
 
-  final String codesignCertName = getValueFromArgs(kCodesignCertNameOption, argResults)!;
-  final String inputZipPath = getValueFromArgs(kInputZipPathOption, argResults)!;
-  final String outputZipPath = getValueFromArgs(kOutputZipPathOption, argResults)!;
-  final String appSpecificPasswordFilePath = getValueFromArgs(kAppSpecificPasswordOption, argResults)!;
-  final String codesignAppstoreIDFilePath = getValueFromArgs(kCodesignAppstoreIDOption, argResults)!;
-  final String codesignTeamIDFilePath = getValueFromArgs(kCodesignTeamIDOption, argResults)!;
+  final codesignCertName =
+      getValueFromArgs(kCodesignCertNameOption, argResults)!;
+  final inputZipPath = getValueFromArgs(kInputZipPathOption, argResults)!;
+  final outputZipPath = getValueFromArgs(kOutputZipPathOption, argResults)!;
+  final appSpecificPasswordFilePath =
+      getValueFromArgs(kAppSpecificPasswordOption, argResults)!;
+  final codesignAppstoreIDFilePath =
+      getValueFromArgs(kCodesignAppstoreIDOption, argResults)!;
+  final codesignTeamIDFilePath =
+      getValueFromArgs(kCodesignTeamIDOption, argResults)!;
 
-  final bool dryrun = argResults[kDryrunFlag] as bool;
+  final dryrun = argResults[kDryrunFlag] as bool;
 
   if (!platform.isMacOS) {
     throw CodesignException(
@@ -140,7 +145,9 @@ Future<void> main(List<String> args) async {
   }
 
   const FileSystem fileSystem = LocalFileSystem();
-  final Directory rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
+  final rootDirectory = fileSystem.systemTempDirectory.createTempSync(
+    'conductor_codesign',
+  );
   const ProcessManager processManager = LocalProcessManager();
 
   return FileCodesignVisitor(

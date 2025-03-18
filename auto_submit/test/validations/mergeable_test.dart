@@ -4,9 +4,7 @@
 
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto;
 import 'package:auto_submit/validations/mergeable.dart';
-import 'package:auto_submit/validations/validation.dart';
-import 'package:cocoon_server/testing/mocks.dart';
-import 'package:github/github.dart' as github;
+import 'package:cocoon_server_test/mocks.dart';
 import 'package:test/test.dart';
 
 import '../requests/github_webhook_test_data.dart';
@@ -24,55 +22,61 @@ void main() {
   setUp(() {
     githubGraphQLClient = FakeGraphQLClient();
     githubService = FakeGithubService(client: MockGitHub());
-    config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
+    config = FakeConfig(
+      githubService: githubService,
+      githubGraphQLClient: githubGraphQLClient,
+    );
     mergeable = Mergeable(config: config);
   });
 
   test('Pull request is mergeable', () async {
-    const String org = 'flutter';
-    const String repo = 'flutter';
+    const org = 'flutter';
+    const repo = 'flutter';
 
-    final PullRequestHelper flutterRequest = PullRequestHelper(
+    final flutterRequest = PullRequestHelper(
       prNumber: 0,
       lastCommitHash: oid,
       reviews: <PullRequestReviewHelper>[],
     );
-    final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+    final queryResult = createQueryResult(flutterRequest);
 
-    final github.PullRequest pullRequest = generatePullRequest(
+    final pullRequest = generatePullRequest(
       mergeable: true,
       login: org,
       repoName: repo,
     );
 
-    final ValidationResult processMergeResult = await mergeable.validate(
+    final processMergeResult = await mergeable.validate(
       queryResult,
       pullRequest,
     );
     expect(processMergeResult.result, isTrue);
-    expect(processMergeResult.message, 'Pull request flutter/flutter/1347 is mergeable');
+    expect(
+      processMergeResult.message,
+      'Pull request flutter/flutter/1347 is mergeable',
+    );
   });
 
   test('Pull request mergeability has not been determined', () async {
-    const String org = 'flutter';
-    const String repo = 'flutter';
+    const org = 'flutter';
+    const repo = 'flutter';
 
-    final PullRequestHelper flutterRequest = PullRequestHelper(
+    final flutterRequest = PullRequestHelper(
       prNumber: 0,
       lastCommitHash: oid,
       reviews: <PullRequestReviewHelper>[],
       mergeableState: auto.MergeableState.UNKNOWN,
     );
-    final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+    final queryResult = createQueryResult(flutterRequest);
 
-    final github.PullRequest pullRequest = generatePullRequest(
+    final pullRequest = generatePullRequest(
       mergeable: null,
       login: org,
       repoName: repo,
     );
     githubService.pullRequestData = pullRequest;
 
-    final ValidationResult processMergeResult = await mergeable.validate(
+    final processMergeResult = await mergeable.validate(
       queryResult,
       pullRequest,
     );
@@ -84,29 +88,32 @@ void main() {
   });
 
   test('Pull request cannot be merged', () async {
-    const String org = 'flutter';
-    const String repo = 'flutter';
+    const org = 'flutter';
+    const repo = 'flutter';
 
-    final github.PullRequest pullRequest = generatePullRequest(
+    final pullRequest = generatePullRequest(
       mergeable: false,
       login: org,
       repoName: repo,
     );
     githubService.pullRequestData = pullRequest;
 
-    final PullRequestHelper flutterRequest = PullRequestHelper(
+    final flutterRequest = PullRequestHelper(
       prNumber: 0,
       lastCommitHash: oid,
       reviews: <PullRequestReviewHelper>[],
       mergeableState: auto.MergeableState.CONFLICTING,
     );
-    final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+    final queryResult = createQueryResult(flutterRequest);
 
-    final ValidationResult processMergeResult = await mergeable.validate(
+    final processMergeResult = await mergeable.validate(
       queryResult,
       pullRequest,
     );
     expect(processMergeResult.result, isFalse);
-    expect(processMergeResult.message, 'Pull request flutter/flutter/1347 is not in a mergeable state.');
+    expect(
+      processMergeResult.message,
+      'Pull request flutter/flutter/1347 is not in a mergeable state.',
+    );
   });
 }

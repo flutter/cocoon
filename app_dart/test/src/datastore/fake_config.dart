@@ -10,6 +10,7 @@ import 'package:cocoon_service/src/model/appengine/branch.dart';
 import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
+import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart';
 import 'package:github/github.dart' as gh;
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
@@ -19,17 +20,21 @@ import '../service/fake_github_service.dart';
 import 'fake_datastore.dart';
 
 // ignore: must_be_immutable
+// TODO(matanlurey): Make this *not* a mess. See https://github.com/flutter/flutter/issues/164646.
 class FakeConfig implements Config {
   FakeConfig({
     this.githubClient,
     this.deviceLabServiceAccountValue,
     this.maxTaskRetriesValue,
     this.maxLuciTaskRetriesValue,
+    this.maxFilesChangedForSkippingEnginePhaseValue,
     this.keyHelperValue,
     this.oauthClientIdValue,
     this.githubOAuthTokenValue,
-    this.mergeConflictPullRequestMessageValue = 'default mergeConflictPullRequestMessageValue',
-    this.missingTestsPullRequestMessageValue = 'default missingTestsPullRequestMessageValue',
+    this.mergeConflictPullRequestMessageValue =
+        'default mergeConflictPullRequestMessageValue',
+    this.missingTestsPullRequestMessageValue =
+        'default missingTestsPullRequestMessageValue',
     this.wrongBaseBranchPullRequestMessageValue,
     this.wrongHeadBranchPullRequestMessageValue,
     this.releaseBranchPullRequestMessageValue,
@@ -52,6 +57,8 @@ class FakeConfig implements Config {
     this.flutterGoldFollowUpAlertValue,
     this.flutterGoldDraftChangeValue,
     this.flutterGoldStalePRValue,
+    this.releaseBranchesValue,
+    this.releaseCandidateBranchPathValue,
     this.postsubmitSupportedReposValue,
     this.supportedBranchesValue,
     this.supportedReposValue,
@@ -72,6 +79,7 @@ class FakeConfig implements Config {
   FakeDatastoreDB dbValue;
   ServiceAccountInfo? deviceLabServiceAccountValue;
   int? maxTaskRetriesValue;
+  int? maxFilesChangedForSkippingEnginePhaseValue;
   int? maxLuciTaskRetriesValue;
   int? batchSizeValue;
   FakeKeyHelper? keyHelperValue;
@@ -87,6 +95,8 @@ class FakeConfig implements Config {
   String? flutterBuildDescriptionValue;
   Logging? loggingServiceValue;
   String? waitingForTreeToGoGreenLabelNameValue;
+  List<String>? releaseBranchesValue;
+  String? releaseCandidateBranchPathValue;
   Set<String>? rollerAccountsValue;
   int? maxRecordsValue;
   int? backfillerTargetLimitValue;
@@ -106,16 +116,21 @@ class FakeConfig implements Config {
   Duration? githubRequestDelayValue;
 
   @override
-  Future<gh.GitHub> createGitHubClient({gh.PullRequest? pullRequest, gh.RepositorySlug? slug}) async => githubClient!;
+  Future<gh.GitHub> createGitHubClient({
+    gh.PullRequest? pullRequest,
+    gh.RepositorySlug? slug,
+  }) async => githubClient!;
 
   @override
   gh.GitHub createGitHubClientWithToken(String token) => githubClient!;
 
   @override
-  Future<GraphQLClient> createGitHubGraphQLClient() async => githubGraphQLClient!;
+  Future<GraphQLClient> createGitHubGraphQLClient() async =>
+      githubGraphQLClient!;
 
   @override
-  Future<TabledataResource> createTabledataResourceApi() async => tabledataResource!;
+  Future<TabledataResource> createTabledataResourceApi() async =>
+      tabledataResource!;
 
   @override
   Future<BigqueryService> createBigQueryService() async => bigqueryService!;
@@ -124,7 +139,8 @@ class FakeConfig implements Config {
   Future<FirestoreService> createFirestoreService() async => firestoreService!;
 
   @override
-  Future<GithubService> createGithubService(gh.RepositorySlug slug) async => githubService ?? FakeGithubService();
+  Future<GithubService> createGithubService(gh.RepositorySlug slug) async =>
+      githubService ?? FakeGithubService();
 
   @override
   GithubService createGithubServiceWithToken(String token) => githubService!;
@@ -150,6 +166,10 @@ class FakeConfig implements Config {
 
   @override
   int get batchSize => batchSizeValue ?? 5;
+
+  @override
+  int get maxFilesChangedForSkippingEnginePhase =>
+      maxFilesChangedForSkippingEnginePhaseValue!;
 
   @override
   int get maxLuciTaskRetries => maxLuciTaskRetriesValue!;
@@ -179,10 +199,12 @@ class FakeConfig implements Config {
   String flutterGoldFollowUpAlert(String url) => flutterGoldFollowUpAlertValue!;
 
   @override
-  String flutterGoldAlertConstant(gh.RepositorySlug slug) => flutterGoldAlertConstantValue!;
+  String flutterGoldAlertConstant(gh.RepositorySlug slug) =>
+      flutterGoldAlertConstantValue!;
 
   @override
-  String flutterGoldCommentID(gh.PullRequest pr) => 'PR ${pr.number}, at ${pr.head!.sha}';
+  String flutterGoldCommentID(gh.PullRequest pr) =>
+      'PR ${pr.number}, at ${pr.head!.sha}';
 
   @override
   Future<String> get frobWebhookKey async => 'frob-webhook-key';
@@ -200,19 +222,24 @@ class FakeConfig implements Config {
   Future<String> get githubOAuthToken async => githubOAuthTokenValue ?? 'token';
 
   @override
-  String get mergeConflictPullRequestMessage => mergeConflictPullRequestMessageValue;
+  String get mergeConflictPullRequestMessage =>
+      mergeConflictPullRequestMessageValue;
 
   @override
-  String get missingTestsPullRequestMessage => missingTestsPullRequestMessageValue;
+  String get missingTestsPullRequestMessage =>
+      missingTestsPullRequestMessageValue;
 
   @override
-  String get wrongBaseBranchPullRequestMessage => wrongBaseBranchPullRequestMessageValue!;
+  String get wrongBaseBranchPullRequestMessage =>
+      wrongBaseBranchPullRequestMessageValue!;
 
   @override
-  String wrongHeadBranchPullRequestMessage(String branch) => wrongHeadBranchPullRequestMessageValue!;
+  String wrongHeadBranchPullRequestMessage(String branch) =>
+      wrongHeadBranchPullRequestMessageValue!;
 
   @override
-  String get releaseBranchPullRequestMessage => releaseBranchPullRequestMessageValue!;
+  String get releaseBranchPullRequestMessage =>
+      releaseBranchPullRequestMessageValue!;
 
   @override
   Future<String> get webhookKey async => webhookKeyValue!;
@@ -221,16 +248,20 @@ class FakeConfig implements Config {
   String get flutterBuild => flutterBuildValue!;
 
   @override
-  String get flutterBuildDescription =>
+  String get flutterTreeStatusRed =>
       flutterBuildDescriptionValue ??
       'Tree is currently broken. Please do not merge this '
           'PR unless it contains a fix for the tree.';
+  @override
+  String get flutterTreeStatusEmergency =>
+      'The tree is currently broken; however, this PR is marked as `emergency` and will be allowed to merge.';
 
   @override
   Logging get loggingService => loggingServiceValue!;
 
   @override
-  String get waitingForTreeToGoGreenLabelName => waitingForTreeToGoGreenLabelNameValue!;
+  String get waitingForTreeToGoGreenLabelName =>
+      waitingForTreeToGoGreenLabelNameValue!;
 
   @override
   Set<String> get rollerAccounts => rollerAccountsValue!;
@@ -249,7 +280,8 @@ class FakeConfig implements Config {
   Future<String> get githubAppId => throw UnimplementedError();
 
   @override
-  Future<Map<String, dynamic>> get githubAppInstallations => throw UnimplementedError();
+  Future<Map<String, dynamic>> get githubAppInstallations =>
+      throw UnimplementedError();
 
   @override
   Future<String> get githubPrivateKey => throw UnimplementedError();
@@ -261,17 +293,24 @@ class FakeConfig implements Config {
   Future<GithubService> createDefaultGitHubService() async => githubService!;
 
   @override
-  String get defaultRecipeBundleRef => 'refs/heads/main';
+  CipdVersion get defaultRecipeBundleRef => const CipdVersion(branch: 'main');
 
   @override
-  Future<List<String>> get releaseAccounts async => <String>['dart-flutter-releaser'];
+  List<String> get releaseBranches => releaseBranchesValue!;
+
+  @override
+  String get releaseCandidateBranchPath => releaseCandidateBranchPathValue!;
+
+  @override
+  Future<List<String>> get releaseAccounts async => <String>[
+    'dart-flutter-releaser',
+  ];
 
   @override
   Set<gh.RepositorySlug> get supportedRepos =>
       supportedReposValue ??
       <gh.RepositorySlug>{
         Config.flutterSlug,
-        Config.engineSlug,
         Config.cocoonSlug,
         Config.packagesSlug,
       };
@@ -283,14 +322,13 @@ class FakeConfig implements Config {
   @override
   Future<Iterable<Branch>> getBranches(gh.RepositorySlug slug) async {
     if (supportedBranchesValue == null) {
-      throw Exception('Test must set suportedBranchesValue to be able to use Config.getBranches');
+      throw Exception(
+        'Test must set suportedBranchesValue to be able to use Config.getBranches',
+      );
     }
     return supportedBranchesValue!.map(
       (String branch) => Branch(
-        key: db.emptyKey.append<String>(
-          Branch,
-          id: '${slug.fullName}/$branch',
-        ),
+        key: db.emptyKey.append<String>(Branch, id: '${slug.fullName}/$branch'),
       ),
     );
   }

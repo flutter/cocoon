@@ -56,22 +56,59 @@ const String expectedSemanticsIntegrationTestNotEnoughDataComment = '''
 Current flaky ratio is not available (< 10 commits).
 ''';
 
-final List<BuilderStatistic> semanticsIntegrationTestResponseZeroFlake = <BuilderStatistic>[
-  BuilderStatistic(
-    name: 'Mac_android android_semantics_integration_test',
-    flakyRate: 0.0,
-    flakyBuilds: <String>[],
-    succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197', '196', '195', '194'],
-    recentCommit: '',
-    flakyBuildOfRecentCommit: '',
-    flakyNumber: 0,
-    totalNumber: 10,
-    fromDate: '2023-06-20',
-    toDate: '2023-06-29',
-  ),
-];
+final List<BuilderStatistic> semanticsIntegrationTestResponseZeroFlake =
+    <BuilderStatistic>[
+      BuilderStatistic(
+        name: 'Mac_android android_semantics_integration_test',
+        flakyRate: 0.0,
+        flakyBuilds: <String>[],
+        succeededBuilds: <String>[
+          '203',
+          '202',
+          '201',
+          '200',
+          '199',
+          '198',
+          '197',
+          '196',
+          '195',
+          '194',
+        ],
+        recentCommit: '',
+        flakyBuildOfRecentCommit: '',
+        flakyNumber: 0,
+        totalNumber: 10,
+        fromDate: '2023-06-20',
+        toDate: '2023-06-29',
+      ),
+    ];
 
-final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatistic>[
+final List<BuilderStatistic> semanticsIntegrationTestResponse =
+    <BuilderStatistic>[
+      BuilderStatistic(
+        name: 'Mac_android android_semantics_integration_test',
+        flakyRate: 0.5,
+        flakyBuilds: <String>['103', '102', '101'],
+        succeededBuilds: <String>[
+          '203',
+          '202',
+          '201',
+          '200',
+          '199',
+          '198',
+          '197',
+        ],
+        recentCommit: 'abc',
+        flakyBuildOfRecentCommit: '103',
+        flakyNumber: 3,
+        totalNumber: 10,
+        fromDate: '2023-06-20',
+        toDate: '2023-06-29',
+      ),
+    ];
+
+final List<BuilderStatistic>
+stagingSameBuilderSemanticsIntegrationTestResponse = <BuilderStatistic>[
   BuilderStatistic(
     name: 'Mac_android android_semantics_integration_test',
     flakyRate: 0.5,
@@ -86,64 +123,59 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
   ),
 ];
 
-final List<BuilderStatistic> stagingSameBuilderSemanticsIntegrationTestResponse = <BuilderStatistic>[
-  BuilderStatistic(
-    name: 'Mac_android android_semantics_integration_test',
-    flakyRate: 0.5,
-    flakyBuilds: <String>['103', '102', '101'],
-    succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197'],
-    recentCommit: 'abc',
-    flakyBuildOfRecentCommit: '103',
-    flakyNumber: 3,
-    totalNumber: 10,
-    fromDate: '2023-06-20',
-    toDate: '2023-06-29',
-  ),
-];
+final List<BuilderStatistic> semanticsIntegrationTestResponseNotEnoughData =
+    <BuilderStatistic>[
+      BuilderStatistic(
+        name: 'Mac_android android_semantics_integration_test',
+        flakyRate: 0.5,
+        flakyBuilds: <String>['103', '102', '101'],
+        succeededBuilds: <String>['203', '202', '201', '200'],
+        recentCommit: 'abc',
+        flakyBuildOfRecentCommit: '103',
+        flakyNumber: 3,
+        totalNumber: 7,
+        fromDate: '2023-06-20',
+        toDate: '2023-06-29',
+      ),
+      // This builder is flakey, but it should be
+      // ignored because it has ignore_flakiness set.
+      BuilderStatistic(
+        name: 'Mac_android ignore_myflakiness',
+        flakyRate: 0.5,
+        flakyBuilds: <String>['103', '102', '101'],
+        succeededBuilds: <String>['203', '202', '201', '200'],
+        recentCommit: 'abc',
+        flakyBuildOfRecentCommit: '103',
+        flakyNumber: 3,
+        totalNumber: 7,
+        fromDate: '2023-06-20',
+        toDate: '2023-06-29',
+      ),
+    ];
 
-final List<BuilderStatistic> semanticsIntegrationTestResponseNotEnoughData = <BuilderStatistic>[
-  BuilderStatistic(
-    name: 'Mac_android android_semantics_integration_test',
-    flakyRate: 0.5,
-    flakyBuilds: <String>['103', '102', '101'],
-    succeededBuilds: <String>['203', '202', '201', '200'],
-    recentCommit: 'abc',
-    flakyBuildOfRecentCommit: '103',
-    flakyNumber: 3,
-    totalNumber: 7,
-    fromDate: '2023-06-20',
-    toDate: '2023-06-29',
-  ),
-  // This builder is flakey, but it should be
-  // ignored because it has ignore_flakiness set.
-  BuilderStatistic(
-    name: 'Mac_android ignore_myflakiness',
-    flakyRate: 0.5,
-    flakyBuilds: <String>['103', '102', '101'],
-    succeededBuilds: <String>['203', '202', '201', '200'],
-    recentCommit: 'abc',
-    flakyBuildOfRecentCommit: '103',
-    flakyNumber: 3,
-    totalNumber: 7,
-    fromDate: '2023-06-20',
-    toDate: '2023-06-29',
-  ),
-];
-
-final List<BuilderStatistic> shardSemanticsIntegrationTestResponse = <BuilderStatistic>[
-  BuilderStatistic(
-    name: 'Mac build_tests_1_4',
-    flakyRate: 0.5,
-    flakyBuilds: <String>['103', '102', '101'],
-    succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197'],
-    recentCommit: 'abc',
-    flakyBuildOfRecentCommit: '103',
-    flakyNumber: 3,
-    totalNumber: 10,
-    fromDate: '2023-06-20',
-    toDate: '2023-06-29',
-  ),
-];
+final List<BuilderStatistic> shardSemanticsIntegrationTestResponse =
+    <BuilderStatistic>[
+      BuilderStatistic(
+        name: 'Mac build_tests_1_4',
+        flakyRate: 0.5,
+        flakyBuilds: <String>['103', '102', '101'],
+        succeededBuilds: <String>[
+          '203',
+          '202',
+          '201',
+          '200',
+          '199',
+          '198',
+          '197',
+        ],
+        recentCommit: 'abc',
+        flakyBuildOfRecentCommit: '103',
+        flakyNumber: 3,
+        totalNumber: 10,
+        fromDate: '2023-06-20',
+        toDate: '2023-06-29',
+      ),
+    ];
 
 final List<BuilderStatistic> ciyamlTestResponse = <BuilderStatistic>[
   BuilderStatistic(
@@ -199,7 +231,8 @@ https://flutter-dashboard.appspot.com/#/build?taskFilter=Mac_android%20android_s
 Please follow https://github.com/flutter/flutter/blob/master/docs/infra/Reducing-Test-Flakiness.md#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
 
-const String expectedStagingSemanticsIntegrationTestResponseTitle = 'Linux ci_yaml flutter roller is 50.00% flaky';
+const String expectedStagingSemanticsIntegrationTestResponseTitle =
+    'Linux ci_yaml flutter roller is 50.00% flaky';
 const String expectedStagingSemanticsIntegrationTestResponseBody = '''
 <!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.
 {
@@ -227,9 +260,7 @@ final CiYamlSet testCiYaml = CiYamlSet(
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
     CiType.any: pb.SchedulerConfig(
-      enabledBranches: <String>[
-        Config.defaultBranch(Config.flutterSlug),
-      ],
+      enabledBranches: <String>[Config.defaultBranch(Config.flutterSlug)],
       targets: <pb.Target>[
         pb.Target(
           name: 'Mac_android android_semantics_integration_test',
@@ -272,29 +303,15 @@ final CiYamlSet testCiYaml = CiYamlSet(
             'subshard': '1_4',
             'tags': jsonEncode(['framework', 'hostonly', 'shard']),
             'dependencies': jsonEncode([
-              {
-                'dependency': 'android_sdk',
-                'version': 'version:29.0',
-              },
-              {
-                'dependency': 'chrome_and_driver',
-                'version': 'version:84',
-              },
-              {
-                'dependency': 'xcode',
-                'version': '13a233',
-              },
-              {
-                'dependency': 'open_jdk',
-                'version': '11',
-              },
-              {
-                'dependency': 'gems',
-                'version': 'v3.3.14',
-              },
+              {'dependency': 'android_sdk', 'version': 'version:29.0'},
+              {'dependency': 'chrome_and_driver', 'version': 'version:84'},
+              {'dependency': 'xcode', 'version': '13a233'},
+              {'dependency': 'open_jdk', 'version': '11'},
+              {'dependency': 'gems', 'version': 'v3.3.14'},
               {
                 'dependency': 'goldctl',
-                'version': 'git_revision:3a77d0b12c697a840ca0c7705208e8622dc94603',
+                'version':
+                    'git_revision:3a77d0b12c697a840ca0c7705208e8622dc94603',
               },
             ]),
           },
@@ -332,6 +349,6 @@ const String testOwnersContent = '''
 
 String gitHubEncode(String source) {
   final List<int> utf8Characters = utf8.encode(source);
-  final String base64encoded = base64Encode(utf8Characters);
+  final base64encoded = base64Encode(utf8Characters);
   return base64encoded;
 }

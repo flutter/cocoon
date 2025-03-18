@@ -7,8 +7,6 @@ cron:
   url: /api/v2/vacuum-github-commits
   schedule: every 6 hours
 
-# TODO(keyonghan): will delete if `In Progress` hanging issue is resolved:
-# https://github.com/flutter/flutter/issues/120395#issuecomment-1444810718
 - description: vacuum stale tasks
   url: /api/scheduler/vacuum-stale-tasks
   schedule: every 1 hours
@@ -24,10 +22,6 @@ cron:
 - description: sends pr-specific gold status to GitHub to annotate flutter and engine PRs and commits
   url: /api/push-gold-status-to-github
   schedule: every 5 minutes
-
-- description: sends build status to GitHub to annotate engine PRs and commits
-  url: /api/push-build-status-to-github?repo=flutter/engine
-  schedule: every 2 minutes
 
 - description: sends build status to GitHub to annotate packages PRs and commits
   url: /api/push-build-status-to-github?repo=flutter/packages
@@ -64,10 +58,6 @@ cron:
 - description: check flaky builders to either deflake the builder or file a new flaky bug
   url: /api/check_flaky_builders
   schedule: every wednesday 9:20
-
-- description: update branches to reflect most recent commit activity
-  url: '/api/update-branches'
-  schedule: every wednesday 19:00
 
 - description: check pull requests in the autosubmit bot
   url: /check-pull-request

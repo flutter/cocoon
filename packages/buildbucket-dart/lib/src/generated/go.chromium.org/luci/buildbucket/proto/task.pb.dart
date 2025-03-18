@@ -59,20 +59,28 @@ class Task extends $pb.GeneratedMessage {
     return $result;
   }
   Task._() : super();
-  factory Task.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Task.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Task.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Task.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Task',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Task',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
     ..aOM<TaskID>(1, _omitFieldNames ? '' : 'id', subBuilder: TaskID.create)
     ..aOS(2, _omitFieldNames ? '' : 'link')
     ..e<$0.Status>(3, _omitFieldNames ? '' : 'status', $pb.PbFieldType.OE,
-        defaultOrMaker: $0.Status.STATUS_UNSPECIFIED, valueOf: $0.Status.valueOf, enumValues: $0.Status.values)
-    ..aOM<$0.StatusDetails>(4, _omitFieldNames ? '' : 'statusDetails', subBuilder: $0.StatusDetails.create)
+        defaultOrMaker: $0.Status.STATUS_UNSPECIFIED,
+        valueOf: $0.Status.valueOf,
+        enumValues: $0.Status.values)
+    ..aOM<$0.StatusDetails>(4, _omitFieldNames ? '' : 'statusDetails',
+        subBuilder: $0.StatusDetails.create)
     ..aOS(5, _omitFieldNames ? '' : 'summaryHtml')
-    ..aOM<$1.Struct>(6, _omitFieldNames ? '' : 'details', subBuilder: $1.Struct.create)
+    ..aOM<$1.Struct>(6, _omitFieldNames ? '' : 'details',
+        subBuilder: $1.Struct.create)
     ..aInt64(7, _omitFieldNames ? '' : 'updateId')
     ..aOS(8, _omitFieldNames ? '' : 'summaryMarkdown')
     ..hasRequiredFields = false;
@@ -84,7 +92,8 @@ class Task extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  Task copyWith(void Function(Task) updates) => super.copyWith((message) => updates(message as Task)) as Task;
+  Task copyWith(void Function(Task) updates) =>
+      super.copyWith((message) => updates(message as Task)) as Task;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -93,7 +102,8 @@ class Task extends $pb.GeneratedMessage {
   Task createEmptyInstance() => create();
   static $pb.PbList<Task> createRepeated() => $pb.PbList<Task>();
   @$core.pragma('dart2js:noInline')
-  static Task getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Task>(create);
+  static Task getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Task>(create);
   static Task? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -239,13 +249,17 @@ class TaskID extends $pb.GeneratedMessage {
     return $result;
   }
   TaskID._() : super();
-  factory TaskID.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TaskID.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory TaskID.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory TaskID.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TaskID',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TaskID',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'target')
     ..aOS(2, _omitFieldNames ? '' : 'id')
     ..hasRequiredFields = false;
@@ -257,7 +271,8 @@ class TaskID extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  TaskID copyWith(void Function(TaskID) updates) => super.copyWith((message) => updates(message as TaskID)) as TaskID;
+  TaskID copyWith(void Function(TaskID) updates) =>
+      super.copyWith((message) => updates(message as TaskID)) as TaskID;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -266,7 +281,8 @@ class TaskID extends $pb.GeneratedMessage {
   TaskID createEmptyInstance() => create();
   static $pb.PbList<TaskID> createRepeated() => $pb.PbList<TaskID>();
   @$core.pragma('dart2js:noInline')
-  static TaskID getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TaskID>(create);
+  static TaskID getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TaskID>(create);
   static TaskID? _defaultInstance;
 
   /// Target backend. e.g. "swarming://chromium-swarm".
@@ -324,11 +340,14 @@ class BuildTaskUpdate extends $pb.GeneratedMessage {
   factory BuildTaskUpdate.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory BuildTaskUpdate.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory BuildTaskUpdate.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'BuildTaskUpdate',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'BuildTaskUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'buildbucket.v2'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'buildId')
     ..aOM<Task>(2, _omitFieldNames ? '' : 'task', subBuilder: Task.create)
     ..hasRequiredFields = false;
@@ -341,17 +360,19 @@ class BuildTaskUpdate extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   BuildTaskUpdate copyWith(void Function(BuildTaskUpdate) updates) =>
-      super.copyWith((message) => updates(message as BuildTaskUpdate)) as BuildTaskUpdate;
+      super.copyWith((message) => updates(message as BuildTaskUpdate))
+          as BuildTaskUpdate;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static BuildTaskUpdate create() => BuildTaskUpdate._();
   BuildTaskUpdate createEmptyInstance() => create();
-  static $pb.PbList<BuildTaskUpdate> createRepeated() => $pb.PbList<BuildTaskUpdate>();
+  static $pb.PbList<BuildTaskUpdate> createRepeated() =>
+      $pb.PbList<BuildTaskUpdate>();
   @$core.pragma('dart2js:noInline')
-  static BuildTaskUpdate getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildTaskUpdate>(create);
+  static BuildTaskUpdate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<BuildTaskUpdate>(create);
   static BuildTaskUpdate? _defaultInstance;
 
   /// A build ID.
@@ -384,4 +405,5 @@ class BuildTaskUpdate extends $pb.GeneratedMessage {
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

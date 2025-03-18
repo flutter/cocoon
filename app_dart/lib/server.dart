@@ -5,8 +5,10 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/service/commit_service.dart';
+import 'cocoon_service.dart';
+import 'src/request_handlers/trigger_workflow.dart';
+import 'src/service/commit_service.dart';
+import 'src/service/scheduler/ci_yaml_fetcher.dart';
 
 typedef Server = Future<void> Function(HttpRequest);
 
@@ -23,10 +25,11 @@ Server createServer({
   required CommitService commitService,
   required GerritService gerritService,
   required Scheduler scheduler,
+  required CiYamlFetcher ciYamlFetcher,
   FusionTester? fusionTester,
 }) {
   fusionTester ??= FusionTester();
-  final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
+  final handlers = <String, RequestHandler<dynamic>>{
     '/api/check_flaky_builders': CheckFlakyBuilders(
       config: config,
       authenticationProvider: authProvider,
@@ -77,12 +80,14 @@ Server createServer({
       luciBuildService: luciBuildService,
       githubChecksService: githubChecksService,
       scheduler: scheduler,
+      ciYamlFetcher: ciYamlFetcher,
     ),
     '/api/v2/postsubmit-luci-subscription': PostsubmitLuciSubscription(
       cache: cache,
       config: config,
       scheduler: scheduler,
       githubChecksService: githubChecksService,
+      ciYamlFetcher: ciYamlFetcher,
     ),
     '/api/push-build-status-to-github': PushBuildStatusToGithub(
       config: config,
@@ -93,17 +98,12 @@ Server createServer({
       authenticationProvider: authProvider,
     ),
     // I do not believe these recieve a build message.
-    '/api/reset-prod-task': ResetProdTask(
+    '/api/rerun-prod-task': RerunProdTask(
       config: config,
       authenticationProvider: authProvider,
       luciBuildService: luciBuildService,
       scheduler: scheduler,
-    ),
-    '/api/v2/reset-prod-task': ResetProdTask(
-      config: config,
-      authenticationProvider: authProvider,
-      luciBuildService: luciBuildService,
-      scheduler: scheduler,
+      ciYamlFetcher: ciYamlFetcher,
     ),
     '/api/reset-try-task': ResetTryTask(
       config: config,
@@ -118,19 +118,20 @@ Server createServer({
     '/api/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
       scheduler: scheduler,
+      ciYamlFetcher: ciYamlFetcher,
     ),
     '/api/v2/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
       scheduler: scheduler,
+      ciYamlFetcher: ciYamlFetcher,
     ),
-    '/api/v2/scheduler/batch-request-subscription': SchedulerRequestSubscription(
-      cache: cache,
-      config: config,
-      buildBucketClient: buildBucketClient,
-    ),
-    '/api/scheduler/vacuum-stale-tasks': VacuumStaleTasks(
-      config: config,
-    ),
+    '/api/v2/scheduler/batch-request-subscription':
+        SchedulerRequestSubscription(
+          cache: cache,
+          config: config,
+          buildBucketClient: buildBucketClient,
+        ),
+    '/api/scheduler/vacuum-stale-tasks': VacuumStaleTasks(config: config),
     '/api/update_existing_flaky_issues': UpdateExistingFlakyIssue(
       config: config,
       authenticationProvider: authProvider,
@@ -167,6 +168,12 @@ Server createServer({
       scheduler: scheduler,
     ),
 
+    /// Temporary API to trigger a dispatch-able workflow from Cocoon.
+    '/api/trigger-workflow': TriggerWorkflow(
+      authenticationProvider: authProvider,
+      config: config,
+    ),
+
     /// Returns status of the framework tree.
     ///
     /// Returns serialized proto with enum representing the
@@ -198,7 +205,10 @@ Server createServer({
     '/api/public/get-release-branches': CacheRequestHandler<Body>(
       cache: cache,
       config: config,
-      delegate: GetReleaseBranches(config: config, branchService: branchService),
+      delegate: GetReleaseBranches(
+        config: config,
+        branchService: branchService,
+      ),
       ttl: const Duration(hours: 1),
     ),
 
@@ -283,28 +293,32 @@ Server createServer({
     '/readiness_check': ReadinessCheck(config: config),
   };
 
-  return ((HttpRequest request) async {
+  return (HttpRequest request) async {
     if (handlers.containsKey(request.uri.path)) {
-      final RequestHandler<dynamic> handler = handlers[request.uri.path]!;
+      final handler = handlers[request.uri.path]!;
       await handler.service(request);
     } else {
       /// Requests with query parameters and anchors need to be trimmed to get the file path.
       // TODO(chillers): Use toFilePath(), https://github.com/dart-lang/sdk/issues/39373
-      final int queryIndex = request.uri.path.contains('?') ? request.uri.path.indexOf('?') : request.uri.path.length;
-      final int anchorIndex = request.uri.path.contains('#') ? request.uri.path.indexOf('#') : request.uri.path.length;
+      final queryIndex =
+          request.uri.path.contains('?')
+              ? request.uri.path.indexOf('?')
+              : request.uri.path.length;
+      final anchorIndex =
+          request.uri.path.contains('#')
+              ? request.uri.path.indexOf('#')
+              : request.uri.path.length;
 
       /// Trim to the first instance of an anchor or query.
       final int trimIndex = min(queryIndex, anchorIndex);
-      final String filePath = request.uri.path.substring(0, trimIndex);
+      final filePath = request.uri.path.substring(0, trimIndex);
 
-      const Map<String, String> redirects = <String, String>{
-        '/build.html': '/#/build',
-      };
+      const redirects = <String, String>{'/build.html': '/#/build'};
       if (redirects.containsKey(filePath)) {
         request.response.statusCode = HttpStatus.permanentRedirect;
         return request.response.redirect(Uri.parse(redirects[filePath]!));
       }
       await StaticFileHandler(filePath, config: config).service(request);
     }
-  });
+  };
 }

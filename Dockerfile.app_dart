@@ -2,17 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-
 # Dart Docker official images can be found here: https://hub.docker.com/_/dart
-FROM dart:beta@sha256:8f9ccb89e68772720fbedf48baf0f6cc1bf61a6d1fd9962c3a418adbd89bdca0
+FROM dart:3.7.1
 
-WORKDIR /cocoon_server
-
-COPY cocoon_server .
+# Packages are PATH dependencies of app_dart, and need to be copied/accessible.
+WORKDIR /packages
+COPY packages .
 
 WORKDIR /app
-
-# Copy app source code (except anything in .dockerignore).
 COPY app_dart .
 
 RUN dart pub get

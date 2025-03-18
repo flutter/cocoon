@@ -12,7 +12,8 @@ import 'package:yaml/yaml.dart';
 void main() {
   group('scheduler config', () {
     test('constructs graph with one target', () {
-      final YamlMap? singleTargetConfig = loadYaml('''
+      final singleTargetConfig =
+          loadYaml('''
 enabled_branches:
   - master
 targets:
@@ -22,41 +23,11 @@ targets:
       - os=Linux
     properties:
       test: abc
-      ''') as YamlMap?;
-      final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(singleTargetConfig);
-      final SchedulerConfig schedulerConfig = CiYaml(
-        type: CiType.any,
-        slug: Config.flutterSlug,
-        branch: Config.defaultBranch(Config.flutterSlug),
-        config: unCheckedSchedulerConfig,
-        validate: true,
-      ).config;
-      expect(schedulerConfig.enabledBranches, <String>['master']);
-      expect(schedulerConfig.targets.length, 1);
-      final Target target = schedulerConfig.targets.first;
-      expect(target.bringup, false);
-      expect(target.name, 'A');
-      expect(target.properties, <String, String>{
-        'test': 'abc',
-      });
-      expect(target.scheduler, SchedulerSystem.cocoon);
-      expect(target.testbed, 'linux-vm');
-      expect(target.timeout, 30);
-      expect(target.droneDimensions, ['os=Linux']);
-    });
-
-    test('throws exception when non-existent scheduler is given', () {
-      final YamlMap? targetWithNonexistentScheduler = loadYaml('''
-enabled_branches:
-  - master
-targets:
-  - name: A
-    scheduler: dashatar
-      ''') as YamlMap?;
-      expect(
-        () {
-          final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()
-            ..mergeFromProto3Json(targetWithNonexistentScheduler);
+      ''')
+              as YamlMap?;
+      final unCheckedSchedulerConfig =
+          SchedulerConfig()..mergeFromProto3Json(singleTargetConfig);
+      final schedulerConfig =
           CiYaml(
             type: CiType.any,
             slug: Config.flutterSlug,
@@ -64,13 +35,46 @@ targets:
             config: unCheckedSchedulerConfig,
             validate: true,
           ).config;
-        },
-        throwsA(isA<FormatException>()),
-      );
+      expect(schedulerConfig.enabledBranches, <String>['master']);
+      expect(schedulerConfig.targets.length, 1);
+      final target = schedulerConfig.targets.first;
+      expect(target.bringup, false);
+      expect(target.name, 'A');
+      expect(target.properties, <String, String>{'test': 'abc'});
+      expect(target.scheduler, SchedulerSystem.cocoon);
+      expect(target.testbed, 'linux-vm');
+      expect(target.timeout, 30);
+      expect(target.droneDimensions, ['os=Linux']);
+    });
+
+    test('throws exception when non-existent scheduler is given', () {
+      final targetWithNonexistentScheduler =
+          loadYaml('''
+enabled_branches:
+  - master
+targets:
+  - name: A
+    scheduler: dashatar
+      ''')
+              as YamlMap?;
+      expect(() {
+        final unCheckedSchedulerConfig =
+            SchedulerConfig()
+              ..mergeFromProto3Json(targetWithNonexistentScheduler);
+        // ignore: unnecessary_statements
+        CiYaml(
+          type: CiType.any,
+          slug: Config.flutterSlug,
+          branch: Config.defaultBranch(Config.flutterSlug),
+          config: unCheckedSchedulerConfig,
+          validate: true,
+        ).config;
+      }, throwsA(isA<FormatException>()));
     });
 
     test('constructs graph with dependency chain', () {
-      final YamlMap? dependentTargetConfig = loadYaml('''
+      final dependentTargetConfig =
+          loadYaml('''
 enabled_branches:
   - master
 targets:
@@ -89,19 +93,22 @@ targets:
   - name: C
     dependencies:
       - B
-      ''') as YamlMap?;
-      final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(dependentTargetConfig);
-      final SchedulerConfig schedulerConfig = CiYaml(
-        type: CiType.any,
-        slug: Config.flutterSlug,
-        branch: Config.defaultBranch(Config.flutterSlug),
-        config: unCheckedSchedulerConfig,
-        validate: true,
-      ).config;
+      ''')
+              as YamlMap?;
+      final unCheckedSchedulerConfig =
+          SchedulerConfig()..mergeFromProto3Json(dependentTargetConfig);
+      final schedulerConfig =
+          CiYaml(
+            type: CiType.any,
+            slug: Config.flutterSlug,
+            branch: Config.defaultBranch(Config.flutterSlug),
+            config: unCheckedSchedulerConfig,
+            validate: true,
+          ).config;
       expect(schedulerConfig.targets.length, 3);
-      final Target a = schedulerConfig.targets.first;
-      final Target b = schedulerConfig.targets[1];
-      final Target c = schedulerConfig.targets[2];
+      final a = schedulerConfig.targets.first;
+      final b = schedulerConfig.targets[1];
+      final c = schedulerConfig.targets[2];
       expect(a.name, 'A');
       expect(b.name, 'B');
       expect(b.dependencies, <String>['A']);
@@ -110,7 +117,8 @@ targets:
     });
 
     test('constructs graph with parent with two dependents', () {
-      final YamlMap? twoDependentTargetConfig = loadYaml('''
+      final twoDependentTargetConfig =
+          loadYaml('''
 enabled_branches:
   - master
 targets:
@@ -121,19 +129,22 @@ targets:
   - name: B2
     dependencies:
       - A
-      ''') as YamlMap?;
-      final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(twoDependentTargetConfig);
-      final SchedulerConfig schedulerConfig = CiYaml(
-        type: CiType.any,
-        slug: Config.flutterSlug,
-        branch: Config.defaultBranch(Config.flutterSlug),
-        config: unCheckedSchedulerConfig,
-        validate: true,
-      ).config;
+      ''')
+              as YamlMap?;
+      final unCheckedSchedulerConfig =
+          SchedulerConfig()..mergeFromProto3Json(twoDependentTargetConfig);
+      final schedulerConfig =
+          CiYaml(
+            type: CiType.any,
+            slug: Config.flutterSlug,
+            branch: Config.defaultBranch(Config.flutterSlug),
+            config: unCheckedSchedulerConfig,
+            validate: true,
+          ).config;
       expect(schedulerConfig.targets.length, 3);
-      final Target a = schedulerConfig.targets.first;
-      final Target b1 = schedulerConfig.targets[1];
-      final Target b2 = schedulerConfig.targets[2];
+      final a = schedulerConfig.targets.first;
+      final b1 = schedulerConfig.targets[1];
+      final b2 = schedulerConfig.targets[2];
       expect(a.name, 'A');
       expect(b1.name, 'B1');
       expect(b1.dependencies, <String>['A']);
@@ -142,7 +153,8 @@ targets:
     });
 
     test('fails when there are cyclic targets', () {
-      final YamlMap? configWithCycle = loadYaml('''
+      final configWithCycle =
+          loadYaml('''
 enabled_branches:
   - master
 targets:
@@ -152,16 +164,19 @@ targets:
   - name: B
     dependencies:
       - A
-      ''') as YamlMap?;
-      final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(configWithCycle);
+      ''')
+              as YamlMap?;
+      final unCheckedSchedulerConfig =
+          SchedulerConfig()..mergeFromProto3Json(configWithCycle);
       expect(
-        () => CiYaml(
-          type: CiType.any,
-          slug: Config.flutterSlug,
-          branch: Config.defaultBranch(Config.flutterSlug),
-          config: unCheckedSchedulerConfig,
-          validate: true,
-        ).config,
+        () =>
+            CiYaml(
+              type: CiType.any,
+              slug: Config.flutterSlug,
+              branch: Config.defaultBranch(Config.flutterSlug),
+              config: unCheckedSchedulerConfig,
+              validate: true,
+            ).config,
         throwsA(
           isA<FormatException>().having(
             (FormatException e) => e.toString(),
@@ -173,23 +188,26 @@ targets:
     });
 
     test('fails when there are duplicate targets', () {
-      final YamlMap? configWithDuplicateTargets = loadYaml('''
+      final configWithDuplicateTargets =
+          loadYaml('''
 enabled_branches:
   - master
 targets:
   - name: A
   - name: A
-      ''') as YamlMap?;
-      final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()
-        ..mergeFromProto3Json(configWithDuplicateTargets);
+      ''')
+              as YamlMap?;
+      final unCheckedSchedulerConfig =
+          SchedulerConfig()..mergeFromProto3Json(configWithDuplicateTargets);
       expect(
-        () => CiYaml(
-          type: CiType.any,
-          slug: Config.flutterSlug,
-          branch: Config.defaultBranch(Config.flutterSlug),
-          config: unCheckedSchedulerConfig,
-          validate: true,
-        ).config,
+        () =>
+            CiYaml(
+              type: CiType.any,
+              slug: Config.flutterSlug,
+              branch: Config.defaultBranch(Config.flutterSlug),
+              config: unCheckedSchedulerConfig,
+              validate: true,
+            ).config,
         throwsA(
           isA<FormatException>().having(
             (FormatException e) => e.toString(),
@@ -201,7 +219,8 @@ targets:
     });
 
     test('fails when there are multiple dependencies', () {
-      final YamlMap? configWithMultipleDependencies = loadYaml('''
+      final configWithMultipleDependencies =
+          loadYaml('''
 enabled_branches:
   - master
 targets:
@@ -211,45 +230,54 @@ targets:
     dependencies:
       - A
       - B
-      ''') as YamlMap?;
-      final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()
-        ..mergeFromProto3Json(configWithMultipleDependencies);
+      ''')
+              as YamlMap?;
+      final unCheckedSchedulerConfig =
+          SchedulerConfig()
+            ..mergeFromProto3Json(configWithMultipleDependencies);
       expect(
-        () => CiYaml(
-          type: CiType.any,
-          slug: Config.flutterSlug,
-          branch: Config.defaultBranch(Config.flutterSlug),
-          config: unCheckedSchedulerConfig,
-          validate: true,
-        ).config,
+        () =>
+            CiYaml(
+              type: CiType.any,
+              slug: Config.flutterSlug,
+              branch: Config.defaultBranch(Config.flutterSlug),
+              config: unCheckedSchedulerConfig,
+              validate: true,
+            ).config,
         throwsA(
           isA<FormatException>().having(
             (FormatException e) => e.toString(),
             'message',
-            contains('ERROR: C has multiple dependencies which is not supported. Use only one dependency'),
+            contains(
+              'ERROR: C has multiple dependencies which is not supported. Use only one dependency',
+            ),
           ),
         ),
       );
     });
 
     test('fails when dependency does not exist', () {
-      final YamlMap? configWithMissingTarget = loadYaml('''
+      final configWithMissingTarget =
+          loadYaml('''
 enabled_branches:
   - master
 targets:
   - name: A
     dependencies:
       - B
-      ''') as YamlMap?;
-      final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(configWithMissingTarget);
+      ''')
+              as YamlMap?;
+      final unCheckedSchedulerConfig =
+          SchedulerConfig()..mergeFromProto3Json(configWithMissingTarget);
       expect(
-        () => CiYaml(
-          type: CiType.any,
-          slug: Config.flutterSlug,
-          branch: Config.defaultBranch(Config.flutterSlug),
-          config: unCheckedSchedulerConfig,
-          validate: true,
-        ).config,
+        () =>
+            CiYaml(
+              type: CiType.any,
+              slug: Config.flutterSlug,
+              branch: Config.defaultBranch(Config.flutterSlug),
+              config: unCheckedSchedulerConfig,
+              validate: true,
+            ).config,
         throwsA(
           isA<FormatException>().having(
             (FormatException e) => e.toString(),
@@ -265,13 +293,16 @@ targets:
     late CiYaml? totConfig;
 
     setUp(() {
-      final YamlMap? totYaml = loadYaml('''
+      final totYaml =
+          loadYaml('''
 enabled_branches:
   - master
 targets:
   - name: A
-      ''') as YamlMap?;
-      final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(totYaml);
+      ''')
+              as YamlMap?;
+      final unCheckedSchedulerConfig =
+          SchedulerConfig()..mergeFromProto3Json(totYaml);
       totConfig = CiYaml(
         type: CiType.any,
         slug: Config.flutterSlug,
@@ -282,13 +313,16 @@ targets:
     });
 
     test('succeed when no new builders compared with tip of tree builders', () {
-      final YamlMap? currentYaml = loadYaml('''
+      final currentYaml =
+          loadYaml('''
 enabled_branches:
   - master
 targets:
   - name: A
-      ''') as YamlMap?;
-      final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(currentYaml);
+      ''')
+              as YamlMap?;
+      final unCheckedSchedulerConfig =
+          SchedulerConfig()..mergeFromProto3Json(currentYaml);
       expect(
         () => CiYaml(
           type: CiType.any,
@@ -303,15 +337,18 @@ targets:
     });
 
     test('succeed when new builder is marked with bringup:true ', () {
-      final YamlMap? currentYaml = loadYaml('''
+      final currentYaml =
+          loadYaml('''
 enabled_branches:
   - master
 targets:
   - name: A
   - name: B
     bringup: true
-      ''') as YamlMap?;
-      final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(currentYaml);
+      ''')
+              as YamlMap?;
+      final unCheckedSchedulerConfig =
+          SchedulerConfig()..mergeFromProto3Json(currentYaml);
       expect(
         () => CiYaml(
           type: CiType.any,
@@ -326,14 +363,17 @@ targets:
     });
 
     test('fails when new builder is missing bringup:true ', () {
-      final YamlMap? currentYaml = loadYaml('''
+      final currentYaml =
+          loadYaml('''
 enabled_branches:
   - master
 targets:
   - name: A
   - name: B
-      ''') as YamlMap?;
-      final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(currentYaml);
+      ''')
+              as YamlMap?;
+      final unCheckedSchedulerConfig =
+          SchedulerConfig()..mergeFromProto3Json(currentYaml);
       expect(
         () => CiYaml(
           type: CiType.any,
@@ -347,22 +387,27 @@ targets:
           isA<FormatException>().having(
             (FormatException e) => e.toString(),
             'message',
-            contains('ERROR: B is a new builder added. it needs to be marked bringup: true'),
+            contains(
+              'ERROR: B is a new builder added. it needs to be marked bringup: true',
+            ),
           ),
         ),
       );
     });
 
     test('fails when new builder has bringup set to false ', () {
-      final YamlMap? currentYaml = loadYaml('''
+      final currentYaml =
+          loadYaml('''
 enabled_branches:
   - master
 targets:
   - name: A
   - name: B
     bringup: false
-      ''') as YamlMap?;
-      final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(currentYaml);
+      ''')
+              as YamlMap?;
+      final unCheckedSchedulerConfig =
+          SchedulerConfig()..mergeFromProto3Json(currentYaml);
       expect(
         () => CiYaml(
           type: CiType.any,
@@ -376,7 +421,9 @@ targets:
           isA<FormatException>().having(
             (FormatException e) => e.toString(),
             'message',
-            contains('ERROR: B is a new builder added. it needs to be marked bringup: true'),
+            contains(
+              'ERROR: B is a new builder added. it needs to be marked bringup: true',
+            ),
           ),
         ),
       );

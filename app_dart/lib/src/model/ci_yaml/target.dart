@@ -5,10 +5,10 @@
 import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart';
-import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:github/github.dart';
 
 import '../../service/config.dart';
+import '../../service/scheduler/policy.dart';
 import '../proto/internal/scheduler.pb.dart' as pb;
 
 /// Wrapper class around [pb.Target] to support aggregate properties.
@@ -37,7 +37,14 @@ class Target {
   static const List<String> iosPlatforms = <String>['mac_ios', 'mac_arm64_ios'];
 
   /// Dimension list defined in .ci.yaml.
-  static List<String> dimensionList = <String>['os', 'device_os', 'device_type', 'mac_model', 'cores', 'cpu'];
+  static List<String> dimensionList = <String>[
+    'os',
+    'device_os',
+    'device_type',
+    'mac_model',
+    'cores',
+    'cpu',
+  ];
 
   static String kIgnoreFlakiness = 'ignore_flakiness';
 
@@ -50,29 +57,32 @@ class Target {
   /// Target dimensions are prioritized in:
   ///   1. [pb.Target.dimensions]
   ///   1. [pb.Target.properties]
-  ///   2. [schedulerConfig.platformDimensions]
+  ///   2. [pb.SchedulerConfig.platformProperties]
   List<RequestedDimension> getDimensions() {
-    final Map<String, RequestedDimension> dimensionsMap = <String, RequestedDimension>{};
+    final dimensionsMap = <String, RequestedDimension>{};
 
-    final Map<String, Object> platformDimensions = _getPlatformDimensions();
-    for (String key in platformDimensions.keys) {
-      final String value = platformDimensions[key].toString();
+    final platformDimensions = _getPlatformDimensions();
+    for (var key in platformDimensions.keys) {
+      final value = platformDimensions[key].toString();
       dimensionsMap[key] = RequestedDimension(key: key, value: value);
     }
 
-    final Map<String, Object> properties = getProperties();
+    final properties = getProperties();
     // TODO(xilaizhang): https://github.com/flutter/flutter/issues/103557
     // remove this logic after dimensions are supported in ci.yaml files
-    for (String dimension in dimensionList) {
+    for (var dimension in dimensionList) {
       if (properties.containsKey(dimension)) {
-        final String value = properties[dimension].toString();
-        dimensionsMap[dimension] = RequestedDimension(key: dimension, value: value);
+        final value = properties[dimension].toString();
+        dimensionsMap[dimension] = RequestedDimension(
+          key: dimension,
+          value: value,
+        );
       }
     }
 
-    final Map<String, Object> targetDimensions = _getTargetDimensions();
-    for (String key in targetDimensions.keys) {
-      final String value = targetDimensions[key].toString();
+    final targetDimensions = _getTargetDimensions();
+    for (var key in targetDimensions.keys) {
+      final value = targetDimensions[key].toString();
       dimensionsMap[key] = RequestedDimension(key: key, value: value);
     }
 
@@ -86,24 +96,26 @@ class Target {
   /// All targets except from [Config.guaranteedSchedulingRepos] run with [BatchPolicy] to reduce queue time.
   SchedulerPolicy get schedulerPolicy {
     if (value.scheduler != pb.SchedulerSystem.cocoon) {
-      return OmitPolicy();
+      return const OmitPolicy();
     }
     if (Config.guaranteedSchedulingRepos.contains(slug)) {
-      return GuaranteedPolicy();
+      return const GuaranteedPolicy();
     }
-    return BatchPolicy();
+    return const BatchPolicy();
   }
 
   /// Get the tags from the defined properties in the ci.
   ///
   /// Return an empty list if no tags are found.
   List<String> get tags {
-    final Map<String, Object> properties = getProperties();
-    return (properties.containsKey('tags')) ? (properties['tags'] as List).map((e) => e as String).toList() : [];
+    final properties = getProperties();
+    return (properties.containsKey('tags'))
+        ? (properties['tags'] as List).map((e) => e as String).toList()
+        : [];
   }
 
   String get getTestName {
-    final List<String> words = value.name.split(' ');
+    final words = value.name.split(' ');
     return words.length < 2 ? words[0] : words[1];
   }
 
@@ -113,41 +125,49 @@ class Target {
   ///   1. [schedulerConfig.platformProperties]
   ///   2. [pb.Target.properties]
   Map<String, Object> getProperties() {
-    final Map<String, Object> platformProperties = _getPlatformProperties();
-    final Map<String, Object> properties = _getTargetProperties();
-    final Map<String, Object> mergedProperties = <String, Object>{}
-      ..addAll(platformProperties)
-      ..addAll(properties);
+    final platformProperties = _getPlatformProperties();
+    final properties = _getTargetProperties();
+    final mergedProperties =
+        <String, Object>{}
+          ..addAll(platformProperties)
+          ..addAll(properties);
 
-    final List<Dependency> targetDependencies = <Dependency>[];
+    final targetDependencies = <Dependency>[];
     if (properties.containsKey('dependencies')) {
-      final List<dynamic> rawDeps = properties['dependencies'] as List<dynamic>;
-      final Iterable<Dependency> deps = rawDeps.map((dynamic rawDep) => Dependency.fromJson(rawDep as Object));
+      final rawDeps = properties['dependencies'] as List<dynamic>;
+      final deps = rawDeps.map(
+        (dynamic rawDep) => Dependency.fromJson(rawDep as Object),
+      );
       targetDependencies.addAll(deps);
     }
-    final List<Dependency> platformDependencies = <Dependency>[];
+    final platformDependencies = <Dependency>[];
     if (platformProperties.containsKey('dependencies')) {
-      final List<dynamic> rawDeps = platformProperties['dependencies'] as List<dynamic>;
-      final Iterable<Dependency> deps = rawDeps.map((dynamic rawDep) => Dependency.fromJson(rawDep as Object));
+      final rawDeps = platformProperties['dependencies'] as List<dynamic>;
+      final deps = rawDeps.map(
+        (dynamic rawDep) => Dependency.fromJson(rawDep as Object),
+      );
       platformDependencies.addAll(deps);
     }
     // Lookup map to make merging [targetDependencies] and [platformDependencies] simpler.
-    final Map<String, Dependency> mergedDependencies = <String, Dependency>{};
-    for (Dependency dep in platformDependencies) {
+    final mergedDependencies = <String, Dependency>{};
+    for (var dep in platformDependencies) {
       mergedDependencies[dep.name] = dep;
     }
-    for (Dependency dep in targetDependencies) {
+    for (var dep in targetDependencies) {
       mergedDependencies[dep.name] = dep;
     }
-    mergedProperties['dependencies'] = mergedDependencies.values.map((Dependency dep) => dep.toJson()).toList();
+    mergedProperties['dependencies'] =
+        mergedDependencies.values
+            .map((Dependency dep) => dep.toJson())
+            .toList();
     mergedProperties['bringup'] = value.bringup;
 
     return mergedProperties;
   }
 
   Map<String, Object> _getTargetDimensions() {
-    final Map<String, Object> dimensions = <String, Object>{};
-    for (String key in value.dimensions.keys) {
+    final dimensions = <String, Object>{};
+    for (var key in value.dimensions.keys) {
       dimensions[key] = _parseProperty(key, value.dimensions[key]!);
     }
 
@@ -155,10 +175,8 @@ class Target {
   }
 
   Map<String, Object> _getTargetProperties() {
-    final Map<String, Object> properties = <String, Object>{
-      'recipe': value.recipe,
-    };
-    for (String key in value.properties.keys) {
+    final properties = <String, Object>{'recipe': value.recipe};
+    for (var key in value.properties.keys) {
       properties[key] = _parseProperty(key, value.properties[key]!);
     }
 
@@ -170,9 +188,10 @@ class Target {
       return <String, Object>{};
     }
 
-    final Map<String, String> platformProperties = schedulerConfig.platformProperties[getPlatform()]!.properties;
-    final Map<String, Object> properties = <String, Object>{};
-    for (String key in platformProperties.keys) {
+    final platformProperties =
+        schedulerConfig.platformProperties[getPlatform()]!.properties;
+    final properties = <String, Object>{};
+    for (var key in platformProperties.keys) {
       properties[key] = _parseProperty(key, platformProperties[key]!);
     }
 
@@ -184,9 +203,10 @@ class Target {
       return <String, Object>{};
     }
 
-    final Map<String, String> platformDimensions = schedulerConfig.platformProperties[getPlatform()]!.dimensions;
-    final Map<String, Object> dimensions = <String, Object>{};
-    for (String key in platformDimensions.keys) {
+    final platformDimensions =
+        schedulerConfig.platformProperties[getPlatform()]!.dimensions;
+    final dimensions = <String, Object>{};
+    for (var key in platformDimensions.keys) {
       dimensions[key] = _parseProperty(key, platformDimensions[key]!);
     }
 
@@ -199,7 +219,10 @@ class Target {
   ///  * https://cs.opensource.google/flutter/infra/+/main:config/lib/ci_yaml/ci_yaml.star
   Object _parseProperty(String key, String value) {
     // Yaml will escape new lines unnecessarily for strings.
-    final List<String> newLineIssues = <String>['android_sdk_license', 'android_sdk_preview_license'];
+    final newLineIssues = <String>[
+      'android_sdk_license',
+      'android_sdk_preview_license',
+    ];
     if (value == 'true') {
       return true;
     } else if (value == 'false') {
@@ -234,7 +257,7 @@ class Target {
   /// Mac host only targets are scheduled via patches due to high queue time. This can be relieved
   /// when we have capacity support in Q4/2022.
   bool get shouldBatchSchedule {
-    final String platform = getPlatform();
+    final platform = getPlatform();
     return platform.contains('android') ||
         platform.contains('ios') ||
         platform.contains('samsung') ||
@@ -251,7 +274,7 @@ class Target {
   /// Returns the value of ignore_flakiness property if
   /// it has been specified, else default returns false.
   bool getIgnoreFlakiness() {
-    final Map<String, Object> properties = getProperties();
+    final properties = getProperties();
     if (properties.containsKey(kIgnoreFlakiness)) {
       return properties[kIgnoreFlakiness] as bool;
     }
@@ -260,7 +283,7 @@ class Target {
 
   /// Returns the value of flakiness_threshold property or the [global].
   double? get flakinessThreshold {
-    final Map<String, Object> properties = getProperties();
+    final properties = getProperties();
     if (properties.containsKey(kFlakinessThreshold)) {
       return properties[kFlakinessThreshold] as double;
     }
@@ -270,7 +293,8 @@ class Target {
   /// Whether this target was marked with `release_build: true` in `.ci.yaml`.
   bool get isReleaseBuildTarget {
     final properties = getProperties();
-    return properties.containsKey('release_build') && (properties['release_build'] as bool);
+    return properties.containsKey('release_build') &&
+        (properties['release_build'] as bool);
   }
 
   /// Whether this target was marked with `bringup: true` in `.ci.yaml`.
@@ -286,7 +310,7 @@ class Dependency {
 
   /// Constructor for converting from the flutter_deps format.
   factory Dependency.fromJson(Object json) {
-    final Map<String, dynamic> map = json as Map<String, dynamic>;
+    final map = json as Map<String, dynamic>;
     return Dependency(map['dependency']! as String, map['version'] as String?);
   }
 

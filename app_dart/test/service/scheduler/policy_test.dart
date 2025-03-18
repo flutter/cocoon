@@ -2,154 +2,179 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:test/test.dart';
 
-import '../../src/datastore/fake_datastore.dart';
 import '../../src/utilities/entity_generators.dart';
 
 void main() {
   group('BatchPolicy', () {
-    late FakeDatastoreDB db;
-    late DatastoreService datastore;
+    const policy = BatchPolicy();
 
-    final BatchPolicy policy = BatchPolicy();
-
-    setUp(() {
-      db = FakeDatastoreDB();
-      datastore = DatastoreService(db, 5);
-    });
-
-    final List<Task> allPending = <Task>[
-      generateTask(3),
-      generateTask(2),
-      generateTask(1),
+    final allPending = <Task>[
+      generateFirestoreTask(3),
+      generateFirestoreTask(2),
+      generateFirestoreTask(1),
     ];
 
-    final List<Task> latestAllPending = <Task>[
-      generateTask(6),
-      generateTask(5),
-      generateTask(4),
-      generateTask(3),
-      generateTask(2),
-      generateTask(1, status: Task.statusSucceeded),
+    final latestAllPending = <Task>[
+      generateFirestoreTask(6),
+      generateFirestoreTask(5),
+      generateFirestoreTask(4),
+      generateFirestoreTask(3),
+      generateFirestoreTask(2),
+      generateFirestoreTask(1, status: Task.statusSucceeded),
     ];
 
-    final List<Task> latestFinishedButRestPending = <Task>[
-      generateTask(6, status: Task.statusSucceeded),
-      generateTask(5),
-      generateTask(4),
-      generateTask(3),
-      generateTask(2),
-      generateTask(1),
+    final latestFinishedButRestPending = <Task>[
+      generateFirestoreTask(6, status: Task.statusSucceeded),
+      generateFirestoreTask(5),
+      generateFirestoreTask(4),
+      generateFirestoreTask(3),
+      generateFirestoreTask(2),
+      generateFirestoreTask(1),
     ];
 
-    final List<Task> latestFailed = <Task>[
-      generateTask(6, status: Task.statusFailed),
-      generateTask(5),
-      generateTask(4),
-      generateTask(3),
-      generateTask(2),
-      generateTask(1),
+    final latestFailed = <Task>[
+      generateFirestoreTask(6, status: Task.statusFailed),
+      generateFirestoreTask(5),
+      generateFirestoreTask(4),
+      generateFirestoreTask(3),
+      generateFirestoreTask(2),
+      generateFirestoreTask(1),
     ];
 
-    final List<Task> latestPending = <Task>[
-      generateTask(6),
-      generateTask(5),
-      generateTask(4),
-      generateTask(3),
-      generateTask(2, status: Task.statusSucceeded),
-      generateTask(1, status: Task.statusSucceeded),
+    final latestPending = <Task>[
+      generateFirestoreTask(6),
+      generateFirestoreTask(5),
+      generateFirestoreTask(4),
+      generateFirestoreTask(3),
+      generateFirestoreTask(2, status: Task.statusSucceeded),
+      generateFirestoreTask(1, status: Task.statusSucceeded),
     ];
 
-    final List<Task> failedWithRunning = <Task>[
-      generateTask(6),
-      generateTask(5),
-      generateTask(4),
-      generateTask(3, status: Task.statusFailed),
-      generateTask(2, status: Task.statusInProgress),
-      generateTask(1),
+    final failedWithRunning = <Task>[
+      generateFirestoreTask(6),
+      generateFirestoreTask(5),
+      generateFirestoreTask(4),
+      generateFirestoreTask(3, status: Task.statusFailed),
+      generateFirestoreTask(2, status: Task.statusInProgress),
+      generateFirestoreTask(1),
     ];
 
     test('triggers if less tasks than batch size', () async {
-      db.addOnQuery<Task>((Iterable<Task> results) => allPending);
+      final task = generateFirestoreTask(4);
       expect(
-        await policy.triggerPriority(task: generateTask(4), datastore: datastore),
-        null,
+        await policy.triggerPriority(
+          taskName: task.taskName!,
+          commitSha: task.commitSha!,
+          recentTasks: allPending,
+        ),
+        isNull,
       );
     });
 
     test('triggers after batch size', () async {
-      db.addOnQuery<Task>((Iterable<Task> results) => latestAllPending);
+      final task = generateFirestoreTask(7);
       expect(
-        await policy.triggerPriority(task: generateTask(7), datastore: datastore),
+        await policy.triggerPriority(
+          taskName: task.taskName!,
+          commitSha: task.commitSha!,
+          recentTasks: latestAllPending,
+        ),
         LuciBuildService.kDefaultPriority,
       );
     });
 
     test('triggers with higher priority on recent failures', () async {
-      db.addOnQuery<Task>((Iterable<Task> results) => latestFailed);
+      final task = generateFirestoreTask(7);
       expect(
-        await policy.triggerPriority(task: generateTask(7), datastore: datastore),
+        await policy.triggerPriority(
+          taskName: task.taskName!,
+          commitSha: task.commitSha!,
+          recentTasks: latestFailed,
+        ),
         LuciBuildService.kRerunPriority,
       );
     });
 
-    test('does not trigger on recent failures if there is already a running task', () async {
-      db.addOnQuery<Task>((Iterable<Task> results) => failedWithRunning);
+    test(
+      'does not trigger on recent failures if there is already a running task',
+      () async {
+        final task = generateFirestoreTask(7);
+        expect(
+          await policy.triggerPriority(
+            taskName: task.taskName!,
+            commitSha: task.commitSha!,
+            recentTasks: failedWithRunning,
+          ),
+          isNull,
+        );
+      },
+    );
+
+    test('does not trigger when a test was recently scheduled', () async {
+      final task = generateFirestoreTask(7);
       expect(
-        await policy.triggerPriority(task: generateTask(7), datastore: datastore),
+        await policy.triggerPriority(
+          taskName: task.taskName!,
+          commitSha: task.commitSha!,
+          recentTasks: latestFinishedButRestPending,
+        ),
         isNull,
       );
     });
 
-    test('does not trigger when a test was recently scheduled', () async {
-      db.addOnQuery<Task>((Iterable<Task> results) => latestFinishedButRestPending);
-      expect(await policy.triggerPriority(task: generateTask(7), datastore: datastore), isNull);
-    });
-
     test('does not trigger when pending queue is smaller than batch', () async {
-      db.addOnQuery<Task>((Iterable<Task> results) => latestPending);
-      expect(await policy.triggerPriority(task: generateTask(7), datastore: datastore), isNull);
+      final task = generateFirestoreTask(7);
+      expect(
+        await policy.triggerPriority(
+          taskName: task.taskName!,
+          commitSha: task.commitSha!,
+          recentTasks: latestPending,
+        ),
+        isNull,
+      );
     });
 
-    test('do not return rerun priority when tasks length is smaller than batch size', () {
-      expect(shouldRerunPriority(allPending, 5), false);
-    });
+    test(
+      'do not return rerun priority when tasks length is smaller than batch size',
+      () {
+        expect(shouldRerunPriority(allPending, 5), false);
+      },
+    );
   });
 
   group('GuaranteedPolicy', () {
-    late FakeDatastoreDB db;
-    late DatastoreService datastore;
+    const policy = GuaranteedPolicy();
 
-    final GuaranteedPolicy policy = GuaranteedPolicy();
-
-    setUp(() {
-      db = FakeDatastoreDB();
-      datastore = DatastoreService(db, 5);
-    });
-
-    final List<Task> pending = <Task>[
-      generateTask(1),
+    final pending = <Task>[generateFirestoreTask(1)];
+    final latestFailed = <Task>[
+      generateFirestoreTask(1, status: Task.statusFailed),
     ];
 
-    final List<Task> latestFailed = <Task>[generateTask(1, status: Task.statusFailed)];
-
     test('triggers every task', () async {
-      db.addOnQuery<Task>((Iterable<Task> results) => pending);
+      final task = generateFirestoreTask(2);
       expect(
-        await policy.triggerPriority(task: generateTask(2), datastore: datastore),
+        await policy.triggerPriority(
+          taskName: task.taskName!,
+          commitSha: task.commitSha!,
+          recentTasks: pending,
+        ),
         LuciBuildService.kDefaultPriority,
       );
     });
 
     test('triggers with higher priority on recent failure', () async {
-      db.addOnQuery<Task>((Iterable<Task> results) => latestFailed);
+      final task = generateFirestoreTask(2);
       expect(
-        await policy.triggerPriority(task: generateTask(2), datastore: datastore),
+        await policy.triggerPriority(
+          taskName: task.taskName!,
+          commitSha: task.commitSha!,
+          recentTasks: latestFailed,
+        ),
         LuciBuildService.kRerunPriority,
       );
     });

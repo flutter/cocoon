@@ -4,15 +4,14 @@
 
 import 'dart:convert';
 
-import 'package:auto_submit/request_handling/pubsub.dart';
-import 'package:auto_submit/requests/check_request.dart';
-import 'package:auto_submit/requests/github_pull_request_event.dart';
-import 'package:auto_submit/service/approver_service.dart';
-import 'package:auto_submit/service/revert_request_validation_service.dart';
 import 'package:cocoon_server/logging.dart';
-import 'package:github/github.dart';
-import 'package:googleapis/pubsub/v1.dart' as pub;
 import 'package:shelf/shelf.dart';
+
+import '../request_handling/pubsub.dart';
+import '../service/approver_service.dart';
+import '../service/revert_request_validation_service.dart';
+import 'check_request.dart';
+import 'github_pull_request_event.dart';
 
 /// Handler for processing pull requests with 'revert' label.
 ///
@@ -42,8 +41,8 @@ class CheckRevertRequest extends CheckRequest {
     int pubSubPulls,
     int pubSubBatchSize,
   ) async {
-    final Set<int> processingLog = <int>{};
-    final List<pub.ReceivedMessage> messageList = await pullMessages(
+    final processingLog = <int>{};
+    final messageList = await pullMessages(
       pubSubSubscription,
       pubSubPulls,
       pubSubBatchSize,
@@ -55,26 +54,28 @@ class CheckRevertRequest extends CheckRequest {
 
     log.info('Processing ${messageList.length} messages');
 
-    final RevertRequestValidationService validationService = RevertRequestValidationService(config);
+    final validationService = RevertRequestValidationService(config);
 
-    final List<Future<void>> futures = <Future<void>>[];
+    final futures = <Future<void>>[];
 
-    for (pub.ReceivedMessage message in messageList) {
+    for (var message in messageList) {
       log.info(message.toJson());
       assert(message.message != null);
       assert(message.message!.data != null);
-      final String messageData = message.message!.data!;
+      final messageData = message.message!.data!;
 
-      final Map<String, dynamic> rawBody =
-          json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
+      final rawBody =
+          json.decode(String.fromCharCodes(base64.decode(messageData)))
+              as Map<String, dynamic>;
 
-      final GithubPullRequestEvent githubPullRequestEvent = GithubPullRequestEvent.fromJson(rawBody);
-      final PullRequest pullRequest = githubPullRequestEvent.pullRequest!;
+      final githubPullRequestEvent = GithubPullRequestEvent.fromJson(rawBody);
+      final pullRequest = githubPullRequestEvent.pullRequest!;
 
       log.info('Processing message ackId: ${message.ackId}');
       log.info('Processing mesageId: ${message.message!.messageId}');
       log.info('Processing PR: $rawBody');
-      if (processingLog.contains(pullRequest.number) || githubPullRequestEvent.action != 'labeled') {
+      if (processingLog.contains(pullRequest.number) ||
+          githubPullRequestEvent.action != 'labeled') {
         // Ack duplicate.
         log.info('Ack the duplicated message : ${message.ackId!}.');
         log.info('duplicate pull request #${pullRequest.number}');
@@ -85,8 +86,10 @@ class CheckRevertRequest extends CheckRequest {
         // be processed throught the service.
         log.info('new pull request #${pullRequest.number}');
         if (pullRequest.labels!.any((element) => element.name == 'revert of')) {
-          final ApproverService approver = approverProvider(config);
-          log.info('Checking auto approval of "revert of" pull request: $rawBody');
+          final approver = approverProvider(config);
+          log.info(
+            'Checking auto approval of "revert of" pull request: $rawBody',
+          );
           await approver.autoApproval(pullRequest);
         } else {
           // These should be closed requests that do not need to be reviewed.
@@ -96,7 +99,11 @@ class CheckRevertRequest extends CheckRequest {
       }
 
       futures.add(
-        validationService.processMessage(githubPullRequestEvent, message.ackId!, pubsub),
+        validationService.processMessage(
+          githubPullRequestEvent,
+          message.ackId!,
+          pubsub,
+        ),
       );
     }
     await Future.wait(futures);

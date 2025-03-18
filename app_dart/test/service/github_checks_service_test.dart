@@ -29,7 +29,10 @@ void main() {
     mockGithubService = MockGithubService();
     mockLuciBuildService = MockLuciBuildService();
     mockGithubChecksUtil = MockGithubChecksUtil();
-    config = FakeConfig(githubService: mockGithubService, rollerAccountsValue: {'engine-flutter-autoroll'});
+    config = FakeConfig(
+      githubService: mockGithubService,
+      rollerAccountsValue: {'engine-flutter-autoroll'},
+    );
     githubChecksService = GithubChecksService(
       config,
       githubChecksUtil: mockGithubChecksUtil,
@@ -37,36 +40,22 @@ void main() {
     slug = RepositorySlug('flutter', 'cocoon');
     checkRun = github.CheckRun.fromJson(
       jsonDecode(
-        '{"name": "Linux Coverage", "id": 123, "external_id": "678", "status": "completed", "started_at": "2020-05-10T02:49:31Z", "head_sha": "the_sha", "check_suite": {"id": 456}}',
-      ) as Map<String, dynamic>,
+            '{"name": "Linux Coverage", "id": 123, "external_id": "678", "status": "completed", "started_at": "2020-05-10T02:49:31Z", "head_sha": "the_sha", "check_suite": {"id": 456}}',
+          )
+          as Map<String, dynamic>,
     );
-    final Map<String, github.CheckRun> checkRuns = <String, github.CheckRun>{'Cocoon': checkRun};
+    final checkRuns = <String, github.CheckRun>{'Cocoon': checkRun};
+    // ignore: discarded_futures
     when(mockGithubChecksUtil.allCheckRuns(any, any)).thenAnswer((_) async {
       return checkRuns;
     });
   });
 
   group('updateCheckStatus', () {
-    test('Userdata is empty', () async {
-      final bool success = await githubChecksService.updateCheckStatus(
-        build: _fakeBuild,
-        userDataMap: {},
-        luciBuildService: mockLuciBuildService,
-        slug: slug,
-      );
-      expect(success, isFalse);
-    });
-    test('Userdata does not contain check_run_id', () async {
-      final bool success = await githubChecksService.updateCheckStatus(
-        build: _fakeBuild,
-        userDataMap: {'repo_name': 'flutter/flutter'},
-        luciBuildService: mockLuciBuildService,
-        slug: slug,
-      );
-      expect(success, isFalse);
-    });
     test('Userdata contain check_run_id', () async {
-      when(mockGithubChecksUtil.getCheckRun(any, any, any)).thenAnswer((_) async => checkRun);
+      when(
+        mockGithubChecksUtil.getCheckRun(any, any, any),
+      ).thenAnswer((_) async => checkRun);
       when(
         mockLuciBuildService.getBuildById(
           _fakeBuild.id,
@@ -79,95 +68,91 @@ void main() {
           summaryMarkdown: 'test summary',
         ),
       );
-      final userData = {
-        'check_run_id': 123,
-        'repo_owner': 'flutter',
-        'repo_name': 'cocoon',
-      };
       await githubChecksService.updateCheckStatus(
         build: _fakeBuild,
-        userDataMap: userData,
+        checkRunId: 123,
         luciBuildService: mockLuciBuildService,
         slug: slug,
       );
-      final github.CheckRun checkRunCaptured = await verify(
-        mockGithubChecksUtil.updateCheckRun(
-          any,
-          any,
-          captureAny,
-          status: anyNamed('status'),
-          conclusion: anyNamed('conclusion'),
-          detailsUrl: anyNamed('detailsUrl'),
-          output: anyNamed('output'),
-        ),
-      ).captured.first;
+      final checkRunCaptured =
+          await verify(
+                mockGithubChecksUtil.updateCheckRun(
+                  any,
+                  any,
+                  captureAny,
+                  status: anyNamed('status'),
+                  conclusion: anyNamed('conclusion'),
+                  detailsUrl: anyNamed('detailsUrl'),
+                  output: anyNamed('output'),
+                ),
+              ).captured.first
+              as github.CheckRun;
       expect(checkRunCaptured.id, checkRun.id);
       expect(checkRunCaptured.name, checkRun.name);
     });
     test('Should rerun a failed task for a roller account', () async {
-      when(mockGithubChecksUtil.getCheckRun(any, any, any)).thenAnswer((_) async => checkRun);
-      final Map<String, dynamic> userData = {
+      when(
+        mockGithubChecksUtil.getCheckRun(any, any, any),
+      ).thenAnswer((_) async => checkRun);
+      final userData = <String, dynamic>{
         'check_run_id': 1,
         'repo_owner': 'flutter',
         'repo_name': 'cocoon',
         'user_login': 'engine-flutter-autoroll',
       };
       when(
-        mockLuciBuildService.rescheduleBuild(
+        mockLuciBuildService.reschedulePresubmitBuild(
           builderName: 'Linux Coverage',
           build: _fakeBuild,
           userDataMap: userData,
-          rescheduleAttempt: 1,
+          nextAttempt: 1,
         ),
       ).thenAnswer(
-        (_) async => Build(
-          id: _fakeBuild.id,
-          builder: _fakeBuild.builder,
-        ),
+        (_) async => Build(id: _fakeBuild.id, builder: _fakeBuild.builder),
       );
       expect(checkRun.status, github.CheckRunStatus.completed);
       await githubChecksService.updateCheckStatus(
         build: _fakeBuild,
-        userDataMap: userData,
+        checkRunId: 1,
         luciBuildService: mockLuciBuildService,
         slug: slug,
         rescheduled: true,
       );
-      final List<dynamic> captured = verify(
-        mockGithubChecksUtil.updateCheckRun(
-          any,
-          any,
-          captureAny,
-          status: captureAnyNamed('status'),
-          conclusion: captureAnyNamed('conclusion'),
-          detailsUrl: anyNamed('detailsUrl'),
-          output: anyNamed('output'),
-        ),
-      ).captured;
+      final captured =
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              captureAny,
+              status: captureAnyNamed('status'),
+              conclusion: captureAnyNamed('conclusion'),
+              detailsUrl: anyNamed('detailsUrl'),
+              output: anyNamed('output'),
+            ),
+          ).captured;
       expect(captured.length, 3);
       expect(captured[1], github.CheckRunStatus.queued);
       expect(captured[2], isNull);
     });
     test('Should not rerun a failed task for a non roller account', () async {
-      when(mockGithubChecksUtil.getCheckRun(any, any, any)).thenAnswer((_) async => checkRun);
-      final Map<String, dynamic> userData = {
+      when(
+        mockGithubChecksUtil.getCheckRun(any, any, any),
+      ).thenAnswer((_) async => checkRun);
+      final userData = <String, dynamic>{
         'check_run_id': 1,
         'repo_owner': 'flutter',
         'repo_name': 'cocoon',
         'user_login': 'test-account',
       };
       when(
-        mockLuciBuildService.rescheduleBuild(
+        mockLuciBuildService.reschedulePresubmitBuild(
           builderName: 'Linux Coverage',
           build: _fakeBuild,
           userDataMap: userData,
-          rescheduleAttempt: 1,
+          nextAttempt: 1,
         ),
       ).thenAnswer(
-        (_) async => Build(
-          id: _fakeBuild.id,
-          builder: _fakeBuild.builder,
-        ),
+        (_) async => Build(id: _fakeBuild.id, builder: _fakeBuild.builder),
       );
       when(
         mockLuciBuildService.getBuildById(
@@ -183,21 +168,22 @@ void main() {
       );
       await githubChecksService.updateCheckStatus(
         build: _fakeBuild,
-        userDataMap: userData,
+        checkRunId: 1,
         luciBuildService: mockLuciBuildService,
         slug: slug,
       );
-      final List<dynamic> captured = verify(
-        mockGithubChecksUtil.updateCheckRun(
-          any,
-          any,
-          any,
-          status: captureAnyNamed('status'),
-          conclusion: captureAnyNamed('conclusion'),
-          detailsUrl: anyNamed('detailsUrl'),
-          output: captureAnyNamed('output'),
-        ),
-      ).captured;
+      final captured =
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              any,
+              status: captureAnyNamed('status'),
+              conclusion: captureAnyNamed('conclusion'),
+              detailsUrl: anyNamed('detailsUrl'),
+              output: captureAnyNamed('output'),
+            ),
+          ).captured;
       expect(captured.length, 3);
       expect(captured[0], github.CheckRunStatus.completed);
       expect(captured[1], github.CheckRunConclusion.failure);
@@ -206,30 +192,43 @@ void main() {
 
   group('getGithubSummary', () {
     test('nonempty summaryMarkdown', () async {
-      const String summaryMarkdown = 'test';
-      const String expectedSummary = '$kGithubSummary$summaryMarkdown';
-      expect(githubChecksService.getGithubSummary(summaryMarkdown), expectedSummary);
+      const summaryMarkdown = 'test';
+      const expectedSummary = '$kGithubSummary$summaryMarkdown';
+      expect(
+        githubChecksService.getGithubSummary(summaryMarkdown),
+        expectedSummary,
+      );
     });
 
     test('empty summaryMarkdown', () async {
-      const String expectedSummary = '${kGithubSummary}Empty summaryMarkdown';
+      const expectedSummary = '${kGithubSummary}Empty summaryMarkdown';
       expect(githubChecksService.getGithubSummary(null), expectedSummary);
     });
 
     test('really large summaryMarkdown', () async {
-      String summaryMarkdown = '';
-      for (int i = 0; i < 20000; i++) {
+      var summaryMarkdown = '';
+      for (var i = 0; i < 20000; i++) {
         summaryMarkdown += 'test ';
       }
-      expect(githubChecksService.getGithubSummary(summaryMarkdown), startsWith('$kGithubSummary[TRUNCATED...]'));
-      expect(githubChecksService.getGithubSummary(summaryMarkdown).length, lessThan(65535));
+      expect(
+        githubChecksService.getGithubSummary(summaryMarkdown),
+        startsWith('$kGithubSummary[TRUNCATED...]'),
+      );
+      expect(
+        githubChecksService.getGithubSummary(summaryMarkdown).length,
+        lessThan(65535),
+      );
     });
   });
 }
 
 final Build _fakeBuild = Build(
   id: Int64(8905920700440101120),
-  builder: BuilderID(project: 'flutter', bucket: 'luci.flutter.prod', builder: 'Linux Coverage'),
+  builder: BuilderID(
+    project: 'flutter',
+    bucket: 'luci.flutter.prod',
+    builder: 'Linux Coverage',
+  ),
   number: 1698,
   createdBy: 'user:someuser@flutter.dev',
   viewUrl: 'https://ci.chromium.org/b/8905920700440101120',
@@ -238,7 +237,10 @@ final Build _fakeBuild = Build(
   status: Status.FAILURE,
   input: Build_Input(experimental: true),
   tags: [
-    StringPair(key: 'build_address', value: 'luci.flutter.prod/Linux Coverage/1698'),
+    StringPair(
+      key: 'build_address',
+      value: 'luci.flutter.prod/Linux Coverage/1698',
+    ),
     StringPair(key: 'builder', value: 'Linux Coverage'),
     StringPair(key: 'buildset', value: 'pr/git/37647'),
   ],

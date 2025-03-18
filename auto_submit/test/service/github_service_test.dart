@@ -5,7 +5,7 @@
 import 'dart:convert';
 
 import 'package:auto_submit/service/github_service.dart';
-import 'package:cocoon_server/testing/mocks.dart';
+import 'package:cocoon_server_test/mocks.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -16,24 +16,26 @@ void main() {
   late GithubService githubService;
   late RepositorySlug slug;
   late RepositoryCommit testCommit;
-  final MockGitHub mockGitHub = MockGitHub();
-  final MockRepositoriesService mockRepositoriesService = MockRepositoriesService();
-  final MockGitHubComparison mockGitHubComparison = MockGitHubComparison();
-  final MockResponse mockResponse = MockResponse();
+  final mockGitHub = MockGitHub();
+  final mockRepositoriesService = MockRepositoriesService();
+  final mockGitHubComparison = MockGitHubComparison();
+  final mockResponse = MockResponse();
 
-  const String author = '''{"login": "octocat", "id": 1}''';
-  const String url = 'testUrl';
-  const String sha = '6dcb09b5b57875f334f61aebed695e2e4193db5e';
+  const author = '''{"login": "octocat", "id": 1}''';
+  const url = 'testUrl';
+  const sha = '6dcb09b5b57875f334f61aebed695e2e4193db5e';
 
   setUp(() {
     githubService = GithubService(mockGitHub);
     slug = RepositorySlug('flutter', 'cocoon');
     testCommit = RepositoryCommit.fromJson(
-      jsonDecode('{"url": "$url", "author": $author, "sha": "$sha"}') as Map<String, dynamic>,
+      jsonDecode('{"url": "$url", "author": $author, "sha": "$sha"}')
+          as Map<String, dynamic>,
     );
 
     when(mockGitHubComparison.behindBy).thenReturn(10);
     when(
+      // ignore: discarded_futures
       mockGitHub.request(
         any,
         any,
@@ -47,12 +49,18 @@ void main() {
     ).thenAnswer((_) => Future.value(mockResponse));
     when(mockResponse.statusCode).thenReturn(200);
     when(mockGitHub.repositories).thenReturn(mockRepositoriesService);
-    when(mockRepositoriesService.getCommit(any, any)).thenAnswer((_) => Future.value(testCommit));
-    when(mockRepositoriesService.compareCommits(any, any, any)).thenAnswer((_) => Future.value(mockGitHubComparison));
+    when(
+      // ignore: discarded_futures
+      mockRepositoriesService.getCommit(any, any),
+    ).thenAnswer((_) => Future.value(testCommit));
+    when(
+      // ignore: discarded_futures
+      mockRepositoriesService.compareCommits(any, any, any),
+    ).thenAnswer((_) => Future.value(mockGitHubComparison));
   });
 
   test('listReviews retrieves all reviews of the pull request', () async {
-    final RepositoryCommit commit = await githubService.getCommit(slug, sha);
+    final commit = await githubService.getCommit(slug, sha);
     expect(commit.author!.login, 'octocat');
     expect(commit.url, 'testUrl');
     expect(commit.sha, '6dcb09b5b57875f334f61aebed695e2e4193db5e');
@@ -60,14 +68,14 @@ void main() {
 
   test('Merges branch', () async {
     when(mockGitHubComparison.behindBy).thenReturn(10);
-    final PullRequest pullRequest = generatePullRequest();
+    final pullRequest = generatePullRequest();
     await githubService.autoMergeBranch(pullRequest);
     verify(mockResponse.statusCode).called(1);
   });
 
   test('Does not merge branch', () async {
     when(mockGitHubComparison.behindBy).thenReturn(9);
-    final PullRequest pullRequest = generatePullRequest();
+    final pullRequest = generatePullRequest();
     await githubService.autoMergeBranch(pullRequest);
     verifyNever(mockResponse.statusCode);
   });

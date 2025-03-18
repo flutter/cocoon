@@ -182,34 +182,36 @@ const String jobNotCompleteResponse = '''
 }
 ''';
 
-const String expectedSemanticsIntegrationTestNewIssueURL = 'https://something.something';
+const String expectedSemanticsIntegrationTestNewIssueURL =
+    'https://something.something';
 const String expectedSemanticsIntegrationTestTreeSha = 'abcdefg';
 const int expectedSemanticsIntegrationTestPRNumber = 123;
 
-final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatistic>[
-  BuilderStatistic(
-    name: 'Mac_android android_semantics_integration_test',
-    flakyRate: 0.5,
-    flakyBuilds: <String>['103', '102', '101'],
-    succeededBuilds: <String>['203', '202', '201'],
-    recentCommit: 'abc',
-    flakyBuildOfRecentCommit: '103',
-    flakyNumber: 3,
-    totalNumber: 6,
-  ),
-  // This builder is flakey, but it should be
-  // ignored because it has ignore_flakiness set.
-  BuilderStatistic(
-    name: 'Mac_android ignore_myflakiness',
-    flakyRate: 0.5,
-    flakyBuilds: <String>['103', '102', '101'],
-    succeededBuilds: <String>['203', '202', '201'],
-    recentCommit: 'abc',
-    flakyBuildOfRecentCommit: '103',
-    flakyNumber: 3,
-    totalNumber: 6,
-  ),
-];
+final List<BuilderStatistic> semanticsIntegrationTestResponse =
+    <BuilderStatistic>[
+      BuilderStatistic(
+        name: 'Mac_android android_semantics_integration_test',
+        flakyRate: 0.5,
+        flakyBuilds: <String>['103', '102', '101'],
+        succeededBuilds: <String>['203', '202', '201'],
+        recentCommit: 'abc',
+        flakyBuildOfRecentCommit: '103',
+        flakyNumber: 3,
+        totalNumber: 6,
+      ),
+      // This builder is flakey, but it should be
+      // ignored because it has ignore_flakiness set.
+      BuilderStatistic(
+        name: 'Mac_android ignore_myflakiness',
+        flakyRate: 0.5,
+        flakyBuilds: <String>['103', '102', '101'],
+        succeededBuilds: <String>['203', '202', '201'],
+        recentCommit: 'abc',
+        flakyBuildOfRecentCommit: '103',
+        flakyNumber: 3,
+        totalNumber: 6,
+      ),
+    ];
 
 const String expectedSemanticsIntegrationTestResponseTitle =
     'Mac_android android_semantics_integration_test is 50.00% flaky';
@@ -395,6 +397,6 @@ const List<String> expectedFrameworkTestResponseLabels = <String>[
 
 String gitHubEncode(String source) {
   final List<int> utf8Characters = utf8.encode(source);
-  final String base64encoded = base64Encode(utf8Characters);
+  final base64encoded = base64Encode(utf8Characters);
   return base64encoded;
 }

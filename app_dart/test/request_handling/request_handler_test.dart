@@ -21,7 +21,7 @@ void main() {
     late HttpServer server;
     late RequestHandler<dynamic> handler;
 
-    final List<LogRecord> records = <LogRecord>[];
+    final records = <LogRecord>[];
 
     setUpAll(() async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
@@ -40,23 +40,28 @@ void main() {
 
     setUp(() {
       records.clear();
-      log.onRecord.listen((LogRecord record) => records.add(record));
+      log.onRecord.listen(records.add);
     });
 
     Future<HttpClientResponse> issueRequest(String method) async {
-      final HttpClient client = HttpClient();
-      final Uri url = Uri(scheme: 'http', host: 'localhost', port: server.port, path: '/path');
-      final HttpClientRequest request = await client.openUrl(method, url);
+      final client = HttpClient();
+      final url = Uri(
+        scheme: 'http',
+        host: 'localhost',
+        port: server.port,
+        path: '/path',
+      );
+      final request = await client.openUrl(method, url);
       return request.close();
     }
 
-    Future<HttpClientResponse> issueGet() => issueRequest('get');
+    Future<HttpClientResponse> issueGet() async => issueRequest('get');
 
-    Future<HttpClientResponse> issuePost() => issueRequest('post');
+    Future<HttpClientResponse> issuePost() async => issueRequest('post');
 
     test('Unimplemented methods yield HTTP method not allowed', () async {
       handler = MethodNotAllowed();
-      HttpClientResponse response = await issueGet();
+      var response = await issueGet();
       expect(response.statusCode, HttpStatus.methodNotAllowed);
       response = await issuePost();
       expect(response.statusCode, HttpStatus.methodNotAllowed);
@@ -65,7 +70,7 @@ void main() {
 
     test('empty body yields empty HTTP response body', () async {
       handler = EmptyBodyHandler();
-      final HttpClientResponse response = await issueGet();
+      final response = await issueGet();
       expect(response.statusCode, HttpStatus.ok);
       expect(await response.toList(), isEmpty);
       expect(records, isEmpty);
@@ -73,7 +78,7 @@ void main() {
 
     test('string body yields string HTTP response body', () async {
       handler = StringBodyHandler();
-      final HttpClientResponse response = await issueGet();
+      final response = await issueGet();
       expect(response.statusCode, HttpStatus.ok);
       expect(await utf8.decoder.bind(response).join(), 'Hello world');
       expect(records, isEmpty);
@@ -81,7 +86,7 @@ void main() {
 
     test('JsonBody yields JSON HTTP response body', () async {
       handler = JsonBodyHandler();
-      final HttpClientResponse response = await issueGet();
+      final response = await issueGet();
       expect(response.statusCode, HttpStatus.ok);
       expect(await utf8.decoder.bind(response).join(), '{"key":"value"}');
       expect(records, isEmpty);
@@ -89,30 +94,36 @@ void main() {
 
     test('throwing HttpException yields corresponding HTTP status', () async {
       handler = ThrowsHttpException();
-      final HttpClientResponse response = await issueGet();
+      final response = await issueGet();
       expect(response.statusCode, HttpStatus.badRequest);
       expect(await utf8.decoder.bind(response).join(), 'Bad request');
       expect(records, isEmpty);
     });
 
-    test('throwing general exception yields HTTP 500 and logs to server logs', () async {
-      handler = ThrowsStateError();
-      final HttpClientResponse response = await issueGet();
-      expect(response.statusCode, HttpStatus.internalServerError);
-      expect(await utf8.decoder.bind(response).join(), contains('error message'));
-      expect(records.first.message, contains('error message'));
-    });
+    test(
+      'throwing general exception yields HTTP 500 and logs to server logs',
+      () async {
+        handler = ThrowsStateError();
+        final response = await issueGet();
+        expect(response.statusCode, HttpStatus.internalServerError);
+        expect(
+          await utf8.decoder.bind(response).join(),
+          contains('error message'),
+        );
+        expect(records.first.message, contains('error message'));
+      },
+    );
 
     test('may access the request and response directly', () async {
       handler = AccessesRequestAndResponseDirectly();
-      final HttpClientResponse response = await issueGet();
+      final response = await issueGet();
       expect(response.headers.value('X-Test-Path'), '/path');
       expect(records, isEmpty);
     });
 
     test('may implement both GET and POST', () async {
       handler = ImplementsBothGetAndPost();
-      HttpClientResponse response = await issueGet();
+      var response = await issueGet();
       expect(response.headers.value('X-Test-Get'), 'true');
       expect(response.headers.value('X-Test-Post'), isNull);
       response = await issuePost();
@@ -123,7 +134,7 @@ void main() {
 
     test('may implement only POST', () async {
       handler = ImplementsOnlyPost();
-      HttpClientResponse response = await issueGet();
+      var response = await issueGet();
       expect(response.statusCode, HttpStatus.methodNotAllowed);
       response = await issuePost();
       expect(response.statusCode, HttpStatus.ok);

@@ -15,13 +15,17 @@ import 'package:protobuf/protobuf.dart' as $pb;
 
 /// Status of a build or a step.
 class Status extends $pb.ProtobufEnum {
-  static const Status STATUS_UNSPECIFIED = Status._(0, _omitEnumNames ? '' : 'STATUS_UNSPECIFIED');
-  static const Status SCHEDULED = Status._(1, _omitEnumNames ? '' : 'SCHEDULED');
+  static const Status STATUS_UNSPECIFIED =
+      Status._(0, _omitEnumNames ? '' : 'STATUS_UNSPECIFIED');
+  static const Status SCHEDULED =
+      Status._(1, _omitEnumNames ? '' : 'SCHEDULED');
   static const Status STARTED = Status._(2, _omitEnumNames ? '' : 'STARTED');
-  static const Status ENDED_MASK = Status._(4, _omitEnumNames ? '' : 'ENDED_MASK');
+  static const Status ENDED_MASK =
+      Status._(4, _omitEnumNames ? '' : 'ENDED_MASK');
   static const Status SUCCESS = Status._(12, _omitEnumNames ? '' : 'SUCCESS');
   static const Status FAILURE = Status._(20, _omitEnumNames ? '' : 'FAILURE');
-  static const Status INFRA_FAILURE = Status._(36, _omitEnumNames ? '' : 'INFRA_FAILURE');
+  static const Status INFRA_FAILURE =
+      Status._(36, _omitEnumNames ? '' : 'INFRA_FAILURE');
   static const Status CANCELED = Status._(68, _omitEnumNames ? '' : 'CANCELED');
 
   static const $core.List<Status> values = <Status>[
@@ -35,7 +39,8 @@ class Status extends $pb.ProtobufEnum {
     CANCELED,
   ];
 
-  static final $core.Map<$core.int, Status> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static final $core.Map<$core.int, Status> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
   static Status? valueOf($core.int value) => _byValue[value];
 
   const Status._($core.int v, $core.String n) : super(v, n);
@@ -53,7 +58,8 @@ class Trinary extends $pb.ProtobufEnum {
     NO,
   ];
 
-  static final $core.Map<$core.int, Trinary> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static final $core.Map<$core.int, Trinary> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
   static Trinary? valueOf($core.int value) => _byValue[value];
 
   const Trinary._($core.int v, $core.String n) : super(v, n);
@@ -61,15 +67,18 @@ class Trinary extends $pb.ProtobufEnum {
 
 /// Compression method used in the corresponding data.
 class Compression extends $pb.ProtobufEnum {
-  static const Compression ZLIB = Compression._(0, _omitEnumNames ? '' : 'ZLIB');
-  static const Compression ZSTD = Compression._(1, _omitEnumNames ? '' : 'ZSTD');
+  static const Compression ZLIB =
+      Compression._(0, _omitEnumNames ? '' : 'ZLIB');
+  static const Compression ZSTD =
+      Compression._(1, _omitEnumNames ? '' : 'ZSTD');
 
   static const $core.List<Compression> values = <Compression>[
     ZLIB,
     ZSTD,
   ];
 
-  static final $core.Map<$core.int, Compression> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static final $core.Map<$core.int, Compression> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
   static Compression? valueOf($core.int value) => _byValue[value];
 
   const Compression._($core.int v, $core.String n) : super(v, n);

@@ -31,10 +31,10 @@ class FindPullRequestsWithReviewsQuery extends GraphQLOperation {
 
   @override
   Map<String, dynamic> get variables => <String, dynamic>{
-        'sOwner': repositoryOwner,
-        'sName': repositoryName,
-        'sPrNumber': pullRequestNumber,
-      };
+    'sOwner': repositoryOwner,
+    'sName': repositoryName,
+    'sPrNumber': pullRequestNumber,
+  };
 
   @override
   DocumentNode get documentNode => lang.parseString(r'''
@@ -97,10 +97,10 @@ class FindPullRequestNodeIdQuery extends GraphQLOperation {
 
   @override
   Map<String, dynamic> get variables => {
-        'repoOwner': repositoryOwner,
-        'repoName': repositoryName,
-        'pullRequestNumber': pullRequestNumber,
-      };
+    'repoOwner': repositoryOwner,
+    'repoName': repositoryName,
+    'pullRequestNumber': pullRequestNumber,
+  };
 
   @override
   DocumentNode get documentNode => lang.parseString(r'''
@@ -134,12 +134,12 @@ class RevertPullRequestMutation extends GraphQLOperation {
 
   @override
   Map<String, dynamic> get variables => {
-        'revertBody': body,
-        'clientMutationId': clientMutationId,
-        'draft': draft,
-        'pullRequestId': id,
-        'revertTitle': title,
-      };
+    'revertBody': body,
+    'clientMutationId': clientMutationId,
+    'draft': draft,
+    'pullRequestId': id,
+    'revertTitle': title,
+  };
 
   @override
   DocumentNode get documentNode => lang.parseString(r'''
@@ -194,19 +194,13 @@ mutation RevertPullFlutterPullRequest ($revertBody:String!, $clientMutationId:St
 ///
 /// https://docs.github.com/en/graphql/reference/mutations#enqueuepullrequest
 class EnqueuePullRequestMutation extends GraphQLOperation {
-  EnqueuePullRequestMutation({
-    required this.id,
-    required this.jump,
-  });
+  EnqueuePullRequestMutation({required this.id, required this.jump});
 
   final String id;
   final bool jump;
 
   @override
-  Map<String, dynamic> get variables => {
-        'pullRequestId': id,
-        'jump': jump,
-      };
+  Map<String, dynamic> get variables => {'pullRequestId': id, 'jump': jump};
 
   @override
   DocumentNode get documentNode => lang.parseString(r'''

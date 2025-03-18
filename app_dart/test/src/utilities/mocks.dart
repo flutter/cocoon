@@ -8,7 +8,6 @@ import 'dart:typed_data';
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/branch_service.dart';
@@ -23,43 +22,14 @@ import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/firestore/v1.dart';
-import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:graphql/client.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
 import 'package:mockito/annotations.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:process/process.dart';
 
 import '../../service/cache_service_test.dart';
-import '../service/fake_auth_client.dart';
 
 export 'mocks.mocks.dart';
-
-/// Fallback generated function for returning default values from the generic
-/// function [GitHub.postJSON].
-Future<T> postJsonShim<S, T>(
-  dynamic path, {
-  int? statusCode,
-  void Function(http.Response)? fail,
-  Map<String, String>? headers,
-  Map<String, dynamic>? params,
-  T Function(S)? convert,
-  dynamic body,
-  String? preview,
-}) {
-  if (T == PullRequest) {
-    return Future<T>.value(PullRequest() as T);
-  }
-  throw Exception('MockGitHub.postJSON does not return $T.\n'
-      'Either add it to postJsonShim or use a manual mock.');
-}
-
-Future<AutoRefreshingAuthClient> authClientProviderShim({
-  http.Client? baseClient,
-  required List<String> scopes,
-}) async =>
-    FakeAuthClient(baseClient ?? MockClient((_) => throw const InternalServerError('Test did not set up HttpClient')));
 
 @GenerateMocks(
   <Type>[
@@ -102,12 +72,14 @@ Future<AutoRefreshingAuthClient> authClientProviderShim({
 )
 void main() {}
 
+// ignore: unreachable_from_main
 class ThrowingGitHub implements GitHub {
   @override
   dynamic noSuchMethod(Invocation invocation) => throw AssertionError();
 }
 
 abstract class Callbacks {
+  // ignore: unreachable_from_main
   Future<StagingConclusion> markCheckRunConclusion({
     required FirestoreService firestoreService,
     required RepositorySlug slug,
@@ -117,6 +89,7 @@ abstract class Callbacks {
     required String conclusion,
   });
 
+  // ignore: unreachable_from_main
   Future<Document> initializeDocument({
     required FirestoreService firestoreService,
     required RepositorySlug slug,
@@ -127,6 +100,7 @@ abstract class Callbacks {
   });
 
   /// See [PrCheckRuns.initializeDocument]
+  // ignore: unreachable_from_main
   Future<Document> initializePrCheckRuns({
     required FirestoreService firestoreService,
     required PullRequest pullRequest,
@@ -134,9 +108,17 @@ abstract class Callbacks {
   });
 
   /// See [PrCheckRuns.findPullRequestFor]
+  // ignore: unreachable_from_main
   Future<PullRequest> findPullRequestFor(
     FirestoreService firestoreService,
     int checkRunId,
     String checkRunName,
+  );
+
+  /// See [PrCheckRuns.findPullRequestForSha]
+  // ignore: unreachable_from_main
+  Future<PullRequest?> findPullRequestForSha(
+    FirestoreService firestoreService,
+    String sha,
   );
 }

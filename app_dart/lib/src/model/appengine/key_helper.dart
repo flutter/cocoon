@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 import 'dart:mirrors';
-import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:appengine/appengine.dart' as gae show context;
@@ -39,8 +38,9 @@ class KeyHelper {
   KeyHelper({
     AppEngineContext? applicationContext,
     Set<Type> types = _defaultTypes,
-  })  : applicationContext = applicationContext ?? gae.context.applicationContext,
-        types = _populateTypes(types);
+  }) : applicationContext =
+           applicationContext ?? gae.context.applicationContext,
+       types = _populateTypes(types);
 
   /// Metadata about the App Engine application.
   final AppEngineContext applicationContext;
@@ -60,14 +60,15 @@ class KeyHelper {
   ///
   ///  * <https://github.com/golang/appengine/blob/b2f4a3cf3c67576a2ee09e1fe62656a5086ce880/datastore/key.go#L231>
   String encode(Key<dynamic> key) {
-    final Reference reference = Reference()
-      ..app = applicationContext.applicationID
-      ..path = _asPath(key);
+    final reference =
+        Reference()
+          ..app = applicationContext.applicationID
+          ..path = _asPath(key);
     if (applicationContext.partition.isNotEmpty) {
       reference.nameSpace = applicationContext.partition;
     }
-    final Uint8List buffer = reference.writeToBuffer();
-    final String base64Encoded = base64Url.encode(buffer);
+    final buffer = reference.writeToBuffer();
+    final base64Encoded = base64Url.encode(buffer);
     return base64Encoded.split('=').first;
   }
 
@@ -79,23 +80,26 @@ class KeyHelper {
   ///  * <https://github.com/golang/appengine/blob/b2f4a3cf3c67576a2ee09e1fe62656a5086ce880/datastore/key.go#L244>
   Key<dynamic> decode(String encoded) {
     // Re-add padding.
-    final int remainder = encoded.length % 4;
+    final remainder = encoded.length % 4;
     if (remainder != 0) {
-      final String padding = '=' * (4 - remainder);
+      final padding = '=' * (4 - remainder);
       encoded += padding;
     }
 
-    final Uint8List decoded = base64Url.decode(encoded);
-    final Reference reference = Reference.fromBuffer(decoded);
+    final decoded = base64Url.decode(encoded);
+    final reference = Reference.fromBuffer(decoded);
     return reference.path.element.fold<Key<dynamic>>(
-      Key<int>.emptyKey(Partition(reference.nameSpace.isEmpty ? null : reference.nameSpace)),
+      Key<int>.emptyKey(
+        Partition(reference.nameSpace.isEmpty ? null : reference.nameSpace),
+      ),
       (Key<dynamic> previous, Path_Element element) {
-        final Iterable<MapEntry<Type, Kind>> entries =
-            types.entries.where((MapEntry<Type, Kind> entry) => entry.value.name == element.type);
+        final entries = types.entries.where(
+          (MapEntry<Type, Kind> entry) => entry.value.name == element.type,
+        );
         if (entries.isEmpty) {
           throw StateError('Unknown type: ${element.type}');
         }
-        final MapEntry<Type, Kind> entry = entries.single;
+        final entry = entries.single;
         if (entry.value.idType == IdType.String) {
           return previous.append<String>(entry.key, id: element.name);
         } else {
@@ -106,18 +110,22 @@ class KeyHelper {
   }
 
   static Map<Type, Kind> _populateTypes(Set<Type> types) {
-    final Map<Type, Kind> result = <Type, Kind>{};
+    final result = <Type, Kind>{};
 
-    for (Type type in types) {
-      final ClassMirror classMirror = reflectClass(type);
-      final List<InstanceMirror> kindAnnotations = classMirror.metadata
-          .where((InstanceMirror annotation) => annotation.hasReflectee)
-          .where((InstanceMirror annotation) => annotation.reflectee.runtimeType == Kind)
-          .toList();
+    for (var type in types) {
+      final classMirror = reflectClass(type);
+      final kindAnnotations =
+          classMirror.metadata
+              .where((InstanceMirror annotation) => annotation.hasReflectee)
+              .where(
+                (InstanceMirror annotation) =>
+                    annotation.reflectee.runtimeType == Kind,
+              )
+              .toList();
       if (kindAnnotations.isEmpty) {
         throw StateError('Class $type has no @Kind annotation');
       }
-      final Kind annotation = kindAnnotations.single.reflectee as Kind;
+      final annotation = kindAnnotations.single.reflectee as Kind;
       result[type] = Kind(
         name: annotation.name ?? type.toString(),
         idType: annotation.idType,
@@ -128,16 +136,23 @@ class KeyHelper {
   }
 
   Path _asPath(Key<dynamic> key) {
-    final List<Key<dynamic>> path = <Key<dynamic>>[];
-    for (Key<dynamic>? current = key; current != null && !current.isEmpty; current = current.parent) {
+    final path = <Key<dynamic>>[];
+    for (
+      Key<dynamic>? current = key;
+      current != null && !current.isEmpty;
+      current = current.parent
+    ) {
       path.insert(0, current);
     }
     return Path()
       ..element.addAll(
         path.map<Path_Element>((Key<dynamic> key) {
-          final Path_Element element = Path_Element();
+          final element = Path_Element();
           if (key.type != null) {
-            element.type = types.containsKey(key.type) ? types[key.type!]!.name! : key.type.toString();
+            element.type =
+                types.containsKey(key.type)
+                    ? types[key.type!]!.name!
+                    : key.type.toString();
           }
           final Object? id = key.id;
           if (id is String) {

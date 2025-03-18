@@ -20,7 +20,7 @@ PushMessage createPushMessage(
   bool? addBuildSet = true,
   List<bbv2.StringPair> extraTags = const [],
 }) {
-  final bbv2.PubSubCallBack pubSubCallBack = createPubSubCallBack(
+  final pubSubCallBack = createPubSubCallBack(
     id,
     project: project,
     bucket: bucket,
@@ -28,13 +28,13 @@ PushMessage createPushMessage(
     number: number,
     status: status,
     userData: userData,
-    addBuildSet: addBuildSet,
     extraTags: extraTags,
   );
 
-  final Map<String, dynamic> pubSubCallBackMap = pubSubCallBack.toProto3Json() as Map<String, dynamic>;
+  final pubSubCallBackMap =
+      pubSubCallBack.toProto3Json() as Map<String, dynamic>;
 
-  final String pubSubCallBackString = jsonEncode(pubSubCallBackMap);
+  final pubSubCallBackString = jsonEncode(pubSubCallBackMap);
 
   return PushMessage(data: pubSubCallBackString);
 }
@@ -47,22 +47,23 @@ bbv2.PubSubCallBack createPubSubCallBack(
   int number = 259942,
   bbv2.Status? status = bbv2.Status.SCHEDULED,
   Map<String, dynamic>? userData = const {},
-  bool? addBuildSet = true,
   List<bbv2.StringPair> extraTags = const [],
 }) {
   // this contains BuildsV2PubSub and UserData (List<int>).
-  final bbv2.BuildsV2PubSub buildsPubSub = createBuild(
+  final buildsPubSub = createBuild(
     id,
     project: project,
     bucket: bucket,
     builder: builder,
     number: number,
     status: status,
-    addBuildSet: addBuildSet,
     extraTags: extraTags,
   );
-  final List<int>? userDataBytes = UserData.encodeUserDataToBytes(userData!);
-  return bbv2.PubSubCallBack(buildPubsub: buildsPubSub, userData: userDataBytes);
+  final userDataBytes = UserData.encodeUserDataToBytes(userData!);
+  return bbv2.PubSubCallBack(
+    buildPubsub: buildsPubSub,
+    userData: userDataBytes,
+  );
 }
 
 bbv2.BuildsV2PubSub createBuild(
@@ -72,22 +73,21 @@ bbv2.BuildsV2PubSub createBuild(
   String? builder = 'Windows Engine Drone',
   int number = 259942,
   bbv2.Status? status = bbv2.Status.SCHEDULED,
-  bool? addBuildSet = true,
   List<bbv2.StringPair> extraTags = const [],
 }) {
-  final bbv2.BuildsV2PubSub build = bbv2.BuildsV2PubSub().createEmptyInstance();
+  final build = bbv2.BuildsV2PubSub().createEmptyInstance();
   build.mergeFromProto3Json(
     jsonDecode(
-      createBuildString(
-        id,
-        project: project,
-        bucket: bucket,
-        builder: builder,
-        number: number,
-        status: status,
-        addBuildSet: addBuildSet,
-      ),
-    ) as Map<String, dynamic>,
+          createBuildString(
+            id,
+            project: project,
+            bucket: bucket,
+            builder: builder,
+            number: number,
+            status: status,
+          ),
+        )
+        as Map<String, dynamic>,
   );
   if (extraTags.isNotEmpty) {
     build.build.tags.addAll(extraTags);
@@ -102,7 +102,6 @@ String createBuildString(
   String? builder = 'Windows Engine Drone',
   int number = 259942,
   bbv2.Status? status = bbv2.Status.SCHEDULED,
-  bool? addBuildSet = true,
 }) {
   return '''
   {

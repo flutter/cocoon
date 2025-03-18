@@ -25,12 +25,14 @@ import '../../service/firestore.dart';
 /// large amount of documents, we will rely on querying the fields.
 ///
 /// This document layout is currently:
+/// ```
 ///  /projects/flutter-dashboard/databases/cocoon/prCheckRuns/
 ///     document: <firebase unique id>
 ///       pullRequest: json string
 ///       slug: json string
 ///       sha: string
 ///       [*fields]: "test_name": "check_run id"
+/// ```
 class PrCheckRuns extends Document {
   static const kCollectionId = 'prCheckRuns';
   static const kPullRequestField = 'pull_request';
@@ -45,12 +47,17 @@ class PrCheckRuns extends Document {
   }
 
   /// The json string of the pullrequest belonging to this document.
-  PullRequest get pullRequest => PullRequest.fromJson(json.decode(fields![kPullRequestField]!.stringValue!));
+  PullRequest get pullRequest => PullRequest.fromJson(
+    json.decode(fields![kPullRequestField]!.stringValue!)
+        as Map<String, Object?>,
+  );
 
   /// The head sha at the time this document was created for testing.
   String get sha => fields![kShaField]!.stringValue!;
 
-  RepositorySlug get slug => RepositorySlug.fromJson(json.decode(fields![kSlugField]!.stringValue!));
+  RepositorySlug get slug => RepositorySlug.fromJson(
+    json.decode(fields![kSlugField]!.stringValue!) as Map<String, Object?>,
+  );
 
   /// Initializes a new document for the list of check_runs in Firestore so we can find it later.
   ///
@@ -69,7 +76,9 @@ class PrCheckRuns extends Document {
 
     final fields = <String, Value>{
       kPullRequestField: Value(stringValue: json.encode(pullRequest.toJson())),
-      kSlugField: Value(stringValue: json.encode(pullRequest.head!.repo!.slug().toJson())),
+      kSlugField: Value(
+        stringValue: json.encode(pullRequest.head!.repo!.slug().toJson()),
+      ),
       kShaField: Value(stringValue: pullRequest.head!.sha!),
       for (final run in checks) run.name!: Value(stringValue: '${run.id}'),
     };
@@ -80,7 +89,8 @@ class PrCheckRuns extends Document {
       // Calling createDocument multiple times for the same documentId will return a 409 - ALREADY_EXISTS error;
       // this is good because it means we don't have to do any transactions.
       // curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN>" "https://firestore.googleapis.com/v1beta1/projects/flutter-dashboard/databases/cocoon/documents/prCheckRuns" -d '{"fields": {"test": {"stringValue": "baz"}}}'
-      final databasesDocumentsResource = await firestoreService.documentResource();
+      final databasesDocumentsResource =
+          await firestoreService.documentResource();
       final newDoc = await databasesDocumentsResource.createDocument(
         document,
         kDocumentParent,
@@ -100,12 +110,23 @@ class PrCheckRuns extends Document {
     int checkRunId,
     String checkRunName,
   ) async {
-    final filterMap = <String, Object>{
-      '$checkRunName =': '$checkRunId',
-    };
+    final filterMap = <String, Object>{'$checkRunName =': '$checkRunId'};
     log.info('findDocumentFor($filterMap): finding prCheckRuns document');
     final docs = await firestoreService.query(kCollectionId, filterMap);
     log.info('findDocumentFor($filterMap): found: $docs');
+    return PrCheckRuns.fromDocument(docs.first).pullRequest;
+  }
+
+  /// Retrieve the [PullRequest] for a given [sha] or throw an error.
+  static Future<PullRequest?> findPullRequestForSha(
+    FirestoreService firestoreService,
+    String sha,
+  ) async {
+    final filterMap = <String, Object>{'sha =': sha};
+    log.info('findPullRequestForSha($filterMap): finding prCheckRuns document');
+    final docs = await firestoreService.query(kCollectionId, filterMap);
+    log.info('findPullRequestForSha($filterMap): found: $docs');
+    if (docs.isEmpty) return null;
     return PrCheckRuns.fromDocument(docs.first).pullRequest;
   }
 }

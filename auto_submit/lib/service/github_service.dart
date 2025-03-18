@@ -18,10 +18,7 @@ class GithubService {
   final GitHub github;
 
   /// Retrieves check runs with the ref.
-  Future<List<CheckRun>> getCheckRuns(
-    RepositorySlug slug,
-    String ref,
-  ) async {
+  Future<List<CheckRun>> getCheckRuns(RepositorySlug slug, String ref) async {
     return github.checks.checkRuns.listCheckRunsForRef(slug, ref: ref).toList();
   }
 
@@ -72,10 +69,7 @@ class GithubService {
   }
 
   /// Fetches the specified commit.
-  Future<RepositoryCommit> getCommit(
-    RepositorySlug slug,
-    String sha,
-  ) async {
+  Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
     return github.repositories.getCommit(slug, sha);
   }
 
@@ -83,14 +77,14 @@ class GithubService {
     RepositorySlug slug,
     PullRequest pullRequest,
   ) async {
-    final int? pullRequestId = pullRequest.number;
-    final List<PullRequestFile> listPullRequestFiles = [];
+    final pullRequestId = pullRequest.number;
+    final listPullRequestFiles = <PullRequestFile>[];
 
     if (pullRequestId == null) {
       return listPullRequestFiles;
     }
 
-    final Stream<PullRequestFile> pullRequestFiles = github.pullRequests.listFiles(slug, pullRequestId);
+    final pullRequestFiles = github.pullRequests.listFiles(slug, pullRequestId);
 
     await for (PullRequestFile file in pullRequestFiles) {
       listPullRequestFiles.add(file);
@@ -109,7 +103,7 @@ class GithubService {
     List<String>? assignees,
     String? state,
   }) async {
-    final IssueRequest issueRequest = IssueRequest(
+    final issueRequest = IssueRequest(
       title: title,
       body: body,
       labels: labels,
@@ -136,7 +130,7 @@ class GithubService {
     bool draft = false,
     String? body,
   }) async {
-    final CreatePullRequest createPullRequest = CreatePullRequest(
+    final createPullRequest = CreatePullRequest(
       title,
       head,
       base,
@@ -163,8 +157,8 @@ class GithubService {
     String sort = 'created',
     String state = 'open',
   }) async {
-    final List<PullRequest> pullRequestsFound = [];
-    final Stream<PullRequest> pullRequestStream = github.pullRequests.list(
+    final pullRequestsFound = <PullRequest>[];
+    final pullRequestStream = github.pullRequests.list(
       slug,
       pages: pages,
       direction: direction,
@@ -273,18 +267,12 @@ class GithubService {
     return response.statusCode == StatusCodes.ACCEPTED;
   }
 
-  Future<Branch> getBranch(
-    RepositorySlug slug,
-    String branchName,
-  ) async {
+  Future<Branch> getBranch(RepositorySlug slug, String branchName) async {
     return github.repositories.getBranch(slug, branchName);
   }
 
-  Future<bool> deleteBranch(
-    RepositorySlug slug,
-    String branchName,
-  ) async {
-    final String ref = 'heads/$branchName';
+  Future<bool> deleteBranch(RepositorySlug slug, String branchName) async {
+    final ref = 'heads/$branchName';
     return github.git.deleteReference(slug, ref);
   }
 
@@ -308,24 +296,40 @@ class GithubService {
 
   /// Automerges a given pull request with HEAD to ensure the commit is not in conflicting state.
   Future<void> autoMergeBranch(PullRequest pullRequest) async {
-    final RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final int prNumber = pullRequest.number!;
-    final RepositoryCommit totCommit = await getCommit(slug, 'HEAD');
-    final GitHubComparison comparison = await compareTwoCommits(slug, totCommit.sha!, pullRequest.base!.sha!);
+    final slug = pullRequest.base!.repo!.slug();
+    final prNumber = pullRequest.number!;
+    final totCommit = await getCommit(slug, 'HEAD');
+    final comparison = await compareTwoCommits(
+      slug,
+      totCommit.sha!,
+      pullRequest.base!.sha!,
+    );
     if (comparison.behindBy! >= _kBehindToT) {
-      log.info('The current branch is behind by ${comparison.behindBy} commits.');
-      final String headSha = pullRequest.head!.sha!;
+      log.info(
+        'The current branch is behind by ${comparison.behindBy} commits.',
+      );
+      final headSha = pullRequest.head!.sha!;
       await updateBranch(slug, prNumber, headSha);
     }
   }
 
   /// Get contents from a repository at the supplied path.
-  Future<String> getFileContents(RepositorySlug slug, String path, {String? ref}) async {
-    final RepositoryContents repositoryContents = await github.repositories.getContents(slug, path, ref: ref);
+  Future<String> getFileContents(
+    RepositorySlug slug,
+    String path, {
+    String? ref,
+  }) async {
+    final repositoryContents = await github.repositories.getContents(
+      slug,
+      path,
+      ref: ref,
+    );
     if (!repositoryContents.isFile) {
       throw 'Contents do not point to a file.';
     }
-    final String content = utf8.decode(base64.decode(repositoryContents.file!.content!.replaceAll('\n', '')));
+    final content = utf8.decode(
+      base64.decode(repositoryContents.file!.content!.replaceAll('\n', '')),
+    );
     return content;
   }
 
@@ -335,8 +339,8 @@ class GithubService {
   /// membership in general or is not a member of the team.
   Future<bool> isTeamMember(String team, String user, String org) async {
     try {
-      final TeamMembershipState teamMembershipState =
-          await github.organizations.getTeamMembershipByName(org, team, user);
+      final teamMembershipState = await github.organizations
+          .getTeamMembershipByName(org, team, user);
       return teamMembershipState.isActive;
     } on GitHubError {
       return false;
@@ -349,7 +353,7 @@ class GithubService {
   }
 
   Future<String> getDefaultBranch(RepositorySlug slug) async {
-    final Repository repository = await getRepository(slug);
+    final repository = await getRepository(slug);
     return repository.defaultBranch;
   }
 }

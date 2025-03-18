@@ -1,0 +1,17 @@
+name: cocoon_common_test
+description: Testing specific functionality for package:cocoon_common
+publish_to: none
+
+environment:
+  sdk: ^3.7.0
+
+resolution: workspace
+
+dependencies:
+  cocoon_common:
+    path: ../cocoon_common
+  matcher: ^0.12.17
+
+dev_dependencies:
+  dart_flutter_team_lints:
+  test: ^1.25.15

@@ -16,14 +16,14 @@ void main() {
   group('CacheService', () {
     late CacheService cache;
 
-    const String testSubcacheName = 'test';
+    const testSubcacheName = 'test';
 
     setUp(() {
       cache = CacheService(inMemory: true, inMemoryMaxNumberEntries: 1);
     });
 
     test('returns null when no value exists', () async {
-      final Uint8List? value = await cache.getOrCreate(
+      final value = await cache.getOrCreate(
         testSubcacheName,
         'abc',
         createFn: null,
@@ -33,12 +33,12 @@ void main() {
     });
 
     test('returns value when it exists', () async {
-      const String testKey = 'abc';
-      final Uint8List expectedValue = Uint8List.fromList('123'.codeUnits);
+      const testKey = 'abc';
+      final expectedValue = Uint8List.fromList('123'.codeUnits);
 
       await cache.set(testSubcacheName, testKey, expectedValue);
 
-      final Uint8List? value = await cache.getOrCreate(
+      final value = await cache.getOrCreate(
         testSubcacheName,
         testKey,
         createFn: null,
@@ -48,22 +48,22 @@ void main() {
     });
 
     test('last used value is rotated out of cache if cache is full', () async {
-      const String testKey1 = 'abc';
-      const String testKey2 = 'def';
-      final Uint8List expectedValue1 = Uint8List.fromList('123'.codeUnits);
-      final Uint8List expectedValue2 = Uint8List.fromList('456'.codeUnits);
+      const testKey1 = 'abc';
+      const testKey2 = 'def';
+      final expectedValue1 = Uint8List.fromList('123'.codeUnits);
+      final expectedValue2 = Uint8List.fromList('456'.codeUnits);
 
       await cache.set(testSubcacheName, testKey1, expectedValue1);
       await cache.set(testSubcacheName, testKey2, expectedValue2);
 
-      final Uint8List? value1 = await cache.getOrCreate(
+      final value1 = await cache.getOrCreate(
         testSubcacheName,
         testKey1,
         createFn: null,
       );
       expect(value1, null);
 
-      final Uint8List? value2 = await cache.getOrCreate(
+      final value2 = await cache.getOrCreate(
         testSubcacheName,
         testKey2,
         createFn: null,
@@ -74,18 +74,23 @@ void main() {
     test('retries when get throws exception', () async {
       final Cache<Uint8List> mockMainCache = MockCache();
       final Cache<Uint8List> mockTestSubcache = MockCache();
-      when<Cache<Uint8List>>(mockMainCache.withPrefix(testSubcacheName)).thenReturn(mockTestSubcache);
+      when<Cache<Uint8List>>(
+        mockMainCache.withPrefix(testSubcacheName),
+      ).thenReturn(mockTestSubcache);
 
-      int getCallCount = 0;
+      var getCallCount = 0;
       final Entry<Uint8List> entry = FakeEntry();
       // Only on the first call do we want it to throw the exception.
       when(mockTestSubcache['does not matter']).thenAnswer(
-        (Invocation invocation) => getCallCount++ < 1 ? throw Exception('simulate stream sink error') : entry,
+        (Invocation invocation) =>
+            getCallCount++ < 1
+                ? throw Exception('simulate stream sink error')
+                : entry,
       );
 
       cache.cacheValue = mockMainCache;
 
-      final Uint8List? value = await cache.getOrCreate(
+      final value = await cache.getOrCreate(
         testSubcacheName,
         'does not matter',
         createFn: null,
@@ -97,43 +102,53 @@ void main() {
     test('returns null if reaches max attempts of retries', () async {
       final Cache<Uint8List> mockMainCache = MockCache();
       final Cache<Uint8List> mockTestSubcache = MockCache();
-      when<Cache<Uint8List>>(mockMainCache.withPrefix(testSubcacheName)).thenReturn(mockTestSubcache);
+      when<Cache<Uint8List>>(
+        mockMainCache.withPrefix(testSubcacheName),
+      ).thenReturn(mockTestSubcache);
 
-      int getCallCount = 0;
+      var getCallCount = 0;
       final Entry<Uint8List> entry = FakeEntry();
       // Always throw exception until max retries
       when(mockTestSubcache['does not matter']).thenAnswer(
         (Invocation invocation) =>
-            getCallCount++ < CacheService.maxCacheGetAttempts ? throw Exception('simulate stream sink error') : entry,
+            getCallCount++ < CacheService.maxCacheGetAttempts
+                ? throw Exception('simulate stream sink error')
+                : entry,
       );
 
       cache.cacheValue = mockMainCache;
 
-      final Uint8List? value = await cache.getOrCreate(
+      final value = await cache.getOrCreate(
         testSubcacheName,
         'does not matter',
         createFn: null,
       );
-      verify(mockTestSubcache['does not matter']).called(CacheService.maxCacheGetAttempts);
+      verify(
+        mockTestSubcache['does not matter'],
+      ).called(CacheService.maxCacheGetAttempts);
       expect(value, isNull);
     });
 
     test('creates value if given createFn', () async {
-      final Uint8List cat = Uint8List.fromList('cat'.codeUnits);
+      final cat = Uint8List.fromList('cat'.codeUnits);
       Future<Uint8List> createCat() async => cat;
 
-      final Uint8List? value = await cache.getOrCreate(testSubcacheName, 'dog', createFn: createCat);
+      final value = await cache.getOrCreate(
+        testSubcacheName,
+        'dog',
+        createFn: createCat,
+      );
 
       expect(value, cat);
     });
 
     test('purge removes value', () async {
-      const String testKey = 'abc';
-      final Uint8List expectedValue = Uint8List.fromList('123'.codeUnits);
+      const testKey = 'abc';
+      final expectedValue = Uint8List.fromList('123'.codeUnits);
 
       await cache.set(testSubcacheName, testKey, expectedValue);
 
-      final Uint8List? value = await cache.getOrCreate(
+      final value = await cache.getOrCreate(
         testSubcacheName,
         testKey,
         createFn: null,
@@ -143,7 +158,7 @@ void main() {
 
       await cache.purge(testSubcacheName, testKey);
 
-      final Uint8List? valueAfterPurge = await cache.getOrCreate(
+      final valueAfterPurge = await cache.getOrCreate(
         testSubcacheName,
         testKey,
         createFn: null,
@@ -154,31 +169,46 @@ void main() {
     test('sets ttl from set', () async {
       final Cache<Uint8List> mockMainCache = MockCache();
       final Cache<Uint8List> mockTestSubcache = MockCache();
-      when<Cache<Uint8List>>(mockMainCache.withPrefix(testSubcacheName)).thenReturn(mockTestSubcache);
+      when<Cache<Uint8List>>(
+        mockMainCache.withPrefix(testSubcacheName),
+      ).thenReturn(mockTestSubcache);
 
       final Entry<Uint8List> entry = MockFakeEntry();
-      when(mockTestSubcache['fish']).thenAnswer((Invocation invocation) => entry);
+      when(
+        mockTestSubcache['fish'],
+      ).thenAnswer((Invocation invocation) => entry);
       cache.cacheValue = mockMainCache;
 
-      const Duration testDuration = Duration(days: 40);
+      const testDuration = Duration(days: 40);
       when(entry.set(any, testDuration)).thenAnswer((_) async => null);
       verifyNever(entry.set(any, testDuration));
-      await cache.set(testSubcacheName, 'fish', Uint8List.fromList('bigger fish'.codeUnits), ttl: testDuration);
+      await cache.set(
+        testSubcacheName,
+        'fish',
+        Uint8List.fromList('bigger fish'.codeUnits),
+        ttl: testDuration,
+      );
       verify(entry.set(any, testDuration)).called(1);
     });
 
     test('sets ttl is passed through correctly from createFn', () async {
-      const String value = 'bigger fish';
-      final Uint8List valueBytes = Uint8List.fromList(value.codeUnits);
-      const Duration testDuration = Duration(days: 40);
+      const value = 'bigger fish';
+      final valueBytes = Uint8List.fromList(value.codeUnits);
+      const testDuration = Duration(days: 40);
 
       final Entry<Uint8List> entry = MockFakeEntry();
-      when(entry.set(valueBytes, testDuration)).thenAnswer((_) async => valueBytes);
+      when(
+        entry.set(valueBytes, testDuration),
+      ).thenAnswer((_) async => valueBytes);
 
       final Cache<Uint8List> mockTestSubcache = MockCache();
       final Cache<Uint8List> mockMainCache = MockCache();
-      when<Cache<Uint8List>>(mockMainCache.withPrefix(testSubcacheName)).thenReturn(mockTestSubcache);
-      when(mockTestSubcache['fish']).thenAnswer((Invocation invocation) => entry);
+      when<Cache<Uint8List>>(
+        mockMainCache.withPrefix(testSubcacheName),
+      ).thenReturn(mockTestSubcache);
+      when(
+        mockTestSubcache['fish'],
+      ).thenAnswer((Invocation invocation) => entry);
       cache.cacheValue = mockMainCache;
 
       verifyNever(entry.set(any, testDuration));
@@ -192,11 +222,15 @@ void main() {
     });
 
     test('set does not block read attempt', () async {
-      const String testKey = 'abc';
-      final Uint8List expectedValue = Uint8List.fromList('123'.codeUnits);
+      const testKey = 'abc';
+      final expectedValue = Uint8List.fromList('123'.codeUnits);
 
-      final cacheWrite = cache.setWithLocking(testSubcacheName, testKey, expectedValue);
-      Uint8List? valueAfterSet = await cache.getOrCreateWithLocking(
+      final cacheWrite = cache.setWithLocking(
+        testSubcacheName,
+        testKey,
+        expectedValue,
+      );
+      var valueAfterSet = await cache.getOrCreateWithLocking(
         testSubcacheName,
         testKey,
         createFn: null,
@@ -213,16 +247,16 @@ void main() {
     });
 
     test('read locks are not blocking', () async {
-      const String testKey = 'abc';
-      final Uint8List expectedValue = Uint8List.fromList('123'.codeUnits);
+      const testKey = 'abc';
+      final expectedValue = Uint8List.fromList('123'.codeUnits);
 
       await cache.setWithLocking(testSubcacheName, testKey, expectedValue);
-      final Future<Uint8List?> valueAfterSet = cache.getOrCreateWithLocking(
+      final valueAfterSet = cache.getOrCreateWithLocking(
         testSubcacheName,
         testKey,
         createFn: null,
       );
-      final Uint8List? valueAfterSet2 = await cache.getOrCreateWithLocking(
+      final valueAfterSet2 = await cache.getOrCreateWithLocking(
         testSubcacheName,
         testKey,
         createFn: null,
@@ -233,14 +267,22 @@ void main() {
     });
 
     test('write locks are blocking', () async {
-      const String testKey = 'abc';
-      final Uint8List expectedValue = Uint8List.fromList('123'.codeUnits);
-      final Uint8List newValue = Uint8List.fromList('345'.codeUnits);
+      const testKey = 'abc';
+      final expectedValue = Uint8List.fromList('123'.codeUnits);
+      final newValue = Uint8List.fromList('345'.codeUnits);
 
-      final cacheWrite = cache.setWithLocking(testSubcacheName, testKey, expectedValue);
-      final cacheWrite2 = cache.setWithLocking(testSubcacheName, testKey, newValue);
+      final cacheWrite = cache.setWithLocking(
+        testSubcacheName,
+        testKey,
+        expectedValue,
+      );
+      final cacheWrite2 = cache.setWithLocking(
+        testSubcacheName,
+        testKey,
+        newValue,
+      );
       await cacheWrite;
-      final Uint8List? readValue = await cache.getOrCreateWithLocking(
+      final readValue = await cache.getOrCreateWithLocking(
         testSubcacheName,
         testKey,
         createFn: null,
@@ -255,7 +297,10 @@ class FakeEntry extends Entry<Uint8List> {
   Uint8List value = Uint8List.fromList('abc123'.codeUnits);
 
   @override
-  Future<Uint8List> get([Future<Uint8List?> Function()? create, Duration? ttl]) async => value;
+  Future<Uint8List> get([
+    Future<Uint8List?> Function()? create,
+    Duration? ttl,
+  ]) async => value;
 
   @override
   Future<void> purge({int retries = 0}) => throw UnimplementedError();

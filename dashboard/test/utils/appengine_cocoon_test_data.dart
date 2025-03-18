@@ -96,20 +96,20 @@ const String luciJsonGetStatsResponseFirestore = '''
 
 const String jsonGetBranchesResponse = '''[
   {
-    "branch":"flutter-3.13-candidate.0",
-    "name":"stable"
+    "reference":"flutter-3.13-candidate.0",
+    "channel":"stable"
   },
   {
-    "branch":"flutter-3.14-candidate.0",
-    "name":"beta"
+    "reference":"flutter-3.14-candidate.0",
+    "channel":"beta"
   },
   {
-    "branch":"flutter-3.15-candidate.5",
-    "name":"dev"
+    "reference":"flutter-3.15-candidate.5",
+    "channel":"dev"
   },
   {
-    "branch":"master",
-    "name":"HEAD"
+    "reference":"master",
+    "channel":"master"
   }
 ]''';
 
@@ -117,7 +117,7 @@ const String jsonGetReposResponse = '''
   [
     "flutter",
     "cocoon",
-    "engine"
+    "packages"
   ]
 ''';
 

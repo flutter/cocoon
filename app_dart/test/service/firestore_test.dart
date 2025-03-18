@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_server/access_client_provider.dart';
-import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:test/test.dart';
@@ -12,18 +11,24 @@ import '../src/utilities/entity_generators.dart';
 
 void main() {
   test('creates writes correctly from documents', () async {
-    final List<Document> documents = <Document>[
-      Document(name: 'd1', fields: <String, Value>{'key1': Value(stringValue: 'value1')}),
-      Document(name: 'd2', fields: <String, Value>{'key1': Value(stringValue: 'value2')}),
+    final documents = <Document>[
+      Document(
+        name: 'd1',
+        fields: <String, Value>{'key1': Value(stringValue: 'value1')},
+      ),
+      Document(
+        name: 'd2',
+        fields: <String, Value>{'key1': Value(stringValue: 'value2')},
+      ),
     ];
-    final List<Write> writes = documentsToWrites(documents, exists: false);
+    final writes = documentsToWrites(documents, exists: false);
     expect(writes.length, documents.length);
     expect(writes[0].update, documents[0]);
     expect(writes[0].currentDocument!.exists, false);
   });
 
   group('getValueFromFilter', () {
-    final FirestoreService firestoreService = FirestoreService(AccessClientProvider());
+    final firestoreService = FirestoreService(AccessClientProvider());
     test('int object', () async {
       const Object intValue = 1;
       expect(firestoreService.getValueFromFilter(intValue).integerValue, '1');
@@ -31,7 +36,10 @@ void main() {
 
     test('string object', () async {
       const Object stringValue = 'string';
-      expect(firestoreService.getValueFromFilter(stringValue).stringValue, 'string');
+      expect(
+        firestoreService.getValueFromFilter(stringValue).stringValue,
+        'string',
+      );
     });
 
     test('bool object', () async {
@@ -41,47 +49,69 @@ void main() {
   });
 
   group('generateFilter', () {
-    final FirestoreService firestoreService = FirestoreService(AccessClientProvider());
+    final firestoreService = FirestoreService(AccessClientProvider());
     test('a composite filter with a single field filter', () async {
-      final Map<String, Object> filterMap = <String, Object>{
-        'intField =': 1,
-      };
-      const String compositeFilterOp = kCompositeFilterOpAnd;
-      final Filter filter = firestoreService.generateFilter(filterMap, compositeFilterOp);
+      final filterMap = <String, Object>{'intField =': 1};
+      const compositeFilterOp = kCompositeFilterOpAnd;
+      final filter = firestoreService.generateFilter(
+        filterMap,
+        compositeFilterOp,
+      );
       expect(filter.compositeFilter, isNotNull);
-      final List<Filter> filters = filter.compositeFilter!.filters!;
+      final filters = filter.compositeFilter!.filters!;
       expect(filters.length, 1);
-      expect(filters[0].fieldFilter!.field!.fieldPath, '`intField`', reason: 'field escaped properly');
+      expect(
+        filters[0].fieldFilter!.field!.fieldPath,
+        '`intField`',
+        reason: 'field escaped properly',
+      );
       expect(filters[0].fieldFilter!.value!.integerValue, '1');
       expect(filters[0].fieldFilter!.op, kFieldFilterOpEqual);
     });
 
     test('accepts complex field names', () async {
-      final Map<String, Object> filterMap = <String, Object>{
+      final filterMap = <String, Object>{
         'this is my field      !=': 'there are many like it ',
       };
-      const String compositeFilterOp = kCompositeFilterOpAnd;
-      final Filter filter = firestoreService.generateFilter(filterMap, compositeFilterOp);
+      const compositeFilterOp = kCompositeFilterOpAnd;
+      final filter = firestoreService.generateFilter(
+        filterMap,
+        compositeFilterOp,
+      );
       expect(filter.compositeFilter, isNotNull);
-      final List<Filter> filters = filter.compositeFilter!.filters!;
+      final filters = filter.compositeFilter!.filters!;
       expect(filters.length, 1);
-      expect(filters[0].fieldFilter!.field!.fieldPath, '`this is my field`', reason: 'field escaped properly');
-      expect(filters[0].fieldFilter!.value!.stringValue, 'there are many like it ');
+      expect(
+        filters[0].fieldFilter!.field!.fieldPath,
+        '`this is my field`',
+        reason: 'field escaped properly',
+      );
+      expect(
+        filters[0].fieldFilter!.value!.stringValue,
+        'there are many like it ',
+      );
       expect(filters[0].fieldFilter!.op, kFieldFilterOpNotEqual);
     });
 
     test('a composite filter with multiple field filters', () async {
-      final Map<String, Object> filterMap = <String, Object>{
+      final filterMap = <String, Object>{
         'intField =': 1,
         'stringField =': 'string',
       };
-      const String compositeFilterOp = kCompositeFilterOpAnd;
-      final Filter filter = firestoreService.generateFilter(filterMap, compositeFilterOp);
+      const compositeFilterOp = kCompositeFilterOpAnd;
+      final filter = firestoreService.generateFilter(
+        filterMap,
+        compositeFilterOp,
+      );
       expect(filter.fieldFilter, isNull);
       expect(filter.compositeFilter, isNotNull);
-      final List<Filter> filters = filter.compositeFilter!.filters!;
+      final filters = filter.compositeFilter!.filters!;
       expect(filters.length, 2);
-      expect(filters[0].fieldFilter!.field!.fieldPath, '`intField`', reason: 'field escaped properly');
+      expect(
+        filters[0].fieldFilter!.field!.fieldPath,
+        '`intField`',
+        reason: 'field escaped properly',
+      );
       expect(filters[0].fieldFilter!.value!.integerValue, '1');
       expect(filters[0].fieldFilter!.op, kFieldFilterOpEqual);
       expect(filters[1].fieldFilter!.field!.fieldPath, '`stringField`');
@@ -91,41 +121,45 @@ void main() {
   });
 
   group('documentsFromQueryResponse', () {
-    final FirestoreService firestoreService = FirestoreService(AccessClientProvider());
+    final firestoreService = FirestoreService(AccessClientProvider());
     late List<RunQueryResponseElement> runQueryResponseElements;
     test('when null document returns', () async {
       runQueryResponseElements = <RunQueryResponseElement>[
         RunQueryResponseElement(),
       ];
-      final List<Document> documents = firestoreService.documentsFromQueryResponse(runQueryResponseElements);
+      final documents = firestoreService.documentsFromQueryResponse(
+        runQueryResponseElements,
+      );
       expect(documents.isEmpty, true);
     });
 
     test('when non-null document returns', () async {
-      final GithubGoldStatus githubGoldStatus = generateFirestoreGithubGoldStatus(1);
+      final githubGoldStatus = generateFirestoreGithubGoldStatus(1);
       runQueryResponseElements = <RunQueryResponseElement>[
         RunQueryResponseElement(document: githubGoldStatus),
       ];
-      final List<Document> documents = firestoreService.documentsFromQueryResponse(runQueryResponseElements);
+      final documents = firestoreService.documentsFromQueryResponse(
+        runQueryResponseElements,
+      );
       expect(documents.length, 1);
       expect(documents[0].name, githubGoldStatus.name);
     });
   });
 
   group('generateOrders', () {
-    final FirestoreService firestoreService = FirestoreService(AccessClientProvider());
+    final firestoreService = FirestoreService(AccessClientProvider());
     Map<String, String>? orderMap;
     test('when there is no orderMap', () async {
       orderMap = null;
-      final List<Order>? orders = firestoreService.generateOrders(orderMap);
+      final orders = firestoreService.generateOrders(orderMap);
       expect(orders, isNull);
     });
 
     test('when there is non-null orderMap', () async {
       orderMap = <String, String>{'createTimestamp': kQueryOrderDescending};
-      final List<Order>? orders = firestoreService.generateOrders(orderMap);
+      final orders = firestoreService.generateOrders(orderMap);
       expect(orders!.length, 1);
-      final Order resultOrder = orders[0];
+      final resultOrder = orders[0];
       expect(resultOrder.direction, kQueryOrderDescending);
       expect(resultOrder.field!.fieldPath, 'createTimestamp');
     });

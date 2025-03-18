@@ -10,6 +10,7 @@ import 'package:test/test.dart';
 import 'src/datastore/fake_config.dart';
 import 'src/request_handling/fake_authentication.dart';
 import 'src/service/fake_build_bucket_client.dart';
+import 'src/service/fake_ci_yaml_fetcher.dart';
 import 'src/service/fake_fusion_tester.dart';
 import 'src/service/fake_gerrit_service.dart';
 import 'src/service/fake_luci_build_service.dart';
@@ -18,13 +19,14 @@ import 'src/service/fake_scheduler.dart';
 void main() {
   test('verify server can be created', () {
     createServer(
-      config: FakeConfig(
-        webhookKeyValue: 'fake-secret',
-      ),
+      config: FakeConfig(webhookKeyValue: 'fake-secret'),
       cache: CacheService(inMemory: true),
       authProvider: FakeAuthenticationProvider(),
       swarmingAuthProvider: FakeAuthenticationProvider(),
-      branchService: BranchService(config: FakeConfig(), gerritService: FakeGerritService()),
+      branchService: BranchService(
+        config: FakeConfig(),
+        gerritService: FakeGerritService(),
+      ),
       buildBucketClient: FakeBuildBucketClient(),
       luciBuildService: FakeLuciBuildService(config: FakeConfig()),
       githubChecksService: GithubChecksService(FakeConfig()),
@@ -32,6 +34,7 @@ void main() {
       gerritService: FakeGerritService(),
       scheduler: FakeScheduler(config: FakeConfig()),
       fusionTester: FakeFusionTester(),
+      ciYamlFetcher: FakeCiYamlFetcher(),
     );
   });
 }

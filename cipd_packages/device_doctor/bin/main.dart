@@ -12,7 +12,12 @@ const String actionFlag = 'action';
 const String deviceOSFlag = 'device-os';
 const String helpFlag = 'help';
 const String outputFlag = 'output';
-const List<String> supportedOptions = <String>['healthcheck', 'prepare', 'recovery', 'properties'];
+const List<String> supportedOptions = <String>[
+  'healthcheck',
+  'prepare',
+  'recovery',
+  'properties',
+];
 const List<String> supportedDeviceOS = <String>['ios', 'android'];
 const String defaultOutputPath = '.output';
 
@@ -34,12 +39,14 @@ File? _output;
 /// For `properties`, it will return device properties/dimensions, like manufacture, base_buildid, etc.
 ///
 /// Usage:
+/// ```
 /// dart main.dart --action <healthcheck|recovery> --deviceOS <android|ios>
+/// ```
 Future<void> main(List<String> args) async {
-  final ArgParser parser = ArgParser();
+  final parser = ArgParser();
   parser
     ..addFlag(
-      '$helpFlag',
+      helpFlag,
       help: 'Prints usage info.',
       abbr: 'h',
       callback: (bool value) {
@@ -50,7 +57,7 @@ Future<void> main(List<String> args) async {
       },
     )
     ..addOption(
-      '$actionFlag',
+      actionFlag,
       help: 'Supported actions.',
       allowed: supportedOptions,
       allowedHelp: {
@@ -59,20 +66,23 @@ Future<void> main(List<String> args) async {
         'properties': 'Return device properties/dimensions.',
       },
     )
-    ..addOption('$outputFlag', help: 'Path to the output file')
+    ..addOption(outputFlag, help: 'Path to the output file')
     ..addOption(
-      '$deviceOSFlag',
+      deviceOSFlag,
       help: 'Supported device OS.',
       allowed: supportedDeviceOS,
-      allowedHelp: {'android': 'Available for linux, mac, and windows.', 'ios': 'Available for mac.'},
+      allowedHelp: {
+        'android': 'Available for linux, mac, and windows.',
+        'ios': 'Available for mac.',
+      },
     );
 
-  final ArgResults argResults = parser.parse(args);
-  _action = argResults[actionFlag];
-  _deviceOS = argResults[deviceOSFlag];
-  _output = File(argResults[outputFlag] ?? defaultOutputPath);
+  final argResults = parser.parse(args);
+  _action = argResults[actionFlag] as String?;
+  _deviceOS = argResults[deviceOSFlag] as String?;
+  _output = File(argResults[outputFlag] as String? ?? defaultOutputPath);
 
-  final DeviceDiscovery deviceDiscovery = DeviceDiscovery(_deviceOS, _output);
+  final deviceDiscovery = DeviceDiscovery(_deviceOS, _output);
 
   switch (_action) {
     case 'healthcheck':

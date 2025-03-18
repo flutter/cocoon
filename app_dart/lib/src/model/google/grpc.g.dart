@@ -9,23 +9,14 @@ part of 'grpc.dart';
 // **************************************************************************
 
 GrpcStatus _$GrpcStatusFromJson(Map<String, dynamic> json) => GrpcStatus(
-      code: json['code'] as int,
-      message: json['message'] as String?,
-      details: json['details'],
-    );
+  code: (json['code'] as num).toInt(),
+  message: json['message'] as String?,
+  details: json['details'],
+);
 
-Map<String, dynamic> _$GrpcStatusToJson(GrpcStatus instance) {
-  final val = <String, dynamic>{
-    'code': instance.code,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('message', instance.message);
-  writeNotNull('details', instance.details);
-  return val;
-}
+Map<String, dynamic> _$GrpcStatusToJson(GrpcStatus instance) =>
+    <String, dynamic>{
+      'code': instance.code,
+      if (instance.message case final value?) 'message': value,
+      if (instance.details case final value?) 'details': value,
+    };

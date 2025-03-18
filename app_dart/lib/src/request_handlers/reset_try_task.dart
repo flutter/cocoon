@@ -31,20 +31,25 @@ class ResetTryTask extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     checkRequiredQueryParameters(<String>[kRepoParam, kPullRequestNumberParam]);
-    final String owner = request!.uri.queryParameters[kOwnerParam] ?? 'flutter';
-    final String repo = request!.uri.queryParameters[kRepoParam]!;
-    final String pr = request!.uri.queryParameters[kPullRequestNumberParam]!;
-    final String builders = request!.uri.queryParameters[kBuilderParam] ?? '';
-    final List<String> builderList = getBuilderList(builders);
+    final owner = request!.uri.queryParameters[kOwnerParam] ?? 'flutter';
+    final repo = request!.uri.queryParameters[kRepoParam]!;
+    final pr = request!.uri.queryParameters[kPullRequestNumberParam]!;
+    final builders = request!.uri.queryParameters[kBuilderParam] ?? '';
+    final builderList = getBuilderList(builders);
 
-    final int? prNumber = int.tryParse(pr);
+    final prNumber = int.tryParse(pr);
     if (prNumber == null) {
-      throw const BadRequestException('$kPullRequestNumberParam must be a number');
+      throw const BadRequestException(
+        '$kPullRequestNumberParam must be a number',
+      );
     }
-    final RepositorySlug slug = RepositorySlug(owner, repo);
-    final GitHub github = await config.createGitHubClient(slug: slug);
-    final PullRequest pullRequest = await github.pullRequests.get(slug, prNumber);
-    await scheduler.triggerPresubmitTargets(pullRequest: pullRequest, builderTriggerList: builderList);
+    final slug = RepositorySlug(owner, repo);
+    final github = await config.createGitHubClient(slug: slug);
+    final pullRequest = await github.pullRequests.get(slug, prNumber);
+    await scheduler.triggerPresubmitTargets(
+      pullRequest: pullRequest,
+      builderTriggerList: builderList,
+    );
     return Body.empty;
   }
 

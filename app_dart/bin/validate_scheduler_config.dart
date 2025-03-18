@@ -14,15 +14,16 @@ void main(List<String> args) async {
     print('validate_scheduler_config.dart configPath');
     exit(1);
   }
-  final String configPath = args.first;
-  final File configFile = File(configPath);
+  final configPath = args.first;
+  final configFile = File(configPath);
   if (!configFile.existsSync()) {
     print('validate_scheduler_config.dart configPath');
     exit(1);
   }
 
-  final YamlMap configYaml = loadYaml(configFile.readAsStringSync()) as YamlMap;
-  final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
+  final configYaml = loadYaml(configFile.readAsStringSync()) as YamlMap;
+  final unCheckedSchedulerConfig =
+      pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
   print(
     CiYaml(
       type: CiType.any,
