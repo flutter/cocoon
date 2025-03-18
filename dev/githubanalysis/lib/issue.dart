@@ -24,14 +24,11 @@ class FullIssue {
     this.redirect,
     this.isDeleted = false,
   }) {
-    _labels = _metadata?.labels
-        .map<String>((final IssueLabel label) => label.name)
-        .toSet();
+    _labels = _metadata?.labels.map<String>((final IssueLabel label) => label.name).toSet();
     if (_labels != null) {
       final Set<String> matches = priorities.toSet().intersection(_labels!);
       if (matches.length > 1) {
-        print(
-            '\nWARNING: Too many priority labels on issue #$issueNumber: ${matches.join(', ')}');
+        print('\nWARNING: Too many priority labels on issue #$issueNumber: ${matches.join(', ')}');
         for (final String priority in priorities) {
           if (matches.contains(priority)) {
             _priority = priority;
@@ -72,37 +69,25 @@ class FullIssue {
     final DateTime? cacheEpoch,
   }) async {
     final String cacheData = await loadFromCache(
-        cache,
-        github,
-        <String>['issue', repo.owner, repo.name, issueNumber.toString()],
-        cacheEpoch, () async {
+        cache, github, <String>['issue', repo.owner, repo.name, issueNumber.toString()], cacheEpoch, () async {
       try {
         final Issue issue = await github.issues.get(repo, issueNumber);
         if (issue.url.startsWith(github.endpoint)) {
-          if (issue.url !=
-              '${github.endpoint}/repos/$repo/issues/$issueNumber') {
+          if (issue.url != '${github.endpoint}/repos/$repo/issues/$issueNumber') {
             return json.encode(<String, Object?>{'redirect': issue.url});
           }
         } else if (issue.url == '') {
           return json.encode(<String, Object?>{'deleted': true});
         }
-        final List<IssueComment> comments =
-            await github.issues.listCommentsByIssue(repo, issueNumber).toList();
-        final List<Reaction> reactions =
-            await github.issues.listReactions(repo, issueNumber).toList();
-        return json.encode(<String, Object?>{
-          'issue': issue,
-          'comments': comments,
-          'reactions': reactions
-        });
+        final List<IssueComment> comments = await github.issues.listCommentsByIssue(repo, issueNumber).toList();
+        final List<Reaction> reactions = await github.issues.listReactions(repo, issueNumber).toList();
+        return json.encode(<String, Object?>{'issue': issue, 'comments': comments, 'reactions': reactions});
       } on ClientException catch (e) {
         // print('\nIssue $issueNumber is a problem child (treating as deleted): $e');
-        return json
-            .encode(<String, Object?>{'deleted': true, 'error': e.toString()});
+        return json.encode(<String, Object?>{'deleted': true, 'error': e.toString()});
       }
     });
-    final Map<String, Object?> data =
-        json.decode(cacheData)! as Map<String, Object?>;
+    final Map<String, Object?> data = json.decode(cacheData)! as Map<String, Object?>;
     if (data['redirect'] != null) {
       return FullIssue(
         repo,
@@ -114,9 +99,7 @@ class FullIssue {
       );
     }
     if (data['deleted'] == true) {
-      return FullIssue(
-          repo, issueNumber, null, const <IssueComment>[], const <Reaction>[],
-          isDeleted: true);
+      return FullIssue(repo, issueNumber, null, const <IssueComment>[], const <Reaction>[], isDeleted: true);
     }
     final Issue issue = Issue.fromJson(data['issue']! as Map<String, Object?>);
     return FullIssue(
@@ -127,10 +110,7 @@ class FullIssue {
           .cast<Map<String, Object?>>()
           .map<IssueComment>(IssueComment.fromJson)
           .toList(),
-      (data['reactions']! as List<Object?>)
-          .cast<Map<String, Object?>>()
-          .map<Reaction>(Reaction.fromJson)
-          .toList(),
+      (data['reactions']! as List<Object?>).cast<Map<String, Object?>>().map<Reaction>(Reaction.fromJson).toList(),
     );
   }
 
@@ -146,8 +126,7 @@ class FullIssue {
         );
       // Temporary workaround for https://github.com/SpinlockLabs/github.dart/issues/401
       if (metadata.isClosed || metadata.state.toUpperCase() == 'CLOSED') {
-        result.writeln(
-            'Closed by ${metadata.closedBy?.login} on ${metadata.closedAt}.');
+        result.writeln('Closed by ${metadata.closedBy?.login} on ${metadata.closedAt}.');
         if (metadata.closedBy != null) {
           final User user = metadata.closedBy!;
           result
@@ -176,10 +155,8 @@ class FullIssue {
         result.writeln('  Pull request: ${metadata.pullRequest?.diffUrl}');
       }
       result
-        ..writeln(
-            'Assignees: ${metadata.assignees!.map((final User user) => user.login!).join(', ')}')
-        ..writeln(
-            'Labels: ${metadata.labels.map((final IssueLabel label) => label.name).join(', ')}')
+        ..writeln('Assignees: ${metadata.assignees!.map((final User user) => user.login!).join(', ')}')
+        ..writeln('Labels: ${metadata.labels.map((final IssueLabel label) => label.name).join(', ')}')
         ..writeln('Milestone: ${metadata.milestone ?? ""}');
     } else {
       result.writeln('Issue $issueNumber (redirected): see $redirect');
@@ -187,12 +164,10 @@ class FullIssue {
     for (final IssueComment comment in comments) {
       final String line = comment.body!.split('\n').first;
       final String body = line.substring(0, math.min(40, line.length));
-      result.writeln(
-          'Comment by ${comment.user!.login} at ${comment.createdAt}: $body');
+      result.writeln('Comment by ${comment.user!.login} at ${comment.createdAt}: $body');
     }
     for (final Reaction reaction in reactions) {
-      result.writeln(
-          'Reaction: ${reaction.user!.login} ${reaction.content} at ${reaction.createdAt}');
+      result.writeln('Reaction: ${reaction.user!.login} ${reaction.content} at ${reaction.createdAt}');
     }
     return result.toString();
   }
@@ -209,10 +184,8 @@ Future<void> fetchAllIssues(
   int issues = 0;
   int prs = 0;
   int invalid = 0;
-  final File lastIssueNumberFile =
-      cacheFileFor(cache, <String>['issue', repo.owner, repo.name, 'last']);
-  int lastIssueNumber =
-      await readFromFile<int>(lastIssueNumberFile, int.tryParse) ?? 0;
+  final File lastIssueNumberFile = cacheFileFor(cache, <String>['issue', repo.owner, repo.name, 'last']);
+  int lastIssueNumber = await readFromFile<int>(lastIssueNumberFile, int.tryParse) ?? 0;
   bool maxKnown = false;
   while (true) {
     try {
@@ -241,9 +214,8 @@ Future<void> fetchAllIssues(
       invalid += 1;
     } on NotFound {
       if (index > lastIssueNumber) {
-        final Issue lastIssue = await github.issues
-            .listByRepo(repo, state: 'all', sort: 'created', direction: 'desc')
-            .first;
+        final Issue lastIssue =
+            await github.issues.listByRepo(repo, state: 'all', sort: 'created', direction: 'desc').first;
         lastIssueNumber = lastIssue.number;
         maxKnown = true;
         if (index > lastIssueNumber) {
@@ -270,18 +242,14 @@ Future<void> updateAllIssues(
   final Map<int, FullIssue> issues,
 ) async {
   final Set<int> pendingIssues = issues.isEmpty ? <int>{} : issues.keys.toSet();
-  int highestKnownIssue =
-      pendingIssues.isEmpty ? 0 : (pendingIssues.toList()..sort()).last;
-  final File updateStampFile = cacheFileFor(
-      cache, <String>['issue', repo.owner, repo.name, 'last-update']);
-  final DateTime? lastFullScanStartTime =
-      await readFromFile<DateTime>(updateStampFile, DateTime.tryParse);
+  int highestKnownIssue = pendingIssues.isEmpty ? 0 : (pendingIssues.toList()..sort()).last;
+  final File updateStampFile = cacheFileFor(cache, <String>['issue', repo.owner, repo.name, 'last-update']);
+  final DateTime? lastFullScanStartTime = await readFromFile<DateTime>(updateStampFile, DateTime.tryParse);
   DateTime? thisFullScanStartTime;
   int count = 0;
-  await rateLimit(
-      github, '${repo.fullName}: fetching issues with recent changes', 'scan');
-  await for (final Issue summary in github.issues.listByRepo(repo,
-      state: 'all', sort: 'updated', direction: 'desc', perPage: 100)) {
+  await rateLimit(github, '${repo.fullName}: fetching issues with recent changes', 'scan');
+  await for (final Issue summary
+      in github.issues.listByRepo(repo, state: 'all', sort: 'updated', direction: 'desc', perPage: 100)) {
     if (summary.updatedAt != null) {
       thisFullScanStartTime ??= summary.updatedAt!;
     }
@@ -309,11 +277,9 @@ Future<void> updateAllIssues(
             parenthetical = '${delta.inMilliseconds}ms remaining';
           }
         } else {
-          parenthetical =
-              '${100 * count ~/ (pendingIssues.length + count)}% newer than ${summary.updatedAt}';
+          parenthetical = '${100 * count ~/ (pendingIssues.length + count)}% newer than ${summary.updatedAt}';
         }
-        await rateLimit(github,
-            '${repo.fullName}: $count issues updated ($parenthetical)', 'scan');
+        await rateLimit(github, '${repo.fullName}: $count issues updated ($parenthetical)', 'scan');
         final FullIssue issue = await FullIssue.load(
           cache: cache,
           github: github,
@@ -322,14 +288,11 @@ Future<void> updateAllIssues(
           cacheEpoch: summary.updatedAt,
         );
         assert(
-          !issue.isValid ||
-              !issue.metadata.updatedAt!.isBefore(summary.updatedAt!),
+          !issue.isValid || !issue.metadata.updatedAt!.isBefore(summary.updatedAt!),
           'invariant violation\nOLD DATA:\n${json.encode(issue.metadata.toJson())}\nNEW DATA:\n${json.encode(summary.toJson())}',
         );
         if (issue.issueNumber > highestKnownIssue) {
-          for (int index = highestKnownIssue;
-              index < issue.issueNumber;
-              index += 1) {
+          for (int index = highestKnownIssue; index < issue.issueNumber; index += 1) {
             pendingIssues.add(index);
           }
           highestKnownIssue = issue.issueNumber;
@@ -339,8 +302,7 @@ Future<void> updateAllIssues(
         issues[issue.issueNumber] = issue;
         break;
       } on FormatException catch (e) {
-        print(
-            '\nError while updating issue #${summary.number} (attempt $retry/$maxRetry): $e');
+        print('\nError while updating issue #${summary.number} (attempt $retry/$maxRetry): $e');
       }
     }
     count += 1;
@@ -371,7 +333,6 @@ Future<void> updateAllIssues(
     stdout.write('\x1B[K\r');
   }
   if (thisFullScanStartTime != null) {
-    await updateStampFile
-        .writeAsString(thisFullScanStartTime.toIso8601String());
+    await updateStampFile.writeAsString(thisFullScanStartTime.toIso8601String());
   }
 }
