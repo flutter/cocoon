@@ -12,21 +12,19 @@ import '../checks.dart';
 final class UseTestLogging extends Check {
   const UseTestLogging();
 
-  static const _import = 'package:cocoon_server_test/test_logging.dart';
+  static const _import = r'package:cocoon_server_test/test_logging.dart';
   static final _hasImport = RegExp("import '$_import'");
 
-  static const _method = 'useTestLoggerPerTest()';
+  static const _method = r'useTestLoggerPerTest\(\)';
   static final _hasMethodCall = RegExp('$_method;');
 
-  static final _voidMain = 'void main() {';
+  static final _voidMain = r'void main() {';
 
   @override
   Glob get shouldCheck => Glob('test/**/*_test.dart');
 
   @override
   Iterable<Glob> get allowListed => [
-    Glob('app_dart/test/foundation/**'),
-    Glob('app_dart/test/model/**'),
     Glob('app_dart/test/request_handlers/**'),
     Glob('app_dart/test/request_handling/**'),
     Glob('app_dart/test/service/**'),
