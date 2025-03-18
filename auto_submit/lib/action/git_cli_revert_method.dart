@@ -73,7 +73,7 @@ class GitCliRevertMethod implements RevertMethod {
       branch = await githubService.getBranch(slug, gitRevertBranchName.branch);
     }, retryIf: (Exception e) => e is NotFoundException);
 
-    log.info(
+    log2.info(
       'found branch ${slug.fullName}/${branch!.name}, safe to create revert request of ${pullRequestToRevert.number!}.',
     );
 
@@ -95,7 +95,7 @@ class GitCliRevertMethod implements RevertMethod {
           prToRevertBody: pullRequestToRevert.body,
         ).format;
 
-    log.info(
+    log2.info(
       'Attempting to create pull request with ${slug.fullName}/${gitRevertBranchName.branch}.',
     );
     final revertPullRequest = await githubService.createPullRequest(
@@ -107,7 +107,7 @@ class GitCliRevertMethod implements RevertMethod {
       body: formatter.revertPrBody,
     );
 
-    log.info(
+    log2.info(
       'pull request number is: ${slug.fullName}/${revertPullRequest.number}',
     );
 

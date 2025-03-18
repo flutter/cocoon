@@ -29,7 +29,7 @@ abstract class AuthenticatedRequestHandler extends RequestHandler {
     try {
       await cronAuthProvider.authenticate(request);
     } on Unauthenticated catch (error) {
-      log.info('Authenticate error: $error');
+      log2.info('Authenticate error: $error');
       return Response.forbidden(error.toString());
     }
     return super.run(request);

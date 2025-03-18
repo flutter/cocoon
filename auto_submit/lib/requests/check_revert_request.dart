@@ -48,18 +48,18 @@ class CheckRevertRequest extends CheckRequest {
       pubSubBatchSize,
     );
     if (messageList.isEmpty) {
-      log.info('No messages are pulled.');
+      log2.info('No messages are pulled.');
       return Response.ok('No messages are pulled.');
     }
 
-    log.info('Processing ${messageList.length} messages');
+    log2.info('Processing ${messageList.length} messages');
 
     final validationService = RevertRequestValidationService(config);
 
     final futures = <Future<void>>[];
 
     for (var message in messageList) {
-      log.info(message.toJson());
+      log2.info('${message.toJson()}');
       assert(message.message != null);
       assert(message.message!.data != null);
       final messageData = message.message!.data!;
@@ -71,29 +71,29 @@ class CheckRevertRequest extends CheckRequest {
       final githubPullRequestEvent = GithubPullRequestEvent.fromJson(rawBody);
       final pullRequest = githubPullRequestEvent.pullRequest!;
 
-      log.info('Processing message ackId: ${message.ackId}');
-      log.info('Processing mesageId: ${message.message!.messageId}');
-      log.info('Processing PR: $rawBody');
+      log2.info('Processing message ackId: ${message.ackId}');
+      log2.info('Processing mesageId: ${message.message!.messageId}');
+      log2.info('Processing PR: $rawBody');
       if (processingLog.contains(pullRequest.number) ||
           githubPullRequestEvent.action != 'labeled') {
         // Ack duplicate.
-        log.info('Ack the duplicated message : ${message.ackId!}.');
-        log.info('duplicate pull request #${pullRequest.number}');
+        log2.info('Ack the duplicated message : ${message.ackId!}.');
+        log2.info('duplicate pull request #${pullRequest.number}');
         await pubsub.acknowledge(pubSubSubscription, message.ackId!);
         continue;
       } else {
         // Use the auto approval as we do not want to allow non bot reverts to
         // be processed throught the service.
-        log.info('new pull request #${pullRequest.number}');
+        log2.info('new pull request #${pullRequest.number}');
         if (pullRequest.labels!.any((element) => element.name == 'revert of')) {
           final approver = approverProvider(config);
-          log.info(
+          log2.info(
             'Checking auto approval of "revert of" pull request: $rawBody',
           );
           await approver.autoApproval(pullRequest);
         } else {
           // These should be closed requests that do not need to be reviewed.
-          log.info('Processing "revert" request : ${pullRequest.number}.');
+          log2.info('Processing "revert" request : ${pullRequest.number}.');
         }
         processingLog.add(pullRequest.number!);
       }

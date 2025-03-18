@@ -115,12 +115,12 @@ abstract base mixin class LogSink {
   /// A shortcut for calling [log] with [Severity.error].
   @nonVirtual
   void error(String message, [Object? error, StackTrace? trace]) {
-    log(message, severity: Severity.warning, error: error, trace: trace);
+    log(message, severity: Severity.error, error: error, trace: trace);
   }
 
   /// A shortcut for calling [log] with [Severity.error].
   @nonVirtual
   void errorJson(Object? message, [Object? error, StackTrace? trace]) {
-    logJson(message, severity: Severity.warning, error: error, trace: trace);
+    logJson(message, severity: Severity.error, error: error, trace: trace);
   }
 }

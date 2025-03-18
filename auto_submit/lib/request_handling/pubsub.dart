@@ -38,7 +38,7 @@ class PubSub {
       request,
       fullTopicName,
     );
-    log.info('pubsub response messageId=${response.messageIds}');
+    log2.info('pubsub response messageId=${response.messageIds}');
   }
 
   /// Pulls messages from the server.

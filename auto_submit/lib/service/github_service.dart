@@ -305,7 +305,7 @@ class GithubService {
       pullRequest.base!.sha!,
     );
     if (comparison.behindBy! >= _kBehindToT) {
-      log.info(
+      log2.info(
         'The current branch is behind by ${comparison.behindBy} commits.',
       );
       final headSha = pullRequest.head!.sha!;
