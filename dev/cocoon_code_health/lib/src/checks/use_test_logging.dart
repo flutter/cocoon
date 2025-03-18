@@ -25,7 +25,6 @@ final class UseTestLogging extends Check {
 
   @override
   Iterable<Glob> get allowListed => [
-    Glob('app_dart/test/request_handlers/**'),
     Glob('app_dart/test/request_handling/**'),
     Glob('app_dart/test/service/**'),
   ];
