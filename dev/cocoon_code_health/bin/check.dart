@@ -33,7 +33,7 @@ void main(List<String> args) async {
   final verbose = parsed.flag('verbose');
   const fs = LocalFileSystem();
 
-  for (final server in const ['app_dart']) {
+  for (final server in const ['app_dart', 'auto_submit']) {
     final package = p.join(cocoon, server);
     for (final check in const [UseTestLogging()]) {
       io.stderr.writeln('Running ${check.runtimeType} on $package...');
