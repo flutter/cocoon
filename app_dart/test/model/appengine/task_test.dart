@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -15,6 +16,8 @@ import '../../src/datastore/fake_config.dart';
 import '../../src/utilities/entity_generators.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('Task', () {
     test('byAttempts comparator', () {
       final tasks = <Task>[

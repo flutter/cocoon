@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/protos.dart' as pb;
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
@@ -11,6 +12,8 @@ import 'package:test/test.dart';
 import '../../src/service/fake_scheduler.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('enabledBranchesMatchesCurrentBranch', () {
     final tests = <EnabledBranchesRegexTest>[
       EnabledBranchesRegexTest('matches main', 'main', <String>['main']),

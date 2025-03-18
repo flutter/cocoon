@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/appengine/stage.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:test/test.dart';
@@ -24,6 +25,8 @@ Stage buildStage({
 }
 
 void main() {
+  useTestLoggerPerTest();
+
   group('Stage', () {
     test('ordering', () {
       final stages = <Stage>[

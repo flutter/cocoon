@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
@@ -16,6 +17,8 @@ import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('Task', () {
     test('disallows illegal status', () {
       final task = Task();

@@ -4,10 +4,13 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/gerrit/commit.dart';
 import 'package:test/test.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group(GerritCommit, () {
     test('fromJson', () {
       const json = '''{

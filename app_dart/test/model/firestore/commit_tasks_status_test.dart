@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/commit_tasks_status.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:test/test.dart';
@@ -9,6 +10,8 @@ import 'package:test/test.dart';
 import '../../src/utilities/entity_generators.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('CommitTasksStatus', () {
     test('generates json correctly', () async {
       final commit = generateFirestoreCommit(1, sha: 'sha1');

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/appengine/github_gold_status_update.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
@@ -12,6 +13,8 @@ import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('GithubGoldStatus.fromFirestore', () {
     late MockFirestoreService mockFirestoreService;
 

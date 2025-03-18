@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:github/github.dart' as github;
@@ -10,6 +11,8 @@ import 'package:test/test.dart';
 import '../../src/utilities/entity_generators.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('Target', () {
     group('properties', () {
       test('default properties', () {
