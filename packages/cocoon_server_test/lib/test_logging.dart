@@ -7,7 +7,7 @@ import 'package:cocoon_common/cocoon_common.dart';
 import 'package:cocoon_server/src/logging.dart' as internal;
 import 'package:test_api/scaffolding.dart';
 
-/// Overrides [internal.log2] to use a [BufferedLogger] per-test instance.
+/// Overrides [internal.log] to use a [BufferedLogger] per-test instance.
 ///
 /// Note that by using this method, [internal.log], the production root logger
 /// instance (https://github.com/flutter/flutter/issues/164652) is no longer
@@ -48,9 +48,9 @@ void useTestLoggerPerTest() {
   });
 }
 
-/// Clears [internal.log2].
+/// Clears [internal.log].
 ///
 /// Use this method judiciously, and instead write tighter test cases.
 void clearTestLogger() {
-  (internal.log2 as BufferedLogger).clear();
+  (internal.log as BufferedLogger).clear();
 }

@@ -238,7 +238,7 @@ class Config {
     final installData = json.decode(response.body) as Map<String, dynamic>;
     final installationId = installData['id']?.toString();
     if (installationId == null) {
-      log2.warn(
+      log.warn(
         'Failed to get ID from Github '
         '(response code ${response.statusCode}):\n${response.body}',
       );
@@ -279,7 +279,7 @@ class Config {
   }
 
   Future<Uint8List> _generateGithubToken(RepositorySlug slug) async {
-    log2.info('Generating new GitHub token');
+    log.info('Generating new GitHub token');
     final jwt = await _generateGithubJwt();
     final headers = <String, String>{
       'Authorization': 'Bearer $jwt',
@@ -295,7 +295,7 @@ class Config {
     final jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
     final token = jsonBody['token'] as String?;
     if (token == null) {
-      log2.warn(
+      log.warn(
         'Failed to get token from Github '
         '(response code ${response.statusCode}):\n${response.body}',
       );
@@ -305,7 +305,7 @@ class Config {
         uri: githubAccessTokensUri,
       );
     }
-    log2.info('Successfully generated new GitHub token');
+    log.info('Successfully generated new GitHub token');
     return Uint8List.fromList(token.codeUnits);
   }
 

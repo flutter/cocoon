@@ -115,7 +115,7 @@ class AuthenticationProvider {
       if (verifyTokenResponse.statusCode != HttpStatus.ok) {
         /// Google Auth API returns a message in the response body explaining why
         /// the request failed. Such as "Invalid Token".
-        log2.debug(
+        log.debug(
           'Token verification failed: ${verifyTokenResponse.statusCode}; '
           '${verifyTokenResponse.body}',
         );
@@ -143,7 +143,7 @@ class AuthenticationProvider {
     // Authenticate as a signed-in Google account via OAuth id token.
     final clientId = await config.oauthClientId;
     if (token.audience != clientId && !token.email!.endsWith('@google.com')) {
-      log2.warn(
+      log.warn(
         'Possible forged token: "${token.audience}" (expected "$clientId")',
       );
       throw const Unauthenticated('Invalid ID token');

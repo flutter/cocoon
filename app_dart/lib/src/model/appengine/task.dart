@@ -82,7 +82,7 @@ class Task extends Model<int> {
       ..filter('name =', name);
     final tasks = await query.run().toList();
     if (tasks.length != 1) {
-      log2.error('Found ${tasks.length} entries for builder $name');
+      log.error('Found ${tasks.length} entries for builder $name');
       throw InternalServerError(
         'Expected to find 1 task for $name, but found ${tasks.length}',
       );
@@ -99,7 +99,7 @@ class Task extends Model<int> {
     required Key<String> commitKey,
     required int id,
   }) {
-    log2.debug('Looking up key...');
+    log.debug('Looking up key...');
     final key = Key<int>(commitKey, Task, id);
     return datastore.lookupByValue<Task>(key);
   }
@@ -136,24 +136,24 @@ class Task extends Model<int> {
     DatastoreService datastore, {
     String? customName,
   }) async {
-    log2.debug('Creating task from buildbucket result: ${build.toString()}');
+    log.debug('Creating task from buildbucket result: ${build.toString()}');
     // Example: Getting "flutter" from "mirrors/flutter".
     final repository = build.input.gitilesCommit.project.split('/')[1];
-    log2.debug('Repository: $repository');
+    log.debug('Repository: $repository');
 
     // Example: Getting "stable" from "refs/heads/stable".
     final branch = build.input.gitilesCommit.ref.split('/')[2];
-    log2.debug('Branch: $branch');
+    log.debug('Branch: $branch');
 
     final hash = build.input.gitilesCommit.id;
-    log2.debug('Hash: $hash');
+    log.debug('Hash: $hash');
 
     final slug = RepositorySlug('flutter', repository);
-    log2.debug('Slug: ${slug.toString()}');
+    log.debug('Slug: ${slug.toString()}');
 
     final startTime = build.startTime.toDateTime().millisecondsSinceEpoch;
     final endTime = build.endTime.toDateTime().millisecondsSinceEpoch;
-    log2.debug('Start/end time (ms): $startTime, $endTime');
+    log.debug('Start/end time (ms): $startTime, $endTime');
 
     final id = '${slug.fullName}/$branch/$hash';
     final commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);

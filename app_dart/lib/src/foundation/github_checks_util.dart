@@ -138,7 +138,7 @@ class GithubChecksUtil {
       },
       retryIf: (_) => true,
       onRetry: (e) {
-        log2.warn(
+        log.warn(
           'createCheckRun fails for slug: ${slug.fullName}, sha: $sha, name: $name.',
           e,
         );

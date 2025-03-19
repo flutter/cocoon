@@ -532,7 +532,7 @@ void main() {
         );
 
         expect(
-          log2,
+          log,
           bufferedLoggerOf(
             contains(
               logThat(
@@ -554,7 +554,7 @@ void main() {
           failures,
           allSuccess,
         );
-        expect(log2, hasNoWarningsOrHigher);
+        expect(log, hasNoWarningsOrHigher);
       },
     );
   });

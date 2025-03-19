@@ -11,12 +11,8 @@ void main() {
   late List<pkg_logging.LogRecord> logs;
 
   setUp(() {
-    final logger = pkg_logging.Logger.detached('logging_test');
-    log = logger;
-    logger.level = pkg_logging.Level.ALL;
-
     logs = [];
-    logger.onRecord.listen(logs.add);
+    pkg_logging.Logger.root.onRecord.listen(logs.add);
   });
 
   group('log2 maps Severity -> Level', () {
@@ -34,7 +30,7 @@ void main() {
 
     for (final MapEntry(key: severity, value: level) in expected.entries) {
       test('$severity -> $level', () {
-        log2.log('test', severity: Severity.unknown);
+        log.log('test', severity: Severity.unknown);
 
         expect(logs, [
           isA<pkg_logging.LogRecord>().having(
@@ -48,7 +44,7 @@ void main() {
   });
 
   test('includes message', () {
-    log2.log('hello world');
+    log.log('hello world');
 
     expect(logs, [
       isA<pkg_logging.LogRecord>().having(
@@ -61,7 +57,7 @@ void main() {
 
   test('includes error', () {
     final error = StateError('Example error');
-    log2.log('with error', error: error);
+    log.log('with error', error: error);
 
     expect(logs, [
       isA<pkg_logging.LogRecord>().having((e) => e.error, 'error', same(error)),
@@ -70,7 +66,7 @@ void main() {
 
   test('includes stack trace', () {
     final trace = StackTrace.current;
-    log2.log('with error', trace: trace);
+    log.log('with error', trace: trace);
 
     expect(logs, [
       isA<pkg_logging.LogRecord>().having(

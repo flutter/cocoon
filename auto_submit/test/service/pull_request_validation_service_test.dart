@@ -17,7 +17,6 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
-import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
@@ -41,10 +40,6 @@ void main() {
 
   late MockJobsResource jobsResource;
   late FakeBigqueryService bigqueryService;
-
-  setUpAll(() {
-    log = Logger('auto_submit');
-  });
 
   setUp(() {
     githubGraphQLClient = FakeGraphQLClient();
@@ -740,7 +735,7 @@ This is the second line in a paragraph.''');
       );
 
       expect(
-        log2,
+        log,
         bufferedLoggerOf(
           contains(
             logThat(

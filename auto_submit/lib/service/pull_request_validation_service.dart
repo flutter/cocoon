@@ -50,7 +50,7 @@ class PullRequestValidationService extends ValidationService {
         pubsub: pubsub,
       );
     } else {
-      log2.info(
+      log.info(
         'Should not process ${messagePullRequest.toJson()}, and ack the message.',
       );
       await pubsub.acknowledge(subscription, ackId);
@@ -81,7 +81,7 @@ class PullRequestValidationService extends ValidationService {
     // the merge queue merge it, or kick it out of the merge queue.
     if (pullRequest.isMergeQueueEnabled) {
       if (result.repository!.pullRequest!.isInMergeQueue) {
-        log2.info(
+        log.info(
           '${slug.fullName}/$prNumber is already in the merge queue. Skipping.',
         );
         await pubsub.acknowledge(subscription, ackId);
@@ -133,11 +133,11 @@ class _PullRequestValidationProcessor {
   String get logCrumb => 'PullRequestValidation($slug/pull/$prNumber)';
 
   void logInfo(Object? message) {
-    log2.info('$logCrumb: $message');
+    log.info('$logCrumb: $message');
   }
 
   void logSevere(Object? message) {
-    log2.error('$logCrumb: $message');
+    log.error('$logCrumb: $message');
   }
 
   Future<void> process() async {

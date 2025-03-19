@@ -13,8 +13,6 @@ import 'package:auto_submit/requests/github_webhook.dart';
 import 'package:auto_submit/requests/readiness_check.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/secrets.dart';
-import 'package:cocoon_server/logging.dart';
-import 'package:logging/logging.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:shelf_router/shelf_router.dart';
 
@@ -22,7 +20,6 @@ import 'package:shelf_router/shelf_router.dart';
 const int kCacheSize = 1024;
 
 Future<void> main() async {
-  log = Logger('auto_submit');
   await withAppEngineServices(() async {
     useLoggingPackageAdaptor();
 

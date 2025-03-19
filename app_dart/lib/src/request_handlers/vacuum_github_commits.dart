@@ -74,7 +74,7 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
     final queryAfter = DateTime.now().subtract(const Duration(days: 1));
     final queryBefore = DateTime.now().subtract(const Duration(minutes: 3));
     try {
-      log2.debug(
+      log.debug(
         'Listing commit for slug: $slug branch: $branch and msSinceEpoch: '
         '${queryAfter.millisecondsSinceEpoch}',
       );
@@ -83,7 +83,7 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
         branch,
         queryAfter.millisecondsSinceEpoch,
       );
-      log2.debug('Retrieved ${commits.length} commits from GitHub');
+      log.debug('Retrieved ${commits.length} commits from GitHub');
       // Do not try to add recent commits as they may already be processed
       // by cocoon, which can cause race conditions.
       commits =
@@ -95,7 +95,7 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
               )
               .toList();
     } on gh.GitHubError catch (e) {
-      log2.error('Failed retriving commits from GitHub', e);
+      log.error('Failed retriving commits from GitHub', e);
     }
 
     return _toDatastoreCommit(slug, commits, datastore, branch);

@@ -28,7 +28,7 @@ class DiscordNotification {
       body: jsonMessageString,
     );
 
-    log2.info('discord webhook status: ${response.statusCode}');
-    log2.info('discord webhook response body: ${response.body}');
+    log.info('discord webhook status: ${response.statusCode}');
+    log.info('discord webhook response body: ${response.body}');
   }
 }

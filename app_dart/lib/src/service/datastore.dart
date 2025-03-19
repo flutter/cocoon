@@ -320,21 +320,21 @@ class DatastoreService {
     bbv2.Build build, {
     String? customName,
   }) async {
-    log2.debug(
+    log.debug(
       'Generating commit key from buildbucket build: ${build.toString()}',
     );
 
     final repository = build.input.gitilesCommit.project.split('/')[1];
-    log2.debug('Repository: $repository');
+    log.debug('Repository: $repository');
 
     final branch = build.input.gitilesCommit.ref.split('/')[2];
-    log2.debug('Branch: $branch');
+    log.debug('Branch: $branch');
 
     final hash = build.input.gitilesCommit.id;
-    log2.debug('Hash: $hash');
+    log.debug('Hash: $hash');
 
     final slug = RepositorySlug('flutter', repository);
-    log2.debug('Slug: ${slug.toString()}');
+    log.debug('Slug: ${slug.toString()}');
 
     final id = '${slug.fullName}/$branch/$hash';
     final commitKey = db.emptyKey.append<String>(Commit, id: id);
@@ -346,7 +346,7 @@ class DatastoreService {
         name: customName ?? build.builder.builder,
       );
     } on InternalServerError catch (e) {
-      log2.warn('Failed to find an existing task for the buildbucket build', e);
+      log.warn('Failed to find an existing task for the buildbucket build', e);
       return null;
     }
   }

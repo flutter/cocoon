@@ -115,10 +115,10 @@ class GerritService {
       host: '${slug.owner}-review.googlesource.com',
       path: 'projects/$projectName/commits/$commitId',
     );
-    log2.info('Gerrit get-commit url: $url');
+    log.info('Gerrit get-commit url: $url');
 
     final response = await _get(url);
-    log2.info('Gob commit response for commit $commitId: ${response.body}');
+    log.info('Gob commit response for commit $commitId: ${response.body}');
     if (!_responseIsAcceptable(response)) return null;
 
     final jsonBody = _stripXssToken(response.body);
@@ -143,17 +143,17 @@ class GerritService {
     String branchName,
     String revision,
   ) async {
-    log2.info('Creating branch $branchName at $revision');
+    log.info('Creating branch $branchName at $revision');
     final url = Uri.https(
       '${slug.owner}-review.googlesource.com',
       'projects/${slug.name}/branches/$branchName',
     );
     final response = await _put(url, body: revision) as Map<String, dynamic>;
-    log2.info('$response');
+    log.info('$response');
     if (response['revision'] != revision) {
       throw const InternalServerError('Failed to create branch');
     }
-    log2.info('Created branch $branchName');
+    log.info('Created branch $branchName');
   }
 
   Future<dynamic> _getJson(Uri url) async {
@@ -188,11 +188,11 @@ class GerritService {
         'Gerrit returned ${response.statusCode} which is not 200 or 202',
       );
     }
-    log2.info('Sent PUT to $url');
-    log2.info(response.body);
+    log.info('Sent PUT to $url');
+    log.info(response.body);
     // Remove XSS token
     final jsonBody = _stripXssToken(response.body);
-    log2.info(jsonBody);
+    log.info(jsonBody);
     return jsonDecode(jsonBody);
   }
 

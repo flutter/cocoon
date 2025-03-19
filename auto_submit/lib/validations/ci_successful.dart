@@ -60,7 +60,7 @@ class CiSuccessful extends Validation {
     if (baseBranch == targetBranch) {
       // Only validate tree status where base branch is the default branch.
       if (!isTreeStatusReporting(slug, prNumber, statuses)) {
-        log2.warn(
+        log.warn(
           'Statuses were not ready for ${slug.fullName}/$prNumber, sha: $commit.',
         );
         return ValidationResult(
@@ -70,7 +70,7 @@ class CiSuccessful extends Validation {
         );
       }
     } else {
-      log2.info(
+      log.info(
         'Target branch is $baseBranch for ${slug.fullName}/$prNumber, skipping tree status check.',
       );
     }
@@ -156,7 +156,7 @@ class CiSuccessful extends Validation {
       return false;
     }
     const treeStatusName = 'tree-status';
-    log2.info(
+    log.info(
       '${slug.fullName}/$prNumber: Validating tree status for ${slug.name}/tree-status, statuses: $statuses',
     );
 
@@ -185,7 +185,7 @@ class CiSuccessful extends Validation {
     Set<FailureDetail> failures,
     bool allSuccess,
   ) {
-    log2.info('Validating name: ${slug.name}/$prNumber, statuses: $statuses');
+    log.info('Validating name: ${slug.name}/$prNumber, statuses: $statuses');
 
     final staleStatuses = <ContextNode>[];
     for (var status in statuses) {
@@ -212,7 +212,7 @@ class CiSuccessful extends Validation {
       }
     }
     if (staleStatuses.isNotEmpty) {
-      log2.warn(
+      log.warn(
         'Pull request https://github.com/${slug.fullName}/pull/$prNumber from ${slug.name} repo auto roller has been running over ${Config.kGitHubCheckStaleThreshold} hours due to: ${staleStatuses.map((e) => e.context).toList()}',
       );
     }
@@ -233,7 +233,7 @@ class CiSuccessful extends Validation {
     bool allSuccess,
     Author author,
   ) {
-    log2.info('Validating name: ${slug.name}/$prNumber, checkRuns: $checkRuns');
+    log.info('Validating name: ${slug.name}/$prNumber, checkRuns: $checkRuns');
 
     final staleCheckRuns = <github.CheckRun>[];
     for (var checkRun in checkRuns) {
@@ -252,7 +252,7 @@ class CiSuccessful extends Validation {
         continue;
       } else if (checkRun.status == github.CheckRunStatus.completed) {
         // checkrun has failed.
-        log2.info('${slug.name}/$prNumber: CheckRun $name failed.');
+        log.info('${slug.name}/$prNumber: CheckRun $name failed.');
         failures.add(FailureDetail(name!, checkRun.detailsUrl as String));
       } else if (checkRun.status == github.CheckRunStatus.queued) {
         if (prState == PullRequestState.open &&
@@ -264,7 +264,7 @@ class CiSuccessful extends Validation {
       allSuccess = false;
     }
     if (staleCheckRuns.isNotEmpty) {
-      log2.warn(
+      log.warn(
         'Pull request https://github.com/${slug.fullName}/pull/$prNumber from ${slug.name} repo auto roller has been running over ${Config.kGitHubCheckStaleThreshold} hours due to: ${staleCheckRuns.map((e) => e.name).toList()}',
       );
     }

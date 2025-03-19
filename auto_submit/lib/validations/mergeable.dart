@@ -24,7 +24,7 @@ class Mergeable extends Validation {
     final slug = messagePullRequest.base!.repo!.slug();
     final mergeableState = result.repository!.pullRequest!.mergeable!;
 
-    log2.info(
+    log.info(
       '${slug.name}/$pullRequestNumber has mergeable state $mergeableState',
     );
 

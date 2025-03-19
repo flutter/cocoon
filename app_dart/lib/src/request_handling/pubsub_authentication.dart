@@ -48,7 +48,7 @@ class PubsubAuthenticationProvider extends AuthenticationProvider {
 
     final clientContext = clientContextProvider();
 
-    log2.debug('Authenticating as pubsub message');
+    log.debug('Authenticating as pubsub message');
     return authenticateIdToken(idToken, clientContext: clientContext);
   }
 

@@ -1424,7 +1424,7 @@ void main() {
 
       // Expectations
       expect(
-        log2,
+        log,
         bufferedLoggerOf(
           contains(
             logThat(

@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/appengine/allowed_account.dart';
@@ -12,7 +13,6 @@ import 'package:cocoon_service/src/request_handling/authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
@@ -94,13 +94,11 @@ void main() {
         httpClient = MockClient(
           (_) async => http.Response('Not JSON!', HttpStatus.ok),
         );
-        final records = <LogRecord>[];
-        log.onRecord.listen(records.add);
         await expectLater(
           auth.tokenInfo(request),
           throwsA(isA<InternalServerError>()),
         );
-        expect(records, isEmpty);
+        expect(log, bufferedLoggerOf(isEmpty));
       });
 
       test('fails if token verification yields forged token', () async {

@@ -37,7 +37,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     if (authContext!.clientContext.isDevelopmentEnvironment) {
       // Don't push GitHub status from the local dev server.
-      log2.debug('GitHub statuses are not pushed from local dev environments');
+      log.debug('GitHub statuses are not pushed from local dev environments');
       return Body.empty;
     }
 
@@ -59,7 +59,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       config,
     );
     await _updatePRs(slug, status.githubStatus, datastore, firestoreService);
-    log2.debug('All the PRs for $repository have been updated with $status');
+    log.debug('All the PRs for $repository have been updated with $status');
 
     return Body.empty;
   }
@@ -79,7 +79,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     )) {
       // Tree status only affects the default branch - which github should filter for.. but check for a whoopsie.
       if (pr.base!.ref != Config.defaultBranch(slug)) {
-        log2.warn(
+        log.warn(
           'when asked for PRs for ${Config.defaultBranch(slug)} - github '
           'returns something else: $pr',
         );
@@ -102,7 +102,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
               ? GithubBuildStatus.statusNeutral
               : realStatus;
       if (githubBuildStatus.status != status) {
-        log2.log(
+        log.log(
           severity: hasEmergencyLabel ? Severity.warning : Severity.debug,
           'Updating status of ${slug.fullName}#${pr.number} from '
           '${githubBuildStatus.status} to $status',
@@ -132,7 +132,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
           );
           githubBuildStatuses.add(githubBuildStatus);
         } catch (e) {
-          log2.error(
+          log.error(
             'Failed to post status update to ${slug.fullName}#${pr.number}',
             e,
           );
