@@ -11,21 +11,18 @@ import 'base.dart';
 part 'build_status_response.g.dart';
 
 enum BuildStatus {
-  success(1),
-  failure(2);
+  success,
+  failure;
 
-  const BuildStatus(this._value);
-  final int _value;
-
-  factory BuildStatus._byValue(int value) {
-    final result = values.firstWhereOrNull((e) => e._value == value);
+  factory BuildStatus._byName(String name) {
+    final result = values.firstWhereOrNull((e) => e.name == name);
     if (result == null) {
-      throw FormatException('Unexpected value', value);
+      throw FormatException('Unexpected name', name);
     }
     return result;
   }
 
-  static int _toValue(BuildStatus status) => status._value;
+  static String _toName(BuildStatus status) => status.name;
 }
 
 @JsonSerializable(checked: true)
@@ -48,8 +45,8 @@ final class BuildStatusResponse extends Model {
 
   @JsonKey(
     name: 'buildStatus',
-    fromJson: BuildStatus._byValue,
-    toJson: BuildStatus._toValue,
+    fromJson: BuildStatus._byName,
+    toJson: BuildStatus._toName,
   )
   final BuildStatus buildStatus;
 

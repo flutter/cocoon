@@ -30,7 +30,7 @@ class GetBuildStatus extends RequestHandler<Body> {
   @override
   Future<Body> get() async {
     final response = await createResponse();
-    return Body.forJson(response.writeToJsonMap());
+    return Body.forJson(response.toProto3Json());
   }
 
   Future<BuildStatusResponse> createResponse() async {
