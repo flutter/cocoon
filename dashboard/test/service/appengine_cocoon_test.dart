@@ -6,7 +6,6 @@ import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
-import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/key.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/appengine_cocoon.dart';
@@ -32,38 +31,38 @@ void main() {
     test('should return expected List<CommitStatus>', () async {
       final statuses = await service.fetchCommitStatuses(repo: 'flutter');
 
-      final expectedStatus =
-          CommitStatus()
-            ..branch = 'master'
-            ..commit =
-                (Commit()
-                  ..timestamp = Int64(123456789)
-                  ..key = (RootKey()..child = (Key()..name = 'iamatestkey'))
-                  ..sha = 'ShaShankHash'
-                  ..author = 'ShaSha'
-                  ..authorAvatarUrl = 'https://flutter.dev'
-                  ..repository = 'flutter/cocoon'
-                  ..branch = 'master')
-            ..tasks.add(
-              Task()
-                ..key = (RootKey()..child = (Key()..name = 'taskKey1'))
-                ..createTimestamp = Int64(1569353940885)
-                ..startTimestamp = Int64(1569354594672)
-                ..endTimestamp = Int64(1569354700642)
-                ..name = 'linux'
-                ..attempts = 1
-                ..isFlaky = false
-                ..timeoutInMinutes = 0
-                ..reason = ''
-                ..requiredCapabilities.add('[linux]')
-                ..reservedForAgentId = ''
-                ..stageName = 'chromebot'
-                ..status = 'Succeeded'
-                ..isTestFlaky = false
-                ..buildNumberList = '123'
-                ..builderName = 'Linux'
-                ..luciBucket = 'luci.flutter.try',
-            );
+      final expectedStatus = CommitStatus(
+        branch: 'master',
+        commit:
+            Commit()
+              ..timestamp = Int64(123456789)
+              ..key = (RootKey()..child = (Key()..name = 'iamatestkey'))
+              ..sha = 'ShaShankHash'
+              ..author = 'ShaSha'
+              ..authorAvatarUrl = 'https://flutter.dev'
+              ..repository = 'flutter/cocoon'
+              ..branch = 'master',
+        tasks: [
+          Task()
+            ..key = (RootKey()..child = (Key()..name = 'taskKey1'))
+            ..createTimestamp = Int64(1569353940885)
+            ..startTimestamp = Int64(1569354594672)
+            ..endTimestamp = Int64(1569354700642)
+            ..name = 'linux'
+            ..attempts = 1
+            ..isFlaky = false
+            ..timeoutInMinutes = 0
+            ..reason = ''
+            ..requiredCapabilities.add('[linux]')
+            ..reservedForAgentId = ''
+            ..stageName = 'chromebot'
+            ..status = 'Succeeded'
+            ..isTestFlaky = false
+            ..buildNumberList = '123'
+            ..builderName = 'Linux'
+            ..luciBucket = 'luci.flutter.try',
+        ],
+      );
 
       expect(statuses.data!.length, 1);
       expect(statuses.data!.first, expectedStatus);

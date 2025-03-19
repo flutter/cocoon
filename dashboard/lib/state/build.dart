@@ -10,7 +10,6 @@ import 'package:flutter_app_icons/flutter_app_icons.dart';
 
 import '../logic/brooks.dart';
 import '../model/commit.pb.dart';
-import '../model/commit_status.pb.dart';
 import '../model/key.pb.dart';
 import '../model/task.pb.dart';
 import '../service/cocoon.dart';

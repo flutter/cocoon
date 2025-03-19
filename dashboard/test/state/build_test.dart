@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
-import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/key.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
@@ -730,13 +729,15 @@ CommitStatus _createCommitStatus(
   String branch = 'master',
   String repo = 'flutter',
 }) {
-  return CommitStatus()
-    ..branch = branch
-    ..commit =
-        (Commit()
+  return CommitStatus(
+    branch: branch,
+    commit:
+        Commit()
           // Author is set so we don't have to dig through all the nested fields
           // while debugging
           ..author = keyValue
           ..repository = 'flutter/$repo'
-          ..key = (RootKey()..child = (Key()..name = keyValue)));
+          ..key = (RootKey()..child = (Key()..name = keyValue)),
+    tasks: [],
+  );
 }

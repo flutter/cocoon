@@ -9,7 +9,6 @@ import 'package:fixnum/fixnum.dart';
 
 import '../logic/qualified_task.dart';
 import '../model/commit.pb.dart';
-import '../model/commit_status.pb.dart';
 import '../model/key.pb.dart';
 import '../model/task.pb.dart';
 import '../src/rpc_model.dart';
@@ -184,11 +183,11 @@ class DevelopmentCocoonService implements CocoonService {
         _commits[index],
         branch,
       );
-      final status =
-          CommitStatus()
-            ..branch = branch
-            ..commit = commit
-            ..tasks.addAll(_createFakeTasks(commitTimestamp, commit, random));
+      final status = CommitStatus(
+        branch: branch,
+        commit: commit,
+        tasks: _createFakeTasks(commitTimestamp, commit, random),
+      );
       result.add(status);
     }
     return result;
