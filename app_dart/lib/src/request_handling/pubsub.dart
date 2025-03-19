@@ -34,7 +34,7 @@ class PubSub {
       request,
       fullTopicName,
     );
-    log2.info('pubsub response messageId=${response.messageIds}');
+    log.info('pubsub response messageId=${response.messageIds}');
     return response.messageIds!;
   }
 }

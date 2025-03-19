@@ -852,7 +852,7 @@ void main() {
       await tester.post(webhook);
 
       expect(
-        log2,
+        log,
         bufferedLoggerOf(
           containsAll([
             logThat(message: equals('Processing pull_request')),
@@ -2836,7 +2836,7 @@ void foo() {
         await pullRequestLabelProcessor.processLabels();
 
         expect(
-          log2,
+          log,
           bufferedLoggerOf(
             containsAll([
               logThat(
@@ -2890,7 +2890,7 @@ void foo() {
           await pullRequestLabelProcessor.processLabels();
 
           expect(
-            log2,
+            log,
             bufferedLoggerOf(
               containsAll([
                 logThat(
@@ -2923,7 +2923,7 @@ void foo() {
           await pullRequestLabelProcessor.processLabels();
 
           expect(
-            log2,
+            log,
             bufferedLoggerOf(
               containsAll([
                 logThat(
@@ -3146,7 +3146,7 @@ void foo() {
       ).called(1);
 
       expect(
-        log2,
+        log,
         bufferedLoggerOf(
           containsAllInOrder([
             logThat(message: equals('Processing merge_group')),
@@ -3270,7 +3270,7 @@ void foo() {
       ]);
 
       expect(
-        log2,
+        log,
         bufferedLoggerOf(
           containsAllInOrder([
             logThat(message: equals('Processing merge_group')),
@@ -3350,7 +3350,7 @@ void foo() {
       ]);
 
       expect(
-        log2,
+        log,
         bufferedLoggerOf(
           containsAllInOrder([
             logThat(message: equals('Processing merge_group')),
@@ -3403,7 +3403,7 @@ void foo() {
       await tester.post(webhook);
 
       expect(
-        log2,
+        log,
         bufferedLoggerOf(
           containsAllInOrder([
             logThat(message: equals('Processing merge_group')),

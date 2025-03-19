@@ -109,8 +109,8 @@ class BatchBackfiller extends RequestHandler {
     // Get the number of targets to be backfilled in each cycle.
     backfill = getFilteredBackfill(backfill);
 
-    log2.debug('Backfilling ${backfill.length} builds');
-    log2.debug(backfill.map((tuple) => tuple.first.value.name).toString());
+    log.debug('Backfilling ${backfill.length} builds');
+    log.debug(backfill.map((tuple) => tuple.first.value.name).toString());
 
     // Update tasks status as in progress to avoid duplicate scheduling.
     final backfillTasks = backfill.map((tuple) => tuple.second.task).toList();
@@ -118,7 +118,7 @@ class BatchBackfiller extends RequestHandler {
       await datastore.withTransaction<void>((transaction) async {
         transaction.queueMutations(inserts: backfillTasks);
         await transaction.commit();
-        log2.debug(
+        log.debug(
           'Updated ${backfillTasks.length} tasks: '
           '${backfillTasks.map((e) => e.name).toList()} when backfilling.',
         );
@@ -127,7 +127,7 @@ class BatchBackfiller extends RequestHandler {
       try {
         await updateTaskDocuments(backfillTasks);
       } catch (e) {
-        log2.warn(
+        log.warn(
           'Failed to update batch backfilled task documents in Firestore',
           e,
         );
@@ -137,7 +137,7 @@ class BatchBackfiller extends RequestHandler {
       // Schedule after db updates to avoid duplicate scheduling when db update fails.
       await _scheduleWithRetries(backfill);
     } catch (e) {
-      log2.error('Failed to update tasks when backfilling', e);
+      log.error('Failed to update tasks when backfilling', e);
     }
   }
 
@@ -212,7 +212,7 @@ class BatchBackfiller extends RequestHandler {
                   .where((element) => element.isNotEmpty)
                   .toList()
                   .length;
-          log2.info(
+          log.info(
             'Backfill fails and retry backfilling $nonEmptyListLenght targets.',
           );
           backfill = _updateBackfill(backfill, pendingTasks);
@@ -222,7 +222,7 @@ class BatchBackfiller extends RequestHandler {
         }
       }, retryIf: (Exception e) => e is InternalServerError);
     } catch (e) {
-      log2.error(
+      log.error(
         'Failed to backfill ${backfill.length} targets due to error',
         e,
       );

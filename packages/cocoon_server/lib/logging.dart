@@ -2,4 +2,4 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-export 'src/logging.dart' show log, log2;
+export 'src/logging.dart' show log;

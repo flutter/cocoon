@@ -40,17 +40,17 @@ class ApproverService {
       github.RepositorySlug.full(pullRequest.base!.repo!.fullName),
     );
 
-    log2.info(
+    log.info(
       'Determining auto approval of $author on ${slug.fullName}/$prNumber.',
     );
 
     // If there are auto_approvers let them approve the pull request.
     if (!approvalAccounts.contains(author)) {
-      log2.info(
+      log.info(
         'Auto-review ignored for $author on ${slug.fullName}/$prNumber.',
       );
     } else {
-      log2.info('Auto approval detected on ${slug.fullName}/$prNumber.');
+      log.info('Auto approval detected on ${slug.fullName}/$prNumber.');
       await _approve(pullRequest, author);
     }
   }
@@ -80,6 +80,6 @@ class ApproverService {
       'APPROVE',
     );
     await botClient.pullRequests.createReview(slug, review);
-    log2.info('Review for ${slug.fullName}/${pullRequest.number} complete');
+    log.info('Review for ${slug.fullName}/${pullRequest.number} complete');
   }
 }

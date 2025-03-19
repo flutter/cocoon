@@ -150,7 +150,7 @@ void main() {
           ]),
         );
         expect(
-          log2,
+          log,
           bufferedLoggerOf(
             contains(
               logThat(

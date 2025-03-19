@@ -99,14 +99,14 @@ void main() {
         ]);
 
         expect(
-          log2,
+          log,
           bufferedLoggerOf(
             contains(
               logThat(message: anything, severity: equals(Severity.info)),
             ),
           ),
         );
-        expect(log2, hasNoWarningsOrHigher);
+        expect(log, hasNoWarningsOrHigher);
       });
 
       test('falls back to git on borg', () async {
@@ -194,7 +194,7 @@ void main() {
         // It will request from GitHub 3 times, fallback to GoB, then fail.
         expect(retry, 6);
         expect(
-          log2,
+          log,
           bufferedLoggerOf(
             containsAll([
               logThat(

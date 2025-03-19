@@ -239,7 +239,7 @@ void main() {
         await checkPullRequest.get();
 
         expect(
-          log2,
+          log,
           bufferedLoggerOf(
             contains(
               logThat(
@@ -339,7 +339,7 @@ void main() {
       expect(pubsub.messagesQueue.length, 0);
 
       expect(
-        log2,
+        log,
         bufferedLoggerOf(
           contains(
             logThat(

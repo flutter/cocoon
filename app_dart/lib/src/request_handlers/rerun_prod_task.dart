@@ -80,7 +80,7 @@ class RerunProdTask extends ApiRequestHandler<Body> {
     final slug = RepositorySlug('flutter', repo);
 
     if (taskName == 'all') {
-      log2.info(
+      log.info(
         'Attempting to reset all failed prod tasks for $commitSha in $repo...',
       );
       final commitKey = Commit.createKey(
@@ -95,7 +95,7 @@ class RerunProdTask extends ApiRequestHandler<Body> {
         if (!Task.taskFailStatusSet.contains(task.status)) {
           continue;
         }
-        log2.info('Resetting failed task ${task.name}');
+        log.info('Resetting failed task ${task.name}');
         futures.add(
           _rerun(
             datastore: datastore,
@@ -110,7 +110,7 @@ class RerunProdTask extends ApiRequestHandler<Body> {
       }
       await Future.wait(futures);
     } else {
-      log2.info(
+      log.info(
         'Attempting to reset prod task "$taskName" for $commitSha in $repo...',
       );
       await _rerun(
@@ -125,7 +125,7 @@ class RerunProdTask extends ApiRequestHandler<Body> {
       );
     }
 
-    log2.info('$taskName reset initiated successfully.');
+    log.info('$taskName reset initiated successfully.');
 
     return Body.empty;
   }

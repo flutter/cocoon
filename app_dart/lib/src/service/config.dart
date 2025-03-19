@@ -453,13 +453,13 @@ class Config {
     final response = await http.post(githubAccessTokensUri, headers: headers);
     final jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
     if (jsonBody.containsKey('token') == false) {
-      log2.warn(response.body);
+      log.warn(response.body);
       throw Exception(
         'generateGitHubToken failed to get token from Github for repo=${slug.fullName}',
       );
     }
     final token = jsonBody['token'] as String;
-    log2.debug('Generated a new GitHub token for ${slug.fullName}');
+    log.debug('Generated a new GitHub token for ${slug.fullName}');
     return Uint8List.fromList(token.codeUnits);
   }
 

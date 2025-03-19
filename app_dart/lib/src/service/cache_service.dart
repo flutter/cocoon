@@ -112,7 +112,7 @@ class CacheService {
     } catch (e) {
       // If the last retry is unsuccessful on an exception we do not want to die
       // here.
-      log2.warn('Unable to retrieve value for $key from cache.', e);
+      log.warn('Unable to retrieve value for $key from cache.', e);
       value = null;
     }
 

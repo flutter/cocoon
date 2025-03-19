@@ -54,7 +54,7 @@ class RequiredCheckRuns extends Validation {
         }, retryIf: (Exception e) => e is RetryableException);
       }
     } catch (e, s) {
-      log2.warn('Required check has not completed in time', e, s);
+      log.warn('Required check has not completed in time', e, s);
       checksCompleted = false;
     }
 

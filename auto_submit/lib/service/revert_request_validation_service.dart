@@ -90,7 +90,7 @@ class RevertRequestValidationService extends ValidationService {
         break;
       // Do not process.
       case RevertProcessMethod.none:
-        log2.info(
+        log.info(
           'Should not process ${messagePullRequest.toJson()}, and ack the message.',
         );
         await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
@@ -123,12 +123,12 @@ class RevertRequestValidationService extends ValidationService {
       slug,
       issueNumber,
     );
-    log2.info(
+    log.info(
       'Found ${pullRequestComments.length} comments for issue ${slug.fullName}/$issueNumber',
     );
     for (var prComment in pullRequestComments) {
       final commentBody = prComment.body;
-      log2.info(
+      log.info(
         'Processing comment on ${slug.fullName}/$issueNumber: $commentBody',
       );
       if (commentBody != null && regExp.hasMatch(commentBody)) {
@@ -176,7 +176,7 @@ class RevertRequestValidationService extends ValidationService {
       final message =
           '''Time to revert pull request ${slug.fullName}/${messagePullRequest.number} has elapsed.
           You need to open the revert manually and process as a regular pull request.''';
-      log2.info(message);
+      log.info(message);
       await githubService.createComment(
         slug,
         messagePullRequest.number!,
@@ -187,7 +187,7 @@ class RevertRequestValidationService extends ValidationService {
         messagePullRequest.number!,
         Config.kRevertLabel,
       );
-      log2.info(
+      log.info(
         'Should not process ${messagePullRequest.toJson()}, and ack the message.',
       );
       await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
@@ -204,7 +204,7 @@ class RevertRequestValidationService extends ValidationService {
           '''A reason for requesting a revert of ${slug.fullName}/${messagePullRequest.number} could
       not be found or the reason was not properly formatted. Begin a comment with **'Reason for revert:'** to tell the bot why
       this issue is being reverted.''';
-      log2.info(message);
+      log.info(message);
       await githubService.createComment(
         slug,
         messagePullRequest.number!,
@@ -215,7 +215,7 @@ class RevertRequestValidationService extends ValidationService {
         messagePullRequest.number!,
         Config.kRevertLabel,
       );
-      log2.info(
+      log.info(
         'Should not process ${messagePullRequest.toJson()}, and ack the message.',
       );
       await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
@@ -233,14 +233,14 @@ class RevertRequestValidationService extends ValidationService {
                 messagePullRequest,
               )
               as github.PullRequest;
-      log2.info(
+      log.info(
         'Created revert pull request ${slug.fullName}/${pullRequest.number}.',
       );
       // This will come through this service again for processing.
       await githubService.addLabels(slug, pullRequest.number!, [
         Config.kRevertOfLabel,
       ]);
-      log2.info('Assigning new revert issue to $sender');
+      log.info('Assigning new revert issue to $sender');
       await githubService.addAssignee(slug, pullRequest.number!, [sender]);
       // TODO (ricardoamador) create a better solution than this to stop processing
       // the revert requests. Maybe change the label after the revert has occurred.
@@ -255,7 +255,7 @@ class RevertRequestValidationService extends ValidationService {
     } catch (e, s) {
       final message =
           'Unable to create the revert pull request due to ${e.toString()}';
-      log2.error(message, e, s);
+      log.error(message, e, s);
       await githubService.createComment(
         slug,
         messagePullRequest.number!,
@@ -289,7 +289,7 @@ class RevertRequestValidationService extends ValidationService {
     // the merge queue merge it, or kick it out of the merge queue.
     if (pullRequest.isMergeQueueEnabled) {
       if (result.repository!.pullRequest!.isInMergeQueue) {
-        log2.info(
+        log.info(
           '${slug.fullName}/$prNumber is already in the merge queue. Skipping.',
         );
         await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
@@ -310,7 +310,7 @@ class RevertRequestValidationService extends ValidationService {
         'Repository configuration does not support review-less revert pull requests. Please assign at least two reviewers to this pull request.',
       );
       // We do not want to continue processing this issue.
-      log2.info('Ack the processed message : $ackId.');
+      log.info('Ack the processed message : $ackId.');
       await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
       return;
     }
@@ -328,7 +328,7 @@ class RevertRequestValidationService extends ValidationService {
     /// Runs all the validation defined in the service.
     /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
     for (var validation in validations) {
-      log2.info(
+      log.info(
         '${slug.fullName}/$prNumber running validation ${validation.name}',
       );
       validationsMap[validation.name] = await validation.validate(
@@ -348,16 +348,16 @@ class RevertRequestValidationService extends ValidationService {
             'auto label is removed for ${slug.fullName}/$prNumber, due to $commmentMessage';
         await githubService.removeLabel(slug, prNumber, Config.kRevertOfLabel);
         await githubService.createComment(slug, prNumber, message);
-        log2.info(message);
+        log.info(message);
         shouldReturn = true;
       }
     }
 
     if (shouldReturn) {
-      log2.info(
+      log.info(
         'The pr ${slug.fullName}/$prNumber with message: $ackId should be acknowledged due to validation failure.',
       );
-      log2.info(
+      log.info(
         'The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.',
       );
       await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
@@ -367,7 +367,7 @@ class RevertRequestValidationService extends ValidationService {
     // If PR has some failures to ignore temporarily do nothing and continue.
     for (final MapEntry(:key, :value) in validationsMap.entries) {
       if (!value.result && value.action == Action.IGNORE_TEMPORARILY) {
-        log2.info(
+        log.info(
           'Temporarily ignoring processing of ${slug.fullName}/$prNumber due to $key failing validation.',
         );
         return;
@@ -385,7 +385,7 @@ class RevertRequestValidationService extends ValidationService {
           'auto label is removed for ${slug.fullName}/$prNumber, ${processed.message}.';
       await githubService.removeLabel(slug, prNumber, Config.kRevertOfLabel);
       await githubService.createComment(slug, prNumber, message);
-      log2.info(message);
+      log.info(message);
     } else {
       // Need to add the discord notification here.
       final discordNotification = await discordNotificationClient;
@@ -394,10 +394,10 @@ class RevertRequestValidationService extends ValidationService {
         jsonEncode(discordMessage.toJson()),
       );
 
-      log2.info(
+      log.info(
         'Pull Request ${slug.fullName}/$prNumber was ${processed.method.pastTenseLabel} successfully!',
       );
-      log2.info(
+      log.info(
         'Attempting to insert a pull request record into the database for $prNumber',
       );
       await insertPullRequestRecord(
@@ -407,7 +407,7 @@ class RevertRequestValidationService extends ValidationService {
       );
     }
 
-    log2.info('Ack the processed message : $ackId.');
+    log.info('Ack the processed message : $ackId.');
     await pubsub.acknowledge(config.pubsubRevertRequestSubscription, ackId);
   }
 

@@ -57,7 +57,7 @@ abstract class RequestHandler<T extends Body> {
           } on HttpStatusException {
             rethrow;
           } catch (e, s) {
-            log2.error('Internal server error', e, s);
+            log.error('Internal server error', e, s);
             throw InternalServerError('$e\n$s');
           }
         } on HttpStatusException catch (error) {

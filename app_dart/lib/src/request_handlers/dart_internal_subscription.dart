@@ -45,7 +45,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     final datastore = datastoreProvider(config.db);
 
     if (message.data == null) {
-      log2.info('no data in message');
+      log.info('no data in message');
       return Body.empty;
     }
 
@@ -54,7 +54,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     final jsonBuildMap = json.decode(message.data!) as Map<String, dynamic>;
 
     if (jsonBuildMap['build'] == null) {
-      log2.info('no build information in message');
+      log.info('no build information in message');
       return Body.empty;
     }
 
@@ -66,7 +66,7 @@ class DartInternalSubscription extends SubscriptionHandler {
     // This should already be covered by the pubsub filter, but adding an additional check
     // to ensure we don't process builds that aren't from dart-internal/flutter.
     if (project != 'dart-internal' || bucket != 'flutter') {
-      log2.info('Ignoring build not from dart-internal/flutter bucket');
+      log.info('Ignoring build not from dart-internal/flutter bucket');
       return Body.empty;
     }
 
@@ -77,38 +77,38 @@ class DartInternalSubscription extends SubscriptionHandler {
       r'(Linux|Mac|Windows)\s+(engine_release_builder|packaging_release_builder|flutter_release_builder)',
     );
     if (!regex.hasMatch(builder)) {
-      log2.info('Ignoring builder that is not a release builder');
+      log.info('Ignoring builder that is not a release builder');
       return Body.empty;
     }
 
-    log2.info('Creating build request object with build id $buildId');
+    log.info('Creating build request object with build id $buildId');
 
     final getBuildRequest = bbv2.GetBuildRequest(id: buildId);
 
-    log2.info('Calling buildbucket api to get build data for build $buildId');
+    log.info('Calling buildbucket api to get build data for build $buildId');
 
     final existingBuild = await buildBucketClient.getBuild(getBuildRequest);
 
-    log2.info(
+    log.info(
       'Got back existing builder with name: ${existingBuild.builder.builder}',
     );
 
-    log2.info('Checking for existing task in datastore');
+    log.info('Checking for existing task in datastore');
     final existingTask = await datastore.getTaskFromBuildbucketBuild(
       existingBuild,
     );
 
     late Task taskToInsert;
     if (existingTask != null) {
-      log2.info('Updating Task from existing Build');
+      log.info('Updating Task from existing Build');
       existingTask.updateFromBuildbucketBuild(existingBuild);
       taskToInsert = existingTask;
     } else {
-      log2.info('Creating Task from Buildbucket result');
+      log.info('Creating Task from Buildbucket result');
       taskToInsert = await Task.fromBuildbucketBuild(existingBuild, datastore);
     }
 
-    log2.info('Inserting Task into the datastore: ${taskToInsert.toString()}');
+    log.info('Inserting Task into the datastore: ${taskToInsert.toString()}');
     await datastore.insert(<Task>[taskToInsert]);
     try {
       final firestoreService = await config.createFirestoreService();
@@ -119,7 +119,7 @@ class DartInternalSubscription extends SubscriptionHandler {
         kDatabase,
       );
     } catch (e) {
-      log2.warn('Failed to insert dart internal task into firestore', e);
+      log.warn('Failed to insert dart internal task into firestore', e);
     }
 
     return Body.forJson(taskToInsert.toString());

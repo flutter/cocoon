@@ -162,7 +162,7 @@ class CiStaging extends Document {
       // is an OK response to have. All fields should have been written at creation time.
       recordedConclusion = fields[checkRun]?.stringValue;
       if (recordedConclusion == null) {
-        log2.info(
+        log.info(
           '$logCrumb: $checkRun not present in doc for $transaction / $doc',
         );
         await docRes.rollback(
@@ -203,7 +203,7 @@ class CiStaging extends Document {
       // Only rollback the "failed" counter if this is a successful test run,
       // i.e. the test failed, the user requested a rerun, and now it passes.
       if (recordedConclusion == kFailureValue && conclusion == kSuccessValue) {
-        log2.info(
+        log.info(
           '$logCrumb: conclusion flipped to positive - assuming test was re-run',
         );
         if (failed == 0) {
@@ -217,7 +217,7 @@ class CiStaging extends Document {
       if ((recordedConclusion == kScheduledValue ||
               recordedConclusion == kSuccessValue) &&
           conclusion == kFailureValue) {
-        log2.info('$logCrumb: test failed');
+        log.info('$logCrumb: test failed');
         valid = true;
         failed = failed + 1;
       }
@@ -226,7 +226,7 @@ class CiStaging extends Document {
       checkRunGuard = fields[kCheckRunGuardField]?.stringValue;
 
       // All checks pass. "valid" is only set to true if there was a change in either the remaining or failed count.
-      log2.info(
+      log.info(
         '$logCrumb: setting remaining to $remaining, failed to $failed, and changing $recordedConclusion',
       );
       fields[checkRun] = Value(stringValue: conclusion);
@@ -235,7 +235,7 @@ class CiStaging extends Document {
     } on DetailedApiRequestError catch (e, stack) {
       if (e.status == 404) {
         // An attempt to read a document not in firestore should not be retried.
-        log2.info('$logCrumb: staging document not found for $transaction');
+        log.info('$logCrumb: staging document not found for $transaction');
         await docRes.rollback(
           RollbackRequest(transaction: transaction),
           kDatabase,
@@ -279,7 +279,7 @@ $stack
       writes: documentsToWrites([doc], exists: true),
     );
     final response = await docRes.commit(commitRequest, kDatabase);
-    log2.info(
+    log.info(
       '$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}',
     );
     return StagingConclusion(
@@ -346,10 +346,10 @@ For CI stage $stage:
         kCollectionId,
         documentId: documentIdFor(slug: slug, sha: sha, stage: stage),
       );
-      log2.info('$logCrumb: document created');
+      log.info('$logCrumb: document created');
       return newDoc;
     } catch (e) {
-      log2.warn('$logCrumb: failed to create document', e);
+      log.warn('$logCrumb: failed to create document', e);
       rethrow;
     }
   }

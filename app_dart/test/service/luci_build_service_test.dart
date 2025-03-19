@@ -592,7 +592,7 @@ void main() {
             ),
           );
 
-          expect(log2, isNot(loggedFallingBackToDefaultRecipe));
+          expect(log, isNot(loggedFallingBackToDefaultRecipe));
 
           final scheduleBuild =
               pubsub.messages.first['requests'].first['scheduleBuild']
@@ -616,7 +616,7 @@ void main() {
             ),
           );
 
-          expect(log2, isNot(loggedFallingBackToDefaultRecipe));
+          expect(log, isNot(loggedFallingBackToDefaultRecipe));
 
           final scheduleBuild =
               pubsub.messages.first['requests'].first['scheduleBuild']
@@ -643,7 +643,7 @@ void main() {
             ),
           );
 
-          expect(log2, loggedFallingBackToDefaultRecipe);
+          expect(log, loggedFallingBackToDefaultRecipe);
 
           final scheduleBuild =
               pubsub.messages.first['requests'].first['scheduleBuild']
@@ -672,7 +672,7 @@ void main() {
           ),
         );
 
-        expect(log2, isNot(loggedFallingBackToDefaultRecipe));
+        expect(log, isNot(loggedFallingBackToDefaultRecipe));
 
         final scheduleBuild =
             pubsub.messages.first['requests'].first['scheduleBuild']

@@ -61,7 +61,7 @@ void main() {
       expect(response.statusCode, HttpStatus.methodNotAllowed);
       response = await issuePost();
       expect(response.statusCode, HttpStatus.methodNotAllowed);
-      expect(log2, bufferedLoggerOf(isEmpty));
+      expect(log, bufferedLoggerOf(isEmpty));
     });
 
     test('empty body yields empty HTTP response body', () async {
@@ -69,7 +69,7 @@ void main() {
       final response = await issueGet();
       expect(response.statusCode, HttpStatus.ok);
       expect(await response.toList(), isEmpty);
-      expect(log2, bufferedLoggerOf(isEmpty));
+      expect(log, bufferedLoggerOf(isEmpty));
     });
 
     test('string body yields string HTTP response body', () async {
@@ -77,7 +77,7 @@ void main() {
       final response = await issueGet();
       expect(response.statusCode, HttpStatus.ok);
       expect(await utf8.decoder.bind(response).join(), 'Hello world');
-      expect(log2, bufferedLoggerOf(isEmpty));
+      expect(log, bufferedLoggerOf(isEmpty));
     });
 
     test('JsonBody yields JSON HTTP response body', () async {
@@ -85,7 +85,7 @@ void main() {
       final response = await issueGet();
       expect(response.statusCode, HttpStatus.ok);
       expect(await utf8.decoder.bind(response).join(), '{"key":"value"}');
-      expect(log2, bufferedLoggerOf(isEmpty));
+      expect(log, bufferedLoggerOf(isEmpty));
     });
 
     test('throwing HttpException yields corresponding HTTP status', () async {
@@ -93,7 +93,7 @@ void main() {
       final response = await issueGet();
       expect(response.statusCode, HttpStatus.badRequest);
       expect(await utf8.decoder.bind(response).join(), 'Bad request');
-      expect(log2, bufferedLoggerOf(isEmpty));
+      expect(log, bufferedLoggerOf(isEmpty));
     });
 
     test(
@@ -107,7 +107,7 @@ void main() {
           contains('error message'),
         );
         expect(
-          log2,
+          log,
           bufferedLoggerOf(
             equals([
               logThat(
@@ -128,7 +128,7 @@ void main() {
       handler = AccessesRequestAndResponseDirectly();
       final response = await issueGet();
       expect(response.headers.value('X-Test-Path'), '/path');
-      expect(log2, bufferedLoggerOf(isEmpty));
+      expect(log, bufferedLoggerOf(isEmpty));
     });
 
     test('may implement both GET and POST', () async {
@@ -139,7 +139,7 @@ void main() {
       response = await issuePost();
       expect(response.headers.value('X-Test-Get'), isNull);
       expect(response.headers.value('X-Test-Post'), 'true');
-      expect(log2, bufferedLoggerOf(isEmpty));
+      expect(log, bufferedLoggerOf(isEmpty));
     });
 
     test('may implement only POST', () async {
@@ -148,7 +148,7 @@ void main() {
       expect(response.statusCode, HttpStatus.methodNotAllowed);
       response = await issuePost();
       expect(response.statusCode, HttpStatus.ok);
-      expect(log2, bufferedLoggerOf(isEmpty));
+      expect(log, bufferedLoggerOf(isEmpty));
     });
   });
 }

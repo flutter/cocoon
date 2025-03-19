@@ -3,12 +3,15 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/helpers.dart';
+import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
-import 'package:logging/logging.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('LoggingHandler', () {
     test('Calls the delegate', () async {
       var called = false;
@@ -34,9 +37,6 @@ void main() {
         throw StateError('Some random error');
       });
 
-      final logRecords = <LogRecord>[];
-      final logSubscription = log.onRecord.listen(logRecords.add);
-
       Object? caughtError;
       try {
         await loggingHandler.handle(
@@ -45,16 +45,22 @@ void main() {
       } catch (error) {
         caughtError = error;
       }
-      await logSubscription.cancel();
 
       expect(caughtError, isA<StateError>());
       expect(caughtError.toString(), 'Bad state: Some random error');
 
-      expect(logRecords, hasLength(1));
-      final logRecord = logRecords.single;
-      expect(logRecord.message, 'Uncaught exception in HTTP handler');
-      expect(logRecord.error, same(caughtError));
-      expect(logRecord.stackTrace, isNotNull);
+      expect(
+        log,
+        bufferedLoggerOf(
+          equals([
+            logThat(
+              message: equals('Uncaught exception in HTTP handler'),
+              error: same(caughtError),
+              trace: isNotNull,
+            ),
+          ]),
+        ),
+      );
     });
   });
 }

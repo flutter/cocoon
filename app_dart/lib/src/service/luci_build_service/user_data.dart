@@ -24,7 +24,7 @@ sealed class PubSubUserData {
       jsonObject = json.decode(utf8.decode(bytes)) as Map<String, dynamic>;
     } on FormatException {
       // TODO(matanlurey): Remove legacy cases. https://github.com/flutter/flutter/issues/164568.
-      log2.warn(
+      log.warn(
         'Expected JSON encoding. See https://github.com/flutter/flutter/issues/164568.',
       );
       final encodedBytes = String.fromCharCodes(bytes);

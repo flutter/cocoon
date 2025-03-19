@@ -11,6 +11,6 @@ void main() {
   useTestLoggerPerTest();
 
   test('should create a BufferedLogger in every test instance', () {
-    expect(log2, isA<BufferedLogger>());
+    expect(log, isA<BufferedLogger>());
   });
 }

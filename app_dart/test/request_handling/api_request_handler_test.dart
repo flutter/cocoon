@@ -27,17 +27,12 @@ void main() {
     setUpAll(() async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       server.listen((HttpRequest request) {
-        final spec = ZoneSpecification(
-          print: (Zone self, ZoneDelegate parent, Zone zone, String line) {
-            log.fine(line);
-          },
-        );
         runZoned<dynamic>(() {
           return ss.fork(() {
             ss.register(#appengine.logging, log);
             return handler.service(request);
           });
-        }, zoneSpecification: spec);
+        });
       });
     });
 
@@ -67,7 +62,7 @@ void main() {
       final response = await issueRequest();
       expect(response.statusCode, HttpStatus.unauthorized);
       expect(await utf8.decoder.bind(response).join(), 'Not authenticated');
-      expect(log2, bufferedLoggerOf(isEmpty));
+      expect(log, bufferedLoggerOf(isEmpty));
     });
 
     test('empty request body yields empty requestData', () async {
@@ -77,7 +72,7 @@ void main() {
       expect(response.headers.value('X-Test-RequestData'), '{}');
       expect(response.statusCode, HttpStatus.ok);
       expect(await response.toList(), isEmpty);
-      expect(log2, bufferedLoggerOf(isEmpty));
+      expect(log, bufferedLoggerOf(isEmpty));
     });
 
     test('JSON request body yields valid requestData', () async {
@@ -87,7 +82,7 @@ void main() {
       expect(response.headers.value('X-Test-RequestData'), '{param1: value1}');
       expect(response.statusCode, HttpStatus.ok);
       expect(await response.toList(), isEmpty);
-      expect(log2, bufferedLoggerOf(isEmpty));
+      expect(log, bufferedLoggerOf(isEmpty));
     });
 
     test('non-JSON request body yields HTTP ok', () async {
@@ -97,7 +92,7 @@ void main() {
       expect(response.headers.value('X-Test-RequestBody'), '[97, 98, 99]');
       expect(response.headers.value('X-Test-RequestData'), '{}');
       expect(await response.toList(), isEmpty);
-      expect(log2, bufferedLoggerOf(isEmpty));
+      expect(log, bufferedLoggerOf(isEmpty));
     });
 
     test('can access authContext', () async {
@@ -105,7 +100,7 @@ void main() {
       final response = await issueRequest();
       expect(response.headers.value('X-Test-IsDev'), 'true');
       expect(response.statusCode, HttpStatus.ok);
-      expect(log2, bufferedLoggerOf(isEmpty));
+      expect(log, bufferedLoggerOf(isEmpty));
     });
 
     test(
@@ -126,7 +121,7 @@ void main() {
           body: '{"param1":"value1","param2":"value2","extra":"yes"}',
         );
         expect(response.statusCode, HttpStatus.ok);
-        expect(log2, bufferedLoggerOf(isEmpty));
+        expect(log, bufferedLoggerOf(isEmpty));
       },
     );
   });

@@ -34,7 +34,7 @@ final class GuaranteedPolicy implements SchedulerPolicy {
       (Task t) => t.taskName == taskName && t.commitSha == commitSha,
     );
     if (recentTasks.isEmpty) {
-      log2.warn(
+      log.warn(
         '$taskName is newly added, triggerring builds regardless of policy',
       );
       return LuciBuildService.kDefaultPriority;
@@ -75,7 +75,7 @@ final class BatchPolicy implements SchedulerPolicy {
       (Task t) => t.taskName == taskName && t.commitSha == commitSha,
     );
     if (recentTasks.length < kBatchSize) {
-      log2.warn(
+      log.warn(
         '$taskName has less than $kBatchSize, skip scheduling to wait for '
         'ci.yaml roll.',
       );

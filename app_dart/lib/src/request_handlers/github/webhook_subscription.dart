@@ -93,14 +93,14 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   @override
   Future<Body> post() async {
     if (message.data == null || message.data!.isEmpty) {
-      log2.warn('GitHub webhook message was empty. No-oping');
+      log.warn('GitHub webhook message was empty. No-oping');
       return Body.empty;
     }
 
     final webhook = pb.GithubWebhookMessage.fromJson(message.data!);
 
-    log2.info('Processing ${webhook.event}');
-    log2.debug(webhook.payload);
+    log.info('Processing ${webhook.event}');
+    log.debug(webhook.payload);
     switch (webhook.event) {
       case 'pull_request':
         await _handlePullRequest(webhook.payload);
@@ -119,12 +119,12 @@ class GithubWebhookSubscription extends SubscriptionHandler {
             :final error,
             :final stackTrace,
           ):
-            log2.error(message, error, stackTrace);
+            log.error(message, error, stackTrace);
             throw InternalServerError(
               'Failed to process check_run event. checkRunEvent: $checkRunEvent',
             );
           case RecoverableErrorResult(:final message):
-            log2.info(
+            log.info(
               'User error state for check_run event ($checkRunEvent): $message',
             );
             response!.statusCode = HttpStatus.badRequest;
@@ -155,7 +155,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         // dart-internal builds that are triggered by the initial branch
         // creation have an associated commit.
         if (candidateBranchRegex.hasMatch(createEvent.ref!)) {
-          log2.debug(
+          log.debug(
             'Branch ${createEvent.ref} is a candidate branch, creating new '
             'commit in the datastore',
           );
@@ -186,7 +186,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
     final slug = pr.base!.repo!.slug();
     if (!config.supportedRepos.contains(slug)) {
-      log2.warn(
+      log.warn(
         '$crumb: asked to handle unsupported repo $slug for ${pr.htmlUrl}',
       );
       throw const InternalServerError('Unsupported repository');
@@ -195,7 +195,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     // See the API reference:
     // https://developer.github.com/v3/activity/events/types/#pullrequestevent
     // which unfortunately is a bit light on explanations.
-    log2.info('$crumb: processing $eventAction for ${pr.htmlUrl}');
+    log.info('$crumb: processing $eventAction for ${pr.htmlUrl}');
     switch (eventAction) {
       case 'closed':
         await _processPullRequestClosed(pullRequestEvent);
@@ -217,7 +217,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         await _tryReleaseApproval(pullRequestEvent);
         break;
       case 'labeled':
-        log2.info(
+        log.info(
           '$crumb: PR labels = [${pr.labels?.map((label) => '"${label.name}"').join(', ')}]',
         );
         await _processLabels(pr);
@@ -282,21 +282,21 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
     // See the API reference:
     // https://docs.github.com/en/webhooks/webhook-events-and-payloads#merge_group
-    log2.info('Processing $action for merge queue @ $headSha');
+    log.info('Processing $action for merge queue @ $headSha');
     switch (action) {
       // A merge group (a group of PRs to be tested a merged together) was
       // created and Github is requesting checks to be performed before merging
       // into the main branch. Cocoon should kick off CI jobs needed to verify
       // the PR group.
       case 'checks_requested':
-        log2.info('Checks requests for merge queue @ $headSha');
+        log.info('Checks requests for merge queue @ $headSha');
 
         if (!await _shaExistsInGob(slug, headSha)) {
           throw InternalServerError(
             '$slug/$headSha was not found on GoB. Failing so this event can be retried',
           );
         }
-        log2.info(
+        log.info(
           '$slug/$headSha was found on GoB mirror. Scheduling merge group tasks',
         );
         await scheduler.triggerMergeGroupTargets(
@@ -308,15 +308,15 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       // stopped to save CI resources, as Github will no longer merge this group
       // into the main branch.
       case 'destroyed':
-        log2.info(
+        log.info(
           'Merge group destroyed for $slug/$headSha because it was $reason.',
         );
         if (reason == 'invalidated' || reason == 'dequeued') {
           await scheduler.cancelDestroyedMergeGroupTargets(headSha: headSha);
         } else if (reason == 'merged') {
-          log2.info('Merge group for $slug/$headSha was merged successfully.');
+          log.info('Merge group for $slug/$headSha was merged successfully.');
         } else {
-          log2.warn(
+          log.warn(
             'Unrecognized reason for merge group destroyed event: $reason',
           );
         }
@@ -376,7 +376,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     final pr = pullRequestEvent.pullRequest!;
     final slug = pullRequestEvent.repository!.slug();
 
-    log2.info(
+    log.info(
       'Scheduling tasks if mergeable(${pr.mergeable}): owner=${slug.owner} repo=${slug.name} and pr=${pr.number}',
     );
 
@@ -447,7 +447,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     );
 
     if (pr.merged!) {
-      log2.debug('Pull request ${pr.number} was closed and merged.');
+      log.debug('Pull request ${pr.number} was closed and merged.');
 
       // To avoid polluting the repo with temporary revert branches, delete the
       // branch after the reverted PR is merged.
@@ -467,7 +467,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       final isRevertPullRequest =
           pr.labels?.any((label) => label.name == Config.revertOfLabel) == true;
       if (isRevertPullRequest) {
-        log2.info(
+        log.info(
           'Revert merged successfully, deleting branch ${pr.head!.ref!}',
         );
         final slug = pullRequestEvent.repository!.slug();
@@ -476,7 +476,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       }
 
       if (await _commitExistsInGob(pr)) {
-        log2.debug(
+        log.debug(
           'Merged commit was found on GoB mirror. Scheduling postsubmit tasks...',
         );
         return scheduler.addPullRequest(pr);
@@ -538,7 +538,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
 
     final slug = pr.base!.repo!.slug();
-    log2.info(
+    log.info(
       'Applying framework repo labels for: owner=${slug.owner} repo=${slug.name} isFusion=$isFusion and pr=${pr.number}',
     );
 
@@ -989,11 +989,11 @@ The "Merge" button is also unlocked. To bypass presubmits as well as the tree st
       '$PullRequestLabelProcessor($slug/pull/$prNumber)';
 
   void logInfo(Object? message) {
-    log2.info('$logCrumb: $message');
+    log.info('$logCrumb: $message');
   }
 
   void logSevere(Object? message, {Object? error, StackTrace? stackTrace}) {
-    log2.error('$logCrumb: $message', error, stackTrace);
+    log.error('$logCrumb: $message', error, stackTrace);
   }
 
   Future<void> processLabels() async {

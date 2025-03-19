@@ -53,7 +53,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
   @override
   Future<Body> post() async {
     if (message.data == null) {
-      log2.info('no data in message');
+      log.info('no data in message');
       return Body.empty;
     }
 
@@ -71,34 +71,34 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       userDataMap =
           json.decode(String.fromCharCodes(pubSubCallBack.userData))
               as Map<String, dynamic>;
-      log2.info('User data was not base64 encoded.');
+      log.info('User data was not base64 encoded.');
     } on FormatException {
       userDataMap = UserData.decodeUserDataBytes(pubSubCallBack.userData);
-      log2.info('Decoding base64 encoded user data.');
+      log.info('Decoding base64 encoded user data.');
     }
 
     // collect userData
     if (userDataMap.isEmpty) {
-      log2.info('User data is empty');
+      log.info('User data is empty');
       return Body.empty;
     }
 
-    log2.debug('userData=$userDataMap');
+    log.debug('userData=$userDataMap');
 
     if (!buildsPubSub.hasBuild()) {
-      log2.warn('No build was found in message.');
+      log.warn('No build was found in message.');
       return Body.empty;
     }
 
     final build = buildsPubSub.build;
 
     // Note that result is no longer present in the output.
-    log2.debug('Updating buildId=${build.id} for result=${build.status}');
+    log.debug('Updating buildId=${build.id} for result=${build.status}');
 
     // Add build fields that are stored in a separate compressed buffer.
     build.mergeFromBuffer(ZLibCodec().decode(buildsPubSub.buildLargeFields));
 
-    log2.info('build ${build.toProto3Json()}');
+    log.info('build ${build.toProto3Json()}');
 
     final rawTaskKey = userDataMap['task_key'] as String?;
     final rawCommitKey = userDataMap['commit_key'] as String?;
@@ -117,7 +117,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     );
     Task? task;
     firestore.Task? firestoreTask;
-    log2.info(
+    log.info(
       'Looking up task document $kDatabase/documents/${firestore.kTaskCollectionId}/$taskDocumentName...',
     );
     final taskId = int.parse(rawTaskKey!);
@@ -128,13 +128,13 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       documentName:
           '$kDatabase/documents/${firestore.kTaskCollectionId}/$taskDocumentName',
     );
-    log2.info('Found $firestoreTask');
+    log.info('Found $firestoreTask');
 
     if (_shouldUpdateTask(build, firestoreTask)) {
       final oldTaskStatus = firestoreTask.status;
       firestoreTask.updateFromBuild(build);
 
-      log2.info('Updated firestore task $firestoreTask');
+      log.info('Updated firestore task $firestoreTask');
 
       task.updateFromBuildbucketBuild(build);
       await datastore.insert(<Task>[task]);
@@ -143,11 +143,11 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
         BatchWriteRequest(writes: writes),
         kDatabase,
       );
-      log2.debug(
+      log.debug(
         'Updated datastore from $oldTaskStatus to ${firestoreTask.status}',
       );
     } else {
-      log2.debug(
+      log.debug(
         'skip processing for build with status scheduled or task with status '
         'finished.',
       );
@@ -166,7 +166,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     if (!postsubmitTargets.any(
       (element) => element.value.name == firestoreTask!.taskName,
     )) {
-      log2.warn(
+      log.warn(
         'Target ${firestoreTask.taskName} has been deleted from TOT. Skip '
         'updating.',
       );
@@ -178,7 +178,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     if (firestoreTask.status == firestore.Task.statusFailed ||
         firestoreTask.status == firestore.Task.statusInfraFailure ||
         firestoreTask.status == firestore.Task.statusCancelled) {
-      log2.debug('Trying to auto-retry...');
+      log.debug('Trying to auto-retry...');
       final retried = await scheduler.luciBuildService.checkRerunBuilder(
         commit: commit,
         target: target,
@@ -187,13 +187,13 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
         taskDocument: firestoreTask,
         firestoreService: firestoreService,
       );
-      log2.info('Retried: $retried');
+      log.info('Retried: $retried');
     }
 
     // Only update GitHub checks if target is not bringup
     if (target.value.bringup == false &&
         config.postsubmitSupportedRepos.contains(target.slug)) {
-      log2.info('Updating check status for ${target.getTestName}');
+      log.info('Updating check status for ${target.getTestName}');
       await githubChecksService.updateCheckStatus(
         build: build,
         checkRunId: userDataMap['check_run_id'] as int,

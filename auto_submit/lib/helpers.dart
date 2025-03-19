@@ -22,7 +22,7 @@ Future<void> serveHandler(Handler handler) async {
     InternetAddress.anyIPv4, // Allows external connections
     port,
   );
-  log2.info('Serving at http://${server.address.host}:${server.port}');
+  log.info('Serving at http://${server.address.host}:${server.port}');
 
   await terminateRequestFuture();
 
@@ -42,7 +42,7 @@ class LoggingHandler {
     try {
       return await _delegate(request);
     } catch (e, s) {
-      log2.error('Uncaught exception in HTTP handler', e, s);
+      log.error('Uncaught exception in HTTP handler', e, s);
       rethrow;
     }
   }
@@ -68,7 +68,7 @@ Future<void> terminateRequestFuture() {
   StreamSubscription? sigIntSub, sigTermSub;
 
   Future<void> signalHandler(ProcessSignal signal) async {
-    log2.info('Received signal $signal - closing');
+    log.info('Received signal $signal - closing');
 
     final subCopy = sigIntSub;
     if (subCopy != null) {

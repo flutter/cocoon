@@ -43,12 +43,12 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
   @override
   Future<Body> post() async {
     if (message.data == null) {
-      log2.info('no data in message');
+      log.info('no data in message');
       throw const BadRequestException('no data in message');
     }
 
     // final String data = message.data!;
-    log2.debug('attempting to read message ${message.data}');
+    log.debug('attempting to read message ${message.data}');
 
     final batchRequest = bbv2.BatchRequest.create();
 
@@ -57,7 +57,7 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
       jsonDecode(message.data!) as Map<String, dynamic>,
     );
 
-    log2.info(
+    log.info(
       'Read the following data: ${batchRequest.toProto3Json().toString()}',
     );
 
@@ -88,7 +88,7 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
         }
       }, retryIf: (Exception e) => e is InternalServerError);
     } catch (e) {
-      log2.warn(
+      log.warn(
         'Failed to schedule builds on exception: $unscheduledWarning.',
         e,
       );
@@ -117,7 +117,7 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
       if (url == null ||
           pathSegments.length != 2 ||
           int.tryParse(checkRunId ?? '') == null) {
-        log2.warn('missing url / github_checkrun for $builder');
+        log.warn('missing url / github_checkrun for $builder');
         continue;
       }
 
@@ -154,7 +154,7 @@ ${errors.isEmpty ? 'unknown' : errors.map((t) => t.trim()).join('\n')}
   /// Returns [List<bbv2.BatchRequest_Request>] of requests that need to be retried.
   Future<({List<bbv2.BatchRequest_Request> retries, List<String> errors})>
   _sendBatchRequest(bbv2.BatchRequest request) async {
-    log2.info('Sending batch request for ${request.toProto3Json().toString()}');
+    log.info('Sending batch request for ${request.toProto3Json().toString()}');
 
     final errors = <String>[];
 
@@ -162,14 +162,14 @@ ${errors.isEmpty ? 'unknown' : errors.map((t) => t.trim()).join('\n')}
     try {
       response = await buildBucketClient.batch(request);
     } catch (e) {
-      log2.error('Exception making batch Requests.', e);
+      log.error('Exception making batch Requests.', e);
       rethrow;
     }
 
-    log2.info(
+    log.info(
       'Made ${request.requests.length} and received ${response.responses.length}',
     );
-    log2.info('Responses: ${response.responses}');
+    log.info('Responses: ${response.responses}');
 
     final retry = <bbv2.BatchRequest_Request>[...request.requests];
     for (final batchResponseResponse in response.responses) {
@@ -180,7 +180,7 @@ ${errors.isEmpty ? 'unknown' : errors.map((t) => t.trim()).join('\n')}
               batchResponseResponse.scheduleBuild.builder,
         );
       } else {
-        log2.warn(
+        log.warn(
           'Response does not have schedule build: $batchResponseResponse',
         );
         errors.add('$batchResponseResponse');
@@ -188,7 +188,7 @@ ${errors.isEmpty ? 'unknown' : errors.map((t) => t.trim()).join('\n')}
 
       if (batchResponseResponse.hasError() &&
           batchResponseResponse.error.code != 0) {
-        log2.info('Non-zero grpc code: $batchResponseResponse');
+        log.info('Non-zero grpc code: $batchResponseResponse');
       }
     }
 

@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
@@ -20,7 +21,6 @@ import 'package:googleapis/firestore/v1.dart';
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
@@ -52,8 +52,6 @@ void main() {
     late MockClient mockHttpClient;
     late RepositorySlug slug;
     late RetryOptions retryOptions;
-
-    final records = <LogRecord>[];
 
     setUp(() {
       clientContext = FakeClientContext();
@@ -103,8 +101,6 @@ void main() {
 
       slug = RepositorySlug('flutter', 'flutter');
       checkRuns.clear();
-      records.clear();
-      log.onRecord.listen(records.add);
     });
 
     group('in development environment', () {
@@ -250,14 +246,7 @@ void main() {
           prsFromGitHub = <PullRequest>[];
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(
-            records.where((LogRecord record) => record.level == Level.WARNING),
-            isEmpty,
-          );
-          expect(
-            records.where((LogRecord record) => record.level == Level.SEVERE),
-            isEmpty,
-          );
+          expect(log, hasNoWarningsOrHigher);
         });
 
         test(
@@ -281,16 +270,7 @@ void main() {
 
             final body = await tester.get<Body>(handler);
             expect(body, same(Body.empty));
-            expect(
-              records.where(
-                (LogRecord record) => record.level == Level.WARNING,
-              ),
-              isEmpty,
-            );
-            expect(
-              records.where((LogRecord record) => record.level == Level.SEVERE),
-              isEmpty,
-            );
+            expect(log, hasNoWarningsOrHigher);
 
             // Should not apply labels or make comments
             verifyNever(
@@ -324,16 +304,7 @@ void main() {
             githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
             final body = await tester.get<Body>(handler);
             expect(body, same(Body.empty));
-            expect(
-              records.where(
-                (LogRecord record) => record.level == Level.WARNING,
-              ),
-              isEmpty,
-            );
-            expect(
-              records.where((LogRecord record) => record.level == Level.SEVERE),
-              isEmpty,
-            );
+            expect(log, hasNoWarningsOrHigher);
 
             // Should not apply labels or make comments
             verifyNever(
@@ -383,14 +354,7 @@ void main() {
           verifyNever(
             mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
           );
-          expect(
-            records.where((LogRecord record) => record.level == Level.WARNING),
-            isEmpty,
-          );
-          expect(
-            records.where((LogRecord record) => record.level == Level.SEVERE),
-            isEmpty,
-          );
+          expect(log, hasNoWarningsOrHigher);
 
           // Should not apply labels or make comments
           verifyNever(
@@ -439,14 +403,7 @@ void main() {
           verifyNever(
             mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
           );
-          expect(
-            records.where((LogRecord record) => record.level == Level.WARNING),
-            isEmpty,
-          );
-          expect(
-            records.where((LogRecord record) => record.level == Level.SEVERE),
-            isEmpty,
-          );
+          expect(log, hasNoWarningsOrHigher);
 
           // Should not apply labels or make comments
           verifyNever(
@@ -528,16 +485,7 @@ void main() {
             verifyNever(
               mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
             );
-            expect(
-              records.where(
-                (LogRecord record) => record.level == Level.WARNING,
-              ),
-              isEmpty,
-            );
-            expect(
-              records.where((LogRecord record) => record.level == Level.SEVERE),
-              isEmpty,
-            );
+            expect(log, hasNoWarningsOrHigher);
 
             // Should not apply labels or make comments
             verifyNever(
@@ -578,16 +526,7 @@ void main() {
             verifyNever(
               mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
             );
-            expect(
-              records.where(
-                (LogRecord record) => record.level == Level.WARNING,
-              ),
-              isEmpty,
-            );
-            expect(
-              records.where((LogRecord record) => record.level == Level.SEVERE),
-              isEmpty,
-            );
+            expect(log, hasNoWarningsOrHigher);
 
             // Should not apply labels or make comments
             verifyNever(
@@ -626,14 +565,7 @@ void main() {
           verifyNever(
             mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
           );
-          expect(
-            records.where((LogRecord record) => record.level == Level.WARNING),
-            isEmpty,
-          );
-          expect(
-            records.where((LogRecord record) => record.level == Level.SEVERE),
-            isEmpty,
-          );
+          expect(log, hasNoWarningsOrHigher);
 
           // Should not apply labels or make comments
           verifyNever(
@@ -665,14 +597,7 @@ void main() {
           verifyNever(
             mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
           );
-          expect(
-            records.where((LogRecord record) => record.level == Level.WARNING),
-            isEmpty,
-          );
-          expect(
-            records.where((LogRecord record) => record.level == Level.SEVERE),
-            isEmpty,
-          );
+          expect(log, hasNoWarningsOrHigher);
 
           // Should not apply labels or make comments
           verifyNever(
@@ -720,16 +645,7 @@ void main() {
             verifyNever(
               mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
             );
-            expect(
-              records.where(
-                (LogRecord record) => record.level == Level.WARNING,
-              ),
-              isEmpty,
-            );
-            expect(
-              records.where((LogRecord record) => record.level == Level.SEVERE),
-              isEmpty,
-            );
+            expect(log, hasNoWarningsOrHigher);
 
             // Should not apply labels, should comment to update
             verifyNever(
@@ -780,14 +696,7 @@ void main() {
           verifyNever(
             mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
           );
-          expect(
-            records.where((LogRecord record) => record.level == Level.WARNING),
-            isEmpty,
-          );
-          expect(
-            records.where((LogRecord record) => record.level == Level.SEVERE),
-            isEmpty,
-          );
+          expect(log, hasNoWarningsOrHigher);
 
           // Should not apply labels or make comments
           verifyNever(
@@ -831,14 +740,7 @@ void main() {
           verifyNever(
             mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
           );
-          expect(
-            records.where((LogRecord record) => record.level == Level.WARNING),
-            isEmpty,
-          );
-          expect(
-            records.where((LogRecord record) => record.level == Level.SEVERE),
-            isEmpty,
-          );
+          expect(log, hasNoWarningsOrHigher);
 
           // Should not apply labels or make comments
           verifyNever(
@@ -880,14 +782,7 @@ void main() {
           expect(body, same(Body.empty));
           expect(status.updates, 1);
           expect(status.status, GithubGoldStatusUpdate.statusRunning);
-          expect(
-            records.where((LogRecord record) => record.level == Level.WARNING),
-            isEmpty,
-          );
-          expect(
-            records.where((LogRecord record) => record.level == Level.SEVERE),
-            isEmpty,
-          );
+          expect(log, hasNoWarningsOrHigher);
 
           final captured =
               verify(
@@ -959,14 +854,7 @@ void main() {
           expect(body, same(Body.empty));
           expect(status.updates, 1);
           expect(status.status, GithubGoldStatusUpdate.statusCompleted);
-          expect(
-            records.where((LogRecord record) => record.level == Level.WARNING),
-            isEmpty,
-          );
-          expect(
-            records.where((LogRecord record) => record.level == Level.SEVERE),
-            isEmpty,
-          );
+          expect(log, hasNoWarningsOrHigher);
 
           final captured =
               verify(
@@ -1039,14 +927,7 @@ void main() {
           expect(body, same(Body.empty));
           expect(status.updates, 1);
           expect(status.status, GithubGoldStatusUpdate.statusCompleted);
-          expect(
-            records.where((LogRecord record) => record.level == Level.WARNING),
-            isEmpty,
-          );
-          expect(
-            records.where((LogRecord record) => record.level == Level.SEVERE),
-            isEmpty,
-          );
+          expect(log, hasNoWarningsOrHigher);
 
           final captured =
               verify(
@@ -1139,14 +1020,7 @@ void main() {
           expect(body, same(Body.empty));
           expect(status.updates, 1);
           expect(status.status, GithubGoldStatusUpdate.statusCompleted);
-          expect(
-            records.where((LogRecord record) => record.level == Level.WARNING),
-            isEmpty,
-          );
-          expect(
-            records.where((LogRecord record) => record.level == Level.SEVERE),
-            isEmpty,
-          );
+          expect(log, hasNoWarningsOrHigher);
 
           final captured =
               verify(
@@ -1234,16 +1108,7 @@ void main() {
             expect(body, same(Body.empty));
             expect(status.updates, 1);
             expect(status.status, GithubGoldStatusUpdate.statusRunning);
-            expect(
-              records.where(
-                (LogRecord record) => record.level == Level.WARNING,
-              ),
-              isEmpty,
-            );
-            expect(
-              records.where((LogRecord record) => record.level == Level.SEVERE),
-              isEmpty,
-            );
+            expect(log, hasNoWarningsOrHigher);
 
             final captured =
                 verify(
@@ -1343,16 +1208,7 @@ void main() {
             final body = await tester.get<Body>(handler);
             expect(body, same(Body.empty));
             expect(status.updates, 1);
-            expect(
-              records.where(
-                (LogRecord record) => record.level == Level.WARNING,
-              ),
-              isEmpty,
-            );
-            expect(
-              records.where((LogRecord record) => record.level == Level.SEVERE),
-              isEmpty,
-            );
+            expect(log, hasNoWarningsOrHigher);
 
             final captured =
                 verify(
@@ -1452,16 +1308,7 @@ void main() {
             final body = await tester.get<Body>(handler);
             expect(body, same(Body.empty));
             expect(status.updates, 1);
-            expect(
-              records.where(
-                (LogRecord record) => record.level == Level.WARNING,
-              ),
-              isEmpty,
-            );
-            expect(
-              records.where((LogRecord record) => record.level == Level.SEVERE),
-              isEmpty,
-            );
+            expect(log, hasNoWarningsOrHigher);
 
             final captured =
                 verify(
@@ -1575,16 +1422,7 @@ void main() {
             expect(body, same(Body.empty));
             expect(status.updates, 1);
             expect(status.status, GithubGoldStatusUpdate.statusCompleted);
-            expect(
-              records.where(
-                (LogRecord record) => record.level == Level.WARNING,
-              ),
-              isEmpty,
-            );
-            expect(
-              records.where((LogRecord record) => record.level == Level.SEVERE),
-              isEmpty,
-            );
+            expect(log, hasNoWarningsOrHigher);
 
             final captured =
                 verify(
@@ -1660,16 +1498,7 @@ void main() {
             final body = await tester.get<Body>(handler);
             expect(body, same(Body.empty));
             expect(status.updates, 0);
-            expect(
-              records.where(
-                (LogRecord record) => record.level == Level.WARNING,
-              ),
-              isEmpty,
-            );
-            expect(
-              records.where((LogRecord record) => record.level == Level.SEVERE),
-              isEmpty,
-            );
+            expect(log, hasNoWarningsOrHigher);
             verifyNever(
               mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
             );
@@ -1732,16 +1561,7 @@ void main() {
             final body = await tester.get<Body>(handler);
             expect(body, same(Body.empty));
             expect(status.updates, 0);
-            expect(
-              records.where(
-                (LogRecord record) => record.level == Level.WARNING,
-              ),
-              isEmpty,
-            );
-            expect(
-              records.where((LogRecord record) => record.level == Level.SEVERE),
-              isEmpty,
-            );
+            expect(log, hasNoWarningsOrHigher);
             verifyNever(
               mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
             );
@@ -1786,16 +1606,7 @@ void main() {
             expect(body, same(Body.empty));
             expect(status.updates, 1);
             expect(status.status, GithubGoldStatusUpdate.statusRunning);
-            expect(
-              records.where(
-                (LogRecord record) => record.level == Level.WARNING,
-              ),
-              isEmpty,
-            );
-            expect(
-              records.where((LogRecord record) => record.level == Level.SEVERE),
-              isEmpty,
-            );
+            expect(log, hasNoWarningsOrHigher);
 
             final captured =
                 verify(
@@ -1920,14 +1731,7 @@ void main() {
             githubGoldStatusNext!.status,
             GithubGoldStatusUpdate.statusCompleted,
           );
-          expect(
-            records.where((LogRecord record) => record.level == Level.WARNING),
-            isEmpty,
-          );
-          expect(
-            records.where((LogRecord record) => record.level == Level.SEVERE),
-            isEmpty,
-          );
+          expect(log, hasNoWarningsOrHigher);
         },
       );
 
@@ -1965,14 +1769,7 @@ void main() {
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 0);
-          expect(
-            records.where((LogRecord record) => record.level == Level.WARNING),
-            isEmpty,
-          );
-          expect(
-            records.where((LogRecord record) => record.level == Level.SEVERE),
-            isEmpty,
-          );
+          expect(log, hasNoWarningsOrHigher);
           verifyNever(
             mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
           );
