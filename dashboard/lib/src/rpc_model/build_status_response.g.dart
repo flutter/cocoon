@@ -11,7 +11,7 @@ BuildStatusResponse _$BuildStatusResponseFromJson(Map<String, dynamic> json) =>
       final val = BuildStatusResponse(
         buildStatus: $checkedConvert(
           'buildStatus',
-          (v) => BuildStatus._byValue((v as num).toInt()),
+          (v) => BuildStatus._byName(v as String),
         ),
         failingTasks: $checkedConvert(
           'failingTasks',
@@ -24,6 +24,6 @@ BuildStatusResponse _$BuildStatusResponseFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$BuildStatusResponseToJson(
   BuildStatusResponse instance,
 ) => <String, dynamic>{
-  'buildStatus': BuildStatus._toValue(instance.buildStatus),
+  'buildStatus': BuildStatus._toName(instance.buildStatus),
   'failingTasks': instance.failingTasks,
 };
