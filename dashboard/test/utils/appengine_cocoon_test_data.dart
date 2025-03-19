@@ -121,8 +121,9 @@ const String jsonGetReposResponse = '''
   ]
 ''';
 
-const String jsonBuildStatusTrueResponse = '{"1":1}';
+const String jsonBuildStatusTrueResponse = '{"buildStatus":"success"}';
 
-const String jsonBuildStatusFalseResponse = '{"1":2,"2":["failed_task_1"]}';
+const String jsonBuildStatusFalseResponse =
+    '{"buildStatus":"failure","failingTasks":["failed_task_1"]}';
 
 const String baseApiUrl = 'https://flutter-dashboard.appspot.com';

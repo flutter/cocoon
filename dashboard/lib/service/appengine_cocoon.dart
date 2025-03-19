@@ -9,7 +9,6 @@ import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 
-import '../model/build_status_response.pb.dart';
 import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
 import '../model/key.pb.dart';
@@ -145,7 +144,9 @@ class AppEngineCocoonService implements CocoonService {
 
     BuildStatusResponse protoResponse;
     try {
-      protoResponse = BuildStatusResponse.fromJson(response.body);
+      protoResponse = BuildStatusResponse.fromJson(
+        jsonDecode(response.body) as Map<String, Object?>,
+      );
     } on FormatException {
       return const CocoonResponse<BuildStatusResponse>.error(
         '/api/public/build-status had a malformed response',
