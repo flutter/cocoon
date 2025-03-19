@@ -4,6 +4,7 @@
 
 import 'dart:mirrors';
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
@@ -32,6 +33,8 @@ const Map<Symbol, Symbol> propertyAnnotationsTypeToFieldType = <Symbol, Symbol>{
 };
 
 void main() {
+  useTestLoggerPerTest();
+
   final libraries = currentMirrorSystem().libraries.entries
       .where(
         (MapEntry<Uri, LibraryMirror> entry) =>

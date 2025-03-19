@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/protos.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -18,6 +19,8 @@ import '../src/request_handling/fake_pubsub.dart';
 import '../src/request_handling/request_handler_tester.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late GithubWebhook webhook;
   late FakeConfig config;
   late FakeHttpRequest request;

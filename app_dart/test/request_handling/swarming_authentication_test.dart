@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/request_handling/swarming_authentication.dart';
 import 'package:cocoon_service/src/service/config.dart';
@@ -16,6 +17,8 @@ import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('SwarmingAuthenticationProvider', () {
     late FakeConfig config;
     late FakeClientContext clientContext;

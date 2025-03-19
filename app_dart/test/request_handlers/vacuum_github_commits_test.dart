@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/request_handlers/vacuum_github_commits.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
@@ -24,11 +25,11 @@ import '../src/service/fake_scheduler.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('VacuumGithubCommits', () {
     late FakeConfig config;
-    FakeAuthenticationProvider auth;
     late FakeDatastoreDB db;
-    FakeScheduler scheduler;
     late ApiRequestHandlerTester tester;
     late MockFirestoreService mockFirestoreService;
     late VacuumGithubCommits handler;
@@ -107,8 +108,8 @@ void main() {
         },
       );
 
-      auth = FakeAuthenticationProvider();
-      scheduler = FakeScheduler(config: config);
+      final auth = FakeAuthenticationProvider();
+      final scheduler = FakeScheduler(config: config);
       tester = ApiRequestHandlerTester();
       handler = VacuumGithubCommits(
         config: config,

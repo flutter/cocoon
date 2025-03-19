@@ -6,7 +6,9 @@ import 'dart:convert';
 import 'dart:core';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
@@ -24,7 +26,6 @@ import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/datastore.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
-import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -39,18 +40,23 @@ import '../src/utilities/mocks.dart';
 import '../src/utilities/webhook_generators.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late CacheService cache;
   late FakeConfig config;
-  FakeGithubService githubService;
   late MockBuildBucketClient mockBuildBucketClient;
   late LuciBuildService service;
-  var mockGithubChecksUtil = MockGithubChecksUtil();
+  late MockGithubChecksUtil mockGithubChecksUtil;
   late FakePubSub pubsub;
 
   final targets = <Target>[
     generateTarget(1, properties: <String, String>{'os': 'abc'}),
   ];
   final pullRequest = generatePullRequest(id: 1, repo: 'cocoon');
+
+  setUp(() {
+    mockGithubChecksUtil = MockGithubChecksUtil();
+  });
 
   group('getBuilds', () {
     final macBuild = generateBbv2Build(
@@ -67,7 +73,7 @@ void main() {
 
     setUp(() {
       cache = CacheService(inMemory: true);
-      githubService = FakeGithubService();
+      final githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
@@ -159,7 +165,7 @@ void main() {
   group('getBuilders', () {
     setUp(() {
       cache = CacheService(inMemory: true);
-      githubService = FakeGithubService();
+      final githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
@@ -266,7 +272,7 @@ void main() {
 
     setUp(() {
       cache = CacheService(inMemory: true);
-      githubService = FakeGithubService();
+      final githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
@@ -330,13 +336,12 @@ void main() {
       firestoreService = MockFirestoreService();
       callbacks = MockCallbacks();
       cache = CacheService(inMemory: true);
-      githubService = FakeGithubService();
+      final githubService = FakeGithubService();
       config = FakeConfig(
         githubService: githubService,
         firestoreService: firestoreService,
       );
       mockBuildBucketClient = MockBuildBucketClient();
-      mockGithubChecksUtil = MockGithubChecksUtil();
       pubsub = FakePubSub();
       gerritService = FakeGerritService(branchesValue: <String>['master']);
       service = LuciBuildService(
@@ -554,18 +559,11 @@ void main() {
     });
 
     group('CIPD', () {
-      late List<String> logs;
+      final loggedFallingBackToDefaultRecipe = bufferedLoggerOf(
+        contains(logThat(message: contains('Falling back to default recipe'))),
+      );
 
       setUp(() {
-        logs = [];
-        log = Logger.detached('luci_build_service_test.scheduleTryBuilds.CIPD');
-        log.onRecord.listen((r) {
-          logs.add(r.message);
-          if (r.stackTrace case final stackTrace?) {
-            printOnFailure('$stackTrace');
-          }
-        });
-
         when(
           // ignore: discarded_futures
           mockGithubChecksUtil.createCheckRun(any, any, any, any),
@@ -582,10 +580,6 @@ void main() {
         });
       });
 
-      tearDown(() {
-        printOnFailure(logs.join('\n'));
-      });
-
       test(
         'uses the default recipe without warning outside of flutter/flutter',
         () async {
@@ -598,10 +592,7 @@ void main() {
             ),
           );
 
-          expect(
-            logs,
-            isNot(contains(contains('Falling back to default recipe'))),
-          );
+          expect(log2, isNot(loggedFallingBackToDefaultRecipe));
 
           final scheduleBuild =
               pubsub.messages.first['requests'].first['scheduleBuild']
@@ -625,10 +616,7 @@ void main() {
             ),
           );
 
-          expect(
-            logs,
-            isNot(contains(contains('Falling back to default recipe'))),
-          );
+          expect(log2, isNot(loggedFallingBackToDefaultRecipe));
 
           final scheduleBuild =
               pubsub.messages.first['requests'].first['scheduleBuild']
@@ -655,7 +643,7 @@ void main() {
             ),
           );
 
-          expect(logs, contains(contains('Falling back to default recipe')));
+          expect(log2, loggedFallingBackToDefaultRecipe);
 
           final scheduleBuild =
               pubsub.messages.first['requests'].first['scheduleBuild']
@@ -684,10 +672,7 @@ void main() {
           ),
         );
 
-        expect(
-          logs,
-          isNot(contains(contains('Falling back to default recipe'))),
-        );
+        expect(log2, isNot(loggedFallingBackToDefaultRecipe));
 
         final scheduleBuild =
             pubsub.messages.first['requests'].first['scheduleBuild']
@@ -1626,7 +1611,7 @@ void main() {
   group('failedBuilds', () {
     setUp(() {
       cache = CacheService(inMemory: true);
-      githubService = FakeGithubService();
+      final githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
@@ -1781,7 +1766,6 @@ void main() {
     late Commit commit;
     late Commit totCommit;
     late DatastoreService datastore;
-    late MockGithubChecksUtil mockGithubChecksUtil;
     late MockFirestoreService mockFirestoreService;
     firestore.Task? firestoreTask;
     firestore_commit.Commit? firestoreCommit;
@@ -1790,7 +1774,6 @@ void main() {
       config = FakeConfig();
       firestoreTask = null;
       firestoreCommit = null;
-      mockGithubChecksUtil = MockGithubChecksUtil();
       mockFirestoreService = MockFirestoreService();
       mockBuildBucketClient = MockBuildBucketClient();
       when(
@@ -2098,7 +2081,6 @@ void main() {
   });
 
   group('scheduleMergeGroupBuilds', () {
-    late MockGithubChecksUtil mockGithubChecksUtil;
     late MockFirestoreService mockFirestoreService;
     firestore_commit.Commit? firestoreCommit;
     setUp(() {
@@ -2128,7 +2110,6 @@ void main() {
         );
       });
 
-      mockGithubChecksUtil = MockGithubChecksUtil();
       when(
         // ignore: discarded_futures
         mockGithubChecksUtil.createCheckRun(

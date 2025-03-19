@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:github/github.dart';
@@ -15,6 +16,8 @@ import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('PrCheckRuns', () {
     late MockFirestoreService firestoreService;
 

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
@@ -13,6 +14,8 @@ import '../../src/datastore/fake_datastore.dart';
 import '../../src/utilities/entity_generators.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('Commit.composeKey', () {
     test('creates valid key', () {
       final db = FakeDatastoreDB();

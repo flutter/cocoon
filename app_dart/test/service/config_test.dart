@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
@@ -11,6 +12,8 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_datastore.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('Config', () {
     FakeDatastoreDB datastore;
     late CacheService cacheService;

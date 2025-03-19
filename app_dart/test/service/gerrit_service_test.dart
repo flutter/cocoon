@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/gerrit_service.dart';
@@ -18,8 +19,11 @@ import '../src/service/fake_auth_client.dart';
 import '../src/utilities/matchers.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late MockClient mockHttpClient;
   late GerritService gerritService;
+
   group('getBranches', () {
     test('Too many retries raise an exception', () async {
       mockHttpClient = MockClient(

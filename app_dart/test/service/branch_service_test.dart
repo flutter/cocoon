@@ -2,14 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/gerrit/commit.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:github/github.dart' as gh;
-import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
@@ -20,11 +21,12 @@ import '../src/utilities/matchers.dart';
 import '../src/utilities/mocks.mocks.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late MockConfig config;
   late BranchService branchService;
   late FakeGerritService gerritService;
   late MockGithubService githubService;
-  late List<String> logs;
 
   setUp(() {
     githubService = MockGithubService();
@@ -40,24 +42,6 @@ void main() {
       gerritService: gerritService,
       retryOptions: const RetryOptions(maxDelay: Duration.zero),
     );
-
-    // TODO(matanlurey): Refactor into test appliance. See https://github.com/flutter/flutter/issues/164652.
-    logs = [];
-    log = Logger.detached('branch_service_test');
-    log.onRecord.listen((r) {
-      final buffer = StringBuffer(r.message);
-      if (r.error != null) {
-        buffer.writeln(r.error);
-      }
-      if (r.stackTrace != null) {
-        buffer.writeln(r.stackTrace);
-      }
-      logs.add('$buffer');
-    });
-  });
-
-  tearDown(() {
-    printOnFailure(logs.join('\n'));
   });
 
   group('getReleaseBranches', () {
@@ -166,10 +150,14 @@ void main() {
           ]),
         );
         expect(
-          logs,
-          contains(
+          log2,
+          bufferedLoggerOf(
             contains(
-              'Could not resolve release branch for "beta-will-be-missing"',
+              logThat(
+                message: contains(
+                  'Could not resolve release branch for "beta-will-be-missing"',
+                ),
+              ),
             ),
           ),
         );

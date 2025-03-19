@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cocoon_server/logging.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore;
@@ -13,7 +13,6 @@ import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as p;
 import 'package:retry/retry.dart';
@@ -25,6 +24,8 @@ import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.mocks.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   // githubFileContent, which is what downloads .ci.yaml, has logic that looks
   // at the length of the SHA to determine whether is a branch name or a SHA
   // reference, so these need to be "real" (40 character-length) SHAs.
@@ -32,8 +33,6 @@ void main() {
   const totSha = 'bf58e0e6dffbfd759a3b2b5c56a2b5b115506c91';
   assert(currentSha.length >= 40);
   assert(totSha.length >= 40);
-
-  late List<String> logs;
 
   late CacheService cache;
   late FakeConfig config;
@@ -45,10 +44,6 @@ void main() {
   late CiYamlFetcher ciYamlFetcher;
 
   setUp(() {
-    logs = [];
-    log = Logger.detached('ci_yaml_fetcher_test');
-    log.onRecord.listen((r) => logs.add(r.message));
-
     cache = CacheService(inMemory: true);
     config = FakeConfig();
     fusionTester = FakeFusionTester();
@@ -71,10 +66,6 @@ void main() {
       httpClientProvider: () => httpClient,
       retryOptions: const RetryOptions(maxAttempts: 1),
     );
-  });
-
-  tearDown(() {
-    printOnFailure(logs.join('\n'));
   });
 
   void mockFillFirestore({

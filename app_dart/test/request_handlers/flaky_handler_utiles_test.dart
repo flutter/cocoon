@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/protos.dart' as pb;
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import 'package:cocoon_service/src/service/config.dart';
@@ -14,6 +15,8 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_config.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('Gets test ownership', () {
     String testOwnersContent;
 

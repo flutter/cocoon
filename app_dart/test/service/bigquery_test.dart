@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -47,6 +48,8 @@ const String jobNotCompleteResponse = '''
 const String expectedProjectId = 'project-id';
 
 void main() {
+  useTestLoggerPerTest();
+
   late FakeBigqueryService service;
   late MockJobsResource jobsResource;
   setUp(() {

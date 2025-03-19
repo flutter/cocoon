@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/request_handlers/flush_cache.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
@@ -16,6 +17,8 @@ import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('FlushCache', () {
     FakeConfig config;
     late ApiRequestHandlerTester tester;

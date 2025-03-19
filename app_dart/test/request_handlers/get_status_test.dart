@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/stage.dart';
 import 'package:cocoon_service/src/request_handlers/get_status.dart';
@@ -20,6 +21,8 @@ import '../src/service/fake_build_status_provider.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('GetStatus', () {
     late FakeConfig config;
     FakeClientContext clientContext;

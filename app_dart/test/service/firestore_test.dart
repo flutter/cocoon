@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_server/access_client_provider.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:test/test.dart';
@@ -10,6 +11,8 @@ import 'package:test/test.dart';
 import '../src/utilities/entity_generators.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   test('creates writes correctly from documents', () async {
     final documents = <Document>[
       Document(

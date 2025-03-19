@@ -11,10 +11,12 @@ import 'package:auto_submit/model/pull_request_data_types.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
 import 'package:auto_submit/validations/validation.dart';
+import 'package:cocoon_common/cocoon_common.dart';
+import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:github/github.dart' as github;
-import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
 import '../configuration/repository_configuration_data.dart';
@@ -26,11 +28,12 @@ import '../utilities/utils.dart';
 import 'ci_successful_test_data.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late CiSuccessful ciSuccessful;
   late FakeConfig config;
-  var githubService = FakeGithubService();
+  late FakeGithubService githubService;
   late FakeGraphQLClient githubGraphQLClient;
-  final gitHub = MockGitHub();
   late github.RepositorySlug slug;
   late Set<FailureDetail> failures;
   const prNumber = 1;
@@ -59,7 +62,9 @@ void main() {
 
   /// Setup objects needed across test groups.
   setUp(() {
+    githubService = FakeGithubService();
     githubGraphQLClient = FakeGraphQLClient();
+    final gitHub = MockGitHub();
     config = FakeConfig(
       githubService: githubService,
       githubGraphQLClient: githubGraphQLClient,
@@ -515,41 +520,41 @@ void main() {
 
         convertContextNodeStatuses(contextNodeList);
 
-        final logWarnings = <LogRecord>[];
-        final subscription = log.onRecord.listen((record) {
-          if (record.level == Level.WARNING) {
-            logWarnings.add(record);
-          }
-        });
+        ciSuccessful.validateStatuses(
+          slug,
+          prNumber,
+          PullRequestState.open,
+          author,
+          labelNames,
+          contextNodeList,
+          failures,
+          allSuccess,
+        );
 
-        try {
-          ciSuccessful.validateStatuses(
-            slug,
-            prNumber,
-            PullRequestState.open,
-            author,
-            labelNames,
-            contextNodeList,
-            failures,
-            allSuccess,
-          );
-          expect(logWarnings.length, 1);
+        expect(
+          log2,
+          bufferedLoggerOf(
+            contains(
+              logThat(
+                severity: equals(Severity.warning),
+                message: contains('has been running over 2 hours'),
+              ),
+            ),
+          ),
+        );
+        clearTestLogger();
 
-          logWarnings.clear();
-          ciSuccessful.validateStatuses(
-            slug,
-            prNumber,
-            PullRequestState.closed,
-            author,
-            labelNames,
-            contextNodeList,
-            failures,
-            allSuccess,
-          );
-          expect(logWarnings.length, 0);
-        } finally {
-          await subscription.cancel();
-        }
+        ciSuccessful.validateStatuses(
+          slug,
+          prNumber,
+          PullRequestState.closed,
+          author,
+          labelNames,
+          contextNodeList,
+          failures,
+          allSuccess,
+        );
+        expect(log2, hasNoWarningsOrHigher);
       },
     );
   });

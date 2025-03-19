@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/firestore/commit_tasks_status.dart';
@@ -21,6 +22,8 @@ import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('GetStatusFirestore', () {
     late FakeConfig config;
     FakeClientContext clientContext;

@@ -5,8 +5,10 @@
 import 'dart:async';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' hide CheckRun;
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
@@ -19,7 +21,6 @@ import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' hide Branch;
 import 'package:googleapis/bigquery/v2.dart';
-import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -37,6 +38,8 @@ import '../../src/utilities/mocks.dart';
 import '../../src/utilities/webhook_generators.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late GithubWebhookSubscription webhook;
   late FakeBuildBucketClient fakeBuildBucketClient;
   late FakeConfig config;
@@ -841,28 +844,30 @@ void main() {
     test('logs pull_request/labeled events', () async {
       const prNumber = 123;
 
-      final records = <String>[];
-      final subscription = log.onRecord.listen((record) {
-        if (record.level >= Level.FINE) {
-          records.add(record.message);
-        }
-      });
-
       tester.message = generateGithubWebhookMessage(
         action: 'labeled',
         number: prNumber,
       );
 
       await tester.post(webhook);
-      await subscription.cancel();
 
       expect(
-        records,
-        containsAll([
-          'Processing pull_request',
-          'GithubWebhookSubscription._handlePullRequest(123): processing labeled for https://github.com/flutter/flutter/pull/123',
-          'GithubWebhookSubscription._handlePullRequest(123): PR labels = ["cla: yes", "framework", "tool"]',
-        ]),
+        log2,
+        bufferedLoggerOf(
+          containsAll([
+            logThat(message: equals('Processing pull_request')),
+            logThat(
+              message: equals(
+                'GithubWebhookSubscription._handlePullRequest(123): processing labeled for https://github.com/flutter/flutter/pull/123',
+              ),
+            ),
+            logThat(
+              message: equals(
+                'GithubWebhookSubscription._handlePullRequest(123): PR labels = ["cla: yes", "framework", "tool"]',
+              ),
+            ),
+          ]),
+        ),
       );
     });
 
@@ -2797,22 +2802,6 @@ void foo() {
     );
 
     group('PullRequestLabelProcessor.processLabels', () {
-      late List<String> logRecords;
-      late StreamSubscription<LogRecord> logSubscription;
-
-      setUp(() {
-        logRecords = <String>[];
-        logSubscription = log.onRecord.listen((record) {
-          if (record.level >= Level.FINE) {
-            logRecords.add(record.message);
-          }
-        });
-      });
-
-      tearDown(() async {
-        await logSubscription.cancel();
-      });
-
       test('applies emergency label on approved PRs', () async {
         final pullRequest = generatePullRequest(
           number: 123,
@@ -2846,10 +2835,23 @@ void foo() {
 
         await pullRequestLabelProcessor.processLabels();
 
-        expect(logRecords, [
-          'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Merge Queue Guard for emergency',
-          'PullRequestLabelProcessor(flutter/flutter/pull/123): unlocked "Merge Queue Guard", allowing it to land as an emergency.',
-        ]);
+        expect(
+          log2,
+          bufferedLoggerOf(
+            containsAll([
+              logThat(
+                message: equals(
+                  'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Merge Queue Guard for emergency',
+                ),
+              ),
+              logThat(
+                message: equals(
+                  'PullRequestLabelProcessor(flutter/flutter/pull/123): unlocked "Merge Queue Guard", allowing it to land as an emergency.',
+                ),
+              ),
+            ]),
+          ),
+        );
       });
 
       test(
@@ -2887,10 +2889,23 @@ void foo() {
 
           await pullRequestLabelProcessor.processLabels();
 
-          expect(logRecords, [
-            'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Merge Queue Guard for emergency',
-            'PullRequestLabelProcessor(flutter/flutter/pull/123): failed to process the emergency label. "Merge Queue Guard" check run is missing.',
-          ]);
+          expect(
+            log2,
+            bufferedLoggerOf(
+              containsAll([
+                logThat(
+                  message: equals(
+                    'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Merge Queue Guard for emergency',
+                  ),
+                ),
+                logThat(
+                  message: equals(
+                    'PullRequestLabelProcessor(flutter/flutter/pull/123): failed to process the emergency label. "Merge Queue Guard" check run is missing.',
+                  ),
+                ),
+              ]),
+            ),
+          );
         },
       );
 
@@ -2907,9 +2922,18 @@ void foo() {
 
           await pullRequestLabelProcessor.processLabels();
 
-          expect(logRecords, [
-            'PullRequestLabelProcessor(flutter/flutter/pull/123): no emergency label; moving on.',
-          ]);
+          expect(
+            log2,
+            bufferedLoggerOf(
+              containsAll([
+                logThat(
+                  message: equals(
+                    'PullRequestLabelProcessor(flutter/flutter/pull/123): no emergency label; moving on.',
+                  ),
+                ),
+              ]),
+            ),
+          );
         },
       );
 
@@ -3103,12 +3127,6 @@ void foo() {
     });
 
     test('checks_requested success for non-fusion repository (simulated)', () async {
-      final records = <String>[];
-      final subscription = log.onRecord.listen((record) {
-        if (record.level >= Level.FINE) {
-          records.add(record.message);
-        }
-      });
       tester.message = generateMergeGroupMessage(
         repository: 'flutter/flutter',
         action: 'checks_requested',
@@ -3116,7 +3134,6 @@ void foo() {
       );
 
       await tester.post(webhook);
-      await subscription.cancel();
 
       verify(
         mockGithubChecksUtil.updateCheckRun(
@@ -3129,25 +3146,41 @@ void foo() {
       ).called(1);
 
       expect(
-        records,
-        containsAllInOrder([
-          'Processing merge_group',
-          'Processing checks_requested for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was found on GoB mirror. Scheduling merge group tasks',
-          'triggerMergeGroupTargets(flutter/flutter, c9affbbb12aa40cb3afbe94b9ea6b119a256bebf, simulated): scheduling merge group checks',
-          'Unlocking Merge Queue Guard for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-        ]),
+        log2,
+        bufferedLoggerOf(
+          containsAllInOrder([
+            logThat(message: equals('Processing merge_group')),
+            logThat(
+              message: equals(
+                'Processing checks_requested for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+              ),
+            ),
+            logThat(
+              message: equals(
+                'Checks requests for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+              ),
+            ),
+            logThat(
+              message: equals(
+                'flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was found on GoB mirror. Scheduling merge group tasks',
+              ),
+            ),
+            logThat(
+              message: equals(
+                'triggerMergeGroupTargets(flutter/flutter, c9affbbb12aa40cb3afbe94b9ea6b119a256bebf, simulated): scheduling merge group checks',
+              ),
+            ),
+            logThat(
+              message: equals(
+                'Unlocking Merge Queue Guard for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+              ),
+            ),
+          ]),
+        ),
       );
     });
 
     test('destroyed', () async {
-      final records = <String>[];
-      final subscription = log.onRecord.listen((record) {
-        if (record.level >= Level.FINE) {
-          records.add(record.message);
-        }
-      });
       tester.message = generateMergeGroupMessage(
         repository: 'flutter/flutter',
         action: 'destroyed',
@@ -3227,7 +3260,6 @@ void foo() {
       };
 
       await tester.post(webhook);
-      await subscription.cancel();
 
       expect(luciLog, <String>[
         'search builds for commit/git/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf by flutter-cocoon',
@@ -3238,29 +3270,43 @@ void foo() {
       ]);
 
       expect(
-        records,
-        containsAllInOrder([
-          'Processing merge_group',
-          'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because it was dequeued.',
-          'Cancelling merge group targets for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Attempting to cancel builds (v2) for git SHA c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because Merge group was destroyed',
-          'Responses from get builds batch request = 1',
-          contains('Found a response: searchBuilds:'),
-          'Found 8 builds.',
-          'Cancelling build with build id 1.',
-          'Cancelling build with build id 2.',
-        ]),
+        log2,
+        bufferedLoggerOf(
+          containsAllInOrder([
+            logThat(message: equals('Processing merge_group')),
+            logThat(
+              message: equals(
+                'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+              ),
+            ),
+            logThat(
+              message: equals(
+                'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because it was dequeued.',
+              ),
+            ),
+            logThat(
+              message: equals(
+                'Cancelling merge group targets for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+              ),
+            ),
+            logThat(
+              message: equals(
+                'Attempting to cancel builds (v2) for git SHA c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because Merge group was destroyed',
+              ),
+            ),
+            logThat(
+              message: equals('Responses from get builds batch request = 1'),
+            ),
+            logThat(message: contains('Found a response: searchBuilds:')),
+            logThat(message: equals('Found 8 builds.')),
+            logThat(message: equals('Cancelling build with build id 1.')),
+            logThat(message: equals('Cancelling build with build id 2.')),
+          ]),
+        ),
       );
     });
 
     test('destroyed with no builds', () async {
-      final records = <String>[];
-      final subscription = log.onRecord.listen((record) {
-        if (record.level >= Level.FINE) {
-          records.add(record.message);
-        }
-      });
       tester.message = generateMergeGroupMessage(
         repository: 'flutter/flutter',
         action: 'destroyed',
@@ -3298,34 +3344,51 @@ void foo() {
       };
 
       await tester.post(webhook);
-      await subscription.cancel();
 
       expect(luciLog, <String>[
         'search builds for commit/git/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf by flutter-cocoon',
       ]);
 
       expect(
-        records,
-        containsAllInOrder([
-          'Processing merge_group',
-          'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because it was invalidated.',
-          'Cancelling merge group targets for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Attempting to cancel builds (v2) for git SHA c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because Merge group was destroyed',
-          'Responses from get builds batch request = 1',
-          contains('Found a response: searchBuilds:'),
-          'No builds found. Will not request cancellation from LUCI.',
-        ]),
+        log2,
+        bufferedLoggerOf(
+          containsAllInOrder([
+            logThat(message: equals('Processing merge_group')),
+            logThat(
+              message: equals(
+                'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+              ),
+            ),
+            logThat(
+              message: equals(
+                'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because it was invalidated.',
+              ),
+            ),
+            logThat(
+              message: equals(
+                'Cancelling merge group targets for c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+              ),
+            ),
+            logThat(
+              message: equals(
+                'Attempting to cancel builds (v2) for git SHA c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because Merge group was destroyed',
+              ),
+            ),
+            logThat(
+              message: equals('Responses from get builds batch request = 1'),
+            ),
+            logThat(message: contains('Found a response: searchBuilds:')),
+            logThat(
+              message: equals(
+                'No builds found. Will not request cancellation from LUCI.',
+              ),
+            ),
+          ]),
+        ),
       );
     });
 
     test('does not cancel builds if destroyed because merged successfully', () async {
-      final records = <String>[];
-      final subscription = log.onRecord.listen((record) {
-        if (record.level >= Level.FINE) {
-          records.add(record.message);
-        }
-      });
       tester.message = generateMergeGroupMessage(
         repository: 'flutter/flutter',
         action: 'destroyed',
@@ -3338,16 +3401,29 @@ void foo() {
       };
 
       await tester.post(webhook);
-      await subscription.cancel();
 
       expect(
-        records,
-        containsAllInOrder([
-          'Processing merge_group',
-          'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
-          'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because it was merged.',
-          'Merge group for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was merged successfully.',
-        ]),
+        log2,
+        bufferedLoggerOf(
+          containsAllInOrder([
+            logThat(message: equals('Processing merge_group')),
+            logThat(
+              message: equals(
+                'Processing destroyed for merge queue @ c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+              ),
+            ),
+            logThat(
+              message: equals(
+                'Merge group destroyed for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf because it was merged.',
+              ),
+            ),
+            logThat(
+              message: equals(
+                'Merge group for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was merged successfully.',
+              ),
+            ),
+          ]),
+        ),
       );
     });
   });

@@ -4,10 +4,13 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:test/test.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   final userDataMap = <String, dynamic>{
     'builder_name': 'Linux_web web_build_all_packages master',
     'check_run_id': 23005733384,

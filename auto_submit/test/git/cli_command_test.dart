@@ -5,9 +5,12 @@
 import 'dart:io';
 
 import 'package:auto_submit/git/cli_command.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:test/test.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('Testing git command locally', () {
     test('Checkout locally.', () async {
       var executable = 'ls';

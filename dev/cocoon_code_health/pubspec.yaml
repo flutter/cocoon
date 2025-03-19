@@ -1,0 +1,24 @@
+name: cocoon_code_health
+description: Tests and tools that try to keep the flutter/cocoon repo healthy.
+publish_to: none
+
+environment:
+  sdk: ^3.7.0
+
+resolution: workspace
+
+executables:
+  check:
+
+dependencies:
+  args: ^2.7.0
+  cocoon_common:
+    path: ../../packages/cocoon_common
+  file: ^7.0.1
+  glob: ^2.1.3
+  meta: ^1.16.0
+  path: ^1.9.1
+
+dev_dependencies:
+  dart_flutter_team_lints:
+  test: ^1.25.15

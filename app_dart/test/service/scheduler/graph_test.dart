@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart';
 import 'package:cocoon_service/src/service/config.dart';
@@ -10,6 +11,8 @@ import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('scheduler config', () {
     test('constructs graph with one target', () {
       final singleTargetConfig =

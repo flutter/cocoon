@@ -4,10 +4,13 @@
 
 import 'package:auto_submit/request_handling/authentication.dart';
 import 'package:auto_submit/requests/exceptions.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('CronAuthProvider', () {
     late Request request;
     late CronAuthProvider auth;

@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/cache_request_handler.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
@@ -15,6 +16,8 @@ import '../src/request_handling/fake_request_handler.dart';
 import '../src/request_handling/request_handler_tester.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('CacheRequestHandler', () {
     late FakeConfig config;
     late RequestHandlerTester tester;

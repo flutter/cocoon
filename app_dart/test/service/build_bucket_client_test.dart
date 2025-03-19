@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/service/build_bucket_client.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:googleapis_auth/auth_io.dart';
@@ -18,6 +19,8 @@ import 'package:test/test.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('BatchResponse tests', () {
     test('fromJson returns an empty list', () {
       const jsonString =

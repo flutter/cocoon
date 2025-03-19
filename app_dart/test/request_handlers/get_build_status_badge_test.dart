@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/protos.dart';
 import 'package:cocoon_service/src/request_handlers/get_build_status_badge.dart';
 import 'package:test/test.dart';
@@ -9,6 +10,8 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_config.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   final handler = GetBuildStatusBadge(config: FakeConfig());
 
   test('passing status', () async {
