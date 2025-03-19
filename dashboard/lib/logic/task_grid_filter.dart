@@ -8,7 +8,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 import '../logic/qualified_task.dart';
-import '../model/commit_status.pb.dart';
+import '../src/rpc_model.dart';
 import '../widgets/filter_property_sheet.dart';
 
 /// A filter object for controlling which entries are visible in the Build dashboard grid

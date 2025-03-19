@@ -5,8 +5,8 @@
 import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
-import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
+import 'package:flutter_dashboard/src/rpc_model.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 
@@ -36,21 +36,31 @@ void main() {
       true,
     );
 
-    expect(filter.matchesCommit(CommitStatus()), true);
-    expect(filter.matchesCommit(CommitStatus()..commit = Commit()), true);
-    expect(
-      filter.matchesCommit(CommitStatus()..commit = (Commit()..author = 'joe')),
-      true,
-    );
     expect(
       filter.matchesCommit(
-        CommitStatus()..commit = (Commit()..sha = '0x45c3fd'),
+        CommitStatus(branch: '', commit: Commit(), tasks: []),
       ),
       true,
     );
     expect(
       filter.matchesCommit(
-        CommitStatus()..commit = (Commit()..message = 'LGTM!'),
+        CommitStatus(branch: '', commit: Commit()..author = 'joe', tasks: []),
+      ),
+      true,
+    );
+    expect(
+      filter.matchesCommit(
+        CommitStatus(branch: '', commit: Commit()..sha = '0x45c3fd', tasks: []),
+      ),
+      true,
+    );
+    expect(
+      filter.matchesCommit(
+        CommitStatus(
+          branch: '',
+          commit: Commit()..message = 'LGTM!',
+          tasks: [],
+        ),
       ),
       true,
     );
@@ -498,19 +508,23 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesCommit(
-          CommitStatus()..commit = (Commit()..author = 'foo'),
+          CommitStatus(branch: '', commit: Commit()..author = 'foo', tasks: []),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus()..commit = (Commit()..author = 'blah foo blah'),
+          CommitStatus(
+            branch: '',
+            commit: Commit()..author = 'blah foo blah',
+            tasks: [],
+          ),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus()..commit = (Commit()..author = 'fo'),
+          CommitStatus(branch: '', commit: Commit()..author = 'fo', tasks: []),
         ),
         false,
       );
@@ -526,25 +540,37 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesCommit(
-          CommitStatus()..commit = (Commit()..author = 'z bc'),
+          CommitStatus(
+            branch: '',
+            commit: Commit()..author = 'z bc',
+            tasks: [],
+          ),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus()..commit = (Commit()..author = 'z bc z'),
+          CommitStatus(
+            branch: '',
+            commit: Commit()..author = 'z bc z',
+            tasks: [],
+          ),
         ),
         false,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus()..commit = (Commit()..author = 'z b c'),
+          CommitStatus(
+            branch: '',
+            commit: Commit()..author = 'z b c',
+            tasks: [],
+          ),
         ),
         false,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus()..commit = (Commit()..author = 'foo'),
+          CommitStatus(branch: '', commit: Commit()..author = 'foo', tasks: []),
         ),
         false,
       );
@@ -560,19 +586,27 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesCommit(
-          CommitStatus()..commit = (Commit()..message = 'foo'),
+          CommitStatus(
+            branch: '',
+            commit: Commit()..message = 'foo',
+            tasks: [],
+          ),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus()..commit = (Commit()..message = 'blah foo blah'),
+          CommitStatus(
+            branch: '',
+            commit: Commit()..message = 'blah foo blah',
+            tasks: [],
+          ),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus()..commit = (Commit()..message = 'fo'),
+          CommitStatus(branch: '', commit: Commit()..message = 'fo', tasks: []),
         ),
         false,
       );
@@ -588,25 +622,41 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesCommit(
-          CommitStatus()..commit = (Commit()..message = 'z bc'),
+          CommitStatus(
+            branch: '',
+            commit: Commit()..message = 'z bc',
+            tasks: [],
+          ),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus()..commit = (Commit()..message = 'z bc z'),
+          CommitStatus(
+            branch: '',
+            commit: Commit()..message = 'z bc z',
+            tasks: [],
+          ),
         ),
         false,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus()..commit = (Commit()..message = 'z b c'),
+          CommitStatus(
+            branch: '',
+            commit: Commit()..message = 'z b c',
+            tasks: [],
+          ),
         ),
         false,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus()..commit = (Commit()..message = 'foo'),
+          CommitStatus(
+            branch: '',
+            commit: Commit()..message = 'foo',
+            tasks: [],
+          ),
         ),
         false,
       );
@@ -621,17 +671,25 @@ void main() {
     expect(filters[0], filters[1]);
     for (final filter in filters) {
       expect(
-        filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'foo')),
-        true,
-      );
-      expect(
         filter.matchesCommit(
-          CommitStatus()..commit = (Commit()..sha = 'blah foo blah'),
+          CommitStatus(branch: '', commit: Commit()..sha = 'foo', tasks: []),
         ),
         true,
       );
       expect(
-        filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'fo')),
+        filter.matchesCommit(
+          CommitStatus(
+            branch: '',
+            commit: Commit()..sha = 'blah foo blah',
+            tasks: [],
+          ),
+        ),
+        true,
+      );
+      expect(
+        filter.matchesCommit(
+          CommitStatus(branch: '', commit: Commit()..sha = 'fo', tasks: []),
+        ),
         false,
       );
     }
@@ -645,23 +703,27 @@ void main() {
     expect(filters[0], filters[1]);
     for (final filter in filters) {
       expect(
-        filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'z bc')),
+        filter.matchesCommit(
+          CommitStatus(branch: '', commit: Commit()..sha = 'z bc', tasks: []),
+        ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus()..commit = (Commit()..sha = 'z bc z'),
+          CommitStatus(branch: '', commit: Commit()..sha = 'z bc z', tasks: []),
         ),
         false,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus()..commit = (Commit()..sha = 'z b c'),
+          CommitStatus(branch: '', commit: Commit()..sha = 'z b c', tasks: []),
         ),
         false,
       );
       expect(
-        filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'foo')),
+        filter.matchesCommit(
+          CommitStatus(branch: '', commit: Commit()..sha = 'foo', tasks: []),
+        ),
         false,
       );
     }

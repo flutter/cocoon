@@ -11,9 +11,9 @@ import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
-import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/dev_cocoon.dart';
+import 'package:flutter_dashboard/src/rpc_model/commit_status.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/widgets/commit_box.dart';
 import 'package:flutter_dashboard/widgets/lattice.dart';
@@ -394,34 +394,40 @@ void main() {
     // that does not share its name with any other [Task]. This will make that [CommitStatus] have
     // its task on its own unique row and column.
 
-    final statusesWithSkips = <CommitStatus>[
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(<Task>[
+    final statusesWithSkips = [
+      CommitStatus(
+        commit: Commit()..author = 'Author',
+        branch: 'master',
+        tasks: [
           Task()
             ..stageName = 'A'
             ..name = '1'
             ..builderName = '1'
             ..status = TaskBox.statusSucceeded,
-        ]),
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(<Task>[
+        ],
+      ),
+      CommitStatus(
+        commit: Commit()..author = 'Author',
+        branch: 'master',
+        tasks: [
           Task()
             ..stageName = 'A'
             ..name = '2'
             ..builderName = '2'
             ..status = TaskBox.statusSucceeded,
-        ]),
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(<Task>[
+        ],
+      ),
+      CommitStatus(
+        commit: Commit()..author = 'Author',
+        branch: 'master',
+        tasks: [
           Task()
             ..stageName = 'A'
             ..name = '3'
             ..builderName = '3'
             ..status = TaskBox.statusSucceeded,
-        ]),
+        ],
+      ),
     ];
 
     await tester.pumpWidget(
@@ -454,25 +460,29 @@ void main() {
     // To construct the matrix from this diagram, each [CommitStatus] will have a [Task]
     // that shares its name, but will have a different stage name.
 
-    final statuses = <CommitStatus>[
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(<Task>[
+    final statuses = [
+      CommitStatus(
+        commit: Commit()..author = 'Author',
+        branch: 'master',
+        tasks: [
           Task()
             ..stageName = StageName.cocoon
             ..name = '1'
             ..builderName = '1'
             ..status = TaskBox.statusSucceeded,
-        ]),
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(<Task>[
+        ],
+      ),
+      CommitStatus(
+        commit: Commit()..author = 'Author',
+        branch: 'master',
+        tasks: [
           Task()
             ..stageName = StageName.luci
             ..name = '1'
             ..builderName = '1'
             ..status = TaskBox.statusSucceeded,
-        ]),
+        ],
+      ),
     ];
 
     await tester.pumpWidget(
@@ -501,10 +511,11 @@ void main() {
   testWidgets('TaskGrid creates a task icon row and they line up', (
     WidgetTester tester,
   ) async {
-    final commitStatuses = <CommitStatus>[
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(<Task>[
+    final commitStatuses = [
+      CommitStatus(
+        commit: Commit()..author = 'Author',
+        branch: 'master',
+        tasks: [
           Task()
             ..name = 'Task Name'
             ..builderName = 'Task Name'
@@ -515,7 +526,8 @@ void main() {
             ..builderName = 'Task Name'
             ..stageName = 'Stage Nome 2'
             ..status = TaskBox.statusFailed,
-        ]),
+        ],
+      ),
     ];
 
     await tester.pumpWidget(
@@ -539,15 +551,17 @@ void main() {
   testWidgets('TaskGrid honors moreStatusesExist', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     final commitStatuses = <CommitStatus>[
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(<Task>[
+      CommitStatus(
+        commit: Commit()..author = 'Author',
+        branch: 'master',
+        tasks: [
           Task()
             ..name = 'Task Name'
             ..name = 'Task Name'
             ..stageName = 'Stage Nome'
             ..status = TaskBox.statusSucceeded,
-        ]),
+        ],
+      ),
     ];
 
     await tester.pumpWidget(
@@ -596,15 +610,17 @@ void main() {
               authService: MockGoogleSignInService(),
               cocoonService: MockCocoonService(),
             ),
-            commitStatuses: <CommitStatus>[
-              CommitStatus()
-                ..commit = (Commit()..author = 'Cast')
-                ..tasks.addAll(<Task>[
+            commitStatuses: [
+              CommitStatus(
+                commit: Commit()..author = 'Cast',
+                branch: 'master',
+                tasks: [
                   Task()
                     ..stageName = 'A'
                     ..status = 'Succeeded'
                     ..attempts = 2,
-                ]),
+                ],
+              ),
             ],
           ),
         ),
@@ -619,15 +635,17 @@ void main() {
               authService: MockGoogleSignInService(),
               cocoonService: MockCocoonService(),
             ),
-            commitStatuses: <CommitStatus>[
-              CommitStatus()
-                ..commit = (Commit()..author = 'Cast')
-                ..tasks.addAll(<Task>[
+            commitStatuses: [
+              CommitStatus(
+                commit: Commit()..author = 'Cast',
+                branch: 'master',
+                tasks: [
                   Task()
                     ..stageName = 'A'
                     ..status = 'Succeeded'
                     ..attempts = 1,
-                ]),
+                ],
+              ),
             ],
           ),
         ),
@@ -647,16 +665,18 @@ void main() {
               authService: MockGoogleSignInService(),
               cocoonService: MockCocoonService(),
             ),
-            commitStatuses: <CommitStatus>[
-              CommitStatus()
-                ..commit = (Commit()..author = 'Cast')
-                ..tasks.addAll(<Task>[
+            commitStatuses: [
+              CommitStatus(
+                commit: Commit()..author = 'Cast',
+                branch: 'master',
+                tasks: [
                   Task()
                     ..stageName = 'A'
                     ..status = 'Succeeded'
                     ..attempts = 1
                     ..isTestFlaky = true,
-                ]),
+                ],
+              ),
             ],
           ),
         ),
@@ -671,16 +691,18 @@ void main() {
               authService: MockGoogleSignInService(),
               cocoonService: MockCocoonService(),
             ),
-            commitStatuses: <CommitStatus>[
-              CommitStatus()
-                ..commit = (Commit()..author = 'Cast')
-                ..tasks.addAll(<Task>[
+            commitStatuses: [
+              CommitStatus(
+                commit: Commit()..author = 'Cast',
+                branch: 'master',
+                tasks: [
                   Task()
                     ..stageName = 'A'
                     ..status = 'Succeeded'
                     ..attempts = 1
                     ..isTestFlaky = false,
-                ]),
+                ],
+              ),
             ],
           ),
         ),
@@ -718,13 +740,17 @@ void main() {
                 authService: MockGoogleSignInService(),
                 cocoonService: MockCocoonService(),
               ),
-              commitStatuses: <CommitStatus>[
-                CommitStatus()
-                  ..commit = (Commit()..author = 'Cast')
-                  ..tasks.addAll(<Task>[taskA3]),
-                CommitStatus()
-                  ..commit = (Commit()..author = 'Cast')
-                  ..tasks.addAll(<Task>[taskB1]),
+              commitStatuses: [
+                CommitStatus(
+                  commit: Commit()..author = 'Cast',
+                  branch: 'master',
+                  tasks: [taskA3],
+                ),
+                CommitStatus(
+                  commit: Commit()..author = 'Cast',
+                  branch: 'master',
+                  tasks: [taskB1],
+                ),
               ],
             ),
           ),
@@ -751,10 +777,11 @@ void main() {
     WidgetTester tester,
   ) async {
     await precacheTaskIcons(tester);
-    final statuses = <CommitStatus>[
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(<Task>[
+    final statuses = [
+      CommitStatus(
+        commit: Commit()..author = 'Author',
+        branch: 'master',
+        tasks: [
           Task()
             ..stageName = 'A'
             ..name = '1'
@@ -780,10 +807,12 @@ void main() {
             ..name = '5'
             ..builderName = '5'
             ..status = TaskBox.statusInProgress,
-        ]),
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(<Task>[
+        ],
+      ),
+      CommitStatus(
+        commit: Commit()..author = 'Author',
+        branch: 'master',
+        tasks: [
           Task()
             ..stageName = 'A'
             ..name = '1'
@@ -814,10 +843,12 @@ void main() {
             ..builderName = '5'
             ..attempts = 2
             ..status = TaskBox.statusInProgress,
-        ]),
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(<Task>[
+        ],
+      ),
+      CommitStatus(
+        commit: Commit()..author = 'Author',
+        branch: 'master',
+        tasks: [
           Task()
             ..stageName = 'A'
             ..name = '1'
@@ -848,10 +879,12 @@ void main() {
             ..builderName = '5'
             ..isFlaky = true
             ..status = TaskBox.statusInProgress,
-        ]),
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..tasks.addAll(<Task>[
+        ],
+      ),
+      CommitStatus(
+        commit: (Commit()..author = 'Author'),
+        branch: 'master',
+        tasks: [
           Task()
             ..stageName = 'A'
             ..name = '1'
@@ -887,7 +920,8 @@ void main() {
             ..attempts = 2
             ..isFlaky = true
             ..status = TaskBox.statusInProgress,
-        ]),
+        ],
+      ),
     ];
 
     await tester.pumpWidget(
@@ -946,9 +980,11 @@ Future<void> expectTaskBoxColorWithMessage(
                   cocoonService: MockCocoonService(),
                 ),
                 commitStatuses: <CommitStatus>[
-                  CommitStatus()
-                    ..commit = (Commit()..author = 'Mathilda')
-                    ..tasks.addAll(<Task>[Task()..status = message]),
+                  CommitStatus(
+                    commit: Commit()..author = 'Mathilda',
+                    branch: 'master',
+                    tasks: [Task()..status = message],
+                  ),
                 ],
               ),
             ),

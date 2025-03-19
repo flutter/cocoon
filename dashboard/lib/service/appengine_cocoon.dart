@@ -10,7 +10,6 @@ import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 
 import '../model/commit.pb.dart';
-import '../model/commit_status.pb.dart';
 import '../model/key.pb.dart';
 import '../model/task.pb.dart';
 import '../src/rpc_model.dart';
@@ -274,12 +273,13 @@ class AppEngineCocoonService implements CocoonService {
         in jsonCommitStatuses!.cast<Map<String, dynamic>>()) {
       final checklist = jsonCommitStatus['Checklist'] as Map<String, dynamic>;
       statuses.add(
-        CommitStatus()
-          ..commit = _commitFromJson(checklist)
-          ..branch = _branchFromJson(checklist)!
-          ..tasks.addAll(
-            _tasksFromStagesJson(jsonCommitStatus['Stages'] as List<Object?>),
+        CommitStatus(
+          commit: _commitFromJson(checklist),
+          branch: _branchFromJson(checklist)!,
+          tasks: _tasksFromStagesJson(
+            jsonCommitStatus['Stages'] as List<Object?>,
           ),
+        ),
       );
     }
 

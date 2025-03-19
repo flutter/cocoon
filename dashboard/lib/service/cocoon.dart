@@ -4,7 +4,6 @@
 
 import 'package:flutter/foundation.dart';
 
-import '../model/commit_status.pb.dart';
 import '../src/rpc_model.dart';
 import 'appengine_cocoon.dart';
 import 'dev_cocoon.dart';

@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
-import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
+import 'package:flutter_dashboard/src/rpc_model.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/widgets/error_brook_watcher.dart';
 import 'package:flutter_dashboard/widgets/luci_task_attempt_summary.dart';
@@ -44,12 +44,14 @@ class TestGrid extends StatelessWidget {
         filter: filter,
         buildState: buildState,
         commitStatuses: <CommitStatus>[
-          CommitStatus()
-            ..commit =
+          CommitStatus(
+            commit:
                 (Commit()
                   ..author = 'Fats Domino'
-                  ..sha = '24e8c0a2')
-            ..tasks.addAll(<Task>[task]),
+                  ..sha = '24e8c0a2'),
+            branch: 'master',
+            tasks: [task],
+          ),
         ],
       ),
     );
