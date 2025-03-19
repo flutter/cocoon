@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
+import 'package:flutter_dashboard/model/build_status_response.pb.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/key.pb.dart';
@@ -51,10 +52,7 @@ void main() {
         ),
       ).thenAnswer(
         (_) async => CocoonResponse<BuildStatusResponse>.data(
-          BuildStatusResponse(
-            buildStatus: BuildStatus.success,
-            failingTasks: [],
-          ),
+          BuildStatusResponse()..buildStatus = EnumBuildStatus.success,
         ),
       );
       // ignore: discarded_futures
@@ -472,10 +470,7 @@ void main() {
       ).thenAnswer(
         (_) => Future<CocoonResponse<BuildStatusResponse>>.value(
           CocoonResponse<BuildStatusResponse>.data(
-            BuildStatusResponse(
-              buildStatus: BuildStatus.success,
-              failingTasks: [],
-            ),
+            BuildStatusResponse()..buildStatus = EnumBuildStatus.success,
           ),
         ),
       );
@@ -484,10 +479,9 @@ void main() {
       ).thenAnswer(
         (_) => Future<CocoonResponse<BuildStatusResponse>>.value(
           CocoonResponse<BuildStatusResponse>.data(
-            BuildStatusResponse(
-              buildStatus: BuildStatus.failure,
-              failingTasks: ['failing_task_1'],
-            ),
+            BuildStatusResponse()
+              ..buildStatus = EnumBuildStatus.failure
+              ..failingTasks.addAll(<String>['failing_task_1']),
           ),
         ),
       );
