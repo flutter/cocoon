@@ -5,6 +5,7 @@
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dashboard/logic/qualified_task.dart';
+import 'package:flutter_dashboard/model/build_status_response.pb.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/key.pb.dart';
@@ -104,7 +105,7 @@ void main() {
         repo: 'flutter',
       );
 
-      expect(treeBuildStatus.data!.buildStatus, BuildStatus.success);
+      expect(treeBuildStatus.data!.buildStatus, EnumBuildStatus.success);
     });
 
     test('data should be false when given Failed', () async {
@@ -117,7 +118,7 @@ void main() {
         repo: 'flutter',
       );
 
-      expect(treeBuildStatus.data!.buildStatus, BuildStatus.failure);
+      expect(treeBuildStatus.data!.buildStatus, EnumBuildStatus.failure);
     });
 
     test('should have error if given non-200 response', () async {

@@ -27,7 +27,3 @@
 library;
 
 export 'rpc_model/branch.dart' show Branch;
-export 'rpc_model/build_status_response.dart'
-    show
-        BuildStatus, //
-        BuildStatusResponse;

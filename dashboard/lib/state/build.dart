@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app_icons/flutter_app_icons.dart';
 
 import '../logic/brooks.dart';
+import '../model/build_status_response.pb.dart';
 import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
 import '../model/key.pb.dart';
@@ -200,7 +201,8 @@ class BuildState extends ChangeNotifier {
           // No-op as the dashboard shouldn't update with old data
           return;
         } else {
-          _isTreeBuilding = response.data!.buildStatus == BuildStatus.success;
+          _isTreeBuilding =
+              response.data!.buildStatus == EnumBuildStatus.success;
           _failingTasks = response.data!.failingTasks;
           if (_isTreeBuilding == false) {
             unawaited(

@@ -15,13 +15,9 @@ final class Branch extends Model {
   /// Creates a branch [reference] associated with a [channel].
   Branch({required this.channel, required this.reference});
 
-  /// Creates a branch from [json] representation.
-  factory Branch.fromJson(Map<String, Object?> json) {
-    try {
-      return _$BranchFromJson(json);
-    } on CheckedFromJsonException catch (e) {
-      throw FormatException('Invalid Branch: $e', json);
-    }
+  /// Creates a branch from JSON [object] representation.
+  factory Branch.fromJson(Map<String, Object?> object) {
+    return _$BranchFromJson(object);
   }
 
   /// Which deployment channel this branch is associated with.

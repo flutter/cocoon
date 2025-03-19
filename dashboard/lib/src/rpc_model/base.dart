@@ -11,7 +11,7 @@ import 'package:meta/meta.dart';
 /// This type exists for uniformity, and not part of the public API.
 @immutable
 @internal
-abstract base mixin class Model {
+abstract base class Model {
   @mustBeOverridden
   @override
   bool operator ==(Object other);

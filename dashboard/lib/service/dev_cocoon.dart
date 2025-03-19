@@ -8,6 +8,7 @@ import 'dart:math' as math;
 import 'package:fixnum/fixnum.dart';
 
 import '../logic/qualified_task.dart';
+import '../model/build_status_response.pb.dart';
 import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
 import '../model/key.pb.dart';
@@ -112,12 +113,14 @@ class DevelopmentCocoonService implements CocoonService {
     required String repo,
   }) async {
     final failed = _random.nextBool();
-    final response = BuildStatusResponse(
-      buildStatus: failed ? BuildStatus.failure : BuildStatus.success,
-      failingTasks: [
-        if (failed) ...['failed_task_1', 'failed_task_2'],
-      ],
-    );
+    final response =
+        BuildStatusResponse()
+          ..buildStatus =
+              failed ? EnumBuildStatus.failure : EnumBuildStatus.success;
+    if (failed) {
+      response.failingTasks.addAll(<String>['failed_task_1', 'failed_task_2']);
+    }
+
     return CocoonResponse<BuildStatusResponse>.data(response);
   }
 
