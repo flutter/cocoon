@@ -278,7 +278,6 @@ const Set<String> kExecutableAllowlist = <String>{
   'dashboard/regen_mocks.sh',
   'dev/provision_salt.sh',
   'dev/prs_to_main.sh',
-  'format.sh',
   'packages/buildbucket-dart/tool/regenerate.sh',
   'test_utilities/bin/analyze.sh',
   'test_utilities/bin/code_health_check.sh',
