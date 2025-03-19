@@ -10,6 +10,7 @@ import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore;
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
+import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
@@ -57,17 +58,6 @@ void main() {
       1,
       sha: 'bf58e0e6dffbfd759a3b2b5c56a2b5b115506c91',
     );
-    when(
-      // ignore: discarded_futures
-      firestoreService.queryRecentCommits(
-        slug: anyNamed('slug'),
-        limit: argThat(equals(1), named: 'limit'),
-        timestamp: argThat(isNull, named: 'timestamp'),
-        branch: anyNamed('branch'),
-      ),
-    ).thenAnswer((_) async {
-      return [totCommit];
-    });
 
     ciYamlFetcher = CiYamlFetcher(
       cache: cache,
@@ -77,6 +67,23 @@ void main() {
       retryOptions: const RetryOptions(maxAttempts: 1),
     );
   });
+
+  void mockFillFirestore({
+    required RepositorySlug slug,
+    required String branch,
+  }) {
+    when(
+      // ignore: discarded_futures
+      firestoreService.queryRecentCommits(
+        slug: argThat(equals(slug), named: 'slug'),
+        limit: argThat(equals(1), named: 'limit'),
+        timestamp: argThat(isNull, named: 'timestamp'),
+        branch: argThat(equals(branch), named: 'branch'),
+      ),
+    ).thenAnswer((_) async {
+      return [totCommit];
+    });
+  }
 
   test('fetches the root .ci.yaml for a repository (GitHub)', () async {
     httpClient = MockClient((request) async {
@@ -95,6 +102,8 @@ void main() {
 
       fail('Should not occur. Unexpected request: ${request.url}');
     });
+
+    mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
 
     final ciYaml = await ciYamlFetcher.getCiYaml(
       slug: Config.flutterSlug,
@@ -135,6 +144,8 @@ void main() {
       fail('Should not occur. Unexpected request: ${request.url}');
     });
 
+    mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
+
     final ciYaml = await ciYamlFetcher.getCiYaml(
       slug: Config.flutterSlug,
       commitSha: currentSha,
@@ -166,6 +177,8 @@ void main() {
       fail('Should not occur. Unexpected request: ${request.url}');
     });
 
+    mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
+
     final ciYaml = await ciYamlFetcher.getCiYamlByDatastoreCommit(
       generateCommit(1, sha: currentSha),
       validate: true,
@@ -194,6 +207,8 @@ void main() {
 
       fail('Should not occur. Unexpected request: ${request.url}');
     });
+
+    mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
 
     final ciYaml = await ciYamlFetcher.getCiYamlByFirestoreCommit(
       generateFirestoreCommit(1, sha: currentSha),
@@ -229,6 +244,8 @@ void main() {
 
       fail('Should not occur. Unexpected request: ${request.url}');
     });
+
+    mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
 
     await expectLater(
       ciYamlFetcher.getCiYaml(
@@ -271,6 +288,8 @@ void main() {
       fail('Should not occur. Unexpected request: ${request.url}');
     });
 
+    mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
+
     final ciYaml = await ciYamlFetcher.getCiYamlByFirestoreCommit(
       generateFirestoreCommit(1, sha: currentSha),
       validate: true,
@@ -279,6 +298,45 @@ void main() {
     expect(
       ciYaml.targets().map((t) => t.value.name),
       unorderedEquals(['Linux A', 'Linux B']),
+    );
+  });
+
+  // Regression test for https://github.com/flutter/flutter/issues/165433.
+  test('fetches ToT .ci.yaml from the default branch only', () async {
+    httpClient = MockClient((request) async {
+      if (request.url.host != 'raw.githubusercontent.com') {
+        fail('Unexpected host: ${request.url}');
+      }
+
+      // Extract the URL request ($slug/$ref/$file);
+      final [owner, repository, ref, ...path] = request.url.pathSegments;
+      expect('$owner/$repository', Config.flutterSlug.fullName);
+      expect(p.joinAll(path), kCiYamlPath);
+
+      if (ref == totSha || ref == currentSha) {
+        return http.Response(singleCiYaml, HttpStatus.ok);
+      }
+
+      fail('Should not occur. Unexpected request: ${request.url}');
+    });
+
+    mockFillFirestore(
+      slug: Config.flutterSlug,
+      branch: Config.defaultBranch(Config.flutterSlug),
+    );
+
+    final ciYaml = await ciYamlFetcher.getCiYamlByFirestoreCommit(
+      generateFirestoreCommit(
+        1,
+        sha: currentSha,
+        branch: 'flutter-0.42-candidate.0',
+      ),
+      validate: true,
+    );
+
+    expect(
+      ciYaml.targets().map((t) => t.value.name),
+      unorderedEquals(['Linux A']),
     );
   });
 
@@ -306,6 +364,8 @@ void main() {
       }, HttpStatus.ok);
     });
 
+    mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
+
     final ciYaml = await ciYamlFetcher.getCiYamlByFirestoreCommit(
       generateFirestoreCommit(1, sha: currentSha),
       validate: true,
@@ -328,6 +388,8 @@ void main() {
     httpClient = MockClient((_) async {
       return http.Response('', HttpStatus.ok);
     });
+
+    mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
 
     await expectLater(
       ciYamlFetcher.getCiYaml(
@@ -358,6 +420,8 @@ targets:
       - B
           ''', HttpStatus.ok);
     });
+
+    mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
 
     await expectLater(
       ciYamlFetcher.getCiYaml(
