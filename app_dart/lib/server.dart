@@ -263,12 +263,6 @@ Server createServer({
       delegate: GetStatus(config: config),
     ),
 
-    '/api/public/get-status-firestore': CacheRequestHandler<Body>(
-      cache: cache,
-      config: config,
-      delegate: GetStatusFirestore(config: config),
-    ),
-
     '/api/public/get-green-commits': GetGreenCommits(config: config),
 
     /// Record GitHub API quota usage in BigQuery.
