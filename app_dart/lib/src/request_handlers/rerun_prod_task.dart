@@ -30,7 +30,7 @@ import '../service/scheduler/ci_yaml_fetcher.dart';
 ///
 /// Expects either [taskKeyParam] or a set of params that give enough detail to lookup a task in datastore.
 @immutable
-class RerunProdTask extends ApiRequestHandler<Body> {
+final class RerunProdTask extends ApiRequestHandler<Body> {
   const RerunProdTask({
     required super.config,
     required super.authenticationProvider,
@@ -155,9 +155,29 @@ class RerunProdTask extends ApiRequestHandler<Body> {
       if (ciYaml.isFusion)
         ...ciYaml.postsubmitTargets(type: CiType.fusionEngine),
     ];
-    final target = targets.singleWhere(
-      (Target target) => target.value.name == task.name,
-    );
+
+    // Fail "nicely" on missing a cooresponding target.
+    final Target target;
+    {
+      final matched = targets.where((target) => target.value.name == task.name);
+
+      // Could happen (https://github.com/flutter/flutter/issues/165522).
+      if (matched.isEmpty) {
+        log.warn(
+          'No matching target ("${task.name}") found in ${targets.map((t) => t.value.name).toList()}.',
+        );
+        return;
+      }
+
+      // Can't happen, as it would be an invalid .ci.yaml.
+      if (matched.length > 1) {
+        throw StateError(
+          'More than one target ("${task.name}") matched in ${targets.map((t) => t.value.name).toList()}.',
+        );
+      }
+
+      target = matched.first;
+    }
 
     // Prepares Firestore task.
     final documentName = FirestoreTaskDocumentName(
