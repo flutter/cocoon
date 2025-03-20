@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common_test/cocoon_common_test.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
@@ -174,6 +176,82 @@ void main() {
     config.db.values[commit.key] = commit;
     tester.requestData = {...tester.requestData, 'task': 'all'};
     expect(await tester.post(handler), Body.empty);
+    verifyNever(
+      mockLuciBuildService.checkRerunBuilder(
+        commit: anyNamed('commit'),
+        datastore: anyNamed('datastore'),
+        task: anyNamed('task'),
+        target: anyNamed('target'),
+        tags: anyNamed('tags'),
+        firestoreService: anyNamed('firestoreService'),
+        taskDocument: anyNamed('taskDocument'),
+        ignoreChecks: false,
+      ),
+    );
+  });
+
+  test('No matching target fails gracefully', () async {
+    final task = generateTask(
+      2,
+      // This task is in datastore, but not in .ci.yaml.
+      name: 'Windows C',
+      parent: commit,
+      status: Task.statusSucceeded,
+    );
+    config.db.values[task.key] = task;
+    config.db.values[commit.key] = commit;
+    tester.requestData = {...tester.requestData, 'task': 'Windows C'};
+    expect(await tester.post(handler), Body.empty);
+    verifyNever(
+      mockLuciBuildService.checkRerunBuilder(
+        commit: anyNamed('commit'),
+        datastore: anyNamed('datastore'),
+        task: anyNamed('task'),
+        target: anyNamed('target'),
+        tags: anyNamed('tags'),
+        firestoreService: anyNamed('firestoreService'),
+        taskDocument: anyNamed('taskDocument'),
+        ignoreChecks: false,
+      ),
+    );
+
+    expect(
+      log,
+      bufferedLoggerOf(
+        contains(
+          logThat(
+            severity: atLeastWarning,
+            message: contains('No matching target'),
+          ),
+        ),
+      ),
+    );
+  });
+
+  test('Too many matching targets fails forcefully', () async {
+    ciYamlFetcher.ciYaml = exampleNaughtyConfig;
+    final task = generateTask(
+      2,
+      name: 'Windows A',
+      parent: commit,
+      status: Task.statusSucceeded,
+    );
+
+    config.db.values[task.key] = task;
+    config.db.values[commit.key] = commit;
+    tester.requestData = {...tester.requestData, 'task': 'Windows A'};
+    await expectLater(
+      tester.post(handler),
+      throwsA(
+        isA<StateError>().having(
+          (b) => b.message,
+          'message',
+          contains(
+            'More than one target ("Windows A") matched in [Windows A, Windows A]',
+          ),
+        ),
+      ),
+    );
     verifyNever(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),

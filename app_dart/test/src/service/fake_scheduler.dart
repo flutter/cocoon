@@ -133,6 +133,20 @@ final exampleConfig = CiYamlSet(
   },
 );
 
+final exampleNaughtyConfig = CiYamlSet(
+  slug: Config.flutterSlug,
+  branch: Config.defaultBranch(Config.flutterSlug),
+  yamls: {
+    CiType.any: pb.SchedulerConfig(
+      enabledBranches: <String>[Config.defaultBranch(Config.flutterSlug)],
+      targets: <pb.Target>[
+        pb.Target(name: 'Windows A', scheduler: pb.SchedulerSystem.luci),
+        pb.Target(name: 'Windows A', scheduler: pb.SchedulerSystem.luci),
+      ],
+    ),
+  },
+);
+
 final exampleFlakyConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
