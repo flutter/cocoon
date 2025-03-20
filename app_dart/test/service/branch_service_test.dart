@@ -219,7 +219,7 @@ void main() {
     test(
       'does not create branch if a good branch point cannot be found',
       () async {
-        gitCommit = generateGitCommit(1, commitDate: DateTime(2025, 1, 11));
+        gitCommit = generateGitCommit(1, commitDate: DateTime(2025, 1, 9));
         gerritService.branchesValue = [];
         gerritService.commitsValue = [
           generateGerritCommit(
@@ -230,12 +230,12 @@ void main() {
 
         when(
           repositories.getCommit(Config.flutterSlug, gitCommit.sha),
-        ).thenAnswer((_) async => generateGitCommit(5));
+        ).thenAnswer((_) async => gitCommit);
 
         await expectLater(
           () => branchService.branchFlutterRecipes(branch, gitCommit.sha!),
           throwsExceptionWith<InternalServerError>(
-            'HTTP 500: Failed to find a revision to flutter/recipes for $branch before 1969-12-31',
+            'HTTP 500: Failed to find a revision to flutter/recipes for $branch before 2025-01-09 00:00:00.000',
           ),
         );
       },

@@ -361,7 +361,7 @@ github.RepositoryCommit generateGitCommit(
   DateTime? commitDate,
   String? sha,
 }) => github.RepositoryCommit(
-  sha: '$i',
+  sha: sha ?? '$i',
   commit: github.GitCommit(
     committer: github.GitCommitUser(
       'dash',
