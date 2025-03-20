@@ -117,6 +117,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
             taskName: task.name!,
             slug: slug,
             email: token.email!,
+            ignoreChecks: true,
           ),
         );
       }
