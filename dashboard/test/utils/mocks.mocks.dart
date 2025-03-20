@@ -369,6 +369,7 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
     required String? commitSha,
     required String? repo,
     required String? branch,
+    Iterable<String>? include,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#rerunCommit, [], {
@@ -376,6 +377,7 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
               #commitSha: commitSha,
               #repo: repo,
               #branch: branch,
+              #include: include,
             }),
             returnValue: _i6.Future<_i3.CocoonResponse<void>>.value(
               _FakeCocoonResponse_2<void>(
@@ -385,6 +387,7 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
                   #commitSha: commitSha,
                   #repo: repo,
                   #branch: branch,
+                  #include: include,
                 }),
               ),
             ),

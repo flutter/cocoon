@@ -198,36 +198,36 @@ class Task extends Model<int> {
   }
 
   /// The task was cancelled.
-  static const String statusCancelled = 'Cancelled';
+  static const statusCancelled = 'Cancelled';
 
   /// The task is yet to be run.
-  static const String statusNew = 'New';
+  static const statusNew = 'New';
 
   /// The task failed to run due to an unexpected issue.
-  static const String statusInfraFailure = 'Infra Failure';
+  static const statusInfraFailure = 'Infra Failure';
 
   /// The task is currently running.
-  static const String statusInProgress = 'In Progress';
+  static const statusInProgress = 'In Progress';
 
   /// The task was run successfully.
-  static const String statusSucceeded = 'Succeeded';
+  static const statusSucceeded = 'Succeeded';
 
   /// The task failed to run successfully.
-  static const String statusFailed = 'Failed';
+  static const statusFailed = 'Failed';
 
   /// The task was skipped or canceled while running.
   ///
   /// This status is only used by LUCI tasks.
-  static const String statusSkipped = 'Skipped';
+  static const statusSkipped = 'Skipped';
 
-  static const Set<String> taskFailStatusSet = <String>{
+  static const taskFailStatusSet = {
     Task.statusInfraFailure,
     Task.statusFailed,
     Task.statusCancelled,
   };
 
   /// The list of legal values for the [status] property.
-  static const List<String> legalStatusValues = <String>[
+  static const legalStatusValues = {
     statusCancelled,
     statusFailed,
     statusInfraFailure,
@@ -235,15 +235,15 @@ class Task extends Model<int> {
     statusNew,
     statusSkipped,
     statusSucceeded,
-  ];
+  };
 
-  static const List<String> finishedStatusValues = <String>[
+  static const finishedStatusValues = {
     statusCancelled,
     statusFailed,
     statusInfraFailure,
     statusSkipped,
     statusSucceeded,
-  ];
+  };
 
   /// The key of the commit that owns this task.
   @ModelKeyProperty(propertyName: 'ChecklistKey')

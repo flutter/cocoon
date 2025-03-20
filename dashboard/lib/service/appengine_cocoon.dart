@@ -196,6 +196,7 @@ class AppEngineCocoonService implements CocoonService {
     required String commitSha,
     required String repo,
     required String branch,
+    Iterable<String>? include,
   }) async {
     if (idToken == null || idToken.isEmpty) {
       return const CocoonResponse<bool>.error('Sign in to trigger reruns');
@@ -211,6 +212,7 @@ class AppEngineCocoonService implements CocoonService {
         'repo': repo,
         'commit': commitSha,
         'task': taskName,
+        if (include != null) 'include': include.join(','),
       }),
     );
 
@@ -229,10 +231,12 @@ class AppEngineCocoonService implements CocoonService {
     required String commitSha,
     required String repo,
     required String branch,
+    Iterable<String>? include,
   }) async {
     return rerunTask(
       idToken: idToken,
       taskName: 'all',
+      include: include,
       commitSha: commitSha,
       repo: repo,
       branch: branch,

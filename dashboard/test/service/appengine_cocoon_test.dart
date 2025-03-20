@@ -179,6 +179,49 @@ void main() {
       );
     });
 
+    test('should treat rerunCommit as task=all', () async {
+      service = AppEngineCocoonService(
+        client: MockClient((request) async {
+          return Response('${request.url.toString()}|${request.body}', 500);
+        }),
+      );
+
+      final response = await service.rerunCommit(
+        idToken: 'fakeAccessToken',
+        repo: 'flutter',
+        commitSha: 'abc123',
+        branch: 'master',
+      );
+      expect(
+        response.error,
+        endsWith(
+          'api/rerun-prod-task|{"branch":"master","repo":"flutter","commit":"abc123","task":"all"}',
+        ),
+      );
+    });
+
+    test('should include statuses with rerunCommit', () async {
+      service = AppEngineCocoonService(
+        client: MockClient((request) async {
+          return Response('${request.url.toString()}|${request.body}', 500);
+        }),
+      );
+
+      final response = await service.rerunCommit(
+        idToken: 'fakeAccessToken',
+        repo: 'flutter',
+        commitSha: 'abc123',
+        branch: 'master',
+        include: ['Foolish', 'Dashing'],
+      );
+      expect(
+        response.error,
+        endsWith(
+          'api/rerun-prod-task|{"branch":"master","repo":"flutter","commit":"abc123","task":"all","include":"Foolish,Dashing"}',
+        ),
+      );
+    });
+
     test(
       'should set error in response if bad status code is returned',
       () async {

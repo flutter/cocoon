@@ -50,6 +50,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
   static const _paramRepo = 'repo';
   static const _paramCommitSha = 'commit';
   static const _paramTaskName = 'task';
+  static const _paramInclude = 'include';
 
   /// Name of the task to be retried.
   ///
@@ -76,6 +77,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       _paramTaskName: String taskName,
     } = requestData!;
 
+    final include = requestData![_paramInclude] as String?;
     final token = await tokenInfo(request!);
     final slug = RepositorySlug('flutter', repo);
 
@@ -91,8 +93,18 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       );
       final tasks = datastore.db.query<Task>(ancestorKey: commitKey).run();
       final futures = <Future<void>>[];
+      final statusesToRerun = {
+        ...Task.taskFailStatusSet,
+        if (include != null) ...include.split(','),
+      };
+      if (statusesToRerun.difference(Task.legalStatusValues) case final invalid
+          when invalid.isNotEmpty) {
+        throw BadRequestException(
+          'Invalid "include" statuses: ${invalid.join(',')}.',
+        );
+      }
       await for (final task in tasks) {
-        if (!Task.taskFailStatusSet.contains(task.status)) {
+        if (!statusesToRerun.contains(task.status)) {
           continue;
         }
         log.info('Resetting failed task ${task.name}');
@@ -110,6 +122,12 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       }
       await Future.wait(futures);
     } else {
+      // Prevents providing ?include=... that is ultimately ignored.
+      if (include != null) {
+        throw const BadRequestException(
+          'Cannot provide "include" when a task name is specified.',
+        );
+      }
       log.info(
         'Attempting to reset prod task "$taskName" for $commitSha in $repo...',
       );

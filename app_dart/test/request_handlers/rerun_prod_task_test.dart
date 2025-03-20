@@ -133,6 +133,20 @@ void main() {
     ).called(1);
   });
 
+  test('Re-schedule specific task cannot use a status include', () async {
+    tester.requestData = {...tester.requestData, 'include': Task.statusSkipped};
+    await expectLater(
+      tester.post(handler),
+      throwsA(
+        isA<BadRequestException>().having(
+          (e) => e.message,
+          'message',
+          contains('Cannot provide "include" when a task name is specified.'),
+        ),
+      ),
+    );
+  });
+
   test('Rerun all failed tasks when task name is all', () async {
     final taskA = generateTask(
       2,
@@ -186,6 +200,78 @@ void main() {
         firestoreService: anyNamed('firestoreService'),
         taskDocument: anyNamed('taskDocument'),
         ignoreChecks: false,
+      ),
+    );
+  });
+
+  test('Rerun all runs nothing when everything is skipped', () async {
+    final task = generateTask(
+      2,
+      name: 'Windows A',
+      parent: commit,
+      status: Task.statusSkipped,
+    );
+    config.db.values[task.key] = task;
+    config.db.values[commit.key] = commit;
+    tester.requestData = {...tester.requestData, 'task': 'all'};
+    expect(await tester.post(handler), Body.empty);
+    verifyNever(
+      mockLuciBuildService.checkRerunBuilder(
+        commit: anyNamed('commit'),
+        datastore: anyNamed('datastore'),
+        task: anyNamed('task'),
+        target: anyNamed('target'),
+        tags: anyNamed('tags'),
+        firestoreService: anyNamed('firestoreService'),
+        taskDocument: anyNamed('taskDocument'),
+        ignoreChecks: false,
+      ),
+    );
+  });
+
+  test('Rerun all can optionally include other statuses (skipped)', () async {
+    final task = generateTask(
+      2,
+      name: 'Windows A',
+      parent: commit,
+      status: Task.statusSkipped,
+    );
+    config.db.values[task.key] = task;
+    config.db.values[commit.key] = commit;
+    tester.requestData = {
+      ...tester.requestData,
+      'task': 'all',
+      'include': Task.statusSkipped,
+    };
+    expect(await tester.post(handler), Body.empty);
+    verify(
+      mockLuciBuildService.checkRerunBuilder(
+        commit: anyNamed('commit'),
+        datastore: anyNamed('datastore'),
+        task: anyNamed('task'),
+        target: anyNamed('target'),
+        tags: anyNamed('tags'),
+        ignoreChecks: false,
+        firestoreService: mockFirestoreService,
+        taskDocument: anyNamed('taskDocument'),
+      ),
+    ).called(1);
+  });
+
+  test('Rerun all can verifies included statuses are valid', () async {
+    tester.requestData = {
+      ...tester.requestData,
+      'task': 'all',
+      'include': 'Malformed',
+    };
+    await expectLater(
+      tester.post(handler),
+      throwsA(
+        isA<BadRequestException>().having(
+          (e) => e.message,
+          'message',
+          contains('Invalid "include" statuses: Malformed.'),
+        ),
       ),
     );
   });
