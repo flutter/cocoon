@@ -514,6 +514,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       idToken: await buildState.authService.idToken,
       branch: buildState.currentBranch,
       repo: buildState.currentRepo,
+      include: {TaskBox.statusSkipped},
     );
     if (!context.mounted) {
       return;

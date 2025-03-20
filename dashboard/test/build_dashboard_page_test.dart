@@ -942,11 +942,12 @@ void main() {
           idToken: '1234567890',
           branch: 'flutter-release',
           repo: 'flutter',
+          include: {TaskBox.statusSkipped},
         ),
       ).thenAnswer((_) async => const CocoonResponse.data(null));
-      final tooltip =
-          tester.firstWidget(find.byKey(const ValueKey('schedulePostsubmit')))
-              as Tooltip;
+      final tooltip = tester.firstWidget<Tooltip>(
+        find.byKey(const ValueKey('schedulePostsubmit')),
+      );
       await tester.tap(find.byWidget(tooltip.child!));
     });
   });

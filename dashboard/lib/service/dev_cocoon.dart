@@ -154,6 +154,7 @@ class DevelopmentCocoonService implements CocoonService {
     required String commitSha,
     required String repo,
     required String branch,
+    Iterable<String>? include,
   }) async {
     return const CocoonResponse<void>.error(
       'Unable to schedule against fake data. Try building the app to use prod data.',

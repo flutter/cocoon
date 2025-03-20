@@ -65,6 +65,7 @@ abstract class CocoonService {
     required String commitSha,
     required String repo,
     required String branch,
+    Iterable<String>? include,
   });
 
   /// Force update Cocoon to get the latest commits.
