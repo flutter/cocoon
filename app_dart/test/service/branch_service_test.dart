@@ -229,11 +229,11 @@ void main() {
         ];
 
         when(
-          repositories.getCommit(Config.flutterSlug, sha),
+          repositories.getCommit(Config.flutterSlug, gitCommit.sha),
         ).thenAnswer((_) async => generateGitCommit(5));
 
-        expect(
-          () async => branchService.branchFlutterRecipes(branch, sha),
+        await expectLater(
+          () => branchService.branchFlutterRecipes(branch, gitCommit.sha!),
           throwsExceptionWith<InternalServerError>(
             'HTTP 500: Failed to find a revision to flutter/recipes for $branch before 1969-12-31',
           ),

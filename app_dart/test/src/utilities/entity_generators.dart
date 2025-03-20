@@ -356,16 +356,20 @@ GerritCommit generateGerritCommit(String sha, int milliseconds) => GerritCommit(
   ),
 );
 
-github.RepositoryCommit generateGitCommit(int i, {DateTime? commitDate}) =>
-    github.RepositoryCommit(
-      commit: github.GitCommit(
-        committer: github.GitCommitUser(
-          'dash',
-          'dash@flutter.dev',
-          commitDate ?? DateTime.fromMillisecondsSinceEpoch(i),
-        ),
-      ),
-    );
+github.RepositoryCommit generateGitCommit(
+  int i, {
+  DateTime? commitDate,
+  String? sha,
+}) => github.RepositoryCommit(
+  sha: '$i',
+  commit: github.GitCommit(
+    committer: github.GitCommitUser(
+      'dash',
+      'dash@flutter.dev',
+      commitDate ?? DateTime.fromMillisecondsSinceEpoch(i),
+    ),
+  ),
+);
 
 github.Issue generateIssue(
   int i, {
