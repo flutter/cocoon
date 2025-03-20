@@ -168,16 +168,19 @@ void main() {
   group('branchFlutterRecipes', () {
     const branch = 'flutter-2.13-candidate.0';
     const sha = 'abc123';
+    late gh.RepositoryCommit gitCommit;
+
     late MockRepositoriesService repositories;
 
     setUp(() {
-      gerritService.branchesValue = <String>[];
+      gerritService.branchesValue = [];
 
       repositories = MockRepositoriesService();
+      gitCommit = generateGitCommit(5);
       when(
         // ignore: discarded_futures
         repositories.getCommit(Config.flutterSlug, sha),
-      ).thenAnswer((_) async => generateGitCommit(5));
+      ).thenAnswer((_) async => gitCommit);
 
       final mockGithub = MockGitHub();
       when(mockGithub.repositories).thenReturn(repositories);
@@ -185,7 +188,12 @@ void main() {
     });
 
     test('does not create branch that already exists', () async {
-      gerritService.branchesValue = <String>[branch];
+      gitCommit = generateGitCommit(1, commitDate: DateTime(2025, 1, 9));
+      gerritService.branchesValue = [branch];
+      gerritService.commitsValue = [
+        generateGerritCommit('1', DateTime(2025, 1, 10).millisecondsSinceEpoch),
+      ];
+
       expect(
         () async => branchService.branchFlutterRecipes(branch, sha),
         throwsExceptionWith<BadRequestException>('$branch already exists'),
@@ -211,15 +219,23 @@ void main() {
     test(
       'does not create branch if a good branch point cannot be found',
       () async {
-        gerritService.commitsValue = <GerritCommit>[];
-        when(
-          repositories.getCommit(Config.flutterSlug, sha),
-        ).thenAnswer((_) async => generateGitCommit(5));
+        gitCommit = generateGitCommit(1, commitDate: DateTime(2025, 1, 9));
+        gerritService.branchesValue = [];
+        gerritService.commitsValue = [
+          generateGerritCommit(
+            '1',
+            DateTime(2025, 1, 10).millisecondsSinceEpoch,
+          ),
+        ];
 
-        expect(
-          () async => branchService.branchFlutterRecipes(branch, sha),
+        when(
+          repositories.getCommit(Config.flutterSlug, gitCommit.sha),
+        ).thenAnswer((_) async => gitCommit);
+
+        await expectLater(
+          () => branchService.branchFlutterRecipes(branch, gitCommit.sha!),
           throwsExceptionWith<InternalServerError>(
-            'HTTP 500: Failed to find a revision to flutter/recipes for $branch before 1969-12-31',
+            'HTTP 500: Failed to find a revision to flutter/recipes for $branch before 2025-01-09 00:00:00.000',
           ),
         );
       },
