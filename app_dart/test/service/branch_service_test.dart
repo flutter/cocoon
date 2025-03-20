@@ -219,7 +219,15 @@ void main() {
     test(
       'does not create branch if a good branch point cannot be found',
       () async {
-        gerritService.commitsValue = <GerritCommit>[];
+        gitCommit = generateGitCommit(1, commitDate: DateTime(2025, 1, 11));
+        gerritService.branchesValue = [];
+        gerritService.commitsValue = [
+          generateGerritCommit(
+            '1',
+            DateTime(2025, 1, 10).millisecondsSinceEpoch,
+          ),
+        ];
+
         when(
           repositories.getCommit(Config.flutterSlug, sha),
         ).thenAnswer((_) async => generateGitCommit(5));
