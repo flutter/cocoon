@@ -90,7 +90,7 @@ void main() {
       );
 
       final result = (await decodeHandlerBody<Map<String, Object?>>())!;
-      expect(result, containsPair('Statuses', isEmpty));
+      expect(result, containsPair('Commits', isEmpty));
     });
 
     test('reports statuses without input commit key', () async {
@@ -108,7 +108,7 @@ void main() {
 
       tester.request = FakeHttpRequest();
       final result = (await decodeHandlerBody<Map<String, Object?>>())!;
-      expect(result, containsPair('Statuses', hasLength(2)));
+      expect(result, containsPair('Commits', hasLength(2)));
     });
 
     test('reports statuses with input commit key', () async {
@@ -131,24 +131,20 @@ void main() {
       final result = (await decodeHandlerBody<Map<String, Object?>>())!;
       expect(
         result,
-        containsPair('Statuses', [
-          <String, dynamic>{
-            'Checklist': <String, dynamic>{
-              'Checklist': <String, dynamic>{
-                'FlutterRepositoryPath': 'flutter/flutter',
-                'CreateTimestamp': 1,
-                'Commit': <String, dynamic>{
-                  'Sha': '${commit1.sha}',
-                  'Message': null,
-                  'Author': <String, dynamic>{
-                    'Login': null,
-                    'avatar_url': null,
-                  },
-                },
-                'Branch': 'master',
+        containsPair('Commits', [
+          {
+            'Commit': {
+              'FlutterRepositoryPath': 'flutter/flutter',
+              'CreateTimestamp': 1,
+              'Commit': {
+                'Sha': '${commit1.sha}',
+                'Message': 'test message',
+                'Author': {'Login': 'author', 'avatar_url': 'avatar'},
               },
+              'Branch': 'master',
             },
-            'Stages': <String>[],
+            'Tasks': <void>[],
+            'Status': 'In Progress',
           },
         ]),
       );
@@ -157,8 +153,12 @@ void main() {
     test('reports statuses with input branch', () async {
       buildStatusService = FakeBuildStatusService(
         commitTasksStatuses: [
-          CommitTasksStatus(generateFirestoreCommit(1, sha: commit1.sha), []),
-          CommitTasksStatus(generateFirestoreCommit(2, sha: commit2.sha), []),
+          CommitTasksStatus(generateFirestoreCommit(1, sha: commit1.sha), [
+            generateFirestoreTask(1),
+          ]),
+          CommitTasksStatus(generateFirestoreCommit(2, sha: commit2.sha), [
+            generateFirestoreTask(1),
+          ]),
         ],
       );
       handler = GetStatus(
@@ -173,42 +173,34 @@ void main() {
       final result = (await decodeHandlerBody<Map<String, Object?>>())!;
       expect(
         result,
-        containsPair('Statuses', [
+        containsPair('Commits', [
           {
-            'Checklist': <String, dynamic>{
-              'Checklist': <String, dynamic>{
-                'FlutterRepositoryPath': 'flutter/flutter',
-                'CreateTimestamp': 1,
-                'Commit': <String, dynamic>{
-                  'Sha': '${commit1.sha}',
-                  'Message': null,
-                  'Author': <String, dynamic>{
-                    'Login': null,
-                    'avatar_url': null,
-                  },
-                },
-                'Branch': 'master',
+            'Commit': {
+              'FlutterRepositoryPath': 'flutter/flutter',
+              'CreateTimestamp': 1,
+              'Commit': {
+                'Sha': '1',
+                'Message': 'test message',
+                'Author': {'Login': 'author', 'avatar_url': 'avatar'},
               },
+              'Branch': 'master',
             },
-            'Stages': <String>[],
+            'Tasks': <void>[],
+            'Status': 'In Progress',
           },
           {
-            'Checklist': <String, dynamic>{
-              'Checklist': <String, dynamic>{
-                'FlutterRepositoryPath': 'flutter/flutter',
-                'CreateTimestamp': 2,
-                'Commit': <String, dynamic>{
-                  'Sha': '${commit2.sha}',
-                  'Message': null,
-                  'Author': <String, dynamic>{
-                    'Login': null,
-                    'avatar_url': null,
-                  },
-                },
-                'Branch': 'master',
+            'Commit': {
+              'FlutterRepositoryPath': 'flutter/flutter',
+              'CreateTimestamp': 2,
+              'Commit': {
+                'Sha': '2',
+                'Message': 'test message',
+                'Author': {'Login': 'author', 'avatar_url': 'avatar'},
               },
+              'Branch': 'master',
             },
-            'Stages': <String>[],
+            'Tasks': <void>[],
+            'Status': 'In Progress',
           },
         ]),
       );

@@ -161,8 +161,8 @@ void main() {
     test('should return commits with both flaky and succeeded tasks', () async {
       buildStatusService = FakeBuildStatusService(
         commitTasksStatuses: [
-          CommitTasksStatus(commit1, [task1Succeed, task2Failed]),
-          CommitTasksStatus(commit2, [task1Succeed, task3FailedFlaky]),
+          CommitTasksStatus(commit1, [task1Succeed]),
+          CommitTasksStatus(commit2, [task1Succeed, task4SucceedFlaky]),
         ],
       );
       handler = GetGreenCommits(

@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 
 import '../model/firestore/commit.dart';
 import '../model/firestore/commit_tasks_status.dart';
+import '../model/firestore/task.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
@@ -57,7 +58,7 @@ final class GetStatus extends RequestHandler<Body> {
             )).createTimestamp
             : _now().millisecondsSinceEpoch;
 
-    final statuses =
+    final commits =
         await buildStatusService
             .retrieveCommitStatusFirestore(
               limit: commitNumber,
@@ -68,44 +69,74 @@ final class GetStatus extends RequestHandler<Body> {
             .map(_SerializableCommitStatus.new)
             .toList();
 
-    return Body.forJson(<String, dynamic>{'Statuses': statuses});
+    return Body.forJson({'Commits': commits.map((e) => e.toJson()).toList()});
   }
 }
 
-/// The serialized representation of a [CommitStatus].
+// TODO(matanlurey): These are all temporary (private) classes that marshal
+// these objects into the JSON format expected by the frontend, which we control
+// e2e so they can evolve.
+//
+// It would be better to move the dashboard/lib/src/rpc_model into the
+// packages/cocoon_common package, and then use that representation for both
+// the frontend and backend (we're never going to deploy them independently).
+
 final class _SerializableCommitStatus {
   const _SerializableCommitStatus(this.status);
 
   final CommitTasksStatus status;
 
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'Commit': _SerializableCommit(status.commit).facade,
-      'Status': '',
+  Map<String, Object?> toJson() {
+    return {
+      'Commit': _SerializableCommit(status.commit).toJson(),
+      'Tasks': status.tasks,
+      'Status': _determineCommitStatus(),
     };
+  }
+
+  // Copied from https://github.com/flutter/cocoon/blob/f220a6d764715499867ae7883aa24c040307e5f8/app_dart/lib/src/model/appengine/stage.dart#L143-L160.
+  String _determineCommitStatus() {
+    if (status.tasks.isEmpty) {
+      return Task.statusInProgress;
+    }
+    if (status.tasks.every((t) => t.status == Task.statusSucceeded)) {
+      return Task.statusSucceeded;
+    }
+    if (status.tasks.any(Task.taskFailStatusSet.contains)) {
+      return Task.statusFailed;
+    }
+    return status.tasks
+            .map<String?>((t) => t.status)
+            .reduce((a, b) => a == b ? a : null) ??
+        Task.statusInProgress;
   }
 }
 
-/// The serialized representation of a [Commit].
 final class _SerializableCommit {
   const _SerializableCommit(this.commit);
 
   final Commit commit;
 
-  @JsonKey(name: 'Checklist')
-  Map<String, dynamic> get facade {
-    return <String, dynamic>{
+  Map<String, Object?> toJson() {
+    return {
       'FlutterRepositoryPath': commit.repositoryPath,
       'CreateTimestamp': commit.createTimestamp,
-      'Commit': <String, dynamic>{
+      'Commit': {
         'Sha': commit.sha,
         'Message': commit.message,
-        'Author': <String, dynamic>{
-          'Login': commit.author,
-          'avatar_url': commit.avatar,
-        },
+        'Author': {'Login': commit.author, 'avatar_url': commit.avatar},
       },
       'Branch': commit.branch,
     };
+  }
+}
+
+final class _SerializableTask {
+  const _SerializableTask(this.task);
+
+  final Task task;
+
+  Map<String, Object?> toJson() {
+    return {};
   }
 }

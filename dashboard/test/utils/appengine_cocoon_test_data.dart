@@ -5,56 +5,55 @@
 // This is based off data the Cocoon backend sends out from v1.
 // It doesn't map directly to protos since the backend does
 // not use protos yet.
-const String luciJsonGetStatsResponse = '''
+const String luciJsonGetStatsResponse = '''{
+    "Commits": [
       {
-        "Statuses": [
-          {
-          "Checklist": {
-            "Key": "iamatestkey",
-            "Checklist": {
-              "Branch": "master",
-              "FlutterRepositoryPath": "flutter/cocoon",
-              "CreateTimestamp": 123456789,
-              "Commit": {
-                "Sha": "ShaShankHash",
-                "Author": {
-                  "Login": "ShaSha",
-                  "avatar_url": "https://flutter.dev"
-                  }
-                }
+      "Commit": {
+        "Key": "iamatestkey",
+        "Checklist": {
+          "Branch": "master",
+          "FlutterRepositoryPath": "flutter/cocoon",
+          "CreateTimestamp": 123456789,
+          "Commit": {
+            "Sha": "ShaShankHash",
+            "Author": {
+              "Login": "ShaSha",
+              "avatar_url": "https://flutter.dev"
               }
-            },
-            "Stages": [
+            }
+          }
+        },
+        "Stages": [
+          {
+            "Name": "chromebot",
+            "Status": "Succeeded",
+            "Tasks": [
               {
-                "Name": "chromebot",
-                "Status": "Succeeded",
-                "Tasks": [
-                  {
-                    "Key": "taskKey1",
-                    "Task": {
-                      "Attempts": 1,
-                      "CreateTimestamp": 1569353940885,
-                      "EndTimestamp": 1569354700642,
-                      "Flaky": false,
-                      "Name": "linux",
-                      "Reason": "",
-                      "RequiredCapabilities": ["linux"],
-                      "ReservedForAgentID": "",
-                      "StageName": "chromebot",
-                      "StartTimestamp": 1569354594672,
-                      "Status": "Succeeded",
-                      "TimeoutInMinutes": 0,
-                      "BuildNumberList": "123",
-                      "BuilderName": "Linux",
-                      "LuciBucket": "luci.flutter.try"
-                    }
-                  }
-                ]
+                "Key": "taskKey1",
+                "Task": {
+                  "Attempts": 1,
+                  "CreateTimestamp": 1569353940885,
+                  "EndTimestamp": 1569354700642,
+                  "Flaky": false,
+                  "Name": "linux",
+                  "Reason": "",
+                  "RequiredCapabilities": ["linux"],
+                  "ReservedForAgentID": "",
+                  "StageName": "chromebot",
+                  "StartTimestamp": 1569354594672,
+                  "Status": "Succeeded",
+                  "TimeoutInMinutes": 0,
+                  "BuildNumberList": "123",
+                  "BuilderName": "Linux",
+                  "LuciBucket": "luci.flutter.try"
+                }
               }
             ]
           }
         ]
-  }
+      }
+    ]
+}
 ''';
 
 const String luciJsonGetStatsResponseFirestore = '''
