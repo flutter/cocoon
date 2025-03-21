@@ -16,7 +16,9 @@ void main() {
 
     expect(
       QualifiedTask.fromTask(luciTask).sourceConfigurationUrl,
-      'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/def',
+      Uri.parse(
+        'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/def',
+      ),
     );
   });
 
@@ -25,7 +27,9 @@ void main() {
 
     expect(
       QualifiedTask.fromTask(dartInternalTask).sourceConfigurationUrl,
-      'https://ci.chromium.org/p/dart-internal/builders/luci.flutter.prod/',
+      Uri.parse(
+        'https://ci.chromium.org/p/dart-internal/builders/luci.flutter.prod/Linux%20flutter_release_builder',
+      ),
     );
   });
 

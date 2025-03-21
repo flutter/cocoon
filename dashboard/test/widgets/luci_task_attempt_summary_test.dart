@@ -152,7 +152,7 @@ void main() {
       expect(urlLauncher.launches, isNotEmpty);
       expect(
         urlLauncher.launches.single,
-        '${LuciTaskAttemptSummary.dartInternalLogBase}/flutter/Linux/123',
+        '${LuciTaskAttemptSummary.dartInternalLogBase}/flutter/Linux%20flutter_release_builder/123',
       );
     });
   });

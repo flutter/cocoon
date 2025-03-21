@@ -14,7 +14,6 @@ import '../utils/fake_url_launcher.dart';
 void main() {
   testWidgets('TaskIcon tooltip shows task name', (WidgetTester tester) async {
     const taskName = 'tasky task';
-    const expectedLabel = 'tasky task (stagey stage)';
 
     await tester.pumpWidget(
       const MaterialApp(
@@ -26,13 +25,13 @@ void main() {
       ),
     );
 
-    expect(find.text(expectedLabel), findsNothing);
+    expect(find.text(taskName), findsNothing);
 
     final taskIcon = find.byType(TaskIcon);
     final gesture = await tester.startGesture(tester.getCenter(taskIcon));
     await tester.pump(kLongPressTimeout);
 
-    expect(find.text(expectedLabel), findsOneWidget);
+    expect(find.text(taskName), findsOneWidget);
 
     await gesture.up();
   });
@@ -56,7 +55,10 @@ void main() {
     await tester.pump();
 
     expect(urlLauncher.launches, isNotEmpty);
-    expect(urlLauncher.launches.single, luciTask.sourceConfigurationUrl);
+    expect(
+      urlLauncher.launches.single,
+      luciTask.sourceConfigurationUrl.toString(),
+    );
   });
 
   testWidgets('TaskIcon shows the right icon for web', (

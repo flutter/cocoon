@@ -87,7 +87,7 @@ class TaskIcon extends StatelessWidget {
       data: IconThemeData(size: TaskBox.of(context) - 5),
       child: InkWell(
         onTap: () async {
-          await launchUrl(Uri.parse(qualifiedTask.sourceConfigurationUrl));
+          await launchUrl(qualifiedTask.sourceConfigurationUrl);
         },
         child: Tooltip(
           message: qualifiedTask.task,

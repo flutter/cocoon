@@ -8,8 +8,8 @@ import 'package:flutter/foundation.dart';
 import '../model/task.pb.dart';
 
 /// Base URLs for various endpoints that can relate to a [Task].
-const String _luciUrl = 'https://ci.chromium.org/p/flutter';
-const String _dartInternalUrl = 'https://ci.chromium.org/p/dart-internal';
+final _luciUrl = Uri.parse('https://ci.chromium.org/p/flutter');
+final _dartInternalUrl = Uri.parse('https://ci.chromium.org/p/dart-internal');
 
 @immutable
 final class QualifiedTask {
@@ -33,12 +33,21 @@ final class QualifiedTask {
   /// Get the URL for the configuration of this task.
   ///
   /// Luci tasks are stored on Luci.
-  String get sourceConfigurationUrl {
+  Uri get sourceConfigurationUrl {
     assert(isLuci || isDartInternal);
     if (isLuci) {
-      return '$_luciUrl/builders/$pool/$task';
+      return _luciUrl.replace(
+        pathSegments: [..._luciUrl.pathSegments, 'builders', pool, task],
+      );
     } else if (isDartInternal) {
-      return '$_dartInternalUrl/builders/$pool/$task';
+      return _dartInternalUrl.replace(
+        pathSegments: [
+          ..._dartInternalUrl.pathSegments,
+          'builders',
+          pool,
+          task,
+        ],
+      );
     }
     throw Exception('Failed to get source configuration url for $pool/$task.');
   }
@@ -51,12 +60,9 @@ final class QualifiedTask {
 
   @override
   bool operator ==(Object other) {
-    return other is QualifiedTask &&
-        task == other.task &&
-        pool == other.pool &&
-        isBringup == other.isBringup;
+    return other is QualifiedTask && task == other.task;
   }
 
   @override
-  int get hashCode => Object.hash(task, pool, isBringup);
+  int get hashCode => task.hashCode;
 }
