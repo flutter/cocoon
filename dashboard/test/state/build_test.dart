@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
-import 'package:flutter_dashboard/model/key.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/service/google_authentication.dart';
@@ -736,8 +735,7 @@ CommitStatus _createCommitStatus(
           // Author is set so we don't have to dig through all the nested fields
           // while debugging
           ..author = keyValue
-          ..repository = 'flutter/$repo'
-          ..key = (RootKey()..child = (Key()..name = keyValue)),
+          ..repository = 'flutter/$repo',
     tasks: [],
   );
 }

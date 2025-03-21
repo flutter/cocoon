@@ -9,7 +9,6 @@ import 'package:fixnum/fixnum.dart';
 
 import '../logic/qualified_task.dart';
 import '../model/commit.pb.dart';
-import '../model/key.pb.dart';
 import '../model/task.pb.dart';
 import '../src/rpc_model.dart';
 import '../widgets/task_box.dart';
@@ -308,7 +307,6 @@ class DevelopmentCocoonService implements CocoonService {
     final message = commitTimestamp % 37 + author;
     final messageInc = _messagePrimes[message % _messagePrimes.length];
     return Commit()
-      ..key = (RootKey()..child = (Key()..name = '$commitTimestamp'))
       ..author = _authors[author]
       ..authorAvatarUrl =
           'https://avatars2.githubusercontent.com/u/${2148558 + author}?v=4'

@@ -4,6 +4,7 @@
 
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
+import 'package:path/path.dart' as p;
 
 import '../../../cocoon_service.dart';
 import '../../service/firestore.dart';
@@ -28,15 +29,19 @@ const String kCommitMessage = 'Message';
 const String kCommitRepositoryPath = 'RepositoryPath';
 const String kCommitSha = 'Sha';
 
-class Commit extends Document {
-  /// Lookup [Commit] from Firestore.
-  ///
-  /// `documentName` follows `/projects/{project}/databases/{database}/documents/{document_path}`
-  static Future<Commit> fromFirestore({
-    required FirestoreService firestoreService,
-    required String documentName,
+final class Commit extends Document {
+  /// Returns [Commit] from [firestore] by the given [sha].
+  static Future<Commit> fromFirestoreBySha(
+    FirestoreService firestore, {
+    required String sha,
   }) async {
-    final document = await firestoreService.getDocument(documentName);
+    final documentName = p.join(
+      kDatabase,
+      'documents',
+      kCommitCollectionId,
+      sha,
+    );
+    final document = await firestore.getDocument(documentName);
     return Commit.fromDocument(commitDocument: document);
   }
 

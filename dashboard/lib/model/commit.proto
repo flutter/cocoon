@@ -6,11 +6,9 @@ syntax = "proto2";
 
 package dashboard;
 
-import "lib/model/key.proto";
-
 message Commit {
     // Next ID: 9
-    optional RootKey key = 1;
+    reserved 1;
     optional int64 timestamp = 2;
     optional string sha = 3;
     optional string author = 4;

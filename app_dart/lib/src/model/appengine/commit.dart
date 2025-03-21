@@ -8,7 +8,6 @@ import 'package:github/github.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../service/datastore.dart';
-import 'key_converter.dart';
 
 part 'commit.g.dart';
 
@@ -115,10 +114,6 @@ class SerializableCommit {
   const SerializableCommit(this.commit);
 
   final Commit commit;
-
-  @JsonKey(name: 'Key')
-  @StringKeyConverter()
-  Key<String>? get key => commit.key;
 
   @JsonKey(name: 'Checklist')
   Map<String, dynamic> get facade {
