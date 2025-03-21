@@ -5,11 +5,8 @@
 import 'package:cocoon_server/logging.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
-import 'package:json_annotation/json_annotation.dart';
 
 import '../../service/datastore.dart';
-
-part 'commit.g.dart';
 
 /// Class that represents a commit that has landed on the master branch of a
 /// Flutter repository.
