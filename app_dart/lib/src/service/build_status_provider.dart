@@ -153,23 +153,6 @@ class BuildStatusService {
     }
   }
 
-  Stream<CommitStatus> retrieveCommitStatus({
-    required int limit,
-    int? timestamp,
-    String? branch,
-    required RepositorySlug slug,
-  }) async* {
-    await for (datastore.Commit commit in datastoreService.queryRecentCommits(
-      limit: limit,
-      timestamp: timestamp,
-      branch: branch,
-      slug: slug,
-    )) {
-      final stages = await datastoreService.queryTasksGroupedByStage(commit);
-      yield CommitStatus(commit, stages);
-    }
-  }
-
   bool _isFailed(Task task) {
     return task.status == Task.statusFailed ||
         task.status == Task.statusInfraFailure ||

@@ -5,10 +5,11 @@
 import 'dart:async';
 
 import 'package:github/github.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
-import '../model/appengine/commit.dart';
-import '../model/firestore/commit.dart' as firestore;
+import '../model/firestore/commit.dart';
+import '../model/firestore/commit_tasks_status.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
@@ -50,7 +51,7 @@ final class GetStatus extends RequestHandler<Body> {
     final commitNumber = config.commitNumber;
     final lastCommitTimestamp =
         lastCommitSha != null
-            ? (await firestore.Commit.fromFirestoreBySha(
+            ? (await Commit.fromFirestoreBySha(
               firestoreService,
               sha: lastCommitSha,
             )).createTimestamp
@@ -58,13 +59,13 @@ final class GetStatus extends RequestHandler<Body> {
 
     final statuses =
         await buildStatusService
-            .retrieveCommitStatus(
+            .retrieveCommitStatusFirestore(
               limit: commitNumber,
               timestamp: lastCommitTimestamp,
               branch: branch,
               slug: slug,
             )
-            .map(SerializableCommitStatus.new)
+            .map(_SerializableCommitStatus.new)
             .toList();
 
     return Body.forJson(<String, dynamic>{'Statuses': statuses});
@@ -72,18 +73,39 @@ final class GetStatus extends RequestHandler<Body> {
 }
 
 /// The serialized representation of a [CommitStatus].
-// TODO(tvolkert): Directly serialize [CommitStatus] once frontends migrate to new format.
-class SerializableCommitStatus {
-  const SerializableCommitStatus(this.status);
+final class _SerializableCommitStatus {
+  const _SerializableCommitStatus(this.status);
 
-  final CommitStatus status;
+  final CommitTasksStatus status;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'Checklist': <String, dynamic>{
-        'Checklist': SerializableCommit(status.commit).facade,
+      'Commit': _SerializableCommit(status.commit).facade,
+      'Status': '',
+    };
+  }
+}
+
+/// The serialized representation of a [Commit].
+final class _SerializableCommit {
+  const _SerializableCommit(this.commit);
+
+  final Commit commit;
+
+  @JsonKey(name: 'Checklist')
+  Map<String, dynamic> get facade {
+    return <String, dynamic>{
+      'FlutterRepositoryPath': commit.repositoryPath,
+      'CreateTimestamp': commit.createTimestamp,
+      'Commit': <String, dynamic>{
+        'Sha': commit.sha,
+        'Message': commit.message,
+        'Author': <String, dynamic>{
+          'Login': commit.author,
+          'avatar_url': commit.avatar,
+        },
       },
-      'Stages': status.stages,
+      'Branch': commit.branch,
     };
   }
 }

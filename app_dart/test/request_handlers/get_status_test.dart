@@ -5,10 +5,9 @@
 import 'dart:convert';
 
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/model/appengine/stage.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart';
+import 'package:cocoon_service/src/model/firestore/commit_tasks_status.dart';
 import 'package:cocoon_service/src/request_handlers/get_status.dart';
-import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/firestore/v1.dart';
@@ -77,9 +76,7 @@ void main() {
         keyHelperValue: keyHelper,
         firestoreService: mockFirestoreService,
       );
-      buildStatusService = FakeBuildStatusService(
-        commitStatuses: <CommitStatus>[],
-      );
+      buildStatusService = FakeBuildStatusService(commitTasksStatuses: []);
       handler = GetStatus(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
@@ -98,9 +95,9 @@ void main() {
 
     test('reports statuses without input commit key', () async {
       buildStatusService = FakeBuildStatusService(
-        commitStatuses: <CommitStatus>[
-          CommitStatus(generateCommit(1, sha: commit1.sha), const <Stage>[]),
-          CommitStatus(generateCommit(2, sha: commit2.sha), const <Stage>[]),
+        commitTasksStatuses: [
+          CommitTasksStatus(generateFirestoreCommit(1, sha: commit1.sha), []),
+          CommitTasksStatus(generateFirestoreCommit(2, sha: commit2.sha), []),
         ],
       );
       handler = GetStatus(
@@ -116,9 +113,9 @@ void main() {
 
     test('reports statuses with input commit key', () async {
       buildStatusService = FakeBuildStatusService(
-        commitStatuses: <CommitStatus>[
-          CommitStatus(generateCommit(1, sha: commit1.sha), const <Stage>[]),
-          CommitStatus(generateCommit(2, sha: commit2.sha), const <Stage>[]),
+        commitTasksStatuses: [
+          CommitTasksStatus(generateFirestoreCommit(1, sha: commit1.sha), []),
+          CommitTasksStatus(generateFirestoreCommit(2, sha: commit2.sha), []),
         ],
       );
       handler = GetStatus(
@@ -159,9 +156,9 @@ void main() {
 
     test('reports statuses with input branch', () async {
       buildStatusService = FakeBuildStatusService(
-        commitStatuses: <CommitStatus>[
-          CommitStatus(generateCommit(1, sha: commit1.sha), const <Stage>[]),
-          CommitStatus(generateCommit(2, sha: commit2.sha), const <Stage>[]),
+        commitTasksStatuses: [
+          CommitTasksStatus(generateFirestoreCommit(1, sha: commit1.sha), []),
+          CommitTasksStatus(generateFirestoreCommit(2, sha: commit2.sha), []),
         ],
       );
       handler = GetStatus(

@@ -9,14 +9,9 @@ import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:github/github.dart';
 
 class FakeBuildStatusService implements BuildStatusService {
-  FakeBuildStatusService({
-    this.cumulativeStatus,
-    this.commitStatuses,
-    this.commitTasksStatuses,
-  });
+  FakeBuildStatusService({this.cumulativeStatus, this.commitTasksStatuses});
 
   BuildStatus? cumulativeStatus;
-  List<CommitStatus>? commitStatuses;
   List<CommitTasksStatus>? commitTasksStatuses;
 
   @override
@@ -25,32 +20,6 @@ class FakeBuildStatusService implements BuildStatusService {
       throw AssertionError();
     }
     return cumulativeStatus;
-  }
-
-  @override
-  Stream<CommitStatus> retrieveCommitStatus({
-    int limit = 100,
-    int? timestamp,
-    String? branch,
-    required RepositorySlug slug,
-  }) {
-    if (commitStatuses == null) {
-      throw AssertionError();
-    }
-    commitStatuses!.sort(
-      (CommitStatus a, CommitStatus b) =>
-          a.commit.timestamp!.compareTo(b.commit.timestamp!),
-    );
-
-    return Stream<CommitStatus>.fromIterable(
-      commitStatuses!.where(
-        (CommitStatus commitStatus) =>
-            ((commitStatus.commit.timestamp == null || timestamp == null)
-                ? true
-                : commitStatus.commit.timestamp! < timestamp) &&
-            commitStatus.commit.branch == branch,
-      ),
-    );
   }
 
   @override

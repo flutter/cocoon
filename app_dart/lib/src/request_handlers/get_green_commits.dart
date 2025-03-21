@@ -8,8 +8,8 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
-import '../model/appengine/stage.dart';
 import '../model/appengine/task.dart';
+import '../model/firestore/commit_tasks_status.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
@@ -63,25 +63,21 @@ class GetGreenCommits extends RequestHandler<Body> {
 
     final greenCommits =
         await buildStatusService
-            .retrieveCommitStatus(
+            .retrieveCommitStatusFirestore(
               limit: commitNumber,
               branch: branch,
               slug: slug,
             )
             .where(everyNonFlakyTaskSucceed)
-            .map<String?>((CommitStatus status) => status.commit.sha)
+            .map((status) => status.commit.sha)
             .toList();
 
     return Body.forJson(greenCommits);
   }
 
-  bool everyNonFlakyTaskSucceed(CommitStatus status) {
-    return status.stages.every(
-      (Stage stage) => stage.tasks
-          .where((Task task) => !task.isFlaky!)
-          .every(
-            (Task nonFlakyTask) => nonFlakyTask.status == Task.statusSucceeded,
-          ),
-    );
+  bool everyNonFlakyTaskSucceed(CommitTasksStatus status) {
+    return status.tasks
+        .where((task) => !task.testFlaky!)
+        .every((nonFlakyTask) => nonFlakyTask.status == Task.statusSucceeded);
   }
 }

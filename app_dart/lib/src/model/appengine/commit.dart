@@ -106,32 +106,3 @@ class Commit extends Model<String> {
     return buf.toString();
   }
 }
-
-/// The serialized representation of a [Commit].
-// TODO(tvolkert): Directly serialize [Commit] once frontends migrate to new serialization format.
-@JsonSerializable(createFactory: false, ignoreUnannotated: true)
-class SerializableCommit {
-  const SerializableCommit(this.commit);
-
-  final Commit commit;
-
-  @JsonKey(name: 'Checklist')
-  Map<String, dynamic> get facade {
-    return <String, dynamic>{
-      'FlutterRepositoryPath': commit.repository,
-      'CreateTimestamp': commit.timestamp,
-      'Commit': <String, dynamic>{
-        'Sha': commit.sha,
-        'Message': commit.message,
-        'Author': <String, dynamic>{
-          'Login': commit.author,
-          'avatar_url': commit.authorAvatarUrl,
-        },
-      },
-      'Branch': commit.branch,
-    };
-  }
-
-  /// Serializes this object to a JSON primitive.
-  Map<String, dynamic> toJson() => _$SerializableCommitToJson(this);
-}

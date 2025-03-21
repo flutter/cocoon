@@ -10,14 +10,13 @@ import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/appengine/stage.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
+import 'package:cocoon_service/src/model/firestore/commit_tasks_status.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
-import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
@@ -183,8 +182,8 @@ void main() {
       ).thenAnswer((_) async => []);
 
       buildStatusService = FakeBuildStatusService(
-        commitStatuses: <CommitStatus>[
-          CommitStatus(generateCommit(1), const <Stage>[]),
+        commitTasksStatuses: [
+          CommitTasksStatus(generateFirestoreCommit(1), []),
         ],
       );
       config = FakeConfig(
@@ -429,10 +428,10 @@ void main() {
           ),
         ).thenAnswer((_) async => []);
         buildStatusService = FakeBuildStatusService(
-          commitStatuses: <CommitStatus>[
-            CommitStatus(
-              generateCommit(1, repo: 'packages', branch: 'main'),
-              const <Stage>[],
+          commitTasksStatuses: [
+            CommitTasksStatus(
+              generateFirestoreCommit(1, repo: 'packages', branch: 'main'),
+              [],
             ),
           ],
         );
@@ -526,10 +525,10 @@ void main() {
             );
           });
           buildStatusService = FakeBuildStatusService(
-            commitStatuses: <CommitStatus>[
-              CommitStatus(
-                generateCommit(1, repo: 'packages', branch: 'main'),
-                const <Stage>[],
+            commitTasksStatuses: [
+              CommitTasksStatus(
+                generateFirestoreCommit(1, repo: 'packages', branch: 'main'),
+                [],
               ),
             ],
           );
@@ -833,8 +832,8 @@ void main() {
         final mockGithubService = MockGithubService();
         final mockGithubClient = MockGitHub();
         buildStatusService = FakeBuildStatusService(
-          commitStatuses: <CommitStatus>[
-            CommitStatus(generateCommit(1), const <Stage>[]),
+          commitTasksStatuses: [
+            CommitTasksStatus(generateFirestoreCommit(1), []),
           ],
         );
         config = FakeConfig(
@@ -929,8 +928,8 @@ void main() {
           final mockGithubService = MockGithubService();
           final mockGithubClient = MockGitHub();
           buildStatusService = FakeBuildStatusService(
-            commitStatuses: <CommitStatus>[
-              CommitStatus(generateCommit(1), const <Stage>[]),
+            commitTasksStatuses: [
+              CommitTasksStatus(generateFirestoreCommit(1), []),
             ],
           );
           config = FakeConfig(
@@ -1030,8 +1029,8 @@ void main() {
         final mockGithubService = MockGithubService();
         final mockGithubClient = MockGitHub();
         buildStatusService = FakeBuildStatusService(
-          commitStatuses: <CommitStatus>[
-            CommitStatus(generateCommit(1), const <Stage>[]),
+          commitTasksStatuses: [
+            CommitTasksStatus(generateFirestoreCommit(1), []),
           ],
         );
         config = FakeConfig(
@@ -1127,8 +1126,8 @@ void main() {
           firestoreService: mockFirestoreService,
         );
         buildStatusService = FakeBuildStatusService(
-          commitStatuses: <CommitStatus>[
-            CommitStatus(generateCommit(1), const <Stage>[]),
+          commitTasksStatuses: [
+            CommitTasksStatus(generateFirestoreCommit(1), []),
           ],
         );
 
@@ -1210,24 +1209,24 @@ void main() {
         ).thenAnswer((Invocation invocation) {
           return Future<BatchWriteResponse>.value(BatchWriteResponse());
         });
-        final commit = generateCommit(
+        final commit = generateFirestoreCommit(
           1,
           sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
           branch: 'independent_agent',
           owner: 'abc',
           repo: 'cocoon',
         );
-        final commitToT = generateCommit(
+        final commitToT = generateFirestoreCommit(
           1,
           sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a592c',
           branch: 'master',
           owner: 'abc',
           repo: 'cocoon',
         );
-        config.db.values[commit.key] = commit;
-        config.db.values[commitToT.key] = commitToT;
-        final task = generateTask(1, name: 'test1', parent: commit);
-        config.db.values[task.key] = task;
+        // config.db.values[commit.key] = commit;
+        // config.db.values[commitToT.key] = commitToT;
+        // final task = generateFirestoreTask(1, name: 'test1', parent: commit);
+        // config.db.values[task.key] = task;
 
         // Set up ci.yaml with task name and branch name from [checkRunString].
         ciYamlFetcher.setCiYamlFrom(r'''
@@ -2660,8 +2659,8 @@ targets:
           final mockGithubService = MockGithubService();
           getFilesChanged.cannedFiles = null;
           buildStatusService = FakeBuildStatusService(
-            commitStatuses: <CommitStatus>[
-              CommitStatus(generateCommit(1), const <Stage>[]),
+            commitTasksStatuses: [
+              CommitTasksStatus(generateFirestoreCommit(1), []),
             ],
           );
           scheduler = Scheduler(
