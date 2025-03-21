@@ -137,26 +137,6 @@ Server createServer({
       authenticationProvider: authProvider,
     ),
 
-    /// Updates task related details.
-    ///
-    /// This API updates task status in datastore and
-    /// pushes performance metrics to skia-perf.
-    ///
-    /// POST: /api-update-status
-    ///
-    /// Parameters:
-    ///   CommitBranch: (string in body). Branch of commit.
-    ///   CommitSha: (string in body). Sha of commit.
-    ///   BuilderName: (string in body). Name of the luci builder.
-    ///   NewStatus: (string in body) required. Status of the task.
-    ///   ResultData: (string in body) optional. Benchmark data.
-    ///   BenchmarkScoreKeys: (string in body) optional. Benchmark data.
-    ///
-    /// Response: Status 200 OK
-    '/api/update-task-status': UpdateTaskStatus(
-      config: config,
-      authenticationProvider: swarmingAuthProvider,
-    ),
     '/api/vacuum-github-commits': VacuumGithubCommits(
       config: config,
       authenticationProvider: authProvider,
