@@ -7,6 +7,8 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/request_handlers/vacuum_github_commits.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
+import 'package:cocoon_service/src/request_handling/single_execution_request_handler.dart';
+import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
@@ -30,6 +32,7 @@ void main() {
   group('VacuumGithubCommits', () {
     late FakeConfig config;
     late FakeDatastoreDB db;
+    late CacheService cache;
     late ApiRequestHandlerTester tester;
     late MockFirestoreService mockFirestoreService;
     late VacuumGithubCommits handler;
@@ -111,14 +114,21 @@ void main() {
       final auth = FakeAuthenticationProvider();
       final scheduler = FakeScheduler(config: config);
       tester = ApiRequestHandlerTester();
+      tester.request!.headers.add(
+        SingleExecutionRequestHandler.xAppengineCron,
+        'true',
+      );
+
+      cache = CacheService(inMemory: true);
       handler = VacuumGithubCommits(
         config: config,
+        cache: cache,
         authenticationProvider: auth,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         scheduler: scheduler,
       );
 
-      githubService.listCommitsBranch = (String branch, int hours) {
+      githubService.listCommitsBranch = (_, _) {
         return commitList();
       };
 
@@ -136,26 +146,26 @@ void main() {
 
     test('does not fail on empty commit list', () async {
       githubCommits = <String>[];
-      expect(db.values.values.whereType<Commit>().length, 0);
+      expect(db.values.values.whereType<Commit>(), isEmpty);
       await tester.get<Body>(handler);
-      expect(db.values.values.whereType<Commit>().length, 0);
+      expect(db.values.values.whereType<Commit>(), isEmpty);
     });
 
     test('does not add recent commits', () async {
       githubCommits = <String>['${DateTime.now().millisecondsSinceEpoch}'];
 
-      expect(db.values.values.whereType<Commit>().length, 0);
+      expect(db.values.values.whereType<Commit>(), isEmpty);
       await tester.get<Body>(handler);
-      expect(db.values.values.whereType<Commit>().length, 0);
+      expect(db.values.values.whereType<Commit>(), isEmpty);
     });
 
     test('inserts all relevant fields of the commit', () async {
       githubCommits = <String>['1'];
-      expect(db.values.values.whereType<Commit>().length, 0);
+      expect(db.values.values.whereType<Commit>(), isEmpty);
       await tester.get<Body>(handler);
       expect(
-        db.values.values.whereType<Commit>().length,
-        config.supportedRepos.length,
+        db.values.values.whereType<Commit>(),
+        hasLength(config.supportedRepos.length),
       );
       final commits = db.values.values.whereType<Commit>().toList();
       final commit = commits.first;

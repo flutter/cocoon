@@ -157,15 +157,12 @@ Server createServer({
       config: config,
       authenticationProvider: swarmingAuthProvider,
     ),
+
     '/api/vacuum-github-commits': VacuumGithubCommits(
       config: config,
       authenticationProvider: authProvider,
       scheduler: scheduler,
-    ),
-    '/api/v2/vacuum-github-commits': VacuumGithubCommits(
-      config: config,
-      authenticationProvider: authProvider,
-      scheduler: scheduler,
+      cache: cache,
     ),
 
     /// Temporary API to trigger a dispatch-able workflow from Cocoon.

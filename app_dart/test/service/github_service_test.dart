@@ -22,7 +22,6 @@ void main() {
   late RepositorySlug slug;
 
   const branch = 'master';
-  const lastCommitTimestampMills = 100;
 
   const authorName = 'Jane Doe';
   const authorEmail = 'janedoe@example.com';
@@ -78,7 +77,7 @@ void main() {
     final commits = await githubService.listBranchedCommits(
       slug,
       branch,
-      lastCommitTimestampMills,
+      since: DateTime.now().subtract(const Duration(days: 1)),
     );
     expect(commits, hasLength(1));
     final commit = commits.single;
