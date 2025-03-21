@@ -431,8 +431,6 @@ class DevelopmentCocoonService implements CocoonService {
           ..builderName = 'Linux_android $index'
           ..attempts = attempts
           ..isFlaky = index == now.millisecondsSinceEpoch % 13
-          ..requiredCapabilities.add('[linux/android]')
-          ..reservedForAgentId = 'linux1'
           ..stageName = stageName
           ..status = status
           ..isTestFlaky = index == now.millisecondsSinceEpoch % 17;

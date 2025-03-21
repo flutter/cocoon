@@ -22,16 +22,10 @@ class Task extends $pb.GeneratedMessage {
     $core.String? name,
     $core.int? attempts,
     $core.bool? isFlaky,
-    $core.int? timeoutInMinutes,
-    $core.String? reason,
-    $core.Iterable<$core.String>? requiredCapabilities,
-    $core.String? reservedForAgentId,
     $core.String? stageName,
     $core.String? status,
-    $core.int? buildNumber,
     $core.String? buildNumberList,
     $core.String? builderName,
-    $core.String? luciBucket,
     $core.bool? isTestFlaky,
   }) {
     final $result = create();
@@ -53,35 +47,17 @@ class Task extends $pb.GeneratedMessage {
     if (isFlaky != null) {
       $result.isFlaky = isFlaky;
     }
-    if (timeoutInMinutes != null) {
-      $result.timeoutInMinutes = timeoutInMinutes;
-    }
-    if (reason != null) {
-      $result.reason = reason;
-    }
-    if (requiredCapabilities != null) {
-      $result.requiredCapabilities.addAll(requiredCapabilities);
-    }
-    if (reservedForAgentId != null) {
-      $result.reservedForAgentId = reservedForAgentId;
-    }
     if (stageName != null) {
       $result.stageName = stageName;
     }
     if (status != null) {
       $result.status = status;
     }
-    if (buildNumber != null) {
-      $result.buildNumber = buildNumber;
-    }
     if (buildNumberList != null) {
       $result.buildNumberList = buildNumberList;
     }
     if (builderName != null) {
       $result.builderName = builderName;
-    }
-    if (luciBucket != null) {
-      $result.luciBucket = luciBucket;
     }
     if (isTestFlaky != null) {
       $result.isTestFlaky = isTestFlaky;
@@ -106,20 +82,11 @@ class Task extends $pb.GeneratedMessage {
     ..aOS(6, _omitFieldNames ? '' : 'name')
     ..a<$core.int>(7, _omitFieldNames ? '' : 'attempts', $pb.PbFieldType.O3)
     ..aOB(8, _omitFieldNames ? '' : 'isFlaky')
-    ..a<$core.int>(
-        9, _omitFieldNames ? '' : 'timeoutInMinutes', $pb.PbFieldType.O3)
-    ..aOS(10, _omitFieldNames ? '' : 'reason')
-    ..pPS(11, _omitFieldNames ? '' : 'requiredCapabilities')
-    ..aOS(12, _omitFieldNames ? '' : 'reservedForAgentId',
-        protoName: 'reserved_for_agentId')
     ..aOS(13, _omitFieldNames ? '' : 'stageName')
     ..aOS(14, _omitFieldNames ? '' : 'status')
-    ..a<$core.int>(15, _omitFieldNames ? '' : 'buildNumber', $pb.PbFieldType.O3,
-        protoName: 'buildNumber')
     ..aOS(16, _omitFieldNames ? '' : 'buildNumberList',
         protoName: 'buildNumberList')
     ..aOS(17, _omitFieldNames ? '' : 'builderName', protoName: 'builderName')
-    ..aOS(18, _omitFieldNames ? '' : 'luciBucket', protoName: 'luciBucket')
     ..aOB(19, _omitFieldNames ? '' : 'isTestFlaky')
     ..hasRequiredFields = false;
 
@@ -216,126 +183,63 @@ class Task extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   void clearIsFlaky() => clearField(8);
 
-  @$pb.TagNumber(9)
-  $core.int get timeoutInMinutes => $_getIZ(6);
-  @$pb.TagNumber(9)
-  set timeoutInMinutes($core.int v) {
-    $_setSignedInt32(6, v);
-  }
-
-  @$pb.TagNumber(9)
-  $core.bool hasTimeoutInMinutes() => $_has(6);
-  @$pb.TagNumber(9)
-  void clearTimeoutInMinutes() => clearField(9);
-
-  @$pb.TagNumber(10)
-  $core.String get reason => $_getSZ(7);
-  @$pb.TagNumber(10)
-  set reason($core.String v) {
-    $_setString(7, v);
-  }
-
-  @$pb.TagNumber(10)
-  $core.bool hasReason() => $_has(7);
-  @$pb.TagNumber(10)
-  void clearReason() => clearField(10);
-
-  @$pb.TagNumber(11)
-  $core.List<$core.String> get requiredCapabilities => $_getList(8);
-
-  @$pb.TagNumber(12)
-  $core.String get reservedForAgentId => $_getSZ(9);
-  @$pb.TagNumber(12)
-  set reservedForAgentId($core.String v) {
-    $_setString(9, v);
-  }
-
-  @$pb.TagNumber(12)
-  $core.bool hasReservedForAgentId() => $_has(9);
-  @$pb.TagNumber(12)
-  void clearReservedForAgentId() => clearField(12);
-
   @$pb.TagNumber(13)
-  $core.String get stageName => $_getSZ(10);
+  $core.String get stageName => $_getSZ(6);
   @$pb.TagNumber(13)
   set stageName($core.String v) {
-    $_setString(10, v);
+    $_setString(6, v);
   }
 
   @$pb.TagNumber(13)
-  $core.bool hasStageName() => $_has(10);
+  $core.bool hasStageName() => $_has(6);
   @$pb.TagNumber(13)
   void clearStageName() => clearField(13);
 
   @$pb.TagNumber(14)
-  $core.String get status => $_getSZ(11);
+  $core.String get status => $_getSZ(7);
   @$pb.TagNumber(14)
   set status($core.String v) {
-    $_setString(11, v);
+    $_setString(7, v);
   }
 
   @$pb.TagNumber(14)
-  $core.bool hasStatus() => $_has(11);
+  $core.bool hasStatus() => $_has(7);
   @$pb.TagNumber(14)
   void clearStatus() => clearField(14);
 
-  @$pb.TagNumber(15)
-  $core.int get buildNumber => $_getIZ(12);
-  @$pb.TagNumber(15)
-  set buildNumber($core.int v) {
-    $_setSignedInt32(12, v);
-  }
-
-  @$pb.TagNumber(15)
-  $core.bool hasBuildNumber() => $_has(12);
-  @$pb.TagNumber(15)
-  void clearBuildNumber() => clearField(15);
-
   @$pb.TagNumber(16)
-  $core.String get buildNumberList => $_getSZ(13);
+  $core.String get buildNumberList => $_getSZ(8);
   @$pb.TagNumber(16)
   set buildNumberList($core.String v) {
-    $_setString(13, v);
+    $_setString(8, v);
   }
 
   @$pb.TagNumber(16)
-  $core.bool hasBuildNumberList() => $_has(13);
+  $core.bool hasBuildNumberList() => $_has(8);
   @$pb.TagNumber(16)
   void clearBuildNumberList() => clearField(16);
 
   @$pb.TagNumber(17)
-  $core.String get builderName => $_getSZ(14);
+  $core.String get builderName => $_getSZ(9);
   @$pb.TagNumber(17)
   set builderName($core.String v) {
-    $_setString(14, v);
+    $_setString(9, v);
   }
 
   @$pb.TagNumber(17)
-  $core.bool hasBuilderName() => $_has(14);
+  $core.bool hasBuilderName() => $_has(9);
   @$pb.TagNumber(17)
   void clearBuilderName() => clearField(17);
 
-  @$pb.TagNumber(18)
-  $core.String get luciBucket => $_getSZ(15);
-  @$pb.TagNumber(18)
-  set luciBucket($core.String v) {
-    $_setString(15, v);
-  }
-
-  @$pb.TagNumber(18)
-  $core.bool hasLuciBucket() => $_has(15);
-  @$pb.TagNumber(18)
-  void clearLuciBucket() => clearField(18);
-
   @$pb.TagNumber(19)
-  $core.bool get isTestFlaky => $_getBF(16);
+  $core.bool get isTestFlaky => $_getBF(10);
   @$pb.TagNumber(19)
   set isTestFlaky($core.bool v) {
-    $_setBool(16, v);
+    $_setBool(10, v);
   }
 
   @$pb.TagNumber(19)
-  $core.bool hasIsTestFlaky() => $_has(16);
+  $core.bool hasIsTestFlaky() => $_has(10);
   @$pb.TagNumber(19)
   void clearIsTestFlaky() => clearField(19);
 }
