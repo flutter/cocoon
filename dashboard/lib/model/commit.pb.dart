@@ -49,30 +49,36 @@ class Commit extends $pb.GeneratedMessage {
     return $result;
   }
   Commit._() : super();
-  factory Commit.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory Commit.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory Commit.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Commit.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Commit', package: const $pb.PackageName(_omitMessageNames ? '' : 'dashboard'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Commit',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'dashboard'),
+      createEmptyInstance: create)
     ..aInt64(2, _omitFieldNames ? '' : 'timestamp')
     ..aOS(3, _omitFieldNames ? '' : 'sha')
     ..aOS(4, _omitFieldNames ? '' : 'author')
-    ..aOS(5, _omitFieldNames ? '' : 'authorAvatarUrl', protoName: 'authorAvatarUrl')
+    ..aOS(5, _omitFieldNames ? '' : 'authorAvatarUrl',
+        protoName: 'authorAvatarUrl')
     ..aOS(6, _omitFieldNames ? '' : 'repository')
     ..aOS(7, _omitFieldNames ? '' : 'branch')
     ..aOS(8, _omitFieldNames ? '' : 'message')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   Commit clone() => Commit()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  Commit copyWith(void Function(Commit) updates) => super.copyWith((message) => updates(message as Commit)) as Commit;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  Commit copyWith(void Function(Commit) updates) =>
+      super.copyWith((message) => updates(message as Commit)) as Commit;
 
   $pb.BuilderInfo get info_ => _i;
 
@@ -81,13 +87,17 @@ class Commit extends $pb.GeneratedMessage {
   Commit createEmptyInstance() => create();
   static $pb.PbList<Commit> createRepeated() => $pb.PbList<Commit>();
   @$core.pragma('dart2js:noInline')
-  static Commit getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Commit>(create);
+  static Commit getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Commit>(create);
   static Commit? _defaultInstance;
 
   @$pb.TagNumber(2)
   $fixnum.Int64 get timestamp => $_getI64(0);
   @$pb.TagNumber(2)
-  set timestamp($fixnum.Int64 v) { $_setInt64(0, v); }
+  set timestamp($fixnum.Int64 v) {
+    $_setInt64(0, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasTimestamp() => $_has(0);
   @$pb.TagNumber(2)
@@ -96,7 +106,10 @@ class Commit extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.String get sha => $_getSZ(1);
   @$pb.TagNumber(3)
-  set sha($core.String v) { $_setString(1, v); }
+  set sha($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasSha() => $_has(1);
   @$pb.TagNumber(3)
@@ -105,7 +118,10 @@ class Commit extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.String get author => $_getSZ(2);
   @$pb.TagNumber(4)
-  set author($core.String v) { $_setString(2, v); }
+  set author($core.String v) {
+    $_setString(2, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasAuthor() => $_has(2);
   @$pb.TagNumber(4)
@@ -114,7 +130,10 @@ class Commit extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.String get authorAvatarUrl => $_getSZ(3);
   @$pb.TagNumber(5)
-  set authorAvatarUrl($core.String v) { $_setString(3, v); }
+  set authorAvatarUrl($core.String v) {
+    $_setString(3, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasAuthorAvatarUrl() => $_has(3);
   @$pb.TagNumber(5)
@@ -123,7 +142,10 @@ class Commit extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $core.String get repository => $_getSZ(4);
   @$pb.TagNumber(6)
-  set repository($core.String v) { $_setString(4, v); }
+  set repository($core.String v) {
+    $_setString(4, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasRepository() => $_has(4);
   @$pb.TagNumber(6)
@@ -132,7 +154,10 @@ class Commit extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $core.String get branch => $_getSZ(5);
   @$pb.TagNumber(7)
-  set branch($core.String v) { $_setString(5, v); }
+  set branch($core.String v) {
+    $_setString(5, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasBranch() => $_has(5);
   @$pb.TagNumber(7)
@@ -141,13 +166,16 @@ class Commit extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   $core.String get message => $_getSZ(6);
   @$pb.TagNumber(8)
-  set message($core.String v) { $_setString(6, v); }
+  set message($core.String v) {
+    $_setString(6, v);
+  }
+
   @$pb.TagNumber(8)
   $core.bool hasMessage() => $_has(6);
   @$pb.TagNumber(8)
   void clearMessage() => clearField(8);
 }
 
-
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

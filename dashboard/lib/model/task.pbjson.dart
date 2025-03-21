@@ -23,10 +23,28 @@ const Task$json = {
     {'1': 'name', '3': 6, '4': 1, '5': 9, '10': 'name'},
     {'1': 'attempts', '3': 7, '4': 1, '5': 5, '10': 'attempts'},
     {'1': 'is_flaky', '3': 8, '4': 1, '5': 8, '10': 'isFlaky'},
-    {'1': 'timeout_in_minutes', '3': 9, '4': 1, '5': 5, '10': 'timeoutInMinutes'},
+    {
+      '1': 'timeout_in_minutes',
+      '3': 9,
+      '4': 1,
+      '5': 5,
+      '10': 'timeoutInMinutes'
+    },
     {'1': 'reason', '3': 10, '4': 1, '5': 9, '10': 'reason'},
-    {'1': 'required_capabilities', '3': 11, '4': 3, '5': 9, '10': 'requiredCapabilities'},
-    {'1': 'reserved_for_agentId', '3': 12, '4': 1, '5': 9, '10': 'reservedForAgentId'},
+    {
+      '1': 'required_capabilities',
+      '3': 11,
+      '4': 3,
+      '5': 9,
+      '10': 'requiredCapabilities'
+    },
+    {
+      '1': 'reserved_for_agentId',
+      '3': 12,
+      '4': 1,
+      '5': 9,
+      '10': 'reservedForAgentId'
+    },
     {'1': 'stage_name', '3': 13, '4': 1, '5': 9, '10': 'stageName'},
     {'1': 'status', '3': 14, '4': 1, '5': 9, '10': 'status'},
     {'1': 'buildNumber', '3': 15, '4': 1, '5': 5, '10': 'buildNumber'},
@@ -55,4 +73,3 @@ final $typed_data.Uint8List taskDescriptor = $convert.base64Decode(
     'Jlckxpc3QSIAoLYnVpbGRlck5hbWUYESABKAlSC2J1aWxkZXJOYW1lEh4KCmx1Y2lCdWNrZXQY'
     'EiABKAlSCmx1Y2lCdWNrZXQSIgoNaXNfdGVzdF9mbGFreRgTIAEoCFILaXNUZXN0Rmxha3lKBA'
     'gBEAJKBAgCEAM=');
-
