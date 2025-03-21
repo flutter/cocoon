@@ -1360,21 +1360,20 @@ $s
         testsToRun: _FlutterRepoTestsToRun.engineTestsAndFrameworkTests,
       );
     } catch (error, stacktrace) {
-      await githubChecksService.githubChecksUtil.createCheckRun(
-        config,
+      final githubService = await config.createDefaultGitHubService();
+      await githubService.createComment(
         slug,
-        pullRequest.head!.sha!,
-        'CI Caught Failure',
-        conclusion: CheckRunConclusion.failure,
-        output: CheckRunOutput(
-          title: 'CI Caught Failure',
-          summary: 'A critical error occurred, preventing further CI testing.',
-          text: '''
-This check run indicates a failure in the CI process that stopped further tests from running.  We need to investigate to determine the root cause.
+        issueNumber: pullRequest.number!,
+        body: '''
+CI had a failure that stopped further tests from running.  We need to investigate to determine the root cause.
+
+SHA at time of execution: $sha.
 
 Possible causes:
 * **Configuration Changes:** The `.ci.yaml` file might have been modified between the creation of this pull request and the start of this test run. This can lead to ci yaml validation errors.
 * **Infrastructure Issues:** Problems with the CI environment itself (e.g., quota) could have caused the failure.
+
+A blank commit, or merging to head, will be required to resume running CI for this PR.
 
 **Error Details:**
 
@@ -1388,7 +1387,6 @@ Stack trace:
 $stacktrace
 ```
 ''',
-        ),
       );
     }
   }

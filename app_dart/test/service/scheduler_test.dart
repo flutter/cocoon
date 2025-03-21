@@ -1852,7 +1852,7 @@ targets:
           });
 
           test(
-            'creates failure check_run if moving to next phase fails',
+            'writes failure comment if moving to next phase fails',
             () async {
               final githubService = config.githubService = MockGithubService();
               final githubClient = MockGitHub();
@@ -1883,35 +1883,20 @@ targets:
                 return pullRequest;
               });
 
-              final checkRuns = <CheckRun>[];
-              when(
-                mockGithubChecksUtil.createCheckRun(
-                  any,
-                  any,
-                  any,
-                  any,
-                  output: anyNamed('output'),
-                  conclusion: anyNamed('conclusion'),
-                ),
-              ).thenAnswer((inv) async {
-                final slug = inv.positionalArguments[1] as RepositorySlug;
-                final sha = inv.positionalArguments[2] as String;
-                final name = inv.positionalArguments[3] as String?;
-                checkRuns.add(
-                  createCheckRun(
-                    id: 1,
-                    owner: slug.owner,
-                    repo: slug.name,
-                    sha: sha,
-                    name: name,
-                  ),
-                );
-                return checkRuns.last;
-              });
-
               final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
                 jsonDecode(checkRunString) as Map<String, dynamic>,
               );
+
+              final mockGithubService = MockGithubService();
+              config.githubService = mockGithubService;
+
+              when(
+                mockGithubService.createComment(
+                  any,
+                  issueNumber: anyNamed('issueNumber'),
+                  body: anyNamed('body'),
+                ),
+              ).thenAnswer((_) async => null);
 
               await scheduler.proceedToCiTestingStage(
                 checkRun: checkRunEvent.checkRun!,
@@ -1921,21 +1906,18 @@ targets:
                 logCrumb: 'test',
               );
 
-              final captured =
-                  verify(
-                    mockGithubChecksUtil.createCheckRun(
-                      any,
-                      RepositorySlug('flutter', 'flutter'),
-                      'abc',
-                      'CI Caught Failure',
-                      output: captureAnyNamed('output'),
-                      conclusion: CheckRunConclusion.failure,
-                    ),
-                  ).captured;
-              expect(captured, hasLength(1));
-              expect(
-                captured.first.summary,
-                'A critical error occurred, preventing further CI testing.',
+              verify(
+                mockGithubService.createComment(
+                  RepositorySlug('flutter', 'flutter'),
+                  issueNumber: argThat(
+                    equals(pullRequest.number),
+                    named: 'issueNumber',
+                  ),
+                  body: argThat(
+                    contains('CI had a failure that stopped further tests'),
+                    named: 'body',
+                  ),
+                ),
               );
             },
           );
