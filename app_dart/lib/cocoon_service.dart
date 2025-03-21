@@ -29,7 +29,6 @@ export 'src/request_handlers/scheduler/batch_backfiller.dart';
 export 'src/request_handlers/scheduler/scheduler_request_subscription.dart';
 export 'src/request_handlers/scheduler/vacuum_stale_tasks.dart';
 export 'src/request_handlers/update_existing_flaky_issues.dart';
-export 'src/request_handlers/update_task_status.dart';
 export 'src/request_handlers/vacuum_github_commits.dart';
 export 'src/request_handling/authentication.dart';
 export 'src/request_handling/body.dart';
