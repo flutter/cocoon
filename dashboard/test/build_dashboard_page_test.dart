@@ -796,7 +796,6 @@ void main() {
             commit: commit,
             tasks: [
               Task(
-                stageName: 'A',
                 name: 'Task',
                 builderName: 'Builder',
                 status: TaskBox.statusNew,

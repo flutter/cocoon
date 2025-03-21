@@ -8,7 +8,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
-import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
@@ -400,7 +399,6 @@ void main() {
         branch: 'master',
         tasks: [
           Task()
-            ..stageName = 'A'
             ..name = '1'
             ..builderName = '1'
             ..status = TaskBox.statusSucceeded,
@@ -411,7 +409,6 @@ void main() {
         branch: 'master',
         tasks: [
           Task()
-            ..stageName = 'A'
             ..name = '2'
             ..builderName = '2'
             ..status = TaskBox.statusSucceeded,
@@ -422,7 +419,6 @@ void main() {
         branch: 'master',
         tasks: [
           Task()
-            ..stageName = 'A'
             ..name = '3'
             ..builderName = '3'
             ..status = TaskBox.statusSucceeded,
@@ -466,7 +462,6 @@ void main() {
         branch: 'master',
         tasks: [
           Task()
-            ..stageName = StageName.cocoon
             ..name = '1'
             ..builderName = '1'
             ..status = TaskBox.statusSucceeded,
@@ -477,7 +472,6 @@ void main() {
         branch: 'master',
         tasks: [
           Task()
-            ..stageName = StageName.luci
             ..name = '1'
             ..builderName = '1'
             ..status = TaskBox.statusSucceeded,
@@ -519,12 +513,10 @@ void main() {
           Task()
             ..name = 'Task Name'
             ..builderName = 'Task Name'
-            ..stageName = 'Stage Nome 1'
             ..status = TaskBox.statusSucceeded,
           Task()
             ..name = 'Task Name'
             ..builderName = 'Task Name'
-            ..stageName = 'Stage Nome 2'
             ..status = TaskBox.statusFailed,
         ],
       ),
@@ -558,7 +550,6 @@ void main() {
           Task()
             ..name = 'Task Name'
             ..name = 'Task Name'
-            ..stageName = 'Stage Nome'
             ..status = TaskBox.statusSucceeded,
         ],
       ),
@@ -616,7 +607,6 @@ void main() {
                 branch: 'master',
                 tasks: [
                   Task()
-                    ..stageName = 'A'
                     ..status = 'Succeeded'
                     ..attempts = 2,
                 ],
@@ -641,7 +631,6 @@ void main() {
                 branch: 'master',
                 tasks: [
                   Task()
-                    ..stageName = 'A'
                     ..status = 'Succeeded'
                     ..attempts = 1,
                 ],
@@ -671,10 +660,8 @@ void main() {
                 branch: 'master',
                 tasks: [
                   Task()
-                    ..stageName = 'A'
                     ..status = 'Succeeded'
-                    ..attempts = 1
-                    ..isTestFlaky = true,
+                    ..attempts = 2,
                 ],
               ),
             ],
@@ -697,10 +684,8 @@ void main() {
                 branch: 'master',
                 tasks: [
                   Task()
-                    ..stageName = 'A'
                     ..status = 'Succeeded'
-                    ..attempts = 1
-                    ..isTestFlaky = false,
+                    ..attempts = 1,
                 ],
               ),
             ],
@@ -716,21 +701,17 @@ void main() {
     (WidgetTester tester) async {
       final taskA3 =
           Task()
-            ..stageName = 'A'
             ..builderName = '1'
             ..name = 'A'
             ..status = TaskBox.statusSucceeded
-            ..attempts = 3
-            ..isTestFlaky = true;
+            ..attempts = 3;
 
       final taskB1 =
           Task()
-            ..stageName = 'B'
             ..builderName = '2'
             ..name = 'B'
             ..status = TaskBox.statusSucceeded
-            ..attempts = 1
-            ..isTestFlaky = false;
+            ..attempts = 1;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -783,27 +764,22 @@ void main() {
         branch: 'master',
         tasks: [
           Task()
-            ..stageName = 'A'
             ..name = '1'
             ..builderName = '1'
             ..status = TaskBox.statusFailed,
           Task()
-            ..stageName = 'A'
             ..name = '2'
             ..builderName = '2'
             ..status = TaskBox.statusNew,
           Task()
-            ..stageName = 'A'
             ..name = '3'
             ..builderName = '3'
             ..status = TaskBox.statusSkipped,
           Task()
-            ..stageName = 'A'
             ..name = '4'
             ..builderName = '4'
             ..status = TaskBox.statusSucceeded,
           Task()
-            ..stageName = 'A'
             ..name = '5'
             ..builderName = '5'
             ..status = TaskBox.statusInProgress,
@@ -814,31 +790,26 @@ void main() {
         branch: 'master',
         tasks: [
           Task()
-            ..stageName = 'A'
             ..name = '1'
             ..builderName = '1'
             ..attempts = 2
             ..status = TaskBox.statusFailed,
           Task()
-            ..stageName = 'A'
             ..name = '2'
             ..builderName = '2'
             ..attempts = 2
             ..status = TaskBox.statusNew,
           Task()
-            ..stageName = 'A'
             ..name = '3'
             ..builderName = '3'
             ..attempts = 2
             ..status = TaskBox.statusSkipped,
           Task()
-            ..stageName = 'A'
             ..name = '4'
             ..builderName = '4'
             ..attempts = 2
             ..status = TaskBox.statusSucceeded,
           Task()
-            ..stageName = 'A'
             ..name = '5'
             ..builderName = '5'
             ..attempts = 2
@@ -850,31 +821,26 @@ void main() {
         branch: 'master',
         tasks: [
           Task()
-            ..stageName = 'A'
             ..name = '1'
             ..builderName = '1'
             ..isFlaky = true
             ..status = TaskBox.statusFailed,
           Task()
-            ..stageName = 'A'
             ..name = '2'
             ..builderName = '2'
             ..isFlaky = true
             ..status = TaskBox.statusNew,
           Task()
-            ..stageName = 'A'
             ..name = '3'
             ..builderName = '3'
             ..isFlaky = true
             ..status = TaskBox.statusSkipped,
           Task()
-            ..stageName = 'A'
             ..name = '4'
             ..builderName = '4'
             ..isFlaky = true
             ..status = TaskBox.statusSucceeded,
           Task()
-            ..stageName = 'A'
             ..name = '5'
             ..builderName = '5'
             ..isFlaky = true
@@ -886,35 +852,30 @@ void main() {
         branch: 'master',
         tasks: [
           Task()
-            ..stageName = 'A'
             ..name = '1'
             ..builderName = '1'
             ..attempts = 2
             ..isFlaky = true
             ..status = TaskBox.statusFailed,
           Task()
-            ..stageName = 'A'
             ..name = '2'
             ..builderName = '2'
             ..attempts = 2
             ..isFlaky = true
             ..status = TaskBox.statusNew,
           Task()
-            ..stageName = 'A'
             ..name = '3'
             ..builderName = '3'
             ..attempts = 2
             ..isFlaky = true
             ..status = TaskBox.statusSkipped,
           Task()
-            ..stageName = 'A'
             ..name = '4'
             ..builderName = '4'
             ..attempts = 2
             ..isFlaky = true
             ..status = TaskBox.statusSucceeded,
           Task()
-            ..stageName = 'A'
             ..name = '5'
             ..builderName = '5'
             ..attempts = 2

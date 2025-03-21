@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:github/github.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
 import '../model/firestore/commit.dart';
@@ -89,24 +88,25 @@ final class _SerializableCommitStatus {
   Map<String, Object?> toJson() {
     return {
       'Commit': _SerializableCommit(status.commit).toJson(),
-      'Tasks': status.tasks,
+      'Tasks': [...status.collateTasksByTaskName().map(_SerializableTask.new)],
       'Status': _determineCommitStatus(),
     };
   }
 
   // Copied from https://github.com/flutter/cocoon/blob/f220a6d764715499867ae7883aa24c040307e5f8/app_dart/lib/src/model/appengine/stage.dart#L143-L160.
   String _determineCommitStatus() {
-    if (status.tasks.isEmpty) {
+    final fullTasks = status.collateTasksByTaskName();
+    if (fullTasks.isEmpty) {
       return Task.statusInProgress;
     }
-    if (status.tasks.every((t) => t.status == Task.statusSucceeded)) {
+    if (fullTasks.every((t) => t.task.status == Task.statusSucceeded)) {
       return Task.statusSucceeded;
     }
-    if (status.tasks.any(Task.taskFailStatusSet.contains)) {
+    if (fullTasks.any((t) => Task.taskFailStatusSet.contains(t.task.status))) {
       return Task.statusFailed;
     }
-    return status.tasks
-            .map<String?>((t) => t.status)
+    return fullTasks
+            .map<String?>((t) => t.task.status)
             .reduce((a, b) => a == b ? a : null) ??
         Task.statusInProgress;
   }
@@ -134,9 +134,18 @@ final class _SerializableCommit {
 final class _SerializableTask {
   const _SerializableTask(this.task);
 
-  final Task task;
+  final FullTask task;
 
   Map<String, Object?> toJson() {
-    return {};
+    return {
+      'CreateTimestamp': task.task.createTimestamp,
+      'StartTimestamp': task.task..startTimestamp,
+      'EndTimestamp': task.task..endTimestamp,
+      'Attempts': task.task..attempts,
+      'Flaky': task.task..testFlaky,
+      'Status': task.task..status,
+      'BuildNumberList': task.buildList.join(','),
+      'BuilderName': task.task..taskName,
+    };
   }
 }

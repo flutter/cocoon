@@ -11,7 +11,6 @@ void main() {
   test('QualifiedTask.sourceConfigurationUrl for luci', () {
     final luciTask =
         Task()
-          ..stageName = 'chromebot'
           ..name = 'abc'
           ..builderName = 'def';
 
@@ -21,17 +20,8 @@ void main() {
     );
   });
 
-  test('QualifiedTask.sourceConfigurationUrl for google test', () {
-    final googleTestTask = Task()..stageName = 'google_internal';
-
-    expect(
-      QualifiedTask.fromTask(googleTestTask).sourceConfigurationUrl,
-      'https://flutter-rob.corp.google.com',
-    );
-  });
-
   test('QualifiedTask.sourceConfigurationUrl for dart-internal', () {
-    final dartInternalTask = Task()..stageName = 'dart-internal';
+    final dartInternalTask = Task(builderName: 'Linux flutter_release_builder');
 
     expect(
       QualifiedTask.fromTask(dartInternalTask).sourceConfigurationUrl,
@@ -40,11 +30,12 @@ void main() {
   });
 
   test('QualifiedTask.isLuci', () {
-    expect(const QualifiedTask(stage: 'luci', task: 'abc').isLuci, true);
-    expect(const QualifiedTask(stage: 'chromebot', task: 'abc').isLuci, true);
-    expect(const QualifiedTask(stage: 'cocoon', task: 'abc').isLuci, true);
+    expect(const QualifiedTask(pool: 'pool', task: 'Linux abc').isLuci, true);
     expect(
-      const QualifiedTask(stage: 'google_internal', task: 'abc').isLuci,
+      const QualifiedTask(
+        pool: 'pool',
+        task: 'Linux flutter_release_builder',
+      ).isLuci,
       false,
     );
   });

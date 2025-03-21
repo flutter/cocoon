@@ -25,16 +25,6 @@ void main() {
       filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')),
       true,
     );
-    expect(
-      filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = 'foo')),
-      true,
-    );
-    expect(
-      filter.matchesTask(
-        QualifiedTask.fromTask(Task()..stageName = StageName.luci),
-      ),
-      true,
-    );
 
     expect(
       filter.matchesCommit(

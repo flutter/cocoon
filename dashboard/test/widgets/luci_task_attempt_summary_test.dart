@@ -139,8 +139,7 @@ void main() {
                 task:
                     Task()
                       ..buildNumberList = '123'
-                      ..builderName = 'Linux'
-                      ..stageName = 'dart-internal',
+                      ..builderName = 'Linux flutter_release_builder',
               ),
             ],
           ),

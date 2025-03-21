@@ -344,9 +344,7 @@ class AppEngineCocoonService implements CocoonService {
           ..name = taskData['Name'] as String
           ..attempts = taskData['Attempts'] as int
           ..isFlaky = taskData['Flaky'] as bool
-          ..stageName = taskData['StageName'] as String
-          ..status = taskData['Status'] as String
-          ..isTestFlaky = taskData['TestFlaky'] as bool? ?? false;
+          ..status = taskData['Status'] as String;
 
     task
       ..buildNumberList = taskData['BuildNumberList'] as String? ?? ''

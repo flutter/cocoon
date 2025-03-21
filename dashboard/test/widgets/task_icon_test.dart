@@ -13,7 +13,6 @@ import '../utils/fake_url_launcher.dart';
 
 void main() {
   testWidgets('TaskIcon tooltip shows task name', (WidgetTester tester) async {
-    const stageName = 'stagey stage';
     const taskName = 'tasky task';
     const expectedLabel = 'tasky task (stagey stage)';
 
@@ -21,7 +20,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: stageName, task: taskName),
+            qualifiedTask: QualifiedTask(pool: 'pool', task: taskName),
           ),
         ),
       ),
@@ -44,7 +43,7 @@ void main() {
     final urlLauncher = FakeUrlLauncher();
     UrlLauncherPlatform.instance = urlLauncher;
 
-    const luciTask = QualifiedTask(stage: StageName.luci, task: 'test');
+    const luciTask = QualifiedTask(pool: 'pool', task: 'test');
 
     await tester.pumpWidget(
       const MaterialApp(
@@ -60,49 +59,6 @@ void main() {
     expect(urlLauncher.launches.single, luciTask.sourceConfigurationUrl);
   });
 
-  testWidgets('Unknown stage name shows helper icon in TaskIcon', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Material(
-          child: TaskIcon(
-            qualifiedTask: QualifiedTask(
-              stage: 'stage not to be named',
-              task: 'macbeth',
-            ),
-          ),
-        ),
-      ),
-    );
-
-    expect(find.byIcon(Icons.help), findsOneWidget);
-  });
-
-  testWidgets('TaskIcon shows the right icon for google test', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Material(
-          child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'google_internal'),
-          ),
-        ),
-      ),
-    );
-
-    expect(
-      (tester.widget(find.byType(Image)) as Image).image,
-      isInstanceOf<AssetImage>(),
-    );
-    expect(
-      ((tester.widget(find.byType(Image)) as Image).image as AssetImage)
-          .assetName,
-      'assets/googleLogo.png',
-    );
-  });
-
   testWidgets('TaskIcon shows the right icon for web', (
     WidgetTester tester,
   ) async {
@@ -111,7 +67,6 @@ void main() {
         home: Material(
           child: TaskIcon(
             qualifiedTask: QualifiedTask(
-              stage: 'chromebot',
               task: 'Windows_web test',
               pool: 'luci.flutter.prod',
             ),
@@ -139,7 +94,6 @@ void main() {
         home: Material(
           child: TaskIcon(
             qualifiedTask: QualifiedTask(
-              stage: 'chromebot',
               task: 'Windows something',
               pool: 'luci.flutter.prod',
             ),
@@ -167,7 +121,6 @@ void main() {
         home: Material(
           child: TaskIcon(
             qualifiedTask: QualifiedTask(
-              stage: 'chromebot',
               task: 'Windows_fuchsia something',
               pool: 'luci.flutter.prod',
             ),
@@ -197,19 +150,19 @@ void main() {
             children: <Widget>[
               TaskIcon(
                 qualifiedTask: QualifiedTask(
-                  stage: 'chromebot',
+                  pool: 'pool',
                   task: 'Windows_android test',
                 ),
               ),
               TaskIcon(
                 qualifiedTask: QualifiedTask(
-                  stage: 'chromebot',
+                  pool: 'pool',
                   task: 'Windows_pixel_7pro test',
                 ),
               ),
               TaskIcon(
                 qualifiedTask: QualifiedTask(
-                  stage: 'chromebot',
+                  pool: 'pool',
                   task: 'Windows_mokey test',
                 ),
               ),
@@ -229,7 +182,6 @@ void main() {
         home: Material(
           child: TaskIcon(
             qualifiedTask: QualifiedTask(
-              stage: 'chromebot',
               task: 'Mac test',
               pool: 'luci.flutter.prod',
             ),
@@ -257,7 +209,6 @@ void main() {
         home: Material(
           child: TaskIcon(
             qualifiedTask: QualifiedTask(
-              stage: 'chromebot',
               task: 'Mac_ios test',
               pool: 'luci.flutter.prod',
             ),
@@ -281,7 +232,6 @@ void main() {
         home: Material(
           child: TaskIcon(
             qualifiedTask: QualifiedTask(
-              stage: 'chromebot',
               task: 'Linux test',
               pool: 'luci.flutter.prod',
             ),
@@ -309,7 +259,6 @@ void main() {
         home: Material(
           child: TaskIcon(
             qualifiedTask: QualifiedTask(
-              stage: 'chromebot',
               task: 'Unknown',
               pool: 'luci.flutter.prod',
             ),
@@ -333,8 +282,7 @@ void main() {
         home: Material(
           child: TaskIcon(
             qualifiedTask: QualifiedTask(
-              stage: 'dart-internal',
-              task: 'Linux dart-internal test',
+              task: 'Linux flutter_release_builder',
               pool: 'luci.flutter.prod',
             ),
           ),
