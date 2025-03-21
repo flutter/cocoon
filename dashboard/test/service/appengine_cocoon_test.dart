@@ -48,16 +48,11 @@ void main() {
             ..name = 'linux'
             ..attempts = 1
             ..isFlaky = false
-            ..timeoutInMinutes = 0
-            ..reason = ''
-            ..requiredCapabilities.add('[linux]')
-            ..reservedForAgentId = ''
             ..stageName = 'chromebot'
             ..status = 'Succeeded'
             ..isTestFlaky = false
             ..buildNumberList = '123'
-            ..builderName = 'Linux'
-            ..luciBucket = 'luci.flutter.try',
+            ..builderName = 'Linux',
         ],
       );
 
