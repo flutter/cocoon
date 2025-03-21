@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/widgets/commit_box.dart';
+import 'package:flutter_dashboard/widgets/progress_button.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/link.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
@@ -107,7 +108,13 @@ void main() {
         tester.firstWidget(find.byKey(const ValueKey('schedulePostsubmit')))
             as Tooltip;
     expect(tooltip.message, contains('Only enabled for release branches'));
-    final button = tooltip.child as TextButton;
+
+    final button = tester.firstWidget<ProgressButton>(
+      find.descendant(
+        of: find.byWidget(tooltip),
+        matching: find.byType(ProgressButton),
+      ),
+    );
     expect(button.onPressed, isNull, reason: 'Should be disabled');
   });
 
@@ -145,7 +152,7 @@ void main() {
       tooltip.message,
       contains('For release branches, the post-submit artifacts are not'),
     );
-    final button = tooltip.child as TextButton;
+    final button = tooltip.child!;
     await tester.tap(find.byWidget(button));
     expect(scheduled, 1, reason: 'Should have been scheduled once');
   });

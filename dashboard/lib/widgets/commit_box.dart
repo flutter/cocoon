@@ -10,6 +10,7 @@ import 'package:url_launcher/link.dart';
 
 import '../model/commit.pb.dart';
 import 'commit_author_avatar.dart';
+import 'progress_button.dart';
 
 // TODO(ianh): Factor out the logic in task_overlay.dart and use it here as well,
 // so that all our popups have the same look and feel and we don't duplicate code.
@@ -185,10 +186,12 @@ class CommitOverlayContents extends StatelessWidget {
                                     : ''
                                         'For release branches, the post-submit artifacts are not '
                                         'immediately available and must be manually scheduled.',
-                            child: TextButton.icon(
-                              label: const Text('Schedule post-submit'),
-                              icon: const Icon(Icons.hardware),
-                              onPressed: schedulePostsubmitBuild,
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: ProgressButton(
+                                child: const Text('Run all tasks'),
+                                onPressed: schedulePostsubmitBuild,
+                              ),
                             ),
                           ),
                         ],
