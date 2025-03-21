@@ -83,7 +83,6 @@ void main() {
           ..attempts = 3
           ..stageName = StageName.luci
           ..name = 'Tasky McTaskFace'
-          ..reservedForAgentId = 'Agenty McAgentFace'
           ..isFlaky =
               false // As opposed to the next test.
           ..status = TaskBox.statusFailed
@@ -114,7 +113,6 @@ void main() {
 
     expect(find.text(expectedTask.name), findsNothing);
     expect(find.text(expectedTaskInfoString), findsNothing);
-    expect(find.text(expectedTask.reservedForAgentId), findsNothing);
 
     await expectGoldenMatches(
       find.byType(MaterialApp),
@@ -139,7 +137,6 @@ void main() {
 
     expect(find.text(expectedTask.name), findsNothing);
     expect(find.text(expectedTaskInfoString), findsNothing);
-    expect(find.text(expectedTask.reservedForAgentId), findsNothing);
 
     await expectGoldenMatches(
       find.byType(MaterialApp),
@@ -192,7 +189,6 @@ void main() {
 
     expect(find.text(flakyTask.name), findsNothing);
     expect(find.text(flakyTaskInfoString), findsNothing);
-    expect(find.text(flakyTask.reservedForAgentId), findsNothing);
 
     await expectGoldenMatches(
       find.byType(MaterialApp),
@@ -457,7 +453,6 @@ void main() {
           ..attempts = 3
           ..stageName = StageName.luci
           ..name = 'Tasky McTaskFace'
-          ..reservedForAgentId = 'Agenty McAgentFace'
           ..status = TaskBox.statusSucceeded
           ..isFlaky = false;
 
@@ -503,7 +498,6 @@ void main() {
           ..attempts = 3
           ..stageName = StageName.luci
           ..name = 'Tasky McTaskFace'
-          ..reservedForAgentId = 'Agenty McAgentFace'
           ..status = TaskBox.statusSucceeded
           ..isFlaky = false;
 
@@ -555,7 +549,6 @@ void main() {
           ..attempts = 3
           ..stageName = StageName.luci
           ..name = 'Tasky McTaskFace'
-          ..reservedForAgentId = 'Agenty McAgentFace'
           ..isFlaky = false
           ..status = TaskBox.statusNew;
 
