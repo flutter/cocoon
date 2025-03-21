@@ -10,8 +10,7 @@ import 'package:meta/meta.dart';
 import 'package:truncate/truncate.dart';
 
 import '../model/appengine/commit.dart';
-import '../request_handling/api_request_handler.dart';
-import '../request_handling/body.dart';
+import '../request_handling/single_execution_request_handler.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/github_service.dart';
@@ -19,10 +18,11 @@ import '../service/scheduler.dart';
 
 /// Query GitHub for commits from the past day and ensure they exist in datastore.
 @immutable
-class VacuumGithubCommits extends ApiRequestHandler<Body> {
+interface class VacuumGithubCommits extends SingleExecutionRequestHandler {
   const VacuumGithubCommits({
     required super.config,
     required super.authenticationProvider,
+    required super.cache,
     required this.scheduler,
     @visibleForTesting
     this.datastoreProvider = DatastoreService.defaultProvider,
@@ -35,7 +35,7 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
   static const String branchParam = 'branch';
 
   @override
-  Future<Body> get() async {
+  Future<void> run() async {
     final datastore = datastoreProvider(config.db);
 
     for (var slug in config.supportedRepos) {
@@ -44,8 +44,6 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
           Config.defaultBranch(slug);
       await _vacuumRepository(slug, datastore: datastore, branch: branch);
     }
-
-    return Body.empty;
   }
 
   Future<void> _vacuumRepository(
@@ -71,17 +69,17 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
   }) async {
     var commits = <gh.RepositoryCommit>[];
     // Sliding window of times to add commits from.
-    final queryAfter = DateTime.now().subtract(const Duration(days: 1));
-    final queryBefore = DateTime.now().subtract(const Duration(minutes: 3));
+    final since = DateTime.now().subtract(const Duration(days: 1));
+    final after = DateTime.now().subtract(const Duration(minutes: 3));
     try {
       log.debug(
         'Listing commit for slug: $slug branch: $branch and msSinceEpoch: '
-        '${queryAfter.millisecondsSinceEpoch}',
+        '${since.millisecondsSinceEpoch}',
       );
       commits = await githubService.listBranchedCommits(
         slug,
         branch,
-        queryAfter.millisecondsSinceEpoch,
+        since: since,
       );
       log.debug('Retrieved ${commits.length} commits from GitHub');
       // Do not try to add recent commits as they may already be processed
@@ -91,7 +89,7 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
               .where(
                 (commit) =>
                     commit.commit!.committer!.date!.millisecondsSinceEpoch <
-                    queryBefore.millisecondsSinceEpoch,
+                    after.millisecondsSinceEpoch,
               )
               .toList();
     } on gh.GitHubError catch (e) {

@@ -2791,15 +2791,15 @@ class MockGithubService extends _i1.Mock implements _i16.GithubService {
   @override
   _i19.Future<List<_i12.RepositoryCommit>> listBranchedCommits(
     _i12.RepositorySlug? slug,
-    String? branch,
-    int? lastCommitTimestampMills,
-  ) =>
+    String? branch, {
+    required DateTime? since,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#listBranchedCommits, [
-              slug,
-              branch,
-              lastCommitTimestampMills,
-            ]),
+            Invocation.method(
+              #listBranchedCommits,
+              [slug, branch],
+              {#since: since},
+            ),
             returnValue: _i19.Future<List<_i12.RepositoryCommit>>.value(
               <_i12.RepositoryCommit>[],
             ),

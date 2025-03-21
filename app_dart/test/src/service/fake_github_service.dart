@@ -11,7 +11,7 @@ import 'package:github/github.dart';
 /// A fake GithubService implementation.
 class FakeGithubService implements GithubService {
   FakeGithubService({GitHub? client}) : github = client ?? MockGitHub();
-  late List<RepositoryCommit> Function(String, int) listCommitsBranch;
+  late List<RepositoryCommit> Function(String, DateTime) listCommitsBranch;
   late List<PullRequest> Function(String?) listPullRequestsBranch;
 
   @override
@@ -20,10 +20,10 @@ class FakeGithubService implements GithubService {
   @override
   Future<List<RepositoryCommit>> listBranchedCommits(
     RepositorySlug slug,
-    String branch,
-    int? lastCommitTimestampMills,
-  ) async {
-    return listCommitsBranch(branch, lastCommitTimestampMills ?? 0);
+    String branch, {
+    required DateTime since,
+  }) async {
+    return listCommitsBranch(branch, since);
   }
 
   final List<(RepositorySlug, String)> deletedBranches = [];

@@ -5,10 +5,10 @@
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
-import 'package:http/http.dart';
 
-class GithubService {
+interface class GithubService {
   GithubService(this.github);
 
   final GitHub github;
@@ -18,61 +18,30 @@ class GithubService {
   static const String kRefsPrefix = 'refs/heads/';
 
   /// Return commits unique to [branch] for the repository [slug].
-  ///
-  /// When [lastCommitTimestampMills] equals 0, it means a new release branch is
-  /// found and only the branched commit will be returned for now, though the
-  /// rare case that multiple commits exist. For other cases, it returns all
-  /// newer commits since [lastCommitTimestampMills].
   Future<List<RepositoryCommit>> listBranchedCommits(
     RepositorySlug slug,
-    String branch,
-    int? lastCommitTimestampMills,
-  ) async {
-    ArgumentError.checkNotNull(slug);
+    String branch, {
+    required DateTime since,
+  }) async {
     final paginationHelper = PaginationHelper(github);
-
-    /// The [pages] defines the number of pages of returned http request
-    /// results. Return only one page when this is a new branch. Otherwise
-    ///  it will return all commits prior to this release branch commit,
-    /// leading to heavy workload.
-    int? pages;
-    if (lastCommitTimestampMills == null || lastCommitTimestampMills == 0) {
-      pages = 1;
-    }
-
-    var commits = <Map<String, dynamic>>[];
+    final commits = <Map<String, dynamic>>[];
 
     /// [lastCommitTimestamp+1] excludes last commit itself.
     /// Github api url: https://developer.github.com/v3/repos/commits/#list-commits
-    await for (Response response in paginationHelper.fetchStreamed(
+    final sinceUtcIso = since.toUtc().toIso8601String();
+    log.debug('Fetching ${slug.fullName}/commits since $sinceUtcIso');
+    await for (final response in paginationHelper.fetchStreamed(
       'GET',
       '/repos/${slug.fullName}/commits',
-      params: <String, dynamic>{
-        'sha': branch,
-        'since':
-            DateTime.fromMillisecondsSinceEpoch(
-              (lastCommitTimestampMills ?? 0) + 1,
-            ).toUtc().toIso8601String(),
-      },
-      pages: pages,
+      params: {'sha': branch, 'since': sinceUtcIso},
       headers: headers,
     )) {
-      commits.addAll(
-        (json.decode(response.body) as List<dynamic>)
-            .cast<Map<String, dynamic>>(),
-      );
+      final fetched = json.decode(response.body) as List<Object?>;
+      log.debug('Fetched ${fetched.length} commits');
+      commits.addAll(fetched.cast());
     }
 
-    /// When a release branch is first detected only the most recent commit would be needed.
-    ///
-    /// If for the worst case, a new release branch consists of a useful cherry pick commit
-    /// which should be considered as well, here is the todo.
-    // TODO(keyonghan): https://github.com/flutter/flutter/issues/59275
-    if (lastCommitTimestampMills == 0) {
-      commits = commits.take(1).toList();
-    }
-
-    return commits.map<RepositoryCommit>((Map<String, dynamic> commit) {
+    return commits.map((commit) {
       return RepositoryCommit()
         ..sha = commit['sha'] as String?
         ..author =

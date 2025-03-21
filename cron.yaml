@@ -4,7 +4,7 @@
 #   gcloud app deploy --project flutter-dashboard cron.yaml
 cron:
 - description: retrieve missing commits
-  url: /api/v2/vacuum-github-commits
+  url: /api/vacuum-github-commits
   schedule: every 6 hours
 
 - description: vacuum stale tasks
