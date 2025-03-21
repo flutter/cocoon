@@ -6,7 +6,6 @@ import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
-import 'package:flutter_dashboard/model/key.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/appengine_cocoon.dart';
 import 'package:flutter_dashboard/src/rpc_model.dart';
@@ -36,7 +35,6 @@ void main() {
         commit:
             Commit()
               ..timestamp = Int64(123456789)
-              ..key = (RootKey()..child = (Key()..name = 'iamatestkey'))
               ..sha = 'ShaShankHash'
               ..author = 'ShaSha'
               ..authorAvatarUrl = 'https://flutter.dev'
@@ -44,7 +42,6 @@ void main() {
               ..branch = 'master',
         tasks: [
           Task()
-            ..key = (RootKey()..child = (Key()..name = 'taskKey1'))
             ..createTimestamp = Int64(1569353940885)
             ..startTimestamp = Int64(1569354594672)
             ..endTimestamp = Int64(1569354700642)
@@ -148,10 +145,7 @@ void main() {
           return Response('', 200);
         }),
       );
-      task =
-          Task()
-            ..key = RootKey()
-            ..stageName = StageName.luci;
+      task = Task()..stageName = StageName.luci;
     });
 
     test('should return true if request succeeds', () async {

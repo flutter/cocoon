@@ -1183,11 +1183,9 @@ class LuciBuildService {
       return false;
     }
 
-    final commitDocumentName =
-        '$kDatabase/documents/${firestore_commit.kCommitCollectionId}/${task.commitSha}';
-    final currentCommit = await firestore_commit.Commit.fromFirestore(
-      firestoreService: firestoreService,
-      documentName: commitDocumentName,
+    final currentCommit = await firestore_commit.Commit.fromFirestoreBySha(
+      firestoreService,
+      sha: task.commitSha!,
     );
     final commitList = await firestoreService.queryRecentCommits(
       limit: 1,

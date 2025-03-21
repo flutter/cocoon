@@ -9,7 +9,4 @@ part of 'commit.dart';
 // **************************************************************************
 
 Map<String, dynamic> _$SerializableCommitToJson(SerializableCommit instance) =>
-    <String, dynamic>{
-      'Key': const StringKeyConverter().toJson(instance.key),
-      'Checklist': instance.facade,
-    };
+    <String, dynamic>{'Checklist': instance.facade};

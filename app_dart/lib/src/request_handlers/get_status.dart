@@ -4,40 +4,40 @@
 
 import 'dart:async';
 
-import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
-import '../model/appengine/key_helper.dart';
+import '../model/firestore/commit.dart' as firestore;
 import '../request_handling/body.dart';
-import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
 
 @immutable
-class GetStatus extends RequestHandler<Body> {
+final class GetStatus extends RequestHandler<Body> {
   const GetStatus({
     required super.config,
     @visibleForTesting
     this.datastoreProvider = DatastoreService.defaultProvider,
     @visibleForTesting
     this.buildStatusProvider = BuildStatusService.defaultProvider,
-  });
+    @visibleForTesting DateTime Function() now = DateTime.now,
+  }) : _now = now;
 
   final DatastoreServiceProvider datastoreProvider;
   final BuildStatusServiceProvider buildStatusProvider;
+  final DateTime Function() _now;
 
-  static const String kLastCommitKeyParam = 'lastCommitKey';
+  static const String kLastCommitShaParam = 'lastCommitSha';
   static const String kBranchParam = 'branch';
   static const String kRepoParam = 'repo';
 
   @override
   Future<Body> get() async {
-    final encodedLastCommitKey =
-        request!.uri.queryParameters[kLastCommitKeyParam];
+    final lastCommitSha = request!.uri.queryParameters[kLastCommitShaParam];
+
     final repoName =
         request!.uri.queryParameters[kRepoParam] ?? Config.flutterSlug.name;
     final slug = RepositorySlug('flutter', repoName);
@@ -47,13 +47,14 @@ class GetStatus extends RequestHandler<Body> {
     final datastore = datastoreProvider(config.db);
     final firestoreService = await config.createFirestoreService();
     final buildStatusService = buildStatusProvider(datastore, firestoreService);
-    final keyHelper = config.keyHelper;
     final commitNumber = config.commitNumber;
-    final lastCommitTimestamp = await _obtainTimestamp(
-      encodedLastCommitKey,
-      keyHelper,
-      datastore,
-    );
+    final lastCommitTimestamp =
+        lastCommitSha != null
+            ? (await firestore.Commit.fromFirestoreBySha(
+              firestoreService,
+              sha: lastCommitSha,
+            )).createTimestamp
+            : _now().millisecondsSinceEpoch;
 
     final statuses =
         await buildStatusService
@@ -63,57 +64,23 @@ class GetStatus extends RequestHandler<Body> {
               branch: branch,
               slug: slug,
             )
-            .map<SerializableCommitStatus>(
-              (CommitStatus status) => SerializableCommitStatus(
-                status,
-                keyHelper.encode(status.commit.key),
-              ),
-            )
+            .map(SerializableCommitStatus.new)
             .toList();
 
     return Body.forJson(<String, dynamic>{'Statuses': statuses});
-  }
-
-  Future<int> _obtainTimestamp(
-    String? encodedLastCommitKey,
-    KeyHelper keyHelper,
-    DatastoreService datastore,
-  ) async {
-    /// [lastCommitTimestamp] is initially set as the current time, which allows query return
-    /// latest commit list. If [owerKeyParam] is not empty, [lastCommitTimestamp] will be set
-    /// as the timestamp of that [commit], and the query will return lastest commit
-    /// list whose timestamp is smaller than [lastCommitTimestamp].
-    var lastCommitTimestamp = DateTime.now().millisecondsSinceEpoch;
-
-    if (encodedLastCommitKey != null) {
-      final ownerKey = keyHelper.decode(encodedLastCommitKey) as Key<String>;
-      final commit = await datastore.db.lookupValue<Commit>(
-        ownerKey,
-        orElse:
-            () =>
-                throw NotFoundException(
-                  'Failed to find commit with key $ownerKey',
-                ),
-      );
-
-      lastCommitTimestamp = commit.timestamp!;
-    }
-    return lastCommitTimestamp;
   }
 }
 
 /// The serialized representation of a [CommitStatus].
 // TODO(tvolkert): Directly serialize [CommitStatus] once frontends migrate to new format.
 class SerializableCommitStatus {
-  const SerializableCommitStatus(this.status, this.key);
+  const SerializableCommitStatus(this.status);
 
   final CommitStatus status;
-  final String key;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'Checklist': <String, dynamic>{
-        'Key': key,
         'Checklist': SerializableCommit(status.commit).facade,
       },
       'Stages': status.stages,

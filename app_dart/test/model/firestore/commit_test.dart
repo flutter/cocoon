@@ -28,9 +28,9 @@ void main() {
       ) {
         return Future<Commit>.value(commit);
       });
-      final resultedCommit = await Commit.fromFirestore(
-        firestoreService: mockFirestoreService,
-        documentName: 'test',
+      final resultedCommit = await Commit.fromFirestoreBySha(
+        mockFirestoreService,
+        sha: commit.sha!,
       );
       expect(resultedCommit.name, commit.name);
       expect(resultedCommit.fields, commit.fields);

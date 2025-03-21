@@ -10,7 +10,6 @@ import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 
 import '../model/commit.pb.dart';
-import '../model/key.pb.dart';
 import '../model/task.pb.dart';
 import '../src/rpc_model.dart';
 import 'cocoon.dart';
@@ -66,7 +65,7 @@ class AppEngineCocoonService implements CocoonService {
   }) async {
     final queryParameters = <String, String?>{
       if (lastCommitStatus != null)
-        'lastCommitKey': lastCommitStatus.commit.key.child.name,
+        'lastCommitSha': lastCommitStatus.commit.sha,
       'branch': branch ?? _defaultBranch,
       'repo': repo,
     };
@@ -302,9 +301,6 @@ class AppEngineCocoonService implements CocoonService {
 
     final result =
         Commit()
-          ..key =
-              (RootKey()
-                ..child = (Key()..name = jsonChecklist['Key'] as String))
           ..timestamp = Int64() + (checklist['CreateTimestamp']! as Object)
           ..sha = commit['Sha'] as String
           ..author = author['Login'] as String
@@ -344,7 +340,6 @@ class AppEngineCocoonService implements CocoonService {
 
     final task =
         Task()
-          ..key = (RootKey()..child = (Key()..name = json['Key'] as String))
           ..createTimestamp = Int64(taskData['CreateTimestamp'] as int)
           ..startTimestamp = Int64(taskData['StartTimestamp'] as int)
           ..endTimestamp = Int64(taskData['EndTimestamp'] as int)

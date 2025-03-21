@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart' hide Key;
-import 'package:flutter_dashboard/model/key.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/widgets/luci_task_attempt_summary.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -76,7 +75,6 @@ void main() {
               LuciTaskAttemptSummary(
                 task:
                     Task()
-                      ..key = (RootKey()..child = (Key()..name = 'loggylog'))
                       ..buildNumberList = '123'
                       ..builderName = 'Linux',
               ),
@@ -108,7 +106,6 @@ void main() {
                 LuciTaskAttemptSummary(
                   task:
                       Task()
-                        ..key = (RootKey()..child = (Key()..name = 'loggylog'))
                         ..buildNumberList = '123,456'
                         ..builderName = 'Linux',
                 ),
@@ -141,9 +138,6 @@ void main() {
               LuciTaskAttemptSummary(
                 task:
                     Task()
-                      ..key =
-                          (RootKey()
-                            ..child = (Key()..name = 'dart-internal-log'))
                       ..buildNumberList = '123'
                       ..builderName = 'Linux'
                       ..stageName = 'dart-internal',

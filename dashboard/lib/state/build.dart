@@ -10,7 +10,6 @@ import 'package:flutter_app_icons/flutter_app_icons.dart';
 
 import '../logic/brooks.dart';
 import '../model/commit.pb.dart';
-import '../model/key.pb.dart';
 import '../model/task.pb.dart';
 import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
@@ -288,7 +287,6 @@ class BuildState extends ChangeNotifier {
     mergedStatuses.addAll(remainingStatuses);
 
     _statuses = mergedStatuses;
-    assert(_statusesAreUnique(statuses));
   }
 
   /// Find the index in [statuses] that has [statusToFind] based on the key.
@@ -301,7 +299,7 @@ class BuildState extends ChangeNotifier {
   ) {
     for (var index = 0; index < statuses.length; index += 1) {
       final current = _statuses[index];
-      if (current.commit.key == statusToFind.commit.key) {
+      if (current.commit.sha == statusToFind.commit.sha) {
         return index;
       }
     }
@@ -356,8 +354,6 @@ class BuildState extends ChangeNotifier {
     /// of our current list and can just be appended.
     _statuses.addAll(newStatuses);
     notifyListeners();
-
-    assert(_statusesAreUnique(statuses));
   }
 
   Future<bool> refreshGitHubCommits() async {
@@ -404,19 +400,6 @@ class BuildState extends ChangeNotifier {
       }
     }
 
-    return true;
-  }
-
-  /// Assert that there are no duplicate commits in [statuses].
-  bool _statusesAreUnique(List<CommitStatus> statuses) {
-    final uniqueStatuses = <RootKey>{};
-    for (var i = 0; i < statuses.length; i += 1) {
-      final current = statuses[i].commit;
-      if (uniqueStatuses.contains(current.key)) {
-        return false;
-      }
-      uniqueStatuses.add(current.key);
-    }
     return true;
   }
 
