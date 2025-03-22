@@ -14,7 +14,7 @@ const String luciJsonGetStatsResponse = '''{
         "CreateTimestamp": 123456789,
         "Sha": "ShaShankHash",
         "Author": {
-          "Login": "ShaSha", 
+          "Login": "ShaSha",
           "avatar_url": "https://flutter.dev"
         }
       },
