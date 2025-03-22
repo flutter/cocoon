@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
+import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
@@ -66,6 +67,7 @@ Future<void> main() async {
     );
 
     final commitService = CommitService(config: config);
+    final buildStatusService = BuildStatusService(config);
 
     final server = createServer(
       config: config,
@@ -80,6 +82,7 @@ Future<void> main() async {
       commitService: commitService,
       swarmingAuthProvider: swarmingAuthProvider,
       ciYamlFetcher: ciYamlFetcher,
+      buildStatusService: buildStatusService,
     );
 
     return runAppEngine(

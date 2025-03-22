@@ -8,8 +8,6 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/commit_tasks_status.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
@@ -91,8 +89,7 @@ void main() {
       );
       handler = GetGreenCommits(
         config: config,
-        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusService: buildStatusService,
       );
     });
 
@@ -110,8 +107,7 @@ void main() {
       );
       handler = GetGreenCommits(
         config: config,
-        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusService: buildStatusService,
       );
 
       final result = (await decodeHandlerBody<String>())!;
@@ -129,8 +125,7 @@ void main() {
         );
         handler = GetGreenCommits(
           config: config,
-          datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-          buildStatusProvider: (_) => buildStatusService,
+          buildStatusService: buildStatusService,
         );
 
         final result = (await decodeHandlerBody<String>())!;
@@ -149,8 +144,7 @@ void main() {
         );
         handler = GetGreenCommits(
           config: config,
-          datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-          buildStatusProvider: (_) => buildStatusService,
+          buildStatusService: buildStatusService,
         );
 
         final result = (await decodeHandlerBody<String>())!;
@@ -167,8 +161,7 @@ void main() {
       );
       handler = GetGreenCommits(
         config: config,
-        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusService: buildStatusService,
       );
 
       final result = (await decodeHandlerBody<String>())!;
@@ -188,8 +181,7 @@ void main() {
       );
       handler = GetGreenCommits(
         config: config,
-        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusService: buildStatusService,
       );
 
       final result = (await decodeHandlerBody<String>())!;

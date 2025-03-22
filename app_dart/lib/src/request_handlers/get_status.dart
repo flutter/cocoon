@@ -14,21 +14,17 @@ import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
 import '../service/config.dart';
-import '../service/datastore.dart';
 
 @immutable
 final class GetStatus extends RequestHandler<Body> {
   const GetStatus({
     required super.config,
-    @visibleForTesting
-    this.datastoreProvider = DatastoreService.defaultProvider,
-    @visibleForTesting
-    this.buildStatusProvider = BuildStatusService.defaultProvider,
+    required BuildStatusService buildStatusService,
     @visibleForTesting DateTime Function() now = DateTime.now,
-  }) : _now = now;
+  }) : _now = now,
+       _buildStatusService = buildStatusService;
 
-  final DatastoreServiceProvider datastoreProvider;
-  final BuildStatusServiceProvider buildStatusProvider;
+  final BuildStatusService _buildStatusService;
   final DateTime Function() _now;
 
   static const String kLastCommitShaParam = 'lastCommitSha';
@@ -46,7 +42,6 @@ final class GetStatus extends RequestHandler<Body> {
         request!.uri.queryParameters[kBranchParam] ??
         Config.defaultBranch(slug);
     final firestoreService = await config.createFirestoreService();
-    final buildStatusService = buildStatusProvider(firestoreService);
     final commitNumber = config.commitNumber;
     final lastCommitTimestamp =
         lastCommitSha != null
@@ -57,7 +52,7 @@ final class GetStatus extends RequestHandler<Body> {
             : _now().millisecondsSinceEpoch;
 
     final commits =
-        await buildStatusService
+        await _buildStatusService
             .retrieveCommitStatusFirestore(
               limit: commitNumber,
               timestamp: lastCommitTimestamp,
