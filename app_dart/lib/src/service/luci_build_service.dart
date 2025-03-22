@@ -29,6 +29,7 @@ import 'exceptions.dart';
 import 'luci_build_service/build_tags.dart';
 import 'luci_build_service/cipd_version.dart';
 import 'luci_build_service/engine_artifacts.dart';
+import 'luci_build_service/firestore_task_document_name.dart';
 import 'luci_build_service/pending_task.dart';
 import 'luci_build_service/user_data.dart';
 
@@ -921,7 +922,7 @@ class LuciBuildService {
       taskName: task.name!,
       currentAttempt: currentAttempt.attemptNumber,
     );
-    rawUserData['firestore_task_document_name'] = firestoreTask.toString();
+    rawUserData['firestore_task_document_name'] = firestoreTask.documentName;
 
     final processedProperties = target.getProperties().cast<String, Object?>();
     processedProperties.addAll(properties ?? <String, Object?>{});
